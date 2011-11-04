@@ -42,14 +42,13 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: besa2fieldtrip.m 4660 2011-11-02 21:35:02Z roboos $
 
+revision = '$Id: besa2fieldtrip.m 4660 2011-11-02 21:35:02Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble callinfo
 
 if isstruct(input) && numel(input)>1
   % use a recursive call to convert multiple inputs
@@ -380,21 +379,10 @@ elseif ischar(input)
   cfg.filename = input;
 end
 
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: besa2fieldtrip.m 4096 2011-09-03 15:49:40Z roboos $';
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+ft_postamble history data
 
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-data.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that fixes the channel labels, should be a cell-array

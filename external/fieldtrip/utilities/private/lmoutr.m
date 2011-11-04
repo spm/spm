@@ -25,7 +25,7 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: lmoutr.m 3486 2011-05-10 09:29:30Z roboos $
+% $Id: lmoutr.m 4624 2011-10-29 10:10:49Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This is the Matlab implementation.

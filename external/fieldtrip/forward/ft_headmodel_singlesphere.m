@@ -1,4 +1,4 @@
-function vol = ft_headmodel_singlesphere(pnt, varargin)
+function vol = ft_headmodel_singlesphere(geometry, varargin)
 
 % FT_HEADMODEL_SINGLESPHERE creates a volume conduction model of the
 % head by fitting a spherical model to a set of points that describe
@@ -12,7 +12,6 @@ function vol = ft_headmodel_singlesphere(pnt, varargin)
 %   vol = ft_headmodel_singlesphere(pnt, ...)
 %
 % Optional arguments should be specified in key-value pairs and can include
-%   headshape        = string, filename with headshape
 %   conductivity     = number, conductivity of the sphere
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
@@ -20,7 +19,20 @@ function vol = ft_headmodel_singlesphere(pnt, varargin)
 % FIXME document the EEG case
 
 % get the optional arguments
-conductivity = ft_getopt(varargin, 'conductivity');
+conductivity = ft_getopt(varargin, 'conductivity',1);
+
+if length(conductivity)~=1
+  error('the conductivity should be a single number')
+end
+
+if isfield(geometry,'pnt')
+  if numel(geometry)>1
+    error('no more than 1 shell at a time is allowed')
+  end
+  pnt = geometry.pnt;
+else
+  error('the input should be a boundary')
+end
 
 % start with an empty volume conductor
 vol = [];

@@ -67,15 +67,13 @@ function [channel] = ft_channelselection(desired, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 3828 2011-07-12 09:42:36Z jorhor $
+% $Id: ft_channelselection.m 4659 2011-11-02 21:31:58Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
 if isempty(recursion)
   recursion = false;
 end
-
-ft_defaults
 
 % start with the list of desired channels, this will be pruned/expanded
 channel = desired;
@@ -442,3 +440,4 @@ end
 % undo the sorting, make the order identical to that of the data channels
 [tmp, indx] = match_str(datachannel, channel);
 channel = channel(indx);
+

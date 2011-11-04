@@ -39,7 +39,7 @@ function field=meg_forward(dip_par,forwpar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: meg_forward.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: meg_forward.m 4624 2011-10-29 10:10:49Z roboos $
 
 device_sens=forwpar.device_sens;
 

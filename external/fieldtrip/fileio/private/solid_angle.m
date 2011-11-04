@@ -33,7 +33,7 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: solid_angle.m 3032 2011-03-01 21:04:27Z crimic $
+% $Id: solid_angle.m 4624 2011-10-29 10:10:49Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The first section contains the plain Matlab implementation. The mex file

@@ -19,7 +19,7 @@ function out=leadsphere_chans(xloc,sensorloc,sensorori)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: leadsphere_all.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: leadsphere_all.m 4624 2011-10-29 10:10:49Z roboos $
 
 [n,nsens]=size(sensorloc); %n=3 m=? 
 [n,ndip]=size(xloc);

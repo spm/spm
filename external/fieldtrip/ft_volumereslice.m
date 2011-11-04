@@ -1,4 +1,4 @@
-function resliced = ft_volumereslice(cfg, mri)
+function [reslice] = ft_volumereslice(cfg, mri)
 
 % FT_VOLUMERESLICE interpolates and reslices a volume along the
 % principal axes of the coordinate system according to a specified
@@ -6,8 +6,10 @@ function resliced = ft_volumereslice(cfg, mri)
 %
 % Use as
 %   mri = ft_volumereslice(cfg, mri)
-% where the mri contains an anatomical or functional volume and cfg is a
-% configuration structure containing
+% where the input mri should be a single anatomical or functional MRI
+% volume that was for example read with FT_READ_MRI.
+%
+% The configuration structure can contain
 %   cfg.resolution = number, in physical units
 % The new spatial extent can be specified with
 %   cfg.xrange     = [min max], in physical units
@@ -52,17 +54,19 @@ function resliced = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_volumereslice.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_volumereslice.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar mri
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input data is valid for this function and ensure that the structures correctly describes a volume
+mri = ft_checkdata(mri, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
 
 % set the defaults
 cfg.resolution = ft_getopt(cfg, 'resolution', 1);
@@ -72,18 +76,6 @@ cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 cfg.xrange     = ft_getopt(cfg, 'xrange', []);
 cfg.yrange     = ft_getopt(cfg, 'yrange', []);
 cfg.zrange     = ft_getopt(cfg, 'zrange', []);
-
-% load optional given inputfile as data
-hasdata      = (nargin>1);
-hasinputfile = ~isempty(cfg.inputfile);
-
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif hasinputfile
-  mri = loadvar(cfg.inputfile, 'mri');
-elseif hasdata
-  % nothing to be done
-end
 
 if isfield(mri, 'coordsys')
   % use some prior knowledge to optimize the location of the bounding box
@@ -119,9 +111,6 @@ if isempty(cfg.zrange),
   cfg.zrange = [-cfg.dim(3)/2+0.5 cfg.dim(3)/2-0.5] * cfg.resolution + zshift;
 end
 
-% check if the input data is valid for this function and ensure that the structures correctly describes a volume
-mri = ft_checkdata(mri, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
-
 if ~isequal(cfg.downsample, 1)
   % downsample the anatomical volume
   tmpcfg = [];
@@ -134,54 +123,31 @@ xgrid = cfg.xrange(1):cfg.resolution:cfg.xrange(2);
 ygrid = cfg.yrange(1):cfg.resolution:cfg.yrange(2);
 zgrid = cfg.zrange(1):cfg.resolution:cfg.zrange(2);
 
-resliced           = [];
-resliced.dim       = [length(xgrid) length(ygrid) length(zgrid)];
-resliced.transform = translate([cfg.xrange(1) cfg.yrange(1) cfg.zrange(1)]) * scale([cfg.resolution cfg.resolution cfg.resolution]) * translate([-1 -1 -1]);
-resliced.anatomy   = zeros(resliced.dim, 'int8');
-
-% these are the same in the resliced as in the input anatomical MRI
-if isfield(mri, 'coordsys')
-  resliced.coordsys = mri.coordsys;
-end
-if isfield(mri, 'unit')
-  resliced.unit = mri.unit;
-end
+reslice           = [];
+reslice.dim       = [length(xgrid) length(ygrid) length(zgrid)];
+reslice.transform = translate([cfg.xrange(1) cfg.yrange(1) cfg.zrange(1)]) * scale([cfg.resolution cfg.resolution cfg.resolution]) * translate([-1 -1 -1]);
+reslice.anatomy   = zeros(reslice.dim, 'int8');
 
 clear xgrid ygrid zgrid
 
-fprintf('reslicing from [%d %d %d] to [%d %d %d]\n', mri.dim(1), mri.dim(2), mri.dim(3), resliced.dim(1), resliced.dim(2), resliced.dim(3));
+% these are the same in the resliced as in the input anatomical MRI
+if isfield(mri, 'coordsys')
+  reslice.coordsys = mri.coordsys;
+end
+if isfield(mri, 'unit')
+  reslice.unit = mri.unit;
+end
 
+fprintf('reslicing from [%d %d %d] to [%d %d %d]\n', mri.dim(1), mri.dim(2), mri.dim(3), reslice.dim(1), reslice.dim(2), reslice.dim(3));
+
+% the actual work is being done by ft_sourceinterpolate, which interpolates the real mri volume 
+% on the resolution that is defined for the resliced volume
 tmpcfg = [];
-resliced = ft_sourceinterpolate(tmpcfg, mri, resliced);
+reslice = ft_sourceinterpolate(tmpcfg, mri, reslice);
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumereslice.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-if isfield(cfg, 'previous'),
-  cfg.previous = mri.cfg;
-end
-
-% remember the exact configuration details in the output
-resliced.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'mri', resliced); % use the variable name "mri" in the output file
-end
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous mri
+ft_postamble history reslice
+ft_postamble savevar reslice

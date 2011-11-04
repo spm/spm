@@ -46,7 +46,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % After filtering, this padding is removed and the other preprocessing
 % steps are applied to the remainder of the data. The input fields
 % begpadding and endpadding should be specified in samples. You can also
-% leave them empty, which implies that the data is not padding.
+% leave them empty, which implies that the data is not padded.
 %
 % The configuration can contain
 %   cfg.lpfilter      = 'no' or 'yes'  lowpass filter
@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 2845 2011-02-09 10:52:20Z jansch $
+% $Id: preproc.m 4584 2011-10-25 11:07:50Z roevdmei $
 
 
 

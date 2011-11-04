@@ -68,7 +68,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_read_header.m 4618 2011-10-28 11:52:45Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -500,9 +500,9 @@ switch headerformat
     hdr.nSamples            = size(asc.dat,2);
     hdr.nSamplesPre         = 0;
     hdr.nTrials             = 1;
-    hdr.Fs                  = 1000/median(diff(asc.dat(1,:)));  % these timestamps are in miliseconds
     hdr.FirstTimeStamp      = asc.dat(1,1);
-    hdr.TimeStampPerSample  = median(diff(asc.dat(1,:)));
+    hdr.TimeStampPerSample  = mean(diff(asc.dat(1,:)));
+    hdr.Fs                  = 1000/hdr.TimeStampPerSample;  % these timestamps are in miliseconds
     % give this warning only once
     warning_once('creating fake channel names');
     for i=1:hdr.nChans
@@ -1395,11 +1395,18 @@ switch headerformat
     error('not yet implemented');
 
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'yokogawa_mrk'}
-    % chek that the required low-level toolbox is available
-    ft_hastoolbox('yokogawa', 1);
-    hdr = read_yokogawa_header(filename);
-    % add a gradiometer structure for forward and inverse modelling
-    hdr.grad = yokogawa2grad(hdr);
+    % header can be read with two toolboxes: Yokogawa MEG Reader and Yokogawa MEG160 (old inofficial toolbox)
+    % newest toolbox takes precedence. 
+    if ft_hastoolbox('yokogawa_meg_reader', 3); %stay silent if it cannot be added
+      hdr = read_yokogawa_header_new(filename);
+      % add a gradiometer structure for forward and inverse modelling
+      hdr.grad = yokogawa2grad_new(hdr);
+    else 
+      ft_hastoolbox('yokogawa', 1);
+      hdr = read_yokogawa_header(filename);
+      % add a gradiometer structure for forward and inverse modelling
+      hdr.grad = yokogawa2grad(hdr);
+    end
 
   case 'nmc_archive_k'
     hdr = read_nmc_archive_k_hdr(filename);
@@ -1442,9 +1449,9 @@ end
 
 % ensure that the sensor description is up-to-date
 if isfield(hdr, 'grad')
-  hdr.grad = fixsens(hdr.grad);
+  hdr.grad = ft_datatype_sens(hdr.grad);
 elseif isfield(hdr, 'elec')
-  hdr.elec = fixsens(hdr.elec);
+  hdr.elec = ft_datatype_sens(hdr.elec);
 end
 
 % ensure that these are double precision and not integers, otherwise

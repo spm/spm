@@ -45,7 +45,7 @@ function [c, v, n] = ft_connectivity_ppc(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_ppc.m 4387 2011-10-09 09:19:43Z roboos $
+% $Id: ft_connectivity_ppc.m 4624 2011-10-29 10:10:49Z roboos $
 
 feedback    = ft_getopt(varargin, 'feedback', 'none');
 weighted    = ft_getopt(varargin, 'weighted');

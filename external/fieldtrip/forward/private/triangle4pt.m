@@ -34,7 +34,7 @@ function vol = triangle4pt(vol)
 % written by Christophe Phillips, 2009/01/19
 % Cyclotron Research Centre, University of li?ge, belgium
 %
-% $Id: triangle4pt.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: triangle4pt.m 4624 2011-10-29 10:10:49Z roboos $
 
 Ns = length(vol.bnd);
 for ii=1:Ns % treat each mesh one at a time

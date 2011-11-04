@@ -60,7 +60,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 4389 2011-10-09 09:55:10Z roboos $
+% $Id: ft_datatype_timelock.m 4511 2011-10-18 18:53:18Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -87,11 +87,11 @@ switch version
       end
       
       % ensure the new style sensor description
-      timelock.grad = fixsens(timelock.grad);
+      timelock.grad = ft_datatype_sens(timelock.grad);
     end
     
     if isfield(timelock, 'elec')
-      timelock.elec = fixsens(timelock.elec);
+      timelock.elec = ft_datatype_sens(timelock.elec);
     end
 
   case '2003'

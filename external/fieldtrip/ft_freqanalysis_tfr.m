@@ -1,4 +1,4 @@
-function [freq] = ft_freqanalysis_tfr(cfg, data);
+function [freq] = ft_freqanalysis_tfr(cfg, data)
 
 % FT_FREQANALYSIS_TFR computes time-frequency representations of single-trial
 % data using a convolution in the time-domain with Morlet's wavelets.
@@ -42,9 +42,7 @@ function [freq] = ft_freqanalysis_tfr(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_tfr.m 4155 2011-09-12 10:13:30Z roboos $
-
-ft_defaults
+% $Id: ft_freqanalysis_tfr.m 4623 2011-10-28 15:44:23Z roboos $
 
 % ensure that this function is started as a subfunction of the FT_FREQANALYSIS wrapper
 if ~exist('OCTAVE_VERSION')
@@ -173,11 +171,9 @@ freq.label     = cfg.channel;
 freq.freq      = cfg.foi;
 freq.time      = indicvect(1:cfg.downsample:end);
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
 % remember the configuration details of the input data
 try, cfg.previous = data.cfg; end
+
 % remember the exact configuration details in the output
 freq.cfg = cfg;
 

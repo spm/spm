@@ -43,16 +43,21 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_timelockbaseline.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_timelockbaseline.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar timelock
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
 cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 
@@ -60,20 +65,6 @@ cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 if ~isfield(cfg, 'baseline'),   cfg.baseline    = 'no';   end
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile   = [];     end
 if ~isfield(cfg, 'outputfile'), cfg.outputfile  = [];     end
-
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    timelock = loadvar(cfg.inputfile, 'data');
-  end
-end
-
-% check if the input data is valid for this function
-timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
 
 % the cfg.blc/blcwindow options are used in preprocessing and in
 % ft_timelockanalysis (i.e. in private/preproc), hence make sure that
@@ -160,35 +151,10 @@ if ~(ischar(cfg.baseline) && strcmp(cfg.baseline, 'no'))
   
 end % ~strcmp(cfg.baseline, 'no')
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockbaseline.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = timelock.cfg; end
-
-% remember the exact configuration details in the output
-timelock.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', timelock); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous timelock
+ft_postamble history timelock
+ft_postamble savevar timelock
 

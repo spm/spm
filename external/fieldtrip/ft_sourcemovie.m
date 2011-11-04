@@ -1,12 +1,12 @@
-function cfg = ft_sourcemovie(cfg, source)
+function [cfg] = ft_sourcemovie(cfg, source)
 
 % FT_SOURCEMOVIE displays the source reconstruction on a cortical mesh
 % and allows the user to scroll through time with a movie
 %
 % Use as
-%  FT_SOURCEMOVIE(cfg, source)
-% where indata is obtained from FT_SOURCEANALYSIS
-% and cfg is a configuratioun structure that should contain
+%   ft_sourcemovie(cfg, source)
+% where the input source data is obtained from FT_SOURCEANALYSIS and cfg is
+% a configuratioun structure that should contain
 %
 %  cfg.funparameter    = string, functional parameter that is color coded (default = 'avg.pow')
 %  cfg.maskparameter   = string, functional parameter that is used for opacity (default = [])
@@ -22,27 +22,20 @@ function cfg = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 4370 2011-10-06 15:19:23Z crimic $
+% $Id: ft_sourcemovie.m 4658 2011-11-02 19:49:23Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+revision = '$Id: ft_sourcemovie.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-if isfield(cfg, 'inputfile') && ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if (nargin>1)
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    source = loadvar(cfg.inputfile, 'source');
-  end
-end
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar source
 
 % ensure that the input data is valiud for this function, this will also do
 % backward-compatibility conversions of old data that for example was
@@ -50,7 +43,6 @@ end
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam',    'funparameter'});
 cfg = ft_checkconfig(cfg, 'renamed',	 {'parameter', 'funparameter'});
 cfg = ft_checkconfig(cfg, 'renamed',	 {'mask',      'maskparameter'});
@@ -60,13 +52,13 @@ cfg = ft_checkconfig(cfg, 'renamed',	 {'mask',      'maskparameter'});
 % cfg = ft_checkconfig(cfg, 'deprecated', 'yparam');
 
 % get the options
-xlim    = ft_getopt(cfg, 'xlim');
-ylim    = ft_getopt(cfg, 'ylim');
-zlim    = ft_getopt(cfg, 'zlim');
-olim    = ft_getopt(cfg, 'alim'); % don't use alim as variable name
-xparam  = ft_getopt(cfg, 'xparam', 'time');                 % use time as default
-yparam  = ft_getopt(cfg, 'yparam');                         % default is dealt with below
-funparameter  = ft_getopt(cfg, 'funparameter', 'avg.pow');  % use power as default
+xlim          = ft_getopt(cfg, 'xlim');
+ylim          = ft_getopt(cfg, 'ylim');
+zlim          = ft_getopt(cfg, 'zlim');
+olim          = ft_getopt(cfg, 'alim');                           % don't use alim as variable name
+xparam        = ft_getopt(cfg, 'xparam', 'time');                 % use time as default
+yparam        = ft_getopt(cfg, 'yparam');                         % default is dealt with below
+funparameter  = ft_getopt(cfg, 'funparameter', 'avg.pow');        % use power as default
 maskparameter = ft_getopt(cfg, 'maskparameter');
 
 if isempty(yparam) && isfield(source, 'freq')
@@ -277,36 +269,11 @@ set(sx, 'Callback', @cb_slider);
 set(sy, 'Callback', @cb_slider);
 set(p,  'Callback', @cb_playbutton);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous source
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourcemovie.m 4370 2011-10-06 15:19:23Z crimic $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-if isfield(source, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = source.cfg;
-end
-
-if nargout==0
-  % do not return any output argument
-  clear cfg
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

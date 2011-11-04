@@ -1,4 +1,4 @@
-function [stat, cfg] = statistics_stats(cfg, dat, design);
+function [stat, cfg] = statistics_stats(cfg, dat, design)
 
 % This is a helper function that performs a massive univariate statistical
 % test. This function is called by either FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS
@@ -41,15 +41,10 @@ function [stat, cfg] = statistics_stats(cfg, dat, design);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_stats.m 2938 2011-02-23 13:34:15Z sashae $
-
-ft_defaults
+% $Id: statistics_stats.m 4623 2011-10-28 15:44:23Z roboos $
 
 % test for the presence of the statistics toolbox
-hasstats = (exist('ttest') & exist('ttest2'));
-if ~hasstats
-  error('this function requires the Matlab statistics toolbox');
-end
+ft_hastoolbox('stats', 1);
 
 % set the defaults that are common to all methods
 if ~isfield(cfg, 'feedback'), cfg.feedback = 'textbar'; end

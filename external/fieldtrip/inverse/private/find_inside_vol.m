@@ -26,7 +26,7 @@ function [inside, outside] = find_inside_vol(pos, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_inside_vol.m 3011 2011-03-01 15:03:34Z eelspa $
+% $Id: find_inside_vol.m 4624 2011-10-29 10:10:49Z roboos $
 
 warning('find_inside_vol is obsolete and will be removed, please use ft_inside_vol');
 inside  = ft_inside_vol(pos, vol);

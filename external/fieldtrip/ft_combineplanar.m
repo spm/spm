@@ -51,14 +51,25 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_combineplanar.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_combineplanar.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar', 'yokogawa440_planar'});
+
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'forbidden',   {'combinegrad'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'baseline'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'blc', 'demean'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'blcwindow', 'baselinewindow'});
 
 % set the defaults
 if ~isfield(cfg, 'demean'),        cfg.demean         = 'no';       end
@@ -69,25 +80,6 @@ if ~isfield(cfg, 'trials'),        cfg.trials         = 'all';      end
 if ~isfield(cfg, 'feedback'),      cfg.feedback       = 'none';     end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile      = [];         end
 if ~isfield(cfg, 'outputfile'),    cfg.outputfile     = [];         end
-
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
-
-% check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'freq', 'timelock'}, 'feedback', 'yes', 'senstype', {'ctf151_planar', 'ctf275_planar', 'neuromag122', 'neuromag306', 'bti248_planar', 'bti148_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar', 'yokogawa440_planar'});
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'forbidden',   {'combinegrad'});
-cfg = ft_checkconfig(cfg, 'deprecated',  {'baseline'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'blc', 'demean'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'blcwindow', 'baselinewindow'});
 
 if isfield(cfg, 'baseline')
   warning('only supporting cfg.baseline for backwards compatibility, please update your cfg');
@@ -262,39 +254,14 @@ end % which ft_datatype
 try, data = rmfield(data, 'crsspctrm');   end
 try, data = rmfield(data, 'labelcmb');    end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% store the configuration of this function call, including that of the previous function call
-cfg.version.name = mfilename('fullpath');
-cfg.version.id  = '$Id: ft_combineplanar.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-data.cfg = cfg;
-   
 % convert back to input type if necessary
 if istimelock
    data = ft_checkdata(data, 'datatype', 'timelock');
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history data
+ft_postamble savevar data

@@ -1,4 +1,4 @@
-function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
+function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 
 % FT_ARTIFACT_ZVALUE reads the interesting segments of data from file and
 % identifies artifacts by means of thresholding the z-transformed value
@@ -91,14 +91,15 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 4195 2011-09-14 06:36:22Z jansch $
+% $Id: ft_artifact_zvalue.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_artifact_zvalue.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble loadvar data
 
 % set default rejection parameters
 cfg.headerformat = ft_getopt(cfg, 'headerformat', []);
@@ -128,7 +129,7 @@ end
 if nargin > 1
   % data given as input
   isfetch = 1;
-  hdr = ft_fetch_header(data);
+  hdr  = ft_fetch_header(data);
   data = ft_checkdata(data, 'datatype', 'raw', 'hassampleopt', 'yes');
 elseif nargin == 1
   % only cfg given
@@ -155,7 +156,8 @@ fltpadding    = round(cfg.artfctdef.zvalue.fltpadding*hdr.Fs);
 artpadding    = round(cfg.artfctdef.zvalue.artpadding*hdr.Fs);
 trl(:,1)      = trl(:,1) - trlpadding;       % pad the trial with some samples, in order to detect
 trl(:,2)      = trl(:,2) + trlpadding;       % artifacts at the edges of the relevant trials.
-trl(:,3)      = nan;                         % the offset is not correct any moretrllength     = trl(:,2) - trl(:,1) + 1;     % length of each trial
+trl(:,3)      = nan;                         % the offset is not correct any more
+trllength     = trl(:,2) - trl(:,1) + 1;     % length of each trial
 numtrl        = size(trl,1);
 cfg.artfctdef.zvalue.trl = trl;              % remember where we are going to look for artifacts
 cfg.artfctdef.zvalue.channel = ft_channelselection(cfg.artfctdef.zvalue.channel, hdr.label);
@@ -321,8 +323,8 @@ opt.numtrl       = size(trl,1);
 opt.quit         = 0;
 opt.threshold    = cfg.artfctdef.zvalue.cutoff;
 opt.thresholdsum = thresholdsum;
-opt.trialok      = []; % OK by means of objective criterion
-opt.keep         = []; % OK overruled by user
+opt.trialok      = true(1,opt.numtrl); % OK by means of objective criterion
+opt.keep         = zeros(1,opt.numtrl); % OK overruled by user +1 to keep, -1 to reject, start all zeros for callback to work
 opt.trl          = trl;
 opt.trlop        = 1;
 opt.updatethreshold = true;
@@ -397,9 +399,8 @@ if strcmp(cfg.artfctdef.zvalue.interactive, 'yes')
 else
   % compute the artifacts given the settings in the cfg
   setappdata(h, 'opt', opt);
+  artval_cb(h);
 end
-
-artval_cb(h);
 
 h   = getparent(h);
 opt = getappdata(h, 'opt');
@@ -421,19 +422,11 @@ cfg.artfctdef.zvalue.artifact = artifact;
 
 fprintf('detected %d artifacts\n', size(artifact,1));
 
-% add the version details of this function call to the configuration
-cfg.artfctdef.zvalue.version.name = mfilename('fullpath');
-cfg.artfctdef.zvalue.version.id = '$Id: ft_artifact_zvalue.m 4195 2011-09-14 06:36:22Z jansch $';
-
-% add information about the function call to the configuration
-cfg.artfctdef.zvalue.callinfo.matlab   = version();
-cfg.artfctdef.zvalue.callinfo.proctime = toc(ftFuncTimer);
-cfg.artfctdef.zvalue.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.artfctdef.zvalue.callinfo.calltime = ftFuncClock;
-cfg.artfctdef.zvalue.callinfo.user     = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.artfctdef.zvalue.callinfo.proctime), round(cfg.artfctdef.zvalue.callinfo.procmem/(1024*1024)));
-
 delete(h);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+ft_postamble previous data
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -464,17 +457,13 @@ for trlop=1:opt.numtrl
   opt.trialok(trlop) = isempty(artbeg);
 end
 
-if isempty(opt.keep)
-  opt.keep = opt.trialok;
-end
-
-for trlop = find(opt.keep & ~opt.trialok)
+for trlop = find(opt.keep==1 & opt.trialok==0)
   % overrule the objective criterion, i.e. keep the trial when the user
   % wants to keep it
   artval{trlop}(:) = 0;
 end
 
-for trlop = find(~opt.keep & opt.trialok)
+for trlop = find(opt.keep==-1 & opt.trialok==1)
   % if the user specifies that the trial is not OK
   % reject the whole trial if there is no extra-threshold data,
   % otherwise use the artifact as found by the thresholding
@@ -550,6 +539,7 @@ switch key
     setappdata(h, 'opt', opt);
     artval_cb(h, eventdata);
     redraw_cb(h, eventdata);
+    opt = getappdata(h, 'opt'); % grab the opt-structure from the handle because it has been adjusted in the callbacks  
     opt.updatethreshold = false;
     setappdata(h, 'opt', opt);
   case 'downarrow'
@@ -558,6 +548,7 @@ switch key
     setappdata(h, 'opt', opt);
     artval_cb(h, eventdata);
     redraw_cb(h, eventdata);
+    opt = getappdata(h, 'opt'); % grab the opt-structure from the handle because it has been adjusted in the callbacks
     opt.updatethreshold = false;
     setappdata(h, 'opt', opt);
   case 'shift+uparrow' % change artifact
@@ -643,19 +634,23 @@ switch key
       setappdata(h, 'opt', opt);
       artval_cb(h, eventdata);
       redraw_cb(h, eventdata);
+      opt = getappdata(h, 'opt'); % grab the opt-structure from the handle because it has been adjusted in the callbacks
       opt.updatethreshold = false;
       setappdata(h, 'opt', opt);
     end
   case 'k'
-    opt.keep(opt.trlop) = true;
+    opt.keep(opt.trlop) = 1;
     setappdata(h, 'opt', opt);
     artval_cb(h);
     redraw_cb(h);
+    opt = getappdata(h, 'opt');
   case 'r'
-    opt.keep(opt.trlop) = false;
+    opt.keep(opt.trlop) = -1;
     setappdata(h, 'opt', opt);
     artval_cb(h);
     redraw_cb(h);
+    opt = getappdata(h, 'opt');
+    
   case 'control+control'
     % do nothing
   case 'shift+shift'
@@ -716,12 +711,12 @@ subplot(opt.h1);hold on;
 
 % plot as a blue line only once
 if isempty(get(opt.h1, 'children'))
-  for trlop=1:opt.numtrl
-    xval = opt.trl(trlop,1):opt.trl(trlop,2);
+  for k = 1:opt.numtrl
+    xval = opt.trl(k,1):opt.trl(k,2);
     if opt.thresholdsum,
-      yval = opt.zsum{trlop};
+      yval = opt.zsum{k};
     else
-      yval = opt.zmax{trlop};
+      yval = opt.zmax{k};
     end
     plot(opt.h1, xval, yval, 'linestyle', '-', 'color', 'b', 'displayname', 'data');
   end
@@ -755,12 +750,12 @@ end
 thrhandle = findall(h1children, 'displayname', 'reddata');
 if isempty(thrhandle)
   % they have to be drawn
-  for trlop=1:opt.numtrl
-    xval = opt.trl(trlop,1):opt.trl(trlop,2);
+  for k = 1:opt.numtrl
+    xval = opt.trl(k,1):opt.trl(k,2);
     if opt.thresholdsum,
-      yval = opt.zsum{trlop};
+      yval = opt.zsum{k};
     else
-      yval = opt.zmax{trlop};
+      yval = opt.zmax{k};
     end
     dum = yval<=opt.threshold;
     yval(dum) = nan;
@@ -770,17 +765,17 @@ if isempty(thrhandle)
   ylabel('zscore');
 elseif ~isempty(thrhandle) && opt.updatethreshold
   % they can be updated
-  for trlop=1:opt.numtrl
-    xval = opt.trl(trlop,1):opt.trl(trlop,2);
+  for k = 1:opt.numtrl
+    xval = opt.trl(k,1):opt.trl(k,2);
     if opt.thresholdsum,
-      yval = opt.zsum{trlop};
+      yval = opt.zsum{k};
     else
-      yval = opt.zmax{trlop};
+      yval = opt.zmax{k};
     end
     dum = yval<=opt.threshold;
     yval(dum) = nan;
-    set(thrhandle(trlop), 'XData', xval);
-    set(thrhandle(trlop), 'YData', yval);
+    set(thrhandle(k), 'XData', xval);
+    set(thrhandle(k), 'YData', yval);
   end
   set(findall(h1children, 'displayname', 'threshline'), 'YData', [1 1].*opt.threshold);  
 end
@@ -868,6 +863,9 @@ else
   set(findall(h3children, 'displayname', 'vline1b'), 'visible', 'on');
   set(findall(h3children, 'displayname', 'vline2b'), 'visible', 'on');
 end
+
+setappdata(h, 'opt', opt);
+uiresume
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

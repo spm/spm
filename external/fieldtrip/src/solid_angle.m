@@ -33,7 +33,7 @@ function [varargout] = funname(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: solid_angle.m 4186 2011-09-13 17:35:50Z crimic $
+% $Id: solid_angle.m 4602 2011-10-26 15:42:51Z crimic $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The first section contains the plain Matlab implementation. The mex file
@@ -97,11 +97,12 @@ try
   cd(mexdir);
 
   if ispc
-    mex -I. -c geometry.c
+    mex -I. -c ../../src/geometry.c
     mex -I. -c solid_angle.c ; mex solid_angle.c solid_angle.obj geometry.obj
   else
-    mex -I. -c geometry.c
-    mex -I. -c solid_angle.c ; mex -o solid_angle solid_angle.o geometry.o
+    mex -I. -c ../../src/geometry.c
+    mex -I. -c ../../src/solid_angle.c 
+    mex -o solid_angle solid_angle.o geometry.o
   end
 
   cd(pwdir);

@@ -95,17 +95,16 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_headmodelplot.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_headmodelplot.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
-
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
 % these are suitable RGB colors
 skin_surface   = [255 213 119]/255;
@@ -120,17 +119,8 @@ if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;    end
 if ~isfield(cfg, 'surftype'),          cfg.surftype = 'faces';         end
 if ~isfield(cfg, 'inputfile'),         cfg.inputfile = [];             end
 
-hasdata = (nargin>1);
-
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-elseif nargin<2 
-    data = [];
+if ~isfield('data', 'var')    
+  data = [];
 end
 
 % put the low-level options pertaining to the dipole grid in their own field
@@ -488,20 +478,6 @@ hold off
 % deal with the output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_headmodelplot.m 4287 2011-09-23 12:17:38Z jansch $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo

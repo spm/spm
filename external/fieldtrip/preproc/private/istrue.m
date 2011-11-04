@@ -21,7 +21,7 @@ function y = istrue(x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: istrue.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: istrue.m 4624 2011-10-29 10:10:49Z roboos $
 
 true_list  = {'yes' 'true' 'on' 'y' };
 false_list = {'no' 'false' 'off' 'n' 'none'};

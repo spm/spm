@@ -38,21 +38,26 @@ function h = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-ft_defaults
+revision = '$Id: ft_connectivityplot.m 4659 2011-11-02 21:31:58Z roboos $';
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+% do the general setup of the function
+ft_defaults
+ft_preamble callinfo
+ft_preamble trackconfig
+
+% check if the input data is valid for this function
+for i=1:length(varargin)
+  varargin{i} = ft_checkdata(varargin{i});
+end
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
+cfg = ft_checkconfig(cfg, 'renamed', {'zparam', 'parameter'});
 
-cfg.channel   = ft_getopt(cfg, 'channel', 'all');
+% set the defaults
+cfg.channel   = ft_getopt(cfg, 'channel',   'all');
 cfg.parameter = ft_getopt(cfg, 'parameter', 'cohspctrm');
-cfg.zlim      = ft_getopt(cfg, 'zlim', []);
-cfg.color     = ft_getopt(cfg, 'color', 'brgkywrgbkywrgbkywrgbkyw');
+cfg.zlim      = ft_getopt(cfg, 'zlim',       []);
+cfg.color     = ft_getopt(cfg, 'color',     'brgkywrgbkywrgbkywrgbkyw');
 
 % make the function recursive if numel(varargin)>1
 % FIXME check explicitly which channels belong together
@@ -129,24 +134,8 @@ end
 axis([-0.2 (nchan+1).*1.2+0.2 0 (nchan+1).*1.2+0.2]);
 axis off;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_movieplotER.m 4096 2011-09-03 15:49:40Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
 

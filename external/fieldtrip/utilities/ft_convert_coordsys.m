@@ -42,7 +42,7 @@ function [obj] = ft_convert_coordsys(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 2885 $
+% $Id: ft_convert_coordsys.m 4624 2011-10-29 10:10:49Z roboos $
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   obj = ft_determine_coordsys(obj, 'interactive', 'yes');

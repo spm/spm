@@ -1,4 +1,4 @@
-function varargout = ft_denoise_pca(cfg, varargin)
+function data = ft_denoise_pca(cfg, varargin)
 
 % DENOISE_PCA performs a pca on specified reference channels and subtracts
 % the projection of the data of interest onto this orthogonal basis from 
@@ -6,22 +6,36 @@ function varargout = ft_denoise_pca(cfg, varargin)
 % compute noise cancellation weights on a dataset of interest.
 %
 % Use as
-%   [data] = ft_denoise_pca(cfg, data) or [data] = ft_denoise_pca(cfg, data, refdata)
+%   [dataout] = ft_denoise_pca(cfg, data) 
+% or 
+%   [dataout] = ft_denoise_pca(cfg, data, refdata)
+%
+% Where data is an MEG raw data-structure obtained with FT_PREPROCESSING.
+% If an additional data-structure refdata is in the input, the specified
+% reference channels for the regression will be taken from this second data
+% structure. This can be useful when reference channel specific
+% preprocessing needs to be done (e.g. low-pass filtering).
 %
 % The configuration should be according to
 %   cfg.refchannel = the channels used as reference signal (default = 'MEGREF')
 %   cfg.channel    = the channels to be denoised (default = 'MEG')
-%   cfg.truncate   = optional truncation of the singular value spectrum
+%   cfg.truncate   = optional truncation of the singular value spectrum (default = 'no')
 %   cfg.zscore     = standardise reference data prior to PCA (default = 'no')
-%     if cfg.truncate is integer n > 1, n will be the number of singular values kept.
-%     if 0 < cfg.truncate < 1, the singular value spectrum will be thresholded at the 
-%     fraction cfg.truncate of the largest singular value.
-%     (default = 'no');
+%   cfg.pertrial   = 'no' (default) or 'yes'. Regress out the references on
+%                    a per trial basis
+%   cfg.trials     = list of trials that are used (default = 'all')
+%
+% if cfg.truncate is integer n > 1, n will be the number of singular values kept.
+% if 0 < cfg.truncate < 1, the singular value spectrum will be thresholded at the 
+% fraction cfg.truncate of the largest singular value.
+%
+% The output data dataout contains the denoised data. The optional second
+% output argument pca is a structure that contains
 
 % Undocumented cfg-option: cfg.pca the output structure of an earlier call
 % to the function. Can be used regress out the reference channels from
 % another data set.
-%
+
 % Copyright (c) 2008-2009, Jan-Mathijs Schoffelen, CCNi Glasgow
 % Copyright (c) 2010-2011, Jan-Mathijs Schoffelen, DCCN Nijmegen
 %
@@ -41,22 +55,26 @@ function varargout = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 4448 2011-10-13 09:25:08Z jansch $
+% $Id: ft_denoise_pca.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_denoise_pca.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+for i=1:length(varargin)
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw');
+end
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-cfg.truncate   = ft_getopt(cfg, 'truncate',   'no');
-cfg.channel    = ft_getopt(cfg, 'channel',    'MEG');
+% set the defaults
 cfg.refchannel = ft_getopt(cfg, 'refchannel', 'MEGREF');
-cfg.trials     = ft_getopt(cfg, 'trials',     'all');
+cfg.channel    = ft_getopt(cfg, 'channel',    'MEG');
+cfg.truncate   = ft_getopt(cfg, 'truncate',   'no');
 cfg.zscore     = ft_getopt(cfg, 'zscore',     'no');
+cfg.trials     = ft_getopt(cfg, 'trials',     'all');
 cfg.pertrial   = ft_getopt(cfg, 'pertrial',   'no');
 
 if strcmp(cfg.pertrial, 'yes'),
@@ -261,36 +279,12 @@ else
   warning('fieldtrip:ft_denoise_pca:WeightsNotAppliedToSensors', 'weights have been applied to the data only, not to the sensors');
 end
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_denoise_pca.m 4448 2011-10-13 09:25:08Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-cfg.previous = [];
-for i=1:numel(varargin)
-  if isfield(varargin{i}, 'cfg'), cfg.previous{i} = varargin{i}.cfg; end
-end
-
-% put the data back in the output
-data.cfg = cfg;
-
-if nargout>=1, varargout(1) = {data}; end
-if nargout>=2, varargout(2) = {pca};  end
-if nargout>=3, varargout(3) = {stdpre}; end
-if nargout>=4, varargout(4) = {stdpst}; end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history data
+ft_postamble savevar data
 
 %%%%%%%%%%%%%%%%%
 % SUBFUNCTIONS

@@ -99,16 +99,21 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sliceinterp.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_sliceinterp.m 4611 2011-10-27 15:11:29Z roboos $
 
+revision = '$Id: ft_sliceinterp.m 4611 2011-10-27 15:11:29Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar ininterp
 
 % check if the input data is valid for this function
 ininterp = ft_checkdata(ininterp, 'datatype', 'volume', 'feedback', 'yes');
 
+% set the defaults
 if ~isfield(cfg, 'clipmin');      cfg.clipmin = 'auto';        end
 if ~isfield(cfg, 'clipmax');      cfg.clipmax = 'auto';        end
 if ~isfield(cfg, 'clipsym');      cfg.clipsym = 'no';          end

@@ -1,4 +1,4 @@
-function [cfg, artifact] = ft_artifact_eog(cfg,data)
+function [cfg, artifact] = ft_artifact_eog(cfg, data)
 
 % FT_ARTIFACT_EOG reads the data segments of interest from file and
 % identifies EOG artifacts.
@@ -69,16 +69,17 @@ function [cfg, artifact] = ft_artifact_eog(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_eog.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_artifact_eog.m 4669 2011-11-03 20:58:34Z roboos $
 
+revision = '$Id: ft_artifact_eog.m 4669 2011-11-03 20:58:34Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% this is just a wrapper function around ft_artifact_zvalue, therefore it does not need to 
-% measure the time spent in this function with tic/toc
-% measure the memory usage with memtic/memtoc
+ft_preamble help
+% ft_preamble callinfo is not needed because just a call to ft_artifact_zvalue
+% ft_preamble loadvar data is not needed because ft_artifact_zvalue will do this
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
@@ -86,7 +87,6 @@ cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 if ~isfield(cfg,'artfctdef'),                  cfg.artfctdef                 = [];       end
 if ~isfield(cfg.artfctdef,'eog'),              cfg.artfctdef.eog             = [];       end
 if ~isfield(cfg.artfctdef.eog,'method'),       cfg.artfctdef.eog.method      = 'zvalue'; end
-if ~isfield(cfg, 'inputfile'),                 cfg.inputfile                 = [];       end
 
 % for backward compatibility
 if isfield(cfg.artfctdef.eog,'sgn')
@@ -143,17 +143,9 @@ if strcmp(cfg.artfctdef.eog.method, 'zvalue')
   if isfield(cfg, 'dataformat'),   tmpcfg.dataformat       = cfg.dataformat;    end
   if isfield(cfg, 'headerformat'), tmpcfg.headerformat     = cfg.headerformat;  end
   % call the zvalue artifact detection function
-  
-  hasdata = (nargin>1);
-  if ~isempty(cfg.inputfile)
-    % the input data should be read from file
-    if hasdata
-      error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-    else
-      data = loadvar(cfg.inputfile, 'data');
-      hasdata = true;
-    end
-  end
+
+  % the data is either passed into the function by the user or read from file with cfg.inputfile
+  hasdata = exist('data', 'var');
   
   if hasdata
     cfg = ft_checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
@@ -170,5 +162,3 @@ else
   error(sprintf('EOG artifact detection only works with cfg.method=''zvalue'''));
 end
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');

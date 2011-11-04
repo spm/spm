@@ -61,8 +61,18 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 4119 2011-09-06 14:05:57Z johzum $
+% $Id: ft_prepare_mesh.m 4643 2011-10-31 18:57:49Z crimic $
 
+revision = '$Id: ft_prepare_mesh.m 4643 2011-10-31 18:57:49Z crimic $';
+
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar mri
+
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'forbidden', 'numcompartments');
 
 % set the defaults
@@ -74,20 +84,11 @@ if ~isfield(cfg, 'outputfile'),      cfg.outputfile = [];        end
 if ~isfield(cfg, 'interactive'),     cfg.interactive = 'no';     end
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
-  % convert the nested cmethodonfig-object back into a normal structure
+  % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end
 
-% load optional given inputfile like already segmented volume 
-hasdata = (nargin>1);
-if      hasdata && ~isempty(cfg.inputfile)
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif  hasdata &&  isempty(cfg.inputfile)
-  % this is ok
-elseif ~hasdata && ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  mri = loadvar(cfg.inputfile, 'mri');
-elseif ~hasdata &&  isempty(cfg.inputfile)
+if ~exist('mri', 'var')
   mri = [];
 end
 
@@ -95,7 +96,7 @@ if ~isfield(cfg,'headshape') || isempty(cfg.headshape)
   basedonseg        = isfield(mri, 'transform') && any(isfield(mri, {'seg', 'csf', 'white', 'gray'}));
   basedonmri        = isfield(mri, 'transform') && ~basedonseg && any(isfield(mri, {'brain' 'scalp'}));
   basedonvol        = isfield(mri, 'bnd');
-  basedonsphere     = isfield(mri,'r') && isfield(mri,'o');
+  basedonsphere     = isfield(mri, 'r') && isfield(mri, 'o');
   basedonheadshape  = 0;
 elseif isfield(cfg,'headshape') && ~isempty(cfg.headshape)
   basedonseg        = 0;

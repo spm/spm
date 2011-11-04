@@ -1,4 +1,4 @@
-function [cfg] = ft_rejectartifact(cfg,data)
+function [cfg] = ft_rejectartifact(cfg, data)
 
 % FT_REJECTARTIFACT removes data segments containing artifacts. It returns a
 % configuration structure with a modified trial definition which can be
@@ -81,29 +81,24 @@ function [cfg] = ft_rejectartifact(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_rejectartifact.m 4658 2011-11-02 19:49:23Z roboos $
 
+% FIXME this function contains a lot of lines of code that pertain to backward 
+% compatibility support that dates back to 2004/2005. It would be good to strip 
+% that code and only keep the relevant parts
+
+revision = '$Id: ft_rejectartifact.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-if 0
-  % this code snippet ensures that these functions are included in the
-  % documentation as dependencies
-  try, dum = ft_artifact_ecg;       end
-  try, dum = ft_artifact_eog;       end
-  try, dum = ft_artifact_muscle;    end
-  try, dum = ft_artifact_jump;      end
-  try, dum = ft_artifact_clip;      end
-  try, dum = ft_artifact_manual;    end
-  try, dum = ft_artifact_threshold; end
-end
+% ft_checkdata is done further down
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 
 % set the defaults
@@ -188,16 +183,8 @@ if isfield(cfg, 'rejectfile')
   end
 end
 
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
-  end
-end
+% the data can be specified as input variable or through cfg.inputfile
+hasdata = exist('data', 'var');
 
 if hasdata
   data = ft_checkdata(data, 'hassampleinfo', 'yes');
@@ -487,64 +474,29 @@ else
   fprintf('not rejecting any data, only marking the artifacts\n');
 end
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the artfctdef substructure
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_rejectartifact.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% % remember the exact configuration details in the output
-% cfgtmp = cfg;
-% cfg = [];
-% try cfg.trl        = cfgtmp.trl;        end
-% try cfg.dataset    = cfgtmp.dataset;    end
-% try cfg.datafile   = cfgtmp.datafile;   end
-% try cfg.headerfile = cfgtmp.headerfile; end
-% try cfg.continuous = cfgtmp.continuous; end
-% cfg.previous = cfgtmp;
-
-% apply the updated trial definition on the data
-
 if isempty(cfg.trl)
-    error('No trials left after artifact rejection.')
-else  
-    if hasdata
-        tmpcfg     = [];
-        tmpcfg.trl = cfg.trl;
-        data       = ft_redefinetrial(tmpcfg,data);
-        % remember the configuration details, this overwrites the stored configuration of redefinetrial
-        data.cfg = cfg;
-        if isfield(data, 'offset')
-            data = rmfield(data, 'offset');
-        end
-        % return the data instead of the cfg
-        cfg = data;
+  error('No trials left after artifact rejection.')
+else
+  if hasdata
+    % apply the updated trial definition on the data
+    tmpcfg     = [];
+    tmpcfg.trl = cfg.trl;
+    data       = ft_redefinetrial(tmpcfg, data);
+    if isfield(data, 'offset')
+      data = rmfield(data, 'offset');
     end
+  end
 end
 
-% if nargin>1
-%     if isempty(cfg.trl)
-%         error('No trials left after artifact rejection.')
-%     else
-%         tmpcfg     = [];
-%         tmpcfg.trl = cfg.trl;
-%         data       = ft_redefinetrial(tmpcfg,data);
-%         % remember the configuration details, this overwrites the stored configuration of redefinetrial
-%         data.cfg = cfg;
-%         % return the data instead of the cfg
-%         cfg = data;
-%     end
-% end
-
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+if hasdata
+  ft_postamble previous data
+  ft_postamble history data
+  ft_postamble savevar data
+  if nargout
+    % the output variable is called cfg instead of data
+    cfg = data;
+  end
+end

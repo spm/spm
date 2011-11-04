@@ -53,10 +53,11 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %   cfg.parameter     = string, default is 'all'
 %   cfg.interpmethod  = 'linear', 'cubic', 'nearest' or 'spline' when
 %                          interpolating two 3D volumes onto each other
+%                          (default = 'linear')
 %   cfg.interpmethod  = 'nearest', 'sphere_avg' or 'smudge' when
 %                          interpolating a point cloud onto a 3D volume, a
 %                          3D volume onto a point cloud, or a point cloud
-%                          with another point cloud
+%                          with another point cloud (default = 'nearest')
 %   cfg.downsample    = integer number (default = 1, i.e. no downsampling)
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
@@ -95,69 +96,37 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 4467 2011-10-14 14:09:46Z jorhor $
+% $Id: ft_sourceinterpolate.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_sourceinterpolate.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar functional anatomical
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% this is not supported any more as of 26/10/2011
+if ischar(anatomical),
+  error('please use cfg.inputfile instead of specifying the input variable as a sting');
+end
 
-%% ft_checkdata see below!!! %%
+% ft_checkdata is done further down
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused',     {'keepinside'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
 
 % set the defaults
-if ~isfield(cfg, 'parameter'),    cfg.parameter    = 'all';     end
-if ~isfield(cfg, 'interpmethod'), cfg.interpmethod = 'linear';  end
-if ~isfield(cfg, 'sphereradius'), cfg.sphereradius = [];        end
-if ~isfield(cfg, 'downsample');   cfg.downsample   = 1;         end
-if ~isfield(cfg, 'voxelcoord'),   cfg.voxelcoord   = 'yes';     end
-if ~isfield(cfg, 'feedback'),     cfg.feedback     = 'text';    end
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile    = [];        end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile   = [];        end
-
-hasdata      = (nargin>1);
-hasinputfile = ~isempty(cfg.inputfile);
-
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-end
-
-% load optional given *.mat inputfile as data
-if hasinputfile
-  functional = loadvar(cfg.inputfile{1});
-  anatomical = loadvar(cfg.inputfile{2});
-end
-
-% read the anatomical MRI or cortical mesh from file
-if ischar(anatomical)
-  try
-    fprintf('trying to read anatomical MRI from file\n');
-    anatomical = ft_read_mri(anatomical);
-  catch
-    fprintf('anatomical file does not seem to be an anatomical MRI\n');
-  end
-end % if ischar
-
-if ischar(anatomical)
-  try
-    fprintf('trying to read cortical mesh from file\n');
-    anatomical = ft_read_headshape(anatomical);
-  catch
-    fprintf('anatomical file does not seem to be a cortical mesh\n');
-  end
-end % if ischar
-
-if ischar(anatomical)
-  % if it ends up here, it means that all previous attempts failed
-  error('the anatomical file does not seem to contain an anatomical MRI, nor a cortical mesh');
-end % if ischar
-
+cfg.parameter  = ft_getopt(cfg, 'parameter', 'all');
+cfg.downsample = ft_getopt(cfg, 'downsample', 1);
+cfg.voxelcoord = ft_getopt(cfg, 'voxelcoord', 'yes');
+cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
+cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
+cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
+% cfg.interpmethod depends on how the interpolation should be done and will
+% be specified below
 
 if isfield(anatomical, 'pnt')
   % anatomical data consists of a mesh, but no smudging possible
@@ -218,9 +187,10 @@ elseif is2Dana && is2Dfun
   error('not yet implemented');
   
 elseif ~is2Dana && is2Dfun
+  % set default interpmethod for this situation
+  cfg.interpmethod = ft_getopt(cfg, 'interpmethod', 'nearest');
   
-  % interpolate onto a 3D volume, ensure that the anatomical is indeed a
-  % volume
+  % interpolate onto a 3D volume, ensure that the anatomical is indeed a volume
   anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   functional = ft_convert_units(functional, anatomical.unit);
   
@@ -247,6 +217,8 @@ elseif ~is2Dana && is2Dfun
   end
   
 elseif is2Dana && ~is2Dfun
+  % set default interpmethod for this situation
+  cfg.interpmethod = ft_getopt(cfg, 'interpmethod', 'nearest');
   
   % interpolate the 3D volume onto the anatomy
   anatomical = ft_convert_units(anatomical);
@@ -280,6 +252,9 @@ elseif ~is2Dana && ~is2Dfun
   
   % original implementation interpolate a 3D volume onto another 3D volume
   
+  % set default interpmethod for this situation
+  cfg.interpmethod = ft_getopt(cfg, 'interpmethod', 'linear');
+ 
   % check if the input data is valid for this function and ensure that the structures correctly describes a volume
   functional = ft_checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
@@ -412,39 +387,12 @@ if isfield(anatomical, 'unit')
   interp.unit = anatomical.unit;
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceinterpolate.m 4467 2011-10-14 14:09:46Z jorhor $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-cfg.previous = [];
-if isfield(functional, 'cfg'), cfg.previous{1} = functional.cfg; end
-if isfield(anatomical, 'cfg'), cfg.previous{2} = anatomical.cfg; end
-
-% remember the exact configuration details in the output
-interp.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', interp); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous functional anatomical
+ft_postamble history interp
+ft_postamble savevar interp
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

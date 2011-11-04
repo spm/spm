@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 4487 2011-10-17 12:52:07Z roboos $
+% $Id: ft_compute_leadfield.m 4628 2011-10-31 10:50:22Z jansch $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -102,7 +102,7 @@ if ~isstruct(sens) && size(sens,2)==3
 end
 
 % ensure that the sensor description is up-to-date (Aug 2011)
-sens = fixsens(sens);
+sens = ft_datatype_sens(sens);
 
 % determine whether it is EEG or MEG
 iseeg = ft_senstype(sens, 'eeg');
@@ -425,8 +425,8 @@ elseif iseeg
     case 'halfspace_monopole'
       lf = eeg_halfspace_monopole(pos, sens.elecpos, vol);  
       
-    case 'strip_monopole'
-      lf = eeg_strip_monopole(pos, sens.elecpos, vol);          
+    case 'slab_monopole'
+      lf = eeg_slab_monopole(pos, sens.elecpos, vol);          
 
     case 'simbio'
       lf = leadfield_simbio(pos, sens, vol);
@@ -507,4 +507,4 @@ else
 end
 cunit = sprintf('S/%s',gunit);
 str = sprintf('The input units are %s for points and %s for conductivity',gunit,cunit);
-warning_once(str)
+warning_once(str);

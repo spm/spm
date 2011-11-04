@@ -57,11 +57,17 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 3672 2011-06-10 10:36:58Z jansch $
+% $Id: ft_prepare_singleshell.m 4612 2011-10-27 16:12:38Z crimic $
 
+revision = '$Id: ft_prepare_singleshell.m 4612 2011-10-27 16:12:38Z crimic $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed', {'spheremesh', 'numvertices'});
 cfg = ft_checkconfig(cfg, 'deprecated', 'mriunits');
 
@@ -69,7 +75,7 @@ cfg = ft_checkconfig(cfg, 'deprecated', 'mriunits');
 if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
-if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 4000;  end % approximate number of vertices in sphere
+if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];  end % approximate number of vertices in sphere
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];      end
 
 % construct the geometry of the volume conductor model, containing a single boundary
@@ -83,6 +89,10 @@ if ~isempty(cfg.inputfile)
     mri = loadvar(cfg.inputfile, 'mri');
     hasdata = true;
   end
+end
+
+if isempty(cfg.numvertices) && nargin>1
+  cfg.numvertices = 3000;
 end
 
 if hasdata

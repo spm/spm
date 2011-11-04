@@ -57,14 +57,16 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $
+% $Id: ft_sourcestatistics.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_sourcestatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
 % this wrapper should be compatible with the already existing statistical
 % functions that only work for source input data
@@ -97,34 +99,8 @@ if strcmp(cfg.implementation, 'old'),
   else
     [stat, cfg] = statistics_wrapper(cfg, varargin{:});
   end
-  
-  % add version information to the configuration
-  cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $';
-  
-  % add information about the Matlab version used to the configuration
-  cfg.callinfo.matlab = version();
-  
-  % add information about the function call to the configuration
-  cfg.callinfo.proctime = toc(ftFuncTimer);
-  cfg.callinfo.procmem  = memtoc(ftFuncMem);
-  cfg.callinfo.calltime = ftFuncClock;
-  cfg.callinfo.user = getusername();
-  fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
-  % remember the configuration of the input data
-  cfg.previous = [];
-  for i=1:length(varargin)
-    if isfield(varargin{i}, 'cfg')
-      cfg.previous{i} = varargin{i}.cfg;
-    else
-      cfg.previous{i} = [];
-    end
-  end
   
-  % remember the exact configuration details
-  stat.cfg = cfg;
-
 elseif strcmp(cfg.implementation, 'new')
   
   %---------------------------
@@ -440,36 +416,17 @@ elseif strcmp(cfg.implementation, 'new')
     end
   end
 
-  % add version information to the configuration
-  cfg.version.name = mfilename('fullpath');
-  cfg.version.id = '$Id: ft_sourcestatistics.m 4326 2011-10-03 09:52:19Z jansch $';
-  
-  % add information about the Matlab version used to the configuration
-  cfg.callinfo.matlab = version();
-  
-  % add information about the function call to the configuration
-  cfg.callinfo.proctime = toc(ftFuncTimer);
-  cfg.callinfo.procmem  = memtoc(ftFuncMem);
-  cfg.callinfo.calltime = ftFuncClock;
-  cfg.callinfo.user = getusername();
-  fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-  
-  % remember the configuration of the input data
-  cfg.previous = [];
-  for i=1:length(varargin)
-    if isfield(varargin{i}, 'cfg')
-      cfg.previous{i} = varargin{i}.cfg;
-    else
-      cfg.previous{i} = [];
-    end
-  end
-  
-  % remember the exact configuration details
-  stat.cfg = cfg;
-
 else
   error('cfg.implementation can be only old or new');
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history stat
+ft_postamble savevar stat
+
 
 %-----------------------------------------------------
 %subfunction to extract functional data from the input

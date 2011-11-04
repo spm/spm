@@ -69,7 +69,7 @@ function mvar = ft_datatype_mvar(mvar, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_mvar.m 4388 2011-10-09 09:55:08Z roboos $
+% $Id: ft_datatype_mvar.m 4510 2011-10-18 18:53:15Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -88,11 +88,11 @@ switch version
       end
       
       % ensure the new style sensor description
-      mvar.grad = fixsens(mvar.grad);
+      mvar.grad = ft_datatype_sens(mvar.grad);
     end
     
     if isfield(mvar, 'elec')
-      mvar.elec = fixsens(mvar.elec);
+      mvar.elec = ft_datatype_sens(mvar.elec);
     end
   
   case '2008'

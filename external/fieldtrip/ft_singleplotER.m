@@ -1,44 +1,69 @@
 function [cfg] = ft_singleplotER(cfg, varargin)
 
-% ft_singleplotER plots the event-related fields or potentials of a single channel
-% or the average over multiple channels. multiple datasets can be overlayed.
+% FT_SINGLEPLOTER plots the event-related fields or potentials of a single
+% channel or the average over multiple channels. Multiple datasets can be
+% overlayed.
 %
-% use as:
+% Use as
 %   ft_singleplotER(cfg, data)
+% or
 %   ft_singleplotER(cfg, data1, data2, ..., datan)
 %
-% the data can be an erp/erf produced by ft_timelockanalysis, a powerspectrum
-% produced by ft_freqanalysis or a coherencespectrum produced by ft_freqdescriptives.
-% if you specify multiple datasets they must contain the same channels, etc.
+% The data can be an erp/erf produced by FT_TIMELOCKANALYSIS, a power
+% spectrum produced by FT_FREQANALYSIS or connectivity spectrum produced by
+% FT_CONNECTIVITYANALYSIS.
 %
-% the configuration can have the following parameters:
-% cfg.parameter     = field to be plotted on y-axis (default depends on data.dimord)
-%                     'avg', 'powspctrm' or 'cohspctrm'
-% cfg.maskparameter = field in the first dataset to be used for masking of data
-%                     (not possible for mean over multiple channels, or when input contains multiple subjects
-%                     or trials)
-% cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
-% cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
-% cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
-% cfg.channel       = nx1 cell-array with selection of channels (default = 'all'),
-%                     see ft_channelselection for details
-% cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
-% cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see ft_timelockbaseline
-% cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
-% cfg.trials        = 'all' or a selection given as a 1xn vector (default = 'all')
-% cfg.fontsize      = font size of title (default = 8)
-% cfg.hotkeys       = enables hotkeys (up/down/left/right arrows) for dynamic x/y axis translation (Ctrl+) and zoom adjustment
-% cfg.interactive   = interactive plot 'yes' or 'no' (default = 'no')
-%                     in a interactive plot you can select areas and produce a new
-%                     interactive plot when a selected area is clicked. multiple areas
-%                     can be selected by holding down the shift key.
-% cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
-% cfg.linestyle     = linestyle/marker type, see options of the matlab plot function (default = '-')
-%                     can be a single style for all datasets, or a cell-array containing one style for each dataset
-% cfg.linewidth     = linewidth in points (default = 0.5)
-% cfg.graphcolor    = color(s) used for plotting the dataset(s) (default = 'brgkywrgbkywrgbkywrgbkyw')
-%                     alternatively, colors can be specified as nx3 matrix of rgb values
+% The configuration can have the following parameters:
+%   cfg.parameter     = field to be plotted on y-axis (default depends on data.dimord)
+%                       'avg', 'powspctrm' or 'cohspctrm'
+%   cfg.maskparameter = field in the first dataset to be used for masking of data
+%                       (not possible for mean over multiple channels, or when input contains multiple subjects
+%                       or trials)
+%   cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
+%   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
+%   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
+%   cfg.channel       = nx1 cell-array with selection of channels (default = 'all'),
+%                       see ft_channelselection for details
+%   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
+%   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see ft_timelockbaseline
+%   cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
+%   cfg.trials        = 'all' or a selection given as a 1xn vector (default = 'all')
+%   cfg.fontsize      = font size of title (default = 8)
+%   cfg.hotkeys       = enables hotkeys (up/down/left/right arrows) for dynamic x/y axis translation (Ctrl+) and zoom adjustment
+%   cfg.interactive   = interactive plot 'yes' or 'no' (default = 'no')
+%                       in a interactive plot you can select areas and produce a new
+%                       interactive plot when a selected area is clicked. multiple areas
+%                       can be selected by holding down the shift key.
+%   cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
+%   cfg.linestyle     = linestyle/marker type, see options of the matlab plot function (default = '-')
+%                       can be a single style for all datasets, or a cell-array containing one style for each dataset
+%   cfg.linewidth     = linewidth in points (default = 0.5)
+%   cfg.graphcolor    = color(s) used for plotting the dataset(s) (default = 'brgkywrgbkywrgbkywrgbkyw')
+%                       alternatively, colors can be specified as nx3 matrix of rgb values
+%   cfg.directionality = '', 'inflow' or 'outflow' specifies for
+%                       connectivity measures whether the inflow into a
+%                       node, or the outflow from a node is plotted. The
+%                       (default) behavior of this option depends on the dimor
+%                       of the input data (see below).
 %
+% For the plotting of directional connectivity data the cfg.directionality
+% option determines what is plotted. The default value and the supported
+% functionality depend on the dimord of the input data. If the input data
+% is of dimord 'chan_chan_XXX', the value of directionality determines
+% whether, given the reference channel(s), the columns (inflow), or rows
+% (outflow) are selected for plotting. In this situation the default is
+% 'inflow'. Note that for undirected measures, inflow and outflow should
+% give the same output. If the input data is of dimord 'chancmb_XXX', the
+% value of directionality determines whether the rows in data.labelcmb are
+% selected. With 'inflow' the rows are selected if the refchannel(s) occur in
+% the right column, with 'outflow' the rows are selected if the
+% refchannel(s) occur in the left column of the labelcmb-field. Default in
+% this case is '', which means that all rows are selected in which the
+% refchannel(s) occur. This is to robustly support linearly indexed
+% undirected connectivity metrics. In the situation where undirected
+% connectivity measures are linearly indexed, specifying 'inflow' or
+% 'outflow' can result in unexpected behavior.
+%  
 % to facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following option:
 %   cfg.inputfile   =  ...
@@ -46,8 +71,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 % file on disk. this mat files should contain only a single variable named 'data',
 % corresponding to the input structure.
 %
-% see also:
-%   ft_singleplotTFR, ft_multiplotER, ft_multiplotTFR, ft_topoplotER, ft_topoplotTFR
+% See also FT_SINGLEPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
 % this function depends on ft_timelockbaseline which has the following options:
 % cfg.baseline, documented
@@ -80,51 +104,28 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-ft_defaults
+revision = '$Id: ft_singleplotER.m 4658 2011-11-02 19:49:23Z roboos $';
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'unused',  {'cohtargetchannel'});
+cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'zlim', 'absmax', 'maxabs'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedforward', 'outflow'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedback',    'inflow'});
-cfg = ft_checkconfig(cfg, 'renamed', {'channelindex',  'channel'});
-cfg = ft_checkconfig(cfg, 'renamed', {'channelname',   'channel'});
-cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel', 'refchannel'});
-cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
-cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedforward', 'outflow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflow'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'channelindex',   'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'channelname',    'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel',  'refchannel'});
+cfg = ft_checkconfig(cfg, 'renamed',	  {'zparam',         'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated', {'xparam'});
 
-
-% set default for inputfile
-cfg.inputfile = ft_getopt(cfg, 'inputfile', []);
-
-hasdata      = nargin>1;
-hasinputfile = ~isempty(cfg.inputfile);
-
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-end
-
-if hasdata
-  % do nothing
-elseif hasinputfile
-  if ~ischar(cfg.inputfile)
-    cfg.inputfile = {cfg.inputfile};
-  end
-  for i = 1:numel(cfg.inputfile)
-    varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets
-  end
-  if isfield(cfg, 'interactive') && strcmp(cfg.interactive, 'yes'),
-    warning('switching off interactive mode, this is not supported when loading an inputfile from disk');
-  end
-end
-
-% set the defaults:
+% set the defaults
 cfg.baseline      = ft_getopt(cfg, 'baseline',    'no');
 cfg.trials        = ft_getopt(cfg, 'trials',      'all');
 cfg.xlim          = ft_getopt(cfg, 'xlim',        'maxmin');
@@ -142,7 +143,7 @@ cfg.linestyle     = ft_getopt(cfg, 'linestyle',    '-');
 cfg.linewidth     = ft_getopt(cfg, 'linewidth',    0.5);
 cfg.maskstyle     = ft_getopt(cfg, 'maskstyle',    'box');
 cfg.channel       = ft_getopt(cfg, 'channel',      'all');
-cfg.matrixside    = ft_getopt(cfg, 'matrixside',   []);
+cfg.directionality    = ft_getopt(cfg, 'directionality',   []);
 
 Ndata = numel(varargin);
 
@@ -151,7 +152,7 @@ Ndata = numel(varargin);
 %   error('interactive plotting is not supported with more than 1 input data set');
 % end
 
-%fixme rename matrixside and cohrefchannel in more meaningful options
+% FIXME rename directionality and cohrefchannel in more meaningful options
 if ischar(cfg.graphcolor)
   graphcolor = ['k' cfg.graphcolor];
 elseif isnumeric(cfg.graphcolor)
@@ -176,7 +177,7 @@ if Ndata  > 1
 end
 
 % ensure that the input is correct, also backward compatibility with old data structures:
-dtype = cell(Ndata , 1);
+dtype = cell(Ndata, 1);
 for i=1:Ndata
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'timelock', 'freq'});
   dtype{i}    = ft_datatype(varargin{i});
@@ -334,17 +335,20 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
   for i=1:Ndata
     if ~isfull,
       % convert 2-dimensional channel matrix to a single dimension:
-      if isempty(cfg.matrixside)
+      if isempty(cfg.directionality)
         sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
         sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
-      elseif strcmp(cfg.matrixside, 'outflow')
+      elseif strcmp(cfg.directionality, 'outflow')
         sel1 = [];
         sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
-      elseif strcmp(cfg.matrixside, 'inflow')
+      elseif strcmp(cfg.directionality, 'inflow')
         sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
         sel2 = [];
       end
       fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.parameter);
+      if length(sel1)+length(sel2)==0
+        error('there are no channels selected for plotting: you may need to look at the specification of cfg.directionality');
+      end
       varargin{i}.(cfg.parameter) = varargin{i}.(cfg.parameter)([sel1;sel2],:,:);
       varargin{i}.label     = [varargin{i}.labelcmb(sel1,1);varargin{i}.labelcmb(sel2,2)];
       varargin{i}.labelcmb  = varargin{i}.labelcmb([sel1;sel2],:);
@@ -353,24 +357,24 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
       % general case
       sel               = match_str(varargin{i}.label, cfg.refchannel);
       siz               = [size(varargin{i}.(cfg.parameter)) 1];
-      if strcmp(cfg.matrixside, 'inflow') || isempty(cfg.matrixside)
+      if strcmp(cfg.directionality, 'inflow') || isempty(cfg.directionality)
         %the interpretation of 'inflow' and 'outflow' depend on
         %the definition in the bivariate representation of the data
         %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
         sel1 = 1:siz(1);
         sel2 = sel;
         meandir = 2;
-      elseif strcmp(cfg.matrixside, 'outflow')
+      elseif strcmp(cfg.directionality, 'outflow')
         %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
         sel1 = sel;
         sel2 = 1:siz(1);
         meandir = 1;
         
-      elseif strcmp(cfg.matrixside, 'ff-fd')
-        error('cfg.matrixside = ''ff-fd'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
-      elseif strcmp(cfg.matrixside, 'fd-ff')
-        error('cfg.matrixside = ''fd-ff'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
-      end %if matrixside
+      elseif strcmp(cfg.directionality, 'ff-fd')
+        error('cfg.directionality = ''ff-fd'' is not supported anymore, you have to manually subtract the two before the call to ft_singleplotER');
+      elseif strcmp(cfg.directionality, 'fd-ff')
+        error('cfg.directionality = ''fd-ff'' is not supported anymore, you have to manually subtract the two before the call to ft_singleplotER');
+      end %if directionality
     end %if ~isfull
   end %for i
 end %handle the bivariate data
@@ -550,26 +554,11 @@ if ~isempty(cfg.renderer)
   set(gcf, 'renderer', cfg.renderer)
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_singleplotER.m 4322 2011-10-03 08:29:19Z jansch $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction
@@ -586,23 +575,15 @@ for i=2:length(cells)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% subfunction which is called by ft_select_channel in case cfg.refchannel='gui'
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_singleplotER(label, cfg, varargin)
-cfg.refchannel = label;
-fprintf('selected cfg.refchannel = ''%s''\n', cfg.refchannel);
-p = get(gcf, 'position');
-f = figure;
-set(f, 'position', p);
-ft_singleplotER(cfg, varargin{:});
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction which is called after selecting a time range
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_topoplotER(range, cfg, varargin)
 cfg.comment = 'auto';
-yparam = [];
 cfg.xlim = range(1:2);
+if isfield(cfg, 'inputfile')
+  % the reading has already been done and varargin contains the data
+  cfg = rmfield(cfg, 'inputfile');
+end
 if isfield(cfg, 'showlabels')
   % this is not allowed in topoplotER
   cfg = rmfield(cfg, 'showlabels');
@@ -611,7 +592,7 @@ fprintf('selected cfg.xlim = [%f %f]\n', cfg.xlim(1), cfg.xlim(2));
 p = get(gcf, 'position');
 f = figure;
 set(f, 'position', p);
-ft_topoplotER(cfg, varargin{:});
+ft_topoplotTFR(cfg, varargin{:});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction which handles hot keys in the current plot
@@ -645,4 +626,3 @@ elseif strcmp(eventdata.Key,'m')
   xlim([varargin{1} varargin{2}])
   ylim([varargin{3} varargin{4}])
 end
-

@@ -111,14 +111,15 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_sensorrealign.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_sensorrealign.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
 % this is used for feedback of the lower-level functions
 global fb
@@ -202,7 +203,7 @@ end
 
 % ensure that the units are specified
 elec_original = ft_convert_units(elec_original);
-elec_original = fixsens(elec_original); % ensure up-to-date sensor description (Oct 2011)
+elec_original = ft_datatype_sens(elec_original); % ensure up-to-date sensor description (Oct 2011)
 
 % remember the original electrode locations and labels and do all the work
 % with a temporary copy, this involves channel selection and changing to
@@ -236,8 +237,8 @@ if usetemplate
   
   clear tmp
   for i=1:Ntemplate
+    tmp(i) = ft_datatype_sens(template(i));            % ensure up-to-date sensor description
     tmp(i) = ft_convert_units(template(i), elec.unit); % ensure that the units are consistent with the electrodes
-    tmp(i) = fixsens(template(i)); % ensure up-to-date sensor description
   end
   template = tmp;
 end
@@ -567,22 +568,12 @@ switch cfg.method
     error('unknown method');
 end
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sensorrealign.m 4287 2011-09-23 12:17:38Z jansch $';
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous elec_original
+ft_postamble history elec_realigned
 
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the exact configuration details in the output
-elec_realigned.cfg = cfg;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % some simple SUBFUNCTIONs that facilitate 3D plotting

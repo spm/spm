@@ -55,7 +55,7 @@ function [sens] = ft_apply_montage(sens, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 4489 2011-10-17 19:34:17Z roboos $
+% $Id: ft_apply_montage.m 4624 2011-10-29 10:10:49Z roboos $
 
 % get optional input arguments
 keepunused = ft_getopt(varargin, 'keepunused',  'no');
@@ -186,7 +186,8 @@ elseif isfield(sens, 'tra')
     if keepchans
       sens.chanpos = sens.chanpos(sel2,:);
     else
-      sens = rmfield(sens, 'chanpos');
+      sens.chanpos = nan + zeros(numel(montage.labelnew),3);
+      %sens = rmfield(sens, 'chanpos');
     end
   end
 
@@ -194,7 +195,8 @@ elseif isfield(sens, 'tra')
     if keepchans
       sens.chanori = sens.chanori(sel2,:);
     else
-      sens = rmfield(sens, 'chanori');
+      %sens = rmfield(sens, 'chanori');
+      sens.chanori = nan + zeros(numel(montage.labelnew),3);
     end
   end
 

@@ -5,18 +5,13 @@ function [segment] = ft_volumesegment(cfg, mri)
 % gray/white/csf compartments, a skull-stripped anatomy, or binary masks
 % representing the brain surface, skull, or scalp surface.
 %
-% This function uses the SPM8 toolbox, see http://www.fil.ion.ucl.ac.uk/spm/
-%
 % Use as
-%   [segment] = ft_volumesegment(cfg, mri)
+%   segment = ft_volumesegment(cfg, mri)
+% where the input mri should be a single anatomical volume that was for
+% example read with FT_READ_MRI. You can also provide an already segmented
+% volume as input for the purpose of creating a binary mask.
 %
-% The input arguments are a configuration structure (see below) and an
-% anatomical MRI structure. Instead of an MRI structure, you can also
-% specify a string with a filename of an MRI file. You can also provide an
-% already segmented volume in the input for the purpose of creating a
-% binary mask.
-%
-% The configuration options are
+% The configuration structure can contain
 %   cfg.output      = 'tpm' (default), 'brain', 'skull', 'skullstrip', 'scalp', or any
 %                        combination of these in a cell-array
 %   cfg.spmversion  = 'spm8' (default) or 'spm2'
@@ -120,11 +115,25 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_volumesegment.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_volumesegment.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar mri
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% this is not supported any more as of 26/10/2011
+if ischar(mri),
+  error('please use cfg.inputfile instead of specifying the input variable as a sting');
+end
+
+% check if the input data is valid for this function
+mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
+
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',  {'coordinates', 'coordsys'});
 
 % set the defaults
@@ -205,31 +214,6 @@ for k = 1:numel(cfg.output)
 end
 cfg.smooth    = cfgsmooth;
 cfg.threshold = cfgthreshold;
-
-hasdata      = (nargin>1);
-hasinputfile = ~isempty(cfg.inputfile);
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif hasinputfile
-  % the input data should be read from file
-  mri = loadvar(cfg.inputfile, 'mri');
-elseif hasdata
-  if ischar(mri),
-    % read the anatomical MRI data from file
-    filename = mri;
-    fprintf('reading MRI from file\n');
-    mri = ft_read_mri(filename);
-    if ft_filetype(filename, 'ctf_mri') && isempty(cfg.coordsys)
-      % based on the filetype assume that the coordinates correspond with CTF convention
-      cfg.coordsys = 'ctf';
-    end
-  end
-else
-  error('neither a data structure, nor a cfg.inputfile is provided');
-end
-
-% check if the input data is valid for this function
-mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
 
 % check whether spm is needed to generate tissue probability maps
 needtpm    = any(ismember(cfg.output, {'tpm' 'brain' 'skullstrip'}));
@@ -515,35 +499,18 @@ end
 
 % remove unnecessary fields
 for k = 1:numel(removefields)
-  try, segment = rmfield(segment, removefields{k}); end
+  if isfield(segment, removefields{k})
+    segment = rmfield(segment, removefields{k}); 
+  end
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous mri
+ft_postamble history segment
+ft_postamble savevar segment
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_volumesegment.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% remember the configuration details of the input data
-if isfield(segment, 'cfg'),
-  cfg.previous = segment.cfg;
-end
-
-% remember the exact configuration details in the output 
-segment.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'segment', segment); % use the variable name "segment" in the output file
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [output] = dosmoothing(input, fwhm, str)

@@ -1,4 +1,4 @@
-function vol = ft_prepare_headmodel(cfg, mri)
+function [vol] = ft_prepare_headmodel(cfg, data)
 
 % FT_PREPARE_HEADMODEL constructs a volume conduction model from
 % the geometry of the head. The volume conduction model specifies how
@@ -6,63 +6,12 @@ function vol = ft_prepare_headmodel(cfg, mri)
 % are propagated through the tissue and how these result in externally
 % measureable EEG potentials or MEG fields.
 %
-% This function takes care of all the preparatory steps in the
-% construction of the volume conduction model and sets it up so that
-% subsequent computations are efficient and fast.
-%
-% The input to this function is a geometrical description of the
-% shape of the head. If you pass a segmented anatomical MRI as input,
-% the geometry will be based on that.
-%
-% Use as
-%   vol = ft_prepare_headmodel(cfg)
-%   vol = ft_prepare_headmodel(cfg, mri)
-%   vol = ft_prepare_headmodel(cfg, mesh)
-% 
-% The second input argument can be a surface mesh that was obtained from
-% FT_PREPARE_MESH or a segmented anatomical MRI that was obtained from
-% FT_VOLUMESEGMENT.
-% The mesh can be provided optionally as the name of a surface file in cfg.hdmfile
-%
-% The configuration structure should contain:
-%     cfg.method            string that specifies the forward solution, see below
-%     cfg.conductivity      a number or a vector contining the conductivities
-%                           of the compartments
-% 
-% Additionally, each of the following methods requires the custom cfg options:
-% 
-%  'bem_cp', 'bem_dipoli', 'bem_openmeeg' 
-%     cfg.isolatedsource    (optional)
-% 
-%  'concentricspheres'
-%     cfg.fitind            (optional)
-% 
-%  'localspheres'
-%     cfg.grad   
-%     cfg.feedback          (optional)
-%     cfg.radius            (optional)
-%     cfg.maxradius         (optional)
-%     cfg.baseline          (optional)
-% 
-% 'halfspace'
-%     cfg.point     
-%     cfg.submethod         (optional)
-%     
-% 'simbio' , 'fns'
-%     cfg.tissue      
-%     cfg.tissueval 
-%     cfg.tissuecond  
-%     cfg.elec      
-%     cfg.transform   
-%     cfg.unit      
-% 
-% 'infinite_slab'
-%     cfg.samplepoint
-%     cfg.conductivity
-% 
-% FieldTrip implements a variety of forward solutions, some of
-% them using external toolboxes or executables. Each of the forward
-% solutions requires a set of configuration options which are listed below.
+% FieldTrip implements a variety of forward solutions, some of them using
+% external toolboxes or executables. Each of the forward solutions requires
+% a set of configuration options which are listed below. This function
+% takes care of all the preparatory steps in the construction of the volume
+% conduction model and sets it up so that subsequent computations are
+% efficient and fast.
 %
 % For EEG the following methods are available
 %   singlesphere
@@ -80,43 +29,142 @@ function vol = ft_prepare_headmodel(cfg, mri)
 %   localspheres
 %   singleshell
 %   infinite
+%
+%
+% Use as
+%   vol = ft_prepare_headmodel(cfg)
+%   vol = ft_prepare_headmodel(cfg, vol)
+%   vol = ft_prepare_headmodel(cfg, bnd)
+% 
+% In general the input to this function is a geometrical description of the
+% shape of the head and a description of the electrical conductivity. The
+% second input argument (vol or bnd) can be a surface mesh that was
+% obtained from FT_PREPARE_MESH or a segmented anatomical MRI that was
+% obtained from FT_VOLUMESEGMENT. If the mesh is stored on disk, it can be
+% provided as filename in cfg.hdmfile.
+%
+% The configuration structure should contain:
+%     cfg.method            string that specifies the forward solution, see below
+%     cfg.conductivity      a number or a vector contining the conductivities
+%                           of the compartments
+% 
+% Additionally, the specific methods each have their specific configuration 
+% options that are listed below.
+% 
+% BEM_CP, BEM_DIPOLI, BEM_OPENMEEG
+%     cfg.isolatedsource    (optional)
+% 
+% CONCENTRICSPHERES
+%     cfg.fitind            (optional)
+% 
+% LOCALSPHERES
+%     cfg.grad   
+%     cfg.feedback          (optional)
+%     cfg.radius            (optional)
+%     cfg.maxradius         (optional)
+%     cfg.baseline          (optional)
+% 
+% HALFSPACE
+%     cfg.point     
+%     cfg.submethod         (optional)
+%     
+% SIMBIO, FNS
+%     cfg.tissue      
+%     cfg.tissueval 
+%     cfg.tissuecond  
+%     cfg.elect      
+%     cfg.transform   
+%     cfg.unit      
+% 
+% INFINITE_SLAB
+%     cfg.samplepoint
+%     cfg.conductivity
+%
+% See also FT_PREPARE_MESH, FT_VOLUMESEGMENT, FT_VOLUMEREALIGN
 
 % Copyright (C) 2011, Cristiano Micheli, Jan-Mathijs Schoffelen
 %
-% $Log$
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: ft_prepare_headmodel.m 4674 2011-11-04 08:54:19Z roboos $
 
-% FIXME list the options in the documentation to the function
+revision = '$Id: ft_prepare_headmodel.m 4674 2011-11-04 08:54:19Z roboos $';
 
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble trackconfig
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'method');
 cfg = ft_checkconfig(cfg, 'deprecated', 'geom');
 
+% set the general defaults 
+cfg.hdmfile        = ft_getopt(cfg, 'hdmfile', []);
+cfg.headshape      = ft_getopt(cfg, 'headshape', []);
+cfg.conductivity   = ft_getopt(cfg, 'conductivity', []);
+cfg.isolatedsource = ft_getopt(cfg, 'isolatedsource', []);
+cfg.unit           = ft_getopt(cfg, 'unit',  []);
+
+% specific defaults
+cfg.fitind         = ft_getopt(cfg, 'fitind', []); % concentricspheres specific
+cfg.smooth         = ft_getopt(cfg, 'smooth',      5); % volume input
+cfg.sourceunits    = ft_getopt(cfg, 'sourceunits', 'cm'); % volume input
+cfg.threshold      = ft_getopt(cfg, 'threshold',   0.5); % volume input
+cfg.numvertices    = ft_getopt(cfg, 'numvertices', 4000); % volume input
+cfg.tissue         = ft_getopt(cfg, 'tissue', []); % volume input
+cfg.tissueval      = ft_getopt(cfg, 'tissueval', []); % fdm/fem
+cfg.tissuecond     = ft_getopt(cfg, 'tissuecond', []); % fdm/fem
+cfg.elect          = ft_getopt(cfg, 'elec',  []); % fdm/fem
+cfg.transform      = ft_getopt(cfg, 'transform',  []); % fdm/fem
+cfg.feedback       = ft_getopt(cfg, 'feedback'); % localspheres
+cfg.radius         = ft_getopt(cfg, 'radius'); % localspheres
+cfg.maxradius      = ft_getopt(cfg, 'maxradius'); % localspheres
+cfg.baseline       = ft_getopt(cfg, 'baseline'); % localspheres
+cfg.singlesphere   = ft_getopt(cfg, 'singlesphere'); % localspheres
+    
+% checks on the defaults
+if isempty(cfg.conductivity)
+  if isfield(data,'cond') && nargin>1
+    cfg.conductivity = data.cond;
+  else
+    error('the conductivity is not specified')
+  end
+end
+
 geometry = [];
-if nargin>1 && ft_datatype(mri, 'volume') && ~strcmp(cfg.method,'fns')
+
+if nargin>1 && ft_datatype(data, 'volume') && ~strcmp(cfg.method,'fns')
   fprintf('computing the geometrical description from the segmented MRI\n');
-%   mri = geometry;
-%   clear geometry;
-
-  % defaults
-  cfg.smooth      = ft_getopt(cfg, 'smooth',      5);
-  cfg.sourceunits = ft_getopt(cfg, 'sourceunits', 'cm');
-  cfg.threshold   = ft_getopt(cfg, 'threshold',   0.5);
-  cfg.numvertices = ft_getopt(cfg, 'numvertices', 4000);
-
+    
   tmpcfg = [];
+  tmpcfg.tissue       = cfg.tissue;
   tmpcfg.smooth       = cfg.smooth;
   tmpcfg.sourceunits  = cfg.sourceunits;
   tmpcfg.threshold    = cfg.threshold;
   tmpcfg.numvertices  = cfg.numvertices;
 
   % construct a surface-based geometry from the input MRI
-  geometry = ft_prepare_mesh(tmpcfg, mri);
+  % the 'mri' should already contain the segmentation in form of separate tissue fields
+  geometry = ft_prepare_mesh_new(tmpcfg, data);
   
 elseif nargin>1
   fprintf('using the specified geometrical description\n');
-  geometry = mri;
+  geometry = data;
 end
 
 % only cfg was specified, this is for backward compatibility
@@ -125,17 +173,45 @@ if isfield(cfg, 'geom') && nargin==1
   cfg = rmfield(cfg, 'geom');
 end
 
+if ~isempty(cfg.headshape) && nargin == 1 
+  if ischar(cfg.headshape)
+    geometry = ft_read_headshape(cfg.headshape);
+  else
+    geometry = cfg.headshape;
+  end
+elseif ~isempty(cfg.hdmfile) && nargin == 1 
+  geometry = ft_read_headshape(cfg.hdmfile);
+end
+
+if isempty(geometry) && ~isempty(cfg.hdmfile)
+  geometry = ft_read_headshape(cfg.hdmfile);
+elseif isempty(geometry) && ~(strcmp(cfg.method,'fns') || strcmp(cfg.method,'simbio')) 
+  error('no input available')
+end
+    
+% the input to the following methods should always be a boundary
+if isfield(geometry,'bnd')
+  geometry = geometry.bnd;
+elseif isfield(geometry,'pnt')
+  % already good
+elseif isnumeric(geometry) && size(geometry,2)==3
+  % it seems to be a set of points
+  % the following is to avoid the warning: Struct field assignment overwrites a value with class "double".
+  tmp = geometry;
+  clear geometry
+  geometry.pnt = tmp;
+  clear tmp
+else
+  error('the geometry is not corectly specified')
+end
+
 % the construction of the volume conductor model is performed below
 switch cfg.method
   case 'bem_asa'
-    cfg         = ft_checkconfig(cfg, 'required', 'hdmfile');
-    cfg.hdmfile = ft_getopt(cfg, 'hdmfile', []);
+    cfg = ft_checkconfig(cfg, 'required', 'hdmfile');
     vol = ft_headmodel_bem_asa(cfg.hdmfile);
-    
+       
   case {'bem_cp' 'bem_dipoli' 'bem_openmeeg'}
-    cfg.hdmfile        = ft_getopt(cfg, 'hdmfile', []);
-    cfg.conductivity   = ft_getopt(cfg, 'conductivity',   []);
-    cfg.isolatedsource = ft_getopt(cfg, 'isolatedsource', []);
     if strcmp(cfg.method,'bem_cp')
       funname = 'ft_headmodel_bemcp';
     elseif strcmp(cfg.method,'bem_dipoli')
@@ -143,21 +219,9 @@ switch cfg.method
     else
       funname = 'ft_headmodel_bem_openmeeg';
     end
-    if ~isempty(cfg.hdmfile)
-      vol = feval(funname, [],'hdmfile',cfg.hdmfile,'conductivity',cfg.conductivity,'isolatedsource',cfg.isolatedsource);
-    elseif ~isempty(geometry)
-      bnd = geometry;
-      for i=1:length(bnd)
-        geom.bnd(i) = bnd(i);
-      end
-      vol = feval(funname, geom,'conductivity',cfg.conductivity,'isolatedsource',cfg.isolatedsource);
-    else
-      error('for cfg.method = %s, you need to supply a data mesh or a cfg.hdmfile', cfg.method);
-    end
-    
+    vol = feval(funname, geometry,'conductivity',cfg.conductivity,'isolatedsource',cfg.isolatedsource);
+  
   case 'concentricspheres'
-    cfg.conductivity   = ft_getopt(cfg, 'conductivity',   []);
-    cfg.fitind         = ft_getopt(cfg, 'fitind', 1);
     vol = ft_headmodel_concentricspheres(geometry,'conductivity',cfg.conductivity,'fitind',cfg.fitind);
     
   case 'halfspace'
@@ -174,36 +238,22 @@ switch cfg.method
     if isempty(cfg.grad)
       error('for cfg.method = %s, you need to supply a cfg.grad structure', cfg.method);
     end
-    cfg.feedback  = ft_getopt(cfg, 'feedback',  true);
-    cfg.radius    = ft_getopt(cfg, 'radius',    8.5);
-    cfg.maxradius = ft_getopt(cfg, 'maxradius', 20);
-    cfg.baseline  = ft_getopt(cfg, 'baseline',  5);
-    vol = ft_headmodel_localspheres(geometry,cfg.grad,'feedback',cfg.feedback,'radius',cfg.radius,'maxradius',cfg.maxradius,'baseline',cfg.baseline);
+    vol = ft_headmodel_localspheres(geometry,cfg.grad,'feedback',cfg.feedback,'radius',cfg.radius,'maxradius',cfg.maxradius,'baseline',cfg.baseline,'singlesphere',cfg.singlesphere);
     
   case 'singleshell'
     vol = ft_headmodel_singleshell(geometry);
     
   case 'singlesphere'
     cfg.conductivity   = ft_getopt(cfg, 'conductivity',   []);
-    if ~isempty(geometry)
-    geometry = geometry.pnt;
-    elseif ~isempty(cfg.hdmfile)
+    if isempty(geometry) && ~isempty(cfg.hdmfile)
       geometry = ft_read_headshape(cfg.hdmfile);
-      geometry = geometry.pnt;
-    else
+    elseif isempty(geometry)
       error('no input available')
     end
-    
     vol = ft_headmodel_singlesphere(geometry,'conductivity',cfg.conductivity);
     
   case {'simbio' 'fns'}
-    cfg.tissue      = ft_getopt(cfg, 'tissue', []);
-    cfg.tissueval   = ft_getopt(cfg, 'tissueval', []);
-    cfg.tissuecond  = ft_getopt(cfg, 'tissuecond', []);
-    cfg.elec        = ft_getopt(cfg, 'elec',  []);
-    cfg.transform   = ft_getopt(cfg, 'transform',  []);
-    cfg.unit        = ft_getopt(cfg, 'unit',  []);
-    if length([cfg.tissue cfg.tissueval cfg.tissuecond cfg.elec cfg.transform cfg.unit])<6
+    if length([cfg.tissue cfg.tissueval cfg.tissuecond cfg.elect cfg.transform cfg.unit])<6
       error('Not all the required fields have been provided, see help')
     end
     if strcmp(method,'simbio')
@@ -211,12 +261,12 @@ switch cfg.method
     else
       funname = 'ft_headmodel_fdm_fns';
     end
-    vol = feval(funname,'tissue',cfg.tissue,'tissueval',cfg.tissueval, ...
-                               'tissuecond',cfg.tissuecond,'sens',cfg.elec, ...
+    vol = feval(funname,data,'tissue',cfg.tissue,'tissueval',cfg.tissueval, ...
+                               'tissuecond',cfg.tissuecond,'sens',cfg.elect, ...
                                'transform',cfg.transform,'unit',cfg.unit); 
   case 'slab_monopole'
     if numel(geometry)==2
-      geom1 = geometry(1);
+      geom1 = geometry(1); %FIXME: probably doesnt work
       geom2 = geometry(2);
       P = ft_getopt(cfg, 'samplepoint');
       vol = ft_headmodel_slab(geom1,geom2,P,'sourcemodel','monopole');
@@ -231,4 +281,3 @@ end
 % get the output cfg
 cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
 
-% FIXME should the output vol get a cfg?

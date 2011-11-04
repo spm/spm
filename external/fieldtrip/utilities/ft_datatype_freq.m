@@ -43,13 +43,15 @@ function freq = ft_datatype_freq(freq, varargin)
 % (2011/latest) The description of the sensors has changed: see FIXSENS for
 % information
 %
-% (2008/latest) The presence of labelcmb in case of crsspctrm became optional,
+% (2008) The presence of labelcmb in case of crsspctrm became optional,
 % from now on the crsspctrm can also be represented as Nchan * Nchan.
 %
 % (2006) The fourierspctrm field was added as alternative to powspctrm and
 % crsspctrm.
 %
-% (2003) The initial version was defined.
+% (2003v2) The fields sgn and sgncmb were renamed into label and labelcmb.
+%
+% (2003v1) The initial version was defined.
 %
 % See also FT_DATATYPE, FT_DATATYPE_COMP, FT_DATATYPE_DIP, FT_DATATYPE_FREQ,
 % FT_DATATYPE_MVAR, FT_DATATYPE_RAW, FT_DATATYPE_SOURCE, FT_DATATYPE_SPIKE,
@@ -73,7 +75,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 4388 2011-10-09 09:55:08Z roboos $
+% $Id: ft_datatype_freq.m 4608 2011-10-27 12:23:22Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -95,11 +97,11 @@ switch version
       end
       
       % ensure the new style sensor description
-      freq.grad = fixsens(freq.grad);
+      freq.grad = ft_datatype_sens(freq.grad);
     end
     
     if isfield(freq, 'elec')
-      freq.elec = fixsens(freq.elec);
+      freq.elec = ft_datatype_sens(freq.elec);
     end
   
   case '2008'
@@ -108,7 +110,10 @@ switch version
   case '2006'
     % there are no known conversions for backward or forward compatibility support
 
-  case '2003'
+  case '2003v2'
+    % there are no known conversions for backward or forward compatibility support
+
+  case '2003v1'
     % there are no known conversions for backward or forward compatibility support
 
   otherwise

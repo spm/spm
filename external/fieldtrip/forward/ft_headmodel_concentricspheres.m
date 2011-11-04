@@ -33,6 +33,13 @@ if isequal(fitind, 'all')
   fitind = 1:numel(geom);
 end
 
+% determine the number of compartments
+numboundaries = numel(geom);
+
+if numel(conductivity)~=numboundaries
+  error('a conductivity value should be specified for each compartment');
+end
+
 % concatenate the vertices of all surfaces
 pnt = [];
 for i = fitind
@@ -62,7 +69,7 @@ vol.o    = single_o;
 vol.c    = conductivity;
 vol.type = 'concentric';
 
-% sort the spheres from the smallest to the largest
+% sort the spheres from the smallest to the largest ('insidefirst' order)
 [vol.r, indx] = sort(vol.r);
 vol.c = vol.c(indx);
 

@@ -34,12 +34,12 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 4487 2011-10-17 12:52:07Z roboos $
+% $Id: ft_plot_sens.m 4510 2011-10-18 18:53:15Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
 % ensure that the sensor description is up-to-date (Aug 2011)
-sens = fixsens(sens);
+sens = ft_datatype_sens(sens);
 
 % get the optional input arguments
 style = ft_getopt(varargin, 'style',  'k.');

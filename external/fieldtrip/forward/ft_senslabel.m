@@ -64,7 +64,7 @@ function label = ft_senslabel(type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 3800 2011-07-07 15:17:47Z roboos $
+% $Id: ft_senslabel.m 4624 2011-10-29 10:10:49Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

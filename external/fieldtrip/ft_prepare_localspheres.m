@@ -64,11 +64,18 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_prepare_localspheres.m 4611 2011-10-27 15:11:29Z roboos $
 
+revision = '$Id: ft_prepare_localspheres.m 4611 2011-10-27 15:11:29Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar mri
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed', {'spheremesh', 'numvertices'}); 
 
 % set the defaults
@@ -79,27 +86,22 @@ if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';    end
 if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
-if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 4000;   end
+if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];   end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];      end
 
-% check for option of cfg.inputfile
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    mri = loadvar(cfg.inputfile, 'mri');
-    hasdata = true;
-  end
-end
-
+hasdata = exist('mri', 'var');
 if hasdata
   headshape = ft_prepare_mesh(cfg, mri);
+elseif isfield(cfg,'headshape') && nargin == 1 
+  if ischar(cfg.headshape)
+    headshape = ft_read_headshape(cfg.headshape);
+  else
+    headshape = cfg.headshape;
+  end
 else
-  headshape = ft_prepare_mesh(cfg);
+  error('no head shape available')
 end
 
 % read the gradiometer definition from file or copy it from the configuration
@@ -108,7 +110,9 @@ if isfield(cfg, 'gradfile')
 else
   grad = cfg.grad;
 end
-grad = fixsens(grad); % ensure up-to-date sensor description (Oct 2011)
+
+% FIXME, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
+grad = ft_datatype_sens(grad); % ensure up-to-date sensor description (Oct 2011)
 
 Nshape = size(headshape.pnt,1);
 Nchan  = size(grad.tra, 1);

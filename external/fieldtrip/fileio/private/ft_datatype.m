@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 3782 2011-07-06 14:46:50Z roboos $
+% $Id: ft_datatype.m 4624 2011-10-29 10:10:49Z roboos $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
 israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');

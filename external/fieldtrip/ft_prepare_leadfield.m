@@ -106,18 +106,24 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 4359 2011-10-06 09:28:10Z crimic $
+% $Id: ft_prepare_leadfield.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_prepare_leadfield.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if nargin<2
+  % the data variable will be passed to the prepare_headmodel function below
+  % where it would be used for channel selection
+  data = [];
+else
+  data = ft_checkdata(data);
+end
 
 % set the defaults
 if ~isfield(cfg, 'normalize'),        cfg.normalize  = 'no';          end
@@ -129,22 +135,6 @@ if ~isfield(cfg, 'mollify'),          cfg.mollify    = 'no';          end
 if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
 if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];            end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
-
-hasdata = (nargin>1);
-if isfield(cfg,'grad') || isfield(cfg,'elec')
-    data = []; % clear for memory reasons and because we won't use it
-    % need to check if data.grad and cfg.grad are same?
-    % need to warn/error user that we use cfg.grad and not data.grad?
-else
-    if ~isempty(cfg.inputfile) && hasdata
-        error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-    elseif ~isempty(cfg.inputfile)
-        % the input data should be read from file
-        data = loadvar(cfg.inputfile, 'data');
-    elseif ~hasdata
-        error('Either data, cfg.inputfile, or cfg.grad must be specified');
-    end
-end
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
@@ -241,7 +231,6 @@ else
   ft_progress('close');
 end
 
-
 % fill the positions outside the brain with NaNs
 grid.leadfield(grid.outside) = {nan};
 
@@ -267,26 +256,8 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_prepare_leadfield.m 4359 2011-10-06 09:28:10Z crimic $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-grid.cfg = cfg;
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history grid

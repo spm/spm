@@ -1,10 +1,10 @@
-function [interp] = ft_megplanar(cfg, data)
+function [data] = ft_megplanar(cfg, data)
 
 % FT_MEGPLANAR computes planar MEG gradients gradients for raw data
 % obtained from FT_PREPROCESSING or an average ERF that was computed using
-% FT_TIMELOCKANALYSIS. It can also work on data in the frequency domain,
-% obtained with FREQANALYSIS. Prerequisite for this is that the data contain
-% complex-valued fourierspectra.
+% FT_TIMELOCKANALYSIS. It can also convert frequency-domain data that was
+% computed using FT_FREQANALYSIS, as long as it contains the complex-valued
+% fourierspcrm and not only the powspctrm.
 %
 % Use as
 %    [interp] = ft_megplanar(cfg, data)
@@ -86,36 +86,23 @@ function [interp] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_megplanar.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_megplanar.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-% set defaults
-if ~isfield(cfg, 'inputfile'),      cfg.inputfile  = [];          end
-if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];          end
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
 
 if iscell(cfg.neighbours)
-    warning('Neighbourstructure is in old format - converting to structure array');
-    cfg.neighbours = fixneighbours(cfg.neighbours);
-end
-
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
+  warning('Neighbourstructure is in old format - converting to structure array');
+  cfg.neighbours = fixneighbours(cfg.neighbours);
 end
 
 isfreq = ft_datatype(data, 'freq');
@@ -123,7 +110,7 @@ israw  = ft_datatype(data, 'raw');
 istlck = ft_datatype(data, 'timelock');  % this will be temporary converted into raw
 
 % check if the input data is valid for this function
-data  = ft_checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153', 'yokogawa160', 'yokogawa64'});
+data = ft_checkdata(data, 'datatype', {'raw' 'freq'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'ismeg', 'yes', 'senstype', {'ctf151', 'ctf275', 'bti148', 'bti248', 'itab153', 'yokogawa160', 'yokogawa64'});
 
 if istlck
   % the timelocked data has just been converted to a raw representation
@@ -136,15 +123,11 @@ if isfreq,
 end
 
 % set the default configuration
-if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';             end
-if ~isfield(cfg, 'trials'),        cfg.trials = 'all';              end
-if ~isfield(cfg, 'planarmethod'),  cfg.planarmethod = 'sincos';     end
-if strcmp(cfg.planarmethod, 'sourceproject')
-  if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end % empty will result in the vol being used
-  if ~isfield(cfg, 'inwardshift'),   cfg.inwardshift = 2.5;         end
-  if ~isfield(cfg, 'pruneratio'),    cfg.pruneratio = 1e-3;         end
-  if ~isfield(cfg, 'spheremesh'),    cfg.spheremesh = 642;          end
-end
+cfg.channel      = ft_getopt(cfg, 'channel', 'MEG');
+cfg.trials       = ft_getopt(cfg, 'trials',  'all');
+cfg.planarmethod = ft_getopt(cfg, 'planarmethod', 'sincos');
+cfg.inputfile    = ft_getopt(cfg, 'inputfile',  []);
+cfg.outputfile   = ft_getopt(cfg, 'outputfile', []);
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
@@ -167,6 +150,12 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   % and compute forward again with the axial gradiometer array replaced by
   % a planar one.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  % method specific configuration options
+  cfg.headshape   = ft_getopt(cfg, 'headshape',   []);
+  cfg.inwardshift = ft_getopt(cfg, 'inwardshift', 2.5);
+  cfg.pruneratio  = ft_getopt(cfg, 'pruneratio',  1e-3);
+  cfg.spheremesh  = ft_getopt(cfg, 'spheremesh',  642);
   
   if isfreq
     error('the method ''sourceproject'' is not supported for frequency data as input');
@@ -224,7 +213,7 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   planarmontage.tra = transform;
   planarmontage.labelorg = axial.grad.label;
   planarmontage.labelnew = planar.grad.label;
- 
+  
   % apply the linear transformation to the data
   interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
   % also apply the linear transformation to the gradiometer definition
@@ -234,65 +223,77 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   if isfield(interp.grad, 'type')
     interp.grad = rmfield(interp.grad, 'type');
   end
-
-%   % interpolate the data towards the planar gradiometers
-%   for i=1:Ntrials
-%     fprintf('interpolating trial %d to planar gradiometer\n', i);
-%     interp.trial{i} = transform * data.trial{i}(dataindx,:);
-%   end % for Ntrials
-%   
-%   % all planar gradiometer channels are included in the output
-%   interp.grad  = planar.grad;
-%   interp.label = planar.grad.label;
-%   
-%   % copy the non-gradiometer channels back into the output data
-%   other = setdiff(1:Nchan, dataindx);
-%   for i=other
-%     interp.label{end+1} = data.label{i};
-%     for j=1:Ntrials
-%       interp.trial{j}(end+1,:) = data.trial{j}(i,:);
-%     end
-%   end
-%   
+  
+  %   % interpolate the data towards the planar gradiometers
+  %   for i=1:Ntrials
+  %     fprintf('interpolating trial %d to planar gradiometer\n', i);
+  %     interp.trial{i} = transform * data.trial{i}(dataindx,:);
+  %   end % for Ntrials
+  %
+  %   % all planar gradiometer channels are included in the output
+  %   interp.grad  = planar.grad;
+  %   interp.label = planar.grad.label;
+  %
+  %   % copy the non-gradiometer channels back into the output data
+  %   other = setdiff(1:Nchan, dataindx);
+  %   for i=other
+  %     interp.label{end+1} = data.label{i};
+  %     for j=1:Ntrials
+  %       interp.trial{j}(end+1,:) = data.trial{j}(i,:);
+  %     end
+  %   end
+  %
 else
-    % generically call megplanar_orig megplanar_sincos or megplanar_fitplante
-    fun = ['megplanar_'  cfg.planarmethod];
-    if ~exist(fun, 'file')
-        error('unknown method for computation of planar gradient');
+  % generically call megplanar_orig megplanar_sincos or megplanar_fitplante
+  fun = ['megplanar_'  cfg.planarmethod];
+  if ~exist(fun, 'file')
+    error('unknown method for computation of planar gradient');
+  end
+  
+  sens = ft_convert_units(data.grad);
+  cfg.channel = ft_channelselection(cfg.channel, sens.label);
+  
+  cfg.neighbsel = channelconnectivity(cfg);
+  
+  % determine
+  fprintf('average number of neighbours is %.2f\n', mean(sum(cfg.neighbsel)));
+  
+  Ngrad = length(sens.label);
+  cfg.distance = zeros(Ngrad,Ngrad);
+  
+  for i=1:size(cfg.neighbsel,1)
+    j=find(cfg.neighbsel(i, :));
+    d = sqrt(sum((sens.chanpos(j,:) - repmat(sens.chanpos(i, :), numel(j), 1)).^2, 2));
+    cfg.distance(i,j) = d;
+    cfg.distance(j,i) = d;
+  end
+  
+  fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), sens.unit);
+  fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), sens.unit);
+  
+  planarmontage = eval([fun '(cfg, data.grad)']);
+  
+  % apply the linear transformation to the data
+  interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
+  
+  % also apply the linear transformation to the gradiometer definition
+  interp.grad = ft_apply_montage(data.grad, planarmontage, 'balancename', 'planar', 'keepunused', 'yes');
+  
+  % ensure that the old sensor type does not stick around, because it is now invalid
+  % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
+  if isfield(interp.grad, 'type')
+    interp.grad = rmfield(interp.grad, 'type');
+  end
+  
+  % add the chanpos info back into the gradiometer description
+  tmplabel = interp.grad.label;
+  for k = 1:numel(tmplabel)
+    if strcmp(tmplabel{k}(end-2:end), '_dV') || strcmp(tmplabel{k}(end-2:end), '_dH')
+      tmplabel{k} = tmplabel{k}(1:end-3);
     end
-    
-    sens = ft_convert_units(data.grad);
-    cfg.channel = ft_channelselection(cfg.channel, sens.label);
-    
-    cfg.neighbsel = channelconnectivity(cfg);
-    
-    % determine
-    fprintf('average number of neighbours is %.2f\n', mean(sum(cfg.neighbsel)));
-    
-    Ngrad = length(sens.label);
-    cfg.distance = zeros(Ngrad,Ngrad);
-    
-    for i=1:size(cfg.neighbsel,1)
-        j=find(cfg.neighbsel(i, :));
-        d = sqrt(sum((sens.chanpos(j,:) - repmat(sens.chanpos(i, :), numel(j), 1)).^2, 2));
-        cfg.distance(i,j) = d;
-        cfg.distance(j,i) = d;
-    end
-    
-    fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), sens.unit);
-    fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), sens.unit);
- 
-    planarmontage = eval([fun '(cfg, data.grad)']);
-    
-    % apply the linear transformation to the data
-    interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
-    % also apply the linear transformation to the gradiometer definition
-    interp.grad = ft_apply_montage(data.grad, planarmontage, 'balancename', 'planar', 'keepunused', 'yes');
-    % ensure that the old sensor type does not stick around, because it is now invalid
-    % the sensor type is added in FT_PREPARE_VOL_SENS but is not used in external fieldtrip code
-    if isfield(interp.grad, 'type')
-        interp.grad = rmfield(interp.grad, 'type');
-    end
+  end
+  [ix,iy] = match_str(tmplabel, data.grad.label);
+  interp.grad.chanpos(ix,:) = data.grad.chanpos(iy,:);
 end
 
 if istlck
@@ -300,33 +301,6 @@ if istlck
   interp = ft_checkdata(interp, 'datatype', 'timelock');
   israw  = false;
 end
-
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% store the configuration of this function call, including that of the previous function call
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megplanar.m 4287 2011-09-23 12:17:38Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-interp.cfg = cfg;
 
 % copy the trial specific information into the output
 if isfield(data, 'trialinfo')
@@ -338,10 +312,16 @@ if isfield(data, 'sampleinfo')
   interp.sampleinfo = data.sampleinfo;
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', interp); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+
+% rename the output variable to accomodate the savevar postamble
+data = interp;
+
+ft_postamble history data
+ft_postamble savevar data
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

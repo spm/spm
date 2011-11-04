@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 4418 2011-10-10 16:33:09Z crimic $
+% $Id: ft_convert_units.m 4671 2011-11-03 21:22:49Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -177,7 +177,7 @@ if isfield(obj, 'pnt2'), obj.pnt2 = scale * obj.pnt2; end
 if isfield(obj, 'prj'),  obj.prj  = scale * obj.prj;  end
 
 % gradiometer array, electrode array, head shape or dipole grid
-if isfield(obj, 'pnt'), obj.pnt = scale * obj.pnt; end
+if isfield(obj, 'pnt'),     obj.pnt     = scale * obj.pnt; end
 if isfield(obj, 'chanpos'), obj.chanpos = scale * obj.chanpos; end
 if isfield(obj, 'coilpos'), obj.coilpos = scale * obj.coilpos; end
 if isfield(obj, 'elecpos'), obj.elecpos = scale * obj.elecpos; end

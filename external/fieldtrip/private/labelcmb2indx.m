@@ -44,7 +44,7 @@ function [indx] = labelcmb2indx(labelcmb, label)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: labelcmb2indx.m 3967 2011-08-17 13:47:30Z jansch $
+% $Id: labelcmb2indx.m 4624 2011-10-29 10:10:49Z roboos $
 
 if nargin==1,
   label = unique(labelcmb(:));

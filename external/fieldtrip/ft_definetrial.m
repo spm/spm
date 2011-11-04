@@ -1,4 +1,4 @@
-function [cfg] = ft_definetrial(cfg);
+function [cfg] = ft_definetrial(cfg)
 
 % FT_DEFINETRIAL defines the segments of data that will be used for
 % further processing and analysis, i.e. the pieces of data that will
@@ -79,7 +79,7 @@ function [cfg] = ft_definetrial(cfg);
 % cfg.trl
 % cfg.version
 
-% Copyright (c) 2003, Robert Oostenveld, F.C. Donders Centre
+% Copyright (C) 2003, Robert Oostenveld, FCDC
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -97,17 +97,16 @@ function [cfg] = ft_definetrial(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_definetrial.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_definetrial.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
 
 if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
@@ -177,28 +176,6 @@ cfg.event = event;
 fprintf('created %d trials\n', size(trl,1));
 cfg.trl = trl;
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
 
-% add information about the version of this function to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_definetrial.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% % remember the exact configuration details in the output
-% cfgtmp = cfg;
-% cfg = [];
-% try cfg.trl        = cfgtmp.trl;        end
-% try cfg.dataset    = cfgtmp.dataset;    end
-% try cfg.datafile   = cfgtmp.datafile;   end
-% try cfg.headerfile = cfgtmp.headerfile; end
-% cfg.previous = cfgtmp;

@@ -27,7 +27,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_read_headshape.m 4549 2011-10-21 10:48:44Z tilsan $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
@@ -229,18 +229,28 @@ switch fileformat
     end
 
   case {'yokogawa_mrk', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw' }
-    hdr = read_yokogawa_header(filename);
-    marker = hdr.orig.matching_info.marker;
-
+    if ft_hastoolbox('yokogawa_meg_reader')
+       hdr = read_yokogawa_header_new(filename); 
+       marker = hdr.orig.coregist.hpi;     
+    else
+        hdr = read_yokogawa_header(filename);
+        marker = hdr.orig.matching_info.marker;
+    end
+    
     % markers 1-3 identical to zero: try *.mrk file
     if ~any([marker(:).meg_pos])
       [p, f, x] = fileparts(filename);
       filename = fullfile(p, [f '.mrk']);
       if exist(filename, 'file')
-        hdr    = read_yokogawa_header(filename);
-        marker = hdr.orig.matching_info.marker;
+        if ft_hastoolbox('yokogawa_meg_reader')
+            hdr = read_yokogawa_header_new(filename); 
+            marker = hdr.orig.coregist.hpi;     
+        else
+            hdr = read_yokogawa_header(filename);
+            marker = hdr.orig.matching_info.marker;
+        end
       end
-    end
+    end  
 
     % non zero markers 1-3
     if any([marker(:).meg_pos])
@@ -351,7 +361,7 @@ switch fileformat
       % sort
       shape = tmp.bnd;
     elseif isfield(tmp, 'elec')
-      tmp.elec        = fixsens(tmp.elec);
+      tmp.elec        = ft_datatype_sens(tmp.elec);
       shape.fid.pnt   = tmp.elec.chanpos;
       shape.fid.label = tmp.elec.label;
     else

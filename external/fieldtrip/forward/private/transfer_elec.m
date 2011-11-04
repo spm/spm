@@ -27,7 +27,7 @@ function [tra] = transfer_elec(pnt, tri, el);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: transfer_elec.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: transfer_elec.m 4624 2011-10-29 10:10:49Z roboos $
 
 Npnt = size(pnt,1);
 Ntri = size(tri,1);

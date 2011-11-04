@@ -1,4 +1,4 @@
-function ft_movieplotER(cfg, varargin)
+function ft_movieplotER(cfg, data)
 
 % FT_MOVIEPLOTER makes a movie of the topographic distribution of the
 % time-locked average.
@@ -53,12 +53,20 @@ function ft_movieplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 4432 2011-10-11 16:07:32Z crimic $
-data = varargin{:};
+% $Id: ft_movieplotER.m 4623 2011-10-28 15:44:23Z roboos $
 
-% Checkdata
+revision = '$Id: ft_movieplotER.m 4623 2011-10-28 15:44:23Z roboos $';
+
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+
+% check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'timelock');
+
+% set the defaults
 cfg.parameter   = ft_getopt(cfg, 'parameter', 'avg');
 cfg.interactive = ft_getopt(cfg, 'interactive', 'no');
 
 ft_movieplotTFR(cfg, data);
+

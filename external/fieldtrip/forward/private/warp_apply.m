@@ -57,7 +57,7 @@ function [warped] = warp_apply(M, input, method, tol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_apply.m 2885 2011-02-16 09:41:58Z roboos $
+% $Id: warp_apply.m 4624 2011-10-29 10:10:49Z roboos $
 
 if nargin<4
   tol = [];

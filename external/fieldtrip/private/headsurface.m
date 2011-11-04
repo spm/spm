@@ -36,7 +36,7 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headsurface.m 4439 2011-10-12 10:17:09Z roboos $
+% $Id: headsurface.m 4510 2011-10-18 18:53:15Z roboos $
 
 if nargin<1
   vol = [];
@@ -47,7 +47,7 @@ if nargin<2
 end
 
 if ~isempty(sens)
-  sens = fixsens(sens);
+  sens = ft_datatype_sens(sens);
 end
 
 if nargin<3

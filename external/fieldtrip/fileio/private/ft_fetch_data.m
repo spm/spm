@@ -27,7 +27,7 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 4389 2011-10-09 09:55:10Z roboos $
+% $Id: ft_fetch_data.m 4624 2011-10-29 10:10:49Z roboos $
     
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');

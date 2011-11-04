@@ -51,16 +51,22 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 4095 2011-09-02 10:00:32Z johzum $
+% $Id: ft_prepare_concentricspheres.m 4611 2011-10-27 15:11:29Z roboos $
 
+revision = '$Id: ft_prepare_concentricspheres.m 4611 2011-10-27 15:11:29Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble trackconfig
 
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');
 
 % set the defaults
 if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';                            end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';                          end
-if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [0.3300 1 0.0042 0.3300];   end
+if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [1 1/80 1] * 0.33;          end
 if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 'same';                      end
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
@@ -68,10 +74,12 @@ if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   cfg.headshape = struct(cfg.headshape);
 end
 
-cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');
-
 % get the surface describing the head shape
 headshape = prepare_mesh_headshape(cfg);
+
+if isempty(cfg.conductivity) || numel(cfg.conductivity)~=numel(headshape)
+  cfg.conductivity = ones(1,numel(headshape));
+end
 
 if strcmp(cfg.fitind, 'all')
   fitind = 1:numel(headshape);

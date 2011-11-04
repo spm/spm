@@ -25,7 +25,7 @@ function [dat] = read_wdq_data(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_wdq_data.m $
+% $Id: read_wdq_data.m 4624 2011-10-29 10:10:49Z roboos $
 
 % information about how to interpret the file are taken from the document
 % 'CODAS data storage format'

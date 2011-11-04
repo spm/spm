@@ -25,7 +25,7 @@ function [pnt, dhk] = icosahedron();
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron.m 3208 2011-03-24 16:13:08Z jansch $
+% $Id: icosahedron.m 4624 2011-10-29 10:10:49Z roboos $
 
 dhk = [
    1   2   3

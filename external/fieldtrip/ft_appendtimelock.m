@@ -29,68 +29,92 @@ function [timelock] = ft_appendtimelock(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendtimelock.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_appendtimelock.m 4668 2011-11-03 20:41:15Z roboos $
 
+revision = '$Id: ft_appendtimelock.m 4668 2011-11-03 20:41:15Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-% set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
-
-hasdata = nargin>1;
-if ~isempty(cfg.inputfile) % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  elseif ~iscell(cfg.inputfile)
-    error('you should specify cfg.inpoutfile as cell-array with multiple file names');
-  else
-    for i=1:numel(cfg.inputfile)
-      varargin{i} = loadvar(cfg.inputfile{i}, 'timelock'); % read datasets from array inputfile
-    end
-  end
-end
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'yes', 'hassampleinfo', 'ifmakessense');
 end
 
-% use a helper function to select the consistent parts of the data and to concatenate it
-timelock = ft_selectdata(varargin{:}, 'param', {'avg' 'trial' 'cov' 'var' 'dof'});
+% set the defaults
+cfg.channel = ft_getopt(cfg, 'channel', 'all');
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appendtimelock.m 4306 2011-09-27 07:52:27Z eelspa $';
+% ensure that all inputs are sufficiently consistent
+for i=1:length(varargin)
+  if ~isequal(varargin{i}.time, varargin{1}.time)
+    error('this function requires identical time axes for all input structures');
+  end
+end
 
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
+% select the channels that are in every dataset
+for i=1:length(varargin)
+  cfg.channel = ft_channelselection(cfg.channel, varargin{i}.label);
+end
+
+% start with the initial output structure
+timelock        = [];
+timelock.time   = varargin{1}.time;
+timelock.label  = cfg.channel;
+timelock.dimord = 'rpt_chan_time';
+
+nchan  = length(timelock.label);
+ntime  = length(timelock.time);
+
+
+if isfield(varargin{1}, 'trial')
+  % these don't make sense when concatenating the avg
+  hastrialinfo  = isfield(varargin{1}, 'triainfo');
+  hassampleinfo = isfield(varargin{1}, 'sampleinfo');
+  hascov        = isfield(varargin{1}, 'cov') && numel(size(varargin{1}.cov))==3;
   
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-cfg.previous = cell(1,length(varargin));
-for i=1:numel(varargin)
-  try, cfg.previous{i} = varargin{i}.cfg; end
+  ntrial = zeros(size(varargin));
+  for i=1:length(varargin)
+    ntrial(i) = size(varargin{i}.trial, 1);
+  end
+  trialsel = cumsum([1 ntrial]);
+  
+  timelock.trial = zeros(sum(ntrial), nchan, ntime);
+  if hastrialinfo,  timelock.trialinfo = zeros(sum(ntrial), size(varargin{1}.trialinfo,2)); end
+  if hassampleinfo, timelock.sampleinfo = zeros(sum(ntrial), size(varargin{1}.sampleinfo,2)); end
+  if hascov, timelock.cov = zeros(sum(ntrial), nchan, nchan); end
+  
+  for i=1:length(varargin)
+    % copy the desired data into the output structure
+    begtrial = trialsel(i);
+    endtrial = trialsel(i+1)-1;
+    chansel = match_str(varargin{i}.label, cfg.channel);
+    timelock.trial(begtrial:endtrial,:,:) = varargin{i}.trial(:,chansel,:);
+    if hastrialinfo,  timelock.trialinfo(begtrial:endtrial,:)   = varargin{i}.trialinfo(:,:); end
+    if hassampleinfo, timelock.sampleinfo(begtrial:endtrial,:)  = varargin{i}.sampleinfo(:,:); end
+    if hascov,        timelock.cov(begtrial:endtrial,:,:)       = varargin{i}.cov(:,chanselchansel); end
+  end % for varargin
+  
+elseif isfield(varargin{1}, 'avg')
+  hascov = isfield(varargin{1}, 'cov') && numel(size(varargin{1}.cov))==2;
+  
+  ntrial = numel(varargin);
+  timelock.trial = zeros(ntrial, nchan, ntime);
+  if hascov, timelock.cov = zeros(sum(ntrial),nchan,nchan); end
+  
+  for i=1:length(varargin)
+    % copy the desired data into the output structure
+    chansel = match_str(varargin{i}.label, cfg.channel);
+    timelock.trial(i,:,:) = varargin{i}.avg(chansel,:);
+    if hascov, timelock.cov(i,:,:) = varargin{i}.cov(chansel,chansel); end
+  end % for varargin
 end
 
-% remember the exact configuration details in the output
-timelock.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'timelock', timelock); % use the variable name "data" in the output file
-end
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history timelock
+ft_postamble savevar timelock

@@ -76,11 +76,21 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_volumelookup.m 4623 2011-10-28 15:44:23Z roboos $
 
+revision = '$Id: ft_volumelookup.m 4623 2011-10-28 15:44:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar volume
 
-roi2mask = 0;
+% the handling of the default cfg options is done further down
+% the checking of the input data is done further down
+
+roi2mask   = 0;
 mask2label = 0;
 if isfield(cfg, 'roi');
   roi2mask = 1;

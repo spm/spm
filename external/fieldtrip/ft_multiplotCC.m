@@ -1,8 +1,8 @@
 function ft_multiplotCC(cfg, data)
 
-% FT_MULTIPLOTCC visualiuzes the coherence between channels by using multiple
-% topoplots. The topoplot at a given channel location shows the coherence
-% of that channel with all other channels.
+% FT_MULTIPLOTCC visualises the coherence between channels by using
+% multiple topoplots. The topoplot at a given channel location shows the
+% coherence of that channel with all other channels.
 %
 % Use as
 %   ft_multiplotCC(cfg, data)
@@ -34,34 +34,33 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_multiplotCC.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_multiplotCC.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+data = ft_checkdata(data);
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
 
-% if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151s.lay';       end;
-if ~isfield(cfg, 'xparam'),    cfg.xparam = 'foi';               end;
-if ~isfield(cfg, 'xlim'),      cfg.xlim   = 'all';               end;
-if ~isfield(cfg, 'parameter'),    cfg.parameter = 'avg.icohspctrm';    end;
-
-% for backward compatibility with old data structures
-data = ft_checkdata(data);
+% if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151s.lay';        end;
+if ~isfield(cfg, 'xparam'),      cfg.xparam = 'foi';                end;
+if ~isfield(cfg, 'xlim'),        cfg.xlim   = 'all';                end;
+if ~isfield(cfg, 'parameter'),   cfg.parameter = 'avg.icohspctrm';  end;
 
 if strcmp(cfg.parameter, 'avg.icohspctrm') && ~issubfield(data, 'avg.icohspctrm'),
   data.avg.icohspctrm = abs(imag(data.avg.cohspctrm));
 end
 
 if strcmp(data.dimord, 'refchan_chan_freq'),
-  %reshape input-data, such that ft_topoplotER will take it
+  % reshape input-data, such that ft_topoplotTFR will take it
   cnt = 1;
   siz = size(data.prob);
   data.labelcmb = cell(siz(1)*siz(2),2);
@@ -88,7 +87,7 @@ if isfield(cfg, 'xparam'),
   end
 end
 
-% Read or create the layout that will be used for plotting
+% R=read or create the layout that will be used for plotting
 lay = ft_prepare_layout(cfg, varargin{1});
 cfg.layout = lay;
 ft_plot_lay(lay, 'box', false,'label','no','point','no');
@@ -124,29 +123,12 @@ for k=1:length(chNum) - 2
     config.colorbar = 'no';
     config.zlim     = scale;
     config.grid_scale = 30;
-    ft_topoplotER(config, data);
+    ft_topoplotTFR(config, data);
     drawnow;
   end
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_multiplotCC.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data

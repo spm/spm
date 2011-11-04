@@ -7,7 +7,8 @@ function cfg = ft_interactiverealign(cfg)
 % Use as
 %   [cfg] = ft_interactiverealign(cfg)
 %
-% Required configuration options: 
+% The configuration structure should contain the individuals geometrical 
+% objects that have to be realigned as
 %  cfg.individual.vol
 %  cfg.individual.elec
 %  cfg.individual.grad
@@ -15,6 +16,8 @@ function cfg = ft_interactiverealign(cfg)
 %  cfg.individual.headshapestyle = 'vertex'  (default), 'surface' or 'both'
 %  cfg.individual.volstyle       = 'edge'    (default), 'surface' or 'both'
 %
+% The configuration structure should also contain the geometrical 
+% objects of a template that serves as target
 %  cfg.template.vol
 %  cfg.template.elec
 %  cfg.template.grad
@@ -42,18 +45,17 @@ function cfg = ft_interactiverealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interactiverealign.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_interactiverealign.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_interactiverealign.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble callinfo
+ft_preamble trackconfig
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'required',    {'individual', 'template'});
+cfg = ft_checkconfig(cfg, 'required', {'individual', 'template'});
 
 if ~isfield(cfg.individual, 'vol'),              cfg.individual.vol = [];                   end
 if ~isfield(cfg.individual, 'elec'),             cfg.individual.elec = [];                  end
@@ -69,7 +71,7 @@ if ~isfield(cfg.template, 'headshape'),        cfg.template.headshape = [];     
 if ~isfield(cfg.template, 'headshapestyle'),   cfg.template.headshapestyle = 'surface';   end
 if ~isfield(cfg.template, 'volstyle'),         cfg.template.volstyle = 'surface';         end
 
-template = cfg.template;
+template   = cfg.template;
 individual = cfg.individual;
 
 if ~isempty(template.headshape)
@@ -79,7 +81,7 @@ if ~isempty(template.headshape)
 end
 
 if ~isempty(individual.headshape) && isfield(individual.headshape, 'pnt') && ...
-        ~isempty(individual.headshape.pnt)
+    ~isempty(individual.headshape.pnt)
   if ~isfield(individual.headshape, 'tri') || isempty(individual.headshape.tri)
     individual.headshape.tri = projecttri(individual.headshape.pnt);
   end
@@ -107,25 +109,13 @@ clear global norm
 norm = tmp;
 clear tmp
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_interactiverealign.m 4287 2011-09-23 12:17:38Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
 % remember the transform
 cfg.m = norm.m;
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % some simple SUBFUNCTIONs that facilitate 3D plotting
@@ -341,7 +331,7 @@ if ~isempty(template.vol)
     if strcmp(template.volstyle, 'surface') || ...
         strcmp(template.volstyle, 'both')
       hs = triplot(template.vol.bnd(i).pnt, template.vol.bnd(i).tri, [], 'faces_blue');
-
+      
     end
   end
 end
@@ -368,7 +358,7 @@ if ~isempty(template.headshape)
       triplot(template.headshape.pnt, template.headshape.tri,  [], 'faces_blue');
       alpha(str2num(get(findobj(fig, 'tag', 'alpha'), 'string')));
     end
-
+    
     if strcmp(template.headshapestyle, 'vertex') || ...
         strcmp(template.headshapestyle, 'both')
       hs = triplot(template.headshape.pnt, [], [], 'nodes');
@@ -387,7 +377,7 @@ if ~isempty(individual.headshape)
       triplot(individual.headshape.pnt, individual.headshape.tri,  [], 'faces_red');
       alpha(str2num(get(findobj(fig, 'tag', 'alpha'), 'string')));
     end
-
+    
     if strcmp(individual.headshapestyle, 'vertex') || ...
         strcmp(individual.headshapestyle, 'both')
       hs = triplot(individual.headshape.pnt, [], [], 'nodes');

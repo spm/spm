@@ -55,8 +55,28 @@ function [sens] = ft_datatype_sens(sens, varargin)
 % See also FT_READ_SENS, FT_SENSTYPE, FT_CHANTYPE, FT_APPLY_MONTAGE, CTF2GRAD, FIF2GRAD,
 % BTI2GRAD, YOKOGAWA2GRAD, ITAB2GRAD
 
+% Copyright (C) 2011, Robert Oostenveld & Jan-Mathijs Schoffelen
+%
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: ft_datatype_sens.m 4670 2011-11-03 21:22:47Z roboos $
+
 % get the optional input arguments, which should be specified as key-value pairs
-version       = ft_getopt(varargin, 'version', 'latest');
+version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011v2';
@@ -72,14 +92,15 @@ switch version
     if isfield(sens, 'pnt') || isfield(sens, 'ori')
       if isgrad
         % sensor description is a MEG sensor-array, containing oriented coils
-        [chanpos, chanori, tmp] = channelposition(sens, 'channel', 'all');
+        [chanpos, chanori, chanlab] = channelposition(sens, 'channel', 'all');
         sens.coilori = sens.ori; sens = rmfield(sens, 'ori');
         sens.coilpos = sens.pnt; sens = rmfield(sens, 'pnt');
         sens.chanpos = chanpos;
         sens.chanori = chanori;
       else
         % sensor description is something else, EEG/ECoG etc
-        chanpos      = channelposition(sens, 'channel', 'all');
+        % note that chanori will be all NaNs
+        [chanpos, chanori, chanlab] = channelposition(sens, 'channel', 'all');
         sens.elecpos = chanpos; sens = rmfield(sens, 'pnt');
         sens.chanpos = chanpos;
       end
@@ -126,6 +147,10 @@ switch version
       end
     end
     
+%     if ~isfield(sens, 'unit')
+%       sens = ft_convert_units(sens);
+%     end
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   otherwise
     error('converting to version %s is not supported', version);
@@ -143,5 +168,4 @@ fn = sort(fieldnames(a));
 for i=1:numel(fn)
   b.(fn{i}) = a.(fn{i});
 end
-
 

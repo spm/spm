@@ -1,7 +1,8 @@
 function [stat] = ft_freqstatistics(cfg, varargin)
 
-% FT_FREQSTATISTICS computes significance probabilities and/or critical values of a parametric statistical test
-% or a non-parametric permutation test.
+% FT_FREQSTATISTICS computes significance probabilities and/or critical
+% values of a parametric statistical test or a non-parametric permutation
+% test.
 %
 % Use as
 %   [stat] = ft_freqstatistics(cfg, freq1, freq2, ...)
@@ -48,7 +49,7 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 
 % TODO change cfg.frequency in all functions to cfg.foi or cfg.foilim
 
-% Copyright (C) 2005-2006, Robert Oostenveld
+% Copyright (C) 2005-2010, Robert Oostenveld
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -67,14 +68,16 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 4101 2011-09-05 09:48:02Z roboos $
+% $Id: ft_freqstatistics.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_freqstatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -82,7 +85,6 @@ cfg = ft_checkconfig(cfg, 'required',    {'method'});
 cfg = ft_checkconfig(cfg, 'forbidden',   {'transform'});
 
 % set the defaults
-cfg.inputfile   = ft_getopt(cfg, 'inputfile',   []);
 cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
 cfg.parameter   = ft_getopt(cfg, 'parameter',   []); % the default is assigned further down
 cfg.channel     = ft_getopt(cfg, 'channel',     'all');
@@ -113,19 +115,6 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % data bookkeeping
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-hasdata      = nargin>1;
-hasinputfile = ~isempty(cfg.inputfile);
-
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif hasdata
-  % no need to do anything
-elseif hasinputfile
-  for i=1:numel(cfg.inputfile)
-    varargin{i} = loadvar(cfg.inputfile{i}, 'freq'); % read datasets from array inputfile
-  end
-end
 
 Ndata = numel(varargin);
 
@@ -167,7 +156,7 @@ for i=1:Ndata
     tmax = min(tmax, varargin{i}.time(end));
   end
   if i==1
-    %FIXME deal with channelcmb
+    % FIXME deal with channelcmb
     if isfield(varargin{i}, 'labelcmb')
       error('support for data containing linearly indexed bivariate quantities, i.e. containing a ''labelcmb'' is not yet implemented');
     else
@@ -305,11 +294,11 @@ elseif haschancmb
 end
 
 if hasfreq
-  stat.freq   = data.freq;
+  stat.freq = data.freq;
 end
 
 if hastime
-  stat.time   = data.time;
+  stat.time = data.time;
 end
 
 if ~isempty(stat.dimord)
@@ -323,34 +312,15 @@ for i=1:length(statfield)
     stat.(statfield{i}) = reshape(stat.(statfield{i}), cfg.dim);
   end
 end
-stat.dimord = cfg.dimord; %FIXME squeeze out the appropriate dimords if avgoverfreq etc.
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_freqstatistics.m 4101 2011-09-05 09:48:02Z roboos $';
+% FIXME squeeze out the appropriate dimords if avgoverfreq etc.
+stat.dimord = cfg.dimord;
 
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history stat
+ft_postamble savevar stat
 
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration of the input data
-if exist('previous', 'var')
-  cfg.previous = previous;
-else
-  cfg.previous = [];
-end
-
-% remember the exact configuration details in the output
-stat.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'stat', stat); % use the variable name "data" in the output file
-end
 

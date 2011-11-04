@@ -1,16 +1,16 @@
 function [cfg] = ft_sourceplot(cfg, data)
 
-% FT_SOURCEPLOT plots functional source reconstruction data on slices or on a
-% surface, optionally as an overlay on anatomical MRI data, where
-% statistical data can be used to determine the opacity of the mask. 
-% Input data comes from FT_SOURCEANALYSIS, FT_SOURCEGRANDAVERAGE or 
-% statistical values from FT_SOURCESTATISTICS.
+% FT_SOURCEPLOT plots functional source reconstruction data on slices or on
+% a surface, optionally as an overlay on anatomical MRI data, where
+% statistical data can be used to determine the opacity of the mask. Input
+% data comes from FT_SOURCEANALYSIS, FT_SOURCEGRANDAVERAGE or statistical
+% values from FT_SOURCESTATISTICS.
 %
-% Use as:
+% Use as
 %   ft_sourceplot(cfg, data)
-%
-% The data can contain functional data, anatomical MRI data and statistical data,
-% interpolated onto the same grid.
+% where the input data can contain an anatomical MRI, functional source
+% reconstruction results and statistical data, which all have to be
+% interpolated on the same 3-d grid.
 %
 % The configuration should contain:
 %   cfg.method        = 'slice',   plots the data on a number of slices in the same plane
@@ -157,44 +157,30 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 4155 2011-09-12 10:13:30Z roboos $
+% $Id: ft_sourceplot.m 4658 2011-11-02 19:49:23Z roboos $
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+revision = '$Id: ft_sourceplot.m 4658 2011-11-02 19:49:23Z roboos $';
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'renamed', {'inputcoordsys', 'coordsys'});
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-%%% ft_checkdata see below!!! %%%
-
-% set default for inputfile
-cfg.inputfile = ft_getopt(cfg, 'inputfile', []);
-
-% load optional given inputfile as data
-hasdata      = (nargin>1);
-hasinputfile = ~isempty(cfg.inputfile);
-if hasdata && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif hasdata
-  % do nothing
-elseif hasinputfile
-  data = loadvar(cfg.inputfile, 'data');
-end 
-
-% set the common defaults
-cfg.method = ft_getopt(cfg, 'method', 'ortho');
-if ~isfield(cfg, 'anaparameter'),
-  if isfield(data, 'anatomy'),
-    cfg.anaparameter = 'anatomy';
-  else
-    cfg.anaparameter = [];
-  end
+% this is not supported any more as of 26/10/2011
+if ischar(data)
+  error('please use cfg.inputfile instead of specifying the input variable as a sting');
 end
 
-% all methods
+% check if the input data is valid for this function
+data = ft_checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
+
+% check if the input configuration is valid for this function
+cfg = ft_checkconfig(cfg, 'renamed', {'inputcoordsys', 'coordsys'});
+
+% set the defaults for all methods
+cfg.method        = ft_getopt(cfg, 'method', 'ortho');
 cfg.funparameter  = ft_getopt(cfg, 'funparameter',  []);
 cfg.maskparameter = ft_getopt(cfg, 'maskparameter', []);
 cfg.downsample    = ft_getopt(cfg, 'downsample',    1);
@@ -203,6 +189,14 @@ cfg.atlas         = ft_getopt(cfg, 'atlas',         []);
 cfg.marker        = ft_getopt(cfg, 'marker',        []);
 cfg.markersize    = ft_getopt(cfg, 'markersize',    5);
 cfg.markercolor   = ft_getopt(cfg, 'markercolor',   [1 1 1]);
+
+if ~isfield(cfg, 'anaparameter')
+  if isfield(data, 'anatomy')
+    cfg.anaparameter = 'anatomy';
+  else
+    cfg.anaparameter = [];
+  end
+end
 
 % set the common defaults for the functional data
 cfg.funcolormap   = ft_getopt(cfg, 'funcolormap',   'auto');
@@ -257,17 +251,6 @@ if strcmp(cfg.location, 'interactive')
   cfg.location = 'auto';
   cfg.interactive = 'yes';
 end
-
-%%%%%%%
-if ischar(data)
-  % read the anatomical MRI data from file
-  filename = data;
-  fprintf('reading MRI from file\n');
-  data = ft_read_mri(filename);
-end
-
-% check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', 'volume', 'feedback', 'yes');
 
 % ensure that the data has interpretable spatial units
 if     ~isfield(data, 'unit') && ~isempty(cfg.units)
@@ -1144,26 +1127,10 @@ end
 title(cfg.title);
 set(gcf, 'renderer', cfg.renderer);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_sourceplot.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION makes an overlay of 3D anatomical, functional and probability

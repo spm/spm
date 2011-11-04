@@ -31,9 +31,13 @@ function fieldtrip2spss(filename, labels, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2spss.m 2439 2010-12-15 16:33:34Z arjsto
+% $Id: fieldtrip2spss.m 4675 2011-11-04 08:55:17Z roboos $
 
+revision = '$Id: fieldtrip2spss.m 4675 2011-11-04 08:55:17Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble callinfo
 
 % check whether data and labels have the same lengths
 if ~isequal(size(data,2),size(labels,2))
@@ -46,3 +50,7 @@ txt = sprintf('%s\t',labels{:});
 txt(end) = '';
 dlmwrite(filename, txt, '');
 dlmwrite(filename, data, '-append', 'delimiter', '\t', 'precision', 4);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+

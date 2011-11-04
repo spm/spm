@@ -31,52 +31,40 @@ if ~isempty(hdmfile)
     % also copy the conductivities
     vol.cond = hdm.cond;
   end
-else
+elseif isfield(geom, 'bnd')
   % copy the boundaries from the geometry into the volume conduction model
   vol.bnd = geom.bnd;
+elseif isfield(geom, 'pnt') && isfield(geom, 'tri')
+  % copy the boundaries from the geometry into the volume conduction model
+  vol.bnd = geom;
 end
 
 % determine the number of compartments
 numboundaries = length(vol.bnd);
 
 if ~isfield(vol, 'cond')
-  % assign the conductivity of each compartment
-  vol.cond = conductivity;
-end
-
-% determine the nesting of the compartments
-nesting = zeros(numboundaries);
-for i=1:numboundaries
-  for j=1:numboundaries
-    if i~=j
-      % determine for a single vertex on each surface if it is inside or outside the other surfaces
-      curpos = vol.bnd(i).pnt(1,:); % any point on the boundary is ok
-      curpnt = vol.bnd(j).pnt;
-      curtri = vol.bnd(j).tri;
-      nesting(i,j) = bounding_mesh(curpos, curpnt, curtri);
-    end
+  if numel(conductivity)~=numboundaries
+    error('a conductivity value should be specified for each compartment');
+  else
+    % assign the conductivity of each compartment
+    vol.cond = conductivity;
   end
 end
 
-if sum(nesting(:))~=(numboundaries*(numboundaries-1)/2)
-  error('the compartment nesting cannot be determined');
+% impose the 'outsidefirst' nesting of the compartments
+order = surface_nesting(vol.bnd, 'outsidefirst');
+
+% rearrange boundaries and conductivities
+if numel(vol.bnd)>1
+  fprintf('reordering the boundaries to: ');
+  fprintf('%d ', order);
+  fprintf('\n');
+  % update the order of the compartments
+  vol.bnd    = vol.bnd(order);
+  vol.cond   = vol.cond(order);
 end
-
-% for a three compartment model, the nesting matrix should look like
-%    0 1 1     the first is nested inside the 2nd and 3rd, i.e. the inner skull
-%    0 0 1     the second is nested inside the 3rd, i.e. the outer skull
-%    0 0 0     the third is the most outside, i.e. the skin
-[~, order] = sort(-sum(nesting,2));
-
-fprintf('reordering the boundaries to: ');
-fprintf('%d ', order);
-fprintf('\n');
-
-% update the order of the compartments
-vol.bnd    = vol.bnd(order);
-vol.cond   = vol.cond(order);
 vol.skin_surface   = numboundaries;
-vol.source = 1;
+vol.source = 1;  
 
 % do some sanity checks
 if length(vol.bnd)~=3

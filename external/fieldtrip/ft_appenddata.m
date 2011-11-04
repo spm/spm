@@ -56,45 +56,32 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_appenddata.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_appenddata.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-% set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
-
-hasdata      = nargin>1;
-hasinputfile = ~isempty(cfg.inputfile);
-if hasdata  && hasinputfile
-  error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-elseif hasinputfile
-  for i=1:numel(cfg.inputfile)
-    varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
-    Ndata       = numel(cfg.inputfile); % use Ndata as if separate datafiles were specified
-  end
-elseif hasdata
-  Ndata = nargin-1;
-end
-
-if Ndata<2
-  error('you must give at least two datasets to append');
-end
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hassampleinfo', 'yes');
 end
 
+% set the defaults
+if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
+if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
+
 % determine the dimensions of the data
+Ndata = length(varargin);
+
+if Ndata<2
+  error('you must give at least two datasets to append');
+end
+
 Nchan  = zeros(1,Ndata);
 Ntrial = zeros(1,Ndata);
 label  = {};
@@ -177,7 +164,6 @@ if haselec || hasgrad,
 end
 
 % check whether the data are obtained from the same datafile
-
 removesampleinfo = 0;
 removetrialinfo  = 0;
 try
@@ -313,7 +299,6 @@ end
 if removesampleinfo && isfield(data, 'sampleinfo')
   fprintf('removing sampleinfo field from output\n');
   data = rmfield(data, 'sampleinfo');
-  %cfg.trl(:, 1:2) = nan;
   if isfield(cfg, 'trl'), cfg = rmfield(cfg, 'trl'); end
 end
 
@@ -322,34 +307,9 @@ if removetrialinfo && isfield(data, 'trialinfo')
   data = rmfield(data, 'trialinfo');
 end
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appenddata.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-cfg.previous = cell(1,length(varargin));
-for i=1:Ndata
-  if isfield(varargin{i}, 'cfg')
-    cfg.previous{i} = varargin{i}.cfg;
-  end
-end
-
-% remember the exact configuration details in the output
-data.cfg = cfg;
-
-fprintf('output dataset, %d channels, %d trials\n', length(data.label), length(data.trial));
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history data
+ft_postamble savevar data

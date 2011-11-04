@@ -29,15 +29,23 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 4305 2011-09-26 19:40:23Z roboos $
+% $Id: ft_appendfreq.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_appendfreq.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+for i=1:length(varargin)
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'yes');
+end
 
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'parameter');
 
 % set the defaults
@@ -46,33 +54,9 @@ cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 cfg.appenddim  = ft_getopt(cfg, 'appenddim',  'auto');
 cfg.tolerance  = ft_getopt(cfg, 'tolerance',  1e-5);
 
-hasdata = nargin>1;
-if ~isempty(cfg.inputfile) % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  elseif ~iscell(cfg.inputfile)
-    error('you should specify cfg.inpoutfile as cell-array with multiple file names');
-  else
-    for i=1:numel(cfg.inputfile)
-      varargin{i} = loadvar(cfg.inputfile{i}, 'freq'); % read datasets from array inputfile
-    end
-  end
-end
-
-Ndata = numel(varargin);
-if Ndata==1
-  % nothing to do
-  freq = varargin{1};
-  return;
-end
-
-% check if the input data is valid for this function
-for i=1:Ndata
-  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'yes');
-end
-
 % do a basic check to see whether the dimords match
-dimord      = cell(1,Ndata);
+Ndata = length(varargin);
+dimord = cell(1,Ndata);
 for i=1:Ndata
   dimord{i} = varargin{i}.dimord;
 end
@@ -283,37 +267,15 @@ for k = 1:numel(param)
   else
     freq.(param{k}) = cat(catdim,tmp{:});
   end
-end %for k = 1:numel(param)
+end % for k = 1:numel(param)
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_appendfreq.m 4305 2011-09-26 19:40:23Z roboos $';
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history freq
+ft_postamble savevar freq
 
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-cfg.previous = cell(1,length(varargin));
-for i=1:numel(varargin)
-  if isfield(varargin{i}, 'cfg'),
-    cfg.previous{i} = varargin{i}.cfg;
-  end
-end
-
-% remember the exact configuration details in the output
-freq.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'freq', freq); % use the variable name "data" in the output file
-end
 
 %---------------------------------------------
 % subfunction to check uniqueness of freq bins

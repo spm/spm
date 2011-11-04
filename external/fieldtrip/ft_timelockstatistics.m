@@ -59,39 +59,25 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_timelockstatistics.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_timelockstatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar varargin
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input data is valid for this function
+for i=1:length(varargin)
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
+end
 
 % set the defaults
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
-
-hasdata = nargin>1;
-if ~isempty(cfg.inputfile) % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    for i=1:numel(cfg.inputfile)
-      varargin{i} = loadvar(cfg.inputfile{i}, 'data'); % read datasets from array inputfile
-    end
-  end
-end
-
-% % check if the input data is valid for this function
-% for i=1:length(varargin)
-%   % FIXME at this moment (=10 May) this does not work, because the input might not always have an avg
-%   % See freqstatistics
-%   %varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
-% end
 
 % the low-level data selection function does not know how to deal with other parameters, so work around it
 if isfield(cfg, 'parameter')
@@ -124,38 +110,12 @@ if isfield(cfg, 'parameter')
   end
 end
 
-% call the general function
+% call the general function which does the actual work
 [stat, cfg] = statistics_wrapper(cfg, varargin{:});
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_timelockstatistics.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration of the input data
-cfg.previous = [];
-for i=1:length(varargin)
-  if isfield(varargin{i}, 'cfg')
-    cfg.previous{i} = varargin{i}.cfg;
-  else
-    cfg.previous{i} = [];
-  end
-end
-
-% remember the exact configuration details
-stat.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'stat', stat); % use the variable name "data" in the output file
-end
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous varargin
+ft_postamble history stat
+ft_postamble savevar stat

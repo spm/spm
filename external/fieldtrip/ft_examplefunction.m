@@ -30,21 +30,31 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 4343 2011-10-04 19:12:19Z roboos $
+% $Id: ft_examplefunction.m 4658 2011-11-02 19:49:23Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-ft_defaults
+revision = '$Id: ft_examplefunction.m 4658 2011-11-02 19:49:23Z roboos $';
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% do the general setup of the function
+
+% the ft_preamble function works by calling a number of scripts from
+% fieldtrip/utility/private that are able to modify the local workspace
+
+ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
+ft_preamble help            % this will show the function help if nargin==0 and return an error
+ft_preamble callinfo        % this records the time and memory usage at teh beginning of the function
+ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
+ft_preamble loadvar datain  % this reads the input data in case the user specified the cfg.inputfile option
+
+% ensure that the input data is valid for this function, this will also do 
+% backward-compatibility conversions of old data that for example was 
+% read from an old *.mat file
+datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'blc', 'demean'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'blcwindow', 'baselinewindow'});
@@ -60,22 +70,6 @@ cfg = ft_checkopt(cfg, 'method', 'char', {'mtm', 'convol'});
 method    = ft_getopt(cfg, 'method');        % there is no default
 vartrllen = ft_getopt(cfg, 'vartrllen', 2);  % the default is 2
 
-% the data can be specified as input variable or can be read from file
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    datain = loadvar(cfg.inputfile, 'data');
-  end
-end
-
-% ensure that the input data is valid for this function, this will also do 
-% backward-compatibility conversions of old data that for example was 
-% read from an old *.mat file
-datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the actual computation is done in the middle part
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -86,41 +80,17 @@ dataout = [];
 % this might involve more active checking of whether the input options 
 % are consistent with the data and with each other
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % deal with the output
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
+% do the general cleanup and bookkeeping at the end of the function
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+% the ft_postamble function works by calling a number of scripts from
+% fieldtrip/utility/private that are able to modify the local workspace
 
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_examplefunction.m 4343 2011-10-04 19:12:19Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = datain.cfg;
-end
-
-% remember the exact configuration details in the output
-dataout.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', dataout); % use the variable name "data" in the output file
-end
+ft_postamble trackconfig      % this converts the config object back into a struct and can report on the unused fields
+ft_postamble callinfo         % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and matlab version etc. to the output cfg
+ft_postamble previous datain  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
+ft_postamble history dataout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
+ft_postamble savevar dataout  % this saves the output data structure to disk in case the user specified the cfg.outputfile option

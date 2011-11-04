@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 4398 2011-10-09 15:19:40Z crimic $
+% $Id: ft_hastoolbox.m 4644 2011-10-31 21:29:52Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -89,7 +89,7 @@ url = {
   'NLXNETCOM'  'see http://www.neuralynx.com'
   'DIPOLI'     'see ftp://ftp.fcdonders.nl/pub/fieldtrip/external'
   'MNE'        'see http://www.nmr.mgh.harvard.edu/martinos/userInfo/data/sofMNE.php'
-  'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydes?ter'
+  'TCP_UDP_IP' 'see http://www.mathworks.com/matlabcentral/fileexchange/345, or contact Peter Rydesaeter'
   'BEMCP'      'contact Christophe Phillips'
   'OPENMEEG'   'see http://gforge.inria.fr/projects/openmeeg and http://gforge.inria.fr/frs/?group_id=435'
   'PRTOOLS'    'see http://www.prtools.org'
@@ -105,7 +105,7 @@ url = {
   'SQDPROJECT' 'see http://www.isr.umd.edu/Labs/CSSL/simonlab'
   'BCT'        'see http://www.brain-connectivity-toolbox.net/'
   'CCA'        'see http://www.imt.liu.se/~magnus/cca or contact Magnus Borga'
-  'COMPAT'     'this is part of FieldTrip and is used for backward compatibility'
+  'EGI_MFF'    'see http://www.egi.com/ or contact either Phan Luu or Colin Davey at EGI'
   };
 
 if nargin<2
@@ -158,13 +158,15 @@ switch toolbox
   case 'EEPROBE'
     status  = (exist('read_eep_avr') && exist('read_eep_cnt'));
   case 'YOKOGAWA'
-    status = (exist('hasyokogawa') && hasyokogawa('16bitBeta6'));
- case 'YOKOGAWA16BITBETA3'
-    status = (exist('hasyokogawa') && hasyokogawa('16bitBeta3'));
+    status = hasyokogawa('16bitBeta6');
+  case 'YOKOGAWA12BITBETA3'
+    status = hasyokogawa('12bitBeta3');
+  case 'YOKOGAWA16BITBETA3'
+    status = hasyokogawa('16bitBeta3');
   case 'YOKOGAWA16BITBETA6'
-    status = (exist('hasyokogawa') && hasyokogawa('16bitBeta6'));
-  case 'YOKOGAWA_MEG_READER' 
-    status = (exist('hasyokogawa') && hasyokogawa('1.4')); 
+    status = hasyokogawa('16bitBeta6');
+  case 'YOKOGAWA_MEG_READER'
+    status = hasyokogawa('1.4'); 
   case 'BEOWULF'
     status = (exist('evalwulf') && exist('evalwulf') && exist('evalwulf'));
   case 'MENTAT'
@@ -202,7 +204,7 @@ switch toolbox
   case 'NLXNETCOM'
     status  = (exist('MatlabNetComClient') && exist('NlxConnectToServer') && exist('NlxGetNewCSCData'));
   case 'DIPOLI'
-    status  = exist('dipoli.m', 'file');
+    status  = exist('dipoli.maci', 'file');
   case 'MNE'
     status  = (exist('fiff_read_meas_info', 'file') && exist('fiff_setup_read_raw', 'file'));
   case 'TCP_UDP_IP'
@@ -210,7 +212,7 @@ switch toolbox
   case 'BEMCP'
     status  = (exist('bem_Cij_cog', 'file') && exist('bem_Cij_lin', 'file') && exist('bem_Cij_cst', 'file'));
   case 'OPENMEEG'
-    status = exist('openmeeg.m', 'file');
+    status = exist('om_save_tri.m', 'file');
   case 'PLOTTING'
     status  = (exist('ft_plot_topo', 'file') && exist('ft_plot_mesh', 'file') && exist('ft_plot_matrix', 'file'));
   case 'PRTOOLS'
@@ -245,6 +247,8 @@ switch toolbox
     status = exist('macaque71.mat', 'file') && exist('motif4funct_wei.m', 'file');
   case 'CCA'
     status = exist('ccabss.m', 'file');
+  case 'EGI_MFF'
+    status = exist('mff_getObject.m', 'file') && exist('mff_getSummaryInfo.m', 'file');
 
     % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
     % these are added in ft_defaults and are specified with unix-style forward slashes

@@ -26,7 +26,7 @@ function [hdr] = ft_fetch_header(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_header.m 3767 2011-07-04 10:44:42Z eelspa $
+% $Id: ft_fetch_header.m 4624 2011-10-29 10:10:49Z roboos $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');

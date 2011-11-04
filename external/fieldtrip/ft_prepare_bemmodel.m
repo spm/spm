@@ -44,38 +44,66 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_prepare_bemmodel.m 4642 2011-10-31 16:32:43Z crimic $
 
+warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_HEADMODEL_BEM_... with cfg.method = ''bem_bladeebla'' instead.')
+
+revision = '$Id: ft_prepare_bemmodel.m 4642 2011-10-31 16:32:43Z crimic $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble trackconfig
 
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
+% set the defaults
 if ~isfield(cfg, 'tissue'),         cfg.tissue = [8 12 14];                  end
 if ~isfield(cfg, 'numvertices'),    cfg.numvertices = [1 2 3] * 500;         end
 if ~isfield(cfg, 'hdmfile'),        cfg.hdmfile = [];                        end
 if ~isfield(cfg, 'isolatedsource'), cfg.isolatedsource = [];                 end
 if ~isfield(cfg, 'method'),         cfg.method = 'dipoli';                   end % dipoli, openmeeg, bemcp, brainstorm
-if ~isfield(cfg, 'conductivity')
-  if isfield(mri, 'cond') 
-    cfg.conductivity = mri.cond;
-  elseif isfield(mri, 'c') 
-    cfg.conductivity = mri.c;
-  else
-    cfg.conductivity = [1 1/80 1] * 0.33;
-  end
-end
 
 % start with an empty volume conductor
 vol = [];
-
-if ~isfield(vol, 'cond')
-  % assign the conductivity of each compartment
-  vol.cond = cfg.conductivity;
+if ~isempty(cfg.hdmfile)
+  hdm = ft_read_vol(hdmfile);
+  % copy the boundary of the head model file into the volume conduction model
+  vol.bnd = hdm.bnd;
+  if isfield(hdm, 'cond')
+    % also copy the conductivities
+    vol.cond = hdm.cond;
+  end
+else
+  geom = mri;
+  % copy the boundaries from the geometry into the volume conduction model
+  vol.bnd = geom.bnd;
 end
 
 % determine the number of compartments
-Ncompartment = length(vol.cond);
+Ncompartment = numel(vol.bnd);
+
+% assign the conductivity
+if ~isfield(vol,'cond')
+  if ~isfield(cfg, 'conductivity')
+    if isfield(mri, 'cond') 
+      vol.cond = mri.cond;
+    elseif isfield(mri, 'c') 
+      vol.cond = mri.c;
+    else
+      fprintf('warning: using default values for the conductivity')
+      vol.cond = [1 1/80 1] * 0.33;
+    end
+  else
+    if ~isempty(cfg.conductivity)
+      vol.cond = cfg.conductivity;
+    elseif isempty(cfg.conductivity) && Ncompartment==3
+      fprintf('warning: using default values for the conductivity')
+      vol.cond = [1 1/80 1] * 0.33;    
+    else
+      fprintf('warning: using 1 for all conductivities')
+      vol.cond = ones(1,Ncompartment);
+    end
+  end
+end
 
 % construct the geometry of the BEM boundaries
 if nargin==1
@@ -89,15 +117,23 @@ vol.skin_surface   = find_outermost_boundary(vol.bnd);
 fprintf('determining source compartment (%d)\n', vol.source);
 fprintf('determining skin compartment (%d)\n',   vol.skin_surface);
 
+if ~isempty(cfg.isolatedsource)
+  isolatedsource = istrue(cfg.isolatedsource); 
+else
+  isolatedsource = false;
+end
+
 if isempty(cfg.isolatedsource) && Ncompartment>1 && strcmp(cfg.method, 'dipoli')
   % the isolated source compartment is by default the most inner one
-  cfg.isolatedsource = true;
+  isolatedsource = true;
 elseif isempty(cfg.isolatedsource) && Ncompartment==1
   % the isolated source interface should be contained within at least one other interface
-  cfg.isolatedsource = false;
-elseif ~isempty(cfg.isolatedsource) && ~islogical(cfg.isolatedsource)
+  isolatedsource = false;
+elseif ~islogical(isolatedsource)
   error('cfg.isolatedsource should be true or false');
 end
+
+
 
 if cfg.isolatedsource
   fprintf('using compartment %d for the isolated source approach\n', vol.source);
@@ -112,7 +148,7 @@ if strcmp(cfg.method, 'dipoli')
   ft_hastoolbox('dipoli', 1);
   
   % use the dipoli wrapper function
-  vol = dipoli(vol, cfg.isolatedsource);
+  vol = dipoli(vol, isolatedsource);
   vol.type = 'dipoli';
   
 elseif strcmp(cfg.method, 'bemcp')
@@ -125,12 +161,41 @@ elseif strcmp(cfg.method, 'bemcp')
   if length(vol.bnd)~=3
     error('this only works for three surfaces');
   end
-  if vol.skin_surface~=3
-    error('the skin should be the third surface');
+  
+  numboundaries = length(vol.bnd);
+  % determine the nesting of the compartments
+  nesting = zeros(numboundaries);
+  for i=1:numboundaries
+    for j=1:numboundaries
+      if i~=j
+        % determine for a single vertex on each surface if it is inside or outside the other surfaces
+        curpos = vol.bnd(i).pnt(1,:); % any point on the boundary is ok
+        curpnt = vol.bnd(j).pnt;
+        curtri = vol.bnd(j).tri;
+        nesting(i,j) = bounding_mesh(curpos, curpnt, curtri);
+      end
+    end
   end
-  if vol.source~=1
-    error('the source compartment should correspond to the first surface');
+
+  if sum(nesting(:))~=(numboundaries*(numboundaries-1)/2)
+    error('the compartment nesting cannot be determined');
   end
+
+  % for a three compartment model, the nesting matrix should look like
+  %    0 1 1     the first is nested inside the 2nd and 3rd, i.e. the inner skull
+  %    0 0 1     the second is nested inside the 3rd, i.e. the outer skull
+  %    0 0 0     the third is the most outside, i.e. the skin
+  [dum, order] = sort(-sum(nesting,2));
+
+  fprintf('reordering the boundaries to: ');
+  fprintf('%d ', order);
+  fprintf('\n');
+
+  % update the order of the compartments
+  vol.bnd    = vol.bnd(order);
+  vol.cond   = vol.cond(order);
+  vol.skin_surface   = numboundaries;
+  vol.source = 1;
   
   % Build Triangle 4th point
   vol = triangle4pt(vol);

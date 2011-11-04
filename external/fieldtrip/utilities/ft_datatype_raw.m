@@ -69,7 +69,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 4301 2011-09-26 15:31:57Z jansch $
+% $Id: ft_datatype_raw.m 4510 2011-10-18 18:53:15Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');
@@ -92,11 +92,11 @@ switch version
       end
       
       % ensure the new style sensor description
-      data.grad = fixsens(data.grad);
+      data.grad = ft_datatype_sens(data.grad);
     end
     
     if isfield(data, 'elec')
-      data.elec = fixsens(data.elec);
+      data.elec = ft_datatype_sens(data.elec);
     end
     
     if ~isfield(data, 'fsample')

@@ -71,17 +71,18 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_redefinetrial.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_redefinetrial.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar datain
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% ft_checkdata is done further down
 
 % set the defaults
 if ~isfield(cfg, 'offset'),     cfg.offset = [];      end
@@ -97,23 +98,12 @@ if ~isfield(cfg, 'overlap'),    cfg.overlap = 0;      end
 if ~isfield(cfg, 'inputfile'),  cfg.inputfile = [];   end
 if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];  end
 
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
-
 % store original datatype
 dtype = ft_datatype(data);
 
-% check if the input data is valid for this function
+% check if the input data is valid for this function, this will convert it to raw if needed
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', cfg.feedback);
-fb   = strcmp(cfg.feedback, 'yes');
+fb   = istrue(cfg.feedback);
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -147,13 +137,12 @@ if ~isempty(cfg.toilim)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   begsample = zeros(Ntrial,1);
   endsample = zeros(Ntrial,1);
-  offset    = zeros(Ntrial,1);
-  skiptrial = zeros(Ntrial,1);
+  skiptrial = false(Ntrial,1);
   for i=1:Ntrial
     if cfg.toilim(1)>data.time{i}(end) || cfg.toilim(2)<data.time{i}(1)
       begsample(i) = nan;
       endsample(i) = nan;
-      skiptrial(i) = 1;
+      skiptrial(i) = true;
     else
       begsample(i) = nearest(data.time{i}, cfg.toilim(1));
       endsample(i) = nearest(data.time{i}, cfg.toilim(2));
@@ -171,7 +160,7 @@ if ~isempty(cfg.toilim)
   data.time     = data.time(~skiptrial);
   data.trial    = data.trial(~skiptrial);
   if isfield(data, 'sampleinfo'),  data.sampleinfo  = data.sampleinfo(~skiptrial, :); end
-  if isfield(data, 'trialinfo'), data.trialinfo = data.trialinfo(~skiptrial, :);      end
+  if isfield(data, 'trialinfo'),   data.trialinfo   = data.trialinfo(~skiptrial, :);  end
   if fb, fprintf('removing %d trials in which no data was selected\n', sum(skiptrial)); end
   
 elseif ~isempty(cfg.offset)
@@ -214,7 +203,7 @@ elseif ~isempty(cfg.trl)
   % select new trials from the existing data
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  % ensure that sampleinfo is present, if this fails ft_fetch_data will crash
+  % ensure that sampleinfo is present, otherwise ft_fetch_data will crash
   data = ft_checkdata(data, 'hassampleinfo', 'yes');  
 
   dataold = data;   % make a copy of the old data
@@ -222,14 +211,19 @@ elseif ~isempty(cfg.trl)
   
   % make header
   hdr = ft_fetch_header(dataold);
-  
-  % make new data structure
+
   trl = cfg.trl;
   remove = 0;
-  data.trial = cell(1,size(trl,1));
-  data.time  = cell(1,size(trl,1));
+  
+  % start with a completely new data structure
+  data          = [];
+  data.hdr      = hdr;
+  data.label    = dataold.label;
+  data.fsample  = dataold.fsample;
+  data.trial    = cell(1,size(trl,1));
+  data.time     = cell(1,size(trl,1));
+
   for iTrl=1:length(trl(:,1))
-    
     begsample = trl(iTrl,1);
     endsample = trl(iTrl,2);
     offset    = trl(iTrl,3);
@@ -259,9 +253,6 @@ elseif ~isempty(cfg.trl)
       end
     end
   end
-  data.hdr       = hdr;
-  data.label     = dataold.label;
-  data.fsample   = dataold.fsample;
   if isfield(dataold, 'grad')
     data.grad      = dataold.grad;
   end
@@ -275,11 +266,15 @@ elseif ~isempty(cfg.trl)
     % adjust the trial definition
     data.sampleinfo  = trl(:, 1:2);
   end
-elseif ~isempty(cfg.length)
   
+elseif ~isempty(cfg.length)
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % cut the existing trials into segments of the specified length
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   data = ft_checkdata(data, 'hassampleinfo', 'yes');
   
-  %create dummy trl-matrix and recursively call ft_redefinetrial
+  % create dummy trl-matrix and recursively call ft_redefinetrial
   nsmp    = round(cfg.length*data.fsample);
   nshift  = round((1-cfg.overlap)*nsmp);
 
@@ -323,41 +318,20 @@ if ~isempty(cfg.minlength)
   if fb, fprintf('removing %d trials that are too short\n', sum(skiptrial));         end
 end
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_redefinetrial.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-if ~isempty(cfg.trl)
-  % data is a cleared variable, use dataold instead
-  try, cfg.previous = dataold.cfg; end
-else
-  try, cfg.previous = data.cfg;    end
-end
-
-% remember the exact configuration details in the output
-data.cfg = cfg;
-
 % convert back to input type if necessary
-switch dtype 
-    case 'timelock'
-        data = ft_checkdata(data, 'datatype', 'timelock');
-    otherwise
-        % keep the output as it is
+switch dtype
+  case 'timelock'
+    data = ft_checkdata(data, 'datatype', 'timelock');
+  otherwise
+    % keep the output as it is
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+if ~isempty(cfg.trl)
+  ft_postamble previous dataold
+else
+  ft_postamble history data
 end
-
+ft_postamble savevar data

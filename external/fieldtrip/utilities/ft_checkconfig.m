@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 4416 2011-10-10 13:37:01Z roboos $
+% $Id: ft_checkconfig.m 4622 2011-10-28 15:13:00Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -99,10 +99,11 @@ if ~isempty(trackconfig) && strcmp(trackconfig, 'on')
 end
 
 % these should be cell arrays and not strings
-if ischar(required),   required   = {required};   end
-if ischar(deprecated), deprecated = {deprecated}; end
-if ischar(unused),     unused     = {unused};     end
-if ischar(forbidden),  forbidden  = {forbidden};  end
+if ischar(required),     required     = {required};      end
+if ischar(deprecated),   deprecated   = {deprecated};    end
+if ischar(unused),       unused       = {unused};        end
+if ischar(forbidden),    forbidden    = {forbidden};     end
+if ischar(createsubcfg), createsubcfg = {createsubcfg};  end
 
 if isfield(cfg, 'checkconfig')
   silent   = strcmp(cfg.checkconfig, 'silent');
@@ -170,7 +171,7 @@ if ~isempty(deprecated)
     elseif loose
       warning('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)});
     elseif pedantic
-      error(sprintf('The option cfg.%s is deprecated, support is no longer guaranteed\n', deprecated{ismember(deprecated, fieldsused)}));
+      error(sprintf('The option cfg.%s is not longer supported\n', deprecated{ismember(deprecated, fieldsused)}));
     end
   end
 end
@@ -210,10 +211,13 @@ if ~isempty(forbidden)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% backward compatibility for the changed gradiometer definition
+% backward compatibility for the gradiometer and electrode definition
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if isfield(cfg, 'grad')
-  cfg.grad = fixsens(cfg.grad);
+  cfg.grad = ft_datatype_sens(cfg.grad);
+end
+if isfield(cfg, 'elec')
+  cfg.elec = ft_datatype_sens(cfg.elec);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -393,6 +397,15 @@ if ~isempty(createsubcfg)
 
     for i=1:length(fieldname)
       if ~isfield(subcfg, fieldname{i}) && isfield(cfg, fieldname{i})
+        
+        if silent
+          % don't mention it
+        elseif loose
+          warning('The field cfg.%s is deprecated, please specify it as cfg.%s.%s instead of cfg.%s', fieldname{i}, subname, fieldname{i});
+        elseif pedantic
+          error('The field cfg.%s is not longer supported, use cfg.%s.%s instead\n', fieldname{i}, subname, fieldname{i});
+        end
+        
         subcfg = setfield(subcfg, fieldname{i}, getfield(cfg, fieldname{i}));  % set it in the subconfiguration
         cfg = rmfield(cfg, fieldname{i});                                      % remove it from the main configuration
       end

@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_read_data.m 4538 2011-10-21 08:46:43Z tilsan $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -908,16 +908,23 @@ switch dataformat
     end
 
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
-    % the data can be read with two toolboxes, iether the one from Yokogawa or the one from Maryland
-    if ft_hastoolbox('sqdproject', 3) % don't error if it cannot be added
+
+    % the data can be read with three toolboxes: Yokogawa MEG Reader, Maryland sqdread,
+    % or Yokogawa MEG160 (old inofficial toolbox)
+    % newest toolbox takes precedence over others. 
+
+    if ft_hastoolbox('yokogawa_meg_reader', 3); %stay silent if it cannot be added
+      dat = read_yokogawa_data_new(filename, hdr, begsample, endsample, chanindx);
+      dat = read_yokogawa_data_new(filename, hdr, begsample, endsample, chanindx);
+    elseif ft_hastoolbox('sqdproject', 2) % give warning if it cannot be added
       % channels are counted 0-based, samples are counted 1-based
       [dat, info] = sqdread(filename, 'channels', chanindx-1, 'samples', [begsample endsample]);
       dat = dat';
-    else
+    else 
       ft_hastoolbox('yokogawa', 1); % error if it cannot be added
       dat = read_yokogawa_data(filename, hdr, begsample, endsample, chanindx);
     end
-    
+
   case 'nmc_archive_k'
     dat = read_nmc_archive_k_data(filename, hdr, begsample, endsample, chanindx);
 

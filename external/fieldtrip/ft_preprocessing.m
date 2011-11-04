@@ -1,4 +1,4 @@
-function [dataout] = ft_preprocessing(cfg, data)
+function [data] = ft_preprocessing(cfg, data)
 
 % FT_PREPROCESSING reads MEG and/or EEG data according to user-specified trials
 % and applies several user-specified preprocessing steps to the signals.
@@ -176,29 +176,21 @@ function [dataout] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_preprocessing.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_preprocessing.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-if nargin==0
-  help(mfilename);
-  return
-elseif nargin==1 && isequal(cfg, 'help')
-  help(mfilename);
-  return
-elseif nargin==1 && isequal(cfg, 'guidelines')
-  guidelines(mfilename);
-  return
-end
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
 cfg = ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
+cfg = ft_checkconfig(cfg, 'renamed', {'output', 'export'});
 
 % set the defaults
 if ~isfield(cfg, 'method'),       cfg.method = 'trial';         end
@@ -206,7 +198,7 @@ if ~isfield(cfg, 'channel'),      cfg.channel = {'all'};        end
 if ~isfield(cfg, 'removemcg'),    cfg.removemcg = 'no';         end
 if ~isfield(cfg, 'removeeog'),    cfg.removeeog = 'no';         end
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end % this is for exporting to another file format
+if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end % this is for writing the result to a mat file
 
 if ~isfield(cfg, 'feedback'),
   if strcmp(cfg.method, 'channel')
@@ -246,13 +238,10 @@ if isfield(cfg, 'lnfilter') && strcmp(cfg.lnfilter, 'yes')
   error('line noise filtering using the option cfg.lnfilter is not supported any more, use cfg.bsfilter instead')
 end
 
-% this option has been renamed?
-cfg = ft_checkconfig(cfg, 'renamed', {'output', 'export'});
-
-%this relates to a previous fix to handle 32 bit neuroscan data
+% this relates to a previous fix to handle 32 bit neuroscan data
 if isfield(cfg, 'nsdf'),
-  %FIXME this should be handled by ft_checkconfig, but ft_checkconfig does not allow yet for
-  %specific errors in the case of forbidden fields
+  % FIXME this should be handled by ft_checkconfig, but ft_checkconfig does not allow yet for
+  % specific errors in the case of forbidden fields
   error('the use of cfg.nsdf is deprecated. fieldtrip tries to determine the bit resolution automatically. you can overrule this by specifying cfg.dataformat and cfg.headerformat. see: http://fieldtrip.fcdonders.nl/faq/i_have_problems_reading_in_neuroscan_.cnt_files._how_can_i_fix_this');
 end
 
@@ -264,16 +253,6 @@ if isfield(cfg, 'export') && ~isempty(cfg.export)
 end
 
 hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
-  end
-end
-
 if hasdata
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % do preprocessing of data that has already been read into memory
@@ -562,36 +541,17 @@ else
 
 end % if hasdata
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_preprocessing.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user     = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
+if nargin==2
+  ft_postamble previous data
 end
 
-% remember the exact configuration details in the output
-dataout.cfg = cfg;
+% rename the output variable to accomodate the savevar postamble
+data = dataout;
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', dataout); % use the variable name "data" in the output file
-end
+ft_postamble history data
+ft_postamble savevar data
+

@@ -38,37 +38,25 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqinterpolate.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_freqinterpolate.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_freqinterpolate.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar freq
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input data is valid for this function
+freq = ft_checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 
 % set the default values
 if ~isfield(cfg, 'method'),     cfg.method = 'nan';                     end
 if ~isfield(cfg, 'foilim'),     cfg.foilim = [49 51; 99 101; 149 151];  end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
-
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    freq = loadvar(cfg.inputfile, 'freq');
-  end
-end
-
-% check if the input data is valid for this function
-freq = ft_checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
+if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];   end
+if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];   end
 
 for i = 1:size(cfg.foilim,1)
   % determine the exact frequency bins to interpolate
@@ -100,34 +88,9 @@ for i = 1:size(cfg.foilim,1)
   end
 end % for each frequency range
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_freqinterpolate.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = freq.cfg; end
-
-% remember the exact configuration details in the output
-freq.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'freq', freq); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous freq
+ft_postamble history freq
+ft_postamble savevar freq

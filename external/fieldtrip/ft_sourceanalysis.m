@@ -1,4 +1,4 @@
-function [source] = ft_sourceanalysis(cfg, data, baseline);
+function [source] = ft_sourceanalysis(cfg, data, baseline)
 
 % FT_SOURCEANALYSIS performs beamformer dipole analysis on EEG or MEG data
 % after preprocessing and a timelocked or frequency analysis
@@ -191,31 +191,16 @@ function [source] = ft_sourceanalysis(cfg, data, baseline);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 4183 2011-09-13 16:40:20Z crimic $
+% $Id: ft_sourceanalysis.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_sourceanalysis.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on'); 
-
-% set defaults for optional cfg.inputfile, cfg.outputfile
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
-
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data baseline
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -279,6 +264,8 @@ if ~isfield(cfg, 'channel'),          cfg.channel = 'all';        end
 if ~isfield(cfg, 'normalize'),        cfg.normalize = 'no';       end
 if ~isfield(cfg, 'prewhiten'),        cfg.prewhiten = 'no';       end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';      end  % the default for this depends on EEG/MEG and is set below
+if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];        end
+if ~isfield(cfg, 'outputfile'),       cfg.outputfile = [];        end
 
 % put the low-level options pertaining to the source reconstruction method in their own field
 % put the low-level options pertaining to the dipole grid in their own field
@@ -1039,41 +1026,12 @@ if (strcmp(cfg.keeptrials, 'yes') || strcmp(cfg.method, 'pcc')) && isfield(data,
   source.trialinfo = data.trialinfo;
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_sourceanalysis.m 4183 2011-09-13 16:40:20Z crimic $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 if nargin==2
-  try, cfg.previous    = data.cfg;     end
+  ft_postamble previous data
 elseif nargin==3
-  cfg.previous = [];
-  try, cfg.previous{1} = data.cfg;     end
-  try, cfg.previous{2} = baseline.cfg; end
+  ft_postamble history data baseline
 end
-
-% remember the exact configuration details in the output
-source.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'source', source); % use the variable name "data" in the output file
-end
-
+ft_postamble savevar source

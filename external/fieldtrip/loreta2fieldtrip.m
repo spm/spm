@@ -31,14 +31,13 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 4385 2011-10-08 12:04:37Z roboos $
+% $Id: loreta2fieldtrip.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: loreta2fieldtrip.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble callinfo
 
 % get the optional input arguments
 timeframe = ft_getopt(varargin, 'timeframe'); % will be empty if not specified
@@ -115,20 +114,7 @@ cfg = [];
 cfg.timeframe = timeframe;
 cfg.filename  = filename;
 
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: loreta2fieldtrip.m 4385 2011-10-08 12:04:37Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the full configuration details
-source.cfg = cfg;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+ft_postamble history source
 

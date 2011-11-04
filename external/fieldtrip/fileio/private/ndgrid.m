@@ -47,7 +47,7 @@ function [varargout] = ndgrid(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ndgrid.m 2956 2011-02-25 19:57:31Z jansch $
+% $Id: ndgrid.m 4624 2011-10-29 10:10:49Z roboos $
 
 if nargin==0
   error('MATLAB:ndgrid:NotEnoughInputs', 'Not enough input arguments.');

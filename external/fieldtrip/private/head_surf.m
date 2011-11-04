@@ -36,13 +36,13 @@ function [pnt,tri]=head_surf(vol,grad,flag);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: head_surf.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: head_surf.m 4510 2011-10-18 18:53:15Z roboos $
 
 if nargin<3
   flag = 1;
 end
 
-grad = fixsens(grad);
+grad = ft_datatype_sens(grad);
 
 Nchans = size(grad.tra, 1);
 Ncoils = size(grad.tra, 2);

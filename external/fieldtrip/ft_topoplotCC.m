@@ -1,7 +1,6 @@
 function cfg = ft_topoplotCC(cfg, freq)
 
-% FT_TOPOPLOTCC plots the connections between significantly coherent
-% sensor pairs
+% FT_TOPOPLOTCC plots the coherence between channel pairs
 %
 % Use as
 %  ft_topoplotCC(cfg, freq)
@@ -53,21 +52,22 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4385 2011-10-08 12:04:37Z roboos $
+% $Id: ft_topoplotCC.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_topoplotCC.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
-
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-cfg = ft_checkconfig(cfg, 'required', {'foi', 'layout'});
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar freq
 
 % check if the input data is valid for this function
 freq = ft_checkdata(freq, 'cmbrepresentation', 'sparse');
+
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'required', {'foi', 'layout'});
 
 % set the defaults
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text';        end
@@ -231,26 +231,11 @@ ft_progress('close');
 % improve the fit in the axis
 axis tight
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous freq
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_topoplotCC.m 4385 2011-10-08 12:04:37Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION for plotting arrows, see also fieldtrip/private/arrow

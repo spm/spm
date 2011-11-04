@@ -1,4 +1,4 @@
-function [interp] = ft_megrealign(cfg, data)
+function [data] = ft_megrealign(cfg, data)
 
 % FT_MEGREALIGN interpolates MEG data towards standard gradiometer locations
 % by projecting the individual timelocked data towards a coarse source
@@ -105,16 +105,21 @@ function [interp] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_megrealign.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_megrealign.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'headshape',   'headmodel', []});
+cfg = ft_checkconfig(cfg, 'required',    {'inwardshift', 'template'});
 
 % set the default configuration
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];            end
@@ -128,29 +133,13 @@ if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
 if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];            end
 if ~isfield(cfg, 'outputfile'),    cfg.outputfile = [];           end
 
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
-
 % store original datatype
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes', 'ismeg', 'yes');
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});
-cfg = ft_checkconfig(cfg, 'renamedval',  {'headshape',   'headmodel', []});
-cfg = ft_checkconfig(cfg, 'required',    {'inwardshift', 'template'});
-
-%do realignment per trial
+% do realignment per trial
 pertrial = all(ismember({'nasX';'nasY';'nasZ';'lpaX';'lpaY';'lpaZ';'rpaX';'rpaY';'rpaZ'}, data.label));
 
 % put the low-level options pertaining to the dipole grid in their own field
@@ -398,33 +387,6 @@ if ~isempty(rest.label)
   interp.label = [interp.label; rest.label];
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% store the configuration of this function call, including that of the previous function call
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_megrealign.m 4287 2011-09-23 12:17:38Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-interp.cfg = cfg;
-
 % copy the trial specific information into the output
 if isfield(data, 'trialinfo')
   interp.trialinfo = data.trialinfo;
@@ -436,17 +398,24 @@ if isfield(data, 'sampleinfo')
 end
 
 % convert back to input type if necessary
-switch dtype 
-    case 'timelock'
-        interp = ft_checkdata(interp, 'datatype', 'timelock');
-    otherwise
-        % keep the output as it is
+switch dtype
+  case 'timelock'
+    interp = ft_checkdata(interp, 'datatype', 'timelock');
+  otherwise
+    % keep the output as it is
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', interp); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+
+% rename the output variable to accomodate the savevar postamble
+data = interp;
+
+ft_postamble history data
+ft_postamble savevar data
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction that computes the projection matrix(ces)

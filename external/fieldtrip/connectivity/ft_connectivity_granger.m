@@ -62,7 +62,7 @@ function [granger, v, n] = ft_connectivity_granger(H, Z, S, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_granger.m 4420 2011-10-11 07:52:16Z jansch $
+% $Id: ft_connectivity_granger.m 4570 2011-10-24 12:48:04Z jansch $
 
 method  = ft_getopt(varargin, 'method',  'granger');
 hasjack = ft_getopt(varargin, 'hasjack', 0);
@@ -114,13 +114,15 @@ case 'granger'
         %icross2 = sum(powindx==powindx(ones(Nc,1)*k,[2 1]),2)==2;
         % The following is based on hard-coded assumptions
         if mod(k-1, 4)==0
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         elseif mod(k-1, 4)==1
           iauto1=k+2;iauto2=k-1;icross1=k;icross2=k+1;
         elseif mod(k-1, 4)==2
           iauto1=k-2;iauto2=k+1;icross1=k;icross2=k-1;
         elseif mod(k-1, 4)==3
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         end
         
         zc      = Z(j,iauto2,:,:) - Z(j,icross1,:,:).^2./Z(j,iauto1,:,:);
@@ -254,19 +256,21 @@ case 'instantaneous'
         %icross1 = k;
         %icross2 = sum(powindx==powindx(ones(Nc,1)*k,[2 1]),2)==2;
         if mod(k-1, 4)==0
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         elseif mod(k-1, 4)==1
           iauto1=k+2;iauto2=k-1;icross1=k;icross2=k+1;
         elseif mod(k-1, 4)==2
           iauto1=k-2;iauto2=k+1;icross1=k;icross2=k-1;
         elseif mod(k-1, 4)==3
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         end
         
         zc1     = Z(j,iauto1,:) - Z(j,icross2,:).^2./Z(j,iauto2,:);
         zc2     = Z(j,iauto2,:) - Z(j,icross1,:).^2./Z(j,iauto1,:);
-        term1   = abs(S(j,iauto2,:,:) - zc1(:,:,ones(1,size(H,3)),:).*abs(H(j,icross2,:,:)).^2);
-        term2   = abs(S(j,iauto1,:,:) - zc2(:,:,ones(1,size(H,3)),:).*abs(H(j,icross1,:,:)).^2);
+        term1   = abs(S(j,iauto2,:,:)) - zc1(:,:,ones(1,size(H,3)),:).*abs(H(j,icross2,:,:)).^2;
+        term2   = abs(S(j,iauto1,:,:)) - zc2(:,:,ones(1,size(H,3)),:).*abs(H(j,icross1,:,:)).^2;
         numer   = term1.*term2;
         denom   = abs(S(j,iauto1,:,:).*S(j,iauto2,:,:) - S(j,icross1,:,:).*S(j,icross2,:,:));
         
@@ -313,13 +317,15 @@ case 'total'
         %icross1 = k;
         %icross2 = sum(powindx==powindx(ones(Nc,1)*k,[2 1]),2)==2;
         if mod(k-1, 4)==0
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         elseif mod(k-1, 4)==1
           iauto1=k+2;iauto2=k-1;icross1=k;icross2=k+1;
         elseif mod(k-1, 4)==2
           iauto1=k-2;iauto2=k+1;icross1=k;icross2=k-1;
         elseif mod(k-1, 4)==3
-          iauto1=k;iauto2=k;icross1=k;icross2=k;
+          continue; % auto granger set to 0
+          %iauto1=k;iauto2=k;icross1=k;icross2=k;
         end
         
         numer   = abs(S(j,iauto1,:,:).*S(j,iauto2,:,:));

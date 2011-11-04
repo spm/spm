@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 4487 2011-10-17 12:52:07Z roboos $
+% $Id: ft_prepare_vol_sens.m 4616 2011-10-28 11:09:57Z crimic $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -63,7 +63,7 @@ channel = ft_getopt(varargin, 'channel', sens.label);   % cell-array with channe
 order   = ft_getopt(varargin, 'order', 10);             % order of expansion for Nolte method; 10 should be enough for real applications; in simulations it makes sense to go higher
 
 % ensure that the sensor description is up-to-date (Aug 2011)
-sens = fixsens(sens);
+sens = ft_datatype_sens(sens);
 
 % determine whether the input contains EEG or MEG sensors
 iseeg = ft_senstype(sens, 'eeg');
@@ -128,10 +128,11 @@ elseif ismeg
 
   % first only modify the linear combination of coils into channels
   sens.chanpos = sens.chanpos(selsens,:);
+  sens.chanori = sens.chanori(selsens,:);
   sens.label   = sens.label(selsens);
   sens.tra     = sens.tra(selsens,:);
-  % subsequently remove the coils that do not contribute to any sensor output
-  selcoil      = find(sum(sens.tra,1)~=0);
+  % subsequently remove the coils that do not contribute to any channel output
+  selcoil      = any(sens.tra~=0,1);
   sens.coilpos = sens.coilpos(selcoil,:);
   sens.coilori = sens.coilori(selcoil,:);
   sens.tra     = sens.tra(:,selcoil);
@@ -283,24 +284,26 @@ elseif ismeg
   end
 
 elseif iseeg
+
   % select the desired channels from the electrode array
   % order them according to the users specification
-  if ~isfield(sens, 'tra')
-     Nchans    = length(sens.label);
-     Ncontacts = length(sens.label);
-  else
-     Nchans    = size(sens.tra,1);
-     Ncontacts = size(sens.tra,2);
-  end;
-   
-  % In case of Nchans~=Ncontacts it is difficult to determine 
-  % how to deal with contacts positions (keep the original positions)
-  if Nchans == Ncontacts
-    [selchan, selsens] = match_str(channel, sens.label);
+  [selchan, selsens] = match_str(channel, sens.label);
+  Nchans = length(sens.label);
+
+  if isfield(sens, 'tra')
+    % first only modify the linear combination of electrodes into channels
     sens.chanpos = sens.chanpos(selsens,:);
     sens.label   = sens.label(selsens);
+    sens.tra     = sens.tra(selsens,:);
+    % subsequently remove the electrodes that do not contribute to any channel output
+    selelec      = any(sens.tra~=0,1);
+    sens.elecpos = sens.coilpos(selelec,:);
+    sens.tra     = sens.tra(:,selelec);
   else
-    warning('A sub-selection of channels will not be taken into account')
+    % the electrodes and channels are identical
+    sens.chanpos = sens.chanpos(selsens,:);
+    sens.elecpos = sens.elecpos(selsens,:);
+    sens.label   = sens.label(selsens);
   end
   
   % create a 2D projection and triangulation
@@ -341,7 +344,7 @@ elseif iseeg
       end
       sens.elecpos = pnt;
 
-    case {'strip_monopole'}
+    case {'slab_monopole'}
       % electrodes' all-to-all distances
       numel  = size(sens.elecpos,1);
       ref_el = sens.elecpos(1,:);

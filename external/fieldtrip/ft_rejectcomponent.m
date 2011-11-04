@@ -1,6 +1,6 @@
 function [data] = ft_rejectcomponent(cfg, comp, data)
 
-% FT_REJECTCOMPONENT backprojects an ICA (or similar) decomposition to the 
+% FT_REJECTCOMPONENT backprojects an ICA (or similar) decomposition to the
 % channel level after removing the independent components that contain
 % the artifacts. This function does not automatically detect the artifact
 % components, you will have to do that yourself.
@@ -12,14 +12,14 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %
 % where the input comp is the result of FT_COMPONENTANALYSIS. The output
 % data will have the same format as the output of FT_PREPROCESSING.
-% An optional input argument data can be provided. In that case 
+% An optional input argument data can be provided. In that case
 % componentanalysis will do a subspace projection of the input data
 % onto the space which is spanned by the topographies in the unmixing
-% matrix in comp, after removal of the artifact components. 
-% 
+% matrix in comp, after removal of the artifact components.
+%
 % The configuration should contain
 %   cfg.component = list of components to remove, e.g. [1 4 7]
-% 
+%
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -32,7 +32,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 % See also FT_COMPONENTANALYSIS, FT_PREPROCESSING
 
 % Copyright (C) 2005-2009, Robert Oostenveld
-% 
+%
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
 %
@@ -49,34 +49,36 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 4096 2011-09-03 15:49:40Z roboos $
+% $Id: ft_rejectcomponent.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_rejectcomponent.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar comp data
 
 % set defaults
 cfg.component  = ft_getopt(cfg, 'component',  []);
 cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
 cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 
-if nargin==3 
-  %ntrials = length(data.trial);
+% the data can be passed as input arguments or can be read from disk
+nargin = 1;
+nargin = nargin + exist('comp', 'var');
+nargin = nargin + exist('data', 'var');
+
+if nargin==3
   data    = ft_checkdata(data, 'datatype', 'raw');
   label   = data.label;
   hasdata = 1;
-elseif nargin==2 
-  %ntrials = length(comp.trial);
+elseif nargin==2
   label   = comp.topolabel;
   hasdata = 0;
-elseif nargin<2 % only cfg is given; inputfile is expected
-  comp = loadvar(cfg.inputfile, 'comp');
-  %ntrials = length(comp.trial);
-  label   = comp.topolabel;
-  hasdata = 0;
+else
+  error('incorrect number of input arguments');
 end
 
 comp    = ft_checkdata(comp, 'datatype', 'comp');
@@ -90,11 +92,11 @@ if max(cfg.component)>ncomps
   error('you cannot remove components that are not present in the data');
 end
 
-% set the rejected component amplitudes to zero 
-fprintf('removing %d components\n', length(cfg.component)); 
+% set the rejected component amplitudes to zero
+fprintf('removing %d components\n', length(cfg.component));
 fprintf('keeping %d components\n',  ncomps-length(cfg.component));
 
-%create a projection matrix by subtracting the subspace spanned by the 
+%create a projection matrix by subtracting the subspace spanned by the
 %topographies of the to-be-removed components from identity
 [seldat, selcomp] = match_str(label, comp.topolabel);
 
@@ -112,7 +114,7 @@ if hasdata,
   %we are going from data to components, and back again
   labelorg = comp.topolabel(selcomp);
   labelnew = comp.topolabel(selcomp);
-
+  
   keepunused = 'yes'; %keep the original data which are not present in the mixing provided
   
 else
@@ -126,7 +128,7 @@ else
   
   %create data structure
   if hasdata && isfield(data, 'trialinfo'),  trialinfo  = data.trialinfo;  end
-  if hasdata && isfield(data, 'sampleinfo'), sampleinfo = data.sampleinfo; end 
+  if hasdata && isfield(data, 'sampleinfo'), sampleinfo = data.sampleinfo; end
   data         = [];
   data.trial   = comp.trial;
   data.time    = comp.time;
@@ -143,7 +145,7 @@ end
 %OLD CODE
 % recontruct the trials
 %for i=1:ntrials
-%  data.trial{i} = projector * data.trial{i}(seldat,:); 
+%  data.trial{i} = projector * data.trial{i}(seldat,:);
 %end
 %data.label = data.label(seldat);
 
@@ -177,48 +179,13 @@ else
   %warning('the gradiometer description does not match the data anymore');
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
-% add the version details of this function call to the configuration 
-cfg.version.name = mfilename('fullpath'); 
-cfg.version.id = '$Id: ft_rejectcomponent.m 4096 2011-09-03 15:49:40Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-if ~hasdata 
-  % remember the configuration details of the input data
-  if isfield(comp, 'cfg'), cfg.previous = comp.cfg; end
-  % copy the sampleinfo into the output
-  if isfield(comp, 'sampleinfo')
-    data.sampleinfo = comp.sampleinfo;
-  end
-  % copy the trialinfo into the output
-  if isfield(comp, 'trialinfo')
-    data.trialinfo = comp.trialinfo;
-  end
-elseif hasdata
-  if isfield(comp, 'cfg'), cfg.previous{1} = comp.cfg; end
-  if isfield(comp, 'cfg'), cfg.previous{2} = data.cfg; end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+if nargin==2
+  ft_postamble previous comp
+elseif nargin==3
+  ft_postamble previous comp data
 end
-
-% keep the configuration in the output
-data.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
-end
-
+ft_postamble history data
+ft_postamble savevar data

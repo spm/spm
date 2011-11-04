@@ -1,4 +1,4 @@
-function [cfg, artifact] = ft_artifact_threshold(cfg,data)
+function [cfg, artifact] = ft_artifact_threshold(cfg, data)
 
 % FT_ARTIFACT_THRESHOLD scans for trials in which the range, i.e. the minimum,
 % the maximum or the range (min-max difference) of the signal in any
@@ -7,15 +7,15 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 % Use as
 %   [cfg, artifact] = ft_artifact_threshold(cfg)
 % with the configuration options
-%   cfg.dataset 
-%   cfg.headerfile 
+%   cfg.dataset
+%   cfg.headerfile
 %   cfg.datafile
 %
 % Alternatively you can use it as
 %   [cfg, artifact] = ft_artifact_threshold(cfg, data)
 %
 % In both cases the configuration should also contain
-%   cfg.trl        = structure that defines the data segments of interest. See FT_DEFINETRIAL
+%   cfg.trl        = structure that defines the data segments of interest, see FT_DEFINETRIAL
 %   cfg.continuous = 'yes' or 'no' whether the file contains continuous data
 %
 % The following configuration options can be specified
@@ -67,17 +67,17 @@ function [cfg, artifact] = ft_artifact_threshold(cfg,data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 4152 2011-09-12 09:33:44Z roboos $
+% $Id: ft_artifact_threshold.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_artifact_threshold.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
@@ -86,7 +86,6 @@ if ~isfield(cfg, 'artfctdef'),          cfg.artfctdef            = [];  end
 if ~isfield(cfg.artfctdef,'threshold'), cfg.artfctdef.threshold  = [];  end
 if ~isfield(cfg, 'headerformat'),       cfg.headerformat         = [];  end
 if ~isfield(cfg, 'dataformat'),         cfg.dataformat           = [];  end
-if ~isfield(cfg, 'inputfile'),          cfg.inputfile            = [];  end
 
 % copy the specific configuration for this function out of the master cfg
 artfctdef = cfg.artfctdef.threshold;
@@ -112,34 +111,27 @@ if ~isfield(artfctdef, 'range'),    artfctdef.range = inf;           end
 if ~isfield(artfctdef, 'min'),      artfctdef.min =  -inf;           end
 if ~isfield(artfctdef, 'max'),      artfctdef.max =   inf;           end
 
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-    hasdata = true;
-  end
-end
-
 % read the header, or get it from the input data
-if hasdata 
+if nargin > 1
+  % data given as input
+  isfetch = true;
   cfg = ft_checkconfig(cfg, 'forbidden', {'dataset', 'headerfile', 'datafile'});
   hdr = ft_fetch_header(data);
 else
+  % only cfg given
+  isfetch = false;
   cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
   cfg = ft_checkconfig(cfg, 'required', {'headerfile', 'datafile'});
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
-end 
+end
 
 % set default cfg.continuous
 if ~isfield(cfg, 'continuous')
-    if hdr.nTrials==1
-      cfg.continuous = 'yes';
-    else
-      cfg.continuous = 'no';
-    end
+  if hdr.nTrials==1
+    cfg.continuous = 'yes';
+  else
+    cfg.continuous = 'no';
+  end
 end
 
 % get the remaining settings
@@ -149,7 +141,7 @@ channelindx = match_str(hdr.label,channel);
 artifact    = [];
 
 for trlop = 1:numtrl
-  if hasdata
+  if isfetch
     dat = ft_fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'));
   else
     dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
@@ -158,7 +150,7 @@ for trlop = 1:numtrl
   % compute the min, max and range over all channels and samples
   minval   = min(dat(:));
   maxval   = max(dat(:));
-
+  
   % compute the range as the maximum of the peak-to-peak values for each
   % channel
   ptpval = max(dat, [], 2) - min(dat, [], 2);
@@ -185,34 +177,15 @@ for trlop = 1:numtrl
   end
 end
 
+fprintf('detected %d artifacts\n', size(artifact,1));
+
 % remember the details that were used here
 cfg.artfctdef.threshold          = artfctdef;
 cfg.artfctdef.threshold.trl      = cfg.trl;         % trialdefinition prior to rejection
 cfg.artfctdef.threshold.channel  = channel;         % exact channels used for detection
 cfg.artfctdef.threshold.artifact = artifact;        % detected artifacts
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_artifact_threshold.m 4152 2011-09-12 09:33:44Z roboos $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-if hasdata && isfield(data, 'cfg')
-  % remember the configuration details of the input data
-  cfg.previous = data.cfg;
-end
-
-% remember the exact configuration details in the output
-data.cfg = cfg;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+ft_postamble previous data
 

@@ -44,7 +44,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_topo.m 4544 2011-10-21 09:51:34Z jorhor $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -192,7 +192,7 @@ end
 
 % Plot filled contours
 if strcmp(style,'isofill') && ~isempty(isolines)
-  h = contourf(Xi,Yi,Zi,isolines,'k');
+  [cont,h] = contourf(Xi,Yi,Zi,isolines,'k'); 
   set(h, 'tag', tag);
 end
 

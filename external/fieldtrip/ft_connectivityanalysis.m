@@ -10,7 +10,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %   stat = ft_connectivityanalysis(cfg, source)
 % where the first input argument is a configuration structure (see
 % below) and the second argument is the output of FT_PREPROCESSING,
-% FT_TIMELOCKANLAYSIS, FT_FREQANALYSIS, FT_MVARANALYSIS, 
+% FT_TIMELOCKANLAYSIS, FT_FREQANALYSIS, FT_MVARANALYSIS,
 % FT_SOURCEANALYSIS or FT_CONNECTIVITYANALYSIS depending on the
 % connectivity metric that you want to compute.
 %
@@ -39,12 +39,12 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                 'ppc'        pairwise phase consistency
 %                 'wppc'       weighted pairwise phase consistency
 %
-%            The following methods can be used on channel-level data which already contains 
+%            The following methods can be used on channel-level data which already contains
 %              a connectivity measure (i.e. with dimord 'chan_chan_XXX'). These methods are
-%              implemented using the brain connectivity toolbox developed by Olaf Sporns and 
+%              implemented using the brain connectivity toolbox developed by Olaf Sporns and
 %              colleagues: www.brain-connectivity-toolbox.net.
 %
-%                 'clustering_coef'  clustering coefficient. 
+%                 'clustering_coef'  clustering coefficient.
 %                 'degrees'
 %
 %
@@ -84,21 +84,21 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 4420 2011-10-11 07:52:16Z jansch $
+% $Id: ft_connectivityanalysis.m 4658 2011-11-02 19:49:23Z roboos $
 
-%ft_defaults
+revision = '$Id: ft_connectivityanalysis.m 4658 2011-11-02 19:49:23Z roboos $';
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% FIXME it should be checked carefully whether the following works
+% data = ft_checkdata(data, 'datatype', {'raw', 'timelock', 'freq', 'source'});
 
 % set the defaults
-
-%FIXME do method specific calls to ft_checkconfig
 cfg.feedback    = ft_getopt(cfg, 'feedback',    'none');
 cfg.channel     = ft_getopt(cfg, 'channel',     'all');
 cfg.channelcmb  = ft_getopt(cfg, 'channelcmb',  {'all' 'all'});
@@ -114,20 +114,9 @@ cfg.inputfile   = ft_getopt(cfg, 'inputfile',   []);
 cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
 cfg.parameter   = ft_getopt(cfg, 'parameter',   []);
 
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
-
 hasjack = (isfield(data, 'method') && strcmp(data.method, 'jackknife')) || (isfield(data, 'dimord') && strcmp(data.dimord(1:6), 'rptjck'));
 hasrpt  = (isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'rpt'))) || ...
-          (isfield(data, 'avg') && isfield(data.avg, 'mom')); %FIXME old-fashioned pcc data
+  (isfield(data, 'avg') && isfield(data.avg, 'mom')); %FIXME old-fashioned pcc data
 dojack  = strcmp(cfg.jackknife, 'yes');
 normrpt = 0; % default, has to be overruled e.g. in plv, because of single replicate normalisation
 normpow = 1; % default, has to be overruled e.g. in csd,
@@ -160,9 +149,9 @@ elseif isfield(data, 'labelcmb')
     error('partialisation is only possible without linearly indexed bivariate data');
   end
   if ~isempty(cfg.channelcmb),
-    %FIXME do something extra here
+    % FIXME do something extra here
   end
-  %FIXME call selectdata  
+  % FIXME call selectdata
 end
 
 % FIXME check which methods require hasrpt
@@ -216,27 +205,27 @@ switch cfg.method
   case {'wpli'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'crsspctrm';
-    outparam = 'wplispctrm'; 
+    outparam = 'wplispctrm';
     debiaswpli = 0;
     if hasjack, error('to compute wpli, data should be in rpt format'); end
   case {'wpli_debiased'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'crsspctrm';
     outparam = 'wpli_debiasedspctrm';
-    debiaswpli = 1;       
+    debiaswpli = 1;
     if hasjack, error('to compute wpli, data should be in rpt format'); end
   case {'ppc'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'crsspctrm';
-    outparam = 'ppcspctrm'; 
+    outparam = 'ppcspctrm';
     weightppc = 0;
-    if hasjack, error('to compute ppc, data should be in rpt format'); end      
+    if hasjack, error('to compute ppc, data should be in rpt format'); end
   case {'wppc'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'crsspctrm';
     outparam = 'wppcspctrm';
-    weightppc = 1;       
-    if hasjack, error('to compute wppc, data should be in rpt format'); end  
+    weightppc = 1;
+    if hasjack, error('to compute wppc, data should be in rpt format'); end
   case {'plv'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'crsspctrm';
@@ -260,7 +249,7 @@ switch cfg.method
   case {'granger'}
     data     = ft_checkdata(data, 'datatype', {'mvar' 'freqmvar' 'freq'});
     inparam  = {'transfer', 'noisecov', 'crsspctrm'};
-    outparam = 'grangerspctrm'; 
+    outparam = 'grangerspctrm';
     % FIXME could also work with time domain data
   case {'instantaneous_causality'}
     data     = ft_checkdata(data, 'datatype', {'mvar' 'freqmvar' 'freq'});
@@ -269,11 +258,11 @@ switch cfg.method
   case {'total_interdependence'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = {'transfer', 'noisecov', 'crsspctrm'};
-    outparam = 'totispctrm'; 
+    outparam = 'totispctrm';
   case {'dtf' 'pdc'}
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
     inparam  = 'transfer';
-    outparam = [cfg.method,'spctrm']; 
+    outparam = [cfg.method,'spctrm'];
   case {'psi'}
     if ~isfield(cfg, 'normalize'),  cfg.normalize  = 'no';  end
     data     = ft_checkdata(data, 'datatype', {'freqmvar' 'freq'});
@@ -289,7 +278,7 @@ switch cfg.method
     if isempty(cfg.parameter)
       error('when using functions from the brain connectivity toolbox you should give a parameter for which the metric is to be computed');
     else
-      inparam = cfg.parameter; 
+      inparam = cfg.parameter;
     end
     needrpt  = 0;
     outparam = [cfg.method,'spctrm'];
@@ -328,7 +317,7 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
           [data, powindx, hasrpt] = univariate2bivariate(data, 'powandcsd', 'crsspctrm', dtype, 'cmb', cfg.channelcmb, 'keeprpt', normrpt);
         elseif isfield(data, 'labelcmb')
           powindx = labelcmb2indx(data.labelcmb);
-        else 
+        else
           powindx = [];
         end
       elseif strcmp(inparam, 'powcovspctrm')
@@ -352,10 +341,10 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
-           %tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
-           try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'block');     end
-           try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'blockindx'); end
-%         end
+        %tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
+        try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'block');     end
+        try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'blockindx'); end
+        %         end
         optarg = ft_cfg2keyval(tmpcfg.npsf);
         data   = csd2transfer(data, optarg{:});
         
@@ -408,7 +397,7 @@ if ~isempty(cfg.partchannel)
   
   cfg.pchanindx   = pchanindx;
   cfg.allchanindx = kchanindx;
-  partstr = ''; 
+  partstr = '';
   for k = 1:numel(cfg.partchannel)
     partstr = [partstr,'-',cfg.partchannel{k}];
   end
@@ -471,7 +460,7 @@ switch cfg.method
     % coherence (unsquared), if cfg.complex = 'imag' imaginary part of
     % coherency
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
-              'pownorm',  normpow,     'hasjack', hasjack};
+      'pownorm',  normpow,     'hasjack', hasjack};
     if ~isempty(cfg.pchanindx), optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); end
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     
@@ -480,7 +469,7 @@ switch cfg.method
   case 'csd'
     % cross-spectral density (e.g. useful if partialisation is required)
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
-              'pownorm',  normpow,     'hasjack', hasjack};
+      'pownorm',  normpow,     'hasjack', hasjack};
     if ~isempty(cfg.pchanindx), optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); end
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     
@@ -500,12 +489,12 @@ switch cfg.method
     % phase locking value
     
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
-              'pownorm',  normpow,     'hasjack', hasjack};
-    if ~isempty(cfg.pchanindx), 
-      optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); 
+      'pownorm',  normpow,     'hasjack', hasjack};
+    if ~isempty(cfg.pchanindx),
+      optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx});
     end
-    if exist('powindx', 'var'), 
-      optarg = cat(2, optarg, {'powindx', powindx}); 
+    if exist('powindx', 'var'),
+      optarg = cat(2, optarg, {'powindx', powindx});
     end
     
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
@@ -522,10 +511,10 @@ switch cfg.method
     if isfield(data, 'dimord'),
       dimord = data.dimord;
     else
-      dimord = data.([inparam,'dimord']); 
+      dimord = data.([inparam,'dimord']);
     end
     optarg = {'feedback', cfg.feedback, 'dimord',    dimord, 'complex', 'real', ...
-              'pownorm',  1,            'pchanindx', [],     'hasjack', hasjack};
+      'pownorm',  1,            'pchanindx', [],     'hasjack', hasjack};
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
@@ -536,10 +525,10 @@ switch cfg.method
     if isfield(data, 'dimord'),
       dimord = data.dimord;
     else
-      dimord = data.([inparam,'dimord']); 
+      dimord = data.([inparam,'dimord']);
     end
     optarg = {'feedback', cfg.feedback, 'dimord',    dimord, 'complex', 'real', ...
-              'pownorm',  1,            'pchanindx', [],     'hasjack', hasjack};
+      'pownorm',  1,            'pchanindx', [],     'hasjack', hasjack};
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
@@ -548,26 +537,26 @@ switch cfg.method
     % granger causality
     
     if sum(ft_datatype(data, {'freq' 'freqmvar'})),
-    
+      
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % multiple pairwise non-parametric transfer functions
-        % linearly indexed 
+        % linearly indexed
         
         % The following is very slow, one may make assumptions regarding
         % the order of the channels -> csd2transfer gives combinations in
         % quadruplets, where the first and fourth are auto-combinations,
         % and the second and third are cross-combinations
         % powindx = labelcmb2indx(data.labelcmb);
-
-% The following is not needed anymore, because ft_connectivity_granger
-% relies on some hard-coded assumptions for the channel-pair ordering. 
-% Otherwise it becomes just too slow.
-%         powindx = zeros(size(data.labelcmb));
-%         for k = 1:size(powindx,1)/4
-%           ix = ((k-1)*4+1):k*4;
-%           powindx(ix,:) = [1 1;4 1;1 4;4 4] + (k-1)*4;
-%         end
-
+        
+        % The following is not needed anymore, because ft_connectivity_granger
+        % relies on some hard-coded assumptions for the channel-pair ordering.
+        % Otherwise it becomes just too slow.
+        %         powindx = zeros(size(data.labelcmb));
+        %         for k = 1:size(powindx,1)/4
+        %           ix = ((k-1)*4+1):k*4;
+        %           powindx(ix,:) = [1 1;4 1;1 4;4 4] + (k-1)*4;
+        %         end
+        
         powindx = [];
         
       elseif isfield(data, 'labelcmb')
@@ -603,7 +592,7 @@ switch cfg.method
     % instantaneous ft_connectivity between the series, requires the same elements as granger
     
     if sum(ft_datatype(data, {'freq' 'freqmvar'})),
-    
+      
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % linearly indexed channel pairs
       elseif isfield(data, 'labelcmb')
@@ -617,7 +606,8 @@ switch cfg.method
         powindx.n       = n;
       elseif isfield(cfg, 'block') && ~isempty(cfg.block)
         % blockwise granger
-        powindx = cfg.block;
+        powindx  = cfg.block;
+        newlabel = cell(2,1);
         for k = 1:2
           newlabel{k,1} = cat(2,powindx{k});
         end
@@ -638,10 +628,10 @@ switch cfg.method
   case 'total_interdependence'
     %total interdependence
     if sum(ft_datatype(data, {'freq' 'freqmvar'})),
-    
+      
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % multiple pairwise non-parametric transfer functions
-        % linearly indexed 
+        % linearly indexed
       elseif isfield(data, 'labelcmb')
         % conditional (blockwise) needs linearly represented cross-spectra
         for k = 1:size(cfg.conditional,1)
@@ -670,7 +660,7 @@ switch cfg.method
     else
       error('granger for time domain data is not yet implemented');
     end
-
+    
   case 'dtf'
     % directed transfer function
     
@@ -717,17 +707,16 @@ switch cfg.method
     
     nbin   = nearest(data.freq, data.freq(1)+cfg.bandwidth)-1;
     optarg = {'feedback',  cfg.feedback,  'dimord', data.dimord, 'nbin',    nbin, ...
-              'normalize', cfg.normalize, 'hasrpt', hasrpt,      'hasjack', hasjack};
-    if exist('powindx', 'var'), cat(2, optarg, {'powindx', powindx}); end        
+      'normalize', cfg.normalize, 'hasrpt', hasrpt,      'hasjack', hasjack};
+    if exist('powindx', 'var'), cat(2, optarg, {'powindx', powindx}); end
     [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg{:});
-    outparam = 'psispctrm';
     
   case 'di'
     % directionality index
   case {'clustering_coef' 'degrees'}
     % gateway function to the brain connectivity toolbox
     
-    [datout, outdimord] = ft_connectivity_bct(data.(inparam), 'method', cfg.method);  
+    [datout, outdimord] = ft_connectivity_bct(data.(inparam), 'method', cfg.method);
     varout   = [];
     data.dimord = outdimord;
   otherwise
@@ -735,7 +724,24 @@ switch cfg.method
 end
 
 %remove the auto combinations if necessary
+if (strcmp(cfg.method, 'granger') || strcmp(cfg.method, 'instantaneous_causality') || strcmp(cfg.method, 'total_interdependence')) && isfield(cfg, 'sfmethod') && strcmp(cfg.sfmethod, 'bivariate'),
+  % remove the auto-combinations based on the order in the data
+  switch dtype
+    case {'freq' 'freqmvar'}
+      keepchn = 1:size(datout,1);
+      keepchn = mod(keepchn,4)==2 | mod(keepchn,4)==3;
+      datout  = datout(keepchn,:,:,:,:);
+      if ~isempty(varout),
+        varout = varout(keepchn,:,:,:,:);
+      end
+      data.labelcmb = data.labelcmb(keepchn,:);
+    case 'source'
+      % not yet implemented
+  end
+end
+
 if exist('powindx', 'var') && ~isempty(powindx),
+  % based on powindx
   switch dtype
     case {'freq' 'freqmvar'}
       if isfield(data, 'labelcmb') && ~isstruct(powindx),
@@ -808,35 +814,11 @@ if isfield(data, 'time'), stat.time = data.time; end
 if isfield(data, 'grad'), stat.grad = data.grad; end
 if isfield(data, 'elec'), stat.elec = data.elec; end
 if exist('dof',  'var'),  stat.dof  = dof;       end
-%FIXME this needs to be implemented still
+% FIXME this needs to be implemented still
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_connectivityanalysis.m 4420 2011-10-11 07:52:16Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.version.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-if isfield(data, 'cfg'), cfg.previous = data.cfg; end
-% remember the exact configuration details in the output
-stat.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', stat); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history stat
+ft_postamble savevar stat

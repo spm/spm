@@ -1,44 +1,66 @@
 function [cfg] = ft_singleplotTFR(cfg, data)
 
-% ft_singleplotTFR plots the time-frequency representations of power of a
+% FT_SINGLEPLOTTFR plots the time-frequency representation of power of a
 % single channel or the average over multiple channels.
 %
-% Use as:
+% Use as
 %   ft_singleplotTFR(cfg,data)
 %
-% The data can be a time-frequency representation of power that was
-% computed using the FT_FREQANALYSIS function.
+% The input freq structure should be a a time-frequency representation of
+% power or coherence that was computed using the FT_FREQANALYSIS function.
 %
 % The configuration can have the following parameters:
-% cfg.parameter     = field to be plotted on z-axis, e.g. 'powspcrtrm' (default depends on data.dimord)
-% cfg.maskparameter = field in the data to be used for masking of data
-%                     (not possible for mean over multiple channels, or when input contains multiple subjects
-%                     or trials)
-% cfg.maskstyle     = style used to mask nans, 'opacity' or 'saturation' (default = 'opacity')
-%                     use 'saturation' when saving to vector-format (like *.eps) to avoid all sorts of image-problems
-% cfg.maskalpha     = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
-% cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
-% cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
-% cfg.zlim          = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
-% cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
-% cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
-% cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
-% cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
-%                     see FT_CHANNELSELECTION for details
-% cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
-% cfg.fontsize      = font size of title (default = 8)
-% cfg.hotkeys          = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
-% cfg.colormap      = any sized colormap, see COLORMAP
-% cfg.colorbar      = 'yes', 'no' (default = 'yes')
-% cfg.interactive   = Interactive plot 'yes' or 'no' (default = 'no')
-%                     In a interactive plot you can select areas and produce a new
-%                     interactive plot when a selected area is clicked. Multiple areas
-%                     can be selected by holding down the SHIFT key.
-% cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
-% cfg.masknans      = 'yes' or 'no' (default = 'yes')
+%   cfg.parameter     = field to be plotted on z-axis, e.g. 'powspcrtrm' (default depends on data.dimord)
+%   cfg.maskparameter = field in the data to be used for masking of data
+%                       (not possible for mean over multiple channels, or when input contains multiple subjects
+%                       or trials)
+%   cfg.maskstyle     = style used to mask nans, 'opacity' or 'saturation' (default = 'opacity')
+%                       use 'saturation' when saving to vector-format (like *.eps) to avoid all sorts of image-problems
+%   cfg.maskalpha     = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
+%   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
+%   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
+%   cfg.zlim          = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
+%   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
+%   cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
+%   cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
+%   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
+%                       see FT_CHANNELSELECTION for details
+%   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
+%   cfg.fontsize      = font size of title (default = 8)
+%   cfg.hotkeys          = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
+%   cfg.colormap      = any sized colormap, see COLORMAP
+%   cfg.colorbar      = 'yes', 'no' (default = 'yes')
+%   cfg.interactive   = Interactive plot 'yes' or 'no' (default = 'no')
+%                       In a interactive plot you can select areas and produce a new
+%                       interactive plot when a selected area is clicked. Multiple areas
+%                       can be selected by holding down the SHIFT key.
+%   cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
+%   cfg.masknans      = 'yes' or 'no' (default = 'yes')
+%   cfg.directionality = '', 'inflow' or 'outflow' specifies for
+%                       connectivity measures whether the inflow into a
+%                       node, or the outflow from a node is plotted. The
+%                       (default) behavior of this option depends on the dimor
+%                       of the input data (see below).
 %
-% See also:
-%   FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
+% For the plotting of directional connectivity data the cfg.directionality
+% option determines what is plotted. The default value and the supported
+% functionality depend on the dimord of the input data. If the input data
+% is of dimord 'chan_chan_XXX', the value of directionality determines
+% whether, given the reference channel(s), the columns (inflow), or rows
+% (outflow) are selected for plotting. In this situation the default is
+% 'inflow'. Note that for undirected measures, inflow and outflow should
+% give the same output. If the input data is of dimord 'chancmb_XXX', the
+% value of directionality determines whether the rows in data.labelcmb are
+% selected. With 'inflow' the rows are selected if the refchannel(s) occur in
+% the right column, with 'outflow' the rows are selected if the
+% refchannel(s) occur in the left column of the labelcmb-field. Default in
+% this case is '', which means that all rows are selected in which the
+% refchannel(s) occur. This is to robustly support linearly indexed
+% undirected connectivity metrics. In the situation where undirected
+% connectivity measures are linearly indexed, specifying 'inflow' or
+% 'outflow' can result in unexpected behavior.
+%
+% See also FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
 % This function depends on FT_FREQBASELINE which has the following options:
 % cfg.baseline, documented
@@ -62,50 +84,49 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 4316 2011-09-29 11:39:42Z jansch $
+% $Id: ft_singleplotTFR.m 4659 2011-11-02 21:31:58Z roboos $
 
+revision = '$Id: ft_singleplotTFR.m 4659 2011-11-02 21:31:58Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+% check if the input data is valid for this function
+data = ft_checkdata(data, 'datatype', 'freq');
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
 cfg = ft_checkconfig(cfg, 'unused',      {'cohtargetchannel'});
-cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim',  'absmax',  'maxabs'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedforward', 'outflow'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'matrixside',   'feedback',    'inflow'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'channelindex',  'channel'});
-cfg = ft_checkconfig(cfg, 'renamed',     {'channelname',   'channel'});
-cfg = ft_checkconfig(cfg, 'renamed', {'cohrefchannel', 'refchannel'});
-cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
-cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam','yparam'});
-
-
+cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim', 'absmax', 'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'matrixside',     'directionality'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'directionality', 'feedforward', 'outflow'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'directionality', 'feedback',    'inflow'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'channelindex',   'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'channelname',    'channel'});
+cfg = ft_checkconfig(cfg, 'renamed',     {'cohrefchannel',  'refchannel'});
+cfg = ft_checkconfig(cfg, 'renamed',	   {'zparam',         'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam',         'yparam'});
 
 % Set the defaults:
-cfg.baseline      = ft_getopt(cfg, 'baseline',     'no');
-cfg.baselinetype  = ft_getopt(cfg, 'baselinetype', 'absolute');
-cfg.trials        = ft_getopt(cfg, 'trials',       'all');
-cfg.xlim          = ft_getopt(cfg, 'xlim',         'maxmin'); 
-cfg.ylim          = ft_getopt(cfg, 'ylim',         'maxmin');
-cfg.zlim          = ft_getopt(cfg, 'zlim',         'maxmin');
-cfg.fontsize      = ft_getopt(cfg, 'fontsize',     8);
-cfg.colorbar      = ft_getopt(cfg, 'colorbar',     'yes');
-cfg.interactive   = ft_getopt(cfg, 'interactive',  'no');
-cfg.hotkeys       = ft_getopt(cfg, 'hotkeys',      'no');
-cfg.renderer      = ft_getopt(cfg, 'renderer',     []);
-cfg.maskalpha     = ft_getopt(cfg, 'maskalpha',     1);
-cfg.maskparameter = ft_getopt(cfg, 'maskparameter',[]);
-cfg.maskstyle     = ft_getopt(cfg, 'maskstyle',    'opacity');
-cfg.channel       = ft_getopt(cfg, 'channel',      'all');
-cfg.masknans      = ft_getopt(cfg, 'masknans',     'yes');
-cfg.matrixside    = ft_getopt(cfg, 'matrixside',   []);
+cfg.baseline       = ft_getopt(cfg, 'baseline',     'no');
+cfg.baselinetype   = ft_getopt(cfg, 'baselinetype', 'absolute');
+cfg.trials         = ft_getopt(cfg, 'trials',       'all');
+cfg.xlim           = ft_getopt(cfg, 'xlim',         'maxmin'); 
+cfg.ylim           = ft_getopt(cfg, 'ylim',         'maxmin');
+cfg.zlim           = ft_getopt(cfg, 'zlim',         'maxmin');
+cfg.fontsize       = ft_getopt(cfg, 'fontsize',      8);
+cfg.colorbar       = ft_getopt(cfg, 'colorbar',     'yes');
+cfg.interactive    = ft_getopt(cfg, 'interactive',  'no');
+cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',      'no');
+cfg.renderer       = ft_getopt(cfg, 'renderer',      []);
+cfg.maskalpha      = ft_getopt(cfg, 'maskalpha',     1);
+cfg.maskparameter  = ft_getopt(cfg, 'maskparameter', []);
+cfg.maskstyle      = ft_getopt(cfg, 'maskstyle',    'opacity');
+cfg.channel        = ft_getopt(cfg, 'channel',      'all');
+cfg.masknans       = ft_getopt(cfg, 'masknans',     'yes');
+cfg.directionality = ft_getopt(cfg, 'directionality',[]);
 
-% for backward compatibility with old data structures
-data   = ft_checkdata(data, 'datatype', 'freq');
 dimord = data.dimord;
 dimtok = tokenize(dimord, '_');
 
@@ -222,17 +243,20 @@ if (isfull || haslabelcmb) && shouldPlotCmb
   
   if ~isfull,
     % Convert 2-dimensional channel matrix to a single dimension:
-    if isempty(cfg.matrixside)
+    if isempty(cfg.directionality)
       sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
       sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
-    elseif strcmp(cfg.matrixside, 'outflow')
+    elseif strcmp(cfg.directionality, 'outflow')
       sel1 = [];
       sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
-    elseif strcmp(cfg.matrixside, 'inflow')
+    elseif strcmp(cfg.directionality, 'inflow')
       sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
       sel2 = [];
     end
     fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.parameter);
+    if length(sel1)+length(sel2)==0
+      error('there are no channels selected for plotting: you may need to look at the specification of cfg.directionality');
+    end
     data.(cfg.parameter) = data.(cfg.parameter)([sel1;sel2],:,:);
     data.label     = [data.labelcmb(sel1,1);data.labelcmb(sel2,2)];
     data.labelcmb  = data.labelcmb([sel1;sel2],:);
@@ -241,24 +265,24 @@ if (isfull || haslabelcmb) && shouldPlotCmb
     % General case
     sel               = match_str(data.label, cfg.refchannel);
     siz               = [size(data.(cfg.parameter)) 1];
-    if strcmp(cfg.matrixside, 'inflow') || isempty(cfg.matrixside)
+    if strcmp(cfg.directionality, 'inflow') || isempty(cfg.directionality)
       %the interpretation of 'inflow' and 'outflow' depend on
       %the definition in the bivariate representation of the data  
       %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(:,sel,:),2),[siz(1) 1 siz(3:end)]);
       sel1 = 1:siz(1);
       sel2 = sel;
       meandir = 2;
-    elseif strcmp(cfg.matrixside, 'outflow')
+    elseif strcmp(cfg.directionality, 'outflow')
       %data.(cfg.parameter) = reshape(mean(data.(cfg.parameter)(sel,:,:),1),[siz(1) 1 siz(3:end)]);
       sel1 = sel;
       sel2 = 1:siz(1);
       meandir = 1;
 
-    elseif strcmp(cfg.matrixside, 'ff-fd')
-      error('cfg.matrixside = ''ff-fd'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
-    elseif strcmp(cfg.matrixside, 'fd-ff')
-      error('cfg.matrixside = ''fd-ff'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
-    end %if matrixside
+    elseif strcmp(cfg.directionality, 'ff-fd')
+      error('cfg.directionality = ''ff-fd'' is not supported anymore, you have to manually subtract the two before the call to ft_singleplotTFR');
+    elseif strcmp(cfg.directionality, 'fd-ff')
+      error('cfg.directionality = ''fd-ff'' is not supported anymore, you have to manually subtract the two before the call to ft_singleplotTFR');
+    end %if directionality
   end %if ~isfull
 end %handle the bivariate data
 
@@ -449,26 +473,11 @@ if ~isempty(cfg.renderer)
   set(gcf, 'renderer', cfg.renderer)
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_singleplotTFR.m 4316 2011-09-29 11:39:42Z jansch $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -485,20 +494,13 @@ for i=2:length(cells)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION which is called by ft_select_channel in case cfg.refchannel='gui'
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_singleplotTFR(label, cfg, varargin)
-cfg.refchannel = label;
-fprintf('selected cfg.refchannel = ''%s''\n', cfg.refchannel);
-p = get(gcf, 'Position');
-f = figure;
-set(f, 'Position', p);
-ft_singleplotTFR(cfg, varargin{:});
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting a time range
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_topoplotTFR(range, cfg, varargin)
+if isfield(cfg, 'inputfile')
+  % the reading has already been done and varargin contains the data
+  cfg = rmfield(cfg, 'inputfile');
+end
 cfg.comment = 'auto';
 cfg.xlim = range(1:2);
 cfg.ylim = range(3:4);

@@ -1,4 +1,4 @@
-function [interp] = ft_channelrepair(cfg, data);
+function [data] = ft_channelrepair(cfg, data)
 
 % FT_CHANNELREPAIR repairs bad channels in MEG or EEG data by replacing them
 % with the average of its neighbours. It cannot be used reliably to
@@ -44,16 +44,19 @@ function [interp] = ft_channelrepair(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: ft_channelrepair.m 4658 2011-11-02 19:49:23Z roboos $
 
+revision = '$Id: ft_channelrepair.m 4658 2011-11-02 19:49:23Z roboos $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+ft_preamble loadvar data
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
 
 % set the default configuration
 if ~isfield(cfg, 'badchannel'),    cfg.badchannel = {};           end
@@ -61,20 +64,9 @@ if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
 if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
 
-cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
 if iscell(cfg.neighbours)
-    warning('Neighbourstructure is in old format - converting to structure array');
-    cfg.neighbours = fixneighbours(cfg.neighbours);
-end
-
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
+  warning('Neighbourstructure is in old format - converting to structure array');
+  cfg.neighbours = fixneighbours(cfg.neighbours);
 end
 
 % store original datatype
@@ -94,6 +86,7 @@ iseeg = ft_senstype(data, 'eeg');
 ismeg = ft_senstype(data, 'meg');
 
 if iseeg
+  % FIXME this is not always guaranteed to be present
   sens = data.elec;
 elseif ismeg
   sens = data.grad;
@@ -109,29 +102,29 @@ connectivityMatrix = channelconnectivity(cfg, data);
 connectivityMatrix = connectivityMatrix(:, goodchanindcs); % all chans x good chans
 
 Ntrials = length(data.trial);
-Nchans = length(data.label);
-Nsens  = length(sens.label);
+Nchans  = length(data.label);
+Nsens   = length(sens.label);
 
-repair = eye(Nchans,Nchans);
-[badindx] = match_str(data.label, cfg.badchannel);
+repair  = eye(Nchans,Nchans);
+badindx = match_str(data.label, cfg.badchannel);
 
 for k=badindx'
-    fprintf('repairing channel %s\n', data.label{k});
-    repair(k,k) = 0;
-    l = goodchanindcs(find(connectivityMatrix(k, :)));
-    % get bad channels out
-    [a, b] = setdiff(data.label(l), data.label(badindx));
-    b = sort(b); % undo automatical sorting by setdiff
-    l(~ismember(find(l), b)) = [];    
-    % get corresponding ids for sens structure
-    [a, b] = match_str(sens.label, data.label(l));
-    goodsensindx = a(b);
-    [a, b] = match_str(sens.label, data.label(k));
-    badsensindx = a(b);
-    fprintf('\tusing neighbour %s\n', sens.label{goodsensindx});
-    distance = sqrt(sum((sens.chanpos(goodsensindx,:) - repmat(sens.chanpos(badsensindx, :), numel(goodsensindx), 1)).^2, 2));
-    repair(k,l) = (1./distance);
-    repair(k,l) = repair(k,l) ./ sum(repair(k,l));
+  fprintf('repairing channel %s\n', data.label{k});
+  repair(k,k) = 0;
+  l = goodchanindcs(connectivityMatrix(k, :));
+  % get bad channels out
+  [a, b] = setdiff(data.label(l), data.label(badindx));
+  b = sort(b); % undo automatical sorting by setdiff
+  l(~ismember(find(l), b)) = [];
+  % get corresponding ids for sens structure
+  [a, b] = match_str(sens.label, data.label(l));
+  goodsensindx = a(b);
+  [a, b] = match_str(sens.label, data.label(k));
+  badsensindx = a(b);
+  fprintf('\tusing neighbour %s\n', sens.label{goodsensindx});
+  distance = sqrt(sum((sens.chanpos(goodsensindx,:) - repmat(sens.chanpos(badsensindx, :), numel(goodsensindx), 1)).^2, 2));
+  repair(k,l) = (1./distance);
+  repair(k,l) = repair(k,l) ./ sum(repair(k,l));
 end
 
 % use sparse matrix to speed up computations
@@ -157,46 +150,27 @@ end
 if isfield(data, 'sampleinfo')
   interp.sampleinfo = data.sampleinfo;
 end
+
 if isfield(data, 'trialinfo')
   interp.trialinfo = data.trialinfo;
 end
 
-% accessing this field here is needed for the configuration tracking
-% by accessing it once, it will not be removed from the output cfg
-cfg.outputfile;
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% store the configuration of this function call, including that of the previous function call
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_channelrepair.m 4287 2011-09-23 12:17:38Z jansch $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-interp.cfg = cfg;
-
 % convert back to input type if necessary
-switch dtype 
-    case 'timelock'
-        interp = ft_checkdata(interp, 'datatype', 'timelock');
-    otherwise
-        % keep the output as it is
+switch dtype
+  case 'timelock'
+    interp = ft_checkdata(interp, 'datatype', 'timelock');
+  otherwise
+    % keep the output as it is
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', interp); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+
+% rename the output variable to accomodate the savevar postamble
+data = interp;
+
+ft_postamble history data
+ft_postamble savevar data
+
