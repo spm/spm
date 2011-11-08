@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 4023 2010-07-28 18:41:36Z guillaume $
+% $Id: spm_cfg_mfx.m 4552 2011-11-08 17:33:58Z will $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -37,9 +37,9 @@ spmmat.num     = [1 Inf];
 % ---------------------------------------------------------------------
 ffx       = cfg_exbranch;
 ffx.tag   = 'ffx';
-ffx.name  = 'Create repeated-measure design';
+ffx.name  = 'FFX Specification';
 ffx.val   = {dir spmmat};
-ffx.help  = {'Create repeated-measure multi-session first-level design'};
+ffx.help  = {'Create FFX multi-session first-level design'};
 ffx.prog  = @spm_local_ffx;
 ffx.vout  = @vout_ffx;
 
@@ -121,16 +121,25 @@ else
 end
 
 k = 1;
+disp(' ');
 for i=1:numel(SPMS)
+    disp(sprintf('Subject %d:',i));
+    np(i)=0;
     n = cumsum([1 SPMS{i}.nscan]);
-    for j=1:numel(SPMS{i}.Sess)
+    nSess=numel(SPMS{i}.Sess);
+    for j=1:nSess
+        disp(sprintf('Session %d:',j));
         matlabbatch{1}.spm.stats.fmri_spec.sess(k).scans = cellstr(SPMS{i}.xY.P(n(j):n(j+1)-1,:));
-        for l=1:numel(SPMS{i}.Sess(j).U)
+        nCond=numel(SPMS{i}.Sess(j).U);
+        for l=1:nCond
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).name = SPMS{i}.Sess(j).U(l).name{1};
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).onset = SPMS{i}.Sess(j).U(l).ons;
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).duration = SPMS{i}.Sess(j).U(l).dur;
             o = 1;
-            for m=1:numel(SPMS{i}.Sess(j).U(l).P)
+            nReg=numel(SPMS{i}.Sess(j).U(l).P);
+            for m=1:nReg
+                disp(sprintf('Condition %d: Columns %d',l,nReg));
+                np(i)=np(i)+nReg;
                 switch SPMS{i}.Sess(j).U(l).P(m).name
                     case 'time'
                         matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).tmod = SPMS{i}.Sess(j).U(l).P(m).h;
@@ -150,7 +159,16 @@ for i=1:numel(SPMS)
         matlabbatch{1}.spm.stats.fmri_spec.sess(k).hpf = SPMS{i}.xX.K(j).HParam;
         k = k + 1;
     end
+    disp(' ');
 end
+
+% Output number of sessions/conditions/columns for each subject
+
+if any(np-np(1))
+    disp('Error in FFX specification: all subject should have same number of parameters');
+    return
+end
+
 spm_jobman('run',matlabbatch);
 
 out.spmmat{1} = fullfile(job.dir{1},'SPM.mat');
@@ -165,7 +183,9 @@ dep.tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
 % =====================================================================
 function out = spm_local_mfx(job)
 load(job.spmmat{1},'SPM');
-spm_mfx(SPM);
+n = length(SPM.Sess);
+c = ones(n,1);
+spm_mfx(SPM,c);
 out.spmmat{1} = fullfile(fileparts(job.spmmat{1}),'mfx','SPM.mat');
 
 % =====================================================================

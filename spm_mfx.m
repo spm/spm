@@ -1,8 +1,15 @@
-function [SPM] = spm_mfx(SPM)
+function [SPM] = spm_mfx(SPM,c)
 % converts a 1st-level design specification into a MFX specification
-% FORMAT [SPM] = spm_mfx(SPM)
+% FORMAT [SPM] = spm_mfx(SPM,c)
 % SPM {in} - design and estimation structure after a 1st-level analysis
+% c        - contrast used to define 2nd level design matrix. If this is
+%            not specified spm_mfx will (1) suggest the ones(n,1) contrast
+%            where n is the number of sessions/subjects, (2) call
+%            spm_conman to allow this contrast to be modified interactively
 %
+%            Note: the specification of a contrast that is not ones(n,1) allows, 
+%            for example, specified sessions/subjects to be ignored.
+%            
 % SPM {out} is saved in fullfile(SPM.swd,'mfx','SPM.mat')
 %
 % spm_mfx takes the SPM.mat of a 1st-level estimation of a repeated-measure
@@ -62,7 +69,7 @@ function [SPM] = spm_mfx(SPM)
 % The ReML hyperparameters are estimated using the covariance of y over
 % voxels. This means that the relative amounts of within and
 % between-session variance are assumed to be fixed over voxels but can
-% vary in their overall expression. The voxels used for this polling are
+% vary in their overall expression. The voxels used for this pooling are
 % those that show 1st-level responses.
 %
 % See spm_reml.m
@@ -71,9 +78,9 @@ function [SPM] = spm_mfx(SPM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_mfx.m 4552 2011-11-08 17:33:58Z will $
 
-SVNid = '$Rev: 4492 $';
+SVNid = '$Rev: 4552 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -149,13 +156,19 @@ X1    = sparse(X1);
 % expanded to cover all parameters (kron(X2,eye(nP)))
 %--------------------------------------------------------------------------
 sX        = spm_sp('set',eye(n));
-c         = ones(n,1);
-SPM2.xCon = spm_FcUtil('Set','one-sample t-test','F','c',c, sX);
-SPM2.xX.xKXs  = sX;
-for    i  = 1:n
-    SPM2.xX.name{i} = sprintf('Session %i',i);
+if nargin < 2
+    c         = ones(n,1);
+    SPM2.xCon = spm_FcUtil('Set','one-sample t-test','F','c',c, sX);
+    SPM2.xX.xKXs  = sX;
+    for    i  = 1:n
+        SPM2.xX.name{i} = sprintf('Session %i',i);
+    end
+    [I,xCon]  = spm_conman(SPM2,'F',1,'2nd-level contrast','',1);
+else
+    I=1;
+    xCon(I).c=c;
+    xCon(I).name='2nd level';
 end
-[I,xCon]  = spm_conman(SPM2,'F',1,'2nd-level contrast','',1);
 X2        = xCon(I).c;
 X2        = kron(X2,speye(nP,nP));
 nC        = size(X2,2);
