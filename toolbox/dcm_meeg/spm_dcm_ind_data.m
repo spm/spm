@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4547 2011-11-04 13:49:59Z karl $
+% $Id: spm_dcm_ind_data.m 4557 2011-11-10 14:01:11Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -228,7 +228,7 @@ if ~TFinput
     
     % precision of Transform coefficients (assuming an AR process over time)
     %----------------------------------------------------------------------
-    P     = spm_Q(1/2,Ns,1)*128;
+    P     = spm_Q(1/2,Nb,1)*128;
     
     % create convolution matrices
     %----------------------------------------------------------------------
@@ -239,7 +239,7 @@ if ~TFinput
         
         n    = fix(length(W{i})/2);
         C    = spm_convmtx(W{i}',Ns);
-        C    = C(It + n,:);
+        C    = C(It + n,:)';
         C    = (C'*C + P)\C';
         M{i} = C*T;
     end
@@ -322,7 +322,7 @@ for i = 1:Ne;
             end
         end
         fprintf('\nevaluating %.1f Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
-    end
+    end        
     
     % weight with principal eigenvariate over trials (c.f., averaging)
     %----------------------------------------------------------------------
@@ -334,10 +334,13 @@ for i = 1:Ne;
     %----------------------------------------------------------------------
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
+        Yk      = log(Yk+(1/64)*mean(Yk(:)));
         Yz{i,j} = Yk - ones(Nb,8)*Yk(1:8,:)/8;
     end
 end
  
+
+
 % reduce to frequency modes
 %==========================================================================
  
