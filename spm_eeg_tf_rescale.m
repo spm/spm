@@ -23,9 +23,9 @@ function [D] = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 4316 2011-04-26 16:52:28Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 4558 2011-11-10 14:38:28Z vladimir $
 
-SVNrev = '$Rev: 4316 $';
+SVNrev = '$Rev: 4558 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ end
 try
     S.tf.method;
 catch
-    str  = {'LogR','Diff', 'Rel', 'Log', 'Sqrt', 'Zscore'};
+    str  = {'LogR','Diff', 'Rel', 'Log', 'Logeps', 'Sqrt', 'Zscore'};
     S.tf.method = spm_input('Rescale method','+1','m',str,char(str),1);
 end
 
@@ -114,6 +114,11 @@ switch lower(S.tf.method)
     case 'log'
         for c=1:D.ntrials
             D(:,:,:,c) = log(Din(:,:,:,c));
+        end
+        
+    case 'logeps'
+        for c=1:D.ntrials
+            D(:,:,:,c) = log(Din(:,:,:,c)+(1/64)*mean(spm_vec(Din(:,:,:,c))));
         end
         
     case 'sqrt'

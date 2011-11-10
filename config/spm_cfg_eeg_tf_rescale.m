@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 4287 2011-04-04 13:55:54Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 4558 2011-11-10 14:38:28Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -92,6 +92,15 @@ method_log.val   = {1};
 method_log.help  = {'Log.'};
 
 %--------------------------------------------------------------------------
+% method_logeps
+%--------------------------------------------------------------------------
+method_logeps       = cfg_const;
+method_logeps.tag   = 'Logeps';
+method_logeps.name  = 'Log+eps';
+method_logeps.val   = {1};
+method_logeps.help  = {'Log + epsilon (to avoid boosting very low values)'};
+
+%--------------------------------------------------------------------------
 % method_sqrt
 %--------------------------------------------------------------------------
 method_sqrt      = cfg_const;
@@ -108,7 +117,7 @@ method.tag    = 'method';
 method.name   = 'Rescale method';
 method.val    = {method_logr};
 method.help   = {'Select the rescale method.'};
-method.values = {method_logr method_diff method_rel method_zscore method_log method_sqrt};
+method.values = {method_logr method_diff method_rel method_zscore method_log method_logeps method_sqrt};
 
 %--------------------------------------------------------------------------
 % S
