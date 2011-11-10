@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 4320 2011-04-29 21:24:23Z vladimir $
+% $Id: spm_eeg_inv_extract.m 4554 2011-11-10 10:13:40Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -145,7 +145,7 @@ switch(type)
                     
                     % unimodal data
                     %------------------------------------------------------
-                    Y     = D(Ic{1},It,c(j))*TT;
+                    Y     = D(Ic{1},It,c(j));
                     Y     = U{1}*Y*scale;
                     
                 else
@@ -153,7 +153,7 @@ switch(type)
                     % multimodal data
                     %------------------------------------------------------
                     for k = 1:length(U)
-                        Y       = D(Ic{k},It,c(j))*TT;
+                        Y       = D(Ic{k},It,c(j));
                         UY{k,1} = U{k}*Y*scale(k);
                     end
                     Y = spm_cat(UY);
