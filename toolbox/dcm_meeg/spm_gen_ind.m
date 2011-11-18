@@ -12,7 +12,7 @@ function [y] = spm_gen_ind(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_ind.m 1208 2008-03-13 20:59:12Z karl $
+% $Id: spm_gen_ind.m 4564 2011-11-18 18:38:06Z karl $
 
 
 % within-trial inputs
@@ -23,7 +23,7 @@ function [y] = spm_gen_ind(P,M,U)
 try
     fu  = M.fu;
 catch
-    fu  = 'spm_ind_u';
+    fu  = 'spm_erp_u';
 end
 
 % peri-stimulus time inputs

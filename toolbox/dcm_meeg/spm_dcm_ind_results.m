@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4547 2011-11-04 13:49:59Z karl $
+% $Id: spm_dcm_ind_results.m 4564 2011-11-18 18:38:06Z karl $
  
  
 % get figure handle
@@ -172,8 +172,7 @@ case{lower('Time-frequency')}
       
     % loop over trials, sources (predicted and observed)
     %----------------------------------------------------------------------
-    colormap(jet)
-    cmax = zeros(nt, nr);
+    cmax  = zeros(nt, nr);
     for i = 1:nt
         for j = 1:nr
             subplot(nt*2,nr,(i - 1)*2*nr + j)
@@ -424,7 +423,7 @@ case{lower('Input (u - ms)')}
     
     % get input
     % ---------------------------------------------------------------------
-    U    = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
+    U    = spm_erp_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
     
     subplot(1,1,1)
     plot(pst,U)
@@ -436,7 +435,7 @@ case{lower('Input (C x u)')}
     
     % get input
     % ---------------------------------------------------------------------
-    U    = spm_ind_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
+    U    = spm_erp_u((pst - pst(1))/1000,DCM.Ep,DCM.M);
     U    = DCM.Ep.C*U';
     
     for k = 1:nr

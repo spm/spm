@@ -19,6 +19,8 @@ function DCM = spm_dcm_ind(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.type         - 'ECD' (1) or 'Imaging' (2) (see spm_erp_L)
+%   options.onset        - stimulus onset (ms)
+%   options.dur          - and dispersion (sd)
 %______________________________________________________________________
 % This routine inverts dynamic causal modeld (DCM) for induced or spectral 
 % responses as measured with the electroencephalogram (EEG) or the 
@@ -40,7 +42,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_ind.m 4564 2011-11-18 18:38:06Z karl $
  
  
 % check options 
@@ -53,11 +55,11 @@ try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
 try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
+try, dur   = DCM.options.dur;   catch, dur                = 32;        end
  
 % Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_dipfit(DCM, 1);
- 
+DCM      = spm_dcm_erp_dipfit(DCM, 1);
 if ~isfield(DCM.xY,'source')   
     DCM  = spm_dcm_ind_data(DCM);
 end
@@ -124,10 +126,7 @@ M.n   = nx;
 M.l   = Nr*Nf;
 M.ns  = Ns;
 M.ons = onset - xY.pst(1);
- 
-% make the temporal dispersion of inputs scale with onset
-%--------------------------------------------------------------------------
-M.gamma = 1;
+M.dur = dur;
  
  
 % EM: inversion

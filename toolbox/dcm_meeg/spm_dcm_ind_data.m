@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4557 2011-11-10 14:01:11Z vladimir $
+% $Id: spm_dcm_ind_data.m 4564 2011-11-18 18:38:06Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -94,38 +94,19 @@ Nc   = length(DCM.xY.Ic);
  
 % options
 %--------------------------------------------------------------------------
-try
-    Nm = DCM.options.Nmodes;
-catch
-    errordlg('Please specify number of frequency modes');
-    error('')
-end
-try
-    h  = DCM.options.h;
-catch
-    errordlg('Please number of DCT components');
-    error('')
-end
-try
-    DT    = DCM.options.D;
-catch
-    errordlg('Please specify down sampling');
-    error('')
-end
+try, Nm  = DCM.options.Nmodes; catch, Nm  = 4; DCM.options.Nmodes = Nm; end
+try, h   = DCM.options.h;      catch, h   = 1; DCM.options.h      = h;  end
+try, DT  = DCM.options.D;      catch, DT  = 2; DCM.options.D      = DT; end
+try, DT  = DCM.options.D;      catch, DT  = 2; DCM.options.D      = DT; end
+try, Rft = DCM.options.Rft;    catch, Rft = 6; DCM.options.Rft    = Rft;end
+
 try
     trial = DCM.options.trials;
 catch
     errordlg('please specify trials');
     error('')
 end
-try
-    DCM.xY.Rft = DCM.options.Rft;
-catch
-    % default wavelet number
-    %----------------------------------------------------------------------
-    DCM.xY.Rft = 5;
-end
- 
+
 % check data are not oversampled (< 4ms)
 %--------------------------------------------------------------------------
 if DT/D.fsample < 0.004
@@ -133,33 +114,53 @@ if DT/D.fsample < 0.004
     DCM.options.D = DT;
 end
  
- 
+
+
 % get peristimulus times
 %--------------------------------------------------------------------------
 try
-    
-    % time window and bins for modelling
-    %----------------------------------------------------------------------
-    DCM.xY.Time = 1000*D.time; % ms
-    T1          = DCM.options.Tdcm(1);
-    T2          = DCM.options.Tdcm(2);
-    [i, T1]     = min(abs(DCM.xY.Time - T1));
-    [i, T2]     = min(abs(DCM.xY.Time - T2));
-    
-    % Time [ms] of down-sampled data
-    %----------------------------------------------------------------------
-    Ns          = length(DCM.xY.Time);       % number of bins
-    It          = [T1:DT:T2]';               % indices - bins
-    Is          = [1:Ns]';                   % indices - samples
-    DCM.xY.pst  = DCM.xY.Time(It);           % PST
-    DCM.xY.It   = It;                        % indices of time bins
-    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
-    Nb          = length(It);                % number of bins
-    
+    DCM.options.Tdcm(1) = max(DCM.options.Tdcm(1),1000*D.time(1));
+    DCM.options.Tdcm(2) = min(DCM.options.Tdcm(2),1000*D.time(end));
 catch
-    errordlg('Please specify time window');
-    error('')
+    DCM.options.Tdcm(1) = 1000*D.time(1)   + 512;
+    DCM.options.Tdcm(2) = 1000*D.time(end) - 512;
 end
+
+% time window and bins for modelling (with 512 ms extra)
+%--------------------------------------------------------------------------
+DCM.xY.Time = 1000*D.time;
+
+ms          = DCM.options.Tdcm(1) - DCM.xY.Time(1);
+ms          = max(min(ms,512),64);
+T1          = DCM.options.Tdcm(1) - ms;
+T2          = DCM.options.Tdcm(2) + ms;
+[i, T1]     = min(abs(DCM.xY.Time - T1));
+[i, T2]     = min(abs(DCM.xY.Time - T2));
+B1          = T1 + fix(ms*D.fsample/1000);
+B2          = T2 - fix(ms*D.fsample/1000);
+
+
+% check data are not oversampled (< 4ms)
+%--------------------------------------------------------------------------
+if (T2 - T1)/DT > 256
+    DT            = fix((T2 - T1)/128);
+end
+DCM.options.D = DT;
+
+% Time [ms] of down-sampled data
+%--------------------------------------------------------------------------
+It          = [T1:DT:T2]';               % indices - bins (full)
+Ib          = [B1:DT:B2]';               % indices - bins (pst)
+Is          = [T1:T2]';                  % indices - samples
+Ns          = length(Is);                % number of samples
+Nt          = length(It);                % number of bins (full)
+Nb          = length(Ib);                % number of bins (pst)
+DCM.xY.pst  = DCM.xY.Time(Ib);           % PST
+DCM.xY.It   = Ib;                        % indices of time bins
+DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
+Id          = (1:Nb) + fix((Ib(1) - It(1) + 1)/DT);
+
+
  
 % get frequency range
 %--------------------------------------------------------------------------
@@ -203,13 +204,15 @@ if ~TFinput
     % get induced responses (use previous time-frequency results if possible)
     %==========================================================================
     try
-        if size(DCM.xY.xf,1) == Ne;
-            if size(DCM.xY.xf,2) == Nr;
-                if size(DCM.xY.xf{1},1) == Nb;
-                    if size(DCM.xY.xf{1},2) == Nm;
+        if size(DCM.xY.xf,1) == Ne
+            if size(DCM.xY.xf,2) == Nr
+                if size(DCM.xY.xf{1},1) == Nb
+                    if size(DCM.xY.xf{1},2) == Nm
                         if size(DCM.xY.U,1) == length(DCM.xY.Hz)
-                            DCM.xY.y = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
-                            return
+                            if DCM.xY.Rft == Rft
+                                DCM.xY.y = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
+                                return
+                            end
                         end
                     end
                 end
@@ -228,20 +231,19 @@ if ~TFinput
     
     % precision of Transform coefficients (assuming an AR process over time)
     %----------------------------------------------------------------------
-    P     = spm_Q(1/2,Nb,1)*128;
-    
+    P     = spm_Q(1/2,Nt);
+     
     % create convolution matrices
     %----------------------------------------------------------------------
-    W     = spm_eeg_morlet(DCM.xY.Rft, dt, DCM.xY.Hz);
+    W     = spm_eeg_morlet(Rft,dt,DCM.xY.Hz);
     for i = 1:length(W)
         
         fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
         
-        n    = fix(length(W{i})/2);
-        C    = spm_convmtx(W{i}',Ns);
-        C    = C(It + n,:)';
-        C    = (C'*C + P)\C';
-        M{i} = C*T;
+        C      = spm_convmtx(W{i}',Ns,'square');
+        C      = C(:,It + 1 - T1);
+        C      = P*C'*T;
+        M{i}   = C(Id,:);
     end
 end
  
@@ -317,8 +319,9 @@ for i = 1:Ne;
                 y      = squeeze(D(Ic, D.indfrequency(DCM.xY.Hz(j)), It, c(k)))';
                 Y(f,k) = y(:);
             else
-                y      = abs(M{j}*D(Ic,Is,c(k))'*MAP');
-                Y(f,k) = y(:);
+                y      = D(Ic,Is,c(k));
+                y      = abs(M{j}*y'*MAP');
+                Y(f,k) = log(y(:));
             end
         end
         fprintf('\nevaluating %.1f Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
@@ -330,15 +333,14 @@ for i = 1:Ne;
     u     = full(u(:,1)*sign(max(u(:,1))));
     Y     = reshape(Y*u,Nb,Ng,Nr,Nf);
     
-    % sum response over dipole moments and remove baseline (first 8 bins)
+    % sum response over dipole moments and remove baseline (first few bins)
     %----------------------------------------------------------------------
+    n     = fix(Nb/8);
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
-        Yk      = log(Yk+(1/64)*mean(Yk(:)));
-        Yz{i,j} = Yk - ones(Nb,8)*Yk(1:8,:)/8;
+        Yz{i,j} = Yk - ones(Nb,n)*Yk(1:n,:)/n;
     end
 end
- 
 
 
 % reduce to frequency modes
@@ -361,4 +363,5 @@ end
 DCM.xY.y    = spm_cond_units(spm_cat(spm_cell_swap(DCM.xY.xf),2));
 DCM.xY.U    = U;
 DCM.xY.S    = S;
+DCM.xY.Rft  = Rft;
 DCM.xY.code = condlabels(trial);
