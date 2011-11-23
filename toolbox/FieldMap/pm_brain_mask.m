@@ -28,7 +28,7 @@ function bmask = pm_brain_mask(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: pm_brain_mask.m 4572 2011-11-23 17:35:10Z chloe $
 
 if nargin < 2 || isempty(flags)
    flags.template=fullfile(spm('Dir'),'templates','T1.nii');
@@ -57,7 +57,7 @@ vxs = sqrt(sum(P.mat(1:3,1:3).^2));
 fwhm = repmat(flags.fwhm,1,3)./vxs;
 bmask=fill_it(bmask,fwhm,flags.thresh); % Do fill to fill holes
 
-OP=P
+OP=P;
 OP.fname=spm_file(P.fname,'prefix','bmask');
 OP.descrip=sprintf('Mask:erode=%d,dilate=%d,fwhm=%d,thresh=%1.1f',flags.nerode,flags.ndilate,flags.fwhm,flags.thresh);
 spm_write_vol(OP,bmask);

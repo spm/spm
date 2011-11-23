@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: FieldMap.m 4572 2011-11-23 17:35:10Z chloe $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -1283,11 +1283,17 @@ switch lower(Action)
    case 'displayimage'
 
       Fgraph=spm_figure('FindWin','Graphics');
-      if isempty(Fgraph)
-         st.fig=spm_figure('Create','Graphics','Graphics');
-         DGW = 1;
-      end
+      
+%       if isempty(Fgraph)
+%          st.fig=spm_figure('Create','Graphics','Graphics');
+%          DGW = 1;
+%       end
 
+    % Only open Graphics window if one has been found
+      if isempty(Fgraph)
+          return;
+      else
+          
       if ~isempty(ID{varargin{4}})
          spm_orthviews('Delete',ID{varargin{4}}.h);
          ID{varargin{4}} = [];
@@ -1338,7 +1344,7 @@ switch lower(Action)
           'Position',[340 280 50 020].*WS,...
           'HorizontalAlignment','left',...
           'String','');
-      
+   end     
 %=======================================================================
 %=======================================================================
 %
@@ -1396,11 +1402,12 @@ switch lower(Action)
 %=======================================================================
 
    case 'setparams'
-      if nargin == 1
-     pm_defaults;        % "Default" default file
-      else 
-     eval(varargin{2});  % Scanner or sequence specific default file
-      end
+       if nargin == 1
+           pm_defaults;        % "Default" default file
+       else
+           %eval(varargin{2});  % Scanner or sequence specific default file
+           run(varargin{2});  % Scanner or sequence specific default file
+       end
 
       % Define parameters for fieldmap creation
       IP.et{1} = pm_def.SHORT_ECHO_TIME;
@@ -1588,10 +1595,12 @@ switch lower(Action)
 
       if size([IP.P{1} IP.P{2} IP.P{3} IP.P{4}],2)==4
          ip_dim=cat(1,[IP.P{1}.dim' IP.P{2}.dim' IP.P{3}.dim' IP.P{4}.dim']');
-         ip_mat=cat(2,[IP.P{1}.mat(:) IP.P{2}.mat(:) IP.P{3}.mat(:) IP.P{4}.mat(:)]');
+         %ip_mat=cat(2,[IP.P{1}.mat(:) IP.P{2}.mat(:) IP.P{3}.mat(:) IP.P{4}.mat(:)]');
+         ip_mat=cat(2,single([IP.P{1}.mat(:) IP.P{2}.mat(:) IP.P{3}.mat(:) IP.P{4}.mat(:)]'));
       else
          ip_dim=cat(1,[IP.P{1}.dim' IP.P{2}.dim']');
-         ip_mat=cat(2,[IP.P{1}.mat(:) IP.P{2}.mat(:)]');
+         %ip_mat=cat(2,[IP.P{1}.mat(:) IP.P{2}.mat(:)]');
+         ip_mat=cat(2,single([IP.P{1}.mat(:) IP.P{2}.mat(:)]'));
       end
 
       if any(any(diff(ip_dim,1,1),1)&[1,1,1])

@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 4228 2011-03-04 15:00:15Z chloe $
+% $Id: tbx_cfg_fieldmap.m 4572 2011-11-23 17:35:10Z chloe $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -297,8 +297,8 @@ matchvdm.values{2} = 0;
 % ---------------------------------------------------------------------
 sessname         = cfg_entry;
 sessname.tag     = 'sessname';
-sessname.name    = 'Name extension for run/session specific VDM file';
-sessname.help    = {'This will be the name extension followed by an incremented integer for run/session specific VDM files.'};
+sessname.name    = 'VDM filename extension';
+sessname.help    = {'Filename extension for run/session specific VDM files. The extension will be followed by an incremented integer for run/session number.'};
 sessname.strtype = 's';
 sessname.num     = [1  Inf];
 sessname.def     = @(val)pm_get_defaults('sessname', val{:});
