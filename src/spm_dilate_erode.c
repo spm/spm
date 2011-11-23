@@ -1,5 +1,5 @@
 /*
- * $Id: spm_dilate_erode.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_dilate_erode.c 4569 2011-11-23 16:11:30Z guillaume $
  * Jesper Andersson
  */
 
@@ -17,10 +17,10 @@
 /* Utility function that returns index into */
 /* 1D array with range checking.            */
  
-int get_index(int     i,
-              int     j,
-              int     k,
-              mwSize  dim[3])
+mwSignedIndex get_index(mwSignedIndex i,
+                        mwSignedIndex j,
+                        mwSignedIndex k,
+                        mwSize        dim[3])
 {
     if ((i<0) || (i>(dim[0]-1)) || (j<0) || (j>(dim[1]-1)) || (k<0) || (k>(dim[2]-1)))
         return(-1);
@@ -39,7 +39,8 @@ void do_it(double  *iima,
 {
     mwIndex  i=0, j=0, k=0;
     mwIndex  ki=0, kj=0, kk=0;
-    mwIndex  ndx=0, kndx=0;
+    mwIndex  ndx=0;
+    mwSignedIndex kndx=0;
     double   kv=0.0;
   
     for (i=0; i<dim[0]; i++)
@@ -86,16 +87,16 @@ void do_it(double  *iima,
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    char           *fnc_str;
-    mwSize            ndim=0, krn_ndim=0;
-    int            n, i;
-    int            dilate = 0;
-    mwSize            buflen = 0;
-    const mwSize      *cdim = NULL, *krn_cdim = NULL;
-    mwSize   dim[3], kdim[3];
-    double         *iima = NULL;
-    double         *oima = NULL;
-    double         *krnl = NULL;
+    char          *fnc_str = NULL;
+    mwSize        ndim=0, krn_ndim=0;
+    int           n, i;
+    int           dilate = 0;
+    mwSize        buflen = 0;
+    const mwSize  *cdim = NULL, *krn_cdim = NULL;
+    mwSize        dim[3], kdim[3];
+    double        *iima = NULL;
+    double        *oima = NULL;
+    double        *krnl = NULL;
 
     if (nrhs < 3) mexErrMsgTxt("Not enough input arguments.");
     if (nrhs > 3) mexErrMsgTxt("Too many input arguments.");
