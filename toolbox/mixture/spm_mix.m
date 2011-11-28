@@ -13,7 +13,13 @@ function [mix] = spm_mix (y,m,verbose)
 % The fields in mix are:
 %
 % m                The number of components
-% fm               The negative free energy
+% fm               The negative free energy. This decomposes into
+%                  fm=acc-kl_proportions-kl_covs-kl_centres
+%
+% acc              model accuracy
+% kl_proportions   complexity penalty for cluster proportions
+% kl_covs          complexity penalty for cluster covariances
+% kl_centres       complexity penalty for cluster centres
 %
 % Fields:
 %
@@ -36,7 +42,7 @@ function [mix] = spm_mix (y,m,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 3857 2010-04-30 13:11:03Z will $
+% $Id: spm_mix.m 4575 2011-11-28 16:18:10Z will $
 
 % This code implements the algorithm in:
 %
@@ -220,6 +226,11 @@ for loops=1:max_loops,
     end
     fm=f1+sum(f2)+sum(f3)+sum(f4)+sum(f5);
  
+    acc=sum(f4)+sum(f5);
+    kl_proportions=-f1;
+    kl_covs=-sum(f2);
+    kl_centres=-sum(f3);
+    
     if verbose
         disp(sprintf('Iter=%d, F1=%1.2f, F2=%1.2f, F3=%1.2f, F4=%1.2f, F5=%1.2f, Fm=%1.2f',loops,f1,sum(f2),sum(f3),sum(f4),sum(f5),fm));
     end 
@@ -251,7 +262,10 @@ end
 % Put variables into data structure
 mix.m=m;
 mix.fm=fm;
-mix.fkl=fkl;
+mix.acc=acc;
+mix.kl_proportions=kl_proportions;
+mix.kl_covs=kl_covs;
+mix.kl_centres=kl_centres;
 mix.state=state;
 mix.lambda=lambda;
 mix.gamma=gamma;
