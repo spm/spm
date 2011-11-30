@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_dcm_ind_results.m 4578 2011-11-30 18:12:50Z vladimir $
  
  
 % get figure handle
@@ -201,10 +201,10 @@ case{lower('Time-frequency')}
     for i = 1:nt
         for j = 1:nr
             subplot(nt*2,nr,(i - 1)*2*nr + j)
-            caxis(cmax(j)*[0 1]);
+            caxis(cmax(j)*[-1 1]);
  
             subplot(nt*2,nr,(i - 1)*2*nr + nr + j)
-            caxis(cmax(j)*[0 1]);
+            caxis(cmax(j)*[-1 1]);
         end
     end
  
