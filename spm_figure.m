@@ -55,7 +55,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4405 2011-07-22 12:54:59Z guillaume $
+% $Id: spm_figure.m 4576 2011-11-30 17:29:09Z ged $
 
 
 %==========================================================================
@@ -731,7 +731,7 @@ t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off','Separator','on')
 uimenu(t1,    'Label','&Default File', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''Print'',gcf)');
 uimenu(t1,    'Label','&Specify File...', 'HandleVisibility','off', ...
-    'CallBack','spm_figure(''PrintTo'',spm_figure(''FindWin'',''Graphics''))');
+    'CallBack','spm_figure(''PrintTo'',gcf)');
 
 %-Copy Figure
 if ispc
