@@ -49,7 +49,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
 
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_ADEM_M_set.m 4580 2011-12-02 20:22:19Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -152,7 +152,7 @@ end
 try
     v  = M(g).v;
 catch
-    v  = sparse(0,0);
+    v  = sparse(0,1);
 end
 if isempty(v)
     try
@@ -173,7 +173,7 @@ for i = 1:g
     try
         a  = M(i).a;
     catch
-        a  = sparse(0,0);
+        a  = sparse(0,1);
     end
     if isempty(a)
         try
@@ -395,25 +395,11 @@ try M(1).E.nN; catch,        M(1).E.nN = 16; end
 %==========================================================================
 for i = 1:g
     
-    try, M(i).sv; catch, M(i).sv = M(1).E.s;   end
-    try, M(i).sw; catch, M(i).sw = M(1).E.s;   end
+    try, M(i).sv; catch,   M(i).sv = M(1).E.s; end
+    try, M(i).sw; catch,   M(i).sw = M(1).E.s; end
         
     if ~isscalar(M(i).sv), M(i).sv = M(1).E.s; end
     if ~isscalar(M(i).sw), M(i).sw = M(1).E.s; end
-end
-
-
-% checks on estimability
-%==========================================================================
- 
-% check that there are informative priors on the states or the causes
-%--------------------------------------------------------------------------
-Q     = ~norm(M(end).V,1);
-for i = 1:(g - 1)
-    P = norm(M(i).pC,1) > exp(8);
-    if P & Q
-        warndlg('please use informative priors on causes or parameters')
-    end
 end
 
 

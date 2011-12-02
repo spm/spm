@@ -39,7 +39,7 @@ function [DEM] = spm_ADEM(DEM)
 %   M(i).W  = fixed precision (state noise)
 %   M(i).xP = precision (states)
 %   
-%   M(1).Ra = indices of prediction errors driving action
+%   M(1).Ra = indices of (ny x 1) sensory prediction errors driving action
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i)
@@ -114,7 +114,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ADEM.m 4516 2011-10-07 19:18:32Z karl $
+% $Id: spm_ADEM.m 4580 2011-12-02 20:22:19Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -347,6 +347,7 @@ for iE = 1:nE
     dFdpp = zeros(np,np);
     EE    = sparse(0);
     ECE   = sparse(0);
+    EiSE  = sparse(0);
     qp.ic = sparse(0);
     Hqu.c = sparse(0);
 
@@ -365,7 +366,7 @@ for iE = 1:nE
         pu = pU(1);
     end
  
-    % D-Step: (nD D-Steps for each sample)
+    % D-Step: (nY samples)
     %======================================================================
     for iY = 1:nY
  
@@ -423,10 +424,12 @@ for iE = 1:nE
         qU(iY) = qu;
         pU(iY) = pu;
  
-        % and conditional covariance [of parameters {P}]
+        % and conditional precision
         %------------------------------------------------------------------
-        ECEu   = dE.du*qu.c*dE.du';
-        ECEp   = dE.dp*qp.c*dE.dp';
+        if nh
+            ECEu   = dE.du*qu.c*dE.du';
+            ECEp   = dE.dp*qp.c*dE.dp';
+        end
  
         
         % uncertainty about parameters dWdv, ... ; W = ln(|qp.c|)
@@ -531,10 +534,16 @@ for iE = 1:nE
             
         end
  
+        % accumulate SSE
+        %------------------------------------------------------------------
+        EiSE = EiSE + E'*iS*E;
+        
         % and quantities for M-Step
         %------------------------------------------------------------------
-        EE  = E*E'+ EE;
-        ECE = ECE + ECEu + ECEp;
+        if nh
+            EE  = E*E'+ EE;
+            ECE = ECE + ECEu + ECEp;
+        end
  
     end % sequence (nY)
  
@@ -611,7 +620,7 @@ for iE = 1:nE
  
     % evaluate objective function (F)
     %======================================================================
-    L   = - trace(iS*EE)/2  ...              % states (u)
+    L   = - trace(EiSE)/2  ...               % states (u)
         - trace(qp.e'*pp.ic*qp.e)/2  ...     % parameters (p)
         - trace(qh.e'*ph.ic*qh.e)/2  ...     % hyperparameters (h)
         + Hqu.c/2             ...            % entropy q(u)

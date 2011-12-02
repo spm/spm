@@ -10,7 +10,7 @@ function [DEM] = spm_ADEM_set(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_set.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: spm_ADEM_set.m 4580 2011-12-02 20:22:19Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
@@ -30,7 +30,7 @@ end
 try
     N     = length(DEM.C);
 catch
-    errordlg('please specify causes (e.g., sparse(1,N)')
+    errordlg('please specify causes (e.g., sparse(0,N)')
 end
 try
     DEM.class;

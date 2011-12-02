@@ -1,4 +1,4 @@
-function [u dg df] = spm_ADEM_diff(M,u);
+function [u dg df] = spm_ADEM_diff(M,u)
 % evaluates an active model given innovations z{i} and w{i}
 % FORMAT [u dgdv dgdx dfdv dfdx] = spm_ADEM_diff(M,u);
 %
@@ -17,14 +17,11 @@ function [u dg df] = spm_ADEM_diff(M,u);
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_diff.m 3054 2009-04-07 19:22:49Z karl $
+% $Id: spm_ADEM_diff.m 4580 2011-12-02 20:22:19Z karl $
  
 % number of states and parameters
 %--------------------------------------------------------------------------
 nl    = size(M,2);                        % number of levels
-nv    = sum(spm_vec(M.l));                % number of v (causal states)
-na    = sum(spm_vec(M.k));                % number of a (active states)
-nx    = sum(spm_vec(M.n));                % number of x (hidden states)
  
 % order parameters (n = 1 for static models)
 %==========================================================================
@@ -53,8 +50,8 @@ vi    = spm_unvec(u.v{1},{M.v});
 xi    = spm_unvec(u.x{1},{M.x});
 ai    = spm_unvec(u.a{1},{M.a});
 zi    = spm_unvec(u.z{1},{M.v});
-wi    = spm_unvec(u.w{1},{M.x});
- 
+
+
 % Derivatives for Jacobian
 %==========================================================================
 vi{nl} = zi{nl};
