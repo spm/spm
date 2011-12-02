@@ -38,7 +38,7 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: spm_DEM_eval.m 4579 2011-12-02 20:21:07Z karl $
  
  
 % get dimensions
@@ -48,10 +48,8 @@ ne    = sum(spm_vec(M.l));               % number of e (errors)
 nv    = sum(spm_vec(M.m));               % number of x (causal states)
 nx    = sum(spm_vec(M.n));               % number of x (hidden states)
 np    = sum(spm_vec(M.p));               % number of p (parameters)
-ny    = M(1).l;                          % number of y (inputs)
-nc    = M(end).l;                        % number of c (prior causes)
 
- 
+
 % evaluate functions at each hierarchical level
 %==========================================================================
  

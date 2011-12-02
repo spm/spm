@@ -11,12 +11,12 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4339 2011-06-02 13:04:49Z karl $
+% $Id: DEM_demo_DCM_LAP.m 4579 2011-12-02 20:21:07Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================
-clear
- 
+
+
 % DEM Structure: create inputs
 % -------------------------------------------------------------------------
 T  = 256;
@@ -29,7 +29,7 @@ U  = spm_conv(randn(n,T),0,2)/exp(4/2);
 % -------------------------------------------------------------------------
 M(1).E.s  = 1/2;         % smoothness of random fluctuations
 M(1).E.d  = 2;           % embedding dimension
-M(1).E.n  = 6;           % embedding dimension
+M(1).E.n  = 4;           % embedding dimension
 M(1).E.nE = 32;          % maximum number of DEM iterations
  
  

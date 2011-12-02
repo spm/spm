@@ -11,11 +11,10 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_hdm_LAP.m 4579 2011-12-02 20:21:07Z karl $
 
 % set-up
 %--------------------------------------------------------------------------
-clear
 DEMO = 1;
 global dt
 
@@ -46,7 +45,7 @@ if DEMO
     % level 2
     %----------------------------------------------------------------------
     M(2).v  = [0 0 0]';
-    M(2).V  = exp(4);
+    M(2).V  = exp(2);
 
     M(1).E.linear = 1;
     M(1).E.n  = 4;
@@ -72,8 +71,8 @@ if DEMO
 
     % DEM estimation
     %======================================================================
-    LAP   = spm_LAP(DEM);
-    DEM   = spm_DEM(DEM);
+    DEM        = spm_DEM(DEM);
+    LAP        = spm_LAP(DEM);
     
     save LAP_HDM LAP DEM
 

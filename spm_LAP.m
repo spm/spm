@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4517 2011-10-07 19:19:59Z karl $
+% $Id: spm_LAP.m 4579 2011-12-02 20:21:07Z karl $
  
  
 % find or create a DEM figure
@@ -282,14 +282,13 @@ mnv    = nv*~~method.v;
 % preclude very precise states from entering free-energy/action
 %--------------------------------------------------------------------------
 p      = spm_LAP_eval(M,qu,qh);
-ih     = p.h < 16;
-ig     = p.g < 16;
+ih     = p.h < 8;
+ig     = p.g < 8;
 ie     = kron(ones(n,1),ih);
 ix     = kron(ones(n,1),ig);
 iv     = kron(ones(d,1),ih((1:nv) + ny));
 je     = find([ie; ix]); ix(1:nx) = 1;
 ju     = find([ix; iv]);
-jub    = find([ix; iv; ones(np + nb,1)]);
  
 % and other useful indices
 %--------------------------------------------------------------------------
@@ -613,11 +612,24 @@ for iN = 1:nN
                     []     []        Dc     []    [] ;
                     []     []        []     []    Ib ;
                     []     []        []    -Ib   -Kb};
-          
- 
+                
+            dfdq = spm_cat(dfdq);
+                
+            % remove stable modes
+            %--------------------------------------------------------------
+            if is == 1
+%               [P S] = spm_svd(dfdq,0);
+%               i     = log(diag(S)) < 16;
+%               P     = P(:,i);
+%               iP    = spm_pinv(P);
+                P     = 1;
+                iP    = 1;
+            end
+                
+                
             % update conditional modes of states
             %==============================================================
-            dq   = spm_dx(spm_cat(dfdq),spm_vec(f),1/nD);
+            dq   = P*spm_dx(iP*dfdq*P,iP*spm_vec(f),1/nD);
             q    = spm_unvec(spm_vec(q) + dq,q);
             
             % unpack conditional means
@@ -661,6 +673,8 @@ for iN = 1:nN
     Eh    = spm_inv(Ph)*Eh - ph.h;
     Ch    = spm_inv(Ph + (1 - ns)*ph.ic);
  
+    
+    
     % Free-action of states plus free-energy of parameters
     %======================================================================
     FC(1) = sum(Fc(:,1));       % - E'*iS*E/2;
@@ -679,15 +693,7 @@ for iN = 1:nN
  
     % if F is decreasing, revert [hyper] parameters and slow down
     %----------------------------------------------------------------------
-    if Fe < F(iN)
-        
-        % start again if F never increased
-        %------------------------------------------------------------------
-        if iN == 2 && dt < 8
-            DEM.M(1).E.v = DEM.M(1).E.v + 2;
-            DEM = spm_LAP(DEM);
-            return
-        end
+    if Fe < F(iN) && iN > 4
                 
         % save free-energy
         %------------------------------------------------------------------
@@ -710,12 +716,9 @@ for iN = 1:nN
         
         % convergence
         %------------------------------------------------------------------
-        if Fe - F(iN) < 1e-2 && iN > 4
-            convergence = 1; 
-        else
-            convergence = 0; 
-        end
-            
+        if Fe - F(iN) < 1e-2, convergence = 1; end
+        if iN < 5,            convergence = 0; end
+ 
         % save free-energy
         %------------------------------------------------------------------
         F(iN)     = Fe;
@@ -728,7 +731,7 @@ for iN = 1:nN
         
         % increase update time
         %------------------------------------------------------------------
-        dt    = max(dt - 1,-8);
+        dt = max(dt - 1,-8);
         
     end
  

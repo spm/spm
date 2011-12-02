@@ -33,7 +33,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_fx_fmri.m 4579 2011-12-02 20:21:07Z karl $
 
 
 % Neuronal motion
@@ -94,7 +94,6 @@ end
 %   H(6) - ratio of intra- to extra-vascular components   (epsilon)
 %          of the gradient echo signal
 %--------------------------------------------------------------------------
-H        = [0.65 0.41 2.00 0.32 0.34];
 H        = [0.64 0.32 2.00 0.32 0.32];
 
 % exponentiation of hemodynamic state variables

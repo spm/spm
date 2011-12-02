@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 3813 2010-04-07 19:21:49Z karl $
+% $Id: spm_expm.m 4579 2011-12-02 20:21:07Z karl $
 
 
 
@@ -24,8 +24,7 @@ if nargin == 1 || nargin == 2
 
     % ensure norm is < 1/2 by scaling by power of 2
     %----------------------------------------------------------------------
-    J     = full(J);
-    I     = eye(size(J));
+    I     = speye(size(J));
     [f,e] = log2(norm(J,'inf'));
     s     = max(0,e + 1);
     J     = J/2^s;

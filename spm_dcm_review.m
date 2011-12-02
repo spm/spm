@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4517 2011-10-07 19:19:59Z karl $
+% $Id: spm_dcm_review.m 4579 2011-12-02 20:21:07Z karl $
 
 
 %-Get DCM structure
@@ -454,7 +454,7 @@ switch action
         subplot(4,1,1)
         j = find(DCM.c(i,:));
         if isempty(j)
-            x = DCM.qU.v{2};
+            x = t*0;
         else
             x = DCM.qU.v{2}(j,:);
         end
@@ -473,7 +473,8 @@ switch action
         end
         j = find(j(:));
         x = DCM.qU.x{1}(j,:);
-        plot(t,x)
+        plot(t,x,':'), hold on
+        plot(t,x(1,:)), hold off
         title('hidden states - neuronal', 'FontSize',16)
         if DCM.options.two_state
             legend({'excitatory','signal','inhibitory'})
