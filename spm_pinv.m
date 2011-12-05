@@ -7,7 +7,7 @@ function X = spm_pinv(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 2812 2009-03-02 18:46:59Z guillaume $
+% $Id: spm_pinv.m 4581 2011-12-05 14:41:44Z ged $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -18,10 +18,11 @@ if isempty(A), X = sparse(n,m); return, end
 % try generalised inverse
 %--------------------------------------------------------------------------
 sw = warning('off','MATLAB:nearlySingularMatrix');
+warning('off', 'MATLAB:singularMatrix');
 X     = inv(A'*A);
 warning(sw);
 
-if ~any(isnan(diag(X)))
+if all(isfinite(X(:)))
     X = X*A';
     return
 end
