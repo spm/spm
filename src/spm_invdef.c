@@ -1,5 +1,5 @@
 /*
- * $Id: spm_invdef.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_invdef.c 4582 2011-12-05 15:02:22Z john $
  * John Ashburner
  */
 
@@ -378,7 +378,7 @@ static void invert_it(int x0, int x1, int x2, float *y0, float *y1, float *y2,
     REAL Y0[4][3], Y[4][3], M[4][3], IM[4][3];
 
     /* Determine tetrahedral arrangement */
-    k = ((x0%2)==(x1%2)) && ((x0%2)==(x2%2));
+    k = (x0%2)==((x1%2)==(x2%2));
  
     for(i=0; i<5; i++) /* Five tetrahedra within a cube */
     {
