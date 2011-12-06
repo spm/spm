@@ -34,7 +34,7 @@ function cfg = ft_topoplotCC(cfg, freq)
 % corresponding to the input structure. For this particular function, the input should be
 % structured as a cell array.
 %
-% See also FT_PREPARE_LAYOUT, FT_MULTIPLOTCC
+% See also FT_PREPARE_LAYOUT, FT_MULTIPLOTCC, FT_CONNECTIVITYPLOT
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -52,9 +52,9 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_topoplotCC.m 4813 2011-11-26 01:19:35Z roboos $
 
-revision = '$Id: ft_topoplotCC.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_topoplotCC.m 4813 2011-11-26 01:19:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults

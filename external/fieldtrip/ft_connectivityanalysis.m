@@ -11,43 +11,55 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % where the first input argument is a configuration structure (see
 % below) and the second argument is the output of FT_PREPROCESSING,
 % FT_TIMELOCKANLAYSIS, FT_FREQANALYSIS, FT_MVARANALYSIS,
-% FT_SOURCEANALYSIS or FT_CONNECTIVITYANALYSIS depending on the
-% connectivity metric that you want to compute.
+% FT_SOURCEANALYSIS. The different connectivity
+% metrics are supported only for specific datatypes (see below). 
 %
 % The configuration structure has to contain
-%   cfg.method  = 'coh',       coherence, support for freq, freqmvar and
-%                               source data. For partial coherence also
-%                               specify cfg.partchannel
-%                 'csd',       cross-spectral density matrix, can also
-%                               calculate partial csds -
-%                               if cfg.partchannel is specified, support for freq and
-%                               freqmvar data
-%                 'plv',       phase-locking value, support for freq and freqmvar data
-%                 'powcorr',   power correlation, support for freq and source data
-%                 'amplcorr',  amplitude correlation, support for freq and source data
-%                 'granger',   granger causality, support for freq and freqmvar data
-%                 'dtf',       directed transfer function, support for freq and freqmvar data
-%                 'pdc',       partial directed coherence, support for freq and freqmvar data
-%                 'psi',       phaseslope index, support for freq and freqmvar data
-%                 'wpli',      weighted phase lag index (signed one,
-%                              still have to take absolute value to get indication of
-%                              strength of interaction. Note: measure has
-%                              positive bias. Use wpli_debiased to avoid
-%                              this.
-%                 'wpli_debiased'  debiased weighted phase lag index
-%                                 (estimates squared wpli)
-%                 'ppc'        pairwise phase consistency
-%                 'wppc'       weighted pairwise phase consistency
+%   cfg.method  = 
+%     'coh',       coherence, support for freq, freqmvar and source data.
+%                  For partial coherence also specify cfg.partchannel
+%     'csd',       cross-spectral density matrix, can also calculate partial
+%                  csds - if cfg.partchannel is specified, support for freq
+%                  and freqmvar data
+%     'plv',       phase-locking value, support for freq and freqmvar data
+%     'powcorr',   power correlation, support for freq and source data
+%     'amplcorr',  amplitude correlation, support for freq and source data
+%     'granger',   granger causality, support for freq and freqmvar data
+%     'dtf',       directed transfer function, support for freq and
+%                  freqmvar data 
+%     'pdc',       partial directed coherence, support for freq and 
+%                  freqmvar data
+%     'psi',       phaseslope index, support for freq and freqmvar data
+%     'wpli',      weighted phase lag index (signed one,
+%                  still have to take absolute value to get indication of
+%                  strength of interaction. Note: measure has positive
+%                  bias. Use wpli_debiased to avoid this.
+%     'wpli_debiased'  debiased weighted phase lag index
+%                  (estimates squared wpli)
+%     'ppc'        pairwise phase consistency 
+%     'wppc'       weighted pairwise phase consistency
 %
-%            The following methods can be used on channel-level data which already contains
-%              a connectivity measure (i.e. with dimord 'chan_chan_XXX'). These methods are
-%              implemented using the brain connectivity toolbox developed by Olaf Sporns and
-%              colleagues: www.brain-connectivity-toolbox.net.
+% Additional configuration options are
+%   cfg.channel    = Nx1 cell-array containing a list of channels which are
+%     used for the subsequent computations. This only has an effect when
+%     the input data is univariate. See FT_CHANNELSELECTION
+%   cfg.channelcmb = Nx2 cell-array containing the channel combinations on
+%     which to compute the connectivity. This only has an effect when the
+%     input data is univariate. See FT_CHANNELCOMBINATION
+%   cfg.trials     = Nx1 vector specifying which trials to include for the
+%     computation. This only has an effect when the input data contains
+%     repetitions.
+%   cfg.feedback   = string, specifying the feedback presented to the user.
+%     Default is 'none'. See FT_PROGRESS
 %
-%                 'clustering_coef'  clustering coefficient.
-%                 'degrees'
-%
-%
+% For specific methods the cfg can also contain
+%   cfg.partchannel = cell-array containing a list of channels that need to
+%     be partialized out, support for method 'coh', 'csd', 'plv'
+%   cfg.complex     = 'abs' (default), 'angle', 'complex', 'imag', 'real',
+%     '-logabs', support for method 'coh', 'csd', 'plv'
+%   cfg.removemean  = 'yes' (default), or 'no', support for method
+%     'powcorr' and 'amplcorr'.
+% 
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -57,6 +69,12 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
+
+% Undocumented options:
+%   cfg.refindx     
+%   cfg.conditional  
+%   cfg.blockindx    
+%   cfg.jackknife    
 
 % Methods to be implemented
 %
@@ -84,9 +102,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_connectivityanalysis.m 4892 2011-11-30 14:20:02Z jansch $
 
-revision = '$Id: ft_connectivityanalysis.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 4892 2011-11-30 14:20:02Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -270,18 +288,6 @@ switch cfg.method
     outparam = 'psispctrm';
   case {'di'}
     %wat eigenlijk?
-  case {'clustering_coef' 'degrees'}
-    ft_hastoolbox('BCT', 1);
-    if ~strcmp(data.dimord(1:9), 'chan_chan'),
-      error('the dimord of the input data should start with ''chan_chan''');
-    end
-    if isempty(cfg.parameter)
-      error('when using functions from the brain connectivity toolbox you should give a parameter for which the metric is to be computed');
-    else
-      inparam = cfg.parameter;
-    end
-    needrpt  = 0;
-    outparam = [cfg.method,'spctrm'];
   otherwise
     error('unknown method %s', cfg.method);
 end
@@ -337,16 +343,16 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
           data = ft_checkdata(data, 'cmbrepresentation', 'full');
         end
         
-        tmpcfg = ft_checkconfig(cfg, 'createsubcfg',  {'npsf'});
+        tmpcfg = ft_checkconfig(cfg, 'createsubcfg',  {'granger'});
         
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
         %tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
-        try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'block');     end
-        try,tmpcfg.npsf = rmfield(tmpcfg.npsf, 'blockindx'); end
+        try,tmpcfg.npsf = rmfield(tmpcfg.granger, 'block');     end
+        try,tmpcfg.npsf = rmfield(tmpcfg.granger, 'blockindx'); end
         %         end
-        optarg = ft_cfg2keyval(tmpcfg.npsf);
-        data   = csd2transfer(data, optarg{:});
+        optarg = ft_cfg2keyval(tmpcfg.granger);
+        data   = ft_connectivity_csd2transfer(data, optarg{:});
         
         % convert the inparam back to cell array in the case of granger
         if strcmp(cfg.method, 'granger') || strcmp(cfg.method, 'instantaneous_causality') || strcmp(cfg.method, 'total_interdependence')
@@ -457,13 +463,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 switch cfg.method
   case 'coh'
-    % coherence (unsquared), if cfg.complex = 'imag' imaginary part of
-    % coherency
+    % coherence (unsquared), if cfg.complex = 'imag' imaginary part of coherency
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
       'pownorm',  normpow,     'hasjack', hasjack};
     if ~isempty(cfg.pchanindx), optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); end
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
-    
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     
   case 'csd'
@@ -472,7 +476,6 @@ switch cfg.method
       'pownorm',  normpow,     'hasjack', hasjack};
     if ~isempty(cfg.pchanindx), optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); end
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
-    
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     
   case {'wpli' 'wpli_debiased'}
@@ -487,16 +490,10 @@ switch cfg.method
     
   case 'plv'
     % phase locking value
-    
     optarg = {'complex',  cfg.complex, 'dimord',  data.dimord, 'feedback', cfg.feedback, ...
       'pownorm',  normpow,     'hasjack', hasjack};
-    if ~isempty(cfg.pchanindx),
-      optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx});
-    end
-    if exist('powindx', 'var'),
-      optarg = cat(2, optarg, {'powindx', powindx});
-    end
-    
+    if ~isempty(cfg.pchanindx), optarg = cat(2, optarg, {'pchanindx', cfg.pchanindx, 'allchanindx', cfg.allchanindx}); end
+    if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     [datout, varout, nrpt] = ft_connectivity_corr(data.(inparam), optarg{:});
     
   case 'corr'
@@ -708,23 +705,18 @@ switch cfg.method
     nbin   = nearest(data.freq, data.freq(1)+cfg.bandwidth)-1;
     optarg = {'feedback',  cfg.feedback,  'dimord', data.dimord, 'nbin',    nbin, ...
       'normalize', cfg.normalize, 'hasrpt', hasrpt,      'hasjack', hasjack};
-    if exist('powindx', 'var'), cat(2, optarg, {'powindx', powindx}); end
+    if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg{:});
     
   case 'di'
     % directionality index
-  case {'clustering_coef' 'degrees'}
-    % gateway function to the brain connectivity toolbox
-    
-    [datout, outdimord] = ft_connectivity_bct(data.(inparam), 'method', cfg.method);
-    varout   = [];
-    data.dimord = outdimord;
   otherwise
     error('unknown method %s', cfg.method);
 end
 
-%remove the auto combinations if necessary
-if (strcmp(cfg.method, 'granger') || strcmp(cfg.method, 'instantaneous_causality') || strcmp(cfg.method, 'total_interdependence')) && isfield(cfg, 'sfmethod') && strcmp(cfg.sfmethod, 'bivariate'),
+%remove the auto combinations if necessary -> FIXME this is granger specific and
+%thus could move to ft_connectivity_granger
+if (strcmp(cfg.method, 'granger') || strcmp(cfg.method, 'instantaneous_causality') || strcmp(cfg.method, 'total_interdependence')) && isfield(cfg, 'granger') && isfield(cfg.granger, 'sfmethod') && strcmp(cfg.granger.sfmethod, 'bivariate'),
   % remove the auto-combinations based on the order in the data
   switch dtype
     case {'freq' 'freqmvar'}
@@ -799,7 +791,9 @@ switch dtype
   case 'source'
     stat         = [];
     stat.pos     = data.pos;
-    stat.dim     = data.dim;
+    if isfield(stat, 'dim'),
+      stat.dim     = data.dim;
+    end
     stat.inside  = data.inside;
     stat.outside = data.outside;
     stat.(outparam) = datout;
@@ -809,7 +803,6 @@ switch dtype
 end
 
 if isfield(data, 'freq'), stat.freq = data.freq; end
-if isfield(data, 'frequency'), stat.frequency = data.frequency; end
 if isfield(data, 'time'), stat.time = data.time; end
 if isfield(data, 'grad'), stat.grad = data.grad; end
 if isfield(data, 'elec'), stat.elec = data.elec; end

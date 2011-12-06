@@ -1,12 +1,12 @@
 function ft_spikefixdmafile(cfg)
 
-% FT_SPIKEFIXDMAFILE fixes the problem in DMA files due to stopping
-% and restarting the acquisition. It takes one Neuralynx DMA file and
-% and creates seperate DMA files, each corresponding with one continuous
+% FT_SPIKEFIXDMAFILE fixes the problem in DMA files due to stopping and
+% restarting the acquisition. It takes one Neuralynx DMA file and and
+% creates seperate DMA files, each corresponding with one continuous
 % section of the recording.
 %
 % Use as
-%   ft_spikefixdmafile(cfg);
+%   ft_spikefixdmafile(cfg)
 % where the configuration should contain
 %   cfg.dataset   = string with the name of the DMA log file
 %   cfg.output    = string with the name of the DMA log file, (default is determined automatic)
@@ -32,18 +32,21 @@ function ft_spikefixdmafile(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikefixdmafile.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_spikefixdmafile.m 4816 2011-11-27 14:30:31Z roboos $
 
+revision = '$Id: ft_spikefixdmafile.m 4816 2011-11-27 14:30:31Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
 % set the general defaults
 if ~isfield(cfg, 'dataset'),  cfg.dataset = [];           end
 if ~isfield(cfg, 'output'),   cfg.output = [];            end
 if ~isfield(cfg, 'numchans'), cfg.numchans = 256;         end
-if ~isfield(cfg, 'headerformat'), cfg.headerformat = [];  end 
+if ~isfield(cfg, 'headerformat'), cfg.headerformat = [];  end
 
 if isempty(cfg.output)
   [p, f, x] = fileparts(cfg.dataset);
@@ -70,7 +73,7 @@ fseek(fin, hdroffset, 'bof');
 
 ok = 1;
 while (ok)
-
+  
   % find the beginning of the next section in the file
   buf = zeros(1, nchan);
   while (buf(1)~=2048 && buf(2)~=1)
@@ -88,7 +91,7 @@ while (ok)
       fseek(fin, -nchan*4, 'cof');
     end
   end
-
+  
   % the first file gets an "a" appended, the second a "b", etc.
   count = count + 1;
   filename = sprintf('%s%s.nrd', cfg.output, char(96+count));
@@ -96,7 +99,7 @@ while (ok)
   
   fout = fopen(filename, 'wb');
   fwrite(fout, header, 'uchar');
-
+  
   while (buf(1)==2048 && buf(2)==1)
     % read a single blockr
     buf = fread(fin, nchan, 'uint32=>uint32');
@@ -109,10 +112,14 @@ while (ok)
       fwrite(fout, buf, 'uint32');
     end
   end
-
+  
   fclose(fout);
-
+  
 end % while ok
 
 fclose(fin);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 

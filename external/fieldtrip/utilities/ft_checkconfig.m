@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 4622 2011-10-28 15:13:00Z roboos $
+% $Id: ft_checkconfig.m 4789 2011-11-23 05:19:33Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -213,11 +213,19 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % backward compatibility for the gradiometer and electrode definition
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if isfield(cfg, 'grad')
+if isfield(cfg, 'grad') && ~isempty(cfg.grad)
   cfg.grad = ft_datatype_sens(cfg.grad);
 end
-if isfield(cfg, 'elec')
+if isfield(cfg, 'elec')&& ~isempty(cfg.elec)
   cfg.elec = ft_datatype_sens(cfg.elec);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% backward compatibility for old neighbourstructures
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if isfield(cfg, 'neighbours') && iscell(cfg.neighbours)
+  warning('Neighbourstructure is in old format - converting to structure array');
+  cfg.neighbours= fixneighbours(cfg.neighbours);  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -365,18 +373,18 @@ if ~isempty(createsubcfg)
       case 'sam'
         fieldname = {
           'meansphereorigin'
-          'spinning'
           'feedback'
           'lambda'
+          'fixedori'
+          'reducerank'
           'normalize'
           'normalizeparam'
-          'reducerank'
           };
 
       case 'mvl'
         fieldname = {};
 
-      case 'npsf'
+      case {'npsf', 'granger'}
         % non-parametric spectral factorization -> csd2transfer
         fieldname = {
           'block'
@@ -608,4 +616,13 @@ for i=1:numel(fieldsorig)
       end
     end
   end
+end
+
+function newNeighbours = fixneighbours(neighbours)
+% Converts a cell array of structure arrays into a structure array
+
+newNeighbours = struct;
+for i=1:numel(neighbours)
+    if i==1, newNeighbours = neighbours{i};    end;
+    newNeighbours(i) = neighbours{i}; 
 end

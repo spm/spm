@@ -2,8 +2,7 @@ function ft_neighbourplot(cfg, data)
 
 % FT_NEIGHBOURPLOT visualizes neighbouring channels in a particular channel
 % configuration. The positions of the channel are specified in a
-% gradiometer or electrode configuration or from a layout. Neighbouring
-% channels are obtained by ft_neighbourselection.
+% gradiometer or electrode configuration or from a layout.
 %
 % Use as
 %  ft_neighbourplot(cfg)
@@ -12,25 +11,22 @@ function ft_neighbourplot(cfg, data)
 %
 % where
 %
-%   cfg.neighbours    = neighbour structure from ft_neighbourselection
-%   (optional)
+%   cfg.neighbours    = neighbour structure from FT_PREPARE_NEIGHBOURS (optional)
 %   cfg.elec          = structure with EEG electrode positions
 %   cfg.grad          = structure with MEG gradiometer positions
 %   cfg.elecfile      = filename containing EEG electrode positions
 %   cfg.gradfile      = filename containing MEG gradiometer positions
 %   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
-%   cfg.verbose       = 'yes' or 'no', if 'yes' then the plot callback will
-%                       include text output
+%   cfg.verbose       = 'yes' or 'no', if 'yes' then the plot callback will include text output
 %
-% The following data fields may also be used by FT_NEIGHBOURSELECTION:
+% The following data fields may also be used by FT_PREPARE_NEIGHBOURS:
 %   data.elec     = structure with EEG electrode positions
 %   data.grad     = structure with MEG gradiometer positions
 %
+% If cfg.neighbours is not defined or empty, this function will call
+% FT_PREPARE_NEIGHBOURS to determine the channel neighbours.
 %
-% If cfg.neighbours is no defined or empty, the function calls
-% ft_neighbourselection to compute channel neighbours.
-%
-% See also FT_NEIGHBOURSELECTION
+% See also FT_PREPARE_NEIGHBOURS
 
 % Copyright (C) 2011, J?rn M. Horschig, Robert Oostenveld
 %
@@ -52,25 +48,19 @@ function ft_neighbourplot(cfg, data)
 
 ft_defaults
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+hasdata = nargin>1;
+if hasdata, data = ft_checkdata(data); end
 
 if isfield(cfg, 'neighbours')
-  neighbours = cfg.neighbours;
-elseif nargin < 2
-  neighbours = ft_neighbourselection(cfg);
+  cfg.neighbours = cfg.neighbours;
+elseif hasdata
+  cfg.neighbours = ft_prepare_neighbours(cfg, data);
 else
-  neighbours = ft_neighbourselection(cfg, data);
-end
-
-if iscell(neighbours)
-  warning('Neighbourstructure is in old format - converting to structure array');
-  cfg.neighbours = fixneighbours(cfg.neighbours);
+  cfg.neighbours = ft_prepare_neighbours(cfg);
 end
 
 if ~isfield(cfg, 'verbose')
@@ -78,6 +68,7 @@ if ~isfield(cfg, 'verbose')
 elseif strcmp(cfg.verbose, 'yes')
   cfg.verbose = true;
 end
+
 
 % get the the grad or elec if not present in the data
 if exist('data', 'var') && isfield(data, 'grad')
@@ -104,15 +95,11 @@ elseif isfield(cfg, 'layout')
   lay = ft_prepare_layout(cfg);
   sens = [];
   sens.label = lay.label;
-  sens.pnt = lay.pos;
-  sens.pnt(:,3) = 0;
+  sens.chanpos = lay.pos;
+  sens.chanpos(:,3) = 0;
 else
   error('Did not find gradiometer or electrode information.');
 end;
-
-% FIXME replaced fixsens with this, but should not be needed
-% see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-sens = ft_datatype_sens(sens); % ensure up-to-date description of sensor-array (Oct 2011)
 
 % give some graphical feedback
 if all(sens.chanpos(:,3)==0)
@@ -126,8 +113,8 @@ figure
 axis equal
 axis off
 hold on;
-for i=1:length(neighbours)
-  this = neighbours(i);
+for i=1:length(cfg.neighbours)
+  this = cfg.neighbours(i);
   
   sel1 = match_str(sens.label, this.label);
   sel2 = match_str(sens.label, this.neighblabel);
@@ -152,9 +139,8 @@ for i=1:length(neighbours)
 end
 
 % this is for putting the channels on top of the connections
-set(gcf, 'UserData', []);
-for i=1:length(neighbours)
-  this = neighbours(i);
+for i=1:length(cfg.neighbours)
+  this = cfg.neighbours(i);
   sel1 = match_str(sens.label, this.label);
   sel2 = match_str(sens.label, this.neighblabel);
   % account for missing sensors
@@ -167,7 +153,7 @@ for i=1:length(neighbours)
       'MarkerEdgeColor',  'k',                                        ...
       'MarkerFaceColor',  'k',                                        ...
       'Marker',           'o',                                        ...
-      'MarkerSize',       .125*(2+numel(neighbours(i).neighblabel)^2), ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel)^2), ...
       'UserData',         i,                                          ...
       'ButtonDownFcn',    @showLabelInTitle);
     
@@ -176,7 +162,7 @@ for i=1:length(neighbours)
       'MarkerEdgeColor',  'k',                                        ...
       'MarkerFaceColor',  'k',                                        ...
       'Marker',           'o',                                        ...
-      'MarkerSize',       .125*(2+numel(neighbours(i).neighblabel)^2), ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel)^2), ...
       'UserData',         i,                        ...
       'ButtonDownFcn',    @showLabelInTitle);
   else
@@ -186,46 +172,43 @@ end
 hold off;
 title('[Click on a sensor to see its label]');
 
-  function showLabelInTitle(gcbo, EventData, handles)
-    lastSensId  = get(gcf,  'UserData');
+% store what is needed in UserData of figure
+userdata.lastSensId = [];
+userdata.cfg = cfg;
+userdata.hs = hs;
+set(gcf, 'UserData', userdata);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+
+end
+
+
+function showLabelInTitle(gcbo, EventData, handles)
+
+    userdata    = get(gcf, 'UserData');
+    lastSensId  = userdata.lastSensId;
+    cfg         = userdata.cfg;
+    hs          = userdata.hs;
     curSensId   = get(gcbo, 'UserData');
     
-    title(['Selected channel: ' neighbours(curSensId).label]);
+    title(['Selected channel: ' cfg.neighbours(curSensId).label]);
     if cfg.verbose
-      str = sprintf('%s, ', cfg.neighbours(1).neighblabel{:});
+      str = sprintf('%s, ', cfg.neighbours(curSensId).neighblabel{:});
       if length(str)>2
         % remove the last comma and space
         str = str(1:end-2);
       end
-      fprintf('Selected channel %s, which has %d neighbours: %s\n', neighbours(curSensId).label, length(neighbours(curSensId).neighblabel), str);
+      fprintf('Selected channel %s, which has %d neighbours: %s\n', ...
+        cfg.neighbours(curSensId).label, ...
+        length(cfg.neighbours(curSensId).neighblabel), ...
+        str);
     end
     
     set(hs(curSensId), 'MarkerFaceColor', 'g');
     set(hs(lastSensId), 'MarkerFaceColor', 'k');
     
-    set(gcf, 'UserData', curSensId');
+    userdata.lastSensId = curSensId';    
+    set(gcf, 'UserData', userdata);
   end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_neighbourplot.m 4624 2011-10-29 10:10:49Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-end
-

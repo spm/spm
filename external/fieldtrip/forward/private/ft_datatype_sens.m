@@ -73,7 +73,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 4671 2011-11-03 21:22:49Z roboos $
+% $Id: ft_datatype_sens.m 4924 2011-12-01 21:29:15Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -127,7 +127,7 @@ switch version
       end
     end
     
-    if ~isfield(sens, 'chanunit')
+    if ~isfield(sens, 'chanunit') && ~ft_senstype(sens, 'unknown')
       if ft_senstype(sens, 'ctf')
         sens.chanunit = repmat({'T'}, size(sens.label));
       elseif ft_senstype(sens, 'bti')

@@ -24,15 +24,6 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 % The output will contain all channels of the input, only the data in the
 % selected channels will be interpolated or replaced with NaNs.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
-%   cfg.inputfile   =  ...
-%   cfg.outputfile  =  ...
-% If you specify one of these (or both) the input data will be read from a *.mat
-% file on disk and/or the output data will be written to a *.mat file. These mat
-% files should contain only a single variable, corresponding with the
-% input/output structure.
-%
 % See also FT_SPIKETRIGGEREDSPECTRUM, FT_SPIKETRIGGEREDAVERAGE
 
 % Copyright (C) 2008, Thilo Womelsdorf
@@ -53,41 +44,44 @@ function [data] = ft_spiketriggeredinterpolation(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredinterpolation.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_spiketriggeredinterpolation.m 4860 2011-11-27 20:54:40Z marvin $
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+revision = '$Id: ft_spiketriggeredinterpolation.m 4860 2011-11-27 20:54:40Z marvin $';
 
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% set the defaults
-if ~isfield(cfg, 'timwin'),         cfg.timwin = [-0.001 0.002];    end
-if ~isfield(cfg, 'channel'),        cfg.channel = 'all';            end
-if ~isfield(cfg, 'method'),         cfg.method = 'nan';             end
-if ~isfield(cfg, 'spikechannel'),   cfg.spikechannel = [];          end
-if ~isfield(cfg, 'outputexamples'), cfg.outputexamples = 'no';      end
-if ~isfield(cfg, 'feedback'),       cfg.feedback = 'no';            end
-if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];             end
-if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];            end
+% check input data structure
+data = ft_checkdata(data,'datatype', 'raw', 'feedback', 'yes');
+
+% these were supported in the past, but are not any more (for consistency with other spike functions)
+cfg = ft_checkconfig(cfg, 'forbidden', 'inputfile');   % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
+cfg = ft_checkconfig(cfg, 'forbidden', 'outputfile');  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
+
+%get the options
+cfg.timwin         = ft_getopt(cfg, 'timwin',[-0.1 0.1]);
+cfg.spikechannel   = ft_getopt(cfg,'spikechannel', []);
+cfg.channel        = ft_getopt(cfg,'channel', 'all');
+cfg.feedback       = ft_getopt(cfg,'feedback', 'yes');
+cfg.method         = ft_getopt(cfg,'method', 'nan');
+cfg.outputexamples = ft_getopt(cfg,'outputexamples', 'no');
+
+% ensure that the options are valid
+cfg = ft_checkopt(cfg,'timwin','doublevector');
+cfg = ft_checkopt(cfg,'spikechannel',{'cell', 'char', 'double'});
+cfg = ft_checkopt(cfg,'channel', {'cell', 'char', 'double'});
+cfg = ft_checkopt(cfg,'feedback', 'char', {'yes', 'no'});
+cfg = ft_checkopt(cfg,'method', 'char', {'method', 'interp'});
+cfg = ft_checkopt(cfg,'outputexamples', 'char', {'yes', 'no'});
 if strcmp(cfg.method, 'nan')
   cfg.interptoi = 0;
 else
   cfg.interptoi = 0.010;
 end
-
-% load optional given inputfile as data
-hasdata = (nargin>1);
-if ~isempty(cfg.inputfile)
-  % the input data should be read from file
-  if hasdata
-    error('cfg.inputfile should not be used in conjunction with giving input data to this function');
-  else
-    data = loadvar(cfg.inputfile, 'data');
-  end
-end
+cfg = ft_checkopt(cfg,'interptoi', 'double');
 
 % autodetect the spike channels
 ntrial = length(data.trial);
@@ -138,51 +132,51 @@ spkexample = {};
 
 for i=1:ntrial
   spikesmp = find(data.trial{i}(spikesel,:));
-
+  
   fprintf('processing trial %d of %d (%d spikes)\n', i, ntrial, length(spikesmp));
-
+  
   ft_progress('init', cfg.feedback, 'interpolating spikes');
   for j=1:length(spikesmp)
     ft_progress(i/ntrial, 'interpolating spike %d of %d\n', j, length(spikesmp));
     begsmp = spikesmp(j) + begpad;
     endsmp = spikesmp(j) + endpad;
-
+    
     begsmp_interp = begsmp - interppad;
     endsmp_interp = endsmp + interppad;
-
+    
     if begsmp_interp<1
       continue,
     end
     if endsmp_interp>size(data.trial{i},2)
       continue,
     end
-
+    
     if strcmp(cfg.method,'nan')
       % only replace with NaNs
       data.trial{i}(chansel,begsmp:endsmp) = NaN;
-
+      
     else
       % interpolate the data around the spike
       xall  = [begsmp_interp          : endsmp_interp];
       x     = [begsmp_interp:begsmp-1   endsmp+1:endsmp_interp];
       y     =  data.trial{i}(chansel,x) ;
       yi    = interp1(x,y,xall,cfg.method);
-
+      
       % store the interpolated segment back in the data
       data.trial{i}(chansel,xall) = yi;
-
+      
       if strcmp(cfg.outputexamples, 'yes') && (cnte<100)
         yall = data.trial{i}(chansel,xall);
         cnte = cnte+1;
         spkexample{cnte} = [ xall; yall; yi];
         % plot(x,y,'r.',xall,yall,'bo',xall,yi,'g-d')
       end
-
+      
     end % if strcmp(cfg.method)
-
+    
   end % for each spike in this trial
   ft_progress('close');
-
+  
 end % for each trial
 
 if strcmp(cfg.outputexamples, 'yes')
@@ -193,28 +187,9 @@ end
 % the data has been modified on the fly, only update the configuration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_spiketriggeredinterpolation.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-data.cfg = cfg;
-
-% the output data should be saved to a MATLAB file
-if ~isempty(cfg.outputfile)
-  savevar(cfg.outputfile, 'data', data); % use the variable name "data" in the output file
-end
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history data
 

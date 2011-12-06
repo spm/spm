@@ -95,9 +95,9 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_headmodelplot.m 4791 2011-11-23 09:18:50Z jorhor $
 
-revision = '$Id: ft_headmodelplot.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_headmodelplot.m 4791 2011-11-23 09:18:50Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -114,13 +114,15 @@ cortex = [255 213 119]/255;
 
 % set the defaults
 if ~isfield(cfg, 'surface_facecolor'), cfg.surface_facecolor = skin_surface;   end
-if ~isfield(cfg, 'surface_edgecolor'), cfg.surface_edgecolor = 'none'; end
-if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;    end
-if ~isfield(cfg, 'surftype'),          cfg.surftype = 'faces';         end
-if ~isfield(cfg, 'inputfile'),         cfg.inputfile = [];             end
+if ~isfield(cfg, 'surface_edgecolor'), cfg.surface_edgecolor = 'none';         end
+if ~isfield(cfg, 'surface_facealpha'), cfg.surface_facealpha = 0.7;            end
+if ~isfield(cfg, 'surftype'),          cfg.surftype = 'faces';                 end
 
 if ~isfield('data', 'var')    
+  % this will be passed into the prepare_headmodel function further down
   data = [];
+else
+  data = ft_checkdata(data);
 end
 
 % put the low-level options pertaining to the dipole grid in their own field

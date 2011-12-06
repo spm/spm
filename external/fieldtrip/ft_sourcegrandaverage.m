@@ -65,9 +65,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_sourcegrandaverage.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 4692 2011-11-07 21:31:14Z roboos $';
 
 if 1,
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,8 +94,6 @@ if 1,
   if ~isfield(cfg, 'permutation'),    cfg.permutation = 'no';    end
   if ~isfield(cfg, 'c1'),             cfg.c1 = [];               end
   if ~isfield(cfg, 'c2'),             cfg.c2 = [];               end
-  if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];        end
-  if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];       end
   
   if strcmp(cfg.concatenate, 'yes') && strcmp(cfg.keepindividual, 'yes'),
     error('you can specify either cfg.keepindividual or cfg.concatenate to be yes, but not both');
@@ -289,8 +287,6 @@ else
   % set the defaults
   if ~isfield(cfg, 'parameter'),      cfg.parameter = 'pow';     end
   if ~isfield(cfg, 'keepindividual'), cfg.keepindividual = 'no'; end
-  if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];        end
-  if ~isfield(cfg, 'outputfile'),     cfg.outputfile = [];       end
   
   Nsubject = length(varargin);
   

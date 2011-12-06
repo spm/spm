@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 4628 2011-10-31 10:50:22Z jansch $
+% $Id: ft_compute_leadfield.m 4931 2011-12-04 18:39:19Z hundan $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -432,8 +432,8 @@ elseif iseeg
       lf = leadfield_simbio(pos, sens, vol);
     
     case 'fns'
-      tolerance = 1e-8;
-      lf = leadfield_fns(pos, vol, tolerance);      
+      % tolerance = 1e-8;
+      lf = leadfield_fns(pos, vol);      
     otherwise
       error('unsupported volume conductor model for EEG');
   end % switch voltype for EEG

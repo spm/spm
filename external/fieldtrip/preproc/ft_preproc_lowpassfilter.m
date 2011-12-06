@@ -9,10 +9,12 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir)
 %   dat        data matrix (Nchans X Ntime)
 %   Fsample    sampling frequency in Hz
 %   Flp        filter frequency
-%   N          optional filter order, default is 6 (but) or 25 (fir)
+%   N          optional filter order, default is 4 (but) or dependent upon
+%              frequency band and data length (fir/firls)
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
 %                'fir' FIR filter using Matlab fir1 function 
+%                'firls' FIR filter using Matlab firls function (requires Matlab Signal Processing Toolbox)
 %   dir        optional filter direction, can be
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
@@ -42,7 +44,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 2455 2010-12-16 15:57:00Z stekla $
+% $Id: ft_preproc_lowpassfilter.m 4890 2011-11-30 11:50:40Z johzum $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -71,9 +73,37 @@ switch type
     [B, A] = butter(N, max(Flp)/Fn);
   case 'fir'
     if isempty(N)
-      N = 25;
+      N = 3*fix(Fs / Flp);
+    end
+    if N > floor( (size(dat,2) - 1) / 3)
+      N=floor(size(dat,2)/3) - 1;
     end
     [B, A] = fir1(N, max(Flp)/Fn);
+  case 'firls' % from NUTMEG's implementation
+    if isempty(N)
+      N = 3*fix(Fs / Flp);
+    end
+    if N > floor( (size(dat,2) - 1) / 3)
+      N=floor(size(dat,2)/3) - 1;
+    end
+    
+    f = 0:0.001:1;
+    if rem(length(f),2)~=0
+      f(end)=[];
+    end
+    z = zeros(1,length(f));
+    [val,pos1] = min(abs(Fs*f/2 - 0));
+    if(isfinite(Flp))
+      [val,pos2] = min(abs(Fs*f/2 - Flp));
+    else
+      pos2 = length(f);
+    end
+    z(pos1:pos2) = 1;
+    A = 1;
+    B = firls(N,f,z); % requires Matlab signal processing toolbox
 end  
 
+meandat=mean(dat,2);
+dat=dat-repmat(meandat,[1 size(dat,2)]);
 filt = filter_with_correction(B,A,dat,dir);
+filt=filt+repmat(meandat,[1 size(dat,2)]);

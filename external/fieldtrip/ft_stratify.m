@@ -1,6 +1,6 @@
 function [varargout] = ft_stratify(cfg, varargin)
 
-% T_STRATIFY tries to reduce the variance in a specific feature in the data
+% FT_STRATIFY tries to reduce the variance in a specific feature in the data
 % that is not related to an effect in two or multiple conditions, but where
 % that feature may confound the analysis. Stratification is implemented by
 % randomly removing elements from the data, making the distribution of the
@@ -56,9 +56,9 @@ function [varargout] = ft_stratify(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_stratify.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_stratify.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_stratify.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_stratify.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -593,3 +593,4 @@ elseif strcmp(cfg.method, 'lohi')
   varargout{2}(sel) = nan;
   
 end % cfg.method
+

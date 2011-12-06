@@ -64,14 +64,14 @@ function [script, details] = ft_analysisprotocol(cfg, datacfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_analysisprotocol.m 4692 2011-11-07 21:31:14Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_analysisprotocol.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -292,6 +292,11 @@ else
   % this level of recursion has finished, decrease the depth
   depth = depth - 1;
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

@@ -1,29 +1,28 @@
 function [hdl] = ft_spike_plot_isireturn(cfg,isih)
 
-% FT_SPIKE_PLOT_ISIRETURN makes a return plot from ISIH structure (output from FT_SPIKE_ISIHIST). A
-% return plot (or Poincare plots) plots the isi to the next spike versus the isi from the next 
-% spike to the second next spike, and thus gives insight in the second order isi statistics.
-% This func also plots the raw isi-histogram on left and bottom and thereby give a rather
-% complete visualization of the spike-train interval statistics.
+% FT_SPIKE_PLOT_ISIRETURN makes a return plot from ISIH structure. A return
+% plot (or Poincare plots) plots the isi to the next spike versus the isi
+% from the next spike to the second next spike, and thus gives insight in
+% the second order isi statistics. This func also plots the raw
+% isi-histogram on left and bottom and thereby give a rather complete
+% visualization of the spike-train interval statistics.
 %
-%   Inputs:
-%     ISIH must be the output structure from SPIKE_ISIH and contain the field 
-%     ISIH.isi. If cfg.isihist = 'yes', the field ISIH.isih & ISIH.time must be
-%     present as well.
+% Use as
+%   hdl = FT_spike_isireturnplot(cfg,data) 
 %
-%   Use must be as follows:
-%      [HDL]=SPIKE_ISIRETURNPLOT(CFG,DATA) 
+% Inputs:
+%   ISIH must be the output structure from FT_SPIKE_ISIH and contain the field
+%   ISIH.isi. If cfg.isihist = 'yes', the field ISIH.isih and ISIH.time must
+%   be present as well.
 %
-%   General configurations (cfg):
-%
+% General configurations:
 %   cfg.spikechannel     = string or index of single spike channel to trigger on (default = 1)
 %                          Only one spikechannel can be plotted at a time.
 %   cfg.density          = 'yes' or 'no', if 'yes', we will use color shading on top of
 %                          the individual datapoints to indicate the density.
 %   cfg.scatter          = 'yes' (default) or 'no'. If 'yes', we plot the individual values.
 %   
-%   General configurations related to smoothing the scatterplot
-%
+% General configurations related to smoothing the scatterplot:
 %   cfg.smoothmethod     = 'kernel' (default) or 'hist'.
 %                           If 'kernel', we overlay a smooth density plot calculated by 
 %                           non-parametric kernel smoothing with cfg.kernel.
@@ -35,7 +34,7 @@ function [hdl] = ft_spike_plot_isireturn(cfg,isih)
 %   cfg.interpolate      = 'yes' or 'no', determines whether we interpolate the density
 %                           plot
 %
-%   Specific configurations related to kernel smoothing of scatterplot.
+% Specific configurations related to kernel smoothing of the scatterplot:
 %   cfg.kernel           = 'gausswin' or 'boxcar', or N-by-N matrix containing window
 %                           values with which we convolve the scatterplot that is binned
 %                           with resolution cfg.dt. N should be uneven, so it can be centered
@@ -48,51 +47,54 @@ function [hdl] = ft_spike_plot_isireturn(cfg,isih)
 %   cfg.winlen           =  window length in seconds (default = 5*cfg.dt). The total
 %                           length of our window is 2*round*(cfg.winlen/cfg.dt) +1;
 
+% Copyright (C) 2010, Martin Vinck
+%
+% $Id: ft_spike_plot_isireturn.m 4856 2011-11-27 19:53:08Z marvin $
+
+revision = '$Id: ft_spike_plot_isireturn.m 4856 2011-11-27 19:53:08Z marvin $';
+
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+% get the default options
+cfg.spikechannel = ft_getopt(cfg, 'spikechannel', isih.label{1});
+cfg.scatter      = ft_getopt(cfg, 'scatter', 'yes');
+cfg.density      = ft_getopt(cfg,'density', 'yes');
+cfg.colormap     = ft_getopt(cfg,'colormap', flipud(hot(300)));
+cfg.interpolate  = ft_getopt(cfg, 'interpolate', 'yes');
+cfg.scattersize  = ft_getopt(cfg,'scattersize', 0.3);
+cfg.smoothmethod = ft_getopt(cfg,'smoothmethod', 'kernel');
+cfg.dt           = ft_getopt(cfg,'dt', 0.001);
+cfg.kernel       = ft_getopt(cfg,'kernel', 'mvgauss');
+cfg.winlen       = ft_getopt(cfg,'winlen', cfg.dt*5);
+cfg.gaussvar     = ft_getopt(cfg,'gaussvar', (cfg.winlen/4).^2);
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-if nargin~=2, error('MATLAB:spikestation:isireturn:nargin','Two input arguments required'), end
-
-% general configuration defaults
-defaults.spikechannel = {1};                   
-defaults.scatter      = {'yes' 'no'};               
-defaults.density      = {'yes' 'no'};               
-defaults.colormap     = flipud(hot(300)); defaults.colormap  = {defaults.colormap(1:256,:)};
-defaults.interpolate  = {'yes' 'no'};               
-defaults.scattersize  = {0.3};                 
-defaults.smoothmethod = {'kernel' 'hist'};            
-defaults.dt           = {0.001};               
-defaults.kernel       = {'mvgauss'};          
-try
-  defaults.winlen       = {cfg.dt*5};
-catch
-  defaults.winlen       = {0.003};
-end
-try 
-  defaults.gaussvar     = {(diff(cfg.winlen)/4).^2}; 
-catch
-  defaults.gaussvar     = {(defaults.winlen{1}/4).^2}; 
-end
-cfg = ft_spike_sub_defaultcfg(cfg,defaults);
+cfg = ft_checkopt(cfg, 'spikechannel', {'char', 'cell', 'double'});
+cfg = ft_checkopt(cfg, 'scatter','char', {'yes', 'no'});
+cfg = ft_checkopt(cfg, 'density', 'char', {'yes', 'no'});
+cfg = ft_checkopt(cfg, 'colormap', 'double');
+cfg = ft_checkopt(cfg, 'interpolate', 'char', {'yes', 'no'});
+cfg = ft_checkopt(cfg, 'scattersize', 'doublescalar');
+cfg = ft_checkopt(cfg, 'smoothmethod', 'char', {'kernel', 'hist'});
+cfg = ft_checkopt(cfg, 'dt', 'double');
+cfg = ft_checkopt(cfg, 'kernel',{'char', 'double'});
+cfg = ft_checkopt(cfg, 'winlen', 'double');
+cfg = ft_checkopt(cfg, 'gaussvar', 'double');
 
 % check if all the required fields are there
 if ~all(isfield(isih,{'isi' 'label' 'time'}))
-    error('MATLAB:spikestation:plot_isireturn:cfg:spikechannel:missingFields',...
+    error('MATLAB:spike:plot_isireturn:cfg:spikechannel:missingFields',...
           'input ISIH should contain the fields isi, label and time')
 end
 
 % get the spikechannels: maybe replace this by one function with checking etc. in it
-cfg.channel = ft_channelselection(cfg.spikechannel, isih.label);
-spikesel    = match_str(isih.label, cfg.channel);
-nUnits      = length(cfg.spikechannel); % number of spike channels
-if nUnits~=1, error('MATLAB:spikestation:plot_isireturn:cfg:spikechannel:notOneChan',...
+cfg.spikechannel = ft_channelselection(cfg.spikechannel, isih.label);
+spikesel    = match_str(isih.label, cfg.spikechannel);
+nUnits      = length(spikesel); % number of spike channels
+if nUnits~=1, error('MATLAB:spike:plot_isireturn:cfg:spikechannel:notOneChan',...
                     'Only one unit can be selected at a time'); 
 end  
 isi = isih.isi{spikesel};
@@ -123,7 +125,7 @@ if strcmp(cfg.density,'yes')
   dens = full(sparse(indx2,indx1,ones(1,length(indx1)),nbins,nbins));
     
   if strcmp(cfg.smoothmethod,'kernel')
-    if cfg.winlen<cfg.dt, error('MATLAB:spikestation:plot_isireturn:cfg:dt:winlen',...
+    if cfg.winlen<cfg.dt, error('MATLAB:spike:plot_isireturn:cfg:dt:winlen',...
       'please configure cfg.winlen such that cfg.winlen>=cfg.dt')
     end
     winTime       = [fliplr(0:-cfg.dt:-cfg.winlen) cfg.dt:cfg.dt:cfg.winlen];
@@ -137,13 +139,13 @@ if strcmp(cfg.density,'yes')
     elseif strcmp(cfg.kernel, 'boxcar')
         win    = ones(winLen);
     elseif ~isrealmat(cfg.kernel)
-        error('MATLAB:spikestation:plot_isireturn:cfg:kernel:wrongInput',...
+        error('MATLAB:spike:plot_isireturn:cfg:kernel:wrongInput',...
           'cfg.kernel should be "gausswin", "boxcar" or numerical N-by-N matrix')
     else 
         win    = cfg.kernel;
         szWin  = size(cfg.kernel);
         if  szWin(1)~=szWin(2)||~mod(szWin(1),2), 
-            error('MATLAB:spikestation:spike_isireturnplot:cfg:kernel:wrongSize', ...
+            error('MATLAB:spike:spike_isireturnplot:cfg:kernel:wrongSize', ...
             'cfg.kernel should be N-by-N matrix with N an uneven number')
         end      
     end
@@ -169,7 +171,7 @@ if strcmp(cfg.density,'yes')
   if isrealmat(cfg.colormap) && size(cfg.colormap,2)==3
     colormap(cfg.colormap);
   else
-    error('MATLAB:spikestation:plot_isireturn:cfg:colormap', ...
+    error('MATLAB:spike:plot_isireturn:cfg:colormap', ...
     'cfg.colormap should be N-by-3 numerical matrix')
   end
   view(ax(1),2); % use the top view
@@ -237,26 +239,9 @@ hdl.cfg      = cfg;
 set(zoom,'ActionPostCallback',{@mypostcallback,ax,[0 max(isih.time)],limIsi});
 set(pan,'ActionPostCallback',{@mypostcallback,ax,[0 max(isih.time)],limIsi});
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_spike_plot_isireturn.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

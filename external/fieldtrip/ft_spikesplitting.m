@@ -1,4 +1,4 @@
-function [cfg] = ft_spikesplitting(cfg);
+function [cfg] = ft_spikesplitting(cfg)
 
 % FT_SPIKESPLITTING reads a single Neuralynx DMA log file and writes each
 % individual channel to a seperate file.
@@ -41,17 +41,15 @@ function [cfg] = ft_spikesplitting(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesplitting.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_spikesplitting.m 4816 2011-11-27 14:30:31Z roboos $
 
+revision = '$Id: ft_spikesplitting.m 4816 2011-11-27 14:30:31Z roboos $';
+
+% do the general setup of the function
 ft_defaults
-
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
-
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
 % set the general defaults
 if ~isfield(cfg, 'dataset'),          cfg.dataset = [];                 end
@@ -61,7 +59,7 @@ if ~isfield(cfg, 'feedback'),         cfg.feedback = 'textbar';         end
 if ~isfield(cfg, 'output'),           cfg.output = [];                  end % see below
 if ~isfield(cfg, 'format'),           cfg.format = 'int32';             end
 if ~isfield(cfg, 'downscale'),        cfg.downscale = 0;                end
-if ~isfield(cfg, 'headerformat'),     cfg.headerformat = [];            end 
+if ~isfield(cfg, 'headerformat'),     cfg.headerformat = [];            end
 
 if isempty(cfg.output)
   % set smart defaults for the output
@@ -262,17 +260,7 @@ for j=1:hdr.nChans
   end
 end
 
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: ft_spikesplitting.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 

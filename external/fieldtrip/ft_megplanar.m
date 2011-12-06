@@ -86,9 +86,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_megplanar.m 4791 2011-11-23 09:18:50Z jorhor $
 
-revision = '$Id: ft_megplanar.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_megplanar.m 4791 2011-11-23 09:18:50Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -99,11 +99,6 @@ ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
-
-if iscell(cfg.neighbours)
-  warning('Neighbourstructure is in old format - converting to structure array');
-  cfg.neighbours = fixneighbours(cfg.neighbours);
-end
 
 isfreq = ft_datatype(data, 'freq');
 israw  = ft_datatype(data, 'raw');

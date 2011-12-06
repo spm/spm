@@ -27,6 +27,7 @@ function [data] = ft_checkdata(data, varargin)
 %   hasdim             = yes, no
 %   hasdof             = yes, no
 %   cmbrepresentation  = sparse, full (applies to covariance and cross-spectral density)
+%   fsample            = sampling frequency to use to go from SPIKE to RAW representation
 %
 % For some options you can specify multiple values, e.g.
 %   [data] = ft_checkdata(data, 'senstype', {'ctf151', 'ctf275'}), e.g. in megrealign
@@ -50,7 +51,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Publhasoffsetic License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_checkdata.m 4914 2011-12-01 15:14:18Z marvin $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -96,6 +97,7 @@ cmbrepresentation    = ft_getopt(varargin, 'cmbrepresentation');
 channelcmb           = ft_getopt(varargin, 'channelcmb');
 sourcedimord         = ft_getopt(varargin, 'sourcedimord');
 sourcerepresentation = ft_getopt(varargin, 'sourcerepresentation');
+fsample              = ft_getopt(varargin, 'fsample');
 
 % check whether people are using deprecated stuff
 depHastrialdef = ft_getopt(varargin, 'hastrialdef');
@@ -142,8 +144,8 @@ if ~isequal(feedback, 'no')
     nchan = length(data.topolabel);
     fprintf('the input is component data with %d components and %d original channels\n', ncomp, nchan);
   elseif isspike
-    nchan = length(data.label);
-    fprintf('the input is spike data\n');
+    nchan  = length(data.label);
+    fprintf('the input is spike data with %d channels\n',nchan);
   elseif isvolume
     fprintf('the input is volume data with dimensions [%d %d %d]\n', data.dim(1), data.dim(2), data.dim(3));
   elseif issource
@@ -279,6 +281,16 @@ if ~isempty(dtype)
         ischan = 0;
         isfreq = 1;
         okflag = 1;
+      elseif isequal(dtype(iCell), {'spike'}) && israw
+        data = raw2spike(data);
+        israw = 0;
+        isspike = 1;
+        okflag = 1;
+      elseif isequal(dtype(iCell), {'raw'}) && isspike
+        data = spike2raw(data,fsample);
+        isspike = 0;
+        israw   = 1;
+        okflag  = 1;                
       end
     end % for iCell
   end % if okflag
@@ -1729,3 +1741,231 @@ data.freq   = 0;
 function [data] = chan2timelock(data)
 data.dimord = [data.dimord '_time'];
 data.time   = 0;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% convert between datatypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [spike] = raw2spike(data)
+
+% Copyright (C) 2010, Martin Vinck
+
+fprintf('converting raw data into spike data\n');
+% try to do the conversion
+nTrials 	= length(data.trial);
+s = 0;
+for iTrial = 1:nTrials
+  r = round(data.trial{iTrial})./data.trial{iTrial};
+  s = s + double(all((isnan(r) | r==1),2) & all(data.trial{iTrial}>=0,2));
+end
+spikesel = find(s==nTrials);
+nUnits   = length(spikesel);
+if nUnits==0, error('cannot convert raw data to spike format since the raw data structure does not contain spike channels'), end
+
+trialTimes  = zeros(nTrials,2);
+for iUnit = 1:nUnits
+  unitIndx = spikesel(iUnit);
+  spikeTimes  = []; % we dont know how large it will be, so use concatenation inside loop
+  trialInds   = [];
+  for iTrial = 1:nTrials
+    
+    % read in the spike times
+    [spikeTimesTrial]    = getspiketimes(data, iTrial, unitIndx);
+    nSpikes              = length(spikeTimesTrial);
+    spikeTimes           = [spikeTimes; spikeTimesTrial(:)];
+    trialInds            = [trialInds; ones(nSpikes,1)*iTrial];
+    
+    % get the begs and ends of trials
+    if iUnit==1, trialTimes(iTrial,:) = data.time{iTrial}([1 end]); end
+  end
+  
+  spike.label{iUnit}     = data.label{unitIndx};
+  spike.waveform{iUnit}  = [];
+  spike.time{iUnit}      = spikeTimes;
+  spike.trial{iUnit}     = trialInds;
+  
+  if iUnit==1, spike.trialtime             = trialTimes; end
+end
+
+%%%%%%%%%% SUB FUNCTION %%%%%%%%%%
+function [spikeTimes spikeIndx] = getspiketimes(data,trial,unit)
+
+% GETSPIKETIMES extracts the spike times and spike samples from a continuous fieldtrip
+% DATA structure in a selected trial for a selected unit.
+%
+% Inputs:
+%   DATA is a contiuous fieldtrip data structure
+%
+%   TRIAL is a natural number indicating which trial is selected
+%   UNIT  is a natural number indicating which channel is selected
+%
+% Outputs:
+%   SPIKETIMES contains the spike times, sampled at frequency data.fsample;
+%   SPIKEINDX  contains the samples in data.trial{trial}(unit,:) at which we find the
+%   spikes.
+
+spikeIndx       = logical(data.trial{trial}(unit,:));
+spikeCount      = data.trial{trial}(unit,spikeIndx);
+spikeTimes      = data.time{trial}(spikeIndx);
+multiSpikes     = find(spikeCount>1);
+
+% preallocate the additional times that we get from the double spikes
+nMultiSpikes = sum(spikeCount(multiSpikes));
+[addTimes,addSamples] = deal(zeros(nMultiSpikes,1));
+
+binWidth            = 1/data.fsample; % the width of each bin
+halfBinWidth        = binWidth/2;
+
+% get the additional samples and spike times, we need only loop through the bins
+n = 1;
+for iBin = multiSpikes(:)' % looping over row vector
+  nSpikesInBin = spikeCount(iBin);
+  addTimes(n : n+nSpikesInBin-1)   = ones(1,nSpikesInBin)*spikeTimes(iBin);
+  addSamples(n : n+nSpikesInBin-1) = ones(1,nSpikesInBin)*spikeIndx(iBin);
+  n = n + nSpikesInBin;
+end
+
+% before adding these times, first remove the old ones
+spikeTimes(multiSpikes) = [];
+spikeIndx(multiSpikes)  = [];
+spikeTimes              = sort([spikeTimes(:); addTimes(:)]);
+spikeIndx               = sort([spikeIndx(:) ; addSamples(:)]);
+
+
+function [data] = spike2raw(spike,fsample)
+
+% SPIKE2RAW converts a point representation SPIKE
+% structure to a continuous representation DATA structure.
+%
+% Use as
+%   [data] = ft_spike2raw(spike,fsample)
+%
+% Inputs:
+%   Data is a standard RAW structure. 
+%
+%   fsample is the sampling rate for the continuous representation in RAW
+% 
+
+% Copyright (C) 2010, Martin Vinck
+
+% get some sizes
+nUnits  = length(spike.label);
+nTrials = size(spike.trialtime,1);
+
+% preallocate
+data.trial(1:nTrials) = {[]};
+data.time(1:nTrials)  = {[]};
+for iTrial = 1:nTrials
+  
+  timeAx   = spike.trialtime(iTrial,1):(1/fsample):spike.trialtime(iTrial,2);
+  
+  % convert to continuous
+  trialData = zeros(nUnits,length(timeAx));
+  for iUnit = 1:nUnits
+    
+    % get the timestamps and only select those timestamps that are in the trial
+    ts       = spike.time{iUnit};
+    hasTrial = spike.trial{iUnit}==iTrial;
+    ts       = ts(hasTrial);
+    
+    % get all the samples at once without using loops
+    sample   = nearest_nd(timeAx,ts); 
+    
+    % because we have duplicates, simply get our vector by using histc trick
+    [N] = histc(sample,1:length(timeAx));
+    
+    % store it in a matrix
+    trialData(iUnit,:) = N;
+  end
+  
+  data.trial{iTrial} = trialData;
+  data.time{iTrial} = timeAx;
+  
+end
+
+% create the associated labels and other aspects of data such as the header
+data.label = spike.label;
+if isfield(spike,'hdr'), data.hdr = spike.hdr; end
+if isfield(spike,'cfg'), data.cfg = spike.cfg; end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [indx] = nearest_nd(x,y)
+
+% NEAREST return the index of an n-d matrix to an n-d matrix.
+%
+% [indx] = nearest_nd(x, y)
+%
+% Inputs:
+%   X can be a n-d matrix of any size (scalar, vector, n-d matrix).
+%   Y can be an n-d matrix of any size (scalar, vector, n-d matrix).
+%
+% If Y is larger than any X, we return the last index that the maximum value of X occurred.
+% Otherwise, we return the first occurence of the nearest X.
+%
+% If Y contains NaNs, we return a NaN for every NaN in Y.
+%
+% Outputs:
+%   INDX is a vector of size Y and contains the indices of the values in X that are
+%   closest to the respective value of Y. INDX is a linear index, such that x(INDX) gives
+%   the nearest values of X to Y. To convert INDX to subscripts, see IND2SUB.
+%
+
+% Copyright, Martin Vinck, 2009.
+
+% store the sizes of x and y, this is used to reshape INDX later on
+szY = size(y);
+
+% vectorize both x and y
+x = x(:);
+y = y(:);
+
+% from now on we can treat X and Y as vectors
+nY = length(y);
+nX = length(x);
+hasNan = isnan(y); % indices with nans in y, indx(hasNaN) will be set to NaN later.
+
+if nX==1,
+  indx = ones(1,nY);  % only one x value, so nearest is always only element
+else
+  if nY==1 % in this case only one y value, so use the old NEAREST code
+    if y>max(x)
+      % return the last occurence of the nearest number
+      [dum, indx] = max(flipud(x));
+      indx = nX + 1 - indx;
+    else
+      % return the first occurence of the nearest number
+      [mindist, indx] = min(abs(x(:) - y));
+    end
+  else
+    if any(y>max(x))
+      % for these return the last occurence of every number as in NEAREST
+      indx = zeros(1,nY);
+      i = y>max(x);
+      [dum,indx] = max(flipud(x));
+      indx(i)       = nX + 1 - indx;
+      % for the rest return the first occurence of every number
+      x = x(:);
+      y = y(~i)';
+      xRep = x(:,ones(1,length(y)));
+      yRep = y(ones(nX,1),:);
+      [mindist,indx(~i)] = min(abs(xRep-yRep));
+    else
+      x = x(:);
+      y = y';
+      xRep = x(:,ones(1,nY));
+      yRep = y(ones(nX,1),:);
+      [mindist,indx] = min(abs(xRep-yRep));
+    end
+  end
+end
+% return a NaN in INDX for a NaN in Y
+indx(hasNan) = NaN;
+
+% reshape the indx back to the y format
+if (sum(szY>1)>1 || length(szY)>2) % in this case we are dealing with a matrix
+  indx = reshape(indx,[szY]);
+end
+
+
+

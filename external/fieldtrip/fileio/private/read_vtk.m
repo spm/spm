@@ -8,14 +8,7 @@ function [pnt, dhk] = read_vtk(fn)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
-% $Log: read_vtk.m,v $
-% Revision 1.1  2009/01/14 09:33:10  roboos
-% moved even more files from fileio to fileio/private, see previous log entry
-%
-% Revision 1.2  2003/03/11 15:24:52  roberto
-% updated help and copyrights
-%
-
+% $Id: read_vtk.m 4702 2011-11-10 09:23:27Z borreu $
 fid = fopen(fn, 'rt');
 if fid~=-1
 

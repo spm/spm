@@ -62,22 +62,25 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_prepare_layout.m 4791 2011-11-23 09:18:50Z jorhor $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
 
-revision = '$Id: ft_prepare_layout.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_prepare_layout.m 4791 2011-11-23 09:18:50Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
+ft_preamble callinfo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % basic check/initialization of input arguments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin<2
-  data = []; 
+  data = [];
+else
+  data = ft_checkdata(data);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,6 +103,8 @@ if ~isfield(cfg, 'bw'),         cfg.bw = 0;                     end
 if ~isfield(cfg, 'channel'),    cfg.channel = 'all';            end 
 if ~isfield(cfg, 'skipscale'),  cfg.skipscale = 'no';           end 
 if ~isfield(cfg, 'skipcomnt'),  cfg.skipcomnt = 'no';           end 
+
+cfg = ft_checkconfig(cfg);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
@@ -242,19 +247,11 @@ elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
   lay = sens2lay(ft_read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
 
-elseif ~isempty(cfg.elec) && isstruct(cfg.elec)
-  % ensure the sensor description to be according to latest convention
-  % FIXME, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-  [cfg.elec] = ft_datatype_sens(cfg.elec);
-  
+elseif ~isempty(cfg.elec) && isstruct(cfg.elec) 
   fprintf('creating layout from cfg.elec\n');
   lay = sens2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style);
 
-elseif isfield(data, 'elec') && isstruct(data.elec)
-  % ensure the sensor description to be according to latest convention
-  % FIXME, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-  [data.elec] = ft_datatype_sens(data.elec);
-  
+elseif isfield(data, 'elec') && isstruct(data.elec)  
   fprintf('creating layout from data.elec\n');
   lay = sens2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
 
@@ -263,18 +260,10 @@ elseif ischar(cfg.gradfile)
   lay = sens2lay(ft_read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
 
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
-  % ensure the sensor description to be according to latest convention
-  % FIXME see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-  [cfg.grad] = ft_datatype_sens(cfg.grad);
-  
   fprintf('creating layout from cfg.grad\n');
   lay = sens2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);
 
 elseif isfield(data, 'grad') && isstruct(data.grad)
-  % ensure the sensor description to be according to latest convention
-  % FIXME see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-  [data.grad] = ft_datatype_sens(data.grad);
-  
   fprintf('creating layout from data.grad\n');
   lay = sens2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
 
@@ -687,6 +676,9 @@ elseif ~isempty(cfg.output) && strcmpi(cfg.style, '3d')
   error('writing a 3D layout to an output file is not supported');
 end
 
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 % read the layout information from the ascii file
@@ -777,3 +769,4 @@ else
   lay.height = Height;
   lay.label  = label;
 end
+

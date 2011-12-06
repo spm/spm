@@ -106,9 +106,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_prepare_leadfield.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -133,7 +133,6 @@ if ~isfield(cfg, 'sel50p'),           cfg.sel50p     = 'no';          end
 if ~isfield(cfg, 'feedback'),         cfg.feedback   = 'text';        end
 if ~isfield(cfg, 'mollify'),          cfg.mollify    = 'no';          end
 if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
-if ~isfield(cfg, 'inputfile'),        cfg.inputfile  = [];            end
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
 
 % put the low-level options pertaining to the dipole grid in their own field

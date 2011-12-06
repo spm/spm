@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_multiplotTFR.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -148,10 +148,7 @@ cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel',  'refchannel'});
 cfg = ft_checkconfig(cfg, 'renamed',	  {'zparam',         'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'xparam',         'yparam'});
 
-% set default for inputfile
-if ~isfield(cfg, 'inputfile'),      cfg.inputfile = [];                end
-
-% Set the defaults:
+% set the defaults
 cfg.baseline       = ft_getopt(cfg, 'baseline',        'no');
 cfg.baselinetype   = ft_getopt(cfg, 'baselinetype',    'absolute');
 cfg.trials         = ft_getopt(cfg, 'trials',          'all');

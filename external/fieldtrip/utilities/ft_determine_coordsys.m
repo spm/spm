@@ -40,10 +40,11 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 4047 2011-08-29 15:43:16Z crimic $
+% $Id: ft_determine_coordsys.m 4791 2011-11-23 09:18:50Z jorhor $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 
+data = ft_checkdata(data);
 dtype = ft_datatype(data);
 data  = ft_convert_units(data);
 unit  = data.unit;

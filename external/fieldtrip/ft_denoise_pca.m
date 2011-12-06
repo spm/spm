@@ -55,9 +55,9 @@ function data = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_denoise_pca.m 4712 2011-11-10 15:31:56Z jorhor $
 
-revision = '$Id: ft_denoise_pca.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_denoise_pca.m 4712 2011-11-10 15:31:56Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -272,7 +272,7 @@ if isfield(data, 'grad')
   for k = 1:numel(fnames)
     tmp(k) = isstruct(data.grad.balance.(fnames{k}));
   end
-  [~, ix] = sort(tmp,'descend');
+  [tmp, ix] = sort(tmp,'descend');
   data.grad.balance = orderfields(data.grad.balance, fnames(ix));
 
 else

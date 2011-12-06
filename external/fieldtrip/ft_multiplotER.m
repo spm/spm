@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_multiplotER.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_multiplotER.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_multiplotER.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -153,9 +153,6 @@ cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflo
 cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel', 'refchannel'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'zparam', 'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'xparam'});
-
-% set default for inputfile
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile = [];    end
 
 % set the defaults
 cfg.baseline        = ft_getopt(cfg, 'baseline',    'no');

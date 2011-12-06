@@ -9,10 +9,12 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %   dat        data matrix (Nchans X Ntime)
 %   Fsample    sampling frequency in Hz
 %   Fhp        filter frequency
-%   N          optional filter order, default is 6 (but) or 25 (fir)
+%   N          optional filter order, default is 4 (but) or dependent upon
+%              frequency band and data length (fir/firls)
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
 %                'fir' FIR filter using Matlab fir1 function 
+%                'firls' FIR filter using Matlab firls function (requires Matlab Signal Processing Toolbox)
 %   dir        optional filter direction, can be
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
@@ -42,7 +44,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 2455 2010-12-16 15:57:00Z stekla $
+% $Id: ft_preproc_highpassfilter.m 4739 2011-11-15 09:07:31Z eelspa $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -71,9 +73,30 @@ switch type
     [B, A] = butter(N, max(Fhp)/Fn, 'high');
   case 'fir'
     if isempty(N)
-      N = 25;
+      N = 3*fix(Fs / Fhp);
+    end
+    if N > floor( (size(dat,2) - 1) / 3)
+      N=floor(size(dat,2)/3) - 2;
     end
     [B, A] = fir1(N, max(Fhp)/Fn, 'high');
+  case 'firls' % from NUTMEG's implementation
+    if isempty(N)
+      N = 3*fix(Fs / Fhp);
+    end
+    if N > floor( (size(dat,2) - 1) / 3)
+      N=floor(size(dat,2)/3) - 2;
+    end
+    
+    f = 0:0.001:1;
+    if rem(length(f),2)~=0
+      f(end)=[];
+    end
+    z = zeros(1,length(f));
+    [val,pos1] = min(abs(Fs*f/2 - Fhp));
+    pos2 = length(f);
+    z(pos1:pos2) = 1;
+    A = 1;
+    B = firls(N,f,z); % requires Matlab signal processing toolbox
 end  
 
 filt = filter_with_correction(B,A,dat,dir);

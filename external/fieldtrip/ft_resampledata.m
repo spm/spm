@@ -68,9 +68,9 @@ function [data] = ft_resampledata(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_resampledata.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_resampledata.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_resampledata.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_resampledata.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -92,8 +92,6 @@ if ~isfield(cfg, 'demean'),     cfg.demean     = 'no';    end
 if ~isfield(cfg, 'feedback'),   cfg.feedback   = 'text';  end
 if ~isfield(cfg, 'trials'),     cfg.trials     = 'all';   end
 if ~isfield(cfg, 'method'),     cfg.method     = 'pchip'; end  % interpolation method
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile  = [];      end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];      end
 
 % store original datatype
 convert = ft_datatype(data);

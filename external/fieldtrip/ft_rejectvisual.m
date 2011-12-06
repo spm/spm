@@ -57,19 +57,19 @@ function [data] = ft_rejectvisual(cfg, data)
 % to the output data.
 %
 % The following settings are usefull for identifying EOG artifacts:
-%   cfg.bpfilter    = 'yes'
-%   cfg.bpfilttype  = 'but'
-%   cfg.bpfreq      = [1 15]
-%   cfg.bpfiltord   = 4
-%   cfg.rectify     = 'yes'
+%   cfg.preproc.bpfilter    = 'yes'
+%   cfg.preproc.bpfilttype  = 'but'
+%   cfg.preproc.bpfreq      = [1 15]
+%   cfg.preproc.bpfiltord   = 4
+%   cfg.preproc.rectify     = 'yes'
 %
 % The following settings are usefull for identifying muscle artifacts:
-%   cfg.bpfilter    = 'yes'
-%   cfg.bpfreq      = [110 140]
-%   cfg.bpfiltord   =  8
-%   cfg.bpfilttype  = 'but'
-%   cfg.rectify     = 'yes'
-%   cfg.boxcar      = 0.2
+%   cfg.preproc.bpfilter    = 'yes'
+%   cfg.preproc.bpfreq      = [110 140]
+%   cfg.preproc.bpfiltord   =  8
+%   cfg.preproc.bpfilttype  = 'but'
+%   cfg.preproc.rectify     = 'yes'
+%   cfg.preproc.boxcar      = 0.2
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -86,36 +86,36 @@ function [data] = ft_rejectvisual(cfg, data)
 % cfg.feedback
 %
 % This function depends on PREPROC which has the following options:
-% cfg.absdiff
-% cfg.demean
-% cfg.baselinewindow
-% cfg.boxcar
-% cfg.bpfilter
-% cfg.bpfiltord
-% cfg.bpfilttype
-% cfg.bpfreq
-% cfg.derivative
-% cfg.detrend
-% cfg.dftfilter
-% cfg.dftfreq
-% cfg.hilbert
-% cfg.hpfilter
-% cfg.hpfiltord
-% cfg.hpfilttype
-% cfg.hpfreq
-% cfg.implicitref
-% cfg.lnfilter
-% cfg.lnfiltord
-% cfg.lnfreq
-% cfg.lpfilter
-% cfg.lpfiltord
-% cfg.lpfilttype
-% cfg.lpfreq
-% cfg.medianfilter
-% cfg.medianfiltord
-% cfg.rectify
-% cfg.refchannel
-% cfg.reref
+% cfg.preproc.absdiff
+% cfg.preproc.demean
+% cfg.preproc.baselinewindow
+% cfg.preproc.boxcar
+% cfg.preproc.bpfilter
+% cfg.preproc.bpfiltord
+% cfg.preproc.bpfilttype
+% cfg.preproc.bpfreq
+% cfg.preproc.derivative
+% cfg.preproc.detrend
+% cfg.preproc.dftfilter
+% cfg.preproc.dftfreq
+% cfg.preproc.hilbert
+% cfg.preproc.hpfilter
+% cfg.preproc.hpfiltord
+% cfg.preproc.hpfilttype
+% cfg.preproc.hpfreq
+% cfg.preproc.implicitref
+% cfg.preproc.lnfilter
+% cfg.preproc.lnfiltord
+% cfg.preproc.lnfreq
+% cfg.preproc.lpfilter
+% cfg.preproc.lpfiltord
+% cfg.preproc.lpfilttype
+% cfg.preproc.lpfreq
+% cfg.preproc.medianfilter
+% cfg.preproc.medianfiltord
+% cfg.preproc.rectify
+% cfg.preproc.refchannel
+% cfg.preproc.reref
 
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
@@ -135,13 +135,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_rejectvisual.m 4794 2011-11-23 09:31:41Z jansch $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_rejectvisual.m 4794 2011-11-23 09:31:41Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -171,8 +171,6 @@ if ~isfield(cfg, 'emgscale'),    cfg.emgscale = [];            end
 if ~isfield(cfg, 'megscale'),    cfg.megscale = [];            end
 if ~isfield(cfg, 'gradscale'),   cfg.gradscale = [];           end
 if ~isfield(cfg, 'magscale'),    cfg.magscale = [];            end
-if ~isfield(cfg, 'inputfile'),   cfg.inputfile = [];           end
-if ~isfield(cfg, 'outputfile'),  cfg.outputfile = [];          end
 if ~isfield(cfg, 'plotlayout'),  cfg.plotlayout = 'square';    end
 if ~isfield(cfg, 'viewmode'),    cfg.viewmode   = 'remove';    end
 

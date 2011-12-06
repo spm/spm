@@ -4,10 +4,7 @@ function output = mergeconfig(input, default)
 
 % Copyright (C) 2009, Robert Oostenveld
 %
-% $Log: mergeconfig.m,v $
-% Revision 1.1  2009/10/19 14:19:21  roboos
-% first version, to work with databrowser
-%
+% $Id: mergeconfig.m 4702 2011-11-10 09:23:27Z borreu $
 
 % FIXME also deal with configuration objects
 if ~isstruct(input)

@@ -36,9 +36,9 @@ function [dataout] = ft_channelnormalise(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_channelnormalise.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_channelnormalise.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_channelnormalise.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -49,8 +49,6 @@ ft_preamble loadvar data
 
 % set the defaults
 if ~isfield(cfg, 'trials'),       cfg.trials = 'all';           end
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
 
 % store original datatype
 dtype = ft_datatype(data);

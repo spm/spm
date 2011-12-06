@@ -40,8 +40,8 @@ function freq = ft_datatype_freq(freq, varargin)
 %
 % Revision history:
 %
-% (2011/latest) The description of the sensors has changed: see FIXSENS for
-% information
+% (2011/latest) The description of the sensors has changed, see FT_DATATYPE_SENS
+% for further information.
 %
 % (2008) The presence of labelcmb in case of crsspctrm became optional,
 % from now on the crsspctrm can also be represented as Nchan * Nchan.
@@ -75,7 +75,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 4609 2011-10-27 12:23:26Z roboos $
+% $Id: ft_datatype_freq.m 4716 2011-11-10 15:50:05Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

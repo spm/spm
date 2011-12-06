@@ -59,9 +59,9 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_timelockstatistics.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_timelockstatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_timelockstatistics.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -74,10 +74,6 @@ ft_preamble loadvar varargin
 for i=1:length(varargin)
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'timelock', 'feedback', 'no');
 end
-
-% set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];          end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];         end
 
 % the low-level data selection function does not know how to deal with other parameters, so work around it
 if isfield(cfg, 'parameter')

@@ -51,14 +51,15 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_prepare_concentricspheres.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_prepare_concentricspheres.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_prepare_concentricspheres.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble trackconfig
+ft_preamble callinfo
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');
@@ -148,8 +149,11 @@ else
 end
 
 vol.type = 'concentric';
-vol=ft_convert_units(vol);
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes'); 
+% ensure that the geometrical units are specified
+vol = ft_convert_units(vol);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 

@@ -71,9 +71,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_redefinetrial.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_redefinetrial.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -95,8 +95,6 @@ if ~isfield(cfg, 'feedback'),   cfg.feedback = 'yes'; end
 if ~isfield(cfg, 'trl'),        cfg.trl =  [];        end
 if ~isfield(cfg, 'length'),     cfg.length = [];      end
 if ~isfield(cfg, 'overlap'),    cfg.overlap = 0;      end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile = [];   end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];  end
 
 % store original datatype
 dtype = ft_datatype(data);

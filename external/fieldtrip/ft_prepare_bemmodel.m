@@ -44,15 +44,16 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 4642 2011-10-31 16:32:43Z crimic $
+% $Id: ft_prepare_bemmodel.m 4722 2011-11-11 09:45:13Z crimic $
 
 warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_HEADMODEL_BEM_... with cfg.method = ''bem_bladeebla'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 4642 2011-10-31 16:32:43Z crimic $';
+revision = '$Id: ft_prepare_bemmodel.m 4722 2011-11-11 09:45:13Z crimic $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
+ft_preamble callinfo
 ft_preamble trackconfig
 
 % set the defaults
@@ -312,4 +313,11 @@ elseif strcmp(cfg.method, 'brainstorm')
 else
   error('unsupported method');
 end % which method
+
+% ensure that the geometrical units are specified
+vol = ft_convert_units(vol);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 

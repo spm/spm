@@ -29,9 +29,9 @@ function [lfp, spike, stm, bhv] = spass2fieldtrip(dirname)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% $Id: spass2fieldtrip.m 4675 2011-11-04 08:55:17Z roboos $
+% $Id: spass2fieldtrip.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: spass2fieldtrip.m 4675 2011-11-04 08:55:17Z roboos $';
+revision = '$Id: spass2fieldtrip.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -147,7 +147,6 @@ lfp.hdr.FirstTimeStamp = 0;
 lfp.hdr.TimeStampPerSample = fsample_swa./fsample_ana;
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble trackconfig
 ft_postamble callinfo
 ft_postamble history lfp spike
 

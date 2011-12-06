@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_volumewrite.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_volumewrite.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_volumewrite.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -451,3 +451,8 @@ switch cfg.filetype
   otherwise
     fprintf('unknown fileformat\n');
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+

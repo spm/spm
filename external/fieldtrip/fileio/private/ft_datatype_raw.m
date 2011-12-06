@@ -31,8 +31,8 @@ function data = ft_datatype_raw(data, varargin)
 %
 % Revision history:
 %
-% (2011/latest) The description of the sensors has changed: see FIXSENS for
-% information
+% (2011/latest) The description of the sensors has changed, see FT_DATATYPE_SENS
+% for further information.
 %
 % (2010v2) The trialdef field has been replaced by the sampleinfo and
 % trialinfo fields. The sampleinfo corresponds to trl(:,1:2), the trialinfo
@@ -69,7 +69,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 4511 2011-10-18 18:53:18Z roboos $
+% $Id: ft_datatype_raw.m 4716 2011-11-10 15:50:05Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');
@@ -139,7 +139,7 @@ switch version
       data = rmfield(data, 'trialdef');
     end
 
-  case '2010v1'
+  case {'2010v1' '2010'}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if ~isfield(data, 'fsample')
       data.fsample = 1/(data.time{1}(2) - data.time{1}(1));

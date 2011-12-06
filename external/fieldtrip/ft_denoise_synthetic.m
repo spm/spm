@@ -40,9 +40,9 @@ function [data] = ft_denoise_synthetic(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_denoise_synthetic.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_denoise_synthetic.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_denoise_synthetic.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -51,11 +51,11 @@ ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble loadvar data
 
+% check if the input cfg is valid for this function
+cfg = ft_checkconfig(cfg, 'required', {'gradient'});
+
 % set the defaults
-if ~isfield(cfg, 'gradient'),   error('cfg.gradient must be specified'); end
-if ~isfield(cfg, 'trials'),     cfg.trials                      = 'all'; end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];    end
+if ~isfield(cfg, 'trials'), cfg.trials = 'all'; end
 
 % store the original type of the input data
 dtype = ft_datatype(data);

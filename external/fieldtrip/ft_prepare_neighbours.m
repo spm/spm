@@ -64,9 +64,9 @@ function neighbours = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_prepare_neighbours.m 4710 2011-11-10 14:19:49Z jorhor $
 
-revision = '$Id: ft_prepare_neighbours.m 4624 2011-10-29 10:10:49Z roboos $';
+revision = '$Id: ft_prepare_neighbours.m 4710 2011-11-10 14:19:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -81,6 +81,8 @@ cfg = ft_checkconfig(cfg, 'required', {'method'});
 if ~isfield(cfg, 'feedback'),       cfg.feedback = 'no';         end
 
 hasdata = nargin>1;
+if hasdata, data = ft_checkdata(data); end
+
 if strcmp(cfg.method, 'template')
   fprintf('Trying to load sensor neighbours from a template\n');
   if ~isfield(cfg, 'template')
@@ -145,14 +147,11 @@ else
     lay = ft_prepare_layout(cfg);
     sens = [];
     sens.label = lay.label;
-    sens.pnt = lay.pos;
-    sens.pnt(:,3) = 0;
+    sens.chanpos = lay.pos;
+    sens.chanpos(:,3) = 0;
   else
     error('Did not find gradiometer or electrode information or a layout.');
   end;
-  
-  % FIXME see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-  sens = ft_datatype_sens(sens);
   
   switch lower(cfg.method)
     case 'distance'
@@ -193,10 +192,11 @@ else
   end
 end
 
-if iscell(neighbours)
-  warning('Neighbourstructure is in old format - converting to structure array');
-  neighbours = fixneighbours(neighbours);
-end
+% removed as from Nov 09 2011 - hope there are no problems with this
+% if iscell(neighbours)
+%   warning('Neighbourstructure is in old format - converting to structure array');
+%   neighbours = fixneighbours(neighbours);
+% end
 
 k = 0;
 for i=1:length(neighbours)
@@ -204,8 +204,6 @@ for i=1:length(neighbours)
 end
 if k==0, error('No neighbours were found!'); end;
 fprintf('there are on average %.1f neighbours per channel\n', k/length(neighbours));
-
-
 
 if strcmp(cfg.feedback, 'yes')
   % give some graphical feedback
@@ -216,6 +214,10 @@ if strcmp(cfg.feedback, 'yes')
     ft_neighbourplot(cfg);
   end
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that compute the neighbourhood geometry from the
@@ -267,26 +269,20 @@ end
 % construct a structured cell array with all neighbours
 neighbours=struct;
 alldist = [];
-noneighb = 0;
 for i=1:nsensors
   neighbours(i).label       = sens.label{i};
   neighbidx                 = find(channeighbstructmat(i,:));
   neighbours(i).dist        = sqrt(sum((repmat(sens.chanpos(i, :), numel(neighbidx), 1) - sens.chanpos(neighbidx, :)).^2, 2));
   alldist                   = [alldist; neighbours(i).dist];
   neighbours(i).neighblabel = sens.label(neighbidx);
-  neighbours(i).neighbidx   = neighbidx;
 end
 
+% remove neighbouring channels that are too far away (imporntant e.g. in 
+% case of missing sensors)
 neighbdist = mean(alldist)+3*std(alldist);
-
-dismissedneighb = 0;
-alldist = [];
 for i=1:nsensors
   idx = neighbours(i).dist > neighbdist;
-  dismissedneighb = dismissedneighb + sum(idx);
   neighbours(i).dist(idx)         = [];
   neighbours(i).neighblabel(idx)  = [];
-  alldist                         = [alldist; neighbours(i).dist];
 end
 neighbours = rmfield(neighbours, 'dist');
-neighbours = rmfield(neighbours, 'neighbidx');

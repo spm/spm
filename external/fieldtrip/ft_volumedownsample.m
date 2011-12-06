@@ -43,9 +43,9 @@ function [downsample] = ft_volumedownsample(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_volumedownsample.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_volumedownsample.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_volumedownsample.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -61,12 +61,10 @@ source = ft_checkdata(source, 'datatype', 'volume', 'feedback', 'no');
 cfg = ft_checkconfig(cfg, 'unused',  {'voxelcoord'});
 
 if ~isfield(cfg, 'spmversion'), cfg.spmversion = 'spm8'; end
-if ~isfield(cfg, 'downsample'), cfg.downsample = 1;     end
-if ~isfield(cfg, 'keepinside'), cfg.keepinside = 'yes'; end
-if ~isfield(cfg, 'parameter'),  cfg.parameter = 'all';  end
-if ~isfield(cfg, 'smooth'),     cfg.smooth = 'no';      end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile  = [];    end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];    end
+if ~isfield(cfg, 'downsample'), cfg.downsample = 1;      end
+if ~isfield(cfg, 'keepinside'), cfg.keepinside = 'yes';  end
+if ~isfield(cfg, 'parameter'),  cfg.parameter = 'all';   end
+if ~isfield(cfg, 'smooth'),     cfg.smooth = 'no';       end
 
 if strcmp(cfg.keepinside, 'yes')
   % add inside to the list of parameters

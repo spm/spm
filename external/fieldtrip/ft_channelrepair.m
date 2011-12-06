@@ -44,9 +44,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_channelrepair.m 4793 2011-11-23 09:27:18Z jorhor $
 
-revision = '$Id: ft_channelrepair.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_channelrepair.m 4793 2011-11-23 09:27:18Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -61,19 +61,12 @@ cfg = ft_checkconfig(cfg, 'required', {'neighbours'});
 % set the default configuration
 if ~isfield(cfg, 'badchannel'),    cfg.badchannel = {};           end
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
-
-if iscell(cfg.neighbours)
-  warning('Neighbourstructure is in old format - converting to structure array');
-  cfg.neighbours = fixneighbours(cfg.neighbours);
-end
-
-% store original datatype
-dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+
+% store original datatype
+dtype = ft_datatype(data);
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')

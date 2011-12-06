@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_singleplotTFR.m 4797 2011-11-23 09:57:01Z jorhor $
 
-revision = '$Id: ft_singleplotTFR.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 4797 2011-11-23 09:57:01Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -372,9 +372,9 @@ if ~isempty(cfg.maskparameter)
     mask = reshape(mask, [max(siz(1:2)) siz(3) siz(4)]);
     mask = reshape(mask(sellab, :, :), [siz(3) siz(4)]);
   elseif haslabelcmb && cfg.maskalpha == 1
-    mask = mask(sellab, ymin:ymax, xmin:xmax);
+    mask = squeeze(mask(sellab, ymin:ymax, xmin:xmax));
   elseif cfg.maskalpha == 1
-    mask = mask(sellab, ymin:ymax, xmin:xmax);
+    mask = squeeze(mask(sellab, ymin:ymax, xmin:xmax));
   elseif isfull && cfg.maskalpha ~= 1 %% check me
     maskl = mask(sel1, sel2, ymin:ymax, xmin:xmax);
     maskl = nanmean(maskl, meandir);

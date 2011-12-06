@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_rejectartifact.m 4692 2011-11-07 21:31:14Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_rejectartifact.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -106,9 +106,8 @@ if ~isfield(cfg, 'artfctdef'),              cfg.artfctdef        = [];         e
 if ~isfield(cfg.artfctdef,'type'),          cfg.artfctdef.type   = {};         end
 if ~isfield(cfg.artfctdef,'reject'),        cfg.artfctdef.reject = 'complete'; end
 if ~isfield(cfg.artfctdef,'minaccepttim'),  cfg.artfctdef.minaccepttim = 0.1;  end
-if ~isfield(cfg.artfctdef,'crittoilim'),    cfg.artfctdef.crittoilim = [];  end
+if ~isfield(cfg.artfctdef,'crittoilim'),    cfg.artfctdef.crittoilim = [];     end
 if ~isfield(cfg.artfctdef,'feedback'),      cfg.artfctdef.feedback = 'no';     end
-if ~isfield(cfg, 'inputfile'),              cfg.inputfile        = [];         end
 
 % convert from old-style to new-style configuration
 if isfield(cfg,'reject')

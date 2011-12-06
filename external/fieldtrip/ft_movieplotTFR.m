@@ -60,7 +60,7 @@ function ft_movieplotTFR(cfg, data)
 %
 % $id: ft_movieploter.m 4354 2011-10-05 15:06:02z crimic $
 
-revision = '$Id: ft_movieplotTFR.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_movieplotTFR.m 4712 2011-11-10 15:31:56Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -305,7 +305,7 @@ if dointeractive
   
 else
   % non interactive mode
-  [~, hs] = ft_plot_topo(chanx, chany, zeros(numel(chanx),1), 'mask', layout.mask, 'outline', layout.outline, 'interpmethod', 'cubic');
+  [tmp, hs] = ft_plot_topo(chanx, chany, zeros(numel(chanx),1), 'mask', layout.mask, 'outline', layout.outline, 'interpmethod', 'cubic');
   caxis(cfg.zlim);
   axis off;
 

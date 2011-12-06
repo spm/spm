@@ -19,6 +19,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %
 % The configuration should contain
 %   cfg.component = list of components to remove, e.g. [1 4 7]
+%   cfg.demean    = 'no' or 'yes', whether to demean the input data (default = 'yes')
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -49,9 +50,9 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_rejectcomponent.m 4783 2011-11-22 14:35:02Z johzum $
 
-revision = '$Id: ft_rejectcomponent.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_rejectcomponent.m 4783 2011-11-22 14:35:02Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -64,6 +65,7 @@ ft_preamble loadvar comp data
 cfg.component  = ft_getopt(cfg, 'component',  []);
 cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
 cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
+cfg.demean     = ft_getopt(cfg, 'demean',    'yes');
 
 % the data can be passed as input arguments or can be read from disk
 nargin = 1;
@@ -92,6 +94,14 @@ if max(cfg.component)>ncomps
   error('you cannot remove components that are not present in the data');
 end
 
+if nargin==3 && strcmp(cfg.demean, 'yes')
+  % optionally perform baseline correction on each trial
+  fprintf('baseline correcting data \n');
+  for trial=1:numel(data.trial)
+    data.trial{trial} = ft_preproc_baselinecorrect(data.trial{trial});
+  end
+end
+
 % set the rejected component amplitudes to zero
 fprintf('removing %d components\n', length(cfg.component));
 fprintf('keeping %d components\n',  ncomps-length(cfg.component));
@@ -104,10 +114,10 @@ if length(seldat)~=length(label) && nargin==3,
   warning('the subspace projection is not guaranteed to be correct for non-orthogonal components');
 end
 
-if hasdata,
-  topo     = comp.topo(selcomp,:);
-  invtopo  = pinv(topo);
-  tra      = eye(length(selcomp)) - topo(:, cfg.component)*invtopo(cfg.component, :);
+if hasdata
+  mixing = comp.topo(selcomp,:);
+  unmixing = comp.unmixing(:,selcomp);
+  tra = eye(length(selcomp)) - mixing(:, cfg.component)*unmixing(cfg.component, :);
   %I am not sure about this, but it gives comparable results to the ~hasdata case
   %when comp contains non-orthogonal (=ica) topographies, and contains a complete decomposition
   
@@ -118,17 +128,15 @@ if hasdata,
   keepunused = 'yes'; %keep the original data which are not present in the mixing provided
   
 else
-  topo = comp.topo(selcomp, :);
-  topo(:, cfg.component) = 0;
-  tra      = topo;
+  mixing = comp.topo(selcomp, :);
+  mixing(:, cfg.component) = 0;
+  tra = mixing;
   
   %we are going from components to data
   labelorg = comp.label;
   labelnew = comp.topolabel(selcomp);
   
   %create data structure
-  if hasdata && isfield(data, 'trialinfo'),  trialinfo  = data.trialinfo;  end
-  if hasdata && isfield(data, 'sampleinfo'), sampleinfo = data.sampleinfo; end
   data         = [];
   data.trial   = comp.trial;
   data.time    = comp.time;
@@ -136,8 +144,8 @@ else
   data.fsample = comp.fsample;
   if isfield(comp, 'grad'), data.grad       = comp.grad;  end
   if isfield(comp, 'elec'), data.elec       = comp.elec;  end
-  if exist('trialinfo',  'var'),   data.trialinfo  = trialinfo;  end
-  if exist('sampleinfo', 'var'),   data.sampleinfo = sampleinfo; end
+  if isfield(comp, 'trialinfo'),   data.trialinfo  = comp.trialinfo;  end
+  if isfield(comp, 'sampleinfo'),   data.sampleinfo = comp.sampleinfo; end
   
   keepunused = 'no'; %don't need to keep the original rejected components
 end

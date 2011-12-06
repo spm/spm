@@ -12,11 +12,15 @@ function ft_plot_matrix(varargin)
 % respectively.
 %
 % Optional arguments should come in key-value pairs and can include
-%   clim            =
+%   clim            = maximum and minimum color limit
 %   box             = draw a box around the local axes, can be 'yes' or 'no'
-%   highlight       =
-%   highlightstlyle = can be 'saturation' or 'opacity'
-%   tag             =
+%   highlight       = a logical matrix of size C, where 0 means that the
+%                     corresponding values in C are highlighted according
+%                     to the highlightstyle
+%   highlightstyle  = can be 'saturation' or 'opacity'
+%   tag             = a name this image gets. All tags with the same name
+%                     can be deleted in a figure, without deleting other 
+%                     parts of the figure
 %
 % It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
 %   hpos        = horizontal position of the center of the local axes
@@ -47,7 +51,7 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 4646 2011-11-01 10:15:51Z roevdmei $
+% $Id: ft_plot_matrix.m 4797 2011-11-23 09:57:01Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -77,6 +81,10 @@ highlight      = ft_getopt(varargin, 'highlight');
 highlightstyle = ft_getopt(varargin, 'highlightstyle', 'opacity');
 box            = ft_getopt(varargin, 'box',            false);
 tag            = ft_getopt(varargin, 'tag',            '');
+
+if ~isempty(highlight) && ~isequal(size(highlight), size(cdat))
+  error('the dimensions of the highlight should be identical to the dimensions of the data');
+end
 
 % axis   = ft_getopt(varargin, 'axis', false);
 % label  = ft_getopt(varargin, 'label'); % FIXME

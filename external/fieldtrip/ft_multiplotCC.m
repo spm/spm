@@ -7,7 +7,7 @@ function ft_multiplotCC(cfg, data)
 % Use as
 %   ft_multiplotCC(cfg, data)
 %
-% See also FT_TOPOPLOTCC
+% See also FT_PREPARE_LAYOUT, FT_TOPOPLOTCC, FT_CONNECTIVITYPLOT
 
 % Undocumented local options:
 % cfg.layout  = layout filename or a structure produced by prepare_layout
@@ -34,9 +34,9 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_multiplotCC.m 4813 2011-11-26 01:19:35Z roboos $
 
-revision = '$Id: ft_multiplotCC.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_multiplotCC.m 4813 2011-11-26 01:19:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults

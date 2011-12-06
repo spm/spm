@@ -1,31 +1,43 @@
 function [Tune] = ft_spike_rate_condition(cfg,Rate)
 
-% FT_SPIKE_RATE_CONDITION computes the average rate for different conditions.
-% Input RATE should be the output from FT_SPIKE_RATE with cfg.keeptrials = 'yes'
+% FT_SPIKE_RATE_CONDITION computes the average rate for different
+% conditions. This function should be the precursor for an orientation
+% tuning / constrast tuning script.
+%
 % Use as
-%   [TUNE] = FT_SPIKE_RATE_CONDITION(CFG,RATE)
+%   [tune] = ft_spike_rate_condition(cfg, rate)
 %
-% Configurations options (CFG):
+% The input variable rate should be the output from FT_SPIKE_RATE
+% with cfg.keeptrials = 'yes'.
 %
-%   cfg.design      = should be an 1 x nTrials array, with an integer value for every condition
+% Configurations:
+%   cfg.design = should be an 1 x nTrials array, with an integer
+%                value for every condition
 %
-% This function should be the precursor for an orientation tuning / constrast tuning script
+% See also FT_SPIKE_RATE
 
 % Martin Vinck (C) 2010
+%
+% $Id: ft_spike_rate_condition.m 4829 2011-11-27 15:55:51Z marvin $
 
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+revision = '$Id: ft_spike_rate_condition.m 4829 2011-11-27 15:55:51Z marvin $';
+
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
+
+% ensure that the required options are present
+cfg = ft_checkconfig(cfg, 'required', {'design'});
+cfg = ft_checkopt(cfg,'design','doublevector');
 
 % check whether trials were kept in the rate function
 if ~isfield(Rate, 'trial'), error('MATLAB:ft_spike_rate_condition:noFieldTrial',...
-    'RATE should contain the field trial (use cfg.keeptrials = "yes" in spike_rate)'); 
+    'RATE should contain the field trial (use cfg.keeptrials = "yes" in spike_rate)');
 end
-if ~isfield(cfg,'design'), error('MATLAB:ft_spike_rate_condition:cfg:designMissing','design is missing'), end
 design = cfg.design(:);
-if ~isrealvec(design)
-  error('MATLAB:ft_spike_rate_condition:design',...
-    'DESIGN should be a real vector');
-end
+
 nTrials = size(Rate.trial,1);
 if nTrials~=length(design)
   error('MATLAB:ft_spike_rate_condition:cfg:designWrongLength',...
@@ -36,20 +48,20 @@ end
 conditions     = unique(design);
 nConditions    = length(conditions);
 if  nConditions==1
-     error('MATLAB:ft_spike_rate_condition:numUniqueStim',...
+  error('MATLAB:ft_spike_rate_condition:numUniqueStim',...
     'number of unique elements in cfg.design should be >1 for this function to have meaning')
 end
-    
+
 % compute the firing rate per stimulus condition
 nUnits = length(Rate.avg);
 [avg,var] = deal(NaN(nConditions,nUnits));
 dof = zeros(nConditions,1);
 
-for iCondition = 1:nConditions   
-    hasStim            = design==conditions(iCondition);       
-    dof(iCondition)    = sum(hasStim);
-    avg(iCondition,:)  = nanmean(Rate.trial(hasStim,:),1); % 1 was missing! bug with 1 unit
-    var(iCondition,:)  = nanvar(Rate.trial(hasStim,:),[],1);
+for iCondition = 1:nConditions
+  hasStim            = design==conditions(iCondition);
+  dof(iCondition)    = sum(hasStim);
+  avg(iCondition,:)  = nanmean(Rate.trial(hasStim,:),1); % 1 was missing! bug with 1 unit
+  var(iCondition,:)  = nanvar(Rate.trial(hasStim,:),[],1);
 end
 
 % collect the results
@@ -58,16 +70,9 @@ Tune.var            = var;
 Tune.dof            = dof;
 Tune.label          = Rate.label;
 
-% add version information to the configuration
-try
-  % get the full name of the function
-  cfg.version.name = mfilename('fullpath');
-catch
-  % required for compatibility with Matlab versions prior to release 13 (6.5)
-  [st, k] = dbstack;
-  cfg.version.name = st(k);
-end
-% remember the configuration details of the input data
-try, cfg.previous = Rate.cfg; end
-% remember the exact configuration details in the output 
-Tune.cfg     = cfg;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous Rate
+ft_postamble history Tune
+

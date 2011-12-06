@@ -29,9 +29,9 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 4623 2011-10-28 15:44:23Z roboos $
+% $Id: ft_headmovement.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_headmovement.m 4623 2011-10-28 15:44:23Z roboos $';
+revision = '$Id: ft_headmovement.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -173,3 +173,6 @@ end
 
 grad = gradnew;
 
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo

@@ -39,7 +39,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_slice.m 4727 2011-11-12 18:13:34Z crimic $
 
 persistent previous_dim X Y Z;
 
@@ -96,7 +96,7 @@ if ~dointerp && ~(resolution==round(resolution)), dointerp = true; end
 % ft_plot_slice has been called from ft_plot_montage
 % this is necessary for the correct allocation of the persistent variables
 st = dbstack;
-if ~dointerp && strcmp(st(2).name, 'ft_plot_montage'), dointerp = true; end
+if ~dointerp && numel(st)>1 && strcmp(st(2).name, 'ft_plot_montage'), dointerp = true; end
 
 if dointerp
   %--------cut a slice using interpn

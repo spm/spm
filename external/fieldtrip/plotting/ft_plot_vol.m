@@ -38,7 +38,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_vol.m 4885 2011-11-29 09:34:00Z crimic $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -52,8 +52,8 @@ edgecolor   = ft_getopt(varargin, 'edgecolor',   'k');
 facealpha   = ft_getopt(varargin, 'facealpha',   1);
 map         = ft_getopt(varargin, 'colormap');
 
-faceindex   = istrue(faceindex);
-vertexindex = istrue(vertexindex);
+faceindex   = istrue(faceindex);   % yes=view the face number
+vertexindex = istrue(vertexindex); % yes=view the vertex number
 
 % we will probably need a sphere, so let's prepare one
 [pnt, tri] = icosahedron162;

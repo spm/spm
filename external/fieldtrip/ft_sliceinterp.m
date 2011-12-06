@@ -99,9 +99,9 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sliceinterp.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_sliceinterp.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_sliceinterp.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_sliceinterp.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -453,6 +453,11 @@ if strcmp(cfg.interactive,'yes')
   data.hcoords = uicontrol('Units','norm', 'Position', [0.9 0.05 0.08 0.13], 'Style','text', 'String','','HorizontalAlign','left','FontSize',7);
   guidata(data.hfig,data);
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+
 
 % ---------------- subfunctions ----------------
 

@@ -27,20 +27,33 @@ function [dat] = read_biosig_data(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_biosig_data.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_biosig_data.m 4752 2011-11-16 14:12:20Z tilsan $
 
-% open the file, read the header
-% it should be the same as hdr.orig
-biosig = sopen(filename,'r');
+persistent cacheheader        % for caching
+
+% open the file and read the header or use cached header
+details = dir(filename);
+if isempty(cacheheader) || ~isequal(details, cacheheader.details)
+    % close previous file, if different
+    if ~isempty(cacheheader) && exist(cacheheader.fullname, 'file'), sclose(cacheheader); end 
+    biosig = sopen(filename,'r'); 
+    % put the header in the cache
+    cacheheader = biosig;
+    % update the header details (including time stampp, size and name)
+    cacheheader.details = dir(filename);
+    % we need full path for file closing
+    cacheheader.fullname = filename;
+else
+    biosig = cacheheader;  
+end
 
 begtime = (begsample-1) / hdr.Fs;
 endtime = (endsample  ) / hdr.Fs;
 duration = endtime-begtime;
 
-% read the selected data and close the file
+% read the selected data 
 dat = sread(biosig, duration, begtime);
 dat = dat';
-sclose(biosig);
 
 if nargin>4
   % select the channels of interest

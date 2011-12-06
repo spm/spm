@@ -84,7 +84,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_read_event.m 4930 2011-12-03 23:17:29Z sashae $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1441,12 +1441,16 @@ switch eventformat
   case 'nmc_archive_k'
     event = read_nmc_archive_k_event(filename);
     
+  case 'netmeg'
+    warning('reading of events for the netmeg format is not yet supported');
+    event = [];
+    
   case 'neuroshare' % NOTE: still under development
     % check that the required neuroshare toolbox is available
     ft_hastoolbox('neuroshare', 1);
     
     tmp = read_neuroshare(filename, 'readevent', 'yes');
-    for i=1:length(tmp.hdr.eventinfo)
+    for i=1:length(tmp.event.timestamp)
       event(i).type      = tmp.hdr.eventinfo(i).EventType;
       event(i).value     = tmp.event.data(i);
       event(i).timestamp = tmp.event.timestamp(i);

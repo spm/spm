@@ -18,11 +18,11 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 %   freqoi     = vector, containing frequencies of interest                                           
 %   tapsmofrq  = the amount of spectral smoothing through multi-tapering. Note: 4 Hz smoothing means plus-minus 4 Hz, i.e. a 8 Hz smoothing box
 %
-% See also FT_FREQANALYSIS, FT_SPECEST_MTMCONVOL, FT_SPECEST_CONVOL, FT_SPECEST_HILBERT, FT_SPECEST_WAVELET
+% See also FT_FREQANALYSIS, FT_SPECEST_MTMCONVOL, FT_SPECEST_TFR, FT_SPECEST_HILBERT, FT_SPECEST_WAVELET
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Log$
+% $Id: ft_specest_mtmfft.m 4900 2011-11-30 16:45:03Z roevdmei $
 
 % get the optional input arguments
 taper     = ft_getopt(varargin, 'taper'); if isempty(taper), error('You must specify a taper'); end

@@ -32,10 +32,11 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %
 % Revision history:
 %
-% (2011v2/latest) The description of the sensors has changed: see FIXSENS for
-% information
+% (2011v2/latest) The description of the sensors has changed, see FT_DATATYPE_SENS
+% for further information.
 %
 % (2011) The field 'fsample' was removed, as it was redundant.
+%
 % (2003) The initial version was defined.
 %
 % See also FT_DATATYPE, FT_DATATYPE_COMP, FT_DATATYPE_DIP, FT_DATATYPE_FREQ,
@@ -60,7 +61,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 4510 2011-10-18 18:53:15Z roboos $
+% $Id: ft_datatype_timelock.m 4715 2011-11-10 15:50:03Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

@@ -21,7 +21,7 @@ function index = ft_documentationindex(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationindex.m 2439 2010-12-15 16:33:34Z johzum $
+% $Id: ft_documentationindex.m 4888 2011-11-30 08:31:15Z eelspa $
 
 ft_defaults
 
@@ -161,6 +161,12 @@ for i=1:size(index,1)
     fprintf(fid, '===== %s =====\n\n', upper(char(currletter)));
   end
   fprintf(fid, '** %s ** // %s //\\\\\n', index{i,2}, index{i,1});
+  
+  % do postprocessing to make sure we don't mess up dokuwiki layout
+  % '' is a markup instruction for dokuwiki so escape by replacing it
+  % with %%''%%
+  index{i,3} = strrep(index{i,3},'''''','%%''''%%');
+  
   fprintf(fid, '%s\n\n', index{i,3});
 end
 fclose(fid);

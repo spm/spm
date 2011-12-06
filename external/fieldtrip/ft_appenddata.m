@@ -56,9 +56,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_appenddata.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_appenddata.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_appenddata.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -70,10 +70,6 @@ ft_preamble loadvar varargin
 for i=1:length(varargin)
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no', 'hassampleinfo', 'yes');
 end
-
-% set the defaults
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile  = [];          end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end
 
 % determine the dimensions of the data
 Ndata = length(varargin);

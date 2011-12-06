@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_filetype.m 4920 2011-12-01 17:03:54Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -966,6 +966,14 @@ elseif filetype_check_extension(filename, '.v')
   type = 'vista'; 
   manufacturer = 'University of British Columbia, Canada, http://www.cs.ubc.ca/nest/lci/vista/vista.html';
   content = 'A format for computer vision research, contains meshes or volumes';  
+elseif filetype_check_extension(filename, '.tet')
+  type = 'tet'; 
+  manufacturer = 'a.o. INRIA, see http://shapes.aimatshape.net/';
+  content = 'tetraedral mesh';  
+elseif filetype_check_extension(filename, '.nc')
+  type = 'netmeg'; 
+  manufacturer = 'Center for Biomedical Research Excellence (COBRE), see http://cobre.mrn.org/megsim/tools/netMEG/netMEG.html';
+  content = 'MEG data';  
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

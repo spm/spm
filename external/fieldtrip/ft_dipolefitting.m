@@ -146,9 +146,9 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_dipolefitting.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_dipolefitting.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -169,8 +169,6 @@ if ~isfield(cfg, 'feedback'),    cfg.feedback = 'text';      end
 if ~isfield(cfg, 'gridsearch'),  cfg.gridsearch = 'yes';     end
 if ~isfield(cfg, 'nonlinear'),   cfg.nonlinear = 'yes';      end
 if ~isfield(cfg, 'symmetry'),    cfg.symmetry = [];          end
-if ~isfield(cfg, 'inputfile'),   cfg.inputfile = [];         end
-if ~isfield(cfg, 'outputfile'),  cfg.outputfile = [];        end
 
 % put the low-level options pertaining to the dipole grid (used for initial scanning) in their own field
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});

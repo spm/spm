@@ -87,9 +87,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_mvaranalysis.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_mvaranalysis.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -120,9 +120,6 @@ if ~isfield(cfg, 'toi'),        cfg.toi        = [];             end
 if ~isfield(cfg, 't_ftimwin'),  cfg.t_ftimwin  = [];             end
 if ~isfield(cfg, 'keeptapers'), cfg.keeptapers = 'yes';          end
 if ~isfield(cfg, 'taper'),      cfg.taper      = 'rectwin';      end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile  = [];             end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile = [];             end
-
 
 % check that cfg.channel and cfg.channelcmb are not both specified
 if ~any(strcmp(cfg.channel, 'all')) && isfield(cfg, 'channelcmb')

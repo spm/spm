@@ -31,13 +31,12 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_datatype.m 4914 2011-12-01 15:14:18Z marvin $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
-israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell');
-isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
-istimelock =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
-isspike    =  isfield(data, 'label') && isfield(data, 'waveform') && isa(data.waveform, 'cell') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
+israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
+isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq') && ~isfield(data,'trialtime'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
+istimelock =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ~isfield(data,'trialtime'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp     =  isfield(data, 'label') && isfield(data, 'topo') || isfield(data, 'topolabel');
 isvolume   =  isfield(data, 'transform') && isfield(data, 'dim');
 issource   =  isfield(data, 'pos');
@@ -45,6 +44,11 @@ isdip      =  isfield(data, 'dip');
 ismvar     =  isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
 isfreqmvar =  isfield(data, 'freq') && isfield(data, 'transfer');
 ischan     =  isfield(data, 'dimord') && strcmp(data.dimord, 'chan') && ~isfield(data, 'time') && ~isfield(data, 'freq'); 
+% check if isspike:
+spk_hastimestamp = isfield(data,'label') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
+spk_hastrials = isfield(data,'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ...
+isfield(data, 'trialtime') && isa(data.trialtime, 'numeric');
+isspike = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials);
 
 if iscomp
   % comp should conditionally go before raw, otherwise the returned ft_datatype will be raw

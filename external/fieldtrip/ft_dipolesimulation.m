@@ -75,9 +75,9 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_dipolesimulation.m 4792 2011-11-23 09:26:23Z jorhor $
 
-revision = '$Id: ft_dipolesimulation.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_dipolesimulation.m 4792 2011-11-23 09:26:23Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -94,6 +94,8 @@ if ~isfield(cfg, 'relnoise'),   cfg.relnoise = 0;         end
 if ~isfield(cfg, 'absnoise'),   cfg.absnoise = 0;         end
 if ~isfield(cfg, 'feedback'),   cfg.feedback = 'text';    end
 if ~isfield(cfg, 'channel'),    cfg.channel = 'all';      end
+
+cfg = ft_checkconfig(cfg);
 
 cfg.dip = fixdipole(cfg.dip);
 Ndipoles = size(cfg.dip.pos,1);

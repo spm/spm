@@ -38,9 +38,9 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqinterpolate.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_freqinterpolate.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_freqinterpolate.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_freqinterpolate.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -55,8 +55,6 @@ freq = ft_checkdata(freq, 'datatype', 'freq', 'feedback', 'yes');
 % set the default values
 if ~isfield(cfg, 'method'),     cfg.method = 'nan';                     end
 if ~isfield(cfg, 'foilim'),     cfg.foilim = [49 51; 99 101; 149 151];  end
-if ~isfield(cfg, 'inputfile'),  cfg.inputfile                   = [];   end
-if ~isfield(cfg, 'outputfile'), cfg.outputfile                  = [];   end
 
 for i = 1:size(cfg.foilim,1)
   % determine the exact frequency bins to interpolate

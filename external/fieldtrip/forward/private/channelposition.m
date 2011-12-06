@@ -8,7 +8,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 % array and the optional input arguments should be specified as key
 % value pairs.
 %
-% See also FIXSENS, FT_DATATYPE_SENS
+% See also FT_DATATYPE_SENS
 
 % Copyright (C) 2009-2011, Robert Oostenveld & Vladimir Litvak
 %
@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: channelposition.m 4716 2011-11-10 15:50:05Z roboos $
 
 % FIXME varargin is not documented
 

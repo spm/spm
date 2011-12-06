@@ -99,9 +99,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_timelockanalysis.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_timelockanalysis.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_timelockanalysis.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -127,8 +127,6 @@ if ~isfield(cfg, 'covariance'),    cfg.covariance   = 'no';   end
 if ~isfield(cfg, 'removemean'),    cfg.removemean   = 'yes';  end
 if ~isfield(cfg, 'vartrllength'),  cfg.vartrllength = 0;      end
 if ~isfield(cfg, 'feedback'),      cfg.feedback     = 'text'; end
-if ~isfield(cfg, 'inputfile'),     cfg.inputfile    = [];     end
-if ~isfield(cfg, 'outputfile'),    cfg.outputfile   = [];     end
 if ~isfield(cfg, 'preproc'),       cfg.preproc      = [];     end
 
 % select trials of interest

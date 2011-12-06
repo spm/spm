@@ -68,9 +68,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_freqstatistics.m 4903 2011-11-30 17:20:18Z roevdmei $
 
-revision = '$Id: ft_freqstatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_freqstatistics.m 4903 2011-11-30 17:20:18Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -103,14 +103,9 @@ end
 
 % check whether channel neighbourhood information is needed and whether
 % this is present
-if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
-  if ~isfield(cfg,'neighbours')
-    error('if you want to use clustering for multiple comparison correction you have to specify the spatial neighbourhood structure of your channels. See ft_neighbourselection');
-  elseif iscell(cfg.neighbours)
-    warning('Neighbourstructure is in old format - converting to structure array');
-    cfg.neighbours = fixneighbours(cfg.neighbours);
-  end
-end
+% if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
+%   cfg = ft_checkconfig(cfg, 'required', {'neighbours'});    
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % data bookkeeping
@@ -163,7 +158,7 @@ for i=1:Ndata
       chan = varargin{i}.label;
     end
   else
-    chan = intersect(chan, varargin{i}.label);
+    chan = varargin{i}.label(ismember(varargin{i}.label, chan));
   end
 end
 

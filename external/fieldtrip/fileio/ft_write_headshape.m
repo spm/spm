@@ -24,7 +24,7 @@ function ft_write_headshape(filename, bnd, varargin)
 
 % Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
 %
-% $Rev: 4162 $
+% $Rev: 4781 $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 
@@ -76,12 +76,23 @@ switch fileformat
     write_off(filename,bnd.pnt,bnd.tri);
     
   case 'vista'
-    if ft_hastoolbox('simbio')
+    if ft_hastoolbox('simbio',1)
       % no conversion needed (works in voxel coordinates)
-      write_vista_mesh(filename,bnd.nd,bnd.el,bnd.labels); % bnd.tensor
+      if isfield(bnd,'hex')
+        write_vista_mesh(filename,bnd.pnt,bnd.hex,bnd.index); % bnd.tensor
+      elseif isfield(bnd,'tet')
+        write_vista_mesh(filename,bnd.pnt,bnd.tet,bnd.index);
+      else
+        error('unknown format')
+      end
     else
       error('You need Simbio/Vista toolbox to write a .v file')
     end
+    
+  case 'tetgen'
+    % the third argument is the element type. At the moment only type 302
+    % (triangle) is supported
+    surf_to_tetgen(filename, bnd.pnt, bnd.tri, 302*ones(size(bnd.tri,1),1),[],[]);
     
   case []
     error('you must specify the output format');

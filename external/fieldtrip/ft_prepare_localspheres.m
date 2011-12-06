@@ -64,9 +64,9 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 4611 2011-10-27 15:11:29Z roboos $
+% $Id: ft_prepare_localspheres.m 4791 2011-11-23 09:18:50Z jorhor $
 
-revision = '$Id: ft_prepare_localspheres.m 4611 2011-10-27 15:11:29Z roboos $';
+revision = '$Id: ft_prepare_localspheres.m 4791 2011-11-23 09:18:50Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -86,10 +86,9 @@ if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';    end
 if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
 if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
-if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];   end
+if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];    end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
-if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];      end
 
 hasdata = exist('mri', 'var');
 if hasdata
@@ -110,9 +109,6 @@ if isfield(cfg, 'gradfile')
 else
   grad = cfg.grad;
 end
-
-% FIXME, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-grad = ft_datatype_sens(grad); % ensure up-to-date sensor description (Oct 2011)
 
 Nshape = size(headshape.pnt,1);
 Nchan  = size(grad.tra, 1);
@@ -219,5 +215,10 @@ end % for all channels
 
 vol.type = 'multisphere';
 
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
+% ensure that the geometrical units are specified
+vol = ft_convert_units(vol);
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+

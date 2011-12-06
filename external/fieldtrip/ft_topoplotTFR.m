@@ -131,8 +131,6 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %
 % Other options:
 % cfg.labeloffset (offset of labels to their marker, default = 0.005)
-% cfg.inputfile  = one can specifiy preanalysed saved data as input
-%                   The data should be provided in a cell array
 
 % This function depends on FT_TIMELOCKBASELINE which has the following options:
 % cfg.baseline, documented
@@ -161,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 4665 2011-11-03 13:53:20Z jansch $
+% $Id: ft_topoplotTFR.m 4785 2011-11-22 15:28:41Z jansch $
 
-revision = '$Id: ft_topoplotTFR.m 4665 2011-11-03 13:53:20Z jansch $';
+revision = '$Id: ft_topoplotTFR.m 4785 2011-11-22 15:28:41Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -572,10 +570,38 @@ if (isfull || haslabelcmb) && isfield(data, cfg.parameter)
       sel2 = 1:siz(1);
       meandir = 1;
       
-    elseif strcmp(cfg.directionality, 'ff-fd')
-      error('cfg.directionality = ''ff-fd'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
-    elseif strcmp(cfg.directionality, 'fd-ff')
-      error('cfg.directionality = ''fd-ff'' is not supported anymore, you have to manually subtract the two before the call to ft_topoplotER');
+    elseif strcmp(cfg.directionality, 'inflow-outflow')
+      % do the subtraction and recursively call the function again
+      tmpcfg = cfg;
+      tmpcfg.directionality = 'inflow';
+      tmpdata = data;
+      tmp     = data.(tmpcfg.parameter);
+      siz     = [size(tmp) 1];
+      for k = 1:siz(3)
+        for m = 1:siz(4)
+          tmp(:,:,k,m) = tmp(:,:,k,m)-tmp(:,:,k,m)';
+        end
+      end
+      tmpdata.(tmpcfg.parameter) = tmp;
+      ft_topoplotTFR(tmpcfg, tmpdata);
+      return;
+      
+    elseif strcmp(cfg.directionality, 'outflow-inflow')
+      % do the subtraction and recursively call the function again
+      tmpcfg = cfg;
+      tmpcfg.directionality = 'outflow';
+      tmpdata = data;
+      tmp     = data.(tmpcfg.parameter);
+      siz     = [size(tmp) 1];
+      for k = 1:siz(3)
+        for m = 1:siz(4)
+          tmp(:,:,k,m) = tmp(:,:,k,m)-tmp(:,:,k,m)';
+        end
+      end
+      tmpdata.(tmpcfg.parameter) = tmp;
+      ft_topoplotTFR(tmpcfg, tmpdata);
+      return;
+    
     end
   end
 end

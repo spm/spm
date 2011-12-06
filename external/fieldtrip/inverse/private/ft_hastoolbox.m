@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 4645 2011-10-31 21:29:53Z roboos $
+% $Id: ft_hastoolbox.m 4934 2011-12-05 08:59:26Z jansch $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -69,8 +69,8 @@ url = {
   'NEUROSHARE' 'see http://www.neuroshare.org'
   'BESA'       'see http://www.megis.de, or contact Karsten Hoechstetter'
   'EEPROBE'    'see http://www.ant-neuro.com, or contact Maarten van der Velde'
-  'YOKOGAWA'   'see http://www.yokogawa.co.jp, or contact Nobuhiko Takahashi'
-  'YOKOGAWA_MEG_READER' 'contact Masayuki dot Mochiduki at jp.yokogawa.com'
+  'YOKOGAWA'   'outdated, use toolbox indicated in next line'
+  'YOKOGAWA_MEG_READER' 'see http://www.yokogawa.com/me/me-login-en.htm'
   'BEOWULF'    'see http://oostenveld.net, or contact Robert Oostenveld'
   'MENTAT'     'see http://oostenveld.net, or contact Robert Oostenveld'
   'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth'
@@ -106,6 +106,9 @@ url = {
   'BCT'        'see http://www.brain-connectivity-toolbox.net/'
   'CCA'        'see http://www.imt.liu.se/~magnus/cca or contact Magnus Borga'
   'EGI_MFF'    'see http://www.egi.com/ or contact either Phan Luu or Colin Davey at EGI'
+  'TOOLBOX_GRAPH' 'see http://www.mathworks.com/matlabcentral/fileexchange/5355-toolbox-graph or contact Gabriel Peyre'
+  'NETCDF'     'see http://www.mathworks.com/matlabcentral/fileexchange/15177'
+  'BCT'        'see http://www.brain-connectivity-toolbox.net/'
   };
 
 if nargin<2
@@ -249,6 +252,12 @@ switch toolbox
     status = exist('ccabss.m', 'file');
   case 'EGI_MFF'
     status = exist('mff_getObject.m', 'file') && exist('mff_getSummaryInfo.m', 'file');
+  case 'TOOLBOX_GRAPH'
+    status = exist('toolbox_graph');
+  case 'NETCDF'
+    status = exist('netcdf');
+  case 'BCT'
+    status = exist('clustering_coef_bd', 'file') && exist('edge_betweenness_wei', 'file');
 
     % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
     % these are added in ft_defaults and are specified with unix-style forward slashes

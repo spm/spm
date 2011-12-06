@@ -1,12 +1,13 @@
-function [freq] = ft_spiketriggeredspectrum(cfg, data)
+function [sts] = ft_spiketriggeredspectrum(cfg, data)
 
-% FT_SPIKETRIGGEREDSPECTRUM computes the Fourier spectrup of the LFP around the spikes.
+% FT_SPIKETRIGGEREDSPECTRUM computes the Fourier spectrup of the LFP around
+% the spikes.
 %
 % Use as
-%   [freq] = ft_spiketriggeredspectrum(cfg, data)
+%   [sts] = ft_spiketriggeredspectrum(cfg, data)
 %
 % The input data should be organised in a structure as obtained from
-% the FT_APPENDSPIKE function. The configuration should be according to
+% the FT_APPENDSPIKE or FT_SPIKE_SPIKE2DATA function. The configuration should be according to
 %
 %   cfg.timwin       = [begin end], time around each spike (default = [-0.1 0.1])
 %   cfg.foilim       = [begin end], frequency band of interest (default = [0 150])
@@ -23,9 +24,14 @@ function [freq] = ft_spiketriggeredspectrum(cfg, data)
 % If the triggered spike leads a spike in another channel, then the angle
 % of the Fourier spectrum of that other channel will be negative. NOTE that
 % this should be checked for consistency.
+
+% FIXME this function should be merged with ft_spike_triggeredspectrum
 %
-% NOTE: Function should be merged with ft_spike_triggeredspectrum
-%
+% This function uses a NaN-aware spectral estimation technique, which will
+% default to the standard Matlab FFT routine if no NaNs are present. The
+% fft_along_rows subfunction below demonstrates the expected function
+% behaviour.
+
 % Copyright (C) 2008, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -44,31 +50,40 @@ function [freq] = ft_spiketriggeredspectrum(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredspectrum.m 4306 2011-09-27 07:52:27Z eelspa $
+% $Id: ft_spiketriggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $
 
-% This function uses a NaN-aware spectral estimation technique, which will
-% default to the standard Matlab FFT routine if no NaNs are present. The
-% fft_along_rows subfunction below demonstrates the expected function
-% behaviour.
+revision = '$Id: ft_spiketriggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $';
 
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();
-ftFuncMem   = memtic();
+% check input data structure
+data = ft_checkdata(data,'datatype', 'raw', 'feedback', 'yes');
 
-% enable configuration tracking
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
+% these were supported in the past, but are not any more (for consistency with other spike functions)
+cfg = ft_checkconfig(cfg, 'forbidden', 'inputfile');   % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
+cfg = ft_checkconfig(cfg, 'forbidden', 'outputfile');  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
 
-% set the defaults
-if ~isfield(cfg, 'timwin'),       cfg.timwin = [-0.1 0.1];    end
-if ~isfield(cfg, 'foilim'),       cfg.foilim = [0 150];       end
-if ~isfield(cfg, 'taper'),        cfg.taper = 'hanning';      end
-if ~isfield(cfg, 'channel'),      cfg.channel = 'all';        end
-if ~isfield(cfg, 'spikechannel'), cfg.spikechannel = [];      end
-if ~isfield(cfg, 'feedback'),     cfg.feedback = 'no';        end
-if ~isfield(cfg, 'tapsmofrq'),    cfg.tapsmofrq = 4;          end
+%get the options
+cfg.timwin       = ft_getopt(cfg, 'timwin',[-0.1 0.1]);
+cfg.spikechannel = ft_getopt(cfg,'spikechannel', []);
+cfg.channel      = ft_getopt(cfg,'channel', 'all');
+cfg.feedback     = ft_getopt(cfg,'feedback', 'no');
+cfg.tapsmofrq    = ft_getopt(cfg,'tapsmofrq', 4);
+cfg.taper        = ft_getopt(cfg,'taper', 'hanning');
+cfg.foilim       = ft_getopt(cfg,'foilim', [0 150]);
+
+% ensure that the options are valid
+cfg = ft_checkopt(cfg,'timwin','doublevector');
+cfg = ft_checkopt(cfg,'spikechannel',{'cell', 'char', 'double', 'empty'});
+cfg = ft_checkopt(cfg,'channel', {'cell', 'char', 'double'});
+cfg = ft_checkopt(cfg,'feedback', 'char', {'yes', 'no'});
+cfg = ft_checkopt(cfg,'taper', 'char');
+cfg = ft_checkopt(cfg,'tapsmofrq', 'doublescalar');
+cfg = ft_checkopt(cfg,'foilim', 'doublevector');
 
 if strcmp(cfg.taper, 'sine')
   error('sorry, sine taper is not yet implemented');
@@ -150,11 +165,11 @@ rephase   = sparse(diag(conj(spike_fft)));
 for i=1:ntrial
   spikesmp = find(data.trial{i}(spikesel,:));
   spikecnt = data.trial{i}(spikesel,spikesmp);
-
+  
   if any(spikecnt>5) || any(spikecnt<0)
     error('the spike count lies out of the regular bounds');
   end
-
+  
   % instead of doing the bookkeeping of double spikes below, replicate the double spikes by looking at spikecnt
   sel = find(spikecnt>1);
   tmp = zeros(1,sum(spikecnt(sel)));
@@ -170,19 +185,19 @@ for i=1:ntrial
   spikesmp = [spikesmp tmp];              % add the double spikes as replicated single spikes
   spikecnt = [spikecnt ones(size(tmp))];  % add the double spikes as replicated single spikes
   spikesmp = sort(spikesmp);              % sort them to keep the original ordering (not needed on spikecnt, since that is all ones)
-
+  
   spiketime{i}  = data.time{i}(spikesmp);
   spiketrial{i} = i*ones(size(spikesmp));
   fprintf('processing trial %d of %d (%d spikes)\n', i, ntrial, sum(spikecnt));
-
+  
   spectrum{i} = zeros(length(spikesmp), nchansel, fend-fbeg+1);
-
+  
   ft_progress('init', cfg.feedback, 'spectrally decomposing data around spikes');
   for j=1:length(spikesmp)
     ft_progress(i/ntrial, 'spectrally decomposing data around spike %d of %d\n', j, length(spikesmp));
     begsmp = spikesmp(j) + begpad;
     endsmp = spikesmp(j) + endpad;
-
+    
     if (begsmp<1)
       segment = nan*zeros(nchansel, numsmp);
     elseif endsmp>size(data.trial{i},2)
@@ -190,68 +205,58 @@ for i=1:ntrial
     else
       segment = data.trial{i}(chansel,begsmp:endsmp);
     end
-
-    % substract the DC component from every segment, to avoid any leakage of the taper       
+    
+    % substract the DC component from every segment, to avoid any leakage of the taper
     segmentMean = repmat(nanmean(segment,2),1,numsmp); % nChan x Numsmp
     segment     = segment - segmentMean; % LFP has average of zero now (no DC)
-        
+    
     time  = randn(size(segment)); % this is actually not used
-
+    
     % taper the data segment around the spike and compute the fft
     segment_fft = specest_nanfft(segment * taper, time);
-
+    
     % select the desired output frquencies and normalize
     segment_fft = segment_fft(:,fbeg:fend) ./ sqrt(numsmp/2);
-
+    
     % rotate the estimated phase at each frequency to correct for the segment t=0 not being at the first sample
     segment_fft = segment_fft * rephase;
-
+    
     % store the result for this spike in this trial
     spectrum{i}(j,:,:) = segment_fft;
-
+    
   end % for each spike in this trial
   ft_progress('close');
-
+  
 end % for each trial
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % collect the results
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-freq.label          = data.label(chansel);
-freq.freq           = freqaxis(fbeg:fend);
-freq.dimord         = 'rpt_chan_freq';
+sts.lfplabel       = data.label(chansel);
+sts.freq           = freqaxis(fbeg:fend);
+sts.dimord         = 'rpt_chan_freq';
 
-freq.fourierspctrm  = cat(1, spectrum{:});
-freq.origtime       = cat(2,spiketime{:})';  % this deviates from the standard output, but is included for reference
-freq.origtrial      = cat(2,spiketrial{:})'; % this deviates from the standard output, but is included for reference
+sts.fourierspctrm  = cat(1, spectrum{:});
+sts.time           = cat(2,spiketime{:})';  % this deviates from the standard output, but is included for reference
+sts.trial          = cat(2,spiketrial{:})'; % this deviates from the standard output, but is included for reference
 
 % select all trials that do not contain data in the first sample
-sel = isnan(freq.fourierspctrm(:,1,1));
+sel = isnan(sts.fourierspctrm(:,1,1));
 fprintf('removing %d trials from the output that do not contain data\n', sum(sel));
 % remove the selected trials from the output
-freq.fourierspctrm  = freq.fourierspctrm(~sel,:,:);
-freq.origtime       = freq.origtime(~sel);
-freq.origtrial      = freq.origtrial(~sel);
+sts.fourierspctrm  = {sts.fourierspctrm(~sel,:,:)};
+sts.time       = {sts.time(~sel)};
+sts.trial      = {sts.trial(~sel)};
+for i = 1:ntrial
+  sts.trialtime(i,:) = [data.time{i}(1) data.time{i}(end)];
+end
+sts.label   = data.label(spikesel);
 
-% add version information to the configuration
-cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: ft_spiketriggeredspectrum.m 4306 2011-09-27 07:52:27Z eelspa $';
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-  
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername();
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
-
-% remember the configuration details of the input data
-try, cfg.previous = data.cfg; end
-
-% remember the exact configuration details in the output
-freq.cfg = cfg;
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history sts
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION for demonstration purpose

@@ -50,21 +50,22 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %   cfg.bsfreq        = bandstop frequency range, specified as [low high] in Hz
 %   cfg.dftfreq       = line noise frequencies in Hz for DFT filter (default = [50 100 150])
-%   cfg.lpfiltord     = lowpass  filter order (default = 6)
-%   cfg.hpfiltord     = highpass filter order (default = 6)
-%   cfg.bpfiltord     = bandpass filter order (default = 4)
-%   cfg.bsfiltord     = bandstop filter order (default = 4)
-%   cfg.lpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
-%   cfg.hpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
-%   cfg.bpfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
-%   cfg.bsfilttype    = digital filter type, 'but' or 'fir' (default = 'but')
+%   cfg.lpfiltord     = lowpass  filter order (default set in low-level function)
+%   cfg.hpfiltord     = highpass filter order (default set in low-level function)
+%   cfg.bpfiltord     = bandpass filter order (default set in low-level function)
+%   cfg.bsfiltord     = bandstop filter order (default set in low-level function)
+%   cfg.lpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
+%   cfg.hpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
+%   cfg.bpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
+%   cfg.bsfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
 %   cfg.lpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.hpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.bpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.medianfiltord = length of median filter (default = 9)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
-%   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
+%   cfg.baselinewindow = [begin end] in seconds, the default is the
+%   complete trial (default = 'all')
 %   cfg.detrend       = 'no' or 'yes', this is done on the complete trial (default = 'no')
 %   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial (default = 'no')
 %   cfg.polyorder     = polynome order (default = 2)
@@ -176,9 +177,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_preprocessing.m 4839 2011-11-27 17:32:37Z marvin $
 
-revision = '$Id: ft_preprocessing.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_preprocessing.m 4839 2011-11-27 17:32:37Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -197,8 +198,6 @@ if ~isfield(cfg, 'method'),       cfg.method = 'trial';         end
 if ~isfield(cfg, 'channel'),      cfg.channel = {'all'};        end
 if ~isfield(cfg, 'removemcg'),    cfg.removemcg = 'no';         end
 if ~isfield(cfg, 'removeeog'),    cfg.removeeog = 'no';         end
-if ~isfield(cfg, 'inputfile'),    cfg.inputfile = [];           end
-if ~isfield(cfg, 'outputfile'),   cfg.outputfile = [];          end % this is for writing the result to a mat file
 
 if ~isfield(cfg, 'feedback'),
   if strcmp(cfg.method, 'channel')

@@ -31,7 +31,7 @@ function vol = ft_headmodel_bem_openmeeg(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-%$Id: ft_headmodel_bem_openmeeg.m 4650 2011-11-02 10:33:43Z crimic $
+%$Id: ft_headmodel_bem_openmeeg.m 4771 2011-11-17 23:28:31Z crimic $
 
 ft_hastoolbox('openmeeg', 1);
 
@@ -43,6 +43,11 @@ ft_hastoolbox('openmeeg', 1);
 isolatedsource  = ft_getopt(varargin, 'isolatedsource');
 hdmfile         = ft_getopt(varargin, 'hdmfile');
 conductivity    = ft_getopt(varargin, 'conductivity');
+
+% copy the boundaries from the geometry into the volume conduction model
+if isfield(geom,'bnd')
+  geom = geom.bnd;
+end
 
 % start with an empty volume conductor
 vol = [];
@@ -56,12 +61,27 @@ if ~isempty(hdmfile)
     vol.cond = hdm.cond;
   end
 else
-  % copy the boundaries from the geometry into the volume conduction model
   vol.bnd = geom;
 end
 
 % determine the number of compartments
 numboundaries = length(vol.bnd);
+
+if isempty(conductivity)
+  warning('No conductivity is declared, Assuming standard values\n')
+  if numboundaries == 1
+    conductivity = 1;
+  elseif numboundaries == 3
+    % skin/skull/brain
+    conductivity = [1 1/80 1] * 0.33;
+  elseif numboundaries == 4
+    %FIXME: check for better default values here
+    % skin / outer skull / inner skull / brain    
+    conductivity = [1 1/80 1 1] * 0.33;    
+  else
+    error('Conductivity values are required!')
+  end
+end
 
 if isempty(isolatedsource)
   if numboundaries>1
@@ -147,20 +167,20 @@ try
   end
   
   % these will hold the shell script and the inverted system matrix
-  [~,tname] = fileparts(tempname);
+  [tmp,tname] = fileparts(tempname);
   if ~ispc
     exefile = [tname '.sh'];
   else
     exefile = [tname '.bat'];
   end
   
-  [~,tname] = fileparts(tempname);
+  [tmp,tname] = fileparts(tempname);
   condfile  = [tname '.cond'];
-  [~,tname] = fileparts(tempname);
+  [tmp,tname] = fileparts(tempname);
   geomfile  = [tname '.geom'];
-  [~,tname] = fileparts(tempname);
+  [tmp,tname] = fileparts(tempname);
   hmfile    = [tname '.bin'];
-  [~,tname] = fileparts(tempname);
+  [tmp,tname] = fileparts(tempname);
   hminvfile = [tname '.bin'];
   
   % write conductivity and geometry files

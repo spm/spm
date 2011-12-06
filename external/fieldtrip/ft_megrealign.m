@@ -105,9 +105,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_megrealign.m 4740 2011-11-15 09:08:05Z jansch $
 
-revision = '$Id: ft_megrealign.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_megrealign.m 4740 2011-11-15 09:08:05Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -130,8 +130,6 @@ if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';          end
 if ~isfield(cfg, 'trials'),        cfg.trials = 'all';            end
 if ~isfield(cfg, 'channel'),       cfg.channel = 'MEG';           end
 if ~isfield(cfg, 'topoparam'),     cfg.topoparam = 'rms';         end
-if ~isfield(cfg, 'inputfile'),     cfg.inputfile = [];            end
-if ~isfield(cfg, 'outputfile'),    cfg.outputfile = [];           end
 
 % store original datatype
 dtype = ft_datatype(data);
@@ -334,13 +332,9 @@ if strcmp(cfg.feedback, 'yes')
   
   % show figure with old an new helmets, volume model and dipole grid
   figure
-  tmpcfg = [];
-  tmpcfg.vol = volold;
-  tmpcfg.grad = gradorig;
-  tmpcfg.grid = grid;
-  tmpcfg.plotsensors = 'no';  % these are plotted seperately below
-  ft_headmodelplot(tmpcfg);
   hold on
+  ft_plot_vol(volold);
+  plot3(grid.pos(:,1),grid.pos(:,2),grid.pos(:,3),'b.');
   plot3(pnt1(:,1), pnt1(:,2), pnt1(:,3), 'r.') % original positions
   plot3(pnt2(:,1), pnt2(:,2), pnt2(:,3), 'g.') % template positions
   line(X,Y,Z, 'color', 'black');

@@ -22,7 +22,6 @@ function bnd = ft_prepare_mesh(cfg, data)
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
-%   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
 % file on disk and/or the output data will be written to a *.mat file. These mat
 % files should contain only a single variable, corresponding with the
@@ -54,9 +53,9 @@ function bnd = ft_prepare_mesh(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh_new.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_prepare_mesh_new.m 4692 2011-11-07 21:31:14Z roboos $
 
-revision = '$Id: ft_prepare_mesh_new.m 4624 2011-10-29 10:10:49Z roboos $';
+revision = '$Id: ft_prepare_mesh_new.m 4692 2011-11-07 21:31:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -276,11 +275,9 @@ for i=1:length(bnd)
   bnd(i).pnt = scaleunit(sourceunits,mriunits,bnd(i).pnt);
 end
 
-% the output data should be saved to a MATLAB file
-if ~isempty(outputfile)
-  savevar(outputfile, 'data', bnd); % use the variable name "data" in the output file
-end
-
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

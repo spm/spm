@@ -21,7 +21,12 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 4383 2011-10-08 11:57:20Z roboos $
+% $Id: printstruct.m 4726 2011-11-12 10:58:21Z roboos $
+
+if nargin==1
+  val  = name;
+  name = inputname(1);
+end
 
 str = [];
 if isstruct(val)

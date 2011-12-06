@@ -60,15 +60,15 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %   cfg.bpfreq        = bandpass frequency range, specified as [low high] in Hz
 %   cfg.bsfreq        = bandstop frequency range, specified as [low high] in Hz
 %   cfg.dftfreq       = line noise frequencies for DFT filter, default [50 100 150] Hz
-%   cfg.lpfiltord     = lowpass  filter order
-%   cfg.hpfiltord     = highpass filter order
-%   cfg.bpfiltord     = bandpass filter order
-%   cfg.bsfiltord     = bandstop filter order
+%   cfg.lpfiltord     = lowpass  filter order (default set in low-level function)
+%   cfg.hpfiltord     = highpass filter order (default set in low-level function)
+%   cfg.bpfiltord     = bandpass filter order (default set in low-level function)
+%   cfg.bsfiltord     = bandstop filter order (default set in low-level function)
 %   cfg.medianfiltord = length of median filter
-%   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.bpfilttype    = digital filter type, 'but' (default) or 'fir'
-%   cfg.bsfilttype    = digital filter type, 'but' (default) or 'fir'
+%   cfg.lpfilttype    = digital filter type, 'but' (default) or 'fir' or 'firls'
+%   cfg.hpfilttype    = digital filter type, 'but' (default) or 'fir' or 'firls'
+%   cfg.bpfilttype    = digital filter type, 'but' (default) or 'fir' or 'firls'
+%   cfg.bsfilttype    = digital filter type, 'but' (default) or 'fir' or 'firls'
 %   cfg.lpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
 %   cfg.hpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
 %   cfg.bpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse'
@@ -111,7 +111,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 4584 2011-10-25 11:07:50Z roevdmei $
+% $Id: preproc.m 4772 2011-11-18 13:28:53Z johzum $
 
 
 
@@ -168,10 +168,10 @@ if ~isfield(cfg, 'lpfilter'),     cfg.lpfilter = 'no';          end
 if ~isfield(cfg, 'hpfilter'),     cfg.hpfilter = 'no';          end
 if ~isfield(cfg, 'bpfilter'),     cfg.bpfilter = 'no';          end
 if ~isfield(cfg, 'bsfilter'),     cfg.bsfilter = 'no';          end
-if ~isfield(cfg, 'lpfiltord'),    cfg.lpfiltord = 6;            end
-if ~isfield(cfg, 'hpfiltord'),    cfg.hpfiltord = 6;            end
-if ~isfield(cfg, 'bpfiltord'),    cfg.bpfiltord = 4;            end
-if ~isfield(cfg, 'bsfiltord'),    cfg.bsfiltord = 4;            end
+if ~isfield(cfg, 'lpfiltord'),    cfg.lpfiltord = [];           end
+if ~isfield(cfg, 'hpfiltord'),    cfg.hpfiltord = [];           end
+if ~isfield(cfg, 'bpfiltord'),    cfg.bpfiltord = [];           end
+if ~isfield(cfg, 'bsfiltord'),    cfg.bsfiltord = [];           end
 if ~isfield(cfg, 'lpfilttype'),   cfg.lpfilttype = 'but';       end
 if ~isfield(cfg, 'hpfilttype'),   cfg.hpfilttype = 'but';       end
 if ~isfield(cfg, 'bpfilttype'),   cfg.bpfilttype = 'but';       end
@@ -275,6 +275,40 @@ if ~isempty(cfg.denoise),
   tmpdat   = ft_preproc_denoise(dat(datlabel,:), dat(reflabel,:), hflag);
   dat(datlabel,:) = tmpdat;
 end
+if strcmp(cfg.polyremoval, 'yes')
+  nsamples     = size(dat,2);
+  % the begin and endsample of the polyremoval period correspond to the complete data minus padding
+  begsample = 1        + begpadding;
+  endsample = nsamples - endpadding;
+  dat = ft_preproc_polyremoval(dat, cfg.polyorder, begsample, endsample);
+end
+if strcmp(cfg.detrend, 'yes')
+  nsamples     = size(dat,2);
+  % the begin and endsample of the detrend period correspond to the complete data minus padding
+  begsample = 1        + begpadding;
+  endsample = nsamples - endpadding;
+  dat = ft_preproc_detrend(dat, begsample, endsample);
+end
+if strcmp(cfg.demean, 'yes') || nargout>2
+  % determine the complete time axis for the baseline correction
+  % but only construct it when really needed, since it takes up a large amount of memory
+  % the time axis should include the filter padding
+  nsamples = size(dat,2);
+  time = (offset - begpadding + (0:(nsamples-1)))/fsample;
+end
+if strcmp(cfg.demean, 'yes')
+  if ischar(cfg.baselinewindow) && strcmp(cfg.baselinewindow, 'all')
+    % the begin and endsample of the baseline period correspond to the complete data minus padding
+    begsample = 1        + begpadding;
+    endsample = nsamples - endpadding;
+    dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);
+  else
+    % determine the begin and endsample of the baseline period and baseline correct for it
+    begsample = nearest(time, cfg.baselinewindow(1));
+    endsample = nearest(time, cfg.baselinewindow(2));
+    dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);
+  end
+end
 if strcmp(cfg.medianfilter, 'yes'), dat = ft_preproc_medianfilter(dat, cfg.medianfiltord); end
 if strcmp(cfg.lpfilter, 'yes'),     dat = ft_preproc_lowpassfilter(dat, fsample, cfg.lpfreq, cfg.lpfiltord, cfg.lpfilttype, cfg.lpfiltdir); end
 if strcmp(cfg.hpfilter, 'yes'),     dat = ft_preproc_highpassfilter(dat, fsample, cfg.hpfreq, cfg.hpfiltord, cfg.hpfilttype, cfg.hpfiltdir); end
@@ -283,16 +317,6 @@ if strcmp(cfg.bsfilter, 'yes')
   for i=1:size(cfg.bsfreq,1)
     % apply a bandstop filter for each of the specified bands, i.e. cfg.bsfreq should be Nx2
     dat = ft_preproc_bandstopfilter(dat, fsample, cfg.bsfreq(i,:), cfg.bsfiltord, cfg.bsfilttype, cfg.bsfiltdir);
-  end
-end
-if strcmp(cfg.dftfilter, 'yes')
-  datorig = dat;
-  for i=1:length(cfg.dftfreq)
-    % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
-    dat = ft_preproc_dftfilter(dat, fsample, cfg.dftfreq(i));
-  end
-  if strcmp(cfg.dftinvert, 'yes'),
-    dat = datorig - dat;
   end
 end
 if strcmp(cfg.polyremoval, 'yes')
@@ -327,6 +351,16 @@ if strcmp(cfg.demean, 'yes')
     begsample = nearest(time, cfg.baselinewindow(1));
     endsample = nearest(time, cfg.baselinewindow(2));
     dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);
+  end
+end
+if strcmp(cfg.dftfilter, 'yes')
+  datorig = dat;
+  for i=1:length(cfg.dftfreq)
+    % filter out the 50Hz noise, optionally also the 100 and 150 Hz harmonics
+    dat = ft_preproc_dftfilter(dat, fsample, cfg.dftfreq(i));
+  end
+  if strcmp(cfg.dftinvert, 'yes'),
+    dat = datorig - dat;
   end
 end
 if ~strcmp(cfg.hilbert, 'no')

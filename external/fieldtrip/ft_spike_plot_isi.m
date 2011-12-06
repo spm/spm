@@ -1,12 +1,14 @@
-function [H] = ft_spike_plot_isih(cfg,isih)
+function [H] = ft_spike_plot_isi(cfg, isih)
 
-% FT_SPIKE_PLOT_ISI makes an inter-spike-interval bar plot
+% FT_SPIKE_PLOT_ISI makes an inter-spike-interval bar plot.
 %
-%   Inputs:
+% Use as
+%   hdl = ft_spike_plot_isi(cfg, isih)
+%
+% Inputs:
 %   ISIH is the output from FT_SPIKE_ISIHIST
-%   
-%   Configurations (cfg):
 %
+% Configurations:
 %   cfg.spikechannel     = string or index or logical array to to select 1 spike channel.
 %                          (default = 1).
 %   cfg.ylim             = [min max] or 'auto' (default)
@@ -14,34 +16,38 @@ function [H] = ft_spike_plot_isih(cfg,isih)
 %   cfg.plotfit          = 'yes' (default) or 'no'. This requires that when calling
 %                          FT_SPIKESTATION_ISI, cfg.gammafit = 'yes'.
 %
-%   Outputs:
-%   H.fit                = handle for line fit. Use SET and GET to access.
-%   H.isih               = handle for bar isi histogram. Use SET and GET to access.
+% Outputs:
+%   hdl.fit              = handle for line fit. Use SET and GET to access.
+%   hdl.isih             = handle for bar isi histogram. Use SET and GET to access.
+
+% Copyright (C) 2010, Martin Vinck
 %
+% $Id: ft_spike_plot_isi.m 4839 2011-11-27 17:32:37Z marvin $
 
-% Martin Vinck (C) 2010. 
+revision = '$Id: ft_spike_plot_isi.m 4839 2011-11-27 17:32:37Z marvin $';
 
+% do the general setup of the function
 ft_defaults
+ft_preamble help
+ft_preamble callinfo
+ft_preamble trackconfig
 
-% record start time and total processing time
-ftFuncTimer = tic();
-ftFuncClock = clock();;
-ftFuncMem   = memtic();
+% get the default options
+cfg.spikechannel = ft_getopt(cfg, 'spikechannel', 'all');
+cfg.ylim         = ft_getopt(cfg,'ylim', 'auto');
+cfg.plotfit      = ft_getopt(cfg,'plotfit', 'no');
 
-% check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'trackconfig', 'on');
-
-defaults.plotfit      = {'no' 'yes'};
-defaults.spikechannel = {1}; 
-defaults.ylim         = {'auto'};
-cfg = ft_spike_sub_defaultcfg(cfg,defaults);
+% ensure that the options are valid
+cfg = ft_checkopt(cfg,'spikechannel',{'cell', 'char', 'double'});
+cfg = ft_checkopt(cfg,'ylim', {'char','double'});
+cfg = ft_checkopt(cfg,'plotfit', 'char', {'yes', 'no'});
 
 % get the spikechannels
 cfg.channel = ft_channelselection(cfg.spikechannel, isih.label);
 spikesel    = match_str(isih.label, cfg.channel);
 nUnits      = length(spikesel); % number of spike channels
 if nUnits~=1, error('MATLAB:ft_spike_plot_isi:cfg:spikechannel:wrongInput',...
-      'One spikechannel should be selected by means of cfg.spikechannel'); 
+    'One spikechannel should be selected by means of cfg.spikechannel');
 end
 
 % plot the average isih
@@ -49,16 +55,16 @@ isiHdl = bar(isih.time,isih.avg(spikesel,:),'k');
 set(isiHdl,'BarWidth', 1)
 
 if strcmp(cfg.plotfit,'yes')
-    
+  
   if ~isfield(isih,'gammaShape') || ~isfield(isih,'gammaScale')
     error('MATLAB:ft_spike_plot_isi:fitConflict',...
-    'ISIH.gammaShape and .gammaScale should be present when cfg.plotfit = yes');
+      'ISIH.gammaShape and .gammaScale should be present when cfg.plotfit = yes');
   end
   
-  % generate the probabilities according to the gamma model  
+  % generate the probabilities according to the gamma model
   pGamma = gampdf(isih.time, isih.gammaShape(spikesel), isih.gammaScale(spikesel));
   pGamma = pGamma./sum(pGamma);
-
+  
   % scale the fit in the same way (total area is equal)
   sumIsih = sum(isih.avg(spikesel,:),2);
   pGamma  = pGamma*sumIsih;
@@ -70,7 +76,7 @@ else
   pGamma = 0;
 end
 
-try 
+try
   if strcmp(isih.cfg.outputunit, 'proportion')
     ylabel('probability')
   elseif strcmp(isih.cfg.outputunit, 'spikecount')
@@ -85,10 +91,10 @@ set(gca,'XLim', [min(isih.time) max(isih.time)])
 
 % set the y axis
 if strcmp(cfg.ylim, 'auto')
-    y = [isih.avg(spikesel,:) pGamma];    
-    cfg.ylim = [0 max(y(:))*1.1+eps];    
+  y = [isih.avg(spikesel,:) pGamma];
+  cfg.ylim = [0 max(y(:))*1.1+eps];
 elseif ~isrealvec(cfg.ylim)||length(cfg.ylim)~=2 || cfg.ylim(2)<cfg.ylim(1)
-    error('MATLAB:ft_spike_plot_isi:cfg:ylim',...
+  error('MATLAB:ft_spike_plot_isi:cfg:ylim',...
     'cfg.ylim should be "auto" or ascending order 1-by-2 vector in seconds');
 end
 set(gca,'YLim', cfg.ylim)
@@ -102,26 +108,9 @@ H.isih   = isiHdl;
 set(zoom,'ActionPostCallback',{@mypostcallback,cfg.ylim,[min(isih.time) max(isih.time)]});
 set(pan,'ActionPostCallback',{@mypostcallback,cfg.ylim,[min(isih.time) max(isih.time)]});
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% deal with the output
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% get the output cfg
-cfg = ft_checkconfig(cfg, 'trackconfig', 'off', 'checksize', 'yes');
-
-% add the version details of this function call to the configuration
-cfg.version.name = mfilename('fullpath'); % this is helpful for debugging
-cfg.version.id   = '$Id: ft_spike_plot_isi.m 4155 2011-09-12 10:13:30Z roboos $'; % this will be auto-updated by the revision control system
-
-% add information about the Matlab version used to the configuration
-cfg.callinfo.matlab = version();
-
-% add information about the function call to the configuration
-cfg.callinfo.proctime = toc(ftFuncTimer);
-cfg.callinfo.procmem  = memtoc(ftFuncMem);
-cfg.callinfo.calltime = ftFuncClock;
-cfg.callinfo.user = getusername(); % this is helpful for debugging
-fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', mfilename, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble trackconfig
+ft_postamble callinfo
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -133,10 +122,10 @@ ax = evd.Axes;
 xlim = get(ax(1), 'XLim');
 ylim = get(ax(1), 'YLim');
 if limX(1)>xlim(1), xlim(1) = limX(1); end
-if limX(2)<xlim(2), xlim(2) = limX(2); end      
+if limX(2)<xlim(2), xlim(2) = limX(2); end
 if limY(1)>ylim(1), ylim(1) = limY(1); end
-if limY(2)<ylim(2), ylim(2) = limY(2); end      
+if limY(2)<ylim(2), ylim(2) = limY(2); end
 
 set(ax(1), 'XLim',xlim)
-set(ax(1), 'YLim',ylim);  
+set(ax(1), 'YLim',ylim);
 
