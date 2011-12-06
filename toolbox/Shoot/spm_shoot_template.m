@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot_template.m 4583 2011-12-06 16:03:01Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -89,7 +89,7 @@ for i=1:n2,
                                [dm 1 1], 'float32-le', 352, 1, 0);
     end
 
-    NU(i).descrip = sprintf('Velocity (%d %.4g %.4g %.4g)', rparam(1), rparam(2), rparam(3), rparam(4));
+    NU(i).descrip = sprintf('Velocity (%d %.4g %.4g %.4g %.4g)', rparam(1), rparam(2), rparam(3), rparam(4), rparam(5));
     NU(i).mat     = NF(1,i).NI.mat;
     NU(i).mat0    = NF(1,i).NI.mat0;
 
@@ -180,7 +180,7 @@ for it=1:nits,
 
     % More regularisation in the early iterations, as well as a
     % a less accurate approximation in the integration.
-    prm      = [rparam(1), vx, rparam(2:3)*sched(it+1), rparam(4)];
+    prm      = [vx, rparam*sched(it+1)];
     int_args = [eul_its(it), cyc_its];
     drawnow
 
@@ -204,7 +204,7 @@ for it=1:nits,
             drawnow
 
             % Gauss-Newton iteration to re-estimate deformations for this subject
-            u = spm_shoot_update(g,f,u,y,dt,prm,int_args,bs_args);
+            u = spm_shoot_update(g,f,u,y,dt,prm,bs_args);
             clear f y
 
             drawnow

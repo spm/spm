@@ -10,7 +10,7 @@ function d = spm_shoot_defaults
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_defaults.m 4174 2011-01-26 13:33:13Z john $
+% $Id: spm_shoot_defaults.m 4583 2011-12-06 16:03:01Z john $
 
 
 %_______________________________________________________________________
@@ -22,13 +22,13 @@ function d = spm_shoot_defaults
 d.tname   = 'Template'; % Base file name for templates
 d.issym   = false;      % Use a symmetric template?
 
-d.cyc_its = [3 3];      % No. multigrid cycles and iterations
+d.cyc_its = [1 2];      % No. multigrid cycles and iterations
 
 nits      = 24;         % No. iterations of Gauss-Newton
 
 % Schedule for coarse to fine
 lam     = 0.5;          % Decay of coarse to fine schedule
-inter   = 64;           % Scaling of parameters at first iteration
+inter   = 5;            % Scaling of parameters at first iteration
 d.sched = (inter-1)*exp(-lam*((1:(nits+1))-1))+1;
 d.sched = d.sched/d.sched(end);
 
@@ -37,8 +37,9 @@ d.eul_its = round((0:(nits-1))*(maxoil-0.5001)/(nits-1)+1); % Start with fewer s
 
 %d.rparam  = [0 1.0 0.5  1e-3]; % Regularisation parameters for deformation - used for evaluations
 %d.rparam  = [0 0.5 1.0  1e-3]; % Regularisation parameters for deformation - used for evaluations
-d.rparam  = [0 0.5 1.0  1e-4]; % Regularisation parameters for deformation
+d.rparam  = [1e-5 1e-5 2.0 0.1 1.0]; % Regularisation parameters for deformation
 d.sparam  = [2 2.0 0.05 0.01]; % Regularisation parameters for blurring
+d.sparam  = [];
 d.smits   = 16;                % No. smoothing iterations
 
 d.bs_args = [2 2 2  1 1 1];    % B-spline settings for interpolation

@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4573 2011-11-25 23:01:01Z john $ */
+/* $Id: shoot_regularisers.c 4583 2011-12-06 16:03:01Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -6,38 +6,134 @@
 extern double log(double x);
 
 #include "shoot_boundary.h"
+/*
+% MATLAB code (requiring Symbolic Toolbox) for computing the
+% regulariser for linear elasticity.
 
-#ifdef VERBOSE
-static double sumsq_le(mwSize dm[], float a[], float b[], double s[], float u[])
+syms mu lam
+syms v0 v1 v2
+N  = 3;
+O  = sym(zeros(N));
+OO = kron(kron(O,O),O);
+I  = sym(eye(N));
+G1 = sym(spdiags(repmat([-1 1],N,1),[ 0 1],N,N)); G1(N,1) =  1;
+G2 = sym(spdiags(repmat([-1 1],N,1),[-1 0],N,N)); G2(1,N) = -1;
+G  = {G1 G2};
+LL = sym(zeros(3*N^3,3*N^3));
+for i=1:2,
+    Di = kron(I,kron(I,G{i}))/v0;
+    for j=1:2,
+        Dj = kron(I,kron(G{j},I))/v1;
+        for k=1:2,
+            Dk = kron(G{k},kron(I,I))/v2;
+            L1 = [    Di     OO     OO
+                      OO     Dj     OO
+                      OO     OO     Dk
+                  0.5*Dj 0.5*Di     OO
+                  0.5*Dk     OO 0.5*Di
+                      OO 0.5*Dk 0.5*Dj
+                  0.5*Dj 0.5*Di     OO
+                  0.5*Dk     OO 0.5*Di
+                      OO 0.5*Dk 0.5*Dj]; % Elements of symmetric part of Jacobian
+
+            L2 = [    Di     Dj  Dk];    % Divergence
+            LL = LL + mu*(L1.'*L1) + lam*(L2.'*L2);
+        end
+    end
+end
+LL = LL/8;
+o  = sym(ones(1,27));
+LL = LL.*kron([v0*o v1*o v2*o],[o o o].').*kron([v0*o v1*o v2*o].',[o o o]);
+
+
+L1 = simplify(reshape(LL(:,2+3+9   ),[3 3 3 3]))
+L2 = simplify(reshape(LL(:,2+3+9+27),[3 3 3 3]))
+L3 = simplify(reshape(LL(:,2+3+9+54),[3 3 3 3]))
+
+*/
+/*
+% MATLAB code (requiring Symbolic Toolbox) for computing the
+% regulariser for bending energy. Note that an additional multiplication
+% by the square of the voxel size is needed.
+
+syms s1 s2 s3
+syms l1 l2 l3
+zz = sym(zeros(3,3));
+K1 = cat(3,zz,[0 -1/(v0*v0) 0; 0 2/(v0*v0) 0; 0 -1/(v0*v0) 0],zz);
+K2 = cat(3,zz,[0 0 0; -1/(v1*v1) 2/(v1*v1) -1/(v1*v1); 0 0 0],zz);
+K3 = sym(zeros(3,3,3));
+K3(2,2,1) = -1/(v2*v2);
+K3(2,2,2) = 2/(v2*v2);
+K3(2,2,3) = -1/(v2*v2);
+
+K  = K1+K2+K3;
+K1 = K*l1; K1(2,2,2) = K1(2,2,2)+l2;
+K2 = K*l1; K2(2,2,2) = K2(2,2,2)+l3;
+
+% L  = convn(K,K)
+L  = sym(zeros(5,5,5));
+for i=1:3,
+    for j=1:3,
+        for k=1:3,
+            L(i-1+1:i+1+1,j-1+1:j+1+1,k-1+1:k+1+1) = L(i-1+1:i+1+1,j-1+1:j+1+1,k-1+1:k+1+1) + K1(i,j,k)*K2;
+        end;
+    end;
+end;
+disp(simplify(L(3:end,3:end,3:end)))
+*/
+
+
+double sumsq(mwSize dm[], float a[], float b[], double s[], float u[])
 {
+    double w000,w100,w200,
+           w010,w110,
+           w020,
+           w001,w101,
+           w011,
+           w002;
     double ss = 0.0;
     mwSignedIndex k;
-    double mu = s[3], lam = s[4], id = s[5];
-    double wx, wy, wz, wxy, wxz, wyx, wyz, wzx, wzy, w1, w2;
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
+    double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
 
-    wx  = 2*mu*(v1+v2)/v0+(4*mu+2*lam) + id/v0;
-    wy  = 2*mu*(v0+v2)/v1+(4*mu+2*lam) + id/v1;
-    wz  = 2*mu*(v0+v1)/v2+(4*mu+2*lam) + id/v2;
-    w1  = -(2*mu+lam);
-    wxy = -mu*v0/v1;
-    wxz = -mu*v0/v2;
-    wyx = -mu*v1/v0;
-    wyz = -mu*v1/v2;
-    wzx = -mu*v2/v0;
-    wzy = -mu*v2/v1;
-    w2  = 0.25*(lam+mu);
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
+
+    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
+    wx100 = -2*mu-lam + w100/v0;
+    wx010 = -mu*v1/v0 + w010/v0;
+    wx001 = -mu*v2/v0 + w001/v0;
+    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy100 = -mu*v0/v1 + w100/v1;
+    wy010 = -2*mu-lam + w010/v1;
+    wy001 = -mu*v2/v1 + w001/v1;
+    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz100 = -mu*v0/v2 + w100/v2;
+    wz010 = -mu*v1/v2 + w010/v2;
+    wz001 = -2*mu-lam + w001/v2;
+    w2    = 0.25*mu+0.25*lam;
 
     for(k=0; k<dm[2]; k++)
     {
-        mwSignedIndex j, km1,kp1;
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+        mwSignedIndex j, km2,km1,kp1,kp2;
+        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
-            float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *paxy, *payy, *paxz, *payz, *pazz;
-            mwSignedIndex i, jm1,jp1;
+            float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
+            mwSignedIndex i, jm2,jm1,jp1,jp2;
 
             pux  = u+dm[0]*(j+dm[1]*k);
             puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
@@ -56,56 +152,80 @@ static double sumsq_le(mwSize dm[], float a[], float b[], double s[], float u[])
                 payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
             }
 
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jm2 = (bound(j-2,dm[1])-j)*dm[0];
+            jm1 = (bound(j-1,dm[1])-j)*dm[0];
+            jp1 = (bound(j+1,dm[1])-j)*dm[0];
+            jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
-                mwSignedIndex im1,ip1;
+                mwSignedIndex im2,im1,ip1,ip2;
                 float *px = pux+i, *py = puy+i, *pz = puz+i;
-                double abx, aby, abz, tmp;
+                double tmp, abx, aby, abz;
 
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
+                im2 = bound(i-2,dm[0])-i;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+                ip2 = bound(i+2,dm[0])-i;
 
                 if (a)
                 {
                     abx = paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0];
-                    aby = payy[i]*py[0] + paxy[i]*px[0] + payz[i]*pz[0];
-                    abz = pazz[i]*pz[0] + paxz[i]*px[0] + payz[i]*py[0];
+                    aby = paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0];
+                    abz = paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0];
                 }
                 else
+                {
                     abx = aby = abz = 0.0;
+                }
 
-                tmp =  wx * px[0]
-                     + w1 *(px[ip1] + px[im1])
-                     + wyx*(px[jp1] + px[jm1])
-                     + wzx*(px[kp1] + px[km1])
-                     + w2 *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
-                     - pbx[i] + abx;
+                tmp = abx - pbx[i]
+                        + wx000* px[0]
+                        + wx100*(px[im1        ] + px[ip1        ])
+                        + wx010*(px[    jm1    ] + px[    jp1    ])
+                        + wx001*(px[        km1] + px[        kp1])
+                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
+                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
+                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
+                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
+                        +  w200*(px[im2        ] + px[ip2        ])
+                        +  w020*(px[    jm2    ] + px[    jp2    ])
+                        +  w002*(px[        km2] + px[        kp2]))/v0;
                 ss += tmp*tmp;
 
-                tmp =  wy * py[0]
-                     + wxy*(py[ip1] + py[im1])
-                     + w1 *(py[jp1] + py[jm1])
-                     + wzy*(py[kp1] + py[km1])
-                     + w2*(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
-                     - pby[i] + aby;
+                tmp = aby - pby[i]
+                        + wy000* py[0]
+                        + wy100*(py[im1        ] + py[ip1        ])
+                        + wy010*(py[    jm1    ] + py[    jp1    ])   
+                        + wy001*(py[        km1] + py[        kp1])   
+                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
+                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
+                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
+                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
+                        +  w200*(py[im2        ] + py[ip2        ])
+                        +  w020*(py[    jm2    ] + py[    jp2    ])
+                        +  w002*(py[        km2] + py[        kp2]))/v1;
                 ss += tmp*tmp;
 
-                tmp =  wz * pz[0]
-                     + wxz*(pz[ip1] + pz[im1])
-                     + wyz*(pz[jp1] + pz[jm1])
-                     + w1 *(pz[kp1] + pz[km1])
-                     + w2 *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
-                     - pbz[i] + abz;
+                tmp = abz - pbz[i]
+                        + wz000* pz[0]
+                        + wz100*(pz[im1        ] + pz[ip1        ])
+                        + wz010*(pz[    jm1    ] + pz[    jp1    ])   
+                        + wz001*(pz[        km1] + pz[        kp1])   
+                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
+                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
+                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
+                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
+                        +  w200*(pz[im2        ] + pz[ip2        ])
+                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
+                        +  w002*(pz[        km2] + pz[        kp2]))/v2;
                 ss += tmp*tmp;
             }
         }
     }
     return(ss);
 }
-#endif
+
 
 static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
 {
@@ -129,27 +249,29 @@ static void Atimesp1(mwSize dm[], float A[], float p[], float Ap[])
 void vel2mom_le(mwSize dm[], float f[], double s[], float g[])
 {
     mwSignedIndex k;
-    double mu = s[3], lam = s[4], id = s[5];
-    double wx, wy, wz, wxy, wxz, wyx, wyz, wzx, wzy, w1, w2;
+    double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], mu = s[6], lam = s[7];
 
-    wx  = 2*mu*(v1+v2)/v0+(4*mu+2*lam) + id/v0;
-    wy  = 2*mu*(v0+v2)/v1+(4*mu+2*lam) + id/v1;
-    wz  = 2*mu*(v0+v1)/v2+(4*mu+2*lam) + id/v2;
-    w1  = -(2*mu+lam);
-    wxy = -mu*v0/v1;
-    wxz = -mu*v0/v2;
-    wyx = -mu*v1/v0;
-    wyz = -mu*v1/v2;
-    wzx = -mu*v2/v0;
-    wzy = -mu*v2/v1;
-    w2  = 0.25*(lam+mu);
+    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + lam0/v0;
+    wx100 = -2*mu-lam;
+    wx010 = -mu*v1/v0;
+    wx001 = -mu*v2/v0;
+    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + lam0/v1;
+    wy100 = -mu*v0/v1;
+    wy010 = -2*mu-lam;
+    wy001 = -mu*v2/v1;
+    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + lam0/v2;
+    wz100 = -mu*v0/v2;
+    wz010 = -mu*v1/v2;
+    wz001 = -2*mu-lam;
+    w2    = 0.25*mu+0.25*lam;
 
     for(k=0; k<dm[2]; k++)
     {
         mwSignedIndex j, km1,kp1;
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -164,34 +286,34 @@ void vel2mom_le(mwSize dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jm1 = (bound(j-1,dm[1])-j)*dm[0];
+            jp1 = (bound(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 mwSignedIndex im1,ip1;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
 
-                pgx[i] = wx *px[0]
-                       + w1 *(px[ip1] + px[im1])
-                       + wyx*(px[jp1] + px[jm1])
-                       + wzx*(px[kp1] + px[km1])
-                       + w2 *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]);
+                pgx[i] = wx000*px[0]
+                       + wx100*(px[ip1] + px[im1])
+                       + wx010*(px[jp1] + px[jm1])
+                       + wx001*(px[kp1] + px[km1])
+                       + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]);
 
-                pgy[i] = wy *py[0]
-                       + wxy*(py[ip1] + py[im1])
-                       + w1 *(py[jp1] + py[jm1])
-                       + wzy*(py[kp1] + py[km1])
-                       + w2 *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]);
+                pgy[i] = wy000*py[0]
+                       + wy100*(py[ip1] + py[im1])
+                       + wy010*(py[jp1] + py[jm1])
+                       + wy001*(py[kp1] + py[km1])
+                       + w2*(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]);
 
-                pgz[i] = wz *pz[0]
-                       + wxz*(pz[ip1] + pz[im1])
-                       + wyz*(pz[jp1] + pz[jm1])
-                       + w1 *(pz[kp1] + pz[km1])
-                       + w2 *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]);
+                pgz[i] = wz000*pz[0]
+                       + wz100*(pz[ip1] + pz[im1])
+                       + wz010*(pz[jp1] + pz[jm1])
+                       + wz001*(pz[kp1] + pz[km1])
+                       + w2*(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]);
             }
         }
     }
@@ -200,25 +322,53 @@ void vel2mom_le(mwSize dm[], float f[], double s[], float g[])
 void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
 {
     int it;
-    double mu = s[3], lam = s[4], id = s[5];
-    double wx, wy, wz, wxy, wxz, wyx, wyz, wzx, wzy, w1, w2;
+    double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], mu = s[6], lam = s[7];
 
-    wx  = 2*mu*(v1+v2)/v0+(4*mu+2*lam) + id/v0;
-    wy  = 2*mu*(v0+v2)/v1+(4*mu+2*lam) + id/v1;
-    wz  = 2*mu*(v0+v1)/v2+(4*mu+2*lam) + id/v2;
-    w1  = -(2*mu+lam);
-    wxy = -mu*v0/v1;
-    wxz = -mu*v0/v2;
-    wyx = -mu*v1/v0;
-    wyz = -mu*v1/v2;
-    wzx = -mu*v2/v0;
-    wzy = -mu*v2/v1;
-    w2  = 0.25*(lam+mu);
+    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + lam0/v0;
+    wx100 = -2*mu-lam;
+    wx010 = -mu*v1/v0;
+    wx001 = -mu*v2/v0;
+    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + lam0/v1;
+    wy100 = -mu*v0/v1;
+    wy010 = -2*mu-lam;
+    wy001 = -mu*v2/v1;
+    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + lam0/v2;
+    wz100 = -mu*v0/v2;
+    wz010 = -mu*v1/v2;
+    wz001 = -2*mu-lam;
+    w2    = 0.25*mu+0.25*lam;
+
+    wx000 = wx000*1.00001 + 1e-6;
+    wy000 = wy000*1.00001 + 1e-6;
+    wz000 = wz000*1.00001 + 1e-6;
+
+    if (dm[0]==1)
+    {
+        wx000 += 2*wx100 + 2*wy100 + 2*wz100;
+        wx100  = 0.0;
+        wy100  = 0.0;
+        wz100  = 0.0;
+    }
+    if (dm[1]==1)
+    {
+        wx000 += 2*wx010 + 2*wy010 + 2*wz010;
+        wx010  = 0.0;
+        wy010  = 0.0;
+        wz010  = 0.0;
+    }
+    if (dm[1]==1)
+    {
+        wx000 += 2*wx001 + 2*wy001 + 2*wz001;
+        wx001  = 0.0;
+        wy001  = 0.0;
+        wz001  = 0.0;
+    }
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
-        printf("%dx%dx%d: ", dm[0],dm[1],dm[2]);
+        printf("L%dx%dx%d: %g ", dm[0],dm[1],dm[2], sumsq(dm, a, b, s, u));
 #   endif
 
     for(it=0; it<8*nit; it++)
@@ -227,8 +377,8 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         for(k=it&1; k<dm[2]; k+=2)
         {
             mwSignedIndex j, km1, kp1;
-            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 
             for(j=(it>>1)&1; j<dm[1]; j+=2)
             {
@@ -252,8 +402,8 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
                 }
 
-                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
 
                 for(i=(it>>2)&1; i<dm[0]; i+=2)
                 {
@@ -261,30 +411,31 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     double sux, suy, suz;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im1 = BOUND(i-1,dm[0])-i;
-                    ip1 = BOUND(i+1,dm[0])-i;
+                    im1 = bound(i-1,dm[0])-i;
+                    ip1 = bound(i+1,dm[0])-i;
 
-                    sux = pbx[i] - ( w1 *(px[ip1] + px[im1])
-                                   + wyx*(px[jp1] + px[jm1])
-                                   + wzx*(px[kp1] + px[km1])
-                                   + w2 *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]));
+                    sux = pbx[i] - ( wx100*(px[im1] + px[ip1])
+                                   + wx010*(px[jm1] + px[jp1])
+                                   + wx001*(px[km1] + px[kp1])
+                                   + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]));
 
-                    suy = pby[i] - ( wxy*(py[ip1] + py[im1])
-                                   + w1 *(py[jp1] + py[jm1])
-                                   + wzy*(py[kp1] + py[km1])
-                                   + w2 *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]));
+                    suy = pby[i] - ( wy100*(py[im1] + py[ip1])
+                                   + wy010*(py[jm1] + py[jp1])
+                                   + wy001*(py[km1] + py[kp1])
+                                   + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]));
 
-                    suz = pbz[i] - ( wxz*(pz[ip1] + pz[im1])
-                                   + wyz*(pz[jp1] + pz[jm1])
-                                   + w1 *(pz[kp1] + pz[km1])
-                                   + w2 *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]));
+                    suz = pbz[i] - ( wz100*(pz[im1] + pz[ip1])
+                                   + wz010*(pz[jm1] + pz[jp1])
+                                   + wz001*(pz[km1] + pz[kp1])
+                                   + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]));
+
                     if (a)
                     {
                         double axx, ayy, azz, axy, axz, ayz, idt;
 
-                        axx  = paxx[i] + wx;
-                        ayy  = payy[i] + wy;
-                        azz  = pazz[i] + wz;
+                        axx  = paxx[i] + wx000;
+                        ayy  = payy[i] + wy000;
+                        azz  = pazz[i] + wz000;
                         axy  = paxy[i];
                         axz  = paxz[i];
                         ayz  = payz[i];
@@ -296,15 +447,15 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     }
                     else
                     {
-                        *px = sux/wx;
-                        *py = suy/wy;
-                        *pz = suz/wz;
+                        *px = sux/wx000;
+                        *py = suy/wy000;
+                        *pz = suz/wz000;
                     }
                 }
             }
         } 
 #       ifdef VERBOSE
-            if ((it%8)==7) printf(" %g", sumsq_le(dm, a, b, s, u));
+            if ((it%8)==7) printf(" %g", sumsq(dm, a, b, s, u));
 #       endif
     }
 #   ifdef VERBOSE
@@ -319,109 +470,22 @@ void Atimesp_le(mwSize dm[], float A[], double param[], float p[], float Ap[])
     Atimesp1(dm, A, p, Ap);
 }
 
-#ifdef VERBOSE
-static double sumsq_me(mwSize dm[], float a[], float b[], double s[], float u[])
-{
-    double w000, w001, w010, w100;
-    double ss = 0.0;
-    mwSignedIndex i, j, k;
-
-    w000 = s[3]*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + s[5];
-    w001 = s[3]*(-s[2]*s[2]);
-    w010 = s[3]*(-s[1]*s[1]);
-    w100 = s[3]*(-s[0]*s[0]);
-
-    for(k=0; k<dm[2]; k++)
-    {
-        mwSignedIndex km1,kp1;
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
-
-        for(j=0; j<dm[1]; j++)
-        {
-            float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *paxy, *payy, *paxz, *payz, *pazz;
-            mwSignedIndex jm1,jp1,im1,ip1;
-
-            pux  = u+dm[0]*(j+dm[1]*k);
-            puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
-            puz  = u+dm[0]*(j+dm[1]*(k+dm[2]*2));
-            pbx  = b+dm[0]*(j+dm[1]*k);
-            pby  = b+dm[0]*(j+dm[1]*(k+dm[2]));
-            pbz  = b+dm[0]*(j+dm[1]*(k+dm[2]*2));
-
-            if (a)
-            {
-                paxx = a+dm[0]*(j+dm[1]*k);
-                payy = a+dm[0]*(j+dm[1]*(k+dm[2]));
-                pazz = a+dm[0]*(j+dm[1]*(k+dm[2]*2));
-                paxy = a+dm[0]*(j+dm[1]*(k+dm[2]*3));
-                paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
-                payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
-            }
-
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
-
-            for(i=0; i<dm[0]; i++)
-            {
-                float *px = &pux[i], *py = &puy[i], *pz = &puz[i];
-                double abx, aby, abz, tmp;
-
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
-
-                if (a)
-                {
-                    abx = paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0];
-                    aby = paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0];
-                    abz = paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0];
-                }
-                else
-                {
-                    abx = aby = abz = 0.0;
-                }
-                tmp =  (w000* px[0] 
-                      + w001*(px[km1] + px[kp1])
-                      + w010*(px[jm1] + px[jp1])
-                      + w100*(px[im1] + px[ip1]))/(s[0]*s[0])
-                      - pbx[i] + abx;
-                ss += tmp*tmp;
-
-                tmp =  (w000* py[0]
-                      + w001*(py[km1] + py[kp1])
-                      + w010*(py[jm1] + py[jp1])
-                      + w100*(py[im1] + py[ip1]))/(s[1]*s[1])
-                      - pby[i] + aby;
-                ss += tmp*tmp;
-
-                tmp =  (w000* pz[0]
-                      + w001*(pz[km1] + pz[kp1])
-                      + w010*(pz[jm1] + pz[jp1])
-                      + w100*(pz[im1] + pz[ip1]))/(s[2]*s[2])
-                      - pbz[i] + abz;
-                ss += tmp*tmp;
-            }
-        }
-    }
-    return(ss);
-}
-#endif
-
 void vel2mom_me(mwSize dm[], float f[], double s[], float g[])
 {
     mwSignedIndex i, j, k, km1,kp1, jm1,jp1, im1,ip1;
     float *pgx, *pgy, *pgz, *pfx, *pfy, *pfz;
     double w000,w001,w010,w100;
+    double lam0 = s[3], lam1 = s[4];
 
-    w000 = s[3]*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + s[5];
-    w001 = s[3]*(-s[2]*s[2]);
-    w010 = s[3]*(-s[1]*s[1]);
-    w100 = s[3]*(-s[0]*s[0]);
+    w000 = lam1*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + lam0;
+    w001 = lam1*(-s[2]*s[2]);
+    w010 = lam1*(-s[1]*s[1]);
+    w100 = lam1*(-s[0]*s[0]);
 
     for(k=0; k<dm[2]; k++)
     {
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -433,15 +497,15 @@ void vel2mom_me(mwSize dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+            jm1 = (bound(j-1,dm[1])-j)*dm[0];
+            jp1 = (bound(j+1,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
 
                 pgx[i] = (w000*px[0] + w001*(px[km1] + px[kp1]) + w010*(px[jm1] + px[jp1]) + w100*(px[im1] + px[ip1]))/(s[0]*s[0]);
                 pgy[i] = (w000*py[0] + w001*(py[km1] + py[kp1]) + w010*(py[jm1] + py[jp1]) + w100*(py[im1] + py[ip1]))/(s[1]*s[1]);
@@ -455,15 +519,34 @@ void relax_me(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
 {
     int it;
     double w000,w001,w010,w100;
+    double lam0 = s[3], lam1 = s[4];
 
-    w000 = s[3]*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + s[5];
-    w001 = s[3]*(-s[2]*s[2]);
-    w010 = s[3]*(-s[1]*s[1]);
-    w100 = s[3]*(-s[0]*s[0]);
+    w000 = lam1*(2*s[0]*s[0]+2*s[1]*s[1]+2*s[2]*s[2]) + lam0;
+    w001 = lam1*(-s[2]*s[2]);
+    w010 = lam1*(-s[1]*s[1]);
+    w100 = lam1*(-s[0]*s[0]);
+
+    w000 = w000*1.00001 + 1e-6;
+
+    if (dm[0]==1)
+    {
+        w000 += 2*w100;
+        w100  = 0.0;
+    }
+    if (dm[1]==1)
+    {
+        w000 += 2*w010;
+        w010  = 0.0;
+    }
+    if (dm[2]==1)
+    {
+        w000 += 2*w001;
+        w001  = 0.0;
+    }
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
-        printf("%dx%dx%d: ", dm[0],dm[1],dm[2]);
+        printf("M%dx%dx%d: %g ", dm[0],dm[1],dm[2], sumsq(dm, a, b, s, u));
 #   endif
 
     for(it=0; it<2*nit; it++)
@@ -476,8 +559,8 @@ void relax_me(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         for(k=0; k<dm[2]; k++)
         {
             mwSignedIndex km1, kp1;
-            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
 
             jstart = (kstart == (k%2));
             for(j=0; j<dm[1]; j++)
@@ -502,8 +585,8 @@ void relax_me(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
                 }
 
-                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
 
                 istart = (jstart == (j%2));
 
@@ -512,8 +595,8 @@ void relax_me(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     double sux, suy, suz;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im1 = BOUND(i-1,dm[0])-i;
-                    ip1 = BOUND(i+1,dm[0])-i;
+                    im1 = bound(i-1,dm[0])-i;
+                    ip1 = bound(i+1,dm[0])-i;
 
                     sux = pbx[i]-(w001*(px[km1] + px[kp1]) + w010*(px[jm1] + px[jp1]) + w100*(px[im1] + px[ip1]))/(s[0]*s[0]);
                     suy = pby[i]-(w001*(py[km1] + py[kp1]) + w010*(py[jm1] + py[jp1]) + w100*(py[im1] + py[ip1]))/(s[1]*s[1]);
@@ -549,7 +632,7 @@ void relax_me(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
             }
         }
 #   ifdef VERBOSE
-        if ((it%2)==1) printf(" %g", sumsq_me(dm, a, b, s, u));
+        if ((it%2)==1) printf(" %g", sumsq(dm, a, b, s, u));
 #   endif
     }
 #ifdef VERBOSE
@@ -564,134 +647,6 @@ void Atimesp_me(mwSize dm[], float A[], double param[], float p[], float Ap[])
     Atimesp1(dm, A, p, Ap);
 }
 
-#ifdef VERBOSE
-static double sumsq_be(mwSize dm[], float a[], float b[], double s[], float u[])
-{
-    double w000,w100,w200,
-           w010,w110,
-           w020,
-           w001,w101,
-           w011,
-           w002;
-    double ss = 0.0;
-    mwSignedIndex k;
-    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
-
-    w000 = s[3]*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +s[4]*2*(v0+v1+v2) + s[5];
-    w100 = s[3]*(-4*v0*(v0+v1+v2)) -s[4]*v0;
-    w010 = s[3]*(-4*v1*(v0+v1+v2)) -s[4]*v1;
-    w001 = s[3]*(-4*v2*(v0+v1+v2)) -s[4]*v2;
-    w200 = s[3]*v0*v0;
-    w020 = s[3]*v1*v1;
-    w002 = s[3]*v2*v2;
-    w110 = s[3]*2*v0*v1;
-    w101 = s[3]*2*v0*v2;
-    w011 = s[3]*2*v1*v2;
-
-    for(k=0; k<dm[2]; k++)
-    {
-        mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
-
-        for(j=0; j<dm[1]; j++)
-        {
-            float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
-            mwSignedIndex i, jm2,jm1,jp1,jp2;
-
-            pux  = u+dm[0]*(j+dm[1]*k);
-            puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
-            puz  = u+dm[0]*(j+dm[1]*(k+dm[2]*2));
-            pbx  = b+dm[0]*(j+dm[1]*k);
-            pby  = b+dm[0]*(j+dm[1]*(k+dm[2]));
-            pbz  = b+dm[0]*(j+dm[1]*(k+dm[2]*2));
-
-            if (a)
-            {
-                paxx = a+dm[0]*(j+dm[1]*k);
-                payy = a+dm[0]*(j+dm[1]*(k+dm[2]));
-                pazz = a+dm[0]*(j+dm[1]*(k+dm[2]*2));
-                paxy = a+dm[0]*(j+dm[1]*(k+dm[2]*3));
-                paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
-                payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
-            }
-
-            jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
-            jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
-
-            for(i=0; i<dm[0]; i++)
-            {
-                mwSignedIndex im2,im1,ip1,ip2;
-                float *px = pux+i, *py = puy+i, *pz = puz+i;
-                double tmp, abx, aby, abz;
-
-                im2 = BOUND(i-2,dm[0])-i;
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
-                ip2 = BOUND(i+2,dm[0])-i;
-
-                if (a)
-                {
-                    abx = paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0];
-                    aby = paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0];
-                    abz = paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0];
-                }
-                else
-                {
-                    abx = aby = abz = 0.0;
-                }
-                tmp = abx
-                     +(w000* px[0]
-                     + w010*(px[    jm1    ] + px[    jp1    ])
-                     + w020*(px[    jm2    ] + px[    jp2    ])
-                     + w100*(px[im1        ] + px[ip1        ])
-                     + w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                     + w200*(px[im2        ] + px[ip2        ])
-                     + w001*(px[        km1] + px[        kp1])
-                     + w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                     + w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                     + w002*(px[        km2] + px[        kp2]))/v0
-                     - pbx[i];
-                ss += tmp*tmp;
-
-                tmp = aby
-                     +(w000* py[0]
-                     + w010*(py[    jm1    ] + py[    jp1    ])
-                     + w020*(py[    jm2    ] + py[    jp2    ])
-                     + w100*(py[im1        ] + py[ip1        ])
-                     + w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                     + w200*(py[im2        ] + py[ip2        ])
-                     + w001*(py[        km1] + py[        kp1])
-                     + w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                     + w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                     + w002*(py[        km2] + py[        kp2]))/v1
-                     - pby[i];
-                ss += tmp*tmp;
-
-                tmp = abz
-                     +(w000* pz[0]
-                     + w010*(pz[    jm1    ] + pz[    jp1    ])
-                     + w020*(pz[    jm2    ] + pz[    jp2    ])
-                     + w100*(pz[im1        ] + pz[ip1        ])
-                     + w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                     + w200*(pz[im2        ] + pz[ip2        ])
-                     + w001*(pz[        km1] + pz[        kp1])
-                     + w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                     + w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                     + w002*(pz[        km2] + pz[        kp2]))/v2
-                     - pbz[i];
-                ss += tmp*tmp;
-            }
-        }
-    }
-    return(ss);
-}
-#endif
-
 void vel2mom_be(mwSize dm[], float f[], double s[], float g[])
 {
     mwSignedIndex k;
@@ -701,18 +656,19 @@ void vel2mom_be(mwSize dm[], float f[], double s[], float g[])
            w001,w101,
            w011,
            w002;
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    w000 = s[3]*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +s[4]*2*(v0+v1+v2) + s[5];
-    w100 = s[3]*(-4*v0*(v0+v1+v2)) -s[4]*v0;
-    w010 = s[3]*(-4*v1*(v0+v1+v2)) -s[4]*v1;
-    w001 = s[3]*(-4*v2*(v0+v1+v2)) -s[4]*v2;
-    w200 = s[3]*v0*v0;
-    w020 = s[3]*v1*v1;
-    w002 = s[3]*v2*v2;
-    w110 = s[3]*2*v0*v1;
-    w101 = s[3]*2*v0*v2;
-    w011 = s[3]*2*v1*v2;
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
 
     /*
         syms s1 s2 s3
@@ -744,10 +700,10 @@ void vel2mom_be(mwSize dm[], float f[], double s[], float g[])
     for(k=0; k<dm[2]; k++)
     {
         mwSignedIndex j, km2,km1,kp1,kp2;
-        km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
-        km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-        kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
-        kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
+        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
         for(j=0; j<dm[1]; j++)
         {
@@ -762,20 +718,20 @@ void vel2mom_be(mwSize dm[], float f[], double s[], float g[])
             pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
             pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
 
-            jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
-            jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-            jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
-            jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
+            jm2 = (bound(j-2,dm[1])-j)*dm[0];
+            jm1 = (bound(j-1,dm[1])-j)*dm[0];
+            jp1 = (bound(j+1,dm[1])-j)*dm[0];
+            jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
             for(i=0; i<dm[0]; i++)
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
 
-                im2 = BOUND(i-2,dm[0])-i;
-                im1 = BOUND(i-1,dm[0])-i;
-                ip1 = BOUND(i+1,dm[0])-i;
-                ip2 = BOUND(i+2,dm[0])-i;
+                im2 = bound(i-2,dm[0])-i;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+                ip2 = bound(i+2,dm[0])-i;
 
                 pgx[i] =(w000* px[0]
                        + w010*(px[    jm1    ] + px[    jp1    ])
@@ -821,22 +777,72 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
            w001,w101,
            w011,
            w002;
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    w000 = s[3]*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +s[4]*2*(v0+v1+v2) + s[5];
-    w100 = s[3]*(-4*v0*(v0+v1+v2)) -s[4]*v0;
-    w010 = s[3]*(-4*v1*(v0+v1+v2)) -s[4]*v1;
-    w001 = s[3]*(-4*v2*(v0+v1+v2)) -s[4]*v2;
-    w200 = s[3]*v0*v0;
-    w020 = s[3]*v1*v1;
-    w002 = s[3]*v2*v2;
-    w110 = s[3]*2*v0*v1;
-    w101 = s[3]*2*v0*v2;
-    w011 = s[3]*2*v1*v2;
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
+
+    w000 = w000*1.00001 + 1e-6;
+
+    if (dm[0]<=2)
+    {
+        w000 += 2*w200;
+        w200  = 0.0;
+    }
+    if (dm[1]<=2)
+    {
+        w000 += 2*w020;
+        w020  = 0.0;
+    }
+    if (dm[2]<=2)
+    {
+        w000 += 2*w002;
+        w002  = 0.0;
+    }
+
+    if (dm[0]==1)
+    {
+        w000 += 2*w100;
+        w100  = 0.0;
+        if (dm[1]==1)
+        {
+            w000 += 4*w110;
+            w110  = 0.0;
+        }
+        if (dm[2]==1)
+        {
+            w000 += 4*w101;
+            w101  = 0.0;
+        }
+    }
+    if (dm[1]==1)
+    {
+        w000 += 2*w010;
+        w010  = 0.0;
+        if (dm[2]==1)
+        {
+            w000 += 4*w011;
+            w011  = 0.0;
+        }
+    }
+    if (dm[2]==1)
+    {
+        w000 += 2*w001;
+        w001  = 0.0;
+    }
 
 #   ifdef VERBOSE
         for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
-        printf("%dx%dx%d: ", dm[0],dm[1],dm[2]);
+        printf("B%dx%dx%d: %g ", dm[0],dm[1],dm[2],sumsq(dm, a, b, s, u));
 #   endif
 
     for(it=0; it<27*nit; it++)
@@ -845,10 +851,10 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         for(k=(it/9)%3; k<dm[2]; k+=3)
         {
             mwSignedIndex km2, km1, kp1, kp2;
-            km2 = (BOUND(k-2,dm[2])-k)*dm[0]*dm[1];
-            km1 = (BOUND(k-1,dm[2])-k)*dm[0]*dm[1];
-            kp1 = (BOUND(k+1,dm[2])-k)*dm[0]*dm[1];
-            kp2 = (BOUND(k+2,dm[2])-k)*dm[0]*dm[1];
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
 
             for(j=(it/3)%3; j<dm[1]; j+=3)
             {
@@ -872,10 +878,10 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
                 }
 
-                jm2 = (BOUND(j-2,dm[1])-j)*dm[0];
-                jm1 = (BOUND(j-1,dm[1])-j)*dm[0];
-                jp1 = (BOUND(j+1,dm[1])-j)*dm[0];
-                jp2 = (BOUND(j+2,dm[1])-j)*dm[0];
+                jm2 = (bound(j-2,dm[1])-j)*dm[0];
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
+                jp2 = (bound(j+2,dm[1])-j)*dm[0];
 
                 for(i=it%3; i<dm[0]; i+=3)
                 {
@@ -883,10 +889,10 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     double sux, suy, suz;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
-                    im2 = BOUND(i-2,dm[0])-i;
-                    im1 = BOUND(i-1,dm[0])-i;
-                    ip1 = BOUND(i+1,dm[0])-i;
-                    ip2 = BOUND(i+2,dm[0])-i;
+                    im2 = bound(i-2,dm[0])-i;
+                    im1 = bound(i-1,dm[0])-i;
+                    ip1 = bound(i+1,dm[0])-i;
+                    ip2 = bound(i+2,dm[0])-i;
 
                     sux = pbx[i] - (w010*(px[    jm1    ] + px[    jp1    ])
                                   + w020*(px[    jm2    ] + px[    jp2    ])
@@ -948,7 +954,7 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         }
 #       ifdef VERBOSE
         if ((it%27) == 26)
-            printf(" %g", sumsq_be(dm, a, b, s, u));
+            printf(" %g", sumsq(dm, a, b, s, u));
 #       endif
     }
 #   ifdef VERBOSE
@@ -962,4 +968,391 @@ void Atimesp_be(mwSize dm[], float A[], double param[], float p[], float Ap[])
     vel2mom_be(dm, p, param, Ap);
     Atimesp1(dm, A, p, Ap);
 }
+
+
+
+
+
+
+/************************************************************************************************/
+
+
+void vel2mom_all(mwSize dm[], float f[], double s[], float g[])
+{
+    mwSignedIndex k;
+    double w000,w100,w200,
+           w010,w110,
+           w020,
+           w001,w101,
+           w011,
+           w002;
+    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
+    double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
+
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
+
+    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
+    wx100 = -2*mu-lam + w100/v0;
+    wx010 = -mu*v1/v0 + w010/v0;
+    wx001 = -mu*v2/v0 + w001/v0;
+    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy100 = -mu*v0/v1 + w100/v1;
+    wy010 = -2*mu-lam + w010/v1;
+    wy001 = -mu*v2/v1 + w001/v1;
+    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz100 = -mu*v0/v2 + w100/v2;
+    wz010 = -mu*v1/v2 + w010/v2;
+    wz001 = -2*mu-lam + w001/v2;
+    w2    = 0.25*mu+0.25*lam;
+
+    for(k=0; k<dm[2]; k++)
+    {
+        mwSignedIndex j, km2,km1,kp1,kp2;
+        km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+        km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+        kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+        kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+
+        for(j=0; j<dm[1]; j++)
+        {
+            mwSignedIndex i, jm2,jm1,jp1,jp2;
+            float *pgx, *pgy, *pgz, *pfx, *pfy, *pfz;
+
+            pgx = g+dm[0]*(j+dm[1]*k);
+            pgy = g+dm[0]*(j+dm[1]*(k+dm[2]));
+            pgz = g+dm[0]*(j+dm[1]*(k+dm[2]*2));
+
+            pfx = f+dm[0]*(j+dm[1]*k);
+            pfy = f+dm[0]*(j+dm[1]*(k+dm[2]));
+            pfz = f+dm[0]*(j+dm[1]*(k+dm[2]*2));
+
+            jm2 = (bound(j-2,dm[1])-j)*dm[0];
+            jm1 = (bound(j-1,dm[1])-j)*dm[0];
+            jp1 = (bound(j+1,dm[1])-j)*dm[0];
+            jp2 = (bound(j+2,dm[1])-j)*dm[0];
+
+            for(i=0; i<dm[0]; i++)
+            {
+                mwSignedIndex im2,im1,ip1,ip2;
+                float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
+
+                im2 = bound(i-2,dm[0])-i;
+                im1 = bound(i-1,dm[0])-i;
+                ip1 = bound(i+1,dm[0])-i;
+                ip2 = bound(i+2,dm[0])-i;
+
+                pgx[i] = (wx000* px[0]
+                        + wx100*(px[im1        ] + px[ip1        ])
+                        + wx010*(px[    jm1    ] + px[    jp1    ])
+                        + wx001*(px[        km1] + px[        kp1])
+                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
+                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
+                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
+                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
+                        +  w200*(px[im2        ] + px[ip2        ])
+                        +  w020*(px[    jm2    ] + px[    jp2    ])
+                        +  w002*(px[        km2] + px[        kp2]))/v0);
+
+                pgy[i] = (wy000* py[0]
+                        + wy100*(py[im1        ] + py[ip1        ])
+                        + wy010*(py[    jm1    ] + py[    jp1    ])
+                        + wy001*(py[        km1] + py[        kp1])
+                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
+                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
+                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
+                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
+                        +  w200*(py[im2        ] + py[ip2        ])
+                        +  w020*(py[    jm2    ] + py[    jp2    ])
+                        +  w002*(py[        km2] + py[        kp2]))/v1);
+
+                pgz[i] = (wz000* pz[0]
+                        + wz100*(pz[im1        ] + pz[ip1        ])
+                        + wz010*(pz[    jm1    ] + pz[    jp1    ])
+                        + wz001*(pz[        km1] + pz[        kp1])
+                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
+                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
+                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
+                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
+                        +  w200*(pz[im2        ] + pz[ip2        ])
+                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
+                        +  w002*(pz[        km2] + pz[        kp2]))/v2);
+            }
+        }
+    }
+}
+
+void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
+{
+    int it;
+    double w000,w100,w200,
+           w010,w110,
+           w020,
+           w001,w101,
+           w011,
+           w002;
+    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
+    double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
+
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
+
+    wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
+    wx100 = -2*mu-lam + w100/v0;
+    wx010 = -mu*v1/v0 + w010/v0;
+    wx001 = -mu*v2/v0 + w001/v0;
+    wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+    wy100 = -mu*v0/v1 + w100/v1;
+    wy010 = -2*mu-lam + w010/v1;
+    wy001 = -mu*v2/v1 + w001/v1;
+    wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+    wz100 = -mu*v0/v2 + w100/v2;
+    wz010 = -mu*v1/v2 + w010/v2;
+    wz001 = -2*mu-lam + w001/v2;
+    w2    = 0.25*mu+0.25*lam;
+
+    wx000 = wx000*1.00001 + 1e-6;
+    wy000 = wy000*1.00001 + 1e-6;
+    wz000 = wz000*1.00001 + 1e-6;
+
+    if (dm[0]<=2)
+    {
+        wx000 += 2*w200/v0;
+        wy000 += 2*w200/v1;
+        wz000 += 2*w200/v2;
+        w200   = 0.0;
+    }
+    if (dm[1]<=2)
+    {
+        wx000 += 2*w020/v0;
+        wy000 += 2*w020/v1;
+        wz000 += 2*w020/v2;
+        w020   = 0.0;
+    }
+    if (dm[2]<=2)
+    {
+        wx000 += 2*w002/v0;
+        wy000 += 2*w002/v1;
+        wz000 += 2*w002/v2; 
+        w002   = 0.0;
+    }
+
+    if (dm[0]==1)
+    {
+        wx000 += 2*wx100; wx100  = 0.0;
+        wy000 += 2*wy100; wy100  = 0.0;
+        wz000 += 2*wz100; wz100  = 0.0;
+        if (dm[1]==1)
+        {
+            wx000 += 4*w110/v0;
+            wy000 += 4*w110/v1;
+            wz000 += 2*w110/v2;
+            w110   = 0.0;
+        }
+        if (dm[2]==1)
+        {
+            wx000 += 4*w101/v0;
+            wy000 += 4*w101/v1;
+            wz000 += 2*w101/v2;
+            w101   = 0.0;
+        }
+
+    }
+    if (dm[1]==1)
+    {
+        wx000 += 2*wx010; wx010  = 0.0;
+        wy000 += 2*wy010; wy010  = 0.0;
+        wz000 += 2*wz010; wz010  = 0.0;
+        if (dm[2]==1)
+        {
+            wx000 += 4*w011/v0;
+            wy000 += 4*w011/v1;
+            wz000 += 2*w011/v2;
+            w011   = 0.0;
+        }
+    }
+    if (dm[2]==1)
+    {
+        wx000 += 2*wx001; wx001  = 0.0;
+        wy000 += 2*wy001; wy001  = 0.0;
+        wz000 += 2*wz001; wz001  = 0.0;
+    }
+
+#   ifdef VERBOSE
+        for(it=0; it< 10-(int)ceil(1.44269504088896*log((double)dm[0])); it++) printf("  ");
+        printf("A%dx%dx%d: %g ", dm[0],dm[1],dm[2],sumsq(dm, a, b, s, u));
+#   endif
+
+    for(it=0; it<27*nit; it++)
+    {
+        mwSignedIndex i, j, k;
+        for(k=(it/9)%3; k<dm[2]; k+=3)
+        {
+            mwSignedIndex km2, km1, kp1, kp2;
+            km2 = (bound(k-2,dm[2])-k)*dm[0]*dm[1];
+            km1 = (bound(k-1,dm[2])-k)*dm[0]*dm[1];
+            kp1 = (bound(k+1,dm[2])-k)*dm[0]*dm[1];
+            kp2 = (bound(k+2,dm[2])-k)*dm[0]*dm[1];
+
+            for(j=(it/3)%3; j<dm[1]; j+=3)
+            {
+                float *pux, *puy, *puz, *pbx, *pby, *pbz, *paxx, *payy, *pazz, *paxy, *paxz, *payz;
+                mwSignedIndex jm2,jm1,jp1,jp2;
+
+                pux  = u+dm[0]*(j+dm[1]* k);
+                puy  = u+dm[0]*(j+dm[1]*(k+dm[2]));
+                puz  = u+dm[0]*(j+dm[1]*(k+dm[2]*2));
+                pbx  = b+dm[0]*(j+dm[1]* k);
+                pby  = b+dm[0]*(j+dm[1]*(k+dm[2]));
+                pbz  = b+dm[0]*(j+dm[1]*(k+dm[2]*2));
+
+                if (a)
+                {
+                    paxx = a+dm[0]*(j+dm[1]* k);
+                    payy = a+dm[0]*(j+dm[1]*(k+dm[2]));
+                    pazz = a+dm[0]*(j+dm[1]*(k+dm[2]*2));
+                    paxy = a+dm[0]*(j+dm[1]*(k+dm[2]*3));
+                    paxz = a+dm[0]*(j+dm[1]*(k+dm[2]*4));
+                    payz = a+dm[0]*(j+dm[1]*(k+dm[2]*5));
+                }
+
+                jm2 = (bound(j-2,dm[1])-j)*dm[0];
+                jm1 = (bound(j-1,dm[1])-j)*dm[0];
+                jp1 = (bound(j+1,dm[1])-j)*dm[0];
+                jp2 = (bound(j+2,dm[1])-j)*dm[0];
+
+                for(i=it%3; i<dm[0]; i+=3)
+                {
+                    mwSignedIndex im2,im1,ip1,ip2;
+                    double sux, suy, suz;
+                    float *px = pux+i, *py = puy+i, *pz = puz+i;
+
+                    im2 = bound(i-2,dm[0])-i;
+                    im1 = bound(i-1,dm[0])-i;
+                    ip1 = bound(i+1,dm[0])-i;
+                    ip2 = bound(i+2,dm[0])-i;
+
+                sux = pbx[i]
+                      - ( wx100*(px[im1        ] + px[ip1        ])
+                        + wx010*(px[    jm1    ] + px[    jp1    ])
+                        + wx001*(px[        km1] + px[        kp1])
+                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
+                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
+                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
+                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
+                        +  w200*(px[im2        ] + px[ip2        ])
+                        +  w020*(px[    jm2    ] + px[    jp2    ])
+                        +  w002*(px[        km2] + px[        kp2]))/v0);
+
+                suy = pby[i]
+                      - ( wy100*(py[im1        ] + py[ip1        ])
+                        + wy010*(py[    jm1    ] + py[    jp1    ])
+                        + wy001*(py[        km1] + py[        kp1])
+                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
+                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
+                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
+                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
+                        +  w200*(py[im2        ] + py[ip2        ])
+                        +  w020*(py[    jm2    ] + py[    jp2    ])
+                        +  w002*(py[        km2] + py[        kp2]))/v1);
+
+                suz = pbz[i]
+                      - ( wz100*(pz[im1        ] + pz[ip1        ])
+                        + wz010*(pz[    jm1    ] + pz[    jp1    ])
+                        + wz001*(pz[        km1] + pz[        kp1])
+                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
+                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
+                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
+                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
+                        +  w200*(pz[im2        ] + pz[ip2        ])
+                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
+                        +  w002*(pz[        km2] + pz[        kp2]))/v2);
+
+                    if (a)
+                    {
+                        double axx, ayy, azz, axy, axz, ayz, idt;
+/*
+                        sux -= (paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]);
+                        suy -= (paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0]);
+                        suz -= (paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0]);
+*/
+                        axx  = paxx[i] + wx000;
+                        ayy  = payy[i] + wy000;
+                        azz  = pazz[i] + wz000;
+                        axy  = paxy[i];
+                        axz  = paxz[i];
+                        ayz  = payz[i];
+                        idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
+                        *px = idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
+                        *py = idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
+                        *pz = idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
+                    }
+                    else
+                    {
+                        *px = sux/wx000;
+                        *py = suy/wy000;
+                        *pz = suz/wz000;
+                    }
+                }
+            }
+        }
+#       ifdef VERBOSE
+        if ((it%27) == 26)
+            printf(" %g", sumsq(dm, a, b, s, u));
+#       endif
+    }
+#   ifdef VERBOSE
+        printf("\n");
+#   endif
+}
+
+void relax(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
+{
+    if (s[5]==0 && s[6]==0 && s[7]==0)
+        relax_me(dm, a, b, s, nit, u);
+    else if (s[6]==0 && s[7]==0)
+        relax_be(dm, a, b, s, nit, u);
+    else if (s[3]==0 && s[4]==0)
+        relax_le(dm, a, b, s, nit, u);
+    else
+        relax_all(dm, a, b, s, nit, u);
+}
+
+void vel2mom(mwSize dm[], float f[], double s[], float g[])
+{
+    if (s[5]==0 && s[6]==0 && s[7]==0)
+        vel2mom_me(dm, f, s, g);
+    else if (s[6]==0 && s[7]==0)
+        vel2mom_be(dm, f, s, g);
+    else if (s[3]==0 && s[4]==0)
+        vel2mom_le(dm, f, s, g);
+    else
+        vel2mom_all(dm, f, s, g);
+}
+
+void Atimesp(mwSize dm[], float A[], double param[], float p[], float Ap[])
+{
+    vel2mom(dm, p, param, Ap);
+    Atimesp1(dm, A, p, Ap);
+}
+
+
 

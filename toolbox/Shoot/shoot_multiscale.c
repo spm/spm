@@ -1,4 +1,4 @@
-/* $Id: shoot_multiscale.c 4573 2011-11-25 23:01:01Z john $ */
+/* $Id: shoot_multiscale.c 4583 2011-12-06 16:03:01Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -53,8 +53,8 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
             mwSignedIndex oo,om,op;
             o   = 2*j;
             oo  = o*na[0];
-            om  = BOUND(o-1,na[1])*na[0];
-            op  = BOUND(o+1,na[1])*na[0];
+            om  = bound(o-1,na[1])*na[0];
+            op  = bound(o+1,na[1])*na[0];
             for(ap=a, bp=b+j*na[0], cp=ap+na[0]; ap<cp; ap++, bp++)
                 *bp = 0.25*(ap[om]+ap[op])+0.5*ap[oo];
         }
@@ -68,10 +68,10 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
             mwSignedIndex o0, o1, o2, o3;
             loc = s*j;
             o   = floor(loc);
-            o0  = BOUND(o-1,na[1])*na[0];
-            o1  = BOUND(o  ,na[1])*na[0];
-            o2  = BOUND(o+1,na[1])*na[0];
-            o3  = BOUND(o+2,na[1])*na[0];
+            o0  = bound(o-1,na[1])*na[0];
+            o1  = bound(o  ,na[1])*na[0];
+            o2  = bound(o+1,na[1])*na[0];
+            o3  = bound(o+2,na[1])*na[0];
             w0  = wt1(((o-1)-loc)/2.0)/2.0;
             w1  = wt1(((o  )-loc)/2.0)/2.0;
             w2  = wt1(((o+1)-loc)/2.0)/2.0;
@@ -92,8 +92,8 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
         {
             mwSignedIndex om,op;
             o   = 2*i;
-            om  = BOUND(o-1,na[0]);
-            op  = BOUND(o+1,na[0]);
+            om  = bound(o-1,na[0]);
+            op  = bound(o+1,na[0]);
             for(bp=b, cp=c+i, ap=bp+na[0]*nc[1]; bp<ap; bp+=na[0], cp+=nc[0])
                 *cp = 0.25*(bp[om]+bp[op])+0.5*bp[o];
         }
@@ -107,10 +107,10 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
             mwSignedIndex o0, o1, o2, o3;
             loc = s*i;
             o   = floor(loc);
-            o0  = BOUND(o-1,na[0]); 
-            o1  = BOUND(o  ,na[0]); 
-            o2  = BOUND(o+1,na[0]); 
-            o3  = BOUND(o+2,na[0]); 
+            o0  = bound(o-1,na[0]); 
+            o1  = bound(o  ,na[0]); 
+            o2  = bound(o+1,na[0]); 
+            o3  = bound(o+2,na[0]); 
             w0  = wt1(((o-1)-loc)/2.0)/2.0;
             w1  = wt1(((o  )-loc)/2.0)/2.0;
             w2  = wt1(((o+1)-loc)/2.0)/2.0;
@@ -147,8 +147,8 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
             mwSignedIndex om, op;
             float *tp;
             o   = 2*k;
-            om  = BOUND(o-1,na[2]);
-            op  = BOUND(o+1,na[2]);
+            om  = bound(o-1,na[2]);
+            op  = bound(o+1,na[2]);
 
             tp    = pl[0];
             pl[0] = pl[2];
@@ -174,10 +174,10 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
             oo     = o;
             o      = floor(loc);
 
-            o0  = BOUND(o-1,na[2]);
-            o1  = BOUND(o  ,na[2]);
-            o2  = BOUND(o+1,na[2]);
-            o3  = BOUND(o+2,na[2]);
+            o0  = bound(o-1,na[2]);
+            o1  = bound(o  ,na[2]);
+            o2  = bound(o+1,na[2]);
+            o3  = bound(o+2,na[2]);
             w0  = wt1(((o-1)-loc)/2.0)/2.0;
             w1  = wt1(((o  )-loc)/2.0)/2.0;
             w2  = wt1(((o+1)-loc)/2.0)/2.0;
@@ -249,9 +249,9 @@ static void resized_plane(mwSize na[], float *a,  mwSize nc[], float *c, float *
     {
         loc = j*s;
         o   = floor(loc+0.5);
-        oc  = BOUND(o  ,na[1])*na[0];
-        om  = BOUND(o-1,na[1])*na[0];
-        op  = BOUND(o+1,na[1])*na[0];
+        oc  = bound(o  ,na[1])*na[0];
+        om  = bound(o-1,na[1])*na[0];
+        op  = bound(o+1,na[1])*na[0];
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -263,9 +263,9 @@ static void resized_plane(mwSize na[], float *a,  mwSize nc[], float *c, float *
     {
         loc = i*s;
         o   = floor(loc+0.5);
-        oc  = BOUND(o  ,na[0]);
-        om  = BOUND(o-1,na[0]);
-        op  = BOUND(o+1,na[0]);
+        oc  = bound(o  ,na[0]);
+        om  = bound(o-1,na[0]);
+        op  = bound(o+1,na[0]);
         w   = wt2( o   -loc);
         wp  = wt2((o+1)-loc);
         wm  = wt2((o-1)-loc);
@@ -298,9 +298,9 @@ void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
         loc    = k*s;
         oo     = o;
         o      = floor(loc+0.5);
-        oc     = BOUND(o  ,na[2]);
-        om     = BOUND(o-1,na[2]);
-        op     = BOUND(o+1,na[2]);
+        oc     = bound(o  ,na[2]);
+        om     = bound(o-1,na[2]);
+        op     = bound(o+1,na[2]);
 
         if (o==oo)
         {   /* do nothing */

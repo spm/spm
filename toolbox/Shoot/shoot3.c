@@ -8,14 +8,31 @@
 #include "shoot_multiscale.h"
 #include "shoot_regularisers.h"
 #include "shoot_dartel.h"
+#include "shoot_boundary.h"
+
+static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    if ((nlhs<=1) && (nrhs==0))
+    {
+        mwSize nout[] = {1,1,1};
+        plhs[0] = mxCreateNumericArray(2,nout, mxDOUBLE_CLASS, mxREAL);
+        mxGetPr(plhs[0])[0] = get_bound();
+    }
+    else if ((nrhs==1) && (nlhs==0))
+    {
+        if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        set_bound(mxGetPr(prhs[0])[0]);
+    }
+}
 
 static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     const mwSize *dm;
-    int          nit=1, rtype=0;
+    int          nit=1;
     double       tol=1e-10;
     float        *A, *b, *x, *scratch1, *scratch2, *scratch3;
-    static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     if (nrhs!=3 || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
@@ -41,18 +58,20 @@ static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
         mexErrMsgTxt("Data must be numeric, real, full and double");
-    if (mxGetNumberOfElements(prhs[2]) != 9)
-        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2, param3, tol and nit.");
+    if (mxGetNumberOfElements(prhs[2]) != 10)
+        mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5, tol and nit.");
 
-    rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[0] = 1/mxGetPr(prhs[2])[1];
-    param[1] = 1/mxGetPr(prhs[2])[2];
-    param[2] = 1/mxGetPr(prhs[2])[3];
-    param[3] = mxGetPr(prhs[2])[4];
-    param[4] = mxGetPr(prhs[2])[5];
-    param[5] = mxGetPr(prhs[2])[6];
-    tol      = mxGetPr(prhs[2])[7];
-    nit      = (int)(mxGetPr(prhs[2])[8]);
+    param[0] = 1/mxGetPr(prhs[2])[0];
+    param[1] = 1/mxGetPr(prhs[2])[1];
+    param[2] = 1/mxGetPr(prhs[2])[2];
+    param[3] = mxGetPr(prhs[2])[3];
+    param[4] = mxGetPr(prhs[2])[4];
+    param[5] = mxGetPr(prhs[2])[5];
+    param[6] = mxGetPr(prhs[2])[6];
+    param[7] = mxGetPr(prhs[2])[7];
+
+    tol      = mxGetPr(prhs[2])[8];
+    nit      = (int)(mxGetPr(prhs[2])[9]);
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
 
@@ -64,7 +83,7 @@ static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     scratch2 = (float *)mxCalloc(dm[0]*dm[1]*dm[2]*3,sizeof(float));
     scratch3 = (float *)mxCalloc(dm[0]*dm[1]*dm[2]*3,sizeof(float));
 
-    cgs3((mwSize *)dm, A, b, rtype, param, tol, nit, x,scratch1,scratch2,scratch3);
+    cgs3((mwSize *)dm, A, b, param, tol, nit, x,scratch1,scratch2,scratch3);
 
     mxFree((void *)scratch3);
     mxFree((void *)scratch2);
@@ -74,9 +93,9 @@ static void cgs3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     const mwSize *dm;
-    int          cyc=1, nit=1, rtype=0;
+    int          cyc=1, nit=1;
     float        *A, *b, *x, *scratch;
-    static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     if ((nrhs!=3 && nrhs!=4) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
@@ -103,17 +122,18 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     if (!mxIsNumeric(prhs[2]) || mxIsComplex(prhs[2]) || mxIsSparse(prhs[2]) || !mxIsDouble(prhs[2]))
         mexErrMsgTxt("Data must be numeric, real, full and double");
     
-    if (mxGetNumberOfElements(prhs[2]) != 9)
-        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2, param3, ncycles and relax-its.");
-    rtype    = (int)(mxGetPr(prhs[2])[0]);
-    param[0] = 1/mxGetPr(prhs[2])[1];
-    param[1] = 1/mxGetPr(prhs[2])[2];
-    param[2] = 1/mxGetPr(prhs[2])[3];
-    param[3] = mxGetPr(prhs[2])[4];
-    param[4] = mxGetPr(prhs[2])[5];
-    param[5] = mxGetPr(prhs[2])[6];
-    cyc      = mxGetPr(prhs[2])[7];
-    nit      = (int)(mxGetPr(prhs[2])[8]);
+    if (mxGetNumberOfElements(prhs[2]) != 10)
+        mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5, ncycles and relax-its.");
+    param[0] = 1/mxGetPr(prhs[2])[0];
+    param[1] = 1/mxGetPr(prhs[2])[1];
+    param[2] = 1/mxGetPr(prhs[2])[2];
+    param[3] = mxGetPr(prhs[2])[3];
+    param[4] = mxGetPr(prhs[2])[4];
+    param[5] = mxGetPr(prhs[2])[5];
+    param[6] = mxGetPr(prhs[2])[6];
+    param[7] = mxGetPr(prhs[2])[7];
+    cyc      = mxGetPr(prhs[2])[8];
+    nit      = (int)(mxGetPr(prhs[2])[9]);
 
     if (nrhs>=4)
     {
@@ -146,16 +166,16 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     A       = (float *)mxGetPr(prhs[0]);
     b       = (float *)mxGetPr(prhs[1]);
     scratch = (float *)mxCalloc(fmg3_scratchsize((mwSize *)dm,1),sizeof(float));
-    fmg3((mwSize *)dm, A, b, rtype, param, cyc, nit, x, scratch);
+    fmg3((mwSize *)dm, A, b, param, cyc, nit, x, scratch);
     mxFree((void *)scratch);
 }
 
 static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     const mwSize *dm;
-    int          cyc=1, nit=1, rtype=0;
+    int          cyc=1, nit=1;
     float        *b, *x, *scratch;
-    static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     if ((nrhs!=2 && nrhs!=3) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
@@ -170,18 +190,18 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
         mexErrMsgTxt("Data must be numeric, real, full and double");
 
-    if (mxGetNumberOfElements(prhs[1]) != 9)
-        mexErrMsgTxt("Third argument should contain rtype, vox1, vox2, vox3, param1, param2, param3, ncycles and relax-its.");
-    rtype    = (int)(mxGetPr(prhs[1])[0]);
-    /* if (rtype!=0) mexErrMsgTxt("Only does linear elastic energy."); */
-    param[0] = 1/mxGetPr(prhs[1])[1];
-    param[1] = 1/mxGetPr(prhs[1])[2];
-    param[2] = 1/mxGetPr(prhs[1])[3];
-    param[3] = mxGetPr(prhs[1])[4];
-    param[4] = mxGetPr(prhs[1])[5];
-    param[5] = mxGetPr(prhs[1])[6];
-    cyc      = mxGetPr(prhs[1])[7];
-    nit      = (int)(mxGetPr(prhs[1])[8]);
+    if (mxGetNumberOfElements(prhs[1]) != 10)
+        mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5, ncycles and relax-its.");
+    param[0] = 1/mxGetPr(prhs[1])[0];
+    param[1] = 1/mxGetPr(prhs[1])[1];
+    param[2] = 1/mxGetPr(prhs[1])[2];
+    param[3] = mxGetPr(prhs[1])[3];
+    param[4] = mxGetPr(prhs[1])[4];
+    param[5] = mxGetPr(prhs[1])[5];
+    param[6] = mxGetPr(prhs[1])[6];
+    param[7] = mxGetPr(prhs[1])[7];
+    cyc      = mxGetPr(prhs[1])[8];
+    nit      = (int)(mxGetPr(prhs[1])[9]);
 
     if (nrhs>=3)
     {
@@ -213,7 +233,7 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
 
     b       = (float *)mxGetPr(prhs[0]);
     scratch = (float *)mxCalloc(fmg3_scratchsize((mwSize *)dm,0),sizeof(float));
-    fmg3((mwSize *)dm, 0, b, rtype, param, cyc, nit, x, scratch);
+    fmg3((mwSize *)dm, 0, b, param, cyc, nit, x, scratch);
     mxFree((void *)scratch);
 }
 
@@ -281,8 +301,7 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 {
     int nd;
     const mwSize *dm;
-    int rtype = 0;
-    static double param[] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     if (nrhs!=2 || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
@@ -294,24 +313,20 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     if (dm[3]!=3)
         mexErrMsgTxt("4th dimension must be 3.");
 
-    if (mxGetNumberOfElements(prhs[1]) != 7)
-        mexErrMsgTxt("Parameters should contain rtype, vox1, vox2, vox3, param1, param2 and param3.");
-    rtype    = (int)(mxGetPr(prhs[1])[0]);
-    param[0] = 1/mxGetPr(prhs[1])[1];
-    param[1] = 1/mxGetPr(prhs[1])[2];
-    param[2] = 1/mxGetPr(prhs[1])[3];
-    param[3] = mxGetPr(prhs[1])[4];
-    param[4] = mxGetPr(prhs[1])[5];
-    param[5] = mxGetPr(prhs[1])[6];
-    
+    if (mxGetNumberOfElements(prhs[1]) != 8)
+        mexErrMsgTxt("Parameters should contain vox1, vox2, vox3, param1, param2, param3, param4 and param5.");
+    param[0] = 1/mxGetPr(prhs[1])[0];
+    param[1] = 1/mxGetPr(prhs[1])[1];
+    param[2] = 1/mxGetPr(prhs[1])[2];
+    param[3] = mxGetPr(prhs[1])[3];
+    param[4] = mxGetPr(prhs[1])[4];
+    param[5] = mxGetPr(prhs[1])[5];
+    param[6] = mxGetPr(prhs[1])[6];
+    param[7] = mxGetPr(prhs[1])[7];
+
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
 
-    if (rtype==1)
-        vel2mom_me((mwSize *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
-    else if (rtype==2)
-        vel2mom_be((mwSize *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
-    else
-        vel2mom_le((mwSize *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
+    vel2mom((mwSize *)dm, (float *)mxGetPr(prhs[0]), param, (float *)mxGetPr(plhs[0]));
 }
 
 static void comp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -885,6 +900,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             exp_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"boundary")  || !strcmp(fnc_str,"bound"))
+        {
+            mxFree(fnc_str);
+            boundary_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

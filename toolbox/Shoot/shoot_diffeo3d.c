@@ -1,16 +1,16 @@
-/* $Id: shoot_diffeo3d.c 4573 2011-11-25 23:01:01Z john $ */
-/* (c) John Ashburner (2007) */
+/* $Id: shoot_diffeo3d.c 4583 2011-12-06 16:03:01Z john $ */
+/* (c) John Ashburner (2011) */
 
 #include <mex.h>
 #include <math.h>
 #include <stdio.h>
 #include "shoot_optim3d.h"
 #include "shoot_expm3.h"
+#include "shoot_boundary.h"
 
 extern double   log(double x);
 extern double   exp(double x);
 #define LOG(x) (((x)>0) ? log(x+0.001): -6.9078)
-#include "shoot_boundary.h"
 
 /*
  * Lie Bracket
@@ -42,10 +42,10 @@ void bracket(mwSize dm[], float *A, float *B, float *C)
             mwSize o1, oi1, opj1, omj1, opk1, omk1;
             o1   = dm[0]*(j+dm[1]*k);
             oi1  = dm[0]*(j+dm[1]*k);
-            opj1 = dm[0]*(BOUND(j+1,dm[1])+dm[1]*k);
-            omj1 = dm[0]*(BOUND(j-1,dm[1])+dm[1]*k);
-            opk1 = dm[0]*(j+dm[1]*BOUND(k+1,dm[2]));
-            omk1 = dm[0]*(j+dm[1]*BOUND(k-1,dm[2]));
+            opj1 = dm[0]*(bound(j+1,dm[1])+dm[1]*k);
+            omj1 = dm[0]*(bound(j-1,dm[1])+dm[1]*k);
+            opk1 = dm[0]*(j+dm[1]*bound(k+1,dm[2]));
+            omk1 = dm[0]*(j+dm[1]*bound(k-1,dm[2]));
 
             for(i=0; i<dm[0]; i++)
             {
@@ -54,8 +54,8 @@ void bracket(mwSize dm[], float *A, float *B, float *C)
                 double tx, ty, tz,  cx1, cy1, cz1,  cx2, cy2, cz2;
 
                 o   = i+o1;
-                opi = BOUND(i+1,dm[0])+oi1;
-                omi = BOUND(i-1,dm[0])+oi1;
+                opi = bound(i+1,dm[0])+oi1;
+                omi = bound(i-1,dm[0])+oi1;
                 opj = i+opj1;
                 omj = i+omj1;
                 opk = i+opk1;
@@ -161,12 +161,12 @@ static void composition_stuff(mwSize dm[], mwSize mm,
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix  ,dm[0]);
-        iy   = BOUND(iy  ,dm[1]);
-        iz   = BOUND(iz  ,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix  ,dm[0]);
+        iy   = bound(iy  ,dm[1]);
+        iz   = bound(iz  ,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
 
         tmpz  = dm[1]*iz;
         tmpy  = dm[0]*(iy + tmpz);
@@ -358,12 +358,12 @@ double samp(mwSize dm[], float f[], double x, double y, double z)
     ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
     iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
     iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-    ix   = BOUND(ix  ,dm[0]);
-    iy   = BOUND(iy  ,dm[1]);
-    iz   = BOUND(iz  ,dm[2]);
-    ix1  = BOUND(ix+1,dm[0]);
-    iy1  = BOUND(iy+1,dm[1]);
-    iz1  = BOUND(iz+1,dm[2]);
+    ix   = bound(ix  ,dm[0]);
+    iy   = bound(iy  ,dm[1]);
+    iz   = bound(iz  ,dm[2]);
+    ix1  = bound(ix+1,dm[0]);
+    iy1  = bound(iy+1,dm[1]);
+    iz1  = bound(iz+1,dm[2]);
 
     tmpz  = dm[1]*iz;
     tmpy  = dm[0]*(iy + tmpz);
@@ -398,12 +398,12 @@ void sampn(mwSize dm[], float f[], mwSize n, mwSize mm, double x, double y, doub
     ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
     iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
     iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-    ix   = BOUND(ix  ,dm[0]);
-    iy   = BOUND(iy  ,dm[1]);
-    iz   = BOUND(iz  ,dm[2]);
-    ix1  = BOUND(ix+1,dm[0]);
-    iy1  = BOUND(iy+1,dm[1]);
-    iz1  = BOUND(iz+1,dm[2]);
+    ix   = bound(ix  ,dm[0]);
+    iy   = bound(iy  ,dm[1]);
+    iz   = bound(iz  ,dm[2]);
+    ix1  = bound(ix+1,dm[0]);
+    iy1  = bound(iy+1,dm[1]);
+    iz1  = bound(iz+1,dm[2]);
 
     tmpz  = dm[1]*iz;
     tmpy  = dm[0]*(iy + tmpz);
@@ -665,12 +665,12 @@ void pushc(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[],
             w011 = dx2*dy1*dz1;
             w111 = dx1*dy1*dz1;
 
-            ix   = BOUND(ix, dm[0]);
-            iy   = BOUND(iy, dm[1]);
-            iz   = BOUND(iz, dm[2]);
-            ix1  = BOUND(ix+1, dm[0]);
-            iy1  = BOUND(iy+1, dm[1]);
-            iz1  = BOUND(iz+1, dm[2]);
+            ix   = bound(ix, dm[0]);
+            iy   = bound(iy, dm[1]);
+            iz   = bound(iz, dm[2]);
+            ix1  = bound(ix+1, dm[0]);
+            iy1  = bound(iy+1, dm[1]);
+            iz1  = bound(iz+1, dm[2]);
 
             /* Neighbouring voxels used for trilinear interpolation */
             tmpz  = dm[1]*iz;
@@ -803,12 +803,12 @@ void pushc_grads(mwSize dm[], mwSize m, float def[], float J[], float pf[], floa
             w011 = dx2*dy1*dz1;
             w111 = dx1*dy1*dz1;
 
-            ix   = BOUND(ix, dm[0]);
-            iy   = BOUND(iy, dm[1]);
-            iz   = BOUND(iz, dm[2]);
-            ix1  = BOUND(ix+1, dm[0]);
-            iy1  = BOUND(iy+1, dm[1]);
-            iz1  = BOUND(iz+1, dm[2]);
+            ix   = bound(ix, dm[0]);
+            iy   = bound(iy, dm[1]);
+            iz   = bound(iz, dm[2]);
+            ix1  = bound(ix+1, dm[0]);
+            iy1  = bound(iy+1, dm[1]);
+            iz1  = bound(iz+1, dm[2]);
 
             /* Neighbouring voxels used for trilinear interpolation */
             tmpz  = dm[1]*iz;
@@ -882,14 +882,14 @@ void smalldef_jac(mwSize dm[], double sc, float v0[], float t0[], float J0[])
     for(j2=0; j2<dm[2]; j2++)
     {
         mwSize j2m1, j2p1;
-        j2m1 = BOUND(j2-1,dm[2]);
-        j2p1 = BOUND(j2+1,dm[2]);
+        j2m1 = bound(j2-1,dm[2]);
+        j2p1 = bound(j2+1,dm[2]);
 
         for(j1=0; j1<dm[1]; j1++)
         {
             mwSize j1m1, j1p1;
-            j1m1 = BOUND(j1-1,dm[1]);
-            j1p1 = BOUND(j1+1,dm[1]);
+            j1m1 = bound(j1-1,dm[1]);
+            j1p1 = bound(j1+1,dm[1]);
 
             for(j0=0; j0<dm[0]; j0++)
             {
@@ -903,17 +903,17 @@ void smalldef_jac(mwSize dm[], double sc, float v0[], float t0[], float J0[])
                 if (v0[o] > 0)
                 {
                     om1 = o;
-                    op1 = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                    op1 = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 }
                 else
                 {
-                    om1 = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                    om1 = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
                     op1 = o;
                 }
                 */
 
-                om1 = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
-                op1 = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                om1 = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 J0[o    ] = (v0[op1]-v0[om1])*sc2 + 1.0;
                 J0[o+  m] = (v1[op1]-v1[om1])*sc2;
                 J0[o+2*m] = (v2[op1]-v2[om1])*sc2;
@@ -974,14 +974,14 @@ void smalldef_jac1(mwSize dm[], double sc, float v0[], float t0[], float J0[])
     for(j2=0; j2<dm[2]; j2++)
     {
         mwSize j2m1, j2p1;
-        j2m1 = BOUND(j2-1,dm[2]);
-        j2p1 = BOUND(j2+1,dm[2]);
+        j2m1 = bound(j2-1,dm[2]);
+        j2p1 = bound(j2+1,dm[2]);
 
         for(j1=0; j1<dm[1]; j1++)
         {
             mwSize j1m1, j1p1;
-            j1m1 = BOUND(j1-1,dm[1]);
-            j1p1 = BOUND(j1+1,dm[1]);
+            j1m1 = bound(j1-1,dm[1]);
+            j1p1 = bound(j1+1,dm[1]);
 
             for(j0=0; j0<dm[0]; j0++)
             {
@@ -991,8 +991,8 @@ void smalldef_jac1(mwSize dm[], double sc, float v0[], float t0[], float J0[])
                 t0[o+m  ] = (j1+1) + v1[o]*sc;
                 t0[o+m*2] = (j2+1) + v2[o]*sc;
 
-                om1  = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
-                op1  = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                om1  = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1  = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 A[0] = (v0[op1]-v0[om1])*sc2;
                 A[1] = (v1[op1]-v1[om1])*sc2;
                 A[2] = (v2[op1]-v2[om1])*sc2;
@@ -1037,21 +1037,21 @@ void minmax_div(mwSize dm[], float v0[], double mnmx[])
     for(j2=0; j2<dm[2]; j2++)
     {
         mwSize j2m1, j2p1;
-        j2m1 = BOUND(j2-1,dm[2]);
-        j2p1 = BOUND(j2+1,dm[2]);
+        j2m1 = bound(j2-1,dm[2]);
+        j2p1 = bound(j2+1,dm[2]);
 
         for(j1=0; j1<dm[1]; j1++)
         {
             mwSize j1m1, j1p1;
-            j1m1 = BOUND(j1-1,dm[1]);
-            j1p1 = BOUND(j1+1,dm[1]);
+            j1m1 = bound(j1-1,dm[1]);
+            j1p1 = bound(j1+1,dm[1]);
 
             for(j0=0; j0<dm[0]; j0++)
             {
                 mwSize om1, op1;
 
-                om1 = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
-                op1 = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                om1 = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 div = v0[op1]-v0[om1];
 
                 om1 = j0+dm[0]*(j1m1+dm[1]*j2);
@@ -1097,9 +1097,8 @@ void unwrap(mwSize dm[], float f[])
 {
     mwSignedIndex i0, i1, i2;
 
-#ifdef NEUMANN
-return;
-#endif
+   if (get_bound())
+      return;
 
     for(i2=0; i2<dm[2]; i2++)
     {

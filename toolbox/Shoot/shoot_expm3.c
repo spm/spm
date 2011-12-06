@@ -1,5 +1,5 @@
-/* $Id: shoot_expm3.c 4573 2011-11-25 23:01:01Z john $ */
-/* (c) John Ashburner (2007) */
+/* $Id: shoot_expm3.c 4583 2011-12-06 16:03:01Z john $ */
+/* (c) John Ashburner (2011) */
 
 #include <mex.h>
 #include <math.h>

@@ -1,4 +1,4 @@
-/* $Id: shoot_optim3d.c 4573 2011-11-25 23:01:01Z john $ */
+/* $Id: shoot_optim3d.c 4583 2011-12-06 16:03:01Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -21,7 +21,7 @@ static void solve33(float a[], float b[], double s[], float u[])
     if (a)
     {
         double dt;
-        double a0 = a[0]+s[5]/(s[0]*s[0]), a1 = a[1]+s[5]/(s[1]*s[1]), a2 = a[2]+s[5]/(s[2]*s[2]);
+        double a0 = a[0]+s[3]/(s[0]*s[0]), a1 = a[1]+s[3]/(s[1]*s[1]), a2 = a[2]+s[3]/(s[2]*s[2]);
         dt  = a0*a2*a1-a0*a[5]*a[5]-a1*a[4]*a[4]-a2*a[3]*a[3]+2*a[5]*a[3]*a[4]+sb2;
         u[0] = (b[0]*(a2*a1-a[5]*a[5])+b[1]*(a[4]*a[5]-a[3]*a2)+b[2]*(a[3]*a[5]-a[4]*a1))/dt;
         u[1] = (b[0]*(a[5]*a[4]-a[3]*a2)+b[1]*(a0*a2-a[4]*a[4])+b[2]*(a[4]*a[3]-a0*a[5]))/dt;
@@ -30,7 +30,7 @@ static void solve33(float a[], float b[], double s[], float u[])
     else
     {
         double dt;
-        double a0 = s[5]/(s[0]*s[0]), a1 = s[5]/(s[1]*s[1]), a2 = s[5]/(s[2]*s[2]);
+        double a0 = s[3]/(s[0]*s[0]), a1 = s[3]/(s[1]*s[1]), a2 = s[3]/(s[2]*s[2]);
         dt  = a0*a1*a2+sb2;
         u[0] = b[0]*a2*a1/dt;
         u[1] = b[1]*a0*a2/dt;
@@ -100,20 +100,13 @@ while norm(r) > tol*norm(b),
 end;
 */
 
-void cgs3(mwSize dm[], float A[], float b[], int rtype, double param[], double tol, int nit,
+void cgs3(mwSize dm[], float A[], float b[], double param[], double tol, int nit,
              float x[], float r[], float p[], float Ap[])
 {
     mwSize i, m = dm[0]*dm[1]*dm[2]*3, it;
     double rtr, nb, rtrold, alpha, beta;
-    void (*Atimesp)();
 
     /* printf("\n **** %dx%d ****\n",dm[0],dm[1]); */
-    if (rtype == 0)
-        Atimesp = Atimesp_le;
-    else if (rtype == 1)
-        Atimesp = Atimesp_me;
-    else
-        Atimesp = Atimesp_be;
 
     nb      = tol*norm(m,b);
 
@@ -285,30 +278,13 @@ mwSize fmg3_scratchsize(mwSize n0[], int use_hessian)
     Full Multigrid solver.  See Numerical Recipes (second edition) for more
     information
 */
-void fmg3(mwSize n0[], float *a0, float *b0, int rtype, double param0[], int c, int nit,
+void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
           float *u0, float *scratch)
 {
     mwSignedIndex i, j, ng, bs;
     mwSize n[64][3], m[64];
     float *bo[64], *a[64], *b[64], *u[64], *res, *rbuf;
-    double param[64][6];
-    void (*relax)(), (*Atimesp)();
-
-    if (rtype == 0)
-    {
-        relax   = relax_le;
-        Atimesp = Atimesp_le;
-    }
-    else if (rtype == 1)
-    {
-        relax   = relax_me;
-        Atimesp = Atimesp_me;
-    }
-    else
-    {
-        relax   = relax_be;
-        Atimesp = Atimesp_be;
-    }
+    double param[64][8];
 
     /* Dimensions of native resolution grids */
     n[0][0] = n0[0];
@@ -366,6 +342,9 @@ void fmg3(mwSize n0[], float *a0, float *b0, int rtype, double param0[], int c, 
     param[0][3] = param0[3]; /* 1st regularisation parameter */
     param[0][4] = param0[4]; /* 2nd regularisation parameter */
     param[0][5] = param0[5]; /* 3rd regularisation parameter */
+    param[0][6] = param0[6]; /* 4th regularisation parameter */
+    param[0][7] = param0[7]; /* 5th regularisation parameter */
+
     for(j=1; j<ng; j++)
     {
         restrict_g(n[j-1],bo[j-1],bo[j],rbuf);
@@ -378,6 +357,8 @@ void fmg3(mwSize n0[], float *a0, float *b0, int rtype, double param0[], int c, 
         param[j][3] = param[0][3];
         param[j][4] = param[0][4];
         param[j][5] = param[0][5];
+        param[j][6] = param[0][6];
+        param[j][7] = param[0][7];
     }
 
     if (u[0][0]==0) /* No starting estimate so do Full Multigrid */
@@ -416,8 +397,8 @@ void fmg3(mwSize n0[], float *a0, float *b0, int rtype, double param0[], int c, 
     else /* Use starting estimate and just run some V-cycles */
     {
         mwSignedIndex jc;
-        for(j=1; j<ng; j++)
-            restrict_g(n[j-1],u[j-1],u[j],rbuf);
+/*        for(j=1; j<ng; j++)
+            restrict_g(n[j-1],u[j-1],u[j],rbuf); */
 
         for(jc=0; jc<c; jc++) /* Loop over V-cycles */
         {
@@ -439,6 +420,7 @@ void fmg3(mwSize n0[], float *a0, float *b0, int rtype, double param0[], int c, 
                 prolong(n[jj+1],u[jj+1],n[jj],res,rbuf);
                 addto(3*m[jj], u[jj], res);
                 relax(n[jj], a[jj], b[jj], param[jj], nit, u[jj]);
+
             }
         }
     }

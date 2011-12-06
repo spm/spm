@@ -1,15 +1,17 @@
-/* $Id: shoot_dartel.c 4573 2011-11-25 23:01:01Z john $ */
-/* (c) John Ashburner (2007) */
+/* $Id: shoot_dartel.c 4583 2011-12-06 16:03:01Z john $ */
+/* (c) John Ashburner (2011) */
 
 #include <mex.h>
 #include <math.h>
 #include <stdio.h>
 #include "shoot_optim3d.h"
 #include "shoot_diffeo3d.h"
+#include "shoot_regularisers.h"
+#include "shoot_boundary.h"
+
 extern double   log(double x);
 extern double   exp(double x);
 #define LOG(x) (((x)>0) ? log(x+0.001): -6.9078)
-#define BOUND(i,m) (((i)>=0) ? (i)%(m) : ((m)+(i)%(m))%m)
 
 /*
  * In place Cholesky decomposition
@@ -92,14 +94,14 @@ static void smalldef_jacdet(mwSize dm[], double sc, float v0[], float t0[], floa
     for(j2=0; j2<dm[2]; j2++)
     {
         mwSignedIndex j2m1, j2p1;
-        j2m1 = BOUND(j2-1,dm[2]);
-        j2p1 = BOUND(j2+1,dm[2]);
+        j2m1 = bound(j2-1,dm[2]);
+        j2p1 = bound(j2+1,dm[2]);
 
         for(j1=0; j1<dm[1]; j1++)
         {
             mwSignedIndex j1m1, j1p1;
-            j1m1 = BOUND(j1-1,dm[1]);
-            j1p1 = BOUND(j1+1,dm[1]);
+            j1m1 = bound(j1-1,dm[1]);
+            j1p1 = bound(j1+1,dm[1]);
 
             for(j0=0; j0<dm[0]; j0++)
             {
@@ -111,8 +113,8 @@ static void smalldef_jacdet(mwSize dm[], double sc, float v0[], float t0[], floa
                 t0[o+m  ] = (j1+1) + v1[o]*sc;
                 t0[o+m*2] = (j2+1) + v2[o]*sc;
 
-                om1 = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
-                op1 = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                om1 = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 
                 j00 = (v0[op1]-v0[om1])*sc2 + 1.0;
                 j10 = (v1[op1]-v1[om1])*sc2;
@@ -151,14 +153,14 @@ static void jac_div_smalldef(mwSize dm[], double sc, float v0[], float J0[])
     for(j2=0; j2<dm[2]; j2++)
     {
         mwSignedIndex j2m1, j2p1;
-        j2m1 = BOUND(j2-1,dm[2]);
-        j2p1 = BOUND(j2+1,dm[2]);
+        j2m1 = bound(j2-1,dm[2]);
+        j2p1 = bound(j2+1,dm[2]);
 
         for(j1=0; j1<dm[1]; j1++)
         {
             mwSignedIndex j1m1, j1p1;
-            j1m1 = BOUND(j1-1,dm[1]);
-            j1p1 = BOUND(j1+1,dm[1]);
+            j1m1 = bound(j1-1,dm[1]);
+            j1p1 = bound(j1+1,dm[1]);
 
             for(j0=0; j0<dm[0]; j0++)
             {
@@ -167,8 +169,8 @@ static void jac_div_smalldef(mwSize dm[], double sc, float v0[], float J0[])
                 double t00,t01,t02, t10,t11,t12, t20,t21,t22;
                 double idt;
 
-                om1 = BOUND(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
-                op1 = BOUND(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                om1 = bound(j0-1,dm[0])+dm[0]*(j1+dm[1]*j2);
+                op1 = bound(j0+1,dm[0])+dm[0]*(j1+dm[1]*j2);
                 j00 = (v0[op1]-v0[om1])*sc2 + 1.0;
                 j10 = (v1[op1]-v1[om1])*sc2;
                 j20 = (v2[op1]-v2[om1])*sc2;
@@ -340,12 +342,12 @@ static double smalldef_objfun_mn(mwSize dm[], float f[], float g[], float v[], f
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
         sY   = 0.0;
         
         for(k=0; k<dm[3]; k++)
@@ -504,12 +506,12 @@ static double smalldef_objfun2(mwSize dm[], float f[], float g[], float v[], flo
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
 
         A[j    ] = 0.0;
         A[j+m  ] = 0.0;
@@ -629,12 +631,12 @@ static double smalldef_objfun(mwSize dm[], float f[], float g[], float v[], floa
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
         
         k000  = f[ix +dm[0]*(iy +dm[1]*iz )];
         k100  = f[ix1+dm[0]*(iy +dm[1]*iz )];
@@ -700,12 +702,12 @@ static double initialise_objfun_mn(mwSize dm[], float f[], float g[], float t0[]
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
         sY   = 0.0;
         
         for(k=0; k<dm[3]; k++)
@@ -866,12 +868,12 @@ static double initialise_objfun2(mwSize dm[], float f[], float g[], float t0[], 
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
 
         A[j    ] = 0.0;
         A[j+m  ] = 0.0;
@@ -990,12 +992,12 @@ static double initialise_objfun(mwSize dm[], float f[], float g[], float t0[], f
         ix   = (mwSignedIndex)floor(x); dx1=x-ix; dx2=1.0-dx1;
         iy   = (mwSignedIndex)floor(y); dy1=y-iy; dy2=1.0-dy1;
         iz   = (mwSignedIndex)floor(z); dz1=z-iz; dz2=1.0-dz1;
-        ix   = BOUND(ix,dm[0]);
-        iy   = BOUND(iy,dm[1]);
-        iz   = BOUND(iz,dm[2]);
-        ix1  = BOUND(ix+1,dm[0]);
-        iy1  = BOUND(iy+1,dm[1]);
-        iz1  = BOUND(iz+1,dm[2]);
+        ix   = bound(ix,dm[0]);
+        iy   = bound(iy,dm[1]);
+        iz   = bound(iz,dm[2]);
+        ix1  = bound(ix+1,dm[0]);
+        iy1  = bound(iy+1,dm[1]);
+        iz1  = bound(iz+1,dm[2]);
 
         k000  = f[ix +dm[0]*(iy +dm[1]*iz )];
         k100  = f[ix1+dm[0]*(iy +dm[1]*iz )];
@@ -1173,13 +1175,13 @@ mwSize iteration_scratchsize(mwSize dm[], int code, int k)
 }
 
 void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
-               int rtype, double param0[], double lmreg0, int cycles, int its, int code,
+               double param0[], double lmreg0, int cycles, int its, int code,
                float ov[], double ll[], float *buf)
 {
     float *sbuf;
     float *b, *A;
     double ssl, ssp, sc;
-    static double param[6] = {1.0,1.0,1.0,1.0,0.0,0.0};
+    static double param[] = {1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0};
     mwSize m = dm[0]*dm[1]*dm[2];
     mwSize j;
 
@@ -1243,13 +1245,11 @@ void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
     param[3] = param0[3];
     param[4] = param0[4];
     param[5] = param0[5];
+    param[6] = param0[6];
+    param[7] = param0[7];
 
-    if (rtype==0)
-        vel2mom_le(dm, v, param, sbuf);
-    else if (rtype==1)
-        vel2mom_me(dm, v, param, sbuf);
-    else /* if (rtype==2) */
-        vel2mom_be(dm, v, param, sbuf);
+
+    vel2mom(dm, v, param, sbuf);
 
     ssp = 0.0;
     for(j=0; j<m*3; j++)
@@ -1273,19 +1273,19 @@ void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
      *     d: vector of first derivatives
      */
 
-    if (lmreg0>0.0) param[5] = param[5] + lmreg0;
+    if (lmreg0>0.0) param[3] = param[3] + lmreg0;
 
-    fmg3(dm, A, b, rtype, param, cycles, its, sbuf, sbuf+3*m); 
+    fmg3(dm, A, b, param, cycles, its, sbuf, sbuf+3*m); 
     for(j=0; j<m*3; j++) ov[j] = v[j] - sbuf[j];
 }
 
 void dartel_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray *prhs[])
 {
-    int        i, k=10, cycles=4, its=2, rtype=2, code=0;
+    int        i, k=10, cycles=4, its=2, code=0;
     mwSize     dm[5];
     double     lmreg0=0.0, *ll;
     float      *v, *g, *f, *jd = (float *)0, *ov, *scratch;
-    static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     static mwSize nll[] = {1, 3, 1};
 
     if ((nrhs!=4 && nrhs!=5) || nlhs>2)
@@ -1336,17 +1336,19 @@ void dartel_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray
             mexErrMsgTxt("Incompatible 3rd dimension.");
         jd = (float *)mxGetPr(prhs[4]);
     }
-    if (mxGetNumberOfElements(prhs[3]) >9)
-        mexErrMsgTxt("Fourth argument should contain rtype, param1, param2, param3, LMreg, ncycles, nits, nsamps and code.");
-    if (mxGetNumberOfElements(prhs[3]) >=1) rtype  = mxGetPr(prhs[3])[0];
-    if (mxGetNumberOfElements(prhs[3]) >=2) param[3] = mxGetPr(prhs[3])[1];
-    if (mxGetNumberOfElements(prhs[3]) >=3) param[4] = mxGetPr(prhs[3])[2];
-    if (mxGetNumberOfElements(prhs[3]) >=4) param[5] = mxGetPr(prhs[3])[3];
-    if (mxGetNumberOfElements(prhs[3]) >=5) lmreg0 = mxGetPr(prhs[3])[4];
-    if (mxGetNumberOfElements(prhs[3]) >=6) cycles = mxGetPr(prhs[3])[5];
-    if (mxGetNumberOfElements(prhs[3]) >=7) its    = mxGetPr(prhs[3])[6];
-    if (mxGetNumberOfElements(prhs[3]) >=8) k      = mxGetPr(prhs[3])[7];
-    if (mxGetNumberOfElements(prhs[3]) >=9) code   = mxGetPr(prhs[3])[8];
+    if (mxGetNumberOfElements(prhs[3]) >10)
+        mexErrMsgTxt("Fourth argument should contain param1, param2, param3, param4, param5, LMreg, ncycles, nits, nsamps and code.");
+    if (mxGetNumberOfElements(prhs[3]) >=1) param[3] = mxGetPr(prhs[3])[0];
+    if (mxGetNumberOfElements(prhs[3]) >=2) param[4] = mxGetPr(prhs[3])[1];
+    if (mxGetNumberOfElements(prhs[3]) >=3) param[5] = mxGetPr(prhs[3])[2];
+    if (mxGetNumberOfElements(prhs[3]) >=4) param[6] = mxGetPr(prhs[3])[3];
+    if (mxGetNumberOfElements(prhs[3]) >=5) param[7] = mxGetPr(prhs[3])[4];
+
+    if (mxGetNumberOfElements(prhs[3]) >=6) lmreg0 = mxGetPr(prhs[3])[5];
+    if (mxGetNumberOfElements(prhs[3]) >=7) cycles = mxGetPr(prhs[3])[6];
+    if (mxGetNumberOfElements(prhs[3]) >=8) its    = mxGetPr(prhs[3])[7];
+    if (mxGetNumberOfElements(prhs[3]) >=9) k      = mxGetPr(prhs[3])[8];
+    if (mxGetNumberOfElements(prhs[3]) >=10) code   = mxGetPr(prhs[3])[9];
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
     plhs[1] = mxCreateNumericArray(2,nll, mxDOUBLE_CLASS, mxREAL);
@@ -1363,7 +1365,8 @@ void dartel_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray
     if (mxGetNumberOfDimensions(prhs[1])>=4)
         dm[3] = mxGetDimensions(prhs[1])[3];
 
-    iteration(dm, k, v, g, f, jd, rtype, param, lmreg0, cycles, its, code,
+    /* set_bound(0); */
+    iteration(dm, k, v, g, f, jd, param, lmreg0, cycles, its, code,
               ov, ll, scratch);
     mxFree((void *)scratch);
 }
@@ -1402,6 +1405,8 @@ void exp_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray *p
     plhs[0] = mxCreateNumericArray(nd,dm, mxSINGLE_CLASS, mxREAL);
     t       = (float *)mxGetPr(plhs[0]);
     t1      = mxCalloc(dm[0]*dm[1]*dm[2]*3,sizeof(float));
+
+    /* set_bound(0); */
 
     if (nlhs < 2)
     {

@@ -1,13 +1,12 @@
-function [u0,ll1, ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm,int_args, bs_args,scale)
+function [u0,ll1, ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
 % Shooting Of Diffeomorphisms (Spawn Of Dartel).
-% FORMAT u0 = spm_shoot_update(g,f,u0,phi,dt,prm,int_args, bs_args)
+% FORMAT u0 = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args)
 % g        - template
 % f        - individual
 % u0       - initial velocity
 % phi      - deformation
 % dt       - Jacobian determinants
 % prm      - Parameters of differential operator
-% int_args - integration settings
 % bs_args  - interpolation settings
 % scale    - scaling of the update step
 %
@@ -21,7 +20,7 @@ function [u0,ll1, ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm,int_args, 
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot_update.m 4583 2011-12-06 16:03:01Z john $
 
 if nargin<9, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -44,7 +43,7 @@ grad_norm = sqrt(var2/prod(d));
 fprintf('%-10.5g %-10.5g %-10.5g %-10.5g %-10.5g\n',...
                             ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d),...
                             var2/(var1+eps), grad_norm);
-u0      = u0 - scale*shoot3('fmg',A, b, [prm 3 2]);
+u0      = u0 - scale*shoot3('fmg',A, b, [prm 2 2]);
 clear A b
 %=======================================================================
 
