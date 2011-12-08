@@ -85,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4586 2011-12-08 12:20:16Z ged $
+% $Id: cfg_getfile.m 4587 2011-12-08 14:58:19Z ged $
 
 t = {};
 sts = false;
@@ -1232,13 +1232,18 @@ ob  = get(ob, 'Parent');
 ob  = sib(ob, 'EditWindow');
 str = get(ob, 'String');
 if isempty(str), return, end
-out = evalin('base', char(str), ''''''); % (empty string if eval error)
+try
+    out = evalin('base', char(str));
+catch
+    out = '';
+end
 if ~isempty(out) && (iscellstr(out) || ischar(out))
     set(ob, 'String', cellstr(out));
 else
+    fgc = get(ob, 'ForegroundColor');
     set(ob, 'ForegroundColor', 'red');
     pause(1);
-    set(ob, 'ForegroundColor', 'black');
+    set(ob, 'ForegroundColor', fgc);
 end
 %=======================================================================
 
