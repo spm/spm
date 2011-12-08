@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4439 2011-08-25 17:47:07Z guillaume $
+% $Id: spm_check_installation.m 4588 2011-12-08 18:28:59Z guillaume $
 
 if isdeployed, return; end
 
@@ -431,6 +431,7 @@ function rev = get_rev
 spm('Ver','',1);
 d   = spm('Dir');
 l   = generate_listing(d);
+l(strncmp('external', {l.file}, 8)) = [];
 rev = max([l.id]);
 
 %==========================================================================
