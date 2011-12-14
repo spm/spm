@@ -32,10 +32,10 @@ function varargout = spm_mesh_render(action,varargin)
 % hReg     - Handle of HandleGraphics object to build registry in.
 % See spm_XYZreg for more information.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_mesh_render.m 4589 2011-12-14 12:22:26Z guillaume $
 
 
 %-Input parameters
@@ -731,9 +731,9 @@ if any(v(:))
             C = v; v = v';
         end
     else
-        m = max(v(:));
+        if ~clim(1), ma = max(v(:)); end
         for i=1:size(v,1)
-            C = C + v(i,:)'/m * col(i,:);
+            C = C + v(i,:)'/ma * col(i,:);
         end
     end
 else
