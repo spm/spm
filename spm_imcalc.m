@@ -79,10 +79,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 4418 2011-08-03 12:00:13Z guillaume $
+% $Id: spm_imcalc.m 4591 2011-12-15 19:04:13Z guillaume $
 
 
-SVNid = '$Rev: 4418 $';
+SVNid = '$Rev: 4591 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -138,16 +138,27 @@ if ischar(Vo)
 end
 
 %-Process any additional variables
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin > 4
     reserved = {'Vi','Vo','f','flags','interp','mask','dmtx','varargin',...
-            'dtype','reserved','e','n','Y','p','B','X','i','M','d','d'};
+        'dtype','reserved','e','n','Y','p','B','X','i','j','M','d'};
     for i=5:nargin
-        if any(strcmp(inputname(i),reserved))
-            error(['additional parameter (',inputname(i),...
-                ') clashes with internal variable'])
+        if isstruct(varargin{i-4}) && ...
+                isempty(setxor(fieldnames(varargin{i-4}),{'name','value'}))
+            for j=1:numel(varargin{i-4})
+                if any(strcmp(varargin{i-4}(j).name,reserved))
+                    error(['additional parameter (',varargin{i-4}(j).name,...
+                        ') clashes with internal variable.'])
+                end
+                eval([varargin{i-4}(j).name,'=varargin{i-4}(j).value;']);
+            end
+        else
+            if any(strcmp(inputname(i),reserved))
+                error(['additional parameter (',inputname(i),...
+                    ') clashes with internal variable.'])
+            end
+            eval([inputname(i),' = varargin{i-4};']);
         end
-        eval([inputname(i),' = varargin{i-4};'])
     end
 end
 
@@ -175,8 +186,12 @@ for p = 1:Vo.dim(3)
         if dmtx, X(i,:) = d(:)'; else eval(['i',num2str(i),'=d;']); end
     end
     
-    try,   eval(['Yp = ' f ';']);
-    catch, error(['Can''t evaluate "',f,'".']); end
+    try
+        eval(['Yp = ' f ';']);
+    catch
+        l = lasterror;
+        error('%s\nCan''t evaluate "%s".',l.message,f);
+    end
     if prod(Vo.dim(1:2)) ~= numel(Yp)
         error(['"',f,'" produced incompatible image.']); end
     if (mask < 0), Yp(isnan(Yp)) = 0; end
