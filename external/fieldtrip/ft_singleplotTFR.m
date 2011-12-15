@@ -84,12 +84,13 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 4797 2011-11-23 09:57:01Z jorhor $
+% $Id: ft_singleplotTFR.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_singleplotTFR.m 4797 2011-11-23 09:57:01Z jorhor $';
+revision = '$Id: ft_singleplotTFR.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
+ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 

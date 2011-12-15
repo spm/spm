@@ -24,6 +24,10 @@ function [stat] = ft_spike_phaselockstat(cfg,sts)
 %   cfg.chanavg                     = 'yes' or 'no' (default).
 %   cfg.powweighted                 = 'yes' or 'no' (default). If 'yes', we
 %                                     average across channels by weighting by the LFP power.
+%   cfg.trials                      = vector of indices (e.g., 1:2:10)
+%                                    logical selection of trials (e.g., [1010101010])
+%                                    'all' (default), selects all trials
+
 %   Main outputs:
 %
 %     stat.ppc0                       =  nChan-by-nFreqs matrix with the ppc 0
@@ -41,9 +45,9 @@ function [stat] = ft_spike_phaselockstat(cfg,sts)
 
 %   Copyright (c) Martin Vinck (2011), University of Amsterdam.
 %
-% $Id: ft_spike_phaselockstat.m 4917 2011-12-01 15:15:42Z marvin $
+% $Id: ft_spike_phaselockstat.m 5008 2011-12-11 17:13:59Z marvin $
 
-revision = '$Id: ft_spike_phaselockstat.m 4917 2011-12-01 15:15:42Z marvin $';
+revision = '$Id: ft_spike_phaselockstat.m 5008 2011-12-11 17:13:59Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -62,6 +66,7 @@ cfg.spikesel       = ft_getopt(cfg,'spikesel', 'all');
 cfg.chanavg        = ft_getopt(cfg,'chanavg', 'no');
 cfg.powweighted    = ft_getopt(cfg,'powweighted', 'no');
 cfg.foi            = ft_getopt(cfg,'foi', 'all');
+cfg.trials         = ft_getopt(cfg,'trials', 'all');
 
 % ensure that the options are valid
 cfg = ft_checkopt(cfg,'foi',{'char', 'double'});
@@ -71,6 +76,7 @@ cfg = ft_checkopt(cfg,'spikesel', {'char', 'logical', 'double'});
 cfg = ft_checkopt(cfg,'chanavg', 'char', {'yes', 'no'});
 cfg = ft_checkopt(cfg,'powweighted', 'char', {'yes', 'no'});
 cfg = ft_checkopt(cfg,'latency', {'char', 'doublevector'});
+cfg = ft_checkopt(cfg,'trials', {'char', 'double', 'logical'}); 
 
 % collect channel information
 cfg.channel        = ft_channelselection(cfg.channel, sts.lfplabel);
@@ -86,8 +92,13 @@ if nspikesel>1, error('only one unit should be selected for now'); end
 % collect frequency information
 if strcmp(cfg.foi, 'all'),  
   cfg.foi           = sts.freq; 
+  freqindx          = 1:length(sts.freq);
+else
+  for iFreq = 1:length(cfg.foi)
+    freqindx(iFreq)         = nearest(sts.freq,cfg.foi(iFreq)); 
+  end
 end
-freqindx         = nearest_nd(sts.freq,cfg.foi); 
+
 if length(freqindx)~=length(unique(freqindx)) 
   error('MATLAB:fieldtrip:spike_phaselocking:cfg:foi:notUniqueSelection',... 
   'Please select every frequency only once, are you sure you selected in Hz?')
@@ -126,9 +137,13 @@ if cfg.latency(1)>=cfg.latency(2),
 end
 inWindow = find(sts.time{unitsel}>=cfg.latency(1) & cfg.latency(2)>=sts.time{unitsel});
 
+% selection of the trials
+cfg        = trialselection(cfg,sts);
+
 % do the final selection
-%isNum        = find(isfinite(sts.fourierspctrm{unitsel}(:,1,1)));
+isintrial    = ismember(sts.trial{unitsel}, cfg.trials);
 spikesel     = intersect(cfg.spikesel(:),inWindow(:));
+spikesel     = intersect(spikesel,find(isintrial));
 cfg.spikesel = spikesel; %intersect(spikesel(:),isNum(:));
 spikenum     = length(cfg.spikesel); % number of spikes that were finally selected
 if isempty(spikenum), warning('MATLAB:fieldtrip:spike_phaselocking:silentNeuron',...
@@ -206,13 +221,14 @@ dof    = sum(~isnan(sts.fourierspctrm{unitsel}),1);
 stat.ppc0      = ppc0;
 stat.ppc1      = ppc1;
 stat.ppc2      = ppc2;
-stat.label     = sts.label{unitsel};
+stat.label     = sts.label(unitsel);
 stat.dofspike  = dof;    % also cross-unit purposes
 stat.ang       = ang;
 stat.ral       = ral;
 stat.plv       = resultantlength(sts.fourierspctrm{unitsel},1);
 stat.freq      = sts.freq(freqindx);
 stat.lfplabel  = sts.lfplabel(chansel);
+stat.dimord    = '1_lfpchan_freq';
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
@@ -291,6 +307,26 @@ else
     angles = angles./abs(angles);
 end
 angMean = angle(nansum(angles,dim)); %get the mean angle
+
+
+
+function [cfg] = trialselection(cfg,spike)
+
+% get the number of trials or change DATA according to cfg.trials
+nTrials = size(spike.trialtime,1);
+if  strcmp(cfg.trials,'all')
+  cfg.trials = 1:nTrials;
+elseif islogical(cfg.trials)
+  cfg.trials = find(cfg.trials);
+end
+cfg.trials = sort(cfg.trials(:));
+if max(cfg.trials)>nTrials, warning('ft:spike_rate:cfg:trials:maxExceeded',...
+    'maximum trial number in cfg.trials should not exceed length of DATA.trial')
+end
+if isempty(cfg.trials), error('ft:spike_rate:cfg:trials:noneSelected',...
+    'No trials were selected by you, rien ne va plus');
+end
+
 
 
 

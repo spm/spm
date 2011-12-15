@@ -1,4 +1,4 @@
-function ft_clusterplot(cfg, stat)
+function [cfg] = ft_clusterplot(cfg, stat)
 
 % FT_CLUSTERPLOT plots a series of topoplots with found clusters highlighted.
 % stat is 2D or 1D data from FT_TIMELOCKSTATISTICS or FT_FREQSTATISTICS with 'cluster'
@@ -7,7 +7,7 @@ function ft_clusterplot(cfg, stat)
 % time. 1D: averaged over time as well.
 %
 % Use as
-%   ft_clusterplot(cfg,stat)
+%   ft_clusterplot(cfg, stat)
 %
 % Where the configuration options can be
 %   cfg.alpha                     = number, highest cluster p-value to be plotted
@@ -56,9 +56,9 @@ function ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_clusterplot.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_clusterplot.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_clusterplot.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -1,4 +1,4 @@
-function cfg = ft_topoplotCC(cfg, freq)
+function [cfg] = ft_topoplotCC(cfg, freq)
 
 % FT_TOPOPLOTCC plots the coherence between channel pairs
 %
@@ -52,9 +52,9 @@ function cfg = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4813 2011-11-26 01:19:35Z roboos $
+% $Id: ft_topoplotCC.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_topoplotCC.m 4813 2011-11-26 01:19:35Z roboos $';
+revision = '$Id: ft_topoplotCC.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults

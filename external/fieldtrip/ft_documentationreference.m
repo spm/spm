@@ -21,13 +21,13 @@ function ft_documentationreference(outdir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationreference.m 4685 2011-11-07 08:38:40Z roboos $
+% $Id: ft_documentationreference.m 4960 2011-12-09 09:19:03Z roboos $
 
 ft_defaults
 
 p = fileparts(which(mfilename));
 
-f1 = dir(fullfile(p, 'ft_*.m'));
+f1 = dir(fullfile(p, '*.m'));
 f1 = {f1.name}';
 
 f2 = dir(fullfile(p, 'utilities', '*.m'));

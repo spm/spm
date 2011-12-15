@@ -1,17 +1,23 @@
-function [atlas] = ft_prepare_atlas(filename)
+function [atlas, cfg] = ft_prepare_atlas(cfg)
 
-% FT_PREPARE_ATLAS reads in a specified atlas with coordinates and anatomical
-% labels. It either uses the AFNI brik file that is available from
-% http://afni.nimh.nih.gov/afni/doc/misc/ttatlas_tlrc, or it uses one of
-% the WFU atlasses available from  http://fmri.wfubmc.edu. This function is
-% called by functions that make use of an atlas. 
+% FT_PREPARE_ATLAS reads in a specified atlas with coordinates and
+% anatomical labels. It either uses the AFNI brik file that is available
+% from http://afni.nimh.nih.gov/afni/doc/misc/ttatlas_tlrc, or it
+% uses one of the WFU atlasses available from http://fmri.wfubmc.edu.
 %
-% Use as:
-%   [atlas] = ft_prepare_atlas(filename)
+% This function is called by other FieldTrip functions that make
+% use of an atlas, for example for plotting or for selection of an
+% anatomical region of interest.
 %
-% See also FT_VOLUMELOOKUP, FT_SOURCEPLOT
+% Use as
+%   [atlas] = ft_prepare_atlas(cfg)
+%
+% where the configuration should contain
+%   cfg.atlas      string, filename of the atlas to use
+%
+% See also FT_VOLUMELOOKUP, FT_SOURCEPLOT, FT_SOURCESTATISTICS
 
-% Copyright (C) 2005-2008, Robert Oostenveld, Ingrid Nieuwenhuis
+% Copyright (C) 2005-2011, Robert Oostenveld, Ingrid Nieuwenhuis
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -29,19 +35,25 @@ function [atlas] = ft_prepare_atlas(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_prepare_atlas.m 4954 2011-12-07 20:41:18Z roboos $
 
-revision = '$Id: ft_prepare_atlas.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_prepare_atlas.m 4954 2011-12-07 20:41:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble callinfo
 
+if ischar(cfg)
+  % prior to 7 December 2011, this function was called with the filename as input
+  % for consistency with other fieldtrip functions, it is now in a cfg field
+  cfg.atlas = cfg;
+end
+
 useafni = 0;
 usewfu  = 0;
 
-[p, f, x] = fileparts(filename);
+[p, f, x] = fileparts(cfg.atlas);
 
 if strcmp(f, 'TTatlas+tlrc')
   useafni = 1;
@@ -52,9 +64,9 @@ end
 if useafni
   % check whether the required AFNI toolbox is available
   ft_hastoolbox('afni', 1);
-
-  atlas = ft_read_mri(filename);
-
+  
+  atlas = ft_read_mri(cfg.atlas);
+  
   % the AFNI atlas contains two volumes at 1mm resolution
   atlas.brick0 = atlas.anatomy(:,:,:,1);
   atlas.brick1 = atlas.anatomy(:,:,:,2);
@@ -186,7 +198,7 @@ if useafni
   % 1   127 Dentate
   % 0   64  Tuber
   % 0   67  Cerebellar Lingual
-
+  
   atlas.descr.brick = [
     1
     1
@@ -308,7 +320,7 @@ if useafni
     0
     0
     ];
-
+  
   atlas.descr.value = [
     68
     71
@@ -430,7 +442,7 @@ if useafni
     64
     67
     ];
-
+  
   atlas.descr.name = {
     'Hippocampus'
     'Amygdala'
@@ -552,27 +564,71 @@ if useafni
     'Tuber'
     'Cerebellar Lingual'
     };
-
+  
 elseif usewfu
-  atlas = ft_read_mri(filename); % /home/... works, ~/.... does not work
+  atlas = ft_read_mri(cfg.atlas); % /home/... works, ~/.... does not work
   atlas.brick0 = atlas.anatomy(:,:,:);
   atlas = rmfield(atlas, 'anatomy');
   atlas.coord = 'mni';
-
+  
   % the WFU atlas contains a single atlas volume at 2mm resolution
   % to keep it compatible with the existing code, add a dummy atlas volume
   atlas.brick1 = zeros(size(atlas.brick0));
-
-  [p, f, x] = fileparts(filename);
-  f = [f '_List.mat'];
-  load(fullfile(p, f));
-
-  atlas.descr = [];
-  atlas.descr.brick = zeros(length(ROI),1);
-  atlas.descr.value = [ROI.ID]';
-  atlas.descr.name  = {ROI.Nom_C}'; % what is difference between Nom_C and Nom_L??
+  
+  [p, f, x] = fileparts(cfg.atlas);
+  filename1 = fullfile(p, [f '_List.mat']);
+  filename2 = fullfile(p, [f '.txt']);
+  
+  if exist(filename1, 'file')
+    % this is a mat file that Ingrid apparently discovered somewhere
+    load(filename1);
+    atlas.descr = [];
+    atlas.descr.brick = zeros(length(ROI),1);
+    atlas.descr.value = [ROI.ID]';
+    atlas.descr.name  = {ROI.Nom_C}'; % what is difference between Nom_C and Nom_L??
+    
+  elseif exist(filename2, 'file')
+    % the download from http://fmri.wfubmc.edu comes with pairs of nii and txt files
+    % the text file looks like this, with tabs between the colums
+    % the section at the end with three times 191 does not always exist
+    %
+    % [ TD Labels]
+    % 53	Angular Gyrus			191 191 191
+    % 39	Anterior Cingulate		191 191 191
+    % 36	Caudate				191 191 191
+    % 27	Cerebellar Lingual		191 191 191
+    % 2	Cerebellar Tonsil		191 191 191
+    % 52	Cingulate Gyrus			191 191 191
+    % ...
+    
+    atlas.descr = [];
+    atlas.descr.brick = [];
+    atlas.descr.value = [];
+    atlas.descr.name  = {};
+    
+    fid = fopen(filename2);
+    i = 1;
+    while 1
+      tline = fgetl(fid);
+      if ~ischar(tline), break, end
+      % use TAB as deliniter
+      [num, rem] = strtok(tline, 9);
+      [str, rem] = strtok(rem, 9);
+      num = str2double(num);
+      if ~isnan(num)
+        atlas.descr.brick(i) = 0;
+        atlas.descr.value(i) = num;
+        atlas.descr.name{i}  = str;
+        i = i+1;
+      end % if num
+    end
+    fclose(fid);
+    
+  else
+    error('cannot locate the file that maps the labels to the numbers');
+  end
 end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble callinfo
-
+ft_postamble history atlas

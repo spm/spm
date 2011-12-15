@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 4923 2011-12-01 21:29:14Z roboos $
+% $Id: ft_read_data.m 5035 2011-12-14 10:47:49Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -337,10 +337,7 @@ switch dataformat
     dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);
 
   case {'brainvision_eeg', 'brainvision_dat', 'brainvision_seg'}
-    dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample);
-    if ~isequal(chanindx(:)', 1:hdr.nChans)
-      dat = dat(chanindx,:);  % select the desired channels
-    end
+    dat = read_brainvision_eeg(filename, hdr.orig, begsample, endsample, chanindx);
 
   case 'ced_son'
     % chek the availability of the required low-level toolbox
@@ -800,7 +797,7 @@ switch dataformat
 
   case 'neuroprax_eeg'
     tmp = np_readdata(filename, hdr.orig, begsample - 1, endsample - begsample + 1, 'samples');
-    dat = tmp.data';
+    dat = tmp.data(:,chanindx)';
 
   case 'plexon_ds'
     dat = read_plexon_ds(filename, hdr, begsample, endsample, chanindx);
@@ -922,7 +919,6 @@ switch dataformat
 
     if ft_hastoolbox('yokogawa_meg_reader', 3); %stay silent if it cannot be added
       dat = read_yokogawa_data_new(filename, hdr, begsample, endsample, chanindx);
-      dat = read_yokogawa_data_new(filename, hdr, begsample, endsample, chanindx);
     elseif ft_hastoolbox('sqdproject', 2) % give warning if it cannot be added
       % channels are counted 0-based, samples are counted 1-based
       [dat, info] = sqdread(filename, 'channels', chanindx-1, 'samples', [begsample endsample]);
@@ -985,9 +981,6 @@ if requesttrials  && strcmp(dimord, 'chans_samples')
   nchans   = size(dat,1);
   nsamples = hdr.nSamples;
   ntrials  = size(dat,2)/hdr.nSamples;
-  % in case of nchans=1 and ntrials=1, the reshaping into a 3D matrix results in the following warning
-  %   Warning: ND-array output is being reshaped to a sparse 2D matrix.
-  %          This behavior will change in a future release of MATLAB.
   if ntrials>1
     dat = reshape(dat, [nchans nsamples ntrials]); % convert into a 3-D array
   end

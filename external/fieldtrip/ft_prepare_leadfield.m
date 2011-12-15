@@ -106,9 +106,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_prepare_leadfield.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -171,7 +171,7 @@ try, tmpcfg.threshold   = cfg.threshold;    end
 try, tmpcfg.spheremesh  = cfg.spheremesh;   end
 try, tmpcfg.inwardshift = cfg.inwardshift;  end
 try, tmpcfg.sourceunits = cfg.sourceunits;  end
-[grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+grid = ft_prepare_sourcemodel(tmpcfg);
 
 if ft_voltype(vol, 'openmeeg')
   % the system call to the openmeeg executable makes it rather slow

@@ -15,7 +15,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 % Optional arguments should be specified in key-value pairs and can include:
 %   timeoi    = vector, containing time points of interest (in seconds)
 %   freqoi    = vector, containing frequencies (in Hz)
-%   pad       = number, indicating time-length of data to be padded out to in seconds
+%   pad       = number, indicating time-length of data to be padded out to in seconds (used for spectral interpolation, NOT filtering)
 %   width     = number or vector, width of band-pass surrounding each element of freqoi
 %   filttype  = string, filter type, 'but' or 'fir' or 'firls'
 %   filtorder = number or vector, filter order
@@ -26,7 +26,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: ft_specest_hilbert.m 4904 2011-11-30 17:24:56Z roevdmei $
+% $Id: ft_specest_hilbert.m 5019 2011-12-12 17:29:53Z roevdmei $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');
@@ -54,7 +54,7 @@ if polyorder >= 0
 end
 
 % Determine fsample and set total time-length of data
-fsample = 1/(time(2)-time(1));
+fsample = 1./mean(diff(time));
 dattime = ndatsample / fsample; % total time in seconds of input data
 
 % Zero padding
@@ -66,6 +66,8 @@ if isempty(pad) % if no padding is specified padding is equal to current data le
 end
 prepad  = zeros(1,floor(((pad - dattime) * fsample)./2));
 postpad = zeros(1,ceil(((pad - dattime) * fsample)./2));
+%postpad = zeros(1,round((pad - dattime) * fsample));
+
 
 % set a default sampling for the frequencies-of-interest
 if isempty(freqoi),
@@ -104,7 +106,7 @@ end
 filtfreq = [];
 invalidind = [];
 for ifreqoi = 1:nfreqoi
-  tmpfreq = [freqoi(ifreqoi)+width(ifreqoi) freqoi(ifreqoi)-width(ifreqoi)];
+  tmpfreq = [freqoi(ifreqoi)-width(ifreqoi) freqoi(ifreqoi)+width(ifreqoi)];
   if all((sign(tmpfreq) == 1))
     filtfreq(end+1,:) = tmpfreq;
   else
@@ -129,11 +131,13 @@ for ifreqoi = 1:nfreqoi
   end
   
   % filter
-  flt = ft_preproc_bandpassfilter(dat, fsample, filtfreq(ifreqoi,:), filtorder(ifreqoi), filttype, filtdir);
+  flt = ft_preproc_bandpassfilter(dat, fsample, filtfreq(ifreqoi,:), filtorder(ifreqoi), filttype, filtdir); 
   
   % transform and insert
   dum = transpose(hilbert(transpose([repmat(prepad,[nchan, 1]) flt repmat(postpad,[nchan, 1])])));
   spectrum(:,ifreqoi,:) = dum(:,timeboi+numel(prepad));
+%   dum = transpose(hilbert(transpose([flt repmat(postpad,[nchan, 1])])));
+%   spectrum(:,ifreqoi,:) = dum(:,timeboi);
 end
 
 

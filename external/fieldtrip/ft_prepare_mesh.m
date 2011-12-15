@@ -1,4 +1,4 @@
-function bnd = ft_prepare_mesh(cfg, mri)
+function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 
 % FT_PREPARE_MESH creates a triangulated surface mesh for the volume
 % conduction model. The mesh can either be selected manually from raw
@@ -61,9 +61,9 @@ function bnd = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_prepare_mesh.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults

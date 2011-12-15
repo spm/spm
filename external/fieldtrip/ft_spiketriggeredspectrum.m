@@ -50,9 +50,9 @@ function [sts] = ft_spiketriggeredspectrum(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $
+% $Id: ft_spiketriggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $
 
-revision = '$Id: ft_spiketriggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $';
+revision = '$Id: ft_spiketriggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -245,6 +245,7 @@ sel = isnan(sts.fourierspctrm(:,1,1));
 fprintf('removing %d trials from the output that do not contain data\n', sum(sel));
 % remove the selected trials from the output
 sts.fourierspctrm  = {sts.fourierspctrm(~sel,:,:)};
+sts.fourierspctrmdimord = '{chan}_spike_lfpchan_freq';
 sts.time       = {sts.time(~sel)};
 sts.trial      = {sts.trial(~sel)};
 for i = 1:ntrial

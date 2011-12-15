@@ -31,11 +31,11 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 4914 2011-12-01 15:14:18Z marvin $
+% $Id: ft_datatype.m 4985 2011-12-10 09:35:38Z marvin $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
 israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
-isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq') && ~isfield(data,'trialtime'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
+isfreq     = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq') && ~isfield(data,'trialtime') && ~isfield(data,'origtrial'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
 istimelock =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ~isfield(data,'trialtime'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp     =  isfield(data, 'label') && isfield(data, 'topo') || isfield(data, 'topolabel');
 isvolume   =  isfield(data, 'transform') && isfield(data, 'dim');
@@ -48,7 +48,8 @@ ischan     =  isfield(data, 'dimord') && strcmp(data.dimord, 'chan') && ~isfield
 spk_hastimestamp = isfield(data,'label') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
 spk_hastrials = isfield(data,'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ...
 isfield(data, 'trialtime') && isa(data.trialtime, 'numeric');
-isspike = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials);
+spk_hasorig = isfield(data,'origtrial') && isfield(data,'origtime'); %% for compatibility
+isspike = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials || spk_hasorig);
 
 if iscomp
   % comp should conditionally go before raw, otherwise the returned ft_datatype will be raw

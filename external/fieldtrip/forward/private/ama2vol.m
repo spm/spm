@@ -23,7 +23,7 @@ function [vol] = ama2vol(ama)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ama2vol.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ama2vol.m 5036 2011-12-14 10:47:52Z roboos $
 
 vol  = [];
 ngeo = length(ama.geo);
@@ -37,6 +37,6 @@ npnt = size(vol.mat,2);
 if size(vol.mat,1)<npnt
   vol.mat(npnt, npnt) = 0;    % it should be a square matrix
 end
-vol.mat  = sparse(vol.mat);   % convert to sparse for faster multiplications
+vol.mat  = vol.mat;
 vol.type = 'dipoli';
 

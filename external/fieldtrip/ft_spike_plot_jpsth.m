@@ -1,12 +1,12 @@
-function [H] = ft_spike_plot_jpsth(cfg,jpsth)
+function [cfg] = ft_spike_plot_jpsth(cfg, jpsth)
 
 % FT_SPIKE_PLOT_JPSTH makes a plot from JPSTH structure.
 %
 % Use as
-%   hdl = ft_spike_plot_jpsth(cfg, jpsth)
+%   ft_spike_plot_jpsth(cfg, jpsth)
 %
 % Inputs:
-%   JPSTH must be the output structure from SPIKE_JPSTH and contain the
+%   JPSTH must be the output structure from FT_SPIKE_JPSTH and contain the
 %   field JPSTH.avg. If cfg.psth = 'yes', the field JPSTH.psth must be
 %   present as well.
 %
@@ -47,9 +47,9 @@ function [H] = ft_spike_plot_jpsth(cfg,jpsth)
 
 % Copyright (C) 2010, Martin Vinck
 %
-% $Id: ft_spike_plot_jpsth.m 4826 2011-11-27 15:30:33Z marvin $
+% $Id: ft_spike_plot_jpsth.m 5019 2011-12-12 17:29:53Z roevdmei $
 
-revision = '$Id: ft_spike_plot_jpsth.m 4826 2011-11-27 15:30:33Z marvin $';
+revision = '$Id: ft_spike_plot_jpsth.m 5019 2011-12-12 17:29:53Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -66,7 +66,7 @@ cfg.colormap    = ft_getopt(cfg,'colormap', jet(256));
 cfg.interpolate = ft_getopt(cfg,'interpolate', 'no');
 cfg.smooth      = ft_getopt(cfg,'smooth', 'no');
 cfg.kernel      = ft_getopt(cfg,'kernel', 'mvgauss');
-cfg.winlen      = ft_getopt(cfg,'winlen', 5*(jpsth.time(2)-jpsth.time(1)));
+cfg.winlen      = ft_getopt(cfg,'winlen', 5*(mean(diff(jpsth.time))));
 cfg.gaussvar    = ft_getopt(cfg,'gaussvar', (cfg.winlen/4).^2);
 
 % ensure that the options are valid
@@ -122,7 +122,7 @@ end
 
 % get the samples of our window, and the binwidth of the JPSTH
 timeSel = jpsth.time>=cfg.latency(1) & jpsth.time <= cfg.latency(2);
-sampleTime    = jpsth.time(2) - jpsth.time(1); % get the binwidth
+sampleTime    = mean(diff(jpsth.time)); % get the binwidth
 
 % for convenience create a separate variable
 dens = squeeze(jpsth.avg(:,:,cmbindx(1,1),cmbindx(1,2))); % density
@@ -299,6 +299,7 @@ set(pan,'ActionPostCallback',{@mypostcallback,ax,cfg.latency,psthLim});
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble previous jpsth
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

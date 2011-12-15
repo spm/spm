@@ -1,4 +1,4 @@
-function ft_layoutplot(cfg, data)
+function [cfg] = ft_layoutplot(cfg, data)
 
 % FT_LAYOUTPLOT makes a figure with the 2-D layout of the channel positions
 % for topoplotting and the individual channel axes (i.e. width and height
@@ -71,9 +71,9 @@ function ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_layoutplot.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_layoutplot.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_layoutplot.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -166,3 +166,5 @@ end % if montage
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble previous data
+

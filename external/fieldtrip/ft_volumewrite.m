@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_volumewrite.m 5017 2011-12-12 14:33:23Z jansch $
 
-revision = '$Id: ft_volumewrite.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_volumewrite.m 5017 2011-12-12 14:33:23Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -412,7 +412,7 @@ switch cfg.filetype
     if isempty(ext)
       cfg.filename = [cfg.filename,'.nii'];
     end
-    ft_write_volume(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
+    ft_write_mri(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
     
   case 'nifti_img'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -423,7 +423,7 @@ switch cfg.filetype
     if isempty(ext)
       cfg.filename = [cfg.filename,'.img'];
     end
-    ft_write_volume(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
+    ft_write_mri(cfg.filename, data, 'dataformat', 'nifti', 'transform', transform, 'spmversion', 'SPM8');
     
   case 'analyze_spm'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -434,7 +434,7 @@ switch cfg.filetype
     if isempty(ext)
       cfg.filename = [cfg.filename,'.img'];
     end
-    ft_write_volume(cfg.filename, data, 'dataformat', 'analyze', 'transform', transform, 'spmversion', 'SPM2');
+    ft_write_mri(cfg.filename, data, 'dataformat', 'analyze', 'transform', transform, 'spmversion', 'SPM2');
     
   case 'mgz'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -445,7 +445,7 @@ switch cfg.filetype
     if isempty(ext)
       cfg.filename = [cfg.filename,'.mgz'];
     end
-    ft_write_volume(cfg.filename, data, 'dataformat', 'mgz', 'transform', transform);
+    ft_write_mri(cfg.filename, data, 'dataformat', 'mgz', 'transform', transform);
     
     
   otherwise

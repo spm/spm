@@ -146,9 +146,9 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_dipolefitting.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_dipolefitting.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -336,7 +336,7 @@ if strcmp(cfg.gridsearch, 'yes')
   try, tmpcfg.spheremesh  = cfg.spheremesh;   end
   try, tmpcfg.inwardshift = cfg.inwardshift;  end
   try, tmpcfg.sourceunits = cfg.sourceunits;  end
-  [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+  grid = ft_prepare_sourcemodel(tmpcfg);
 
   ft_progress('init', cfg.feedback, 'scanning grid');
   for i=1:length(grid.inside)

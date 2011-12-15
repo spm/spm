@@ -63,9 +63,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 4807 2011-11-23 15:13:52Z jansch $
+% $Id: ft_volumenormalise.m 5017 2011-12-12 14:33:23Z jansch $
 
-revision = '$Id: ft_volumenormalise.m 4807 2011-11-23 15:13:52Z jansch $';
+revision = '$Id: ft_volumenormalise.m 5017 2011-12-12 14:33:23Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -184,14 +184,14 @@ ws = warning('off');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % create an spm-compatible header for the anatomical volume data
-VF = ft_write_volume([cfg.intermediatename,'_anatomy.img'], interp.anatomy, 'transform', interp.transform, 'spmversion', cfg.spmversion);
+VF = ft_write_mri([cfg.intermediatename,'_anatomy.img'], interp.anatomy, 'transform', interp.transform, 'spmversion', cfg.spmversion);
 
 % create an spm-compatible file for each of the functional volumes
 for parlop=2:length(cfg.parameter)  % skip the anatomy
   tmp  = cfg.parameter{parlop};
   data = reshape(getsubfield(interp, tmp), interp.dim);
   tmp(tmp=='.') = '_';
-  ft_write_volume([cfg.intermediatename,'_' tmp '.img'], data, 'transform', interp.transform, 'spmversion', cfg.spmversion);
+  ft_write_mri([cfg.intermediatename,'_' tmp '.img'], data, 'transform', interp.transform, 'spmversion', cfg.spmversion);
 end
 
 % read the template anatomical volume
@@ -268,7 +268,7 @@ if strcmp(cfg.write,'yes')
     tmp  = cfg.parameter{parlop};
     data = reshape(getsubfield(normalise, tmp), normalise.dim);
     tmp(tmp=='.') = '_';
-    ft_write_volume([cfg.name,'_' tmp '.img'], data, 'transform', normalise.transform, 'spmversion', cfg.spmversion);
+    ft_write_mri([cfg.name,'_' tmp '.img'], data, 'transform', normalise.transform, 'spmversion', cfg.spmversion);
   end
 end
 

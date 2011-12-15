@@ -157,9 +157,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_sourceplot.m 4946 2011-12-07 14:59:52Z roboos $
 
-revision = '$Id: ft_sourceplot.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_sourceplot.m 4946 2011-12-07 14:59:52Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -297,7 +297,7 @@ if hasatlas
   % initialize the atlas
   [p, f, x] = fileparts(cfg.atlas);
   fprintf(['reading ', f,' atlas coordinates and labels\n']);
-  atlas = ft_prepare_atlas(cfg.atlas);
+  atlas = ft_prepare_atlas(cfg);
 end
 
 hasroi = ~isempty(cfg.roi);

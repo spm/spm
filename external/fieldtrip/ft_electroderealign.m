@@ -102,9 +102,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 4925 2011-12-02 08:54:14Z jorhor $
+% $Id: ft_electroderealign.m 4974 2011-12-09 15:47:00Z jorhor $
 
-revision = '$Id: ft_electroderealign.m 4925 2011-12-02 08:54:14Z jorhor $';
+revision = '$Id: ft_electroderealign.m 4974 2011-12-09 15:47:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -636,7 +636,7 @@ layoutgui(fig, [0.7 0.05 0.25 0.50], position, style, string, value, tag, callba
 function cb_redraw(hObject, eventdata, handles);
 fig = get(hObject, 'parent');
 headshape = getappdata(fig, 'headshape');
-bnd.chanpos = headshape.pnt; %ft_plot_mesh wants headshape in bnd fields
+bnd.pnt = headshape.pnt; %ft_plot_mesh wants headshape in bnd fields
 bnd.tri = headshape.tri;
 elec = getappdata(fig, 'elec');
 template = getappdata(fig, 'template');

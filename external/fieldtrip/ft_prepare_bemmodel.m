@@ -5,10 +5,10 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 % computes the BEM system matrix.
 %
 % Use as
-%   [vol, cfg] = ft_prepare_bemmodel(cfg, mri), or
-%   [vol, cfg] = ft_prepare_bemmodel(cfg, seg), or
-%   [vol, cfg] = ft_prepare_bemmodel(cfg, vol), or
-%   [vol, cfg] = ft_prepare_bemmodel(cfg)
+%   [vol] = ft_prepare_bemmodel(cfg, mri), or
+%   [vol] = ft_prepare_bemmodel(cfg, seg), or
+%   [vol] = ft_prepare_bemmodel(cfg, vol), or
+%   [vol] = ft_prepare_bemmodel(cfg)
 %
 % The configuration can contain
 %   cfg.tissue         = [1 2 3], segmentation value of each tissue type
@@ -44,11 +44,11 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 4722 2011-11-11 09:45:13Z crimic $
+% $Id: ft_prepare_bemmodel.m 4955 2011-12-07 21:07:50Z roboos $
 
 warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_HEADMODEL_BEM_... with cfg.method = ''bem_bladeebla'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 4722 2011-11-11 09:45:13Z crimic $';
+revision = '$Id: ft_prepare_bemmodel.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -320,4 +320,5 @@ vol = ft_convert_units(vol);
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble history vol
 

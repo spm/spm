@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 4660 2011-11-02 21:35:02Z roboos $
+% $Id: besa2fieldtrip.m 5019 2011-12-12 17:29:53Z roevdmei $
 
-revision = '$Id: besa2fieldtrip.m 4660 2011-11-02 21:35:02Z roboos $';
+revision = '$Id: besa2fieldtrip.m 5019 2011-12-12 17:29:53Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -242,7 +242,7 @@ elseif ischar(input)
     for i=1:size(buf,1)
       data.label{i,1} = sprintf('chan%03d', i);
     end
-    data.fsample = 1/(time(2)-time(1));  % time is already in seconds
+    data.fsample = 1./mean(diff(time));  % time is already in seconds
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   elseif strcmp(type, 'besa_tfc') && hasbesa
@@ -312,7 +312,7 @@ elseif ischar(input)
     data.label   = fixlabels(swf.waveName);
     data.avg     = swf.data;
     data.time    = swf.Time * 1e-3; % convert to seconds
-    data.fsample = 1/(data.time(2)-data.time(1));
+    data.fsample = 1/mean(diff(data.time));
     data.dimord  = 'chan_time';
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

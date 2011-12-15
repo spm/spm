@@ -24,7 +24,7 @@ function grad = yokogawa2grad_new(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad_new.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: yokogawa2grad_new.m 5035 2011-12-14 10:47:49Z roboos $
 
 % The following line is only a safety measure: No function of the toolbox
 % is actually called in this routine.
@@ -79,6 +79,12 @@ handles    = definehandles;
 grad_ind = [1:hdr.channel_count];
 isgrad   = (type==handles.AxialGradioMeter | type==handles.PlannerGradioMeter |  ...
     type==handles.MagnetoMeter);
+isref = (type==handles.RefferenceAxialGradioMeter | type==handles.RefferencePlannerGradioMeter |  ...
+    type==handles.RefferenceMagnetoMeter); 
+for i = 1: hdr.channel_count
+    if isref(i) &&  sum( ch_info( i ).data.x^2 + ch_info( i ).data.y^2 + ch_info( i ).data.z^2 ) > 0.0, isgrad(i) = 1; end;
+end
+
 grad_ind = grad_ind(isgrad);
 grad_nr = size(grad_ind,2);
 
@@ -94,7 +100,7 @@ for i = 1:grad_nr
   grad.coilpos(i,3) =  ch_info(ch_ind).data.z*100; % cm
   grad.chanpos = grad.coilpos(1:grad_nr,:);
   
-  if ch_info(ch_ind).type==handles.AxialGradioMeter 
+  if ch_info(ch_ind).type==handles.AxialGradioMeter || ch_info(ch_ind).type==handles.RefferenceAxialGradioMeter 
       baseline = ch_info(ch_ind).data.baseline;
       
       ori_1st = [ch_info(ch_ind).data.zdir ch_info(ch_ind).data.xdir ];
@@ -108,7 +114,7 @@ for i = 1:grad_nr
       
       grad.coilpos(i+grad_nr,:) = [grad.coilpos(i,:)+ori_1st*baseline*100];
       grad.coilori(i+grad_nr,:) = -ori_1st;
-  elseif ch_info(ch_ind).type==handles.PlannerGradioMeter 
+  elseif ch_info(ch_ind).type==handles.PlannerGradioMeter || ch_info(ch_ind).type==handles.RefferencePlannerGradioMeter
       baseline = ch_info(ch_ind).data.baseline;
       
       ori_1st = [ch_info(ch_ind).data.zdir1 ch_info(ch_ind).data.xdir1 ];
@@ -157,10 +163,6 @@ for i = 1:grad_nr
     grad.tra(i,grad_nr+i) = 0;
   end
 end
-
-% Make the matrix sparse to speed up the multiplication in the forward
-% computation with the coil-leadfield matrix to get the channel leadfield
-grad.tra = sparse(grad.tra);
 
 % the gradiometer labels should be consistent with the channel labels in
 % read_yokogawa_header, the predefined list of channel names in ft_senslabel

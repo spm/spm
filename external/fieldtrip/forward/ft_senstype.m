@@ -81,7 +81,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_senstype.m 4968 2011-12-09 14:30:27Z tilsan $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -265,10 +265,10 @@ else
     elseif any(ismember(ft_senslabel('ctfref'), sens.label))
       type = 'ctf'; % it might be 151 or 275 channels
     elseif isfield(sens, 'pnt') && isfield(sens, 'ori') && numel(sens.label)==size(sens.pnt,1)
-      warning('could be Yokogawa system');
+      warning_once('could be Yokogawa system');
       type = 'magnetometer';
     else
-      warning('could be Yokogawa system');
+      warning_once('could be Yokogawa system');
       type = 'meg';
     end
     

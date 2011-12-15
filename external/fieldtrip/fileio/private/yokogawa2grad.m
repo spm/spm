@@ -25,7 +25,7 @@ function grad = yokogawa2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad.m 4559 2011-10-21 13:25:54Z roboos $
+% $Id: yokogawa2grad.m 5035 2011-12-14 10:47:49Z roboos $
 
 if ~ft_hastoolbox('yokogawa')
     error('cannot determine whether Yokogawa toolbox is present');
@@ -109,10 +109,6 @@ if any(ismag)
     not_2nd_coil = ([diag(zeros(sz_pnt),0)' ismag']~=0);
     grad.tra(ismag,not_2nd_coil) = 0;
 end
-
-% Make the matrix sparse to speed up the multiplication in the forward
-% computation with the coil-leadfield matrix to get the channel leadfield
-grad.tra = sparse(grad.tra);
 
 % the gradiometer labels should be consistent with the channel labels in
 % read_yokogawa_header, the predefined list of channel names in ft_senslabel

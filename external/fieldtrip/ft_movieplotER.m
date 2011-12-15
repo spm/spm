@@ -1,4 +1,4 @@
-function ft_movieplotER(cfg, data)
+function [cfg] = ft_movieplotER(cfg, data)
 
 % FT_MOVIEPLOTER makes a movie of the topographic distribution of the
 % time-locked average.
@@ -53,13 +53,14 @@ function ft_movieplotER(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 4623 2011-10-28 15:44:23Z roboos $
+% $Id: ft_movieplotER.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_movieplotER.m 4623 2011-10-28 15:44:23Z roboos $';
+revision = '$Id: ft_movieplotER.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
+ft_preamble callinfo
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'timelock');
@@ -68,5 +69,10 @@ data = ft_checkdata(data, 'datatype', 'timelock');
 cfg.parameter   = ft_getopt(cfg, 'parameter', 'avg');
 cfg.interactive = ft_getopt(cfg, 'interactive', 'no');
 
-ft_movieplotTFR(cfg, data);
+cfg = ft_movieplotTFR(cfg, data);
+
+% do the general cleanup and bookkeeping at the end of the function
+% this will replace the ft_movieplotTFR callinfo with that of ft_movieplotER
+ft_postamble callinfo
+ft_postamble previous data
 

@@ -25,7 +25,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_wavelet(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_wavelet.m 4900 2011-11-30 16:45:03Z roevdmei $
+% $Id: ft_specest_wavelet.m 5019 2011-12-12 17:29:53Z roevdmei $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');
@@ -52,7 +52,7 @@ if polyorder >= 0
 end
 
 % Determine fsample and set total time-length of data
-fsample = 1/(time(2)-time(1));
+fsample = 1./mean(diff(time));
 dattime = ndatsample / fsample; % total time in seconds of input data
 
 % Zero padding

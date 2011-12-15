@@ -35,9 +35,9 @@ function [sts_tfr] = ft_spiketriggeredspectrum_ppc_tfr(cfg, sts)
 
 % Copyright (C) 2010, Martin Vinck
 %
-% $Id: ft_spiketriggeredspectrum_tfr.m 4917 2011-12-01 15:15:42Z marvin $
+% $Id: ft_spiketriggeredspectrum_tfr.m 4995 2011-12-10 10:56:30Z marvin $
 
-revision = '$Id: ft_spiketriggeredspectrum_tfr.m 4917 2011-12-01 15:15:42Z marvin $';
+revision = '$Id: ft_spiketriggeredspectrum_tfr.m 4995 2011-12-10 10:56:30Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -101,7 +101,7 @@ if strcmp(cfg.spikesel,'all'),
 elseif islogical(cfg.spikesel)
   cfg.spikesel = find(cfg.spikesel);
 end
-if max(cfg.spikesel)>nSpikes || length(cfg.spikesel)>nSpikes % ease debugging of this error
+if max(cfg.spikesel)>nSpikes | length(cfg.spikesel)>nSpikes % ease debugging of this error
   error('MATLAB:fieldtrip:spike_phaselocking:cfg:spikesel',...
   'cfg.spikesel must not exceed number of spikes and select every spike just once')
 end
@@ -180,7 +180,7 @@ for iChan = 1:nChans
     if isempty(dof), continue,end    
     dof(end)    = []; % the last bin is a single point in time, so we delete it
     dof         = dof(:); % force it to be row
-    dof         = conv(dof,win,'same'); % get the total number of spikes across all trials
+    dof         = conv2(dof(:),win(:),'same'); % get the total number of spikes across all trials
     toDel       = indx==length(bins) | indx==0; % delete those points that are equal to last output histc or don't fall in
     vals(toDel) = [];
     tm(toDel)   = [];
@@ -189,7 +189,7 @@ for iChan = 1:nChans
     df(:,iChan,iFreq) = dof;
     
     x    = accumarray(indx(:),vals,[N 1]); % simply the sum of the complex numbers
-    y    = conv(x,win,'same'); % convolution again just means a sum                                
+    y    = conv2(x(:),win(:),'same'); % convolution again just means a sum                                
     
     % compute the ppc using a new trick, doesn't require any loops
     hasnum = dof>1;
@@ -216,8 +216,8 @@ for iChan = 1:nChans
          trlvals(toDel,:,:) = []; % delete those spikes from fourierspctrm as well
          id(toDel) = []; % make sure index doesn't contain them
          x    = accumarray(id(:),trlvals,[N 1]); % simply the sum of the complex numbers
-         y    = conv(x,win,'same'); % convolution again just means a sum                                  
-         d    = conv(d,win,'same'); % get the dof per trial
+         y    = conv2(x(:),win(:),'same'); % convolution again just means a sum                                  
+         d    = conv2(d(:),win(:),'same'); % get the dof per trial
 
          S     = S  + y; % add the imaginary and real components
          SS    = SS + y.*conj(y);
@@ -244,10 +244,12 @@ sts_tfr.ppc1     = ppc1;
 sts_tfr.ppc2     = ppc2;
 sts_tfr.plv      = plv;
 sts_tfr.label    = spikelabel(unitsel);
-sts_tfr.phase    = phs;
+sts_tfr.ang      = phs;
 sts_tfr.ral      = ral;
 sts_tfr.dof      = df;
 sts_tfr.freq     = sts.freq(freqindx);
 sts_tfr.lfplabel = sts.lfplabel(chansel);
 sts_tfr.time     = bins(1:end-1) + 0.5*dt; % center time-points
 sts_tfr.cfg      = cfg;
+sts_tfr.dimord    = 'time_lfpchan_freq';
+

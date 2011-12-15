@@ -37,7 +37,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 4439 2011-10-12 10:17:09Z roboos $
+% $Id: specest_nanfft.m 5019 2011-12-12 17:29:53Z roevdmei $
 
 % get the optional arguments
 basis     = ft_getopt(varargin, 'basis');
@@ -49,7 +49,7 @@ datatype  = ft_getopt(varargin, 'datatype');
 
 % determine the data characteristics
 [nchan, nsample] = size(dat);
-fsample = 1/(time(2)-time(1));
+fsample = 1./mean(diff(time));
 
 if mod(nsample,2)==0
   % the number of samples is even

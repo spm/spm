@@ -5,9 +5,9 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 % model that is fitted to the MRI or to the head shape points.
 %
 % Use as
-%   [vol, cfg] = ft_prepare_localspheres(cfg, seg), or
-%   [vol, cfg] = ft_prepare_localspheres(cfg, mri), or
-%   [vol, cfg] = ft_prepare_localspheres(cfg)
+%   vol = ft_prepare_localspheres(cfg, seg), or
+%   vol = ft_prepare_localspheres(cfg, mri), or
+%   vol = ft_prepare_localspheres(cfg)
 %
 % The input configuration should contain
 %   cfg.grad         = structure with gradiometer definition, or
@@ -64,9 +64,9 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_prepare_localspheres.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_localspheres.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_prepare_localspheres.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -90,8 +90,8 @@ if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];    end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end
 if ~isfield(cfg, 'headshape'),     cfg.headshape = [];      end
 
-hasdata = exist('mri', 'var');
-if hasdata
+hasmri = exist('mri', 'var'); % note that nargin will not work in case of cfg.inputfile
+if hasmri
   headshape = ft_prepare_mesh(cfg, mri);
 elseif isfield(cfg,'headshape') && nargin == 1 
   if ischar(cfg.headshape)
@@ -221,4 +221,8 @@ vol = ft_convert_units(vol);
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+if hasmri
+  ft_postamble previous mri
+end
+ft_postamble history vol
 

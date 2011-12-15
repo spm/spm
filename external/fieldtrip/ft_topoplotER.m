@@ -137,8 +137,21 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_topoplotER.m 4941 2011-12-07 10:41:56Z roboos $
+
+revision = '$Id: ft_topoplotER.m 4941 2011-12-07 10:41:56Z roboos $';
+
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble callinfo
 
 % this is just a wrapper function around ft_topoplotTFR which does all the hard work
 % the reason for this wrapper function is to have a placeholder for ER-specific documentation
 cfg = ft_topoplotTFR(cfg, varargin{:});
+
+% do the general cleanup and bookkeeping at the end of the function
+% this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER
+ft_postamble callinfo
+ft_postamble previous varargin
+

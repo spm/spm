@@ -48,10 +48,10 @@ function [data] = ft_checkdata(data, varargin)
 %    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 %    GNU General Public License for more details.
 %
-%    You should have received a copy of the GNU General Publhasoffsetic License
+%    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 4913 2011-12-01 15:14:17Z marvin $
+% $Id: ft_checkdata.m 5033 2011-12-14 10:46:20Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -529,7 +529,7 @@ if issource || isvolume,
   %  dim = [size(data.pos,1) 1]; %sparsely represented source structure new style
   elseif isfield(data, 'dim'),
     dim = [data.dim 1];
-  elseif issource
+  elseif issource && ~isfield(data, 'dimord')
     dim = [size(data.pos,1) 1];
   elseif isfield(data, 'dimord'),
     %HACK

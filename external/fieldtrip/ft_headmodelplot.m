@@ -66,7 +66,6 @@ function [cfg] = ft_headmodelplot(cfg, data)
 % cfg.surface_edgecolor
 % cfg.surface_facealpha
 
-%
 % This function depends on FT_PREPARE_VOL_SENS which has the following options:
 % cfg.channel, documented
 % cfg.elec, documented
@@ -95,9 +94,9 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_headmodelplot.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_headmodelplot.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_headmodelplot.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -167,7 +166,7 @@ if strcmp(cfg.plotgrid, 'yes')
     try, tmpcfg.spheremesh  = cfg.spheremesh;   end
     try, tmpcfg.inwardshift = cfg.inwardshift;  end
     try, tmpcfg.sourceunits = cfg.sourceunits;  end
-    [sourcegrid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+    sourcegrid = ft_prepare_sourcemodel(tmpcfg);
   end
 else
   % construct an empty dipole grid
@@ -483,3 +482,5 @@ hold off
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble previous data
+

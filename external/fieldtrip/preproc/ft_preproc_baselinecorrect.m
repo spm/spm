@@ -1,4 +1,4 @@
-function [dat, baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
+function [dat,baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 
 % FT_PREPROC_BASELINECORRECT performs a baseline correction, e.g. using the
 % prestimulus interval of the data or using the complete data
@@ -13,7 +13,9 @@ function [dat, baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 % If no begin and end sample are specified for the baseline estimate, it
 % will be estimated on the complete data.
 %
-% See also PREPROC
+% This function is a wrapper around FT_PREPROC_POLYREMOVAL.
+%
+% See also FT_PREPROC_POLYREMOVAL
 
 % Copyright (C) 1998-2008, Robert Oostenveld
 %
@@ -33,40 +35,51 @@ function [dat, baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_baselinecorrect.m 3630 2011-06-07 09:21:09Z roboos $
+% $Id: ft_preproc_baselinecorrect.m 4964 2011-12-09 13:53:03Z eelspa $
 
-persistent hasbsxfun
-if isempty(hasbsxfun)
-  hasbsxfun = exist('bsxfun', 'builtin')==5;
-end
+% the beta returned by polyremoval should exactly be equal to the mean,
+% since we assume that polyremoval uses ones as its constant regressor
 
-% determine the size of the data
-[Nchans, Nsamples] = size(dat);
-
-% determine the interval to use for baseline correction
-if nargin<2 || isempty(begsample)
-  begsample = 1;
-end
-if nargin<3 || isempty(endsample)
-  endsample = Nsamples;
-end
-
-% estimate the baseline and subtract it
-baseline = mean(dat(:,begsample:endsample), 2);
-
-% ensure that the data is not represented as integer, otherwise "minus" fails
-dat = double(dat);
-
-if hasbsxfun
-  % it is even faster to do this
-  dat = bsxfun(@minus,dat,baseline);
+if nargin < 2
+  [dat,baseline] = ft_preproc_polyremoval(dat,0);
 else
-  % it is faster to loop over samples than over channels due to the internal memory representation of Matlab
-  % for chan=1:Nchans
-  %  dat(chan,:) = dat(chan,:) - baseline(chan);
-  % end
-  
-  for sample=1:Nsamples
-    dat(:,sample) = dat(:,sample) - baseline;
-  end
+  [dat,baseline] = ft_preproc_polyremoval(dat,0,begsample,endsample);
 end
+
+% save this old code because it looks non-trivially optimized
+%
+% persistent hasbsxfun
+% if isempty(hasbsxfun)
+%   hasbsxfun = exist('bsxfun', 'builtin')==5;
+% end
+% 
+% % determine the size of the data
+% [Nchans, Nsamples] = size(dat);
+% 
+% % determine the interval to use for baseline correction
+% if nargin<2 || isempty(begsample)
+%   begsample = 1;
+% end
+% if nargin<3 || isempty(endsample)
+%   endsample = Nsamples;
+% end
+% 
+% % estimate the baseline and subtract it
+% baseline = mean(dat(:,begsample:endsample), 2);
+% 
+% % ensure that the data is not represented as integer, otherwise "minus" fails
+% dat = double(dat);
+% 
+% if hasbsxfun
+%   % it is even faster to do this
+%   dat = bsxfun(@minus,dat,baseline);
+% else
+%   % it is faster to loop over samples than over channels due to the internal memory representation of Matlab
+%   % for chan=1:Nchans
+%   %  dat(chan,:) = dat(chan,:) - baseline(chan);
+%   % end
+%   
+%   for sample=1:Nsamples
+%     dat(:,sample) = dat(:,sample) - baseline;
+%   end
+% end

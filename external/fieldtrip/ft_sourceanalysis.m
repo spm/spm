@@ -191,9 +191,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 4811 2011-11-25 12:03:27Z jansch $
+% $Id: ft_sourceanalysis.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_sourceanalysis.m 4811 2011-11-25 12:03:27Z jansch $';
+revision = '$Id: ft_sourceanalysis.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -340,7 +340,7 @@ end
 if strcmp(cfg.keepleadfield, 'yes') && (~isfield(cfg, 'grid') || ~isfield(cfg.grid, 'leadfield'))
   % precompute the leadfields upon the users request
   fprintf('precomputing leadfields\n');
-  [grid, cfg] = ft_prepare_leadfield(cfg, data);
+  grid = ft_prepare_leadfield(cfg, data);
 elseif (strcmp(cfg.permutation,   'yes') || ...
     strcmp(cfg.randomization, 'yes') || ...
     strcmp(cfg.bootstrap,     'yes') || ...
@@ -350,7 +350,7 @@ elseif (strcmp(cfg.permutation,   'yes') || ...
     strcmp(cfg.rawtrial,      'yes')) && (~isfield(cfg, 'grid') || ~isfield(cfg.grid, 'leadfield'))
   % also precompute the leadfields if multiple trials have to be processed
   fprintf('precomputing leadfields for efficient handling of multiple trials\n');
-  [grid, cfg] = ft_prepare_leadfield(cfg, data);
+  grid = ft_prepare_leadfield(cfg, data);
 else
   % only prepare the dipole grid positions, the leadfield will be computed on the fly if not present
   tmpcfg = [];
@@ -367,7 +367,7 @@ else
   try, tmpcfg.spheremesh  = cfg.spheremesh;   end
   try, tmpcfg.inwardshift = cfg.inwardshift;  end
   try, tmpcfg.sourceunits = cfg.sourceunits;  end
-  [grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+  grid = ft_prepare_sourcemodel(tmpcfg);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -34,7 +34,7 @@ function [grad] = bti2grad(hdr, balanceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bti2grad.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: bti2grad.m 5035 2011-12-14 10:47:49Z roboos $
 
 % for backward compatibility issues FIXME check whether anyone actually uses this code
 if isfield(hdr, 'Meg_pos'),
@@ -48,7 +48,7 @@ if isfield(hdr, 'Meg_pos'),
     grad.label{i} = sprintf('A%d', i); % according to BTi convention
   end
   grad.label = grad.label(:);
-  grad.tra = sparse(eye(size(grad.pnt,1)));
+  grad.tra = eye(size(grad.pnt,1));
   
 elseif isfield(hdr, 'config'),
   % hdr has been derived from read_4d_hdr
@@ -211,6 +211,6 @@ elseif isfield(hdr, 'grad'),
   %hdr has been derived in a different way and grad is already there, possibly without tra
   grad = hdr.grad;
   if ~isfield(grad, 'tra'), 
-    grad.tra = sparse(eye(size(grad.pnt,1)));
+    grad.tra = eye(size(grad.pnt,1));
   end
 end

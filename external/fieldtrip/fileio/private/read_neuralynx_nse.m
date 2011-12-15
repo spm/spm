@@ -24,7 +24,7 @@ function [nse] = read_neuralynx_nse(filename, begrecord, endrecord)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_nse.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: read_neuralynx_nse.m 4997 2011-12-10 11:06:59Z marvin $
 
 if nargin<2
   begrecord = 1;
@@ -73,7 +73,7 @@ if begrecord>=1 && endrecord>=begrecord
   ScNumber     = zeros(1,numrecord);
   CellNumber   = zeros(1,numrecord);
   Param        = zeros(8,numrecord);
-  Samp         = zeros(32,numrecord);
+  Samp         = zeros(1,32,numrecord);
 
   k = 1;
   while (begrecord+k-1)<=endrecord
@@ -82,7 +82,7 @@ if begrecord>=1 && endrecord>=begrecord
     ScNumber(k)    = fread(fid,  1, 'int32');
     CellNumber(k)  = fread(fid,  1, 'int32');
     Param(:,k)     = fread(fid,  8, 'int32');
-    Samp(:,k)      = fread(fid, 32, 'int16');
+    Samp(1,:,k)      = fread(fid, 32, 'int16');
     k = k + 1;
   end
 

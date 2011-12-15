@@ -1,4 +1,4 @@
-function [vol] = ft_prepare_headmodel(cfg, data)
+function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 
 % FT_PREPARE_HEADMODEL constructs a volume conduction model from
 % the geometry of the head. The volume conduction model specifies how
@@ -99,9 +99,9 @@ function [vol] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -320,6 +320,7 @@ vol = ft_convert_units(vol);
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble history vol
 
 %FIXME: the next section is supposed to be partially transferred to other
 %functions (e.g. ft_surface...)
@@ -593,7 +594,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -781,7 +782,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

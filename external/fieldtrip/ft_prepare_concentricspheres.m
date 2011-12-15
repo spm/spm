@@ -4,7 +4,7 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 % multiple concentric spheres.
 %
 % Use as
-%   [vol, cfg] = ft_prepare_concentricspheres(cfg)
+%   vol = ft_prepare_concentricspheres(cfg)
 %
 % The input configuration should contain
 %   cfg.headshape     = a filename containing headshape, a Nx3 matrix with surface 
@@ -51,9 +51,9 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_prepare_concentricspheres.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_concentricspheres.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_prepare_concentricspheres.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -156,4 +156,5 @@ vol = ft_convert_units(vol);
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble history vol
 

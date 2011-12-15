@@ -7,12 +7,13 @@ function [data] = ft_determine_coordsys(data, varargin)
 % Use as
 %   [dataout] = ft_determine_coordsys(datain, 'key1', value1, ...)
 % where the input data structure can be
-%  - an anatomical MRI, which can be segmented
+%  - an anatomical MRI
 %  - an electrode or gradiometer definition
 %  - a volume conduction model
 % or most other FieldTrip structures that represent geometrical information.
 %
-% Additional optional input arguments come as key-value pairs. 
+% Additional optional input arguments should be specified as key-value pairs 
+% and can include
 %   interactive  = string, 'yes' or 'no' (default = 'yes')
 %
 % This function wil pop up a figure that allows you to check whether the
@@ -40,11 +41,12 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_determine_coordsys.m 4972 2011-12-09 15:33:10Z roboos $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
+axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
 
-data = ft_checkdata(data);
+data  = ft_checkdata(data);
 dtype = ft_datatype(data);
 data  = ft_convert_units(data);
 unit  = data.unit;
@@ -75,6 +77,10 @@ switch unit
   otherwise
     error('unknown units (%s)', unit);
 end
+
+% this is useful if the anatomy is from a non-human primate or rodent
+axmax = axisscale*axmax;
+rbol  = axisscale*rbol;
 
 if isfield(data, 'coordsys') && ~isempty(data.coordsys)
   label = cell(3,1);
@@ -130,14 +136,40 @@ end
 figure;
 switch dtype
   case 'volume'
+    funparam = [];
     if isfield(data, 'anatomy')
       funparam = data.anatomy;
     elseif isfield(data, 'gray')
       funparam = data.gray;
+    elseif isfield(data, 'white')
+      funparam = data.white;
+    elseif isfield(data, 'brick0')
+      funparam = data.brick0; % used for an atlas
+    elseif isfield(data, 'brick1')
+      funparam = data.brick1; % used for an atlas
     else
+      % try to determine it automatically
+      fn = fieldnames(data);
+      for i=1:length(fn)
+        if isequal(size(data.(fn{i})), data.dim)
+          funparam = data.(fn{i});
+          break;
+        end
+      end
+    end
+    
+    if isempty(funparam)
       error('don''t know which volumetric parameter to plot');
     end
-    ft_plot_ortho(funparam, 'transform', data.transform, 'resolution', 1, 'style', 'intersect');
+    
+    % the volumetric data needs to be interpolated onto three orthogonal planes
+    % determine a resolution that is close to, or identical to the original resolution
+    [corner_vox, corner_head] = cornerpoints(data.dim, data.transform);
+    diagonal_head = norm(range(corner_head));
+    diagonal_vox  = norm(range(corner_vox));
+    resolution    = diagonal_head/diagonal_vox; % this is in units of "data.unit"
+
+    ft_plot_ortho(funparam, 'transform', data.transform, 'resolution', resolution, 'style', 'intersect');
     axis vis3d
     view([110 36]);
     
@@ -263,7 +295,7 @@ end % if interactive
 function [labelx, labely, labelz] = xyz2label(str)
 
 if ~isempty(str) && ~strcmp(str, 'unknown')
-  % the first part is important for th eorientations
+  % the first part is important for the orientations
   % the second part optionally contains information on the origin
   strx = tokenize(str, '_');
   

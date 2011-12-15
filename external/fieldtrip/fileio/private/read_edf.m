@@ -45,7 +45,7 @@ function [dat] = read_edf(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_edf.m 2076 2010-11-05 12:05:19Z roboos $
+% $Id: read_edf.m 5035 2011-12-14 10:47:49Z roboos $
 
 needhdr = (nargin==1);
 needevt = (nargin==2);
@@ -351,17 +351,16 @@ elseif needdat || needevt
 
   % Calibrate the data
   if variableFs
-    % using a sparse matrix speeds up the multiplication
-    calib = sparse(diag(EDF.Cal(EDF.chansel(chanindx))));
-    dat   = full(calib * dat);
-  elseif length(chanindx)==1
-    % in case of one channel the calibration would result in a sparse array
-    calib = EDF.Cal(chanindx);
-    dat   = calib * dat;
+    calib = diag(EDF.Cal(EDF.chansel(chanindx)));
   else
+    calib = diag(EDF.Cal(chanindx));
+  end
+  if length(chanindx)>1
     % using a sparse matrix speeds up the multiplication
-    calib = sparse(diag(EDF.Cal(chanindx)));
-    dat   = calib * dat;
+    dat = sparse(calib) * dat;
+  else
+    % in case of one channel the sparse multiplication would result in a sparse array
+    dat = calib * dat;
   end
 end
 

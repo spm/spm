@@ -84,7 +84,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 4930 2011-12-03 23:17:29Z sashae $
+% $Id: ft_read_event.m 4970 2011-12-09 14:34:00Z tilsan $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1429,7 +1429,9 @@ switch eventformat
     
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     % check that the required low-level toolbox is available
-    ft_hastoolbox('yokogawa', 1);
+    if ~ft_hastoolbox('yokogawa', 0);
+        ft_hastoolbox('yokogawa_meg_reader', 1);
+    end
     % the user should be able to specify the analog threshold
     % the user should be able to specify the trigger channels
     % the user should be able to specify the flank, but the code falls back to 'auto' as default

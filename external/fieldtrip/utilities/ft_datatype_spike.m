@@ -131,7 +131,7 @@ function spike = ft_datatype_spike(spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_spike.m 4927 2011-12-02 19:35:50Z roboos $
+% $Id: ft_datatype_spike.m 5004 2011-12-10 16:41:29Z marvin $
 
 
 % get the optional input arguments, which should be specified as key-value pairs
@@ -148,14 +148,16 @@ switch version
     if isfield(spike,'origtrial') && isfield(spike,'origtime')
       warning('The spike datatype format you are using is depreciated. Converting to newer spike format');
       spike.trial = {spike.origtrial};
+      spike       = rmfield(spike,'origtrial');      
       spike.time  = {spike.origtime};
+      spike       = rmfield(spike,'origtime');
       if ~isa(spike.fourierspctrm, 'cell')
         spike.fourierspctrm = {spike.fourierspctrm};
       end
       if ~isfield(spike, 'trialtime')
         % determine from the data itself
         warning('Reconstructing the field trialtime from spike.origtime and spike.origtrial');
-        tmax  = nanmin(spike.trial{1});
+        tmax  = nanmax(spike.trial{1});
         tsmin = nanmin(spike.time{1});
         tsmax = nanmax(spike.time{1});
         spike.trialtime = [tsmin*ones(tmax,1) tsmax*ones(tmax,1)];

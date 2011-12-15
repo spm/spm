@@ -5,7 +5,7 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 % estimation and MEG interpolation.
 %
 % Use as
-%   [grid, cfg] = prepare_dipole_grid(cfg)
+%   grid = prepare_dipole_grid(cfg)
 % where the configuration structure contains the details on how the source
 % model should be constructed.
 %
@@ -92,9 +92,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_prepare_sourcemodel.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -690,9 +690,8 @@ if ~isempty(cfg.symmetry)
   grid.pos = grid.pos(:,expand) .* repmat(mirror, size(grid.pos,1), 1);
 end
 
-% FIXME should the cfg be added to the output grid?
-
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
+ft_postamble history grid
 

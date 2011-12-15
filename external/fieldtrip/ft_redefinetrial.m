@@ -71,9 +71,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_redefinetrial.m 5013 2011-12-12 10:21:42Z eelspa $
 
-revision = '$Id: ft_redefinetrial.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_redefinetrial.m 5013 2011-12-12 10:21:42Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -229,6 +229,9 @@ elseif ~isempty(cfg.trl)
     
     % original trial
     iTrlorig  = find(dataold.sampleinfo(:,1)<=begsample & dataold.sampleinfo(:,2)>=endsample);
+    if isempty(iTrlorig)
+      error('some sample indices [%d %d] specified in cfg.trl are not present in the data', begsample, endsample);
+    end
    
     % used to speed up ft_fetch_data
     if iTrl==1,

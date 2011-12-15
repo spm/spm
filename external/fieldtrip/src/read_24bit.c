@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- * $Id: read_24bit.c 4702 2011-11-10 09:23:27Z borreu $
+ * $Id: read_24bit.c 5037 2011-12-14 11:01:21Z roboos $
  */
 
 /*
@@ -113,6 +113,9 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
     b3 = (0x000000FF & ((int32_t)buf[indx+2]));
     dat_p[count] = ((int32_t) ((b3 << 24) | (b2 << 16) | (b1 << 8)))/256;
   }
+
+  /* explicitely free the buffer memory and don't wait for the garbage collector */
+  mxFree(buf);
   
   /* assign the output parameters */
   plhs[0] = dat;

@@ -48,7 +48,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 4927 2011-12-02 19:35:50Z roboos $
+% $Id: ft_read_spike.m 4996 2011-12-10 11:06:45Z marvin $
 
 % get the options
 spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));
@@ -67,7 +67,7 @@ switch spikeformat
     H = ReadHeader(fp);
     fclose(fp);
     % read only from one file
-    S = LoadSpikes({filename});
+    S = read_mclust_t({filename});
     spike.hdr = H(:);
     spike.timestamp = S;
     [p, f, x] = fileparts(filename);
@@ -154,7 +154,7 @@ switch spikeformat
         chan = chan + 1;
         nspike = length(nex.ts);
         spike.label{chan}     = deblank(hdr.VarHeader(i).Name);
-        spike.waveform{chan}  = nex.dat;
+        spike.waveform{chan}  = permute(nex.dat,[3 1 2]);
         spike.unit{chan}      = nan*ones(1,nspike);
         spike.timestamp{chan} = nex.ts;
       end
@@ -189,7 +189,7 @@ switch spikeformat
     end
     for i=1:nchan
       spike.label{i}    = deblank(hdr.ChannelHeader(i).Name);
-      spike.waveform{i} = read_plexon_plx(filename, 'ChannelIndex', i, 'header', hdr);
+      spike.waveform{i} = permute(read_plexon_plx(filename, 'ChannelIndex', i, 'header', hdr),[3 1 2]);
     end
     spike.hdr = hdr;
     
@@ -209,3 +209,10 @@ switch spikeformat
     error('unsupported data format');
 end
 
+% add the waveform 
+if isfield(spike,'waveform')
+   spike.waveformdimord = '{chan}_lead_time_spike';        
+end
+
+  
+  

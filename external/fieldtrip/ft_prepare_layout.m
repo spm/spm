@@ -1,10 +1,10 @@
-function [lay] = ft_prepare_layout(cfg, data)
+function [lay, cfg] = ft_prepare_layout(cfg, data)
 
 % FT_PREPARE_LAYOUT creates a 2-D layout of the channel locations. This layout
 % is required for plotting the topographical distribution of the potential
 % or field distribution, or for plotting timecourses in a topographical
 % arrangement.
-%
+% 
 % Use as
 %   lay = ft_prepare_layout(cfg, data)
 %
@@ -36,6 +36,15 @@ function [lay] = ft_prepare_layout(cfg, data)
 %   cfg.layout = 'ordered'  will give you a NxN ordered layout
 %   cfg.layout = 'vertical' will give you a Nx1 ordered layout
 %   cfg.layout = 'butterfly'  will give you a layout with all channels on top of each other
+% 
+% The output layout structure will contain the following fields
+%   lay.label   = Nx1 cell-array with channel labels
+%   lay.pos     = Nx2 matrix with channel positions
+%   lay.width   = Nx1 vector with the width of each box for multiplotting
+%   lay.height  = Nx1 matrix with the height of each box for multiplotting
+%   lay.height  = Nx1 matrix with the height of each box for multiplotting
+%   lay.mask    = optional cell-array with line segments that determine the area for topographic interpolation
+%   lay.outline = optional cell-array with line segments that represent the head, nose, ears, sulci or other anatomical features
 %
 % See also FT_LAYOUTPLOT, FT_TOPOPLOTER, FT_TOPOPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR
 
@@ -62,12 +71,12 @@ function [lay] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_prepare_layout.m 4959 2011-12-08 16:39:09Z roboos $
 
 % Undocumented option:
 % cfg.layout can contain a lay structure which is simply returned as is
 
-revision = '$Id: ft_prepare_layout.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_prepare_layout.m 4959 2011-12-08 16:39:09Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -678,6 +687,8 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble callinfo
+ft_postamble previous data
+ft_postamble history lay
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

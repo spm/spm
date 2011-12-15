@@ -94,13 +94,14 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_topoplotIC.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_topoplotIC.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_topoplotIC.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
+ft_preamble callinfo
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'component');
@@ -122,4 +123,8 @@ for i = 1:length(selcomp)
   ft_topoplotTFR(cfg, varargin{:});
   title(['component ' num2str(selcomp(i))]);
 end
+
+% do the general cleanup and bookkeeping at the end of the function
+ft_postamble callinfo
+ft_postamble previous varargin
 

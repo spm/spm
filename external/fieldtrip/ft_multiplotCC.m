@@ -1,4 +1,4 @@
-function ft_multiplotCC(cfg, data)
+function [cfg] = ft_multiplotCC(cfg, data)
 
 % FT_MULTIPLOTCC visualises the coherence between channels by using
 % multiple topoplots. The topoplot at a given channel location shows the
@@ -34,12 +34,13 @@ function ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 4813 2011-11-26 01:19:35Z roboos $
+% $Id: ft_multiplotCC.m 4941 2011-12-07 10:41:56Z roboos $
 
-revision = '$Id: ft_multiplotCC.m 4813 2011-11-26 01:19:35Z roboos $';
+revision = '$Id: ft_multiplotCC.m 4941 2011-12-07 10:41:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
+ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 

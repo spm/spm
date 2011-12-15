@@ -105,9 +105,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 4740 2011-11-15 09:08:05Z jansch $
+% $Id: ft_megrealign.m 4955 2011-12-07 21:07:50Z roboos $
 
-revision = '$Id: ft_megrealign.m 4740 2011-11-15 09:08:05Z jansch $';
+revision = '$Id: ft_megrealign.m 4955 2011-12-07 21:07:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -242,7 +242,7 @@ try, tmpcfg.threshold   = cfg.threshold;    end
 try, tmpcfg.spheremesh  = cfg.spheremesh;   end
 try, tmpcfg.inwardshift = cfg.inwardshift;  end
 try, tmpcfg.sourceunits = cfg.sourceunits;  end
-[grid, tmpcfg] = ft_prepare_sourcemodel(tmpcfg);
+grid = ft_prepare_sourcemodel(tmpcfg);
 pos = grid.pos;
 
 % sometimes some of the dipole positions are nan, due to problems with the headsurface triangulation

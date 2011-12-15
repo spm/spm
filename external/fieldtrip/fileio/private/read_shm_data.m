@@ -21,7 +21,7 @@ function [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_shm_data.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_shm_data.m 5035 2011-12-14 10:47:49Z roboos $
 
 % this persistent variable is used for caching the 600 packets
 % which inproves the throughput when reading overlapping data segments
@@ -54,9 +54,14 @@ sel = find((trlNum>=begtrial) & (trlNum<=endtrial));
 
 % this is for calibrating the integer values to physical values
 if isfield(hdr, 'orig') && isfield(hdr.orig, 'gainV')
-  gain = sparse(diag(hdr.orig.gainV(chanindx)));
+  gain = diag(hdr.orig.gainV(chanindx));
 elseif isfield(hdr, 'orig') && isfield(hdr.orig, 'res4')
-  gain = sparse(diag([hdr.orig.res4.senres(chanindx).gain]));
+  gain = diag([hdr.orig.res4.senres(chanindx).gain]);
+end
+
+if length(chanindx)>1
+  % this speeds up the multiplication, but would result in a sparse matrix when nchans=1
+  gain = sparse(gain);
 end
 
 for i=1:length(sel)

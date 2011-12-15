@@ -40,9 +40,9 @@ function [Sts] = ft_spike_triggeredspectrum(cfg, data, spike)
 % Copyright (C) 2008-2011, Martin Vinck, Robert Oostenveld
 % thanks to Henrique Cabral and Thilo Womelsdorf for testing.
 %
-% $Id: ft_spike_triggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $
+% $Id: ft_spike_triggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $
 
-revision = '$Id: ft_spike_triggeredspectrum.m 4917 2011-12-01 15:15:42Z marvin $';
+revision = '$Id: ft_spike_triggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -160,7 +160,7 @@ for iTrial = 1:nTrials
     mva = zeros(nchansel,size(data.trial{iTrial},2)); % moving average to compute the DC
     for iChan = chansel(:)'
       % we concove with a kernel that sums to 1 to get the moving average, this is the DC at any time-point
-      mva(iChan,:)    = conv(data.trial{iTrial}(iChan,:), ones(1,numsmp(iFreq))./numsmp(iFreq),'same');
+      mva(iChan,:)    = conv2(data.trial{iTrial}(iChan,:)', ones(1,numsmp(iFreq))'./numsmp(iFreq),'same');
     end
     % now simply subtract the DC spectrum from the computed LFP spectrum
     newspec = reshape(spec(1,:,iFreq,:),[nchansel,length(timeoi)]) - mva.*repmat(squeeze(specDC(1,1,iFreq,:))',[nchansel,1]); %subtract DC spec
@@ -219,6 +219,7 @@ for iUnit = 1:nspikesel
   Sts.time{iUnit}           = cat(1, spiketime{iUnit,:});
   Sts.trial{iUnit}          = cat(2, spiketrial{iUnit,:})';
 end
+Sts.fourierspctrmdimord = '{chan}_spike_lfpchan_freq';
 Sts.trialtime = spike.trialtime;
 
 % do the general cleanup and bookkeeping at the end of the function

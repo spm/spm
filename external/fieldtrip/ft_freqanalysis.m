@@ -155,6 +155,9 @@ function [freq] = ft_freqanalysis(cfg, data)
 % See also FT_FREQANALYSIS_OLD
 
 % Undocumented local options:
+% cfg.method = 'hilbert'. Keeping this as undocumented as it does not make sense to use 
+%              in ft_freqanalysis unless the user is doing his own filter-padding
+%              to remove edge-artifacts
 % cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based
 % on correct cfg.foi)
 
@@ -177,7 +180,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 4903 2011-11-30 17:20:18Z roevdmei $';
+revision = '$Id: ft_freqanalysis.m 4947 2011-12-07 15:00:55Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -266,14 +269,13 @@ switch cfg.method
     cfg.gwidth = ft_getopt(cfg, 'gwidth', 3); 
     
     
-  case 'hilbert_devel'
-    warning('the hilbert implementation is under heavy development, do not use it for analysis purposes')
+  case 'hilbert'
+    warning('method = hilbert requires user action to deal with filtering-artifacts')
     specestflg = 1;
     if ~isfield(cfg, 'filttype'),         cfg.filttype      = 'but';        end
     if ~isfield(cfg, 'filtorder'),        cfg.filtorder     = 4;            end
     if ~isfield(cfg, 'filtdir'),          cfg.filtdir       = 'twopass';    end
     if ~isfield(cfg, 'width'),            cfg.width         = 1;            end
-    cfg.method = 'hilbert';
     
   case 'mtmwelch' % mtmwelch is a special case, it is no longer maintained, and no specest function is intended for it
     error('ft_freqanalysis_mtmwelch is deprecated, and is no longer maintained. You can still use this method by calling ft_freqanalysis_old')
@@ -526,8 +528,6 @@ else
         ntaper = ones(1,numel(foi));
         % modify spectrum for same reason as fake ntaper
         spectrum = reshape(spectrum,[1 nchan numel(foi) numel(toi)]);
-        
-        
         
       case 'hilbert'
         [spectrum,foi,toi] = ft_specest_hilbert(dat, time, 'timeoi', cfg.toi, 'filttype', cfg.filttype, 'filtorder', cfg.filtorder, 'filtdir', cfg.filtdir, 'width', cfg.width, options{:}, 'feedback', fbopt);

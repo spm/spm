@@ -22,7 +22,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- * $Id: read_16bit.c 4702 2011-11-10 09:23:27Z borreu $
+ * $Id: read_16bit.c 5037 2011-12-14 11:01:21Z roboos $
  */
 
 void
@@ -89,7 +89,10 @@ mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
   {
     dat_p[i] = (double)(buf[i]);
   }
-  
+
+  /* explicitely free the buffer memory and don't wait for the garbage collector */
+  mxFree(buf);
+
   /* assign the output parameters */
   plhs[0] = dat;
   return;

@@ -45,7 +45,7 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_biosemi_bdf.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_biosemi_bdf.m 5035 2011-12-14 10:47:49Z roboos $
 
 if nargin==1
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -252,14 +252,13 @@ else
   dat = dat(:, begsample:endsample);
 
   % Calibrate the data
+  calib = diag(EDF.Cal(chanindx));
   if length(chanindx)>1
     % using a sparse matrix speeds up the multiplication
-    calib = sparse(diag(EDF.Cal(chanindx,:)));
-    dat   = calib * dat;
+    dat = sparse(calib) * dat;
   else
-    % in case of one channel the calibration would result in a sparse array
-    calib = diag(EDF.Cal(chanindx,:));
-    dat   = calib * dat;
+    % in case of one channel the sparse multiplication would result in a sparse array
+    dat = calib * dat;
   end
 end
 

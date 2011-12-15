@@ -115,9 +115,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_volumesegment.m 5017 2011-12-12 14:33:23Z jansch $
 
-revision = '$Id: ft_volumesegment.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_volumesegment.m 5017 2011-12-12 14:33:23Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -262,7 +262,7 @@ if dotpm
   % of the segmentation algorithm
   [mri,permutevec,flipflags] = align_ijk2xyz(mri);
   
-  Va = ft_write_volume([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion);
+  Va = ft_write_mri([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion);
 
   % spm is quite noisy, prevent the warnings from displaying on screen
   % warning off;

@@ -34,7 +34,7 @@ function [stat, cfg] = clusterstat(cfg, statrnd, statobs, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: clusterstat.m 4439 2011-10-12 10:17:09Z roboos $
+% $Id: clusterstat.m 4971 2011-12-09 14:47:41Z jorhor $
 
 % set the defaults
 if ~isfield(cfg,'orderedstats'),   cfg.orderedstats = 'no';    end
@@ -57,6 +57,8 @@ end
 % create neighbour structure (but only when not using source data)
 if isfield(cfg, 'neighbours') && ~issource
     channeighbstructmat = makechanneighbstructmat(cfg);
+else
+    channeighbstructmat  = 0;
 end
 
 % perform fixinside fix if input data is source data

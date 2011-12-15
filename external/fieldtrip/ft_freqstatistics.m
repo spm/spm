@@ -68,9 +68,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 4903 2011-11-30 17:20:18Z roevdmei $
+% $Id: ft_freqstatistics.m 4965 2011-12-09 13:54:52Z jorhor $
 
-revision = '$Id: ft_freqstatistics.m 4903 2011-11-30 17:20:18Z roevdmei $';
+revision = '$Id: ft_freqstatistics.m 4965 2011-12-09 13:54:52Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -101,12 +101,6 @@ if ~isfield(cfg,'design') || isempty(cfg.design)
   error('you should provide a design matrix in the cfg');
 end
 
-% check whether channel neighbourhood information is needed and whether
-% this is present
-% if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster')
-%   cfg = ft_checkconfig(cfg, 'required', {'neighbours'});    
-% end
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % data bookkeeping
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -126,6 +120,8 @@ hasparam = false(Ndata,1);
 for i=1:Ndata
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'freq', 'feedback', 'no');
   hastime(i)  = isfield(varargin{i}, 'time');
+  haschan(i)  = ~isempty(strfind(varargin{i}.dimord, 'chan')) ...
+                && numel(varargin{i}.label) > 1;
   hasparam(i) = isfield(varargin{i}, cfg.parameter);
 end
 
@@ -136,6 +132,14 @@ hastime = sum(hastime)==Ndata;
 
 if sum(hasparam)~=Ndata
   error('the input data structures should all contain the parameter %s', cfg.parameter);
+end
+
+haschan = sum(haschan)==Ndata;
+
+% check whether channel neighbourhood information is needed and present
+if isfield(cfg, 'correctm') && strcmp(cfg.correctm, 'cluster') ...
+    && ~strcmp(cfg.avgoverchan, 'yes') && haschan
+  cfg = ft_checkconfig(cfg, 'required', {'neighbours'});    
 end
 
 % get frequency, latency and channels which are present in all subjects
@@ -197,14 +201,27 @@ end
 
 % intersect the data and combine it into one structure
 if hastime
-  data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+  if haschan
+    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+      'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
+      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
+      'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
+  else
+    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
     'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
     'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-    'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
+    'avgoverchan', cfg.avgoverchan);
+  end
 else
-  data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
-    'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-    'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
+  if haschan
+    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
+      'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
+  else
+    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
+      'avgoverchan', cfg.avgoverchan);
+  end
 end
 
 % keep the sensor info, just in case

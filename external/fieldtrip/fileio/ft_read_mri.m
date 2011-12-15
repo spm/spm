@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 4522 2011-10-19 13:52:21Z jansch $
+% $Id: ft_read_mri.m 5022 2011-12-13 08:34:59Z jansch $
 
 % get the options
 mriformat = ft_getopt(varargin, 'format', ft_filetype(filename));
@@ -83,15 +83,17 @@ elseif strcmp(mriformat, 'minc')
   transform = hdr.mat;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(mriformat, 'nifti')
-  if ~(hasspm5 || hasspm8)
-    fprintf('the SPM5 or SPM8 toolbox is required to read *.nii files\n');
-    ft_hastoolbox('spm8',1);
-  end
-  % use the functions from SPM
-  hdr = spm_vol_nifti(filename);
-  img = spm_read_vols(hdr);
-  transform = hdr.mat;
+  % USE FREESURFER CODE FOR THE READING OF NIFTI-FILES: THAT CODE ALSO
+  % DEALS WITH 4D NIFTIs
+% elseif strcmp(mriformat, 'nifti')
+%   if ~(hasspm5 || hasspm8)
+%     fprintf('the SPM5 or SPM8 toolbox is required to read *.nii files\n');
+%     ft_hastoolbox('spm8',1);
+%   end
+%   % use the functions from SPM
+%   hdr = spm_vol_nifti(filename);
+%   img = spm_read_vols(hdr);
+%   transform = hdr.mat;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif (strcmp(mriformat, 'analyze_img') || strcmp(mriformat, 'analyze_hdr')) && hasspm
@@ -242,7 +244,7 @@ elseif strcmp(mriformat, 'dicom')
   end
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(mriformat, 'freesurfer_mgz') || strcmp(mriformat, 'nifti_fsl')
+elseif strcmp(mriformat, 'nifti') || strcmp(mriformat, 'freesurfer_mgz') || strcmp(mriformat, 'nifti_fsl')
   ft_hastoolbox('freesurfer', 1);
   tmp = MRIread(filename);
   ndims = numel(size(tmp.vol));

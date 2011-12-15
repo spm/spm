@@ -1,9 +1,10 @@
-function [V] = ft_write_volume(filename, dat, varargin)
+function [V] = ft_write_mri(filename, dat, varargin)
 
-% FT_WRITE_VOLUME exports volumetric data to a file.
+% FT_WRITE_MRI exports volumetric data such as anatomical and functional
+% MRI to a file.
 %
 % Use as
-%   V = ft_write_volume(filename, dat, ...)
+%   V = ft_write_mri(filename, dat, ...)
 %
 % The specified filename can already contain the filename extention,
 % but that is not required since it will be added automatically.
@@ -20,7 +21,7 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %   nifti
 %   mgz (freesurfer)
 %
-% See also FT_WRITE_DATA 
+% See also FT_READ_MRI, FT_WRITE_DATA, FT_WRITE_HEADSHAPE
 
 % Copyright (C) 2011 Jan-Mathijs Schoffelen
 %
@@ -40,16 +41,16 @@ function [V] = ft_write_volume(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_volume.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_write_mri.m 5022 2011-12-13 08:34:59Z jansch $
 
 % get the options
 dataformat    = ft_getopt(varargin, 'dataformat', ft_filetype(filename));
 transform     = ft_getopt(varargin, 'transform', eye(4));
 spmversion    = ft_getopt(varargin, 'spmversion', 'SPM8');
 
-if strcmp(dataformat, 'nifti') && strcmp(spmversion, 'SPM2') 
-  error('nifti can only be written by SPM5 or later');
-end
+% if strcmp(dataformat, 'nifti') && strcmp(spmversion, 'SPM2') 
+%   error('nifti can only be written by SPM5 or later');
+% end
 
 switch dataformat
    
@@ -69,9 +70,17 @@ switch dataformat
     V = [];
  
   case {'nifti'}
-    %nifti data, using SPM
-    V = volumewrite_spm(filename, dat, transform, spmversion); 
-  
+    %%nifti data, using SPM
+    %V = volumewrite_spm(filename, dat, transform, spmversion); 
+    
+    % nifti data, using Freesurfer
+    ft_hastoolbox('freesurfer', 1);
+    
+    mri          = [];
+    mri.vol      = dat;
+    mri.vox2ras0 = vox2ras_1to0(transform);
+    err = MRIwrite(mri, filename, class(mri.vol))
+    
   case {'vista'}
     if ft_hastoolbox('simbio')
       write_vista_vol(size(dat), dat, filename);

@@ -76,9 +76,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_volumelookup.m 4946 2011-12-07 14:59:52Z roboos $
 
-revision = '$Id: ft_volumelookup.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_volumelookup.m 4946 2011-12-07 14:59:52Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -130,7 +130,7 @@ if roi2mask
   xyz = volume.transform * ijk; % note that this is 4xN
 
   if isatlas
-    atlas = ft_prepare_atlas(cfg.atlas);
+    atlas = ft_prepare_atlas(cfg);
 
     if ischar(cfg.roi)
       cfg.roi = {cfg.roi};

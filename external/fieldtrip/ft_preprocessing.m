@@ -66,9 +66,9 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
 %   cfg.baselinewindow = [begin end] in seconds, the default is the
 %   complete trial (default = 'all')
-%   cfg.detrend       = 'no' or 'yes', this is done on the complete trial (default = 'no')
-%   cfg.polyremoval   = 'no' or 'yes', this is done on the complete trial (default = 'no')
-%   cfg.polyorder     = polynome order (default = 2)
+%   cfg.detrend       = 'no' or 'yes', remove linear trend from the data (done per trial) (default = 'no')
+%   cfg.polyremoval   = 'no' or 'yes', remove higher order trend from the data (done per trial) (default = 'no')
+%   cfg.polyorder     = polynome order for poly trend removal (default = 2; note that all lower-order trends will also be removed when using cfg.polyremoval)
 %   cfg.derivative    = 'no' or 'yes', computes the first order derivative of the data (default = 'no')
 %   cfg.hilbert       = 'no', 'abs', 'complex', 'real', 'imag', 'absreal', 'absimag' or 'angle' (default = 'no')
 %   cfg.rectify       = 'no' or 'yes' (default = 'no')
@@ -177,9 +177,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 4839 2011-11-27 17:32:37Z marvin $
+% $Id: ft_preprocessing.m 4962 2011-12-09 11:53:02Z eelspa $
 
-revision = '$Id: ft_preprocessing.m 4839 2011-11-27 17:32:37Z marvin $';
+revision = '$Id: ft_preprocessing.m 4962 2011-12-09 11:53:02Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
