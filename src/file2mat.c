@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: file2mat.c 4594 2011-12-16 19:14:55Z john $
  * John Ashburner
  */
 
@@ -93,8 +93,8 @@ void get_1(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
     get_1_sat(ndim, idim, iptr, idat, odim, odat, 0, 0);
 }
 
-void get_8(int ndim, int idim[], int *iptr[], unsigned char idat[],
-           int odim[], unsigned char odat[])
+void get_8(mwSize ndim, mwSize idim[], int *iptr[], unsigned char idat[],
+           mwSize odim[], unsigned char odat[])
 {
     mwIndex i;
     if (!ndim)
