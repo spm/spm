@@ -9,7 +9,7 @@ function out = spm_run_preproc(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_preproc.m 4486 2011-09-13 16:07:38Z guillaume $
+% $Id: spm_run_preproc.m 4593 2011-12-16 15:45:07Z guillaume $
 
 job.opts.tpm = char(job.opts.tpm);
 job.opts.msk = char(job.opts.msk);
@@ -22,12 +22,12 @@ for i=1:numel(job.data)
     %-Convert the output from previous step into an sn.mat file
     %----------------------------------------------------------------------
     spm_prep2sn(res);
-    sn{i} = load(spm_file(job.data{i}, 'suffix','_seg_sn', 'ext','.mat'));
+    snfile{i} = spm_file(job.data{i}, 'suffix','_seg_sn', 'ext','.mat');
 end
 
 %-Write out preprocessed data
 %--------------------------------------------------------------------------
-spm_preproc_write(cat(2,sn{:}), job.output);
+spm_preproc_write(snfile, job.output);
 
 %-Dependencies
 %--------------------------------------------------------------------------
