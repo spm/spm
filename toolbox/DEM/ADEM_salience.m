@@ -19,7 +19,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4595 2011-12-19 13:06:22Z karl $
+% $Id: ADEM_salience.m 4597 2011-12-19 13:18:21Z karl $
 
 
 % hidden causes and states
@@ -47,13 +47,19 @@ DEMO = 1;
 %--------------------------------------------------------------------------
 global STIM
 
-STIM.H{1}   = spm_vol('face_R.nii');
-STIM.H{2}   = spm_vol('face_rot_R.nii');
-STIM.H{3}   = spm_vol('face_inv_R.nii');
-
-STIM.S{1}   = spm_vol('face.nii');
-STIM.S{2}   = spm_vol('face_rot.nii');
-STIM.S{3}   = spm_vol('face_inv.nii');
+try
+    
+    STIM.H{1}   = spm_vol('face_R.nii');
+    STIM.H{2}   = spm_vol('face_rot_R.nii');
+    STIM.H{3}   = spm_vol('face_inv_R.nii');
+    
+    STIM.S{1}   = spm_vol('face.nii');
+    STIM.S{2}   = spm_vol('face_rot.nii');
+    STIM.S{3}   = spm_vol('face_inv.nii');
+    
+catch
+    errordlg('please change current directory to DEM toolbox')
+end
 
 
 % set-up:
