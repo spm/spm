@@ -15,7 +15,7 @@ function [f]= spm_fx_dem_salience(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_dem_salience.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_fx_dem_salience.m 4595 2011-12-19 13:06:22Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------
@@ -27,6 +27,5 @@ f.o  = (v - x.o)/4;
 
 % motion of hypothesis states (with competition)
 %==========================================================================
-n   = length(x.x);
 f.x = 1 - sum(exp(x.x)) - x.x/128;
 

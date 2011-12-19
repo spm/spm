@@ -1,11 +1,25 @@
-% Slow pursuit under active inference:
+% Saccadic eye movements under active inference:
 %__________________________________________________________________________
-% This demo illustrates
+% This demo illustrates exploration or visual search in terms of optimality
+% principles based on straightforward ergodic or homoeostatic principles.
+% In other words, to maintain the constancy of our external milieu, it is
+% sufficient to expose ourselves to predicted and predictable stimuli.
+% Being able to predict what is currently seen also enables us to predict
+% fictive sensations that we will experience from another viewpoint. This
+% provides a principled way in which to explore and sample the world for
+% example with visual searches using saccadic eye movements. These
+% theoretical considerations are remarkably consistent with a number
+% of compelling heuristics; most notably the Infomax principle or the
+% principle of minimum redundancy, signal detection theory and recent
+% formulations of salience in terms of Bayesian surprise. The example
+% here uses saliency (the posterior precision associated with fictive
+% sampling of sensory data) to simulate saccadic eye movements under
+% active inference.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: ADEM_salience.m 4595 2011-12-19 13:06:22Z karl $
 
 
 % hidden causes and states
@@ -26,44 +40,48 @@
 %   g(4) - retinal input - channel 2
 %   g(5) - ...
 %--------------------------------------------------------------------------
+DEMO = 1;
 
 
-% mapp images and get retinal precision
+% mapp images and get hypotheses
 %--------------------------------------------------------------------------
 global STIM
-dim    = 16;
-ns     = dim*dim;
-nh     = 3;
 
-H{1}   = spm_vol('face.nii');
-H{2}   = spm_vol('face_null.nii');
-H{3}   = spm_vol('face_inverted.nii');
+STIM.H{1}   = spm_vol('face_R.nii');
+STIM.H{2}   = spm_vol('face_rot_R.nii');
+STIM.H{3}   = spm_vol('face_inv_R.nii');
 
-ns     = dim*dim;                 % number of sensory (visual) channels
-nh     = 3;                       % number of hypothesis
+STIM.S{1}   = spm_vol('face.nii');
+STIM.S{2}   = spm_vol('face_rot.nii');
+STIM.S{3}   = spm_vol('face_inv.nii');
 
-% rescale to a maximum of one
+
+% set-up:
 %--------------------------------------------------------------------------
-for i = 1:nh
-    H{i}.pinfo(1) = 1/max(max(spm_read_vols(H{i})));
-end
-R      = hanning(dim)*hanning(dim)';
+dim    = 16;                                  % dimension of visual sample
+ns     = dim*dim;                             % number of sensory channels
+nh     = length(STIM.H);                      % number of hypotheses
+STIM.R = hanning(dim)*hanning(dim)';          % Retinal precision
 
-STIM.V = H{1};                    % Stimulus
-STIM.H = H;                       % Hypotheses
-STIM.R = R;                       % Retinal precision
+STIM.V = spm_vol('Nefertiti_R.nii');          % Stimulus (filtered)
+STIM.U = spm_vol('Nefertiti.nii');            % Stimulus (unfiltered)
+
+STIM.V = spm_vol('face_R.nii');               % Stimulus (filtered)
+STIM.U = spm_vol('face.nii');                 % Stimulus (unfiltered)
 
 
-% parameters mapping from (unstable) point attractors to visual space
+
+
+% hidden states
 %--------------------------------------------------------------------------
-x.o    = [0;0];                              % oculomotor angle
-x.x    = -log(nh)*ones(nh,1);                % hypotheses
+x.o    = [0;0];                               % oculomotor angle
+x.x    = -log(nh)*ones(nh,1);                 % hypotheses
 
 
 % Recognition model
 %==========================================================================
 M(1).E.s = 1/2;                               % smoothness
-M(1).E.n = 4;                                 % order of
+M(1).E.n = 3;                                 % order of
 M(1).E.d = 2;                                 % generalised motion
 
 
@@ -73,8 +91,8 @@ M(1).f  = 'spm_fx_dem_salience';             % plant dynamics
 M(1).g  = 'spm_gx_dem_salience';             % prediction
 
 M(1).x  = x;                                 % hidden states
-M(1).V  = diag(exp([6 6  4*ones(1,ns)]));    % error precision (g)
-M(1).W  = diag(exp([8 8  4*ones(1,nh)]));    % error precision (f)
+M(1).V  = diag(exp([8 8 4*ones(1,ns)]));     % error precision (g)
+M(1).W  = exp(8);                            % error precision (f)
 
 M(1).Ra = [1;2];                             % proprioceptive action
 
@@ -92,105 +110,149 @@ M(2).V  = exp(16);
 %--------------------------------------------------------------------------
 G(1).f  = 'spm_fx_adem_salience';
 G(1).g  = 'spm_gx_adem_salience';
-G(1).x  = [0;0];                               % hidden states
-G(1).V  = exp(12);                             % error precision
-G(1).W  = exp(12);                             % error precision
+G(1).x  = [0;0];                              % hidden states
+G(1).V  = exp(16);                            % error precision
+G(1).W  = exp(8);                             % error precision
 
 % second level
 %--------------------------------------------------------------------------
-G(2).v  = 0;                                   % exogenous forces
-G(2).a  = [0; 0];                              % action forces
+G(2).v  = 0;                                  % exogenous forces
+G(2).a  = [0; 0];                             % action forces
 G(2).V  = exp(16);
-
-% Salience map
-%==========================================================================
-DIM   = STIM.V.dim;
-ng    = 32;
-X     = linspace(-DIM(1)/2,DIM(1)/2,ng);
-Y     = linspace(-DIM(2)/2,DIM(2)/2,ng);
-[Y,X] = meshgrid(X,Y);
-L     = [X(:) Y(:)]'/16;
-
 
 
 % generate and invert
 %==========================================================================
-N     = 16;                                  % length of data sequence
+N     = 16;                                   % length of data sequence
+nr    = 32;                                   % size of salience map
+a     = 1/2;                                  % autoregression for salience
+s     = STIM.V.dim(1)/16/16;                  % width of IOR
+R     = sparse(nr*nr,1);                      % salience map with IOR
+
 DEM.G = G;
 DEM.M = M;
 DEM.C = sparse(1,N);
 DEM.U = sparse(2,N);
 
-for k = 1:4
+if DEMO
     
-    % solve and save saccade
+    load ADEM_saccades
+else
+    % number of saccades
     %----------------------------------------------------------------------
-    DEM     = spm_ADEM(DEM);
-    DEM     = spm_ADEM_update(DEM);
-    
-    % overlay true values
-    %----------------------------------------------------------------------
-    spm_DEM_qU(DEM.qU,DEM.pU)
-    
-    % ccompute salience
-    %----------------------------------------------------------------------
-    M     = DEM.M;
-    for i = 1:length(L)
-        M(2).v   = L(:,i);               % hidden cause (control)
-        M(1).x.o = L(:,i);               % fictive hidden state
-        qP       = spm_DEM_qC(M);
-        S(i,1)   = spm_logdet(qP)/2;
+    for k = 1:8
+        
+        % solve and save saccade
+        %------------------------------------------------------------------
+        DEM     = spm_ADEM(DEM);
+        DEM     = spm_ADEM_update(DEM);
+        
+        % overlay true values
+        %------------------------------------------------------------------
+        spm_DEM_qU(DEM.qU,DEM.pU)
+        
+        % compute salience
+        %------------------------------------------------------------------
+        [S L]   = spm_salience_map(DEM.M,nr);
+        
+        % optimise prior belief
+        %------------------------------------------------------------------
+        S       = (S - min(S)).*(1 - R);
+        [i j]   = max(S);
+        DEM.U   = L(:,j)*ones(1,N);
+        DEM.S   = reshape(S,nr,nr);
+        
+        % inhibition of return (IOR)
+        %------------------------------------------------------------------
+        D       = exp(-sum((L - L(:,j)*ones(1,nr*nr)).^2)/(2*s*s))';
+        R       = a*R + D;
+        
+        % store
+        %------------------------------------------------------------------
+        ADEM{k} = DEM;
+        
     end
     
     % save
-    %----------------------------------------------------------------------
-    DEM.S   = reshape(S,ng,ng);
-    ADEM{k} = DEM;
-    
-    % optimise and specify prior belief
-    %----------------------------------------------------------------------
-    [i j]   = max(S);
-    DEM.U   = L(:,j)*ones(1,N);
+    %------------------------------------------------------------------
+    save ADEM_saccades ADEM
     
 end
 
 % create movie in extrinsic and intrinsic coordinates
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');
-spm_dem_search_plot(ADEM)
+spm_dem_search_plot(ADEM(1:end))
 
 % create movie in extrinsic and intrinsic coordinates
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2');
+spm_dem_search_trajectory(ADEM)
+
+% create movie in extrinsic and intrinsic coordinates
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 3');
 spm_dem_search_movie(ADEM)
 
 return
 
 
-
-
-
-
-% create images for spm (memory mapped) smapling
+% illustrate salience for
 %==========================================================================
-load DEM_IMG
+nr          = 64;
+STIM.H{1}   = spm_vol('Nefertiti_R.nii');
+M(1).x.x    = 0;
+S           = spm_salience_map(M,nr);
+subplot(2,1,1)
+imagesc(reshape(exp(S/6),nr,nr))
+axis image
+subplot(2,1,2)
+imagesc(spm_read_vols(STIM.H{1}))
+axis image
 
-F   = sum(F((1:128) + 32,(1:128) + 8,:),3);
+
+
+% create images for (memory mapped) sampling - for a given image F
+%==========================================================================
+fname = 'Nefertiti'
 DIM = [size(F) 1];
 M   = eye(4,4);
+F   = F/max(max(F));
 
-%-Initialise new mask name: current mask & conditions on voxels
-%----------------------------------------------------------------------
+% write volume structure
+%--------------------------------------------------------------------------
 V   = struct(...
-    'fname',  'face.nii',...
+    'fname',  [fname '.nii'],...
     'dim',    DIM,...
     'mat',    M,...
     'pinfo',  [1 0 0]',...
-    'descrip','image of face');
+    'descrip',fname);
 V   = spm_create_vol(V);
 V   = spm_write_plane(V,F,1);
 
 
-
-
+% create images for (memory mapped) sampling - with Gabor filtering
+%==========================================================================
+for i = 1:length(H)
+    
+    [PATHSTR,NAME,EXT] = fileparts(H{i}.fname);
+    fname = [NAME '_R' EXT];
+    s     = spm_read_vols(H{i});
+    s     = s/max(max(s));
+    s     = (spm_conv(s,1) - spm_conv(s,4));
+    DIM   = [size(s) 1];
+    M     = eye(4,4);
+    
+    % write volume structure
+    %----------------------------------------------------------------------
+    V   = struct(...
+        'fname',  fname,...
+        'dim',    DIM,...
+        'mat',    M,...
+        'pinfo',  [1 0 0]',...
+        'descrip',NAME);
+    V   = spm_create_vol(V);
+    V   = spm_write_plane(V,s,1);
+    
+end
 

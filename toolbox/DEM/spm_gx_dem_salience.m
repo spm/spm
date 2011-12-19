@@ -22,7 +22,7 @@ function [g] = spm_gx_dem_salience(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_dem_salience.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_gx_dem_salience.m 4595 2011-12-19 13:06:22Z karl $
  
  
 % sensory input sampled from image
@@ -32,12 +32,12 @@ global STIM
 % retinotopic predictions
 %--------------------------------------------------------------------------
 s     = 0;
-for i = 1:length(STIM.H)
+for i = 1:min(length(STIM.H),length(x.x))
     s = s + exp(x.x(i))*ADEM_sample_image(STIM.H{i},x.o,STIM.R);
 end
 
  
-% add proprioceptive angles in intrinsic (polar) coordinates
+% add proprioceptive angles in intrinsic coordinates
 %--------------------------------------------------------------------------
 g   = spm_vec(x.o,s);
 

@@ -23,25 +23,25 @@ function spm_dem_search_plot(DEM)
 %   g(5) - ...
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_dem_search_plot.m 4580 2011-12-02 20:22:19Z karl $
-
-
+% $Id: spm_dem_search_plot.m 4595 2011-12-19 13:06:22Z karl $
+ 
+ 
 % Preliminaries
 %--------------------------------------------------------------------------
 clf, global STIM
 N  = length(DEM);
-S  = spm_read_vols(STIM.V);
-
+S  = spm_read_vols(STIM.U);
+ 
 % Stimulus
 %======================================================================
-Dx = STIM.V.dim(1)/2;
-Dy = STIM.V.dim(2)/2;
+Dx = STIM.U.dim(1)/2;
+Dy = STIM.U.dim(2)/2;
 a  = [];
 q  = [];
 c  = [];
-
+ 
 for i = 1:N
     
     % i-th saccade - position
@@ -74,51 +74,59 @@ for i = 1:N
     drawnow, hold off
     
     
-    % i-th saccade - sensory samples
-    %----------------------------------------------------------------------
-    pU = DEM{i}.pU.v{1}(3:end,:);
+    % salience map
+    %======================================================================
+    subplot(6,N,i + N*1)
+    imagesc(DEM{i}.S), axis image off
+    
     
     % sensory input
     %======================================================================
-    subplot(6,N,i + N*2)
-    s = spm_unvec(pU(:,T),STIM.R);
-    imagesc(s), axis image off, drawnow
+    subplot(6,N,i + N*3)
     
-    
-    % i-th saccade - percept
+    % i-th saccade - sensory samples
     %----------------------------------------------------------------------
-    qU = DEM{i}.qU.x{1}(3:end,:);
+    o   = DEM{i}.pU.x{1}(:,T);
+    s   = ADEM_sample_image(STIM.U,o,STIM.R);
+    
+    imagesc(s), axis image off
+    
     
     % percept
     %======================================================================
-    subplot(6,N,i + N*4)
+    subplot(6,N,i + N*5)
+    
+    % i-th saccade - percept
+    %----------------------------------------------------------------------
+    qU    = DEM{i}.qU.x{1}(3:end,:);
     
     % hypotheses (0 < H < 1 = normalised neg-entropy)
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     h     = spm_softmax(qU(:,T),2);
     H     = 1 + h'*log(h)/log(length(h));
     
     % retinotopic predictions
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     s     = 0;
     for j = 1:length(h)
-        s = s + h(j)*spm_read_vols(STIM.H{j});
+        s = s + h(j)*spm_read_vols(STIM.S{j});
     end
-    image(s*H*64), axis image off, drawnow
+    image(s*H*64), axis image off
     
 end
-
+ 
 % set ButtonDownFcn
 %--------------------------------------------------------------------------
-t  = (1:length(a));
-subplot(6,1,2)
-plot(a')
+t  = (1:length(a))*12;
+subplot(6,1,3)
+plot(t,a')
 title('Action (EOG)','FontSize',16)
-xlabel('time')
-
-subplot(6,1,4)
+xlabel('time (ms)')
+axis([1 t(end) -2 2])
+ 
+subplot(6,1,5)
 spm_plot_ci(t,q(1,:),c); hold on
 plot(t,q), hold off
-set(gca,'YLim',[-1 1]*8)
-title('Posterior beleif (EOG)','FontSize',16)
-xlabel('time')
+axis([1 t(end) -8 8])
+title('Posterior belief','FontSize',16)
+xlabel('time (ms)')

@@ -13,23 +13,20 @@ function [s]= ADEM_sample_image(V,o,R)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_sample_image.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: ADEM_sample_image.m 4595 2011-12-19 13:06:22Z karl $
  
 
 % retinotopic sampling
 %--------------------------------------------------------------------------
-try, R; catch, R = ones(V.dim(1,2)); end
-
 dim  = size(R);
+dx   = V.dim(1)/dim(1)/6;
 
-i    = (1:dim(1)) + V.dim(1)/2 - dim(1)/2 + o(1)*16;
-j    = (1:dim(2)) + V.dim(2)/2 - dim(2)/2 + o(2)*16;
+i    = dx*((1:dim(1)) - dim(1)/2) + V.dim(1)/2  + o(1)*16;
+j    = dx*((1:dim(2)) - dim(2)/2) + V.dim(2)/2  + o(2)*16;
 x    = kron(ones(1,dim(2)),i);
 y    = kron(j,ones(1,dim(1)));
 z    = ones(1,dim(1)*dim(2));
 
-s    = spm_sample_vol(V,x,y,z,2);
+s    = spm_sample_vol(V,x,y,z,-2);
 s    = reshape(s,dim(1),dim(2)).*R;
-
-
 

@@ -25,19 +25,19 @@ function spm_dem_search_movie(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dem_search_movie.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_dem_search_movie.m 4595 2011-12-19 13:06:22Z karl $
 
 
 % Preliminaries
 %--------------------------------------------------------------------------
 clf, global STIM
 N  = length(DEM);
-S  = spm_read_vols(STIM.V);
+S  = spm_read_vols(STIM.U);
 
 % Stimulus
 %======================================================================
-Dx = STIM.V.dim(1)/2;
-Dy = STIM.V.dim(2)/2;
+Dx = STIM.U.dim(1)/2;
+Dy = STIM.U.dim(2)/2;
 a  = [];
 
 for i = 1:N
@@ -73,7 +73,8 @@ for i = 1:N
     subplot(2,2,2)
     for t = 1:T
         
-        s = spm_unvec(pU(:,t),STIM.R);
+        o   = DEM{i}.pU.x{1}(:,t);
+        s   = ADEM_sample_image(STIM.U,o,STIM.R);
         imagesc(s), axis image, drawnow
         
         % save
@@ -101,7 +102,7 @@ for i = 1:N
         %------------------------------------------------------------------
         s     = 0;
         for j = 1:length(h)
-            s = s + h(j)*spm_read_vols(STIM.H{j});
+            s = s + h(j)*spm_read_vols(STIM.S{j});
         end
         image(s*H*64), axis image, drawnow
         
