@@ -1,11 +1,11 @@
-function [CVA] = spm_cva(Y,X,X0,c,XYZ)
+function [CVA] = spm_cva(Y,X,X0,c,U)
 % Canonical Variate Analysis
-% FORMAT [CVA] = spm_cva(Y,X,X0,c,[XYZ])
+% FORMAT [CVA] = spm_cva(Y,X,X0,c,[U])
 % Y            - data
 % X            - design
 % X0           - null space
 % c            - contrast weights
-% XYZ          - locations of voxels (mm)
+% U            - dimension reduction
 % 
 % 
 % CVA.c        - contrast weights
@@ -52,7 +52,7 @@ function [CVA] = spm_cva(Y,X,X0,c,XYZ)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 4603 2011-12-20 16:49:52Z guillaume $
+% $Id: spm_cva.m 4604 2011-12-20 18:21:03Z guillaume $
 
 
 %-Get null-space of contrast
@@ -64,10 +64,8 @@ X0    = spm_svd(X0);
 
 %-Dimension reduction (if necessary)
 %==========================================================================
-if nargin > 4
-    U = spm_mvb_U(Y,'compact',X0,XYZ);
-else
-    U = spm_mvb_U(Y,'singular',X0);
+if nargin < 5
+    U = speye(size(Y,2));
 end
 U     = spm_svd(U);
 Y     = Y*U;

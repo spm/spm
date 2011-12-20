@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 4603 2011-12-20 16:49:52Z guillaume $
+% $Id: spm_cva_ui.m 4604 2011-12-20 18:21:03Z guillaume $
 
 
 %-Get figure handles
@@ -180,7 +180,8 @@ switch lower(action)
         
         %-Canonical Variate Analysis
         %==================================================================
-        CVA   = spm_cva(Y,X,X0,c,XYZ);
+        U     = spm_mvb_U(Y,'compact',spm_svd([X0, X-X*c*pinv(c)]),XYZ);
+        CVA   = spm_cva(Y, X, X0, c, U);
         
         %-Save results
         %==================================================================
