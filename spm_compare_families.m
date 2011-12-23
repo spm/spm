@@ -42,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 3632 2009-12-11 09:58:31Z maria $
+% $Id: spm_compare_families.m 4609 2011-12-23 15:31:29Z will $
 
 try
     infer=family.infer;
@@ -105,12 +105,25 @@ if strcmp(infer,'FFX')
     for i=1:N,
         model.prior(i)=1/fam_size(partition(i));
     end
-
+    
+    % Ensure all log model evidence differences and sums thereof
+    % are within machine range
+    Ni=size(lme,1);
+    lme=lme-mean(lme,2)*ones(1,N);
+    max_val = log(realmax('double'));
+    for i=1:Ni,
+        for k = 1:N,
+            lme(i,k) = sign(lme(i,k)) * min(max_val,abs(lme(i,k)));
+        end
+    end
+    slme=sum(lme,1);
+    max_val=max_val/N;
+    slme=sign(slme).*min(max_val,abs(slme));
+    
     % Model likelihoods
-    lme=lme-mean(lme,2)*ones(1,N); % Subtract subject effects
     model.subj_lme=lme;
-    model.like=sum(lme,1);
-    model.like=exp(model.like);
+    model.like=slme;
+    model.like=exp(slme);
     
     % Model posterior
     num=model.prior.*model.like;
