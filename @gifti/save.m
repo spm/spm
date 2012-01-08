@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 4505 2011-09-30 11:45:58Z guillaume $
+% $Id: save.m 4612 2012-01-08 11:54:26Z guillaume $
 
 
 % Check filename and file format
@@ -154,9 +154,15 @@ if isempty(this.label)
     fprintf(fid,'/>\n');
 else
     fprintf(fid,'>\n');
-    for i=1:length(this.label)
-        fprintf(fid,'%s<Label Index="%"><![CDATA[%s]]></Label>\n',o(2),...
-            this.label.index(i), this.label.name{i});
+    for i=1:length(this.label.name)
+        if ~all(isnan(this.label.rgba(i,:)))
+            label_rgba = sprintf(' Red="%f" Green="%f" Blue="%f" Alpha="%f"',...
+                this.label.rgba(i,:));
+        else
+            label_rgba = '';
+        end
+        fprintf(fid,'%s<Label Key="%d"%s><![CDATA[%s]]></Label>\n',o(2),...
+            this.label.key(i), label_rgba, this.label.name{i});
     end
     fprintf(fid,'%s</LabelTable>\n',o(1));
 end
