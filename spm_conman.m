@@ -244,7 +244,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 4546 2011-11-04 13:14:42Z guillaume $
+% $Id: spm_conman.m 4615 2012-01-10 16:56:25Z will $
 
 
 %==========================================================================
@@ -1370,16 +1370,6 @@ switch lower(varargin{1})
         end
         SPM.xCon = xCon;
         set(F,'UserData',SPM);
-
-        % For contrasts with Bayesian estimated models
-        if isfield(SPM,'PPM')
-            if isfield(SPM.PPM,'xCon')
-                Nc = length(SPM.PPM.xCon);
-                SPM.PPM.xCon(Nc+1).PSTAT = STAT;
-            else
-                SPM.PPM.xCon(1).PSTAT = STAT;
-            end
-        end
         
         %-Redisplay the new list of contrasts, with the new one selected
         %------------------------------------------------------------------

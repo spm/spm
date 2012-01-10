@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4603 2011-12-20 16:49:52Z guillaume $
+% $Id: spm_results_ui.m 4615 2012-01-10 16:56:25Z will $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4603 $'; 
+SVNid = '$Rev: 4615 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -365,13 +365,21 @@ switch lower(Action), case 'setup'                         %-Set up results
     hC1 = uimenu(hC,'Label','Significance level','Separator','on');
     xSPMtmp = xSPM; xSPMtmp.thresDesc = '';
     uimenu(hC1,'Label','Change...','UserData',struct('Ic',xSPM.Ic),...
-        'Callback',{@mychgcon,xSPMtmp});
-    xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.05 (FWE)';
-    uimenu(hC1,'Label','Set to 0.05 (FWE)','UserData',struct('Ic',xSPM.Ic),...
-        'Callback',{@mychgcon,xSPMtmp});
-    xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.001 (unc.)';
-    uimenu(hC1,'Label','Set to 0.001 (unc.)','UserData',struct('Ic',xSPM.Ic),...
-        'Callback',{@mychgcon,xSPMtmp});
+        'Callback',{@mychgcon,xSPMtmp}); 
+    
+    if strcmp(xSPM.STAT,'P')
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'LogBF';
+        uimenu(hC1,'Label','Set LogBF','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+    else
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.05 (FWE)';
+        uimenu(hC1,'Label','Set to 0.05 (FWE)','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+        xSPMtmp = xSPM; xSPMtmp.thresDesc = 'p<0.001 (unc.)';
+        uimenu(hC1,'Label','Set to 0.001 (unc.)','UserData',struct('Ic',xSPM.Ic),...
+            'Callback',{@mychgcon,xSPMtmp});
+    end
+    
     uimenu(hC1,'Label',[xSPM.thresDesc ', k=' num2str(xSPM.k)],...
         'Enable','off','Separator','on');
     
@@ -1202,15 +1210,22 @@ xSPM2.pm    = xSPM.pm;
 xSPM2.Ex    = xSPM.Ex;
 xSPM2.title = '';
 if ~isempty(xSPM.thresDesc)
-    td = regexp(xSPM.thresDesc,'p\D?(?<u>[\.\d]+) \((?<thresDesc>\S+)\)','names');
-    if isempty(td)
-        td = regexp(xSPM.thresDesc,'\w=(?<u>[\.\d]+)','names');
-        td.thresDesc = 'none';
+    if strcmp(xSPM.STAT,'P')
+        % These are soon overwritten by spm_getSPM
+        xSPM2.thresDesc = xSPM.thresDesc;
+        xSPM2.u = 0;
+        xSPM2.k = xSPM.k;
+    else
+        td = regexp(xSPM.thresDesc,'p\D?(?<u>[\.\d]+) \((?<thresDesc>\S+)\)','names');
+        if isempty(td)
+            td = regexp(xSPM.thresDesc,'\w=(?<u>[\.\d]+)','names');
+            td.thresDesc = 'none';
+        end
+        if strcmp(td.thresDesc,'unc.'), td.thresDesc = 'none'; end
+        xSPM2.thresDesc = td.thresDesc;
+        xSPM2.u     = str2double(td.u);
+        xSPM2.k     = xSPM.k;
     end
-    if strcmp(td.thresDesc,'unc.'), td.thresDesc = 'none'; end
-    xSPM2.thresDesc = td.thresDesc;
-    xSPM2.u     = str2double(td.u);
-    xSPM2.k     = xSPM.k;
 end
 hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
 xyz  = spm_XYZreg('GetCoords',hReg);

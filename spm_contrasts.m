@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4546 2011-11-04 13:14:42Z guillaume $
+% $Id: spm_contrasts.m 4615 2012-01-10 16:56:25Z will $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -81,18 +81,18 @@ for i = 1:length(Ic)
                 
                 if strcmp(xCon(ic).STAT,'P') && strcmp(SPM.PPM.xCon(ic).PSTAT,'F')
                     
-                    % Chi^2 Bayesian inference for compound contrast
+                    % Bayes Factor for compound contrast
                     %------------------------------------------------------
-                    disp('Chi^2 Bayesian inference for compound contrast');
-                    fprintf('\t%-32s: %30s',sprintf('X2 image %2d',ic),...
+                    disp('Bayes factor for compound contrast');
+                    fprintf('\t%-32s: %30s',sprintf('LogBF image %2d',ic),...
                         '...computing');                                %-#
                     
                     if isfield(SPM.PPM,'VB')
                         % First level Bayes
-                        xCon = spm_vb_x2(SPM,XYZ,xCon,ic);
+                        xCon = spm_vb_logbf(SPM,XYZ,xCon,ic);
                     else
                         % Second level Bayes
-                        xCon = spm_bayes2_x2(SPM,XYZ,xCon,ic);
+                        xCon = spm_bayes2_logbf(SPM,XYZ,xCon,ic);
                     end
                 else
                     %-Implement contrast as sum of scaled beta images
@@ -219,14 +219,16 @@ for i = 1:length(Ic)
                     %------------------------------------------------------
                     Gamma          = xCon(ic).eidf;
                     Z              = 1 - spm_Ncdf(Gamma,cB,VcB);
+                    
+                    % Convert probability to Log Odds Ratio
+                    Z = log (Z./(1-Z+eps)); 
                     str            = sprintf('[%.2f]',Gamma);
                     %xCon(ic).name = [xCon(ic).name ' ' str];
                 else
-                    % Compound contrast - Chi^2 distributed
-                    fprintf('\t\t%-75s\n','Chi^2 Bayesian inference for compound contrast');
+                    % Compound contrast - Log Bayes Factor
+                    fprintf('\t\t%-75s\n','Log Bayes Factor for compound contrast');
                     fprintf('\t%-32s: %29s\n',' ',' ');
-                    d = spm_get_data(xCon(ic).Vcon,XYZ);
-                    Z = spm_Xcdf(d,xCon(ic).eidf);
+                    Z = spm_get_data(xCon(ic).Vcon,XYZ);
                     
                     str = sprintf('[%1.2f]',xCon(ic).eidf);
                 end

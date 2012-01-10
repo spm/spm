@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4532 2011-10-21 14:25:53Z karl $
+% $Id: spm_list.m 4615 2012-01-10 16:56:25Z will $
 
 
 %==========================================================================
@@ -169,7 +169,7 @@ case 'table'                                                        %-Table
         if xSPM.STAT ~= 'P'
             Title = 'p-values adjusted for search volume';
         else
-            Title = 'Posterior Probabilities';
+            Title = 'P = Log Bayes Factor';
         end
     end
     
@@ -475,7 +475,7 @@ case 'table'                                                        %-Table
                             Qu = spm_P_FDR(Z(d),df,STAT,n,QPs);
                             Qp = [];
                         end
-                        if Pz < tol
+                        if Pz < tolPos
                             Ze = Inf;
                         else
                             Ze = spm_invNcdf(1 - Pz); 
@@ -486,7 +486,9 @@ case 'table'                                                        %-Table
                         Qu     = [];
                         Qp     = [];
                         ws     = warning('off','SPM:outOfRangeNormal');
-                        Ze     = spm_invNcdf(Z(d));
+                        Ze_tmp = 1./(1+exp(-Z(d)));     
+                        Ze     = spm_invNcdf(Ze_tmp); 
+                        %Ze     = spm_invNcdf(Z(d));
                         warning(ws);
                     end
                     D     = [D d];

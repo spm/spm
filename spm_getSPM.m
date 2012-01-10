@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4490 2011-09-14 16:22:27Z guillaume $
+% $Id: spm_getSPM.m 4615 2012-01-10 16:56:25Z will $
 
 
 %-GUI setup
@@ -485,9 +485,11 @@ if isfield(SPM,'PPM')
         SPM.PPM.xCon = [];
     end
     
-    % Set Bayesian con type
+    % Set Bayesian con type - but only if empty
     %----------------------------------------------------------------------
-    SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
+    if length(SPM.PPM.xCon)<Ic || ~isfield(SPM.PPM.xCon(Ic), 'PSTAT') || isempty(SPM.PPM.xCon(Ic).PSTAT)
+        SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
+    end
     
     % Make all new contrasts Bayesian contrasts 
     %----------------------------------------------------------------------
@@ -501,9 +503,9 @@ if isfield(SPM,'PPM')
         
         if isfield(SPM.PPM,'VB') % 1st level Bayes
             
-            % For VB - set default effect size to zero
+            % For VB - set default effect size 
             %--------------------------------------------------------------
-            Gamma = 0;
+            Gamma = 0.1;
             xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
             
         elseif nc == 1 && isempty(xCon(Ic).Vcon) % 2nd level Bayes
@@ -744,10 +746,15 @@ if STAT ~= 'P'
 %--------------------------------------------------------------------------
 elseif STAT == 'P'
     
-    u_default = 1 - 1/SPM.xVol.S;
-    str       = 'Posterior probability threshold for PPM';
+%     u_default = 1 - 1/SPM.xVol.S;
+%     str       = 'Posterior probability threshold for PPM';
+%     u         = spm_input(str,'+0','r',u_default,1);
+%     thresDesc = ['P>'  num2str(u) ' (PPM)'];
+    
+    u_default = 10;
+    str       = 'Log-Odds Threshold for PPM';
     u         = spm_input(str,'+0','r',u_default,1);
-    thresDesc = ['P>'  num2str(u) ' (PPM)'];
+    thresDesc = ['P >'  num2str(u) ' (PPM)'];
     
 end % (if STAT)
 
@@ -806,14 +813,6 @@ else
     k = 0;
     
 end % (if ~isempty(XYZ))
-
-%-For Bayesian inference provide (default) option to display contrast values
-%--------------------------------------------------------------------------
-if STAT == 'P'
-    if spm_input('Plot effect-size/statistic',1,'b',{'Yes','No'},[1 0])
-        Z = spm_get_data(xCon(Ic).Vcon,XYZ);
-    end
-end
 
 %==========================================================================
 % - E N D

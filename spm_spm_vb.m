@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_spm_vb.m 4615 2012-01-10 16:56:25Z will $
 
 
 %-Get SPM.mat if necessary
@@ -557,7 +557,7 @@ for s=1:nsess
     block_template(s).maxits        = SPM.PPM.maxits;
     block_template(s).tol           = SPM.PPM.tol;
     block_template(s).compute_det_D = SPM.PPM.compute_det_D;
-    block_template(s).verbose       = 1;
+    block_template(s).verbose       = 0;
     block_template(s).update_w      = 1;
     block_template(s).update_lambda = 1;
     block_template(s).update_F      = SPM.PPM.update_F;
@@ -894,7 +894,7 @@ for z = 1:nLb
                 end
             end
         end
-
+        
         switch SPM.PPM.priors.A,
             case 'Robust',
                 % Save voxel data where robust model is favoured
@@ -914,8 +914,14 @@ for z = 1:nLb
                 block = spm_vb_taylor_R(R0Y,block);
                 SPM.PPM.Sess(s).block(z).mean=block.mean;
                 SPM.PPM.Sess(s).block(z).N=block.N;
-
+                
+                % Prior precision 
+                SPM.PPM.Sess(s).block(z).mean_alpha=block.mean_alpha;
+                
             otherwise
+                % Prior precision
+                SPM.PPM.Sess(s).block(z).mean_alpha=block.mean_alpha;
+                
                 %-Get block-wise Taylor approximation to posterior correlation
                 %-------------------------------------------------------
                 block = spm_vb_taylor_R(R0Y,block);
@@ -1093,6 +1099,9 @@ SPM.PPM.xCon   = SPM.xCon;
 for i=1:length(SPM.PPM.xCon),
     SPM.PPM.xCon(i).PSTAT='T';
 end
+
+% Add pointer to RPV image file so that spm_list works
+SPM.xVol.VRpv=[];
 
 %-Save analysis parameters in SPM.mat file
 %-----------------------------------------------------------------------
