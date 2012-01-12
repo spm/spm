@@ -1,28 +1,29 @@
 #!/usr/bin/env make -f
 # FieldTrip Makefile called by {SPM}/external/Makefile
 #
-# Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 4426 2011-08-08 15:12:27Z guillaume $
+# $Id: Makefile.fieldtrip 4619 2012-01-12 13:05:16Z guillaume $
 
 include ../src/Makefile.var
 
 FIELDTRIP =\
-	fieldtrip/src/read_24bit.$(SUF) \
-	fieldtrip/src/mxSerialize.$(SUF) \
-	fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/src/read_16bit.$(SUF) \
 	fieldtrip/fileio/@uint64/max.$(SUF) fieldtrip/fileio/@uint64/min.$(SUF) \
 	fieldtrip/fileio/@uint64/minus.$(SUF) fieldtrip/fileio/@uint64/plus.$(SUF) \
 	fieldtrip/fileio/@uint64/rdivide.$(SUF) fieldtrip/fileio/@uint64/times.$(SUF) \
 	fieldtrip/fileio/@uint64/abs.$(SUF) \
 	\
+	fieldtrip/src/read_24bit.$(SUF) fieldtrip/src/read_16bit.$(SUF) \
+	fieldtrip/src/mxSerialize.$(SUF) fieldtrip/src/mxDeserialize.$(SUF) \
+	fieldtrip/src/ft_getopt.$(SUF) \
+	\
+	fieldtrip/src/nanmean.$(SUF) fieldtrip/src/nanstd.$(SUF) \
+	fieldtrip/src/nansum.$(SUF) fieldtrip/src/nanvar.$(SUF) \
+	\
 	fieldtrip/src/meg_leadfield1.$(SUF) fieldtrip/src/ptriproj.$(SUF) \
 	fieldtrip/src/lmoutr.$(SUF) fieldtrip/src/plgndr.$(SUF) \
 	fieldtrip/src/solid_angle.$(SUF) fieldtrip/src/routlm.$(SUF) \
-	\
-	fieldtrip/src/solid_angle.$(SUF) \
-	\
 	fieldtrip/src/ltrisect.$(SUF) fieldtrip/src/plinproj.$(SUF) \
 	fieldtrip/src/splint_gh.$(SUF)
 ifneq (,$(filter $(PLATFORM),Linux Darwin)) # Unix only
