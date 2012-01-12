@@ -21,7 +21,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 4726 2011-11-12 10:58:21Z roboos $
+% $Id: printstruct.m 5089 2012-01-03 10:45:32Z roboos $
 
 if nargin==1
   val  = name;
@@ -48,7 +48,7 @@ if isstruct(val)
         case {'single' 'double'}
           line = printmat([name '.' fn{i}], fv);
           str  = [str line];
-        case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64'}
+        case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64' 'logical'}
           line = printmat([name '.' fn{i}], fv);
           str  = [str line];
         case 'cell'

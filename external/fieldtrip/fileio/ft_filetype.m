@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 4920 2011-12-01 17:03:54Z roboos $
+% $Id: ft_filetype.m 5084 2012-01-02 08:16:24Z jansch $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -882,6 +882,13 @@ elseif filetype_check_extension(filename, '.curv') && filetype_check_header(file
   type = 'freesurfer_curv_new';
   manufacturer = 'FreeSurfer';
   content = 'surface description';
+elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'_nrs_')) == 1
+  % This may be improved by looking into the file, rather than assuming the
+  % filename has "_nrs_" somewhere. Also, distinction by the different file
+  % types could be made
+  type = 'bucn_nirs';
+  manufacturer = 'BUCN';
+  content = 'ascii formatted nirs data';
   
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')

@@ -77,9 +77,9 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedetection.m 4816 2011-11-27 14:30:31Z roboos $
+% $Id: ft_spikedetection.m 5133 2012-01-11 19:43:45Z roboos $
 
-revision = '$Id: ft_spikedetection.m 4816 2011-11-27 14:30:31Z roboos $';
+revision = '$Id: ft_spikedetection.m 5133 2012-01-11 19:43:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -374,7 +374,7 @@ for i=chansel(:)'
       % write the spike data to a new file
       datafile = fullfile(cfg.output, spike.label{1});  % this is without filename extension
       fprintf(', writing to %s\n', datafile);
-      ft_write_fcdc_spike(datafile, spike, 'dataformat', cfg.dataformat, 'fsample', hdr.Fs, 'TimeStampPerSample', hdr.TimeStampPerSample*hdr.Fs);
+      ft_write_spike(datafile, spike, 'dataformat', cfg.dataformat, 'fsample', hdr.Fs, 'TimeStampPerSample', hdr.TimeStampPerSample*hdr.Fs);
 
       % jump out of the interactive loop
       runloop = false;

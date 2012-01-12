@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_multiplotER.m 5105 2012-01-10 12:15:10Z jansch $
 
-revision = '$Id: ft_multiplotER.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_multiplotER.m 5105 2012-01-10 12:15:10Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -467,14 +467,16 @@ if strcmp(cfg.ylim,'maxmin')
   ymin = [];
   ymax = [];
   for i=1:length(varargin)
-    % Select the channels in the data that match with the layout:
+    % Select the channels in the data that match with the layout and that
+    % are selected for plotting:
     dat = [];
     dat = varargin{i}.(cfg.parameter);
-    [seldat, sellay] = match_str(varargin{i}.label, lay.label);
-    if isempty(seldat)
+    seldat1 = match_str(varargin{i}.label, lay.label);   % indexes labels corresponding in input and layout
+    seldat2 = match_str(varargin{i}.label, cfg.channel); % indexes labels corresponding in input and plot-selection
+    if isempty(seldat1)
       error('labels in data and labels in layout do not match');
     end
-    data = dat(seldat,:);
+    data = dat(intersect(seldat1,seldat2),:);
     ymin = min([ymin min(min(min(data)))]);
     ymax = max([ymax max(max(max(data)))]);
   end
@@ -517,7 +519,7 @@ for i=1:Ndata
   xval = varargin{i}.(xparam);
   
   % Take subselection of channels, this only works
-  % in the interactive mode
+  % in the non-interactive mode
   if exist('selchannel', 'var')
     sellab = match_str(varargin{i}.label, selchannel);
     label  = varargin{i}.label(sellab);

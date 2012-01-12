@@ -20,7 +20,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_compile_mex.m 5057 2011-12-20 14:03:21Z jansch $
 
 if nargin<1
   force=false;
@@ -71,6 +71,16 @@ L = add_mex_source(L,'src','plgndr');
 L = add_mex_source(L,'src','ft_spike_sub_crossx');
 L = add_mex_source(L,'src','rename');
 L = add_mex_source(L,'src','getpid');
+
+L = add_mex_source(L,'src','nanmean');
+L = add_mex_source(L,'src','nanstd');
+L = add_mex_source(L,'src','nansum');
+L = add_mex_source(L,'src','nanstd');
+L = add_mex_source(L,'src','det2x2');
+L = add_mex_source(L,'src','inv2x2');
+L = add_mex_source(L,'src','mtimes2x2');
+L = add_mex_source(L,'src','sandwich2x2');
+
 
 L = add_mex_source(L,'realtime/online_mri','ft_omri_smooth_volume');
 L = add_mex_source(L,'realtime/acquisition/siemens', 'sap2matlab',[],[],'siemensap.c -I.');

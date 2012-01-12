@@ -84,7 +84,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 4970 2011-12-09 14:34:00Z tilsan $
+% $Id: ft_read_event.m 5083 2011-12-31 13:50:43Z jansch $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1470,6 +1470,9 @@ switch eventformat
       event(i).value  = trigger(ix(i),iy(i));
       event(i).sample = iy(i);
     end
+    
+  case 'bucn_nirs'
+    event = read_bucn_nirsevent(filename);
     
   otherwise
     error('unsupported event format (%s)', eventformat);

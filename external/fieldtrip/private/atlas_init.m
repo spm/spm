@@ -28,7 +28,7 @@ function [atlas] = atlas_init(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_init.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: atlas_init.m 5133 2012-01-11 19:43:45Z roboos $
 
 useafni = 0;
 usewfu  = 0;
@@ -45,7 +45,7 @@ if useafni
   % check whether the required AFNI toolbox is available
   hastoolbox('afni', 1);
 
-  atlas = read_fcdc_mri(filename);
+  atlas = ft_read_mri(filename);
 
   % the AFNI atlas contains two volumes at 1mm resolution
   atlas.brick0 = atlas.anatomy(:,:,:,1);
@@ -546,7 +546,7 @@ if useafni
     };
 
 elseif usewfu
-  atlas = read_fcdc_mri(filename); % /home/... works, ~/.... does not work
+  atlas = ft_read_mri(filename); % /home/... works, ~/.... does not work
   atlas.brick0 = atlas.anatomy(:,:,:);
   atlas = rmfield(atlas, 'anatomy');
   atlas.coord = 'mni';

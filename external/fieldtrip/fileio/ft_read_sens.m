@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: ft_read_sens.m 5097 2012-01-06 15:41:12Z jansch $
 
 % test whether the file exists
 if ~exist(filename, 'file')
@@ -94,7 +94,7 @@ switch fileformat
     el = tmp{4}(sel) * pi/180;
     r  = ones(size(el));
     [x, y, z] = sph2cart(az, el, r);
-    sens.pnt = [x y z];
+    sens.chanpos = [x y z];
     
   case 'besa_pos'
     tmp = importdata(filename);
@@ -141,8 +141,8 @@ switch fileformat
     fid        = fopen(filename);
     tmp        = textscan(fid, ' %[^ \t]%n%n%n');
     fclose(fid);
-    sens.label = tmp{1};
-    sens.pnt   = [tmp{2:4}];
+    sens.label   = tmp{1};
+    sens.chanpos = [tmp{2:4}];
    
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % gradiometer information is always stored in the header of the MEG dataset

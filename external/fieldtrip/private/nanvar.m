@@ -1,6 +1,9 @@
 % nanvar() - var, not considering NaN values
 %
 % Usage: same as var()
+% Note: all nanXXX.m functionalities are implemented through mex-files that 
+% are more memory-efficient. The code in the MATLAB mfile is not necessarily
+% identical to that in the mex-file.
 
 % Author: Arnaud Delorme, CNL / Salk Institute, Sept 2003
 
@@ -38,7 +41,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nanvar.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: nanvar.m 5128 2012-01-11 14:40:23Z jansch $
 
 function out = nanvar(in, varargin)
    
@@ -48,13 +51,7 @@ if nargin < 1
 end
 if nargin == 1, flag = 0; end
 if nargin <  3,
-  if size(in,1) ~= 1
-    dim = 1;
-  elseif size(in,2) ~= 1 
-    dim = 2; 
-  else
-    dim = 3;
-  end
+  dim = find(size(in)>1,1,'first');  
 end
 if nargin == 2, flag = varargin{1}; end
 if nargin == 3,

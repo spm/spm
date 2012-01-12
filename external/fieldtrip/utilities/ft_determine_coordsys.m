@@ -41,7 +41,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 4972 2011-12-09 15:33:10Z roboos $
+% $Id: ft_determine_coordsys.m 5080 2011-12-22 20:16:27Z jansch $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -54,7 +54,7 @@ unit  = data.unit;
 % the high-level data structures are detected with ft_datatype, but there are
 % also some low-level data structures that need to be supproted here
 if strcmp(dtype, 'unknown')
-  if isfield(data, 'fid')
+  if isfield(data, 'fid') || (isfield(data, 'tri') && isfield(data, 'pnt'))
     dtype = 'headshape';
   elseif ~strcmp(ft_voltype(data), 'unknown')
     dtype = 'headmodel';

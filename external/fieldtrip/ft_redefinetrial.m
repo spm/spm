@@ -71,9 +71,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 5013 2011-12-12 10:21:42Z eelspa $
+% $Id: ft_redefinetrial.m 5088 2012-01-03 10:45:00Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 5013 2011-12-12 10:21:42Z eelspa $';
+revision = '$Id: ft_redefinetrial.m 5088 2012-01-03 10:45:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -331,8 +331,10 @@ end
 ft_postamble trackconfig
 ft_postamble callinfo
 if ~isempty(cfg.trl)
+  % the input data has been renamed to dataold
   ft_postamble previous dataold
 else
-  ft_postamble history data
+  ft_postamble previous data
 end
+ft_postamble history data
 ft_postamble savevar data

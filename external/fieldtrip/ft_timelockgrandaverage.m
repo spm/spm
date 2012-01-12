@@ -46,16 +46,22 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_timelockgrandaverage.m 5117 2012-01-11 08:00:48Z roboos $
 
-revision = '$Id: ft_timelockgrandaverage.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_timelockgrandaverage.m 5117 2012-01-11 08:00:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
+ft_preamble distribute
 ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble loadvar varargin
+
+% return immediately after distributed execution
+if ~isempty(ft_getopt(cfg, 'distribute'))
+  return
+end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

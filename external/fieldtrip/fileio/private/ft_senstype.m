@@ -1,13 +1,11 @@
 function [type] = ft_senstype(input, desired)
 
-% FT_SENSTYPE determines the type of sensors by looking at the channel names
-% and comparing them with predefined lists.
+% FT_SENSTYPE determines the type of acquisition device by looking at the
+% channel names and comparing them with predefined lists.
 %
 % Use as
 %   [type] = ft_senstype(sens)
-% to get a string describing the type, or
 %   [flag] = ft_senstype(sens, desired)
-% to get a boolean value.
 %
 % The output type can be any of the following
 %   'ctf151'
@@ -20,10 +18,11 @@ function [type] = ft_senstype(input, desired)
 %   'bti248_planar'
 %   'itab153'
 %   'itab153_planar'
-%   'yokogawa160'
-%   'yokogawa160_planar'
+%   'yokogawa9'
 %   'yokogawa64'
 %   'yokogawa64_planar'
+%   'yokogawa160'
+%   'yokogawa160_planar'
 %   'yokogawa440'
 %   'yokogawa440'_planar
 %   'neuromag122'
@@ -50,18 +49,21 @@ function [type] = ft_senstype(input, desired)
 %   'bti'
 %   'neuromag'
 %   'yokogawa'
+% If you specify the desired type, this function will return a boolean
+% true/false depending on the input data.
 %
-% Besides specifiying a grad or elec structure as input, also allowed is
-% giving a data structure containing a grad or elec field, or giving a list
-% of channel names (as cell-arrray). I.e. assuming a FieldTrip data
-% structure, all of the following calls would be correct.
+% Besides specifiying a sensor definition (i.e. a grad or elec structure,
+% see FT_DATATYPE_SENS), it is also possible to give a data structure
+% containing a grad or elec field, or giving a list of channel names (as
+% cell-arrray). So assuming that you have a FieldTrip data structure, any
+% of the following calls would also be fine.
 %   ft_senstype(hdr)
 %   ft_senstype(data)
 %   ft_senstype(data.label)
 %   ft_senstype(data.grad)
 %   ft_senstype(data.grad.label)
 %
-% See also FT_SENSLABEL, FT_CHANTYPE, FT_READ_SENS, FT_COMPUTE_LEADFIELD
+% See also FT_SENSLABEL, FT_CHANTYPE, FT_READ_SENS, FT_COMPUTE_LEADFIELD, FT_DATATYPE_SENS
 
 % Copyright (C) 2007-2011, Robert Oostenveld
 %
@@ -81,7 +83,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 4967 2011-12-09 14:30:26Z tilsan $
+% $Id: ft_senstype.m 5079 2011-12-22 17:04:06Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -193,7 +195,11 @@ elseif issubfield(input, 'orig.stname')
   
 elseif issubfield(input, 'orig.sys_name')
   % this is a complete header that was read from a Yokogawa dataset
-  if input.orig.channel_count<160
+  if strcmp(input.orig.sys_name, '9ch Biomagnetometer System') || input.orig.channel_count<20
+    % this is the small animal system that is installed at the UCL Ear Institute
+    % see http://www.ucl.ac.uk/news/news-articles/0907/09070101
+    type = 'yokogawa9';
+  elseif input.orig.channel_count<160
     type = 'yokogawa64';
   elseif input.orig.channel_count<300
     type = 'yokogawa160';
@@ -251,6 +257,8 @@ else
       type = 'yokogawa64';
     elseif (mean(ismember(ft_senslabel('yokogawa64_planar'), sens.label)) > 0.4)
       type = 'yokogawa64_planar';
+    elseif (mean(ismember(ft_senslabel('yokogawa9'),    sens.label)) > 0.8)
+      type = 'yokogawa9';
       
     elseif (mean(ismember(ft_senslabel('neuromag306'),   sens.label)) > 0.8)
       type = 'neuromag306';

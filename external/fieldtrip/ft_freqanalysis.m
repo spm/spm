@@ -59,13 +59,13 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                      AND the number of samples turns out to have a large
 %                      prime factor sum. This is because the FFTs will then
 %                      be computed very inefficiently.
-%   cfg.polyremoval = number (default = 1), specifying the order of the
-%                       polynome which is fitted and subtracted from the
-%                       time domain data prior to the spectral analysis. A
-%                       value of 1 corresponds to a linear trend. If just
-%                       mean subtraction is requested, use a value of 0. If
-%                       no removal is requested, specify -1.
-%                       see FT_PREPROC_POLYREMOVAL for details
+%   cfg.polyremoval = number (default = 0), specifying the order of the
+%                      polynome which is fitted and subtracted from the
+%                      time domain data prior to the spectral analysis. For example, a
+%                      value of 1 corresponds to a linear trend. The default is a mean 
+%                      subtraction, thus a value of 0. If no removal is requested, 
+%                      specify -1.
+%                      see FT_PREPROC_POLYREMOVAL for details
 %
 %
 %  METHOD SPECIFIC OPTIONS AND DESCRIPTIONS
@@ -180,7 +180,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 4947 2011-12-07 15:00:55Z roevdmei $';
+revision = '$Id: ft_freqanalysis.m 5106 2012-01-10 13:10:28Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -309,7 +309,7 @@ else
   cfg.foi       = ft_getopt(cfg, 'foi',       []);
   cfg.foilim    = ft_getopt(cfg, 'foilim',    []);
   cfg.correctt_ftimwin = ft_getopt(cfg, 'correctt_ftimwin', 'no');
-  cfg.polyremoval      = ft_getopt(cfg, 'polyremoval', 1);
+  cfg.polyremoval      = ft_getopt(cfg, 'polyremoval', 0);
   
   % keeptrials and keeptapers should be conditional on cfg.output,
   % cfg.output = 'fourier' should always output tapers

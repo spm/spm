@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 4785 2011-11-22 15:28:41Z jansch $
+% $Id: ft_topoplotTFR.m 5092 2012-01-03 11:16:06Z jansch $
 
-revision = '$Id: ft_topoplotTFR.m 4785 2011-11-22 15:28:41Z jansch $';
+revision = '$Id: ft_topoplotTFR.m 5092 2012-01-03 11:16:06Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -280,7 +280,7 @@ cfg.markercolor    = ft_getopt(cfg, 'markercolor',   [0 0 0]);
 cfg.markersize     = ft_getopt(cfg, 'markersize',    2);
 cfg.markerfontsize = ft_getopt(cfg, 'markerfontsize', 8);
 cfg.highlight      = ft_getopt(cfg, 'highlight',     'off');
-cfg.highlightchannel  = ft_getopt(cfg, 'highlightchannel',  'all');
+cfg.highlightchannel  = ft_getopt(cfg, 'highlightchannel',  'all', 1); % highlight may be 'on', making highlightchannel {} meaningful
 cfg.highlightsymbol   = ft_getopt(cfg, 'highlightsymbol',   '*');
 cfg.highlightcolor    = ft_getopt(cfg, 'highlightcolor',    [0 0 0]);
 cfg.highlightsize     = ft_getopt(cfg, 'highlightsize',     6);
@@ -295,7 +295,7 @@ cfg.channel           = ft_getopt(cfg, 'channel',           'all');
 if isnumeric(cfg.highlight)
   cfg.highlightchannel = cfg.highlight;
   cfg.highlight = 'on';
-  warning('cfg.highlight is now used for specifing highlighting-mode, use cfg.highlightchannel instead of cfg.highlight for specifiying channels')
+  warning('cfg.highlight is now used for specifying highlighting-mode, use cfg.highlightchannel instead of cfg.highlight for specifying channels')
 elseif iscell(cfg.highlight)
   if ~iscell(cfg.highlightchannel)
     cfg.highlightchannel = cell(1,length(cfg.highlight));
@@ -304,15 +304,16 @@ elseif iscell(cfg.highlight)
     if isnumeric(cfg.highlight{icell})
       cfg.highlightchannel{icell} = cfg.highlight{icell};
       cfg.highlight{icell} = 'on';
-      warning('cfg.highlight is now used for specifing highlighting-mode, use cfg.highlightchannel instead of cfg.highlight for specifiying channels')
+      warning('cfg.highlight is now used for specifying highlighting-mode, use cfg.highlightchannel instead of cfg.highlight for specifying channels')
     end
   end
 end
 
-% Converting all higlight options to cell-arrays if they're not cell-arrays,
-% to make defaulting, checking for backwards compatability and error
+% Converting all highlight options to cell-arrays if they're not cell-arrays,
+% to make defaulting, checking for backwards compatibility and error
 % checking easier
 if ~iscell(cfg.highlight),            cfg.highlight         = {cfg.highlight};            end
+if isempty(cfg.highlightchannel),     cfg.highlightchannel  = ''; end
 if ~iscell(cfg.highlightchannel),     cfg.highlightchannel  = {cfg.highlightchannel};     end
 if ischar(cfg.highlightchannel{1}),   cfg.highlightchannel  = {cfg.highlightchannel};     end % {'all'} is valid input to channelselection, {1:5} isn't
 if ~iscell(cfg.highlightsymbol),      cfg.highlightsymbol   = {cfg.highlightsymbol};      end
@@ -909,7 +910,10 @@ end
 hold on;
 
 % Set colour axis
-caxis([zmin zmax]);
+if ~strcmp(cfg.style, 'blank')
+  caxis([zmin zmax]);
+end
+
 if strcmp('yes',cfg.hotkeys)
   %  Attach data and cfg to figure and attach a key listener to the figure
   set(gcf, 'KeyPressFcn', {@key_sub, zmin, zmax})

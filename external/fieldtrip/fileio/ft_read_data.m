@@ -46,7 +46,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: ft_read_data.m 5083 2011-12-31 13:50:43Z jansch $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -937,7 +937,10 @@ switch dataformat
 
     tmp = read_neuroshare(filename, 'readanalog', 'yes', 'chanindx', chanindx, 'begsample', begsample, 'endsample', endsample);
     dat = tmp.analog.data';
-
+  
+  case 'bucn_nirs'
+    dat = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanindx);
+    
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);

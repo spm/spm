@@ -191,9 +191,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_sourceanalysis.m 5066 2011-12-21 15:21:53Z jansch $
 
-revision = '$Id: ft_sourceanalysis.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_sourceanalysis.m 5066 2011-12-21 15:21:53Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -262,6 +262,8 @@ cfg.supdip           = ft_getopt(cfg, 'supdip',        []);
 % put the low-level options pertaining to the source reconstruction method in their own field
 % put the low-level options pertaining to the dipole grid in their own field
 
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {cfg.method, 'grid'});
+
 cfg.(cfg.method).keepfilter    = ft_getopt(cfg.(cfg.method), 'keepfilter',    'no');
 cfg.(cfg.method).keepcsd       = ft_getopt(cfg.(cfg.method), 'keepcsd',       'no');
 cfg.(cfg.method).keepmom       = ft_getopt(cfg.(cfg.method), 'keepmom',       'yes');
@@ -270,8 +272,6 @@ cfg.(cfg.method).feedback      = ft_getopt(cfg.(cfg.method), 'feedback',      't
 cfg.(cfg.method).lambda        = ft_getopt(cfg.(cfg.method), 'lambda',        []);
 cfg.(cfg.method).powmethod     = ft_getopt(cfg.(cfg.method), 'powmethod',     []);
 cfg.(cfg.method).normalize     = ft_getopt(cfg.(cfg.method), 'normalize',     'no');
-
-cfg = ft_checkconfig(cfg, 'createsubcfg',  {cfg.method, 'grid'});
 
 convertfreq = 0;
 convertcomp = 0;
@@ -861,9 +861,9 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
       if hascovariance 
-        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
       else
-        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:});
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:});
       end
     end
   elseif strcmp(cfg.method, 'loreta')

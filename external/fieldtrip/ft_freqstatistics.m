@@ -68,9 +68,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 4965 2011-12-09 13:54:52Z jorhor $
+% $Id: ft_freqstatistics.m 5099 2012-01-09 10:26:40Z jorhor $
 
-revision = '$Id: ft_freqstatistics.m 4965 2011-12-09 13:54:52Z jorhor $';
+revision = '$Id: ft_freqstatistics.m 5099 2012-01-09 10:26:40Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -238,6 +238,14 @@ clear varargin;
 dat        = data.(cfg.parameter);
 siz        = size(dat);
 dimtok     = tokenize(data.dimord, '_');
+% check for occurence of channel dimension
+chandim     = find(ismember(dimtok, {'chan'}));
+if isempty(chandim)
+  dimtok(3:end+1) = dimtok(2:end);
+  dimtok{2} = 'chan';
+  siz = [siz(1) 1 siz(2:end)];
+  dat = reshape(dat, siz);
+end
 rptdim     = find(ismember(dimtok, {'rpt' 'subj' 'rpttap'}));
 permutevec = [setdiff(1:numel(siz), rptdim) rptdim];       % permutation vector to put the repetition dimension as last dimension
 reshapevec = [prod(siz(permutevec(1:end-1))) siz(rptdim) 1]; % reshape vector to reshape into 2D

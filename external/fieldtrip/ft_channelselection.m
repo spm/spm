@@ -6,6 +6,9 @@ function [channel] = ft_channelselection(desired, datachannel)
 % labels as they occur in the data. This channel selection procedure can
 % be used throughout fieldtrip.
 %
+% Use as:
+%   channel = ft_channelselection(desired, datachannel)
+%
 % You can specify a mixture of real channel labels and of special strings,
 % or index numbers that will be replaced by the corresponding channel
 % labels. Channels that are not present in the raw datafile are
@@ -67,7 +70,7 @@ function [channel] = ft_channelselection(desired, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 4790 2011-11-23 08:05:11Z roboos $
+% $Id: ft_channelselection.m 5102 2012-01-09 11:20:21Z jorhor $
 
 % this is to avoid a recursion loop
 persistent recursion 

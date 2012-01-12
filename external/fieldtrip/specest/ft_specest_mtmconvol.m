@@ -24,12 +24,14 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 %                memory efficiency
 %   verbose   = output progress to console (0 or 1, default 1)
 %   taperopt  = parameter to use for window (see WINDOW) 
+%   polyorder = number, the order of the polynomial to fitted to and removed from the data
+%                  prior to the fourier transform (default = 0 -> remove DC-component)
 %
 % See also FT_FREQANALYSIS, FT_SPECEST_MTMFFT, FT_SPECEST_TFR, FT_SPECEST_HILBERT, FT_SPECEST_WAVELET
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmconvol.m 5019 2011-12-12 17:29:53Z roevdmei $
+% $Id: ft_specest_mtmconvol.m 5106 2012-01-10 13:10:28Z jansch $
 
 % get the optional input arguments
 taper     = ft_getopt(varargin, 'taper', 'dpss');
@@ -41,7 +43,7 @@ tapsmofrq = ft_getopt(varargin, 'tapsmofrq');
 dimord    = ft_getopt(varargin, 'dimord', 'tap_chan_freq_time');
 fbopt     = ft_getopt(varargin, 'feedback');
 verbose   = ft_getopt(varargin, 'verbose', true);
-polyorder = ft_getopt(varargin, 'polyorder', 1);
+polyorder = ft_getopt(varargin, 'polyorder', 0);
 tapopt    = ft_getopt(varargin, 'taperopt');
 
 if isempty(fbopt),

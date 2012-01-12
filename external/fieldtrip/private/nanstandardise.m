@@ -1,4 +1,4 @@
-function [x,mx,sx] = standardise(x,dim)
+function [x,mx,sx] = nanstandardise(x,dim)
 
 % X = NANSTANDARDISE(X, DIM) computes the zscore of a matrix along dimension 
 % dim, taking nans into account
@@ -22,7 +22,7 @@ function [x,mx,sx] = standardise(x,dim)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nanstandardise.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: nanstandardise.m 5122 2012-01-11 10:00:18Z arjsto $
 
 if nargin == 1, dim = find(size(x)>1,1,'first'); end
 

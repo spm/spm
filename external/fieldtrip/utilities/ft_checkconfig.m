@@ -59,7 +59,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 4789 2011-11-23 05:19:33Z roboos $
+% $Id: ft_checkconfig.m 5113 2012-01-11 07:57:16Z roboos $
 
 if isempty(cfg)
   cfg = struct; % ensure that it is an empty struct, not empty double
@@ -70,6 +70,7 @@ if isempty(ft_default)
   ft_default = struct;
 end
 
+% merge the input cfg with the fields from ft_default
 fieldsused = fieldnames(ft_default);
 for i=1:length(fieldsused)
   fn = fieldsused{i};
@@ -310,26 +311,28 @@ if ~isempty(createsubcfg)
         fieldname = {
           'feedback'
           'fixedori'
+          'keepcsd'
           'keepfilter'
           'keepmom'
+          'keepsubspace'
           'lambda'
           'normalize'
           'normalizeparam'
           'powmethod'
           'projectnoise'
           'reducerank'
-          'keepcsd'
           'realfilter'
           'subspace'
-          'keepsubspace'
           };
 
       case 'lcmv'
         fieldname = {
           'feedback'
           'fixedori'
+          'keepcov'
           'keepfilter'
           'keepmom'
+          'keepsubspace'
           'lambda'
           'normalize'
           'normalizeparam'
@@ -337,9 +340,7 @@ if ~isempty(createsubcfg)
           'projectnoise'
           'projectmom'
           'reducerank'
-          'keepcov'
           'subspace'
-          'keepsubspace'
           };
 
       case 'pcc'
@@ -358,12 +359,19 @@ if ~isempty(createsubcfg)
           'fixedori'
           };
 
-      case {'mne', 'loreta', 'rv'}
+      case {'loreta', 'rv'}
         fieldname = {
           'feedback'
           'lambda'
           };
-
+       
+      case 'mne'
+        fieldname = {
+          'feedback'
+          'lambda'
+          'keepfilter'
+          };
+          
       case 'music'
         fieldname = {
           'feedback'

@@ -20,12 +20,14 @@ function [spectrum,freqoi,timeoi] = ft_specest_wavelet(dat, time, varargin)
 %   width      = number or vector, width of the wavelet, determines the temporal and spectral resolution
 %   gwidth     = number, determines the length of the used wavelets in standard deviations of the implicit Gaussian kernel
 %   verbose    = output progress to console (0 or 1, default 1)
+%   polyorder  = number, the order of the polynomial to fitted to and removed from the data
+%                  prior to the fourier transform (default = 0 -> remove DC-component)
 %
 % See also FT_FREQANALYSIS, FT_SPECEST_MTMCONVOL, FT_SPECEST_TFR, FT_SPECEST_HILBERT, FT_SPECEST_MTMFFT
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_wavelet.m 5019 2011-12-12 17:29:53Z roevdmei $
+% $Id: ft_specest_wavelet.m 5106 2012-01-10 13:10:28Z jansch $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');
@@ -33,7 +35,7 @@ timeoi    = ft_getopt(varargin, 'timeoi', 'all');
 width     = ft_getopt(varargin, 'width', 7);
 gwidth    = ft_getopt(varargin, 'gwidth', 3);
 pad       = ft_getopt(varargin, 'pad');
-polyorder = ft_getopt(varargin, 'polyorder', 1);
+polyorder = ft_getopt(varargin, 'polyorder', 0);
 fbopt     = ft_getopt(varargin, 'feedback');
 verbose   = ft_getopt(varargin, 'verbose', true);
 

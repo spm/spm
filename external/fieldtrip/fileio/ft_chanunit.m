@@ -9,6 +9,19 @@ function chanunit = ft_chanunit(hdr, desired)
 % or as
 %   unit = ft_chanunit(hdr, desired)
 %
+% If the desired unit is not specified as second input argument, this
+% function returns a Nchan*1 cell array with a string describing the
+% physical units of each channel, or 'unknown' if those cannot be
+% determined.
+%
+% If the desired unit is specified as second input argument, this function
+% returns a Nchan*1 boolean vector with "true" for the channels that match
+% the desired physical units and "false" for the ones that do not match.
+%
+% The specification of the channel units depends on the acquisition system,
+% for example the neuromag306 system includes channel with the following
+% units: uV, T and T/cm.
+%
 % See also FT_CHANTYPE
 
 % Copyright (C) 2011, Robert Oostenveld
@@ -29,7 +42,7 @@ function chanunit = ft_chanunit(hdr, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 4894 2011-11-30 16:03:15Z roboos $
+% $Id: ft_chanunit.m 5074 2011-12-22 09:06:45Z roboos $
 
 if isfield(hdr, 'chanunit')
   if ~isequal(size(hdr.chanunit), size(hdr.label))
@@ -76,6 +89,6 @@ else
 end % if isfield
 
 if nargin>1
-  type = strcmp(desired, chanunit);
+  chanunit = strcmp(desired, chanunit);
 end
 

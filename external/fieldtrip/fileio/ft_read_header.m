@@ -17,11 +17,17 @@ function [hdr] = ft_read_header(filename, varargin)
 %   hdr.nSamples            number of samples per trial
 %   hdr.nSamplesPre         number of pre-trigger samples in each trial
 %   hdr.nTrials             number of trials
-%   hdr.label               cell-array with labels of each channel
-%   hdr.FirstTimeStamp      integer, only available for some subformats (mainly animal electrophisiology systems)
-%   hdr.TimeStampPerSample  integer, only available for some subformats (mainly animal electrophisiology systems)
+%   hdr.label               Nx1 cell-array with the label of each channel
+%   hdr.chantype            Nx1 cell-array with the channel type, see FT_CHANTYPE
+%   hdr.chanunit            Nx1 cell-array with the physical units, see FT_CHANUNIT
 %
-% For continuous data, nSamplesPre=0 and nTrials=1.
+% For continuously recorded data, nSamplesPre=0 and nTrials=1.
+%
+% For some data formats that are recorded on animal electrophysiology
+% systems (e.g. Neuralynx, Plexon), the following optional fields are
+% returned, which allows for relating the timinng of spike and LFP data
+%   hdr.FirstTimeStamp      number, 32 bit or 64 bit unsigned integer
+%   hdr.TimeStampPerSample  double
 %
 % Depending on the file format, additional header information can be
 % returned in the hdr.orig subfield.
@@ -49,7 +55,8 @@ function [hdr] = ft_read_header(filename, varargin)
 %   CED - Cambridge Electronic Design (*.smr)
 %   MPI - Max Planck Institute (*.dap)
 %
-% See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT
+% See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT,
+% FT_CHANTYPE, FT_CHANUNIT
 
 % Copyright (C) 2003-2011 Robert Oostenveld
 %
@@ -69,7 +76,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 4930 2011-12-03 23:17:29Z sashae $
+% $Id: ft_read_header.m 5083 2011-12-31 13:50:43Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -990,8 +997,8 @@ switch headerformat
     
   case 'netmeg'
     ft_hastoolbox('netcdf', 1);
-
-    % this will read all NetCDF data from the file and subsequently convert 
+    
+    % this will read all NetCDF data from the file and subsequently convert
     % each of the three elements into a more easy to parse MATLAB structure
     s = netcdf(filename);
     
@@ -1485,12 +1492,12 @@ switch headerformat
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'yokogawa_mrk'}
     % header can be read with two toolboxes: Yokogawa MEG Reader and Yokogawa MEG160 (old inofficial toolbox)
     % newest toolbox takes precedence.
-    if ft_hastoolbox('yokogawa_meg_reader', 3); %stay silent if it cannot be added
+    if ft_hastoolbox('yokogawa_meg_reader', 3); % stay silent if it cannot be added
       hdr = read_yokogawa_header_new(filename);
       % add a gradiometer structure for forward and inverse modelling
       hdr.grad = yokogawa2grad_new(hdr);
     else
-      ft_hastoolbox('yokogawa', 1);
+      ft_hastoolbox('yokogawa', 1); % try it with the old version of the toolbox
       hdr = read_yokogawa_header(filename);
       % add a gradiometer structure for forward and inverse modelling
       hdr.grad = yokogawa2grad(hdr);
@@ -1511,6 +1518,11 @@ switch headerformat
     hdr.nTrials     = 1; % continuous data
     hdr.label       = {tmp.hdr.entityinfo(tmp.list.analog(tmp.analog.contcount~=0)).EntityLabel}; %%% contains non-unique chans?
     hdr.orig        = tmp; % remember the original header
+  
+  case 'bucn_nirs'
+    orig = read_bucn_nirshdr(filename);
+    hdr  = rmfield(orig, 'time');
+    hdr.orig = orig;
     
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
@@ -1534,6 +1546,9 @@ if checkUniqueLabels
     end
   end
 end
+
+% ensure taht it is a column array
+hdr.label = hdr.label(:);
 
 % as of November 2011, the header is supposed to include the channel type
 % (see FT_CHANTYPE) and the units of each channel (e.g. uV, fT, ...).
@@ -1570,7 +1585,7 @@ end
 function [siz] = filesize(filename)
 l = dir(filename);
 if l.isdir
-  error(sprintf('"%s" is not a file', filename));
+  error('"%s" is not a file', filename);
 end
 siz = l.bytes;
 
@@ -1622,7 +1637,7 @@ hdr = tmp;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function out = fixname(str)
-% FIXME this fails in case the string would start with a digit, e.g. "99luftballons"
+% FIXME this still fails if the string starts with a digit, e.g. "99luftballons"
 out = deblank(lower(str));
 out(out=='-') = '_'; % fix dashes
 out(out==' ') = '_'; % fix spaces
