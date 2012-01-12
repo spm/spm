@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4402 2011-07-21 12:37:24Z karl $
+% $Id: spm_DEM_qU.m 4620 2012-01-12 19:06:44Z guillaume $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -160,7 +160,7 @@ for i = 1:g
             subplot(g,2,2*i)
             try
                 hold on
-                plot(t,pX{i},':k','linewidth',1),box off
+                plot(t,full(pX{i}),':k','linewidth',1),box off
             end
             hold off
             plot(t,full(X{i})),box off
@@ -175,7 +175,7 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,pX{i},':k','linewidth',1),box off
+                    plot(t,full(pX{i}),':k','linewidth',1),box off
                 end
                 plot(t,full(X{i})),box off
                 hold off
@@ -198,11 +198,11 @@ end
 %--------------------------------------------------------------------------
 if isfield(qU,'a')
     subplot(g,2,2*g)
-    plot(t,qU.a{end});
+    plot(t,full(qU.a{end}));
     str = 'action';
     try
         hold on
-        plot(t,pU.v{2},':b','Linewidth',2),box off
+        plot(t,full(pU.v{2}),':b','Linewidth',2),box off
         str = 'perturbation and action';
     end
     hold off
