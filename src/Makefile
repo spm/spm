@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4588 2011-12-08 18:28:59Z guillaume $
+# $Id: Makefile 4624 2012-01-13 13:27:08Z john $
 #
 ###############################################################################
 #
@@ -213,9 +213,9 @@ spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
 
-spm_bsplinc.$(SUF): spm_bsplinc.c spm_vol_utils.$(SUF).a\
-		spm_mapping.h spm_vol_access.h
-	$(MEX) spm_bsplinc.c spm_vol_utils.$(SUF).a $(MEXEND)
+spm_bsplinc.$(SUF): spm_bsplinc.c bsplines.c spm_vol_utils.$(SUF).a\
+		spm_mapping.h spm_vol_access.h bsplines.h
+	$(MEX) spm_bsplinc.c bsplines.c spm_vol_utils.$(SUF).a $(MEXEND)
 
 spm_conv_vol.$(SUF): spm_conv_vol.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h spm_datatypes.h
@@ -247,8 +247,8 @@ file2mat.$(SUF): file2mat.c
 mat2file.$(SUF): mat2file.c
 	$(MEX) mat2file.c $(MEXEND)
 
-spm_bsplins.$(SUF): spm_bsplins.c
-	$(MEX) spm_bsplins.c $(MEXEND)
+spm_bsplins.$(SUF): spm_bsplins.c bsplines.c bsplines.h
+	$(MEX) spm_bsplins.c bsplines.c $(MEXEND)
 	
 spm_bwlabel.$(SUF): spm_bwlabel.c
 	$(MEX) spm_bwlabel.c $(MEXEND)
