@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4508 2011-10-04 16:19:32Z Darren $
+% $Id: spm_nlsi_N.m 4625 2012-01-24 20:53:10Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -203,7 +203,6 @@ nt    = length(Q{1});       % number of time bins
 nq    = nr*ns/nt;           % for compact Kronecker form of M-step
 
  
- 
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
@@ -212,22 +211,29 @@ catch
     dgdu = sparse(ns*nr,0);
 end
  
-% hyperpriors - expectation
+% hyperpriors - expectation (and initialize hyperparameters)
 %--------------------------------------------------------------------------
 try
     hE  = M.hE;
+    if length(hE) ~= nh
+        hE = hE + sparse(nh,1);
+    end
 catch
     hE  = sparse(nh,1) - log(var(spm_vec(y))) + 4;
 end
-h       =  hE;              % initialize hyperparameters
- 
+h       = hE;
+
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
 try
     ihC = spm_inv(M.hC);
+    if length(ihC) ~= nh
+        ihC = ihC*speye(nh,nh);
+    end
 catch
     ihC = speye(nh,nh)*exp(4);
 end
+
 
 % unpack prior covariances
 %--------------------------------------------------------------------------

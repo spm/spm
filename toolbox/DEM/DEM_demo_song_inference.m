@@ -19,13 +19,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: DEM_demo_song_inference.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('Getwin','Graphics');
-clear M
+spm_figure('GetWin','Figure 1');
  
 % timing
 %--------------------------------------------------------------------------
@@ -36,7 +35,7 @@ t        = [1:N]*dt;
 % correlations
 %--------------------------------------------------------------------------
 M(1).E.s = 1;
-M(1).E.K = exp(-2);
+M(1).E.n = 4;
  
 % level 1
 %--------------------------------------------------------------------------
@@ -56,7 +55,7 @@ M(1).W  = exp(4);
 % level 3
 %--------------------------------------------------------------------------
 M(2).v  = [0 0]';
-M(2).V  = exp(-4);
+M(2).V  = exp(-2);
  
 
 % create data and invert three songs
@@ -89,7 +88,7 @@ for i = 1:size(P,2)
      
     % record song
     %----------------------------------------------------------------------
-    spm_figure('Getwin','Graphics');
+    spm_figure('GetWin','Figure 1');
     if i == 1; clf; end
     
     subplot(3,size(P,2),i)

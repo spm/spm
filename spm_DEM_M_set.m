@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_DEM_M_set.m 4625 2012-01-24 20:53:10Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -230,20 +230,32 @@ for i = (g - 1):-1:1
     
 end
     
-% priors on states
+% full priors on states
 %--------------------------------------------------------------------------
-try
-    M.xP;
-catch
-    M(1).xP = [];
-end
+try, M.xP; catch, M(1).xP = []; end
+try, M.vP; catch, M(1).vP = []; end
 for i = 1:g
-    if size(M(i).xP) == [1 1];
-        M(i).xP = speye(M(i).n,M(i).n)*M(i).xP;
-    elseif isempty(M(i).xP)
-        M(i).xP = sparse(M(i).n,M(i).n);
-    elseif any(size(M(i).xP) ~= [M(i).n M(i).n]);
-        warndlg(sprintf('please Check: M(%i).xP',i))
+    
+    % hidden states
+    %----------------------------------------------------------------------
+    if isvector(M(i).xP), M(i).xP = diag(M(i).xP); end
+    if length(M(i).xP) ~= M(i).n
+        try
+            M(i).xP = speye(M(i).n,M(i).n)*M(i).xP(1);
+        catch
+            M(i).xP = sparse(M(i).n,M(i).n);
+        end
+    end
+    
+    % hidden states
+    %----------------------------------------------------------------------
+    if isvector(M(i).vP), M(i).vP = diag(M(i).vP); end
+    if length(M(i).vP) ~= M(i).l
+        try
+            M(i).vP = speye(M(i).l,M(i).l)*M(i).vP(1);
+        catch
+            M(i).vP = sparse(M(i).l,M(i).l);
+        end
     end
 end
 
@@ -343,6 +355,7 @@ for i = 1:g
 
     % check V and assume unit precision if improperly specified
     %----------------------------------------------------------------------
+    if isvector(M(i).V), M(i).V = diag(M(i).V); end
     if length(M(i).V) ~= M(i).l
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
@@ -358,6 +371,7 @@ for i = 1:g
                 
     % check W and assume unit precision if improperly specified
     %----------------------------------------------------------------------
+    if isvector(M(i).W), M(i).W = diag(M(i).W); end
     if length(M(i).W) ~= M(i).n
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
@@ -368,8 +382,7 @@ for i = 1:g
                 M(i).W = sparse(M(i).n,M(i).n);
             end
         end
-    end
-      
+    end  
 end
 
  

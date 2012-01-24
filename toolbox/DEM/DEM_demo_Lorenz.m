@@ -8,8 +8,7 @@
  
 % non-hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-Fgraph    = spm_figure('GetWin','Graphics');
-clear M
+spm_figure('GetWin','Figure 1');
 
 % get model
 %--------------------------------------------------------------------------
@@ -33,13 +32,13 @@ M(2).V  = exp(16);
 N       = 64;
 U       = sparse(1,N);
 DEM     = spm_DEM_generate(M,U);
-spm_DEM_qU(DEM.pU)
- 
+
  
 % DEM estimation
 %==========================================================================
 DEM.M(1).x = [1; 1; 16];
 DEM        = spm_DEM(DEM);
+spm_DEM_qU(DEM.qU,DEM.pU)
  
 % Bayesian filtering
 %--------------------------------------------------------------------------
@@ -48,7 +47,7 @@ px     = spm_pf(DEM.M,DEM.Y);
  
 % graphics
 %--------------------------------------------------------------------------
-figure(Fgraph)
+spm_figure('GetWin','Figure 1');
 T      = [1:N];
  
 subplot(2,2,1)
@@ -82,9 +81,7 @@ return
  
 % Repeat with random initial conditions
 %==========================================================================
-f  = spm_figure;
-figure(f)
-clf
+spm_figure('GetWin','Figure 2');
  
 % attractor
 %--------------------------------------------------------------------------
@@ -110,7 +107,7 @@ for i = 1:4
     ex         = [x ex];
     px         = [x px];
  
-    figure(f)
+    spm_figure('GetWin','Figure 2');
     subplot(2,2,2)
     plot(dx(1,:),dx(2,:),'k','color',[0 0 0] + 2/6), hold on
     plot(dx(1,1),dx(2,1),'k.','Markersize',16,'color',[0 0 0] + 2/6)

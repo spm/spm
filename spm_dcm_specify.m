@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify(SPM,xY)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4493 2011-09-16 15:33:32Z guillaume $
+% $Id: spm_dcm_specify.m 4625 2012-01-24 20:53:10Z karl $
 
 
 %-Interactive window
@@ -130,26 +130,19 @@ if nc                                                     % there are inputs
     options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
     options.stochastic = spm_input('stochastic effects','+1','b',{'no','yes'},[0 1],1);
     options.centre     = spm_input('centre input',      '+1','b',{'no','yes'},[0 1],1);
-    options.endogenous = 0;
 else
     options.nonlinear  = 0;
     options.two_state  = 0;
     options.stochastic = 1;
     options.centre     = 1;
-    options.endogenous = 1;
 end
 
 %==========================================================================
 % Graph connections
 %==========================================================================
 a     = zeros(m,m);
-if options.endogenous
-    b     = zeros(m,m,1);
-    c     = zeros(m,1);
-else
-    b     = zeros(m,m,nc);
-    c     = zeros(m,nc);
-end
+b     = zeros(m,m,nc);
+c     = zeros(m,nc);
 d     = zeros(m,m,0);
 
 %-Intrinsic connections (A matrix)

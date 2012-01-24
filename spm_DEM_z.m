@@ -14,7 +14,7 @@ function [z,w] = spm_DEM_z(M,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_z.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_DEM_z.m 4625 2012-01-24 20:53:10Z karl $
  
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -27,22 +27,38 @@ K  = diag(1./sqrt(diag(K*K')))*K;
 % create innovations z{i} and w{i}
 %--------------------------------------------------------------------------
 for i = 1:length(M)
- 
-    % causes: assume i.i.d. if precision (P) is zero
-    %----------------------------------------------------------------------
+    
+    % precision of causes
+    %======================================================================
     P     = M(i).V;
-    for j = 1:length(M(i).Q)
-        P = P + M(i).Q{j}*exp(M(i).hE(j));
+    
+    % plus prior expectations’
+    %----------------------------------------------------------------------
+    try
+        for j = 1:length(M(i).Q)
+            P = P + M(i).Q{j}*exp(M(i).hE(j));
+        end
     end
+    
+    % create causes: assume i.i.d. if precision (P) is zero
+    %----------------------------------------------------------------------
     if ~norm(P,1); P = 1; end
     z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
     
-    % states
-    %----------------------------------------------------------------------
+    % precision of states
+    %======================================================================
     P     = M(i).W;
-    for j = 1:length(M(i).R)
-        P = P + M(i).R{j}*exp(M(i).gE(j));
+    
+    % plus prior expectations
+    %----------------------------------------------------------------------
+    try
+        for j = 1:length(M(i).R)
+            P = P + M(i).R{j}*exp(M(i).gE(j));
+        end
     end
+    
+    % create states: assume i.i.d. if precision (P) is zero
+    %----------------------------------------------------------------------
     if ~isempty(P)
         if ~norm(P,1); P = 1; end
         w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
@@ -51,3 +67,5 @@ for i = 1:length(M)
     end
     
 end
+
+

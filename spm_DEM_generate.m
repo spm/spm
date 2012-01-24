@@ -23,7 +23,7 @@ function [DEM] = spm_DEM_generate(M,U,P,h,g)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_generate.m 3703 2010-02-01 20:47:44Z karl $
+% $Id: spm_DEM_generate.m 4625 2012-01-24 20:53:10Z karl $
  
 % sequence length specified by priors on causes
 %--------------------------------------------------------------------------
@@ -77,6 +77,7 @@ end
 % re-set M and create innovations
 %--------------------------------------------------------------------------
 M     = spm_DEM_M_set(M);
+DEM.G = M;
 [z w] = spm_DEM_z(M,N);
  
 % place exogenous causes in cell array

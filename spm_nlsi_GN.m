@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4507 2011-10-04 16:17:14Z Darren $
+% $Id: spm_nlsi_GN.m 4625 2012-01-24 20:53:10Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -193,7 +193,7 @@ end
 nh    = length(Q);                  % number of precision components
 nt    = length(Q{1});               % number of time bins
 nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
-h     = sparse(nh,1);               % initialise hyperparameters
+
  
 % prior moments
 %--------------------------------------------------------------------------
@@ -210,29 +210,32 @@ catch
     dfdu = sparse(ns*nr,0);
 end
 if isempty(dfdu), dfdu = sparse(ns*nr,0); end
- 
-% hyperpriors - expectation
+
+
+% hyperpriors - expectation (and initialize hyperparameters)
 %--------------------------------------------------------------------------
 try
-    hE = M.hE(:);
+    hE  = M.hE;
     if length(hE) ~= nh
-        hE = hE(1) + sparse(nh,1);
+        hE = hE + sparse(nh,1);
     end
 catch
-    hE = sparse(nh,1);
+    hE  = sparse(nh,1) - log(var(spm_vec(y))) + 4;
 end
-h      = hE;
- 
+h       = hE;
+
 % hyperpriors - covariance
 %--------------------------------------------------------------------------
 try
-    ihC = inv(M.hC);
+    ihC = spm_inv(M.hC);
     if length(ihC) ~= nh
         ihC = ihC*speye(nh,nh);
     end
 catch
-    ihC = speye(nh,nh);
+    ihC = speye(nh,nh)*exp(4);
 end
+
+
  
 % unpack covariance
 %--------------------------------------------------------------------------
@@ -266,7 +269,7 @@ Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 criterion = [0 0 0 0];
 
 C.F   = -Inf;                                   % free energy
-v     = -2;                                     % log ascent rate
+v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 for k = 1:128

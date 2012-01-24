@@ -1,11 +1,11 @@
 % DEMO comparing Variational filtering with particle filtering in the 
 % context of a bimodal conditional density.  This demonstrates that the
-% variational filter can not only represent free-form densities on the states
-% but also the causes of responses.
+% variational filter can not only represent free-form densities on the 
+% states but also the causes of responses.
  
 % phase diagram - to show bimodal energy function
 %==========================================================================
-Fgraph  = spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 x       = -32:1/16:32;
 dxdt    = -x/2 + 16*x./(1 + x.^2);
@@ -28,21 +28,22 @@ title('double well','FontSize',14)
  
 % get nonlinear state-space model
 %==========================================================================
+spm_figure('GetWin','DEM');
 M        = spm_DEM_M('ssm');
-M(1).E.N = 64;
+ 
  
 % generate data (output) and graph
 %--------------------------------------------------------------------------
-T      = 64;
-U      = 8*sin(pi*[1:T]/16);
-DEM    = spm_DEM_generate(M,U);
+M(1).E.N = 32;                                        % number of particles
+T        = 32;                                        % number of time bins
+U        = 8*sin(pi*[1:T]/16);
+DEM      = spm_DEM_generate(M,U);
  
-figure(Fgraph)
 spm_DEM_qU(DEM.pU);
  
 % DFP
 %--------------------------------------------------------------------------
-DFP    = spm_DFP(DEM);
+DFP           = spm_DFP(DEM);
  
 % PF
 %--------------------------------------------------------------------------
@@ -50,7 +51,7 @@ DFP    = spm_DFP(DEM);
  
 % DEM
 %--------------------------------------------------------------------------
-DEM    = spm_DEM(DEM);
+DEM           = spm_DEM(DEM);
  
 % Graphical comparison of DEM and true states
 %--------------------------------------------------------------------------
@@ -61,12 +62,11 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','DFP');
 spm_DFP_plot(DFP.QU,DFP.pU)
-
-
+ 
+ 
 % Graphical comparison of DFP and PF
 %==========================================================================
-spm_figure('GetWin','Figure 1');
-clf
+spm_figure('GetWin','Figure 2');
  
 % show density on state (PF)
 %--------------------------------------------------------------------------
@@ -96,7 +96,7 @@ axis xy square
 title('sample density (VF)')
  
  
-% show density on casue
+% show density on cause
 %==========================================================================
 for i = 1:T
     x = {DFP.QU{i}.v};

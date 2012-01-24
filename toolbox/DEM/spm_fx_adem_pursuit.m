@@ -1,5 +1,5 @@
 function [f]= spm_fx_adem_pursuit(x,v,a,P)
-% returns the flow for a two-joint arm (with action)
+% returns the flow for occulomotor pursuit (with action)
 % FORMAT [f]= spm_fx_adem_pursuit(x,v,a,P)
 %
 % x    - hidden states:
@@ -15,7 +15,7 @@ function [f]= spm_fx_adem_pursuit(x,v,a,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_adem_pursuit.m 4322 2011-05-04 15:28:08Z karl $
+% $Id: spm_fx_adem_pursuit.m 4625 2012-01-24 20:53:10Z karl $
  
 % intisaise flow (to ensure fields are aligned)
 %--------------------------------------------------------------------------

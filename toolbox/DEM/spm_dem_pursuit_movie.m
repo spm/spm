@@ -25,7 +25,7 @@ function spm_dem_pursuit_movie(DEM,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_pursuit_movie.m 4322 2011-05-04 15:28:08Z karl $
+% $Id: spm_dem_pursuit_movie.m 4625 2012-01-24 20:53:10Z karl $
 
 
 % check subplot specifier
@@ -52,7 +52,7 @@ for i = 1:N
     %----------------------------------------------------------------------
     plot(0,0,'+','MarkerSize',32,'Color',[1 1 1]*(1 - 1/8))
     plot(px.x(1),px.x(2),'.','MarkerSize',32,'Color',[1 .0 .0])
-    plot(qx.x(1),px.x(2),'.','MarkerSize',32,'Color',[1 .4 .4])
+    plot(qx.x(1),qx.x(2),'.','MarkerSize',32,'Color',[1 .4 .4])
     plot(px.o(1),px.o(2),'+','MarkerSize',32,'Color',[1 .4 .4])
     axis image, grid on, box off
     axis([-1 1 -1 1]*(1 + 1/8))

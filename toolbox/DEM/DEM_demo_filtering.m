@@ -5,10 +5,10 @@
 % particle filtering. Crucially, DEM and particle filtering deal gracefully
 % with nonlinearities, in relation to Kalman filtering.
 
+
+% set-up
 %==========================================================================
-clear M
-Fgraph    = spm_figure('GetWin','Graphics');
- 
+
 % temporal correlations
 %--------------------------------------------------------------------------
 M(1).E.s  = 1/32;
@@ -35,7 +35,6 @@ M(2).V  = 2;
 T       = 32;
 U       = 1/2 + sin(pi*[1:T]/16);
 DEM     = spm_DEM_generate(M,U);
-spm_DEM_qU(DEM.pU)
  
 % DEM
 %--------------------------------------------------------------------------
@@ -47,7 +46,7 @@ t_x     = DEM.pU.x{1};
 % overlay true values
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM.qU,DEM.pU)
-drawnow
+
 
 % EKF
 %==========================================================================
@@ -60,7 +59,7 @@ drawnow
  
 % graphics comparing PF, EKF and DEM
 %--------------------------------------------------------------------------
-figure(Fgraph)
+spm_figure('GetWin','Figure 1');
 
 subplot(2,1,1)
 plot([1:T],t_x,'r-',[1:T],d_x,'k-',[1:T],p_x,'k-.',[1:T],e_x,'k:')

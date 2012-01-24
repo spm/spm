@@ -1,85 +1,72 @@
 % Demo for Hemodynamic deconvolution: Cross-validation of Laplace scheme
 %__________________________________________________________________________
-% This demonstration compares generalised filtering and DEM in the context 
+% This demonstration compares generalised filtering and DEM in the context
 % of a nonlinear convolution model using empirical data. These are the data
 % used to illustrate hemodynamic deconvolution. We have deliberately made
-% the problem difficult here to highlight the ability of Generalised 
+% the problem difficult here to highlight the ability of Generalised
 % filtering to accumulate evidence to optimise in parameters and hyper-
-% parameters, which allows it to outperform DEM (although it does not 
+% parameters, which allows it to outperform DEM (although it does not
 % find visual motion effects with 90% confidence)
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: DEM_demo_hdm_LAP.m 4625 2012-01-24 20:53:10Z karl $
 
 % set-up
 %--------------------------------------------------------------------------
-DEMO = 1;
 global dt
 
-if DEMO
-    
-    spm_figure('GetWin','DEM');
-    load HDM
-    
-    % level 1
-    %----------------------------------------------------------------------
+spm_figure('GetWin','DEM');
+load HDM
 
-    % generative [likelihood] model 'HDM'
-    %======================================================================
-    dt      = Y.dt;
-    T       = 1:256;
-    
-    % level 1
-    %----------------------------------------------------------------------
-    [pE pC] = spm_hdm_priors(3,2);
-    M(1).x  = [0 0 0 0]';
-    M(1).g  = 'spm_gx_hdm';
-    M(1).f  = 'spm_fx_hdm';
-    M(1).pE = pE;
-    M(1).pC = pC;
-    M(1).W  = exp(8);
-    M(1).V  = exp(4);
+% generative [likelihood] model 'HDM'
+%==========================================================================
+dt      = Y.dt;
+T       = 1:256;
 
-    % level 2
-    %----------------------------------------------------------------------
-    M(2).v  = [0 0 0]';
-    M(2).V  = exp(2);
+% level 1
+%--------------------------------------------------------------------------
+[pE pC] = spm_hdm_priors(3,2);
+M(1).x  = [0 0 0 0]';
+M(1).g  = 'spm_gx_hdm';
+M(1).f  = 'spm_fx_hdm';
+M(1).pE = pE;
+M(1).pC = pC;
+M(1).W  = exp(8);
+M(1).V  = exp(4);
 
-    M(1).E.linear = 1;
-    M(1).E.n  = 4;
-    M(1).E.nD = 1;
-    M(1).E.nE = 16;
-    M(1).E.nN = 16;
-    M(1).E.s  = 1/2;
+% level 2
+%--------------------------------------------------------------------------
+M(2).v  = [0 0 0]';
+M(2).V  = exp(2);
 
-    % Decimate U.u from micro-time
-    % ---------------------------------------------------------------------
-    Dy  = spm_dctmtx(size(Y.y,1),size(Y.y,1));
-    Du  = spm_dctmtx(size(U.u,1),size(Y.y,1));
-    Dy  = Dy*sqrt(size(Y.y,1)/size(U.u,1));
-    u   = Dy*(Du'*U.u);
-    U   = spm_detrend(u(T,:))';
+M(1).E.linear = 1;
+M(1).E.n  = 4;
+M(1).E.nD = 1;
+M(1).E.nE = 16;
+M(1).E.nN = 16;
+M(1).E.s  = 1/2;
+
+% Decimate U.u from micro-time
+% -------------------------------------------------------------------------
+Dy  = spm_dctmtx(size(Y.y,1),size(Y.y,1));
+Du  = spm_dctmtx(size(U.u,1),size(Y.y,1));
+Dy  = Dy*sqrt(size(Y.y,1)/size(U.u,1));
+u   = Dy*(Du'*U.u);
+U   = spm_detrend(u(T,:))';
 
 
-    % Emprical data
-    %----------------------------------------------------------------------
-    DEM.M = M;
-    DEM.U = U;
-    DEM.Y = Y.y(T,:)'/4;
+% Emprical data
+%--------------------------------------------------------------------------
+DEM.M = M;
+DEM.U = U;
+DEM.Y = Y.y(T,:)'/4;
 
-    % DEM estimation
-    %======================================================================
-    DEM        = spm_DEM(DEM);
-    LAP        = spm_LAP(DEM);
-    
-    save LAP_HDM LAP DEM
-
-else % load pre-computed LAP and DEM structures
-
-    load LAP_HDM
-end
+% DEM estimation
+%==========================================================================
+DEM        = spm_DEM(DEM);
+LAP        = spm_LAP(DEM);
 
 
 
@@ -88,14 +75,12 @@ end
 
 % LAP
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2: Generalised filtering (Laplace) ');
-
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(LAP.qU)
 
 % Coupling parameters of interest
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-
 qP    = LAP.qP.P{1}(7:end);
 bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 cq    = 1.64*sqrt(diag(LAP.qP.C(7:end,7:end)));
@@ -106,20 +91,18 @@ end
 hold off
 axis square
 set(gca,'XTickLabel',{'vision','motion','attention'})
-title('parameters','Fontsize',16)
+title({'parameters';'Generalised filtering (Laplace)'},'Fontsize',16)
 a   = axis;
 
 % DEM
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1: With mean-field approximation (DEM) ');
-
+spm_figure('GetWin','Figure 2');
 spm_DEM_qU(DEM.qU)
 
 
 % Coupling parameters of interest
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-
 qP    = DEM.qP.P{1}(7:end);
 bar(qP,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
 cq    = 1.64*sqrt(diag(DEM.qP.C(7:end,7:end)));
@@ -130,13 +113,13 @@ end
 hold off
 axis square
 set(gca,'XTickLabel',{'vision','motion','attention'})
-title('parameters','Fontsize',16)
+title({'parameters';'Mean-field approximation (DEM)'},'Fontsize',16)
 axis(a)
 
 
 % Log-evidence
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 3: log-evidence');
+spm_figure('GetWin','Figure 3');
 
 subplot(2,1,1)
 nL   = length(LAP.F);
@@ -198,7 +181,7 @@ P  = [
     1.6845
     0.3452
     0.3564
-   -0.1719
+    -0.1719
     0.0000
     0.2
     0.0000];
@@ -209,10 +192,10 @@ P  = [
     2.0000
     0.3200
     0.3400
-       -.0
-         0
-        .16
-         0];
+    -.0
+    0
+    .16
+    0];
 
 
 % Simulate data

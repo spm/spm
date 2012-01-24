@@ -16,13 +16,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: DEM_demo_song_omission.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('Getwin','Graphics');
-clear M
+spm_figure('GetWin','Figure 1');
  
 % timing
 %--------------------------------------------------------------------------
@@ -102,7 +101,7 @@ spm_DEM_qU(DEMa.qU,DEMa.pU)
  
 % show songs and prediction error (ERP)
 %==========================================================================
-spm_figure('Getwin','Graphics');
+spm_figure('GetWin','Figure 1');
 clf, colormap('pink')
  
 % first stimulus

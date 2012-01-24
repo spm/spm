@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_DEM.m 4625 2012-01-24 20:53:10Z karl $
 
 
 
@@ -493,6 +493,11 @@ for iE = 1:nE
             %==============================================================
             f     = K*dFdu  + D*u;
             dfdu  = K*dFduu + D;
+            
+            if iD == 1
+                DEM.E(:,iY) = eig(full(dfdu));
+            end
+            
             du    = spm_dx(dfdu,f,td);
             q     = spm_unvec(u + du,q);
                         

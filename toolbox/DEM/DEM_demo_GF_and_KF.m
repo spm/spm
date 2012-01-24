@@ -6,17 +6,16 @@
 % linear and nonlinear observation models to compare the relative
 % performance of DEM and EKF. The superiority of DEM (generalised filtering)
 % over Kalman filtering rests on the optimisation of K - the rate of
-% generalised descent on free energy (see code).
+% generalised descent on free energy (see code after 'return').
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_GF_and_KF.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: DEM_demo_GF_and_KF.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % linear generative model
 %==========================================================================
-clear
  
 % The problem: A simple linear convolution model with parameters
 %--------------------------------------------------------------------------
@@ -79,7 +78,7 @@ for i = 1:N
     NEES(2,i) = E'*spm_inv(S{i})*E;
 end
  
- 
+
 % plot MSE
 %--------------------------------------------------------------------------
 subplot(2,2,1)
@@ -103,7 +102,8 @@ drawnow
  
 % plot trajectories
 %--------------------------------------------------------------------------
-subplot(2,1,2)
+spm_figure('Getwin','Figure 2');
+subplot(2,1,1)
 plot(t,DEM.pU.x{1}(1,:),t,DEM.qU.x{1}(1,:),t,EKF(1,:))
 title('First hidden state','Fontsize',16)
 xlabel('time','Fontsize',12)
@@ -115,7 +115,7 @@ drawnow
 % repeat several times with and without a nonlinear observer
 %==========================================================================
 N     = 64;                         % length of sequence
-for i = 1:8
+for i = 1:4
     
     % DEM and EKF (linear)
     %----------------------------------------------------------------------
@@ -198,7 +198,8 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % plot trajectories
 %--------------------------------------------------------------------------
-subplot(1,2,1)
+spm_figure('Getwin','Figure 2');
+subplot(2,1,2)
 plot(K,log(kse))
 title('log(MSE)','Fontsize',16)
 xlabel('log(K)','Fontsize',12)

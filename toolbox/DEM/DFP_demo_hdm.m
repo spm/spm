@@ -3,8 +3,6 @@
 
 % conventional analysis % [Ep,Cp,Ce,K0,K1,K2,M0,M1] = spm_nlsi(M,U,Y);
 %==========================================================================
-clear
-Fgraph  = spm_figure('GetWin','Graphics');
 load HDM
 global dt
 
@@ -57,9 +55,8 @@ DEM    = spm_DEM(DEM);
 
 % states and parameter esimates
 %==========================================================================
-spm_DEM_qU(DFP.qU)
-figure(Fgraph)
 spm_DEM_qU(DEM.qU)
+
 
 return
 
@@ -68,7 +65,7 @@ return
 t      = fix(linspace(1,length(U.u),360));
 U      = U.u(t(T),:)';
 
-figure(Fgraph)
+spm_figure('GetWin','Figure 2');
 clf
 subplot(2,1,1)
 hold on

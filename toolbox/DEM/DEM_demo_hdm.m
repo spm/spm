@@ -1,10 +1,8 @@
 % demo for Hemodynamic deconvolution
 %__________________________________________________________________________
 
-% conventional analysis % [Ep,Cp,Ce,K0,K1,K2,M0,M1] = spm_nlsi(M,U,Y);
+% load emprical data and set-up
 %==========================================================================
-clear
-Fgraph  = spm_figure('GetWin','Graphics');
 load HDM
 global dt
 
@@ -49,10 +47,7 @@ DEM.X  = Y.X0(T,1)';
 DEM    = spm_DEM(DEM);
 
 % states and parameter esimates
-%==========================================================================
-spm_DEM_qU(DEM.qU)
-
-
+%--------------------------------------------------------------------------
 subplot(2,2,4)
 qP    = DEM.qP.P{1}(7:end);
 bar(qP)
@@ -69,8 +64,8 @@ title('parameters')
 
 % and a more detailed look
 %--------------------------------------------------------------------------
-figure(Fgraph)
-clf
+spm_figure('GetWin','Figure 1');
+
 t = 1:128;
 subplot(2,1,1)
 hold on

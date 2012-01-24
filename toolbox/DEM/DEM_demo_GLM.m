@@ -3,21 +3,22 @@
 % schemes make this an interesting exercise.  Note that ReML uses a
 % covariance hyper-parameterisation; whereas DEM uses precision
 % hyperparameters.  This demo uses a non-hierarchical GLM and switches the
-% roles of parameters and causes to illustrate their equivalence under a DEM
-% inversion.
+% roles of parameters and causes to illustrate their equivalence under a 
+% DEM inversion.
  
 % Classical (OLS) estimation of states');
 %==========================================================================
  
 % specify parameters
 %--------------------------------------------------------------------------
-N     = 16;                                        % length of data sequence
+N     = 16;                                       % length of data sequence
 X     = randn(8,2);
  
 % generate data
 %--------------------------------------------------------------------------
 DEM   = spm_DEM_generate(spm_DEM_M('GLM',X),N,{},{1});
- 
+
+
 % DEM estimation
 %==========================================================================
 DEM   = spm_DEM(DEM);
@@ -33,6 +34,8 @@ C          = h*pinv(X)*DEM.M(1).Q{1}*pinv(X)';
  
 % compare estimators - hyperparameters
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
+
 subplot(3,2,1)
 c = sqrt(qH.C)*spm_invNcdf(1 - 0.05);
 bar(full(exp(-qH.h{1})),'c')
@@ -70,10 +73,6 @@ axis square; title('ReML Cq')
  
 % transpose model: states->parameters to test E-Step
 %========================================================================== 
-q = questdlg('transpose (states->parameters) GLM to test E-Step');
- 
-if ~strcmp(q,'Yes'), return, end
-%==========================================================================
 M         = spm_DEM_M('GLM',sparse(N,size(X,2)));
 M(2).V    = speye(2,2)*exp(8);
 M(1).pC   = speye(size(X,2)*N)*exp(16);
@@ -93,18 +92,20 @@ qH      = TEM.qH;
  
 % compare estimators - hyperparameters
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2');
+
 subplot(3,2,1)
 c = sqrt(qH.C)*spm_invNcdf(1 - 0.05);
 bar(full(exp(-qH.h{1})),'c')
 line([1 1],exp(-([-1 1]*c + qH.h{1})),'LineWidth',4,'Color','r');
-axis square; title('DEM hyperparameter estimates')
+axis square; title({'DEM hyperparameter estimates';'transposed problem'})
 a = axis;
 
 subplot(3,2,2)
 c = sqrt(inv(W))*spm_invNcdf(1 - 0.05);
 bar(full(h),'c')
 line([1 1],exp(-([-1 1]*c - log(h))),'LineWidth',4,'Color','r');
-axis square; title('ReML hyperparameter estimates')
+axis square; title({'ReML hyperparameter estimates';'transposed problem'})
 axis(a)
 
 % and causes (i.e., parameters)

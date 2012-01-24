@@ -3,7 +3,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % FORMAT:[pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 %
 %   options.two_state:  (0 or 1) one or two states per region
-%   options.endogenous: (0 or 1) exogenous or endogenous fluctuations
+%   options.stochastic: (0 or 1) exogenous or endogenous fluctuations
 %
 % INPUT:
 %    A,B,C,D - constraints on connections (1 - present, 0 - absent)
@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_dcm_fmri_priors.m 4625 2012-01-24 20:53:10Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -35,19 +35,21 @@ n = length(A);
 % check options and D (for nonlinear coupling)
 %--------------------------------------------------------------------------
 try, options.two_state;  catch, options.two_state  = 0; end
-try, options.endogenous; catch, options.endogenous = 0; end
 try, D;                  catch, D = zeros(n,n,0);       end
 
 
 % prior (initial) states and shrinkage priors on A for endogenous DCMs
 %--------------------------------------------------------------------------
 if options.two_state,  x = sparse(n,6); else, x = sparse(n,5); end
-if options.endogenous, a = 128;         else, a = 8;           end
 
 
-% connectivity priors
+% connectivity priors and intitial states
 %==========================================================================
 if options.two_state
+    
+    % (6) initial states
+    %----------------------------------------------------------------------
+    x     = sparse(n,6);
     
     % enforce optimisation of intrinsic (I to E) connections
     %----------------------------------------------------------------------
@@ -68,6 +70,10 @@ if options.two_state
     pC.D  =  D/4;
 
 else
+    
+    % (6 - 1) initial states
+    %----------------------------------------------------------------------
+    x     = sparse(n,5);
 
     % enforce self-inhibition
     %----------------------------------------------------------------------
@@ -83,7 +89,7 @@ else
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A*a/n + eye(n,n)/(8*n);
+    pC.A  =  A*8/n + eye(n,n)/(8*n);
     pC.B  =  B;
     pC.C  =  C;
     pC.D  =  D;

@@ -8,12 +8,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: DEM_demo_song_priors.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('Getwin','Graphics');
+spm_figure('GetWin','Figure 1');
 clear M
  
 % timing
@@ -96,7 +96,7 @@ spm_DEM_qU(DEMc.qU,DEMc.pU)
 
 % show songs and prediction error (ERP)
 %==========================================================================
-spm_figure('Getwin','MFM');
+spm_figure('Getwin','Figure 2');
 clf, colormap('pink')
 
 % Sonograms
@@ -113,11 +113,11 @@ axis square
 drawnow
 
 
-spm_figure('Getwin','Graphics');
-clf, colormap('pink')
- 
 % Sonograms
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
+clf, colormap('pink')
+
 subplot(3,2,1)
 spm_DEM_play_song(DEMc.qU ,N*dt);
 title('percept','Fontsize',18)
@@ -129,6 +129,7 @@ title('no structural priors','Fontsize',18)
 subplot(3,2,5)
 spm_DEM_play_song(DEMb.qU,N*dt);
 title('no dynamical priors','Fontsize',18)
+
  
 % LFPs
 %--------------------------------------------------------------------------

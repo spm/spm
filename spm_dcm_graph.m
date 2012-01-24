@@ -8,7 +8,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4524 2011-10-12 17:03:55Z karl $
+% $Id: spm_dcm_graph.m 4625 2012-01-24 20:53:10Z karl $
 
 
 % defaults
@@ -75,6 +75,7 @@ end
 
 % Render graph in functional space
 %==========================================================================
+if length(A) < 3, return, end
  
 % Multidimensional scaling (with the Weighted Graph Laplacian)
 %--------------------------------------------------------------------------

@@ -8,7 +8,6 @@
  
 % get a simple convolution model
 %==========================================================================
-f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('OU');
  
 % and generate data
@@ -18,6 +17,7 @@ DEM     = spm_DEM_generate(M,N,{},{[] 8});
  
 % display
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.pU)
  
  
@@ -28,5 +28,3 @@ DEM     = spm_DEM(DEM);
 % overlay true values
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM.qU,DEM.pU)
- 
-return

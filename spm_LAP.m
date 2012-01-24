@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_LAP.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % find or create a DEM figure
@@ -177,8 +177,8 @@ V     = sparse((ny + nv)*n,(ny + nv)*n);
  
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
-Px    = kron(sparse(1,1,1,n,n),spm_cat(spm_diag({M.xP})));
-Pv    = kron(sparse(1,1,1,d,d),sparse(nv,nv));
+Px    = kron(spm_DEM_R(n,2),spm_cat(spm_diag({M(1:end).xP})));
+Pv    = kron(spm_DEM_R(d,2),spm_cat(spm_diag({M(2:end).vP})));
 pu.ic = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
@@ -596,6 +596,7 @@ for iN = 1:nN
             q.h  = qh.h;
             q.g  = qh.g;
             q.d  = dbdt;
+            
                         
             % flow
             %--------------------------------------------------------------
@@ -615,21 +616,16 @@ for iN = 1:nN
                 
             dfdq = spm_cat(dfdq);
                 
-            % remove stable modes
+            % get eigenvalues of Jacobian (on hidden states)
             %--------------------------------------------------------------
-            if is == 1
-%               [P S] = spm_svd(dfdq,0);
-%               i     = log(diag(S)) < 16;
-%               P     = P(:,i);
-%               iP    = spm_pinv(P);
-                P     = 1;
-                iP    = 1;
+            try DEM.options.eigenvalues;
+                DEM.E(:,is) = eig(full(Du - dLduu));
             end
-                
-                
+            
+            
             % update conditional modes of states
             %==============================================================
-            dq   = P*spm_dx(iP*dfdq*P,iP*spm_vec(f),1/nD);
+            dq   = spm_dx(dfdq,spm_vec(f),1/nD);
             q    = spm_unvec(spm_vec(q) + dq,q);
             
             % unpack conditional means
@@ -677,6 +673,7 @@ for iN = 1:nN
     
     % Free-action of states plus free-energy of parameters
     %======================================================================
+    FT    = sum(Fc,2);          %   instantaneous Free energy (of states)
     FC(1) = sum(Fc(:,1));       % - E'*iS*E/2;
     FC(2) = sum(Fc(:,2));       % - Eu'*pu.ic*Eu/2;
     FC(3) = sum(Fc(:,3));       % - n*ny*log(2*pi)/2;
@@ -893,3 +890,4 @@ DEM.F  = F(1:iN);             % [-ve] Free-energy
 DEM.S  = S(1:iN);             % [-ve] Free-action
 DEM.FC = FC;                  % Free-energy components
 DEM.CC = CC;                  % over iterations
+DEM.FT = FT;                  % over time

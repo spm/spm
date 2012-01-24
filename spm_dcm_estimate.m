@@ -48,7 +48,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_dcm_estimate.m 4625 2012-01-24 20:53:10Z karl $
 
 
 %-Load DCM structure
@@ -176,17 +176,19 @@ end
 
 % complete model specification
 %--------------------------------------------------------------------------
-M.f   = 'spm_fx_fmri';
-M.g   = 'spm_gx_fmri';
-M.x   = x;
-M.pE  = pE;
-M.pC  = pC;
-M.m   = size(U.u,2);
-M.n   = size(x(:),1);
-M.l   = size(x,1);
-M.N   = 32;
-M.dt  = 16/M.N;
-M.ns  = v;
+M.f  = 'spm_fx_fmri';                     % equations of motion
+M.g  = 'spm_gx_fmri';                     % observation equation
+M.x  = x;                                 % initial condition (states)
+M.pE = pE;                                % prior expectation (parameters)
+M.pC = pC;                                % prior covariance  (parameters)
+M.hE = 4;                                 % prior expectation (precisions)
+M.hC = exp(-8);                           % prior covariance  (precisions)
+M.m  = size(U.u,2);
+M.n  = size(x(:),1);
+M.l  = size(x,1);
+M.N  = 32;
+M.dt = 16/M.N;
+M.ns = v;
 
 
 % nonlinear system identification (nlsi)
@@ -207,7 +209,7 @@ if ~DCM.options.stochastic
 else
     
     % proceed to stochastic (initialising with deterministic estimates)
-    %=======================================================================
+    %======================================================================
     
     % Decimate U.u from micro-time
     % ---------------------------------------------------------------------
@@ -233,7 +235,6 @@ else
     DEM.M(1).E.n    = 4;                  % embedding dimension
     DEM.M(1).E.nN   = 32;                 % maximum number of iterations
     
-    
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
     DEM.M(1).delays = M.delays/Y.dt;
@@ -242,17 +243,17 @@ else
     
     % Specify hyper-priors on (log-precision of) observation noise
     % ---------------------------------------------------------------------
-    DEM.M(1).Q  = spm_Ce(ones(1,n));
-    DEM.M(1).hE = 4;                      % prior expectation
+    DEM.M(1).Q  = spm_Ce(ones(1,n));      % precision components
+    DEM.M(1).hE = 6;                      % prior expectation
     DEM.M(1).hC = 1/128;                  % prior covariance
     
     
     % allow (only) neuronal [x, s, f, q, v] hidden states to fluctuate
     % ---------------------------------------------------------------------
-    W           = ones(n,1)*[6 16 16 16 16];
-    DEM.M(1).xP = exp(6);             % fixed precision (hidden-state)
-    DEM.M(1).W  = diag(exp(W));       % fixed precision (hidden-motion)
-    DEM.M(2).V  = exp(16);            % fixed precision (hidden-cause)
+    W           = ones(n,1)*[10 16 16 16 16];
+    DEM.M(1).xP = exp(6);                 % precision (hidden-state)
+    DEM.M(1).W  = diag(exp(W));           % precision (hidden-motion)
+    DEM.M(2).V  = exp(16);                % precision (hidden-cause)
     
     
     % Generalised filtering (under the Laplace assumption)
@@ -293,15 +294,15 @@ L       = sparse(1:n,[1:n] + 1,1,n,length(M0));
 [K0,K1] = spm_kernels(M0,M1,L,M.N,M.dt);
 
 
-% Bayesian inference and variance {threshold T = 0}
+% Bayesian inference and variance {threshold: prior mean plus T = 0}
 %--------------------------------------------------------------------------
-T       = 0;
+T       = full(spm_vec(pE));
 sw      = warning('off','SPM:negativeVariance');
 Pp      = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
 Vp      = spm_unvec(diag(Cp),Ep);
 warning(sw);
 
-try, M = rmfield(M,'nograph'); end
+try,  M = rmfield(M,'nograph'); end
 
 % Store parameter estimates
 %--------------------------------------------------------------------------
@@ -317,7 +318,7 @@ DCM.H1  = H1;
 DCM.K1  = K1;
 DCM.R   = R;
 DCM.y   = y;
-DCM.T   = T;
+DCM.T   = 0;
 
 
 % Data ID and log-evidence

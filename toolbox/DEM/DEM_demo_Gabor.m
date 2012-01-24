@@ -9,10 +9,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_Gabor.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: DEM_demo_Gabor.m 4625 2012-01-24 20:53:10Z karl $
 
-clear M
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 % temporal correlations
 %--------------------------------------------------------------------------
@@ -68,8 +67,8 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
- 
+spm_figure('GetWin','Figure 1');
+
 subplot(2,2,1)
 imagesc(DEM.Y)
 axis square

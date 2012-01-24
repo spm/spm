@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_lorenz_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_lorenz_LAP.m 4625 2012-01-24 20:53:10Z karl $
  
  
 % get model
@@ -42,7 +42,8 @@ DEM       = spm_DEM_generate(M,U);
  
 % show data
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); spm_DEM_qU(DEM.pU);
+spm_figure('GetWin','Figure 1');
+spm_DEM_qU(DEM.pU);
  
 % initialization of parameters (True values: pE =[18;-4;46.92])
 %--------------------------------------------------------------------------

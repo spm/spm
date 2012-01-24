@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_dcm_review.m 4625 2012-01-24 20:53:10Z karl $
 
 
 %-Get DCM structure
@@ -334,7 +334,7 @@ switch action
 
         % priors
         %------------------------------------------------------------------
-        x     = (1:length(DCM.U.u))*DCM.U.dt;
+        x     = (1:length(DCM.U.u))*DCM.Y.dt*length(DCM.U.u)/length(DCM.Y.y);
         t     = (1:length(DCM.Y.y))*DCM.Y.dt;
         for i = 1:m
 
@@ -433,6 +433,18 @@ switch action
     %======================================================================
     case {'estimates of states'}
         spm_DEM_qU(DCM.qU)
+        
+        % get (excitatory) neuronal states
+        %------------------------------------------------------------------
+        x      = DCM.M(1).x;
+        x(:,1) = 1;
+        i      = find(x(:));
+        subplot(2,2,4)
+        plot(1:DCM.v,DCM.qU.x{1}(i,:));
+        title('(excitatory) neuronal states','FontSize',16)
+        ylabel('time','FontSize',12)
+        spm_axis tight square
+        
 
     case {'estimates of parameters'}
         spm_DEM_qP(DCM.qP)
