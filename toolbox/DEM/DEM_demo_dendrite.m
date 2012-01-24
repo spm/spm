@@ -15,12 +15,15 @@
 % and selectively sample the myriad of potential pre-synaptic inputs they 
 % are exposed to, but it also connects elemental neuronal (dendritic) 
 % processing to generic schemes in statistics and machine learning:
-% such as Bayesian model selection and automatic relevance determination.  
+% such as Bayesian model selection and automatic relevance determination. 
+% The demonstration of this scheme simulates direction selectivity in post
+% synaptic transients and (see notes after 'return') spike-timing dependent
+% plasticity.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 4309 2011-04-15 19:31:45Z karl $
+% $Id: DEM_demo_dendrite.m 4626 2012-01-24 20:55:59Z karl $
  
 % preliminaries
 %==========================================================================
@@ -29,20 +32,20 @@ spm_figure('Getwin','DEM');
  
 % generative model - Stable heteroclinic channel of pre-synaptic neurons
 %==========================================================================
-fx    = inline('spm_lotka_volterra(x,exp(v),P)','x','v','P');
-gx    = inline('x(P.w)','x','v','P');
+fx  = inline('spm_lotka_volterra(x,exp(v),P)','x','v','P');
+gx  = inline('x(P.w)','x','v','P');
  
 % connection weights: NB synapses are changed by switching Y (not P.w)
 %--------------------------------------------------------------------------
-np    = 5;                            % number of pre-synaptic neurons
-ns    = 4;                            % number of dendritic segments
-ny    = ns*np;                        % number of synapses
+np  = 5;                              % number of pre-synaptic neurons
+ns  = 4;                              % number of dendritic segments
+ny  = ns*np;                          % number of synapses
+
+w   = kron((1:np),ones(1,ns));        % prior contacts
+g   = rem(randperm(ns*np),np) + 1;    % initial contacts
  
-w     = kron((1:np),ones(1,ns));      % prior contacts
-g     = rem(randperm(ns*np),np) + 1;  % initial contacts
- 
-P.w   = w';                           % synaptic weights 
-Q.w   = g';                           % synaptic weights
+P.w = w';                             % synaptic weights 
+Q.w = g';                             % synaptic weights
  
  
 % level 1
@@ -78,7 +81,9 @@ spm_DEM_qU(DEM.pU)
 % Synaptic pruning
 %==========================================================================
 if DemoMode
+    
     load DEM_Dendrites
+    
 else
     
     % Synaptic pruning
@@ -248,7 +253,7 @@ SIM.M(1).W    =  8;
 SIM.M(1).hE   =  2;
 SIM.M(2).v    = -1;
 SIM.M(2).V    =  8;
-n     = 4;
+n     = 3;
 t     = 1:N;
 j     = 1:np;
 Q     = P;
@@ -303,8 +308,7 @@ spm_DEM_qU(SIM.qU,SIM.pU)
  
 % Changing the speed (u) using IN and OUT sequences
 %==========================================================================
- 
-SIM = DEM;
+SIM           = DEM;
  
 SIM.M(1).E.nE =  1;
 SIM.M(1).W    =  8;
@@ -350,7 +354,9 @@ ylabel('mean response','FontSize',12)
 title('Velocity-dependent responses','FontSize',16)
 axis square, box off
  
- 
+return
+
+
 % Spike-timing dependent plasticity
 %==========================================================================
 U             = -((1:N) - N/2).^2/(2*(N/8)^2);
@@ -363,7 +369,7 @@ SIM.M(2).V    =  8;
  
 % time delay and synapse
 %--------------------------------------------------------------------------
-delay = -32:4:32;                   
+delay = -32:8:32;                   
 j     = 10;
 Y     = SIM.Y;
 for i = 1:length(delay)

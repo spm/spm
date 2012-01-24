@@ -29,12 +29,12 @@ DEM   = spm_DEM(DEM);
  
 % plot
 %--------------------------------------------------------------------------
-subplot(2,1,1)
+subplot(2,2,2)
 v     = DEM.qU.v{2};
 u     = DEM.pU.v{2};
 plot(v'*pinv(full(v'))*u')
 hold on
 plot(u',':')
-title('real and rotated causes')
+title({'real and rotated causes','Factor analysis'})
 axis square
 grid on

@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4402 2011-07-21 12:37:24Z karl $
+% $Id: ADEM_cued_response.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % hidden causes and states
@@ -47,9 +47,7 @@
 %   g.p  - finger location (visual)
 %   g.c  - target contrast (visual)
 %--------------------------------------------------------------------------
- 
-clear
- 
+
 % parameters mapping from (unstable) point attractors to visual space
 %--------------------------------------------------------------------------
 P.x    = [-1  1  1 -1;                       % target locations (extrinsic)
@@ -144,27 +142,27 @@ DEM.G = G;
 DEM.M = M;
 DEM.C = C;
 
-SIM   = 'sequence'
+SIM   = 'affordance'
 D     = 2 + (1:6)/2;
 for i = 1:length(D)
     
     switch SIM
         
-        case {'affordance'}
+        case {'salience'}
             % set precision of salience or affordance - V(1).c
             %--------------------------------------------------------------
             ADEM{i}        = DEM;
             V.c            = exp(D(i)) + sparse(n,1);
             ADEM{i}.M(1).V = diag(spm_vec(V));
             
-        case {'motor'}
+        case {'proprioception'}
             % set precision of salience or affordance - W(1).o
             %--------------------------------------------------------------
             ADEM{i}        = DEM;
             W.o            = exp(D(i)) + sparse(2,1);
             ADEM{i}.M(1).W = diag(spm_vec(W));
             
-        case {'sequence'}
+        case {'affordance'}
             % set precision of salience or affordance - W(1).a
             %--------------------------------------------------------------
             ADEM{i}        = DEM;
@@ -182,7 +180,7 @@ for i = 1:length(D)
     
     % solve
     %----------------------------------------------------------------------
-    ADEM{i}        = spm_ADEM(ADEM{i});
+    ADEM{i} = spm_ADEM(ADEM{i});
     
 end
 
@@ -199,7 +197,7 @@ spm_DEM_qU(ADEM{i}.qU)
 spm_figure('GetWin','Figure 4');
 subplot(3,1,1)
 spm_dem_cue_movie(ADEM{i})
-title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
+title(sprintf('High: (%-0.1f)',D(i)),'FontSize',16)
  
 % delayed set switching
 %--------------------------------------------------------------------------
@@ -209,7 +207,7 @@ spm_DEM_qU(ADEM{i}.qU)
 spm_figure('GetWin','Figure 4');
 subplot(3,1,2)
 spm_dem_cue_movie(ADEM{i})
-title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
+title(sprintf('Intermediate: (%-0.1f)',D(i)),'FontSize',16)
  
 % failure to switch set
 %--------------------------------------------------------------------------
@@ -219,7 +217,7 @@ spm_DEM_qU(ADEM{2}.qU)
 spm_figure('GetWin','Figure 4');
 subplot(3,1,3)
 spm_dem_cue_movie(ADEM{i})
-title(sprintf('Normal: (%-0.1f)',D(i)),'FontSize',16)
+title(sprintf('Low: (%-0.1f)',D(i)),'FontSize',16)
  
  
 % reaction times and accuracy

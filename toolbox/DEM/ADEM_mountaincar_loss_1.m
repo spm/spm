@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_1.m 3140 2009-05-21 18:38:17Z karl $
+% $Id: ADEM_mountaincar_loss_1.m 4626 2012-01-24 20:55:59Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
@@ -218,7 +218,7 @@ for i = 1:4
  
     % true and inferred position
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 1');
     subplot(2,2,i)
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),T,0,'r.','Markersize',32), hold on
     plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off

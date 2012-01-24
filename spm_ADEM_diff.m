@@ -1,6 +1,6 @@
 function [u dg df] = spm_ADEM_diff(M,u)
 % evaluates an active model given innovations z{i} and w{i}
-% FORMAT [u dgdv dgdx dfdv dfdx] = spm_ADEM_diff(M,u);
+% FORMAT [u dg df] = spm_ADEM_diff(M,u);
 %
 % M    - generative model
 %
@@ -17,7 +17,7 @@ function [u dg df] = spm_ADEM_diff(M,u)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_diff.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_ADEM_diff.m 4626 2012-01-24 20:55:59Z karl $
  
 % number of states and parameters
 %--------------------------------------------------------------------------

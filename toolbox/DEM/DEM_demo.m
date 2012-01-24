@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 19-Dec-2011 13:00:46
+% Last Modified by GUIDE v2.5 09-Jan-2012 17:56:04
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -308,7 +308,13 @@ run_demo_Callback(hObject, handles, 'spm_MDP')
 function pushbutton122_Callback(hObject, eventdata, handles)
 run_demo_Callback(hObject, handles, 'ADEM_salience')
 
+% --- Executes on button press in pushbutton123.
+function pushbutton123_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'DEM_demo_SOC')
 
+% --- Executes on button press in pushbutton124.
+function pushbutton124_Callback(hObject, eventdata, handles)
+run_demo_Callback(hObject, handles, 'ADEM_occulomotor_delays')
 
 % PDF callbacks
 %==========================================================================
@@ -362,6 +368,5 @@ web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
 function pushbutton116_Callback(hObject, eventdata, handles)
 web(['http://www.fil.ion.ucl.ac.uk/spm/doc/papers/', ...
 'DEM_A_variational_treatment_of_dynamic_systems.pdf']);
-
 
 

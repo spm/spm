@@ -14,12 +14,11 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: DEM_demo_contact_lens.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % non-linear generative model
 %==========================================================================
-clear
 reset(RandStream.getDefaultStream);
  
 % The problem: states = [x(1) x(2)]; causes = [v(1) v(2)]
@@ -78,7 +77,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % show prediction errors
 %==========================================================================
-spm_figure('Getwin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 D(1,:) = sqrt(sum((DEM.pU.x{1}([1 2],:) - DEM.qU.x{1}([1 2],:)).^2));
 D(2,:) = sqrt(sum((DEM.pU.x{1}([1 2],:) - EKF([1 2],:)).^2));

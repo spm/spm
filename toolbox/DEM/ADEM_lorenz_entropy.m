@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: ADEM_lorenz_entropy.m 4626 2012-01-24 20:55:59Z karl $
  
 % generative process (environment)
 %==========================================================================
@@ -55,7 +55,7 @@ G       = spm_ADEM_M_set(G);
  
 % % plot flow fields and equilibrium densities
 % %==========================================================================
-% spm_figure('GetWin','Graphics');
+% spm_figure('GetWin','Figure 1');
 %  
 % x{1}    = linspace(-20,20,32);
 % x{2}    = linspace(-32,32,32);
@@ -147,7 +147,7 @@ end
  
 % graphics
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 t   = 1:length(DEM);
  
 % plot free-energy

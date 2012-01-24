@@ -9,7 +9,7 @@
 % generative model
 %==========================================================================
 clear
-DEMO     = 1;                          % switch for demo
+DEMO     = 0;                          % switch for demo
 G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
 G(1).E.d = 2;                          % smoothness
@@ -50,7 +50,7 @@ G       = spm_ADEM_M_set(G);
 
 % plot flow fields and equilibrium densities
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 
 x{1}    = linspace(-20,20,32);
 x{2}    = linspace(-32,32,32);
@@ -161,7 +161,7 @@ spm_DEM_qU(DEM.qU)
 M             = DEM.M;
 M(1).E.linear = 3;
 
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 subplot(3,2,5)
 spm_fp_display_density(M,x);
 xlabel('position','Fontsize',12)

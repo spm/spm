@@ -5,7 +5,6 @@
  
 % get nonlinear state-space model
 %==========================================================================
-Fgraph = spm_figure('GetWin','Graphics');
 M      = spm_DEM_M('ssm');
  
 % generate data (output)
@@ -13,8 +12,7 @@ M      = spm_DEM_M('ssm');
 T      = 64;
 U      = 8*sin(pi*[1:T]/16);
 DEM    = spm_DEM_generate(M,U);
-spm_DEM_qU(DEM.pU);
- 
+
 % EKF
 %--------------------------------------------------------------------------
 [kf_x] = spm_ekf(M,DEM.Y);
@@ -28,11 +26,14 @@ spm_DEM_qU(DEM.pU);
 DEM    = spm_DEM(DEM);
 de_x   = DEM.qU.x{1};
 tr_x   = DEM.pU.x{1};
+
+spm_DEM_qU(DEM.qU,DEM.pU);
  
  
 % Graphical comparison
 %--------------------------------------------------------------------------
-figure(Fgraph)
+spm_figure('GetWin','Figure 1');
+
 t      = 1:T;
 subplot(2,2,1)
 plot(t,pf_x,t,kf_x,':',t,de_x,t,tr_x)

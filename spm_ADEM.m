@@ -9,8 +9,8 @@ function [DEM] = spm_ADEM(DEM)
 %__________________________________________________________________________
 %
 % This implementation of DEM is the same as spm_DEM but integrates both the
-% generative and inversion models in parallel. Its functionality is exactly
-% the same apart from the fact that confounds are not accommodated
+% generative process and model inversion in parallel. Its functionality is 
+% exactly the same apart from the fact that confounds are not accommodated
 % explicitly.  The generative model is specified by DEM.G and the veridical
 % causes by DEM.C; these may or may not be used as priors on the causes for
 % the inversion model DEM.M (i.e., DEM.U = DEM.C).  Clearly, DEM.G does not
@@ -19,10 +19,11 @@ function [DEM] = spm_ADEM(DEM)
 %
 % This routine is not used for model inversion per se but to simulate the
 % dynamical inversion of models.  Critically, it includes action 
-% variables a that couple the model back to the generative process 
-% This enables active inverse (c.f., action-perception; see also spm_GDEM)
+% variables a - that couple the model back to the generative process 
+% This enables active inference (c.f., action-perception) or embodied 
+% inference.
 %
-% hierarchical models G(i) and M(i)
+% hierarchical models M(i)
 %--------------------------------------------------------------------------
 %   M(i).g  = y(t)  = g(x,v,[a],P)    {inline function, string or m-file}
 %   M(i).f  = dx/dt = f(x,v,[a],P)    {inline function, string or m-file}
@@ -38,13 +39,27 @@ function [DEM] = spm_ADEM(DEM)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
 %   M(i).xP = precision (states)
-%   
-%   M(1).Ra = indices of (ny x 1) sensory prediction errors driving action
 %
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i)
 %   M(i).l  = number of output v(i)
-%  [M(i).k  = number of action a(i)]
+%   M(i).k  = number of action a(i)
+
+% hierarchical process G(i)
+%--------------------------------------------------------------------------
+%   G(i).g  = y(t)  = g(x,v,[a],P)    {inline function, string or m-file}
+%   G(i).f  = dx/dt = f(x,v,[a],P)    {inline function, string or m-file}
+%
+%   G(i).pE = model-parameters
+%   G(i).U  = precision (action)
+%   G(i).V  = precision (input noise)
+%   G(i).W  = precision (state noise)
+%
+%   G(i).m  = number of inputs v(i + 1);
+%   G(i).n  = number of states x(i)
+%   G(i).l  = number of output v(i)
+%   G(i).k  = number of action a(i)
+%
 %
 % Returns the following fields of DEM
 %--------------------------------------------------------------------------
@@ -86,7 +101,7 @@ function [DEM] = spm_ADEM(DEM)
 % F         = log evidence = log marginal likelihood = negative free energy
 %__________________________________________________________________________
 %
-% spm_DEM implements a variational Bayes (VB) scheme under the Laplace
+% spm_ADEM implements a variational Bayes (VB) scheme under the Laplace
 % approximation to the conditional densities of states (u), parameters (p)
 % and hyperparameters (h) of any analytic nonlinear hierarchical dynamic
 % model, with additive Gaussian innovations.  It comprises three
@@ -112,9 +127,9 @@ function [DEM] = spm_ADEM(DEM)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_ADEM.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_ADEM.m 4626 2012-01-24 20:55:59Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -139,7 +154,7 @@ d    = M(1).E.d + 1;                   % embedding order of q(v)
 n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
  
-% number of states and parameters - recognition model
+% number of states and parameters - generative model
 %--------------------------------------------------------------------------
 nY   = size(C,2);                      % number of samples
 nl   = size(M,2);                      % number of levels
@@ -149,10 +164,9 @@ ny   = M(1).l;                         % number of y (inputs)
 nc   = M(end).l;                       % number of c (prior causes)
 nu   = nv*d + nx*n;                    % number of generalised states q(u)
  
-% number of states and parameters - generative model
+% number of states and parameters - generative process
 %--------------------------------------------------------------------------
 gr   = sum(spm_vec(G.l));              % number of v (outputs)
-gv   = sum(spm_vec(G.m));              % number of v (causal states)
 ga   = sum(spm_vec(G.k));              % number of a (active states)
 gx   = sum(spm_vec(G.n));              % number of x (hidden states)
 gy   = G(1).l;                         % number of y (inputs)
@@ -170,9 +184,11 @@ td = 1;                               % integration time for D-Step
 te = 2;                               % integration time for E-Step (log)
  
  
-% precision (R) and covariance of generalised errors
+% precision (roughness) of generalised fluctuations
 %--------------------------------------------------------------------------
-iV    = spm_DEM_R(n,s);
+iV    = spm_DEM_R(n,s);               % prediction errors
+iW    = spm_DEM_R(n,8);               % action costs
+iG    = spm_DEM_R(n,1);               % proprioceptive errors
  
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
@@ -204,12 +220,20 @@ R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
 nh    = length(Q);                         % number of hyperparameters
  
+% restriction matrix, mapping prediction errors to action
+%--------------------------------------------------------------------------
+q0{1} = G(1).U;
+Q0    = kron(iG,spm_cat(q0));
+R0    = kron(iG,spm_cat(r0));
+iG    = blkdiag(Q0,R0);
+ 
+ 
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
-Pa    = kron(iV(1:1,1:1),speye(na,na)*exp(-4));
+Pa    = kron(iW(1:n,1:n),speye(na,na)*exp(-2));
 Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
@@ -289,7 +313,7 @@ pu.v{1}   = spm_vec({G.v});
 Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
-Da    = kron(spm_speye(1,1,1),spm_speye(na,na,0));
+Da    = kron(spm_speye(n,n,1),spm_speye(na,na,0));
 Du    = spm_cat(spm_diag({Dx,Dv}));
 Dq    = spm_cat(spm_diag({Dx,Dv,Dc,Da}));
  
@@ -298,15 +322,6 @@ Dv    = kron(spm_speye(n,n,1),spm_speye(gr,gr,0));
 Dp    = spm_cat(spm_diag({Dv,Dx,Dv,Dx}));
 dfdw  = kron(speye(n,n),speye(gx,gx));
 dydv  = kron(speye(n,n),speye(gy,gr));
-
-% reistiction matrix, mapping prediction errors to action
-%--------------------------------------------------------------------------
-try
-    Ra = M(1).Ra;
-catch
-    Ra = 1:ny;
-end
-Ra    = kron(speye(n,n),sparse(Ra,Ra,1,ny,ny));
  
 % and null blocks
 %--------------------------------------------------------------------------
@@ -316,7 +331,7 @@ dVdc  = sparse(d*nc,1);
 %--------------------------------------------------------------------------
 dWdu  = sparse(nu,1);
 dWduu = sparse(nu,nu);
-
+ 
 % preclude unnecessary iterations
 %--------------------------------------------------------------------------
 if ~np && ~nh, nE = 1; end
@@ -334,7 +349,7 @@ W      = spm_cat(w(:));
 F      = -Inf;
 for iE = 1:nE
     
-    % get time and celar persistent variables in evaluation routines
+    % get time and clear persistent variables in evaluation routines
     %----------------------------------------------------------------------
     tic; clear spm_DEM_eval
  
@@ -350,15 +365,15 @@ for iE = 1:nE
     EiSE  = sparse(0);
     qp.ic = sparse(0);
     Hqu.c = sparse(0);
-
  
-    % [re-]set precisions using ReML hyperparameter estimates
+ 
+    % [re-]set precisions using [hyper]parameter estimates
     %----------------------------------------------------------------------
     iS    = Qp;
     for i = 1:nh
        iS = iS + Q{i}*exp(qh.h(i));
     end
- 
+    
     % [re-]set states & their derivatives
     %----------------------------------------------------------------------
     try
@@ -370,38 +385,24 @@ for iE = 1:nE
     %======================================================================
     for iY = 1:nY
  
- 
-        % D-Step: until convergence for static systems
-        %==================================================================
- 
-        % derivatives of responses and inputs
+        
+        % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
         pu.z = spm_DEM_embed(Z,n,iY);
         pu.w = spm_DEM_embed(W,n,iY);
         qu.u = spm_DEM_embed(U,n,iY);
         
-        % pass action to pu.a
-        %------------------------------------------------------------------
+        % pass action to pu.a (external states)
+        %==================================================================
         pu.a = qu.a;
  
-        % evaluate generative model
+        % evaluate generative process
         %------------------------------------------------------------------
         [pu dg df] = spm_ADEM_diff(G,pu);
  
-        % tensor products for Jacobian
-        %------------------------------------------------------------------
-        Dgda = kron(spm_speye(n,1,1),dg.da);
-        Dgdv = kron(spm_speye(n,n,1),dg.dv);
-        Dgdx = kron(spm_speye(n,n,1),dg.dx);
-        dfda = kron(spm_speye(n,1,0),df.da);
-        dfdv = kron(spm_speye(n,n,0),df.dv);
-        dfdx = kron(spm_speye(n,n,0),df.dx);
-        
-        dgda = kron(spm_speye(n,1,0),dg.da);
-        dgdx = kron(spm_speye(n,n,0),dg.dx);
         
         % and pass response to qu.y
-        %------------------------------------------------------------------
+        %==================================================================
         for i = 1:n
             y       = spm_unvec(pu.v{i},{G.v});
             qu.y{i} = y{1};
@@ -427,8 +428,8 @@ for iE = 1:nE
         % and conditional precision
         %------------------------------------------------------------------
         if nh
-            ECEu   = dE.du*qu.c*dE.du';
-            ECEp   = dE.dp*qp.c*dE.dp';
+            ECEu  = dE.du*qu.c*dE.du';
+            ECEp  = dE.dp*qp.c*dE.dp';
         end
  
         
@@ -443,37 +444,46 @@ for iE = 1:nE
             dWduu = CJp'*dEdpu;
         end
         
+        % tensor products for Jacobian
+        %------------------------------------------------------------------
+        Dgda  = kron(spm_speye(n,n,1),dg.da);
+        Dgdv  = kron(spm_speye(n,n,1),dg.dv);
+        Dgdx  = kron(spm_speye(n,n,1),dg.dx);
+        dfda  = kron(spm_speye(n,n,0),df.da);
+        dfdv  = kron(spm_speye(n,n,0),df.dv);
+        dfdx  = kron(spm_speye(n,n,0),df.dx);
+        
+        dgda  = kron(spm_speye(n,n,0),dg.da);
+        dgdx  = kron(spm_speye(n,n,0),dg.dx);
+        
         % change in error w.r.t. action
         %------------------------------------------------------------------
-        dyda  = dydv*dgda;
-        dydx  = dydv*dgdx;
+        Dfdx  = 0;
         for i = 1:n
-            Dfdx = kron(spm_speye(n,n,-i),df.dx^(i - 1));
-            dyda = dyda + dydx*Dfdx*dfda;
+            Dfdx = Dfdx + kron(spm_speye(n,n,-i),df.dx^(i - 1));
         end
         
         % dE/da with restriction
         %------------------------------------------------------------------
-        dE.da = dE.dy*Ra*dyda;
+        dE.da = dE.dy*dydv*(dgda + dgdx*Dfdx*dfda);
         dE.dv = dE.dy*dydv;
+        
         
         % first-order derivatives
         %------------------------------------------------------------------
         dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
-        dVda  = -dE.da'*iS*E - Pa*spm_vec( qu.a{1:1});
+        dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:n});
         
         % and second-order derivatives
         %------------------------------------------------------------------
         dVduu = -dE.du'*iS*dE.du - Pu - dWduu/2 ;
-        dVdaa = -dE.da'*iS*dE.da - Pa;
+        dVdaa = -dE.da'*iG*dE.da - Pa;
         dVduv = -dE.du'*iS*dE.dv;
         dVduc = -dE.du'*iS*dE.dc;
         dVdua = -dE.du'*iS*dE.da;
-        dVdav = -dE.da'*iS*dE.dv;
-        dVdau = -dE.da'*iS*dE.du;
-        dVdac = -dE.da'*iS*dE.dc;
-
-        
+        dVdav = -dE.da'*iG*dE.dv;
+        dVdau = -dE.da'*iG*dE.du;
+        dVdac = -dE.da'*iG*dE.dc;
  
          
         % D-step update: of causes v{i}, and hidden states x(i)
@@ -482,7 +492,7 @@ for iE = 1:nE
         % states and conditional modes
         %------------------------------------------------------------------
         p     = {pu.v{1:n} pu.x{1:n} pu.z{1:n} pu.w{1:n}};
-        q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:1}};
+        q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:n}};
         u     = [p q];  
         
         % gradient
@@ -500,7 +510,7 @@ for iE = 1:nE
                  []    []   []   Dx   []       []    [];
                  dVduv []   []   []   Du+dVduu dVduc dVdua;
                  []    []   []   []   []       Dc    []
-                 dVdav []   []   []   dVdau    dVdac dVdaa});
+                 dVdav []   []   []   dVdau    dVdac Da+dVdaa});
  
  
         % update states q = {x,v,z,w} and conditional modes
@@ -510,11 +520,12 @@ for iE = 1:nE
  
         % and save them
         %------------------------------------------------------------------
-        pu.v(1:n) = u([1:n]);
-        pu.x(1:n) = u([1:n] + n);
-        qu.x(1:n) = u([1:n] + n + n + n + n);
-        qu.v(1:d) = u([1:d] + n + n + n + n + n);
-        qu.a(1:1) = u([1:1] + n + n + n + n + n + d + d);
+        pu.v(1:n) = u((1:n));
+        pu.x(1:n) = u((1:n) + n);
+        qu.x(1:n) = u((1:n) + n + n + n + n);
+        qu.v(1:d) = u((1:d) + n + n + n + n + n);
+        qu.a(1:n) = u((1:n) + n + n + n + n + n + d + d);
+        
  
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
         %==================================================================
@@ -525,7 +536,7 @@ for iE = 1:nE
             end
             dWdp  = CJu'*spm_vec(dE.du');
             dWdpp = CJu'*dEdup;
-
+ 
             % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
             %--------------------------------------------------------------
             dFdp  = dFdp  - dWdp/2  - dE.dp'*iS*E;
@@ -572,7 +583,7 @@ for iE = 1:nE
     dFdhh  = zeros(nh,nh);
     for iM = 1:nM
  
-        % [re-]set precisions using ReML hyperparameter estimates
+        % [re-]set precisions using [hyper]parameter estimates
         %------------------------------------------------------------------
         iS    = Qp;
         for i = 1:nh
@@ -752,9 +763,7 @@ end
 DEM.Y    = PU.v{1};
 DEM.pU   = PU;
 DEM.pP.P = {G.pE};
-DEM.pH.h = {G.hE};
-DEM.pH.g = {G.gE};
- 
+
 % conditional moments of model-parameters (rotated into original space)
 %--------------------------------------------------------------------------
 qP.P   = spm_unvec(Up*qp.e + spm_vec(M.pE),M.pE);
@@ -781,4 +790,3 @@ DEM.qP = qP;                  % conditional moments of model-parameters
 DEM.qH = qH;                  % conditional moments of hyper-parameters
  
 DEM.F  = F;                   % [-ve] Free energy
-

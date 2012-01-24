@@ -10,14 +10,14 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 2521 2008-12-02 19:49:39Z karl $
+% $Id: ADEM_motor.m 4626 2012-01-24 20:55:59Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
 clear
 M(1).E.linear = 1;                          % linear model
 M(1).E.s      = 1/2;                        % smoothness
-M(1).E.n      = 6;                          % smoothness
+M(1).E.n      = 4;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
  
 % level 1: Displacement dynamics and mapping to sensory/proprioception
@@ -47,10 +47,11 @@ pE.a    = [1; 0];                           % action parameter
 %--------------------------------------------------------------------------
 G(1).f  = inline('P.f*x + P.h*v + P.a*a','x','v','a','P');
 G(1).g  = inline('P.g*x','x','v','a','P');
-G(1).pE = pE;                               % prior expectation
+G(1).pE = pE;                                % prior expectation
 G(1).V  = exp(16);                           % error precision
 G(1).W  = exp(16);                           % error precision
- 
+G(1).U  = exp(4);                            % action precision
+
 % second level
 %--------------------------------------------------------------------------
 G(2).a  = 0;                                % action
@@ -73,9 +74,9 @@ spm_DEM_qU(DEM0.qU,DEM0.pU)
  
  
 % repeat with a late perturbation
-%--------------------------------------------------------------------------
+%==========================================================================
 DEM1    = DEM;
-DEM1.C  = -exp(-([1:N] - 18).^2/(2.^2))/2;       % this is the prior cause;
+DEM1.C  = -exp(-((1:N) - 18).^2/(2.^2))/2;    % this is the prior cause;
 DEM1    = spm_ADEM(DEM1);
  
 % overlay true values
@@ -85,7 +86,7 @@ spm_DEM_qU(DEM1.qU,DEM1.pU)
  
  
 % repeat with twice the motor gain (P.a)
-%--------------------------------------------------------------------------
+%==========================================================================
 DEM2            = DEM;
 DEM2.G(1).pE.a  = pE.a*2;
 DEM2            = spm_ADEM(DEM2);
@@ -102,7 +103,7 @@ subplot(2,2,2)
 title('desired occulomotor state','FontSize',16)
  
  
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 % canonical
 %--------------------------------------------------------------------------

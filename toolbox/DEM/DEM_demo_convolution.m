@@ -7,9 +7,9 @@
  
 % get a simple convolution model
 %==========================================================================
-f       = spm_figure('GetWin','Graphics');
-M       = spm_DEM_M('convolution model');
+spm_figure('GetWin','Figure 1');
 
+M       = spm_DEM_M('convolution model');
 M(1).V  = exp(8);                             % error precision
 M(1).W  = exp(8);                             % error precision
  

@@ -19,7 +19,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4597 2011-12-19 13:18:21Z karl $
+% $Id: ADEM_salience.m 4626 2012-01-24 20:55:59Z karl $
 
 
 % hidden causes and states
@@ -76,8 +76,6 @@ STIM.V = spm_vol('face_R.nii');               % Stimulus (filtered)
 STIM.U = spm_vol('face.nii');                 % Stimulus (unfiltered)
 
 
-
-
 % hidden states
 %--------------------------------------------------------------------------
 x.o    = [0;0];                               % oculomotor angle
@@ -93,19 +91,17 @@ M(1).E.d = 2;                                 % generalised motion
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(1).f  = 'spm_fx_dem_salience';             % plant dynamics
-M(1).g  = 'spm_gx_dem_salience';             % prediction
+M(1).f  = 'spm_fx_dem_salience';              % plant dynamics
+M(1).g  = 'spm_gx_dem_salience';              % prediction
 
-M(1).x  = x;                                 % hidden states
-M(1).V  = diag(exp([8 8 4*ones(1,ns)]));     % error precision (g)
-M(1).W  = exp(8);                            % error precision (f)
-
-M(1).Ra = [1;2];                             % proprioceptive action
+M(1).x  = x;                                  % hidden states
+M(1).V  = exp([8 8 4*ones(1,ns)]);            % error precision (g)
+M(1).W  = exp(8);                             % error precision (f)
 
 
 % level 2:
 %--------------------------------------------------------------------------
-M(2).v  = [0;0];                             % priors
+M(2).v  = [0;0];                              % priors
 M(2).V  = exp(16);
 
 
@@ -119,6 +115,7 @@ G(1).g  = 'spm_gx_adem_salience';
 G(1).x  = [0;0];                              % hidden states
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(8);                             % error precision
+G(1).U  = [exp(8) exp(8) zeros(1,ns)];        % gain
 
 % second level
 %--------------------------------------------------------------------------
@@ -143,6 +140,7 @@ DEM.U = sparse(2,N);
 if DEMO
     
     load ADEM_saccades
+    
 else
     % number of saccades
     %----------------------------------------------------------------------

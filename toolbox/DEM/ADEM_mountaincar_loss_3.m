@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_3.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: ADEM_mountaincar_loss_3.m 4626 2012-01-24 20:55:59Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
@@ -183,7 +183,7 @@ DEM           = spm_ADEM(DEM);
  
 % inference
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.qU)
 subplot(2,2,4),  hold on
 plot(U,':'), hold off
@@ -225,7 +225,7 @@ for i = 1:4
  
     % true and inferred position
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 1');
     subplot(2,2,1), hold on
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),'Color',[0.8 0.8 1])
     xlabel('position','Fontsize',14)
@@ -242,7 +242,7 @@ end
  
 % high and low exploration - attractiveness
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); clf
+spm_figure('GetWin','Figure 1'); clf
 DEM.G(1).x = [0; 1/2];
 DEM.M(1).x.x = DEM.G(1).x;
  
@@ -256,7 +256,7 @@ for i = 1:4
  
     % true and inferred position
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Graphics');
+    spm_figure('GetWin','Figure 1');
     subplot(2,2,i)
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),T,0,'r.','Markersize',32), hold on
     plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off

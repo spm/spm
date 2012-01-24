@@ -12,14 +12,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: ADEM_visual.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % recognition model (M)
 %==========================================================================
-clear
-M(1).E.s      = 1/2;                        % smoothness
-M(1).E.n      = 6;                          % smoothness
+M(1).E.s      = 1;                          % smoothness
+M(1).E.n      = 4;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
  
 % level 1:
@@ -39,8 +38,8 @@ M(1).W  = exp(8);                           % error precision
 % level 2:
 % a perturbation to x(1)
 %--------------------------------------------------------------------------
-M(2).v  = 0;                                 % inputs
-M(2).V  = exp(-16);                          % flat priors on movement
+M(2).v  = 0;                                % inputs
+M(2).V  = exp(-8);                          % flat priors on movement
  
 % Generative model (G)
 %==========================================================================
@@ -54,7 +53,8 @@ G(1).g  = inline('ADEM_plaid(x)','x','v','a','P');
 G(1).pE = pE;                               % prior expectation
 G(1).V  = exp(16);                          % error precision
 G(1).W  = exp(8);                           % error precision
- 
+G(1).U  = exp(0);                           % error precision
+
 % second level
 %--------------------------------------------------------------------------
 G(2).a  = 0;                                % action
@@ -64,7 +64,7 @@ G(2).V  = exp(16);
 % generate and invert
 %==========================================================================
 N       = 64;                               % length of data sequence
-C       = exp(-([1:N] - 12).^2/(4.^2));     % this is the perturbation
+C       = exp(-((1:N) - 12).^2/(4.^2));     % this is the perturbation
 DEM.G   = G;
 DEM.M   = M;
 DEM.C   = C;
@@ -77,15 +77,13 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % repeat with informative priors
 %--------------------------------------------------------------------------
-DEM.M(1).V  = exp(4);
-DEM.M(1).W  = exp(8);
 DEM.M(2).V  = exp(16);
 ADEM        = spm_ADEM(DEM);
 spm_DEM_qU(ADEM.qU,ADEM.pU)
  
 % plot results
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 x   = [-4 4];
  
 subplot(3,1,1)

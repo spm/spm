@@ -9,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_writing.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: ADEM_writing.m 4626 2012-01-24 20:55:59Z karl $
 
 
 % hidden causes and states
@@ -56,7 +56,7 @@ M(1).f   = 'spm_fx_dem_write';                % plant dynamics
 M(1).g   = 'spm_gx_dem_write';                % prediction
  
 M(1).x.x = [pi/2; pi/2; 0; 0];                % physical states
-M(1).x.a = -[1:n]'/64;                       % attractor states
+M(1).x.a = -(1:n)'/64;                        % attractor states
 M(1).pE  = P;                                 % parameters of trajectory
 M(1).V   = exp(8);                            % error precision
 M(1).W   = exp(8);                            % error precision
@@ -64,7 +64,7 @@ M(1).W   = exp(8);                            % error precision
  
 % level 2: not used
 %--------------------------------------------------------------------------
-M(2).v  = [0];                                % inputs
+M(2).v  = 0;                                  % inputs
 M(2).V  = exp(8);
  
 % generative model
@@ -77,7 +77,8 @@ G(1).g  = 'spm_gx_adem_write';
 G(1).x  = [pi/2; pi/2; 0; 0;];                % physical states
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(16);                            % error precision
- 
+G(1).U  = [exp(2)*[1 1 1 1] 0 0 0 0];         % action precision
+
 % second level
 %--------------------------------------------------------------------------
 G(2).v  = [0; 0];                             % exogenous forces
@@ -100,7 +101,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % Graphics
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 clf
  
 subplot(2,1,1)

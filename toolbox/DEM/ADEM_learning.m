@@ -18,12 +18,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 3901 2010-05-27 16:14:36Z karl $
+% $Id: ADEM_learning.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % generative model
 %==========================================================================
-clear
 DEMO     = 0;                          % switch for demo
 G(1).E.s = 1/4;                        % smoothness
 G(1).E.n = 6;                          % smoothness
@@ -91,7 +90,7 @@ P        = G(1).pE;
  
 % plot flow fields and nullclines
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 nx    = 64;
 x{1}  = linspace(-2,2,nx);
@@ -173,7 +172,7 @@ load mountaincar_model
  
 % replace priors with learned conditional expectation
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
  
 qP.P{1} = DEM.qP.P{1};
 M(1).pE = qP.P{1};
@@ -184,8 +183,7 @@ try
 end
 M(1).V  = G(1).V;
 M(1).W  = G(1).W;
- 
- 
+
 subplot(3,2,5)
 spm_fp_display_density(M,x);
 xlabel('position','Fontsize',12)
@@ -242,7 +240,7 @@ ylabel('velocity','Fontsize',12)
 title('learnt','Fontsize',16)
 
 
-spm_figure('GetWin','Movie');
+spm_figure('GetWin','Figure 2');
 clf, subplot(3,1,2)
 drawnow
 spm_mountaincar_movie(DEM)

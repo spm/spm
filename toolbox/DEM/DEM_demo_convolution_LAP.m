@@ -10,7 +10,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_convolution_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_convolution_LAP.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % create model and data
@@ -48,7 +48,8 @@ DEM.M(2).V = exp(0);
  
 % plot data
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); spm_DEM_qU(DEM.pU);
+spm_figure('GetWin','Figure 1'); 
+spm_DEM_qU(DEM.pU);
  
 % Initialization of SCKS
 %==========================================================================

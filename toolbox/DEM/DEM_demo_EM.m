@@ -6,7 +6,6 @@
  
 % get basic convolution model
 %==========================================================================
-f       = spm_figure('GetWin','Graphics');
 M       = spm_DEM_M('convolution model');
  
 % free parameters
@@ -40,6 +39,7 @@ DEM     = spm_DEM_generate(M,U,{P},{8,32},{32});
  
 % display
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.pU)
  
  
@@ -53,7 +53,6 @@ DEM     = spm_DEM(DEM);
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM.qU,DEM.pU)
  
-drawnow
  
 % EM: spm_nlsi_GN
 %==========================================================================
@@ -100,8 +99,7 @@ pP    = pP(ip);
 eP    = spm_vec(Ep);
 eP    = eP(ip);
  
-f = spm_figure('GetWin','DEM');
-figure(f)
+spm_figure('GetWin','DEM');
 subplot(2,2,4)
 bar([tP qP eP])
 axis square

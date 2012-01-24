@@ -6,7 +6,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_reaching.m 3893 2010-05-17 18:28:52Z karl $
+% $Id: ADEM_reaching.m 4626 2012-01-24 20:55:59Z karl $
 
 % hidden causes and states
 %==========================================================================
@@ -25,9 +25,9 @@ clear
  
 % Recognition model (linear for expediency)
 %==========================================================================
-M(1).E.s      = 1/2;                          % smoothness
-M(1).E.n      = 4;                            % order of 
-M(1).E.d      = 2;                            % generalised motion
+M(1).E.s  = 1/2;                              % smoothness
+M(1).E.n  = 4;                                % order of 
+M(1).E.d  = 2;                                % generalised motion
  
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
@@ -53,6 +53,7 @@ G(1).f  = 'spm_fx_adem_reach';
 G(1).g  = 'spm_gx_adem_reach';
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(16);                            % error precision
+G(1).U  = exp(2);                             % gain for action
  
 % second level
 %--------------------------------------------------------------------------
@@ -63,11 +64,11 @@ G(2).V  = exp(16);
  
 % generate and invert
 %==========================================================================
-N       = 64;                                 % length of data sequence
+N       = 128;                                 % length of data sequence
 C       = sparse(3,N);
 C(1,:)  = C(1,:) + .6;                        % desired x
 C(2,:)  = C(2,:) + .6;                        % desired y
-C(3,:)  = exp(-([1:N] - 32).^2/(8.^2));       % cue strength
+C(3,:)  = exp(-((1:N) - 32).^2/(8.^2));       % cue strength
  
 M(2).v  = C(:,1);
  
@@ -85,7 +86,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % Graphics
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 clf
  
 subplot(2,1,1)
@@ -109,8 +110,8 @@ Q{1}       = diag([1 1 0 0 0 0 0]);
 Q{2}       = diag([0 0 0 0 0 1 1]);
 M(1).E.nE  = 4;
 M(1).E.nM  = 8;
-M(1).V     = diag(exp([0 0 8 8 8 0 0]));                 % error precision
-M(1).Q     = Q;                                          % error components
+M(1).V     = diag(exp([0 0 8 8 8 0 0]));               % error precision
+M(1).Q     = Q;                                        % error components
  
  
 % un-noisy
@@ -156,7 +157,7 @@ spm_DEM_qU(DEM(2,1).qU,DEM(2,1).pU)
  
 % overlay true values
 %==========================================================================
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 2');
 clf
  
 for i = 1:2

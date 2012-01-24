@@ -23,15 +23,9 @@ function [M] = spm_ADEM_M_set(M)
 % for each level (i); optional fields
 %
 %   M(i).pE = prior expectation of p model-parameters
-%   M(i).pC = prior covariances of p model-parameters
-%   M(i).hE = prior expectation of h hyper-parameters (input noise)
-%   M(i).hC = prior covariances of h hyper-parameters (input noise)
-%   M(i).gE = prior expectation of g hyper-parameters (state noise)
-%   M(i).gC = prior covariances of g hyper-parameters (state noise)
-%   M(i).Q  = precision components (input noise)
-%   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
+%   M(i).U  = fixed precision (action)
 %
 %
 % sets fields, checks internal consistency of model specification and sets
@@ -47,10 +41,10 @@ function [M] = spm_ADEM_M_set(M)
 % of its inputs a further level is added with flat priors
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
-
+ 
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 4580 2011-12-02 20:22:19Z karl $
-
+% $Id: spm_ADEM_M_set.m 4626 2012-01-24 20:55:59Z karl $
+ 
 % order
 %--------------------------------------------------------------------------
 g      = length(M);
@@ -94,7 +88,7 @@ end
  
 % consistency and format check on states, parameters and functions
 %==========================================================================
-
+ 
 % prior expectation of parameters M.pE
 %--------------------------------------------------------------------------
 try
@@ -107,46 +101,7 @@ catch
     end
 end
 
-
-% and priors covariances - p
-%--------------------------------------------------------------------------
-try
-    M.pC;
-catch
-    % Assume fixed parameters
-    %----------------------------------------------------------------------
-    for i = 1:g
-        p       = length(spm_vec(M(i).pE));
-        M(i).pC = sparse(p,p);
-    end
-end
-
-% check pC if user specified
-%--------------------------------------------------------------------------
-for i = 1:g
  
-    % Assume fixed parameters if not specified
-    %----------------------------------------------------------------------
-    if isempty(M(i).pC)
-        p       = length(spm_vec(M(i).pE));
-        M(i).pC = sparse(p,p);
-    end
- 
-    % convert variances to covariances if necessary
-    %----------------------------------------------------------------------
-    if length(M(i).pC) == 1
-        M(i).pC = sparse(diag(M(i).pC));
-    end
- 
-    % check size
-    %----------------------------------------------------------------------
-    if length(M(i).pC) ~= length(spm_vec(M(i).pE))
-        errordlg(sprintf('please check: M(%i).pC',i))
-    end
- 
-end
-
-
 % get inputs
 %--------------------------------------------------------------------------
 try
@@ -166,7 +121,7 @@ if isempty(v)
 end
 M(g).l    = length(spm_vec(v));
 M(g).v    = v;
-
+ 
 % ensure action is specified
 %--------------------------------------------------------------------------
 for i = 1:g
@@ -183,7 +138,7 @@ for i = 1:g
     M(i).k    = length(spm_vec(a));
     M(i).a    = a;
 end
-
+ 
  
 % check functions
 %--------------------------------------------------------------------------
@@ -241,94 +196,25 @@ try
 catch
     errordlg('please specify number of variables')
 end
-
+ 
 % number of x (hidden states)
 %--------------------------------------------------------------------------
 nx     = sum(spm_vec(M.n));
-
-
-% Hyperparameters and components (causes: Q V and hidden states R, W)
+ 
+ 
+% check precisions
 %==========================================================================
-try, M.Q;  catch, M(1).Q  = []; end
-try, M.R;  catch, M(1).R  = []; end
 try, M.V;  catch, M(1).V  = []; end
 try, M.W;  catch, M(1).W  = []; end
-try, M.hE; catch, M(1).hE = []; end
-try, M.gE; catch, M(1).gE = []; end
 
-% check hyperpriors hE - [log]hyper-parameters and components
+ 
+% check precisions
 %--------------------------------------------------------------------------
 for i = 1:g
-    
-    
-    % make sure components are cell arrays
-    %----------------------------------------------------------------------
-    if ~isempty(M(i).Q) && ~iscell(M(i).Q), M(i).Q = {M(i).Q}; end
-    if ~isempty(M(i).R) && ~iscell(M(i).R), M(i).R = {M(i).R}; end 
-    
-    % check hyperpriors
-    %======================================================================
-    
-    % vectorise
-    %----------------------------------------------------------------------
-    M(i).hE = spm_vec(M(i).hE);
-    M(i).gE = spm_vec(M(i).gE);
-    
-    % check hyperpriors (expectations)
-    %----------------------------------------------------------------------
-    if isempty(M(i).hE), M(i).hE = sparse(length(M(i).Q),1); end
-    if isempty(M(i).gE), M(i).gE = sparse(length(M(i).R),1); end
-    
-    % check hyperpriors (covariances)
-    %----------------------------------------------------------------------
-    try, M(i).hC*M(i).hE; catch, M(i).hC = speye(length(M(i).hE))*256; end
-    try, M(i).gC*M(i).gE; catch, M(i).gC = speye(length(M(i).gE))*256; end
-    
-    if isempty(M(i).hC), M(i).hC = speye(length(M(i).hE))*256; end
-    if isempty(M(i).gC), M(i).gC = speye(length(M(i).gE))*256; end
-    
-    % check Q and R (precision components)
-    %======================================================================
-
-    
-    % check components and assume i.i.d if not specified
-    %----------------------------------------------------------------------
-    if length(M(i).Q) > length(M(i).hE)
-        M(i).hE = sparse(length(M(i).Q),1);
-    end
-    if length(M(i).Q) < length(M(i).hE)
-        M(i).Q  = {speye(M(i).l,M(i).l)};
-        M(i).hE = M(i).hE(1);
-    end
-    if length(M(i).R) > length(M(i).gE)
-        M(i).gE = sparse(length(M(i).R),1);
-    end
-    if length(M(i).R) < length(M(i).gE)
-        M(i).R  = {speye(M(i).n,M(i).n)};
-        M(i).gE = M(i).gE(1);
-    end
-    
-    % check consistency and sizes (Q)
-    %----------------------------------------------------------------------
-    for j = 1:length(M(i).Q)
-        if length(M(i).Q{j}) ~= M(i).l
-            errordlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
-        end
-    end
-    
-    % check consistency and sizes (R)
-    %----------------------------------------------------------------------
-    for j = 1:length(M(i).R)
-        if length(M(i).R{j}) ~= M(i).n
-            errordlg(sprintf('wrong size; M(%d).R{%d}',i,j))
-        end
-    end
-    
-    % check V and W (expansion point for precisions)
-    %======================================================================
-
+ 
     % check V and assume unit precision if improperly specified
     %----------------------------------------------------------------------
+    if isvector(M(i).V), M(i).V = diag(M(i).V); end
     if length(M(i).V) ~= M(i).l
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
@@ -336,15 +222,10 @@ for i = 1:g
             M(i).V = speye(M(i).l,M(i).l);
         end
     end
-    
-    % remove fixed components if hyperparameters exist
-    %----------------------------------------------------------------------
-    if ~isempty(M(i).hE)
-        M(i).V = sparse(M(i).l,M(i).l);
-    end
                 
     % check W and assume unit precision if improperly specified
     %----------------------------------------------------------------------
+    if isvector(M(i).W), M(i).W = diag(M(i).W); end
     if length(M(i).W) ~= M(i).n
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
@@ -352,13 +233,19 @@ for i = 1:g
             M(i).W = speye(M(i).n,M(i).n);
         end
     end
-    
-    % remove fixed components if hyperparameters exist
-    %----------------------------------------------------------------------
-    if ~isempty(M(i).gE)
-        M(i).W = sparse(M(i).n,M(i).n);
+end
+
+
+% check restiction of precision for action (gain)
+%==========================================================================
+try, M(1).U;  catch, M(1).U = []; end
+if isvector(M(1).U), M(1).U = diag(M(1).U); end
+if length(M(1).U) ~= M(1).l
+    try
+        M(1).U = speye(M(1).l,M(1).l)*M(1).U(1);
+    catch
+        M(1).U = speye(M(1).l,M(1).l)*exp(2);
     end
-        
 end
 
  
@@ -381,15 +268,9 @@ try M(1).E.dt; catch M(1).E.dt = 1; end
 %--------------------------------------------------------------------------
 try M(1).E.d;  catch, if nx, M(1).E.d = 2;  else M(1).E.d = 0;  end, end
 try M(1).E.n;  catch, if nx, M(1).E.n = 6;  else M(1).E.n = 0;  end, end
-
-M(1).E.d = min(M(1).E.d,M(1).E.n);
  
-% number of iterations
-%--------------------------------------------------------------------------
-try M(1).E.nD; catch, if nx, M(1).E.nD = 1;  else M(1).E.nD = 8; end, end
-try M(1).E.nE; catch,        M(1).E.nE = 1;  end
-try M(1).E.nM; catch,        M(1).E.nM = 8;  end
-try M(1).E.nN; catch,        M(1).E.nN = 16; end
+M(1).E.d = min(M(1).E.d,M(1).E.n);
+
  
 % checks on smoothness hyperparameter
 %==========================================================================
@@ -401,5 +282,3 @@ for i = 1:g
     if ~isscalar(M(i).sv), M(i).sv = M(1).E.s; end
     if ~isscalar(M(i).sw), M(i).sw = M(1).E.s; end
 end
-
-

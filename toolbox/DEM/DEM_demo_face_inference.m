@@ -17,12 +17,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_face_inference.m 3655 2009-12-23 20:15:34Z karl $
+% $Id: DEM_demo_face_inference.m 4626 2012-01-24 20:55:59Z karl $
 
 
 % temporal smoothness - s.d. of kernel
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics'); 
 G(1).E.s = 1;
  
 % level 1
@@ -49,20 +48,16 @@ G(2).V  = exp(16);                          % error precision (cause)
 % The data: Data [stimuli] are created by integrating the model for some
 % input.  The input here is simply a bump [Gaussian] function.
 %==========================================================================
-M       = G;                              % make M the canonical model
-N       = 64;                             % length of data sequence
+M       = G;                                % make M the canonical model
+N       = 64;                               % length of data sequence
  
 % create innovations & add causes
 %--------------------------------------------------------------------------
-c       = exp(-([1:N] - 16).^2/(2.^2));     % this is the Gaussian cause
+c       = exp(-((1:N) - 16).^2/(2.^2));     % this is the Gaussian cause
  
 % integrate G to obtain causal (v) and hidden states (x)
 %--------------------------------------------------------------------------
 DEM     = spm_DEM_generate(G,c,P);
- 
-% plot causal and hidden states
-%--------------------------------------------------------------------------
-spm_DEM_qU(DEM.pU)
  
  
 % invert
@@ -72,6 +67,13 @@ DEM.M(1).W = exp(8);
 DEM.M(2).V = exp(2);
 DEM        = spm_DEM(DEM);
  
+% render true and perceived stimuli in move format
+%--------------------------------------------------------------------------
+
+% plot causal and hidden states
+%--------------------------------------------------------------------------
+spm_DEM_qU(DEM.qU,DEM.pU)
+
 % render true and perceived stimuli in move format
 %--------------------------------------------------------------------------
 subplot(4,4,11)

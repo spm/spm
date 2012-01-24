@@ -16,9 +16,8 @@
  
 % non-hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-Fgraph    = spm_figure('GetWin','Graphics');
-clear M
- 
+spm_figure('GetWin','Figure 1');
+
 % get model parameters and initial states
 %--------------------------------------------------------------------------
 x      = [4 4 28]';
@@ -91,8 +90,7 @@ SIM     = spm_DEM_generate(M,U);
  
 % graphics
 %--------------------------------------------------------------------------
-figure(Fgraph)
- 
+spm_figure('GetWin','Figure 1'); 
 spm_DEM_qU(SIM.pU)
  
 subplot(2,2,3)

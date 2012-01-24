@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: ADEM_observe.m 4626 2012-01-24 20:55:59Z karl $
  
  
 % hidden causes and states
@@ -61,13 +61,12 @@ M(1).x.x = [pi/2; pi/2; 0; 0];                % physical states
 M(1).x.a = sparse(1,1,3,n,1) - 4;             % attractor states
 M(1).V   = exp(4);                            % error precision
 M(1).W   = exp(8);                            % error precision
-M(1).Ra  = 1:4;                               % restriction
 M(1).pE  = P;
  
  
 % level 2: not used
 %--------------------------------------------------------------------------
-M(2).v  = [0];                                % inputs
+M(2).v  = 0;                                  % inputs
 M(2).V  = exp(8);
  
 % generative model
@@ -80,6 +79,7 @@ G(1).g  = 'spm_gx_adem_write';
 G(1).x  = [pi/2; pi/2; 0; 0];                 % physical states
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(16);                            % error precision
+G(1).U  = sparse(1:4,1:4,exp(4),8,8);         % restriction
  
 % second level
 %--------------------------------------------------------------------------
@@ -91,7 +91,7 @@ G(2).V  = exp(16);
 % generate and invert
 %==========================================================================
 N       = 256;                                % length of data sequence
-t       = [1:N]*8;
+t       = (1:N)*8;
 DEM.G   = G;
 DEM.M   = M;
 DEM.C   = sparse(2,N);
@@ -111,7 +111,8 @@ title('click on finger for movie','FontSize',16)
 %==========================================================================
 ADEM          = DEM;
 ADEM.C        = DEM.qU.a{2};
-ADEM.M(1).V   = diag(exp([-8 -8 -8 -8 8 8 8 8]));
+ADEM.M(1).V   = exp([-8 -8 -8 -8  8  8  8  8]);  % remove proprioception
+ADEM.G(1).U   = 0;                               % remove motor control
 ADEM.M(1).x.x = DEM.M(1).x.x;
 ADEM.M(1).x.a = DEM.M(1).x.a*0;
 ADEM          = spm_ADEM(ADEM);
@@ -318,7 +319,7 @@ axis square tight
 % Simulated ERP
 %==========================================================================
  
-% simulate omission
+% simulate deviant
 %--------------------------------------------------------------------------
 T          = 132;
 C          = DEM.qU.a{2};

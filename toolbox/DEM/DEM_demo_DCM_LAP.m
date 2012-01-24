@@ -11,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: DEM_demo_DCM_LAP.m 4626 2012-01-24 20:55:59Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================
@@ -88,13 +88,14 @@ spm_DEM_qU(SIM.pU)
 DCM.M       = M;
 DCM.M(2).v  = 0;
  
-% Specify hyper-priors on precisions
+% allow (only) neuronal [x, s, f, q, v] hidden states to fluctuate
 % -------------------------------------------------------------------------
-W           = exp(spm_vec(sparse(1:n,1,(6 - 16),n,5) + 16));
+W           = ones(n,1)*exp([10 16 16 16 16]);
 DCM.M(1).xP = exp(6);
 DCM.M(1).V  = exp(6);        % prior log precision (noise)
 DCM.M(1).W  = diag(W);       % fixed precision (hidden-state)
 DCM.M(2).V  = exp(16);       % fixed precision (hidden-cause)
+
  
 % Add data
 % -------------------------------------------------------------------------

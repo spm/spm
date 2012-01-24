@@ -12,11 +12,10 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_4.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: ADEM_mountaincar_loss_4.m 4626 2012-01-24 20:55:59Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
-clear
  
 % parameters of generative process
 %--------------------------------------------------------------------------
@@ -97,7 +96,7 @@ DEM     = spm_ADEM(DEM);
  
 % inference
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Graphics');
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.qU)
  
 % true and inferred position
