@@ -8,14 +8,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_song_priors.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('GetWin','Figure 1');
-clear M
- 
+
 % timing
 %--------------------------------------------------------------------------
 N        = 128;                      % length of stimulus (bins)
@@ -63,7 +61,6 @@ M(2).W   = exp(8);
 % create innovations & add causes
 %--------------------------------------------------------------------------
 DEM      = spm_DEM_generate(M,N);
-spm_DEM_qU(DEM.pU)
  
 % DEM estimation and display
 %==========================================================================
@@ -91,22 +88,20 @@ DEMa   = spm_DEM(DEMa);
 DEMb   = spm_DEM(DEMb);
 DEMc   = spm_DEM(DEMc);
 
-spm_DEM_qU(DEMc.qU,DEMc.pU)
-
 
 % show songs and prediction error (ERP)
 %==========================================================================
-spm_figure('Getwin','Figure 2');
-clf, colormap('pink')
+spm_DEM_qU(DEMc.qU,DEMc.pU)
+colormap('pink')
 
 % Sonograms
 %--------------------------------------------------------------------------
-subplot(2,2,1)
+subplot(3,2,5)
 spm_DEM_play_song(DEMc.pU ,N*dt);
 title('simulus','Fontsize',18)
 axis square
 
-subplot(2,2,2)
+subplot(3,2,6)
 spm_DEM_play_song(DEMc.qU ,N*dt);
 title('percept','Fontsize',18)
 axis square
@@ -120,29 +115,29 @@ clf, colormap('pink')
 
 subplot(3,2,1)
 spm_DEM_play_song(DEMc.qU ,N*dt);
-title('percept','Fontsize',18)
+title('percept','Fontsize',16)
  
 subplot(3,2,3)
 spm_DEM_play_song(DEMa.qU,N*dt);
-title('no structural priors','Fontsize',18)
+title('no structural priors','Fontsize',16)
  
 subplot(3,2,5)
 spm_DEM_play_song(DEMb.qU,N*dt);
-title('no dynamical priors','Fontsize',18)
+title('no dynamical priors','Fontsize',16)
 
  
 % LFPs
 %--------------------------------------------------------------------------
 subplot(3,2,2)
 spm_DEM_EEG(DEMc,dt,[1 2],1);
-title('LFP','Fontsize',18)
+title('LFP','Fontsize',16)
  
 subplot(3,2,4)
 spm_DEM_EEG(DEMa,dt,[1 2],1);
-title('LFP','Fontsize',18)
+title('LFP','Fontsize',16)
  
 subplot(3,2,6)
 spm_DEM_EEG(DEMb,dt,[1 2],1);
-title('LFP','Fontsize',18)
+title('LFP','Fontsize',16)
 drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')
 

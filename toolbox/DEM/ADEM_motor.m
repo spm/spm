@@ -10,11 +10,10 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_motor.m 4628 2012-01-27 20:51:41Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
-clear
 M(1).E.linear = 1;                          % linear model
 M(1).E.s      = 1/2;                        % smoothness
 M(1).E.n      = 4;                          % smoothness

@@ -30,30 +30,24 @@ M(1).R  = {speye(M(1).n,M(1).n)};
 M(2).l  = 1;                                  % inputs
 M(2).V  = exp(16);                            % very precise causes
  
- 
+
 % and generate data
 %==========================================================================
 N       = 32;                                 % length of data sequence
 U       = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause
 DEM     = spm_DEM_generate(M,U,{P},{8,32},{32});
- 
-% display
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
-spm_DEM_qU(DEM.pU)
- 
- 
+
+
 % invert model
 %==========================================================================
 DEM.U   = U;
 DEM     = spm_DEM(DEM);
- 
 
 % overlay true values
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM.qU,DEM.pU)
- 
- 
+
+
 % EM: spm_nlsi_GN
 %==========================================================================
 G.f   =  inline('P.f*x + P.h*u','x','u','P','M');
@@ -104,7 +98,7 @@ subplot(2,2,4)
 bar([tP qP eP])
 axis square
 legend('true','DEM','EM')
-title('parameters')
+title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(DEM.qP.C(ip,ip)));
 ce    = 1.64*sqrt(diag(Cp(ip,ip)));
@@ -114,10 +108,10 @@ for i = 1:length(qP)
     plot([i i] + 1/4, eP(i) + [-1 1]*ce(i),'LineWidth',8,'color','r')
 end
 hold off
+ 
 
- 
 return
- 
+
 
 % repeat for several realizations
 %==========================================================================
@@ -149,7 +143,8 @@ for i = 1:8
     EH(i) = Eh(1);
 end
  
-clf
+spm_figure('GetWin','Figure 1');
+
 subplot(2,1,1)
 bar(tP,'FaceColor',[1 1 1]*.9,'EdgeColor',[1 1 1]*.9)
 hold on
@@ -158,6 +153,6 @@ hold off
 axis square
 set(gca,'XLim',[0 3])
 legend('true','EM','DEM')
-title('conditional estimates')
+title('conditional estimates','FontSize',16)
 
 

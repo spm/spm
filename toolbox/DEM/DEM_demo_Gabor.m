@@ -9,9 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_Gabor.m 4625 2012-01-24 20:53:10Z karl $
-
-spm_figure('GetWin','Figure 1');
+% $Id: DEM_demo_Gabor.m 4628 2012-01-27 20:51:41Z karl $
  
 % temporal correlations
 %--------------------------------------------------------------------------
@@ -39,6 +37,8 @@ U       = sparse(3,T);
 U(1,:)  = 4*sin(pi*[1:T]/16);
 U(3,:)  = 2*sin(pi*[1:T]/8);
 DEM     = spm_DEM_generate(M,U);
+
+spm_figure('GetWin','Figure 1');
 spm_DEM_qU(DEM.pU)
  
 subplot(2,2,4)
@@ -67,7 +67,7 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 1');
+spm_figure('GetWin','Figure 2');
 
 subplot(2,2,1)
 imagesc(DEM.Y)

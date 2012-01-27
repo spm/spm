@@ -66,7 +66,7 @@ plot([1:T],t_x,'r-',[1:T],d_x,'k-',[1:T],p_x,'k-.',[1:T],e_x,'k:')
 legend({'true','DEM','PF','EKF'})
 axis square
 xlabel('time')
-title('Conditional expectation (hidden states)')
+title('Conditional expectation (hidden states)','FontSize',16)
  
 % graphics conditional covariance
 %--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ plot(1:T,Cd,'k-',1:T,Cp,'k-.',2:T,Ck,'k:')
 legend({'DEM','PF','EKF'})
 axis square
 xlabel('time')
-title('Conditional covariance (hidden states)')
+title('Conditional covariance (hidden states)','FontSize',16)
  
  
 return
@@ -105,11 +105,12 @@ for i = 1:8
     
 end
  
-clf
+spm_figure('GetWin','Figure 2');
+
 subplot(2,1,1)
 semilogy(SSE','k:'), hold on
 semilogy(SSE','k.','Markersize',16), hold off
 set(gca,'Xtick',[1 2 3],'XLim',[0 4])
 set(gca,'Xticklabel',{'EKF','PF','DEM'})
-title('sum of squared error (hidden states)')
+title('sum of squared error (hidden states)','FontSize',16)
 axis square

@@ -6,14 +6,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_surprise.m 3884 2010-05-11 19:43:53Z karl $
+% $Id: ADEM_lorenz_surprise.m 4628 2012-01-27 20:51:41Z karl $
  
 
 % dynamics and parameters
 %-------------------------------------------------------------------------
-spm_figure('GetWin','Cost and surprise');
-clear
-
 DEMO     = 0;                          % switch for demo
 LOR      = 1;                          % Lorenz vs a linear system
  
@@ -37,10 +34,7 @@ else
     W   = diag([32; 32; exp(8)]);
 end
  
-% P(1): Prandtl number
-% P(2): 8/3
-% P(3): Rayleigh number
- 
+
 % level 1
 %--------------------------------------------------------------------------
 G(1).x  = x0;
@@ -102,11 +96,10 @@ end
  
 % axes and trajectory
 %--------------------------------------------------------------------------
-if LOR
-    z = 24;
-else
-    z = 1;
-end
+spm_figure('GetWin','DEM');
+
+if LOR, z = 24; else, z = 1; end
+
 i    = 3;
 j    = 1:3;
 j(i) = [];

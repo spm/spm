@@ -3,15 +3,17 @@
 % attractor world such that it can learn the three parameters of the Lorenz
 % system. It is then placed in a test world with a fixed point attractor to
 % see if it has remembered the chaotic dynamics it learnt in the training
-% environment (in DEMO mode previously optimised models are loaded)
-
+% environment
+%__________________________________________________________________________
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+ 
+% Karl Friston
+% $Id: ADEM_lorenz.m 4628 2012-01-27 20:51:41Z karl $
 
 % generative model
 %==========================================================================
-clear
-DEMO     = 0;                          % switch for demo
-G(1).E.s = 1/4;                        % smoothness
-G(1).E.n = 6;                          % smoothness
+G(1).E.s = 1/2;                        % smoothness
+G(1).E.n = 4;                          % smoothness
 G(1).E.d = 2;                          % smoothness
 G(1).E.linear = 3;                     % nonlinear
 
@@ -106,21 +108,15 @@ drawnow
 % recognition model: learn the controlled environmental dynamics
 %==========================================================================
 
-
 % make a naive model (M)
 %--------------------------------------------------------------------------
 M       = G;
 M(1).f  = inline(fL ,'x','v','P');
 M(1).g  = inline('x','x','v','P');
 M(1).pE = PM;
-M(1).pC = eye(3,3)*4;
-
+M(1).pC = 32;
 
 % teach naive model by exposing it to a controlled environment (G)
-%--------------------------------------------------------------------------
-clear DEM
-
-% length of realization
 %--------------------------------------------------------------------------
 n     = 256;
 C     = sparse(n,1);
@@ -130,38 +126,21 @@ DEM.G = G;
 DEM.C = C;
 DEM.U = C;
 
-% optimise recognition model
+% optimise recognition model and show results of learning
 %--------------------------------------------------------------------------
-if DEMO
-    for i = 1:16
-        DEM = spm_ADEM(DEM);
-        DEM.M(1).pE = DEM.qP.P{1};
-        DEM.M(1).x  = DEM.qU.x{1}(:,end);
-        DEM.M(2).a  = DEM.qU.a{2}(:,end);
-    end
-    
-    save DEM_lorenz G DEM
-else
-    try
-        load DEM_lorenz
-    catch
-        disp({'sorry; the previously prepared .mat file is not compatible';
-              'with your version of matlab - run this routine with DEMO = 1'})
-        return
-    end
-end
+DEM    = spm_ADEM(DEM);
 
-spm_figure('GetWin','DEM');
+spm_figure('GetWin','Figure 2');
 spm_DEM_qP(DEM.qP,DEM.pP)
-spm_DEM_qU(DEM.qU)
 
 
 % replace priors with learned conditional expectation and plot
 %--------------------------------------------------------------------------
-M             = DEM.M;
-M(1).E.linear = 3;
-
 spm_figure('GetWin','Figure 1');
+
+M       = DEM.M;
+M(1).pE = DEM.qP.P{1};
+
 subplot(3,2,5)
 spm_fp_display_density(M,x);
 xlabel('position','Fontsize',12)
@@ -186,31 +165,24 @@ drawnow
 N       = 256;
 C       = spm_conv(randn(1,N)*4,8);
 
-% prescribe desired motion directly with true parameters
-%--------------------------------------------------------------------------
-M(1).pE = PL;
-M(1).pC = sparse(3,3);
-
 % create uncontrolled environment: A (with action)
 %--------------------------------------------------------------------------
-A       = G;
-A(1).f  = inline(f0 ,'x','v','a','P');       % no action
-A(1).f  = inline(fA ,'x','v','a','P');       % with action
-A(1).g  = inline('x','x','v','a','P');
-A(1).pE = P0;
-A(1).pC = 0;
+G(1).f  = inline(f0 ,'x','v','a','P');       % no action
+G(1).f  = inline(fA ,'x','v','a','P');       % with action
+G(1).pE = P0;
 
 % make the recognition model confident about its predictions
 %--------------------------------------------------------------------------
 M(1).x  = G(1).x;
-M(1).W  = exp(12);
 M(1).V  = exp(8);
-A(1).W  = exp(16);
+M(1).W  = exp(8);
+M(1).pC = [];
+
+G(1).W  = exp(16);
 
 % create DEM structure
 %--------------------------------------------------------------------------
-clear DEM
-DEM.G   = A;
+DEM.G   = G;
 DEM.M   = M;
 DEM.C   = sparse(1,N);                       % no perturbation
 DEM.C   = C;                                 % with perturbation
@@ -229,10 +201,8 @@ ylabel('velocity','Fontsize',12)
 title('learnt','Fontsize',16)
 
 
-
-
-
 return
+
 
 % Notes: alternative specification of Lorenz system
 %==========================================================================

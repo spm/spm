@@ -19,7 +19,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_pursuit.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_pursuit.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % hidden causes and states
@@ -135,6 +135,7 @@ subplot(2,2,4), title('Unexpected','FontSize',16)
 %   g(4) - target location (visual) - intrinsic coordinates (polar)
 %---------------------------------------------------------------------
 spm_figure('GetWin','Figure 3');
+
 iE    = [D:(N - D)];
 iU    = iE + D;
 t     = [1:length(iE)]*8;

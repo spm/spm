@@ -12,7 +12,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_SCK.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_hdm_SCK.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % create model and generate data
@@ -123,17 +123,17 @@ spm_figure('GetWin','spm_SCK'); spm_DEM_qU(SCK.qU,LAP.pU)
 % and parameters
 %--------------------------------------------------------------------------
 pP1    = spm_vec(LAP.M(1).pE);
-qP1    = spm_vec(LAP.pP.P);
-qP2    = spm_vec(LAP.qP.P);
-qP3    = spm_vec(DEM.qP.P);
-qP4    = spm_vec(SCK.qP.P);
+qP1    = spm_vec(LAP.pP.P) - pP1;
+qP2    = spm_vec(LAP.qP.P) - pP1;
+qP3    = spm_vec(DEM.qP.P) - pP1;
+qP4    = spm_vec(SCK.qP.P) - pP1;
 
  
 spm_figure('GetWin','spm_DEM'); subplot(2,2,4)
-bar([pP1 qP1 qP2 qP3 qP4])
+bar([qP1 qP2 qP3 qP4])
 axis square
-legend('Prior','True','LAP','DEM','SCK')
-title('parameters (minus true)','FontSize',16)
+legend('True','LAP','DEM','SCK')
+title('parameters (minus prior)','FontSize',16)
 
 
 spm_figure('GetWin','spm_SCK'); subplot(2,1,2)

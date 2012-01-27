@@ -48,7 +48,7 @@ subplot(2,2,4)
 bar([tP qP])
 axis square
 legend('true','DEM')
-title('parameters')
+title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(DEM.qP.C(ip,ip)));
 hold on

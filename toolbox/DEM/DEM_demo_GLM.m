@@ -40,35 +40,35 @@ subplot(3,2,1)
 c = sqrt(qH.C)*spm_invNcdf(1 - 0.05);
 bar(full(exp(-qH.h{1})),'c')
 line([1 1],exp(-([-1 1]*c + qH.h{1})),'LineWidth',4,'Color','r');
-axis square; title('DEM hyperparameter estimates')
+axis square; title('DEM hyperparameter estimates','FontSize',16)
 a = axis;
 
 subplot(3,2,2)
 c = sqrt(inv(W))*spm_invNcdf(1 - 0.05);
 bar(full(h),'c')
 line([1 1],exp(-([-1 1]*c - log(h))),'LineWidth',4,'Color','r');
-axis square; title('ReML hyperparameter estimates')
+axis square; title('ReML hyperparameter estimates','FontSize',16)
 axis(a)
  
 % and causes
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 bar(qU.v{2})
-axis square; title('DEM parameter estimates')
+axis square; title('DEM parameter estimates','FontSize',16)
 a = axis;
 
 subplot(3,2,4)
 bar(V)
-axis square; title('ReML parameter estimates')
+axis square; title('ReML parameter estimates','FontSize',16)
 axis(a)
  
 subplot(3,2,5)
 imagesc(qU.C{1})
-axis square; title('DEM Cq')
+axis square; title('DEM Cq','FontSize',16)
 
 subplot(3,2,6)
 imagesc(C)
-axis square; title('ReML Cq')
+axis square; title('ReML Cq','FontSize',16)
 
  
 % transpose model: states->parameters to test E-Step
@@ -98,32 +98,34 @@ subplot(3,2,1)
 c = sqrt(qH.C)*spm_invNcdf(1 - 0.05);
 bar(full(exp(-qH.h{1})),'c')
 line([1 1],exp(-([-1 1]*c + qH.h{1})),'LineWidth',4,'Color','r');
-axis square; title({'DEM hyperparameter estimates';'transposed problem'})
+axis square
+title({'DEM hyperparameter estimates';'transposed problem'},'FontSize',16)
 a = axis;
 
 subplot(3,2,2)
 c = sqrt(inv(W))*spm_invNcdf(1 - 0.05);
 bar(full(h),'c')
 line([1 1],exp(-([-1 1]*c - log(h))),'LineWidth',4,'Color','r');
-axis square; title({'ReML hyperparameter estimates';'transposed problem'})
+axis square
+title({'ReML hyperparameter estimates';'transposed problem'},'FontSize',16)
 axis(a)
 
 % and causes (i.e., parameters)
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 bar(qP.P{1}')
-axis square; title('DEM parameter estimates')
+axis square; title('DEM parameter estimates','FontSize',16)
 a = axis;
 
 subplot(3,2,4)
 bar(V)
-axis square; title('ReML parameter estimates')
+axis square; title('ReML parameter estimates','FontSize',16)
 axis(a)
  
 subplot(3,2,5)
 imagesc(qP.C)
-axis square; title('DEM Cq')
+axis square; title('DEM Cq','FontSize',16)
 
 subplot(3,2,6)
 imagesc(kron(C,eye(N)))
-axis square; title('ReML Cq')
+axis square; title('ReML Cq','FontSize',16)

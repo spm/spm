@@ -35,6 +35,6 @@ u     = DEM.pU.v{2};
 plot(v'*pinv(full(v'))*u')
 hold on
 plot(u',':')
-title({'real and rotated causes','Factor analysis'})
+title({'real and rotated causes','Factor analysis'},'FontSize',16)
 axis square
 grid on

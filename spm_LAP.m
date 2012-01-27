@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_LAP.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % find or create a DEM figure
@@ -300,7 +300,10 @@ iup    = (1:(nu + np));
 ib     = (1:(np + nb)) + nu;
  
  
- 
+% number of iterations for convergence
+%--------------------------------------------------------------------------
+convergence = -4;
+
 % Iterate Laplace scheme
 %==========================================================================
 F      = -Inf;
@@ -713,8 +716,7 @@ for iN = 1:nN
         
         % convergence
         %------------------------------------------------------------------
-        if Fe - F(iN) < 1e-2, convergence = 1; end
-        if iN < 5,            convergence = 0; end
+        if Fe - F(iN) < 1, convergence = convergence + 1; end
  
         % save free-energy
         %------------------------------------------------------------------
@@ -734,7 +736,7 @@ for iN = 1:nN
  
     % Convergence
     %======================================================================
-    if convergence; break, end
+    if convergence > 0; break, end
     
     % otherwise save conditional moments (for each time point)
     %======================================================================

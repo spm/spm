@@ -26,15 +26,15 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_deviance.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: DEM_demo_MMN_deviance.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % Create the generative model
 %==========================================================================
-clear
  
 % level 1
 %--------------------------------------------------------------------------
+M.E.s   = 1;                                 % temporal smoothness
 P       = [-1  4;                            % parameters of motion or
            -2 -1]/16;                        % Jacobian
  
@@ -61,13 +61,9 @@ pst     = [1:N]*dt*1000;                     % time bin (ms)
 C       = exp(-([1:N] - 20).^2/(8.^2));      % amplitude
 U       = [C; (zeros(1,N))];                 % pitch
  
- 
- 
+
 % Difference waveforms under different levels of deviance (from zero)
 %==========================================================================
-spm_figure('GetWin','Figure 1');
-M(1).E.s = 1;                                % temporal smoothness
- 
 DEM   = {};
 D     = [0 0.75 1 1.25 1.5];
 n     = length(D);
@@ -81,8 +77,6 @@ for i = 1:n
     
     % solve (under prior expectations about a standard stimulus)
     %----------------------------------------------------------------------
-    spm_figure('GetWin','DEM');
-    
     DEM{i}.U = U;
     DEM{i}   = spm_DEM(DEM{i});
     
@@ -91,6 +85,7 @@ end
 % graphics (ERPs at different levels)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');
+
 for i = 1:n
     
     subplot(n,2,(i - 1)*2 + 1)
@@ -104,26 +99,23 @@ for i = 1:n
     drawnow
 end
  
- 
+
 % graphics (difference waveforms)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
 for i = 1:n
     MMN(i,:) = sum(qx{i}{1}) - sum(qx{1}{1});
     leg{i}   = sprintf('deviance: %.2f',D(i));
 end
- 
+
+spm_figure('GetWin','Figure 2');
+
 subplot(2,1,1), plot(pst,MMN), legend(leg), drawnow
 title('Difference waveforms under different levels of deviance','FontSize',16)
 xlabel('prestimulus time (ms)','FontSize',12)
  
  
- 
- 
 % Difference waveforms under different levels of confidence (D)
 %==========================================================================
-spm_figure('GetWin','DEM');
-    
 DEM   = {};
 D     = [0:4] - 4;
 n     = length(D);
@@ -138,7 +130,6 @@ for i = 1:n
     C(1,:)   = U(1,:);
     C(2,:)   = U(2,:);
     DEM{i}   = spm_DEM_generate(M,C,P,{16 16},{16});
-    
     
     % solve and record sensory prediction errors
     %----------------------------------------------------------------------
@@ -164,11 +155,12 @@ end
  
 % graphics (differences)
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
 for i = 1:n
     MMN(i,:) = sum(qd{i}{1}) - sum(qs{1}{1});
     leg{i}   = sprintf('log-precision: %.2f',D(i));
 end
+
+spm_figure('GetWin','Figure 2');
 
 subplot(2,1,2), plot(pst,MMN), legend(leg)
 title('Difference waveforms under different levels of confidence','FontSize',16)

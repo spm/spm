@@ -9,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_writing.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_writing.m 4628 2012-01-27 20:51:41Z karl $
 
 
 % hidden causes and states
@@ -77,7 +77,7 @@ G(1).g  = 'spm_gx_adem_write';
 G(1).x  = [pi/2; pi/2; 0; 0;];                % physical states
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(16);                            % error precision
-G(1).U  = [exp(2)*[1 1 1 1] 0 0 0 0];         % action precision
+G(1).U  = [1 1 1 1 0 0 0 0];                  % action precision
 
 % second level
 %--------------------------------------------------------------------------

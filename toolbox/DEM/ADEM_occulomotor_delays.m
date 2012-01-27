@@ -16,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occulomotor_delays.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_occulomotor_delays.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % hidden causes and states
@@ -59,7 +59,7 @@ M(1).W   = exp(8);                            % error precision
  
 % level 2:
 %--------------------------------------------------------------------------
-M(2).v  = [0; 0];                                  % inputs
+M(2).v  = [0; 0];                             % inputs
 M(2).V  = exp(0);
  
  

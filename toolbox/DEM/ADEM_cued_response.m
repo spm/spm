@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_cued_response.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % hidden causes and states
@@ -142,7 +142,7 @@ DEM.G = G;
 DEM.M = M;
 DEM.C = C;
 
-SIM   = 'affordance'
+SIM   = 'salience'
 D     = 2 + (1:6)/2;
 for i = 1:length(D)
     

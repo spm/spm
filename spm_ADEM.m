@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: spm_ADEM.m 4628 2012-01-27 20:51:41Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -153,6 +153,12 @@ Fdem = spm_figure('GetWin','DEM');
 d    = M(1).E.d + 1;                   % embedding order of q(v)
 n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
 s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
+
+try
+    m = M(1).E.m;                      % embedding order action
+catch
+    m = n;
+end
  
 % number of states and parameters - generative model
 %--------------------------------------------------------------------------
@@ -524,7 +530,7 @@ for iE = 1:nE
         pu.x(1:n) = u((1:n) + n);
         qu.x(1:n) = u((1:n) + n + n + n + n);
         qu.v(1:d) = u((1:d) + n + n + n + n + n);
-        qu.a(1:n) = u((1:n) + n + n + n + n + n + d + d);
+        qu.a(1:m) = u((1:m) + n + n + n + n + n + d + d);
         
  
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)

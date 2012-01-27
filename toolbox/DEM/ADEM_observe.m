@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_observe.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % hidden causes and states
@@ -51,7 +51,8 @@ n = size(P,2);                                % number of attractors
 M(1).E.s = 1/2;                               % smoothness
 M(1).E.n = 4;                                 % order of 
 M(1).E.d = 2;                                 % generalised motion
- 
+
+
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
 M(1).f   = 'spm_fx_dem_observe';              % plant dynamics

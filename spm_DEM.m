@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_DEM.m 4628 2012-01-27 20:51:41Z karl $
 
 
 
@@ -494,7 +494,7 @@ for iE = 1:nE
             f     = K*dFdu  + D*u;
             dfdu  = K*dFduu + D;
             
-            if iD == 1
+            if iD == 1 && isfield(DEM,'E')
                 DEM.E(:,iY) = eig(full(dfdu));
             end
             

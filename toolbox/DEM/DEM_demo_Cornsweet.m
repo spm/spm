@@ -11,12 +11,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4339 2011-06-02 13:04:49Z karl $
+% $Id: DEM_demo_Cornsweet.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % Illustrate the Cornsweet effect
 %==========================================================================
-clear
 spm_figure('GetWin','Figure 1');
 colormap((1:255)'*[1 1 1]/255)
  

@@ -19,7 +19,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_salience.m 4628 2012-01-27 20:51:41Z karl $
 
 
 % hidden causes and states
@@ -40,12 +40,13 @@
 %   g(4) - retinal input - channel 2
 %   g(5) - ...
 %--------------------------------------------------------------------------
-DEMO = 1;
+
 
 
 % mapp images and get hypotheses
 %--------------------------------------------------------------------------
 global STIM
+DEMO = 0;
 
 try
     
@@ -58,6 +59,7 @@ try
     STIM.S{3}   = spm_vol('face_inv.nii');
     
 catch
+    
     errordlg('please change current directory to DEM toolbox')
 end
 
@@ -87,7 +89,7 @@ x.x    = -log(nh)*ones(nh,1);                 % hypotheses
 M(1).E.s = 1/2;                               % smoothness
 M(1).E.n = 3;                                 % order of
 M(1).E.d = 2;                                 % generalised motion
-
+M(1).E.m = 1;                                 % and action
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
@@ -139,10 +141,7 @@ DEM.U = sparse(2,N);
 
 if DEMO
     
-    load ADEM_saccades
-    
-else
-    % number of saccades
+    % (k) saccades
     %----------------------------------------------------------------------
     for k = 1:8
         
@@ -178,11 +177,16 @@ else
     end
     
     % save
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     save ADEM_saccades ADEM
     
 end
 
+% load
+%--------------------------------------------------------------------------
+load ADEM_saccades
+    
+    
 % create movie in extrinsic and intrinsic coordinates
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');
@@ -198,6 +202,7 @@ spm_dem_search_trajectory(ADEM)
 spm_figure('GetWin','Figure 3');
 spm_dem_search_movie(ADEM)
 
+
 return
 
 
@@ -207,6 +212,7 @@ nr          = 64;
 STIM.H{1}   = spm_vol('Nefertiti_R.nii');
 M(1).x.x    = 0;
 S           = spm_salience_map(M,nr);
+
 subplot(2,1,1)
 imagesc(reshape(exp(S/6),nr,nr))
 axis image

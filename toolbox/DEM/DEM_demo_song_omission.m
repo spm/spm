@@ -16,12 +16,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_song_omission.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('GetWin','Figure 1');
  
 % timing
 %--------------------------------------------------------------------------
@@ -73,8 +72,8 @@ M(2).W   = exp(8);
 % create innovations & add causes
 %--------------------------------------------------------------------------
 DEM      = spm_DEM_generate(M,N);
-spm_DEM_qU(DEM.pU)
- 
+
+
 % DEM estimation and display
 %==========================================================================
 DEM.M(1).x = [0; 0; 8];
@@ -97,39 +96,44 @@ DEMa.Y = DEMa.pU.v{1};
 %--------------------------------------------------------------------------
 DEMa   = spm_DEM(DEMa);
 spm_DEM_qU(DEMa.qU,DEMa.pU)
- 
+
+colormap('pink')
+subplot(3,2,5)
+
+spm_DEM_play_song(DEM.qU,N*dt);
+title('percept','Fontsize',16)
  
 % show songs and prediction error (ERP)
 %==========================================================================
 spm_figure('GetWin','Figure 1');
-clf, colormap('pink')
+colormap('pink')
  
 % first stimulus
 %--------------------------------------------------------------------------
 subplot(3,2,1)
 spm_DEM_play_song(DEM.pU,N*dt);
-title('stimulus (sonogram)','Fontsize',18)
+title('stimulus (sonogram)','Fontsize',16)
  
 subplot(3,2,3)
 spm_DEM_play_song(DEM.qU,N*dt);
-title('percept','Fontsize',18)
+title('percept','Fontsize',16)
  
 subplot(3,2,5)
 spm_DEM_EEG(DEM,dt,[1 2],1);
-title('ERP (error)','Fontsize',18)
+title('ERP (error)','Fontsize',16)
 axis([1 N*dt*1000 -100 100])
  
 % first stimulus
 %--------------------------------------------------------------------------
 subplot(3,2,2)
 spm_DEM_play_song(DEMa.pU,N*dt);
-title('without last syllable','Fontsize',18)
+title('without last syllable','Fontsize',16)
  
 subplot(3,2,4)
 spm_DEM_play_song(DEMa.qU,N*dt);
-title('percept','Fontsize',18)
+title('percept','Fontsize',16)
  
 subplot(3,2,6)
 spm_DEM_EEG(DEMa,dt,[1 2],1);
-title('with omission','Fontsize',18)
+title('with omission','Fontsize',16)
 axis([1 N*dt*1000 -100 100])

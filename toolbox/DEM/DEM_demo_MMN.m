@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_MMN.m 4628 2012-01-27 20:51:41Z karl $
  
 
 % level 1
@@ -100,20 +100,24 @@ for i = 1:(n + 2);
     M(1).hE = DEM{i}.qH.h{1};            % update hyperparameter estimates
 end
 DEM   = DEM(2:end);                      % discard burn-in trial
- 
- 
+
+
+% graphics over trials
+%==========================================================================
+spm_figure('GetWin','Figure 1');
+colormap('pink')
+
 for i = 1:(n + 1)
     
     % gather trial specific parameters and precisions changes
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Figure 1');
     subplot(n + 1,3,(i - 1)*3 + 3)
     
     dP{i} = spm_vec(DEM{i}.M(1).pE) - spm_vec(DEM{end}.M(1).pE);
     qR{i} = spm_DEM_MEG(DEM{i},dt,1,1);       % prediction error (LFP)
     qR{i} = spm_DEM_EEG(DEM{i},dt,[1 2],1);   % prediction error (LFP)
     qH(i) = DEM{i}.M(1).hE;                   % and precision
-    drawnow
+    
     if i == 2, a = axis; end
  
     % plot recognition density and prediction

@@ -38,14 +38,14 @@ t      = 1:T;
 subplot(2,2,1)
 plot(t,pf_x,t,kf_x,':',t,de_x,t,tr_x)
 legend({'PF','EKF','DEM','true'})
-title('hidden state')
+title('hidden state','FontSize',16)
 axis([1 T -32 32])
 axis square
  
 subplot(2,2,2)
 plot(t,tr_x - pf_x,t,tr_x - kf_x,':',t,tr_x - de_x)
 legend({'PF','EKF','DEM'})
-title('error')
+title('error','FontSize',16)
 axis([1 T -32 32])
 axis square
  
@@ -54,4 +54,4 @@ axis square
 subplot(2,2,3)
 imagesc([1:T],xQ,Q)
 axis xy square
-title('sample density')
+title('sample density','FontSize',16)

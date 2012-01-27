@@ -86,7 +86,7 @@ function SCKS = spm_SCK(SCKS)
 % Copyright (C) - Martin Havlicek
  
 % Martin Havlicek
-% $Id: spm_SCK.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_SCK.m 4628 2012-01-27 20:51:41Z karl $
 % check model specification
 %--------------------------------------------------------------------------
 M  = SCKS.M;
@@ -224,10 +224,10 @@ xt   = repmat([zeros(1,nx) 1],1,nPts)';
 %--------------------------------------------------------------------------
 try, ItolVB = M(1).VB.Itol;  catch,  ItolVB = 1e-4;      end
 try, Itol   = M(1).E.Itol;   catch,  Itol   = 1e-3;      end
-try, RUN    = M(1).E.nN;     catch,  RUN    = 60;        end
+try, RUN    = M(1).E.nN;     catch,  RUN    = 32;        end
 try, ap     = M(1).E.RM;     catch,  ap     = [1e3 1e6]; end   % Robins-Monro approximation parameters
  
-MLdiff0  = 1e-4;
+MLdiff0  = 1e-1;
 mloglik0 = 0;
 ML       = [];
 VBrun    = RUN;

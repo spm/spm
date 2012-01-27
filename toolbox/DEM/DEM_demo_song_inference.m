@@ -19,12 +19,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_song_inference.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('GetWin','Figure 1');
  
 % timing
 %--------------------------------------------------------------------------
@@ -51,7 +50,6 @@ M(1).V  = exp(4);
 M(1).W  = exp(4);
  
  
-
 % level 3
 %--------------------------------------------------------------------------
 M(2).v  = [0 0]';
@@ -80,8 +78,10 @@ for i = 1:size(P,2)
 
     % show song
     %----------------------------------------------------------------------
+    colormap('pink')
     spm_DEM_qU(DEM.qU,DEM.pU)
-    subplot(2,2,4),colormap('pink')
+    
+    subplot(2,2,4)
     spm_DEM_play_song(DEM.qU,N*dt);
     axis square
     title('percept','Fontsize',16)  
@@ -89,7 +89,7 @@ for i = 1:size(P,2)
     % record song
     %----------------------------------------------------------------------
     spm_figure('GetWin','Figure 1');
-    if i == 1; clf; end
+    colormap('pink')
     
     subplot(3,size(P,2),i)
     spm_DEM_play_song(DEM.qU,N*dt);
@@ -99,7 +99,6 @@ for i = 1:size(P,2)
     subplot(3,1,2)
     spm_plot_ci(t,DEM.qU.v{2},DEM.qU.C)
     text(t(end) + 1/8,DEM.qU.v{2}(1,end - 8),str{i},'Fontsize',16)
-
     axis square
     hold on
     
@@ -112,4 +111,4 @@ for i = 1:size(P,2)
 
 end
 
-drawnow, disp(' '),disp('Click sonograms to play songs'),disp(' ')
+disp(' '),disp('Click sonograms to play songs'),disp(' ')

@@ -14,12 +14,11 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: DEM_demo_contact_lens.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % non-linear generative model
 %==========================================================================
-reset(RandStream.getDefaultStream);
  
 % The problem: states = [x(1) x(2)]; causes = [v(1) v(2)]
 %--------------------------------------------------------------------------
@@ -55,10 +54,7 @@ M(1).W   = diag(W);            % precision of fluctuations on hidden states
 %==========================================================================
 DEM    = spm_DEM_generate(M,N);
  
-spm_figure('Getwin','DEM');
-spm_DEM_qU(DEM.pU)
- 
- 
+
 % Comparative inversions (variants of generalised filtering)
 %==========================================================================
 
@@ -159,7 +155,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
  
 % plot trajectories
 %--------------------------------------------------------------------------
-subplot(1,2,1)
+subplot(2,1,2)
 plot(K,log(kse))
 title('log(MSE)','Fontsize',16)
 xlabel('log(K)','Fontsize',12)

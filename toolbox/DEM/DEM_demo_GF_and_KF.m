@@ -11,7 +11,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_GF_and_KF.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_GF_and_KF.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % linear generative model
@@ -48,10 +48,6 @@ M(1).W   = exp(2);            % precision of fluctuations on hidden states
 %==========================================================================
 DEM      = spm_DEM_generate(M,N);
  
-spm_figure('Getwin','DEM');
-spm_DEM_qU(DEM.pU)
- 
- 
 % Comparative inversions (variants of generalised filtering)
 %==========================================================================
  
@@ -59,10 +55,7 @@ spm_DEM_qU(DEM.pU)
 %--------------------------------------------------------------------------
 DEM     = spm_DEM(DEM);
 [EKF S] = spm_ekf(DEM.M,DEM.Y);
- 
-spm_figure('Getwin','DEM');
-spm_DEM_qU(DEM.qU,DEM.pU)
- 
+  
  
 % show prediction errors
 %==========================================================================
@@ -145,6 +138,11 @@ for i = 1:4
         
 end
  
+
+spm_figure('Getwin','DEM');
+spm_DEM_qU(DEM.qU,DEM.pU)
+
+
 % show prediction errors
 %==========================================================================
 spm_figure('Getwin','Figure 1');

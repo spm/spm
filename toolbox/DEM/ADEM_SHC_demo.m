@@ -6,10 +6,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_SHC_demo.m 4628 2012-01-27 20:51:41Z karl $
  
 % generative process
-%==========================================================================                        % switch for demo
+%==========================================================================
+M(1).E.n = 4;
+M(1).E.d = 2;
+M(1).E.s = 1;
  
 % level 1
 %--------------------------------------------------------------------------
@@ -18,7 +21,7 @@ G(1).f  = inline('a','x','v','a','P');
 G(1).g  = inline('x','x','v','a','P');
 G(1).V  = exp(8);                           % error precision
 G(1).W  = exp(8);                           % error precision
-G(1).U  = exp(2);                           % error precision
+G(1).U  = 1;                                % error precision
 
 
 % level 2
@@ -54,7 +57,7 @@ M(1).x.v  = [1; 0];
 M(1).f    = fx;
 M(1).g    = gx;
 M(1).pE   = P;
-M(1).V    = exp(0);                           % error precision
+M(1).V    = exp(4);                           % error precision
 M(1).W    = exp(8);                           % error precision
  
 % level 2
@@ -66,13 +69,16 @@ M      = spm_DEM_M_set(M);
  
 % ADEM
 %==========================================================================
-U      = sparse(64,M(1).m);
+U      = sparse(128,M(1).m);
 DEM.U  = U;
 DEM.C  = U;
 DEM.G  = G;
 DEM.M  = M;
 DEM    = spm_ADEM(DEM);
  
+
+% trajectory
+%--------------------------------------------------------------------------
 subplot(2,2,3)
 plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
 axis([-1 1 -1 1])

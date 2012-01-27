@@ -6,14 +6,11 @@
 load HDM
 global dt
 
-
 % generative [likelihood] model 'HDM'
 %==========================================================================
 G(1).E.linear = 1;
-G(1).E.s      = 1/2;
 dt            = Y.dt;
 T             = 1:128;
-
 
 % level 1
 %--------------------------------------------------------------------------
@@ -59,7 +56,7 @@ end
 hold off
 axis square
 set(gca,'XTickLabel',{'vis','mot','att'})
-title('parameters')
+title('parameters','FontSize',16)
 
 
 % and a more detailed look
@@ -69,11 +66,11 @@ spm_figure('GetWin','Figure 1');
 t = 1:128;
 subplot(2,1,1)
 hold on
-bar(full(DEM.U(2,t)*8),'FaceColor',[1 1 1]*.8,'EdgeColor',[1 1 1]*.9)
+bar(full(DEM.U(2,t)*8),'FaceColor',[1 1 1]*.9,'EdgeColor',[1 1 1]*.9)
 plot(t,exp(DEM.qU.x{1}(:,t)))
 set(gca,'YLim',[-0.1 1.6])
 xlabel('time (bins)')
-title('hidden states')
+title('hidden states','FontSize',16)
 legend({'visual stimulation','signal','flow','volume','dHb'})
 hold off
 
@@ -82,14 +79,13 @@ hold off
 qP  = DEM.qP.P{1}(7:end);
 
 subplot(2,1,2)
-hold on
 plot(t,qP'*DEM.qU.v{2}(:,t))
 a = axis;
-bar(full(DEM.U(2,t)),'FaceColor',[1 1 1]*.8,'EdgeColor',[1 1 1]*.9)
-plot(t,qP'*DEM.qU.v{2}(:,t),'Linewidth',2)
+bar(full(DEM.U(2,t)),'FaceColor',[1 1 1]*.9,'EdgeColor',[1 1 1]*.9), hold on
+plot(t,qP'*DEM.qU.v{2}(:,t))
 axis(a)
 xlabel('time (bins)')
-title('neuronal causes')
+title('neuronal causes','FontSize',16)
 hold off
 
 

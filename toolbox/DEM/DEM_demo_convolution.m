@@ -2,13 +2,11 @@
 % of the responses of a single-input-multiple output input-state-output
 % model (DCM) to disclose the input or causes.  It focuses on estimating the
 % causes and hidden states: The notes provide a comparative evaluation with 
-% extended Kalman filtering.
+% extended Kalman filtering (see script after return).
  
  
 % get a simple convolution model
 %==========================================================================
-spm_figure('GetWin','Figure 1');
-
 M       = spm_DEM_M('convolution model');
 M(1).V  = exp(8);                             % error precision
 M(1).W  = exp(8);                             % error precision
@@ -19,11 +17,6 @@ N       = 32;                                 % length of data sequence
 U       = exp(-([1:N] - 12).^2/(2.^2));       % this is the Gaussian cause;
 DEM     = spm_DEM_generate(M,U,{},{[] 16},{16});
  
-% display
-%--------------------------------------------------------------------------
-spm_DEM_qU(DEM.pU)
- 
-
 % invert model
 %==========================================================================
 DEM     = spm_DEM(DEM);
@@ -31,14 +24,14 @@ DEM     = spm_DEM(DEM);
 % overlay true values
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM.qU,DEM.pU)
- 
+
+
 return
  
  
 % explore dimensions (n)
 %==========================================================================
-for i = 1:12
-    clear functions
+for i = 1:8
     DEM.M(1).E.n = i;
     DEM.M(1).E.d = 3;
     
@@ -50,11 +43,13 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-figure(f)
+spm_figure('GetWin','Figure 1');
+
 subplot(2,1,1)
 bar(Sv)
 xlabel('n - 1 (d = 2)')
 ylabel('sum squared error (causal states)')
+title('embedding dimension (n)','FontSize',16)
 axis square
  
 d     = [1 8];
@@ -66,13 +61,13 @@ for i = 1:length(d)
     hold off
     axis square
     xlabel('time')
-    title(sprintf('n = %i',d(i)))
+    title(sprintf('n = %i',d(i)),'FontSize',16)
     if i == 1, a = axis; else, axis(a); end
 end
  
 % and d
 %--------------------------------------------------------------------------
-clf; clear D F Sx Sv
+clear D F Sx Sv
 for i = 1:6
     clear functions
     DEM.M(1).E.n = 15;
@@ -87,11 +82,13 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-clf
+spm_figure('GetWin','Figure 2'); clf
+
 subplot(2,2,1)
 bar(Sx)
 xlabel('d (n = 15)')
 ylabel('sum squared error (hidden states)')
+title('embedding dimension (d)','FontSize',16)
 axis square
 set(gca,'XTickLabel',[0:7])
 
@@ -99,6 +96,7 @@ subplot(2,2,2)
 bar(F - min(F) + 32)
 xlabel('d (n = 15)')
 ylabel('log-evidence')
+title('log-evidence','FontSize',16)
 axis square
 set(gca,'XTickLabel',[0:7])
  
@@ -111,7 +109,7 @@ for i = 1:length(d)
     hold off
     axis square
     xlabel('time')
-    title(sprintf('d = %i',d(i) - 1))
+    title(sprintf('d = %i',d(i) - 1),'FontSize',16)
     if i == 1, a = axis; else, axis(a); end
 end
  
@@ -145,12 +143,13 @@ for i = 1:8
  
 end
  
- 
+spm_figure('GetWin','Figure 3');
+
 subplot(2,1,1)
 plot(1:N,i_x,'g',1:N,d_x,'r',1:N,e_x,'b',1:N,t_x,'k')
 legend('DEM(0)',' ','DEM(0.5)',' ','EKF',' ','true',' ')
 xlabel('time')
-title('hidden states')
+title({'hidden states','comparison with EKF'},'FontSize',16)
 axis square
  
 subplot(2,1,2)
@@ -158,7 +157,7 @@ plot(SSE','k:'), hold on
 plot(SSE','k.','Markersize',16), hold off
 set(gca,'Xtick',[1 2 3],'XLim',[0 4])
 set(gca,'Xticklabel',{'EKF','DEM(0)','DEM(0.5)'})
-title('sum of squared error (hidden states)')
+title('sum of squared error (hidden states)','FontSize',16)
 axis square
  
  
@@ -176,28 +175,31 @@ DEM       = spm_DEM_generate(M,U,{},{[] 16});
 DEM       = spm_DEM(DEM);
 e_x       = spm_ekf(DEM.M,DEM.Y);
 d_x       = DEM.qU.x{1};
-    
-clf
-subplot(2,2,1)
+
+
+spm_figure('GetWin','Figure 4');
+
+subplot(2,1,1)
 plot(1:N,d_x,'r',1:N,e_x,'b')
 legend('DEM(0)',' ','EKF',' ')
 xlabel('time')
-title('hidden states')
+title({'hidden states';'no correlations'},'FontSize',16)
 axis square
 
 % Show equivalence when causes are removed
-%==========================================================================
+%--------------------------------------------------------------------------
 DEM.M(1).pE.h = sparse(2,2);
 DEM.M(1).W    = speye(2);
 
 DEM           = spm_DEM(DEM);
 e_x           = spm_ekf(DEM.M,DEM.Y);
 d_x           = DEM.qU.x{1};
-    
-clf
-subplot(2,2,1)
+
+spm_figure('GetWin','Figure 4');
+
+subplot(2,1,2)
 plot(1:N,d_x,'r',1:N,e_x,'b')
 legend('DEM(0)',' ','EKF',' ')
 xlabel('time')
-title('hidden states')
+title({'hidden states';'no causes'},'FontSize',16)
 axis square

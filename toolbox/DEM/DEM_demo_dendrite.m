@@ -23,12 +23,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: DEM_demo_dendrite.m 4628 2012-01-27 20:51:41Z karl $
  
 % preliminaries
 %==========================================================================
 DemoMode = 1;
-spm_figure('Getwin','DEM');
  
 % generative model - Stable heteroclinic channel of pre-synaptic neurons
 %==========================================================================
@@ -73,10 +72,7 @@ M(1).E.s  = 1;
 N       = 128;
 U       = log(sparse(1,N) + 1/2);
 DEM     = spm_DEM_generate(M,U,Q,{2 16},{8});
-DEM.U   = U;
- 
-spm_DEM_qU(DEM.pU)
- 
+DEM.U   = U; 
  
 % Synaptic pruning
 %==========================================================================
@@ -261,9 +257,7 @@ for i = 1:n
     
     
     % Integrate
-    %----------------------------------------------------------------------
-    spm_figure('Getwin','DEM');
-    
+    %----------------------------------------------------------------------  
     SIM   = spm_DEM_generate(SIM.M,U,Q,{2 16},{8});
     SIM   = spm_DEM(SIM);
     
@@ -304,8 +298,7 @@ end
 spm_figure('Getwin','DEM');
 spm_DEM_qU(SIM.qU,SIM.pU)
  
- 
- 
+
 % Changing the speed (u) using IN and OUT sequences
 %==========================================================================
 SIM           = DEM;
@@ -353,6 +346,7 @@ xlabel('input velocity','FontSize',12)
 ylabel('mean response','FontSize',12)
 title('Velocity-dependent responses','FontSize',16)
 axis square, box off
+
  
 return
 

@@ -12,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_visual.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % recognition model (M)
@@ -53,7 +53,7 @@ G(1).g  = inline('ADEM_plaid(x)','x','v','a','P');
 G(1).pE = pE;                               % prior expectation
 G(1).V  = exp(16);                          % error precision
 G(1).W  = exp(8);                           % error precision
-G(1).U  = exp(0);                           % error precision
+
 
 % second level
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ hold on
 plot(kron(x.^0,x),kron(x,x.^0),'.w','MarkerSize',16), hold off
  
 subplot(3,2,3)
-plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':')
+plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),'r')
 axis square
 title('under flat priors','FontSize',16)
 xlabel('displacement','FontSize',14)
@@ -103,7 +103,7 @@ legend({'real', 'perceived'})
 axis([-1 1 -1 1]*2)
  
 subplot(3,2,4)
-plot(ADEM.pU.x{1}(1,:),ADEM.pU.x{1}(2,:),ADEM.qU.x{1}(1,:),ADEM.qU.x{1}(2,:),':')
+plot(ADEM.pU.x{1}(1,:),ADEM.pU.x{1}(2,:),ADEM.qU.x{1}(1,:),ADEM.qU.x{1}(2,:),'r')
 axis square
 title('under tight priors','FontSize',16)
 xlabel('displacement','FontSize',14)
@@ -111,20 +111,20 @@ axis([-1 1 -1 1]*2)
  
 subplot(3,1,1)
 hold on
-plot(ADEM.pU.x{1}(1,:),ADEM.pU.x{1}(2,:),ADEM.qU.x{1}(1,:),ADEM.qU.x{1}(2,:),':')
+plot(ADEM.pU.x{1}(1,:),ADEM.pU.x{1}(2,:),ADEM.qU.x{1}(1,:),ADEM.qU.x{1}(2,:),'r')
 hold off
  
 subplot(3,2,5)
-plot([1:N],DEM.qU.a{2},[1:N],DEM.qU.v{2},':',[1:N],DEM.pU.v{2},'-.')
+plot([1:N],DEM.qU.a{2},[1:N],DEM.qU.v{2},[1:N],DEM.pU.v{2})
 axis square
 title('action and cause','FontSize',16)
 xlabel('time','FontSize',14)
-legend({'action', 'perceived perturbation', 'true perturbation'})
 axis([1 N -1 1])
  
 subplot(3,2,6)
-plot([1:N],ADEM.qU.a{2},[1:N],ADEM.qU.v{2},':',[1:N],ADEM.pU.v{2},'-.')
+plot([1:N],ADEM.qU.a{2},[1:N],ADEM.qU.v{2},[1:N],ADEM.pU.v{2})
 axis square
 title('action and cause','FontSize',16)
 xlabel('time','FontSize',14)
 axis([1 N -1 1])
+legend({'action', 'perceived perturbation', 'true perturbation'})

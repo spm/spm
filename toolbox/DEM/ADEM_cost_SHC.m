@@ -18,13 +18,12 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost_SHC.m 3757 2010-03-08 11:41:53Z guillaume $
+% $Id: ADEM_cost_SHC.m 4628 2012-01-27 20:51:41Z karl $
  
  
 % switch for demo
 %--------------------------------------------------------------------------
-clear
-DEMO = 1;
+DEMO = 0;
  
 % location and radius of attractors (A)
 %--------------------------------------------------------------------------
@@ -48,6 +47,7 @@ G(1).f   = inline('spm_cost_SHC_fxa(x,v,a,P)','x','v','a','P');
 G(1).g   = inline('[x.x; x.v; x.q]','x','v','a','P');
 G(1).V   = exp(16);                          % error precision
 G(1).W   = exp(16);                          % error precision
+G(1).U   = exp(4);                           % action precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -238,12 +238,8 @@ if ~DEMO
     
     % save DEM structures for future demonstrations
     %----------------------------------------------------------------------
-    try
-        save -v7 DEM_addiction DEM DEM_P DEM_L DEM_D
-    catch
-        save DEM_addiction DEM DEM_P DEM_L DEM_D
-    end
-    
+    save DEM_addiction DEM DEM_P DEM_L DEM_D
+
 end
  
  

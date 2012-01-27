@@ -8,7 +8,6 @@
  
 % non-hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
-spm_figure('GetWin','Figure 1');
 
 % get model
 %--------------------------------------------------------------------------
@@ -30,6 +29,7 @@ M(2).V  = exp(16);
 % create innovations & add causes
 %--------------------------------------------------------------------------
 N       = 64;
+T       = 1:N;
 U       = sparse(1,N);
 DEM     = spm_DEM_generate(M,U);
 
@@ -48,36 +48,36 @@ px     = spm_pf(DEM.M,DEM.Y);
 % graphics
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 1');
-T      = [1:N];
  
 subplot(2,2,1)
 plot(T,DEM.pU.v{1},'k',T,DEM.qU.v{1},'k:')
 legend({'DEM','true'})
-title('true and predicted response')
+title('true and predicted response','FontSize',16)
 xlabel('time')
 axis square
  
 subplot(2,2,2)
 plot(T,DEM.pU.x{1},'k',T,DEM.qU.x{1},'k:')
-title('true and predicted states')
+title('true and predicted states','FontSize',16)
 xlabel('time')
 axis square
  
 subplot(2,2,3)
 plot(T,sum(px),'k',T,sum(ex),'k:')
 legend({'PF','EKF'})
-title('predicted responses')
+title('predicted responses','FontSize',16)
 xlabel('time')
 axis square
  
 subplot(2,2,4)
 plot(T,px,'k',T,ex,'k:')
-title('predicted states')
+title('predicted states','FontSize',16)
 xlabel('time')
 axis square
 
 
 return
+
  
 % Repeat with random initial conditions
 %==========================================================================
@@ -89,7 +89,7 @@ tx    = DEM.pU.x{1};
 subplot(2,2,1)
 plot(tx(1,:),tx(2,:),'k'), hold on
 plot(tx(1,1),tx(2,1),'k.','Markersize',16)
-title('attractor')
+title('attractor','FontSize',16)
 axis square
 axis([-20 20 -20 20])
  
@@ -108,27 +108,26 @@ for i = 1:4
     px         = [x px];
  
     spm_figure('GetWin','Figure 2');
+    
     subplot(2,2,2)
     plot(dx(1,:),dx(2,:),'k','color',[0 0 0] + 2/6), hold on
     plot(dx(1,1),dx(2,1),'k.','Markersize',16,'color',[0 0 0] + 2/6)
-    title('attractor reconstructions (DEM)')
+    title('attractor reconstructions (DEM)','FontSize',16)
     axis square
     axis([-20 20 -20 20])
     
     subplot(2,2,3)
     plot(px(1,:),px(2,:),'k','color',[0 0 0] + 2/6), hold on
     plot(px(1,1),px(2,1),'k.','Markersize',16,'color',[0 0 0] + 2/6)
-    title('attractor reconstructions (PF)')
+    title('attractor reconstructions (PF)','FontSize',16)
     axis square
     axis([-20 20 -20 20])
     
     subplot(2,2,4)
     plot(ex(1,:),ex(2,:),'k','color',[0 0 0] + 2/6), hold on
     plot(ex(1,1),ex(2,1),'k.','Markersize',16,'color',[0 0 0] + 2/6)
-    title('attractor reconstructions (EKF)')
+    title('attractor reconstructions (EKF)','FontSize',16)
     axis square
     axis([-20 20 -20 20])
-    
-    drawnow
- 
+     
 end

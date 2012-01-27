@@ -20,8 +20,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 3740 2010-02-26 13:13:14Z karl $
-clear
+% $Id: DEM_demo_Posner.m 4628 2012-01-27 20:51:41Z karl $
  
 
 % Create a generative model: To keep thing simple we will model just 2 
@@ -180,6 +179,7 @@ drawnow
 %==========================================================================
 spm_figure('GetWin','Figure 3');
 
+
 % valid trial - evaluate p(v > q,t|Y,M) using conditional density
 %--------------------------------------------------------------------------
 q   = 1/4;                                % threshold
@@ -300,6 +300,7 @@ for i = 1:length(qU)
     set(gca,'XLim',[PST(1) PST(end)])
     
 end
-
+subplot(2,2,1), hold off
+subplot(2,2,2), hold off
 legend('invalid','valid')
 drawnow
