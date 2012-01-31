@@ -1,9 +1,9 @@
 function varargout = ft_wizard(wizard_filename)
 
-% FT_WIZARD will evaluate a FieldTrip analysis script in steps, allowing you
-% to go to the next step if you are content with the data so far, or to the
-% previous step if you want to repeat it with different configuration
-% settings.
+% FT_WIZARD is a graphical user interface to evaluate a FieldTrip analysis
+% script one step at a time, allowing you to go to the next step if you are
+% content with the data so far, or to the previous step if you want to repeat it
+% with different configuration settings.
 %
 % Use as
 %   ft_wizard scriptname
@@ -45,7 +45,7 @@ function varargout = ft_wizard(wizard_filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_wizard.m 4623 2011-10-28 15:44:23Z roboos $
+% $Id: ft_wizard.m 5157 2012-01-22 14:49:34Z roboos $
 
 % this function is a wrapper around the actual GUI function
 % the main purpose of this function is to provide a workspace where the

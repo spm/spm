@@ -1,14 +1,16 @@
 function [comp] = ft_componentanalysis(cfg, data)
 
-% FT_COMPONENTANALYSIS principal or independent component analysis
-% computes the topography and timecourses of the ICA/PCA components
-% in the EEG/MEG data.
+% FT_COMPONENTANALYSIS performs independent component analysis or other
+% spatio-temporal decompositions of EEG or MEG data. This function computes
+% the topography and timecourses of the components. The output of this
+% function can be further analyzed with FT_TIMELOCKANALYSIS or
+% FT_FREQNANALYSIS.
 %
 % Use as
 %   [comp] = ft_componentanalysis(cfg, data)
 %
-% where the data comes from FT_PREPROCESSING or FT_TIMELOCKANALYSIS and the
-% configuration structure can contain
+% where the data comes from FT_PREPROCESSING and the configuration
+% structure can contain
 %   cfg.method       = 'runica', 'fastica', 'binica', 'pca', 'svd', 'jader', 'varimax', 'dss', 'cca', 'sobi', 'white' (default = 'runica')
 %   cfg.channel      = cell-array with channel selection (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -113,7 +115,8 @@ function [comp] = ft_componentanalysis(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_REJECTCOMPONENT, FASTICA, RUNICA, BINICA, SVD, JADER, VARIMAX, DSS, CCA, SOBI
+% See also FT_TOPOPLOTIC, FT_REJECTCOMPONENT, FASTICA, RUNICA, BINICA, SVD,
+% JADER, VARIMAX, DSS, CCA, SOBI
 
 % Copyright (C) 2003-2012, Robert Oostenveld
 %
@@ -133,9 +136,9 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 5090 2012-01-03 10:46:54Z roboos $
+% $Id: ft_componentanalysis.m 5170 2012-01-24 14:21:41Z borreu $
 
-revision = '$Id: ft_componentanalysis.m 5090 2012-01-03 10:46:54Z roboos $';
+revision = '$Id: ft_componentanalysis.m 5170 2012-01-24 14:21:41Z borreu $';
 
 % do the general setup of the function
 ft_defaults
@@ -220,6 +223,10 @@ cfg.dss.denf          = ft_getopt(cfg.dss,      'denf',     []);
 cfg.dss.denf.function = ft_getopt(cfg.dss.denf, 'function', 'denoise_fica_tanh');
 cfg.dss.denf.params   = ft_getopt(cfg.dss.denf, 'params',   []);
 
+% additional options, see CSP for details
+cfg.csp = ft_getopt(cfg, 'csp', [])
+cfg.csp.numfilters = ft_getopt(cfg.csp, 'numfilters', 6)
+
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
   fprintf('selecting %d trials\n', length(cfg.trials));
@@ -291,7 +298,7 @@ elseif strcmp(cfg.method, 'csp')
   sel1 = find(cfg.classlabel==1);
   sel2 = find(cfg.classlabel==2);
   if length(sel1)+length(sel2)~=length(cfg.classlabel)
-    error('not all trials belong to class 1 or 2');
+    warning('not all trials belong to class 1 or 2');
   end
   dat1 = cat(2, data.trial{sel1});
   dat2 = cat(2, data.trial{sel2});
@@ -521,7 +528,7 @@ switch cfg.method
     mixing   = [];
 
   case 'csp'
-    unmixing = csp(dat1, dat2);
+    unmixing = csp(cov(dat1'), cov(dat2'), cfg.csp.numfilters);
     mixing   = [];  % will be computed below
     
   case 'parafac'

@@ -24,9 +24,8 @@ function [data] = ft_megrealign(cfg, data)
 % gradiometer array. This requires the specification of a volume conduction
 % model of the head and of a source model.
 %
-% A head model must be specified with
-%   cfg.hdmfile     = string, file containing the volume conduction model
-% or alternatively manually using
+% A head model must be specified, see FT_FETCH_SENS,or alternatively 
+% manually using
 %   cfg.vol.r       = radius of sphere
 %   cfg.vol.o       = [x, y, z] position of origin
 %
@@ -105,9 +104,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_megrealign.m 5174 2012-01-25 11:42:24Z jorhor $
 
-revision = '$Id: ft_megrealign.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_megrealign.m 5174 2012-01-25 11:42:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

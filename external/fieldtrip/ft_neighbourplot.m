@@ -10,22 +10,22 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %   ft_neighbourplot(cfg, data)
 %
 % where the configuration can contain
-%   cfg.neighbours    = neighbour structure from FT_PREPARE_NEIGHBOURS (optional)
+%   cfg.verbose       = 'yes' or 'no', if 'yes' then the plot callback will include text output
+%   cfg.neighbours    = neighbourhood structure, see FT_PREPARE_NEIGHBOURS (optional)
+% or one of the following options
+%   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
 %   cfg.elec          = structure with EEG electrode positions
 %   cfg.grad          = structure with MEG gradiometer positions
 %   cfg.elecfile      = filename containing EEG electrode positions
 %   cfg.gradfile      = filename containing MEG gradiometer positions
-%   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
-%   cfg.verbose       = 'yes' or 'no', if 'yes' then the plot callback will include text output
 %
-% The following data fields may also be used by FT_PREPARE_NEIGHBOURS:
+% If cfg.neighbours is not defined or empty, this function will call
+% FT_PREPARE_NEIGHBOURS to determine the channel neighbours. The
+% following data fields may also be used by FT_PREPARE_NEIGHBOURS
 %   data.elec     = structure with EEG electrode positions
 %   data.grad     = structure with MEG gradiometer positions
 %
-% If cfg.neighbours is not defined or empty, this function will call
-% FT_PREPARE_NEIGHBOURS to determine the channel neighbours.
-%
-% See also FT_PREPARE_NEIGHBOURS
+% See also FT_PREPARE_NEIGHBOURS, FT_PREPARE_LAYOUT
 
 % Copyright (C) 2011, J?rn M. Horschig, Robert Oostenveld
 %
@@ -45,7 +45,7 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_neighbourplot.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_neighbourplot.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -70,37 +70,12 @@ elseif strcmp(cfg.verbose, 'yes')
   cfg.verbose = true;
 end
 
-
-% get the the grad or elec if not present in the data
-if exist('data', 'var') && isfield(data, 'grad')
-  fprintf('Using the gradiometer configuration from the dataset.\n');
-  sens = data.grad;
-elseif exist('data', 'var') && isfield(data, 'elec')
-  fprintf('Using the electrode configuration from the dataset.\n');
-  sens = data.elec;
-elseif isfield(cfg, 'grad')
-  fprintf('Obtaining the gradiometer configuration from the configuration.\n');
-  sens = cfg.grad;
-elseif isfield(cfg, 'elec')
-  fprintf('Obtaining the electrode configuration from the configuration.\n');
-  sens = cfg.elec;
-elseif isfield(cfg, 'gradfile')
-  fprintf('Obtaining the gradiometer configuration from a file.\n');
-  sens = ft_read_sens(cfg.gradfile);
-  % extract true channelposition
-elseif isfield(cfg, 'elecfile')
-  fprintf('Obtaining the electrode configuration from a file.\n');
-  sens = ft_read_sens(cfg.elecfile);
-elseif isfield(cfg, 'layout')
-  fprintf('Using the 2-D layout to determine the neighbours\n');
-  lay = ft_prepare_layout(cfg);
-  sens = [];
-  sens.label = lay.label;
-  sens.chanpos = lay.pos;
-  sens.chanpos(:,3) = 0;
+% get the the grad or elec
+if hasdata
+  sens = ft_fetch_sens(cfg, data);
 else
-  error('Did not find gradiometer or electrode information.');
-end;
+  sens = ft_fetch_sens(cfg);
+end
 
 % give some graphical feedback
 if all(sens.chanpos(:,3)==0)

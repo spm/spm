@@ -44,7 +44,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 4739 2011-11-15 09:07:31Z eelspa $
+% $Id: ft_preproc_highpassfilter.m 5147 2012-01-18 09:23:49Z johzum $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -74,17 +74,21 @@ switch type
   case 'fir'
     if isempty(N)
       N = 3*fix(Fs / Fhp);
+      if rem(N,2)==1,   N=N+1;    end
     end
     if N > floor( (size(dat,2) - 1) / 3)
       N=floor(size(dat,2)/3) - 2;
+      if rem(N,2)==1,   N=N+1;    end
     end
     [B, A] = fir1(N, max(Fhp)/Fn, 'high');
   case 'firls' % from NUTMEG's implementation
     if isempty(N)
       N = 3*fix(Fs / Fhp);
+      if rem(N,2)==1,   N=N+1;    end
     end
     if N > floor( (size(dat,2) - 1) / 3)
       N=floor(size(dat,2)/3) - 2;
+      if rem(N,2)==1,   N=N+1;    end
     end
     
     f = 0:0.001:1;

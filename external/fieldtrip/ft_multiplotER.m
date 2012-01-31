@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 5105 2012-01-10 12:15:10Z jansch $
+% $Id: ft_multiplotER.m 5178 2012-01-25 15:19:05Z eelspa $
 
-revision = '$Id: ft_multiplotER.m 5105 2012-01-10 12:15:10Z jansch $';
+revision = '$Id: ft_multiplotER.m 5178 2012-01-25 15:19:05Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -263,10 +263,16 @@ elseif isfield(cfg, 'channel') && isfield(varargin{1}, 'labelcmb')
   cfg.channel = ft_channelselection(cfg.channel, unique(varargin{1}.labelcmb(:)));
 end
 
-% perform channel selection but only allow this when cfg.interactive = 'no'
-if isfield(varargin{1}, 'label') && strcmp(cfg.interactive, 'no')
+% perform channel selection, unless in the other plotting functions this
+% can always be done because ft_multiplotER is the entry point into the
+% interactive stream, but will not be revisited
+for i=1:Ndata
+  varargin{i} = ft_selectdata(varargin{i}, 'channel', cfg.channel);
+end
+
+if isfield(varargin{1}, 'label') % && strcmp(cfg.interactive, 'no')
   selchannel = ft_channelselection(cfg.channel, varargin{1}.label);
-elseif isfield(varargin{1}, 'labelcmb') && strcmp(cfg.interactive, 'no')
+elseif isfield(varargin{1}, 'labelcmb') % && strcmp(cfg.interactive, 'no')
   selchannel = ft_channelselection(cfg.channel, unique(varargin{1}.labelcmb(:)));
 end
 
@@ -618,6 +624,14 @@ if ~isempty(l)
   plotScales([xmin xmax],[ymin ymax],X(l),Y(l),width(1),height(1),cfg)
 end
 
+% set the figure window title
+dataname = {inputname(2)};
+for k = 2:Ndata
+  dataname{end+1} = inputname(k+1);
+end
+set(gcf, 'Name', sprintf('%d: %s: %s', gcf, mfilename, join_str(', ',dataname)));
+set(gcf, 'NumberTitle', 'off');
+
 % Make the figure interactive:
 if strcmp(cfg.interactive, 'yes')
   
@@ -626,6 +640,7 @@ if strcmp(cfg.interactive, 'yes')
   info.x     = lay.pos(:,1);
   info.y     = lay.pos(:,2);
   info.label = lay.label;
+  info.dataname = dataname;
   guidata(gcf, info);
   
   set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{:}}, 'event', 'WindowButtonUpFcn'});
@@ -767,6 +782,11 @@ if isfield(cfg, 'inputfile')
   % the reading has already been done and varargin contains the data
   cfg = rmfield(cfg, 'inputfile');
 end
+
+% put data name in here, this cannot be resolved by other means
+info = guidata(gcf);
+cfg.dataname = info.dataname;
+
 if iscell(label)
   label = label{1};
 end
@@ -788,6 +808,11 @@ if ~isempty(label)
   end
   cfg.xlim = 'maxmin';
   cfg.channel = label;
+  
+  % put data name in here, this cannot be resolved by other means
+  info = guidata(gcf);
+  cfg.dataname = info.dataname;
+  
   fprintf('selected cfg.channel = {');
   for i=1:(length(cfg.channel)-1)
     fprintf('''%s'', ', cfg.channel{i});

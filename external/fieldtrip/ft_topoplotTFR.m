@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 5092 2012-01-03 11:16:06Z jansch $
+% $Id: ft_topoplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $
 
-revision = '$Id: ft_topoplotTFR.m 5092 2012-01-03 11:16:06Z jansch $';
+revision = '$Id: ft_topoplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -941,6 +941,24 @@ if strcmp(cfg.interactive, 'yes')
     error('unsupported dimord "%" for interactive plotting', data.dimord);
   end
 end
+
+% set the figure window title
+if isfield(cfg,'funcname')
+  funcname = cfg.funcname;
+else
+  funcname = mfilename;
+end
+if isfield(cfg,'dataname')
+  if iscell(cfg.dataname)
+    dataname = cfg.dataname{indx};
+  else
+    dataname = cfg.dataname;
+  end
+else
+  dataname = inputname(2);
+end
+set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+set(gcf, 'NumberTitle', 'off');
 
 axis off
 hold off

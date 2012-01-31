@@ -17,7 +17,7 @@ function [data] = ft_megplanar(cfg, data)
 %
 % The methods orig, sincos and fitplane are all based on a neighbourhood
 % interpolation. For these methods you need to specify
-%   cfg.neighbours     = neighbourhood structure, see FT_NEIGHBOURSELECTION
+%   cfg.neighbours     = neighbourhood structure, see FT_PREPARE_NEIGHBOURS
 %
 % In the 'sourceproject' method a minumum current estimate is done using a
 % large number of dipoles that are placed in the upper layer of the brain
@@ -26,9 +26,8 @@ function [data] = ft_megplanar(cfg, data)
 % the head and of a source model. The 'sourceproject' method is not supported for
 % frequency domain data.
 %
-% A head model must be specified with
-%   cfg.hdmfile     = string, file containing the volume conduction model
-% or alternatively manually using
+% A head model must be specified, see FT_FETCH_VOL, or alternatively 
+% manually using
 %   cfg.vol.r       = radius of sphere
 %   cfg.vol.o       = [x, y, z] position of origin
 %
@@ -86,9 +85,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_megplanar.m 5176 2012-01-25 14:48:33Z roboos $
 
-revision = '$Id: ft_megplanar.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_megplanar.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults

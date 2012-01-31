@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 4973 2011-12-09 15:33:12Z roboos $
+% $Id: ft_convert_units.m 5145 2012-01-17 12:37:31Z borreu $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -69,10 +69,10 @@ else
         size = max(obj.r);
 
       case 'nolte'
-        size = norm(range(obj.bnd.pnt));
+        size = norm(idrange(obj.bnd.pnt));
 
       case {'bem' 'dipoli' 'bemcp' 'asa' 'avo' 'openmeeg'}
-        size = norm(range(obj.bnd(1).pnt));
+        size = norm(idrange(obj.bnd(1).pnt));
 
       otherwise
         error('cannot determine geometrical units of volume conduction model');
@@ -82,33 +82,33 @@ else
     unit = ft_estimate_units(size);
 
   elseif ft_senstype(obj, 'meg')
-    size = norm(range(obj.chanpos));
+    size = norm(idrange(obj.chanpos));
     unit = ft_estimate_units(size);
 
   elseif ft_senstype(obj, 'eeg')
-    size = norm(range(obj.chanpos));
+    size = norm(idrange(obj.chanpos));
     unit = ft_estimate_units(size);
 
   elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
-    size = norm(range(obj.pnt));
+    size = norm(idrange(obj.pnt));
     unit = ft_estimate_units(size);
     
   elseif isfield(obj, 'pos') && ~isempty(obj.pos)
-    size = norm(range(obj.pos));
+    size = norm(idrange(obj.pos));
     unit = ft_estimate_units(size);
   
   elseif isfield(obj, 'chanpos') && ~isempty(obj.chanpos)
-    size = norm(range(obj.chanpos));
+    size = norm(idrange(obj.chanpos));
     unit = ft_estimate_units(size);
     
   elseif isfield(obj, 'transform') && ~isempty(obj.transform)
     % construct the corner points of the volume in voxel and in head coordinates
     [pos_voxel, pos_head] = cornerpoints(obj.dim, obj.transform);
-    size = norm(range(pos_head));
+    size = norm(idrange(pos_head));
     unit = ft_estimate_units(size);
     
   elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
-    size = norm(range(obj.fid.pnt));
+    size = norm(idrange(obj.fid.pnt));
     unit = ft_estimate_units(size);
     
   else
@@ -190,16 +190,20 @@ end
 % remember the unit
 obj.unit = target;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%   Use as
-%     r = range(x)
-%   or you can also specify the dimension along which to look by
-%     r = range(x, dim)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function r = range(x, dim)
-if nargin==1
-  r = max(x) - min(x);
-else
-  r = max(x, [], dim) - min(x, [], dim);
-end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% IDRANGE interdecile range for more robust range estimation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function r = idrange(x, dim)
+  if nargin == 1
+    dim = [];
+  end
+
+  [x, perm, nshifts] = shiftdata(x, dim);        % reorder dims
+
+  sx = sort(x, 1);
+  ii = round(interp1([0, 1], [1, size(x, 1)], [.1, .9]));
+  vals = sx(ii, :);
+
+  vals = unshiftdata(vals, perm, nshifts);       % restore original dims
+  r = diff(vals, dim);                           % calculate actual range

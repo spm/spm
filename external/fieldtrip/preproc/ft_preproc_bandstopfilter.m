@@ -44,7 +44,7 @@ function [filt] = ft_preproc_bandstopfilter(dat,Fs,Fbp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandstopfilter.m 4890 2011-11-30 11:50:40Z johzum $
+% $Id: ft_preproc_bandstopfilter.m 5147 2012-01-18 09:23:49Z johzum $
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -74,9 +74,11 @@ switch type
   case 'fir'
     if isempty(N)
       N = 3*fix(Fs / Fbp(1));
+      if rem(N,2)==1,   N=N+1;    end
     end
     if N > floor( (size(dat,2) - 1) / 3)
       N=floor(size(dat,2)/3) - 2;
+      if rem(N,2)==1,   N=N+1;    end
     end
     [B, A] = fir1(N, [min(Fbp)/Fn max(Fbp)/Fn], 'stop');
   case 'firls' % from NUTMEG's implementation

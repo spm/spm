@@ -31,7 +31,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 5022 2011-12-13 08:34:59Z jansch $
+% $Id: ft_read_mri.m 5187 2012-01-31 08:42:56Z jansch $
 
 % get the options
 mriformat = ft_getopt(varargin, 'format', ft_filetype(filename));
@@ -173,6 +173,22 @@ elseif strcmp(mriformat, 'neuromag_fif')
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif strcmp(mriformat, 'dicom')
+  % this seems to return a right-handed volume with the transformation
+  % matrix stored in the file headers.
+    
+  % use the freesurfer toolbox
+  ft_hastoolbox('freesurfer', 1);
+  [dcmdir,junk1,junk2] = fileparts(filename);
+  if isempty(dcmdir),
+    dcmdir = '.';
+  end
+  [img,transform,hdr,mr_params] = load_dicom_series(dcmdir,dcmdir,filename);
+  transform = vox2ras_0to1(transform);
+
+elseif strcmp(mriformat, 'dicom_old')  
+  % this does not necessarily return a right-handed volume and only a
+  % transformation-matrix with the voxel size
+  
   % this uses the Image processing toolbox
   % the DICOM file probably represents a stack of slices, possibly even multiple volumes
   orig = dicominfo(filename);
@@ -243,8 +259,13 @@ elseif strcmp(mriformat, 'dicom')
     transform(3,3) = dz;
   end
   
+ 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif strcmp(mriformat, 'nifti') || strcmp(mriformat, 'freesurfer_mgz') || strcmp(mriformat, 'nifti_fsl')
+elseif any(strcmp(mriformat, {'nifti', 'freesurfer_mgz', 'freesurfer_mgh', 'nifti_fsl'}))
+  if strcmp(mriformat, 'freesurfer_mgz') && ispc
+    error('Compressed .mgz files cannot be read on a PC');
+  end
+    
   ft_hastoolbox('freesurfer', 1);
   tmp = MRIread(filename);
   ndims = numel(size(tmp.vol));

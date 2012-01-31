@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 5084 2012-01-02 08:16:24Z jansch $
+% $Id: ft_filetype.m 5187 2012-01-31 08:42:56Z jansch $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -862,6 +862,10 @@ elseif filetype_check_extension(filename, '.mgz')
   type = 'freesurfer_mgz';
   manufacturer = 'FreeSurfer';
   content = 'anatomical MRI';
+elseif filetype_check_extension(filename, '.mgh')
+  type = 'freesurfer_mgh';
+  manufacturer = 'FreeSurfer';
+  content = 'anatomical MRI';
 elseif filetype_check_header(filename, [255 255 254])
   % FreeSurfer Triangle Surface Binary Format
   type = 'freesurfer_triangle_binary';	% there is also an ascii triangle format
@@ -1000,6 +1004,10 @@ end
 % reused on a subsequent call in case the same input argument is given
 current_argout = {type};
 if isempty(previous_argin) && ~strcmp(type, 'unknown')
+  previous_argin  = current_argin;
+  previous_argout = current_argout;
+  previous_pwd    = current_pwd;
+elseif  isempty(previous_argin) && (exist(filename,'file') || exist(filename,'dir')) && strcmp(type, 'unknown') % if the type is unknown, but the file or dir exists, save the current output
   previous_argin  = current_argin;
   previous_argout = current_argout;
   previous_pwd    = current_pwd;

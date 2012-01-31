@@ -91,9 +91,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_artifact_zvalue.m 5165 2012-01-23 16:31:02Z jorhor $
 
-revision = '$Id: ft_artifact_zvalue.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_artifact_zvalue.m 5165 2012-01-23 16:31:02Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -345,7 +345,7 @@ end
 
 if strcmp(cfg.artfctdef.zvalue.interactive, 'yes')
   set(h, 'visible', 'on');
-  
+  set(h, 'CloseRequestFcn', @cleanup_cb);
   % give graphical feedback and allow the user to modify the threshold
   set(h, 'position', [100 200 900 400]);
   h1 = axes('position', [0.05 0.15 0.4 0.8]);

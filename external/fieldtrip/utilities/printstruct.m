@@ -21,7 +21,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 5089 2012-01-03 10:45:32Z roboos $
+% $Id: printstruct.m 5177 2012-01-25 15:04:34Z roboos $
 
 if nargin==1
   val  = name;
@@ -31,8 +31,11 @@ end
 str = [];
 if isstruct(val)
   if numel(val)>1
-    % this function cannot print struct arrays with multiple elements
-    str = sprintf('%s = ''FIXME'';', name);
+    str = cell(size(val));
+    for i=1:numel(val)
+      str{i} = printstruct(sprintf('%s(%d)', name, i), val(i));
+    end
+    str = cat(2, str{:});
     return
   else
     % print it as a named structure

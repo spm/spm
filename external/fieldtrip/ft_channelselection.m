@@ -1,10 +1,9 @@
 function [channel] = ft_channelselection(desired, datachannel)
 
-% FT_CHANNELSELECTION for EEG and MEG labels
-%
+% FT_CHANNELSELECTION makes a selection of EEG and/or MEG channel labels.
 % This function translates the user-specified list of channels into channel
-% labels as they occur in the data. This channel selection procedure can
-% be used throughout fieldtrip.
+% labels as they occur in the data. This channel selection procedure can be
+% used throughout FieldTrip.
 %
 % Use as:
 %   channel = ft_channelselection(desired, datachannel)
@@ -70,7 +69,7 @@ function [channel] = ft_channelselection(desired, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 5102 2012-01-09 11:20:21Z jorhor $
+% $Id: ft_channelselection.m 5157 2012-01-22 14:49:34Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 

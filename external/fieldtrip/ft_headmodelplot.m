@@ -8,18 +8,10 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %   ft_headmodelplot(cfg)
 %   ft_headmodelplot(cfg, data)
 %
-% You should specify the volume conductor model with
-%   cfg.hdmfile       = string, file containing the volume conduction model
-% or alternatively
-%   cfg.vol           = structure with volume conduction model
+% You should specify the volume conductor model as specified by
+% FT_FETCH_VOL
 %
-% If the sensor information is not contained in the data itself you should
-% also specify the sensor information using
-%   cfg.gradfile      = string, file containing the gradiometer definition
-%   cfg.elecfile      = string, file containing the electrode definition
-% or alternatively
-%   cfg.grad          = structure with gradiometer definition
-%   cfg.elec          = structure with electrode definition
+% If the sensor information is obtained by calling FT_FETCH_SENS.
 %
 % The positions of the sources can be specified as a regular 3-D
 % grid that is aligned with the axes of the head coordinate system
@@ -94,9 +86,9 @@ function [cfg] = ft_headmodelplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodelplot.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_headmodelplot.m 5174 2012-01-25 11:42:24Z jorhor $
 
-revision = '$Id: ft_headmodelplot.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_headmodelplot.m 5174 2012-01-25 11:42:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

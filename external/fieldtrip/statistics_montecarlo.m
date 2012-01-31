@@ -1,12 +1,12 @@
 function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 
 % STATISTICS_MONTECARLO performs a nonparametric statistical test by calculating
-% Monte-Carlo estimates of the significance probabilities and/or critical values from the
-% permutation distribution. This function should not be called
-% directly, instead you should call the function that is associated with
-% the type of data on which you want to perform the test.
+% Monte-Carlo estimates of the significance probabilities and/or critical values
+% from the permutation distribution. This function should not be called
+% directly, instead you should call the function that is associated with the
+% type of data on which you want to perform the test.
 %
-% Use as:
+% Use as
 %   stat = ft_timelockstatistics(cfg, data1, data2, data3, ...)
 %   stat = ft_freqstatistics    (cfg, data1, data2, data3, ...)
 %   stat = ft_sourcestatistics  (cfg, data1, data2, data3, ...)
@@ -34,13 +34,17 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 % statistics will be thresholded and combined into one statistical
 % value per cluster.
 %   cfg.clusterstatistic = how to combine the single samples that belong to a cluster, 'maxsum', 'maxsize', 'wcm' (default = 'maxsum')
+%                          option 'wcm' refers to 'weighted cluster mass',
+%                          a statistic that combines cluster size and
+%                          intensity; see Hayasaka & Nichols (2004) NeuroImage
+%                          for details
 %   cfg.clusterthreshold = method for single-sample threshold, 'parametric', 'nonparametric_individual', 'nonparametric_common' (default = 'parametric')
 %   cfg.clusteralpha     = for either parametric or nonparametric thresholding per tail (default = 0.05)
 %   cfg.clustercritval   = for parametric thresholding (default is determined by the statfun)
 %   cfg.clustertail      = -1, 1 or 0 (default = 0)
 %
 % To include the channel dimension for clustering, you should specify
-%   cfg.neighbours       = structure with the neighbours of each channel, see FT_NEIGHBOURSELECTION
+%   cfg.neighbours       = neighbourhood structure, see FT_PREPARE_NEIGHBOURS
 % If you specify an empty neighbourhood structure, clustering will only be done
 % in frequency and time (if available) and not over neighbouring channels.
 %
@@ -93,7 +97,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 4623 2011-10-28 15:44:23Z roboos $
+% $Id: statistics_montecarlo.m 5176 2012-01-25 14:48:33Z roboos $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});

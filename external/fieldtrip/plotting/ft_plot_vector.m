@@ -56,7 +56,7 @@ function [varargout] = ft_plot_vector(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vector.m 4797 2011-11-23 09:57:01Z jorhor $
+% $Id: ft_plot_vector.m 5152 2012-01-20 08:09:50Z jansch $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -68,12 +68,13 @@ if nargin>1 && all(cellfun(@isnumeric, varargin(1:2)) | cellfun(@islogical, vara
 else
   % the function was called like plot(y, ...)
   vdat = varargin{1};
-  if any(size(vdat)==1)
-    % ensure that it is a column vector
-    vdat = vdat(:);
-  end
   hdat = 1:size(vdat,1);
   varargin = varargin(2:end);
+end
+
+if any(size(vdat)==1)
+  % ensure that it is a column vector
+  vdat = vdat(:);
 end
 
 % get the optional input arguments

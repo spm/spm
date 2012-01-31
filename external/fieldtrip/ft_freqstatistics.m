@@ -19,7 +19,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %   cfg.avgovertime = 'yes' or 'no'                   (default = 'no')
 %   cfg.avgoverfreq = 'yes' or 'no'                   (default = 'no')
 %   cfg.parameter   = string                          (default = 'powspctrm')
-%   cfg.neighbours  = see FT_NEIGHBOURSELECTION       (no default, required if cfg.correctm='cluster')
+%
+% If you specify cfg.correctm='cluster', then the following is required
+%   cfg.neighbours  = neighbourhood structure, see FT_PREPARE_NEIGHBOURS
 %
 % Furthermore, the configuration should contain
 %   cfg.method       = different methods for calculating the significance probability and/or critical value
@@ -68,9 +70,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 5099 2012-01-09 10:26:40Z jorhor $
+% $Id: ft_freqstatistics.m 5176 2012-01-25 14:48:33Z roboos $
 
-revision = '$Id: ft_freqstatistics.m 5099 2012-01-09 10:26:40Z jorhor $';
+revision = '$Id: ft_freqstatistics.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -336,11 +338,20 @@ end
 % FIXME squeeze out the appropriate dimords if avgoverfreq etc.
 stat.dimord = cfg.dimord;
 
+% HACK if a bivariate statistic is in the output, replace label with the
+% appropriate labelcmb
+if strcmp(cfg.statistic, 'indepsamplesZcoh') && isfield(stat, 'label')
+  stat.labelcmb(:,1) = stat.label(cfg.chancmbindx(:,1));
+  stat.labelcmb(:,2) = stat.label(cfg.chancmbindx(:,2));
+  stat = rmfield(stat, 'label');
+end
+
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
 ft_postamble previous varargin
 ft_postamble history stat
 ft_postamble savevar stat
+
 
 

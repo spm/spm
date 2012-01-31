@@ -1,6 +1,7 @@
 function data = ft_spikesimulation(cfg)
 
-% FT_SPIKESIMULATION
+% FT_SPIKESIMULATION simulates a spiketrain with a structures timing of the
+% neuronal firing.
 %
 % Use as
 %   data = ft_spikesimulation(cfg)
@@ -26,9 +27,9 @@ function data = ft_spikesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikesimulation.m 4816 2011-11-27 14:30:31Z roboos $
+% $Id: ft_spikesimulation.m 5157 2012-01-22 14:49:34Z roboos $
 
-revision = '$Id: ft_spikesimulation.m 4816 2011-11-27 14:30:31Z roboos $';
+revision = '$Id: ft_spikesimulation.m 5157 2012-01-22 14:49:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults

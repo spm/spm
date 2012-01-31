@@ -28,7 +28,7 @@ function [lf] = eeg_slab_monopole(rd, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_slab_monopole.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: eeg_slab_monopole.m 5168 2012-01-24 12:06:34Z crimic $
 
 siz = size(rd);
 if any(siz==1)
@@ -84,7 +84,7 @@ for i=1:Npoles
     warning('a pole coincides with one of the electrodes');
     lf(:,i) = NaN(Nelc,1);
   else
-    lf(:,i) = (1 ./ R1) + (1 ./ R2) + (1 ./ R3) + (1 ./ R4);
+    lf(:,i) = (1 ./ R1) + (1 ./ R2) + (1 ./ R3);% + (1 ./ R4);
   end
 end
 

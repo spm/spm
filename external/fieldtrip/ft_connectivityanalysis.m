@@ -1,6 +1,6 @@
 function [stat] = ft_connectivityanalysis(cfg, data)
 
-% FT_CONNECTIVITYANALYIS computes various measures of connectivity
+% FT_CONNECTIVITYANALYSIS computes various measures of connectivity
 % between MEG/EEG channels or between source-level signals.
 %
 % Use as
@@ -15,7 +15,7 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % metrics are supported only for specific datatypes (see below). 
 %
 % The configuration structure has to contain
-%   cfg.method  = 
+%   cfg.method  =  string, can be
 %     'coh',       coherence, support for freq, freqmvar and source data.
 %                  For partial coherence also specify cfg.partchannel
 %     'csd',       cross-spectral density matrix, can also calculate partial
@@ -102,9 +102,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 4892 2011-11-30 14:20:02Z jansch $
+% $Id: ft_connectivityanalysis.m 5157 2012-01-22 14:49:34Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 4892 2011-11-30 14:20:02Z jansch $';
+revision = '$Id: ft_connectivityanalysis.m 5157 2012-01-22 14:49:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -41,7 +41,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 5061 2011-12-21 09:57:28Z jansch $
+% $Id: ft_write_mri.m 5187 2012-01-31 08:42:56Z jansch $
 
 % get the options
 dataformat    = ft_getopt(varargin, 'dataformat', ft_filetype(filename));
@@ -59,7 +59,7 @@ switch dataformat
     %analyze data, using SPM
     V = volumewrite_spm(filename, dat, transform, spmversion);
 
-  case {'freesurfer_mgz' 'mgz'}
+  case {'freesurfer_mgz' 'mgz' 'mgh'}
     % mgz-volume using freesurfer
     ft_hastoolbox('freesurfer', 1);
     

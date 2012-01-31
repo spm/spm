@@ -9,7 +9,7 @@ function [data] = ft_channelrepair(cfg, data)
 %
 % The configuration must contain
 %   cfg.badchannel     = cell-array, see FT_CHANNELSELECTION for details
-%   cfg.neighbours     = neighbourhoodstructure, see also FT_NEIGHBOURSELECTION
+%   cfg.neighbours     = neighbourhoodstructure, see also FT_PREPARE_NEIGHBOURS
 %   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
 %
 % Since a nearest neighbour average is used, the input should contain
@@ -44,9 +44,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 4793 2011-11-23 09:27:18Z jorhor $
+% $Id: ft_channelrepair.m 5176 2012-01-25 14:48:33Z roboos $
 
-revision = '$Id: ft_channelrepair.m 4793 2011-11-23 09:27:18Z jorhor $';
+revision = '$Id: ft_channelrepair.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults

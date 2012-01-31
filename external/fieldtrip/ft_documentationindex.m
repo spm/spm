@@ -1,9 +1,14 @@
 function index = ft_documentationindex(filename)
 
-% FT_DOCUMENTATIONINDEX is a helper function to maintain the online
-% documentation
+% FT_DOCUMENTATIONINDEX is a function to maintain the online documentation. 
+%
+% Normal users will not be calling this function, but will rather look at
+% http://fieldtrip.fcdonders.nl/reference/index where the output of this
+% function can be found.
+%
+% See FT_DOCUMENTATIONREFERENCE
 
-% Copyright (C) 2008, Robert Oostenveld
+% Copyright (C) 2008-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -21,7 +26,7 @@ function index = ft_documentationindex(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_documentationindex.m 4888 2011-11-30 08:31:15Z eelspa $
+% $Id: ft_documentationindex.m 5157 2012-01-22 14:49:34Z roboos $
 
 ft_defaults
 

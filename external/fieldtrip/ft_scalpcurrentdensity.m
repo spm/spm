@@ -19,8 +19,13 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %                      'hjorth' for Hjorth approximation method
 %   cfg.elecfile     = string, file containing the electrode definition
 %   cfg.elec         = structure with electrode definition
-%   cfg.conductivity = conductivity of the skin (default = 0.33 S/m)
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
+%
+% The spline and finite method require the following
+%   cfg.conductivity = conductivity of the skin (default = 0.33 S/m)
+% 
+% The hjorth method requires the following
+%   cfg.neighbours   = neighbourhood structure, see FT_PREPARE_NEIGHBOURS
 %
 % Note that the skin conductivity, electrode dimensions and the potential
 % all have to be expressed in the same SI units, otherwise the units of
@@ -53,11 +58,11 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %   Neurophysiology 76:565.
 %
 % The 'hjorth' method implements
-%   B. Hjort; An on-line transformation of EEG ccalp potentials into
+%   B. Hjort; An on-line transformation of EEG scalp potentials into
 %   orthogonal source derivation. Electroencephalography and Clinical
 %   Neurophysiology 39:526-530, 1975.
 
-% Copyright (C) 2004-2006, Robert Oostenveld
+% Copyright (C) 2004-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -75,9 +80,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 4791 2011-11-23 09:18:50Z jorhor $
+% $Id: ft_scalpcurrentdensity.m 5176 2012-01-25 14:48:33Z roboos $
 
-revision = '$Id: ft_scalpcurrentdensity.m 4791 2011-11-23 09:18:50Z jorhor $';
+revision = '$Id: ft_scalpcurrentdensity.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -110,25 +115,7 @@ if ~strcmp(cfg.trials, 'all')
 end
 
 % get the electrode positions
-if isfield(cfg, 'elecfile')
-  fprintf('reading electrodes from file %s\n', cfg.elecfile);
-  elec = ft_read_sens(cfg.elecfile);
-elseif isfield(cfg, 'elec')
-  fprintf('using electrodes specified in the configuration\n');
-  elec = cfg.elec;
-elseif isfield(data, 'elec')
-  fprintf('using electrodes specified in the data\n');
-  elec = data.elec;
-elseif isfield(cfg, 'layout')
-  fprintf('using the 2-D layout to determine electrode position\n');
-  % create a dummy electrode structure, this is needed for channel selection
-  elec = [];
-  elec.label  = cfg.layout.label;
-  elec.pnt    = cfg.layout.pos;
-  elec.pnt(:,3) = 0;
-else
-  error('electrode positions were not specified');
-end
+elec = ft_fetch_sens(cfg, data);
 
 % remove all junk fields from the electrode array
 tmp  = elec;
@@ -150,7 +137,7 @@ end
 % compute SCD for each trial
 if strcmp(cfg.method, 'spline')
   for trlop=1:Ntrials
-    % do not compute intrepolation, but only one value at [0 0 1]
+    % do not compute interpolation, but only one value at [0 0 1]
     % this also gives L1, the laplacian of the original data in which we
     % are interested here
     fprintf('computing SCD for trial %d\n', trlop);

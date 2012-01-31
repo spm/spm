@@ -64,18 +64,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %   cfg.numrandomization   = number, e.g. 500
 %   cfg.numpermutation     = number, e.g. 500 or 'all'
 %
-% You should specify the volume conductor model with
-%   cfg.hdmfile       = string, file containing the volume conduction model
-% or alternatively
-%   cfg.vol           = structure with volume conduction model
+% You should specify the volume conductor model, see FT_FETCH_VOL.
 %
-% If the sensor information is not contained in the data itself you should
-% also specify the sensor information using
-%   cfg.gradfile      = string, file containing the gradiometer definition
-%   cfg.elecfile      = string, file containing the electrode definition
-% or alternatively
-%   cfg.grad          = structure with gradiometer definition
-%   cfg.elec          = structure with electrode definition
+% If the sensor information is obtained using FT_FETCH_SENS.
 %
 % If you have not specified a grid with pre-computed leadfields,
 % the leadfield for each grid location will be computed on the fly.
@@ -191,9 +182,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 5066 2011-12-21 15:21:53Z jansch $
+% $Id: ft_sourceanalysis.m 5174 2012-01-25 11:42:24Z jorhor $
 
-revision = '$Id: ft_sourceanalysis.m 5066 2011-12-21 15:21:53Z jansch $';
+revision = '$Id: ft_sourceanalysis.m 5174 2012-01-25 11:42:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -1034,6 +1025,7 @@ ft_postamble callinfo
 if nargin==2
   ft_postamble previous data
 elseif nargin==3
-  ft_postamble history data baseline
+  ft_postamble previous data baseline
 end
+ft_postamble history source
 ft_postamble savevar source

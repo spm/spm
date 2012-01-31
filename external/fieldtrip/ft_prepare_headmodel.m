@@ -34,6 +34,7 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %   vol = ft_prepare_headmodel(cfg)
 %   vol = ft_prepare_headmodel(cfg, vol)
 %   vol = ft_prepare_headmodel(cfg, bnd)
+%   vol = ft_prepare_headmodel(cfg, elec)
 % 
 % In general the input to this function is a geometrical description of the
 % shape of the head and a description of the electrical conductivity. The
@@ -79,7 +80,8 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %     cfg.samplepoint
 %     cfg.conductivity
 %
-% See also FT_PREPARE_MESH, FT_VOLUMESEGMENT, FT_VOLUMEREALIGN
+% See also FT_PREPARE_MESH, FT_VOLUMESEGMENT, FT_VOLUMEREALIGN,
+% FT_FETCH_SENS
 
 % Copyright (C) 2011, Cristiano Micheli, Jan-Mathijs Schoffelen
 %
@@ -99,9 +101,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -139,8 +141,15 @@ cfg.baseline       = ft_getopt(cfg, 'baseline');
 cfg.singlesphere   = ft_getopt(cfg, 'singlesphere');
 cfg.tissueval      = ft_getopt(cfg, 'tissueval'); % FEM 
 cfg.tissuecond     = ft_getopt(cfg, 'tissuecond'); 
-cfg.sens           = ft_getopt(cfg, 'sens'); 
 cfg.transform      = ft_getopt(cfg, 'transform'); 
+
+% new way of getting sens structure:
+%cfg.sens           = ft_getopt(cfg, 'sens'); 
+try
+  cfg.sens = ft_fetch_sens(cfg, data);
+catch
+  cfg.sens = [];
+end
 
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
@@ -288,7 +297,7 @@ switch cfg.method
     vol = ft_headmodel_singlesphere(geometry,'conductivity',cfg.conductivity);
     
   case {'simbio' 'fns'}
-    if length([cfg.tissue cfg.tissueval cfg.tissuecond cfg.elect cfg.transform cfg.unit])<6
+    if length([cfg.tissue cfg.tissueval cfg.tissuecond cfg.elec cfg.transform cfg.unit])<6
       error('Not all the required fields have been provided, see help')
     end
     if strcmp(method,'simbio')
@@ -594,7 +603,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -782,7 +791,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

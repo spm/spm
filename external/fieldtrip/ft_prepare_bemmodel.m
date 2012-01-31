@@ -44,11 +44,11 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_bemmodel.m 5174 2012-01-25 11:42:24Z jorhor $
 
 warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_HEADMODEL_BEM_... with cfg.method = ''bem_bladeebla'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_bemmodel.m 5174 2012-01-25 11:42:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -64,16 +64,15 @@ if ~isfield(cfg, 'isolatedsource'), cfg.isolatedsource = [];                 end
 if ~isfield(cfg, 'method'),         cfg.method = 'dipoli';                   end % dipoli, openmeeg, bemcp, brainstorm
 
 % start with an empty volume conductor
-vol = [];
-if ~isempty(cfg.hdmfile)
-  hdm = ft_read_vol(hdmfile);
-  % copy the boundary of the head model file into the volume conduction model
+try
+  hdm = ft_fetch_vol(cfg);
   vol.bnd = hdm.bnd;
   if isfield(hdm, 'cond')
     % also copy the conductivities
     vol.cond = hdm.cond;
   end
-else
+catch
+  vol = [];
   geom = mri;
   % copy the boundaries from the geometry into the volume conduction model
   vol.bnd = geom.bnd;

@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 5017 2011-12-12 14:33:23Z jansch $
+% $Id: ft_volumewrite.m 5187 2012-01-31 08:42:56Z jansch $
 
-revision = '$Id: ft_volumewrite.m 5017 2011-12-12 14:33:23Z jansch $';
+revision = '$Id: ft_volumewrite.m 5187 2012-01-31 08:42:56Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -247,7 +247,7 @@ switch cfg.filetype
       data = flipdim(data, 1);
     end
     siz = size(data);
-  case {'analyze_spm', 'nifti', 'nifti_img' 'mgz'}
+  case {'analyze_spm', 'nifti', 'nifti_img' 'mgz' 'mgh'}
     % this format supports a homogenous transformation matrix
     % nothing needs to be changed
   otherwise
@@ -436,16 +436,20 @@ switch cfg.filetype
     end
     ft_write_mri(cfg.filename, data, 'dataformat', 'analyze', 'transform', transform, 'spmversion', 'SPM2');
     
-  case 'mgz'
+  case {'mgz' 'mgh'}
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % write in freesurfer_mgz format, using functions from  the freesurfer toolbox
     % this format supports a homogenous transformation matrix
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ispc && strcmp(cfg.filetype, 'mgz')
+      warning('Saving in .mgz format is not possible on a PC, saving in .mgh format instead');
+      cfg.filetype = 'mgh';
+    end
     [pathstr, name, ext] = fileparts(cfg.filename);
     if isempty(ext)
-      cfg.filename = [cfg.filename,'.mgz'];
+      cfg.filename = [cfg.filename,'.',cfg.filetype];
     end
-    ft_write_mri(cfg.filename, data, 'dataformat', 'mgz', 'transform', transform);
+    ft_write_mri(cfg.filename, data, 'dataformat', cfg.filetype, 'transform', transform);
     
     
   otherwise

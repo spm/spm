@@ -1,14 +1,14 @@
 function [cfg] = ft_spike_plot_raster(cfg, spike)
 
-% FT_SPIKE_RASTERPLOT makes a raster plot of spike-trains and allows for
-% spike-density or psth plot on top.
-%
-% The input SPIKE should be organised as the spike or the raw datatype, obtained from
-% FT_SPIKE_MAKETRIALS or FT_PREPROCESSING (in that case, conversion is done
-% within the function).
+% FT_SPIKE_PLOT_RASTER makes a raster plot of spike-trains and allows for a
+% spike-density or a PSTH plot on top.
 %
 % Use as
 %   ft_spike_plot_raster(cfg, spike)
+% 
+% The input spike data structure should be organised as the spike or the raw
+% datatype, obtained from FT_SPIKE_MAKETRIALS or FT_PREPROCESSING (in that case
+% conversion is done within the function).
 %
 % Configuration options related to selection of spike channel and trials and latencies
 %   cfg.spikechannel     =  see FT_CHANNELSELECTION for details
@@ -39,9 +39,9 @@ function [cfg] = ft_spike_plot_raster(cfg, spike)
 
 % Copyright (C) 2010, Martin Vinck; F.C. Donders Centre for Neuroimaging; University of Amsterdam
 %
-% $Id: ft_spike_plot_raster.m 4941 2011-12-07 10:41:56Z roboos $
+% $Id: ft_spike_plot_raster.m 5157 2012-01-22 14:49:34Z roboos $
 
-revision = '$Id: ft_spike_plot_raster.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_spike_plot_raster.m 5157 2012-01-22 14:49:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults

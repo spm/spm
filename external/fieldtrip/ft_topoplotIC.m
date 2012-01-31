@@ -70,8 +70,8 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 % layout. If you want to have more fine-grained control over the layout
 % of the subplots, you should create your own layout file.
 %
-% See also:
-%   FT_TOPOPLOTTFR, FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR, FT_PREPARE_LAYOUT
+% See also FT_COMPONENTANALYSIS, FT_REJECTCOMPONENT, FT_TOPOPLOTTFR,
+% FT_SINGLEPLOTTFR, FT_MULTIPLOTTFR, FT_PREPARE_LAYOUT
 
 % Undocumented local options:
 % cfg.labeloffset (offset of labels to their marker, default = 0.005)
@@ -94,9 +94,9 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 5087 2012-01-03 10:42:38Z roboos $
+% $Id: ft_topoplotIC.m 5157 2012-01-22 14:49:34Z roboos $
 
-revision = '$Id: ft_topoplotIC.m 5087 2012-01-03 10:42:38Z roboos $';
+revision = '$Id: ft_topoplotIC.m 5157 2012-01-22 14:49:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults

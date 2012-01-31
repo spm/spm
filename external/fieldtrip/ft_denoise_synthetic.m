@@ -20,7 +20,7 @@ function [data] = ft_denoise_synthetic(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_PREPROCESSING
+% See also FT_PREPROCESSING, FT_DENOISE_PCA
 
 % Copyright (C) 2004-2008, Robert Oostenveld
 %
@@ -40,9 +40,9 @@ function [data] = ft_denoise_synthetic(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_denoise_synthetic.m 5157 2012-01-22 14:49:34Z roboos $
 
-revision = '$Id: ft_denoise_synthetic.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_denoise_synthetic.m 5157 2012-01-22 14:49:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
