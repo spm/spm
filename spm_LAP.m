@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: spm_LAP.m 4629 2012-01-31 14:16:51Z ged $
  
  
 % find or create a DEM figure
@@ -783,7 +783,7 @@ for iN = 1:nN
     % graphics (states)
     %----------------------------------------------------------------------
     if exist('Fdem','var')
-        figure(Fdem)
+        set(0, 'CurrentFigure', Fdem)
         spm_DEM_qU(qU)
         
         % graphics (parameters and log-precisions)
@@ -823,13 +823,17 @@ for iN = 1:nN
         dF = 0;
     end
     str{1} = sprintf('LAP: %i (%i)', iN,iD);
-    str{2} = sprintf('F:%.4e',       full(F(iN) - F(1)));
+    if iN == 1
+        str{2} = sprintf('  F0:%.4e', full(F(iN)));
+    else
+        str{2} = sprintf('F-F0:%.4e', full(F(iN) - F(1)));
+    end
     str{3} = sprintf('dF:%.2e',      full(dF));
     str{4} = sprintf('(%.2e sec)',   full(toc));
-    fprintf('%-16s%-16s%-14s%-16s\n',str{:})
+    fprintf('%-16s%-20s%-14s%-16s\n',str{:})
  
 end
- 
+fprintf('%-19sF:%.4e\n', 'LAP: Converged', F(end));
  
 % Place Bayesian parameter averages in output arguments
 %==========================================================================
