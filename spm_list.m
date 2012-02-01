@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4615 2012-01-10 16:56:25Z will $
+% $Id: spm_list.m 4631 2012-02-01 12:46:37Z guillaume $
 
 
 %==========================================================================
@@ -475,7 +475,7 @@ case 'table'                                                        %-Table
                             Qu = spm_P_FDR(Z(d),df,STAT,n,QPs);
                             Qp = [];
                         end
-                        if Pz < tolPos
+                        if Pz < tol
                             Ze = Inf;
                         else
                             Ze = spm_invNcdf(1 - Pz); 
