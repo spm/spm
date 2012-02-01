@@ -278,12 +278,12 @@ function [SPM] = spm_spm(SPM)
 %       NeuroImage 2:173-181
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
  
 % Andrew Holmes, Jean-Baptiste Poline & Karl Friston
-% $Id: spm_spm.m 4514 2011-10-07 18:24:21Z guillaume $
+% $Id: spm_spm.m 4632 2012-02-01 15:59:07Z guillaume $
  
-SVNid     = '$Rev: 4514 $';
+SVNid     = '$Rev: 4632 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -836,7 +836,7 @@ if ~isfield(xVi,'V')
  
     %-ReML estimate of residual correlations through hyperparameters (h)
     %----------------------------------------------------------------------
-    str    = 'Temporal non-sphericity (over voxels)';
+    str    = sprintf('Temporal non-sphericity (%d voxels)',s);
     fprintf('%-40s: %30s\n',str,'...ReML estimation');                  %-#
     Cy     = Cy/s;
  
