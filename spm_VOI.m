@@ -55,7 +55,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 4632 2012-02-01 15:59:07Z guillaume $
+% $Id: spm_VOI.m 4633 2012-02-01 18:44:02Z guillaume $
 
 
 %-Parse arguments
@@ -139,18 +139,18 @@ STAT       = xSPM.STAT;
 DIM        = xSPM.DIM;
 R          = xSPM.R;
 n          = xSPM.n;
-Z          = xSPM.Z;
+Vspm       = xSPM.Vspm;
 u          = xSPM.u;
 S          = xSPM.S;
 
-try, xSPM.Ps  = xSPM.Ps(k); end
+try, xSPM.Ps = xSPM.Ps(k); end
 if STAT ~= 'P'
-    [up, xSPM.Pp]     = spm_uc_peakFDR(0.05,df,STAT,R,n,Z,xSPM.XYZ,u);
+    [up, xSPM.Pp]     = spm_uc_peakFDR(0.05,df,STAT,R,n,Vspm,k,u);
     uu                = spm_uc(0.05,df,STAT,R,n,S);
 end
 try % if STAT == 'T'
     V2R               = 1/prod(xSPM.FWHM(DIM>1));
-    [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Z,xSPM.XYZ,V2R,u);
+    [uc, xSPM.Pc, ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Vspm,k,V2R,u);
 catch
     uc                = NaN;
     ue                = NaN;

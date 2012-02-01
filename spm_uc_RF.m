@@ -22,7 +22,7 @@ function [u] = spm_uc_RF(a,df,STAT,R,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_uc_RF.m 3614 2009-12-07 18:04:24Z guillaume $
+% $Id: spm_uc_RF.m 4633 2012-02-01 18:44:02Z guillaume $
 
 
 % find approximate value
@@ -38,6 +38,7 @@ while abs(d) > 1e-6
     [P P q] = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d       = (a - p)/((q - p)/du);
     u       = u + d;
+    %if u < 0, u=+Inf; return; end
 end
 
 % refined estimate using 1 - exp(-E{m})
@@ -48,4 +49,5 @@ while abs(d) > 1e-6
     q       = spm_P_RF(1,0,u + du,df,STAT,R,n);
     d       = (a - p)/((q - p)/du);
     u       = u + d;
+    if isinf(u), u=+Inf; return; end
 end

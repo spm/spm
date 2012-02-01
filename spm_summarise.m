@@ -2,6 +2,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Summarise data within a Region of Interest
 % FUNCTION [Y, xY] = spm_summarise(V,xY,fhandle)
 % V       - [1 x n] vector of mapped image volumes to read (from spm_vol)
+%           Or a char array of filenames
 % xY      - VOI structure (from spm_ROI)
 %           Or a VOI_*.mat (from spm_regions) or a mask image filename
 %           Or the keyword 'all' to summarise all voxels in the images
@@ -13,16 +14,22 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Y       - [n x p] data summary
 % xY      - (updated) VOI structure
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+%
+% Example:
+% spm_summarise('spmT_0001.img',...
+%               struct('def','sphere', 'spec',8, 'xyz',[10 20 30]'),...
+%               @mean)
+%__________________________________________________________________________
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 4013 2010-07-22 17:12:45Z guillaume $
+% $Id: spm_summarise.m 4633 2012-02-01 18:44:02Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------
 if nargin < 1 || isempty(V)
-    [V ok] = spm_select([1 Inf], 'image', 'Specify Images');
-    if ~ok, error('Must select 1 or more images'), end
+    [V, sts] = spm_select([1 Inf], 'image', 'Specify Images');
+    if ~sts, error('Must select 1 or more images'), end
 end
 if ischar(V), V = spm_vol(V); end
 spm_check_orientations(V);
@@ -46,7 +53,7 @@ elseif isnumeric(xY) && any(size(xY, 1) == [3 4])
 elseif ~isstruct(xY)
     error('Incorrect xY specified')
 end
-if ~isfield(xY,'XYZmm'), [xY xY.XYZmm] = spm_ROI(xY,V(1)); end
+if ~isfield(xY,'XYZmm'), [xY, xY.XYZmm] = spm_ROI(xY,V(1)); end
 
 if nargin < 3 || isempty(fhandle), fhandle = @(x) x; end
 if ischar(fhandle) && strcmp(fhandle,'summl')

@@ -14,15 +14,16 @@ function V4 = spm_file_merge(V,fname,dt)
 % the range of admissible values. This may lead to quantization error
 % differences between the input and output images values.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_file_merge.m 3613 2009-12-04 18:47:59Z guillaume $
+% $Id: spm_file_merge.m 4633 2012-02-01 18:44:02Z guillaume $
 
 %-Input: V
 %--------------------------------------------------------------------------
 if ~nargin
-    V = spm_select([1 Inf],'image','Select images to concatenate');
+    [V,sts] = spm_select([1 Inf],'image','Select images to concatenate');
+    if ~sts, return; end
 end
 if ischar(V)
     V = spm_vol(V);

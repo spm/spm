@@ -26,7 +26,7 @@ function mip = spm_mip(Z,XYZ,M,units)
 % A customised mip outline can be used instead of the default.
 %
 % A default colormap of 64 levels is assumed. The pointlist image is
-% scaled to fit in the interval [0.25,1]*64 for display. Flat images
+% scaled to fit in the interval [1/9,1]*64 for display. Flat images
 % are scaled to 1*64.
 %
 % If M is not specified, it is assumed the XYZ locations are
@@ -36,7 +36,7 @@ function mip = spm_mip(Z,XYZ,M,units)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mip.m 4502 2011-09-28 09:47:40Z volkmar $
+% $Id: spm_mip.m 4633 2012-02-01 18:44:02Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ if size(XYZ,1) ~= 3, XYZ = XYZ';         end
 if size(Z,1)   ~= 1, Z   = Z';           end
 if size(M,1)   == 1, M   = speye(4,4)*M; end
 
-%-Scale & offset point list values to fit in [0.25,1]
+%-Scale & offset point list values to fit in [1/(1+Scal),1]
 %--------------------------------------------------------------------------
 Z    = Z - min(Z);
 mx   = max(Z);

@@ -1,22 +1,22 @@
 function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % Peak False Discovery critical height threshold
-% FORMAT [u] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
+% FORMAT [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %
-% q     - Prespecified upper bound on False Discovery Rate
+% q     - prespecified upper bound on False Discovery Rate
 % df    - [df{interest} df{residuals}]
-% STAT  - Statistical field
+% STAT  - statistical field
 %         'Z' - Gaussian field
 %         'T' - T - field
 %         'X' - Chi squared field
 %         'F' - F - field
 % R     - RESEL Count {defining search volume}
-% n     - Conjunction number
+% n     - conjunction number
 % Z     - height {minimum over n values}
 % XYZ   - locations [x y x]' {in voxels}
 % ui    - feature-inducing threshold
 %
 % u     - critical height threshold
-% Ps    - Sorted p-values
+% Ps    - sorted p-values
 %__________________________________________________________________________
 %
 % References
@@ -26,14 +26,34 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % 44(1):62-70, 2009.
 %
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
-% FDR for NeuroImaging". Under revision.
+% FDR for NeuroImaging". NeuroImage, 49(4):3057–3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 2975 2009-03-26 21:43:31Z guillaume $
+% $Id: spm_uc_peakFDR.m 4633 2012-02-01 18:44:02Z guillaume $
+
 
 ws       = warning('off','SPM:outOfRangePoisson');
+
+% Read statistical value from disk if needed
+%--------------------------------------------------------------------------
+if isstruct(Z)
+    Vs         = Z;
+    Vm         = XYZ;
+    [Z, XYZmm] = spm_read_vols(Vs(1),true);
+    for i=2:numel(Vs)
+        Z      = min(Z, spm_read_vols(Vs(i)),true);
+    end
+    Z          = Z(:)';
+    XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
+    XYZ        = XYZ(1:3,~isnan(Z) & Z~=0);
+    Z          = Z(~isnan(Z) & Z~=0);
+    if ~isstruct(Vm)
+        XYZ    = XYZ(:,Vm);
+        Z      = Z(:,Vm);
+    end
+end
 
 % Extract list of local maxima whose height is above ui
 %--------------------------------------------------------------------------

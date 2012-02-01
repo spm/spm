@@ -2,22 +2,22 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Cluster False Discovery critical extent threshold
 % FORMAT [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %
-% q     - Prespecified upper bound on False Discovery Rate
+% q     - prespecified upper bound on False Discovery Rate
 % df    - [df{interest} df{residuals}]
-% STAT  - Statistical field
+% STAT  - statistical field
 %         'Z' - Gaussian field
 %         'T' - T - field
 %         'X' - Chi squared field
 %         'F' - F - field
 % R     - RESEL Count {defining search volume}
-% n     - Conjunction number
+% n     - conjunction number
 % Z     - height {minimum over n values}
 % XYZ   - locations [x y x]' {in voxels}
 % V2R   - voxel to resel
 % ui    - feature-inducing threshold
 %
 % u     - critical extent threshold
-% Ps    - Sorted p-values
+% Ps    - sorted p-values
 % ue    - critical extent threshold for FWE
 %__________________________________________________________________________
 %
@@ -28,12 +28,32 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % 44(1):62-70, 2009.
 %
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
-% FDR for NeuroImaging". Under revision.
+% FDR for NeuroImaging". NeuroImage, 49(4):3057–3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 2975 2009-03-26 21:43:31Z guillaume $
+% $Id: spm_uc_clusterFDR.m 4633 2012-02-01 18:44:02Z guillaume $
+
+
+% Read statistical value from disk if needed
+%--------------------------------------------------------------------------
+if isstruct(Z)
+    Vs         = Z;
+    Vm         = XYZ;
+    [Z, XYZmm] = spm_read_vols(Vs(1),true);
+    for i=2:numel(Vs)
+        Z      = min(Z, spm_read_vols(Vs(i)),true);
+    end
+    Z          = Z(:)';
+    XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
+    XYZ        = XYZ(:,~isnan(Z) & Z~=0);
+    Z          = Z(~isnan(Z) & Z~=0);
+    if ~isstruct(Vm)
+        XYZ    = XYZ(:,Vm);
+        Z      = Z(:,Vm);
+    end
+end
 
 % Threshold the statistical field 
 %--------------------------------------------------------------------------
@@ -78,11 +98,11 @@ end
 % As we're there, also determine the FWE critical extent threshold
 %--------------------------------------------------------------------------
 if nargout == 3
-    [Pk, J]  = sort(Pk, 'ascend');
-    I        = find(Pk <= q, 1, 'last');
+    [Pk, J] = sort(Pk, 'ascend');
+    I       = find(Pk <= q, 1, 'last');
     if isempty(I)
-        ue   = Inf;
+        ue  = Inf;
     else
-        ue   = N(J(I)) / V2R;
+        ue  = N(J(I)) / V2R;
     end
 end
