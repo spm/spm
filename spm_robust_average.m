@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 4391 2011-07-18 12:10:27Z vladimir $
+% $Id: spm_robust_average.m 4639 2012-02-02 13:56:02Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -85,6 +85,7 @@ while max(abs(ores-nres))>sqrt(1E-8)
         res(res<0) = 0;
         nres = (sum(res(~isnan(res)).^2));
         W(:, ind2)  = (abs(res)<1) .* ((1 - res.^2).^2);
+        W(W == 0) = eps; % This is to prevent appearance of NaNs when normalizing
         W(isnan(X)) = 0;
         W(X == 0 & ~repmat(all(X==0), size(X, 1), 1)) = 0; %Assuming X is a real measurement        
     end      

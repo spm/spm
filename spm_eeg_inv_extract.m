@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 4554 2011-11-10 10:13:40Z vladimir $
+% $Id: spm_eeg_inv_extract.m 4639 2012-02-02 13:56:02Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -67,7 +67,7 @@ for i = 1:Ns
         svert{i} = find(dist < rad);
     else
         [junk svert{i}] = min(dist);
-        XYZ = vert(svert{i}, :);
+        XYZ(i, :) = vert(svert{i}, :);
     end
 end
  
