@@ -7,10 +7,10 @@ function out = spm_run_voi(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 4475 2011-09-09 17:53:14Z guillaume $
+% $Id: spm_run_voi.m 4640 2012-02-02 18:08:42Z guillaume $
 
 fprintf('## Note: this VOI facility is in a beta version.      ##\n');
 fprintf('## Interface and features might change in the future. ##\n');
@@ -40,16 +40,16 @@ voi     = roi_eval(voi,job.expression);
 
 %-Save VOI as image
 %--------------------------------------------------------------------------
-V = struct('fname', fullfile(swd, ['VOI_' job.name spm_file_ext]), ...
-    'dim',     SPM.xVol.DIM', ...
-    'dt',      [spm_type('uint8') spm_platform('bigend')], ...
-    'mat',     SPM.xVol.M, ...
-    'pinfo',   [1 0 0]', ...
-    'descrip', 'VOI');
-V = spm_create_vol(V);
+Vm = struct('fname', fullfile(swd, ['VOI_' job.name '_mask' spm_file_ext]), ...
+     'dim',     SPM.xVol.DIM', ...
+     'dt',      [spm_type('uint8') spm_platform('bigend')], ...
+     'mat',     SPM.xVol.M, ...
+     'pinfo',   [1 0 0]', ...
+     'descrip', 'VOI');
+Vm = spm_create_vol(Vm);
 
-for i=1:V.dim(3)
-    V = spm_write_plane(V,voi(:,:,i),i);
+for i=1:Vm.dim(3)
+    Vm = spm_write_plane(Vm,voi(:,:,i),i);
 end
 
 %-Extract VOI time-series
@@ -59,7 +59,7 @@ xY.Ic      = job.adjust;
 xY.Sess    = job.session;
 xY.xyz     = []'; % irrelevant here
 xY.def     = 'mask';
-xY.spec    = V;
+xY.spec    = Vm;
 
 xSPM.XYZmm = XYZmm;
 xSPM.XYZ   = XYZ;
@@ -69,6 +69,19 @@ if ~isempty(xY.Ic), cwd = pwd; cd(SPM.swd); end % to find beta images
 [Y,xY]     = spm_regions(xSPM,SPM,[],xY);
 if  ~isempty(xY.Ic), cd(cwd); end
 
+%-Save first eigenimage
+%--------------------------------------------------------------------------
+Ve = struct('fname', fullfile(swd, ['VOI_' job.name '_eigen' spm_file_ext]), ...
+     'dim',     SPM.xVol.DIM', ...
+     'dt',      [spm_type('float32') spm_platform('bigend')], ...
+     'mat',     SPM.xVol.M, ...
+     'pinfo',   [1 0 0]', ...
+     'descrip', 'VOI: first eigenimage');
+Ve = spm_create_vol(Ve);
+eigimg = double(voi);
+eigimg(voi) = xY.v;
+Ve = spm_write_vol(Ve,eigimg);
+
 %-Export results
 %--------------------------------------------------------------------------
 assignin('base','Y',Y);
@@ -76,7 +89,8 @@ assignin('base','xY',xY);
 
 if isfield(SPM,'Sess'), s = sprintf('_%i',xY.Sess); else s = ''; end
 out.voimat = cellstr(fullfile(swd,['VOI_' job.name s '.mat']));
-out.voiimg = cellstr(V.fname);
+out.voiimg = cellstr(Vm.fname);
+out.voieig = cellstr(Ve.fname);
 
 %==========================================================================
 function voi = roi_estim(xyz,n,job,SPM,voi)
