@@ -45,7 +45,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_regions.m 4512 2011-10-07 15:41:24Z guillaume $
+% $Id: spm_regions.m 4643 2012-02-03 17:31:02Z guillaume $
 
 if nargin < 4, xY = []; end
 
@@ -93,17 +93,18 @@ if ~isfield(xY,'name')
 end
 
 if ~isfield(xY,'Ic')
-    q     = 0;
-    Con   = {'<don''t adjust>'};
-    if isempty([SPM.xX.iH SPM.xX.iC])
-        q(end + 1) = NaN;
-        Con{end + 1} = '<adjust for everything>';
-    end
+    q(1)   = 0;
+    Con    = {'<don''t adjust>'};
+    q(2)   = NaN;
+    Con{2} = '<adjust for everything>';
     for i = 1:length(SPM.xCon)
         if strcmp(SPM.xCon(i).STAT,'F')
             q(end + 1) = i;
             Con{end + 1} = SPM.xCon(i).name;
         end
+    end
+    if numel(Con) == 2
+        warning('No F-contrast has been defined: are you sure?');
     end
     i     = spm_input('adjust data for (select contrast)','!+1','m',Con);
     xY.Ic = q(i);
