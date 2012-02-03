@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4615 2012-01-10 16:56:25Z will $
+% $Id: spm_spm_vb.m 4641 2012-02-03 12:40:29Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -167,6 +167,14 @@ if ~nargin
     swd = spm_file(Pf,'fpath');
     load(fullfile(swd,'SPM.mat'));
     SPM.swd = swd;
+end
+
+%-Change to SPM.swd if specified
+%-----------------------------------------------------------------------
+try
+    cd(SPM.swd);
+catch
+    SPM.swd = pwd;
 end
 
 %-Let later functions (spm_contrasts, spm_graph) know that estimation
@@ -189,15 +197,6 @@ if SPM.PPM.window
     spm('Pointer','Arrow');
 end
 
-%-Change to SPM.swd if specified
-%-----------------------------------------------------------------------
-try
-    changed_dir = pwd;
-    cd(SPM.swd);
-catch
-    changed_dir = '';
-end
-
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if SPM.PPM.window
@@ -205,7 +204,7 @@ if SPM.PPM.window
        exist(fullfile(pwd,'mask.nii'),'file') == 2
         
         str   = {'Current directory contains SPM estimation files:',...
-                 'pwd = ',pwd,...
+                 'pwd = ',SPM.swd,...
                  'Existing results will be overwritten!'};
         
         abort = spm_input(str,1,'bd','stop|continue',[1,0],1);
@@ -213,7 +212,7 @@ if SPM.PPM.window
             spm('FigName','Stats: done',Finter); spm('Pointer','Arrow');
             return
         else
-            str = sprintf('Overwriting old results\n\t (pwd = %s) ',pwd);
+            str = sprintf('Overwriting old results\n\t (pwd = %s) ',SPM.swd);
             warning(str)
             drawnow
         end
@@ -1108,12 +1107,6 @@ SPM.xVol.VRpv=[];
 save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
 
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
-
-%-Change back to initial directory
-%-----------------------------------------------------------------------
-if ~isempty(changed_dir)
-    cd(changed_dir);
-end
 
 if SPM.PPM.window
     %===================================================================

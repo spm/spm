@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4615 2012-01-10 16:56:25Z will $
+% $Id: spm_getSPM.m 4641 2012-02-03 12:40:29Z guillaume $
 
 
 %-GUI setup
@@ -751,9 +751,13 @@ elseif STAT == 'P'
 %     u         = spm_input(str,'+0','r',u_default,1);
 %     thresDesc = ['P>'  num2str(u) ' (PPM)'];
     
-    u_default = 10;
-    str       = 'Log-Odds Threshold for PPM';
-    u         = spm_input(str,'+0','r',u_default,1);
+    try
+        u = xSPM.u;
+    catch
+        u_default = 10;
+        str       = 'Log-Odds Threshold for PPM';
+        u         = spm_input(str,'+0','r',u_default,1);
+    end
     thresDesc = ['P >'  num2str(u) ' (PPM)'];
     
 end % (if STAT)
