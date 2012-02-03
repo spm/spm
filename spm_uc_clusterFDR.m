@@ -12,7 +12,10 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % R     - RESEL Count {defining search volume}
 % n     - conjunction number
 % Z     - height {minimum over n values}
+%         or mapped statistic image(s)
 % XYZ   - locations [x y x]' {in voxels}
+%         or vector of indices of elements within mask
+%         or mapped mask image
 % V2R   - voxel to resel
 % ui    - feature-inducing threshold
 %
@@ -33,7 +36,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 4633 2012-02-01 18:44:02Z guillaume $
+% $Id: spm_uc_clusterFDR.m 4644 2012-02-03 17:44:57Z guillaume $
 
 
 % Read statistical value from disk if needed
@@ -47,12 +50,15 @@ if isstruct(Z)
     end
     Z          = Z(:)';
     XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
-    XYZ        = XYZ(:,~isnan(Z) & Z~=0);
-    Z          = Z(~isnan(Z) & Z~=0);
-    if ~isstruct(Vm)
-        XYZ    = XYZ(:,Vm);
-        Z      = Z(:,Vm);
+    I          = ~isnan(Z) & Z~=0;
+    XYZ        = XYZ(1:3,I);
+    Z          = Z(I);
+    if isstruct(Vm)
+        Vm     = logical(spm_read_vols(Vm));
+        Vm     = Vm(I);
     end
+    XYZ        = XYZ(:,Vm);
+    Z          = Z(:,Vm);
 end
 
 % Threshold the statistical field 
