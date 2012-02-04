@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_eeg_grandmean.m 4648 2012-02-04 13:29:12Z vladimir $
 
-SVNrev = '$Rev: 4447 $';
+SVNrev = '$Rev: 4648 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -93,6 +93,9 @@ if strncmp(D{1}.transformtype, 'TF',2)
     nf = zeros(Nfiles,1);
 end
 
+megsens = [];
+eegsens = [];
+fid     = [];
 for i = 1:Nfiles
     nc(i) = D{i}.nchannels;
     ns(i) = D{i}.nsamples;
@@ -100,6 +103,18 @@ for i = 1:Nfiles
     ne(i) = D{i}.nconditions;
     if strncmp(D{1}.transformtype, 'TF',2)
         nf(i) = D{i}.nfrequencies;
+    end
+    
+    if ~isempty(D{i}.sensors('MEG'))
+        megsens = [megsens D{i}.sensors('MEG')];
+    end
+    
+    if ~isempty(D{i}.sensors('EEG'))
+        eegsens = [eegsens D{i}.sensors('EEG')];
+    end
+    
+    if ~isempty(megsens) || ~isempty(eegsens)
+        fid = [fid D{i}.fiducials];
     end
 end
 
@@ -234,6 +249,8 @@ if ~S.weighted
     nrepl = ones(Nfiles, Ntypes);
 end
 
+
+
 % generate new meeg object with new filenames
 if strncmp(D{1}.transformtype, 'TF',2)
     Do = clone(Do, spm_file(S.Dout, 'ext','.dat'), [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
@@ -309,6 +326,32 @@ else
 end
 
 spm_progress_bar('Clear');
+
+%-Average sensor locations
+%--------------------------------------------------------------------------
+Ntrials = sum(nrepl, 2);
+if ~isempty(megsens)
+    spm_figure('GetWin','Graphics');clf;
+    if ~isempty(eegsens)
+        h = subplot(2, 1, 1);
+        aeegsens = ft_average_sens(eegsens, 'weights', Ntrials, 'feedback', h);
+        Do = sensors(Do, 'EEG', aeegsens);
+        
+        h = subplot(2, 1, 2);
+    else
+        h = axes;
+    end
+    
+    [amegsens afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Do = sensors(Do, 'MEG', amegsens);
+    Do = fiducials(Do, afid);
+elseif ~isempty(eegsens)
+    spm_figure('GetWin','Graphics');clf;
+    h = axes;
+    [aeegsens afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    Do = sensors(Do, 'EEG', aeegsens);
+    Do = fiducials(Do, afid);
+end
 
 %-Save Grand Mean to disk
 %--------------------------------------------------------------------------
