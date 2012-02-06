@@ -1,59 +1,64 @@
 function st = spm_cfg_st
 % SPM Configuration file for Slice Timing Correction
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 4269 2011-03-29 16:03:43Z guillaume $
+% $Id: spm_cfg_st.m 4649 2012-02-06 15:55:04Z guillaume $
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % scans Session
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Session';
 scans.help    = {'Select images to slice-time correct.'};
-scans.filter = 'image';
+scans.filter  = 'image';
 scans.ufilter = '.*';
 scans.num     = [2 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Data
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Data';
 generic.help    = {'Subjects or sessions. The same parameters specified below will be applied to all sessions.'};
 generic.values  = {scans };
 generic.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % nslices Number of Slices
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 nslices         = cfg_entry;
 nslices.tag     = 'nslices';
 nslices.name    = 'Number of Slices';
 nslices.help    = {'Enter the number of slices.'};
 nslices.strtype = 'n';
 nslices.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % tr TR
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tr         = cfg_entry;
 tr.tag     = 'tr';
 tr.name    = 'TR';
 tr.help    = {'Enter the TR (in seconds).'};
 tr.strtype = 'r';
 tr.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % ta TA
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 ta         = cfg_entry;
 ta.tag     = 'ta';
 ta.name    = 'TA';
 ta.help    = {'Enter the TA (in seconds). It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'};
 ta.strtype = 'e';
 ta.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % so Slice order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 so         = cfg_entry;
 so.tag     = 'so';
 so.name    = 'Slice order';
@@ -75,18 +80,20 @@ so.help    = {
 }';
 so.strtype = 'e';
 so.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % refslice Reference Slice
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 refslice         = cfg_entry;
 refslice.tag     = 'refslice';
 refslice.name    = 'Reference Slice';
-refslice.help    = {'Enter the reference slice'};
+refslice.help    = {'Enter the reference slice.'};
 refslice.strtype = 'n';
 refslice.num     = [1 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % prefix Filename Prefix
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
@@ -94,9 +101,10 @@ prefix.help    = {'Specify the string to be prepended to the filenames of the sl
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.def     = @(val)spm_get_defaults('slicetiming.prefix', val{:});
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % st Slice Timing
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 st         = cfg_exbranch;
 st.tag     = 'st';
 st.name    = 'Slice Timing';
@@ -123,9 +131,9 @@ st.help    = {
 st.prog = @spm_run_st;
 st.vout = @vout;
 st.modality = {'FMRI'};
-% ---------------------------------------------------------------------
 
-% ---------------------------------------------------------------------
+
+%==========================================================================
 function dep = vout(job)
 for k=1:numel(job.scans)
     dep(k)            = cfg_dep;
@@ -133,4 +141,3 @@ for k=1:numel(job.scans)
     dep(k).src_output = substruct('()',{k}, '.','files');
     dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
-return;

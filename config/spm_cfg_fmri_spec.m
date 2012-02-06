@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4494 2011-09-20 09:22:04Z ged $
+% $Id: spm_cfg_fmri_spec.m 4649 2012-02-06 15:55:04Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -45,8 +45,8 @@ fmri_t.tag     = 'fmri_t';
 fmri_t.name    = 'Microtime resolution';
 fmri_t.help    = {
                   'The microtime resolution, t, is the number of time-bins per scan used when building regressors. '
+                  'Change this parameter if you wish to shift regressors so that they are aligned to a particular slice. '
                   ''
-                  'Do not change this parameter unless you have a long TR and wish to shift regressors so that they are aligned to a particular slice. '
 }';
 fmri_t.strtype = 'e';
 fmri_t.num     = [1 1];
@@ -59,9 +59,10 @@ fmri_t0         = cfg_entry;
 fmri_t0.tag     = 'fmri_t0';
 fmri_t0.name    = 'Microtime onset';
 fmri_t0.help    = {
-                   'The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.  If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions). '
+                   'The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.'
+                   'If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions).'
+                   'This parameter has to be consistent with your choice of reference slice if you used slice timing correction.'
                    ''
-                   'Do not change the default setting unless you have a long TR. '
 }';
 fmri_t0.strtype = 'e';
 fmri_t0.num     = [1 1];
