@@ -4,7 +4,7 @@ function dartel = tbx_cfg_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 4428 2011-08-10 16:56:34Z john $
+% $Id: tbx_cfg_dartel.m 4650 2012-02-09 08:14:54Z volkmar $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -1281,13 +1281,6 @@ for m=1:numel(PI),
     dep(m).sname      = sprintf('%s (Image %d)',sname,m);
     dep(m).src_output = substruct('.','files','()',{':',m});
     dep(m).tgt_spec   = cfg_findspec({{'filter','nifti'}});
-end
-n = numel(PI);
-for m=1:numel(PU),
-    dep(m+n)            = cfg_dep;
-    dep(m+n).sname      = sprintf('%s (Deformation %d)',sname,m);
-    dep(m+n).src_output = substruct('.','files','()',{m,':'});
-    dep(m+n).tgt_spec   = cfg_findspec({{'filter','nifti'}});
 end
 %_______________________________________________________________________
 
