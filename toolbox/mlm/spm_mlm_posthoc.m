@@ -24,7 +24,7 @@ function [logbf] = spm_mlm_posthoc (mlm,c,a)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mlm_posthoc.m 4585 2011-12-07 14:24:04Z will $
+% $Id: spm_mlm_posthoc.m 4651 2012-02-09 16:03:39Z will $
 
 wpost=mlm.wmean(:);
 

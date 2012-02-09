@@ -40,7 +40,7 @@ function [mlm] = spm_mlm_bayes (y,x,pr,verbose,ml_only)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mlm_bayes.m 4585 2011-12-07 14:24:04Z will $
+% $Id: spm_mlm_bayes.m 4651 2012-02-09 16:03:39Z will $
 
 if nargin < 4 || isempty(verbose)
     verbose=0;

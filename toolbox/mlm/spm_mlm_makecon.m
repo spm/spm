@@ -14,7 +14,7 @@ function [con_vec] = spm_mlm_makecon (mlm,w)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mlm_makecon.m 4585 2011-12-07 14:24:04Z will $
+% $Id: spm_mlm_makecon.m 4651 2012-02-09 16:03:39Z will $
 
 [p,d]=size(mlm.wmean);
 
