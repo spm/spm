@@ -1,0 +1,41 @@
+function [E,dE] = spm_dexpm(A,dA)
+% Differentiate a matrix exponential
+% FORMAT [E,dE] = spm_diff_expm(A,dA)
+% A  - Lie algebra
+% dA - basis function to differentiate with respect to
+% E  - expm(A)
+% dE - (expm(A+eps*dA)-expm(A-eps*dA))/(2*eps)
+%
+% Note that the algorithm is a bit slow.
+
+if nargin<2,
+    dA = zeros([size(A) 0]);
+else
+    if (size(A,1)==1 && size(A,2)==size(dA,3)) || (size(A,2)==1 && size(A,1)==size(dA,3)),
+        p = A(:);
+        A = zeros(size(dA,1),size(dA,2));
+        for m=1:size(dA,3),
+            A = A + p(m)*dA(:,:,m);
+        end
+    end
+end 
+E   = eye(size(A))+A;
+An  = A;
+E   = eye(size(A))+A;
+
+if nargout>1
+    dAn = dA;
+    dE  = dA;
+end
+for k=2:10000,
+    if nargout>1
+        for m=1:size(dA,3),
+            dAn(:,:,m) = (dAn(:,:,m)*A + An*dA(:,:,m))/k;
+        end
+        dE  = dE + dAn;
+    end
+    An  = (An*A)/k;
+    E   =  E +  An;
+    if sum(An(:).^2)<numel(A)*eps^2, break; end
+end
+
