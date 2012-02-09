@@ -63,7 +63,7 @@ function varargout = spm_shoot3d(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3d.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot3d.m 4652 2012-02-09 18:39:33Z john $
 
 args0 = [8 4 4];
 if nargin<3,
@@ -149,17 +149,9 @@ if nargout>=5, varargout{5} = Jtheta;   end
 function vt = mom2vel(mt,prm,fmg_args,vt)
 % L^{-1} m_t
 
-r   = shoot3('vel2mom',vt,prm);
-if prm(1) == 0,
-    % This option has been coded up in C
-    vt = shoot3('mom2vel', mt-r, [prm fmg_args])+vt;
-else
-    % This option has not been coded in C yet, so needs to be
-    % done in a less efficient way
-    dm = size(mt);
-    H  = zeros([dm(1:3),6],'single');
-    vt = shoot3('fmg',H,mt-r, [prm fmg_args])+vt;
-end
+%r  = shoot3('vel2mom',vt,prm);
+%vt = shoot3('mom2vel', mt-r, [prm fmg_args])+vt;
+vt = shoot3('mom2vel', mt, [prm fmg_args],vt);
 
 if false,
     % Go for machine precision

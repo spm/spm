@@ -8,6 +8,7 @@
 #include "shoot_multiscale.h"
 #include "shoot_regularisers.h"
 #include "shoot_dartel.h"
+#include "shoot_bsplines.h"
 #include "shoot_boundary.h"
 
 static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -239,8 +240,8 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
 
 static void rsz_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-    mwSize na[3], nc[3];
-    int i;
+    mwSize na[32], nc[32];
+    int i, nd;
     float *a, *b, *c;
     if ((nrhs!=2) || (nlhs>1))
         mexErrMsgTxt("Incorrect usage.");
@@ -249,11 +250,13 @@ static void rsz_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
             mexErrMsgTxt("Data must be numeric, real, full and double");
 
-    if (mxGetNumberOfDimensions(prhs[0])>3) mexErrMsgTxt("Wrong number of dimensions.");
+    if (mxGetNumberOfDimensions(prhs[0])>32) mexErrMsgTxt("Too many dimensions.");
     na[0] = na[1] = na[2] = 1;
     for(i=0; i<mxGetNumberOfDimensions(prhs[0]); i++)
+    {
         na[i] = mxGetDimensions(prhs[0])[i];
-
+        nc[i] = mxGetDimensions(prhs[0])[i];
+    }
     if (mxGetNumberOfElements(prhs[1]) != 3)
     {
         mexErrMsgTxt("Dimensions argument is wrong size.");
@@ -262,11 +265,17 @@ static void rsz_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     nc[1] = (int)mxGetPr(prhs[1])[1];
     nc[2] = (int)mxGetPr(prhs[1])[2];
 
+    nd = 1;
+    for(i=3; i<mxGetNumberOfDimensions(prhs[0]); i++)
+        nd = nd*mxGetDimensions(prhs[0])[i];
+
     a = (float *)mxGetPr(prhs[0]);
     b = (float *)mxCalloc(4*nc[0]*nc[1]+na[0]*nc[1],sizeof(float));
-    plhs[0] = mxCreateNumericArray(3,nc, mxSINGLE_CLASS, mxREAL);
+
+    plhs[0] = mxCreateNumericArray(mxGetNumberOfDimensions(prhs[0]),nc, mxSINGLE_CLASS, mxREAL);
     c = (float *)mxGetPr(plhs[0]);
-    resize_vol(na, a, nc, c, b);
+    for(i=0; i<nd; i++)
+        resize_vol(na, a+i*na[0]*na[1]*na[2], nc, c+i*nc[0]*nc[1]*nc[2], b);
     (void)mxFree(b);
 }
 
@@ -620,13 +629,14 @@ static void pushc_grads_mexFunction(int nlhs, mxArray *plhs[],
     int nrhs, const mxArray *prhs[])
 {
     float *f, *Y, *J, *po;
-    int nd, i, m;
+    int nd, i;
     mwSize dmf[4];
     mwSize dmo[4];
     const mwSize *dmy;
+    const mxArray *jacp = 0, *dimp = 0;
 
-    if ((nrhs != 3) && (nrhs != 4))
-        mexErrMsgTxt("Two or three input arguments required");
+    if ((nrhs<2) || (nrhs>4))
+        mexErrMsgTxt("Two, three or four input arguments required");
     if (nlhs  > 1) mexErrMsgTxt("Up to one output argument required");
 
     for(i=0; i<2; i++)
@@ -641,29 +651,53 @@ static void pushc_grads_mexFunction(int nlhs, mxArray *plhs[],
         dmf[i] = mxGetDimensions(prhs[0])[i];
     if (dmf[3]!=3)
         mexErrMsgTxt("Wrong sized vector field.");
+    f  = (float *)mxGetPr(prhs[0]);
 
     nd = mxGetNumberOfDimensions(prhs[1]);
     if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
     dmy = mxGetDimensions(prhs[1]);
     if (dmy[0]!=dmf[0] || dmy[1]!=dmf[1] || dmy[2]!=dmf[2] || dmy[3]!=3)
         mexErrMsgTxt("Incompatible dimensions.");
+    Y  = (float *)mxGetPr(prhs[1]);
 
-    nd = mxGetNumberOfDimensions(prhs[2]);
-    if (nd!=5) mexErrMsgTxt("Wrong number of dimensions.");
-    dmy = mxGetDimensions(prhs[2]);
-    if (dmy[0]!=dmf[0] || dmy[1]!=dmf[1] || dmy[2]!=dmf[2] || dmy[3]!=3 || dmy[4]!=3)
-        mexErrMsgTxt("Incompatible dimensions.");
-
-    if (nrhs>=4)
+    if (nrhs>=3)
     {
-        if (!mxIsNumeric(prhs[3]) || mxIsComplex(prhs[3]) ||
-        mxIsSparse( prhs[3]) || !mxIsDouble(prhs[3]))
+        if (nrhs>=4)
+        {
+            jacp = prhs[2];
+            dimp = prhs[3];
+        }
+        else
+        {
+            if (mxIsDouble(prhs[2]))
+                dimp = prhs[2];
+            else
+                jacp = prhs[2];
+        }
+    }
+
+    if (jacp)
+    {
+        nd = mxGetNumberOfDimensions(jacp);
+        if (nd!=5) mexErrMsgTxt("Wrong number of dimensions.");
+        dmy = mxGetDimensions(jacp);
+        if (dmy[0]!=dmf[0] || dmy[1]!=dmf[1] || dmy[2]!=dmf[2] || dmy[3]!=3 || dmy[4]!=3)
+            mexErrMsgTxt("Incompatible dimensions.");
+        J  = (float *)mxGetPr(jacp);
+    }
+    else
+        J = (float *)0;
+
+    if (dimp)
+    {
+        if (!mxIsNumeric(dimp) || mxIsComplex(dimp) ||
+            mxIsSparse(dimp) || !mxIsDouble(dimp))
             mexErrMsgTxt("Data must be numeric, real, full and double");
         if (mxGetNumberOfElements(prhs[3])!= 3)
             mexErrMsgTxt("Output dimensions must have three elements");
-        dmo[0] = (int)floor(mxGetPr(prhs[3])[0]);
-        dmo[1] = (int)floor(mxGetPr(prhs[3])[1]);
-        dmo[2] = (int)floor(mxGetPr(prhs[3])[2]);
+        dmo[0] = (int)floor(mxGetPr(dimp)[0]);
+        dmo[1] = (int)floor(mxGetPr(dimp)[1]);
+        dmo[2] = (int)floor(mxGetPr(dimp)[2]);
     }
     else
     {
@@ -674,13 +708,9 @@ static void pushc_grads_mexFunction(int nlhs, mxArray *plhs[],
     dmo[3] = dmf[3];
 
     plhs[0] = mxCreateNumericArray(4,dmo, mxSINGLE_CLASS, mxREAL);
-    f  = (float *)mxGetPr(prhs[0]);
-    Y  = (float *)mxGetPr(prhs[1]);
-    J  = (float *)mxGetPr(prhs[2]);
-    po = (float *)mxGetPr(plhs[0]);
+    po      = (float *)mxGetPr(plhs[0]);
 
-    m = dmf[0]*dmf[1]*dmf[2];
-    pushc_grads(dmo, m, Y, J, f, po);
+    pushc_grads(dmo, dmf, Y, J, f, po);
 }
 
 
@@ -738,7 +768,7 @@ static void det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     int nd;
     const mwSize *dm;
 
-    if ((nrhs != 1) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
+    if (((nrhs != 1)) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
             mexErrMsgTxt("Data must be numeric, real, full and single");
     nd = mxGetNumberOfDimensions(prhs[0]);
@@ -767,6 +797,40 @@ static void minmax_div_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mx
 
     plhs[0] = mxCreateNumericArray(2,nout, mxDOUBLE_CLASS, mxREAL);
     minmax_div((mwSize *)dm,(float *)mxGetPr(prhs[0]),(double *)mxGetPr(plhs[0]));
+}
+
+static void divergence_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize nd;
+    const mwSize *dm;
+
+    if ((nrhs != 1) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and single");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    dm = mxGetDimensions(prhs[0]);
+    if (dm[3]!=3) mexErrMsgTxt("4th dimension must be 3.");
+
+    plhs[0] = mxCreateNumericArray(3,dm, mxSINGLE_CLASS, mxREAL);
+    divergence((mwSize *)dm,(float *)mxGetPr(prhs[0]),(float *)mxGetPr(plhs[0]));
+}
+
+static void def2det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize nd;
+    const mwSize *dm;
+
+    if ((nrhs != 1) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and single");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    dm = mxGetDimensions(prhs[0]);
+    if (dm[3]!=3) mexErrMsgTxt("4th dimension must be 3.");
+
+    plhs[0] = mxCreateNumericArray(3,dm, mxSINGLE_CLASS, mxREAL);
+    def2det((mwSize *)dm,(float *)mxGetPr(prhs[0]),(float *)mxGetPr(plhs[0]), -1);
 }
 
 static void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -808,6 +872,8 @@ static void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+    set_bound(get_bound());
+
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
         int buflen;
@@ -905,6 +971,26 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             boundary_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"bsplinc"))
+        {
+            mxFree(fnc_str);
+            bsplinc_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"bsplins"))
+        {
+            mxFree(fnc_str);
+            bsplins_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"div")  || !strcmp(fnc_str,"divergence"))
+        {
+            mxFree(fnc_str);
+            divergence_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"def2det"))
+        {
+            mxFree(fnc_str);
+            def2det_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

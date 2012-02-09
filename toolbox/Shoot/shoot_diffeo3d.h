@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.h 4573 2011-11-25 23:01:01Z john $ */
+/* $Id: shoot_diffeo3d.h 4652 2012-02-09 18:39:33Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,
@@ -16,7 +16,9 @@ extern void unwrap(mwSize dm[], float f[]);
 extern void bracket(mwSize dm[], float *A, float *B, float *C);
 extern void push(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], float so[]);
 extern void pushc(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], float so[]);
-extern void pushc_grads(mwSize dm[], mwSize m, float def[], float J[], float pf[], float po[]);
+extern void pushc_grads(mwSize dmo[], mwSize dmy[], float def[], float J[], float pf[], float po[]);
 extern void determinant(mwSize dm[], float J0[], float d[]);
 extern void minmax_div(mwSize dm[], float v0[], double mnmx[]);
+extern void divergence(mwSize dm[], float v0[], float dv[]);
+extern void def2det(mwSize dm[], float *Y, float *J, mwSignedIndex s);
 

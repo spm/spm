@@ -1,4 +1,4 @@
-/* $Id: shoot_multiscale.c 4583 2011-12-06 16:03:01Z john $ */
+/* $Id: shoot_multiscale.c 4652 2012-02-09 18:39:33Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -46,6 +46,7 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
         for(j=0; j<nc[1]*na[0]; j++)
             b[j] = a[j];
     }
+    /*
     else if (!(na[1]%2))
     {
         for(j=0; j<nc[1]; j++)
@@ -59,6 +60,7 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
                 *bp = 0.25*(ap[om]+ap[op])+0.5*ap[oo];
         }
     }
+    */
     else
     {
         s = (double)na[1]/(double)nc[1];
@@ -66,7 +68,8 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
-            loc = s*j;
+            /* loc = s*j; */
+            loc = (j+0.5)*s-0.5;
             o   = floor(loc);
             o0  = bound(o-1,na[1])*na[0];
             o1  = bound(o  ,na[1])*na[0];
@@ -86,6 +89,7 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
         for(j=0; j<nc[0]*nc[1]; j++)
             c[j] = b[j];
     }
+    /*
     else if (!(na[0]%2))
     {
         for(i=0; i<nc[0]; i++)
@@ -98,6 +102,7 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
                 *cp = 0.25*(bp[om]+bp[op])+0.5*bp[o];
         }
     }
+    */
     else
     {
         s = (double)na[0]/(double)nc[0];
@@ -105,7 +110,8 @@ static void restrict_plane(mwSize na[], float *a,  mwSize nc[], float *c, float 
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
-            loc = s*i;
+            /* loc = s*i; */
+            loc = (i+0.5)*s-0.5;
             o   = floor(loc);
             o0  = bound(o-1,na[0]); 
             o1  = bound(o  ,na[0]); 
@@ -139,6 +145,7 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
     pl[3] = b + m*3;
     bp    = b + m*4;
 
+    /* This would work if loc = s*k and would be faster
     if (!(na[2]%2))
     {
         restrict_plane(na, a+na[0]*na[1]*2,nc,pl[2],bp);
@@ -164,15 +171,17 @@ void restrict_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
         }
     }
     else
+    */
     {
         s      = (double)na[2]/(double)nc[2];
         for(k=0; k<nc[2]; k++)
         {
             double w0, w1, w2, w3;
             mwSignedIndex o0, o1, o2, o3;
-            loc    = s*k;
-            oo     = o;
-            o      = floor(loc);
+            /* loc = s*k; */
+            loc = (k+0.5)*s-0.5;
+            oo  = o;
+            o   = floor(loc);
 
             o0  = bound(o-1,na[2]);
             o1  = bound(o  ,na[2]);
@@ -247,7 +256,8 @@ static void resized_plane(mwSize na[], float *a,  mwSize nc[], float *c, float *
     s = (double)na[1]/(double)nc[1];
     for(j=0; j<nc[1]; j++)
     {
-        loc = j*s;
+        /* loc = j*s; */
+        loc = (j+0.5)*s-0.5;
         o   = floor(loc+0.5);
         oc  = bound(o  ,na[1])*na[0];
         om  = bound(o-1,na[1])*na[0];
@@ -261,7 +271,8 @@ static void resized_plane(mwSize na[], float *a,  mwSize nc[], float *c, float *
     s = (double)na[0]/(double)nc[0];
     for(i=0; i<nc[0]; i++)
     {
-        loc = i*s;
+        /* loc = i*s; */
+        loc = (i+0.5)*s-0.5;
         o   = floor(loc+0.5);
         oc  = bound(o  ,na[0]);
         om  = bound(o-1,na[0]);
@@ -294,13 +305,14 @@ void resize_vol(mwSize na[], float *a, mwSize nc[], float *c, float *b)
 
     for(k=0; k<nc[2]; k++)
     {
-        s      = (double)na[2]/(double)nc[2];
-        loc    = k*s;
-        oo     = o;
-        o      = floor(loc+0.5);
-        oc     = bound(o  ,na[2]);
-        om     = bound(o-1,na[2]);
-        op     = bound(o+1,na[2]);
+        s   = (double)na[2]/(double)nc[2];
+        /* loc = k*s; */
+        loc = (k+0.5)*s-0.5;
+        oo  = o;
+        o   = floor(loc+0.5);
+        oc  = bound(o  ,na[2]);
+        om  = bound(o-1,na[2]);
+        op  = bound(o+1,na[2]);
 
         if (o==oo)
         {   /* do nothing */
