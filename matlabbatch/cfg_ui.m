@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4255 2011-03-18 13:11:03Z volkmar $
+% $Id: cfg_ui.m 4656 2012-02-10 15:02:39Z volkmar $
 
-rev = '$Rev: 4255 $'; %#ok
+rev = '$Rev: 4656 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -79,44 +79,6 @@ if ~isempty(udmodlist.cmod)
     udmodlist.modified = true;
     set(handles.modlist,'userdata',udmodlist);
     local_showjob(hObject);
-end;
-
-%% Input evaluation
-% --------------------------------------------------------------------
-function [val, sts] = local_eval_valedit(varargin)
-% for security reasons, separate string evaluation from valedit_Callback
-% (evaluation might overwrite variables). Uses evalc to suppress any
-% console output.
-val = [];
-sts = false;
-try
-    % 1st, try to convert into numeric matrix without evaluation
-    % This converts expressions like '1 -1' into [1 -1] instead of
-    % evaluating them
-    [val sts] = str2num(varargin{1}); %#ok<ST2NM>
-    if ~sts
-        % try to evaluate str as rvalue
-        val = evalin('base', varargin{1});
-        sts = true;
-    end
-catch
-    everr = lasterror;
-    if strcmp(everr.identifier, 'MATLAB:m_invalid_lhs_of_assignment')
-        try
-            evalin('base', varargin{1});
-            val = evalin('base','val');
-            % test if val variable exists
-            if ~exist('val','var')
-                cfg_message('cfg_ui:local_eval_valedit:noval','No variable ''val'' assigned.');
-            end;
-            sts = true;
-        catch
-            sts = false;
-            val = [];
-            everr = lasterror;
-            msgbox(everr.message,'Evaluation error','modal');
-        end;
-    end;
 end;
 
 %% Dynamic Menu Creation
@@ -786,7 +748,7 @@ while ~sts
     % context - graphics handles are made invisible to avoid accidental
     % damage
     hv = local_disable(handles.cfg_ui,'HandleVisibility');
-    [val sts] = local_eval_valedit(str);
+    [val sts] = cfg_eval_valedit(str);
     local_enable(handles.cfg_ui,'HandleVisibility',hv);
     % for strtype 's', val must be a string
     sts = sts && (~strcmp(strtype{1}{1},'s') || ischar(val));
@@ -808,7 +770,7 @@ while ~sts
             % context - graphics handles are made invisible to avoid accidental
             % damage
             hv = local_disable(handles.cfg_ui,'HandleVisibility');
-            [val sts] = local_eval_valedit(str);
+            [val sts] = cfg_eval_valedit(str);
             local_enable(handles.cfg_ui,'HandleVisibility',hv);
         end;
         if ~sts % (Still) no valid input

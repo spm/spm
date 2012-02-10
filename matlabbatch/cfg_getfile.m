@@ -85,7 +85,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4587 2011-12-08 14:58:19Z ged $
+% $Id: cfg_getfile.m 4656 2012-02-10 15:02:39Z volkmar $
 
 t = {};
 sts = false;
@@ -1231,19 +1231,16 @@ function editeval(ob,varargin)
 ob  = get(ob, 'Parent');
 ob  = sib(ob, 'EditWindow');
 str = get(ob, 'String');
-if isempty(str), return, end
-try
-    out = evalin('base', char(str));
-catch
-    out = '';
-end
-if ~isempty(out) && (iscellstr(out) || ischar(out))
-    set(ob, 'String', cellstr(out));
-else
-    fgc = get(ob, 'ForegroundColor');
-    set(ob, 'ForegroundColor', 'red');
-    pause(1);
-    set(ob, 'ForegroundColor', fgc);
+if ~isempty(str)
+    [out sts] = cfg_eval_valedit(char(str));
+    if sts && (iscellstr(out) || ischar(out))
+        set(ob, 'String', cellstr(out));
+    else
+        fgc = get(ob, 'ForegroundColor');
+        set(ob, 'ForegroundColor', 'red');
+        pause(1);
+        set(ob, 'ForegroundColor', fgc);
+    end
 end
 %=======================================================================
 
