@@ -44,3 +44,36 @@ title('Eigenspectrum');
 figure
 plot(pca.mean_alpha);
 title('Prior precision of factors');
+
+disp(' ');
+disp('To recover eg 4 hidden sources')
+disp('project data, t, onto first 4 columns of factor matrix:');
+disp('W=pca.M_w(:,1:4);xhat=W''*t;');
+W=pca.M_w(:,1:4);
+xhat=W'*t;
+
+disp(' ');
+disp('A Bayesian estimate of the data covariance matrix');
+disp('is given by:');
+disp('obs_noise_var=(1/pca.mean_tau); CBayes=W*W''+obs_noise_var*eye(pca.d)');
+obs_noise_var=(1/pca.mean_tau);
+CBayes=W*W'+obs_noise_var*eye(pca.d);
+
+C=cov(t');
+figure
+subplot(2,2,1);
+imagesc(C);
+colormap gray
+colorbar
+title('Data Covariance using Cov');
+subplot(2,2,3);
+imagesc(CBayes);
+colormap gray
+colorbar
+title('Data Covariance using Bayes VPCA');
+subplot(2,2,2);
+imagesc(C-CBayes);
+colormap gray
+colorbar
+title('Difference');
+
