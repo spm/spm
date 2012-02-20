@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4615 2012-01-10 16:56:25Z will $
+% $Id: spm_results_ui.m 4660 2012-02-20 17:39:29Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4615 $'; 
+SVNid = '$Rev: 4660 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -382,6 +382,10 @@ switch lower(Action), case 'setup'                         %-Set up results
     
     uimenu(hC1,'Label',[xSPM.thresDesc ', k=' num2str(xSPM.k)],...
         'Enable','off','Separator','on');
+    
+    hC1 = uimenu(hC,'Label','Multiple display...',...
+        'Separator','on',...
+        'Callback',{@mycheckres,xSPM});
     
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
@@ -1235,6 +1239,11 @@ assignin('base','hReg',hReg);
 assignin('base','xSPM',xSPM);
 assignin('base','SPM',SPM);
 figure(spm_figure('GetWin','Interactive'));
+
+%==========================================================================
+function mycheckres(obj,evt,xSPM)
+%==========================================================================
+spm_check_results([],xSPM);
 
 %==========================================================================
 function mysavespm(action)
