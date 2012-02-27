@@ -1619,7 +1619,7 @@ FFFE	E0DD	SequenceDelimitationItem	UN	1
 2001	1022	WaterFatShift	FL	1
 2001	105F	StackSequence	SQ	1
 2001	102D	NumberofStackSlices	SS	1
-2001	1032	StackRadialAngle	VR	1-n
+2001	1032	StackRadialAngle	FL	1-n
 2001	1033	StackRadialAxis	CS	1-n
 2001	1035	StackSliceNumber	SS	1-n
 2001	1036	StackType	CS	1-n
@@ -1628,3 +1628,5 @@ FFFE	E0DD	SequenceDelimitationItem	UN	1
 2005	0010	PrivateCreatorGroup2005	LO	1
 2005	1020	NumberofChemicalShifts	SL	1
 2005	10A1	SyncraScanTypeAttributeName	CS	1
+2005	1402	PhilipsSequence_2005_1402	SQ	1
+2005	140F	PhilipsSequence_2005_140f	SQ	1
