@@ -6,7 +6,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_SHC_demo.m 4663 2012-02-27 11:56:23Z karl $
  
 % generative process
 %==========================================================================
@@ -81,5 +81,5 @@ DEM    = spm_ADEM(DEM);
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
-axis([-1 1 -1 1])
+axis([-1 1 -1 1]*3/2)
 axis square

@@ -13,7 +13,7 @@ function [y] = spm_DEM_embed(Y,n,t,dt,d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_embed.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_embed.m 4663 2012-02-27 11:56:23Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -37,7 +37,7 @@ for p = 1:length(d)
     % boundary conditions
     %----------------------------------------------------------------------
     s      = (t - d(p))/dt;
-    k      = [1:n]  + fix(s - (n + 1)/2);
+    k      = (1:n)  + fix(s - (n + 1)/2);
     x      = s - min(k) + 1;
     i      = k < 1;
     k      = k.*~i + i;

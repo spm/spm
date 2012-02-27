@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_cued_response.m 4663 2012-02-27 11:56:23Z karl $
  
  
 % hidden causes and states
@@ -116,7 +116,7 @@ G(1).pE = P.x;
 G(1).x  = x;                                 % hidden states
 G(1).V  = exp(16);                           % error precision
 G(1).W  = exp(16);                           % error precision
- 
+G(1).U  = [1 1 0 0 0 0 0 0]*exp(2);          % error precision
  
 % second level
 %--------------------------------------------------------------------------

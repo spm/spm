@@ -18,7 +18,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_learning.m 4663 2012-02-27 11:56:23Z karl $
  
  
 % generative model
@@ -196,7 +196,7 @@ title('learnt','Fontsize',16)
 %--------------------------------------------------------------------------
 G(1).pE   = P0;
 G(1).pE.d = 1;
-G(1).U    = exp(2);
+G(1).U    = exp(4);
 
 % create DEM structure and perturb the real car with fluctuations
 %--------------------------------------------------------------------------

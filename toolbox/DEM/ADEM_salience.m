@@ -19,7 +19,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_salience.m 4663 2012-02-27 11:56:23Z karl $
 
 
 % hidden causes and states
@@ -89,7 +89,7 @@ x.x    = -log(nh)*ones(nh,1);                 % hypotheses
 M(1).E.s = 1/2;                               % smoothness
 M(1).E.n = 3;                                 % order of
 M(1).E.d = 2;                                 % generalised motion
-M(1).E.m = 1;                                 % and action
+
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------

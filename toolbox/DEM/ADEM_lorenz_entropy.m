@@ -1,20 +1,19 @@
-% This demo shows how structure can be instilled from an environment. It 
-% uses an agent that optimises its recognition density over successive 
-% epochs of exposure to an environment. This environment causes the agent 
-% to flow on a Lorenz attractor with random perturbations. As the agent 
-% learns the causal regularities in its environment, it is better able to 
-% predict them and act to oppose the random effect. The result is that it 
-% is more robust to random forces and therefore exhibits states with lower 
-% entropy.
+% This demo shows how structure can be instilled from an environment. It
+% uses an agent that optimises its recognition density over successive
+% epochs of exposure to an environment. This environment causes the agent
+% to flow on a Lorenz attractor with random perturbations. As the agent
+% learns the causal regularities in its environment, it is better able to
+% predict them and act to oppose the random effect. The result is that it
+% is more robust to random forces and therefore exhibits states with lower
+% entropy. This routine takes several minutes to run.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_lorenz_entropy.m 4663 2012-02-27 11:56:23Z karl $
  
 % generative process (environment)
 %==========================================================================
-DEMO     = 1;
  
 % set up
 %--------------------------------------------------------------------------
@@ -53,12 +52,12 @@ G       = spm_ADEM_M_set(G);
 % % plot flow fields and equilibrium densities
 % %==========================================================================
 % spm_figure('GetWin','Figure 1');
-%  
+%
 % x{1}    = linspace(-20,20,32);
 % x{2}    = linspace(-32,32,32);
 % x{3}    = linspace(  10,40,8);
-%  
-%  
+%
+%
 % % controlled flow (P0)
 % %--------------------------------------------------------------------------
 % subplot(3,2,1)
@@ -87,94 +86,75 @@ M       = spm_DEM_M_set(M);
  
 % length of realization
 %--------------------------------------------------------------------------
-n        = 256;
-U        = sparse(n,1);
+n     = 256;
+U     = sparse(n,1);
  
-DEM{1}.M = M;
-DEM{1}.G = G;
-DEM{1}.C = U;
-DEM{1}.U = U;
+DEM.M = M;
+DEM.G = G;
+DEM.C = U;
+DEM.U = U;
  
 % optimise recognition model in epochs
 %--------------------------------------------------------------------------
-DEM{1}.M(1).E.nE = 1;
- 
-if DEMO
-    
-    for i = 1:128
+DEM.M(1).E.nE = 1;
+H     = sparse(128,128);
+for i = 1:32
         
         % random perturbations
         %------------------------------------------------------------------
-        DEM{i}.C           = spm_conv(randn(n,1)*8,8);
+        DEM.C       = spm_conv(randn(n,1)*8,8);
         
         % integrate and update priors
         %------------------------------------------------------------------
-        DEM{i + 1}         = spm_ADEM(DEM{i});
-        DEM{i + 1}.M(1).pE = DEM{i + 1}.qP.P{1};
-        DEM{i + 1}.M(1).x  = DEM{i + 1}.qU.x{1}(:,end);
-        DEM{i + 1}.M(2).a  = DEM{i + 1}.qU.a{2}(:,end);
+        DEM         = spm_ADEM(DEM);
+        DEM.M(1).pE = DEM.qP.P{1};
+        DEM.M(1).x  = DEM.qU.x{1}(:,end);
+        DEM.M(2).a  = DEM.qU.a{2}(:,end);
         
-        % display
+        % save free-energy and conditional expectations
         %------------------------------------------------------------------
-        spm_DEM_qU(DEM{i + 1}.qU,DEM{i + 1}.pU)
+        qP(:,i) = DEM.qP.P{1};
+        F(i)    = DEM.F;
         
-    end
-    
-    save DEM_lorenz_entropy DEM
-else
-    load DEM_lorenz_entropy
-end
+        % display states at the beginning and end
+        %------------------------------------------------------------------
+        spm_figure('GetWin','Figure 1');
+  
+        if i < 8
+            subplot(3,2,3) 
+            x = DEM.pU.v{1}(2,:);
+            y = DEM.pU.v{1}(3,:);
+            plot(x,y); hold on   
+            title('states before','FontSize',16)
+            a = axis;
+            
+        elseif i > 24
+            subplot(3,2,4)
+            x = DEM.pU.v{1}(2,:);
+            y = DEM.pU.v{1}(3,:);
+            H = H + sparse(64 + fix(x)',64 + fix(y)',1,128,128);
+            plot(x,y); hold on   
+            title('and after','FontSize',16)
+            axis(a)
  
-% remove initial DEM and extract free-energy and conditional expectations
-%--------------------------------------------------------------------------
-DEM   = DEM(2:end);
-for i = 1:length(DEM)
-    qP(:,i) = DEM{i}.qP.P{1};
-    F(i)    = DEM{i}.F;
-end
+        end 
+    end
+ 
+ 
  
 % graphics
 %==========================================================================
 spm_figure('GetWin','Figure 1');
  
-t   = 1:length(DEM);
  
 % plot free-energy
 %--------------------------------------------------------------------------
+t   = 1:length(F);
 subplot(3,1,1)
 plot(t,-F)
 xlabel('time (epochs)','FontSize',12)
 title('Free-energy','FontSize',16)
 axis square
- 
-% states
-%--------------------------------------------------------------------------
-subplot(3,2,3)
-j = 1;
-n = 4;
-H = sparse(128,128);
-for i = 1:n
-    x = DEM{j + i}.pU.v{1}(2,:);
-    y = DEM{j + i}.pU.v{1}(3,:);
-    plot(x,y); hold on
-end
-hold off
-title('states before','FontSize',16)
-a = axis;
- 
-subplot(3,2,4)
-j = length(t) - n;
-H = sparse(128,128);
-for i = 1:n
-    x = DEM{j + i}.pU.v{1}(2,:);
-    y = DEM{j + i}.pU.v{1}(3,:);
-    H = H + sparse(64 + fix(x)',64 + fix(y)',1,128,128);
-    plot(x,y); hold on
-end
-hold off
-title('and after','FontSize',16)
-axis(a)
- 
  
 % and underlying conditional expectations
 %--------------------------------------------------------------------------

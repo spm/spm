@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_motor.m 4663 2012-02-27 11:56:23Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
@@ -46,10 +46,10 @@ pE.a    = [1; 0];                           % action parameter
 %--------------------------------------------------------------------------
 G(1).f  = inline('P.f*x + P.h*v + P.a*a','x','v','a','P');
 G(1).g  = inline('P.g*x','x','v','a','P');
-G(1).pE = pE;                                % prior expectation
-G(1).V  = exp(16);                           % error precision
-G(1).W  = exp(16);                           % error precision
-G(1).U  = exp(4);                            % action precision
+G(1).pE = pE;                               % prior expectation
+G(1).V  = exp(16);                          % error precision
+G(1).W  = exp(16);                          % error precision
+G(1).U  = exp(8);                           % action precision
 
 % second level
 %--------------------------------------------------------------------------
@@ -59,14 +59,14 @@ G(2).V  = exp(16);
  
 % generate and invert
 %==========================================================================
-N       = 64;                                 % length of data sequence
-C       = exp(-([1:N] - 12).^2/(4.^2));       % this is the prior cause;
+N       = 64;                                % length of data sequence
+C       = exp(-([1:N] - 12).^2/(4.^2));      % this is the prior cause;
 DEM.G   = G;
 DEM.M   = M;
 DEM.C   = sparse(1,N);
 DEM.U   = C;
 DEM0    = spm_ADEM(DEM);
- 
+
 % overlay true values
 %--------------------------------------------------------------------------
 spm_DEM_qU(DEM0.qU,DEM0.pU)

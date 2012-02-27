@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss.m 3757 2010-03-08 11:41:53Z guillaume $
+% $Id: ADEM_mountaincar_loss.m 4663 2012-02-27 11:56:23Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
@@ -38,6 +38,7 @@ G(1).g  = inline('x','x','v','a','P');
 G(1).pE = P;
 G(1).V  = exp(16);                          % error precision
 G(1).W  = exp(16);                          % error precision
+G(1).U  = exp(4);                           % error precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -50,6 +51,8 @@ G       = spm_ADEM_M_set(G);
 % generative model
 %==========================================================================
 clear P
+M(1).E.n = 4;
+M(1).E.d = 2;
  
 % parameters and equations of motion
 %--------------------------------------------------------------------------
@@ -65,7 +68,7 @@ M(1).f  = inline('spm_mc_fx(x,v,P)/2','x','v','P');
 M(1).g  = inline('x','x','v','P');
 M(1).pE = P;
 M(1).V  = exp(8);                           % error precision
-M(1).W  = exp(6);                           % error precision
+M(1).W  = exp(8);                           % error precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -108,7 +111,7 @@ end
  
 % plot results
 %==========================================================================
-DEM.G(1).x = [0; 1/2];
+DEM.G(1).x = [0; -1/2];
 DEM.M(1).x = DEM.G(1).x;
 DEM        = spm_ADEM(DEM);
 
@@ -155,7 +158,7 @@ drawnow
 % enable action (disable learning) and integrate
 %--------------------------------------------------------------------------
 DEM.G(1).pE.d = 1;
-DEM.M(1).pE.p = 1/4;
+DEM.M(1).pE.p = 1/2;
 DEM.M(1).pE.q = 32;
 DEM.M(1).pC   = [];
 DEM           = spm_ADEM(DEM);
@@ -169,13 +172,6 @@ DEM           = spm_ADEM(DEM);
 c   = spm_mc_loss_C(x,DEM.M(1).pE);
 C   = DEM.M(1).pE.p - DEM.M(1).pE.q*(1 - c);
 
-% for plotting
-%--------------------------------------------------------------------------
-[Sx Sy Sz]   = sphere;
-S{1}         = Sx/4 + 1;
-S{2}         = Sy/4 + 0;
-S{3}         = Sz/4 - 1;
-
 % inference
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2');
@@ -186,7 +182,6 @@ plot(DEM.U,':'), hold off
 % true and inferred position
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-% surf(S{1},S{2},S{3}), hold on
 plot(1,0,'c.','MarkerSize',64), hold on
 plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
 plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off
@@ -224,7 +219,6 @@ for i = 1:4
     subplot(2,2,1), hold on
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:),'Color',[0.8 0.8 1])
 
- 
 end
  
 xlabel('position','Fontsize',14)
@@ -232,6 +226,7 @@ ylabel('velocity','Fontsize',14)
 title('trajectories','Fontsize',16)
 axis([-1 1 -1 1]*2)
 axis square
+
  
 % illustrate different behaviours under different precisions
 %==========================================================================
@@ -255,7 +250,6 @@ for i = 1:4
     spm_figure('GetWin','Figure 3');
     subplot(2,2,i)
 
-    % surf(S{1},S{2},S{3}), hold on
     plot(1,0,'c.','MarkerSize',64), hold on
     plot(DEM.pU.x{1}(1,:),DEM.pU.x{1}(2,:))
     plot(DEM.qU.x{1}(1,:),DEM.qU.x{1}(2,:),':'),hold off

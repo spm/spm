@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4620 2012-01-12 19:06:44Z guillaume $
+% $Id: spm_DEM_qU.m 4663 2012-02-27 11:56:23Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         t = 1:size(V{i},1);
-        plot(t,full(E{i}),'r:',t,full(V{i}))
+        plot(t,full(E{i}),':r',t,full(V{i}))
         box off
  
  
@@ -84,7 +84,7 @@ for i = 1:g
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
                  [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
-            plot(t,full(E{i}),'r:',t,full(V{i}))
+            plot(t,full(E{i}),':r',t,full(V{i}))
             hold off
         end
  
@@ -101,14 +101,14 @@ for i = 1:g
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
         try
-            plot(t,pV{i},':k','linewidth',1)
+            plot(t,pV{i},'-.k','linewidth',2)
         end
         hold on
         try
             plot(t,full(V{i}))
         end
         try
-            plot(t,full(E{i}),'r:')
+            plot(t,full(E{i}),':r')
         end
         box off, hold off
         set(gca,'XLim',[t(1) t(end)])
@@ -124,10 +124,10 @@ for i = 1:g
             fill([t fliplr(t)],[full(V{i} + y) fliplr(full(V{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
             try 
-                plot(t,pV{i},':k','linewidth',1)
+                plot(t,pV{i},'-.k','linewidth',2)
             end
             try
-                plot(t,full(E{i}),'r:')
+                plot(t,full(E{i}),':r')
             end
             plot(t,full(V{i})),box off
             hold off
@@ -145,7 +145,7 @@ for i = 1:g
             title('hidden causes','FontSize',16);
             try
                 hold on
-                plot(t,pV{i},':k','linewidth',1),box off
+                plot(t,pV{i},'-.k','linewidth',2),box off
             end
             hold off
         end
@@ -160,9 +160,9 @@ for i = 1:g
             subplot(g,2,2*i)
             try
                 hold on
-                plot(t,full(pX{i}),':k','linewidth',1),box off
+                plot(t,full(pX{i}),'-.k','linewidth',1)
+                box off, hold off
             end
-            hold off
             plot(t,full(X{i})),box off
             set(gca,'XLim',[t(1) t(end)])
             a   = axis;
@@ -175,7 +175,7 @@ for i = 1:g
                 fill([t fliplr(t)],[full(X{i} + y) fliplr(full(X{i} - y))],...
                         [1 1 1]*.8,'EdgeColor',[1 1 1]*.8)
                 try
-                    plot(t,full(pX{i}),':k','linewidth',1),box off
+                    plot(t,full(pX{i}),'-.k','linewidth',1),box off
                 end
                 plot(t,full(X{i})),box off
                 hold off
@@ -202,15 +202,15 @@ if isfield(qU,'a')
     str = 'action';
     try
         hold on
-        plot(t,full(pU.v{2}),':b','Linewidth',2),box off
+        plot(t,full(pU.v{2}),'-.k','Linewidth',2)
+        box off, hold off
         str = 'perturbation and action';
     end
-    hold off
+    
     xlabel('time','Fontsize',14)
     title(str,'Fontsize',16)
     axis square
     set(gca,'XLim',[t(1) t(end)])
     box off
 end
-hold off
 drawnow

@@ -18,12 +18,12 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost_SHC.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_cost_SHC.m 4663 2012-02-27 11:56:23Z karl $
  
  
 % switch for demo
 %--------------------------------------------------------------------------
-DEMO = 0;
+DEMO = 1;
  
 % location and radius of attractors (A)
 %--------------------------------------------------------------------------
@@ -81,8 +81,8 @@ M(2).V   = exp(16);
  
 % Integrate: active inference
 %==========================================================================
-M(1).E.nE  = 1;
-M(1).E.n   = 4;
+M(1).E.nE = 1;
+M(1).E.n  = 4;
  
 N      = 128;
 DEM.U  = sparse(N,1);
@@ -95,7 +95,6 @@ if DEMO
 else
     DEM = spm_ADEM(DEM);
 end
- 
  
 % show behavior
 %==========================================================================
@@ -241,14 +240,16 @@ if ~DEMO
     save DEM_addiction DEM DEM_P DEM_L DEM_D
 
 end
- 
- 
+
+
 % Graphics - optimal learning
 %--------------------------------------------------------------------------
+spm_figure('GetWin','DEM'); clf
+spm_DEM_qU(DEM.qU,DEM.pU)
+
 spm_figure('GetWin','Figure 5'); clf
 spm_DEM_qP(DEM_L{1}.qP)
  
-spm_figure('GetWin','Figure 5');
 subplot(2,2,3)
 spm_cost_SHC_path(DEM.pU,A)
 title('Before','Fontsize',16)
@@ -311,4 +312,3 @@ for i = 1:3
     if i == 1; aa = axis; end, axis(aa)
  
 end
-drawnow

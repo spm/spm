@@ -6,7 +6,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_reaching.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: ADEM_reaching.m 4663 2012-02-27 11:56:23Z karl $
 
 % hidden causes and states
 %==========================================================================
@@ -53,7 +53,7 @@ G(1).f  = 'spm_fx_adem_reach';
 G(1).g  = 'spm_gx_adem_reach';
 G(1).V  = exp(16);                            % error precision
 G(1).W  = exp(16);                            % error precision
-G(1).U  = exp(2);                             % gain for action
+G(1).U  = exp(8);                             % gain for action
  
 % second level
 %--------------------------------------------------------------------------

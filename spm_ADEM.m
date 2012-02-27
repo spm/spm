@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: spm_ADEM.m 4663 2012-02-27 11:56:23Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -150,33 +150,28 @@ Fdem = spm_figure('GetWin','DEM');
  
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
-d    = M(1).E.d + 1;                   % embedding order of q(v)
-n    = M(1).E.n + 1;                   % embedding order of q(x) (n >= d)
-s    = M(1).E.s;                       % smoothness - s.d. of kernel (bins)
+d    = M(1).E.d + 1;                      % embedding order of q(v)
+n    = M(1).E.n + 1;                      % embedding order of q(x)
+s    = M(1).E.s;                          % smoothness - s.d. (bins)
 
-try
-    m = M(1).E.m;                      % embedding order action
-catch
-    m = n;
-end
- 
+
 % number of states and parameters - generative model
 %--------------------------------------------------------------------------
-nY   = size(C,2);                      % number of samples
-nl   = size(M,2);                      % number of levels
-nv   = sum(spm_vec(M.m));              % number of v (causal states)
-nx   = sum(spm_vec(M.n));              % number of x (hidden states)
-ny   = M(1).l;                         % number of y (inputs)
-nc   = M(end).l;                       % number of c (prior causes)
-nu   = nv*d + nx*n;                    % number of generalised states q(u)
+nY   = size(C,2);                         % number of samples
+nl   = size(M,2);                         % number of levels
+nv   = sum(spm_vec(M.m));                 % number of v (causal states)
+nx   = sum(spm_vec(M.n));                 % number of x (hidden states)
+ny   = M(1).l;                            % number of y (inputs)
+nc   = M(end).l;                          % number of c (prior causes)
+nu   = nv*d + nx*n;                       % number of generalised states
  
 % number of states and parameters - generative process
 %--------------------------------------------------------------------------
-gr   = sum(spm_vec(G.l));              % number of v (outputs)
-ga   = sum(spm_vec(G.k));              % number of a (active states)
-gx   = sum(spm_vec(G.n));              % number of x (hidden states)
-gy   = G(1).l;                         % number of y (inputs)
-na   = ga;
+gr   = sum(spm_vec(G.l));                 % number of v (outputs)
+ga   = sum(spm_vec(G.k));                 % number of a (active states)
+gx   = sum(spm_vec(G.n));                 % number of x (hidden states)
+gy   = G(1).l;                            % number of y (inputs)
+na   = ga;                                % number of a (action)
  
 % number of iterations
 %--------------------------------------------------------------------------
@@ -186,15 +181,26 @@ try, nM = M(1).E.nM; catch, nM = 8;  end
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------
-td = 1;                               % integration time for D-Step
-te = 2;                               % integration time for E-Step (log)
- 
- 
+td = 1;                                   % log integration time for D-Step
+te = 2;                                   % log integration time for E-Step
+
+
 % precision (roughness) of generalised fluctuations
 %--------------------------------------------------------------------------
-iV    = spm_DEM_R(n,s);               % prediction errors
-iW    = spm_DEM_R(n,8);               % action costs
-iG    = spm_DEM_R(n,1);               % proprioceptive errors
+iV    = spm_DEM_R(n,s);
+iG    = spm_DEM_R(n,s);
+
+% time-delay operators (absorb motor delays into motor gain matrix)
+%--------------------------------------------------------------------------
+try
+    nG = norm(iG);
+    iG = iG*spm_DEM_T(n,-M(1).Ta);
+    iG = iG*nG/norm(iG);
+end
+try
+    Ty = spm_DEM_T(n,-M(1).Ty);
+    Ty = kron(Ty,speye(ny,ny));
+end
  
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
@@ -224,7 +230,7 @@ end
 Q0    = kron(iV,spm_cat(spm_diag({M.V})));
 R0    = kron(iV,spm_cat(spm_diag({M.W})));
 Qp    = blkdiag(Q0,R0);
-nh    = length(Q);                         % number of hyperparameters
+nh    = length(Q);                        % number of hyperparameters
  
 % restriction matrix, mapping prediction errors to action
 %--------------------------------------------------------------------------
@@ -232,23 +238,23 @@ q0{1} = G(1).U;
 Q0    = kron(iG,spm_cat(q0));
 R0    = kron(iG,spm_cat(r0));
 iG    = blkdiag(Q0,R0);
- 
- 
+
+
 % fixed priors on states (u)
 %--------------------------------------------------------------------------
 xP    = spm_cat(spm_diag({M.xP}));
 Px    = kron(iV(1:n,1:n),speye(nx,nx)*exp(-8) + xP);
 Pv    = kron(iV(1:d,1:d),speye(nv,nv)*exp(-8));
-Pa    = kron(iW(1:n,1:n),speye(na,na)*exp(-2));
+Pa    = spm_speye(na,na)*exp(-2);
 Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
 %--------------------------------------------------------------------------
-ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(spm_diag({M.hC M.gC}));    % prior covariances of h
-qh.h  = ph.h;                              % conditional expectation
-qh.c  = ph.c;                              % conditional covariance
-ph.ic = spm_inv(ph.c);                     % prior precision
+ph.h  = spm_vec({M.hE M.gE});             % prior expectation of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));   % prior covariances of h
+qh.h  = ph.h;                             % conditional expectation
+qh.c  = ph.c;                             % conditional covariance
+ph.ic = spm_inv(ph.c);                    % prior precision
  
 % priors on parameters (in reduced parameter space)
 %==========================================================================
@@ -287,7 +293,7 @@ qp.c  = sparse(np,np);
 %==========================================================================
 qu.x      = cell(n,1);
 qu.v      = cell(n,1);
-qu.a      = cell(n,1);
+qu.a      = cell(1,1);
 qu.y      = cell(n,1);
 qu.u      = cell(n,1);
 pu.v      = cell(n,1);
@@ -319,7 +325,7 @@ pu.v{1}   = spm_vec({G.v});
 Dx    = kron(spm_speye(n,n,1),spm_speye(nx,nx,0));
 Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
-Da    = kron(spm_speye(n,n,1),spm_speye(na,na,0));
+Da    = kron(spm_speye(1,1,1),sparse(na,na));
 Du    = spm_cat(spm_diag({Dx,Dv}));
 Dq    = spm_cat(spm_diag({Dx,Dv,Dc,Da}));
  
@@ -349,6 +355,7 @@ if ~np && ~nh, nE = 1; end
 z{end} = C + z{end};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
+A      = spm_cat({G.a});
  
 % Iterate DEM
 %==========================================================================
@@ -392,16 +399,18 @@ for iE = 1:nE
     for iY = 1:nY
  
         
+        % pass action to pu.a (external states)
+        %==================================================================
+        try, A = spm_cat({qU.a qu.a}); end
+        
         % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
         pu.z = spm_DEM_embed(Z,n,iY);
         pu.w = spm_DEM_embed(W,n,iY);
+        pu.a = spm_DEM_embed(A,n,iY);
         qu.u = spm_DEM_embed(U,n,iY);
         
-        % pass action to pu.a (external states)
-        %==================================================================
-        pu.a = qu.a;
- 
+        
         % evaluate generative process
         %------------------------------------------------------------------
         [pu dg df] = spm_ADEM_diff(G,pu);
@@ -413,7 +422,12 @@ for iE = 1:nE
             y       = spm_unvec(pu.v{i},{G.v});
             qu.y{i} = y{1};
         end
- 
+        
+        % sensory delays
+        %------------------------------------------------------------------
+        try, qu.y = spm_unvec(Ty*spm_vec(qu.y),qu.y); end
+        
+        
         % evaluate recognition model
         %------------------------------------------------------------------       
         [E dE] = spm_DEM_eval(M,qu,qp);
@@ -452,14 +466,14 @@ for iE = 1:nE
         
         % tensor products for Jacobian
         %------------------------------------------------------------------
-        Dgda  = kron(spm_speye(n,n,1),dg.da);
+        Dgda  = kron(spm_speye(n,1,1),dg.da);
         Dgdv  = kron(spm_speye(n,n,1),dg.dv);
         Dgdx  = kron(spm_speye(n,n,1),dg.dx);
-        dfda  = kron(spm_speye(n,n,0),df.da);
+        dfda  = kron(spm_speye(n,1,0),df.da);
         dfdv  = kron(spm_speye(n,n,0),df.dv);
         dfdx  = kron(spm_speye(n,n,0),df.dx);
         
-        dgda  = kron(spm_speye(n,n,0),dg.da);
+        dgda  = kron(spm_speye(n,1,0),dg.da);
         dgdx  = kron(spm_speye(n,n,0),dg.dx);
         
         % change in error w.r.t. action
@@ -478,7 +492,7 @@ for iE = 1:nE
         % first-order derivatives
         %------------------------------------------------------------------
         dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
-        dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:n});
+        dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
         
         % and second-order derivatives
         %------------------------------------------------------------------
@@ -498,7 +512,7 @@ for iE = 1:nE
         % states and conditional modes
         %------------------------------------------------------------------
         p     = {pu.v{1:n} pu.x{1:n} pu.z{1:n} pu.w{1:n}};
-        q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:n}};
+        q     = {qu.x{1:n} qu.v{1:d} qu.u{1:d} qu.a{1:1}};
         u     = [p q];  
         
         % gradient
@@ -516,7 +530,7 @@ for iE = 1:nE
                  []    []   []   Dx   []       []    [];
                  dVduv []   []   []   Du+dVduu dVduc dVdua;
                  []    []   []   []   []       Dc    []
-                 dVdav []   []   []   dVdau    dVdac Da+dVdaa});
+                 dVdav []   []   []   dVdau    dVdac dVdaa});
  
  
         % update states q = {x,v,z,w} and conditional modes
@@ -530,9 +544,9 @@ for iE = 1:nE
         pu.x(1:n) = u((1:n) + n);
         qu.x(1:n) = u((1:n) + n + n + n + n);
         qu.v(1:d) = u((1:d) + n + n + n + n + n);
-        qu.a(1:m) = u((1:m) + n + n + n + n + n + d + d);
+        qu.a(1:1) = u((1:1) + n + n + n + n + n + d + d);
         
- 
+
         % Gradients and curvatures for E-Step: W = tr(C*J'*iS*J)
         %==================================================================
         if np
