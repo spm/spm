@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4451 2011-09-01 16:43:59Z john $
+% $Id: spm_dicom_convert.m 4676 2012-03-02 20:17:02Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -1227,14 +1227,14 @@ end;
 function dt = determine_datatype(hdr)
 % Determine what datatype to use for NIfTI images
 be = spm_platform('bigend');
-if hdr.HighBit>16
+if hdr.BitsStored>16
     if hdr.PixelRepresentation
         dt  = [spm_type( 'int32') be];
     else
         dt  = [spm_type('uint32') be];
     end
 else
-    if hdr.PixelRepresentation || hdr.HighBit>=15
+    if hdr.PixelRepresentation 
         dt  = [spm_type( 'int16') be];
     else
         dt  = [spm_type('uint16') be];

@@ -1,7 +1,8 @@
 function varargout = spm_bsplinc(varargin)
 % Return volume of B-spline coefficients - a compiled routine
 % FORMAT c = spm_bsplinc(V,d)
-%   V - a structure of image volume information (from spm_vol)
+%   V - a structure of image volume information (from spm_vol) - or a
+%       double precision floating point array.
 %   d(1:3) - degree of B-spline (from 0 to 7) along different dimensions
 %       d(4:6) - 1/0 to indicate wrapping along the dimensions
 %   c - returned volume of B-spline coefficients
@@ -33,7 +34,7 @@ function varargout = spm_bsplinc(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_bsplinc.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_bsplinc.m 4676 2012-03-02 20:17:02Z john $
 
 
 %-This is merely the help file for the compiled routine
