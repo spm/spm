@@ -6,14 +6,15 @@
 % a simple empirical prior encoding the hidden motion of the target (using 
 % a linear oscillator, whose frequency is determined by a hidden cause). 
 % We then examine failures of tracking and anticipation during occlusion 
-% and when the target re-emerges from behind the occluder. This is shown 
-% for prior beliefs that are not completely accurate (encoding a slightly 
-% slower periodic target motion than that presented). We then look at a 
+% and when the target re-emerges from behind the occluder. We look at a 
 % simulation in which the precision of the oscillator dynamics modelling 
 % long-term behaviour of the target is reduced (cf., neuromodulatory 
 % deficits in cortical areas encoding biological motion). This has a 
-% similar effect of producing a failure of pursuit, resulting in a 
-% catch-up saccade on target reappearance. Finally, we look at how prior 
+% an effect of producing a failure of pursuit, resulting in a catch-up
+% saccade on target reappearance. The suppression of prior precision can
+% however have beneficial effects when motion is itself unpredicted
+% (as shown with differential pursuit performance under a reversal of 
+% the trajectory towards the end of motion). Finally, we look at how prior 
 % beliefs are acquired during exposure to the target – in terms of 
 % cumulative inference on the hidden causes encoding the frequency of 
 % periodic motion. This can be regarded as a high order form of evidence 
@@ -28,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occlusion.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_occlusion.m 4672 2012-03-02 19:41:58Z karl $
  
  
 % hidden causes and states
@@ -124,11 +125,11 @@ G(2).V = exp(16);
 N      = 64;                                 % length of data sequence
 dt     = 16;                                 % time step (ms)
 t      = (1:N)*dt;                           % PST
-C      = sin((1:N)*w).*((1:N) > 16);         % location
+ 
 DEM.M  = M;
 DEM.G  = G;
-DEM.C  = C;
-DEM.U  = zeros(1,N) + w*8;
+DEM.C  = sin((1:N)*w).*((1:N) > 16);         % sinusoidal target motion
+DEM.U  = zeros(1,N) + w*8;                   % prior beliefs
 DEM    = spm_ADEM(DEM);
  
 spm_figure('GetWin','Figure 1');
@@ -142,32 +143,43 @@ spm_figure('GetWin','Figure 2'); clf
 spm_dem_occlusion_movie(DEM)
  
  
- 
-% now repeat but without (valid) prior beliefs
-%==========================================================================
- 
-% allow for uncertainty about hidden causes (frequency of motion)
-%--------------------------------------------------------------------------
-SEM        = DEM;
-SEM.U      = zeros(1,N) + w*6;
-SEM        = spm_ADEM(SEM);
- 
-spm_figure('GetWin','Figure 3'); clf
-spm_dem_occlusion_movie(SEM)
-subplot(2,2,3), title({'Angular position:','slow priors'},'FontSize',16)
-subplot(2,2,4), title({'Angular velocity:','and catch-up saccade'},'FontSize',16)
- 
- 
 % repeat with simulated lesion to precision
 %==========================================================================
 SEM        = DEM;
-SEM.M(2).W = exp(2);
+SEM.M(2).W = exp(0);
 SEM        = spm_ADEM(SEM);
 spm_DEM_qU(SEM.qU,SEM.pU)
  
+ 
+spm_figure('GetWin','Figure 3'); clf
+spm_dem_occlusion_movie(SEM)
+subplot(2,2,3), title({'Angular position:','reduced precision'},'FontSize',16)
+subplot(2,2,4), title({'Angular velocity:','and catch-up saccade'},'FontSize',16)
+ 
+ 
+% show improved tracking of unexpected trajectories under reduced precision
+%==========================================================================
+ 
+% remove occlusion and switch target trajectory after one cycle
+%--------------------------------------------------------------------------
+i          = 50;
+DEM.M(1).g = h;
+DEM.G(1).g = h;
+DEM.C(i:N) = -DEM.C(i:N);
+ 
+% reduce precisions and integrate
+%--------------------------------------------------------------------------
+SEM        = DEM;
+SEM.M(2).W = exp(0);
+ 
+DEM        = spm_ADEM(DEM);
+SEM        = spm_ADEM(SEM);
+ 
 spm_figure('GetWin','Figure 4'); clf
-spm_DEM_qU(SEM.qU,SEM.pU)
-subplot(3,2,4), title({'hidden states','with reduced precision'},'FontSize',16)
+spm_dem_occlusion_movie(DEM)
+subplot(2,2,3), hold on, subplot(2,2,4), hold on
+spm_dem_occlusion_movie(SEM)
+subplot(2,2,3), hold off, subplot(2,2,4), hold off
  
  
 % illustrate inference on hidden cause (motion of target)
@@ -197,7 +209,7 @@ subplot(3,2,5), hold on, plot([1 N],[w w]*8,'-.k','LineWidth',4), hold off
 % repeat with simulated lesion to precision
 %==========================================================================
 SEM        = DEM;
-SEM.M(2).W = exp(2);
+SEM.M(2).W = exp(0);
 SEM        = spm_ADEM(SEM);
 spm_DEM_qU(SEM.qU,SEM.pU)
  
@@ -206,4 +218,3 @@ spm_DEM_qU(SEM.qU,SEM.pU)
 subplot(3,2,4), title({'hidden states','with reduced precision'},'FontSize',16)
 subplot(3,2,5), hold on, plot([1 N],[w w]*8,'-.k','LineWidth',4), hold off
 axis([1 N -1/2 2])
- 

@@ -1,7 +1,7 @@
 % Saccadic eye movements under active inference:
 %__________________________________________________________________________
 % This demo illustrates exploration or visual search in terms of optimality
-% principles based on straightforward ergodic or homoeostatic principles.
+% principles based on straightforward ergodic or allostatic principles.
 % In other words, to maintain the constancy of our external milieu, it is
 % sufficient to expose ourselves to predicted and predictable stimuli.
 % Being able to predict what is currently seen also enables us to predict
@@ -19,7 +19,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_salience.m 4672 2012-03-02 19:41:58Z karl $
 
 
 % hidden causes and states
