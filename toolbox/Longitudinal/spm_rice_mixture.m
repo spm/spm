@@ -1,11 +1,11 @@
-function [mg,nu,sig] = rice_mixture(h,x,K)
+function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Fit a mixture of Ricians to a histogram
 % FORMAT [mg,nu,sig] = rice_mixture(h,x,K)
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: rice_mixture.m 4671 2012-03-02 19:40:35Z john $
+% $Id: spm_rice_mixture.m 4673 2012-03-02 19:45:27Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
