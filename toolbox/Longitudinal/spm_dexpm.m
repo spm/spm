@@ -7,6 +7,11 @@ function [E,dE] = spm_dexpm(A,dA)
 % dE - (expm(A+eps*dA)-expm(A-eps*dA))/(2*eps)
 %
 % Note that the algorithm is a bit slow.
+%_______________________________________________________________________
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+
+% John Ashburner
+% $Id: spm_dexpm.m 4671 2012-03-02 19:40:35Z john $
 
 if nargin<2,
     dA = zeros([size(A) 0]);
