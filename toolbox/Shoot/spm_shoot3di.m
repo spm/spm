@@ -2,24 +2,17 @@ function varargout = spm_shoot3di(v0,prm,args)
 % Geodesic shooting
 % FORMAT [theta,Jtheta,v1,phi,Jphi] = spm_shoot3di(v0,prm,args)
 % v0     - Initial velocity field n1*n2*n3*3 (single prec. float)
-% prm    - 7 Differential operator parameter settings
-%          - [1] Regularisation type (ie the form of the differential
-%            operator), can take values of
-%             - 0 Linear elasticity
-%             - 1 Membrane energy
-%             - 2 Bending energy
-%          - [2][3][4] Voxel sizes
-%          - [5][6][7] Regularisation parameters
-%             - For "membrane energy", the parameters are
-%               lambda, unused and id.
-%             - For "linear elasticity", the parameters are
-%               mu, lambda, and id
-%             - For "bending energy", the parameters are
-%               lambda, id1 and id2.
+% prm  - 8 settings
+%        - [1][2][3] Voxel sizes
+%        - [4][5][6][7][8] Regularisation settings.
+%          Regularisation uses the sum of
+%          - [4] - absolute displacements
+%          - [5] - laplacian
+%          - [6] - bending energy
+%          - [7] - linear elasticity mu
+%          - [8] - linear elasticity lambda
 % args   - Integration parameters
 %          - [1] Num time steps
-%          - [2][3] Multigrid parameters (cycles and iterations)
-%            for generating velocities from momentum
 %
 % theta  - Inverse deformation field n1*n2*n3*3 (single prec. float)
 % Jtheta - Inverse Jacobian tensors n1*n2*n3 (single prec. float)
@@ -58,7 +51,7 @@ function varargout = spm_shoot3di(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3di.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot3di.m 4675 2012-03-02 19:49:35Z john $
 
 args0 = [8 4 4];
 if nargin<3,
@@ -79,6 +72,8 @@ if ~isfinite(N),
     % Number of time steps from an educated guess about how far to move
     N = double(floor(sqrt(max(max(max(v0(:,:,:,1).^2+v0(:,:,:,2).^2+v0(:,:,:,3).^2)))))+1);
 end
+
+F = spm_shoot_greens('kernel',d,prm);
 
 if verb, fprintf('N=%g:', N); end
 
@@ -101,7 +96,8 @@ end
 
 for t=2:abs(N),
     mt        = pullg(m0,theta,Jtheta);
-    vt        = mom2vel(mt,prm,fmg_args,vt);
+    %vt       = shoot3('mom2vel', mt, [prm 2 2],vt); Solve via V-cycles
+    vt        = spm_shoot_greens(mt,F,prm);
     if verb, fprintf('\t%g', 0.5*sum(vt(:).*mt(:))/prod(d)); end
 
     [   dp,    dJ] = shoot3('smalldef',  vt,-1/N);    % Small deformation
@@ -128,31 +124,10 @@ varargout{1} = theta;
 varargout{2} = Jtheta;
 if nargout>=3,
     mt           = pullg(m0,theta,Jtheta);
-    varargout{3} = mom2vel(mt,prm,fmg_args,vt);
+    varargout{3} = spm_shoot_greens(mt,F,prm);
 end
 if nargout>=4, varargout{4} = phi;  end
 if nargout>=5, varargout{5} = Jphi; end
-%__________________________________________________________________________________
-
-%__________________________________________________________________________________
-function vt = mom2vel(mt,prm,fmg_args,vt)
-% L^{-1} m_t
-
-r   = shoot3('vel2mom',vt,prm);
-vt  = shoot3('mom2vel', mt-r, [prm fmg_args])+vt;
-
-if false,
-    % Go for machine precision
-    r  = shoot3('vel2mom',vt,prm);
-    ss = sum(sum(sum(sum((mt-r).^2))));
-    for i=1:8,
-        oss = ss;
-        vt  = shoot3('mom2vel', mt-r, [prm fmg_args])+vt;
-        r   = shoot3('vel2mom',vt,prm);
-        ss  = sum(sum(sum(sum((mt-r).^2))));
-        if ss/oss>0.9, break; end
-    end
-end
 %__________________________________________________________________________________
 
 %__________________________________________________________________________________

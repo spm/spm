@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4583 2011-12-06 16:03:01Z john $ */
+/* $Id: shoot_regularisers.c 4675 2012-03-02 19:49:35Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -82,6 +82,127 @@ end;
 disp(simplify(L(3:end,3:end,3:end)))
 */
 
+void kernel(mwSize dm[], double s[], float f[])
+{
+    double w000,w100,w200,
+           w010,w110,
+           w020,
+           w001,w101,
+           w011,
+           w002;
+    double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
+    double lam0 = s[3], lam1 = s[4], lam2 = s[5], mu = s[6], lam = s[7];
+    mwSignedIndex im2,im1,ip1,ip2, jm2,jm1,jp1,jp2, km2,km1,kp1,kp2;
+
+    km2 = (bound((mwSignedIndex)-2,dm[2]))*dm[0]*dm[1];
+    km1 = (bound((mwSignedIndex)-1,dm[2]))*dm[0]*dm[1];
+    kp1 = (bound((mwSignedIndex) 1,dm[2]))*dm[0]*dm[1];
+    kp2 = (bound((mwSignedIndex) 2,dm[2]))*dm[0]*dm[1];
+
+    jm2 = (bound((mwSignedIndex)-2,dm[1]))*dm[0];
+    jm1 = (bound((mwSignedIndex)-1,dm[1]))*dm[0];
+    jp1 = (bound((mwSignedIndex) 1,dm[1]))*dm[0];
+    jp2 = (bound((mwSignedIndex) 2,dm[1]))*dm[0];
+
+    im2 = bound((mwSignedIndex)-2,dm[0]);
+    im1 = bound((mwSignedIndex)-1,dm[0]);
+    ip1 = bound((mwSignedIndex) 1,dm[0]);
+    ip2 = bound((mwSignedIndex) 2,dm[0]);
+
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
+    w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
+    w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
+    w200 = lam2*v0*v0;
+    w020 = lam2*v1*v1;
+    w002 = lam2*v2*v2;
+    w110 = lam2*2*v0*v1;
+    w101 = lam2*2*v0*v2;
+    w011 = lam2*2*v1*v2;
+
+    if (mu==0 && lam==0)
+    {
+        f[0]           += w000;
+        f[im1        ] += w100; f[ip1        ] += w100;
+        f[    jm1    ] += w010; f[    jp1    ] += w010;
+        f[        km1] += w001; f[        kp1] += w001;
+        f[im2        ] += w200; f[ip2        ] += w200;
+        f[    jm2    ] += w020; f[    jp2    ] += w020;
+        f[        km2] += w002; f[        kp2] += w002;
+        f[im1+jm1    ] += w110; f[ip1+jm1    ] += w110; f[im1+jp1    ] += w110; f[ip1+jp1    ] += w110;
+        f[im1    +km1] += w101; f[ip1    +km1] += w101; f[im1    +kp1] += w101; f[ip1    +kp1] += w101;
+        f[    jm1+km1] += w011; f[    jp1+km1] += w011; f[    jm1+kp1] += w011; f[    jp1+kp1] += w011;
+    }
+    else
+    {
+        double wx000, wx100, wx010, wx001, wy000, wy100, wy010, wy001, wz000, wz100, wz010, wz001, w2;
+        float *pxx, *pxy, *pxz, *pyx, *pyy, *pyz, *pzx, *pzy, *pzz;
+        mwSignedIndex m = dm[0]*dm[1]*dm[2];
+
+        wx000 =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
+        wx100 = -2*mu-lam + w100/v0;
+        wx010 = -mu*v1/v0 + w010/v0;
+        wx001 = -mu*v2/v0 + w001/v0;
+        wy000 =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+        wy100 = -mu*v0/v1 + w100/v1;
+        wy010 = -2*mu-lam + w010/v1;
+        wy001 = -mu*v2/v1 + w001/v1;
+        wz000 =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+        wz100 = -mu*v0/v2 + w100/v2;
+        wz010 = -mu*v1/v2 + w010/v2;
+        wz001 = -2*mu-lam + w001/v2;
+        w2    = 0.25*mu+0.25*lam;
+
+        pxx = f;
+        pyx = f + m;
+        pzx = f + m*2;
+        pxy = f + m*3;
+        pyy = f + m*4;
+        pzy = f + m*5;
+        pxz = f + m*6;
+        pyz = f + m*7;
+        pzz = f + m*8;
+
+        pxx[0          ] += wx000;
+        pxx[im1        ] += wx100;   pxx[ip1        ] += wx100;
+        pxx[    jm1    ] += wx010;   pxx[    jp1    ] += wx010;
+        pxx[        km1] += wx001;   pxx[        kp1] += wx001;
+        pxy[ip1+jm1    ] += w2;      pxy[ip1+jp1    ] -= w2;      pxy[im1+jm1    ] -= w2;      pxy[im1+jp1    ] += w2;
+        pxz[ip1    +km1] += w2;      pxz[ip1    +kp1] -= w2;      pxz[im1    +km1] -= w2;      pxz[im1    +kp1] += w2;
+        pxx[im1+jm1    ] += w110/v0; pxx[ip1+jm1    ] += w110/v0; pxx[im1+jp1    ] += w110/v0; pxx[ip1+jp1    ] += w110/v0;
+        pxx[im1    +km1] += w101/v0; pxx[ip1    +km1] += w101/v0; pxx[im1    +kp1] += w101/v0; pxx[ip1    +kp1] += w101/v0;
+        pxx[    jm1+km1] += w011/v0; pxx[    jp1+km1] += w011/v0; pxx[    jm1+kp1] += w011/v0; pxx[    jp1+kp1] += w011/v0;
+        pxx[im2        ] += w200/v0; pxx[ip2        ] += w200/v0;
+        pxx[    jm2    ] += w020/v0; pxx[    jp2    ] += w020/v0;
+        pxx[        km2] += w002/v0; pxx[        kp2] += w002/v0;
+
+        pyy[0          ] += wy000;
+        pyy[im1        ] += wy100;   pyy[ip1        ] += wy100;
+        pyy[    jm1    ] += wy010;   pyy[    jp1    ] += wy010;
+        pyy[        km1] += wy001;   pyy[        kp1] += wy001;
+        pyx[ip1+jm1    ] += w2;      pyx[ip1+jp1    ] -= w2;      pyx[im1+jm1    ] -= w2;      pyx[im1+jp1    ] += w2;
+        pyz[    jp1+km1] += w2;      pyz[    jp1+kp1] -= w2;      pyz[    jm1+km1] -= w2;      pyz[    jm1+kp1] += w2;
+        pyy[im1+jm1    ] += w110/v1; pyy[ip1+jm1    ] += w110/v1; pyy[im1+jp1    ] += w110/v1; pyy[ip1+jp1    ] += w110/v1;
+        pyy[im1    +km1] += w101/v1; pyy[ip1    +km1] += w101/v1; pyy[im1    +kp1] += w101/v1; pyy[ip1    +kp1] += w101/v1;
+        pyy[    jm1+km1] += w011/v1; pyy[    jp1+km1] += w011/v1; pyy[    jm1+kp1] += w011/v1; pyy[    jp1+kp1] += w011/v1;
+        pyy[im2        ] += w200/v1; pyy[ip2        ] += w200/v1;
+        pyy[    jm2    ] += w020/v1; pyy[    jp2    ] += w020/v1;
+        pyy[        km2] += w002/v1; pyy[        kp2] += w002/v1;
+
+        pzz[0          ] += wz000;
+        pzz[im1        ] += wz100;   pzz[ip1        ] += wz100;
+        pzz[    jm1    ] += wz010;   pzz[    jp1    ] += wz010;
+        pzz[        km1] += wz001;   pzz[        kp1] += wz001;
+        pzx[im1    +kp1] += w2;      pzx[ip1    +kp1] -= w2;      pzx[im1    +km1] -= w2;      pzx[ip1    +km1] += w2;
+        pzy[jm1    +kp1] += w2;      pzy[    jp1+kp1] -= w2;      pzy[    jm1+km1] -= w2;      pzy[    jp1+km1] += w2;
+        pzz[im1+jm1    ] += w110/v2; pzz[ip1+jm1    ] += w110/v2; pzz[im1+jp1    ] += w110/v2; pzz[ip1+jp1    ] += w110/v2;
+        pzz[im1    +km1] += w101/v2; pzz[ip1    +km1] += w101/v2; pzz[im1    +kp1] += w101/v2; pzz[ip1    +kp1] += w101/v2;
+        pzz[    jm1+km1] += w011/v2; pzz[    jp1+km1] += w011/v2; pzz[    jm1+kp1] += w011/v2; pzz[    jp1+kp1] += w011/v2;
+        pzz[im2        ] += w200/v2; pzz[ip2        ] += w200/v2;
+        pzz[    jm2    ] += w020/v2; pzz[    jp2    ] += w020/v2;
+        pzz[        km2] += w002/v2; pzz[        kp2] += w002/v2;
+    }
+}
 
 double sumsq(mwSize dm[], float a[], float b[], double s[], float u[])
 {

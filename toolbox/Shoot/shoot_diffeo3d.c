@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 4652 2012-02-09 18:39:33Z john $ */
+/* $Id: shoot_diffeo3d.c 4675 2012-03-02 19:49:35Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -344,9 +344,9 @@ void composition_jacdet(mwSize dm[], mwSize mm, float *B, float *JB, float *A, f
     composition_stuff(dm, mm, B, JB, A, JA, C, JC, 1);
 }
 
-void def2det_wrap(mwSize dm[], float *Y, float *J, mwSignedIndex s)
+static void def2jac_wrap(mwSize dm[], float *Y, float *J, mwSignedIndex s, int code)
 {
-    mwSignedIndex i, j, k, k0, k2;
+    mwSignedIndex i, j, k, k0, k2, mm;
 
     if (s>=0 && s<dm[2])
     {
@@ -358,6 +358,8 @@ void def2det_wrap(mwSize dm[], float *Y, float *J, mwSignedIndex s)
         k0 = 0;
         k2 = dm[2];
     }
+
+    mm = dm[0]*dm[1]*(k2-k0);
 
     for(k=k0; k<k2; k++)
     {
@@ -404,15 +406,24 @@ void def2det_wrap(mwSize dm[], float *Y, float *J, mwSignedIndex s)
                     j33 = 1.0;
                 }
 
-                dp[i] = j11*(j22*j33-j23*j32)+j21*(j13*j32-j12*j33)+j31*(j12*j23-j13*j22);
+                if (!code)
+                {
+                    dp[i] = j11*(j22*j33-j23*j32)+j21*(j13*j32-j12*j33)+j31*(j12*j23-j13*j22);
+                }
+                else
+                {
+                    dp[i     ] = j11; dp[i+mm  ] = j21; dp[i+mm*2] = j31;
+                    dp[i+mm*3] = j12; dp[i+mm*4] = j22; dp[i+mm*5] = j32;
+                    dp[i+mm*6] = j13; dp[i+mm*7] = j23; dp[i+mm*8] = j33;
+                }
             }
         }
     }
 }
 
-void def2det_neuman(mwSize dm[], float *Y, float *J, mwSignedIndex s)
+static void def2jac_neuman(mwSize dm[], float *Y, float *J, mwSignedIndex s, int code)
 {
-    mwSignedIndex k, k0, k2;
+    mwSignedIndex k, k0, k2, mm;
 
     if (s>=0 && s<dm[2])
     {
@@ -424,6 +435,7 @@ void def2det_neuman(mwSize dm[], float *Y, float *J, mwSignedIndex s)
         k0 = 0;
         k2 = dm[2];
     }
+    mm = dm[0]*dm[1]*(k2-k0);
 
     for(k=k0; k<k2; k++)
     {
@@ -482,7 +494,16 @@ void def2det_neuman(mwSize dm[], float *Y, float *J, mwSignedIndex s)
                     j33 = (y3[op]-y3[om])*0.5;
                 }
 
-                dp[i] = j11*(j22*j33-j23*j32)+j21*(j13*j32-j12*j33)+j31*(j12*j23-j13*j22);
+                if (!code)
+                {
+                    dp[i] = j11*(j22*j33-j23*j32)+j21*(j13*j32-j12*j33)+j31*(j12*j23-j13*j22);
+                }
+                else
+                {
+                    dp[i     ] = j11; dp[i+mm  ] = j21; dp[i+mm*2] = j31;
+                    dp[i+mm*3] = j12; dp[i+mm*4] = j22; dp[i+mm*5] = j32;
+                    dp[i+mm*6] = j13; dp[i+mm*7] = j23; dp[i+mm*8] = j33;
+                }
             }
         }
     }
@@ -491,9 +512,17 @@ void def2det_neuman(mwSize dm[], float *Y, float *J, mwSignedIndex s)
 void def2det(mwSize dm[], float *Y, float *J, mwSignedIndex s)
 {
     if (get_bound())
-        def2det_neuman(dm, Y, J, s);
+        def2jac_neuman(dm, Y, J, s, 0);
     else
-        def2det_wrap(dm, Y, J, s);
+        def2jac_wrap(dm, Y, J, s, 0);
+}
+
+void def2jac(mwSize dm[], float *Y, float *J, mwSignedIndex s)
+{
+    if (get_bound())
+        def2jac_neuman(dm, Y, J, s, 1);
+    else
+        def2jac_wrap(dm, Y, J, s, 1);
 }
 
 /*

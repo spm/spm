@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.h 4652 2012-02-09 18:39:33Z john $ */
+/* $Id: shoot_diffeo3d.h 4675 2012-03-02 19:49:35Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,
@@ -21,4 +21,5 @@ extern void determinant(mwSize dm[], float J0[], float d[]);
 extern void minmax_div(mwSize dm[], float v0[], double mnmx[]);
 extern void divergence(mwSize dm[], float v0[], float dv[]);
 extern void def2det(mwSize dm[], float *Y, float *J, mwSignedIndex s);
+extern void def2jac(mwSize dm[], float *Y, float *J, mwSignedIndex s);
 

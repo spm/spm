@@ -192,7 +192,7 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
         mexErrMsgTxt("Data must be numeric, real, full and double");
 
     if (mxGetNumberOfElements(prhs[1]) != 10)
-        mexErrMsgTxt("Third argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5, ncycles and relax-its.");
+        mexErrMsgTxt("Second argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5, ncycles and relax-its.");
     param[0] = 1/mxGetPr(prhs[1])[0];
     param[1] = 1/mxGetPr(prhs[1])[1];
     param[2] = 1/mxGetPr(prhs[1])[2];
@@ -201,7 +201,7 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     param[5] = mxGetPr(prhs[1])[5];
     param[6] = mxGetPr(prhs[1])[6];
     param[7] = mxGetPr(prhs[1])[7];
-    cyc      = mxGetPr(prhs[1])[8];
+    cyc      = (int)(mxGetPr(prhs[1])[8]);
     nit      = (int)(mxGetPr(prhs[1])[9]);
 
     if (nrhs>=3)
@@ -236,6 +236,46 @@ static void fmg3_noa_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxAr
     scratch = (float *)mxCalloc(fmg3_scratchsize((mwSize *)dm,0),sizeof(float));
     fmg3((mwSize *)dm, 0, b, param, cyc, nit, x, scratch);
     mxFree((void *)scratch);
+}
+
+static void kernel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize dm[5];
+    static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and double");
+    if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+        mexErrMsgTxt("Data must be numeric, real, full and double");
+
+    if (mxGetNumberOfElements(prhs[0]) != 3)
+        mexErrMsgTxt("Wrong number of dimensions.");
+    dm[0] = (mwSize)(mxGetPr(prhs[0])[0]);
+    dm[1] = (mwSize)(mxGetPr(prhs[0])[1]);
+    dm[2] = (mwSize)(mxGetPr(prhs[0])[2]);
+
+    if (mxGetNumberOfElements(prhs[1]) != 8)
+        mexErrMsgTxt("Second argument should contain vox1, vox2, vox3, param1, param2, param3, param4, param5.");
+    param[0] = 1/mxGetPr(prhs[1])[0];
+    param[1] = 1/mxGetPr(prhs[1])[1];
+    param[2] = 1/mxGetPr(prhs[1])[2];
+    param[3] = mxGetPr(prhs[1])[3];
+    param[4] = mxGetPr(prhs[1])[4];
+    param[5] = mxGetPr(prhs[1])[5];
+    param[6] = mxGetPr(prhs[1])[6];
+    param[7] = mxGetPr(prhs[1])[7];
+
+    if (param[6]==0 && param[7]==0)
+    {
+        plhs[0] = mxCreateNumericArray(3,dm, mxSINGLE_CLASS, mxREAL);
+    }
+    else
+    {
+        dm[3]   = 3;
+        dm[4]   = 3;
+        plhs[0] = mxCreateNumericArray(5,dm, mxSINGLE_CLASS, mxREAL);
+    }
+    kernel(dm, param, (float *)mxGetPr(plhs[0]));
 }
 
 static void rsz_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -820,8 +860,10 @@ static void def2det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 {
     mwSize nd;
     const mwSize *dm;
+    mwSize dm1[3];
+    int pl = -1;
 
-    if ((nrhs != 1) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
+    if ((nrhs < 1) || (nrhs>2) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
             mexErrMsgTxt("Data must be numeric, real, full and single");
     nd = mxGetNumberOfDimensions(prhs[0]);
@@ -829,8 +871,56 @@ static void def2det_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     dm = mxGetDimensions(prhs[0]);
     if (dm[3]!=3) mexErrMsgTxt("4th dimension must be 3.");
 
-    plhs[0] = mxCreateNumericArray(3,dm, mxSINGLE_CLASS, mxREAL);
-    def2det((mwSize *)dm,(float *)mxGetPr(prhs[0]),(float *)mxGetPr(plhs[0]), -1);
+    dm1[0] = dm[0];
+    dm1[1] = dm[1];
+    dm1[2] = dm[2];
+
+    if (nrhs==2)
+    {
+        if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]) || (mxGetNumberOfElements(prhs[1])!=1))
+            mexErrMsgTxt("Slice number must be a numeric, real, full and double scalar");
+        pl = (int)mxGetPr(prhs[1])[0];
+        if (pl<1 || pl>=dm[2])
+            mexErrMsgTxt("Slice number is out of range");
+        dm1[2] = 1;
+    }
+
+    plhs[0] = mxCreateNumericArray(3,dm1, mxSINGLE_CLASS, mxREAL);
+    def2det((mwSize *)dm,(float *)mxGetPr(prhs[0]),(float *)mxGetPr(plhs[0]), pl);
+}
+
+static void def2jac_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    mwSize nd;
+    const mwSize *dm;
+    mwSize dm1[5];
+    int pl = -1;
+
+    if ((nrhs < 1) || (nrhs>2) || (nlhs>1)) mexErrMsgTxt("Incorrect usage.");
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and single");
+    nd = mxGetNumberOfDimensions(prhs[0]);
+    if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    dm = mxGetDimensions(prhs[0]);
+    if (dm[3]!=3) mexErrMsgTxt("4th dimension must be 3.");
+
+    dm1[0] = dm[0];
+    dm1[1] = dm[1];
+    dm1[2] = dm[2];
+    dm1[3] = 3;
+    dm1[4] = 3;
+    if (nrhs==2)
+    {
+        if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]) || (mxGetNumberOfElements(prhs[1])!=1))
+            mexErrMsgTxt("Slice number must be a numeric, real, full and double scalar");
+        pl = (int)mxGetPr(prhs[1])[0];
+        if (pl<1 || pl>=dm[2])
+            mexErrMsgTxt("Slice number is out of range");
+        dm1[2] = 1;
+    }
+
+    plhs[0] = mxCreateNumericArray(5,dm1, mxSINGLE_CLASS, mxREAL);
+    def2jac((mwSize *)dm,(float *)mxGetPr(prhs[0]),(float *)mxGetPr(plhs[0]), pl);
 }
 
 static void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -942,6 +1032,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             cgs3_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
+        else if (!strcmp(fnc_str,"kernel")  || !strcmp(fnc_str,"kern"))
+        {
+            mxFree(fnc_str);
+            kernel_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+
         else if (!strcmp(fnc_str,"restrict"))
         {
             mxFree(fnc_str);
@@ -987,10 +1083,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             divergence_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
-        else if (!strcmp(fnc_str,"def2det"))
+        else if (!strcmp(fnc_str,"def2det") || !strcmp(fnc_str,"jacdet"))
         {
             mxFree(fnc_str);
             def2det_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"def2jac") || !strcmp(fnc_str,"jacobian"))
+        {
+            mxFree(fnc_str);
+            def2jac_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

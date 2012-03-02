@@ -81,13 +81,29 @@ vt       = v0;
 m0       = shoot3('vel2mom',v0,prm); % Initial momentum (m_0 = L v_0)
 phi      = shoot3('smalldef', vt,1/N);
 
+%crap=shoot3('mom2vel',m0,[prm,fmg_args]);
+%fprintf('---------\n\n');
+
+%crap=shoot3('mom2vel',m0,[prm,fmg_args],v0);
+%fprintf('---------\n\n');
+
 if nargout>=3, theta = shoot3('smalldef', vt,-1/N); end
 
 for t=2:abs(N),
+if 0
+    crap = shoot3('mom2vel',shoot3('pushg',m0,phi),[prm,fmg_args]);
+fprintf('\n');
+    crap = shoot3('pushg',m0,phi);
+    crap1 = shoot3('vel2mom',vt,prm);
+    crap  = shoot3('mom2vel',crap-crap1,[prm,fmg_args])+vt;
+fprintf('\n');
+end
     vt  = shoot3('mom2vel',shoot3('pushg',m0,phi),[prm,fmg_args],vt);
     phi = shoot3('comp', shoot3('smalldef',vt,1/N), phi);
     if nargout>=3, theta = shoot3('comp', theta, shoot3('smalldef',vt,-1/N)); end
     drawnow
+%fprintf('\n---\n');
+
 end
 
 varargout{1} = phi;

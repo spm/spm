@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4583 2011-12-06 16:03:01Z john $
+% $Id: spm_shoot_template.m 4675 2012-03-02 19:49:35Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -95,10 +95,11 @@ for i=1:n2,
 
     NY(i).descrip = 'Deformation (templ. to. ind.)';
     NY(i).mat     = NF(1,i).NI.mat;
+    NY(i).mat0    = NY(i).mat;
 
     NJ(i).descrip = 'Jacobian det (templ. to. ind.)';
     NJ(i).mat     = NF(1,i).NI.mat;
-
+    NJ(i).mat0    = NJ(i).mat;
 
     create(NU(i)); NU(i).dat(:,:,:,:,:) = 0;
     create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(shoot3('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
@@ -223,7 +224,10 @@ for it=1:nits,
     else
         su = su/sum(ok);
     end
-    
+
+    % Generate FT of Green's function
+    K = spm_shoot_greens('kernel',dm,prm);
+ 
     % Update template sufficient statistics
     spm_progress_bar('Init',n2,sprintf('Update deformations and template (%d)',it),'Subjects done');
     for i=1:n2, % Loop over subjects
@@ -235,7 +239,7 @@ for it=1:nits,
             NU(i).dat(:,:,:,:,:) = reshape(u,[dm 1 3]);
 
             % Generate inverse deformation and save
-            [y,J] = spm_shoot3d(u,prm,int_args);
+            [y,J] = spm_shoot3d(u,prm,int_args, K);
             clear u
             dt    = shoot3('det',J); clear J
 
