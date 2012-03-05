@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4671 2012-03-02 19:40:35Z john $
+% $Id: tbx_cfg_longitudinal.m 4678 2012-03-05 18:01:33Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Longitudinal')); end
 
@@ -42,6 +42,8 @@ noise.help    = {'.'};
 noise.strtype = 'e';
 noise.num     = [1 1];
 noise.val     = {NaN};
+noise.help    = {'Specify the amount of noise in the images.  If this value is not finite, the algorithm will try to compute a reasonable value based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images.  The RMS variance over all images is used as the estimate of noise.',...
+'Ideally, all the subjects should be dealt with together so that the noise estimate is the same for all scans.'}
 
 bparam         = cfg_entry;
 bparam.tag     = 'bparam';
@@ -63,7 +65,8 @@ wparam.help    = {'Registration involves simultaneously minimising two terms.  O
 '* The `membrane energy'' of the deformation is penalised (2nd element), usually by a relatively small amount. This penalises the sum of squares of the derivatives of the velocity field (ie the sum of squares of the elements of the Jacobian tensors).'
 '* The `bending energy'' is penalised (3rd element). This penalises the sum of squares of the 2nd derivatives of the velocity.'
 '* Linear elasticity regularisation is also included (4th and 5th elements).  The first parameter (mu) is similar to that for linear elasticity, except it penalises the sum of squares of the Jacobian tensors after they have been made symmetric (by averaging with the transpose).  This term essentially penalises length changes, without penalising rotations.'
-'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.' 
+'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.',...
+'Note that regularisation is specified based on what is believed to be appropriate for a year of growth.  The specified values are divided by the number of years time difference.' 
 };
 wparam.strtype = 'e';
 wparam.num     = [1 5];
@@ -72,7 +75,7 @@ wparam.val     = {[0.05 5 100 50 200]};
 write_avg         = cfg_menu;
 write_avg.tag     = 'write_avg';
 write_avg.name    = 'Save Mid-point average';
-write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment.'};
+write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``ave_''''.'};
 write_avg.labels = {
                 'Save average'
                 'Dont save average'
@@ -86,7 +89,7 @@ write_avg.val    = {[1]};
 write_div         = cfg_menu;
 write_div.tag     = 'write_div';
 write_div.name    = 'Save divergence';
-write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction.'};
+write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''''};
 write_div.labels = {
                 'Save divergence'
                 'Dont save divergence'
@@ -99,17 +102,17 @@ write_div.val    = {[1]};
 
 write_jac         = cfg_menu;
 write_jac.tag     = 'write_jac';
-write_jac.name    = 'Save Jacobians';
-write_jac.help    = {'Do you want to save a map of Jacobian determinants?  This is useful for morphometrics, and may be considered as the relative volume at each point in the two images.  Values less than 1 indicate contraction.'};
+write_jac.name    = 'Save Jacobian Differences';
+write_jac.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_''''.'};
 write_jac.labels = {
-                'Save Jacobians'
-                'Dont save Jacobians'
+                'Save Jacobian differences'
+                'Dont save Jacobian differences'
                 }';
 write_jac.values = {
                 [1]
                 [0]
                 }';
-write_jac.val    = {[1]};
+write_jac.val    = {[0]};
 
 write_defs         = cfg_menu;
 write_defs.tag     = 'write_def';
@@ -149,7 +152,9 @@ long         = cfg_exbranch;
 long.tag     = 'longit2';
 long.name    = 'Longitudinal Registration';
 long.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jac write_div write_defs};
-long.help    = {'This toolbox is currently work in progress.'};
+long.help    = {'This toolbox is for longitudinal registration of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be placed into approximate alignment.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will greatly impact the results obtained.',...
+'',...
+'The alignment assumes that all scans have the same resolutions and dimensions, and that they are all scaled to similar values.'};
 long.prog = @spm_pairwise;
 long.vout = @vout;
 %----------------------------------------------------------------------
@@ -170,7 +175,7 @@ if job.write_avg,
 end
 if job.write_jac,
     cdep(ind)          = cfg_dep;
-    cdep(ind).sname      = 'Jacobian';
+    cdep(ind).sname      = 'Jacobian Diff';
     cdep(ind).src_output = substruct('.','jac','()',{':'});
     cdep(ind).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     ind = ind + 1;

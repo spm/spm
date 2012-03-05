@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: tbx_cfg_shoot.m 4678 2012-03-05 18:01:33Z john $
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 addpath(fullfile(spm('dir'),'toolbox','Shoot'));
 
@@ -53,20 +53,6 @@ images.name    = 'Images';
 images.help    = {'Select the images to be warped together. Multiple sets of images can be simultaneously registered. For example, the first set may be a bunch of grey matter images, and the second set may be the white matter images of the same subjects.'};
 images.values  = {images1 };
 images.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% rform Regularisation Form
-% ---------------------------------------------------------------------
-rform         = cfg_menu;
-rform.tag     = 'rform';
-rform.name    = 'Regularisation Form';
-rform.val     = {0};
-rform.help    = {'The registration is penalised by some ``energy'''' term.  Here, the form of this energy term is specified. Three different forms of regularisation can currently be used.'};
-rform.labels  = {
-                'Linear Elastic Energy'
-                'Membrane Energy'
-                'Bending Energy'
-}';
-rform.values  = {0 1 2};
 % ---------------------------------------------------------------------
 % template Template
 % ---------------------------------------------------------------------

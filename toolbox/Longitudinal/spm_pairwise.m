@@ -1,10 +1,12 @@
 function out = spm_pairwise(job)
 % Longitudinal registration of image pairs
+% FORMAT out = spm_pairwise(job)
+% See tbx_cfg_longitudinal.m for a description of the various fields. 
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4673 2012-03-02 19:45:27Z john $
+% $Id: spm_pairwise.m 4678 2012-03-05 18:01:33Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -24,9 +26,9 @@ if ~isfinite(job.noise),
 else
     noise = job.noise;
 end
-prec   = 1/noise;
-bparam = [0 0 job.bparam];
-wparam = job.wparam;
+prec    = 1/noise;
+bparam  = [0 0 job.bparam];
+wparam0 = job.wparam;
 
 output = {};
 if job.write_avg, output = {output{:}, 'wavg'}; end
@@ -35,26 +37,27 @@ if job.write_div, output = {output{:},  'div'}; end
 if job.write_def, output = {output{:}, 'wdef'}; end
 
 for i=1:numel(tdif),
-    wparam = kron(wparam,1./(abs(tdif(i)/2)+1/365));
+    wparam = kron(wparam0,1./(abs(tdif(i)/2)+1/365));
     sparam = round(3*abs(tdif(i)/2)+2);
     Nii    = nifti(strvcat(job.vols1{i},job.vols2{i}));
     [pth,nam1] = fileparts(Nii(1).dat.fname);
     [pth,nam2] = fileparts(Nii(2).dat.fname);
     fprintf('*** %s <=> %s ***\n', nam1, nam2);
+
     dat    = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);
 
     if isfield(dat,'jac')
         d           = [size(dat.jac{1}) 1]; d = d(1:3);
-        nam         = fullfile(pth,['j_' nam1 '_' nam2 '.nii']);
+        nam         = fullfile(pth,['jd_' nam1 '_' nam2 '.nii']);
         Nio         = nifti;
         Nio.dat     = file_array(nam,d,'float32',0,1,0);
         Nio.mat     = dat.mat;
         Nio.mat0    = Nio.mat;
         Nio.mat_intent  = 'Aligned';
         Nio.mat0_intent = Nio.mat_intent;
-        Nio.descrip = 'Jacobian det';
+        Nio.descrip = 'Jacobian Difference';
         create(Nio);
-        Nio.dat(:,:,:) = dat.jac{2}./dat.jac{1};
+        Nio.dat(:,:,:) = dat.jac{2} - dat.jac{1};
         out.jac{i}     = nam;
     end
 

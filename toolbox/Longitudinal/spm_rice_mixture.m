@@ -1,11 +1,23 @@
 function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Fit a mixture of Ricians to a histogram
 % FORMAT [mg,nu,sig] = rice_mixture(h,x,K)
+% h   - histogram counts
+% x   - bin positions (plot(x,h) to see the histogram)
+% K   - number of Ricians
+% mg  - integral under each Rician
+% nu  - "mean" parameter of each Rician
+% sig - "standard deviation" parameter of each Rician
+%
+% An EM algorithm is used, which involves alternating between computing
+% belonging probabilities, and then the parameters of the Ricians.
+% The Koay inversion technique is used to compute the Rician parameters
+% from the sample means and standard deviations. This is described at
+% http://en.wikipedia.org/wiki/Rician_distribution
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 4673 2012-03-02 19:45:27Z john $
+% $Id: spm_rice_mixture.m 4678 2012-03-05 18:01:33Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -46,6 +58,9 @@ for iter=1:10000,
     end
     %disp([nu'; sig'])
 end
+%_______________________________________________________________________
+
+%_______________________________________________________________________
 
 function [nu,sig] = moments2param(mu1,mu2)
 r     = mu1/sqrt(mu2);
@@ -63,7 +78,9 @@ else
     nu  = 0;
     sig = (2^(1/2)*(mu1^2 + mu2)^(1/2))/2;
 end
+%_______________________________________________________________________
 
+%_______________________________________________________________________
 
 function p = ricepdf(x,nu,sig2)
 % Rician PDF

@@ -1,10 +1,16 @@
 function M = spm_karcher(A)
 % Compute Karcher mean
+% FORMAT M = spm_karcher(A)
+% A - A 3D array, where each slice is a matrix
+% M - the resulting mean
+%
+% Note that matrices should not be too dissimilar to each other or the
+% procedure fails.
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_karcher.m 4671 2012-03-02 19:40:35Z john $
+% $Id: spm_karcher.m 4678 2012-03-05 18:01:33Z john $
 
 N = size(A,3);
 M = eye(size(A,1),size(A,2));

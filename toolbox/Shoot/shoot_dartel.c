@@ -1,4 +1,4 @@
-/* $Id: shoot_dartel.c 4583 2011-12-06 16:03:01Z john $ */
+/* $Id: shoot_dartel.c 4678 2012-03-05 18:01:33Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -1348,7 +1348,7 @@ void dartel_mexFunction(mwSize nlhs, mxArray *plhs[], mwSize nrhs, const mxArray
     if (mxGetNumberOfElements(prhs[3]) >=7) cycles = mxGetPr(prhs[3])[6];
     if (mxGetNumberOfElements(prhs[3]) >=8) its    = mxGetPr(prhs[3])[7];
     if (mxGetNumberOfElements(prhs[3]) >=9) k      = mxGetPr(prhs[3])[8];
-    if (mxGetNumberOfElements(prhs[3]) >=10) code   = mxGetPr(prhs[3])[9];
+    if (mxGetNumberOfElements(prhs[3]) >=10) code  = mxGetPr(prhs[3])[9];
 
     plhs[0] = mxCreateNumericArray(4,dm, mxSINGLE_CLASS, mxREAL);
     plhs[1] = mxCreateNumericArray(2,nll, mxDOUBLE_CLASS, mxREAL);

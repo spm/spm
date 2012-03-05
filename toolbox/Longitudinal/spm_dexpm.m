@@ -6,12 +6,14 @@ function [E,dE] = spm_dexpm(A,dA)
 % E  - expm(A)
 % dE - (expm(A+eps*dA)-expm(A-eps*dA))/(2*eps)
 %
-% Note that the algorithm is a bit slow.
+% Note that the algorithm is a bit slow, and should perhaps be
+% re-written to use eg scaling and squaring (see Moler's dubious matrix
+% exponentials paper).
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dexpm.m 4671 2012-03-02 19:40:35Z john $
+% $Id: spm_dexpm.m 4678 2012-03-05 18:01:33Z john $
 
 if nargin<2,
     dA = zeros([size(A) 0]);

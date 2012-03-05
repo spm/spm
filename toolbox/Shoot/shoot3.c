@@ -1002,7 +1002,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             pushc_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
-        else if (!strcmp(fnc_str,"pushg"))
+        else if (!strcmp(fnc_str,"pushg") !strcmp(fnc_str,"Ad*"))
         {
             mxFree(fnc_str);
             pushc_grads_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);

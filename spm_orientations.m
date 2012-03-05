@@ -48,7 +48,7 @@ function spm_orientations(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_orientations.m 3131 2009-05-18 15:54:10Z guillaume $
+% $Id: spm_orientations.m 4678 2012-03-05 18:01:33Z john $
 
 if nargin<1,
     P = spm_select(Inf,'image','Select the images...');
@@ -61,7 +61,8 @@ else
 end
 
 for i=1:size(P,1),
-    M   = spm_get_space(P(i,:));
+    Nii = nifti(P(i,:));
+    M   = Nii.mat;
     [U,S,V] = svd(M(1:3,1:3));
     M   = U*V';
     lab = 'LRPAIS';
