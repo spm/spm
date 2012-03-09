@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4678 2012-03-05 18:01:33Z john $
+% $Id: tbx_cfg_longitudinal.m 4679 2012-03-09 15:29:56Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Longitudinal')); end
 
@@ -43,7 +43,7 @@ noise.strtype = 'e';
 noise.num     = [1 1];
 noise.val     = {NaN};
 noise.help    = {'Specify the amount of noise in the images.  If this value is not finite, the algorithm will try to compute a reasonable value based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images.  The RMS variance over all images is used as the estimate of noise.',...
-'Ideally, all the subjects should be dealt with together so that the noise estimate is the same for all scans.'}
+'Ideally, all the subjects should be dealt with together so that the noise estimate is the same for all scans.'};
 
 bparam         = cfg_entry;
 bparam.tag     = 'bparam';
@@ -65,7 +65,7 @@ wparam.help    = {'Registration involves simultaneously minimising two terms.  O
 '* The `membrane energy'' of the deformation is penalised (2nd element), usually by a relatively small amount. This penalises the sum of squares of the derivatives of the velocity field (ie the sum of squares of the elements of the Jacobian tensors).'
 '* The `bending energy'' is penalised (3rd element). This penalises the sum of squares of the 2nd derivatives of the velocity.'
 '* Linear elasticity regularisation is also included (4th and 5th elements).  The first parameter (mu) is similar to that for linear elasticity, except it penalises the sum of squares of the Jacobian tensors after they have been made symmetric (by averaging with the transpose).  This term essentially penalises length changes, without penalising rotations.'
-'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.',...
+'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.'
 'Note that regularisation is specified based on what is believed to be appropriate for a year of growth.  The specified values are divided by the number of years time difference.' 
 };
 wparam.strtype = 'e';
