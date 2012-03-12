@@ -7,9 +7,9 @@ function out = spm_run_coreg(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_coreg.m 4480 2011-09-12 14:34:50Z guillaume $
+% $Id: spm_run_coreg.m 4683 2012-03-12 17:39:33Z guillaume $
 
 
 if ~isfield(job,'other') || isempty(job.other{1}), job.other = {}; end
@@ -21,10 +21,12 @@ if isfield(job,'eoptions')
     x  = spm_coreg(char(job.ref), char(job.source), job.eoptions);
     
     M  = spm_matrix(x);
-    iM = inv(M);
+    MM = zeros(4,4,numel(PO));
     for j=1:numel(PO)
-        MM = spm_get_space(PO{j});
-        spm_get_space(PO{j}, iM*MM);
+        MM(:,:,j) = spm_get_space(PO{j});
+    end
+    for j=1:numel(PO)
+        spm_get_space(PO{j}, M\MM(:,:,j));
     end
 end
 
