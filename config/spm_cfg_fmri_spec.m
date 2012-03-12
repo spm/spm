@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4649 2012-02-06 15:55:04Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4681 2012-03-12 15:09:05Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -321,7 +321,7 @@ multi_reg.help    = {
 }';
 multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
-multi_reg.num     = [0 1];
+multi_reg.num     = [0 Inf];
 
 %--------------------------------------------------------------------------
 % hpf High-pass filter

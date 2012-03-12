@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4501 2011-09-27 14:23:37Z guillaume $
+% $Id: spm_run_fmri_spec.m 4681 2012-03-12 15:09:05Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -249,23 +249,31 @@ for i = 1:numel(job.sess)
     %-Multiple regressors (from a TXT/MAT-file)
     %----------------------------------------------------------------------
     if ~isempty(sess.multi_reg{1})
-        tmp = load(sess.multi_reg{1});
-        if isstruct(tmp) && isfield(tmp,'R')
-            R = tmp.R;
-        elseif isnumeric(tmp)
-            R = tmp;
-        else
-            warning('Can''t load user specified regressors in %s', ...
-                sess.multi_reg{1});
-            R = [];
-        end
-        
-        if size(R,1) ~= SPM.nscan(i)
-            error('Length of regressor is not commensurate with data points.');
-        end
-        C  = [C, R];
-        for j=1:size(R,2)
-            Cname{end+1} = sprintf('R%d',j);
+        for q=1:numel(sess.multi_reg)
+            tmp = load(sess.multi_reg{q});
+            if isstruct(tmp) % .mat
+                if isfield(tmp,'R')
+                    R = tmp.R;
+                else
+                    error(['Variable ''R'' not found in multiple ' ...
+                        'regressor file ''%s''.'], sess.multi_reg{q});
+                end
+            elseif isnumeric(tmp) % .txt
+                R = tmp;
+            end
+            
+            if size(R,1) ~= SPM.nscan(i)
+                error('Length of regressor is not commensurate with data points.');
+            end
+            C  = [C, R];
+            if numel(sess.multi_reg) == 1
+                nb_mult = '';
+            else
+                nb_mult = sprintf('_%d',q);
+            end
+            for j=1:size(R,2)
+                Cname{end+1} = sprintf('R%d%s',j,nb_mult);
+            end
         end
     end
     
