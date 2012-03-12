@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 4552 2011-11-08 17:33:58Z will $
+% $Id: spm_cfg_mfx.m 4684 2012-03-12 17:54:04Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -91,11 +91,11 @@ matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t  = SPMS{1}.xBF.T;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t0 = SPMS{1}.xBF.T0;
 switch SPMS{1}.xBF.name
     case 'hrf'
-        matlabbatch{1}.spm.stats.fmri_spec.hrf.derivs = [0 0];
+        matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [0 0];
     case 'hrf (with time derivative)'
-        matlabbatch{1}.spm.stats.fmri_spec.hrf.derivs = [1 0];
+        matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [1 0];
     case 'hrf (with time and dispersion derivatives)'
-        matlabbatch{1}.spm.stats.fmri_spec.hrf.derivs = [1 1];
+        matlabbatch{1}.spm.stats.fmri_spec.bases.hrf.derivs = [1 1];
     case 'Fourier set'
         matlabbatch{1}.spm.stats.fmri_spec.bases.fourier.length = SPMS{1}.xBF.length;
         matlabbatch{1}.spm.stats.fmri_spec.bases.fourier.order  = SPMS{1}.xBF.order;
