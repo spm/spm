@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 4482 2011-09-12 18:04:53Z guillaume $
+% $Id: spm_cfg_realignunwarp.m 4682 2012-03-12 16:01:49Z guillaume $
 
-rev = '$Rev: 4482 $';
+rev = '$Rev: 4682 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -489,14 +489,18 @@ realignunwarp.modality = {
 function dep = vout_rureslice(job)
 for k=1:numel(job.data)
     cdep(1)            = cfg_dep;
-    cdep(1).sname      = sprintf('Unwarp Params File (Sess %d)', k);
-    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','dsfile');
-    cdep(1).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
+    cdep(1).sname      = sprintf('Realignment Param File (Sess %d)', k);
+    cdep(1).src_output = substruct('.','sess', '()',{k}, '.','rpfile');
+    cdep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+    cdep(2)            = cfg_dep;
+    cdep(2).sname      = sprintf('Unwarp Params File (Sess %d)', k);
+    cdep(2).src_output = substruct('.','sess', '()',{k}, '.','dsfile');
+    cdep(2).tgt_spec   = cfg_findspec({{'filter','any','strtype','e'}});
     if job.uwroptions.uwwhich(1) == 2
-        cdep(2)            = cfg_dep;
-        cdep(2).sname      = sprintf('Unwarped Images (Sess %d)', k);
-        cdep(2).src_output = substruct('.','sess', '()',{k}, '.','uwrfiles');
-        cdep(2).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+        cdep(3)            = cfg_dep;
+        cdep(3).sname      = sprintf('Unwarped Images (Sess %d)', k);
+        cdep(3).src_output = substruct('.','sess', '()',{k}, '.','uwrfiles');
+        cdep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     end
     if k == 1
         dep = cdep;

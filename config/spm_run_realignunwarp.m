@@ -10,7 +10,7 @@ function out = spm_run_realignunwarp(job)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_run_realignunwarp.m 4682 2012-03-12 16:01:49Z guillaume $
 
 
 %-Assemble flags
@@ -96,6 +96,7 @@ spm_uw_apply(cat(2,sess.ds),uwrflags);
 %-Dependencies
 %--------------------------------------------------------------------------
 for i=1:numel(P)
+    out.sess(i).rpfile{1} = spm_file(P{i}(1,:), 'prefix','rp_', 'ext','.txt');
     out.sess(i).dsfile{1} = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
 end
 
