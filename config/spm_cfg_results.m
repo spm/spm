@@ -1,11 +1,11 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 3691 2010-01-20 17:08:30Z guillaume $
+% $Id: spm_cfg_results.m 4686 2012-03-13 19:45:03Z guillaume $
 
-rev = '$Rev: 3691 $';
+
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -147,6 +147,56 @@ units.labels  = {'Volumetric (2D/3D)',...
 units.values  = { 1 2 3 4 5 };
 units.val     = { 1 };
 % ---------------------------------------------------------------------
+% basename Basename
+% ---------------------------------------------------------------------
+basename         = cfg_entry;
+basename.tag     = 'basename';
+basename.name    = 'Basename';
+basename.help    = {'Enter basename of output files ''spm?_????_<basename>.ext''.'};
+basename.strtype = 's';
+basename.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% type1 Thresholded SPM
+% ---------------------------------------------------------------------
+type1         = cfg_branch;
+type1.tag     = 'tspm';
+type1.name    = 'Thresholded SPM';
+type1.val     = {basename};
+type1.help    = {'Save filtered SPM{.} as an image.'};
+% ---------------------------------------------------------------------
+% type2 All clusters (binary)
+% ---------------------------------------------------------------------
+type2         = cfg_branch;
+type2.tag     = 'binary';
+type2.name    = 'All clusters (binary)';
+type2.val     = {basename};
+type2.help    = {'Save filetered SPM{.} as a binary image.'};
+% ---------------------------------------------------------------------
+% type3 All clusters (n-ary)
+% ---------------------------------------------------------------------
+type3         = cfg_branch;
+type3.tag     = 'nary';
+type3.name    = 'All clusters (n-ary)';
+type3.val     = {basename};
+type3.help    = {'Save filtered SPM{.} as an n-ary image.'};
+% ---------------------------------------------------------------------
+% none None
+% ---------------------------------------------------------------------
+none          = cfg_const;
+none.tag      = 'none';
+none.name     = 'None';
+none.val      = { 1 };
+none.help     = {'Don''t save filtered images.'};
+% ---------------------------------------------------------------------
+% write Write filtered images
+% ---------------------------------------------------------------------
+write         = cfg_choice;
+write.tag     = 'write';
+write.name    = 'Write filtered images';
+write.val     = {none};
+write.help    = {''};
+write.values  = { none type1 type2 type3 };
+% ---------------------------------------------------------------------
 % print Print results
 % ---------------------------------------------------------------------
 print         = cfg_menu;
@@ -162,7 +212,7 @@ print.val     = {true};
 results          = cfg_exbranch;
 results.tag      = 'results';
 results.name     = 'Results Report';
-results.val      = {spmmat generic units print};
+results.val      = {spmmat generic units print write};
 results.help     = {''};
 results.prog     = @spm_run_results;
 results.modality = {'FMRI' 'PET' 'EEG'};

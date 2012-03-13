@@ -9,7 +9,7 @@ function spm_run_results(job)
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 4593 2011-12-16 15:45:07Z guillaume $
+% $Id: spm_run_results.m 4686 2012-03-13 19:45:03Z guillaume $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -69,5 +69,33 @@ for k = 1:numel(cspec)
         assignin('base', 'hReg',   hReg);
         assignin('base', 'xSPM',   xSPM);
         assignin('base', 'SPM',    SPM);
+        
+        fn = fieldnames(job.write);
+        switch fn{1}
+            case 'none'
+            case {'tspm','binary','nary'}
+                if numel(xSPM.Ic)>1, continue; end
+                fname = spm_file(xSPM.Vspm.fname,...
+                    'suffix',['_' job.write.(fn{1}).basename]);
+                descrip = sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',...
+                    xSPM.STAT,xSPM.u,xSPM.k);
+                switch fn{1} % see spm_results_ui.m
+                    case 'tspm'
+                        Z = xSPM.Z;
+                    case 'binary'
+                        Z = ones(size(xSPM.Z));
+                    case 'nary'
+                        Z       = spm_clusters(xSPM.XYZ);
+                        num     = max(Z);
+                        [n, ni] = sort(histc(Z,1:num), 2, 'descend');
+                        n       = size(ni);
+                        n(ni)   = 1:num;
+                        Z       = n(Z);
+                end
+                spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
+                    descrip,fname);
+            otherwise
+                error('Unknown option.');
+        end
     end
 end
