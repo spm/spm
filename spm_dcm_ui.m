@@ -64,10 +64,10 @@ function spm_dcm_ui(Action)
 % majority  of imaging  neuroscience  relies  upon designed  experiments we
 % consider DCM a potentially useful complement to existing techniques.  
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 4292 2011-04-05 14:25:14Z guillaume $
+% $Id: spm_dcm_ui.m 4685 2012-03-13 15:30:09Z guillaume $
 
 
 % Get figure handles
@@ -80,7 +80,7 @@ spm('Pointer','Arrow');
 
 % Temporary welcome message
 %--------------------------------------------------------------------------
-disp('Please refer to this version as DCM10 in papers and publications.');
+disp('Please refer to this version as DCM12 in papers and publications.');
 
 % Options, using pull-down menu
 %--------------------------------------------------------------------------
