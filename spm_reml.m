@@ -35,7 +35,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 3791 2010-03-19 17:52:12Z karl $
+% $Id: spm_reml.m 4690 2012-03-15 20:10:40Z karl $
  
  
 % check defaults
@@ -73,6 +73,7 @@ h   = zeros(m,1);
 for i = 1:m
     h(i,1) = any(diag(Q{i}));
 end
+h   = sparse(find(h,1),1,1,m,1);
 hE  = sparse(m,1);
 hP  = speye(m,m)/exp(32);
 dF  = Inf;

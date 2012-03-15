@@ -7,7 +7,7 @@ function X = spm_pinv(A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 4581 2011-12-05 14:41:44Z ged $
+% $Id: spm_pinv.m 4690 2012-03-15 20:10:40Z karl $
  
 % check A 
 %--------------------------------------------------------------------------
@@ -19,7 +19,7 @@ if isempty(A), X = sparse(n,m); return, end
 %--------------------------------------------------------------------------
 sw = warning('off','MATLAB:nearlySingularMatrix');
 warning('off', 'MATLAB:singularMatrix');
-X     = inv(A'*A);
+X     = spm_inv(A'*A);
 warning(sw);
 
 if all(isfinite(X(:)))

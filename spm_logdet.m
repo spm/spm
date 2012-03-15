@@ -10,11 +10,16 @@ function H = spm_logdet(C)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston and Ged Ridgway
-% $Id: spm_logdet.m 4506 2011-10-04 14:05:38Z ged $
+% $Id: spm_logdet.m 4690 2012-03-15 20:10:40Z karl $
 
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
 
+
+% remove null variances
+%--------------------------------------------------------------------------
+i       = find(diag(C));
+C       = C(i,i);
 [i j s] = find(C);
 if any(isnan(s)), H = nan; return; end
 if any(i ~= j)
