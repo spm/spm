@@ -1,10 +1,10 @@
 function extras = write_extras(fname,extras)
 % Write extra bits of information
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_extras.m 4499 2011-09-26 14:40:56Z guillaume $
+% $Id: write_extras.m 4692 2012-03-16 16:27:51Z guillaume $
 
 
 [pth,nam,ext] = fileparts(fname);
@@ -17,5 +17,10 @@ switch ext
         mname = fullfile(pth,[nam '.mat']);
 end
 if isstruct(extras) && ~isempty(fieldnames(extras))
-    save(mname,'-struct','extras', spm_get_defaults('mat.format'));
+    try
+        opt = spm_get_defaults('mat.format');
+    catch
+        opt = '-v6';
+    end
+    save(mname,'-struct','extras', opt);
 end
