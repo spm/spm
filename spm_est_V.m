@@ -7,7 +7,7 @@ function spm_est_V(SPM)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_est_V.m 4691 2012-03-15 20:11:13Z karl $
+% $Id: spm_est_V.m 4693 2012-03-16 20:43:17Z karl $
  
 % get data and model
 %==========================================================================
@@ -43,13 +43,10 @@ C     = cov(Y');
 p = 1;
 a = [0    0   ;
      p/2  0   ;
-    -p/2  0   ;
      0    p/4 ;
      p/2  p/4 ;
     -p/2  p/4 ;
-     0   -p/4 ;
-    -p/2 -p/4 ;
-     p/2 -p/4];
+    -p/2 -p/4];
  
 for q = 1:size(a,1)
     for i = 1:q
@@ -60,14 +57,39 @@ end
 % just consider an i.i.d. model, the current model (almost) and the full
 % (9-paramter) model
 %--------------------------------------------------------------------------
-Q   = Q([1 2 9]);
- 
+Q   = Q([1 2 end]);
+
+% remove frequnecy spikes
+%--------------------------------------------------------------------------
+X     = SPM.xX.X;
+try
+    X = [X SPM.xX.K.X0];
+end
+
+% Residual forming matrix
+%--------------------------------------------------------------------------
+R = speye(m,m) - X*spm_pinv(X);
+S = spm_sqrtm(C);
+s = fft(full(R*S));
+g = sum(abs(s).^2,2);
+
+% Add frequencies to confounds
+%--------------------------------------------------------------------------
+[i g] = sort(g(1:fix(m/2)),'descend');
+X0    = [];
+for i = 1:4
+    X0 = [X0 real(fft(full(sparse(g(i),1,1,m,1))))];
+    X0 = [X0 imag(fft(full(sparse(g(i),1,1,m,1))))];
+end
+SPM.xX.K.X0 = [SPM.xX.K.X0 X0]; 
+
+
  
 % perform null t-tests
 %==========================================================================
 t     = -4:1/8:4;                   % range of t-values to plot
 c     = 4;                          % number of contrasts per ReML
-for i = 1:32                        % number of ReML 
+for k = 1:8                         % number of ReML 
     
     % get design and augment with drift terms
     %----------------------------------------------------------------------
@@ -89,8 +111,8 @@ for i = 1:32                        % number of ReML
         
         % ReML
         %------------------------------------------------------------------
-        [V h]  = spm_reml(C,X,Q{q});
-        
+        V      = spm_reml(C,X,Q{q});
+
         % save
         %------------------------------------------------------------------
         W      = spm_sqrtm(spm_inv(V));
