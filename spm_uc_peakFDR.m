@@ -34,7 +34,7 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 4644 2012-02-03 17:44:57Z guillaume $
+% $Id: spm_uc_peakFDR.m 4696 2012-03-19 12:44:40Z guillaume $
 
 
 ws       = warning('off','SPM:outOfRangePoisson');
@@ -46,7 +46,7 @@ if isstruct(Z)
     Vm         = XYZ;
     [Z, XYZmm] = spm_read_vols(Vs(1),true);
     for i=2:numel(Vs)
-        Z      = min(Z, spm_read_vols(Vs(i)),true);
+        Z      = min(Z, spm_read_vols(Vs(i),true));
     end
     Z          = Z(:)';
     XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
