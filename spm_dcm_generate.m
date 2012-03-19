@@ -1,4 +1,4 @@
-function varargout = spm_dcm_generate(syn_model,SNR)
+function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % Generate synthetic data from a DCM specification
 % FORMAT spm_dcm_generate(syn_model,SNR)
 % 
@@ -10,11 +10,16 @@ function varargout = spm_dcm_generate(syn_model,SNR)
 %           Y.secs  overall number of seconds
 %           Y.Q     Components of error precision
 %
+% and will enter neuronal activity (first hidden var in each region) into 
+% DCM.x
+%
+% Y             Simulated (Noisy) BOLD data
+% x             Simulated neuronal activity (first hidden variable in each region)
 %__________________________________________________________________________
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 4493 2011-09-16 15:33:32Z guillaume $
+% $Id: spm_dcm_generate.m 4694 2012-03-19 12:30:29Z will $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -40,7 +45,7 @@ m     = size(U.u,2);  % number of inputs
 % Check whether the model is stable by examining the eigenvalue 
 % spectrum for the intrinsic connectivity matrix 
 %--------------------------------------------------------------------------
-eigval = eig(DCM.Ep.A);
+eigval = eig(full(DCM.Ep.A));
 if max(eigval) >= 0
     fprintf('Modelled system is potentially unstable:\n');
     fprintf('Lyapunov exponent of combined connectivity matrix is %f\n',max(eigval));
@@ -66,13 +71,13 @@ end
 % complete model specification
 %--------------------------------------------------------------------------
 M.f     = 'spm_fx_fmri';
-M.g     = 'spm_gx_fmri';
+M.g     = 'spm_gx_state_fmri';
 M.x     = sparse(n,5);
 M.pE    = pE;
 M.pC    = pC;
 M.m     = size(U.u,2);
 M.n     = size(M.x(:),1);
-M.l     = size(M.x,1);
+M.l     = size(M.x,1)*2; % twice as many "outputs" (as hemo and neuronal)
 M.N     = 32;
 M.dt    = 16/M.N;
 M.ns    = v;
@@ -83,7 +88,9 @@ M.ns    = v;
 try, M.delays = DCM.delays; end
 try, M.TE     = DCM.TE;     end
 
-
+% twice as many "outputs" (hemo and neuronal) - need this to coerce spm_int
+M.delays=[M.delays;M.delays]; 
+ 
 % Integrate and compute hemodynamic response at v sample points
 %--------------------------------------------------------------------------
 y      = feval(M.IS,DCM.Ep,M,U);
@@ -91,7 +98,7 @@ y      = feval(M.IS,DCM.Ep,M,U);
 
 % Compute required r: standard deviation of additive noise, for all areas
 %--------------------------------------------------------------------------
-r      = diag(std(y)/SNR);
+r      = diag(std(y(:,1:n))/SNR);
 
 
 % Add noise
@@ -105,14 +112,16 @@ z      = randn(v,n);
 e      = K*z;
 Y      = DCM.Y;
 Y.Q    = spm_Ce(v*ones(1,n));
-Y.y    = y + e*r;
-Y.secs = Y.dt*v;
 
+Y.y    = y(:,1:n) + e*r;  % 
+x    = y(:,n+1:2*n);
+Y.secs = Y.dt*v;
 
 % Save synthetic DCM
 %--------------------------------------------------------------------------
 DCM.Y  = Y;                                    % simulated data
-DCM.y  = y;                                    % simulated signal
+DCM.y  = y(:,1:n);                             % simulated BOLD
+DCM.x  = x;                                    % simulated neuronal
 DCM.M  = M;                                    % model
 
 save(syn_model, 'DCM', spm_get_defaults('mat.format'));
@@ -132,3 +141,14 @@ for i = 1:n,
     if i<n set(gca,'XTickLabel',[]); end
 end
 xlabel('secs');
+
+spm_figure('Create','Graphics','Simulated Neuronal Activity');
+t     = Y.dt*[1:1:v];
+for i = 1:n,
+    subplot(n,1,i);
+    plot(t,x(:,i));
+    title(sprintf('Region %s', Y.name{i}));
+    if i<n set(gca,'XTickLabel',[]); end
+end
+xlabel('secs');
+
