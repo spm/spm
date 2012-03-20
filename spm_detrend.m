@@ -13,7 +13,7 @@ function y = spm_detrend(x,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 4299 2011-04-08 12:13:18Z guillaume $
+% $Id: spm_detrend.m 4697 2012-03-20 20:14:10Z karl $
 
 
 % defaults
@@ -30,9 +30,7 @@ end
 % centre columns
 %--------------------------------------------------------------------------
 if ~p
-    for i = 1:n
-        y(:,i) = x(:,i) - mean(x(:,i));
-    end
+    y = x - ones(m,1)*mean(x);
     return
 end
 
