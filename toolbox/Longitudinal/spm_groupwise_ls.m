@@ -26,7 +26,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_groupwise_ls.m 4698 2012-03-21 14:00:44Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -406,7 +406,6 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             end
 
         end
-        spm_plot_convergence('set',ll);
     end
 end
 

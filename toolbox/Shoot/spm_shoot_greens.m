@@ -29,6 +29,7 @@ if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
     if size(F,4) == 1,
         % The differential operator is symmetric, so the Fourier transform should be real
         F = 1./real(fftn(F));
+        if prm(4)==0, F(1,1,1) = 0; end;
     else
         for j=1:size(F,5),
             for i=1:size(F,4),
@@ -46,6 +47,7 @@ if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
             msk     = find(dt==0);
             dt      = 1./dt;
             dt(msk) = 0;
+            if prm(4)==0, dt(1,1,1) = 0; end;
             F(:,:,k,1,1) = (A(:,:,:,2,2).*A(:,:,:,3,3) - A(:,:,:,2,3).*A(:,:,:,3,2)).*dt;
             F(:,:,k,2,1) = (A(:,:,:,2,3).*A(:,:,:,3,1) - A(:,:,:,2,1).*A(:,:,:,3,3)).*dt;
             F(:,:,k,3,1) = (A(:,:,:,2,1).*A(:,:,:,3,2) - A(:,:,:,2,2).*A(:,:,:,3,1)).*dt;

@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_pairwise.m 4698 2012-03-21 14:00:44Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -106,6 +106,6 @@ for i=1:size(Scans,1),
     end
     [mg,nu,sd] = spm_rice_mixture(h(:),x(:),2);
     noise(i)   = min(sd);
-    fprintf('%d %g\n', i, noise(i));
+    %fprintf('%d %g\n', i, noise(i));
 end
 
