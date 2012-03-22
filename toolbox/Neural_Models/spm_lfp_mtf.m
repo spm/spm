@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_lfp_mtf.m 4700 2012-03-22 13:57:20Z vladimir $
 
 
 % compute log-spectral density
@@ -87,7 +87,7 @@ for  c = 1:size(X,1)
         Q.A{2} = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
         Q.A{3} = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
        try
-            Q.H = Q.H + X(c,i)*diag(P.B{i});     % intrinsic connections
+            Q.H(:, 1) = Q.H(:, 1) + X(c,i)*diag(P.B{i});     % intrinsic connections
         catch
             Q.G = Q.G + X(c,i)*diag(P.B{i});
         end
