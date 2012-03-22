@@ -10,10 +10,10 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Call the forward computation for either EEG or MEG data using various
 % types of solutions using FieldTrip.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_forward_ui.m 4701 2012-03-22 16:47:05Z guillaume $
 
 %-Initialisation
 %--------------------------------------------------------------------------
@@ -33,15 +33,16 @@ for i = 1:numel(D.inv{val}.datareg)
     str = sprintf('%s|', models{:});
     str = str(1:(end-1));
 
-    D.inv{val}.forward(i).voltype  = spm_input(sprintf('Which %s head model?', ...
-        D.inv{val}.datareg(i).modality), 1, 'm', str, strvcat(models));
+    D.inv{val}.forward(i).voltype = spm_input(sprintf('Which %s head model?', ...
+        D.inv{val}.datareg(i).modality), 1, 'm', str, char(models));
 end
 
 %-Compute forward model
 %--------------------------------------------------------------------------
 D = spm_eeg_inv_forward(D);
 
-spm_eeg_inv_checkforward(D, val);
+if ~spm('CmdLine')
+    spm_eeg_inv_checkforward(D, val);
+end
 
-
-fprintf('Foward model complete - thank you\n')
+fprintf('Foward model complete - thank you\n');                         %-#

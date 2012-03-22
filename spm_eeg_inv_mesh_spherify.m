@@ -16,17 +16,11 @@ function [pnt, tri] = spm_eeg_inv_mesh_spherify(pnt, tri, varargin)
 %   smooth = number (default = 20)
 
 % Copyright (C) 2008, Robert Oostenveld
-%
-% $Log: mesh_spherify.m,v $
-% Revision 1.1  2008/12/18 16:14:08  roboos
-% new implementation
-%
-% $Id: spm_eeg_inv_mesh_spherify.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_inv_mesh_spherify.m 4701 2012-03-22 16:47:05Z guillaume $
 
-global fb
-if isempty(fb)
-  fb = false;
-end
+
+% graphical display for debugging
+fb = false;
 
 shift  = keyval('shift', varargin);
 smooth = keyval('smooth', varargin);
@@ -120,7 +114,6 @@ if fb
 end
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % VONMISESFISCHER probability distribution
 %
@@ -159,7 +152,8 @@ Cpk = 1;
 y = exp(k * u * x') ./ Cpk;
 y = y(:);
 
-function [val] = keyval(key, varargin);
+
+function [val] = keyval(key, varargin)
 
 % KEYVAL returns the value that corresponds to the requested key in a
 % key-value pair list of variable input arguments
@@ -170,17 +164,7 @@ function [val] = keyval(key, varargin);
 % See also VARARGIN
 
 % Copyright (C) 2005-2007, Robert Oostenveld
-%
-% $Log: keyval.m,v $
-% Revision 1.1  2008/11/13 09:55:36  roboos
-% moved from fieldtrip/private, fileio or from roboos/misc to new location at fieldtrip/public
-%
-% Revision 1.2  2007/07/18 12:43:53  roboos
-% test for an even number of optional input arguments
-%
-% Revision 1.1  2005/11/04 10:24:46  roboos
-% new implementation
-%
+
 
 if length(varargin)==1 && iscell(varargin{1})
   varargin = varargin{1};
