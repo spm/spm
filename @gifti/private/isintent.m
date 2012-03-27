@@ -1,5 +1,5 @@
 function [a, b] = isintent(this,intent)
-% Correspondance between fieldnames and NIfTI intents
+% Correspondance between fieldnames and NIfTI intent codes
 % FORMAT ind = isintent(this,intent)
 % this    -  GIfTI object
 % intent  -  fieldnames
@@ -9,12 +9,11 @@ function [a, b] = isintent(this,intent)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: isintent.m 4382 2011-07-06 14:59:41Z guillaume $
+% $Id: isintent.m 4702 2012-03-27 16:40:11Z guillaume $
 
 a = [];
 b = [];
 if ischar(intent), intent = cellstr(intent); end
-c = cdata;
 for i=1:length(this(1).data)
     switch this(1).data{i}.attributes.Intent(14:end)
         case 'POINTSET'
@@ -40,8 +39,7 @@ for i=1:length(this(1).data)
                 a(end+1) = loc;
                 b(end+1) = i;
             end
-        case {'NONE', 'LABEL', 'SHAPE', 'TIME_SERIES', 'RGB_VECTOR', ...
-                'RGBA_VECTOR' c{:}}
+        case cdata
             [tf, loc] = ismember('cdata',intent);
             if tf
                 a(end+1) = loc;
@@ -61,6 +59,7 @@ end
 function c = cdata
 
 c = {
+'NONE'
 'CORREL'
 'TTEST'
 'FTEST'
@@ -87,4 +86,19 @@ c = {
 'ESTIMATE'
 'LABEL'
 'NEURONAMES'
+'GENMATRIX'
+'SYMMATRIX'
+'DISPVECT'
+'QUATERNION'
+'DIMLESS'
+'TIME_SERIES'
+'RGB_VECTOR'
+'RGBA_VECTOR'
+'NODE_INDEX'
+'SHAPE'
+'CONNECTIVITY_DENSE'
+'CONNECTIVITY_DENSE_TIME'
+'CONNECTIVITY_PARCELLATED'
+'CONNECTIVITY_PARCELLATED_TIME'
+'CONNECTIVITY_CONNECTIVITY_TRAJECTORY'
 };
