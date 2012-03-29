@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4698 2012-03-21 14:00:44Z john $
+% $Id: tbx_cfg_longitudinal.m 4703 2012-03-29 20:30:30Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Longitudinal')); end
 
@@ -65,7 +65,7 @@ wparam.help    = {'Registration involves simultaneously minimising two terms.  O
 '* The `membrane energy'' of the deformation is penalised (2nd element), usually by a relatively small amount. This penalises the sum of squares of the derivatives of the velocity field (ie the sum of squares of the elements of the Jacobian tensors).',...
 '* The `bending energy'' is penalised (3rd element). This penalises the sum of squares of the 2nd derivatives of the velocity.',...
 '* Linear elasticity regularisation is also included (4th and 5th elements).  The first parameter (mu) is similar to that for linear elasticity, except it penalises the sum of squares of the Jacobian tensors after they have been made symmetric (by averaging with the transpose).  This term essentially penalises length changes, without penalising rotations.',...
-'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.'
+'* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.',...
 'Note that regularisation is specified based on what is believed to be appropriate for a year of growth.  The specified values are divided by the number of years time difference.' 
 };
 wparam.strtype = 'e';
@@ -77,8 +77,8 @@ write_avg.tag     = 'write_avg';
 write_avg.name    = 'Save Mid-point average';
 write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``ave_''''.'};
 write_avg.labels = {
-                'Save average'
-                'Dont save average'
+                'Save'
+                'Dont save'
                 }';
 write_avg.values = {
                 [1]
@@ -91,8 +91,8 @@ write_div.tag     = 'write_div';
 write_div.name    = 'Save divergence';
 write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''''};
 write_div.labels = {
-                'Save divergence'
-                'Dont save divergence'
+                'Save'
+                'Dont save'
                 }';
 write_div.values = {
                 [1]
@@ -105,8 +105,8 @@ write_jac.tag     = 'write_jac';
 write_jac.name    = 'Save Jacobian Differences';
 write_jac.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_''''.'};
 write_jac.labels = {
-                'Save Jacobian differences'
-                'Dont save Jacobian differences'
+                'Save'
+                'Dont save'
                 }';
 write_jac.values = {
                 [1]
@@ -119,12 +119,12 @@ write_defs.tag     = 'write_def';
 write_defs.name    = 'Deformation Fields';
 write_defs.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. Deformations are saved as y_*.nii files, which contain three volumes to encode the x, y and z coordinates.'};
 write_defs.labels = {
-                'Dont save deformations'
-                'Save deformations'
+                'Save'
+                'Dont save'
                 }';
 write_defs.values = {
-                [0]
                 [1]
+                [0]
                 }';
 write_defs.val    = {[0]};
 

@@ -26,7 +26,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4698 2012-03-21 14:00:44Z john $
+% $Id: spm_groupwise_ls.m 4703 2012-03-29 20:30:30Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -385,17 +385,19 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             clear mu D
 
 
-            % Zero-mean
+            % Zero-mean.
+            % This is currently disabled, as more work is needed in order to handle
+            % the use of different differential operators for different images.
             %-----------------------------------------------------------------------
-            avg_v0 = param(1).v0;
-            for i=2:numel(param),
-                avg_v0 = avg_v0 + param(i).v0;
-            end
-            avg_v0 = avg_v0/numel(param);
-            for i=1:numel(param),
-                param(i).v0 = param(i).v0 - avg_v0;
-            end
-            clear avg_v0
+            %avg_v0 = param(1).v0;
+            %for i=2:numel(param),
+            %    avg_v0 = avg_v0 + param(i).v0;
+            %end
+            %avg_v0 = avg_v0/numel(param);
+            %for i=1:numel(param),
+            %    param(i).v0 = param(i).v0 - avg_v0;
+            %end
+            %clear avg_v0
 
             % Compute part of objective function
             %-----------------------------------------------------------------------

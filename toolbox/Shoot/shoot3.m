@@ -41,7 +41,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = dartel3('mom2vel',g, param)
+% FORMAT v = shoot3('mom2vel',g, param)
 % v     - the solution n1*n2*n3*3
 % g     - parameterisation of first derivatives
 % param - 10 parameters (settings)
@@ -57,7 +57,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = dartel3('fmg',H, g, param)
+% FORMAT v = shoot3('fmg',H, g, param)
 % v     - the solution n1*n2*n3*3
 % H     - parameterisation of 2nd derivatives 
 % g     - parameterisation of first derivatives
@@ -372,7 +372,7 @@ function varargout = shoot3(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: shoot3.m 4678 2012-03-05 18:01:33Z john $
+% $Id: shoot3.m 4703 2012-03-29 20:30:30Z john $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

@@ -2,7 +2,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % A function for blurring ("smoothing") tissue probability maps
 % FORMAT [sig,a_new] = spm_shoot_blur(t,prm,its,sig)
 %     t   - sufficient statistics
-%     prm - regularisation parameters (2, 1,1,1, 1,0.01,0.01)
+%     prm - regularisation parameters (1,1,1, 0.01,0.02,1)
 %     its - max no. iterations (12)
 %     sig - optional starting estimates
 %
@@ -20,11 +20,11 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4174 2011-01-26 13:33:13Z john $
+% $Id: spm_shoot_blur.m 4703 2012-03-29 20:30:30Z john $
 
 d   = [size(t),1,1,1];
-if nargin<3, its = 16;                            end; % Maximum no. iterations
-if nargin<2, prm = [2, 1,1,1, 1,0.01,0.01];       end; % Default regularisation
+if nargin<3, its = 16;                         end; % Maximum no. iterations
+if nargin<2, prm = [1,1,1, 0.01 0.02 1];       end; % Default regularisation
 rits = [1 1]; % No. cycles and no. relaxation iterations
 
 W    = zeros([d(1:3) round(((d(4)-1)*d(4))/2)],'single'); % 2nd derivatives
@@ -37,7 +37,7 @@ for k=1:d(4),
     t(:,:,:,k) = t(:,:,:,k)./s;
 end
 maxs     = max(s(:)); % Used for scaling the regularisation
-prm(end) = prm(end)+maxs*d(4)*1e-3;
+prm(4) = prm(4)+maxs*d(4)*1e-3;
 
 % Only d(4)-1 fields need to be estimated because sum(a,4) = 0.  This matrix
 % is used to rotate out the null space
@@ -140,7 +140,7 @@ for i=1:its,
     % At convergence, the derivatives from the likelihood term should match those
     % from the prior (regularisation) term.
     ss1 = sum(sum(sum(sum(gr.^2))));
-    gr1 = optimN('vel2mom',a,prm);        % 1st derivative of the prior term
+    gr1 = optimN_mex('vel2mom',a,prm);        % 1st derivative of the prior term
     ll1 = 0.5*sum(sum(sum(sum(gr1.*a)))); % -ve log probability of the prior term
     gr  = gr + gr1;                       % Combine the derivatives of the two terms
     ss2 = sum(sum(sum(sum(gr.^2))));      % This should approach zero at convergence
@@ -150,7 +150,7 @@ for i=1:its,
 
     reg = double(0.1*sqrt(mx)*d(4));
    %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
-    a   = a - optimN(W,gr,[prm(1:6) prm(7)+reg rits]); % Gauss-Newton update
+    a   = a - optimN_mex(W,gr,[prm(1:3) prm(4)+reg prm(5:6) rits]); % Gauss-Newton update
 
     if ss2/ss1<1e-4, break; end        % Converged?
 end

@@ -10,7 +10,7 @@ function d = spm_shoot_defaults
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_defaults.m 4583 2011-12-06 16:03:01Z john $
+% $Id: spm_shoot_defaults.m 4703 2012-03-29 20:30:30Z john $
 
 
 %_______________________________________________________________________
@@ -35,13 +35,11 @@ d.sched = d.sched/d.sched(end);
 maxoil    = 8;                 % Maximum number of time steps for integration
 d.eul_its = round((0:(nits-1))*(maxoil-0.5001)/(nits-1)+1); % Start with fewer steps
 
-%d.rparam  = [0 1.0 0.5  1e-3]; % Regularisation parameters for deformation - used for evaluations
-%d.rparam  = [0 0.5 1.0  1e-3]; % Regularisation parameters for deformation - used for evaluations
-d.rparam  = [1e-5 1e-5 2.0 0.1 1.0]; % Regularisation parameters for deformation
-d.sparam  = [2 2.0 0.05 0.01]; % Regularisation parameters for blurring
-d.sparam  = [];
-d.smits   = 16;                % No. smoothing iterations
+d.rparam  = [1e-4 0.03 0.6 0.07 0.3]; % Regularisation parameters for deformation
+d.sparam = [0.003 0.01 0.6];         % Regularisation parameters for blurring
+%d.sparam  = [];
+d.smits   = 16;                       % No. smoothing iterations
 
-d.bs_args = [2 2 2  1 1 1];    % B-spline settings for interpolation
+d.bs_args = [2 2 2  1 1 1];           % B-spline settings for interpolation
 %_______________________________________________________________________
 

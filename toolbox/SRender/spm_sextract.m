@@ -4,14 +4,15 @@ function out = spm_sextract(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sextract.m 2210 2008-09-26 20:14:13Z john $
+% $Id: spm_sextract.m 4703 2012-03-29 20:30:30Z john $
 
 images = job.images;
 Vi     = spm_vol(strvcat(images));
 n      = numel(Vi);                %-#images
 if n==0, error('no input images specified'), end
-
 [pth,nam,ext] = fileparts(images{1});
+
+out.Surface = {};
 
 for k=1:numel(job.surface),
     expression = job.surface(k).expression;
@@ -36,16 +37,21 @@ for k=1:numel(job.surface),
     spm_smooth(y,y,[1.5,1.5,1.5]);
 
     [faces,vertices] = isosurface(y,thresh);
-    % Swap around x and y because isosurface does for some
-    % wierd and wonderful reason.
-    Mat      = Vi(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
-    vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
-    %matname  = fullfile(pth,sprintf('surf_%s_%.3d.mat',nam,k));
-    %save(matname,'-V6','faces','vertices','expression','thresh','images');
-    matname  = fullfile(pth,sprintf('surf_%s_%.3d.gii',nam,k));
-    save(gifti(struct('faces',faces,'vertices',vertices)),matname);
-    out.SurfaceFile{k} = matname;
-    spm_progress_bar('Clear');
+
+    if isempty(vertices)
+        error('No surface.');
+    else
+        % Swap around x and y because isosurface does for some
+        % wierd and wonderful reason.
+        Mat      = Vi(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
+        vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
+        %matname  = fullfile(pth,sprintf('surf_%s_%.3d.mat',nam,k));
+        %save(matname,'-V6','faces','vertices','expression','thresh','images');
+        matname  = fullfile(pth,sprintf('surf_%s_%.3d.gii',nam,k));
+        save(gifti(struct('faces',faces,'vertices',vertices)),matname);
+        out.SurfaceFile{k} = matname;
+        spm_progress_bar('Clear');
+    end
 end
 return
 %_______________________________________________________________________

@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4675 2012-03-02 19:49:35Z john $
+% $Id: spm_shoot_template.m 4703 2012-03-29 20:30:30Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -89,7 +89,7 @@ for i=1:n2,
                                [dm 1 1], 'float32-le', 352, 1, 0);
     end
 
-    NU(i).descrip = sprintf('Velocity (%d %.4g %.4g %.4g %.4g)', rparam(1), rparam(2), rparam(3), rparam(4), rparam(5));
+    NU(i).descrip = sprintf('Velocity (%.4g %.4g %.4g %.4g %.4g)', rparam(1), rparam(2), rparam(3), rparam(4), rparam(5));
     NU(i).mat     = NF(1,i).NI.mat;
     NU(i).mat0    = NF(1,i).NI.mat0;
 
@@ -140,8 +140,20 @@ g  = cell(n1+1,1);
 % save SuffStats0.mat t sparam vx sched smits
 %%%%%%%%%%%%%%%
 
+% Write template
+NG = NF(1,1).NI;
+NG.descrip       = sprintf('Avg of %d', n2);
+[tdir,nam,ext]   = fileparts(job.images{1}{1});
+NG.dat.fname     = fullfile(tdir,[tname, '_0.nii']);
+NG.dat.dim       = [dm n1+1];
+NG.dat.dtype     = 'float32-le';
+NG.dat.scl_slope = 1;
+NG.dat.scl_inter = 0;
+NG.mat0          = NG.mat;
+vx               = sqrt(sum(NG.mat(1:3,1:3).^2));
+
 if ~isempty(sparam),
-    g0 = spm_shoot_blur(t,[sparam(1), vx, sched(1)*sparam(2) sparam(3:4)],smits);
+    g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(1)*sparam(3)]],smits);
     for j=1:n1+1,
         g{j} = max(g0(:,:,:,j),1e-4);
     end
@@ -155,24 +167,12 @@ else
 end
 
 if ~isempty(tname),
-    % Write template
-    NG = NF(1,1).NI;
-    NG.descrip       = sprintf('Avg of %d', n2);
-    [tdir,nam,ext]   = fileparts(job.images{1}{1});
-    NG.dat.fname     = fullfile(tdir,[tname, '_0.nii']);
-    NG.dat.dim       = [dm n1+1];
-    NG.dat.dtype     = 'float32-le';
-    NG.dat.scl_slope = 1;
-    NG.dat.scl_inter = 0;
-    NG.mat0          = NG.mat;
     create(NG);
     for j=1:n1+1,
         NG.dat(:,:,:,j)  = g{j};
     end
 end
 for j=1:n1+1, g{j} = spm_bsplinc(log(g{j}), bs_args); end
-
-vx = sqrt(sum(NG.mat(1:3,1:3).^2));
 
 ok = true(n2,1);
 
@@ -181,7 +181,7 @@ for it=1:nits,
 
     % More regularisation in the early iterations, as well as a
     % a less accurate approximation in the integration.
-    prm      = [vx, rparam*sched(it+1)];
+    prm      = [vx, rparam*sched(it+1)*prod(vx)];
     int_args = [eul_its(it), cyc_its];
     drawnow
 
@@ -285,7 +285,7 @@ for it=1:nits,
     % Re-generate template data from sufficient statistics
     if ~isempty(sparam),
         g0 = reconv(g,bs_args);
-        g0 = spm_shoot_blur(t,[sparam(1), vx, sched(it+1)*sparam(2) sparam(3:4)],smits,g0);
+        g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(it+1)*sparam(3)]],smits,g0);
         g  = cell(n1+1,1);
         for j=1:n1+1,
             g{j} = max(g0(:,:,:,j),1e-4);
