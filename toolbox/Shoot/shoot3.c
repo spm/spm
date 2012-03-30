@@ -1,4 +1,4 @@
-/* $Id*/
+/* $Id: shoot3.c 4705 2012-03-30 17:25:33Z guillaume $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
