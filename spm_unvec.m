@@ -1,19 +1,18 @@
 function [varargout] = spm_unvec(vX,varargin)
 % unvectorises a vectorised array 
-% FORMAT [X] = spm_unvec(vX,X);
-% X  - numeric, cell or structure array
-% vX - spm_vec(X)
+% FORMAT [varargout] = spm_unvec(vX,varargin);
+% varargin  - numeric, cell or structure array
+% vX        - spm_vec(X)
 %
-% i.e. X      = spm_unvec(spm_vec(X),X)
-%      [X{:}] = spm_unvec(spm_vec(X{:}),X{:}) 
-%                                              - (i.e. can also deal)
+% i.e. X           = spm_unvec(spm_vec(X),X)
+%      [X1,X2,...] = spm_unvec(spm_vec(X1,X2,...),X1,X2,...)
 %
 % see spm_vec
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 3605 2009-12-01 13:29:43Z karl $
+% $Id: spm_unvec.m 4709 2012-04-05 19:42:50Z karl $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------

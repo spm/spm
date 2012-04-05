@@ -27,7 +27,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_log_evidence.m 4709 2012-04-05 19:42:50Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -70,12 +70,6 @@ if nargout < 2
         qC  = qC(k,k);
         pC  = pC(k,k);
         rC  = rC(k,k);
-    else
-        
-        % the reduced and full models are the same
-        %------------------------------------------------------------------
-        F   = 0;
-        return
     end
 end
 
@@ -94,11 +88,12 @@ pP    = spm_inv(pC(i,i),TOL);
 rP    = spm_inv(rC(i,i),TOL);
 sP    = qP + rP - pP;
 sC    = spm_inv(sP,TOL);
+pC    = spm_inv(pP,TOL);
 sE    = qP*qE(i) + rP*rE(i) - pP*pE(i);
 
 % log-evidence
 %--------------------------------------------------------------------------
-F     = spm_logdet(rP*qP*sC*pC(i,i)) ...
+F     = spm_logdet(rP*qP*sC*pC) ...
       - (qE(i)'*qP*qE(i) + rE(i)'*rP*rE(i) - pE(i)'*pP*pE(i) - sE'*sC*sE);
 F     = F/2;
     
@@ -106,7 +101,7 @@ F     = F/2;
 %--------------------------------------------------------------------------
 if nargout > 1
     rE(i)   = sC*sE;
-    rC(i,i) = sC;
+    rC(i,i) = spm_sqrtm(sC*sC);
     sE      = spm_unvec(rE,varargin{1});
     sC      = rC;
 end
