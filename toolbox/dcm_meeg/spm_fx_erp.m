@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_fx_erp.m 4710 2012-04-05 19:45:05Z karl $
 
 
 % get dimensions and configure state variables
@@ -54,12 +54,14 @@ R = [2 1]/3;                % parameters of static nonlinearity
 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
-try, E = M.pF.E; end
-try, G = M.pF.G; end
-try, D = M.pF.D; end
-try, H = M.pF.H; end
-try, T = M.pF.T; end
-try, R = M.pF.R; end
+if isfield(M,'pF')
+    try, E = M.pF.E; end
+    try, G = M.pF.G; end
+    try, D = M.pF.D; end
+    try, H = M.pF.H; end
+    try, T = M.pF.T; end
+    try, R = M.pF.R; end
+end
 
 
 % test for free parameters on intrinsic connections
@@ -122,11 +124,11 @@ f(:,6) = (Hi.*G(:,4).*S(:,7) - 2*x(:,6) - x(:,3)./Ti)./Ti;
 f(:,9) = x(:,5) - x(:,6);
 f      = spm_vec(f);
 
-if nargout == 1; return, end
+if nargout < 2; return, end
 
 % Jacobian
 %==========================================================================
-J     = spm_diff(M.f,x,u,P,M,1);
+J  = spm_diff(M.f,x,u,P,M,1);
 
 % delays
 %==========================================================================

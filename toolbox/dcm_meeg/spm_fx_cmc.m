@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_fx_cmc.m 4710 2012-04-05 19:45:05Z karl $
  
  
 % get dimensions and configure state variables
@@ -55,11 +55,13 @@ R  = 2/3;                           % slope of sigmoid activation function
 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
-try, E = M.pF.E; end
-try, G = M.pF.G; end
-try, D = M.pF.D; end
-try, T = M.pF.T; end
-try, R = M.pF.R; end
+if isfield(M,'pF')
+    try, E = M.pF.E; end
+    try, G = M.pF.G; end
+    try, D = M.pF.D; end
+    try, T = M.pF.T; end
+    try, R = M.pF.R; end
+end
  
  
 % Extrinsic connections

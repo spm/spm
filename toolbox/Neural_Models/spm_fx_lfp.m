@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 4402 2011-07-21 12:37:24Z karl $
+% $Id: spm_fx_lfp.m 4710 2012-04-05 19:45:05Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -63,12 +63,14 @@ R    = [1 2];                  % parameters of static nonlinearity
 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
-try, E  = M.pF.E; end
-try, G  = M.pF.G; end
-try, D  = M.pF.D; end
-try, H  = M.pF.H; end
-try, T  = M.pF.T; end
-try, R  = M.pF.R; end
+if isfield(M,'pF')
+    try, E  = M.pF.E; end
+    try, G  = M.pF.G; end
+    try, D  = M.pF.D; end
+    try, H  = M.pF.H; end
+    try, T  = M.pF.T; end
+    try, R  = M.pF.R; end
+end
 
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------

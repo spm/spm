@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_fx_mfm.m 4710 2012-04-05 19:45:05Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -310,7 +310,7 @@ Q  = inv(speye(length(J)) - D.*J);
 
 % trace(a*b)
 %--------------------------------------------------------------------------
-function x = tr(a,b);
+function x = tr(a,b)
 %__________________________________________________________________________
 b   = b';
 x   = a(:)'*b(:);
