@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_nlsi_N.m 4713 2012-04-10 13:25:39Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -301,7 +301,7 @@ for ip = 1:64
     % check for dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
-        gi = 16;
+        gi = 8;
     else
         gi = 0;
     end
@@ -342,7 +342,7 @@ for ip = 1:64
         % Optimize F(h): parameters of iS(h)
         %==================================================================
         dgdb   = [dgdp dgdg dgdu];           
-        for ih = 1:16
+        for ih = 1:8
  
             % precision
             %--------------------------------------------------------------
@@ -412,7 +412,7 @@ for ip = 1:64
  
         % Conditional updates of parameters (g)
         %------------------------------------------------------------------
-        dg    = spm_dx(dFdgg,dFdg,{8});
+        dg    = spm_dx(dFdgg,dFdg,{4});
         Eg    = spm_unvec(spm_vec(Eg) + Vg*dg,Eg);
          
         % convergence

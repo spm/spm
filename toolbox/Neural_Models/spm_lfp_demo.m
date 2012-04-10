@@ -15,12 +15,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_demo.m 2374 2008-10-21 18:52:29Z karl $ 
+% $Id: spm_lfp_demo.m 4713 2012-04-10 13:25:39Z karl $ 
  
 
 % Model specification
 %==========================================================================
-clear
 
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
@@ -74,6 +73,7 @@ H.l     = 1;
  
 % Volterra Kernels
 %==========================================================================
+spm_figure('GetWin','Volterra kernels');
  
 % augment and bi-linearise
 %--------------------------------------------------------------------------
@@ -99,11 +99,11 @@ axis square
 xlabel('time (ms)')
 drawnow
  
-spm_demo_proceed
- 
  
 % Integrate system to see response (time-frequency and hemodynamic)
 %==========================================================================
+spm_figure('GetWin','induced and haemodynamic responses');
+
 N     = 2048;
 U.dt  = 8/1000;
 U.u   = 32*(sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16);
@@ -151,8 +151,7 @@ axis square
 xlabel('time (s)')
 drawnow
  
-spm_demo_proceed 
- 
+
  
 % Stability analysis (over excitatory and inhibitory time constants)
 %==========================================================================
@@ -178,6 +177,10 @@ end
 p1  = 4*exp(p);
 p2  = 16*exp(p);
  
+% graphics
+%--------------------------------------------------------------------------
+spm_figure('GetWin','bifurcation analysis');
+
 subplot(2,2,1)
 surf(p1,p2,LE')
 shading interp
@@ -209,10 +212,11 @@ ylabel('excitatory time constant')
 title('Frequency')
 drawnow
 
-spm_demo_proceed
  
 % transfer functions
 %==========================================================================
+spm_figure('GetWin','transfer functions');
+
  
 % compute transfer function
 %--------------------------------------------------------------------------
@@ -226,7 +230,6 @@ xlabel('frequency {Hz}')
 title('transfer function')
 drawnow
 
-spm_demo_proceed
  
 % compute transfer functions for different inhibitory time constants
 %--------------------------------------------------------------------------
@@ -237,22 +240,22 @@ for i = 1:length(p)
     GW(:,i) = G{1};
 end
  
-subplot(2,1,1)
+subplot(2,2,3)
 imagesc(16*exp(p),w,GW)
 ylabel('Frequency')
 xlabel('Inhibitory time constant (ms)')
  
-subplot(2,1,2)
+subplot(2,2,4)
 plot(w,GW)
 xlabel('Frequency')
 ylabel('g(w)')
 drawnow
 
-spm_demo_proceed
- 
  
 % Integrate system to see Transient response (with noise)
 %==========================================================================
+spm_figure('GetWin','Time frequency analysis');
+
 pE.T(2) = log(2);
 N     = 1024;
 U.dt  = 1/1000;
