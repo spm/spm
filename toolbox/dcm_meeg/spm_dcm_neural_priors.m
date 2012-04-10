@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_dcm_neural_priors.m 4714 2012-04-10 13:30:44Z karl $
  
 % check options
 %==========================================================================
@@ -90,7 +90,15 @@ switch lower(model)
 
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,pC] = spm_nfm_priors(A,B,C);   
+        [pE,pC] = spm_nfm_priors(A,B,C);
+        
+    % Time frequency model – with input dependent parameters
+    %======================================================================
+    case{'tfm'}
+
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_cmc_priors(A,B,C);   
         
         
     otherwise

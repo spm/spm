@@ -1,8 +1,8 @@
-function [f,J,Q] = spm_fx_cmc(x,u,P,M)
-% state equations for a neural mass model (canonical microcircuit)
-% FORMAT [f,J,D] = spm_fx_cmc(x,u,P,M)
-% FORMAT [f,J]   = spm_fx_cmc(x,u,P,M)
-% FORMAT [f]     = spm_fx_cmc(x,u,P,M)
+function [f,J,Q] = spm_fx_tfm(x,u,P,M)
+% state equations - time frequency model with input dependent parameters
+% FORMAT [f,J,D] = spm_fx_tfm(x,u,P,M)
+% FORMAT [f,J]   = spm_fx_tfm(x,u,P,M)
+% FORMAT [f]     = spm_fx_tfm(x,u,P,M)
 % x      - state vector
 %   x(:,1) - voltage     (spiny stellate cells)
 %   x(:,2) - conductance (spiny stellate cells)
@@ -27,6 +27,12 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % T  = synaptic time constants
 % R  = slope of sigmoid activation function
 %
+% The (n x m) parameter matrix C couples time-dependent m inputs to states 
+% and parameters as follows:
+%
+% C(:,1) - driving input – conductance of spiny stellate cells
+% C(:,2) - self–inhibition of inhibitory neurons
+%
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
@@ -34,12 +40,29 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4714 2012-04-10 13:30:44Z karl $
+% $Id: spm_fx_tfm.m 4714 2012-04-10 13:30:44Z karl $
  
+% inputs 
+%==========================================================================
+if isfield(M,'u')
+    
+    % an endogenous input for each source – for spectral responses
+    %----------------------------------------------------------------------
+    U   = u;
  
+else
+
+    % exogenous inputs and input dependent parameters
+    %======================================================================
+    [U P] = spm_fx_tfm_P(u,P);
+       
+end
+
+
+
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-M.u   = u;                          % place inputs in M
+M.u   = U;                          % place u in M for spm_dcm_delay
 x     = spm_unvec(x,M.x);           % neuronal states
 [n m] = size(x);                    % number of sources and states  
  
@@ -75,17 +98,13 @@ A{1} = exp(P.A{1})*E(1);           % forward  connections (sp -> ss)
 A{2} = exp(P.A{2})*E(2);           % forward  connections (sp -> dp)
 A{3} = exp(P.A{3})*E(3);           % backward connections (dp -> sp)
 A{4} = exp(P.A{4})*E(4);           % backward connections (dp -> ii)
-C    = exp(P.C);
+
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
 R    = R.*exp(P.S);
 S    = 1./(1 + exp(-R*x)) - 1/2;
- 
-% exogenous input
-%--------------------------------------------------------------------------
-U    = C*u(:);
- 
+
  
 % time constants and intrinsic connections
 %==========================================================================
@@ -111,7 +130,7 @@ end
 for i = 1:size(P.G,2)
     G(:,i) = G(:,i).*exp(P.G(:,i));
 end
- 
+
  
 % Motion of states: f(x)
 %--------------------------------------------------------------------------

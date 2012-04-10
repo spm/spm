@@ -15,7 +15,7 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_csd_mtf_gu.m 4714 2012-04-10 13:30:44Z karl $
 
  
 % frequencies of interest
@@ -26,7 +26,7 @@ try
 catch
     N  = 128;
 end
-f     = [1:N/2]';
+f     = (1:N/2)';
 
 
 % spectrum of innovations (Gu)

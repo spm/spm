@@ -30,16 +30,16 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4402 2011-07-21 12:37:24Z karl $
+% $Id: spm_ssr_priors.m 4714 2012-04-10 13:30:44Z karl $
  
 % catch
 %--------------------------------------------------------------------------
 try, pE.L; catch, pE.L = 1; end
 
-% number of LFP channels
+% number of LFP channels and sources (endogenous inputs)
 %--------------------------------------------------------------------------
 if size(pE.L,1) == 1, n = size(pE.L,2); else, n = 1; end
-if size(pE.C,1),      m = size(pE.C,2); else, m = 1; end
+if size(pE.C,1),      m = size(pE.C,1); else, m = 1; end
 
 % add prior on spectral density of innovations (pink and white coeficients)
 %--------------------------------------------------------------------------
