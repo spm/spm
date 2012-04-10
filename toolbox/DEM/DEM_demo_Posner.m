@@ -20,7 +20,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_Posner.m 4712 2012-04-10 13:22:50Z karl $
  
 
 % Create a generative model: To keep thing simple we will model just 2 
@@ -249,7 +249,7 @@ drawnow
  
 % Electrophysiology
 %==========================================================================
- 
+
 % plot the simulated ERPs (see spm_DEM_ERP)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 5'); clf
@@ -259,44 +259,31 @@ PST   = pst - T*dt/3;
 for i = 1:length(qU)
     
     
-    % loop over levels
-    %----------------------------------------------------------------------
-    for  j = 1:2
-        
-        % PST (assuming 32 ms times bins)
-        %------------------------------------------------------------------
-        try
-            EEG = qU{i}.Z{j}(1:2,:);
-        catch
-            EEG = qU{i}.z{j}(1:2,:);
-        end
-
-        % ERPs
-        %------------------------------------------------------------------
-        subplot(2,2,1)
-        plot(PST,EEG,'Color',color{i}),hold on
-    end
-    title('LFPs (Causal) Content','FontSize',16)
+    % PST (assuming 32 ms times bins)
+    %------------------------------------------------------------------
+    EEG = qU{i}.Z{2}(1:2,:);
+    
+    % ERPs
+    %------------------------------------------------------------------
+    subplot(2,2,1)
+    plot(PST,EEG,'Color',color{i}),hold on
+    title({'ERP (Causal) Content';'N1 suppression'},'FontSize',16)
     xlabel('pst (ms)')
     axis square
     set(gca,'XLim',[PST(1) PST(end)])
     
     % Hidden states
     %------------------------------------------------------------------
-    j  = 1;
-    try
-        EEG = qU{i}.W{j}(2,:);
-    catch
-        EEG = qU{i}.w{j}(2,:);
-    end
+    EEG = qU{i}.W{1}(1,:);
+    
     
     % ERPs
     %------------------------------------------------------------------
     subplot(2,2,2)
     plot(PST,EEG,'Color',color{i}),hold on
-    title('LFPs (Hidden) Context','FontSize',16)
+    title({'ERP (Hidden) Context';'P3 enhancement'},'FontSize',16)
     xlabel('pst (ms)')
-    axis square 
+    axis square
     set(gca,'XLim',[PST(1) PST(end)])
     
 end

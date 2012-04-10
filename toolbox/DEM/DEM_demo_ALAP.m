@@ -1,40 +1,46 @@
-% This demonstration compares Generalised filtering under the Laplace
-% assumption (spm_LAP) with variational filtering under the same fixed form
-% approximation (i.e. DEM). We use a simple linear convolution model to
-% illustrate the differences and similarities. The key difference between
-% the two schemes lies (in this example) lies in estimates of conditional
-% uncertainty. spm_LAP is must less over-confident because it eschews the
-% means-field approximation implicit in DEM. The demonstration addresses 
-% quadruple estimation of hidden states, exogenous input, parameters and 
-% log-precisions (and, for spm_LAP, log-smoothness)
+% This demonstration is essentially the same as DEM_demo_LAP – however
+% here, we compare two generalised filtering schemes that are implemented
+% very differently: the first integrates the generative process in
+% parallel with the inversion, while the standard spm_LAP scheme inverts a
+% model given pre-generated data. The advantage of generating and modelling
+% data  contemporaneously is that it allows the inversion scheme to couple
+% back to the generative process through action (see active inference
+% schemes): spm_ALAP.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: DEM_demo_ALAP.m 4712 2012-04-10 13:22:50Z karl $
  
 % get basic convolution model
 %==========================================================================
 M       = spm_DEM_M('convolution model');
 
-% rng('default');
- 
 % gradient functions for speed (not implemented here)
 %--------------------------------------------------------------------------
 % M(1).fx = inline('P.f','x','v','P');
 % M(1).fv = inline('P.h','x','v','P');
 % M(1).gx = inline('P.g','x','v','P');
 % M(1).gv = inline('sparse(4,1)','x','v','P');
+
+M(1).E.nN = 8;                                 % number of E steps
+M(1).E.nE = 8;                                 % number of E steps
+M(1).E.nD = 1;                                 % number of time steps
+M(1).E.s  = 1;                                 % smoothness
+G(1).E.s  = 1;                                 % smoothness
+M(1).E.d  = 2;                                 % order
+M(1).E.n  = 6;                                 % order
+
  
 % free parameters
 %--------------------------------------------------------------------------
-P       = M(1).pE;                            % true parameters
-ip      = [1 2 5 9];                          % free parameters
+P       = M(1).pE;                             % true parameters
+ip      = [1 2 5 9];                           % free parameters
 pE      = spm_vec(P);
 np      = length(pE);
 pE(ip)  = 0;
 pE      = spm_unvec(pE,P);
-pC      = sparse(ip,ip,exp(8),np,np);
+pC      = sparse(ip,ip,exp(4),np,np);
 M(1).pE = pE;
 M(1).pC = pC;
  
@@ -42,34 +48,50 @@ M(1).pC = pC;
 %--------------------------------------------------------------------------
 M(1).Q  = {speye(M(1).l,M(1).l)};
 M(1).R  = {speye(M(1).n,M(1).n)};
-M(1).hE = 6;
+M(1).hE = 8;
 M(1).gE = 6;
 M(1).hC = 1/4;
 M(1).gC = 1/4;
  
-% generate data and invert
+% generative process
 %==========================================================================
-M(1).E.nN = 16;                                % number of E steps
-M(1).E.nE = 16;                                % number of E steps
-M(1).E.nD = 1;                                 % number of time steps
-M(1).E.s  = 1;                                 % smoothness
-M(1).E.d  = 2;                                 % order
-M(1).E.n  = 6;                                 % order
- 
-N         = 32;                                % length of data sequence
-U         = exp(-((1:N) - 12).^2/(2.^2));      % this is the Gaussian cause
-DEM       = spm_DEM_generate(M,U,{P},{8,16},{6});
- 
- 
+G(1).f  = M(1).f;
+G(1).g  = M(1).g;
+G(1).x  = M(1).x;
+G(1).V  = exp(8);
+G(1).W  = exp(6);
+G(1).pE = P;
+
+G(2).v  = 0;
+G(2).V  = exp(16);
+
+
+% hidden cause
+%-------------------------------------------------------------------------- 
+N      = 32;
+U      = exp(-((1:N) - 12).^2/(2.^2));
+
 % invert
 %==========================================================================
-spm_figure('GetWin','DEM');
-LAP       = spm_LAP(DEM);
-DEM       = spm_DEM(DEM);
+DEM.M  = M;
+DEM.G  = G;
+DEM.C  = U;
+
+% generate and filter responses
+%-------------------------------------------------------------------------- 
+LAP    = spm_ALAP(DEM);
+
+% filter generated responses
+%-------------------------------------------------------------------------- 
+DEM.Y  = LAP.Y;
+DEM.pU = LAP.pU;
+DEM.pP = LAP.pP;
+DEM    = spm_LAP(DEM);
+
  
-% Show results for DEM
+% Show results for LAP (standard scheme)
 %==========================================================================
-spm_figure('GetWin','Figure 1: DEM - mean-field assumption');
+spm_figure('GetWin','Figure 1: Generalised filtering - standard scheme');
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -85,7 +107,7 @@ tP    = tP(ip);
 subplot(2,2,4)
 bar([tP qP])
 axis square
-legend('true','DEM')
+legend('true','GF – standard')
 title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(DEM.qP.C(ip,ip)));
@@ -94,9 +116,9 @@ for i = 1:length(qP),hold on
 end, hold off
  
  
-% Show results for LAP
+% Show results for ALAP (parallel scheme)
 %==========================================================================
-spm_figure('GetWin','Figure 2: Generalised filtering (GF)');
+spm_figure('GetWin','Figure 2: Generalised filtering – parallel scheme');
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -112,7 +134,7 @@ tP    = tP(ip);
 subplot(2,2,4)
 bar([tP qP])
 axis square
-legend('true','GF')
+legend('true','GF – parallel')
 title('parameters','FontSize',16)
  
 cq    = 1.64*sqrt(diag(LAP.qP.C(ip,ip)));
@@ -122,7 +144,7 @@ end, hold off
  
 % Compare
 %==========================================================================
-spm_figure('GetWin','Figure 3: Comparison of DEM and GF');
+spm_figure('GetWin','Figure 3: Comparison of integration schemes');
  
 % hyperparameters
 %--------------------------------------------------------------------------
@@ -130,13 +152,13 @@ qL    = spm_vec({LAP.qH.h LAP.qH.g});
 qD    = spm_vec({DEM.qH.h DEM.qH.g});
 vL    = spm_vec({LAP.qH.V LAP.qH.W});
 vD    = spm_vec({DEM.qH.V DEM.qH.W});
-qh    = spm_vec({DEM.pH.h{1} DEM.pH.g{1}});
+qh    = log([G(1).V; G(1).W]);
  
  
 subplot(2,2,1)
 bar([qh qL qD])
 axis square
-legend('true','GF','DEM')
+legend('true','parallel','standard')
 title('log-precisions','FontSize',16)
  
 cq    = 1.64*sqrt(vL);
@@ -154,8 +176,8 @@ end, hold off
 subplot(2,2,2)
 nL   = length(LAP.F);
 nD   = length(DEM.F);
-plot(1:nL,LAP.F,1:nD,DEM.F,1:nL,LAP.S,1:nD,DEM.S)
+plot(1:nL,LAP.F,1:nD,DEM.F)
 axis square
-legend('GF (F)','DEM (F)','GF (S)','DEM(S)')
+legend('parallel (F)','standard (F)')
 title('log-evidence ','FontSize',16)
 xlabel('iteration','FontSize',12)

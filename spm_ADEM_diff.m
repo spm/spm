@@ -17,7 +17,7 @@ function [u dg df] = spm_ADEM_diff(M,u)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_diff.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: spm_ADEM_diff.m 4712 2012-04-10 13:22:50Z karl $
  
 % number of states and parameters
 %--------------------------------------------------------------------------
@@ -100,4 +100,5 @@ for i = 2:(n - 1)
     u.v{i}     = dg.dv*u.v{i} + dg.dx*u.x{i} + dg.da*u.a{i} + u.z{i};
     u.x{i + 1} = df.dv*u.v{i} + df.dx*u.x{i} + df.da*u.a{i} + u.w{i};
 end
+u.v{n}  = dg.dv*u.v{n} + dg.dx*u.x{n} + dg.da*u.a{n} + u.z{n};
 

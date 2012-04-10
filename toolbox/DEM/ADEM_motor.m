@@ -10,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_motor.m 4712 2012-04-10 13:22:50Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
@@ -60,12 +60,12 @@ G(2).V  = exp(16);
 % generate and invert
 %==========================================================================
 N       = 64;                                % length of data sequence
-C       = exp(-([1:N] - 12).^2/(4.^2));      % this is the prior cause;
+C       = exp(-((1:N) - 12).^2/(4.^2));      % this is the prior cause;
 DEM.G   = G;
 DEM.M   = M;
 DEM.C   = sparse(1,N);
 DEM.U   = C;
-DEM0    = spm_ADEM(DEM);
+DEM0    = spm_ALAP(DEM);
 
 % overlay true values
 %--------------------------------------------------------------------------
@@ -76,7 +76,7 @@ spm_DEM_qU(DEM0.qU,DEM0.pU)
 %==========================================================================
 DEM1    = DEM;
 DEM1.C  = -exp(-((1:N) - 18).^2/(2.^2))/2;    % this is the prior cause;
-DEM1    = spm_ADEM(DEM1);
+DEM1    = spm_ALAP(DEM1);
  
 % overlay true values
 %--------------------------------------------------------------------------
@@ -88,7 +88,7 @@ spm_DEM_qU(DEM1.qU,DEM1.pU)
 %==========================================================================
 DEM2            = DEM;
 DEM2.G(1).pE.a  = pE.a*2;
-DEM2            = spm_ADEM(DEM2);
+DEM2            = spm_ALAP(DEM2);
  
 % overlay true values
 %--------------------------------------------------------------------------

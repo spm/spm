@@ -55,8 +55,8 @@ function [DEM] = spm_LAP(DEM)
 %__________________________________________________________________________
 %
 % spm_LAP implements a variational scheme under the Laplace
-% approximation to the conditional joint density q on states (u), parameters 
-% (p) and hyperparameters (h,g) of any analytic nonlinear hierarchical dynamic
+% approximation to the conditional joint density q on states u, parameters 
+% p and hyperparameters (h,g) of an analytic nonlinear hierarchical dynamic
 % model, with additive Gaussian innovations.
 %
 %            q(u,p,h,g) = max <L(t)>q
@@ -67,7 +67,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4629 2012-01-31 14:16:51Z ged $
+% $Id: spm_LAP.m 4712 2012-04-10 13:22:50Z karl $
  
  
 % find or create a DEM figure
@@ -179,13 +179,13 @@ V     = sparse((ny + nv)*n,(ny + nv)*n);
 %--------------------------------------------------------------------------
 Px    = kron(spm_DEM_R(n,2),spm_cat(spm_diag({M(1:end).xP})));
 Pv    = kron(spm_DEM_R(d,2),spm_cat(spm_diag({M(2:end).vP})));
-pu.ic = spm_cat(spm_diag({Px Pv}));
+Pu    = spm_cat(spm_diag({Px Pv}));
  
 % hyperpriors
 %--------------------------------------------------------------------------
 ph.h  = spm_vec({M.hE M.gE});                % prior expectation of h,g
 ph.c  = spm_cat(spm_diag({M.hC M.gC}));      % prior covariances of h,g
-ph.ic = spm_inv(ph.c);                       % prior precision of h,g
+Ph    = spm_inv(ph.c);                       % prior precision of h,g
  
 qh.h  = {M.hE};                              % conditional expectation h
 qh.g  = {M.gE};                              % conditional expectation g
@@ -214,7 +214,7 @@ Up    = spm_cat(spm_diag(qp.u));
 %--------------------------------------------------------------------------
 pp.p  = spm_vec(M.pE);
 pp.c  = spm_cat(pp.c);
-pp.ic = spm_inv(pp.c);
+Pp    = spm_inv(pp.c);
  
 
 % initialise conditional density q(p)
@@ -296,10 +296,8 @@ ix     = (1:nx);
 ih     = (1:nb);
 iv     = (1:nv) + nx*n;
 ip     = (1:np) + nu;
-iup    = (1:(nu + np));
-ib     = (1:(np + nb)) + nu;
- 
- 
+
+
 % number of iterations for convergence
 %--------------------------------------------------------------------------
 convergence = -4;
@@ -447,34 +445,32 @@ for iN = 1:nN
  
             % first-order derivatives of Gibb's Energy
             %==============================================================
-            dLdu  = dEdu*E + dSdu*E/2 - dDdu/2 + pu.ic*Eu;
-            dLdh  = dEdh*E/2          - dDdh/2 + ph.ic*Eh;
-            dLdp  = dEdp*E                     + pp.ic*Ep;
+            dLdu  = dEdu*E + dSdu*E/2 - dDdu/2 + Pu*Eu;
+            dLdh  = dEdh*E/2          - dDdh/2 + Ph*Eh;
+            dLdp  = dEdp*E                     + Pp*Ep;
             
 
             % and second-order derivatives of Gibb's Energy
             %--------------------------------------------------------------
-            dLduu = dEdu*dE.du + pu.ic;
-            dLdpp = dEdp*dE.dp + pp.ic;
-            dLdhh = dSdhh/2    + ph.ic;
-            dLdup = dEdu*dE.dp;
-            dLdhu = dEdh*dE.du;
+            dLduu = dEdu*dE.du + Pu;
+            dLdpp = dEdp*dE.dp + Pp;
+            dLdhh = dSdhh/2    + Ph;
             dLduy = dEdu*dE.dy;
             dLduc = dEdu*dE.dc;
+            dLdup = dEdu*dE.dp;
             dLdhp = dEdh*dE.dp;
             dLdpu = dLdup';
-            dLduh = dLdhu';
             dLdph = dLdhp';
  
  
-            % precision and covariances
+            % precision and covariances for entropy
             %--------------------------------------------------------------                      
-            iC    = spm_cat({dLduu dLdup dLduh  ;
-                             dLdpu dLdpp dLdph  ;
-                             dLdhu dLdhp dLdhh});
+            dLdaa = spm_cat({dLduu dLdup  ;
+                             dLdpu dLdpp});
+            dLdbb = spm_cat({dLdpp  dLdph ;
+                             dLdhp  dLdhh});
             
-            dLdbb = spm_sqrtm(iC(ib,ib)*iC(ib,ib)');
-            Cup   = spm_inv(iC(iup,iup));
+            Cup   = spm_inv(dLdaa);
             Chh   = spm_inv(dLdhh);
             
             
@@ -536,7 +532,7 @@ for iN = 1:nN
                 % save means
                 %----------------------------------------------------------
                 Q(is).e   = E;
-                Q(is).E   = iS*E;
+                Q(is).E   = diag(diag(iS))*E;
                 Q(is).u   = qu;
                 Q(is).p   = qp;
                 Q(is).h   = qh;
@@ -551,19 +547,19 @@ for iN = 1:nN
                 % Free-energy (components)
                 %----------------------------------------------------------
                 Fc(is,1)  = - E(je)'*iS(je,je)*E(je)/2;
-                Fc(is,2)  = - Eu(ju)'*pu.ic(ju,ju)*Eu(ju)/2;
+                Fc(is,2)  = - Eu(ju)'*Pu(ju,ju)*Eu(ju)/2;
                 Fc(is,3)  = - n*ny*log(2*pi)/2;
                 Fc(is,4)  = spm_logdet(iS(je,je))/2;
-                Fc(is,5)  = spm_logdet(pu.ic(ju,ju)*Cup(ju,ju))/2;
+                Fc(is,5)  = spm_logdet(Pu(ju,ju)*Cup(ju,ju))/2;
 
                                 
                 % Free-action (states and parameters)
                 %----------------------------------------------------------
                 AC(is)    = sum(Fc(is,:))       ...
-                          - Ep'*pp.ic*Ep/2      ...
-                          - Eh'*ph.ic*Eh/2      ...
-                          + spm_logdet(pp.ic)/2 ...
-                          + spm_logdet(ph.ic)/2 ...
+                          - Ep'*Pp*Ep/2      ...
+                          - Eh'*Ph*Eh/2      ...
+                          + spm_logdet(Pp)/2 ...
+                          + spm_logdet(Ph)/2 ...
                           - spm_logdet(dLdbb)/2;
   
             end
@@ -651,26 +647,26 @@ for iN = 1:nN
     % Conditional moments of time-averaged parameters
     %----------------------------------------------------------------------
     Ep    = 0;
-    Pp    = 0;
+    Qp    = 0;
     for i = 1:ns
         P   = spm_inv(Q(i).p.c);
         Ep  = Ep  + P*spm_vec(Q(i).p.p);
-        Pp  = Pp + P;       
+        Qp  = Qp + P;       
     end
-    Ep    = spm_inv(Pp)*Ep;
-    Cp    = spm_inv(Pp + (1 - ns)*pp.ic);
+    Ep    = spm_inv(Qp)*Ep;
+    Cp    = spm_inv(Qp + (1 - ns)*Pp);
  
     % conditional moments of hyper-parameters
     %----------------------------------------------------------------------
     Eh    = 0;
-    Ph    = 0;
+    Qh    = 0;
     for i = 1:ns
         P   = spm_inv(Q(i).h.c);
-        Eh  = Eh  + P*spm_vec({Q(i).h.h Q(i).h.g});
-        Ph  = Ph + P;
+        Eh  = Eh  + P*spm_vec(Q(i).h.h,Q(i).h.g);
+        Qh  = Qh + P;
     end
-    Eh    = spm_inv(Ph)*Eh - ph.h;
-    Ch    = spm_inv(Ph + (1 - ns)*ph.ic);
+    Eh    = spm_inv(Qh)*Eh - ph.h;
+    Ch    = spm_inv(Qh + (1 - ns)*Ph);
  
     
     
@@ -678,14 +674,14 @@ for iN = 1:nN
     %======================================================================
     FT    = sum(Fc,2);          %   instantaneous Free energy (of states)
     FC(1) = sum(Fc(:,1));       % - E'*iS*E/2;
-    FC(2) = sum(Fc(:,2));       % - Eu'*pu.ic*Eu/2;
+    FC(2) = sum(Fc(:,2));       % - Eu'*Pu*Eu/2;
     FC(3) = sum(Fc(:,3));       % - n*ny*log(2*pi)/2;
     FC(4) = sum(Fc(:,4));       %   spm_logdet(iS)/2;
-    FC(5) = sum(Fc(:,5));       %   spm_logdet(pu.ic*Cu)/2;
-    FC(6) = -Ep'*pp.ic*Ep/2;
-    FC(7) = -Eh'*ph.ic*Eh/2;
-    FC(8) = spm_logdet(pp.ic*Cp)/2;
-    FC(9) = spm_logdet(ph.ic*Ch)/2;
+    FC(5) = sum(Fc(:,5));       %   spm_logdet(Pu*Cu)/2;
+    FC(6) = -Ep'*Pp*Ep/2;
+    FC(7) = -Eh'*Ph*Eh/2;
+    FC(8) = spm_logdet(Pp*Cp)/2;
+    FC(9) = spm_logdet(Ph*Ch)/2;
     
     CC(iN,:) = FC;
     S(iN)    = sum(AC);
@@ -730,7 +726,7 @@ for iN = 1:nN
         
         % increase update time
         %------------------------------------------------------------------
-        dt = max(dt - 1,-8);
+        dt    = max(dt - 1,-8);
         
     end
  
@@ -775,7 +771,7 @@ for iN = 1:nN
  
         % hyperparameters
         %------------------------------------------------------------------
-        qH.p{t} = spm_vec({Q(t).h.h Q(t).h.g});
+        qH.p{t} = spm_vec(Q(t).h.h,Q(t).h.g);
         qH.c{t} = Q(t).h.c;
  
     end
@@ -840,7 +836,7 @@ fprintf('%-19sF:%.4e\n', 'LAP: Converged', F(end));
  
 % Conditional moments of time-averaged parameters
 %--------------------------------------------------------------------------
-Pp = 0;
+Qp = 0;
 Ep = 0;
 for i = 1:ns
     
@@ -848,11 +844,11 @@ for i = 1:ns
     %----------------------------------------------------------------------
     P  = spm_inv(qP.c{i});
     Ep = Ep + P*qP.p{i};
-    Pp = Pp + P;
+    Qp = Qp + P;
  
 end
-Ep     = spm_inv(Pp)*Ep;
-Cp     = spm_inv(Pp + (1 - ns)*pp.ic);
+Ep     = spm_inv(Qp)*Ep;
+Cp     = spm_inv(Qp + (1 - ns)*Pp);
 qP.P   = spm_unvec(Up*Ep + pp.p,{M.pE});
 qP.C   = Up*Cp*Up';
 qP.V   = spm_unvec(diag(qP.C),{M.pE});
@@ -860,7 +856,7 @@ qP.U   = Up;
  
 % conditional moments of hyper-parameters
 %--------------------------------------------------------------------------
-Ph = 0;
+Qh = 0;
 Eh = 0;
 for i = 1:ns
     
@@ -868,12 +864,12 @@ for i = 1:ns
     %----------------------------------------------------------------------
     P  = spm_inv(qH.c{i});
     Eh = Eh + P*qH.p{i};
-    Ph = Ph + P;
+    Qh = Qh + P;
  
 end
-Eh     = spm_inv(Ph)*Eh;
-Ch     = spm_inv(Ph + (1 - ns)*ph.ic);
-P      = spm_unvec(Eh,{qh.h qh.g});
+Eh     = spm_inv(Qh)*Eh;
+Ch     = spm_inv(Qh + (1 - ns)*Ph);
+P      = spm_unvec(Eh,{qh.h,qh.g});
 qH.h   = P{1};
 qH.g   = P{2};
 qH.C   = Ch;

@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 21-Feb-2012 16:52:41
+% Last Modified by GUIDE v2.5 06-Apr-2012 18:53:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -377,10 +377,7 @@ function pushbutton125_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'ADEM_occlusion')
 
-
-
-
-
-
-
-
+% --- Executes on button press in pushbutton126.
+function pushbutton126_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Generalised%20Filtering.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_ALAP')

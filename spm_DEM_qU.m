@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: spm_DEM_qU.m 4712 2012-04-10 13:22:50Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -194,23 +194,25 @@ for i = 1:g
     end
 end
  
-% plot action if specified
+% plot action if specified and present
 %--------------------------------------------------------------------------
 if isfield(qU,'a')
-    subplot(g,2,2*g)
-    plot(t,full(qU.a{end}));
-    str = 'action';
-    try
-        hold on
-        plot(t,full(pU.v{2}),'-.k','Linewidth',2)
-        box off, hold off
-        str = 'perturbation and action';
+    if ~isempty(qU.a{end})
+        subplot(g,2,2*g)
+        plot(t,full(qU.a{end}));
+        str = 'action';
+        try
+            hold on
+            plot(t,full(pU.v{2}),'-.k','Linewidth',2)
+            box off, hold off
+            str = 'perturbation and action';
+        end
+        
+        xlabel('time','Fontsize',14)
+        title(str,'Fontsize',16)
+        axis square
+        set(gca,'XLim',[t(1) t(end)])
+        box off
     end
-    
-    xlabel('time','Fontsize',14)
-    title(str,'Fontsize',16)
-    axis square
-    set(gca,'XLim',[t(1) t(end)])
-    box off
 end
 drawnow

@@ -43,7 +43,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: spm_ADEM_M_set.m 4712 2012-04-10 13:22:50Z karl $
  
 % order
 %--------------------------------------------------------------------------
@@ -155,10 +155,13 @@ for i = (g - 1):-1:1
     % check f(x,v,P)
     %----------------------------------------------------------------------
     try
-        M(i).f  = fcnchk(M(i).f,'x','v','a','P');
+        M(i).f = fcnchk(M(i).f);
+        if nargin(M(i).f) == 3
+            M(i).f = inline(char(M(i).f),'x','v','a','P');
+        end
     end
     try
-        f       = feval(M(i).f,x,v,a,M(i).pE);
+        f      = feval(M(i).f,x,v,a,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
             errordlg(sprintf('please check nargout: M(%i).f(x,v,a,P)',i));
         end
@@ -169,7 +172,10 @@ for i = (g - 1):-1:1
     % check g(x,v,P)
     %----------------------------------------------------------------------
     try
-        M(i).g = fcnchk(M(i).g,'x','v','a','P');
+        M(i).g = fcnchk(M(i).g);
+        if nargin(M(i).g) == 3
+            M(i).g = inline(char(M(i).g),'x','v','a','P');
+        end
     end
     try
         M(i).m = length(spm_vec(v));

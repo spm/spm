@@ -13,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_MMN.m 4712 2012-04-10 13:22:50Z karl $
  
 
 % level 1
@@ -37,14 +37,16 @@ B.g     = [ 0  1;
             1  0];                           % The mixing parameters
 B.f     = A.f;
  
-        
+
+D       = 0;                                 % drug effect
+
 M(1).f  = inline('P.f*x + [v; 0]','x','v','P');
 M(1).g  = inline('P.g*x + [0; 16]','x','v','P');
 M(1).pE = A;                                 % The prior expectation
 M(1).pC = pC;                                % The prior covariance
 M(1).Q  = {eye(2)};                          % error precision (data)
-M(1).hE = 4;                                 % error log-precision prior
-M(1).hC = 1/32;                              % error log-precision prior
+M(1).hE = 4 + D;                             % error log-precision prior
+M(1).hC = exp(-4 - D);                       % error log-precision prior
 M(1).W  = exp(16);                           % error log-precision prior
  
 % level 2
@@ -54,12 +56,12 @@ M(2).V  = exp(16);                           % error precision (cause)
  
 % The input here is simply a bump [Gaussian] function.
 %==========================================================================
-n       = 5;                                 % number of trials
-N       = 64;                                % length of data sequence
+n       = 7;                                 % number of trials
+N       = 48;                                % length of data sequence
 dt      = 0.005;                             % time bin (sec)
 T       = N*dt;                              % duration of chirp (sec)
 t       = [1:N]*dt;                          % time bin (sec)
-c       = exp(-([1:N] - 20).^2/(4.^2));      % this is the Gaussian cause
+C       = exp(-([1:N] - 20).^2/(4.^2));      % this is the Gaussian cause
  
  
 % DEM estimation:  Here we expose the model M to the data and record the
@@ -87,17 +89,17 @@ for i = 1:(n + 2);
     % Change stimulus
     %----------------------------------------------------------------------
     if i <= 2
-        DEM{i} = spm_DEM_generate(M,c,A,{16 16},{16 []});
+        DEM{i} = spm_DEM_generate(M,C,A,{16 16},{16 []});
     else
-        DEM{i} = spm_DEM_generate(M,c,B,{16 16},{16 []});
+        DEM{i} = spm_DEM_generate(M,C,B,{16 16},{16 []});
     end
-    DEM{i}.U = c;
+    DEM{i}.U = C;
     
     % Invert
     %---------------------------------------------------------------------- 
     DEM{i}  = spm_DEM(DEM{i});           % compute conditional densities
     M(1).pE = DEM{i}.qP.P{1};            % update parameter estimates
-    M(1).hE = DEM{i}.qH.h{1};            % update hyperparameter estimates
+    M(1).hE = DEM{i}.qH.h{1} + D;        % update hyperparameter estimates
 end
 DEM   = DEM(2:end);                      % discard burn-in trial
 

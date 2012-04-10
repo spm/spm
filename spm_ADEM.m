@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: spm_ADEM.m 4712 2012-04-10 13:22:50Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -485,14 +485,15 @@ for iE = 1:nE
         
         % dE/da with restriction
         %------------------------------------------------------------------
-        dE.da = dE.dy*dydv*(dgda + dgdx*Dfdx*dfda);
         dE.dv = dE.dy*dydv;
+        dE.da = dE.dv*(dgda + dgdx*Dfdx*dfda);
         
         
         % first-order derivatives
         %------------------------------------------------------------------
         dVdu  = -dE.du'*iS*E - Pu*spm_vec({qu.x{1:n} qu.v{1:d}}) - dWdu/2;
         dVda  = -dE.da'*iG*E - Pa*spm_vec( qu.a{1:1});
+        
         
         % and second-order derivatives
         %------------------------------------------------------------------
