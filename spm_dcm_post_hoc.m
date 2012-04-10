@@ -59,7 +59,7 @@ function spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4709 2012-04-05 19:42:50Z karl $
+% $Id: spm_dcm_post_hoc.m 4711 2012-04-10 13:20:39Z karl $
 
 % get filenames
 %--------------------------------------------------------------------------
@@ -372,6 +372,8 @@ if repeat
     save('tmp','P'),  clear, load tmp;
     spm_dcm_post_hoc(P);
     return
+else
+    try, delete('tmp.mat'), end
 end
 
 % Show full and reduced conditional estimates (for last DCM)
