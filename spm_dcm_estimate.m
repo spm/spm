@@ -48,7 +48,7 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_dcm_estimate.m 4715 2012-04-17 13:28:41Z klaas $
 
 
 %-Load DCM structure
@@ -68,6 +68,7 @@ if ~nargin
     spm('FigName','Estimation in progress');
     
 end
+
 if isstruct(P)
     DCM = P;
     P   = ['DCM-' date '.mat'];
@@ -340,6 +341,10 @@ DCM.F      = F;
 DCM.ID     = ID;
 DCM.AIC    = evidence.aic_overall;
 DCM.BIC    = evidence.bic_overall;
+
+% Save SPM version and revision number of code used
+%--------------------------------------------------------------------------
+[DCM.version.revision,DCM.version.SPM] = spm('Ver','spm_dcm_estimate.m');
 
 %-Save DCM
 %--------------------------------------------------------------------------

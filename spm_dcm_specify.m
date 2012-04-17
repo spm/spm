@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify(SPM,xY)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_dcm_specify.m 4715 2012-04-17 13:28:41Z klaas $
 
 
 %-Interactive window
@@ -145,12 +145,12 @@ b     = zeros(m,m,nc);
 c     = zeros(m,nc);
 d     = zeros(m,m,0);
 
-%-Intrinsic connections (A matrix)
+%-Endogenous connections (A matrix)
 %==========================================================================
 
 %-Buttons and labels
 %--------------------------------------------------------------------------
-spm_input('Specify intrinsic connections from',1,'d')
+spm_input('Specify endogenous (fixed) connections from',1,'d')
 spm_input('to',3,'d')
 for i = 1:m
     str    = sprintf('%s %i',xY(i).name,i);
@@ -229,7 +229,7 @@ for k = 1:nc
         for j = 1:m
             if a(i,j) == 1
 
-                % Allow modulation of intrinsic connections
+                % Allow modulation of endogenous connections
                 %----------------------------------------------------------
                 h3(i,j) = uicontrol(Finter,...
                     'Position',[220+dx*j 360-dx*i 020 020].*WS,...
@@ -281,7 +281,7 @@ if options.nonlinear
             for j = 1:m
                 if a(i,j)==1
 
-                    % Allow modulation of intrinsic connections
+                    % Allow modulation of endogenous connections
                     %------------------------------------------------------
                     h4(i,j) = uicontrol(Finter,...
                         'Position',[220+dx*j 360-dx*i 020 020].*WS,...
