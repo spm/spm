@@ -7,11 +7,11 @@ function [y,scalefactor] = spm_cond_units(y,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cond_units.m 4052 2010-08-27 19:22:44Z karl $
+% $Id: spm_cond_units.m 4720 2012-04-19 15:38:20Z karl $
  
 % default n = 3
 %--------------------------------------------------------------------------
-try, n; catch, n = 3; end
+try, n; catch, n = 1; end
 
 switch lower(n)
     
@@ -34,7 +34,7 @@ switch lower(n)
         % rescale
         %------------------------------------------------------------------
         d           = spm_vec(y);
-        scalefactor = norm(d(~isnan(d)),1);
+        scalefactor = std(d(~isnan(d)));
         scalefactor = (10^n)^-round(log10(scalefactor)/n);
         y           = spm_unvec(d*scalefactor,y);
 end
