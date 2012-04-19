@@ -61,7 +61,7 @@ function [y] = spm_int_sde(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_sde.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int_sde.m 4719 2012-04-19 15:36:15Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -115,13 +115,9 @@ catch
     g = inline(char(g),'x','v','P','M');
 end
 
-% check for delay operator
+% default delay operator
 %--------------------------------------------------------------------------
-try
-    [fx dfdx D] = f(x,u,P,M);
-catch
-    D = 1;
-end
+D = 1;
 
 % dfdw
 %--------------------------------------------------------------------------
@@ -137,22 +133,24 @@ for i = 1:size(U.u,1)
 
     % input
     %----------------------------------------------------------------------
-    try
-        u  = U.u(i,:);
-    end
+    u  = U.u(i,:);
 
     % dx(t)/dt and Jacobian df/dx
     %----------------------------------------------------------------------
-    try
-        [fx dfdx] = f(x,u,P,M);
-    catch
-        fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
+    if nargout(f) == 3
+        [fx dfdx D] = f(x,u,P,M);
+        
+    elseif nargout(f) == 2
+        [fx dfdx]   = f(x,u,P,M);
+        
+    else
+        fx          = f(x,u,P,M);
+        dfdx        = spm_cat(spm_diff(f,x,u,P,M,1));
     end
-
+    
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
-    x  = spm_unvec(spm_vec(x) + spm_sde_dx(dfdx,dfdw,fx,dt),x);
+    x  = spm_unvec(spm_vec(x) + spm_sde_dx(D*dfdx,dfdw,D*fx,dt),x);
     
 
     % output - implement g(x)

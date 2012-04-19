@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_kernels.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_kernels.m 4719 2012-04-19 15:36:15Z karl $
 
 
 % assign inputs
@@ -102,22 +102,22 @@ M0    = full(M0);
 
 % pre-compute exponentials
 %--------------------------------------------------------------------------
-e1    = sparse(expm( dt*M0));
-e2    = sparse(expm(-dt*M0));
-for p = 1:m
-    M{1,p} = e1*M1{p}*e2;
-end
-for i = 2:N
+e     = spm_expm(dt*M0);
+e1    = 1;
+for i = 1:N
+    e1    = e*e1;
+    e2    = spm_pinv(e1);   
     for p = 1:m
-        M{i,p} = e1*M{i - 1,p}*e2;
+        M{i,p} = e1*M1{p}*e2;
     end
 end
+
 
 % 0th order kernel
 %--------------------------------------------------------------------------
 X0    = sparse(1,1,1,n,1);
 if nargout > 0
-    H0    = e1^N*X0;
+    H0    = e^N*X0;
     K0    = L1*H0;
 end
 
@@ -153,7 +153,7 @@ if nargout > 2
         end
     end
 
-    if isempty(L2) return, end
+    if isempty(L2), return, end
 
     % add output nonlinearity
     %----------------------------------------------------------------------

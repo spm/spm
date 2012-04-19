@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4713 2012-04-10 13:25:39Z karl $
+% $Id: spm_nlsi_N.m 4719 2012-04-19 15:36:15Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -270,20 +270,26 @@ ibC   = spm_cat(spm_diag({ipC,igC,iuC}));      % all parameters
 Ep    = M.P;
 Eg    = M.gE;
 Eu    = spm_pinv(dgdu)*spm_vec(y);
-warning(sw);
- 
-% EM
-%==========================================================================
-C.F   = -Inf;                                 % free-energy: f(x,u,p)
-v     = 0;                                    % ascent rate: f(x,u,p)
-dFdh  = zeros(nh,1);
-dFdhh = zeros(nh,nh);
-sw    = warning('off','all');
- 
- 
+
 % expansion point
 %--------------------------------------------------------------------------
 x0     = ones(size(y,1),1)*spm_vec(M.x)';
+
+
+
+% EM
+%==========================================================================
+warning(sw); sw = warning('off','all');
+criterion       = [0 0 0 0];
+
+C.F   = -Inf;                                   % free energy
+v     = -4;                                     % log ascent rate
+dFdh  = zeros(nh,1);
+dFdhh = zeros(nh,nh);
+
+ 
+
+
  
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
@@ -291,7 +297,7 @@ for ip = 1:64
  
     % time
     %----------------------------------------------------------------------  
-    Ti = clock;
+    Ti = tic;
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
@@ -438,15 +444,14 @@ for ip = 1:64
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; 
-        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),etime(clock,Ti))
+        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(Ti))
     catch
         F0 = F;
     end
      
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F
+    if F > C.F || ip < 4
         
         % update gradients and curvature
         %------------------------------------------------------------------
@@ -480,7 +485,7 @@ for ip = 1:64
  
         % and increase regularization
         %------------------------------------------------------------------
-        v     = min(v - 2,0);
+        v     = min(v - 2,-4);
         str   = 'EM(-)';
  
     end
@@ -497,7 +502,7 @@ for ip = 1:64
     if length(Y.pst) == size(yp,1)
         yt = Y.pst;
     else
-        yt = [1:size(yp,1)]*Y.dt*1000;
+        yt = (1:size(yp,1))*Y.dt*1000;
     end
  
     % graphics
@@ -547,16 +552,16 @@ for ip = 1:64
     dF  = dFdp'*dp;
     ig  = max([0 ig]);
     fprintf('%-6s: %-2i (%i,%i) %4s %-6.3e %6s %6.3e ',str,ip,ig,ih,'F:',full(C.F - F0),'dF predicted:',full(dF))
-    if ip > 2 && dF < 1e-2
-        fprintf(' convergence\n')
-        break
-    end
+    
+    criterion = [(dF < 1e-1) criterion(1:end - 1)];
+    if all(criterion), fprintf(' convergence\n'), break, end
+    
 end
  
 % outputs
 %--------------------------------------------------------------------------
-Cp     = Vp*Cb([1:np],     [1:np]     )*Vp';
-Cg     = Vg*Cb([1:ng] + np,[1:ng] + np)*Vg';
+Cp     = Vp*Cb((1:np),     (1:np)     )*Vp';
+Cg     = Vg*Cb((1:ng) + np,(1:ng) + np)*Vg';
 F      = C.F;
 L      = C.L;
 warning(sw);

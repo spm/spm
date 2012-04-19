@@ -36,16 +36,12 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4401 2011-07-21 12:34:46Z karl $
+% $Id: spm_bireduce.m 4719 2012-04-19 15:36:15Z karl $
 
 
 % set up
 %==========================================================================
-try
-    Q;
-catch
-    Q = 1;
-end
+if nargin < 3, Q = 1; end
 
 % create inline functions
 %--------------------------------------------------------------------------
@@ -60,7 +56,7 @@ end
 
 % expansion pointt
 %--------------------------------------------------------------------------
-x     = M.x;           
+x     = M.x;
 try
     u = spm_vec(M.u);
 catch

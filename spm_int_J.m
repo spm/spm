@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 4517 2011-10-07 19:19:59Z karl $
+% $Id: spm_int_J.m 4719 2012-04-19 15:36:15Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -115,42 +115,43 @@ catch
     g = inline(char(g),'x','v','P','M');
 end
 
-% check for delay operator
+% default delay operator
 %--------------------------------------------------------------------------
-try
-    [fx dfdx D] = f(x,u,P,M);
-catch
-    D = 1;
-end
+D = 1;
+
 
 
 % integrate
 %==========================================================================
 for i = 1:size(U.u,1)
-
+    
     % input
     %----------------------------------------------------------------------
     try
         u = U.u(i,:);
     end
-
+    
     % dx(t)/dt and Jacobian df/dx
     %----------------------------------------------------------------------
-    try
-        [fx dfdx] = f(x,u,P,M);
-    catch
-        fx        = f(x,u,P,M);
-        dfdx      = spm_diff(f,x,u,P,M,1);
+    if nargout(f) == 3
+        [fx dfdx D] = f(x,u,P,M);
+        
+    elseif nargout(f) == 2
+        [fx dfdx]   = f(x,u,P,M);
+        
+    else
+        fx          = f(x,u,P,M);
+        dfdx        = spm_cat(spm_diff(f,x,u,P,M,1));
     end
-
+    
     % update dx = (expm(dt*J) - I)*inv(J)*fx
     %----------------------------------------------------------------------
     x      = spm_unvec(spm_vec(x) + spm_dx(D*dfdx,D*fx,dt),x);
-
+    
     % output - implement g(x)
     %----------------------------------------------------------------------
     y(:,i) = spm_vec(g(x,u,P,M));
-
+    
 end
 
 % transpose

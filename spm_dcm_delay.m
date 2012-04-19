@@ -1,6 +1,7 @@
 function [Q,J] = spm_dcm_delay(M,P,D)
 % returns the delay operator for flow and Jacobians of dynamical systems
 % FORMAT [Q,J] = spm_dcm_delay(M,P,D)
+% FORMAT [Q,J] = spm_dcm_delay(M,P)
 %
 % M   - model specification structure
 % Required fields:
@@ -21,11 +22,62 @@ function [Q,J] = spm_dcm_delay(M,P,D)
 %                                 = Q(d)*f(x(t))
 % J     - Jacobian  = df/dt = (where delayed Jacobian = Q*J)
 %
+% If the delay martix is not specifed it is computed from its parameters in
+% P.D
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_delay.m 4261 2011-03-24 16:39:42Z karl $
+% $Id: spm_dcm_delay.m 4719 2012-04-19 15:36:15Z karl $
+
+
+% evaluate delay matrix D from parameters
+%==========================================================================
+if nargin < 3
+    
+    % paramterised delays
+    %----------------------------------------------------------------------
+    if isfield(P,'D')
+        
+        % number of states per sources
+        %------------------------------------------------------------------
+        nx  = size(M.x,2);
+        
+        % get prior means (log-delays)
+        %------------------------------------------------------------------
+        if isfield(M,'pF')
+            di = M.pF.D(1);                    % intrinsic delays (ms)
+            de = M.pF.D(2);                    % extrinsic delays (ms)
+        else
+            di = 1;
+            de = 16;
+            
+        end
+        
+        % delay matrix D
+        %------------------------------------------------------------------
+        De  = exp(P.D);
+        Di  = diag(diag(De));
+        De  = De - Di;
+        De  = De*de/1000;
+        Di  = Di*di/1000;
+        De  = kron(ones(nx,nx),De);
+        Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
+        D   = Di + De;
+        
+    else
+        
+        % no delays
+        %------------------------------------------------------------------
+        if nargout < 2
+            Q = sparse(1);
+            return
+        else
+            D = sparse(0);
+        end
+    end
+end
+
  
 % create inline functions
 %--------------------------------------------------------------------------
@@ -42,7 +94,8 @@ end
 %--------------------------------------------------------------------------
 try, x = spm_vec(M.x); catch,  x = sparse(M.n,1); end
 try, u = spm_vec(M.u); catch,  u = sparse(M.m,1); end
- 
+
+
 % Jacobian and delay operator
 %==========================================================================
  

@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_nlsi_GN.m 4719 2012-04-19 15:36:15Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -371,15 +371,14 @@ for k = 1:128
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; 
-        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(tStart))
+        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(tStart))
     catch
         F0 = F;
     end
  
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
-    if F > C.F
+    if F > C.F || k < 4
  
         % accept current estimates
         %------------------------------------------------------------------
@@ -511,7 +510,7 @@ for k = 1:128
     dF  = dFdp'*dp;
     fprintf('%-6s: %i %6s %-6.3e %6s %.3e ',str,k,'F:',full(C.F - F0),'dF predicted:',full(dF))
     
-    criterion = [(dF < 1e-2) criterion(1:end - 1)];
+    criterion = [(dF < 1e-1) criterion(1:end - 1)];
     if all(criterion), fprintf(' convergence\n'), break, end
  
 end
