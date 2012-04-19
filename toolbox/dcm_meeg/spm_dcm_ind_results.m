@@ -1,4 +1,4 @@
-function [DCM] = spm_dcm_ind_results(DCM,Action)
+function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Results for induced Dynamic Causal Modelling (DCM)
 % FORMAT [DCM] = spm_dcm_ind_results(DCM,Action);
 % Action:
@@ -32,15 +32,12 @@ function [DCM] = spm_dcm_ind_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4578 2011-11-30 18:12:50Z vladimir $
+% $Id: spm_dcm_ind_results.m 4718 2012-04-19 15:34:45Z karl $
  
  
-% get figure handle
+% set up
 %--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
-colormap(gray)
-figure(Fgraph)
-clf
+if nargin < 3, spm_figure('GetWin','Graphics'); end, colormap(gray), clf
  
 xY     = DCM.xY;
 xU     = DCM.xU;

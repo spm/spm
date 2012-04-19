@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 4710 2012-04-05 19:45:05Z karl $
+% $Id: spm_fx_mfm.m 4718 2012-04-19 15:34:45Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -165,15 +165,26 @@ for k = 1:nc
     a(:,k) = A{k}*m(:,end);
 end
  
-% Exogenous input (to first population x{:,1})
-%--------------------------------------------------------------------------
-U     = C*u(:);
+% input
+%==========================================================================
+if isfield(M,'u')
+    
+    % endogenous input
+    %----------------------------------------------------------------------
+    U = u(:);
+    
+else
+    % exogenous input
+    %----------------------------------------------------------------------
+    U = C*u(:);
+end
 
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------
-try
-    B = exp(P.X)/8;
-catch
+if isfield(P,'U')
+    
+    B = exp(P.U)/8;
+else
     B = 0;
 end
  

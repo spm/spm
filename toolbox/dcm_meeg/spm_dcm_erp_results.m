@@ -1,4 +1,4 @@
-function [DCM] = spm_dcm_erp_results(DCM,Action)
+function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Results for ERP Dynamic Causal Modeling (DCM)
 % FORMAT spm_dcm_erp_results(DCM,'ERPs (mode)');
 % FORMAT spm_dcm_erp_results(DCM,'ERPs (sources)');
@@ -9,9 +9,10 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % FORMAT spm_dcm_erp_results(DCM,'Input');
 % FORMAT spm_dcm_erp_results(DCM,'Response');
 % FORMAT spm_dcm_erp_results(DCM,'Response (image)');
+% FORMAT spm_dcm_erp_results(DCM,'Scalp maps');
 % FORMAT spm_dcm_erp_results(DCM,'Data');
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % DCM is a causal modelling procedure for dynamical systems in which
 % causality is inherent in the differential equations that specify the model.
@@ -29,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4367 2011-06-15 17:04:45Z vladimir $
+% $Id: spm_dcm_erp_results.m 4718 2012-04-19 15:34:45Z karl $
 
 
 % get Action if necessary
@@ -56,11 +57,10 @@ if nargin < 2
     
 end
 
-% get figure handle
+% get figure
 %--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
+if nargin < 3, spm_figure('GetWin','Graphics'); end
 colormap(gray)
-figure(Fgraph)
 clf
 
 % trial data
@@ -80,7 +80,7 @@ switch(lower(Action))
             for i = 1:nt
                 
                 % confounds if specified
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 try
                     X0 = spm_orth(xY.X0(1:nb,:),'norm');
                     R  = speye(nb,nb) - X0*X0';
@@ -89,7 +89,7 @@ switch(lower(Action))
                 end
                 
                 % plot data
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 subplot(nt,2,(i - 1)*2 + 1)
                 plot(t,R*xY.xy{i})
                 xlabel('time (ms)')
@@ -104,7 +104,7 @@ switch(lower(Action))
                 A(2) = max(A(2),a(4));
                 
                 % image data
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 subplot(nt,2,(i - 1)*2 + 2)
                 imagesc([1:ne],t,R*xY.xy{i})
                 xlabel('channels');ylabel('peri-stimulus time (ms)')
@@ -117,7 +117,7 @@ switch(lower(Action))
             end
             
             % set axis
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             for i = 1:nt
                 subplot(nt,2,(i - 1)*2 + 1)
                 set(gca,'YLim',A)
@@ -140,7 +140,7 @@ switch(lower(Action))
     case{lower('ERPs (mode)')}
         
         % spm_dcm_erp_results(DCM,'ERPs (mode)');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         co = {'b', 'r', 'g', 'm', 'y', 'k'};
         lo = {'-', '--'}; A = [0 0];
         
@@ -170,7 +170,7 @@ switch(lower(Action))
         legend(str)
         
         % set axis
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         for i = 1:nc
             subplot(ceil(nc/2),2,i)
             set(gca,'YLim',A)
@@ -179,14 +179,14 @@ switch(lower(Action))
     case{lower('ERPs (sources)')}
         
         % spm_dcm_erp_results(DCM,'ERPs (sources)');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         col   = {'b','r','g','m','y','c'}; A = [0 0];
         for i = 1:ns
             str   = {};
             subplot(ceil(ns/2),2,i), hold on
             
             % if J maps from states to sources, use J (a matrix)
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             if strcmpi(DCM.options.model,'DEM')
                 
                 for j = find(DCM.Eg.J(i,:))
@@ -201,7 +201,7 @@ switch(lower(Action))
             else
                 
                 % otherwise assume normal form for states (source x states)
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 for j = 1:np
                     for k = 1:nt
                         if j == np
@@ -230,7 +230,7 @@ switch(lower(Action))
         legend(str)
         
         % set axis
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         for i = 1:ns
             subplot(ceil(ns/2),2,i)
             axis([t(1) t(end) A(1) A(2)]);
@@ -239,14 +239,14 @@ switch(lower(Action))
     case{lower('Coupling (A)')}
         
         % spm_dcm_erp_results(DCM,'coupling (A)');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'A'), return, end
         str   = {'Forward','Backward','Lateral'};
         
         for i = 1:length(DCM.Ep.A)
             
             % images
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,3,i)
             imagesc(exp(DCM.Ep.A{i}))
             title(str{i},'FontSize',10)
@@ -257,14 +257,14 @@ switch(lower(Action))
             axis square
             
             % table
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,3,i + 3)
             text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
             axis off,axis square
             
             
             % PPM
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,3,i + 6)
             image(64*DCM.Pp.A{i})
             set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -273,7 +273,7 @@ switch(lower(Action))
             axis square
             
             % table
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,3,i + 9)
             text(0,1/2,num2str(DCM.Pp.A{i},' %.2f'),'FontSize',8)
             axis off, axis square
@@ -283,11 +283,11 @@ switch(lower(Action))
     case{lower('Coupling (C)')}
         
         % spm_dcm_erp_results(DCM,'coupling (C)');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'C'), return, end
         
         % images
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,4,1)
         imagesc(exp(DCM.Ep.C))
         title('Factors','FontSize',10)
@@ -296,7 +296,7 @@ switch(lower(Action))
         axis square
         
         % PPM
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,4,3)
         image(64*DCM.Pp.C)
         title('Factors','FontSize',10)
@@ -306,13 +306,13 @@ switch(lower(Action))
         title('PPM')
         
         % table
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,4,2)
         text(0,1/2,num2str(full(exp(DCM.Ep.C)),' %.2f'),'FontSize',8)
         axis off
         
         % table
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,4,4)
         text(0,1/2,num2str(DCM.Pp.C,' %.2f'),'FontSize',8)
         axis off
@@ -321,13 +321,13 @@ switch(lower(Action))
     case{lower('Coupling (B)')}
         
         % spm_dcm_erp_results(DCM,'coupling (B)');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'B'), return, end
         
         for i = 1:length(DCM.Ep.B)
             
             % images
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,nu,i)
             imagesc(exp(DCM.Ep.B{i}))
             title(DCM.xU.name{i},'FontSize',10)
@@ -338,14 +338,14 @@ switch(lower(Action))
             axis square
             
             % tables
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,nu,i + nu)
             text(0,1/2,num2str(full(exp(DCM.Ep.B{i})),' %.2f'),'FontSize',8)
             axis off
             axis square
             
             % PPM
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,nu,i + 2*nu)
             image(64*DCM.Pp.B{i})
             set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -354,7 +354,7 @@ switch(lower(Action))
             axis square
             
             % tables
-            %------------------------------------------------------------------
+            %--------------------------------------------------------------
             subplot(4,nu,i + 3*nu)
             text(0,1/2,num2str(DCM.Pp.B{i},' %.2f'),'FontSize',8)
             axis off
@@ -365,21 +365,21 @@ switch(lower(Action))
     case{lower('trial-specific effects')}
         
         % spm_dcm_erp_results(DCM,'trial-specific effects');
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'B'), return, end
         
         for i = 1:ns
             for j = 1:ns
                 
                 % ensure connection is enabled
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 q     = 0;
                 for k = 1:nu
                     q = q | DCM.B{k}(i,j);
                 end
                 
                 % plot trial-specific effects
-                %--------------------------------------------------------------
+                %----------------------------------------------------------
                 if q
                     B     = zeros(nt,1);
                     for k = 1:nu
@@ -401,7 +401,7 @@ switch(lower(Action))
     case{lower('Input')}
         
         % plot data
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         xU    = DCM.xU;
         tU    = t - t(1);
         U     = spm_erp_u(tU/1000,DCM.Ep,DCM.M);
@@ -419,7 +419,7 @@ switch(lower(Action))
     case{lower('Response')}
         
         % get spatial projector
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         try
             U = DCM.M.E';
         catch
@@ -427,7 +427,7 @@ switch(lower(Action))
         end
         
         % plot data
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         try
             A     = [];
             for i = 1:nt
@@ -465,7 +465,7 @@ switch(lower(Action))
     case{lower('Response (image)')}
         
         % get spatial projector
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         try
             U = DCM.M.E';
         catch
@@ -474,7 +474,7 @@ switch(lower(Action))
         
         
         % plot data
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         try
             for i = 1:nt
                 subplot(nt,2,2*i - 1)
@@ -500,7 +500,7 @@ switch(lower(Action))
     case{lower('Scalp maps')}
         
         % get spatial projector
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         try
             U = DCM.M.E';
         catch
@@ -510,29 +510,29 @@ switch(lower(Action))
         try
             pos = DCM.xY.coor2D;
         catch
-            [xy, label] = spm_eeg_project3D(DCM.M.dipfit.sens, DCM.xY.modality);
+            [xy, label]  = spm_eeg_project3D(DCM.M.dipfit.sens, DCM.xY.modality);
             [sel1, sel2] = spm_match_str(DCM.xY.name, label);
             pos = xy(:, sel2);
         end
         
         ns = 5; %number of time frames
         
-        in = [];
-        in.type = DCM.xY.modality;
-        in.f = Fgraph;
+        in           = [];
+        in.type      = DCM.xY.modality;
+        in.f         = gcf;
         in.noButtons = 1;
-        in.cbar = 0;
-        in.plotpos = 0;
+        in.cbar      = 0;
+        in.plotpos   = 0;
         
         % plot data
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         
         for i = 1:nt
             Yo  = (DCM.H{i} + DCM.R{i})*U;
             Yp  = DCM.H{i}*U;
             
             for j = 1:ns
-                ind = ((j-1)*floor(nb/ns)+1):j*floor(nb/ns);
+                ind    = ((j-1)*floor(nb/ns)+1):j*floor(nb/ns);
                 
                 in.max = max(abs(mean(Yo(ind, :))));
                 in.min = -in.max;
@@ -553,14 +553,14 @@ switch(lower(Action))
         
         
         % return if LFP
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         if strcmpi(DCM.xY.modality,'lfp')
             warndlg('There are no ECDs for these LFP data')
             return
         end
         
         % plot dipoles
-        % ---------------------------------------------------------------------
+        % -----------------------------------------------------------------
         switch DCM.options.spatial
             
             case{'ECD'}

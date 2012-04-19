@@ -15,22 +15,29 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 4596 2011-12-19 13:08:53Z karl $
+% $Id: spm_gen_erp.m 4718 2012-04-19 15:34:45Z karl $
 
-% within-trial inputs
+% default inputs - one trial (no between-tria effects)
+%--------------------------------------------------------------------------
+if nargin < 3, U.X = sparse(1,0); end
+
+% within-trial (exogenous) inputs
 %==========================================================================
+if ~isfield(U,'u')
+    
+    % check input u = f(t,P,M)
+    %----------------------------------------------------------------------
+    try, fu  = M.fu; catch,  fu  = 'spm_erp_u'; end
+    try, ns  = M.ns; catch,  ns  = 128;         end
+    try, dt  = U.dt; catch,  dt  = 0.004;       end
+    
+    % peri-stimulus time inputs
+    %----------------------------------------------------------------------
+    U.u = feval(fu,(1:ns)*U.dt,P,M);
+    
+end
 
-% check input u = f(t,P,M)
-%--------------------------------------------------------------------------
-try, fu  = M.fu; catch,  fu  = 'spm_erp_u'; end
-try, ns  = M.ns; catch,  ns  = 128;         end
-try, dt  = U.dt; catch,  dt  = 0.004;       end
-
-% peri-stimulus time inputs
-%--------------------------------------------------------------------------
-U.u = feval(fu,[1:ns]*U.dt,P,M);
-
-% between-trial inputs
+% between-trial (experimental) inputs
 %==========================================================================
 try
     X = U.X;
@@ -41,15 +48,6 @@ catch
     X = sparse(1,0);
 end
 
-% solve for fixed point (i.e., 64 ms burn in)
-%--------------------------------------------------------------------------
-S     = M;
-S.g   = {};
-V.u   = sparse(8,S.m);
-V.dt  = 8/1000;
-x     = spm_int_L(P,S,V);
-x     = spm_unvec(x(end,:),S.x);
-M.x   = x;
 
 % cycle over trials
 %--------------------------------------------------------------------------
@@ -63,18 +61,15 @@ for  c = 1:size(X,1)
     % trial-specific effects
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-
-      Q.A{1} = Q.A{1} + X(c,i)*P.B{i};          % Forward  connections 
-      Q.A{2} = Q.A{2} + X(c,i)*P.B{i};          % Backward connections
-      Q.A{3} = Q.A{3} + X(c,i)*P.B{i};          % Lateral connections 
-      
-      % for cmc
-      try 
-          Q.A{4} = Q.A{4} + X(c,i)*P.B{i};         % Backward connections 
-      end
-      
+        
+        % extrinsic (forward and backwards) connections
+        %------------------------------------------------------------------
+        for j = 1:length(Q.A)
+            Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
+        end
+        
         % intrinsic connections
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         try
             Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
         catch
@@ -82,10 +77,14 @@ for  c = 1:size(X,1)
         end
         
     end
+    
+    % solve for steady-state - for each condition
+    %----------------------------------------------------------------------
+    M.x  = spm_dcm_neural_x(Q,M);
 
     % integrate DCM for this trial
     %----------------------------------------------------------------------
-    y{c}      = spm_int_L(Q,M,U);
+    y{c} = spm_int_L(Q,M,U);
 
 end
 

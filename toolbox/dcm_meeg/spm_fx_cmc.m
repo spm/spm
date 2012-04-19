@@ -34,31 +34,27 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4714 2012-04-10 13:30:44Z karl $
+% $Id: spm_fx_cmc.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-M.u   = u;                          % place inputs in M
 x     = spm_unvec(x,M.x);           % neuronal states
-[n m] = size(x);                    % number of sources and states  
- 
- 
+n     = size(x,1);                  % number of sources
+
+
 % [default] fixed parameters
 %--------------------------------------------------------------------------
 E  = [1 1/2 1 1/2]*200;             % extrinsic (forward and backward)  
 G  = [4 4 4 4 4 2 4 4 2 1]*200;     % intrinsic connections
-D  = [1 16];                        % delays (intrinsic, extrinsic)
 T  = [2 2 16 28];                   % synaptic time constants
 R  = 2/3;                           % slope of sigmoid activation function
  
-
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 if isfield(M,'pF')
     try, E = M.pF.E; end
     try, G = M.pF.G; end
-    try, D = M.pF.D; end
     try, T = M.pF.T; end
     try, R = M.pF.R; end
 end
@@ -81,11 +77,21 @@ C    = exp(P.C);
 %--------------------------------------------------------------------------
 R    = R.*exp(P.S);
 S    = 1./(1 + exp(-R*x)) - 1/2;
- 
-% exogenous input
-%--------------------------------------------------------------------------
-U    = C*u(:);
- 
+
+% input
+%==========================================================================
+if isfield(M,'u')
+    
+    % endogenous input
+    %----------------------------------------------------------------------
+    U = u(:);
+    
+else
+    % exogenous input
+    %----------------------------------------------------------------------
+    U = C*u(:);
+end
+
  
 % time constants and intrinsic connections
 %==========================================================================
@@ -165,19 +171,10 @@ if nargout < 2; return, end
 %
 %    J(d)         = Q(d)df/dx
 %--------------------------------------------------------------------------
-De = exp(P.D);
-Di = diag(diag(De));
-De = De - Di;
-De = De*D(2)/1000;
-Di = Di*D(1)/1000;
-De = kron(ones(m,m),De);
-Di = kron(ones(m,m) - speye(m,m),Di);
-D  = Di + De;
- 
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-[Q,J] = spm_dcm_delay(M,P,D);
+[Q,J] = spm_dcm_delay(M,P);
  
  
 return

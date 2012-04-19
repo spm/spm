@@ -28,7 +28,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % stimulus and noise parameters
 %--------------------------------------------------------------------------
 %    pE.R - onset and dispersion
-%    pE.X - endogenous activity
+%    pE.U - endogenous activity
 %
 % pC - prior (co)variances
 %
@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 4714 2012-04-10 13:30:44Z karl $
+% $Id: spm_dcm_neural_priors.m 4718 2012-04-19 15:34:45Z karl $
  
 % check options
 %==========================================================================
@@ -90,15 +90,7 @@ switch lower(model)
 
         % prior moments on parameters
         %------------------------------------------------------------------
-        [pE,pC] = spm_nfm_priors(A,B,C);
-        
-    % Time frequency model – with input dependent parameters
-    %======================================================================
-    case{'tfm'}
-
-        % prior moments on parameters
-        %------------------------------------------------------------------
-        [pE,pC] = spm_cmc_priors(A,B,C);   
+        [pE,pC] = spm_nfm_priors(A,B,C); 
         
         
     otherwise

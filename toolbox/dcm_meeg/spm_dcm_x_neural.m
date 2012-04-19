@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 4714 2012-04-10 13:30:44Z karl $
+% $Id: spm_dcm_x_neural.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % initial state and equation
@@ -74,15 +74,6 @@ switch lower(model)
         %------------------------------------------------------------------
         x  = spm_x_mfm(P);
         f  = 'spm_fx_mfm';
-        
-    % Time frequency response model - with input dependent parameters
-    %======================================================================
-    case{'tfm'}
- 
-        % inital states and model
-        %------------------------------------------------------------------
-        x  = spm_x_cmc(P);
-        f  = 'spm_fx_tfm';
         
  
     otherwise

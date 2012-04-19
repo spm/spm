@@ -29,7 +29,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 %--------------------------------------------------------------------------
 %    pE.R    - onset and dispersion
 %    pE.D    - delays
-%    pE.X    - exogenous background activity
+%    pE.U    - exogenous background activity
 %
 % pC - prior (co)variances
 %
@@ -46,7 +46,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_nmm_priors.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % disable log zero warning
@@ -64,28 +64,28 @@ pE.S   = 0;                 pC.S = 1/16;
  
 % set intrinic [excitatory] time constants
 %--------------------------------------------------------------------------
-pE.T   = log(ones(n,1));    pC.T = ones(n,1)/16;    % excitatory constants
-pE.G   = log(ones(n,1));    pC.G = ones(n,1)/16;    % intrinsic connections
+pE.T   = log(ones(n,1));    pC.T = ones(n,1)/16;  % excitatory constants
+pE.G   = log(ones(n,1));    pC.G = ones(n,1)/16;  % intrinsic connections
  
 % set extrinsic connectivity
 %--------------------------------------------------------------------------
 Q     = sparse(n,n);
 for i = 1:length(A)
-    A{i} = ~~A{i};
+    A{i}    = ~~A{i};
     pE.A{i} = A{i}*32 - 32;                       % forward
-    pC.A{i} = A{i};                               % backward
-    Q      = Q | A{i};                            % and lateral connections
+    pC.A{i} = A{i}/8;                             % backward
+    Q       = Q | A{i};                           % and lateral connections
 end
  
 for i = 1:length(B)
     B{i} = ~~B{i};
     pE.B{i} = 0*B{i};                             % input-dependent scaling
-    pC.B{i} = B{i};
+    pC.B{i} = B{i}/8;
     Q      = Q | B{i};
 end
 C     = ~~C;
-pE.C   = C*33 - 32;                               % where inputs enter
-pC.C   = C;
+pE.C  = C*32 - 32;                                % where inputs enter
+pC.C  = C/32;
  
 
 % connectivity switches
@@ -120,7 +120,7 @@ pE.D   = [0 0];          pC.D  = [1 1]/64;
 
 % Exogenous background activity
 %--------------------------------------------------------------------------
-pE.X   = 0;              pC.X  = 1/16;
+pE.U   = 0;              pC.U  = 1/16;
 
 % Capacitance
 %--------------------------------------------------------------------------

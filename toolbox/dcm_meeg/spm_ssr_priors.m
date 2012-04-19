@@ -8,10 +8,10 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 %
 % input and noise parameters
 %--------------------------------------------------------------------------
-%    pE.a - amplitude of AR  component
-%    pE.b - amplitude of IID component
-%    pE.c - amplitude of AR  noise (channel specific and non-specific)
-%    pE.d - amplitude of IID noise (channel specific and non-specific)
+%    pE.a - neuronal innovations         - amplitude and exponent
+%    pE.b - channel noise (non-specific) - amplitude and exponent
+%    pE.c - channel noise (specific)     - amplitude and exponent
+%    pE.d - neuronal innovations         - basis set coeficients
 %
 %--------------------------------------------------------------------------
 %
@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4714 2012-04-10 13:30:44Z karl $
+% $Id: spm_ssr_priors.m 4718 2012-04-19 15:34:45Z karl $
  
 % catch
 %--------------------------------------------------------------------------

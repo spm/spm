@@ -1,5 +1,5 @@
-function [DCM] = spm_dcm_csd_results(DCM,Action)
-% Results for ERP Dynamic Causal Modeling (DCM)
+function [DCM] = spm_dcm_csd_results(DCM,Action,fig)
+% Results for CSD (SSR) Dynamic Causal Modeling (DCM)
 % FORMAT spm_dcm_csd_results(DCM,'spectral data');
 % FORMAT spm_dcm_csd_results(DCM,'Coupling (A)');
 % FORMAT spm_dcm_csd_results(DCM,'Coupling (B)');
@@ -33,16 +33,12 @@ function [DCM] = spm_dcm_csd_results(DCM,Action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_dcm_csd_results.m 4718 2012-04-19 15:34:45Z karl $
  
  
-% get figure handle
+% get figure
 %--------------------------------------------------------------------------
-Fgraph = spm_figure('GetWin','Graphics');
-colormap(gray)
-figure(Fgraph)
-clf
-
+if nargin < 3, spm_figure('GetWin','Graphics'); end, colormap(gray), clf
  
 % get action if neccessary
 %--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 function [m,v] = spm_csd_chf(P,M,U)
 % Characteristic (expected) frequency of a NMM
-% FORMAT [G,w] = spm_csd_mtf(P,M,U)
+% FORMAT [G,w] = spm_csd_chf(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
@@ -12,7 +12,7 @@ function [m,v] = spm_csd_chf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_chf.m 4095 2010-10-22 19:37:51Z karl $
+% $Id: spm_csd_chf.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % compute log-spectral density (without noise)

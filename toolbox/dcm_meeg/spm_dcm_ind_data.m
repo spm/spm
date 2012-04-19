@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_dcm_ind_data.m 4718 2012-04-19 15:34:45Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -149,9 +149,9 @@ DCM.options.D = DT;
 
 % Time [ms] of down-sampled data
 %--------------------------------------------------------------------------
-It          = [T1:DT:T2]';               % indices - bins (full)
-Ib          = [B1:DT:B2]';               % indices - bins (pst)
-Is          = [T1:T2]';                  % indices - samples
+It          = (T1:DT:T2)';               % indices - bins (full)
+Ib          = (B1:DT:B2)';               % indices - bins (pst)
+Is          = (T1:T2)';                  % indices - samples
 Ns          = length(Is);                % number of samples
 Nt          = length(It);                % number of bins (full)
 Nb          = length(Ib);                % number of bins (pst)
@@ -177,32 +177,36 @@ catch
     end
 end
  
+% frequency range
+%--------------------------------------------------------------------------
 if TFinput
     DCM.xY.Hz = D.frequencies;
-    DCM.xY.Hz = DCM.xY.Hz(DCM.xY.Hz>=Hz1 & DCM.xY.Hz<=Hz2);
+    DCM.xY.Hz = DCM.xY.Hz(DCM.xY.Hz >= Hz1 & DCM.xY.Hz <= Hz2);
 else
     if (Hz2 - Hz1) > 64, HzD = 2; else, HzD = 1; end
-    DCM.xY.Hz  = Hz1:HzD:Hz2;          % Frequencies
+    DCM.xY.Hz  = Hz1:HzD:Hz2;
 end
- 
-DCM.xY.Nm  = Nm;                       % number of frequency modes
-dt         = 1000/D.fsample;           % sampling interval (ms)
-Nf         = length(DCM.xY.Hz);        % number of frequencies
-if isequal(DCM.xY.modality, 'LFP')
+
+% set parameters of time-frequency data selection
+%--------------------------------------------------------------------------
+DCM.xY.Nm = Nm;                        % number of frequency modes
+if isequal(DCM.xY.modality,'LFP')
     Nr = Nc;
 else
     Nr = size(DCM.C,1);                % number of sources
 end
+dt     = 1000/D.fsample;               % sampling interval (ms)
+Nf     = length(DCM.xY.Hz);            % number of frequencies
 Ne     = length(trial);                % number of ERPs
 Nm     = DCM.xY.Nm;                    % number of frequency modes
  
 if ~TFinput
  
 % get Morelet wavelets
-%--------------------------------------------------------------------------
-    
-    % get induced responses (use previous time-frequency results if possible)
-    %==========================================================================
+%==========================================================================
+
+    % get induced responses (use previous responses if appropriate)
+    %----------------------------------------------------------------------
     try
         if size(DCM.xY.xf,1) == Ne
             if size(DCM.xY.xf,2) == Nr
@@ -274,9 +278,12 @@ if strcmp(DCM.options.spatial, 'ECD')
         %--------------------------------------------------------------------------
         R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
         MAP   = MAP*R;
+        
     else
+        
         warndlg('ECD option can only be used with EEG/MEG/MEGPLANAR channels');
         return;
+        
     end
 elseif strcmp(DCM.options.spatial, 'LFP')
     if strcmp(DCM.xY.modality, 'LFP')
@@ -348,9 +355,9 @@ end
  
 % find frequency modes (over time and sources)
 %--------------------------------------------------------------------------
-Y          = spm_cat(Yz(:));
-[U S]      = spm_svd(Y'*Y,0);
-U          = U(:,1:Nm);
+Y         = spm_cat(Yz(:));
+[U S]     = spm_svd(Y'*Y,0);
+U         = U(:,1:Nm);
  
 % project time-frequency data onto modes
 %--------------------------------------------------------------------------

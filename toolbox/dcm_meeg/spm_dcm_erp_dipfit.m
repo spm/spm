@@ -13,7 +13,6 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 %       DCM.xY.Ic
 %       DCM.Lpos
 %       DCM.options.spatial     - 'ERP', 'LFP' or 'IMG'
-%       DCM.M.dipfit.sensorfile - (for ECD models)
 %
 % fills in:
 %
@@ -35,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_dcm_erp_dipfit.m 4718 2012-04-19 15:34:45Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------

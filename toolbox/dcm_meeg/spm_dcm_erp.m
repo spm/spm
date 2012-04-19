@@ -21,14 +21,14 @@ function DCM = spm_dcm_erp(DCM)
 %   options.Nmodes       - number of spatial models to invert
 %   options.analysis     - 'ERP', 'SSR' or 'IND'
 %   options.model        - 'ERP', 'SEP', 'CMC', 'NMM' or 'MFM'
-%   options.spatial      - 'ERP', 'LFP' or 'IMG'
+%   options.spatial      - 'ECD', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_dcm_erp.m 4718 2012-04-19 15:34:45Z karl $
 
 % check options
 %==========================================================================
@@ -85,7 +85,7 @@ xY.X0  = X0;
 
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
-xY.Q   = {spm_Q(3/4,Ns,1)};
+xY.Q   = {spm_Q(1/2,Ns,1)};
 
 
 %-Inputs
@@ -140,7 +140,7 @@ end
 % priors on spatial model
 %--------------------------------------------------------------------------
 M.dipfit.model = model;
-[gE,gC] = spm_L_priors(M.dipfit);
+[gE,gC]     = spm_L_priors(M.dipfit);
 
 % Set prior correlations (locking trial effects and dipole orientations
 %--------------------------------------------------------------------------
@@ -154,7 +154,7 @@ if symm, gC = spm_dcm_symm(gC,gE); end
 
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
-hE    = 4 - log(var(spm_vec(xY.y)));
+hE    = 8 - log(var(spm_vec(xY.y)));
 hC    = exp(-4);
 
 

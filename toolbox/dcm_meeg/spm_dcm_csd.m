@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_csd.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % check options
@@ -42,17 +42,20 @@ try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
 % Spatial model
 %==========================================================================
 DCM.options.Nmodes = Nm;
- 
-DCM  = spm_dcm_erp_dipfit(DCM, 1);
-Ns   = size(DCM.C,1);                                   % number of sources
-Nc   = DCM.M.dipfit.Nc;
-DCM  = spm_dcm_erp_data(DCM);
 DCM.M.dipfit.model = model;
+
+DCM  = spm_dcm_erp_dipfit(DCM, 1);                  % spatial model
+DCM  = spm_dcm_erp_data(DCM);                       % data
+Ns   = length(DCM.A{1});                            % number of sources
+Nc   = DCM.M.dipfit.Nc;                             % number of channels
+
  
 
-% Design model
+% Design model and exogenous inputs
 %==========================================================================
-if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
+if isempty(DCM.xU.X), DCM.xU.X = sparse(1 ,0); end
+if ~isfield(DCM,'C'), DCM.C    = sparse(Ns,0); end
+if isempty(DCM.xU.X), DCM.C    = sparse(Ns,0); end
 
 % Neural mass model
 %==========================================================================
@@ -101,8 +104,12 @@ DCM.M.pC = pC;
 DCM.M.hE = 8;
 DCM.M.hC = exp(-8);
 DCM.M.m  = Ns;
+
+% specify M.u - endogenous input (fluctuations)
+%--------------------------------------------------------------------------
 DCM.M.u  = sparse(Ns,1);
- 
+
+
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
  

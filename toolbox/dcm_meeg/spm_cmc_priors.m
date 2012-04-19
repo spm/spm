@@ -38,7 +38,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 4348 2011-06-10 20:50:23Z karl $
+% $Id: spm_cmc_priors.m 4718 2012-04-19 15:34:45Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -59,10 +59,10 @@ u     = size(C,2);                                % number of inputs
  
 % restructure adjacency matrices
 %--------------------------------------------------------------------------
-D{1}  = A{1} | A{3};                              % forward
-D{2}  = A{1} | A{3};                              % forward
-D{3}  = A{2} | A{3};                              % backward
-D{4}  = A{2} | A{3};                              % backward
+D{1}  = A{1};                                     % forward  (i)
+D{2}  = A{1};                                     % forward  (ii)
+D{3}  = A{2};                                     % backward (i)
+D{4}  = A{2};                                     % backward (ii)
 A     = D;
  
 % extrinsic connectivity
@@ -71,7 +71,7 @@ Q     = sparse(n,n);
 for i = 1:length(A)
       A{i} = ~~A{i};
     E.A{i} = A{i}*32 - 32;
-    V.A{i} = A{i}/16;
+    V.A{i} = A{i}/8;
     Q      = Q | A{i};                            % and lateral connections
 end
  
@@ -88,7 +88,7 @@ end
 %--------------------------------------------------------------------------
 C      = ~~C;
 E.C    = C*32 - 32;
-V.C    = C - C;
+V.C    = C/32;
  
 % synaptic parameters
 %--------------------------------------------------------------------------

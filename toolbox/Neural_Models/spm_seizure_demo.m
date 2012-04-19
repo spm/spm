@@ -15,7 +15,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 4713 2012-04-10 13:25:39Z karl $ 
+% $Id: spm_seizure_demo.m 4718 2012-04-19 15:34:45Z karl $ 
  
 
 % Model specification
@@ -25,55 +25,70 @@
 %--------------------------------------------------------------------------
 Nc    = 1;
 Ns    = 1;
-type  = 'LFP';
-model = 'TFM';
-dipfit.model = model;
-dipfit.type  = type;
+options.spatial  = 'LFP';
+options.model    = 'CMC';
+options.analysis = 'TFA';
+dipfit.model = options.model;
+dipfit.type  = options.spatial;
 dipfit.Nc    = Nc;
 dipfit.Ns    = Ns;
 
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_neural_priors({0 0 0},{},[1 1],model);
+[pE,pC] = spm_dcm_neural_priors({0 0 0},{},[1 0],options.model);
 [pE,pC] = spm_L_priors(dipfit,pE,pC);
 [pE,pC] = spm_ssr_priors(pE,pC);
-[x,f]   = spm_dcm_x_neural(pE,model);
+[x,f]   = spm_dcm_x_neural(pE,options.model);
 
-% eliminate channel noise and make innovations might
+% eliminate channel noise and make innovations white
 %--------------------------------------------------------------------------
-pE.a    = [  0; -16];
-pE.b    = [-16; -16];
-pE.c    = [-16; -16];
+pE.a    = [  0; -16];                  % log amplitude ang f^(-a) exponent
+pE.b    = [-32; -32];                  % log amplitude ang f^(-a) exponent
+pE.c    = [-32; -32];                  % log amplitude ang f^(-a) exponent
+
+
+% exogenous input-dependent parameters
+%==========================================================================
+np      = length(spm_vec(pE));
+nx      = length(spm_vec(x ));
+nu      = size(pE.C,2);
+i       = spm_fieldindices(pE,'G');
+j       = 4;
+pE.X    = sparse(i(j),2,1,np,nu);
+pC.X    = sparse(np,nu);
+pE.Y    = sparse(np,nx);
+pC.Y    = sparse(np,nx);
+u       = sparse(1,nu);
 
 % create LFP model
 %--------------------------------------------------------------------------
+M.f     = 'spm_fx_tfm';
 M.g     = 'spm_gx_erp';
-M.f     = f;
+M.h     = f;
 M.x     = x;
-M.n     = length(spm_vec(x));
+M.n     = nx;
 M.pE    = pE;
-M.m     = size(pE.C,2);
+M.m     = nu;
 M.l     = Nc;
  
 % Volterra Kernels and transfer functions
 %==========================================================================
 spm_figure('GetWin','Volterra kernels and transfer functions');
- 
-% augment and bi-linearise
-%--------------------------------------------------------------------------
-M.u           = sparse(Ns,1);
-[M0,M1,L1,L2] = spm_bireduce(M,M.pE);
 
-% remove M.u to invoke exogenous inputs
-%--------------------------------------------------------------------------
-M              = rmfield(M,'u');
  
+% augment and bi-linearise (with delays)
+%--------------------------------------------------------------------------
+[f,J,D]       = spm_fx_tfm(x,u,pE,M);
+M.u           = sparse(Ns,1);
+[M0,M1,L1,L2] = spm_bireduce(M,pE,D);
+
+
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
 N          = 64;
 dt         = 1/1000;
-t          = [1:N]*dt*1000;
+t          = (1:N)*dt*1000;
 [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
  
 subplot(2,2,1)
@@ -91,7 +106,8 @@ xlabel('time (ms)')
 
 % compute transfer functions for different inhibitory connections
 %--------------------------------------------------------------------------
-p     = linspace(-4,1.7,32);
+B     = 2.3;
+p     = linspace(-2,B,64);
 for i = 1:length(p)
     P       = pE;
     P.G(4)  = p(i);
@@ -105,9 +121,8 @@ xlabel('frequency {Hz}')
 title('transfer function','FontSize',16)
 drawnow
 
-
 subplot(2,2,4)
-imagesc(p,w,GW)
+imagesc(p,w,log(GW))
 title('transfer functions','FontSize',16)
 ylabel('Frequency')
 xlabel('Inhibitory connection','FontSize',16)
@@ -118,21 +133,22 @@ axis xy
 %==========================================================================
 spm_figure('GetWin','spontaneous fluctuations');
 
+
+% remove M.u to invoke exogenous inputs
+%--------------------------------------------------------------------------
+M     = rmfield(M,'u');
 N     = 512;
-U.dt  = 8/1000;
+U.dt  = 4/1000;
 t     = (1:N)'*U.dt;
 U.u   = sparse(N,M.m);
 
-
-% input
+% exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = 1;
-U.u(:,2) = tanh((t - 2)*2)*1.7;
-X        = spm_int_L(pE,M,U);
-
-R        = U;
-R.u(:,1) = R.u(:,1) + spm_conv(randn(N,1)*exp(4),2);
-LFP      = spm_int_L(pE,M,R);
+U.u(:,1) = exp(-(t - 1).^2*16)*2;
+U.u(:,2) = tanh((t - 1/2)*4)*B;
+X        = spm_int_J(pE,M,U);
+M.W      = inv(diag(sparse(1,1,exp(2),1,M.n) + exp(-32)));
+LFP      = spm_int_sde(pE,M,U);
  
 % plot
 %--------------------------------------------------------------------------
@@ -160,7 +176,7 @@ spm_axis tight
  
 % time-frequency
 %--------------------------------------------------------------------------
-W     = 98;
+W     = 128;
 TFR   = spm_wft(LFP,w*W*U.dt,W);
 subplot(4,1,4)
 imagesc(t,w,abs(TFR));
@@ -169,7 +185,6 @@ axis  xy
 xlabel('time (s)')
 ylabel('Hz')
 drawnow
-
 
 
 % now integrate a generative model to simulate a time frequency response

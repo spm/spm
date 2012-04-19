@@ -42,7 +42,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_dcm_ind.m 4718 2012-04-19 15:34:45Z karl $
  
  
 % check options 
@@ -110,7 +110,12 @@ try, M = rmfield(M,'FS'); end
 %--------------------------------------------------------------------------
 [pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
  
- 
+% hyperpriors (assuming about 99% signal to noise)
+%--------------------------------------------------------------------------
+hE    = 8 - log(var(spm_vec(xY.y)));
+hC    = exp(-4);
+
+
 % likelihood model
 %--------------------------------------------------------------------------
 M.IS  = 'spm_gen_ind';
@@ -121,6 +126,8 @@ M.pE  = pE;
 M.pC  = pC;
 M.gE  = gE;
 M.gC  = gC;
+M.hE  = hE;
+M.hC  = hC;
 M.m   = nu;
 M.n   = nx;
 M.l   = Nr*Nf;
