@@ -16,7 +16,7 @@ function [y,w,t,x] = spm_csd_tfm(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_tfm.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_csd_tfm.m 4721 2012-04-21 08:53:29Z karl $
 
 
 % check input - one trial (no between-tria effects)
@@ -60,7 +60,7 @@ end
 
 % disperson (FWHM) of time-frequency responses
 %==========================================================================
-st    = 512*1e-3/U.dt;
+st    = 4*1e-3/U.dt;
 sw    = 4;
 
 % cycle over trials

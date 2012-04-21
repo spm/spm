@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 06-Apr-2012 19:26:03
+% Last Modified by GUIDE v2.5 19-Apr-2012 17:21:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -45,7 +45,7 @@ end
 
 
 % --- Executes just before Neural_demo is made visible.
-function Neural_demo_OpeningFcn(hObject, eventdata, handles, varargin)
+function Neural_demo_OpeningFcn(hObject, ~, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -55,6 +55,9 @@ function Neural_demo_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for Neural_demo
 handles.output = hObject;
 
+% default paper
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -63,7 +66,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Neural_demo_OutputFcn(hObject, eventdata, handles) 
+function varargout = Neural_demo_OutputFcn(~, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -73,48 +76,80 @@ function varargout = Neural_demo_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 function run_demo_Callback(hObject, handles, file)
-h    = help(file);
+h      = help(file);
 str{1} = [file ':'];
-str{2} = '______________________________________________________________ ';
-str{2} = ' ';
-str{3} = h;
+str{2} = '__________________________________________________________________________ ';
+str{3} = ' ';
+str{4} = h;
 set(handles.help,'String',str);
-drawnow
+handles.file = file;
+guidata(hObject, handles);
 
-% get graphics handle
-spm_figure('GetWin','MFM');
-clf
-eval(file)
+% --- Executes on button press in pushbutton24.
+function pushbutton24_Callback(~, ~, handles)
+set(handles.pushbutton24,'String','please wait')
+drawnow
+try
+    guidata(1,handles);
+catch
+    spm_figure('GetWin','DEM');
+    guidata(1,handles);
+end
+eval(handles.file)
+handles = set(0,'UserData');
+handles = guidata(1);
+set(handles.pushbutton24,'String','run demo')
+
+
+% --- Executes on button press in pushbutton23.
+function pushbutton23_Callback(~, ~, handles)
+try, edit(handles.file); end
+
+% -------------------------------------------------------------------------
+function uipanel7_ButtonDownFcn(~, ~, handles)
+try, web(handles.web);   end
 
 
 % --- Executes on button press in pushbutton1.
-function pushbutton1_Callback(hObject, eventdata, handles)
+function pushbutton1_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/A%20neural%20mass%20model%20for%20MEG.pdf';
 run_demo_Callback(hObject, handles, 'spm_lfp_demo')
 
 % --- Executes on button press in pushbutton15.
-function pushbutton15_Callback(hObject, eventdata, handles)
+function pushbutton15_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
 run_demo_Callback(hObject, handles, 'spm_ind_demo')
 
 % --- Executes on button press in pushbutton16.
-function pushbutton16_Callback(hObject, eventdata, handles)
+function pushbutton16_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20causal%20modeling%20of%20evoked%20responses%20in%20EEG%20and%20MEG.pdf';
 run_demo_Callback(hObject, handles, 'spm_mtf_demo')
 
 % --- Executes on button press in pushbutton17.
-function pushbutton17_Callback(hObject, eventdata, handles)
+function pushbutton17_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20causal%20models%20of%20steady-state%20responses.pdf';
 run_demo_Callback(hObject, handles, 'spm_csd_demo')
 
 % --- Executes on button press in pushbutton18.
-function pushbutton18_Callback(hObject, eventdata, handles)
+function pushbutton18_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Population%20dynamics%20Variance%20and%20the%20sigmoid%20activation%20function.pdf';
 run_demo_Callback(hObject, handles, 'spm_sigmoid_demo')
 
 % --- Executes on button press in pushbutton19.
-function pushbutton19_Callback(hObject, eventdata, handles)
+function pushbutton19_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Stochastic%20models%20of%20neuronal%20dynamics.pdf';
 run_demo_Callback(hObject, handles, 'spm_mfm_demo')
 
 % --- Executes on button press in pushbutton20.
-function pushbutton20_Callback(hObject, eventdata, handles)
+function pushbutton20_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Population%20dynamics%20under%20the%20Laplace%20assumption.pdf';
 run_demo_Callback(hObject, handles, 'spm_nested_oscillations_demo')
 
 % --- Executes on button press in pushbutton21.
-function pushbutton21_Callback(hObject, eventdata, handles)
+function pushbutton21_Callback(hObject, ~, handles)
 run_demo_Callback(hObject, handles, 'spm_seizure_demo')
+
+% --- Executes on button press in pushbutton22.
+function pushbutton22_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
+run_demo_Callback(hObject, handles, 'spm_induced_demo')
