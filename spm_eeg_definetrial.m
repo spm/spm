@@ -24,10 +24,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_definetrial.m 4725 2012-04-30 13:04:17Z vladimir $
 
 
-SVNrev = '$Rev: 4492 $';
+SVNrev = '$Rev: 4725 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -235,6 +235,7 @@ if S.reviewtrials
 
     if OK
         trl=trl(indx, :);
+        conditionlabels = conditionlabels(indx);
     end
 end
 
