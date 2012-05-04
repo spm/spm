@@ -61,7 +61,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 4551 2011-11-04 18:33:58Z guillaume $
+% $Id: spm_dcm_bma.m 4732 2012-05-04 13:28:45Z will $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -305,15 +305,16 @@ Np = length(params(firstsub).model(firstmod).vEp);
 if dcm_fmri
 
     Nr      = nreg*nreg;
-
+    nmods   = size(DCM.Ep.B,3);
+    
     Etmp.A  = zeros(nreg,nreg,Nsamp);
-    Etmp.B  = zeros(nreg,nreg,min,Nsamp);
+    Etmp.B  = zeros(nreg,nreg,nmods,Nsamp);
     Etmp.C  = zeros(nreg,min,Nsamp);
     Etmp.D  = zeros(nreg,nreg,dimD,Nsamp);
 
     dima    = Nr;
-    dimb    = Nr+Nr*min;
-    dimc    = Nr+Nr*min+nreg*min;
+    dimb    = Nr+Nr*nmods;
+    dimc    = Nr+Nr*nmods+nreg*min;
 
 end
 
