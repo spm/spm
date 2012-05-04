@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_dcm_review.m 4730 2012-05-04 10:27:31Z ged $
 
 
 %-Get DCM structure
@@ -315,7 +315,7 @@ switch action
         y = y - 1;
         for i = 1:length(DCM.xY)
             name = DCM.xY(i).name;
-            N    = length(DCM.xY(i).s);
+            N    = size(DCM.xY(i).XYZmm, 2);
             L    = DCM.xY(i).xyz;
             r    = DCM.xY(i).spec;
             text(0.0,y,name, 'FontWeight','bold',        'FontSize',fs)
