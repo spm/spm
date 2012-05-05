@@ -120,7 +120,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert.m 4254 2011-03-16 13:15:33Z vladimir $
+% $Id: spm_eeg_invert.m 4733 2012-05-05 12:19:58Z vladimir $
 
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -281,7 +281,7 @@ for m = 1:Nmod
     %----------------------------------------------------------------------
     for i = 1:Nl
         L      = R{i,m}*spm_eeg_lgainmat(D{i},Is,D{i}.chanlabels(Ic{i,m}));
-        iL{i}  = spm_inv(L*L' + speye(Nc(i, m))*norm(L,'inf')*exp(-16));
+        iL{i}  = spm_inv(L*L');
     end
     
     % Optimise alignment matrices A such that A{m}*L{m} = <A{m}*L{m}>m
