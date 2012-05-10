@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 3900 2010-05-25 16:17:13Z guillaume $
+% $Id: spm_cfg_factorial_design.m 4735 2012-05-10 12:08:48Z ged $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -126,7 +126,7 @@ gmsca         = cfg_menu;
 gmsca.tag     = 'gmsca';
 gmsca.name    = 'Grand mean scaling';
 gmsca.help    = {
-                 'This option is only used for PET data.'
+                 'This option is for PET or VBM data (not second level fMRI).'
                  ''
                  'Selecting YES will specify ''grand mean scaling by factor'' which could be eg. ''grand mean scaling by subject'' if the factor is ''subject''. '
                  ''
@@ -146,7 +146,7 @@ ancova         = cfg_menu;
 ancova.tag     = 'ancova';
 ancova.name    = 'ANCOVA';
 ancova.help    = {
-                  'This option is only used for PET data.'
+                  'This option is for PET or VBM data (not second level fMRI).'
                   ''
                   'Selecting YES will specify ''ANCOVA-by-factor'' regressors. This includes eg. ''Ancova by subject'' or ''Ancova by effect''. These options allow eg. different subjects to have different relationships between local and global measurements. '
                   ''
@@ -236,7 +236,21 @@ cname.num     = [1 Inf];
 iCC         = cfg_menu;
 iCC.tag     = 'iCC';
 iCC.name    = 'Centering';
-iCC.help    = {''};
+iCC.help    = {
+               ['Centering refers to subtracting the mean (central) value from the covariate values, ' ...
+               'which is equivalent to orthogonalising the covariate with respect to the constant column.']
+               ''
+               ['Subtracting a constant from a covariate changes the beta for the constant term, but not that for the covariate. ' ...
+               'In the simplest case, centering a covariate in a simple regression leaves the slope unchanged, ' ...
+               'but converts the intercept from being the modelled value when the covariate was zero, ' ...
+               'to being the modelled value at the mean of the covariate, which is often more easily interpretable. ' ...
+               'For example, the modelled value at the subjects'' mean age is usually more meaningful than the (extrapolated) value at an age of zero.']
+               ''
+               ['If a covariate value of zero is interpretable and/or you wish to preserve the values of the covariate then choose ''No centering''. ' ...
+               'You should also choose not to center if you have already subtracted some suitable value from your covariate, ' ...
+               'such as a commonly used reference level or the mean from another (e.g. larger) sample.']
+               ''
+               };
 iCC.labels = {
               'Overall mean'
               'No centering'
@@ -648,7 +662,30 @@ iCC         = cfg_menu;
 iCC.tag     = 'iCC';
 iCC.name    = 'Centering';
 iCC.help    = {
-               'The appropriate centering option is usually the one that corresponds to the interaction chosen, and ensures that main effects of the interacting factor aren''t affected by the covariate. You are advised to choose this option, unless you have other modelling considerations. '
+               ['Centering, in the simplest case, refers to subtracting the mean (central) value from the covariate values, ' ...
+               'which is equivalent to orthogonalising the covariate with respect to the constant column.']
+               ''
+               ['Subtracting a constant from a covariate changes the beta for the constant term, but not that for the covariate. ' ...
+               'In the simplest case, centering a covariate in a simple regression leaves the slope unchanged, ' ...
+               'but converts the intercept from being the modelled value when the covariate was zero, ' ...
+               'to being the modelled value at the mean of the covariate, which is often more easily interpretable. ' ...
+               'For example, the modelled value at the subjects'' mean age is usually more meaningful than the (extrapolated) value at an age of zero.']
+               ''
+               ['If a covariate value of zero is interpretable and/or you wish to preserve the values of the covariate then choose ''No centering''. ' ...
+               'You should also choose not to center if you have already subtracted some suitable value from your covariate, ' ...
+               'such as a commonly used reference level or the mean from another (e.g. larger) sample. ' ...
+               'Note that ''User specified value'' has no effect, but is present for compatibility with earlier SPM versions.']
+               ''
+               ['Other centering options should only be used in special cases. ' ...
+               'More complicated centering options can orthogonalise a covariate or a covariate-factor interaction with respect to a factor, ' ...
+               'in which case covariate values within a particular level of a factor have their mean over that level subtracted. ' ...
+               'As in the simple case, such orthogonalisation changes the betas for the factor used to orthogonalise, ' ...
+               'not those for the covariate/interaction being orthogonalised. ' ...
+               'This therefore allows an added covariate/interaction to explain some otherwise unexplained variance, ' ...
+               'but without altering the group difference from that without the covariate/interaction. ' ...
+               'This is usually *inappropriate* except in special cases. One such case is with two groups and covariate that only has meaningful values for one group ' ...
+               '(such as a disease severity score that has no meaning for a control group); ' ...
+               'centering the covariate by the group factor centers the values for the meaningful group and (appropriately) zeroes the values for the other group.']
                ''
 }';
 iCC.labels = {
@@ -858,7 +895,7 @@ globalc.tag     = 'globalc';
 globalc.name    = 'Global calculation';
 globalc.val     = {g_omit };
 globalc.help    = {
-                   'This option is only used for PET data.'
+                   'This option is for PET or VBM data (not second level fMRI).'
                    ''
                    'There are three methods for estimating global effects (1) Omit (assumming no other options requiring the global value chosen) (2) User defined (enter your own vector of global values) (3) Mean: SPM standard mean voxel value (within per image fullmean/8 mask) '
                    ''
@@ -919,7 +956,11 @@ glonorm         = cfg_menu;
 glonorm.tag     = 'glonorm';
 glonorm.name    = 'Normalisation';
 glonorm.help    = {
-                   'Global nuisance effects are usually accounted for either by scaling the images so that they all have the same global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova). Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
+                   'This option is for PET or VBM data (not second level fMRI).'
+                   ''
+                   'Global nuisance effects (such as average values for PET images, or total tissue volumes for VBM) can be accounted for either by dividing the intensities in each image by the image''s global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova).'
+                   ''
+                   'Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
                    ''
                    '''Ancova by subject'' or ''Ancova by effect'' options are implemented using the ANCOVA options provided where each experimental factor (eg. subject or effect), is defined. These allow eg. different subjects to have different relationships between local and global measurements. '
                    ''
@@ -941,13 +982,11 @@ globalm.tag     = 'globalm';
 globalm.name    = 'Global normalisation';
 globalm.val     = {gmsca glonorm };
 globalm.help    = {
-                   'This option is only used for PET data.'
+                   'These options are for PET or VBM data (not second level fMRI).'
                    ''
-                   'Global nuisance effects are usually accounted for either by scaling the images so that they all have the same global value (proportional scaling), or by including the global covariate as a nuisance effect in the general linear model (AnCova). Much has been written on which to use, and when. Basically, since proportional scaling also scales the variance term, it is appropriate for situations where the global measurement predominantly reflects gain or sensitivity. Where variance is constant across the range of global values, linear modelling in an AnCova approach has more flexibility, since the model is not restricted to a simple proportional regression. '
+                   '''Overall grand mean scaling'' simply scales all the data by a common factor such that the mean of all the global values is the value specified.'
                    ''
-                   '''Ancova by subject'' or ''Ancova by effect'' options are implemented using the ANCOVA options provided where each experimental factor (eg. subject or effect), is defined. These allow eg. different subjects to have different relationships between local and global measurements. '
-                   ''
-                   'Since differences between subjects may be due to gain and sensitivity effects, AnCova by subject could be combined with "grand mean scaling by subject" (an option also provided where each experimental factor is originally defined) to obtain a combination of between subject proportional scaling and within subject AnCova. '
+                   '''Normalisation'' refers to either proportionally scaling each image or adding a covariate to adjust for the global values.'
                    ''
 }';
 % ---------------------------------------------------------------------
@@ -958,11 +997,11 @@ factorial_design.tag     = 'factorial_design';
 factorial_design.name    = 'Factorial design specification';
 factorial_design.val     = {dir des generic masking globalc globalm };
 factorial_design.help    = {
-                            'This interface is used for setting up analyses of PET data. It is also used for ''2nd level'' or ''random effects'' analysis which allow one to make a population inference. First level models can be used to produce appropriate summary data, which can then be used as raw data for a second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
-                            ''
                             'This interface configures the design matrix, describing the general linear model, data specification, and other parameters necessary for the statistical analysis. These parameters are saved in a configuration file (SPM.mat), which can then be passed on to spm_spm.m which estimates the design. This is achieved by pressing the ''Estimate'' button. Inference on these estimated parameters is then handled by the SPM results section. '
                             ''
-                            'A separate interface handles design configuration for fMRI time series.'
+                            'This interface is used for setting up analyses of PET data, morphometric data, or ''second level'' (''random effects'') fMRI data, where first level models can be used to produce appropriate summary data that are then used as raw data for the second-level analysis. For example, a simple t-test on contrast images from the first-level turns out to be a random-effects analysis with random subject effects, inferring for the population based on a particular sample of subjects.'
+                            ''
+                            'A separate interface handles design configuration for first level fMRI time series.'
                             ''
                             'Various data and parameters need to be supplied to specify the design (1) the image files, (2) indicators of the corresponding condition/subject/group (2) any covariates, nuisance variables, or design matrix partitions (3) the type of global normalisation (if any) (4) grand mean scaling options (5) thresholds and masks defining the image volume to analyse. The interface supports a comprehensive range of options for all these parameters.'
                             ''
