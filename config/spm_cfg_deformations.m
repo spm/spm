@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4487 2011-09-13 16:30:43Z guillaume $
+% $Id: spm_cfg_deformations.m 4738 2012-05-11 16:41:35Z ged $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -84,7 +84,20 @@ hid = {[...
 'This option generates an identity transform, but this can be useful for ',...
 'changing the dimensions of the resulting deformation (and any images that ',...
 'are generated from it).  Dimensions, orientation etc are derived from ',...
-'an image.']};
+'a specified image.']};
+
+hidbbvox = {[...
+'This option generates an identity transform, but this can be useful for ',...
+'changing the dimensions of the resulting deformation (and any images that ',...
+'are generated from it).  Dimensions, orientation etc are derived from ',...
+'specified bounding box and voxel dimensions.']};
+
+haff = {[...
+'This option generates an affine transform (with a specified matrix that ',...
+'maps from reference to source image coordinates; you may often want to ',...
+'specify the inverse matrix, inv(Affine), to get the desired results).']
+''
+'Dimensions, orientation etc are derived from a specified image.'};
 
 def          = files('Deformation Field','def','.*y_.*\.nii$',[1 1]);
 def.help     = himgr;
@@ -103,17 +116,21 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-img          = files('Image to base Id on','space','image',[1 1]);
+img          = files('Image to define domain','space','image',[1 1]);
 img.help     = himg;
 
 id           = branch('Identity (Reference Image)','id',{img});
 id.help      = hid;
 
+A            = entry('Affine Matrix','aff','e',[4 4]);
+aff          = branch('Affine (Reference Image)', 'aff',{img, A});
+aff.help     = haff;
+
 voxid        = entry('Voxel sizes','vox','e',[1 3]);
 bbid         = entry('Bounding box','bb','e',[2 3]);
 
 idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
-id.help      = hid;
+idbbvox.help = hidbbvox;
 
 ffield = files('Flow field','flowfield','nifti',[1 1]);
 ffield.ufilter = '^u_.*';
@@ -146,7 +163,7 @@ K.help = {...
 drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
 drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
-other = {sn2def,drtl,def,id,idbbvox};
+other = {sn2def,drtl,def,id,idbbvox,aff};
 
 img          = files('Image to base inverse on','space','image',[1 1]);
 img.help     = himg;

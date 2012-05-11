@@ -6,14 +6,14 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4698 2012-03-21 14:00:44Z john $
+% $Id: spm_pairwise.m 4738 2012-05-11 16:41:35Z ged $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
 if numel(job.tdif) == 1,
     tdif = repmat(abs(job.tdif),N,1);
 else
-    if numel(tdif) ~= N, error('Incompatible numbers of time differences.'); end
+    if numel(job.tdif) ~= N, error('Incompatible numbers of time differences.'); end
     tdif = abs(job.tdif(:));
 end
 if any(tdif > 50), error('Time differences should be in years.'); end;

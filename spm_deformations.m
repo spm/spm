@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4487 2011-09-13 16:30:43Z guillaume $
+% $Id: spm_deformations.m 4738 2012-05-11 16:41:35Z ged $
 
 [Def,mat] = get_comp(job.comp);
 [dpath ipath] = get_paths(job);
@@ -65,6 +65,8 @@ case {'inv'}
     [Def,mat] = get_inv(job.(fn));
 case {'id'}
     [Def,mat] = get_id(job.(fn));
+case {'aff'}
+    [Def,mat] = get_aff(job.(fn));
 case {'idbbvox'}
     [Def,mat] = get_idbbvox(job.(fn));
 otherwise
@@ -211,6 +213,21 @@ Def{3} = single(y1*mat(3,1) + y2*mat(3,2) + y3*mat(3,3) + mat(3,4));
 %_______________________________________________________________________
 
 %_______________________________________________________________________
+function [Def,mat] = get_aff(job)
+% Compose an affine transform with the mapping from an image volume.
+N   = nifti(job.space{1});
+d   = [size(N.dat),1];
+d   = d(1:3);
+mat = N.mat;
+M   = job.aff * mat;
+Def = cell(3,1);
+[y1,y2,y3] = ndgrid(1:d(1),1:d(2),1:d(3));
+Def{1} = single(y1*M(1,1) + y2*M(1,2) + y3*M(1,3) + M(1,4));
+Def{2} = single(y1*M(2,1) + y2*M(2,2) + y3*M(2,3) + M(2,4));
+Def{3} = single(y1*M(3,1) + y2*M(3,2) + y3*M(3,3) + M(3,4));
+%_______________________________________________________________________
+
+%_______________________________________________________________________
 function [Def,mat] = get_idbbvox(job)
 % Get an identity transform based on bounding box and voxel size.
 % This will produce a transversal image.
@@ -351,4 +368,3 @@ for i=1:size(fnames,1),
     end;
 end;
 return;
-
