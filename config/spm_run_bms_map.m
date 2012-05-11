@@ -43,7 +43,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_run_bms_map.m 4737 2012-05-11 13:26:01Z will $
 
 % Input
 % -------------------------------------------------------------------------
@@ -85,11 +85,6 @@ end
 if size(unique(names(1:nmodels)),2) < nmodels,
     id = 'Indentical names for different models!';  % Same name!
     error(id);
-end
-
-if nmodels < 2
-    msgbox('Please select more than one file!')  % Models must be > 1!
-    return
 end
 
 if nsubjs == 1
@@ -331,25 +326,39 @@ for z = 1:zdim,
           % ---------------------------------------------------------------
           case 'FFX',            
                 
+            
+              
               if Nvoxels > 0                % Slice with ~NaN voxels
+                  
                 zz     = sum(z_models,1);   % Sum all subjects/sessions
                 mz     = mean(zz,2);        % Get mean of all models
                 zzmean = zeros(1,nmodels,length(mz));
                 for jj = 1:nmodels
                     zzmean(1,jj,:) = mz; 
                 end
-                zz  = zz-zzmean;            % Subtract mean
-                zz  = exp(zz);              % Exponentiate log-ev values
-                tzz = sum(zz,2);            % Sum exp(log-ev.)
                 
-                % Calculate posterior probabiliy
-                pz  = zeros(1,nmodels,length(zz));
-                for k = 1:nmodels,
-                    pz(1,k,:)    = zz(1,k,:)./tzz;
-                    j(non_nan)   = pz(1,k,non_nan);
-                    model_ppm(k) = spm_write_plane(model_ppm(k),j,z);
-                end
-
+                if nmodels==1
+                    % Process log Bayes factor image
+                    zz  = exp(zz);              % Exponentiate log-bf values
+                    % Calculate posterior probabiliy
+                    pz  = zeros(1,1,length(zz));
+                    pz  = zz./(1+zz);
+                    j(non_nan)   = pz(1,1,non_nan);
+                    model_ppm(1) = spm_write_plane(model_ppm(k),j,z);
+                else
+                    zz  = zz-zzmean;            % Subtract mean
+                    zz  = exp(zz);              % Exponentiate log-ev values
+                    tzz = sum(zz,2);            % Sum exp(log-ev.)
+                    
+                    % Calculate posterior probabiliy
+                    pz  = zeros(1,nmodels,length(zz));
+                    for k = 1:nmodels,
+                        pz(1,k,:)    = zz(1,k,:)./tzz;
+                        j(non_nan)   = pz(1,k,non_nan);
+                        model_ppm(k) = spm_write_plane(model_ppm(k),j,z);
+                    end
+                end            
+                
               else
                 % Nvoxels = 0
                 for k = 1:nmodels,
@@ -372,12 +381,23 @@ for z = 1:zdim,
                     for n = 1:Nvoxels,
                         lme = z_models(:,:,non_nan(n));
                         
-                        % Group BMS
-                        [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
+                        if nmodels==1
+                            % Provide evidence for dummy null model
+                            lme=0.5*[lme, -lme];
+                            [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
                             
-                        exp_r_total(n,:)              = exp_r;  % Cond. Expecta.
-                        if do_ecp, xp_total(n,:)      = xp; end % Exceeda. Prob.
-                        if do_alpha, alpha_total(n,:) = alpha; end % Dirichlet par.
+                            exp_r_total(n,:)              = exp_r(1);  % Cond. Expecta.
+                            if do_ecp, xp_total(n,:)      = xp(1); end % Exceeda. Prob.
+                            if do_alpha, alpha_total(n,:) = alpha(1); end % Dirichlet par.
+                        else
+                            
+                            % Group BMS
+                            [alpha,exp_r,xp] = spm_BMS(lme,nsamps,0,0,do_ecp);
+                            
+                            exp_r_total(n,:)              = exp_r;  % Cond. Expecta.
+                            if do_ecp, xp_total(n,:)      = xp; end % Exceeda. Prob.
+                            if do_alpha, alpha_total(n,:) = alpha; end % Dirichlet par.
+                        end
                     end
 
                     % Write images
