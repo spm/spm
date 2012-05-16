@@ -87,14 +87,14 @@ function ret = spm_ov_roi(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_roi.m 3920 2010-06-11 12:08:13Z volkmar $
+% $Id: spm_ov_roi.m 4739 2012-05-16 07:49:53Z volkmar $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when using the 'alpha' property
 % to overlay blobs onto images. 
 
-rev = '$Revision: 3920 $';
+rev = '$Revision: 4739 $';
 
 global st;
 if isempty(st)
@@ -196,7 +196,7 @@ switch cmd
         switch st.vols{volhandle}.roi.tool
             case 'box'
                 spm('pointer','watch');
-                pos = round(inv(st.vols{volhandle}.roi.Vroi.mat)* ...
+                pos = round(st.vols{volhandle}.roi.Vroi.mat\ ...
                             [spm_orthviews('pos'); 1]); 
                 tmp = round((st.vols{volhandle}.roi.box-1)/2);
                 [sx sy sz] = meshgrid(-tmp(1):tmp(1), -tmp(2):tmp(2), -tmp(3):tmp(3));
@@ -333,8 +333,8 @@ switch cmd
                             polyoff(1) = st.vols{volhandle}.roi.polyslices/2;
                             polythick = abs(prms(7));
                     end;
-                    polvx = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*...
-                            [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))];
+                    polvx = st.vols{volhandle}.roi.Vroi.mat\(st.Space*(M0\...
+                            [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))]));
                     % Bounding volume for polygon in ROI voxel space
                     [xbox ybox zbox] = ndgrid(max(min(floor(polvx(1,:)-polyoff(1))),1):...
                                               min(max(ceil(polvx(1,:)+polyoff(1))),...
@@ -346,12 +346,12 @@ switch cmd
                                               min(max(ceil(polvx(3,:)+polyoff(3))),...
                                                   st.vols{volhandle}.roi.Vroi.dim(3)));
                     % re-transform in polygon plane
-                    xyzbox = M0*is*st.vols{volhandle}.roi.Vroi.mat*[xbox(:)';ybox(:)';zbox(:)';...
+                    xyzbox = M0*(st.Space\st.vols{volhandle}.roi.Vroi.mat)*[xbox(:)';ybox(:)';zbox(:)';...
                                         ones(size(xbox(:)'))];
                     xyzbox = xyzbox(:,abs(xyzbox(3,:))<=.6*polythick*...
                                     st.vols{volhandle}.roi.polyslices); % nearest neighbour to polygon
                     sel = logical(inpolygon(xyzbox(1,:),xyzbox(2,:),x,y));
-                    xyz = inv(st.vols{volhandle}.roi.Vroi.mat)*st.Space*inv(M0)*xyzbox(:,sel);
+                    xyz = st.vols{volhandle}.roi.Vroi.mat\(st.Space*(M0\xyzbox(:,sel)));
                     if ~isempty(xyz)
                         tochange = round(xyz(1:3,:));
                         update_roi = 1;
@@ -365,7 +365,7 @@ switch cmd
         spm('pointer','watch');
         rind = find(st.vols{volhandle}.roi.roi);
         [x y z]=ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),rind);
-        tmp = round(inv(st.vols{volhandle}.mat) * ...
+        tmp = round(st.vols{volhandle}.mat \ ...
                     st.vols{volhandle}.roi.Vroi.mat*[x'; y'; z'; ones(size(x'))]); 
         dat = spm_sample_vol(st.vols{volhandle}, ...
                              tmp(1,:), tmp(2,:), tmp(3,:), 0);
@@ -399,7 +399,7 @@ switch cmd
         sel = [];
         switch cmd
             case 'connect'
-                pos = round(inv(st.vols{volhandle}.roi.Vroi.mat)* ...
+                pos = round(st.vols{volhandle}.roi.Vroi.mat\ ...
                             [spm_orthviews('pos'); 1]); 
                 sel = V(pos(1),pos(2),pos(3));
                 if sel == 0
@@ -456,7 +456,7 @@ switch cmd
                             ones(1, prod(st.vols{volhandle}.roi.Vroi.dim(1:3)))];
         msk = false(1,prod(st.vols{volhandle}.roi.Vroi.dim(1:3)));
         for k = 1:numel(V)
-            xyzvx = inv(V(k).mat)*xyzmm;
+            xyzvx = V(k).mat\xyzmm;
             dat = spm_sample_vol(V(k), xyzvx(1,:), xyzvx(2,:), xyzvx(3,:), 0);
             dat(~isfinite(dat)) = 0;
             msk = msk | logical(dat);
