@@ -9,7 +9,7 @@ function out = spm_run_dicom(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_dicom.m 4649 2012-02-06 15:55:04Z guillaume $
+% $Id: spm_run_dicom.m 4740 2012-05-16 07:52:00Z volkmar $
 
 
 wd = pwd;
@@ -28,8 +28,17 @@ else
     root_dir = job.root;
 end
 
-hdr = spm_dicom_headers(strvcat(job.data), true);
-out = spm_dicom_convert(hdr,'all',root_dir,job.convopts.format);
+hdr = spm_dicom_headers(char(job.data), true);
+sel = true(size(hdr));
+if ~isempty(job.protfilter) && ~strcmp(job.protfilter, '.*')
+    psel   = cellfun(@(h)isfield(h, 'ProtocolName'), hdr);
+    ssel   = ~psel & cellfun(@(h)isfield(h, 'SequenceName'), hdr);
+    pnames = cell(size(hdr));
+    pnames(psel) = cellfun(@(h)subsref(h, substruct('.','ProtocolName')), hdr(psel), 'UniformOutput', false);
+    pnames(ssel) = cellfun(@(h)subsref(h, substruct('.','SequenceName')), hdr(ssel), 'UniformOutput', false);
+    sel(psel|ssel) = ~cellfun(@isempty,regexp(pnames(psel|ssel), job.protfilter));
+end
+out = spm_dicom_convert(hdr(sel),'all',root_dir,job.convopts.format);
 
 if ~isempty(job.outdir{1})
     fprintf('   Changing back to directory: %s\n', wd);

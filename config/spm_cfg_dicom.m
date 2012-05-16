@@ -3,7 +3,7 @@ function dicom = spm_cfg_dicom
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_dicom.m 4012 2010-07-22 12:45:53Z volkmar $
+% $Id: spm_cfg_dicom.m 4740 2012-05-16 07:52:00Z volkmar $
 
 % ---------------------------------------------------------------------
 % data DICOM files
@@ -53,6 +53,16 @@ outdir.filter  = 'dir';
 outdir.ufilter = '.*';
 outdir.num     = [1 1];
 % ---------------------------------------------------------------------
+% protfilter Protocol name filter
+% ---------------------------------------------------------------------
+protfilter         = cfg_entry;
+protfilter.tag     = 'protfilter';
+protfilter.name    = 'Protocol name filter';
+protfilter.help    = {'A regular expression to filter protocol names. DICOM images whose protocol names do not match this filter will not be converted.'};
+protfilter.strtype = 's';
+protfilter.num     = [0 Inf];
+protfilter.val     = {'.*'};
+% ---------------------------------------------------------------------
 % format Output image format
 % ---------------------------------------------------------------------
 format         = cfg_menu;
@@ -88,7 +98,7 @@ convopts.help  = {''};
 dicom          = cfg_exbranch;
 dicom.tag      = 'dicom';
 dicom.name     = 'DICOM Import';
-dicom.val      = {data root outdir convopts};
+dicom.val      = {data root outdir protfilter convopts};
 dicom.help     = {'DICOM Conversion.  Most scanners produce data in DICOM format. This routine attempts to convert DICOM files into SPM compatible image volumes, which are written into the current directory by default. Note that not all flavours of DICOM can be handled, as DICOM is a very complicated format, and some scanner manufacturers use their own fields, which are not in the official documentation at http://medical.nema.org/'};
 dicom.prog     = @spm_run_dicom;
 dicom.vout     = @vout;
