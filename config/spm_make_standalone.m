@@ -21,7 +21,7 @@ function spm_make_standalone(outdir)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 4385 2011-07-08 16:53:38Z guillaume $
+% $Id: spm_make_standalone.m 4741 2012-05-16 07:53:11Z volkmar $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------
@@ -57,14 +57,14 @@ for i=1:length(d)
     di = dir(d2); di = {di(~[di.isdir]).name};
     f2 = regexp(di,'.*_cfg_.*\.m$');
     if ~iscell(f2), f2 = {f2}; end
-    fi = {di{~cellfun('isempty',f2)}};
+    fi = di(~cellfun('isempty',f2));
     if ~isempty(fi)
         ft = [ft(:); fi(:)];
     else
         % try *_config_*.m files, if toolbox does not have '*_cfg_*.m' files
         f2 = regexp(di,'.*_config_.*\.m$');
         if ~iscell(f2), f2 = {f2}; end
-        fi = {di{~cellfun('isempty',f2)}};
+        fi = di(~cellfun('isempty',f2));
         ftc = [ftc(:); fi(:)];
     end;
 end
