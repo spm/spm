@@ -8,7 +8,7 @@ function [SPM] = spm_contrasts(SPM,Ic)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4615 2012-01-10 16:56:25Z will $
+% $Id: spm_contrasts.m 4742 2012-05-16 09:51:15Z volkmar $
 
 % Temporary SPM variable to check for any changes to SPM. We want to avoid
 % always having to save SPM.mat unless it has changed, because this is
@@ -282,6 +282,6 @@ SPM.xCon = xCon;
 
 % Check if SPM has changed. Save only if it has.
 %--------------------------------------------------------------------------
-if ~isequal(tmpSPM,SPM)
+if ~isequalwithequalnans(tmpSPM,SPM)
     save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
 end
