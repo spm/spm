@@ -9,7 +9,7 @@ function spm_dcm_bma_results(BMS,method)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 4022 2010-07-28 12:50:20Z guillaume $
+% $Id: spm_dcm_bma_results.m 4744 2012-05-17 14:38:09Z will $
 
 if nargin < 1
     fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
@@ -207,7 +207,7 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.amat(i,j,:),ud.bins,'r');
+            hist(squeeze(ud.amat(i,j,:)),ud.bins,'r');
             amax = max(abs(ud.amat(i,j,:)))*1.05; % enlarge scale by 5%
             if amax > 0
                 xlim([-amax amax])
@@ -252,7 +252,7 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.bmat(i,j,ud.mod_input(i_mod),:),ud.bins,'r');
+            hist(squeeze(ud.bmat(i,j,ud.mod_input(i_mod),:)),ud.bins,'r');
             bmax = max(abs(ud.bmat(i,j,ud.mod_input(i_mod),:)))*1.05; % enlarge scale by 5%
             if bmax > 0
                 xlim([-bmax bmax])
@@ -295,7 +295,7 @@ for j=1:ud.n,
     if length(find(ud.cmat(j,ud.drive_input(i_drv),:)==0))==ud.Nsamp
         plot([0 0],[0 1],'k');
     else
-        hist(ud.cmat(j,ud.drive_input(i_drv),:),ud.bins,'r');
+        hist(squeeze(ud.cmat(j,ud.drive_input(i_drv),:)),ud.bins,'r');
         cmax = max(abs(ud.cmat(j,ud.drive_input(i_drv),:)))*1.05; % enlarge scale by 5%
         if cmax > 0
             xlim([-cmax cmax])
@@ -339,7 +339,7 @@ for i=1:ud.n,
         if (i==j)
             axis off
         else
-            hist(ud.dmat(i,j,ud.mod_reg(i_mreg),:),ud.bins,'r');
+            hist(squeeze(ud.dmat(i,j,ud.mod_reg(i_mreg),:)),ud.bins,'r');
             dmax = max(abs(ud.dmat(i,j,ud.mod_reg(i_mreg),:)))*1.05; % enlarge scale by 5%
             if dmax > 0
                 xlim([-dmax dmax])
