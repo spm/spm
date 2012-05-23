@@ -109,9 +109,9 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_sensorrealign.m 5439 2012-03-12 13:17:15Z giopia $
 
-revision = '$Id: ft_sensorrealign.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_sensorrealign.m 5439 2012-03-12 13:17:15Z giopia $';
 
 % do the general setup of the function
 ft_defaults

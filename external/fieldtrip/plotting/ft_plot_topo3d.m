@@ -7,9 +7,12 @@ function ft_plot_topo3d(pnt, val, varargin)
 %   ft_plot_topo3d(pos, val, ...);
 % where the channel positions are given as a Nx3 matrix and the values are
 % given as Nx1 vector.
-
+%
 % Optional input arguments should be specified in key-value pairs and can include
-%   ...
+% 'contourstyle'  false  (default), 'black', 'color' makes contours of b/w or colored lines
+% 'isocontour'    'auto' (default - and only - option)
+% 'topostyle'     'color'(default - and only - option)
+
 %
 % See also FT_PLOT_TOPO
 %
@@ -31,7 +34,7 @@ function ft_plot_topo3d(pnt, val, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo3d.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_topo3d.m 5209 2012-02-01 13:45:57Z crimic $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

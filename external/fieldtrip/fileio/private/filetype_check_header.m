@@ -22,7 +22,7 @@ function [val] = filetype_check_header(filename, head, offset)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filetype_check_header.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: filetype_check_header.m 5653 2012-04-18 14:18:42Z eelspa $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -51,7 +51,7 @@ else
   % read the first few bytes from the file and compare them to the desired header
   fid = fopen(filename, 'rb');
   if fid<0
-    warning('could not open %s', filename);
+    warning_once(sprintf('could not open %s', filename));
     val = false;
   else
     fseek(fid, offset, 'cof');
@@ -71,7 +71,7 @@ else
       [str, siz] = fread(fid, length(head), 'uint8=>char');
       fclose(fid);
       if siz~=length(head)
-        warning('could not read the header from %s', filename);
+        warning_once(sprintf('could not read the header from %s', filename));
         val = false;
       else
         val = all(str(:)==head(:));

@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 5187 2012-01-31 08:42:56Z jansch $
+% $Id: ft_filetype.m 5750 2012-05-08 14:04:35Z borreu $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -90,7 +90,7 @@ if isequal(current_argin, previous_argin) && isequal(current_pwd, previous_pwd)
   return
 end
 
-if strcmp(class(filename), 'memmapfile'),
+if isa(filename, 'memmapfile')
   filename = filename.Filename;
 end
 
@@ -142,6 +142,7 @@ if isempty(filename)
   end
 end
 
+% the parts of the filename are used further down
 [p, f, x] = fileparts(filename);
 
 % prevent this test if the filename resembles an URI, i.e. like "scheme://"
@@ -161,8 +162,18 @@ end
 % start determining the filetype
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% this checks for a compressed file (of arbitrary type)
+if filetype_check_extension(filename, 'zip')...
+    || (filetype_check_extension(filename, '.gz') && ~filetype_check_extension(filename, '.nii.gz'))...
+    || filetype_check_extension(filename,  'tgz')...
+    || filetype_check_extension(filename, 'tar')
+  
+  type         = 'compressed';
+  manufacturer = 'undefined';
+  content      = 'unknown, extract first';
+
 % these are some streams for asynchronous BCI
-if filetype_check_uri(filename, 'fifo')
+elseif filetype_check_uri(filename, 'fifo')
   type        = 'fcdc_fifo';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
   content      = 'stream';
@@ -312,7 +323,14 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'-FL
 elseif filetype_check_extension(filename, '.hsp')
   type = 'yokogawa_hsp';
   manufacturer = 'Yokogawa';
+
+  % this has to go before the 4D detection
+elseif isdir(filename) && exist(fullfile(filename, 'signals'), 'file') && exist(fullfile(filename, 'spikes'), 'file')
+   type = 'neurosim';
+   manufacturer = 'Jan van der Eerden (DCCN)';
+   content = 'simulated spikes and continuous signals';
   
+
   % known 4D/BTI file types
 elseif filetype_check_extension(filename, '.pdf') && filetype_check_header(filename, 'E|lk') % I am not sure whether this header always applies
   type = '4d_pdf';
@@ -573,13 +591,19 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   manufacturer = 'Neuralynx';
   content = 'spike timestamps';
   
-elseif isdir(filename) && exist(fullfile(filename, 'header'), 'file') && exist(fullfile(filename, 'events'), 'file')
+elseif isdir(p) && exist(fullfile(p, 'header'), 'file') && exist(fullfile(p, 'events'), 'file')
   type = 'fcdc_buffer_offline';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
   content = 'FieldTrip buffer offline dataset';
   
 elseif isdir(filename) && exist(fullfile(filename, 'info.xml'), 'file') && exist(fullfile(filename, 'signal1.bin'), 'file')
-  % this is a directory representing a dataset: it contains multiple xml files and one or more signalN.bin files
+  % this is an OS X package directory representing a complete EEG dataset
+  % it contains a Content file, multiple xml files and one or more signalN.bin files
+  type = 'egi_mff';
+  manufacturer = 'Electrical Geodesics Incorporated';
+  content = 'raw EEG data';
+elseif ~isdir(filename) && filetype_check_extension(p, 'mff') && (strcmp(f, 'Contents') || filetype_check_extension(filename, 'xml') || filetype_check_extension(filename, 'bin') || filetype_check_extension(filename, 'plist') || filetype_check_extension(filename, 'bak'))
+  % the file that the user specified is one of the files in an mff package directory
   type = 'egi_mff';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'raw EEG data';
@@ -893,7 +917,7 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'_nr
   type = 'bucn_nirs';
   manufacturer = 'BUCN';
   content = 'ascii formatted nirs data';
-  
+ 
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
@@ -992,7 +1016,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if strcmp(type, 'unknown')
-  warning('could not determine filetype of %s', filename);
+  warning_once(sprintf('could not determine filetype of %s', filename));
 end
 
 if ~isempty(desired)

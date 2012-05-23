@@ -52,9 +52,9 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 4941 2011-12-07 10:41:56Z roboos $
+% $Id: ft_topoplotCC.m 5718 2012-05-01 11:23:36Z eelspa $
 
-revision = '$Id: ft_topoplotCC.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_topoplotCC.m 5718 2012-05-01 11:23:36Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -114,6 +114,16 @@ end
 
 hold on
 axis equal
+
+% set the figure window title
+funcname = mfilename();
+if nargin < 2
+  dataname = cfg.inputfile;
+else
+  dataname = inputname(2);
+end
+set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+set(gcf, 'NumberTitle', 'off');
 
 if isnan(cfg.arrowsize)
   % use the size of the figure to estimate a decent number

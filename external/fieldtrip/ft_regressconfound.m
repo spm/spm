@@ -15,7 +15,7 @@ function [data] = ft_regressconfound(cfg, datain)
 % FT_FREQANALYSIS, or FT_SOURCEANALYSIS respectively, with keeptrials = 'yes'
 %
 % The cfg argument is a structure that should contain
-%   cfg.confound    = matrix, [Ntrials X Nconfounds]
+%   cfg.confound    = matrix, [Ntrials X Nconfounds], may not contain NaNs
 %
 % The following configuration options are supported:
 %   cfg.reject      = vector, [1 X Nconfounds], listing the confounds that
@@ -60,9 +60,9 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 5060 2011-12-20 16:46:44Z arjsto $
+% $Id: ft_regressconfound.m 5744 2012-05-07 20:50:48Z arjsto $
 
-revision = '$Id: ft_regressconfound.m 5060 2011-12-20 16:46:44Z arjsto $';
+revision = '$Id: ft_regressconfound.m 5744 2012-05-07 20:50:48Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
@@ -83,6 +83,9 @@ cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 
 % confound specification
 regr      = ft_getopt(cfg, 'confound');  % there is no default value
+if ~isempty(find(isnan(regr)))
+  error('the confounds may not contain NaNs');
+end
 nconf     = size(regr,2);
 conflist  = 1:nconf;
 if ~isfield(cfg, 'reject') || strcmp(cfg.reject, 'all') % default
@@ -111,23 +114,12 @@ elseif stcrmp(cfg.normalize, 'no')
   fprintf('skipping normalization procedure \n');
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% GLM MODEL
-%   Y = X * B + err, where Y is data, X is the model, and B are beta's
-% which means
-%   Best = X\Y ('matrix division', which is similar to B = inv(X)*Y)
-% or when presented differently
-%   Yest = X * Best
-%   Yest = X * X\Y
-%   Yclean = Y - Yest (the true 'clean' data is the recorded data 'Y' -
-%   the data containing confounds 'Yest')
-%   Yclean = Y - X * X\Y
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% determine datatype
 isfreq     = ft_datatype(datain, 'freq');
 istimelock = ft_datatype(datain, 'timelock');
 issource   = ft_datatype(datain, 'source');
 
+% input handling
 if istimelock
   switch datain.dimord
     case {'rpt_chan_time', 'subj_chan_time'}
@@ -147,107 +139,11 @@ if istimelock
       % get the data on which the contribution of the confounds has to be estimated
       dat = reshape(datain.trial, [nrpt, nchan*ntime]);
       
-      % estimate and remove the confounds
-      fprintf('estimating the regression weights and removing the confounds \n');
-      beta = regr\dat;                                                          % B = X\Y
-      model = regr(:, cfg.reject) * beta(cfg.reject, :);                        % model = confounds * weights = X * X\Y
-      Yc = dat - model;                                                         % Yclean = Y - X * X\Y
-      
-      % put the clean data back into place
-      dataout.trial = reshape(Yc, [nrpt, nchan, ntime]); clear Yc;
-      
-      % update descriptives when already present
-      if isfield(dataout, 'var') % remove (old) var
-        dataout = rmfield(dataout, 'var');
-      end
-      if isfield(dataout, 'dof') % remove (old) degrees of freedom
-        dataout = rmfield(dataout, 'dof');
-      end
-      if isfield(dataout, 'avg') % remove (old) avg and reaverage
-        fprintf('updating descriptives \n');
-        dataout = rmfield(dataout, 'avg');
-        tempcfg            = [];
-        tempcfg.keeptrials = 'yes';
-        dataout = ft_timelockanalysis(tempcfg, dataout); % reaveraging
-      end
-      
-      % make a nested timelock structure that contains the model
-      if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
-        fprintf('outputting the model which contains the confounds x weights \n');
-        dataout.model.trial   = reshape(model, [nrpt, nchan, ntime]); clear model;
-        dataout.model.dimord  = dataout.dimord;
-        dataout.model.time    = dataout.time;
-        dataout.model.label   = dataout.label;
-        if isfield(dataout, 'avg')
-          % also average the model
-          tempcfg            = [];
-          tempcfg.keeptrials = 'yes';
-          dataout.model      = ft_timelockanalysis(tempcfg, dataout.model);     % reaveraging
-        end
-      end
-      
-      % beta statistics
-      if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
-        fprintf('performing statistics on the regression weights \n');
-        dfe        = nrpt - nconf;                                              % degrees of freedom
-        err        = dat - regr * beta;                                         % err = Y - X * B
-        mse        = sum((err).^2)/dfe;                                         % mean squared error
-        covar      = diag(regr'*regr)';                                         % regressor covariance
-        bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
-        tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
-        prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
-        clear err dfe mse bvar;
-        dataout.stat     = reshape(tval, [nconf, nchan, ntime]); clear tval;
-        dataout.prob     = reshape(prob, [nconf, nchan, ntime]); clear prob;
-        % FIXME: drop in replace tcdf from the statfun/private dir
-      end
-      
-      % reduced models analyses
-      if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
-        dfe        = nrpt - nconf;                                              % degrees of freedom
-        err        = dat - regr * beta;                                         % err = Y - X * B
-        tmse       = sum((err).^2)/dfe;                                         % mean squared error
-        for iter = 1:numel(cfg.Ftest)
-          % regressors to test if they explain additional variance
-          r          = str2num(cfg.Ftest{iter});
-          fprintf('F-testing explained additional variance of regressors %s \n', num2str(r));
-          % regressors in reduced design (that is the original design)
-          ri         = ~ismember(1:size(regr,2),r);
-          rX         = regr(:,ri);               % reduced design
-          rnr        = size(rX,2);               % number of regressors in reduced design
-          % estimate reduced model betas
-          rXcov      = pinv(rX'*rX);             % inverse design covariance matrix
-          rb         = rXcov*rX'*dat;          	 % beta estimates using pinv
-          % calculate mean squared error of reduced model
-          rdfe       = size(dat,1) - size(rX,2); % degrees of freedom of the error
-          rerr       = dat-rX*rb;                % residual error
-          rmse       = sum(rerr'.^2,2)./rdfe;	   % mean squared error
-          % F-test
-          F          = ((rmse'-tmse)./(nconf-rnr)) ./ (tmse./(dfe-2));
-          dataout.Fvar(iter,:,:) = reshape(F, [nchan, ntime]);
-          % Rik Henson defined F-test
-          % F = ( ( rerr'*rerr - err'*err ) / ( nconf-rnr ) ) / ( err'*err/ ( nrpt-nconf ) );
-          % convert F-value to p-value
-          idx_pos    = F >= 0;
-          idx_neg    = ~idx_pos;
-          p          = nan(size(F));
-          p(idx_pos) = (1-fcdf(F(idx_pos),rnr,rdfe));
-          p(idx_neg) = fcdf(-F(idx_neg),rnr,rdfe);
-          dataout.pvar(iter,:,:) = reshape(p, [nchan, ntime]);
-          clear rerr rmse F p;
-        end
-        clear dfe err tmse;
-      end
-      
-      % add the beta weights to the output
-      dataout.beta     = reshape(beta, [nconf, nchan, ntime]); clear beta dat;
-      
     otherwise
-      error('unsupported dimord "%s"', datain.dimord);
+      error('unsupported timelock dimord "%s"', datain.dimord);
   end % switch
   
 elseif isfreq
-  
   switch datain.dimord
     case {'rpt_chan_freq_time', 'subj_chan_freq_time', 'rpttap_chan_freq_time', 'rpt_chan_freq', 'subj_chan_freq', 'rpttap_chan_freq'}
       
@@ -267,103 +163,8 @@ elseif isfreq
       % get the data on which the contribution of the confounds has to be estimated
       dat = reshape(datain.powspctrm, [nrpt, nchan*nfreq*ntime]);
       
-      % estimate and remove the confounds
-      fprintf('estimating the regression weights and removing the confounds \n');
-      beta = regr\dat;                                                          % B = X\Y
-      model = regr(:, cfg.reject) * beta(cfg.reject, :);                        % model = confounds * weights = X * X\Y
-      Yc = dat - model;
-      
-      % put the clean data back into place
-      dataout.powspctrm = reshape(Yc, [nrpt, nchan, nfreq, ntime]); clear Yc;
-      
-      % update descriptives when already present
-      if isfield(dataout, 'var') % remove (old) var
-        dataout = rmfield(dataout, 'var');
-      end
-      if isfield(dataout, 'dof') % remove (old) degrees of freedom
-        dataout = rmfield(dataout, 'dof');
-      end
-      if isfield(dataout, 'avg') % remove (old) avg and reaverage
-        fprintf('updating descriptives \n');
-        dataout = rmfield(dataout, 'avg');
-        tempcfg            = [];
-        tempcfg.keeptrials = 'yes';
-        dataout = ft_freqdescriptives(tempcfg, dataout); % reaveraging
-      end
-      
-      % make a nested timelock structure that contains the model
-      if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
-        fprintf('outputting the model which contains the confounds x weights \n');
-        dataout.model.trial   = reshape(model, [nrpt, nchan, nfreq, ntime]); clear model;
-        dataout.model.dimord  = dataout.dimord;
-        dataout.model.time    = dataout.time;
-        dataout.model.label   = dataout.label;
-        if isfield(dataout, 'avg')
-          % also average the model
-          tempcfg            = [];
-          tempcfg.keeptrials = 'yes';
-          dataout.model      = ft_freqdescriptives(tempcfg, dataout.model);     % reaveraging
-        end
-      end
-      
-      % beta statistics
-      if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
-        fprintf('performing statistics on the regression weights \n');
-        dfe        = nrpt - nconf;                                              % degrees of freedom
-        err        = dat - regr * beta;                                         % err = Y - X * B
-        mse        = sum((err).^2)/dfe;                                         % mean squared error
-        covar      = diag(regr'*regr)';                                         % regressor covariance
-        bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
-        tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
-        prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
-        clear err; clear mse; clear bvar;
-        dataout.stat     = reshape(tval, [nconf, nchan, nfreq, ntime]); clear tval;
-        dataout.prob     = reshape(prob, [nconf, nchan, nfreq, ntime]); clear prob;
-        % FIXME: drop in replace tcdf from the statfun/private dir
-      end
-      
-      % reduced models analyses
-      if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
-        dfe        = nrpt - nconf;                                              % degrees of freedom
-        err        = dat - regr * beta;                                         % err = Y - X * B
-        tmse       = sum((err).^2)/dfe;                                         % mean squared error
-        for iter = 1:numel(cfg.Ftest)
-          % regressors to test if they explain additional variance
-          r          = str2num(cfg.Ftest{iter});
-          fprintf('F-testing explained additional variance of regressors %s \n', num2str(r));
-          % regressors in reduced design (that is the original design)
-          ri         = ~ismember(1:size(regr,2),r);
-          rX         = regr(:,ri);               % reduced design
-          rnr        = size(rX,2);               % number of regressors in reduced design
-          % estimate reduced model betas
-          rXcov      = pinv(rX'*rX);             % inverse design covariance matrix
-          rb         = rXcov*rX'*dat;          	 % beta estimates using pinv
-          % calculate mean squared error of reduced model
-          rdfe       = size(dat,1) - size(rX,2); % degrees of freedom of the error
-          rerr       = dat-rX*rb;                % residual error
-          rmse       = sum(rerr'.^2,2)./rdfe;	   % mean squared error
-          % F-test
-          F          = ((rmse'-tmse)./(nconf-rnr)) ./ (tmse./(dfe-2));
-          dataout.Fvar(iter,:,:,:) = reshape(F, [nchan, nfreq, ntime]);
-          % Rik Henson defined F-test
-          % F = ( ( rerr'*rerr - err'*err ) / ( nconf-rnr ) ) / ( err'*err/ ( nrpt-nconf ) );
-          % convert F-value to p-value
-          idx_pos    = F >= 0;
-          idx_neg    = ~idx_pos;
-          p          = nan(size(F));
-          p(idx_pos) = (1-fcdf(F(idx_pos),rnr,rdfe));
-          p(idx_neg) = fcdf(-F(idx_neg),rnr,rdfe);
-          dataout.pvar(iter,:,:,:) = reshape(p, [nchan, nfreq, ntime]);
-          clear rerr rmse F p;
-        end
-        clear dfe err tmse;
-      end
-      
-      % add the beta weights to the output
-      dataout.beta     = reshape(beta, [nconf, nchan, nfreq, ntime]); clear beta dat;
-      
     otherwise
-      error('unsupported dimord "%s"', datain.dimord);
+      error('unsupported freq dimord "%s"', datain.dimord);
   end % switch
   
 elseif issource
@@ -386,12 +187,220 @@ elseif issource
     dat(i,:) = datain.trial(1,i).pow(datain.inside); % reshape to [nrpt, nvox]
   end
   
-  % estimate and remove the confounds
-  fprintf('estimating the regression weights and removing the confounds \n');
-  beta = regr\dat;                                                          % B = X\Y
-  model = regr(:, cfg.reject) * beta(cfg.reject, :);                        % model = confounds * weights = X * X\Y
-  Yc = dat - model;
+else
+  error('the input data should be either timelock, freq, or source with trials')
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GLM MODEL
+%   Y = X * B + err, where Y is data, X is the model, and B are beta's
+% which means
+%   Best = X\Y ('matrix division', which is similar to B = inv(X)*Y)
+% or when presented differently
+%   Yest = X * Best
+%   Yest = X * X\Y
+%   Yclean = Y - Yest (the true 'clean' data is the recorded data 'Y' -
+%   the data containing confounds 'Yest')
+%   Yclean = Y - X * X\Y
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% estimate and remove the confounds
+fprintf('estimating the regression weights and removing the confounds \n');
+if isempty(find(isnan(dat))) % if there are no NaNs, process all at once
   
+	beta = regr\dat;                                                        % B = X\Y
+  
+else % otherwise process per colum set as defined by the nan distribution 
+  
+  [u,i,j] = unique(~isnan(dat)','rows','first'); % find unique rows
+  uniquecolumns = u'; % unique column types
+  Nuniques = numel(i); % number of unique types
+  beta_temp = NaN(Nuniques, nconf, size(dat,2)); % declare empty variable  
+  for n = 1:Nuniques % for each unique type    
+    rowidx = find(uniquecolumns(:,n)==1); % row indices for unique type
+    colidx = find(j==n); % column indices for unique type    
+    if any(uniquecolumns(:,n)) % if vector contains a nonzero number
+       beta_temp(n,:,colidx) = regr(rowidx,:)\dat(rowidx,colidx);         % B = X\Y
+    end
+  end  
+  beta = squeeze(nansum(beta_temp,1)); % sum the betas
+  clear beta_temp;
+  
+end
+
+model = regr(:, cfg.reject) * beta(cfg.reject, :);                        % model = confounds * weights = X * X\Y
+Yc = dat - model;                                                         % Yclean = Y - X * X\Y
+
+% beta statistics
+if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
+  
+  fprintf('performing statistics on the regression weights \n');
+  dfe        = nrpt - nconf;                                              % degrees of freedom
+  err        = dat - regr * beta;                                         % err = Y - X * B
+  mse        = sum((err).^2)/dfe;                                         % mean squared error
+  covar      = diag(regr'*regr)';                                         % regressor covariance
+  bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
+  tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
+  prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
+  clear err dfe mse bvar;
+  % FIXME: drop in replace tcdf from the statfun/private dir
+  
+end
+
+% reduced models analyses
+if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
+  
+  dfe        = nrpt - nconf;                                              % degrees of freedom
+  err        = dat - regr * beta;                                         % err = Y - X * B
+  tmse       = sum((err).^2)/dfe;                                         % mean squared error
+  
+  for iter = 1:numel(cfg.Ftest)
+    
+    % regressors to test if they explain additional variance
+    r          = str2num(cfg.Ftest{iter});
+    fprintf('F-testing explained additional variance of regressors %s \n', num2str(r));
+    % regressors in reduced design (that is the original design)
+    ri         = ~ismember(1:size(regr,2),r);
+    rX         = regr(:,ri);               % reduced design
+    rnr        = size(rX,2);               % number of regressors in reduced design
+    % estimate reduced model betas
+    rXcov      = pinv(rX'*rX);             % inverse design covariance matrix
+    rb         = rXcov*rX'*dat;          	 % beta estimates using pinv
+    % calculate mean squared error of reduced model
+    rdfe       = size(dat,1) - size(rX,2); % degrees of freedom of the error
+    rerr       = dat-rX*rb;                % residual error
+    rmse       = sum(rerr'.^2,2)./rdfe;	   % mean squared error
+    % F-test
+    F(iter,:)          = ((rmse'-tmse)./(nconf-rnr)) ./ (tmse./(dfe-2));
+    % Rik Henson defined F-test
+    % F = ( ( rerr'*rerr - err'*err ) / ( nconf-rnr ) ) / ( err'*err/ ( nrpt-nconf ) );
+    % convert F-value to p-value
+    idx_pos    = F(iter,:) >= 0;
+    idx_neg    = ~idx_pos;
+    p(iter,:)     = nan(1,size(F(iter,:),2));
+    p(iter,idx_pos) = (1-fcdf(F(iter,idx_pos),rnr,rdfe));
+    p(iter,idx_neg) = fcdf(-F(iter,idx_neg),rnr,rdfe);
+    clear rerr rmse
+    % FIXME: drop in replace tcdf from the statfun/private dir
+    
+  end
+  
+  clear dfe err tmse;
+end
+
+% output handling
+dataout       = datain;
+  
+if istimelock
+  
+  % put the clean data back into place
+  dataout.trial = reshape(Yc, [nrpt, nchan, ntime]); clear Yc;
+  
+  % update descriptives when already present
+  if isfield(dataout, 'var') % remove (old) var
+    dataout = rmfield(dataout, 'var');
+  end
+  if isfield(dataout, 'dof') % remove (old) degrees of freedom
+    dataout = rmfield(dataout, 'dof');
+  end
+  if isfield(dataout, 'avg') % remove (old) avg and reaverage
+    fprintf('updating descriptives \n');
+    dataout = rmfield(dataout, 'avg');
+    tempcfg            = [];
+    tempcfg.keeptrials = 'yes';
+    dataout = ft_timelockanalysis(tempcfg, dataout); % reaveraging
+  end
+  
+  % make a nested timelock structure that contains the model
+  if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
+    fprintf('outputting the model which contains the confounds x weights \n');
+    dataout.model.trial   = reshape(model, [nrpt, nchan, ntime]); clear model;
+    dataout.model.dimord  = dataout.dimord;
+    dataout.model.time    = dataout.time;
+    dataout.model.label   = dataout.label;
+    if isfield(dataout, 'avg')
+      % also average the model
+      tempcfg            = [];
+      tempcfg.keeptrials = 'yes';
+      dataout.model      = ft_timelockanalysis(tempcfg, dataout.model);     % reaveraging
+    end
+  end
+  
+  % beta statistics
+  if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
+    dataout.stat     = reshape(tval, [nconf, nchan, ntime]);
+    dataout.prob     = reshape(prob, [nconf, nchan, ntime]);
+    clear tval prob;
+  end
+  
+  % reduced models analyses
+  if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
+    dataout.Fvar   = reshape(F, [numel(cfg.Ftest), nchan, ntime]);
+    dataout.pvar   = reshape(p, [numel(cfg.Ftest), nchan, ntime]);
+    clear F p;
+  end
+  
+  % add the beta weights to the output
+  dataout.beta       = reshape(beta, [nconf, nchan, ntime]);
+  clear beta dat;
+  
+elseif isfreq
+  
+  % put the clean data back into place
+  dataout.powspctrm = reshape(Yc, [nrpt, nchan, nfreq, ntime]); clear Yc;
+  
+  % update descriptives when already present
+  if isfield(dataout, 'var') % remove (old) var
+    dataout = rmfield(dataout, 'var');
+  end
+  if isfield(dataout, 'dof') % remove (old) degrees of freedom
+    dataout = rmfield(dataout, 'dof');
+  end
+  if isfield(dataout, 'avg') % remove (old) avg and reaverage
+    fprintf('updating descriptives \n');
+    dataout = rmfield(dataout, 'avg');
+    tempcfg            = [];
+    tempcfg.keeptrials = 'yes';
+    dataout = ft_freqdescriptives(tempcfg, dataout); % reaveraging
+  end
+  
+  % make a nested freq structure that contains the model
+  if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
+    fprintf('outputting the model which contains the confounds x weights \n');
+    dataout.model.trial   = reshape(model, [nrpt, nchan, nfreq, ntime]); clear model;
+    dataout.model.dimord  = dataout.dimord;
+    dataout.model.label   = dataout.label;
+    if isfield(dataout, 'time')
+      dataout.model.time    = dataout.time;
+    end
+    if isfield(dataout, 'avg')
+      % also average the model
+      tempcfg            = [];
+      tempcfg.keeptrials = 'yes';
+      dataout.model      = ft_freqdescriptives(tempcfg, dataout.model);     % reaveraging
+    end
+  end
+  
+  % beta statistics
+  if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
+    dataout.stat     = reshape(tval, [nconf, nchan, nfreq, ntime]);
+    dataout.prob     = reshape(prob, [nconf, nchan, nfreq, ntime]);
+    clear tval prob;
+  end
+  
+  % reduced models analyses
+  if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
+    dataout.Fvar   = reshape(F, [numel(cfg.Ftest), nchan, nfreq, ntime]);
+    dataout.pvar   = reshape(p, [numel(cfg.Ftest), nchan, nfreq, ntime]);
+    clear F p;
+  end
+  
+  % add the beta weights to the output
+  dataout.beta     = reshape(beta, [nconf, nchan, nfreq, ntime]);
+  clear beta dat;
+  
+elseif issource
+
   % put the clean data back into place
   for i = 1:nrpt
     dataout.trial(1,i).pow = zeros(nvox,1);
@@ -414,7 +423,7 @@ elseif issource
     dataout = ft_sourcedescriptives(tempcfg, dataout); % reaveraging
   end
   
-  % make a nested timelock structure that contains the model
+  % make a nested source structure that contains the model
   if isfield(cfg, 'model') && strcmp(cfg.model, 'yes')
     fprintf('outputting the model which contains the confounds x weights \n');
     for i = 1:nrpt
@@ -432,68 +441,18 @@ elseif issource
   
   % beta statistics
   if isfield(cfg, 'statistics') && strcmp(cfg.statistics, 'yes')
-    fprintf('performing statistics on the regression weights \n');
-    dfe        = nrpt - nconf;                                              % degrees of freedom
-    err        = dat - regr * beta;                                         % err = Y - X * B
-    mse        = sum((err).^2)/dfe;                                         % mean squared error
-    covar      = diag(regr'*regr)';                                         % regressor covariance
-    bvar       = repmat(mse',1,size(covar,2))./repmat(covar,size(mse,2),1); % beta variance
-    tval       = (beta'./sqrt(bvar))';                                      % betas -> t-values
-    prob       = (1-tcdf(tval,dfe))*2;                                      % p-values
-    clear err mse bvar;
     dataout.stat                       = zeros(nconf, nvox);
-    dataout.stat(:,dataout.inside)     = tval; clear tval;
+    dataout.stat(:,dataout.inside)     = tval;
     dataout.prob                       = zeros(nconf, nvox);
-    dataout.prob(:,dataout.inside)     = prob; clear prob;
-    % FIXME: drop in replace tcdf from the statfun/private dir
-  end
-  
-  % reduced models analyses
-  if isfield(cfg, 'Ftest') && ~isempty(cfg.Ftest)
-    nvars          = size(cfg.Ftest,1);
-    dfe            = nrpt - nconf;                                              % degrees of freedom
-    err            = dat - regr * beta;                                         % err = Y - X * B
-    tmse           = sum((err).^2)/dfe;                                         % mean squared error
-    dataout.Fvar   = zeros(nvars, nvox);
-    dataout.pvar   = zeros(nvars, nvox);
-    for iter = 1:numel(cfg.Ftest)
-      % regressors to test if they explain additional variance
-      r          = str2num(cfg.Ftest{iter});
-      fprintf('F-testing explained additional variance of regressors %s \n', num2str(r));
-      % regressors in reduced design (that is the original design)
-      ri         = ~ismember(1:size(regr,2),r);
-      rX         = regr(:,ri);               % reduced design
-      rnr        = size(rX,2);               % number of regressors in reduced design
-      % estimate reduced model betas
-      rXcov      = pinv(rX'*rX);             % inverse design covariance matrix
-      rb         = rXcov*rX'*dat;          	 % beta estimates using pinv
-      % calculate mean squared error of reduced model
-      rdfe       = size(dat,1) - size(rX,2); % degrees of freedom of the error
-      rerr       = dat-rX*rb;                % residual error
-      rmse       = sum(rerr'.^2,2)./rdfe;	   % mean squared error
-      % F-test
-      F          = ((rmse'-tmse)./(nconf-rnr)) ./ (tmse./(dfe-2));
-      dataout.Fvar(iter,dataout.inside) = F;
-      % Rik Henson defined F-test
-      % F = ( ( rerr'*rerr - err'*err ) / ( nconf-rnr ) ) / ( err'*err/ ( nrpt-nconf ) );
-      % convert F-value to p-value
-      idx_pos    = F >= 0;
-      idx_neg    = ~idx_pos;
-      p          = nan(size(F));
-      p(idx_pos) = (1-fcdf(F(idx_pos),rnr,rdfe));
-      p(idx_neg) = fcdf(-F(idx_neg),rnr,rdfe);
-      dataout.pvar(iter,dataout.inside) = p;
-      clear rerr rmse F p;
-    end
-    clear dfe err tmse;
+    dataout.prob(:,dataout.inside)     = prob;
+    clear tval prob;
   end
   
   % add the beta weights to the output
   dataout.beta = zeros(nconf, nvox);
-  dataout.beta(:,dataout.inside) = beta; clear beta dat;
+  dataout.beta(:,dataout.inside) = beta;
+  clear beta dat;
   
-else
-  error('the input data should be either timelock, freq, or source with trials')
 end
 
 % discard the gradiometer information because the weightings have been changed
@@ -509,6 +468,7 @@ ft_postamble previous datain
 
 % rename the output variable to accomodate the savevar postamble
 data = dataout;
+clear dataout
 
 ft_postamble history data
 ft_postamble savevar data

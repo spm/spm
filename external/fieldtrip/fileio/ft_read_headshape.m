@@ -27,14 +27,39 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 5167 2012-01-24 10:47:33Z jansch $
+% $Id: ft_read_headshape.m 5784 2012-05-17 11:57:13Z jansch $
 
 % check the input: if filename is a cell-array, call ft_read_headshape recursively and combine the outputs
 if iscell(filename)
   for i=1:numel(filename)
     tmpshape = ft_read_headshape(filename{i}, varargin{:});
+    [path,name,ext] = fileparts(filename{i});
+    if strcmp(ext, '.inflated') && strcmp(name, 'lh')
+      % assume freesurfer inflated mesh in mm, mni space
+      % move the mesh a bit to the left, to avoid overlap with the right
+      % hemisphere
+      tmpshape.pnt(:,1) = tmpshape.pnt(:,1) - max(tmpshape.pnt(:,1)) - 10;
+      
+    elseif strcmp(ext, '.inflated') && strcmp(name, 'rh')
+      % id.
+      % move the mesh a bit to the right, to avoid overlap with the left
+      % hemisphere
+      tmpshape.pnt(:,1) = tmpshape.pnt(:,1) - min(tmpshape.pnt(:,1)) + 10;
+    end
+    
+    % try to read info regarding the sulcal pattern
+    ft_hastoolbox('freesurfer', 1);
+    try,
+      tmpsulc = read_curv(fullfile(path, [name,'.sulc']));
+    catch
+      tmpsulc = [];
+    end
+    
     if i==1,
       shape = tmpshape;
+      if ~isempty(tmpsulc)
+        shape.sulc = tmpsulc;
+      end
     else
       tmpshape  = ft_convert_units(tmpshape, shape.unit);
       npnt      = size(shape.pnt,1);
@@ -45,6 +70,9 @@ if iscell(filename)
         % this is ok
       else
         error('not all input files seem to contain a triangulation');
+      end
+      if ~isempty(tmpsulc)
+        shape.sulc = cat(1, shape.sulc, tmpsulc);
       end
     end
   end
@@ -187,17 +215,18 @@ switch fileformat
         
         fidN=1;
         pntN=1;
-        for i=1:nFid %loop over fiducials
-          %check this point is in head coordinates:
-          if hdr.orig.dig(i).coord_frame~=4 % 4 is MNE constant for head coordinates
-            error(['Digitiser point (' num2str(i) ') not stored in head coordinates!']);
+        for i=1:nFid % loop over fiducials
+          % check that this point is in head coordinates
+          % 0 is unknown
+          % 4 is fiducial system, i.e. head coordinates
+          if hdr.orig.dig(i).coord_frame~=4
+            warning(['Digitiser point (' num2str(i) ') not stored in head coordinates!']);
           end
           
-          
           switch hdr.orig.dig(i).kind % constants defined in MNE - see p.215 of MNE manual
-            case 1 % Cardinal point (nasion, LPA or RPA)
-              %get location of fiducial:
-              shape.fid.pnt(fidN,1:3) = hdr.orig.dig(i).r*100; %multiply by 100 to convert to cm
+            case 1 % Cardinal point (Nasion, LPA or RPA)
+              % get location of fiducial:
+              shape.fid.pnt(fidN,1:3) = hdr.orig.dig(i).r*100; % multiply by 100 to convert to cm
               switch hdr.orig.dig(i).ident
                 case 1 % LPA
                   shape.fid.label{fidN} = 'LPA';
@@ -206,7 +235,7 @@ switch fileformat
                 case 3 % RPA
                   shape.fid.label{fidN} = 'RPA';
                 otherwise
-                  error('Unidentified cardinal point in file!');
+                  error('Unidentified cardinal point in file');
               end
               fidN = fidN + 1;
               
@@ -347,6 +376,9 @@ switch fileformat
     
   case 'polhemus_fil'
     [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
+    
+  case 'polhemus_pos'
+    [shape.fid.pnt, shape.pnt, shape.fid.label] = read_ctf_pos(filename);      
     
   case 'spmeeg_mat'
     tmp = load(filename);

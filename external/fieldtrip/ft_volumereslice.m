@@ -54,9 +54,9 @@ function [reslice] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_volumereslice.m 5679 2012-04-20 11:11:31Z jansch $
 
-revision = '$Id: ft_volumereslice.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_volumereslice.m 5679 2012-04-20 11:11:31Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -92,7 +92,7 @@ if isfield(mri, 'coordsys')
     otherwise
       xshift = 0;
       yshift = 0;
-      zshift = 0;
+      zshift = 15./cfg.resolution;
   end
 else
   xshift = 0;
@@ -143,6 +143,7 @@ fprintf('reslicing from [%d %d %d] to [%d %d %d]\n', mri.dim(1), mri.dim(2), mri
 % the actual work is being done by ft_sourceinterpolate, which interpolates the real mri volume 
 % on the resolution that is defined for the resliced volume
 tmpcfg = [];
+tmpcfg.parameter = 'anatomy';
 reslice = ft_sourceinterpolate(tmpcfg, mri, reslice);
 
 % do the general cleanup and bookkeeping at the end of the function

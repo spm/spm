@@ -76,9 +76,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 4946 2011-12-07 14:59:52Z roboos $
+% $Id: ft_volumelookup.m 5473 2012-03-18 06:59:29Z roboos $
 
-revision = '$Id: ft_volumelookup.m 4946 2011-12-07 14:59:52Z roboos $';
+revision = '$Id: ft_volumelookup.m 5473 2012-03-18 06:59:29Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -89,6 +89,14 @@ ft_preamble loadvar volume
 
 % the handling of the default cfg options is done further down
 % the checking of the input data is done further down
+
+cfg.maskparameter      = ft_getopt(cfg,'maskparameter');
+cfg.roi                = ft_getopt(cfg,'roi');
+cfg.inputcoord         = ft_getopt(cfg,'inputcoord');
+cfg.atlas              = ft_getopt(cfg,'atlas');
+cfg.round2nearestvoxel = ft_getopt(cfg,'round2nearestvoxel');
+cfg.box                = ft_getopt(cfg,'box');
+cfg.maxqueryrange      = ft_getopt(cfg,'maxqueryrange');
 
 roi2mask   = 0;
 mask2label = 0;
@@ -108,7 +116,8 @@ if roi2mask
   if ~isfield(cfg, 'round2nearestvoxel'),  cfg.round2nearestvoxel = 'no';  end
 
   if iscell(cfg.roi) || ischar(cfg.roi)
-    ft_checkconfig(cfg, 'forbidden', {'sphere' 'box'}, 'required', {'atlas' 'inputcoord'});
+    ft_checkconfig(cfg, 'forbidden', {'sphere' 'box'}, ...
+                        'required',  {'atlas' 'inputcoord'});
     isatlas = 1;
     ispoi = 0;
   elseif isnumeric(cfg.roi)

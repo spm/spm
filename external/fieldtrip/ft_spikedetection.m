@@ -77,9 +77,9 @@ function [cfg, spike] = ft_spikedetection(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedetection.m 5133 2012-01-11 19:43:45Z roboos $
+% $Id: ft_spikedetection.m 5343 2012-02-29 16:15:32Z roevdmei $
 
-revision = '$Id: ft_spikedetection.m 5133 2012-01-11 19:43:45Z roboos $';
+revision = '$Id: ft_spikedetection.m 5343 2012-02-29 16:15:32Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -228,7 +228,7 @@ for i=chansel(:)'
       end
       % apply preprocessing
       fprintf('applying preprocessing options\n');
-      dat = preproc(org, hdr.label(i), hdr.Fs, cfg.preproc);
+      dat = preproc(org, hdr.label(i), offset2time(0, hdr.Fs, size(org,2)), cfg.preproc);      
     end % if newdata
 
     peaks = [];

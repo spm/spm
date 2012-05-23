@@ -31,7 +31,7 @@ function vol = ft_headmodel_bem_openmeeg(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-%$Id: ft_headmodel_bem_openmeeg.m 4771 2011-11-17 23:28:31Z crimic $
+%$Id: ft_headmodel_bem_openmeeg.m 5407 2012-03-07 11:40:45Z crimic $
 
 ft_hastoolbox('openmeeg', 1);
 
@@ -41,7 +41,6 @@ ft_hastoolbox('openmeeg', 1);
 
 % get the optional arguments
 isolatedsource  = ft_getopt(varargin, 'isolatedsource');
-hdmfile         = ft_getopt(varargin, 'hdmfile');
 conductivity    = ft_getopt(varargin, 'conductivity');
 
 % copy the boundaries from the geometry into the volume conduction model
@@ -51,18 +50,7 @@ end
 
 % start with an empty volume conductor
 vol = [];
-
-if ~isempty(hdmfile)
-  hdm = ft_read_vol(hdmfile);
-  % copy the boundary of the head model file into the volume conduction model
-  vol.bnd = hdm.bnd;
-  if isfield(hdm, 'cond')
-    % also copy the conductivities
-    vol.cond = hdm.cond;
-  end
-else
-  vol.bnd = geom;
-end
+vol.bnd = geom;
 
 % determine the number of compartments
 numboundaries = length(vol.bnd);

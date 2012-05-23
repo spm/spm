@@ -4,9 +4,17 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %
 % Use as
 %   ft_plot_ortho(dat, ...)
-%
+% or
+%   ft_plot_ortho(dat, mask, ...)
+% 
 % Additional options should be specified in key-value pairs and can be
 %   'style'        = string, 'subplot' or 'intersect' (default = 'subplot')
+%   'parents'      = (optional) 3-element vector containing the handles of
+%                      the axes for the subplots (when style = 'subplot')
+%   'surfhandle'   = (optional) 3-element vector containing the handles of 
+%                      the surfaces for each of the sublots (when style =
+%                      'subplot'). Parents and surfhandle are mutually
+%                      exclusive
 %   'transform'    = 4x4 homogeneous transformation matrix specifying the mapping from
 %                    voxel space to the coordinate system in which the data are plotted.
 %   'location'     = 1x3 vector specifying a point on the plane which will be plotted
@@ -15,7 +23,10 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %   'orientation'  = 3x3 matrix specifying the directions orthogonal through the planes
 %                    which will be plotted.
 %   'datmask'      = 3D-matrix with the same size as the matrix dat, serving as opacitymap
-%   'interpmethod' = string specifying the method for the interpolation, see INTERPN (default = 'nearest')
+%                      if the second input argument to the function
+%                      contains a matrix, this will be used as the mask
+%   'interpmethod' = string specifying the method for the interpolation,
+%                      see INTERPN (default = 'nearest')
 %   'colormap'     = string, see COLORMAP
 %   'interplim'
 %
@@ -39,12 +50,28 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 4972 2011-12-09 15:33:10Z roboos $
+% $Id: ft_plot_ortho.m 5672 2012-04-20 09:47:05Z jansch $
+
+% parse first input argument(s). it is either
+% (dat, varargin)
+% (dat, msk, varargin)
+% (dat, [], varargin)
+sellist = 1:numel(varargin);
+if isempty(varargin{1}) || isnumeric(varargin{1})
+  sellist(1) = [];
+end
 
 % get the optional input arguments
 % other options such as location and transform are passed along to ft_plot_slice
-style     = ft_getopt(varargin, 'style',       'subplot');
-ori       = ft_getopt(varargin, 'orientation', eye(3));
+style     = ft_getopt(varargin(sellist), 'style',       'subplot');
+ori       = ft_getopt(varargin(sellist), 'orientation', eye(3));
+if strcmp(style, 'subplot')
+  parents    = ft_getopt(varargin(sellist), 'parents');
+  surfhandle = ft_getopt(varargin(sellist), 'surfhandle');
+  if ~isempty(surfhandle) && ~isempty(parents)
+    error('if specifying handles, you should either specify handles to the axes or to the surface objects, not both');
+  end
+end
 
 if ~isa(dat, 'double')
   dat = cast(dat, 'double');
@@ -52,7 +79,7 @@ end
 
 % determine the orientation key-value pair
 keys = varargin(1:2:end);
-sel  = strmatch('orientation', keys);
+sel  = find(strcmp('orientation', keys));
 if isempty(sel)
   % add orientation key-value pair if it does not exist
   sel             = numel(varargin)+1;
@@ -63,23 +90,64 @@ end
 switch style
   case 'subplot'
     
-    Hx = subplot(2,2,1);
-    varargin{sel+1} = ori(1,:);
-    hx = ft_plot_slice(dat, varargin{:});
-    view([90 0]);
-    axis equal;axis tight;axis off
+    if isempty(parents) && isempty(surfhandle)
+      Hx = subplot(2,2,1);
+      Hy = subplot(2,2,2);
+      Hz = subplot(2,2,4);
+    elseif ~isempty(parents) && isempty(surfhandle)
+      Hx = parents(1);
+      Hy = parents(2);
+      Hz = parents(3);
+    elseif isempty(parents) && ~isempty(surfhandle)
+      % determine the parents from the surface handle and use the
+      % surfhandle for efficient visualization (overwriting existing data)
+      if surfhandle(1), Hx = get(surfhandle(1), 'parent'); else Hx = 0; end
+      if surfhandle(2), Hy = get(surfhandle(2), 'parent'); else Hy = 0; end
+      if surfhandle(3), Hz = get(surfhandle(3), 'parent'); else Hz = 0; end
+    end
     
-    Hy = subplot(2,2,2);
-    varargin{sel+1} = ori(2,:);
-    hy = ft_plot_slice(dat, varargin{:});
-    view([0 0]);
-    axis equal;axis tight;axis off
+    if Hx,
+      if ~isempty(surfhandle) && surfhandle(1)
+        varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(1));
+      end
+      % swap the first 2 dimensions because of meshgrid vs ndgrid issues
+      varargin{sel+1} = ori(2,:);
+      set(gcf,'currentaxes',Hx);
+      hx = ft_plot_slice(dat, varargin{:});
+      set(Hx, 'view', [0 0], 'xlim', [0.5 size(dat,1)-0.5], 'zlim', [0.5 size(dat,3)-0.5]); 
+      if isempty(parents),
+        % only change axis behavior if no parents are specified
+        axis off
+      end
+    end
     
-    Hz = subplot(2,2,4);
-    varargin{sel+1} = ori(3,:);
-    hz = ft_plot_slice(dat, varargin{:});
-    view([0 90]);
-    axis equal;axis tight;axis off
+    if Hy,
+      if ~isempty(surfhandle) && surfhandle(2)
+        varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(2));
+      end
+      varargin{sel+1} = ori(1,:);
+      set(gcf,'currentaxes',Hy);
+      hy = ft_plot_slice(dat, varargin{:});
+      set(Hy, 'view', [90 0], 'ylim', [0.5 size(dat,2)-0.5], 'zlim', [0.5 size(dat,3)-0.5]);
+      if isempty(parents),
+        % only change axis behavior if no parents are specified
+        axis off
+      end
+    end
+    
+    if Hz,
+      if ~isempty(surfhandle) && surfhandle(3)
+        varargin(sellist) = ft_setopt(varargin(sellist), 'surfhandle', surfhandle(3));
+      end
+      varargin{sel+1} = ori(3,:);
+      set(gcf,'currentaxes',Hz);
+      hz = ft_plot_slice(dat, varargin{:});
+      set(Hz, 'view', [0 90], 'xlim', [0.5 size(dat,1)-0.5], 'ylim', [0.5 size(dat,2)-0.5]);
+      if isempty(parents),
+        % only change axis behavior if no parents are specified
+        axis off
+      end
+    end
     
   case 'intersect'
     holdflag = ishold;

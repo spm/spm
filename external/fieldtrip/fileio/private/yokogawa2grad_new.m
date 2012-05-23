@@ -24,7 +24,7 @@ function grad = yokogawa2grad_new(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad_new.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: yokogawa2grad_new.m 5735 2012-05-04 12:04:04Z tilsan $
 
 % The following line is only a safety measure: No function of the toolbox
 % is actually called in this routine.
@@ -172,12 +172,12 @@ end
 % Therefore all have individual label sequences: Support in ft_senslabel 
 % is only partial.
 if ~isempty(label)
-    grad.label = label(grad_ind);
+    grad.label = label(grad_ind)';
 else
     % this is only backup, if something goes wrong above.
-    label = cell(grad_nr);
+    label = cell(grad_nr,1);
     for i=1:length(label)
-    label{i} = sprintf('AG%03d', i);
+    label{i,1} = sprintf('AG%03d', i);
     end
     grad.label = label;    
 end

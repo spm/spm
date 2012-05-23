@@ -44,11 +44,11 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_prepare_bemmodel.m 5697 2012-04-24 08:44:46Z crimic $
 
-warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_HEADMODEL_BEM_... with cfg.method = ''bem_bladeebla'' instead.')
+warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''dipoli/openmeeg/bem_cp ...'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_prepare_bemmodel.m 5697 2012-04-24 08:44:46Z crimic $';
 
 % do the general setup of the function
 ft_defaults

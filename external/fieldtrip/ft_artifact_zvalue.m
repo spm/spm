@@ -30,7 +30,7 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 % a call to FT_PREPROCESSING.
 %
 % If you encounter difficulties with memory usage, you can use
-%   cfg.memory = 'low' or 'high', whether to be computationally or memory efficient (default = 'high')
+%   cfg.memory = 'low' or 'high', whether to be memory or computationally efficient, respectively (default = 'high')
 %
 % The required configuration settings are:
 %   cfg.trl
@@ -44,6 +44,16 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 % If you specify
 %   cfg.artfctdef.zvalue.interactive = 'yes', a GUI will be started and you
 %     can manually accept/reject detected artifacts, and/or change the threshold
+%
+% If you specify
+%   cfg.artfctdef.zvalue.artfctpeak='yes', the maximum value of the artifact 
+%       within its range will be found; saved into cfg.artfctdef.zvalue.peaks
+% Use also, e.g. as input to DSS option of ft_componentanalysis:
+%   cfg.artfctdef.zvalue.artfctpeakrange= [-0.25 0.25]; (in seconds), (for example) 
+%       to indicate range around peak to include, saved into cfg.artfctdef.zvalue.dssartifact
+%       Default values: [0 0]
+%       Range will respect trial boundaries (i.e. be shorter if peak is near beginning or end of trial)
+%       Samples between trials will be removed; thus this won't match .sampleinfo of the data structure
 %
 % Configuration settings related to the preprocessing of the data are
 %   cfg.artfctdef.zvalue.lpfilter      = 'no' or 'yes'  lowpass filter
@@ -91,9 +101,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 5165 2012-01-23 16:31:02Z jorhor $
+% $Id: ft_artifact_zvalue.m 5756 2012-05-09 11:59:28Z jansch $
 
-revision = '$Id: ft_artifact_zvalue.m 5165 2012-01-23 16:31:02Z jorhor $';
+revision = '$Id: ft_artifact_zvalue.m 5756 2012-05-09 11:59:28Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -113,6 +123,8 @@ cfg.artfctdef.zvalue.fltpadding  = ft_getopt(cfg.artfctdef.zvalue, 'fltpadding',
 cfg.artfctdef.zvalue.artpadding  = ft_getopt(cfg.artfctdef.zvalue, 'artpadding', 0);
 cfg.artfctdef.zvalue.interactive = ft_getopt(cfg.artfctdef.zvalue, 'interactive', 'no');
 cfg.artfctdef.zvalue.cumulative  = ft_getopt(cfg.artfctdef.zvalue, 'cumulative', 'yes');
+cfg.artfctdef.zvalue.artfctpeak  = ft_getopt(cfg.artfctdef.zvalue, 'artfctpeak', 'no');
+cfg.artfctdef.zvalue.artfctpeakrange  = ft_getopt(cfg.artfctdef.zvalue, 'artfctpeakrange',[0 0]);
 
 % for backward compatibility
 cfg.artfctdef        = ft_checkconfig(cfg.artfctdef, 'renamed',    {'blc', 'demean'});
@@ -134,7 +146,13 @@ if nargin > 1
 elseif nargin == 1
   % only cfg given
   isfetch = 0;
-  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat); 
+  hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
+  
+  % check whether the value for trlpadding makes sense; negative trlpadding
+  % only allowed with in-memory data
+  if cfg.artfctdef.zvalue.trlpadding < 0
+    error('negative trlpadding is only allowed with in-memory data');
+  end
 end
 
 % set default cfg.continuous
@@ -184,7 +202,7 @@ for trlop = 1:numtrl
       else
         dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'), 'dataformat', cfg.dataformat);
       end
-      dat = preproc(dat, cfg.artfctdef.zvalue.channel, hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
+      dat = preproc(dat, cfg.artfctdef.zvalue.channel, offset2time(0, hdr.Fs, size(dat,2)), cfg.artfctdef.zvalue, fltpadding, fltpadding);
 
       % accumulate the sum and the sum-of-squares
       sumval = sumval + sum(dat,2);
@@ -196,7 +214,7 @@ for trlop = 1:numtrl
       else
         dat{trlop} = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'), 'dataformat', cfg.dataformat);
       end
-      dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel, hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
+      dat{trlop} = preproc(dat{trlop}, cfg.artfctdef.zvalue.channel, offset2time(0, hdr.Fs, size(dat{trlop},2)), cfg.artfctdef.zvalue, fltpadding, fltpadding);
 
       % accumulate the sum and the sum-of-squares
       sumval = sumval + sum(dat{trlop},2);
@@ -224,14 +242,14 @@ for trlop = 1:numtrl
     else
       dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1)-fltpadding, 'endsample', trl(trlop,2)+fltpadding, 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous,'no'), 'dataformat', cfg.dataformat);
     end
-    dat = preproc(dat, cfg.artfctdef.zvalue.channel, hdr.Fs, cfg.artfctdef.zvalue, [], fltpadding, fltpadding);
+    dat = preproc(dat, cfg.artfctdef.zvalue.channel, offset2time(0, hdr.Fs, size(dat,2)), cfg.artfctdef.zvalue, fltpadding, fltpadding);
     zmax{trlop}  = -inf + zeros(1,size(dat,2));
     zsum{trlop}  = zeros(1,size(dat,2));
     zindx{trlop} = zeros(1,size(dat,2));
     
     nsmp          = size(dat,2);
     zdata         = (dat - datavg(:,ones(1,nsmp)))./datstd(:,ones(1,nsmp));  % convert the filtered data to z-values
-    zsum{trlop}   = sum(zdata,1);                   % accumulate the z-values over channels
+    zsum{trlop}   = nansum(zdata,1);                   % accumulate the z-values over channels
     [zmax{trlop},ind] = max(zdata,[],1);            % find the maximum z-value and remember it
     zindx{trlop}      = sgnind(ind);                % also remember the channel number that has the largest z-value
   else
@@ -242,7 +260,7 @@ for trlop = 1:numtrl
     
     nsmp          = size(dat{trlop},2);
     zdata         = (dat{trlop} - datavg(:,ones(1,nsmp)))./datstd(:,ones(1,nsmp));  % convert the filtered data to z-values
-    zsum{trlop}   = sum(zdata,1);                   % accumulate the z-values over channels
+    zsum{trlop}   = nansum(zdata,1);                   % accumulate the z-values over channels
     [zmax{trlop},ind] = max(zdata,[],1);            % find the maximum z-value and remember it
     zindx{trlop}      = sgnind(ind);                % also remember the channel number that has the largest z-value
   end
@@ -368,7 +386,8 @@ if strcmp(cfg.artfctdef.zvalue.interactive, 'yes')
   uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'artifact','userdata', 'a')
   uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'shift+uparrow')
   uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'keep trial',   'userdata', 'k')
-  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'reject trial', 'userdata', 'r')
+  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'reject part', 'userdata', 'r')
+  uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'reject full', 'userdata', 'R')
   uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<<', 'userdata', 'shift+leftarrow')
   uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'leftarrow')
   uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'trial', 'userdata', 't')
@@ -417,8 +436,39 @@ artbeg = find(diff([0 artval])== 1);
 artend = find(diff([artval 0])==-1);
 artifact = [artbeg(:) artend(:)];
 
+if strcmp(cfg.artfctdef.zvalue.artfctpeak,'yes')
+  cnt=1;
+  shift=opt.trl(1,1)-1;
+  for tt=1:opt.numtrl    
+    if tt==1
+      tind{tt}=find(artifact(:,2)<opt.trl(tt,2));
+    else
+      tind{tt}=intersect(find(artifact(:,2)<opt.trl(tt,2)),find(artifact(:,2)>opt.trl(tt-1,2)));
+    end
+    artbegend=[(artifact(tind{tt},1)-opt.trl(tt,1)+1) (artifact(tind{tt},2)-opt.trl(tt,1)+1)];
+    for rr=1:size(artbegend,1)
+      [mx,mxnd]=max(opt.zval{tt}(artbegend(rr,1):artbegend(rr,2)));
+      peaks(cnt)=artifact(tind{tt}(rr),1)+mxnd-1;
+      dssartifact(cnt,1)=max(peaks(cnt)+cfg.artfctdef.zvalue.artfctpeakrange(1)*hdr.Fs,opt.trl(tt,1));
+      dssartifact(cnt,2)=min(peaks(cnt)+cfg.artfctdef.zvalue.artfctpeakrange(2)*hdr.Fs,opt.trl(tt,2));
+      peaks(cnt)=peaks(cnt)-shift;
+      dssartifact(cnt,:)=dssartifact(cnt,:)-shift;
+      cnt=cnt+1;
+    end
+    if tt<opt.numtrl
+      shift=shift+opt.trl(tt+1,1)-opt.trl(tt,2)-1;
+    end
+    clear artbegend
+  end
+  cfg.artfctdef.zvalue.peaks=peaks';
+  cfg.artfctdef.zvalue.dssartifact=dssartifact;
+end
+
 % remember the artifacts that were found
 cfg.artfctdef.zvalue.artifact = artifact;
+
+% also update the threshold
+cfg.artfctdef.zvalue.cutoff   = opt.threshold;
 
 fprintf('detected %d artifacts\n', size(artifact,1));
 
@@ -463,17 +513,39 @@ for trlop = find(opt.keep==1 & opt.trialok==0)
   artval{trlop}(:) = 0;
 end
 
-for trlop = find(opt.keep==-1 & opt.trialok==1)
+for trlop = find(opt.keep<0 & opt.trialok==1)
   % if the user specifies that the trial is not OK
   % reject the whole trial if there is no extra-threshold data,
   % otherwise use the artifact as found by the thresholding
-  if opt.thresholdsum,
+  if opt.thresholdsum && opt.keep(trlop)==-1,
     % threshold the accumulated z-values
     artval{trlop} = opt.zsum{trlop}>opt.threshold;
-  else
+  elseif opt.keep(trlop)==-1
     % threshold the max z-values
     artval{trlop} = opt.zmax{trlop}>opt.threshold;
+  elseif opt.keep(trlop)==-2
+    artval{trlop}(:) = 1;
   end
+  % pad the artifacts
+  artbeg = find(diff([0 artval{trlop}])== 1);
+  artend = find(diff([artval{trlop} 0])==-1);
+  artbeg = artbeg - opt.artpadding;
+  artend = artend + opt.artpadding;
+  artbeg(artbeg<1) = 1;
+  artend(artend>length(artval{trlop})) = length(artval{trlop});
+  if ~isempty(artbeg)
+    for artlop=1:length(artbeg)
+      artval{trlop}(artbeg(artlop):artend(artlop)) = 1;
+    end
+  else
+    artval{trlop}(:) = 1;
+  end
+end
+
+for trlop = find(opt.keep==-2 & opt.trialok==0)
+  % if the user specifies the whole trial to be rejected define the whole
+  % segment to be bad
+  artval{trlop}(:) = 1;
   % pad the artifacts
   artbeg = find(diff([0 artval{trlop}])== 1);
   artend = find(diff([artval{trlop} 0])==-1);
@@ -645,12 +717,20 @@ switch key
     redraw_cb(h);
     opt = getappdata(h, 'opt');
   case 'r'
-    opt.keep(opt.trlop) = -1;
+    % only of the trial contains a partial artifact
+    if opt.trialok(opt.trlop) == 0 
+      opt.keep(opt.trlop) = -1;
+    end
     setappdata(h, 'opt', opt);
     artval_cb(h);
     redraw_cb(h);
     opt = getappdata(h, 'opt');
-    
+  case 'R'
+    opt.keep(opt.trlop) = -2;
+    setappdata(h, 'opt', opt);
+    artval_cb(h);
+    redraw_cb(h);
+    opt = getappdata(h, 'opt');
   case 'control+control'
     % do nothing
   case 'shift+shift'
@@ -783,7 +863,7 @@ end
 %--------------------------------------------------
 % get trial specific x-axis values and padding info
 xval = trl(trlop,1):trl(trlop,2);
-if trlpadsmp
+if trlpadsmp>0
   sel    = trlpadsmp:(size(data,2)-trlpadsmp);
   selpad = 1:size(data,2); 
 else
@@ -840,7 +920,7 @@ if isempty(get(opt.h3, 'children'))
   zval(~artval) = nan;
   plot(xval, zval, 'r-', 'displayname', 'line3b');
   xlabel('samples');
-  ylabel('uV or Tesla');
+  ylabel('zscore');
 else
   % update in the existing handles
   h3children = get(opt.h3, 'children');

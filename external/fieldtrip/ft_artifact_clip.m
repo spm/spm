@@ -54,9 +54,9 @@ function [cfg, artifact] = ft_artifact_clip(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 4669 2011-11-03 20:58:34Z roboos $
+% $Id: ft_artifact_clip.m 5409 2012-03-07 14:34:12Z roevdmei $
 
-revision = '$Id: ft_artifact_clip.m 4669 2011-11-03 20:58:34Z roboos $';
+revision = '$Id: ft_artifact_clip.m 5409 2012-03-07 14:34:12Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -116,18 +116,31 @@ sgnindx = match_str(hdr.label, label);
 % make a local copy for convenience
 artfctdef = cfg.artfctdef.clip;
 
-ntrl = size(cfg.trl,1);
+
+if isfield(cfg,'trl')
+  trl = cfg.trl;
+elseif hasdata
+  trl = data.sampleinfo;
+else
+  error('either the cfg should contain a trl or data has to be given as input')
+end
+ntrl = size(trl,1);
 nsgn = length(sgnindx);
 for trlop=1:ntrl
   fprintf('searching for clipping artifacts in trial %d\n', trlop);
   % read the data of this trial
   if hasdata
-    dat = ft_fetch_data(data,        'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx);
+    dat = ft_fetch_data(data,        'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnindx);
   else
-    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
+    dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(trlop,1), 'endsample', trl(trlop,2), 'chanindx', sgnindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
   end
-  % apply filtering etc to the data
-  datflt = preproc(dat, label, hdr.Fs, artfctdef, cfg.trl(trlop,3));
+  % get time
+  if size(trl,2)>=3
+    time = offset2time(trl(trlop,3), hdr.Fs, size(dat,2));
+  elseif hasdata
+    time = data.time{trlop};
+  end
+  datflt = preproc(dat, label, time, artfctdef);
   % detect all samples that have the same value as the previous sample
   identical = (datflt(:,1:(end-1)) == datflt(:,2:end));
   % ensure that the number of samples does not change
@@ -150,8 +163,8 @@ for trlop=1:ntrl
   thresh = (clip>=artfctdef.thresh*hdr.Fs);
   
   % remember the thresholded parts as artifacts
-  artup = find(diff([0 thresh])== 1) + cfg.trl(trlop,1) - 1;
-  artdw = find(diff([thresh 0])==-1) + cfg.trl(trlop,1) - 1;
+  artup = find(diff([0 thresh])== 1) + trl(trlop,1) - 1;
+  artdw = find(diff([thresh 0])==-1) + trl(trlop,1) - 1;
   for k=1:length(artup)
     artifact(end+1,:) = [artup(k) artdw(k)];
   end
@@ -166,7 +179,7 @@ end
 % remember the details that were used here
 cfg.artfctdef.clip          = artfctdef;
 cfg.artfctdef.clip.label    = label;
-cfg.artfctdef.clip.trl      = cfg.trl;
+cfg.artfctdef.clip.trl      = trl;
 cfg.artfctdef.clip.artifact = artifact;
 
 % do the general cleanup and bookkeeping at the end of the function

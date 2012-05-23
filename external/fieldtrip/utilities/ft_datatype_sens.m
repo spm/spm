@@ -73,13 +73,17 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 4924 2011-12-01 21:29:15Z roboos $
+% $Id: ft_datatype_sens.m 5270 2012-02-10 09:36:36Z jansch $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011v2';
+end
+
+if isempty(sens)
+  return;
 end
 
 % there are many cases which deal with either eeg or meg

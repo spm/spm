@@ -69,7 +69,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 4388 2011-10-09 09:55:08Z roboos $
+% $Id: ft_datatype_source.m 5300 2012-02-22 08:47:12Z arjsto $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields 
 % was really in 2007
@@ -79,6 +79,10 @@ version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011';
+end
+
+if isempty(source)
+  return;
 end
 
 % old data structures may use latency/frequency instead of time/freq. It is

@@ -63,10 +63,11 @@ function [event] = ft_read_event(filename, varargin)
 %   t=26; samples_trials = [event(find(strcmp('trial', {event.type}))).sample];
 %   find([event.sample]>samples_trials(t) & [event.sample]<samples_trials(t+1))
 %
-% See also:
-%   FT_READ_HEADER, FT_READ_DATA, FT_WRITE_DATA, FT_WRITE_EVENT, FT_FILTER_EVENT
+% The list of supported file formats can be found in FT_READ_HEADER.
+%
+% See also FT_READ_HEADER, FT_READ_DATA, FT_WRITE_EVENT, FT_FILTER_EVENT
 
-% Copyright (C) 2004-2010 Robert Oostenveld
+% Copyright (C) 2004-2012 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -84,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 5083 2011-12-31 13:50:43Z jansch $
+% $Id: ft_read_event.m 5750 2012-05-08 14:04:35Z borreu $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -105,7 +106,11 @@ if iscell(filename)
 end
 
 % get the options
-eventformat      = ft_getopt(varargin, 'eventformat', ft_filetype(filename));
+eventformat      = ft_getopt(varargin, 'eventformat');
+if isempty(eventformat)
+  % only do the autodetection if the format was not specified
+  eventformat = ft_filetype(filename);
+end
 hdr              = ft_getopt(varargin, 'header');
 detectflank      = ft_getopt(varargin, 'detectflank', 'up');   % up, down or both
 trigshift        = ft_getopt(varargin, 'trigshift');           % default is assigned in subfunction
@@ -344,6 +349,10 @@ switch eventformat
   case {'biosig', 'gdf'}
     % FIXME it would be nice to figure out how sopen/sread return events
     % for all possible fileformats that can be processed with biosig
+    %
+    % This section of code is opaque with respect to the gdf file being a
+    % single file or the first out of a sequence with postfix _1, _2, ...
+    % because it uses private/read_trigger which again uses ft_read_data
     if isempty(hdr)
       hdr = ft_read_header(filename);
     end
@@ -351,7 +360,8 @@ switch eventformat
     statusindx = find(strcmp(hdr.label, 'STATUS'));
     if length(statusindx)==1
       % represent the rising flanks in the STATUS channel as events
-      event = read_trigger(filename, 'header', hdr, 'chanindx', statusindx, 'detectflank', 'up', 'fixbiosemi', true);
+      event = read_trigger(filename, 'header', hdr, 'chanindx', statusindx, ...
+        'detectflank', 'up', 'fixbiosemi', true, 'begsample', flt_minsample, 'endsample', flt_maxsample);
     else
       warning('BIOSIG does not have a consistent event representation, skipping events')
       event = [];
@@ -416,6 +426,7 @@ switch eventformat
       trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', chanindx, 'detectflank', detectflank);
       event   = appendevent(event, trigger);
     end
+    
   case {'ctf_ds', 'ctf_meg4', 'ctf_res4', 'ctf_old'}
     % obtain the dataset name
     if ft_filetype(filename, 'ctf_meg4') ||  ft_filetype(filename, 'ctf_res4')
@@ -691,20 +702,33 @@ switch eventformat
       end
     end;
     
-  case 'egi_mff'
+  case {'egi_mff_v1' 'egi_mff'} % this is currently the default
+    % The following represents the code that was written by Ingrid, Robert
+    % and Giovanni to get started with the EGI mff dataset format. It might
+    % not support all details of the file formats.
+    % An alternative implementation has been provided by EGI, this is
+    % released as fieldtrip/external/egi_mff and referred further down in
+    % this function as 'egi_mff_v2'.
+    
     if isempty(hdr)
-      hdr = ft_read_header(filename);
+      % use the corresponding code to read the header
+      hdr = ft_read_header(filename, 'headerformat', eventformat);
+    end
+    
+    if ~usejava('jvm')
+      error('the xml2struct requires MATLAB to be running with the Java virtual machine (JVM)');
+      % an alternative implementation which does not require the JVM but runs much slower is
+      % available from http://www.mathworks.com/matlabcentral/fileexchange/6268-xml4mat-v2-0
     end
     
     % get event info from xml files
-    ft_hastoolbox('XML4MAT', 1, 0);
     warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
     xmlfiles = dir( fullfile(filename, '*.xml'));
     disp('reading xml files to obtain event info... This might take a while if many events/triggers are present')
     for i = 1:numel(xmlfiles)
       if strcmpi(xmlfiles(i).name(1:6), 'Events')
-        fieldname = xmlfiles(i).name(1:end-4);
-        filename_xml  = fullfile(filename, xmlfiles(i).name);
+        fieldname       = xmlfiles(i).name(1:end-4);
+        filename_xml    = fullfile(filename, xmlfiles(i).name);
         xml.(fieldname) = xml2struct(filename_xml);
       end
     end
@@ -765,7 +789,25 @@ switch eventformat
       end %iEvent
     end
     
-    
+  case 'egi_mff_v2'
+    % ensure that the EGI toolbox is on the path
+    ft_hastoolbox('egi_mff', 1);
+    if isunix && filename(1)~=filesep
+      % add the full path to the dataset directory
+      filename = fullfile(pwd, filename);
+    else
+      % FIXME I don't know how this is supposed to work on Windows computers
+      % with the drive letter in front of the path
+    end
+    % pass the header along to speed it up, it will be read on the fly in case it is empty 
+    event = read_mff_event(filename, hdr);
+    % clean up the fields in the event structure
+    fn = fieldnames(event);
+    fn = setdiff(fn, {'type', 'sample', 'value', 'offset', 'duration', 'timestamp'});
+    for i=1:length(fn)
+      event = rmfield(event, fn{i});
+    end
+
   case 'eyelink_asc'
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -848,10 +890,10 @@ switch eventformat
   case 'fcdc_buffer_offline'
     [path, file, ext] = fileparts(filename);
     if isempty(hdr)
-      headerfile = fullfile(path, [file '/header']);
+       headerfile = fullfile(path, 'header'); 
       hdr = read_buffer_offline_header(headerfile);
     end
-    eventfile  = fullfile(path, [file '/events']);
+    eventfile = fullfile(path, 'events');
     event = read_buffer_offline_events(eventfile, hdr);
     
   case 'fcdc_matbin'
@@ -868,10 +910,10 @@ switch eventformat
     
     if ~exist(fifo,'file')
       warning('the FIFO %s does not exist; attempting to create it', fifo);
+    fid = fopen(fifo, 'r');
       system(sprintf('mkfifo -m 0666 %s',fifo));
     end
     
-    fid = fopen(fifo, 'r');
     msg = fread(fid, inf, 'uint8');
     fclose(fid);
     
@@ -931,6 +973,8 @@ switch eventformat
     event = read_serial_event(filename);
     
   case 'fcdc_mysql'
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('mysql', 1);
     % read from a MySQL server listening somewhere else on the network
     db_open(filename);
     if db_blob
@@ -1430,7 +1474,7 @@ switch eventformat
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     % check that the required low-level toolbox is available
     if ~ft_hastoolbox('yokogawa', 0);
-        ft_hastoolbox('yokogawa_meg_reader', 1);
+      ft_hastoolbox('yokogawa_meg_reader', 1);
     end
     % the user should be able to specify the analog threshold
     % the user should be able to specify the trigger channels
@@ -1475,7 +1519,8 @@ switch eventformat
     event = read_bucn_nirsevent(filename);
     
   otherwise
-    error('unsupported event format (%s)', eventformat);
+    warning('unsupported event format (%s)', eventformat);
+    event = [];
 end
 
 if ~isempty(hdr) && hdr.nTrials>1 && (isempty(event) || ~any(strcmp({event.type}, 'trial')))
@@ -1523,6 +1568,10 @@ end
 % apply the optional filters
 event = ft_filter_event(event, varargin{:});
 
+if isempty(event)
+  % ensure that it has the correct fields, even if it is empty
+  event = struct('type', {}, 'value', {}, 'sample', {}, 'offset', {}, 'duration', {});
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % poll implementation for backwards compatibility with ft buffer version 1

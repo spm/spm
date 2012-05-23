@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 5112 2012-01-11 07:53:50Z roboos $
+% $Id: ft_hastoolbox.m 5722 2012-05-01 20:35:03Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -77,7 +77,7 @@ url = {
   '4D-VERSION' 'contact Christian Wienbruch'
   'SIGNAL'     'see http://www.mathworks.com/products/signal'
   'OPTIM'      'see http://www.mathworks.com/products/optim'
-  'IMAGE'      'see http://www.mathworks.com/products/image'
+  'IMAGE'      'see http://www.mathworks.com/products/image'  % Mathworks refers to this as IMAGES
   'SPLINES'    'see http://www.mathworks.com/products/splines'
   'DISTCOMP'   'see http://www.mathworks.nl/products/parallel-computing/'
   'COMPILER'   'see http://www.mathworks.com/products/compiler'
@@ -111,6 +111,9 @@ url = {
   'TOOLBOX_GRAPH' 'see http://www.mathworks.com/matlabcentral/fileexchange/5355-toolbox-graph or contact Gabriel Peyre'
   'NETCDF'     'see http://www.mathworks.com/matlabcentral/fileexchange/15177'
   'BCT'        'see http://www.brain-connectivity-toolbox.net/'
+  'MYSQL'      'see http://www.mathworks.com/matlabcentral/fileexchange/8663-mysql-database-connector'
+  'ISO2MESH'   'see http://iso2mesh.sourceforge.net/cgi-bin/index.cgi?Home or contact Qianqian Fang'
+  'DATAHASH'   'see http://www.mathworks.com/matlabcentral/fileexchange/31272'
   };
 
 if nargin<2
@@ -262,6 +265,16 @@ switch toolbox
     status = exist('netcdf');
   case 'BCT'
     status = exist('clustering_coef_bd', 'file') && exist('edge_betweenness_wei', 'file');
+  case 'MYSQL'
+    status = exist(['mysql.' mexext], 'file'); % this only consists of a single mex file
+  case 'ISO2MESH'
+    status = exist('vol2surf.m', 'file') && exist('qmeshcut.m', 'file');
+  case 'QSUB'
+    status = exist('qsubfeval.m', 'file') && exist('qsubcellfun.m', 'file');
+  case 'ENGINE'
+    status = exist('enginefeval.m', 'file') && exist('enginecellfun.m', 'file');
+  case 'DATAHASH'
+    status = exist('DataHash.m', 'file');
     
     % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
     % these are added in ft_defaults and are specified with unix-style forward slashes
@@ -287,7 +300,8 @@ switch toolbox
     status = ~isempty(regexp(unixpath(path), 'fieldtrip/template/electrode',  'once'));
   case 'TEMPLATE/NEIGHBOURS'
     status = ~isempty(regexp(unixpath(path), 'fieldtrip/template/neighbours', 'once'));
-    
+  case 'TEMPLATE/SOURCEMODEL'
+    status = ~isempty(regexp(unixpath(path), 'fieldtrip/template/sourcemodel', 'once')); 
   otherwise
     if ~silent, warning('cannot determine whether the %s toolbox is present', toolbox); end
     status = 0;
@@ -367,7 +381,9 @@ previouspath = path;
 % helper function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function status = myaddpath(toolbox, silent)
-if exist(toolbox, 'dir')
+if isdeployed
+  warning('cannot change path settings for %s in a compiled application', toolbox);
+elseif exist(toolbox, 'dir')
   if ~silent,
     ws = warning('backtrace', 'off');
     warning('adding %s toolbox to your Matlab path', toolbox);
@@ -378,17 +394,6 @@ if exist(toolbox, 'dir')
 else
   status = 0;
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% helper function
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out = fixname(toolbox)
-% FIXME this fails in case the toolbox directory name would start with a digit, e.g. "99luftballons"
-out = lower(toolbox);
-out(out=='-') = '_'; % fix dashes
-out(out==' ') = '_'; % fix spaces
-out(out=='/') = '_'; % fix forward slashes
-out(out=='\') = '_'; % fix backward slashes
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

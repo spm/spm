@@ -48,12 +48,15 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 4996 2011-12-10 11:06:45Z marvin $
+% $Id: ft_read_spike.m 5528 2012-03-26 07:48:38Z roboos $
 
 % get the options
 spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));
 
 switch spikeformat
+  case 'neurosim'
+    spike = read_neurosim_spikes(filename);
+
   case {'neuralynx_ncs' 'plexon_ddt'}
     % these files only contain continuous data
     error('file does not contain spike timestamps or waveforms');

@@ -14,12 +14,12 @@ function [type] = ft_voltype(vol, desired)
 %  multisphere     local spheres model for MEG, one sphere per channel
 %  concentric      analytical 4-sphere model for EEG
 %  infinite        infinite homogenous medium
-%  bem_openmeeg    boundary element method based on the OpenMEEG implementation
-%  bemcp           boundary element method based on the implementation from Christophe Phillips
-%  bem_dipoli      boundary element method based on the implementation from Thom Oostendorp
-%  bem_asa         boundary element method based on the (commercial) ASA software
-%  simbio          finite elements method based on the SimBio software
-%  fns             finite differences method based on the FNS software
+%  openmeeg    volume based on the OpenMEEG boundary element implementation
+%  bemcp           volume based on the implementation from Christophe Phillips
+%  dipoli      volume based on the implementation from Thom Oostendorp
+%  asa         volume based on the (commercial) ASA software
+%  simbio          volume based on the FEM SimBio software
+%  fns             volume based on the FNS finite differences software
 %
 % See also FT_READ_VOL, FT_COMPUTE_LEADFIELD
 
@@ -41,10 +41,12 @@ function [type] = ft_voltype(vol, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_voltype.m 4759 2011-11-16 17:50:10Z crimic $
+% $Id: ft_voltype.m 5589 2012-04-04 10:50:34Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
+
+vol = ft_datatype_headmodel(vol);
 
 if iscell(vol) && numel(vol)<4
   % this might represent combined EEG, ECoG and/or MEG
@@ -90,8 +92,8 @@ elseif isfield(vol, 'r') && isfield(vol, 'o') && size(vol.r,1)==size(vol.o,1) &&
 elseif isfield(vol, 'r') && numel(vol.r)>=2 && ~isfield(vol, 'label')
   type = 'concentric';
 
-elseif isfield(vol, 'bnd')
-  type = 'bem';
+elseif isfield(vol, 'bnd') && strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'})
+  type = any(strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'}));
 
 elseif isempty(vol)
   type = 'infinite';
@@ -105,15 +107,15 @@ if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'bem'
-      type = any(strcmp(type, {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'openmeeg'}));
+      type = any(strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'}));
     otherwise
       type = any(strcmp(type, desired));
-  end
-end
+  end % switch desired
+end % detemine the correspondence to the desired type
 
 % remember the current input and output arguments, so that they can be
 % reused on a subsequent call in case the same input argument is given
-current_argout = {type};
+current_argout  = {type};
 previous_argin  = current_argin;
 previous_argout = current_argout;
 

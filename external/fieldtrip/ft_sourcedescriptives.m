@@ -16,7 +16,8 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %   cfg.kurtosis         = 'yes' or 'no' (default = 'no')
 %   cfg.keeptrials       = 'yes' or 'no' (default = 'no')
 %   cfg.resolutionmatrix = 'yes' or 'no' (default = 'no')
-%   cfg.feedback         = 'no', 'text', 'textbar', 'gui' (default = 'text')
+%   cfg.feedback         = 'no', 'text', 'textbar', 'gui' (default =
+%   'text')
 %
 % The following option only applies to LCMV single-trial timecourses.
 %   cfg.fixedori         = 'within_trials' or 'over_trials' (default = 'over_trials')
@@ -66,9 +67,9 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 4961 2011-12-09 10:22:54Z jansch $
+% $Id: ft_sourcedescriptives.m 5700 2012-04-25 08:22:26Z jorhor $
 
-revision = '$Id: ft_sourcedescriptives.m 4961 2011-12-09 10:22:54Z jansch $';
+revision = '$Id: ft_sourcedescriptives.m 5700 2012-04-25 08:22:26Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -79,6 +80,8 @@ ft_preamble loadvar source
 
 % check if the input data is valid for this function
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
+
+cfg = ft_checkconfig(cfg, 'forbidden',   {'trials'});
 
 % set the defaults
 cfg.transform        = ft_getopt(cfg, 'transform',        []);
@@ -94,6 +97,9 @@ cfg.fa               = ft_getopt(cfg, 'fa',               'no');
 cfg.kurtosis         = ft_getopt(cfg, 'kurtosis',         'no');
 cfg.keeptrials       = ft_getopt(cfg, 'keeptrials',       'no'); 
 cfg.keepcsd          = ft_getopt(cfg, 'keepcsd',          'no');
+cfg.keepmom          = ft_getopt(cfg, 'keepmom',          'yes');
+cfg.keepnoisecsd     = ft_getopt(cfg, 'keepnoisecsd',     'yes');
+cfg.keepnoisemom     = ft_getopt(cfg, 'keepnoisemom',     'yes');
 cfg.fwhm             = ft_getopt(cfg, 'fwhm',             'no');
 cfg.fwhmremovecenter = ft_getopt(cfg, 'fwhmremovecenter', 0);
 cfg.fixedori         = ft_getopt(cfg, 'fixedori',         'over_trials');
@@ -504,6 +510,10 @@ elseif ismneavg
   end
 
   if projectmom
+    if isfield(source, 'tri')
+      nrm = normals(source.pos, source.tri, 'vertex');
+      source.avg.phi = zeros(size(source.pos,1),1);
+    end
     ft_progress('init', cfg.feedback, 'projecting dipole moment');
     for diplop=1:length(source.inside)
       ft_progress(diplop/length(source.inside), 'projecting dipole moment %d/%d\n', diplop, length(source.inside));
@@ -511,6 +521,18 @@ elseif ismneavg
       [mom, rmom] = svdfft(mom, 1);
       source.avg.mom{source.inside(diplop)} = mom;
       source.avg.ori{source.inside(diplop)} = rmom;
+    end
+    if isfield(source, 'tri')
+      for diplop = source.inside(:)'
+        source.avg.phi(diplop) = source.avg.ori{diplop}*nrm(diplop,:)';
+      end
+    end
+    if isfield(source.avg, 'noisecov')
+      source.avg.noise = nan+zeros(size(source.pos,1),1);
+      for diplop=1:length(source.inside)
+        rmom = source.avg.ori{source.inside(diplop)};
+        source.avg.noise(source.inside(diplop)) = rmom*source.avg.noisecov{source.inside(diplop)}*rmom';
+      end
     end
     ft_progress('close');
   end
@@ -520,28 +542,28 @@ elseif ismneavg
     endsmp = nearest(source.time, cfg.baselinewindow(2));
     % zscore using baselinewindow for power
     ft_progress('init', cfg.feedback, 'computing power');
-    source.avg.absmom = source.avg.pow;
+    %source.avg.absmom = source.avg.pow;
     for diplop=1:length(source.inside)
       ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
       mom = source.avg.mom{source.inside(diplop)};
-      mmom = mean(mom(begsmp:endsmp));
-      smom = std(mom(begsmp:endsmp));
-      pow  = sum(((mom-mmom)./smom).^2,1); 
+      mmom = mean(mom(:,begsmp:endsmp),2);
+      smom = std(mom(:,begsmp:endsmp),[],2);
+      pow  = sum(((mom-mmom(:,ones(size(mom,2),1)))./smom(:,ones(size(mom,2),1))).^2,1); 
       source.avg.pow(source.inside(diplop),:) = pow;
-      source.avg.absmom(source.inside(diplop),:) = sum((mom-mmom)./smom,1);
+      %source.avg.absmom(source.inside(diplop),:) = sum((mom-mmom)./smom,1);
     end
     ft_progress('close');
     
   else
     % just square for power
     ft_progress('init', cfg.feedback, 'computing power');
-    source.avg.absmom = source.avg.pow;
+    %source.avg.absmom = source.avg.pow;
     for diplop=1:length(source.inside)
       ft_progress(diplop/length(source.inside), 'computing power %d/%d\n', diplop, length(source.inside));
       mom = source.avg.mom{source.inside(diplop)};
       pow = sum(mom.^2,1); 
       source.avg.pow(source.inside(diplop),:) = pow;
-      source.avg.absmom(source.inside(diplop),:) = sum(mom,1);
+      %source.avg.absmom(source.inside(diplop),:) = sum(mom,1);
     end
     ft_progress('close');
     
@@ -672,7 +694,7 @@ elseif islcmvtrl
 
 end % dealing with pcc or lcmv input
 
-if isfield(source, 'avg') && isfield(source.avg, 'pow') && isfield(source.avg, 'noise')
+if isfield(source, 'avg') && isfield(source.avg, 'pow') && isfield(source.avg, 'noise') && ~ismneavg
   % compute the neural activity index for the average
   source.avg.nai = source.avg.pow(:) ./ source.avg.noise(:);
 end

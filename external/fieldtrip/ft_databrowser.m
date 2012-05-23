@@ -24,6 +24,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %
 % The following configuration options are supported:
 %   cfg.ylim                    = vertical scaling, can be 'maxmin', 'maxabs' or [ymin ymax] (default = 'maxabs')
+%   cfg.zlim                    = color scaling to apply to component topographies, 'minmax', 'maxabs' (default = 'maxmin') 
 %   cfg.blocksize               = duration in seconds for cutting the data up, only aplicable for continuous data
 %   cfg.trl                     = structure that defines the data segments of interest, only applicable for trial-based data
 %   cfg.continuous              = 'yes' or 'no' whether the data should be interpreted as continuous or trial-based
@@ -53,7 +54,9 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.gradscale               = number, scaling to apply to the MEG gradiometer channels prior to display (in addition to the cfg.megscale factor)
 %   cfg.magscale                = number, scaling to apply to the MEG magnetometer channels prior to display (in addition to the cfg.megscale factor)
 %   cfg.chanscale               = Nx1 vector with scaling factors, one per channel specified in cfg.channel
-%
+%   cfg.compscale               = string, 'global' or 'local', defines whether the colormap for the topographic scaling is 
+%                                  applied per topography or on all visualized components (default 'global')
+
 % The scaling to the EEG, EOG, ECG, EMG and MEG channels is optional and
 % can be used to bring the absolute numbers of the different channel types
 % in the same range (e.g. fT and uV). The channel types are determined from
@@ -90,7 +93,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 4959 2011-12-08 16:39:09Z roboos $
+% $Id: ft_databrowser.m 5787 2012-05-19 09:25:51Z eelspa $
 
 % Undocumented options
 % cfg.enablepreprocedit = 'yes'/'no' - roevdmei
@@ -101,7 +104,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 4959 2011-12-08 16:39:09Z roboos $';
+revision = '$Id: ft_databrowser.m 5787 2012-05-19 09:25:51Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -147,6 +150,9 @@ if ~isfield(cfg, 'ploteventlabels'), cfg.ploteventlabels = 'type=value';  end
 if ~isfield(cfg, 'enablepreprocedit'), cfg.enablepreprocedit = 'no';      end
 
 
+cfg.zlim           = ft_getopt(cfg, 'zlim',          'maxmin');
+cfg.compscale      = ft_getopt(cfg, 'compscale',     'global');
+
 if ~isfield(cfg, 'viewmode')
   % butterfly, vertical, component
   if hascomp
@@ -163,6 +169,12 @@ if ~isempty(cfg.chanscale)
   elseif numel(cfg.channel) ~= numel(cfg.chanscale)
     error('cfg.chanscale should have the same number of elements as cfg.channel');
   end
+  
+  % make sure chanscale is a column vector, not a row vector
+  if size(cfg.chanscale,2) > size(cfg.chanscale,1)
+    cfg.chanscale = cfg.chanscale';
+  end
+  
 end
 
 if ~isfield(cfg, 'channel'),
@@ -201,6 +213,7 @@ if hasdata
   
   if isfield(data, 'cfg') && ~isempty(ft_findcfg(data.cfg, 'origfs'))
     % don't use the events in case the data has been resampled
+    warning('the data has been resampled, not showing the events');
     event = [];
   elseif ~isempty(cfg.event)
     % use the events that the user passed in the configuration
@@ -407,7 +420,7 @@ artdata.fsample        = hdr.Fs;
 artdata.cfg.trl        = [1 datendsample 0];
 
 % determine amount of unique event types (for cfg.ploteventlabels)
-if ~isempty(event)
+if ~isempty(event) && isstruct(event)
   eventtypes = unique({event.type});
 else
   eventtypes = [];
@@ -463,6 +476,22 @@ end
 h = figure;
 setappdata(h, 'opt', opt);
 setappdata(h, 'cfg', cfg);
+
+% set the figure window title
+funcname = mfilename();
+if nargin < 2
+  if isfield(cfg, 'dataset')
+    dataname = cfg.dataset;
+  elseif isfield(cfg, 'datafile')
+    dataname = cfg.datafile;
+  else
+    dataname = [];
+  end
+else
+  dataname = inputname(2);
+end
+set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+set(gcf, 'NumberTitle', 'off');
 
 % set zoom option to on
 % zoom(h,'on')
@@ -744,10 +773,10 @@ elseif strcmp(cfg.selectmode, 'mark')
   artval = opt.artdata.trial{1}(opt.ftsel, begsel:endsel);
   artval = any(artval,1);
   if any(artval)
-    fprintf('there is overlap with the active artifact (%s), disable this artifact\n',opt.artdata.label{opt.ftsel});
+    fprintf('there is overlap with the active artifact (%s), disabling this artifact\n',opt.artdata.label{opt.ftsel});
     opt.artdata.trial{1}(opt.ftsel, begsel:endsel) = 0;
   else
-    fprintf('there is no overlap with the active artifact (%s), mark this as a new artifact\n',opt.artdata.label{opt.ftsel});
+    fprintf('there is no overlap with the active artifact (%s), marking this as a new artifact\n',opt.artdata.label{opt.ftsel});
     opt.artdata.trial{1}(opt.ftsel, begsel:endsel) = 1;
   end
   
@@ -953,7 +982,6 @@ switch key
     end
     % convert numeric array into cell-array with channel labels
     cfg.channel = opt.hdr.label(chansel);
-    disp(cfg.channel);
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
     redraw_cb(h, eventdata);
@@ -967,20 +995,17 @@ switch key
     end
     % convert numeric array into cell-array with channel labels
     cfg.channel = opt.hdr.label(chansel);
-    disp(cfg.channel);
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
     redraw_cb(h, eventdata);
   case 'shift+leftarrow'
     cfg.blocksize = cfg.blocksize*sqrt(2);
-    disp(cfg.blocksize);
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
     definetrial_cb(h, eventdata);
     redraw_cb(h, eventdata);
   case 'shift+rightarrow'
     cfg.blocksize = cfg.blocksize/sqrt(2);
-    disp(cfg.blocksize);
     setappdata(h, 'opt', opt);
     setappdata(h, 'cfg', cfg);
     definetrial_cb(h, eventdata);
@@ -1130,14 +1155,14 @@ cfg = getappdata(h, 'cfg');
 
 figure(h); % ensure that the calling figure is in the front
 
-fprintf('redrawing with viewmode %s\n', cfg.viewmode);
+%fprintf('redrawing with viewmode %s\n', cfg.viewmode);
 
 begsample = opt.trlvis(opt.trlop, 1);
 endsample = opt.trlvis(opt.trlop, 2);
 offset    = opt.trlvis(opt.trlop, 3);
 chanindx  = match_str(opt.hdr.label, cfg.channel);
 
-if ~isempty(opt.event)
+if ~isempty(opt.event) && isstruct(opt.event)
   % select only the events in the current time window
   event     = opt.event;
   evtsample = [event(:).sample];
@@ -1147,22 +1172,14 @@ else
 end
 
 if isempty(opt.orgdata)
-  fprintf('reading data... ');
   dat = ft_read_data(cfg.datafile, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat, 'headerformat', cfg.headerformat);
 else
-  fprintf('fetching data... ');
   dat = ft_fetch_data(opt.orgdata, 'header', opt.hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
 end
-fprintf('done\n');
-
-fprintf('fetching artifacts... ');
 art = ft_fetch_data(opt.artdata, 'begsample', begsample, 'endsample', endsample);
-fprintf('done\n');
 
 % apply preprocessing and determine the time axis
-fprintf('preprocessing data... ');
-[dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), opt.fsample, cfg.preproc, offset);
-fprintf('done\n');
+[dat, lab, tim] = preproc(dat, opt.hdr.label(chanindx), offset2time(offset, opt.fsample, size(dat,2)), cfg.preproc);
 
 opt.curdat.label      = lab;
 opt.curdat.time{1}    = tim;
@@ -1225,6 +1242,7 @@ else
   tmpcfg.channel = cfg.channel;
   tmpcfg.skipcomnt = 'yes';
   tmpcfg.skipscale = 'yes';
+  tmpcfg.showcallinfo = 'no';
   opt.laytime = ft_prepare_layout(tmpcfg, opt.orgdata);
 end
 
@@ -1254,7 +1272,7 @@ opt.vlim = cfg.ylim;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fprintf('plotting artifacts...\n');
+% fprintf('plotting artifacts...\n');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delete(findobj(h,'tag', 'artifact'));
 
@@ -1270,7 +1288,7 @@ for j = ordervec
 end % for each of the artifact channels
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fprintf('plotting events...\n');
+%fprintf('plotting events...\n');
 if strcmp(cfg.ploteventlabels , 'colorvalue') && ~isempty(opt.event)
   eventlabellegend = [];
   for iType = 1:length(opt.eventtypes)
@@ -1302,7 +1320,7 @@ for k=1:length(event)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fprintf('plotting data...\n');
+%fprintf('plotting data...\n');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delete(findobj(h,'tag', 'timecourse'));
 delete(findobj(h,'tag', 'identify'));
@@ -1398,7 +1416,7 @@ if strcmp(cfg.viewmode, 'component')
     opt.chanindx = chanindx;
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    fprintf('plotting component topographies...\n');
+    % fprintf('plotting component topographies...\n');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     delete(findobj(h,'tag', 'topography'));
     
@@ -1406,19 +1424,60 @@ if strcmp(cfg.viewmode, 'component')
     chanx = laychan.pos(sel2,1);
     chany = laychan.pos(sel2,2);
     
+    if strcmp(cfg.compscale, 'global')
+       for i=1:length(chanindx) % loop through all components to get max and min
+         zmin(i) = min(opt.orgdata.topo(sel1,chanindx(i)));
+         zmax(i) = max(opt.orgdata.topo(sel1,chanindx(i)));
+       end
+       
+       if strcmp(cfg.zlim, 'maxmin')
+         zmin = min(zmin);
+         zmax = max(zmax);
+       elseif strcmp(cfg.zlim, 'maxabs')
+         zmax = max([abs(zmin) abs(zmax)]);
+         zmin = -zmax;
+       else
+         error('configuration option for component scaling could not be recognized');
+        end
+    end
+    
     for i=1:length(chanindx)
       % plot the topography of this component
       laysel = match_str(opt.laytime.label, opt.hdr.label(chanindx(i)));
       chanz = opt.orgdata.topo(sel1,chanindx(i));
-      chanz = chanz./max(abs(chanz));
       
-      ft_plot_topo(chanx, chany, chanz, 'mask', laychan.mask, 'interplim', 'mask', 'outline', laychan.outline, 'tag', 'topography', ...
-        'hpos', laytopo.pos(laysel,1), 'vpos', laytopo.pos(laysel,2), 'width', laytopo.width(laysel), 'height', laytopo.height(laysel));
+      if strcmp(cfg.compscale, 'local')
+        % compute scaling factors here
+        if strcmp(cfg.zlim, 'maxmin')
+         zmin = min(chanz);
+         zmax = max(chanz);
+       elseif strcmp(cfg.zlim, 'maxabs')
+         zmax = max(abs(chanz));
+         zmin = -zmax;
+        end
+      end
       
-      axis equal
+      % scaling
+      chanz = (chanz - zmin) ./  (zmax- zmin);
+      
+      % laychan is the actual topo layout, in pixel units for .mat files
+      % laytopo is a vertical layout determining where to plot each topo,
+      %   with one entry per component
+      
+      
+      ft_plot_topo(chanx, chany, chanz, 'mask', ...
+        laychan.mask, 'interplim', 'mask', 'outline', ...
+        laychan.outline, 'tag', 'topography', ...
+        'hpos', laytopo.pos(laysel,1)-laytopo.width(laysel)/2,...
+        'vpos', laytopo.pos(laysel,2)-laytopo.height(laysel)/2,...
+        'width', laytopo.width(laysel), 'height', laytopo.height(laysel));
+      
+      %axis equal
       drawnow
-    end
+    end    
     
+    caxis([0 1]);
+
   end % if redraw_topo
   
   set(gca, 'yTick', [])
@@ -1435,7 +1494,6 @@ end % plotting topographies
 title(sprintf('%s %d, time from %g to %g s', opt.trialname, opt.trlop, tim(1), tim(end)));
 xlabel('time');
 
-fprintf('done\n');
 
 setappdata(h, 'opt', opt);
 setappdata(h, 'cfg', cfg);

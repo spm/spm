@@ -15,10 +15,10 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %
 % For EEG the following methods are available
 %   singlesphere
-%   bem_asa
-%   bem_cp
-%   bem_dipoli
-%   bem_openmeeg
+%   asa
+%   bemcp
+%   dipoli
+%   openmeeg
 %   concentricspheres
 %   halfspace
 %   infinite
@@ -51,7 +51,7 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 % Additionally, the specific methods each have their specific configuration 
 % options that are listed below.
 % 
-% BEM_CP, BEM_DIPOLI, BEM_OPENMEEG
+% BEMCP, DIPOLI, OPENMEEG
 %     cfg.isolatedsource    (optional)
 % 
 % CONCENTRICSPHERES
@@ -80,8 +80,7 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %     cfg.samplepoint
 %     cfg.conductivity
 %
-% See also FT_PREPARE_MESH, FT_VOLUMESEGMENT, FT_VOLUMEREALIGN,
-% FT_FETCH_SENS
+% See also FT_PREPARE_MESH, FT_VOLUMESEGMENT, FT_VOLUMEREALIGN, FT_FETCH_SENS
 
 % Copyright (C) 2011, Cristiano Micheli, Jan-Mathijs Schoffelen
 %
@@ -101,9 +100,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_prepare_headmodel.m 5774 2012-05-13 12:05:40Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 5774 2012-05-13 12:05:40Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -114,6 +113,10 @@ ft_preamble callinfo
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'method');
 cfg = ft_checkconfig(cfg, 'deprecated', 'geom');
+cfg = ft_checkconfig(cfg, 'renamed', {'geom','headshape'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_openmeeg','openmeeg'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_dipoli','dipoli'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_cp','bemcp'});
 
 % set the general defaults 
 cfg.hdmfile        = ft_getopt(cfg, 'hdmfile');
@@ -143,6 +146,12 @@ cfg.tissueval      = ft_getopt(cfg, 'tissueval'); % FEM
 cfg.tissuecond     = ft_getopt(cfg, 'tissuecond'); 
 cfg.transform      = ft_getopt(cfg, 'transform'); 
 
+if nargin>1, 
+  data = ft_checkdata(data); 
+else
+  data = [];
+end
+
 % new way of getting sens structure:
 %cfg.sens           = ft_getopt(cfg, 'sens'); 
 try
@@ -151,114 +160,61 @@ catch
   cfg.sens = [];
 end
 
-
-if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
-  % convert the nested config-object back into a normal structure
-  cfg.headshape = struct(cfg.headshape);
-end
-
-if nargin>1, data = ft_checkdata(data); end;
-
 % if the conductivity is in the data cfg.conductivity is overwritten
 if nargin>1 && isfield(data,'cond')
   cfg.conductivity = data.cond;
 end
 
-geometry = [];
+% boolean variables to manages the different input types
+hasdata    = ~isempty(data);
+hasvolume  = ft_datatype(data, 'volume');
+needvolcnd = strcmp(cfg.method,'asa'); % only for ASA
+needvolume = strcmp(cfg.method,'fns') || strcmp(cfg.method,'simbio'); % only for FNS & SIMBIO
+needbnd    = ~needvolcnd && ~needvolume; % all other methods
 
-if nargin>1 && ft_datatype(data, 'volume') && ~strcmp(cfg.method,'fns') && ~strcmp(cfg.method,'simbio')
-  
+% new way of getting headmodel structure:
+geometry = [];
+if needvolcnd
+  cfg = ft_checkconfig(cfg, 'required', 'hdmfile');
+  asafilename = cfg.hdmfile;
+elseif needbnd && hasdata && ~hasvolume
+  geometry = ft_fetch_headshape(cfg,data);
+elseif needbnd && ~hasdata
+  geometry = ft_fetch_headshape(cfg);
+elseif needvolume && hasvolume
+  fprintf('using the specified geometrical description\n');
+  geometry = data;  
+elseif hasvolume && needbnd
   fprintf('computing the geometrical description from the segmented MRI\n');
-  
   if issegmentation(data,cfg);
     % construct a surface-based geometry from the segmented compartments
     % (can be multiple shells)   
     if isempty(cfg.tissue) 
       if strcmp(cfg.method,'singleshell') || strcmp(cfg.method,'singlesphere')
-        tmpcfg = [];
-        tmpcfg.tissue       = cfg.tissue;
-        tmpcfg.smooth       = cfg.smooth;
-        tmpcfg.sourceunits  = cfg.sourceunits;
-        tmpcfg.threshold    = cfg.threshold;
-        tmpcfg.numvertices  = cfg.numvertices;
-        geometry = prepare_singleshell(tmpcfg,data);    
+        geometry = prepare_singleshell(cfg,data);    
       else
          % tries to infer which fields in the segmentations are the segmented compartments
         [dum,tissue] = issegmentation(data,cfg);
         % ...and then tessellates all!
-        tmpcfg = [];
-        tmpcfg.tissue       = tissue;
-        tmpcfg.smooth       = cfg.smooth;
-        tmpcfg.sourceunits  = cfg.sourceunits;
-        tmpcfg.threshold    = cfg.threshold;
-        tmpcfg.numvertices  = cfg.numvertices;
-        geometry = prepare_shells(tmpcfg,data); 
+        geometry = prepare_shells(cfg,data); 
       end
     end
   else
     error('The input data should already contain at least one field with a segmented volume');
   end
-  
-elseif nargin>1
-  fprintf('using the specified geometrical description\n');
-  geometry = data;
-end
-
-if ~isempty(cfg.hdmfile) 
-  cfg.headshape=cfg.hdmfile;
-end
-
-% only cfg was specified, this is for backward compatibility
-if isfield(cfg, 'geom') && nargin==1
-  cfg.headshape = cfg.geom;
-  cfg = rmfield(cfg, 'geom');
-end
-
-if ~isempty(cfg.headshape)&& nargin == 1 
-%   if ischar(cfg.headshape)
-%     geometry = ft_read_headshape(cfg.headshape);
-%   else
-%     geometry = cfg.headshape;
-%   end
-  fprintf('using the head shape to construct a triangulated mesh\n');
-  geometry = prepare_mesh_headshape(cfg);
-  
-% elseif ~isempty(cfg.hdmfile) && nargin == 1 
-%   geometry = ft_read_headshape(cfg.hdmfile);
-end
-
-if isempty(geometry) && ~isempty(cfg.hdmfile)
-  geometry = ft_read_headshape(cfg.hdmfile);
-elseif isempty(geometry) && ~(strcmp(cfg.method,'fns') || strcmp(cfg.method,'simbio')) 
-  error('no input available')
-end
-    
-% the input to the following methods should always be a boundary
-if isfield(geometry,'bnd')
-  geometry = geometry.bnd;
-elseif isfield(geometry,'pnt')
-  % already good
-elseif isnumeric(geometry) && size(geometry,2)==3
-  % it seems to be a set of points
-  % the following is to avoid the warning: Struct field assignment overwrites a value with class "double".
-  tmp = geometry;
-  clear geometry
-  geometry.pnt = tmp;
-  clear tmp
 else
-  error('the geometry is not corectly specified')
+  error('Not able to find or build a geometrical description for the head');
 end
 
 % the construction of the volume conductor model is performed below
 switch cfg.method
-  case 'bem_asa'
-    cfg = ft_checkconfig(cfg, 'required', 'hdmfile');
-    vol = ft_headmodel_bem_asa(cfg.hdmfile);
-       
-  case {'bem_cp' 'bem_dipoli' 'bem_openmeeg'}
-    if strcmp(cfg.method,'bem_cp')
+  case 'asa'
+    vol = ft_headmodel_bem_asa(asafilename);
+    
+  case {'bemcp' 'dipoli' 'openmeeg'}
+    if strcmp(cfg.method,'bemcp')
       funname = 'ft_headmodel_bemcp';
-    elseif strcmp(cfg.method,'bem_dipoli')
+    elseif strcmp(cfg.method,'dipoli')
       funname = 'ft_headmodel_bem_dipoli';
     else
       funname = 'ft_headmodel_bem_openmeeg';
@@ -294,7 +250,7 @@ switch cfg.method
     elseif isempty(geometry)
       error('no input available')
     end
-    vol = ft_headmodel_singlesphere(geometry,'conductivity',cfg.conductivity);
+    vol = ft_headmodel_singlesphere(geometry,'conductivity',cfg.conductivity,'unit',cfg.unit);
     
   case {'simbio' 'fns'}
     if length([cfg.tissue cfg.tissueval cfg.tissuecond cfg.elec cfg.transform cfg.unit])<6
@@ -305,11 +261,13 @@ switch cfg.method
     else
       funname = 'ft_headmodel_fdm_fns';
     end
-    vol = feval(funname,data,'tissue',cfg.tissue,'tissueval',cfg.tissueval, ...
+    vol = feval(funname,geometry,'tissue',cfg.tissue,'tissueval',cfg.tissueval, ...
                                'tissuecond',cfg.tissuecond,'sens',cfg.sens, ...
                                'transform',cfg.transform,'unit',cfg.unit); 
 
   case 'slab_monopole'
+    % geometry is composed by a structarray of 2 elements, each containing
+    % 'pnt' field
     if numel(geometry)==2
       geom1 = geometry(1); 
       geom2 = geometry(2);
@@ -331,8 +289,7 @@ ft_postamble trackconfig
 ft_postamble callinfo
 ft_postamble history vol
 
-%FIXME: the next section is supposed to be partially transferred to other
-%functions (e.g. ft_surface...)
+%FIXME: the next section is supposed to be partially transferred to other functions (e.g. ft_surface...)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % volumetric/mesh functions (either seg2seg or seg2mesh)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -376,11 +333,11 @@ function bnd          = prepare_shells(cfg,mri)
 % cfg.tissue                  the tissue number/string
 % cfg.numvertices             the desired number of vertices
 
-% FIXME: introduce the sourceunits control as in prepare_singleshell
+% FIXME: introduce the cfg.unit check as in prepare_singleshell
 
 % process the inputs
 tissue      = ft_getopt(cfg,'tissue');
-sourceunits = ft_getopt(cfg, 'sourceunits', 'cm');
+unit        = ft_getopt(cfg, 'unit', 'cm');
 smoothseg   = ft_getopt(cfg, 'smooth',      5);
 threshseg   = ft_getopt(cfg, 'threshold',   0.5); 
 numvertices = ft_getopt(cfg, 'numvertices', 3000);
@@ -410,7 +367,17 @@ else % only one tissue, choose the first parameter
   threshseg   = threshseg(1);
 end
 
+% convert the surface points into the input or MRI units 
+if ~isempty(cfg.unit)&&isfield(mri,'unit')
+  scale = get_scale(cfg.unit,mri.unit);
+else
+  scale  = 1;
+end
+
+
 % do the mesh extrapolation
+% check spm is on the path (fpr the smoothing part)
+ft_hastoolbox('spm8',1,0);
 for i =1:numel(tissue)
   if ~isnumeric(tissue(i))
     comp = tissue{i};
@@ -422,100 +389,16 @@ for i =1:numel(tissue)
   seg    = threshold(seg, threshseg(i), num2str(i));
   seg    = fill(seg, num2str(i));
   bnd(i) = dotriangulate(seg, numvertices(i), num2str(i));
-end
-
-function bnd          = prepare_singleshell(cfg,mri)
-
-cfg.sourceunits    = ft_getopt(cfg, 'sourceunits', 'cm');
-cfg.smooth         = ft_getopt(cfg, 'smooth',      5);
-cfg.threshold      = ft_getopt(cfg, 'threshold',   0.5); 
-cfg.numvertices    = ft_getopt(cfg, 'numvertices', 3000);
-
-if ~isfield(mri, 'unit'), mri = ft_convert_units(mri); end
-
-fprintf('using the segmented MRI\n');
-
-if isfield(mri, 'gray') || isfield(mri, 'white') || isfield(mri, 'csf')
-  % construct the single image segmentation from the three probabilistic
-  % tissue segmentations for csf, white and gray matter
-  mri.seg = zeros(size(mri.gray ));
-  if isfield(mri, 'gray')
-    fprintf('including gray matter in segmentation for brain compartment\n')
-    mri.seg = mri.seg | (mri.gray>(cfg.threshold*max(mri.gray(:))));
+  if scale~=1
+    fprintf('converting MRI surface points from %s into %s\n', mri.unit, cfg.unit);
+    bnd(i).pnt = bnd(i).pnt* scale;
   end
-  if isfield(mri, 'white')
-    fprintf('including white matter in segmentation for brain compartment\n')
-    mri.seg = mri.seg | (mri.white>(cfg.threshold*max(mri.white(:))));
-  end
-  if isfield(mri, 'csf')
-    fprintf('including CSF in segmentation for brain compartment\n')
-    mri.seg = mri.seg | (mri.csf>(cfg.threshold*max(mri.csf(:))));
-  end
-  if ~strcmp(cfg.smooth, 'no'),
-    fprintf('smoothing the segmentation with a %d-pixel FWHM kernel\n',cfg.smooth);
-    mri.seg = double(mri.seg);
-    spm_smooth(mri.seg, mri.seg, cfg.smooth);
-  end
-  % threshold for the last time
-  mri.seg = (mri.seg>(cfg.threshold*max(mri.seg(:))));
-elseif isfield(mri, 'brain')
-  mri.seg = mri.brain;
-elseif isfield(mri, 'scalp')
-  mri.seg = mri.scalp;
 end
-
-[mrix, mriy, mriz] = ndgrid(1:size(mri.seg,1), 1:size(mri.seg,2), 1:size(mri.seg,3));
-
-% construct the triangulations of the boundary from the segmented MRI
-fprintf('triangulating the boundary of single shell compartment\n', i);
-seg = imfill((mri.seg==1), 'holes');
-ori(1) = mean(mrix(seg(:)));
-ori(2) = mean(mriy(seg(:)));
-ori(3) = mean(mriz(seg(:)));
-[pnt, tri] = triangulate_seg(seg, cfg.numvertices, ori);
-% FIXME: corrects the original tri because is weird
-%tri = projecttri(pnt);
-% apply the coordinate transformation from voxel to head coordinates
-pnt(:,4) = 1;
-pnt = (mri.transform * (pnt'))';
-pnt = pnt(:,1:3);
-
-% convert the MRI surface points into the same units as the source/gradiometer
-scale = 1;
-switch cfg.sourceunits
-  case 'mm'
-    scale = scale * 1000;
-  case 'cm'
-    scale = scale * 100;
-  case 'dm'
-    scale = scale * 10;
-  case 'm'
-    scale = scale * 1;
-  otherwise
-    error('unknown physical dimension in cfg.sourceunits');
-end
-switch mri.unit
-  case 'mm'
-    scale = scale / 1000;
-  case 'cm'
-    scale = scale / 100;
-  case 'dm'
-    scale = scale / 10;
-  case 'm'
-    scale = scale / 1;
-  otherwise
-    error('unknown physical dimension in mri.unit');
-end
-if scale~=1
-  fprintf('converting MRI surface points from %s into %s\n', cfg.sourceunits, mri.unit);
-  pnt = pnt* scale;
-end
-
-bnd.pnt = pnt;
-bnd.tri = tri;
-fprintf('Triangulation completed\n');
 
 function bnd          = dotriangulate(seg, nvert, str)
+% Triangulates a volume, and creates a boundary out of it
+% by projecting rays from the center of the 3D matrix 
+
 % str is just a placeholder for messages
 dim = size(seg);
 [mrix, mriy, mriz] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
@@ -528,7 +411,7 @@ fprintf('triangulating the boundary of compartment %s\n', str);
 ori(1) = mean(mrix(seg(:)));
 ori(2) = mean(mriy(seg(:)));
 ori(3) = mean(mriz(seg(:)));
-[pnt, tri] = triangulate_seg(seg, nvert, ori); % is tri okay? tri = projecttri(pnt);
+[pnt, tri] = triangulate_seg(seg, nvert, ori); 
 
 % output
 bnd.pnt = pnt;
@@ -579,6 +462,106 @@ output = input;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % mesh functions (mesh2mesh)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function bnd = prepare_singleshell(cfg,mri)
+% prepares the spheres boundaries for the methods 'singlesphere' and
+% 'singleshell'
+cfg.unit           = ft_getopt(cfg, 'unit', 'cm');
+cfg.smooth         = ft_getopt(cfg, 'smooth',      5);
+cfg.threshold      = ft_getopt(cfg, 'threshold',   0.5); 
+cfg.numvertices    = ft_getopt(cfg, 'numvertices', 3000);
+
+if ~isfield(mri, 'unit'), mri = ft_convert_units(mri); end
+
+fprintf('using the segmented MRI\n');
+
+if isfield(mri, 'gray') || isfield(mri, 'white') || isfield(mri, 'csf')
+  % construct the single image segmentation from the three probabilistic
+  % tissue segmentations for csf, white and gray matter
+  mri.seg = zeros(size(mri.gray ));
+  if isfield(mri, 'gray')
+    fprintf('including gray matter in segmentation for brain compartment\n')
+    mri.seg = mri.seg | (mri.gray>(cfg.threshold*max(mri.gray(:))));
+  end
+  if isfield(mri, 'white')
+    fprintf('including white matter in segmentation for brain compartment\n')
+    mri.seg = mri.seg | (mri.white>(cfg.threshold*max(mri.white(:))));
+  end
+  if isfield(mri, 'csf')
+    fprintf('including CSF in segmentation for brain compartment\n')
+    mri.seg = mri.seg | (mri.csf>(cfg.threshold*max(mri.csf(:))));
+  end
+  
+  %smoothing part
+  ft_hastoolbox('spm8',1,0)
+  input = double(mri.seg);
+  mri.seg = dosmoothing(input, cfg.smooth, '');
+
+  % threshold for the last time
+  mri.seg = (mri.seg>(cfg.threshold*max(mri.seg(:))));
+elseif isfield(mri, 'brain')
+  mri.seg = mri.brain;
+elseif isfield(mri, 'scalp')
+  mri.seg = mri.scalp;
+end
+
+[mrix, mriy, mriz] = ndgrid(1:size(mri.seg,1), 1:size(mri.seg,2), 1:size(mri.seg,3));
+
+% construct the triangulations of the boundary from the segmented MRI
+fprintf('triangulating the boundary of single shell compartment\n', i);
+seg = imfill((mri.seg==1), 'holes');
+ori(1) = mean(mrix(seg(:)));
+ori(2) = mean(mriy(seg(:)));
+ori(3) = mean(mriz(seg(:)));
+[pnt, tri] = triangulate_seg(seg, cfg.numvertices, ori);
+
+% apply the coordinate transformation from voxel to head coordinates
+pnt(:,4) = 1;
+pnt = (mri.transform * (pnt'))';
+pnt = pnt(:,1:3);
+
+% convert the surface points into the input or MRI units 
+if ~isempty(cfg.unit)&&isfield(mri,'unit')
+  scale = get_scale(cfg.unit,mri.unit);
+else
+  scale = 1;
+end
+if scale~=1
+  fprintf('converting MRI surface points from %s into %s\n', mri.unit, cfg.unit);
+  pnt = pnt* scale;
+end
+
+bnd.pnt = pnt;
+bnd.tri = tri;
+fprintf('Triangulation completed\n');
+
+function scale = get_scale(sourceunit,mriunit)
+% determines the scaling factor
+scale = 1;
+switch sourceunit
+  case 'mm'
+    scale = scale * 1000;
+  case 'cm'
+    scale = scale * 100;
+  case 'dm'
+    scale = scale * 10;
+  case 'm'
+    scale = scale * 1;
+  otherwise
+    error('unknown physical dimension in source unit');
+end
+switch mriunit
+  case 'mm'
+    scale = scale / 1000;
+  case 'cm'
+    scale = scale / 100;
+  case 'dm'
+    scale = scale / 10;
+  case 'm'
+    scale = scale / 1;
+  otherwise
+    error('unknown physical dimension in mri unit');
+end
+
 function bnd = prepare_mesh_headshape(cfg)
 
 % PREPARE_MESH_HEADSHAPE
@@ -603,12 +586,17 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_prepare_headmodel.m 5774 2012-05-13 12:05:40Z roboos $
 
 % get the surface describing the head shape
-if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt') 
   % use the headshape surface specified in the configuration
   headshape = cfg.headshape;
+elseif isstruct(cfg.headshape) &&  isfield(cfg.headshape, 'bnd')
+  for i=1:numel(cfg.headshape.bnd)
+    headshape(i).pnt = cfg.headshape.bnd(i).pnt;
+    headshape(i).tri = cfg.headshape.bnd(i).tri;
+  end
 elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
   % use the headshape points specified in the configuration
   headshape.pnt = cfg.headshape;
@@ -791,7 +779,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_prepare_headmodel.m 5774 2012-05-13 12:05:40Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

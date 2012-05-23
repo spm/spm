@@ -48,7 +48,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 4885 2011-11-29 09:34:00Z crimic $
+% $Id: ft_plot_mesh.m 5673 2012-04-20 09:48:15Z jansch $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -136,7 +136,7 @@ if haspnt
 end
 
 % if vertexcolor is an array with number of elements equal to the number of vertices
-if size(pnt,1)==numel(vertexcolor)
+if size(pnt,1)==numel(vertexcolor) || size(pnt,1)==size(vertexcolor,1)
   set(hs, 'FaceVertexCData', vertexcolor, 'FaceColor', 'interp');
 end
 
@@ -160,7 +160,7 @@ if faceindex
   end
 end
 
-if ~isequal(vertexcolor, 'none') && ~(size(pnt,1)==numel(vertexcolor))
+if ~isequal(vertexcolor, 'none') && ~(size(pnt,1)==numel(vertexcolor)) && ~(size(pnt,1)==size(vertexcolor,1))
   if size(pnt, 2)==2
     hs = plot(pnt(:,1), pnt(:,2), 'k.');
   else

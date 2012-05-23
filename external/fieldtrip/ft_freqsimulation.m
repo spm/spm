@@ -146,9 +146,9 @@ function [data] = ft_freqsimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqsimulation.m 5117 2012-01-11 08:00:48Z roboos $
+% $Id: ft_freqsimulation.m 5219 2012-02-01 15:52:38Z roevdmei $
 
-revision = '$Id: ft_freqsimulation.m 5117 2012-01-11 08:00:48Z roboos $';
+revision = '$Id: ft_freqsimulation.m 5219 2012-02-01 15:52:38Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -173,7 +173,7 @@ if isempty(cfg.time)
   if ~isfield(cfg, 'numtrl'),        cfg.numtrl = 1;                        end
 else
   cfg.trllen = [];                                    % can be variable
-  cfg.fsample = 1/(cfg.time{1}(2) - cfg.time{1}(1));  % determine from time-axis
+  cfg.fsample = 1/mean(diff(cfg.time{1}));  % determine from time-axis
   cfg.numtrl = length(cfg.time);
 end
 

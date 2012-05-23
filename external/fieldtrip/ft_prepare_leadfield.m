@@ -96,9 +96,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_prepare_leadfield.m 5684 2012-04-20 14:54:10Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_prepare_leadfield.m 5684 2012-04-20 14:54:10Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -167,11 +167,11 @@ if ft_voltype(vol, 'openmeeg')
   % the system call to the openmeeg executable makes it rather slow
   % calling it once is much more efficient
   fprintf('calculating leadfield for all positions at once, this may take a while...\n');
-  
+ 
   ndip = length(grid.inside);
   ok = false(1,ndip);
   batchsize = ndip;
-  
+
   while ~all(ok)
     % find the first one that is not yet done
     begdip = find(~ok, 1);
@@ -182,6 +182,7 @@ if ft_voltype(vol, 'openmeeg')
       lf = ft_compute_leadfield(grid.pos(grid.inside(batch),:), sens, vol, 'reducerank', cfg.reducerank, 'normalize', cfg.normalize, 'normalizeparam', cfg.normalizeparam);
       ok(batch) = true;
     catch
+      ok(batch) = false;
       % the "catch me" syntax is broken on MATLAB74, this fixes it
       me = lasterror;
       if ~isempty(findstr(me.message, 'Output argument "dsm" (and maybe others) not assigned during call to'))

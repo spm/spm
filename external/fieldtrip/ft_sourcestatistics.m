@@ -33,7 +33,7 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %                      reconstruction is expressed
 %
 % The other cfg options depend on the method that you select. You
-% should read the help of the respective subfunction STATISTICS_XXX
+% should read the help of the respective subfunction FT_STATISTICS_XXX
 % for the corresponding configuration options and for a detailed
 % explanation of each method.
 %
@@ -57,9 +57,9 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_sourcestatistics.m 5650 2012-04-18 14:00:33Z roevdmei $
 
-revision = '$Id: ft_sourcestatistics.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_sourcestatistics.m 5650 2012-04-18 14:00:33Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -72,6 +72,8 @@ ft_preamble loadvar varargin
 % functions that only work for source input data
 
 if ~isfield(cfg, 'implementation'), cfg.implementation = 'old'; end
+
+cfg = ft_checkconfig(cfg, 'forbidden',   {'trials'});
 
 if strcmp(cfg.implementation, 'old'),
   
@@ -129,8 +131,8 @@ elseif strcmp(cfg.implementation, 'new')
       varargin{i} = ft_checkdata(varargin{i}, 'sourcerepresentation', 'old');
     end
     
-    if exist(['statistics_',cfg.method]),
-      statmethod = str2func(['statistics_' cfg.method]);
+    if exist(['ft_statistics_',cfg.method]),
+      statmethod = str2func(['ft_statistics_' cfg.method]);
     else
       error(sprintf('could not find the corresponding function for cfg.method="%s"\n', cfg.method));
     end
@@ -280,8 +282,8 @@ elseif strcmp(cfg.implementation, 'new')
   end
   
   % determine the function handle to the intermediate-level statistics function
-  if exist(['statistics_' cfg.method])
-    statmethod = str2func(['statistics_' cfg.method]);
+  if exist(['ft_statistics_' cfg.method])
+    statmethod = str2func(['ft_statistics_' cfg.method]);
   else
     error(sprintf('could not find the corresponding function for cfg.method="%s"\n', cfg.method));
   end
@@ -301,8 +303,8 @@ elseif strcmp(cfg.implementation, 'new')
   end
   
   % perform the statistical test 
-  if strcmp(func2str(statmethod),'statistics_montecarlo') 
-    % because statistics_montecarlo (or to be precise, clusterstat)
+  if strcmp(func2str(statmethod),'ft_statistics_montecarlo') 
+    % because ft_statistics_montecarlo (or to be precise, clusterstat)
     % requires to know whether it is getting source data, 
     % the following (ugly) work around is necessary                                             
     if num>1

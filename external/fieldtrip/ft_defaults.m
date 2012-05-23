@@ -37,7 +37,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_defaults.m 5551 2012-03-28 10:30:02Z eelspa $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -46,99 +46,166 @@ if ~isfield(ft_default, 'checkconfig'),  ft_default.checkconfig  = 'loose';  end
 if ~isfield(ft_default, 'checksize'),    ft_default.checksize    = 1e5;      end % number in bytes, can be inf
 if ~isfield(ft_default, 'showcallinfo'), ft_default.showcallinfo = 'yes';    end % yes or no, this is used in ft_postamble_callinfo
 
-% some people mess up their path settings with addpath(genpath(...))which
-% results in different versions of SPM or other other toolboxes on the path
+% some people mess up their path settings and then have
+% different versions of certain toolboxes on the path
+checkMultipleToolbox('FieldTrip',           'ft_defaults');
+checkMultipleToolbox('mne',                 'fiff_copy_tree');
+checkMultipleToolbox('eeglab',              'eeglab2fieldtrip.m');
+checkMultipleToolbox('dipoli',              'write_tri.m');
+checkMultipleToolbox('eeprobe',             'read_eep_avr.mexa64');
+checkMultipleToolbox('yokogawa',            'GetMeg160ChannelInfoM.p');
+checkMultipleToolbox('simbio',              'sb_compile_vista');
+checkMultipleToolbox('fns',                 'fns_region_read.m');
+checkMultipleToolbox('bemcp',               'bem_Cii_cst');
+checkMultipleToolbox('bci2000',             'load_bcidat.m');
+checkMultipleToolbox('openmeeg',            'openmeeg_helper');
+checkMultipleToolbox('freesurfer',          'vox2ras_ksolve.m');
+checkMultipleToolbox('fastica',             'fastica');
+checkMultipleToolbox('besa',                'readBESAmul.m');
+checkMultipleToolbox('neuroshare',          'ns_GetAnalogData');
+checkMultipleToolbox('ctf',                 'setCTFDataBalance.m');
+checkMultipleToolbox('afni',                'WriteBrikHEAD.m');
+checkMultipleToolbox('gifti',               '@gifti/display');
+checkMultipleToolbox('sqdproject',          'sqdread');
+checkMultipleToolbox('xml4mat',             'xml2mat');
+checkMultipleToolbox('cca',                 'ccabss.m');
+checkMultipleToolbox('bsmart',              'armorf.m');
+checkMultipleToolbox('iso2mesh',            'iso2meshver');
+checkMultipleToolbox('bct',                 'degrees_und.m');
+checkMultipleToolbox('yokogawa_meg_reader', 'getYkgwHdrEvent.p');
+checkMultipleToolbox('biosig',              'sopen');
+
+% check for SPM last, which also includes a general warning about
+% addpath(genpath(...))
 list = which('spm', '-all');
 if length(list)>1
   [ws, warned] = warning_once('multiple versions of SPM on your path will confuse FieldTrip');
+  
+  % use the presence of SPM versions as a proxy for the user probably
+  % having used addpath(genpath(<FT>))
+  ftSpmFound = 0;
+  ftPath = mfilename('fullpath');
+  ftPath = ftPath(1:end-numel(mfilename())); % get path, strip away 'ft_defaults'
+  
   if warned % only throw the warning once
     for i=1:length(list)
       warning('one version of SPM is found here: %s', list{i});
+      
+      if list{i}(1:numel(ftPath)) == ftPath
+        ftSpmFound = ftSpmFound + 1;
+        if (ftSpmFound > 1)
+          warning('You probably used addpath(genpath(<FieldTrip>)), this can lead to unexpected behaviour! You should only add FieldTrip''s root directory to your path.');
+        end
+      end
     end
   end
+  
 end
 
-if isempty(which('ft_hastoolbox'))
-  % the fieldtrip/utilities directory contains the ft_hastoolbox function
-  % which is required for the remainder of this script
-  addpath(fullfile(fileparts(which('ft_defaults')), 'utilities'));
+if ~isdeployed 
+
+  if isempty(which('ft_hastoolbox'))
+    % the fieldtrip/utilities directory contains the ft_hastoolbox function
+    % which is required for the remainder of this script
+    addpath(fullfile(fileparts(which('ft_defaults')), 'utilities'));
+  end  
+
+  try
+    % this directory contains the backward compatibility wrappers for the ft_xxx function name change
+    ft_hastoolbox('compat', 3, 1); % not required
+  end
+  
+  try
+    % this directory contains the backward compatibility wrappers for the fieldtrip/utilities functions
+    ft_hastoolbox('utilities/compat', 3, 1);
+  end
+  
+  try
+    % these contains template layouts, neighbour structures, MRIs and cortical meshes
+    ft_hastoolbox('template/layout', 1, 1);
+    ft_hastoolbox('template/anatomy', 1, 1);
+    ft_hastoolbox('template/headmodel', 1, 1);
+    ft_hastoolbox('template/electrode', 1, 1);
+    ft_hastoolbox('template/neighbours', 1, 1);
+    ft_hastoolbox('template/sourcemodel', 1, 1);
+  end
+  
+  try
+    % this is used in statistics
+    ft_hastoolbox('statfun', 1, 1);
+  end
+  
+  try
+    % this is used in definetrial
+    ft_hastoolbox('trialfun', 1, 1);
+  end
+  
+  try
+    % this contains the low-level reading functions
+    ft_hastoolbox('fileio', 1, 1);
+    ft_hastoolbox('fileio/compat', 3, 1); % not required
+  end
+  
+  try
+    % this is for filtering time-series data
+    ft_hastoolbox('preproc', 1, 1);
+    ft_hastoolbox('preproc/compat', 3, 1); % not required
+  end
+  
+  try
+    % this contains forward models for the EEG and MEG volume conduction problem
+    ft_hastoolbox('forward', 1, 1);
+    ft_hastoolbox('forward/compat', 3, 1); % not required
+  end
+  
+  try
+    % numerous functions depend on this module
+    ft_hastoolbox('inverse', 1, 1);
+  end
+  
+  try
+    % this contains intermediate-level plotting functions, e.g. multiplots and 3-d objects
+    ft_hastoolbox('plotting', 1, 1);
+    ft_hastoolbox('plotting/compat', 1, 1);
+  end
+  
+  try
+    % this contains the functions to compute connecitivy metrics
+    ft_hastoolbox('connectivity', 1,1);
+  end
+  
+  try
+    % this can be used for distrubuted/parallel computing
+    ft_hastoolbox('peer', 1,1);
+  end
+  
+  try
+    % this contains specific code and examples for realtime processing
+    ft_hastoolbox('realtime', 3, 1);                    % not required
+    ft_hastoolbox('realtime/acquisition/matlab', 3, 1); % not required
+  end
+  
+  try
+    % this contains intermediate-level functions for spectral analysis
+    ft_hastoolbox('specest', 1, 1);
+  end
+  
 end
 
-try
-  % this directory contains the backward compatibility wrappers for the ft_xxx function name change
-  ft_hastoolbox('compat', 3, 1); % not required
 end
 
-try
-  % this directory contains the backward compatibility wrappers for the fieldtrip/utilities functions
-  ft_hastoolbox('utilities/compat', 3, 1);
+function checkMultipleToolbox(toolbox, keyfile)
+
+list = which(keyfile, '-all');
+if length(list)>1
+  [ws, warned] = warning_once(sprintf('multiple versions of %s on your path will confuse FieldTrip', toolbox));
+  
+  if warned % only throw the warning once
+    for i=1:length(list)
+      warning('one version of %s is found here: %s', toolbox, list{i});
+    end
+  end
+  
 end
 
-try
-  % these contains template layouts, neighbour structures, MRIs and cortical meshes
-  ft_hastoolbox('template/layout', 1, 1);
-  ft_hastoolbox('template/anatomy', 1, 1);
-  ft_hastoolbox('template/headmodel', 1, 1);
-  ft_hastoolbox('template/electrode', 1, 1);
-  ft_hastoolbox('template/neighbours', 1, 1);
-end
-
-try
-  % this is used in statistics
-  ft_hastoolbox('statfun', 1, 1);
-end
-
-try
-  % this is used in definetrial
-  ft_hastoolbox('trialfun', 1, 1);
-end
-
-try
-  % this contains the low-level reading functions
-  ft_hastoolbox('fileio', 1, 1);
-  ft_hastoolbox('fileio/compat', 3, 1); % not required
-end
-
-try
-  % this is for filtering time-series data
-  ft_hastoolbox('preproc', 1, 1);
-  ft_hastoolbox('preproc/compat', 3, 1); % not required
-end
-
-try
-  % this contains forward models for the EEG and MEG volume conduction problem
-  ft_hastoolbox('forward', 1, 1);
-  ft_hastoolbox('forward/compat', 3, 1); % not required
-end
-
-try
-  % numerous functions depend on this module
-  ft_hastoolbox('inverse', 1, 1);
-end
-
-try
-  % this contains intermediate-level plotting functions, e.g. multiplots and 3-d objects
-  ft_hastoolbox('plotting', 1, 1);
-  ft_hastoolbox('plotting/compat', 1, 1);
-end
-
-try
-  % this contains the functions to compute connecitivy metrics
-  ft_hastoolbox('connectivity', 1,1);
-end
-
-try
-  % this can be used for distrubuted/parallel computing
-  ft_hastoolbox('peer', 1,1);
-end
-
-try
-  % this contains specific code and examples for realtime processing
-  ft_hastoolbox('realtime', 3, 1);                    % not required
-  ft_hastoolbox('realtime/acquisition/matlab', 3, 1); % not required
-end
-
-try
-  % this contains intermediate-level functions for spectral analysis
-  ft_hastoolbox('specest', 1, 1);
 end

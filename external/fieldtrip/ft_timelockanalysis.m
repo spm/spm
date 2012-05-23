@@ -38,6 +38,20 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %
 % See also FT_TIMELOCKGRANDAVERAGE, FT_TIMELOCKSTATISTICS
 
+% Guidelines for use in an analysis pipeline: 
+% after FT_TIMELOCKANALYSIS you will have timelocked data - i.e., event-related 
+% fields (ERFs) or potentials (ERPs) - represented as the average and/or 
+% covariance over trials.
+% This usually serves as input for one of the following functions:
+%    * FT_TIMELOCKBASELINE      to perform baseline normalization
+%    * FT_TIMELOCKGRANDAVERAGE  to compute the ERP/ERF average and variance over multiple subjects
+%    * FT_TIMELOCKSTATISTICS    to perform parametric or non-parametric statistical tests
+% Furthermore, the data can be visualised using the various plotting
+% functions, including:
+%    * FT_SINGLEPLOTER          to plot the ERP/ERF of a single channel or the average over multiple channels
+%    * FT_TOPOPLOTER            to plot the topographic distribution over the head
+%    * FT_MULTIPLOTER           to plot ERPs/ERFs in a topographical layout
+
 % FIXME if input is one raw trial, the covariance is not computed correctly
 % 
 % Undocumented local options:
@@ -99,9 +113,9 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 5117 2012-01-11 08:00:48Z roboos $
+% $Id: ft_timelockanalysis.m 5285 2012-02-15 10:34:53Z jansch $
 
-revision = '$Id: ft_timelockanalysis.m 5117 2012-01-11 08:00:48Z roboos $';
+revision = '$Id: ft_timelockanalysis.m 5285 2012-02-15 10:34:53Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -149,6 +163,9 @@ cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
 if ~isempty(cfg.preproc)
   % preprocess the data, i.e. apply filtering, baselinecorrection, etc.
   fprintf('applying preprocessing options\n');
+  if ~isfield(cfg.preproc, 'feedback')
+    cfg.preproc.feedback = cfg.feedback;
+  end
   data = ft_preprocessing(cfg.preproc, data);
 end
 

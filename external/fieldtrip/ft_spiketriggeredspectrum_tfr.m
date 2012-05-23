@@ -1,18 +1,18 @@
-function [sts_tfr] = ft_spiketriggeredspectrum_ppc_tfr(cfg, sts)
+function [sts_tfr] = ft_spiketriggeredspectrum_tfr(cfg, sts)
 
-% FT_SPIKETRIGGEREDSPECTRUM_TFR computes time-frequency representation of
-% PPC, phase and rayleigh test Getting a TFR from spike phases is
-% complicated, because spike numbers may strongly vary over time. 
-% However, this is solved with the PPC statistic (Vinck et al, 2010;
-% Neuroimage), Vinck et al., 2011, Journal of Computational Neuroscience,
-% being unbiased by the number of spikes.
+% FT_SPIKETRIGGEREDSPECTRUM_TFR computes time-frequency representation of PPC,
+% phase and rayleigh test Getting a TFR from spike phases is complicated,
+% because spike numbers may strongly vary over time. However, this is solved
+% with the PPC statistic (Vinck et al, 2010; Neuroimage), Vinck et al., 2011,
+% Journal of Computational Neuroscience, being unbiased by the number of
+% spikes.
 %
 % Use as
 %   [stat] = ft_spiketriggeredspectrum_ppc_tfr(cfg,stat)
 %
 % Inputs:
-%   STS should be a structure as obtained from from the FT_SPIKETRIGGEREDSPECTRUM function.
-%   or FT_SPIKE_TRIGGEREDSPECTRUM function
+%   STS should be a structure as obtained from from the
+%   FT_SPIKETRIGGEREDSPECTRUM or FT_SPIKE_TRIGGEREDSPECTRUM function
 %
 % Configurations:
 %   cfg.channel                     = Nx1 cell-array or numerical array with selection of
@@ -32,12 +32,11 @@ function [sts_tfr] = ft_spiketriggeredspectrum_ppc_tfr(cfg, sts)
 % See also FT_SPIKETRIGGEREDSPECTRUM, FT_SPIKE_PHASELOCKSTAT,
 % FT_SPIKE_TRIGGEREDSPECTRUM
 
-
 % Copyright (C) 2010, Martin Vinck
 %
-% $Id: ft_spiketriggeredspectrum_tfr.m 4995 2011-12-10 10:56:30Z marvin $
+% $Id: ft_spiketriggeredspectrum_tfr.m 5252 2012-02-07 09:02:39Z roboos $
 
-revision = '$Id: ft_spiketriggeredspectrum_tfr.m 4995 2011-12-10 10:56:30Z marvin $';
+revision = '$Id: ft_spiketriggeredspectrum_tfr.m 5252 2012-02-07 09:02:39Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -79,7 +78,7 @@ sts.time  = sts.time{unitsel};
 sts.fourierspctrm = sts.fourierspctrm{unitsel};
 
 % channel selection business
-cfg.channel        = channelselection(cfg.channel, sts.lfplabel);
+cfg.channel        = ft_channelselection(cfg.channel, sts.lfplabel);
 chansel            = match_str(sts.lfplabel, cfg.channel); 
 
 % frequency selection business
@@ -251,5 +250,5 @@ sts_tfr.freq     = sts.freq(freqindx);
 sts_tfr.lfplabel = sts.lfplabel(chansel);
 sts_tfr.time     = bins(1:end-1) + 0.5*dt; % center time-points
 sts_tfr.cfg      = cfg;
-sts_tfr.dimord    = 'time_lfpchan_freq';
+sts_tfr.dimord   = 'time_lfpchan_freq';
 

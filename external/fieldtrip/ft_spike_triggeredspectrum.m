@@ -40,9 +40,9 @@ function [Sts] = ft_spike_triggeredspectrum(cfg, data, spike)
 % Copyright (C) 2008-2011, Martin Vinck, Robert Oostenveld
 % thanks to Henrique Cabral and Thilo Womelsdorf for testing.
 %
-% $Id: ft_spike_triggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $
+% $Id: ft_spike_triggeredspectrum.m 5219 2012-02-01 15:52:38Z roevdmei $
 
-revision = '$Id: ft_spike_triggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $';
+revision = '$Id: ft_spike_triggeredspectrum.m 5219 2012-02-01 15:52:38Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -100,7 +100,7 @@ spikesel         = match_str(spikelabel, cfg.spikechannel);
 nspikesel        = length(spikesel); % number of spike channels
 
 % get the options that will go in the ft_specest_mtmconvol function
-fsample = 1./ (data.time{1}(2)-data.time{1}(1)); % assumes constancy
+fsample = 1./ mean(diff(data.time{1})); % assumes constancy
 tmpcfg = [];
 tmpcfg.taper  = cfg.taper;
 tmpcfg.freqoi = cfg.foi;

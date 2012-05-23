@@ -94,14 +94,26 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_topoplotIC.m 5636 2012-04-17 12:33:04Z eelspa $
 
-revision = '$Id: ft_topoplotIC.m 5157 2012-01-22 14:49:34Z roboos $';
+revision = '$Id: ft_topoplotIC.m 5636 2012-04-17 12:33:04Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble callinfo
+
+% make sure figure window titles are labeled appropriately, pass this onto
+% the actual plotting function
+% if we don't specify this, the window will be called 'ft_topoplotTFR',
+% which is confusing to the user
+cfg.funcname = mfilename;
+if nargin > 1
+  cfg.dataname = {inputname(2)};
+  for k = 3:nargin
+    cfg.dataname{end+1} = inputname(k);
+  end
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'component');
@@ -120,15 +132,21 @@ cfg.layout = ft_prepare_layout(cfg, varargin{:});
 cfg.showcallinfo = 'no';
 
 % allow multiplotting
-nplots = numel(selcomp);
-nyplot = ceil(sqrt(nplots));
-nxplot = ceil(nplots./nyplot);
-for i = 1:length(selcomp)
-  subplot(nxplot, nyplot, i);
-  cfg.component = selcomp(i);
-  ft_topoplotTFR(cfg, varargin{:});
-  title(['component ' num2str(selcomp(i))]);
-end
+  nplots = numel(selcomp);
+  if nplots>1
+  nyplot = ceil(sqrt(nplots));
+  nxplot = ceil(nplots./nyplot);
+  for i = 1:length(selcomp)
+    subplot(nxplot, nyplot, i);
+    cfg.component = selcomp(i);
+    ft_topoplotTFR(cfg, varargin{:});
+    title(['component ' num2str(selcomp(i))]);
+  end
+  else
+    cfg.component = selcomp;
+    ft_topoplotTFR(cfg, varargin{:});
+    title(['component ' num2str(selcomp)]);
+  end
 
 % show the callinfo for all components together
 cfg.showcallinfo = 'yes';

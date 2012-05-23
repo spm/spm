@@ -70,7 +70,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % undirected connectivity metrics. In the situation where undirected
 % connectivity measures are linearly indexed, specifying 'inflow' or
 % 'outflow' can result in unexpected behavior.
-%  
+%
 % The layout defines how the channels are arranged and what the size of each
 % subplot is. You can specify the layout in a variety of ways:
 %  - you can provide a pre-computed layout structure (see prepare_layout)
@@ -91,7 +91,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % corresponding to the input structure. For this particular function, the
 % data should be provided as a cell array.
 %
-% See also FT_MULTIPLOTTFR, FT_SINGLEPLOTER, FT_SINGLEPLOTTFR, FT_TOPOPLOTER, 
+% See also FT_MULTIPLOTTFR, FT_SINGLEPLOTER, FT_SINGLEPLOTTFR, FT_TOPOPLOTER,
 % FT_TOPOPLOTTFR, FT_PREPARE_LAYOUT
 
 % Undocumented local options:
@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 5178 2012-01-25 15:19:05Z eelspa $
+% $Id: ft_multiplotER.m 5712 2012-04-26 21:10:22Z roboos $
 
-revision = '$Id: ft_multiplotER.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_multiplotER.m 5712 2012-04-26 21:10:22Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -147,9 +147,9 @@ end
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'zlim', 'absmax', 'maxabs'});
-cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedforward', 'outflow'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflow'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel', 'refchannel'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'zparam', 'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'xparam'});
@@ -159,6 +159,7 @@ cfg.baseline        = ft_getopt(cfg, 'baseline',    'no');
 cfg.trials          = ft_getopt(cfg, 'trials',      'all');
 cfg.xlim            = ft_getopt(cfg, 'xlim',        'maxmin');
 cfg.ylim            = ft_getopt(cfg, 'ylim',        'maxmin');
+cfg.zlim            = ft_getopt(cfg, 'zlim',        'maxmin');
 cfg.comment         = ft_getopt(cfg, 'comment',     strcat([date '\n']));
 cfg.axes            = ft_getopt(cfg, 'axes',        'yes');
 cfg.showlabels      = ft_getopt(cfg, 'showlabels',  'no');
@@ -267,7 +268,12 @@ end
 % can always be done because ft_multiplotER is the entry point into the
 % interactive stream, but will not be revisited
 for i=1:Ndata
-  varargin{i} = ft_selectdata(varargin{i}, 'channel', cfg.channel);
+  if isfield(varargin{i}, 'label')
+    % only do the channel selection when it can actually be done,
+    % i.e. when the data are bivariate ft_selectdata will crash, moreover
+    % the bivariate case is handled below
+    varargin{i} = ft_selectdata(varargin{i}, 'channel', cfg.channel);
+  end
 end
 
 if isfield(varargin{1}, 'label') % && strcmp(cfg.interactive, 'no')
@@ -282,7 +288,15 @@ if strcmp(dtype, 'timelock') && hasrpt,
   tmpcfg        = [];
   tmpcfg.trials = cfg.trials;
   for i=1:Ndata
+    % save mask (timelockanalysis will remove it)
+    if ~isempty(cfg.maskparameter)
+      tmpmask = varargin{i}.(cfg.maskparameter);
+    end
     varargin{i} = ft_timelockanalysis(tmpcfg, varargin{i});
+    % put back mask
+    if ~isempty(cfg.maskparameter)
+      varargin{i}.(cfg.maskparameter) = tmpmask;
+    end
   end
   dimord        = varargin{1}.dimord;
   dimtok        = tokenize(dimord, '_');
@@ -458,12 +472,10 @@ end
 if strcmp('freq',yparam) && strcmp('freq',dtype)
   for i=1:Ndata
     varargin{i} = ft_selectdata(varargin{i},'param',cfg.parameter,'foilim',cfg.zlim,'avgoverfreq','yes');
-    varargin{i}.(cfg.parameter) = squeeze(varargin{i}.(cfg.parameter));
   end
 elseif strcmp('time',yparam) && strcmp('freq',dtype)
   for i=1:Ndata
     varargin{i} = ft_selectdata(varargin{i},'param',cfg.parameter,'toilim',cfg.zlim,'avgovertime','yes');
-    varargin{i}.(cfg.parameter) = squeeze(varargin{i}.(cfg.parameter));
   end
 end
 
@@ -522,6 +534,15 @@ end
 for i=1:Ndata
   % Make vector dat with one value for each channel
   dat  = varargin{i}.(cfg.parameter);
+  % get dimord dimensions
+  dims = textscan(varargin{i}.dimord,'%s', 'Delimiter', '_');
+  dims = dims{1};
+  ydim = find(strcmp(yparam, dims));
+  xdim = find(strcmp(xparam, dims));
+  zdim = setdiff(1:ndims(dat), [ydim xdim]);
+  % and permute
+  dat = permute(dat, [zdim(:)' ydim xdim]);
+  
   xval = varargin{i}.(xparam);
   
   % Take subselection of channels, this only works
@@ -534,34 +555,14 @@ for i=1:Ndata
     label  = varargin{i}.label;
   end
   
-  %   if ~isempty(yparam)
-  %     if isfull
-  %       dat = dat(sel1, sel2, ymin:ymax, xidmin(i):xidmax(i));
-  %       dat = nanmean(nanmean(dat, meandir), 3);
-  %       siz = size(dat);
-  %       %FIXMEdat = reshape(dat, [siz(1:2) siz(4)]);
-  %     elseif haslabelcmb
-  %       dat = dat(sellab, ymin:ymax, xidmin(i):xidmax(i));
-  %       dat = nanmean(dat, 2);
-  %       siz = size(dat);
-  %       dat = reshape(dat, [siz(1) siz(3)]);
-  %     else
-  %       dat = dat(sellab, ymin:ymax, xidmin(i):xidmax(i));
-  %       dat = nanmean(nanmean(dat, 3), 2);
-  %       siz = size(dat);
-  %       dat = reshape(dat, [siz(1) siz(3)]);
-  %     end
-  %   else
   if isfull
     dat = dat(sel1, sel2, xidmin(i):xidmax(i));
     dat = nanmean(dat, meandir);
-    %FIXME
   elseif haslabelcmb
     dat = dat(sellab, xidmin(i):xidmax(i));
   else
     dat = dat(sellab, xidmin(i):xidmax(i));
   end
-  %   end
   xval = xval(xidmin(i):xidmax(i));
   
   % Select the channels in the data that match with the layout:
@@ -570,7 +571,8 @@ for i=1:Ndata
     error('labels in data and labels in layout do not match');
   end
   
-  datamatrix = dat(seldat, :);
+  % gather the data of multiple input arguments
+  datamatrix{i} = dat(seldat, :);
   
   % Select x and y coordinates and labels of the channels in the data
   layX = cfg.layout.pos(sellay,1);
@@ -591,23 +593,42 @@ for i=1:Ndata
     elseif isnumeric(GRAPHCOLOR); colorLabels = [colorLabels iname{i+1} '=' num2str(GRAPHCOLOR(i+1,:)) '\n'];
     end
   end
+end % for number of input data
+
+for m=1:length(layLabels)
+  % Plot ER
   
-  if ischar(GRAPHCOLOR);        color = GRAPHCOLOR(i+1);
-  elseif isnumeric(GRAPHCOLOR); color = GRAPHCOLOR(i+1,:);
+  if ischar(GRAPHCOLOR);        color = GRAPHCOLOR(2:end);
+  elseif isnumeric(GRAPHCOLOR); color = GRAPHCOLOR(2:end,:);
   end
   
-  for m=1:length(layLabels)
-    % Plot ER
-    plotWnd(xval, datamatrix(m,:),[xmin xmax],[ymin ymax], layX(m), layY(m), width(m), height(m), layLabels(m), cfg, color, cfg.linestyle{i}, maskmatrix(m,:),i); %FIXME shouldn't this be replaced with a call to ft_plot_vector?
-    
-    if i==1,
-      % Keep ER plot coordinates (at centre of ER plot), and channel labels (will be stored in the figure's UserData struct):
-      chanX(m) = X(m) + 0.5 * width(m);
-      chanY(m) = Y(m) + 0.5 * height(m);
-      chanLabels{m} = Lbl{m};
-    end
-  end %for m
-end %for i
+  mask = maskmatrix(m,:);
+  
+  for i=1:Ndata
+    yval(i,:) = datamatrix{i}(m,:);
+  end
+  
+  % Clip out of bounds y values:
+  yval(yval > ymax) = ymax;
+  yval(yval < ymin) = ymin;
+  
+  if strcmp(cfg.showlabels,'yes')
+    label = layLabels(m);
+  else
+    % don't show labels
+    label = [];
+  end
+  
+  ft_plot_vector(xval, yval, 'width', width(m), 'height', height(m), 'hpos', layX(m), 'vpos', layY(m), 'hlim', [xmin xmax], 'vlim', [ymin ymax], 'color', color, 'style', cfg.linestyle{i}, 'linewidth', cfg.linewidth, 'axis', cfg.axes, 'highlight', mask, 'highlightstyle', cfg.maskstyle, 'label', label, 'box', cfg.box);
+  
+  if i==1,
+    % Keep ER plot coordinates (at centre of ER plot), and channel labels (will be stored in the figure's UserData struct):
+    chanX(m) = X(m) + 0.5 * width(m);
+    chanY(m) = Y(m) + 0.5 * height(m);
+    chanLabels{m} = Lbl{m};
+  end
+end % for number of channels
+
 
 % Add the colors of the different datasets to the comment:
 cfg.comment = [cfg.comment colorLabels];
@@ -625,10 +646,15 @@ if ~isempty(l)
 end
 
 % set the figure window title
-dataname = {inputname(2)};
-for k = 2:Ndata
-  dataname{end+1} = inputname(k+1);
+if nargin > 1
+  dataname = {inputname(2)};
+  for k = 2:Ndata
+    dataname{end+1} = inputname(k+1);
+  end
+else % data provided through cfg.inputfile
+  dataname = cfg.inputfile;
 end
+
 set(gcf, 'Name', sprintf('%d: %s: %s', gcf, mfilename, join_str(', ',dataname)));
 set(gcf, 'NumberTitle', 'off');
 
@@ -694,74 +720,6 @@ ft_plot_text( x1,y1,num2str(xlim(1),3),'rotation',90,'HorizontalAlignment','Righ
 ft_plot_text( x2,y1,num2str(xlim(2),3),'rotation',90,'HorizontalAlignment','Right','VerticalAlignment','middle','Fontsize',cfg.fontsize);
 ft_plot_text( x2,y1,num2str(ylim(1),3),'HorizontalAlignment','Left','VerticalAlignment','bottom','Fontsize',cfg.fontsize);
 ft_plot_text( x2,y2,num2str(ylim(2),3),'HorizontalAlignment','Left','VerticalAlignment','bottom','Fontsize',cfg.fontsize);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% SUBFUNCTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function plotWnd(x,y,xlim,ylim,xpos,ypos,width,height,label,cfg,color,style,mask,i)
-
-% Clip out of bounds y values:
-y(y > ylim(2)) = ylim(2);
-y(y < ylim(1)) = ylim(1);
-
-xs = xpos+width*(x-xlim(1))/(xlim(2)-xlim(1));
-ys = ypos+height*(y-ylim(1))/(ylim(2)-ylim(1));
-
-% Add boxes when masktyle is box, ft_plot_vector doesnt support boxes higher than ydata yet, so this code is left here
-if i<2 && ~isempty(mask) && strcmp(cfg.maskstyle, 'box') % i stops box from being plotted more than once
-  % determine how many boxes
-  mask = mask(:)';
-  mask = mask~=0;
-  mask = diff([0 mask 0]);
-  boxbeg = find(mask== 1);
-  boxend = find(mask==-1)-1;
-  
-  numbox = length(boxbeg);
-  for i = 1:numbox
-    xmaskmin = xpos+width*(x(boxbeg(i))-xlim(1))/(xlim(2)-xlim(1));
-    xmaskmax = xpos+width*(x(boxend(i))-xlim(1))/(xlim(2)-xlim(1));
-    %plot([xmaskmin xmaskmax xmaskmax xmaskmin xmaskmin],[ypos ypos ypos+height ypos+height ypos],'r');
-    hs = patch([xmaskmin xmaskmax xmaskmax xmaskmin xmaskmin],[ypos ypos ypos+height ypos+height ypos], [.6 .6 .6]);
-    set(hs, 'EdgeColor', 'none');
-  end
-end
-
-if isempty(mask) || (~isempty(mask) && strcmp(cfg.maskstyle,'box'))
-  ft_plot_vector(xs, ys, 'color', color, 'style', style, 'linewidth', cfg.linewidth);
-elseif ~isempty(mask) && ~strcmp(cfg.maskstyle,'box') % ft_plot_vector does not support boxes higher than ydata yet, so a separate option remains below
-  ft_plot_vector(xs, ys, 'color', color, 'style', style, 'linewidth', cfg.linewidth, 'highlight', mask, 'highlightstyle', cfg.maskstyle);
-end
-
-if strcmp(cfg.showlabels,'yes')
-  ft_plot_text(xpos,ypos+1.0*height,label,'Fontsize',cfg.fontsize);
-end
-
-% Draw x axis
-if strcmp(cfg.axes,'yes') || strcmp(cfg.axes, 'xy') || strcmp(cfg.axes,'x')
-  xs =  xpos+width*(xlim-xlim(1))/(xlim(2)-xlim(1));
-  if prod(ylim) < 0 % this is equivalent to including 0
-    ys =  ypos+height*([0 0]-ylim(1))/(ylim(2)-ylim(1));
-  else
-    ys = [ypos ypos];
-  end
-  ft_plot_vector(xs,ys,'color','k');
-end
-
-% Draw y axis
-if strcmp(cfg.axes,'yes') || strcmp(cfg.axes, 'xy') || strcmp(cfg.axes,'y')
-  if prod(xlim) < 0 % this is equivalent to including 0
-    xs =  xpos+width*([0 0]-xlim(1))/(xlim(2)-xlim(1));
-  else % if not, move the y-axis to the x-axis
-    xs =  [xpos xpos];
-  end
-  ys =  ypos+height*(ylim-ylim(1))/(ylim(2)-ylim(1));
-  ft_plot_vector(xs,ys,'color','k');
-end
-
-% Draw box around plot:
-if strcmp(cfg.box,'yes')
-  ft_plot_box([xpos xpos+width ypos ypos+height],'edgecolor','k');
-end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

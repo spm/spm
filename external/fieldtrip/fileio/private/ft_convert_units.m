@@ -20,7 +20,7 @@ function [obj] = ft_convert_units(obj, target)
 %
 % See FT_ESTIMATE_UNITS, FT_READ_VOL, FT_READ_SENS
 
-% Copyright (C) 2005-2008, Robert Oostenveld
+% Copyright (C) 2005-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 5145 2012-01-17 12:37:31Z borreu $
+% $Id: ft_convert_units.m 5590 2012-04-04 10:50:35Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -51,65 +51,48 @@ if isfield(obj, 'unit') && ~isempty(obj.unit)
   unit = obj.unit;
 
 else
-  % try to estimate the units from the object
-  type = ft_voltype(obj);
-  if ~strcmp(type, 'unknown')
-    switch type
-      case 'infinite'
-        % there is nothing to do to convert the units
-        unit = target;
-
-      case 'singlesphere'
-        size = obj.r;
-
-      case 'multisphere'
-        size = median(obj.r);
-
-      case 'concentric'
-        size = max(obj.r);
-
-      case 'nolte'
-        size = norm(idrange(obj.bnd.pnt));
-
-      case {'bem' 'dipoli' 'bemcp' 'asa' 'avo' 'openmeeg'}
-        size = norm(idrange(obj.bnd(1).pnt));
-
-      otherwise
-        error('cannot determine geometrical units of volume conduction model');
-    end % switch
-    
-    % determine the units by looking at the size
-    unit = ft_estimate_units(size);
-
-  elseif ft_senstype(obj, 'meg')
-    size = norm(idrange(obj.chanpos));
-    unit = ft_estimate_units(size);
-
-  elseif ft_senstype(obj, 'eeg')
-    size = norm(idrange(obj.chanpos));
-    unit = ft_estimate_units(size);
+  % try to determine the units by looking at the size of the object
+  if isfield(obj, 'chanpos') && ~isempty(obj.chanpos)
+    siz = norm(idrange(obj.chanpos));
+    unit = ft_estimate_units(siz);
 
   elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
-    size = norm(idrange(obj.pnt));
-    unit = ft_estimate_units(size);
+    siz = norm(idrange(obj.pnt));
+    unit = ft_estimate_units(siz);
     
   elseif isfield(obj, 'pos') && ~isempty(obj.pos)
-    size = norm(idrange(obj.pos));
-    unit = ft_estimate_units(size);
+    siz = norm(idrange(obj.pos));
+    unit = ft_estimate_units(siz);
   
-  elseif isfield(obj, 'chanpos') && ~isempty(obj.chanpos)
-    size = norm(idrange(obj.chanpos));
-    unit = ft_estimate_units(size);
-    
   elseif isfield(obj, 'transform') && ~isempty(obj.transform)
     % construct the corner points of the volume in voxel and in head coordinates
     [pos_voxel, pos_head] = cornerpoints(obj.dim, obj.transform);
-    size = norm(idrange(pos_head));
-    unit = ft_estimate_units(size);
+    siz = norm(idrange(pos_head));
+    unit = ft_estimate_units(siz);
     
   elseif isfield(obj, 'fid') && isfield(obj.fid, 'pnt') && ~isempty(obj.fid.pnt)
-    size = norm(idrange(obj.fid.pnt));
-    unit = ft_estimate_units(size);
+    siz = norm(idrange(obj.fid.pnt));
+    unit = ft_estimate_units(siz);
+  
+  elseif ft_voltype(obj, 'infinite')
+    % there is nothing to do to convert the units
+    unit = target;
+    
+  elseif ft_voltype(obj,'singlesphere')
+    siz = obj.r;
+    unit = ft_estimate_units(siz);
+    
+  elseif ft_voltype(obj,'multisphere')
+    siz = median(obj.r);
+    unit = ft_estimate_units(siz);
+    
+  elseif ft_voltype(obj,'concentric')
+    siz = max(obj.r);
+    unit = ft_estimate_units(siz);
+    
+  elseif isfield(obj, 'bnd') && isstruct(obj.bnd) && isfield(obj.bnd(1), 'pnt') && ~isempty(obj.bnd(1).pnt)
+    siz = norm(idrange(obj.bnd(1).pnt));
+    unit = ft_estimate_units(siz);
     
   else
     error('cannot determine geometrical units');

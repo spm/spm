@@ -51,7 +51,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 5034 2011-12-14 10:46:21Z roboos $
+% $Id: ft_checkdata.m 5517 2012-03-22 18:53:10Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -172,7 +172,7 @@ if issource && isvolume
 end
 
 % the ft_datatype_XXX functions ensures the consistency of the XXX datatype
-% and provides a detailled description of the dataformat and its history
+% and provides a detailed description of the dataformat and its history
 if     israw
   data = ft_datatype_raw(data, 'hassampleinfo', hassampleinfo);
 elseif isfreq
@@ -557,7 +557,7 @@ if issource || isvolume,
   end
   
   % these fields should not be reshaped
-  exclude = {'cfg' 'fwhm' 'leadfield' 'q' 'rough'};
+  exclude = {'cfg' 'fwhm' 'leadfield' 'q' 'rough' 'pos'};
   if ~strcmp(inside, 'logical')
     % also exclude the inside/outside from being reshaped
     exclude = cat(2, exclude, {'inside' 'outside'});
@@ -574,13 +574,17 @@ if issource || isvolume,
       tmp1 = getfield(data, sub1);
       for j=1:numel(tmp1)
         tmp2 = getfield(tmp1(j), sub2);
-        tmp2 = reshape(tmp2, dim);
+        if prod(dim)==numel(tmp2)
+          tmp2 = reshape(tmp2, dim);
+        end
         tmp1(j) = setfield(tmp1(j), sub2, tmp2);
       end
       data = setfield(data, sub1, tmp1);
     else
       tmp  = getfield(data, param{i});
-      tmp  = reshape(tmp, dim);
+      if prod(dim)==numel(tmp)
+        tmp  = reshape(tmp, dim);
+      end
       data = setfield(data, param{i}, tmp);
     end
   end
@@ -641,6 +645,13 @@ end
 if issource && ~strcmp(haspow, 'no')
  data = fixsource(data, 'type', sourcerepresentation, 'haspow', haspow);
 end 
+
+if isfield(data, 'grad')
+  % ensure that the gradiometer balancing is specified
+  if ~isfield(data.grad, 'balance') || ~isfield(data.grad.balance, 'current')
+    data.grad.balance.current = 'none';
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % represent the covariance matrix in a particular manner
@@ -1622,7 +1633,6 @@ for i=1:nrpt
 end
 nsmp = cellfun('size',data.time,2);
 seln = find(nsmp>1,1, 'first');
-data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
 
 if isfield(freq, 'trialinfo'), data.trialinfo = freq.trialinfo; end;
 
@@ -1641,18 +1651,34 @@ if ntrial==1
   data        = rmfield(data, 'trial');
   data.dimord = 'chan_time';
 else
-  % determine the location of the trials relative to the resulting combined time axis
-  begtime  = cellfun(@min,  data.time);
-  endtime  = cellfun(@max,  data.time);
-  begsmp   = round((begtime - min(begtime)) * data.fsample) + 1;
-  endsmp   = round((endtime - min(begtime)) * data.fsample) + 1;
+  
+  begtime = cellfun(@min,data.time);
+  endtime = cellfun(@max,data.time);
+  
+  for i = 1:ntrial
+    mint    = min(eps, begtime(i));
+    maxt    = max(eps, endtime(i));
+    time = data.time{i};
+    % extrapolate so that we get near 0
+    time =  interp1(time, time, mint:mean(diff(time)):maxt, 'linear', 'extrap');
+    ix(i) = sum(time<0); % number of samples pre-zero
+    iy(i) = sum(time>=0); % number of samples post-zer
+  end  
+  
+  [mx,ix2] = max(ix);
+  [my,iy2] = max(iy);
+  nsmp = mx+my; 
 
-  % create a combined time axis and concatenate all trials
-  tmptime  = min(begtime):(1/data.fsample):max(endtime);
+  tmptime = linspace(min(begtime), max(endtime), nsmp);
+  
+  % concatenate all trials
   tmptrial = zeros(ntrial, nchan, length(tmptime)) + nan;
+  
   for i=1:ntrial
+    begsmp(i) = nearest(tmptime, data.time{i}(1));
+    endsmp(i) = nearest(tmptime, data.time{i}(end));
     tmptrial(i,:,begsmp(i):endsmp(i)) = data.trial{i};
-  end
+  end   
 
   % update the sampleinfo
   begpad = begsmp - min(begsmp);
@@ -1668,7 +1694,6 @@ else
   data.trial   = tmptrial;
   data.time    = tmptime;
   data.dimord = 'rpt_chan_time';
-  data = rmfield(data, 'fsample'); % fsample in timelock data is obsolete
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1686,7 +1711,6 @@ switch data.dimord
     data.time     = {data.time};
     data          = rmfield(data, 'avg');
     seln = find(nsmp>1,1, 'first');
-    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
   case 'rpt_chan_time'
     tmptrial = {};
     tmptime  = {};
@@ -1701,7 +1725,6 @@ switch data.dimord
     data.trial = tmptrial;
     data.time  = tmptime;
     seln = find(nsmp>1,1, 'first');
-    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));
   case 'subj_chan_time'
     tmptrial = {};
     tmptime  = {};
@@ -1716,7 +1739,6 @@ switch data.dimord
     data.trial = tmptrial;
     data.time  = tmptime;
     seln = find(nsmp>1,1, 'first');
-    data.fsample = 1/(data.time{seln}(2)-data.time{seln}(1));    
   otherwise
     error('unsupported dimord');
 end

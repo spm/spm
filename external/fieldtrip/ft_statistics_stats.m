@@ -1,6 +1,6 @@
-function [stat, cfg] = statistics_stats(cfg, dat, design)
+function [stat, cfg] = ft_statistics_stats(cfg, dat, design)
 
-% STATISTICS_STATS performs a massive univariate statistical test using the
+% FT_STATISTICS_STATS performs a massive univariate statistical test using the
 % MATLAB statistics toolbox. This function should not be called directly,
 % instead you should call the function that is associated with the type of data
 % on which you want to perform the test.
@@ -52,7 +52,7 @@ function [stat, cfg] = statistics_stats(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_stats.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_statistics_stats.m 5650 2012-04-18 14:00:33Z roevdmei $
 
 % test for the presence of the statistics toolbox
 ft_hastoolbox('stats', 1);

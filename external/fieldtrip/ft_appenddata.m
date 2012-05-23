@@ -35,7 +35,7 @@ function [data] = ft_appenddata(cfg, varargin)
 % input/output structure. The data structure in the input file should be a
 % cell array for this particular function.
 %
-% See also FT_PREPROCESSING
+% See also FT_PREPROCESSING, FT_APPENDFREQ
 
 % Copyright (C) 2005-2008, Robert Oostenveld
 % Copyright (C) 2009-2011, Jan-Mathijs Schoffelen
@@ -56,12 +56,13 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_appenddata.m 5554 2012-03-28 14:00:12Z roboos $
 
-revision = '$Id: ft_appenddata.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_appenddata.m 5554 2012-03-28 14:00:12Z roboos $';
 
 % do the general setup of the function
 ft_defaults
+ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble loadvar varargin
@@ -234,7 +235,7 @@ elseif catlabel
   fprintf('concatenating the channels within each trial\n');
   data = varargin{1};
   if ~all(diff(Ntrial)==0)
-    error('not all datasets have the same number of trials')
+    error('not all datasets have the same number of trials');
   else
     Ntrial = Ntrial(1);
   end
@@ -251,7 +252,13 @@ elseif catlabel
     %  removetrialinfo = 1;
     %end
   end
-  
+
+  if ~isfield(data, 'fsample')
+    fsample = 1/mean(diff(data.time{1}));
+  else
+    fsample = data.fsample;
+  end
+
   for j=1:Ntrial
     %pre-allocate memory for this trial
     data.trial{j} = [data.trial{j}; zeros(sum(Nchan(2:end)), size(data.trial{j},2))];
@@ -259,9 +266,9 @@ elseif catlabel
     %fill this trial with data
     endchan = Nchan(1);
     %allow some jitter for irregular sample frequencies
-    TOL = 10*eps;
+    tolerance = 0.01*(1/fsample);
     for i=2:Ndata
-      if ~all(data.time{j}-varargin{i}.time{j}<TOL)
+      if ~all(data.time{j}-varargin{i}.time{j}<tolerance)
         error('there is a difference in the time axes of the input data');
       end
       begchan = endchan+1;

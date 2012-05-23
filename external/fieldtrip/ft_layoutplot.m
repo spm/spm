@@ -71,9 +71,9 @@ function [cfg] = ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 4941 2011-12-07 10:41:56Z roboos $
+% $Id: ft_layoutplot.m 5748 2012-05-08 13:59:14Z eelspa $
 
-revision = '$Id: ft_layoutplot.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_layoutplot.m 5748 2012-05-08 13:59:14Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -98,12 +98,37 @@ if isfield(cfg, 'layout')
 end
 
 % otherwise create the layout structure
-if isempty(lay), lay = ft_prepare_layout(cfg, data); end;
+if isempty(lay)
+  if nargin < 2
+    lay = ft_prepare_layout(cfg);
+  else
+    lay = ft_prepare_layout(cfg, data);
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % plot all details pertaining to the layout in one figure
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-figure
+figure;
+
+% set the figure window title
+funcname = mfilename();
+if nargin < 2
+  if isfield(cfg, 'inputfile')
+    dataname = cfg.inputfile;
+  else
+    dataname = [];
+  end
+else
+  dataname = inputname(2);
+end
+
+if ~isempty(dataname)
+  set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
+else
+  set(gcf, 'Name', sprintf('%d: %s', gcf, funcname));
+end
+set(gcf, 'NumberTitle', 'off');
 
 if isfield(cfg, 'image') && ~isempty(cfg.image)
   % start with the background image

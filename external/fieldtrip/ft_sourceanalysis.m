@@ -40,11 +40,18 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %   cfg.grid.outside    = vector with indices of the sources outside the brain (optional)
 % You can also use the FT_PREPARE_LEADFIELD function to create a grid with
 % dipole positions and with precomputed leadfields.
+% You may also include (if previously computed):
+%   cfg.grid.filter
+%   cfg.grid.leadfield
+% and please add them in addition to cfg.grid.pos, else they could be removed by ft_preapre_sourcemodel.m
+%
+
 %
 % The following strategies are supported to obtain statistics for the source parameters using
 % multiple trials in the data, either directly or through a resampling-based approach
 %   cfg.singletrial   = 'no' or 'yes'   construct filter from average, apply to single trials
 %   cfg.rawtrial      = 'no' or 'yes'   construct filter from single trials, apply to single trials
+%                       Note: also set cfg.keeptrials='yes' to keep out trial information, especially if using in combination with grid.filter
 %   cfg.jackknife     = 'no' or 'yes'   jackknife resampling of trials
 %   cfg.pseudovalue   = 'no' or 'yes'   pseudovalue resampling of trials
 %   cfg.bootstrap     = 'no' or 'yes'   bootstrap resampling of trials
@@ -182,9 +189,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_sourceanalysis.m 5496 2012-03-21 09:22:57Z jorhor $
 
-revision = '$Id: ft_sourceanalysis.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_sourceanalysis.m 5496 2012-03-21 09:22:57Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -207,7 +214,7 @@ cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'coh_refchan',     'dics'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'coh_refdip',      'dics'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefchan', 'dics'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'dics_cohrefdip',  'dics'});
-cfg = ft_checkconfig(cfg, 'forbidden',   {'parallel'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'parallel', 'trials'});
 
 % determine the type of input data
 if isfield(data, 'freq')
@@ -245,7 +252,6 @@ cfg.numpermutation   = ft_getopt(cfg, 'numpermutation',   100);
 cfg.wakewulf         = ft_getopt(cfg, 'wakewulf', 'yes');
 cfg.killwulf         = ft_getopt(cfg, 'killwulf', 'yes');
 cfg.channel          = ft_getopt(cfg, 'channel',  'all');
-cfg.prewhiten        = ft_getopt(cfg, 'prewhiten', 'no');
 cfg.supdip           = ft_getopt(cfg, 'supdip',        []);
 
 % if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';      end  %
@@ -283,8 +289,8 @@ end
 % select only those channels that are present in the data
 cfg.channel = ft_channelselection(cfg.channel, data.label);
 
-if nargin>2 && (strcmp(cfg.randomization, 'no') && strcmp(cfg.permutation, 'no') && strcmp(cfg.prewhiten, 'no'))
-  error('input of two conditions only makes sense if you want to randomize or permute, or if you want to prewhiten');
+if nargin>2 && (strcmp(cfg.randomization, 'no') && strcmp(cfg.permutation, 'no'))
+  error('input of two conditions only makes sense if you want to randomize or permute');
 elseif nargin<3 && (strcmp(cfg.randomization, 'yes') || strcmp(cfg.permutation, 'yes'))
   error('randomization or permutation requires that you give two conditions as input');
 end
@@ -295,6 +301,10 @@ end
 
 if sum([strcmp(cfg.jackknife, 'yes'), strcmp(cfg.bootstrap, 'yes'), strcmp(cfg.pseudovalue, 'yes'), strcmp(cfg.singletrial, 'yes'), strcmp(cfg.rawtrial, 'yes'), strcmp(cfg.randomization, 'yes'), strcmp(cfg.permutation, 'yes')])>1
   error('jackknife, bootstrap, pseudovalue, singletrial, rawtrial, randomization and permutation are mutually exclusive');
+end
+
+if strcmp(cfg.rawtrial,'yes') && isfield(cfg,'grid') && ~isfield(cfg.grid,'filter')
+  error('Using each trial to compute its own filter is not currently recommended. Use this option only with precomputed filters in grid.filter');
 end
 
 if isfreq
@@ -376,7 +386,7 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
     cfg.supchan = ft_channelselection(cfg.supchan, data.label);
     
     % HACK: use some experimental code
-    if nargin>2 && strcmp(cfg.prewhiten, 'no'),
+    if nargin>2,
       error('not supported')
     end
     tmpcfg         = cfg;
@@ -393,11 +403,6 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
     
     % select the data in the channels and the frequency of interest
     [Cf, Cr, Pr, Ntrials, tmpcfg] = prepare_freq_matrices(tmpcfg, data);
-    if strcmp(cfg.prewhiten, 'yes'),
-      [Cfb, Crb, Prb, Ntrialsb, tmpcfgb] = prepare_freq_matrices(tmpcfg, baseline);
-      Cf      = prewhitening_filter2(squeeze(mean(Cf,1)), squeeze(mean(Cfb,1)));
-      Ntrials = 1;
-    end
     
     if isfield(cfg, 'refchan') && ~isempty(cfg.refchan)
       [dum, refchanindx] = match_str(cfg.refchan, tmpcfg.channel);
@@ -672,7 +677,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
       % keeptrial=yes and only a single trial in the raw data.
       % In that case the covariance should be represented as Nchan*Nchan
       data.avg = data.avg(datchanindx,:);
-      data.cov = reshape(data.cov, length(datchanindx), length(datchanindx));
+      %data.cov = reshape(data.cov, length(datchanindx), length(datchanindx));
       data.cov = data.cov(datchanindx,datchanindx);
     else
       data.avg   = data.avg(datchanindx,:);

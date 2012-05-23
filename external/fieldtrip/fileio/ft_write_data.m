@@ -48,7 +48,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_write_data.m 5260 2012-02-08 13:19:05Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -292,6 +292,8 @@ switch dataformat
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % write to a MySQL server listening somewhere else on the network
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('mysql', 1);
     db_open(filename);
     if ~isempty(hdr) && isempty(dat)
       % insert the header information into the database

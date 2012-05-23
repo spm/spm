@@ -31,9 +31,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: loreta2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $
 
-revision = '$Id: loreta2fieldtrip.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: loreta2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -45,14 +45,14 @@ timeframe = ft_getopt(varargin, 'timeframe'); % will be empty if not specified
 % start with an empty source structure
 source  =  [];
 
-if filetype(filename, 'loreta_slor')
+if ft_filetype(filename, 'loreta_slor')
   voxnumber    = 6239;
   lorind       = getfield(load('loreta_ind.mat'), 'ind_sloreta');
   source.dim   = size(lorind);
   source.xgrid =  -70:5:70;
   source.ygrid = -100:5:65;
   source.zgrid =  -45:5:70;
-elseif filetype(filename, 'loreta_lorb')
+elseif ft_filetype(filename, 'loreta_lorb')
   voxnumber    = 2394;
   lorind       = getfield(load('loreta_ind.mat'), 'ind_loreta');
   source.dim   = size(lorind);

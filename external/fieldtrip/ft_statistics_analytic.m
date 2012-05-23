@@ -1,6 +1,6 @@
-function [stat, cfg] = statistics_analytic(cfg, dat, design)
+function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 
-% STATISTICS_ANALYTIC performs a parametric statistical test on the
+% FT_STATISTICS_ANALYTIC performs a parametric statistical test on the
 % data, based on a known (i.e. analytic) distribution of the test
 % statistic. This function should not be called directly, instead
 % you should call the function that is associated with the type of
@@ -55,7 +55,7 @@ function [stat, cfg] = statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_analytic.m 4623 2011-10-28 15:44:23Z roboos $
+% $Id: ft_statistics_analytic.m 5650 2012-04-18 14:00:33Z roevdmei $
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

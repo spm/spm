@@ -56,9 +56,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 4941 2011-12-07 10:41:56Z roboos $
+% $Id: ft_clusterplot.m 5449 2012-03-13 13:06:57Z jorhor $
 
-revision = '$Id: ft_clusterplot.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_clusterplot.m 5449 2012-03-13 13:06:57Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -77,20 +77,20 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'hlmarkerseries',       'highlightsymb
 cfg = ft_checkconfig(cfg, 'renamed',     {'hlmarkersizeseries',   'highlightsizeseries'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'hlcolorpos',           'highlightcolorpos'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'hlcolorneg',           'highlightcolorneg'});
-cfg = ft_checkconfig(cfg, 'deprecated',  {'hllinewidthseries'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'zparam', 'parameter'});
+cfg = ft_checkconfig(cfg, 'deprecated',  {'hllinewidthseries'});
 cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam', 'yparam'});
 
 % added several forbidden options
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlight'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightchannel'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightsymbol'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightcolor'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightsize'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightfontsize'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'xlim'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'comment'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'commentpos'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'highlight', ...
+                                         'highlightchannel', ...
+                                         'highlightsymbol', ... 
+                                         'highlightcolor', ...
+                                         'highlightsize', ...
+                                         'highlightfontsize', ...
+                                         'xlim', ...
+                                         'comment', ...
+                                         'commentpos'});
 
 % set the defaults
 if ~isfield(cfg,'alpha'),                  cfg.alpha = 0.05;                                    end;

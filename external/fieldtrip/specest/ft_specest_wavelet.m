@@ -27,7 +27,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_wavelet(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_wavelet.m 5106 2012-01-10 13:10:28Z jansch $
+% $Id: ft_specest_wavelet.m 5780 2012-05-16 08:37:40Z roevdmei $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');
@@ -70,7 +70,7 @@ endtime    = pad;            % total time in seconds of padded data
 
 % Set freqboi and freqoi
 if isnumeric(freqoi) % if input is a vector
-  freqboi   = round(freqoi ./ (fsample ./ endnsample)) + 1;
+  freqboi   = round(freqoi ./ (fsample ./ endnsample)) + 1; % is equivalent to: round(freqoi .* endtime) + 1;
   freqboi   = unique(freqboi);
   freqoi    = (freqboi-1) ./ endtime; % boi - 1 because 0 Hz is included in fourier output
 elseif strcmp(freqoi,'all') % if input was 'all'

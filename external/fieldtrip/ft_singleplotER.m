@@ -104,7 +104,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_singleplotER.m 5701 2012-04-25 08:23:25Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -116,9 +116,9 @@ ft_preamble loadvar varargin
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'zlim', 'absmax', 'maxabs'});
-cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedforward', 'outflow'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflow'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'channelindex',   'channel'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'channelname',    'channel'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel',  'refchannel'});
@@ -126,24 +126,24 @@ cfg = ft_checkconfig(cfg, 'renamed',	  {'zparam',         'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'xparam'});
 
 % set the defaults
-cfg.baseline      = ft_getopt(cfg, 'baseline',    'no');
-cfg.trials        = ft_getopt(cfg, 'trials',      'all');
-cfg.xlim          = ft_getopt(cfg, 'xlim',        'maxmin');
-cfg.ylim          = ft_getopt(cfg, 'ylim',        'maxmin');
-cfg.zlim          = ft_getopt(cfg, 'zlim',        'maxmin');
-cfg.comment       = ft_getopt(cfg, 'comment',     strcat([date '\n']));
-cfg.axes          = ft_getopt(cfg,' axes',        'yes');
-cfg.fontsize      = ft_getopt(cfg, 'fontsize',    8);
-cfg.graphcolor    = ft_getopt(cfg, 'graphcolor',  'brgkywrgbkywrgbkywrgbkyw');
-cfg.hotkeys       = ft_getopt(cfg, 'hotkeys', 'no');
-cfg.interactive   = ft_getopt(cfg, 'interactive',  'no');
-cfg.renderer      = ft_getopt(cfg, 'renderer',     []);
-cfg.maskparameter = ft_getopt(cfg, 'maskparameter',[]);
-cfg.linestyle     = ft_getopt(cfg, 'linestyle',    '-');
-cfg.linewidth     = ft_getopt(cfg, 'linewidth',    0.5);
-cfg.maskstyle     = ft_getopt(cfg, 'maskstyle',    'box');
-cfg.channel       = ft_getopt(cfg, 'channel',      'all');
-cfg.directionality    = ft_getopt(cfg, 'directionality',   []);
+cfg.baseline        = ft_getopt(cfg, 'baseline',    'no');
+cfg.trials          = ft_getopt(cfg, 'trials',      'all');
+cfg.xlim            = ft_getopt(cfg, 'xlim',        'maxmin');
+cfg.ylim            = ft_getopt(cfg, 'ylim',        'maxmin');
+cfg.zlim            = ft_getopt(cfg, 'zlim',        'maxmin');
+cfg.comment         = ft_getopt(cfg, 'comment',     strcat([date '\n']));
+cfg.axes            = ft_getopt(cfg,' axes',        'yes');
+cfg.fontsize        = ft_getopt(cfg, 'fontsize',    8);
+cfg.graphcolor      = ft_getopt(cfg, 'graphcolor',  'brgkywrgbkywrgbkywrgbkyw');
+cfg.hotkeys         = ft_getopt(cfg, 'hotkeys', 'no');
+cfg.interactive     = ft_getopt(cfg, 'interactive',  'no');
+cfg.renderer        = ft_getopt(cfg, 'renderer',     []);
+cfg.maskparameter   = ft_getopt(cfg, 'maskparameter',[]);
+cfg.linestyle       = ft_getopt(cfg, 'linestyle',    '-');
+cfg.linewidth       = ft_getopt(cfg, 'linewidth',    0.5);
+cfg.maskstyle       = ft_getopt(cfg, 'maskstyle',    'box');
+cfg.channel         = ft_getopt(cfg, 'channel',      'all');
+cfg.directionality  = ft_getopt(cfg, 'directionality',   []);
 
 Ndata = numel(varargin);
 
@@ -401,13 +401,11 @@ end
 
 if strcmp('freq',yparam) && strcmp('freq',dtype)
   for i=1:Ndata
-    varargin{i} = ft_selectdata(varargin{i},'param',cfg.parameter,'foilim',cfg.zlim,'avgoverfreq','yes');
-    varargin{i}.(cfg.parameter) = squeeze(varargin{i}.(cfg.parameter));
+    varargin{i} = ft_selectdata(varargin{i},'param',cfg.parameter,'foilim',cfg.zlim,'avgoverfreq','yes');    
   end
 elseif strcmp('time',yparam) && strcmp('freq',dtype)
   for i=1:Ndata
     varargin{i} = ft_selectdata(varargin{i},'param',cfg.parameter,'toilim',cfg.zlim,'avgovertime','yes');
-    varargin{i}.(cfg.parameter) = squeeze(varargin{i}.(cfg.parameter));
   end
 end
 
@@ -427,6 +425,16 @@ for i=1:Ndata
   
   % make vector dat with one value for each channel
   dat  = varargin{i}.(cfg.parameter);
+  % get dimord dimensions
+  dims = textscan(varargin{i}.dimord,'%s', 'Delimiter', '_');
+  dims = dims{1};
+  ydim = find(strcmp(yparam, dims));
+  xdim = find(strcmp(xparam, dims));
+  zdim = setdiff(1:ndims(dat), [ydim xdim]);
+  % and permute to make sure that dimensions are in the correct order
+  dat = permute(dat, [zdim(:)' ydim xdim]);
+
+
   xval = varargin{i}.(xparam);
   
   % take subselection of channels
@@ -521,12 +529,14 @@ xlim([xmin xmax]);
 ylim([ymin ymax]);
 
 % adjust mask box extents to ymin/ymax
-ptchs = findobj(gcf,'type','patch');
-for i = 1:length(ptchs)
-  YData = get(ptchs(i),'YData');
-  YData(YData == min(YData)) = ymin;
-  YData(YData == max(YData)) = ymax;
-  set(ptchs(i),'YData',YData);
+if ~isempty(cfg.maskparameter)
+  ptchs = findobj(gcf,'type','patch');
+  for i = 1:length(ptchs)
+    YData = get(ptchs(i),'YData');
+    YData(YData == min(YData)) = ymin;
+    YData(YData == max(YData)) = ymax;
+    set(ptchs(i),'YData',YData);
+  end
 end
 
 if strcmp('yes',cfg.hotkeys)
@@ -542,11 +552,13 @@ else
 end
 if isfield(cfg, 'dataname')
   dataname = cfg.dataname;
-else
+elseif nargin > 1
   dataname = inputname(2);
   for k = 2:Ndata
     dataname = [dataname ', ' inputname(k+1)];
   end
+else
+  dataname = cfg.inputfile;
 end
 set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
 set(gcf, 'NumberTitle', 'off');
@@ -595,7 +607,7 @@ fprintf('selected cfg.xlim = [%f %f]\n', cfg.xlim(1), cfg.xlim(2));
 p = get(gcf, 'position');
 f = figure;
 set(f, 'position', p);
-ft_topoplotER(cfg, varargin{:});
+ft_topoplotTFR(cfg, varargin{:});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction which handles hot keys in the current plot

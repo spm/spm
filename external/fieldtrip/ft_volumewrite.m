@@ -15,7 +15,7 @@ function ft_volumewrite(cfg, volume)
 %
 % The configuration structure should contain the following elements
 %   cfg.parameter     = string, describing the functional data to be processed,
-%                         e.g. 'pow', 'coh' or 'nai'
+%                         e.g. 'pow', 'coh', 'nai' or 'anatomy'
 %   cfg.filename      = filename without the extension
 %   cfg.filetype      = 'analyze', 'nifti', 'nifti_img', 'analyze_spm', 'mgz',
 %                         'vmp' or 'vmr'
@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 5187 2012-01-31 08:42:56Z jansch $
+% $Id: ft_volumewrite.m 5303 2012-02-22 09:47:59Z jansch $
 
-revision = '$Id: ft_volumewrite.m 5187 2012-01-31 08:42:56Z jansch $';
+revision = '$Id: ft_volumewrite.m 5303 2012-02-22 09:47:59Z jansch $';
 
 % do the general setup of the function
 ft_defaults

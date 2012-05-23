@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 4715 2011-11-10 15:50:03Z roboos $
+% $Id: channelposition.m 5796 2012-05-22 15:15:43Z vlalit $
 
 % FIXME varargin is not documented
 
@@ -62,7 +62,7 @@ switch ft_senstype(sens)
     sens.tra = sens.tra(:,used);
     
     % compute distances from the center of the helmet
-    center = mean(sens.pnt(sel,:));
+    center = mean(sens.pnt);
     dist   = sqrt(sum((sens.pnt - repmat(center, size(sens.pnt, 1), 1)).^2, 2));
     
     % put the corresponding distances instead of non-zero tra entries

@@ -53,9 +53,9 @@ function [bnd, cfg] = ft_prepare_mesh_new(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh_new.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_mesh_new.m 5449 2012-03-13 13:06:57Z jorhor $
 
-revision = '$Id: ft_prepare_mesh_new.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_mesh_new.m 5449 2012-03-13 13:06:57Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -65,8 +65,8 @@ ft_preamble trackconfig
 ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'forbidden', 'numcompartments');
-cfg = ft_checkconfig(cfg, 'forbidden', 'method');
+cfg = ft_checkconfig(cfg, 'forbidden', 'numcompartments', ...
+                                       'method');
 
 % mri defaults
 resolution   = ft_getopt(cfg, 'resolution');  % for mri reslice

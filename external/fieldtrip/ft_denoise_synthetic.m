@@ -40,9 +40,9 @@ function [data] = ft_denoise_synthetic(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_synthetic.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_denoise_synthetic.m 5789 2012-05-21 08:00:35Z jansch $
 
-revision = '$Id: ft_denoise_synthetic.m 5157 2012-01-22 14:49:34Z roboos $';
+revision = '$Id: ft_denoise_synthetic.m 5789 2012-05-21 08:00:35Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -63,8 +63,15 @@ dtype = ft_datatype(data);
 % this will convert timelocked input data to a raw data representation if needed
 data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes');
 
+% check whether it is CTF data
 if ~ft_senstype(data, 'ctf')
   error('synthetic gradients can only be computed for CTF data');
+end
+
+% check whether there are reference channels in the input data
+hasref = ~isempty(ft_channelselection('MEGREF', data.label));
+if ~hasref
+  error('ft_denoise_synthetic:nohasref', 'synthetic gradients can only be computed when the input data contains reference channels');
 end
 
 % select trials of interest

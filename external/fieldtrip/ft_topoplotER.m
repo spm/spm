@@ -137,9 +137,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 5178 2012-01-25 15:19:05Z eelspa $
+% $Id: ft_topoplotER.m 5636 2012-04-17 12:33:04Z eelspa $
 
-revision = '$Id: ft_topoplotER.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_topoplotER.m 5636 2012-04-17 12:33:04Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -154,6 +154,12 @@ ft_preamble callinfo
 % if we don't specify this, the window will be called 'ft_topoplotTFR',
 % which is confusing to the user
 cfg.funcname = mfilename;
+if nargin > 1
+  cfg.dataname = {inputname(2)};
+  for k = 3:nargin
+    cfg.dataname{end+1} = inputname(k);
+  end
+end
 
 cfg = ft_topoplotTFR(cfg, varargin{:});
 

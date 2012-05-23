@@ -24,7 +24,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %                    'crossvalidate' use crossvalidation to compute predictive performance
 %
 % The other cfg options depend on the method that you select. You
-% should read the help of the respective subfunction STATISTICS_XXX
+% should read the help of the respective subfunction FT_STATISTICS_XXX
 % for the corresponding configuration options and for a detailed
 % explanation of each method.
 %
@@ -59,9 +59,9 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_timelockstatistics.m 5650 2012-04-18 14:00:33Z roevdmei $
 
-revision = '$Id: ft_timelockstatistics.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_timelockstatistics.m 5650 2012-04-18 14:00:33Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults

@@ -46,9 +46,10 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %   source  is the output of FT_SOURCEANALYSIS
 %   stat    is the output of FT_SOURCESTATISTICS
 %   anatomy is the output of FT_READ_MRI or one of the FT_VOLUMExxx functions, 
-%           or a cortical sheet that was read with FT_READ_HEADSHAPE. 
+%           a cortical sheet that was read with FT_READ_HEADSHAPE, or a regular
+%           3D grid created with FT_PREPARE_SOURCEMODEL. 
 % and cfg is a structure with any of the following fields
-%   cfg.parameter     = string, default is 'all'
+%   cfg.parameter     = string (or cell-array) of the parameter(s) to be interpolated
 %   cfg.interpmethod  = 'linear', 'cubic', 'nearest' or 'spline' when
 %                       interpolating two 3D volumes onto each other
 %                       (default = 'linear')
@@ -94,9 +95,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 4895 2011-11-30 16:04:50Z roboos $
+% $Id: ft_sourceinterpolate.m 5675 2012-04-20 09:53:22Z jansch $
 
-revision = '$Id: ft_sourceinterpolate.m 4895 2011-11-30 16:04:50Z roboos $';
+revision = '$Id: ft_sourceinterpolate.m 5675 2012-04-20 09:53:22Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -115,9 +116,9 @@ end
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'keepinside'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'sourceunits', 'mriunits'});
+cfg = ft_checkconfig(cfg, 'required',   'parameter');
 
 % set the defaults
-cfg.parameter  = ft_getopt(cfg, 'parameter', 'all');
 cfg.downsample = ft_getopt(cfg, 'downsample', 1);
 cfg.voxelcoord = ft_getopt(cfg, 'voxelcoord', 'yes');
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
@@ -126,11 +127,19 @@ cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 % cfg.interpmethod depends on how the interpolation should be done and will
 % be specified below
 
-if isfield(anatomical, 'pnt')
-  % anatomical data consists of a mesh, but no smudging possible
-  is2Dana  = 1;
-elseif isfield(anatomical, 'transform') && isfield(anatomical, 'dim')
+if ~isa(cfg.parameter, 'cell')
+  cfg.parameter = {cfg.parameter};
+end
+
+if isfield(anatomical, 'transform') && isfield(anatomical, 'dim')
+  % anatomical volume
   is2Dana  = 0;
+elseif isfield(anatomical, 'pos') && isfield(anatomical, 'dim')
+  % 3D regular grid
+  is2Dana  = 0;
+elseif isfield(anatomical, 'pnt')
+  % anatomical data consists of a mesh, but no smudging possible
+  is2Dana  = 1; 
 end
 
 if isfield(functional, 'dim') && numel(functional.dim)==3
@@ -159,11 +168,7 @@ if dosmudge && is2Dana && is2Dfun
   if ~isfield(anatomical, 'orig')
     error('this is not yet implemented');
   end
-  
-  % select the parameters that should be interpolated
-  cfg.parameter = parameterselection(cfg.parameter, functional);
-  cfg.parameter = setdiff(cfg.parameter, 'inside'); % inside is handled separately
-  
+ 
   interpmat = interp_ungridded(anatomical.pnt, anatomical.orig.pnt, 'projmethod', 'smudge', 'triout', anatomical.orig.tri);
   
   interp     = [];
@@ -187,14 +192,11 @@ elseif is2Dana && is2Dfun
 elseif ~is2Dana && is2Dfun
   % set default interpmethod for this situation
   cfg.interpmethod = ft_getopt(cfg, 'interpmethod', 'nearest');
+  cfg.sphereradius = ft_getopt(cfg, 'sphereradius', 0.5);
   
   % interpolate onto a 3D volume, ensure that the anatomical is indeed a volume
   anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   functional = ft_convert_units(functional, anatomical.unit);
-  
-  % select the parameters that should be interpolated
-  cfg.parameter = parameterselection(cfg.parameter, functional);
-  cfg.parameter = setdiff(cfg.parameter, 'inside'); % inside is handled separately
   
   % get voxel indices and use interp_ungridded
   dim       = anatomical.dim;
@@ -205,14 +207,37 @@ elseif ~is2Dana && is2Dfun
   clear X Y Z;
   
   interp = [];
-  interp.dim       = dim;
-  interp.transform = anatomical.transform;
-  interp.inside    = anatomical.inside;
+  if isfield(functional, 'time')
+    interp.time = functional.time;
+  end
+  if isfield(functional, 'freq')
+    interp.freq = functional.freq;
+  end
   
   interpmat(~anatomical.inside(:), :) = 0;
+   
+  % identify the inside voxels after interpolation
+  nzeros     = sum(interpmat~=0,2);
+  newinside  = find(nzeros~=0);
+  newoutside = find(nzeros==0);
+  
   for k = 1:numel(cfg.parameter)
-    interp = setsubfield(interp, cfg.parameter{k}, reshape(interpmat*getsubfield(functional, cfg.parameter{k}),dim));
+    tmp    = getsubfield(functional, cfg.parameter{k});
+    siz    = size(tmp);
+    tmp    = interpmat*tmp;
+    tmp(newoutside,:) = nan;
+    interp = setsubfield(interp, cfg.parameter{k}, tmp);
   end
+ 
+  % get the positions
+  [x,y,z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
+  pos     = warp_apply(anatomical.transform, [x(:) y(:) z(:)]);
+  clear x y z
+  
+  interp.pos     = pos;
+  interp.dim     = dim;
+  interp.inside  = newinside(:)';
+  interp.outside = newoutside(:)';
   
 elseif is2Dana && ~is2Dfun
   % set default interpmethod for this situation
@@ -222,10 +247,6 @@ elseif is2Dana && ~is2Dfun
   anatomical = ft_convert_units(anatomical);
   functional = ft_checkdata(functional, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
   functional = ft_convert_units(functional, anatomical.unit);
-  
-  % select the parameters that should be interpolated
-  cfg.parameter = parameterselection(cfg.parameter, functional);
-  cfg.parameter = setdiff(cfg.parameter, 'inside'); % inside is handled separately
   
   % get voxel indices and use interp_ungridded
   dim       = functional.dim;
@@ -260,10 +281,6 @@ elseif ~is2Dana && ~is2Dfun
   % ensure that the functional data has the same unit as the anatomical
   % data
   functional = ft_convert_units(functional, anatomical.unit);
-  
-  % select the parameters that should be interpolated
-  cfg.parameter = parameterselection(cfg.parameter, functional);
-  cfg.parameter = setdiff(cfg.parameter, 'inside'); % inside is handled separately
   
   if ~isequal(cfg.downsample, 1)
     % downsample the anatomical volume
@@ -371,7 +388,7 @@ elseif ~is2Dana && ~is2Dfun
   % add the other parameters to the output
   interp.dim       = anatomical.dim;
   interp.transform = transform_ana; % the original coordinate system
-  if ~any(strcmp(cfg.parameter, 'anatomy'))
+  if ~any(strcmp(cfg.parameter, 'anatomy')) && isfield(anatomical, 'anatomy')
     % copy the anatomy into the functional data
     interp.anatomy   = anatomical.anatomy;
   end
@@ -383,6 +400,10 @@ if isfield(anatomical, 'coordsys')
 end
 if isfield(anatomical, 'unit')
   interp.unit = anatomical.unit;
+end
+if exist('interpmat', 'var')
+  cfg.interpmat = interpmat;
+  cfg.interpmat; % access it once to fool the cfg-tracking
 end
 
 % do the general cleanup and bookkeeping at the end of the function

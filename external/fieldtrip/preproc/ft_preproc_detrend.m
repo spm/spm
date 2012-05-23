@@ -1,7 +1,7 @@
 function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 
 % FT_PREPROC_DETREND removes mean and linear trend from the
-% data using using General Linear Modeling.
+% data using using a General Linear Modeling approach.
 %
 % Use as
 %   [dat] = ft_preproc_detrend(dat, begin, end, order)
@@ -13,11 +13,9 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 % If no begin and end sample are specified for the trend estimate, it
 % will be estimated on the complete data.
 %
-% This function is a wrapper around FT_PREPROC_POLYREMOVAL.
-%
 % See also FT_PREPROC_POLYREMOVAL
 
-% Copyright (C) 2008, Robert Oostenveld
+% Copyright (C) 2008-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -35,10 +33,14 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_detrend.m 4964 2011-12-09 13:53:03Z eelspa $
+% $Id: ft_preproc_detrend.m 5591 2012-04-04 14:51:18Z roboos $
 
-if nargin < 2
-  [dat,beta,x] = ft_preproc_polyremoval(dat,1);
-else
-  [dat,beta,x] = ft_preproc_polyremoval(dat,1,begsample,endsample);
+% take the whole segment if begsample and endsample are not specified
+if nargin<2
+  begsample = 1;
 end
+if nargin<3
+  endsample = size(dat,2);
+end
+
+[dat,beta,x] = ft_preproc_polyremoval(dat,1,begsample,endsample);

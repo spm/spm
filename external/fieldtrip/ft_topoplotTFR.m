@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $
+% $Id: ft_topoplotTFR.m 5678 2012-04-20 11:08:33Z jansch $
 
-revision = '$Id: ft_topoplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_topoplotTFR.m 5678 2012-04-20 11:08:33Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -221,11 +221,11 @@ data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'});
 % check for option-values to be renamed
 cfg = ft_checkconfig(cfg, 'renamedval', {'electrodes',   'dotnum',      'numbers'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'zlim',         'absmax',      'maxabs'});
-cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',       'directionality'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality',   'feedforward', 'outflow'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'directionality',   'feedback',    'inflow'});
 
 % check for renamed options
+cfg = ft_checkconfig(cfg, 'renamed',     {'matrixside',    'directionality'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'electrodes',    'marker'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'emarker',       'markersymbol'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'ecolor',        'markercolor'});
@@ -245,15 +245,14 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'emsize',        'markersize'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'efsize',        'markerfontsize'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'headlimits',    'interplimits'});
 % check for forbidden options
-cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'headcolor'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'hcolor'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'hlinewidth'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'contcolor'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'outline'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'highlightfacecolor'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'showlabels'});
-cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth'});
+cfg = ft_checkconfig(cfg, 'forbidden',  {'hllinewidth', ...
+                                         'headcolor', ...
+                                         'hcolor', ...
+                                         'hlinewidth', ...
+                                         'contcolor', ...
+                                         'outline', ...
+                                         'highlightfacecolor', ...
+                                         'showlabels'});
 
 % Set other config defaults:
 cfg.xlim           = ft_getopt(cfg, 'xlim',          'maxmin');
@@ -331,7 +330,7 @@ for icell = 1:ncellhigh
   if isempty(cfg.highlightsymbol{icell}),    cfg.highlightsymbol{icell} = 'o';     end
   if isempty(cfg.highlightcolor{icell}),     cfg.highlightcolor{icell} = [0 0 0];  end
   if isempty(cfg.highlightsize{icell}),      cfg.highlightsize{icell} = 6;         end
-  if isempty(cfg.highlightfontsize{icell}),  cfg.h1tighlightfontsize{icell} = 8;     end
+  if isempty(cfg.highlightfontsize{icell}),  cfg.highlightfontsize{icell} = 8;     end
 end
 
 % for backwards compatability
@@ -472,7 +471,7 @@ if ~ischar(cfg.xlim) && length(cfg.xlim)>2
   for i=1:length(xlims)-1
     subplot(nxplot, nyplot, i);
     cfg.xlim = xlims(i:i+1);
-    ft_topoplotER(cfg, data);
+    ft_topoplotTFR(cfg, data);
   end
   return
 end
@@ -654,6 +653,15 @@ end
 
 % Make vector dat with one value for each channel
 dat    = data.(cfg.parameter);
+% get dimord dimensions
+dims = textscan(data.dimord,'%s', 'Delimiter', '_');
+dims = dims{1};
+ydim = find(strcmp(yparam, dims));
+xdim = find(strcmp(xparam, dims));
+zdim = setdiff(1:ndims(dat), [ydim xdim]);
+% and permute
+dat = permute(dat, [zdim(:)' ydim xdim]);
+
 if ~isempty(yparam)
   if isfull
     dat = dat(sel1, sel2, ymin:ymax, xmin:xmax);
@@ -954,9 +962,15 @@ if isfield(cfg,'dataname')
   else
     dataname = cfg.dataname;
   end
-else
-  dataname = inputname(2);
+elseif nargin > 1
+  dataname = {inputname(2)};
+  for k = 2:Ndata
+    dataname{end+1} = inputname(k+1);
+  end
+else % data provided through cfg.inputfile
+  dataname = cfg.inputfile;
 end
+
 set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
 set(gcf, 'NumberTitle', 'off');
 

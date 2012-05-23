@@ -67,9 +67,9 @@ function [cfg, artifact] = ft_artifact_threshold(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 4659 2011-11-02 21:31:58Z roboos $
+% $Id: ft_artifact_threshold.m 5447 2012-03-13 11:24:09Z roevdmei $
 
-revision = '$Id: ft_artifact_threshold.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: ft_artifact_threshold.m 5447 2012-03-13 11:24:09Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -146,7 +146,7 @@ for trlop = 1:numtrl
   else
     dat = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', cfg.trl(trlop,1), 'endsample', cfg.trl(trlop,2), 'chanindx', channelindx, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
   end
-  dat = preproc(dat, channel, hdr.Fs, artfctdef, cfg.trl(trlop,3));
+  dat = preproc(dat, channel, offset2time(cfg.trl(trlop,3), hdr.Fs, size(dat,2)), artfctdef);
   % compute the min, max and range over all channels and samples
   minval   = min(dat(:));
   maxval   = max(dat(:));

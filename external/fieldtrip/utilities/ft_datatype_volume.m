@@ -59,13 +59,17 @@ function volume = ft_datatype_volume(volume, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_volume.m 4388 2011-10-09 09:55:08Z roboos $
+% $Id: ft_datatype_volume.m 5300 2012-02-22 08:47:12Z arjsto $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011';
+end
+
+if isempty(volume)
+  return;
 end
 
 % it should  never have contained these, but they might be present due to an unclear

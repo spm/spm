@@ -44,7 +44,10 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 4890 2011-11-30 11:50:40Z johzum $
+% $Id: ft_preproc_lowpassfilter.m 5593 2012-04-04 15:17:51Z roboos $
+
+% determine the size of the data
+[nchans, nsamples] = size(dat);
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -103,7 +106,15 @@ switch type
     B = firls(N,f,z); % requires Matlab signal processing toolbox
 end  
 
-meandat=mean(dat,2);
-dat=dat-repmat(meandat,[1 size(dat,2)]);
+meandat = mean(dat,2);
+for i=1:nsamples
+  % demean the data
+  dat(:,i) = dat(:,i) - meandat;
+end
+
 filt = filter_with_correction(B,A,dat,dir);
-filt=filt+repmat(meandat,[1 size(dat,2)]);
+
+for i=1:nsamples
+  % add the mean back to the filtered data
+  filt(:,i) = filt(:,i) + meandat;
+end

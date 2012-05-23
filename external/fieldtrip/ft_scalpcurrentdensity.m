@@ -80,9 +80,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_scalpcurrentdensity.m 5219 2012-02-01 15:52:38Z roevdmei $
 
-revision = '$Id: ft_scalpcurrentdensity.m 5176 2012-01-25 14:48:33Z roboos $';
+revision = '$Id: ft_scalpcurrentdensity.m 5219 2012-02-01 15:52:38Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -206,7 +206,7 @@ end
 scd.elec    = elec;
 scd.time    = data.time;
 scd.label   = data.label;
-scd.fsample = 1/(data.time{1}(2) - data.time{1}(1));
+scd.fsample = 1/mean(diff(data.time{1}));
 if isfield(data, 'sampleinfo')
   scd.sampleinfo = data.sampleinfo;
 end

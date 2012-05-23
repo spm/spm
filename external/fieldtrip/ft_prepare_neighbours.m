@@ -23,6 +23,7 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %   cfg.neighbourdist = number, maximum distance between neighbouring sensors (only for 'distance')
 %   cfg.template      = name of the template file, e.g. CTF275_neighb.mat
 %   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
+%   cfg.channel       = channels for which neighbours should be found
 %   cfg.elec          = structure with EEG electrode positions
 %   cfg.grad          = structure with MEG gradiometer positions
 %   cfg.elecfile      = filename containing EEG electrode positions
@@ -33,7 +34,7 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %   data.elec     = structure with EEG electrode positions
 %   data.grad     = structure with MEG gradiometer positions
 %
-% The output is an array of structures with the "neighbours" which is 
+% The output is an array of structures with the "neighbours" which is
 % structured like this:
 %        neighbours(1).label = 'Fz';
 %        neighbours(1).neighblabel = {'Cz', 'F3', 'F3A', 'FzA', 'F4A', 'F4'};
@@ -64,9 +65,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_prepare_neighbours.m 5702 2012-04-25 08:24:21Z jorhor $
 
-revision = '$Id: ft_prepare_neighbours.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_prepare_neighbours.m 5702 2012-04-25 08:24:21Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -84,8 +85,11 @@ hasdata = nargin>1;
 if hasdata, data = ft_checkdata(data); end
 
 if strcmp(cfg.method, 'template')
+  neighbours = [];
   fprintf('Trying to load sensor neighbours from a template\n');
+  % determine from where to load the neighbour template
   if ~isfield(cfg, 'template')
+    % if data has been put in, try to estimate the sensor type
     if hasdata
       fprintf('Estimating sensor type of data to determine the layout filename\n');
       senstype = ft_senstype(data.label);
@@ -101,14 +105,26 @@ if strcmp(cfg.method, 'template')
       end
     end
   end
+  % if that failed
   if ~isfield(cfg, 'template')
+    % check whether a layout can be used
     if ~isfield(cfg, 'layout')
+      % error if that fails as well
       error('You need to define a template or layout or give data as an input argument when ft_prepare_neighbours is called with cfg.method=''template''');
     end
     fprintf('Using the 2-D layout filename to determine the template filename\n');
     cfg.template = [strtok(cfg.layout, '.') '_neighb.mat'];
   end
-  cfg.template = lower(cfg.template);
+  % adjust filename
+  cfg.template = lower(cfg.template);  
+  % add necessary extensions
+  if numel(cfg.template) < 4 || ~isequal(cfg.template(end-3:end), '.mat')
+    if numel(cfg.template) < 7 || ~isequal(cfg.template(end-6:end), '_neighb')
+      cfg.template = [cfg.template, '_neighb'];
+    end
+    cfg.template = [cfg.template, '.mat'];
+  end
+  % check for existence
   if ~exist(cfg.template, 'file')
     error('Template file could not be found - please check spelling or contact jm.horschig(at)donders.ru.nl if you want to create and share your own template! See also http://fieldtrip.fcdonders.nl/faq/how_can_i_define_my_own_neighbourhood_template');
   end
@@ -116,7 +132,7 @@ if strcmp(cfg.method, 'template')
   fprintf('Successfully loaded neighbour structure from %s\n', cfg.template);
 else
   % get the the grad or elec if not present in the data
-  if hasdata 
+  if hasdata
     sens = ft_fetch_sens(cfg, data);
   else
     sens = ft_fetch_sens(cfg);
@@ -167,10 +183,33 @@ end
 %   neighbours = fixneighbours(neighbours);
 % end
 
+% only select those channels that are in the data
+neighb_chans = {neighbours(:).label};
+if isfield(cfg, 'channel') && ~isempty(cfg.channel)
+  desired = cfg.channel;
+elseif (hasdata)
+  desired = data.label;
+else
+  desired = neighb_chans;
+end
+
+% in any case remove SCALE and COMNT
+desired = ft_channelselection({'all', '-SCALE', '-COMNT'}, desired);
+
+chans = ft_channelselection(desired, neighb_chans);
+neighb_idx = ismember(neighb_chans, chans);
+neighbours = neighbours(neighb_idx);
+  
 k = 0;
 for i=1:length(neighbours)
+  if isempty(neighbours(i).neighblabel)
+    warning('FIELDTRIP:NoNeighboursFound', 'no neighbours found for %s\n', neighbours(i).label);
+  else % only selected desired channels    
+    neighbours(i).neighblabel = ft_channelselection(desired, neighbours(i).neighblabel);
+  end
   k = k + length(neighbours(i).neighblabel);
 end
+
 if k==0, error('No neighbours were found!'); end;
 fprintf('there are on average %.1f neighbours per channel\n', k/length(neighbours));
 
@@ -250,7 +289,7 @@ for i=1:nsensors
   neighbours(i).neighblabel = sens.label(neighbidx);
 end
 
-% remove neighbouring channels that are too far away (imporntant e.g. in 
+% remove neighbouring channels that are too far away (imporntant e.g. in
 % case of missing sensors)
 neighbdist = mean(alldist)+3*std(alldist);
 for i=1:nsensors

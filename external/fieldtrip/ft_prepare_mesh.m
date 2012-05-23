@@ -61,9 +61,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_mesh.m 5727 2012-05-02 13:59:43Z crimic $
 
-revision = '$Id: ft_prepare_mesh.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 5727 2012-05-02 13:59:43Z crimic $';
 
 % do the general setup of the function
 ft_defaults
@@ -73,8 +73,8 @@ ft_preamble trackconfig
 ft_preamble loadvar mri
 
 % check if the input cfg is valid for this function
-cfg = ft_checkconfig(cfg, 'forbidden', 'numcompartments');
-cfg = ft_checkconfig(cfg, 'forbidden', 'outputfile');
+cfg = ft_checkconfig(cfg, 'forbidden', {'numcompartments', ...
+                                       'outputfile'});
 
 % set the defaults
 if ~isfield(cfg, 'downsample'),      cfg.downsample = 1;         end
@@ -123,9 +123,8 @@ elseif basedonseg || basedonmri
   bnd = prepare_mesh_segmentation(cfg, mri);
   
 elseif basedonheadshape
-  fprintf('using the head shape to construct a triangulated mesh\n');
-  bnd = prepare_mesh_headshape(cfg);
-  
+  bnd = ft_fetch_headshape(cfg);
+    
 elseif basedonvol
   fprintf('using the mesh specified in the input volume conductor\n');
   bnd = mri.bnd;
@@ -171,7 +170,9 @@ end
 % ensure that the vertices and triangles are double precision, otherwise the bemcp mex files will crash
 for i=1:length(bnd)
   bnd(i).pnt = double(bnd(i).pnt);
-  bnd(i).tri = double(bnd(i).tri);
+  if isfield(bnd(i),'tri')
+    bnd(i).tri = double(bnd(i).tri);
+  end
 end
 
 % do the general cleanup and bookkeeping at the end of the function

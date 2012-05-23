@@ -11,7 +11,7 @@ chansel = false(1,nchan);
 chansel(match_str(data.label, cfg.channel)) = 1;
 
 % compute the sampling frequency from the first two timepoints
-fsample = 1/(data.time{1}(2) - data.time{1}(1));
+fsample = 1/mean(diff(data.time{1}));
 
 
 % select the specified latency window from the data
@@ -152,7 +152,7 @@ if strcmp(info.metric,'zvalue') || strcmp(info.metric, 'maxzvalue')
     runss=zeros(info.nchan,1);
     runnum=0;
     for i=1:info.ntrl
-        [dat] = preproc(info.data.trial{i}, info.data.label, info.fsample, info.cfg.preproc, info.offset(i));
+        [dat] = preproc(info.data.trial{i}, info.data.label, offset2time(info.offset(i), info.fsample, size(info.data.trial{i},2)), info.cfg.preproc); % not entirely sure whether info.data.time{i} is correct, so making it on the fly
         dat(info.chansel==0,:) = nan;
         runsum=runsum+sum(dat,2);
         runss=runss+sum(dat.^2,2);
@@ -163,7 +163,7 @@ if strcmp(info.metric,'zvalue') || strcmp(info.metric, 'maxzvalue')
 end
 for i=1:info.ntrl
   ft_progress(i/info.ntrl, 'computing metric %d of %d\n', i, info.ntrl);
-  [dat, label, time, info.cfg.preproc] = preproc(info.data.trial{i}, info.data.label, info.fsample, info.cfg.preproc, info.offset(i));
+  [dat, label, time, info.cfg.preproc] = preproc(info.data.trial{i}, info.data.label, offset2time(info.offset(i), info.fsample, size(info.data.trial{i},2)), info.cfg.preproc); % not entirely sure whether info.data.time{i} is correct, so making it on the fly
   dat(info.chansel==0,:) = nan;
   switch info.metric
     case 'var'
@@ -236,7 +236,8 @@ if strcmp(info.cfg.viewmode, 'toggle') && (sum(info.chansel==0) > 0)
   plot(maxperchan_all(info.chansel==0), find(info.chansel==0), 'o');
   hold off;
 end
-abc = axis; axis([abc(1:2) 1 info.nchan]);
+abc = axis;
+axis([abc(1:2) 0 info.nchan]); % have to use 0 as lower limit because ylim([1 1]) (i.e. the single-channel case) is invalid
 set(info.axes(2),'ButtonDownFcn',@toggle_visual);  % needs to be here; call to axis resets this property
 ylabel('channel number');
 
@@ -507,6 +508,7 @@ currfig = gcf;
 for n = 1:length(trls)
   figure()
   cfg_mp.trials = trls(n);
+  cfg_mp.interactive = 'yes';
   ft_multiplotER(cfg_mp, info.data);
   title(sprintf('Trial %i',trls(n)));
 end

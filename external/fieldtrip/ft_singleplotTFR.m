@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $
+% $Id: ft_singleplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $
 
-revision = '$Id: ft_singleplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_singleplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -99,8 +99,8 @@ data = ft_checkdata(data, 'datatype', 'freq');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',      {'cohtargetchannel'});
-cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim', 'absmax', 'maxabs'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'matrixside',     'directionality'});
+cfg = ft_checkconfig(cfg, 'renamedval',  {'zlim', 'absmax', 'maxabs'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'directionality', 'feedforward', 'outflow'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'directionality', 'feedback',    'inflow'});
 cfg = ft_checkconfig(cfg, 'renamed',     {'channelindex',   'channel'});
@@ -167,6 +167,10 @@ if hasrpt,
   tmpcfg           = [];
   tmpcfg.trials    = cfg.trials;
   tmpcfg.jackknife = 'no';
+  % keep mask-parameter if it is set
+  if ~isempty(cfg.maskparameter)
+    tempmask = data.(cfg.maskparameter);
+  end
   if isfield(cfg, 'parameter') && ~strcmp(cfg.parameter,'powspctrm')
     % freqdesctiptives will only work on the powspctrm field
     % hence a temporary copy of the data is needed
@@ -180,6 +184,10 @@ if hasrpt,
     clear tempdata
   else
     data = ft_freqdescriptives(tmpcfg, data);
+  end
+  % put mask-parameter back if it is set
+  if ~isempty(cfg.maskparameter)
+    data.(cfg.maskparameter) = tempmask;
   end
   dimord = data.dimord;
   dimtok = tokenize(dimord, '_');
@@ -288,8 +296,17 @@ if (isfull || haslabelcmb) && shouldPlotCmb
 end %handle the bivariate data
 
 % Apply baseline correction:
+
 if ~strcmp(cfg.baseline, 'no')
+  % keep mask-parameter if it is set
+  if ~isempty(cfg.maskparameter)
+    tempmask = data.(cfg.maskparameter);
+  end
   data = ft_freqbaseline(cfg, data);
+  % put mask-parameter back if it is set
+  if ~isempty(cfg.maskparameter)
+    data.(cfg.maskparameter) = tempmask;
+  end
 end
 
 % Get physical x-axis range:
@@ -352,6 +369,14 @@ if length(sellab) > 1 && ~isempty(cfg.maskparameter)
 end
 
 dat = data.(cfg.parameter);
+% get dimord dimensions
+dims = textscan(data.dimord,'%s', 'Delimiter', '_');
+dims = dims{1};
+ydim = find(strcmp(yparam, dims));
+xdim = find(strcmp(xparam, dims));
+zdim = setdiff(1:ndims(dat), [ydim xdim]);
+% and permute
+dat = permute(dat, [zdim(:)' ydim xdim]);
 if isfull
   dat = dat(sel1, sel2, ymin:ymax, xmin:xmax);
   dat = nanmean(dat, meandir);
@@ -474,8 +499,10 @@ else
 end
 if isfield(cfg,'dataname')
   dataname = cfg.dataname;
-else
+elseif nargin > 1
   dataname = inputname(2);
+else
+  dataname = cfg.inputfile;
 end
 set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, dataname, chans));
 set(gcf, 'NumberTitle', 'off');
@@ -517,7 +544,7 @@ fprintf('selected cfg.ylim = [%f %f]\n', cfg.ylim(1), cfg.ylim(2));
 p = get(gcf, 'Position');
 f = figure;
 set(f, 'Position', p);
-ft_topoplotER(cfg, varargin{:});
+ft_topoplotTFR(cfg, varargin{:});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which handles hot keys in the current plot

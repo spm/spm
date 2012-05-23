@@ -1,6 +1,6 @@
-function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
+function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 
-% STATISTICS_MONTECARLO performs a nonparametric statistical test by calculating
+% FT_STATISTICS_MONTECARLO performs a nonparametric statistical test by calculating
 % Monte-Carlo estimates of the significance probabilities and/or critical values
 % from the permutation distribution. This function should not be called
 % directly, instead you should call the function that is associated with the
@@ -97,7 +97,7 @@ function [stat, cfg] = statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_montecarlo.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_statistics_montecarlo.m 5650 2012-04-18 14:00:33Z roevdmei $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
@@ -106,9 +106,11 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'repeatedmeasures', 'uvar'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'clusterthreshold', 'nonparametric', 'nonparametric_individual'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'yes', 'max'});
 cfg = ft_checkconfig(cfg, 'required',    {'statistic'});
-cfg = ft_checkconfig(cfg, 'forbidden',   {'ztransform', 'removemarginalmeans', 'randomfactor'});
-cfg = ft_checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
-cfg = ft_checkconfig(cfg, 'forbidden',   {'voxelthreshold', 'voxelstatistic'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'ztransform', ...
+                                          'removemarginalmeans', ...
+                                          'randomfactor', ...
+                                          'voxelthreshold', ...
+                                          'voxelstatistic'});
 
 % set the defaults for the main function
 if ~isfield(cfg, 'alpha'),               cfg.alpha    = 0.05;            end
@@ -261,7 +263,6 @@ time_eval = cputime - time_pre;
 fprintf('estimated time per randomization is %d seconds\n', round(time_eval));
 
 % pre-allocate some memory
-%if strcmp(cfg.correctm, 'cluster')
 if strcmp(cfg.correctm, 'cluster')
   statrand = zeros(size(statobs,1), size(resample,1));
 else
@@ -323,6 +324,13 @@ if strcmp(cfg.correctm, 'cluster')
   % do the cluster postprocessing
   [stat, cfg] = clusterstat(cfg, statrand, statobs,'issource',issource);
 else
+  if ~isequal(cfg.numrandomization, 'all')
+    % in case of random permutations (i.e., montecarlo sample, and NOT full
+    % permutation), the minimum p-value should not be 0, but 1/N
+    prb_pos = prb_pos + 1;
+    prb_neg = prb_neg + 1;
+    Nrand = Nrand + 1;
+  end
   switch cfg.tail
     case 1
       clear prb_neg  % not needed any more, free some memory

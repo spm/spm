@@ -1,4 +1,4 @@
-function [varargout] = ft_plot_box(position, varargin);
+function [varargout] = ft_plot_box(position, varargin)
 
 % FT_PLOT_BOX plots the outline of a box that is specified by its lower
 % left and upper right corner
@@ -20,6 +20,7 @@ function [varargout] = ft_plot_box(position, varargin);
 %   height      = height of the local axes
 %   hlim        = horizontal scaling limits within the local axes
 %   vlim        = vertical scaling limits within the local axes
+%   parent      = handle which is set as the parent for all plots
 %
 % Example
 %   ft_plot_box([-1 1 2 3], 'facecolor', 'b')
@@ -43,7 +44,7 @@ function [varargout] = ft_plot_box(position, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_box.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_box.m 5725 2012-05-02 08:21:49Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -58,6 +59,7 @@ facealpha   = ft_getopt(varargin, 'facealpha', 1);
 facecolor   = ft_getopt(varargin, 'facecolor', 'none');
 edgecolor   = ft_getopt(varargin, 'edgecolor', 'k');
 tag         = ft_getopt(varargin, 'tag',       '');
+parent        = ft_getopt(varargin, 'parent', []);
 
 % convert the two cornerpoints into something that the patch function understands
 % the box position is represented just like the argument to the AXIS function
@@ -128,6 +130,10 @@ set(h, 'FaceAlpha', facealpha)
 set(h, 'FaceColor', facecolor)
 set(h, 'EdgeColor', edgecolor)
 set(h, 'tag', tag);
+
+if ~isempty(parent)
+  set(h, 'Parent', parent);
+end
 
 % the (optional) output is the handle
 if nargout == 1

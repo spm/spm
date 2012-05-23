@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 5019 2011-12-12 17:29:53Z roevdmei $
+% $Id: besa2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $
 
-revision = '$Id: besa2fieldtrip.m 5019 2011-12-12 17:29:53Z roevdmei $';
+revision = '$Id: besa2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -160,7 +160,7 @@ elseif ischar(input)
   % official toolbox have precedence.
   hasbesa = ft_hastoolbox('besa',1, 1);
 
-  type = filetype(input);
+  type = ft_filetype(input);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if strcmp(type, 'besa_avr') && hasbesa

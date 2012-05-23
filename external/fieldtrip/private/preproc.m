@@ -1,4 +1,4 @@
-function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, begpadding, endpadding)
+function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, endpadding)
 
 % PREPROC applies various preprocessing steps on a piece of EEG/MEG data
 % that already has been read from a data file.
@@ -10,15 +10,14 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % options.
 %
 % Use as
-%   [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, begpadding, endpadding)
+%   [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, endpadding)
 %
 % The required input arguments are
 %   dat         Nchan x Ntime data matrix
 %   label       Nchan x 1 cell-array with channel labels
+%   time        Ntime x 1 vector with the latency in seconds
 %   cfg         configuration structure, see below
-%   fsample     sampling frequency
 % and the optional input arguments are
-%   offset      of the first datasample (see below)
 %   begpadding  number of samples that was used for padding (see below)
 %   endpadding  number of samples that was used for padding (see below)
 %
@@ -31,15 +30,6 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 % Note that the number of input channels and the number of output channels
 % can be different, for example when the user specifies that he/she wants
 % to add the implicit EEG reference channel to the data matrix.
-%
-% The offset field specifies the difference in the latency of the beginning
-% of the data relative to the occurence of the trigger (expressed in
-% samples). An offset of 0 means that the first sample of the trial
-% corresponds with the trigger. A positive offset indicates that the first
-% sample is later than the triger, a negative offset indicates that the
-% trial begins before the trigger. The offset should be specified EXCLUDING
-% the filter padding at the begin of the data. You can leave it empty,
-% which implies that the first sample of the data corresponds with latency 0.
 %
 % The filtering of the data can introduce artifacts at the edges, hence it
 % is better to pad the data with some extra signal at the begin and end.
@@ -93,7 +83,7 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 
 % TODO implement decimation and/or resampling
 
-% Copyright (C) 2004-2009, Robert Oostenveld
+% Copyright (C) 2004-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -111,17 +101,15 @@ function [dat, label, time, cfg] = preproc(dat, label, fsample, cfg, offset, beg
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 4772 2011-11-18 13:28:53Z johzum $
+% $Id: preproc.m 5591 2012-04-04 14:51:18Z roboos $
 
+% compute fsample
+fsample = 1./mean(diff(time));
 
-
-if nargin<5 || isempty(offset)
-  offset = 0;
-end
-if nargin<6 || isempty(begpadding)
+if nargin<5 || isempty(begpadding)
   begpadding = 0;
 end
-if nargin<7 || isempty(endpadding)
+if nargin<6 || isempty(endpadding)
   endpadding = 0;
 end
 
@@ -133,13 +121,13 @@ if iscell(cfg)
   for i=1:length(cfg)
     tmpcfg = cfg{i};
     if nargout==1
-      [dat                     ] = preproc(dat, label, fsample, tmpcfg, offset, begpadding, endpadding);
+      [dat                     ] = preproc(dat, label, time, tmpcfg, begpadding, endpadding);
     elseif nargout==2
-      [dat, label              ] = preproc(dat, label, fsample, tmpcfg, offset, begpadding, endpadding);
+      [dat, label              ] = preproc(dat, label, time, tmpcfg, begpadding, endpadding);
     elseif nargout==3
-      [dat, label, time        ] = preproc(dat, label, fsample, tmpcfg, offset, begpadding, endpadding);
+      [dat, label, time        ] = preproc(dat, label, time, tmpcfg, begpadding, endpadding);
     elseif nargout==4
-      [dat, label, time, tmpcfg] = preproc(dat, label, fsample, tmpcfg, offset, begpadding, endpadding);
+      [dat, label, time, tmpcfg] = preproc(dat, label, time, tmpcfg, begpadding, endpadding);
       cfg{i} = tmpcfg;
     end
   end
@@ -257,10 +245,6 @@ end
 
 if any(any(isnan(dat)))
   % filtering is not possible for at least a selection of the data
-  if nargout>2
-    nsamples = size(dat,2);
-    time = (offset - begpadding + (0:(nsamples-1)))/fsample;
-  end
   warning('data contains NaNs, no filtering applied');
   return;
 end
@@ -275,40 +259,30 @@ if ~isempty(cfg.denoise),
   tmpdat   = ft_preproc_denoise(dat(datlabel,:), dat(reflabel,:), hflag);
   dat(datlabel,:) = tmpdat;
 end
+
+% The filtering should in principle be done prior to the demeaning to
+% ensure that the resulting mean over the baseline window will be
+% guaranteed to be zero (even if there are filter artifacts). 
+% However, the filtering benefits from the data being pulled towards zero,
+% causing less edge artifacts. That is why we start by removing the slow
+% drift, then filter, and then repeat the demean/detrend/polyremove.
 if strcmp(cfg.polyremoval, 'yes')
-  nsamples     = size(dat,2);
-  % the begin and endsample of the polyremoval period correspond to the complete data minus padding
+  nsamples  = size(dat,2);
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
-  dat = ft_preproc_polyremoval(dat, cfg.polyorder, begsample, endsample);
-end
-if strcmp(cfg.detrend, 'yes')
-  nsamples     = size(dat,2);
-  % the begin and endsample of the detrend period correspond to the complete data minus padding
+  dat = ft_preproc_polyremoval(dat, cfg.polyorder, begsample, endsample); % this will also demean and detrend
+elseif strcmp(cfg.detrend, 'yes')
+  nsamples  = size(dat,2);
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
-  dat = ft_preproc_detrend(dat, begsample, endsample);
+  dat = ft_preproc_polyremoval(dat, 1, begsample, endsample); % this will also demean
+elseif strcmp(cfg.demean, 'yes')
+  nsamples  = size(dat,2);
+  begsample = 1        + begpadding;
+  endsample = nsamples - endpadding;
+  dat = ft_preproc_polyremoval(dat, 0, begsample, endsample);
 end
-if strcmp(cfg.demean, 'yes') || nargout>2
-  % determine the complete time axis for the baseline correction
-  % but only construct it when really needed, since it takes up a large amount of memory
-  % the time axis should include the filter padding
-  nsamples = size(dat,2);
-  time = (offset - begpadding + (0:(nsamples-1)))/fsample;
-end
-if strcmp(cfg.demean, 'yes')
-  if ischar(cfg.baselinewindow) && strcmp(cfg.baselinewindow, 'all')
-    % the begin and endsample of the baseline period correspond to the complete data minus padding
-    begsample = 1        + begpadding;
-    endsample = nsamples - endpadding;
-    dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);
-  else
-    % determine the begin and endsample of the baseline period and baseline correct for it
-    begsample = nearest(time, cfg.baselinewindow(1));
-    endsample = nearest(time, cfg.baselinewindow(2));
-    dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);
-  end
-end
+
 if strcmp(cfg.medianfilter, 'yes'), dat = ft_preproc_medianfilter(dat, cfg.medianfiltord); end
 if strcmp(cfg.lpfilter, 'yes'),     dat = ft_preproc_lowpassfilter(dat, fsample, cfg.lpfreq, cfg.lpfiltord, cfg.lpfilttype, cfg.lpfiltdir); end
 if strcmp(cfg.hpfilter, 'yes'),     dat = ft_preproc_highpassfilter(dat, fsample, cfg.hpfreq, cfg.hpfiltord, cfg.hpfilttype, cfg.hpfiltdir); end
@@ -320,29 +294,23 @@ if strcmp(cfg.bsfilter, 'yes')
   end
 end
 if strcmp(cfg.polyremoval, 'yes')
-  nsamples     = size(dat,2);
   % the begin and endsample of the polyremoval period correspond to the complete data minus padding
+  nsamples  = size(dat,2);
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
   dat = ft_preproc_polyremoval(dat, cfg.polyorder, begsample, endsample);
 end
 if strcmp(cfg.detrend, 'yes')
-  nsamples     = size(dat,2);
   % the begin and endsample of the detrend period correspond to the complete data minus padding
+  nsamples  = size(dat,2);
   begsample = 1        + begpadding;
   endsample = nsamples - endpadding;
   dat = ft_preproc_detrend(dat, begsample, endsample);
 end
-if strcmp(cfg.demean, 'yes') || nargout>2
-  % determine the complete time axis for the baseline correction
-  % but only construct it when really needed, since it takes up a large amount of memory
-  % the time axis should include the filter padding
-  nsamples = size(dat,2);
-  time = (offset - begpadding + (0:(nsamples-1)))/fsample;
-end
 if strcmp(cfg.demean, 'yes')
   if ischar(cfg.baselinewindow) && strcmp(cfg.baselinewindow, 'all')
     % the begin and endsample of the baseline period correspond to the complete data minus padding
+    nsamples  = size(dat,2);
     begsample = 1        + begpadding;
     endsample = nsamples - endpadding;
     dat       = ft_preproc_baselinecorrect(dat, begsample, endsample);

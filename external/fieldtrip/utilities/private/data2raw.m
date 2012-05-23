@@ -24,7 +24,7 @@ function [data, dimord] = data2raw(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: data2raw.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: data2raw.m 5220 2012-02-01 15:52:40Z roevdmei $
 
 % determine the type of input data
 if isfield(data, 'label') && ~isfield(data, 'avg') && isfield(data, 'trial') && iscell(data.trial)
@@ -156,7 +156,7 @@ end
 % raw data is supposed to contain the sampling frequency
 if ~isfield(data, 'fsample')
   % compute the sampling frequency from the first two timepoints
-  data.fsample = 1/(data.time{1}(2)-data.time{1}(1));
+  data.fsample = 1/mean(diff(data.time{1}));
 end
 
 % these fields cannot be used by the external functions that want the data in raw format

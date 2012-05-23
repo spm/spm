@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $
+% $Id: ft_multiplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $
 
-revision = '$Id: ft_multiplotTFR.m 5178 2012-01-25 15:19:05Z eelspa $';
+revision = '$Id: ft_multiplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -140,12 +140,12 @@ data = ft_checkdata(data, 'datatype', 'freq');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'zlim',           'absmax',  'maxabs'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'matrixside',     'directionality'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedforward', 'outflow'});
-cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflow'});
 cfg = ft_checkconfig(cfg, 'renamed',    {'cohrefchannel',  'refchannel'});
 cfg = ft_checkconfig(cfg, 'renamed',	  {'zparam',         'parameter'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'zlim',           'absmax',  'maxabs'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedforward', 'outflow'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'directionality', 'feedback',    'inflow'});
 cfg = ft_checkconfig(cfg, 'deprecated', {'xparam',         'yparam'});
 
 % set the defaults
@@ -214,7 +214,10 @@ if hasrpt,
   if isfield(data, 'crsspctrm'),
     data = rmfield(data, 'crsspctrm'); 
   end
-  
+  % keep mask-parameter if it is set
+  if ~isempty(cfg.maskparameter)
+    tempmask = data.(cfg.maskparameter);
+  end
   tmpcfg           = [];
   tmpcfg.trials    = cfg.trials;
   tmpcfg.jackknife = 'no';
@@ -232,6 +235,10 @@ if hasrpt,
   else
     data = ft_freqdescriptives(tmpcfg, data);
   end
+  % put mask-parameter back if it is set
+  if ~isempty(cfg.maskparameter)
+    data.(cfg.maskparameter) = tempmask;
+  end
   dimord = data.dimord;
   dimtok = tokenize(dimord, '_');
 end % if hasrpt
@@ -244,7 +251,15 @@ ft_plot_lay(lay, 'box', false,'label','no','point','no');
 
 % Apply baseline correction:
 if ~strcmp(cfg.baseline, 'no')
+  % keep mask-parameter if it is set
+  if ~isempty(cfg.maskparameter)
+    tempmask = data.(cfg.maskparameter);
+  end
   data = ft_freqbaseline(cfg, data);
+  % put mask-parameter back if it is set
+  if ~isempty(cfg.maskparameter)
+    data.(cfg.maskparameter) = tempmask;
+  end
 end
 
 % Handle the bivariate case
@@ -394,20 +409,30 @@ else
 end
 
 dat = data.(cfg.parameter);
-if isfull
+% get dimord dimensions
+dims = textscan(data.dimord,'%s', 'Delimiter', '_');
+dims = dims{1};
+ydim = find(strcmp(yparam, dims));
+xdim = find(strcmp(xparam, dims));
+zdim = setdiff(1:ndims(dat), [ydim xdim]);
+% and permute
+dat = permute(dat, [zdim(:)' ydim xdim]);
+if isfull  
   dat = dat(sel1, sel2, ymin:ymax, xmin:xmax);
   dat = nanmean(dat, meandir);
   siz = size(dat);
   dat = reshape(dat, [max(siz(1:2)) siz(3) siz(4)]);
   dat = dat(sellab, :, :);
-elseif haslabelcmb
-  dat = dat(sellab, ymin:ymax, xmin:xmax);
+% this makes no sense, so COMMENTED OUT AS OF FEBURARY 22 2012
+% elseif haslabelcmb 
+%   dat = dat(sellab, ymin:ymax, xmin:xmax);
 else
   dat = dat(sellab, ymin:ymax, xmin:xmax);
 end
 
 if ~isempty(cfg.maskparameter)
   mask = data.(cfg.maskparameter);
+  mask = permute(mask, [zdim(:)' ydim xdim]);
   if isfull && cfg.maskalpha == 1
     mask = mask(sel1, sel2, ymin:ymax, xmin:xmax);
     mask = nanmean(nanmean(nanmean(mask, meandir), 4), 3);
@@ -608,12 +633,21 @@ if strcmp('yes',cfg.hotkeys)
 end
 
 % set the figure window title
-if isfield(cfg,'dataname')
-  dataname = cfg.dataname;
+
+if isfield(cfg,'funcname')
+  funcname = cfg.funcname;
 else
-  dataname = inputname(2);
+  funcname = mfilename;
 end
-set(gcf, 'Name', sprintf('%d: %s: %s', gcf, mfilename, dataname));
+if isfield(cfg,'dataname')
+    dataname = cfg.dataname;
+elseif nargin > 1
+  dataname = inputname(2);;
+else % data provided through cfg.inputfile
+  dataname = cfg.inputfile;
+end
+
+set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
 set(gcf, 'NumberTitle', 'off');
 
 % Make the figure interactive:

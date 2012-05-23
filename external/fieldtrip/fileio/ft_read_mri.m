@@ -11,9 +11,21 @@ function [mri] = ft_read_mri(filename, varargin)
 % the coordinates of each voxel (in xgrid/ygrid/zgrid) into head
 % coordinates.
 %
-% See also FT_READ_DATA, FT_READ_HEADER, FT_READ_EVENT
+% The following MRI file formats are supported
+%   CTF - VSM MedTech (*.svl, *.mri version 4 and 5)
+%   NIFTi (*.nii)
+%   Analyze (*.img, *.hdr)
+%   DICOM (*.dcm, *.ima)
+%   AFNI (*.head, *.brik)
+%   FreeSurfer (*.mgz, *.mgh)
+%   MINC (*.mnc)
+%   Neuromag - Elekta (*.fif)
+%   ANT - Advanced Neuro Technology (*.mri)
+%   Yokogawa (*.mrk, incomplete)
+%
+% See also FT_WRITE_MRI, FT_READ_DATA, FT_READ_HEADER, FT_READ_EVENT
 
-% Copyright (C) 2008-2010 Robert Oostenveld
+% Copyright (C) 2008-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -31,10 +43,15 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 5187 2012-01-31 08:42:56Z jansch $
+% $Id: ft_read_mri.m 5797 2012-05-23 06:53:10Z jansch $
 
 % get the options
-mriformat = ft_getopt(varargin, 'format', ft_filetype(filename));
+mriformat = ft_getopt(varargin, 'format'); % FIXME this is inconsistent with ft_read_mri, which uses 'dataformat'
+
+if isempty(mriformat)
+  % only do the autodetection if the format was not specified
+  mriformat = ft_filetype(filename);
+end
 
 % test whether the file exists
 if ~exist(filename, 'file')
@@ -85,15 +102,15 @@ elseif strcmp(mriformat, 'minc')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % USE FREESURFER CODE FOR THE READING OF NIFTI-FILES: THAT CODE ALSO
   % DEALS WITH 4D NIFTIs
-% elseif strcmp(mriformat, 'nifti')
-%   if ~(hasspm5 || hasspm8)
-%     fprintf('the SPM5 or SPM8 toolbox is required to read *.nii files\n');
-%     ft_hastoolbox('spm8',1);
-%   end
-%   % use the functions from SPM
-%   hdr = spm_vol_nifti(filename);
-%   img = spm_read_vols(hdr);
-%   transform = hdr.mat;
+elseif strcmp(mriformat, 'nifti_spm')
+   if ~(hasspm5 || hasspm8)
+     fprintf('the SPM5 or SPM8 toolbox is required to read *.nii files\n');
+     ft_hastoolbox('spm8',1);
+   end
+   % use the functions from SPM
+   hdr = spm_vol_nifti(filename);
+   img = spm_read_vols(hdr);
+   transform = hdr.mat;
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif (strcmp(mriformat, 'analyze_img') || strcmp(mriformat, 'analyze_hdr')) && hasspm
@@ -149,13 +166,49 @@ elseif (strcmp(mriformat, 'afni_brik') || strcmp(mriformat, 'afni_head')) && has
 elseif strcmp(mriformat, 'neuromag_fif') && ft_hastoolbox('mne')
   % use the mne functions to read the Neuromag MRI
   hdr = fiff_read_mri(filename);
-  img = cat(3, hdr.slices.data);
+  img_t = cat(3, hdr.slices.data);
+  img = permute(img_t,[2 1 3]);
   hdr.slices = rmfield(hdr.slices, 'data'); % remove the image data to save memory
-  % hmm, which transformation matrix should I use?
+  
+  % information below is from MNE - fiff_define_constants.m
+  % coordinate system 4 - is the MEG head coordinate system (fiducials)
+  % coordinate system 5 - is the MRI coordinate system
+  % coordinate system 2001 - MRI voxel coordinates
+  % coordinate system 2002 - Surface RAS coordinates (is mainly vertical
+  %                                     shift, no rotation to 2001)
+  % MEG sensor positions come in system 4
+  % MRI comes in system 2001
+  
+  transform = eye(4);
+  if isfield(hdr, 'trans') && issubfield(hdr.trans, 'trans')
+    if (hdr.trans.from == 4) && (hdr.trans.to == 5)
+      transform = hdr.trans.trans;
+    else
+      warning('W: trans does not transform from 4 to 5.');
+      warning('W: Please check the MRI fif-file');
+    end
+  else
+    warning('W: trans structure is not defined.');
+    warning('W: Maybe coregistration is missing?');
+  end
   if isfield(hdr, 'voxel_trans') && issubfield(hdr.voxel_trans, 'trans')
-    transform = hdr.voxel_trans.trans;
-  elseif isfield(hdr, 'trans') && issubfield(hdr.trans, 'trans')
-    transform = hdr.trans.trans;
+    % centers the coordinate system
+    % and switches from mm to m
+    if (hdr.voxel_trans.from == 2001) && (hdr.voxel_trans.to == 5)
+      % matlab_shift compensates for the different index conventions
+      % between C and matlab
+      matlab_shift = [ 0 0 0 0.001; 0 0 0 -0.001; 0 0 0 0.001; 0 0 0 0];
+      % transform transforms from 2001 to 5 and further to 4
+      transform = transform\(hdr.voxel_trans.trans+matlab_shift);
+      coordsys  = 'neuromag';
+      mri.unit  = 'm';
+    else
+      warning('W: voxel_trans does not transform from 2001 to 5.');
+      warning('W: Please check the MRI fif-file');
+    end
+  else
+    warning('W: voxel_trans structure is not defined.');
+    warning('W: Please check the MRI fif-file');
   end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

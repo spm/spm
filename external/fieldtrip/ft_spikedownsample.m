@@ -81,9 +81,9 @@ function [cfg] = ft_spikedownsample(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spikedownsample.m 4816 2011-11-27 14:30:31Z roboos $
+% $Id: ft_spikedownsample.m 5343 2012-02-29 16:15:32Z roevdmei $
 
-revision = '$Id: ft_spikedownsample.m 4816 2011-11-27 14:30:31Z roboos $';
+revision = '$Id: ft_spikedownsample.m 5343 2012-02-29 16:15:32Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -239,7 +239,7 @@ for i=chansel(:)'
 
   % apply preprocessing and downsample
   fprintf('preprocessing\n');
-  dat = preproc(org, label, hdr.Fs, cfg.preproc);
+  dat = preproc(org, label, offset2time(0, hdr.Fs, size(org,2)), cfg.preproc);
   dat = ft_preproc_resample(dat, hdr.Fs, cfg.fsample, cfg.method);
 
   chanhdr             = [];

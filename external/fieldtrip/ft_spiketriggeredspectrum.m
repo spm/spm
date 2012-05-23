@@ -50,9 +50,9 @@ function [sts] = ft_spiketriggeredspectrum(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_spiketriggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $
+% $Id: ft_spiketriggeredspectrum.m 5449 2012-03-13 13:06:57Z jorhor $
 
-revision = '$Id: ft_spiketriggeredspectrum.m 4995 2011-12-10 10:56:30Z marvin $';
+revision = '$Id: ft_spiketriggeredspectrum.m 5449 2012-03-13 13:06:57Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -64,8 +64,8 @@ ft_preamble trackconfig
 data = ft_checkdata(data,'datatype', 'raw', 'feedback', 'yes');
 
 % these were supported in the past, but are not any more (for consistency with other spike functions)
-cfg = ft_checkconfig(cfg, 'forbidden', 'inputfile');   % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
-cfg = ft_checkconfig(cfg, 'forbidden', 'outputfile');  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
+cfg = ft_checkconfig(cfg, 'forbidden', 'inputfile', ...
+                                       'outputfile');  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1056
 
 %get the options
 cfg.timwin       = ft_getopt(cfg, 'timwin',[-0.1 0.1]);

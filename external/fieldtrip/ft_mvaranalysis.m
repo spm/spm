@@ -87,9 +87,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_mvaranalysis.m 5439 2012-03-12 13:17:15Z giopia $
 
-revision = '$Id: ft_mvaranalysis.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 5439 2012-03-12 13:17:15Z giopia $';
 
 % do the general setup of the function
 ft_defaults

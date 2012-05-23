@@ -11,7 +11,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 %
 % where the data comes from FT_PREPROCESSING and the configuration
 % structure can contain
-%   cfg.method       = 'runica', 'fastica', 'binica', 'pca', 'svd', 'jader', 'varimax', 'dss', 'cca', 'sobi', 'white' (default = 'runica')
+%   cfg.method       = 'runica', 'fastica', 'binica', 'pca', 'svd', 'jader', 'varimax', 'dss', 'cca', 'sobi', 'white' or 'csp' (default = 'runica')
 %   cfg.channel      = cell-array with channel selection (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.trials       = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.numcomponent = 'all' or number (default = 'all')
@@ -94,6 +94,11 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.sobi.n_sources
 %   cfg.sobi.p_correlations
 %
+% The csp method implements the common-spatial patterns method. For CSP, the
+% following specific options can be defined:
+%   cfg.csp.classlabels = vector that assigns a trial to class 1 or 2.
+%   cfg.csp.numfilters  = the number of spatial filters to use (default: 6).
+%
 % Instead of specifying a component analysis method, you can also specify
 % a previously computed unmixing matrix, which will be used to estimate the
 % component timecourses in this data. This requires
@@ -136,9 +141,9 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 5170 2012-01-24 14:21:41Z borreu $
+% $Id: ft_componentanalysis.m 5791 2012-05-21 14:46:07Z jansch $
 
-revision = '$Id: ft_componentanalysis.m 5170 2012-01-24 14:21:41Z borreu $';
+revision = '$Id: ft_componentanalysis.m 5791 2012-05-21 14:46:07Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -224,8 +229,13 @@ cfg.dss.denf.function = ft_getopt(cfg.dss.denf, 'function', 'denoise_fica_tanh')
 cfg.dss.denf.params   = ft_getopt(cfg.dss.denf, 'params',   []);
 
 % additional options, see CSP for details
-cfg.csp = ft_getopt(cfg, 'csp', [])
-cfg.csp.numfilters = ft_getopt(cfg.csp, 'numfilters', 6)
+cfg.csp = ft_getopt(cfg, 'csp', []);
+cfg.csp.numfilters = ft_getopt(cfg.csp, 'numfilters', 6);
+cfg.csp.classlabels = ft_getopt(cfg.csp, 'classlabels');
+
+% additional options, see BSSCCA for details
+cfg.bsscca       = ft_getopt(cfg,        'bsscca', []);
+cfg.bsscca.delay = ft_getopt(cfg.bsscca, 'delay', 1);
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -242,6 +252,9 @@ for trial=1:Ntrials
 end
 data.label = data.label(chansel);
 Nchans     = length(chansel);
+if Nchans==0
+  error('no channels were selected');
+end
 
 % default is to compute just as many components as there are channels in the data
 if strcmp(cfg.numcomponent, 'all')
@@ -266,9 +279,13 @@ end
 % this will improve the performance of some methods, esp. fastica
 scale = norm((data.trial{1}*data.trial{1}')./size(data.trial{1},2));
 scale = sqrt(scale);
-fprintf('scaling data with 1 over %f\n', scale);
-for trial=1:Ntrials
-  data.trial{trial} = data.trial{trial} ./ scale;
+if scale ~= 0
+  fprintf('scaling data with 1 over %f\n', scale);
+  for trial=1:Ntrials
+    data.trial{trial} = data.trial{trial} ./ scale;
+  end
+else
+  fprintf('no scaling applied, since factor is 0\n');
 end
 
 if strcmp(cfg.method, 'sobi')
@@ -295,9 +312,12 @@ if strcmp(cfg.method, 'sobi')
 elseif strcmp(cfg.method, 'csp')
   
   % concatenate the trials into two data matrices, one for each class
-  sel1 = find(cfg.classlabel==1);
-  sel2 = find(cfg.classlabel==2);
-  if length(sel1)+length(sel2)~=length(cfg.classlabel)
+  sel1 = find(cfg.csp.classlabels==1);
+  sel2 = find(cfg.csp.classlabels==2);
+  if min(length(sel1), length(sel2)) == 0
+    error('CSP requires class labels!');
+  end
+  if length(sel1)+length(sel2)~=length(cfg.csp.classlabels)
     warning('not all trials belong to class 1 or 2');
   end
   dat1 = cat(2, data.trial{sel1});
@@ -305,7 +325,7 @@ elseif strcmp(cfg.method, 'csp')
   fprintf('concatenated data matrix size for class 1 is %dx%d\n', size(dat1,1), size(dat1,2));
   fprintf('concatenated data matrix size for class 2 is %dx%d\n', size(dat2,1), size(dat2,2));
   
-elseif ~strcmp(cfg.method, 'predetermined unmixing matrix')
+elseif (~strcmp(cfg.method, 'predetermined unmixing matrix') && ~strcmp(cfg.method, 'bsscca'))
   
   % concatenate all the data into a 2D matrix unless we already have an
   % unmixing matrix
@@ -461,7 +481,7 @@ switch cfg.method
     %sphere  = state.V;
     
     mixing = state.A;
-    unmixing = [];
+    unmixing = state.B;
     
     % remember the updated configuration details
     cfg.dss.denf      = state.denf;
@@ -528,8 +548,21 @@ switch cfg.method
     mixing   = [];
 
   case 'csp'
-    unmixing = csp(cov(dat1'), cov(dat2'), cfg.csp.numfilters);
+    C1 = cov(dat1');
+    C2 = cov(dat2');
+    unmixing = csp(C1, C2, cfg.csp.numfilters);
     mixing   = [];  % will be computed below
+    
+  case 'bsscca'
+    % this method relies on time shifting of the original data, in much the
+    % same way as ft_denoise_tsr. as such it is more natural to represent
+    % the data in the cell-array, because the trial-boundaries are clear.
+    % if represented in a concatenated array one has to keep track of the
+    % trial boundaries
+    
+    
+    unmixing = bsscca(data.trial,cfg.bsscca.delay);
+    mixing   = [];
     
   case 'parafac'
     error('parafac is not supported anymore in ft_componentanalysis');

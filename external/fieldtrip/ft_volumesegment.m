@@ -115,12 +115,13 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 5017 2011-12-12 14:33:23Z jansch $
+% $Id: ft_volumesegment.m 5680 2012-04-20 11:11:57Z jansch $
 
-revision = '$Id: ft_volumesegment.m 5017 2011-12-12 14:33:23Z jansch $';
+revision = '$Id: ft_volumesegment.m 5680 2012-04-20 11:11:57Z jansch $';
 
 % do the general setup of the function
 ft_defaults
+ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble loadvar mri
@@ -175,6 +176,8 @@ if ~iscell(cfg.output)
   cfg.output = {cfg.output};
 end
 
+cfgsmooth    = nan+zeros(numel(cfg.output),1);
+cfgthreshold = nan+zeros(numel(cfg.output),1);
 for k = 1:numel(cfg.output)
   % set defaults for the smoothing and thresholding if needed
   switch cfg.output{k}

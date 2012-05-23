@@ -69,13 +69,17 @@ function mvar = ft_datatype_mvar(mvar, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_mvar.m 4716 2011-11-10 15:50:05Z roboos $
+% $Id: ft_datatype_mvar.m 5301 2012-02-22 08:47:14Z arjsto $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011';
+end
+
+if isempty(mvar)
+  return;
 end
 
 switch version

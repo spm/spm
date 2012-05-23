@@ -1,10 +1,19 @@
 function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 
-% READ_COMBINED_DS
+% READ_COMBINED_DS reads electrophysiological data from a collection
+% of files that are located in one directory, where each of the files
+% should contain one channel and should have the same sampling frequency
+% and number of samples as all other files.
 %
 % Use as
 %   hdr = read_combined_ds(dirname)
 %   dat = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
+%
+% This is supported for single channel files in one of the following formats
+%   plexon_nex
+%   neuralynx_bin
+%   neuralynx_ncs
+%   fcdc_matbin
 
 % Copyright (C) 2008, Robert Oostenveld
 %
@@ -24,7 +33,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_combined_ds.m 3865 2011-07-18 10:31:26Z jansch $
+% $Id: read_combined_ds.m 5568 2012-03-30 09:38:12Z roboos $
 
 needhdr = nargin==1 || isempty(hdr);
 needdat = nargin>1;
@@ -48,15 +57,32 @@ if needhdr
 
   for i=1:nfiles
     fname{i} = fullfile(dirname, ls(i).name);
-    ftype{i} = ft_filetype(fname{i});
-    sel(i)   = any(strcmp(ftype{i}, supported));
-    [p, f, x] = fileparts(fname{i});
-    if filetype_check_extension(fname{i}, '.mat')
-      % select only the *.bin and not the *.mat of each pair
-      sel(i) = false;
-    end
   end
 
+  [p, f, x] = cellfun(@fileparts, fname, 'UniformOutput', 0);
+  ismat = strcmp(x, '.mat');
+  isbin = strcmp(x, '.bin');
+    
+  if all(ismat | isbin)
+    % the directory contains mat/bin pairs, and possibly an events.mat file
+    filepair = intersect(f(ismat), f(isbin));
+    unknown  = ~ismember(f, filepair);
+    % deselect the events.mat file
+    ismat(unknown) = false;
+    ftype(ismat)   = {'fcdc_matbin'};
+    ftype(isbin)   = {'fcdc_matbin'};
+    ftype(unknown) = {'unknown'};
+    sel = ismat;
+    
+  else
+    % the directory contains another selection of files that should be combined
+    % use ft_filetype to detect each type, note that this can be rather slow
+    for i=1:nfiles
+      ftype{i} = ft_filetype(fname{i});
+      sel(i)   = any(strcmp(ftype{i}, supported));
+    end
+  end
+  
   if ~any(sel)
     error('no supported files were found');
   end

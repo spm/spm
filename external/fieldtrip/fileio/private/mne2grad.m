@@ -27,7 +27,7 @@ function [grad,elec] = mne2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 4493 2011-10-17 19:38:58Z roboos $
+% $Id: mne2grad.m 5793 2012-05-22 11:10:03Z vlalit $
 
 grad = [];
 
@@ -53,7 +53,7 @@ end
 %how many Planar gradiometers?
 nPlaGrad = 0;
 for i = 1:orig.nchan;
-  nPlaGrad = nPlaGrad +(orig.chs(i).coil_type==3012|orig.chs(i).coil_type==3013|orig.chs(i).coil_type==3014) ;
+  nPlaGrad = nPlaGrad +(orig.chs(i).coil_type==3012|orig.chs(i).coil_type==3013|orig.chs(i).coil_type==3014|orig.chs(i).coil_type==2) ;
 end
 
 %how many Magnetometers?
@@ -99,7 +99,7 @@ for n=1:orig.nchan
     kCoil=kCoil+1;
     grad.label{k}=deblank(orig.ch_names{n});
     k=k+1;
-  elseif (orig.chs(k).coil_type==3012|orig.chs(k).coil_type==3013|orig.chs(k).coil_type==3014) %planar gradiometer
+  elseif (orig.chs(n).coil_type==3012|orig.chs(n).coil_type==3013|orig.chs(n).coil_type==3014|orig.chs(n).coil_type==2) %planar gradiometer
     t=orig.chs(n).coil_trans;
     grad.pnt(kCoil,:)=100*(t(1:3,4)-0.008*t(1:3,1)); % multiply with 100 to get cm
     grad.ori(kCoil,:)=t(1:3,3);
@@ -158,4 +158,3 @@ if nEEG>0
         error('Number of EEG channels identified does not match number of channels in elec structure!!!!!');
     end
 end
-

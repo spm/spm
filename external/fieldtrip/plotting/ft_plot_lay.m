@@ -18,6 +18,11 @@ function ft_plot_lay(lay, varargin)
 %   'pointsymbol'   = string with symbol (e.g. 'o') - all three point options need to be used together
 %   'pointcolor'    = string with color (e.g. 'k')
 %   'pointsize'     = number indicating size (e.g. 8)
+%
+%   hpos        = horizontal position of the lower left corner of the local axes
+%   vpos        = vertical position of the lower left corner of the local axes
+%   width       = width of the local axes
+%   height      = height of the local axes
 
 % Copyright (C) 2009, Robert Oostenveld
 %
@@ -37,13 +42,15 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_plot_lay.m 5787 2012-05-19 09:25:51Z eelspa $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
 % get the optional input arguments
 hpos         = ft_getopt(varargin, 'hpos',         0);
 vpos         = ft_getopt(varargin, 'vpos',         0);
+width         = ft_getopt(varargin, 'width',          []);
+height        = ft_getopt(varargin, 'height',         []);
 point        = ft_getopt(varargin, 'point',        true);
 box          = ft_getopt(varargin, 'box',          true);
 label        = ft_getopt(varargin, 'label',        true);
@@ -71,10 +78,46 @@ if ~holdflag
   hold on
 end
 
-X      = lay.pos(:,1) + hpos;
-Y      = lay.pos(:,2) + vpos;
-Width  = lay.width;
-Height = lay.height;
+% layout units can be arbitrary (e.g. pixels for .mat files)
+% so we need to compute the right scaling factor and offset
+% create a matrix with all coordinates
+% from positions, mask, and outline
+allCoords = lay.pos;
+if ~isempty(lay.mask)
+  for k = 1:numel(lay.mask)
+    allCoords = [allCoords; lay.mask{k}];
+  end
+end
+if ~isempty(lay.outline)
+  for k = 1:numel(lay.outline)
+    allCoords = [allCoords; lay.outline{k}];
+  end
+end
+
+naturalWidth = (max(allCoords(:,1))-min(allCoords(:,1)));
+naturalHeight = (max(allCoords(:,2))-min(allCoords(:,2)));
+
+if isempty(width) && isempty(height)
+  xScaling = 1;
+  yScaling = 1;
+elseif isempty(width) && ~isempty(height)
+  % height specified, auto-compute width while maintaining aspect ratio
+  yScaling = height/naturalHeight;
+  xScaling = yScaling;
+elseif ~isempty(width) && isempty(height)
+  % width specified, auto-compute height while maintaining aspect ratio
+  xScaling = width/naturalWidth;
+  yScaling = xScaling;
+else
+  % both width and height specified
+  xScaling = width/naturalWidth;
+  yScaling = height/naturalHeight;
+end
+
+X      = lay.pos(:,1)*xScaling + hpos;
+Y      = lay.pos(:,2)*yScaling + vpos;
+Width  = lay.width*xScaling;
+Height = lay.height*yScaling;
 Lbl    = lay.label;
 
 if point
@@ -100,8 +143,8 @@ if outline && isfield(lay, 'outline')
   end
   for i=1:length(lay.outline)
     if ~isempty(lay.outline{i})
-      X = lay.outline{i}(:,1) + hpos;
-      Y = lay.outline{i}(:,2) + vpos;
+      X = lay.outline{i}(:,1)*xScaling + hpos;
+      Y = lay.outline{i}(:,2)*yScaling + vpos;
       h = line(X, Y);
       set(h, 'color', 'k');
       set(h, 'linewidth', 2);
@@ -115,8 +158,8 @@ if mask && isfield(lay, 'mask')
   end
   for i=1:length(lay.mask)
     if ~isempty(lay.mask{i})
-      X = lay.mask{i}(:,1) + hpos;
-      Y = lay.mask{i}(:,2) + vpos;
+      X = lay.mask{i}(:,1)*xScaling + hpos;
+      Y = lay.mask{i}(:,2)*yScaling + vpos;
       % the polygon representing the mask should be closed
       X(end+1) = X(1);
       Y(end+1) = Y(1);

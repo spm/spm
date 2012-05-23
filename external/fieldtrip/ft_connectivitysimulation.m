@@ -99,9 +99,9 @@ function [simulated] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_connectivitysimulation.m 5343 2012-02-29 16:15:32Z roevdmei $
 
-revision = '$Id: ft_connectivitysimulation.m 5157 2012-01-22 14:49:34Z roboos $';
+revision = '$Id: ft_connectivitysimulation.m 5343 2012-02-29 16:15:32Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -212,7 +212,7 @@ switch cfg.method
     
     for tr = 1:cfg.ntrials
       mixsignal = randn(nmixsignal,  nsmp + 2*fltpad + maxdelay);
-      mixsignal = preproc(mixsignal, label, cfg.fsample, cfg, -fltpad, fltpad, fltpad);
+      mixsignal = preproc(mixsignal, label, offset2time(-fltpad, cfg.fsample, size(mixsignal,2)), cfg, fltpad, fltpad);
       tmp       = zeros(cfg.nsignal, nsmp);
       for i=1:cfg.nsignal
         for j=1:nmixsignal
@@ -248,7 +248,7 @@ switch cfg.method
       end
       
       % apply preproc
-      newtmp = preproc(newtmp, label, cfg.fsample, cfg, -fltpad, fltpad, fltpad);
+      newtmp = preproc(newtmp, label, offset2time(-fltpad, cfg.fsample, size(newtmp,2)), cfg, fltpad, fltpad);
       
       trial{k} = newtmp;
       

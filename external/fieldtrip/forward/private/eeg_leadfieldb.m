@@ -37,7 +37,7 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfieldb.m 2344 2010-12-08 10:34:24Z crimic $
+% $Id: eeg_leadfieldb.m 5353 2012-02-29 23:44:21Z crimic $
 
 
 % do some sanity checks
@@ -82,14 +82,6 @@ cond = vol.cond(vol.source);
 
 % compute the infinite medium potential on all vertices
 switch ft_voltype(vol)
-  case 'avo'
-    % the system matrix was computed using code from Adriaan van Oosterom
-    % the code by Adriaan van Oosterom does not implement isolated source approach
-    lf = [];
-    for i=1:ncmp
-      lf = [lf; inf_medium_leadfield(pos, vol.bnd(i).pnt, mean(vol.sigmas(i,:)))];
-    end
-
   case 'dipoli'
     % the system matrix was computed using Thom Oostendorp's DIPOLI
     % concatenate the vertices of all compartment boundaries in a single Nx3 matrix
@@ -121,7 +113,7 @@ switch ft_voltype(vol)
     end
     % concatenate the leadfields
     lf = cat(1, lf{:});
-   
+  
   otherwise
     error('unsupported type of volume conductor (%s)\n', ft_voltype(vol));
 end % switch ft_voltype

@@ -55,7 +55,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: ft_prepare_vol_sens.m 5468 2012-03-15 11:49:05Z crimic $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -138,7 +138,7 @@ elseif ismeg
   sens.tra     = sens.tra(:,selcoil);
 
   switch ft_voltype(vol)
-    case 'infinite'
+    case {'infinite' 'infinite_monopole'}
       % nothing to do
 
     case 'singlesphere'
@@ -297,7 +297,7 @@ elseif iseeg
     sens.tra     = sens.tra(selsens,:);
     % subsequently remove the electrodes that do not contribute to any channel output
     selelec      = any(sens.tra~=0,1);
-    sens.elecpos = sens.coilpos(selelec,:);
+    sens.elecpos = sens.elecpos(selelec,:);
     sens.tra     = sens.tra(:,selelec);
   else
     % the electrodes and channels are identical
@@ -315,7 +315,7 @@ elseif iseeg
   end
   
   switch ft_voltype(vol)
-    case 'infinite'
+    case {'infinite' 'infinite_monopole'}
       % nothing to do
 
     case {'halfspace', 'halfspace_monopole'}
@@ -400,7 +400,7 @@ elseif iseeg
       end
       sens.elecpos = pnt;
 
-    case {'bem', 'dipoli', 'asa', 'avo', 'bemcp', 'openmeeg'}
+    case {'bem', 'dipoli', 'asa', 'bemcp', 'openmeeg'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % do postprocessing of volume and electrodes in case of BEM model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

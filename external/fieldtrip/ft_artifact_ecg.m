@@ -57,9 +57,9 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 4669 2011-11-03 20:58:34Z roboos $
+% $Id: ft_artifact_ecg.m 5343 2012-02-29 16:15:32Z roevdmei $
 
-revision = '$Id: ft_artifact_ecg.m 4669 2011-11-03 20:58:34Z roboos $';
+revision = '$Id: ft_artifact_ecg.m 5343 2012-02-29 16:15:32Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -153,9 +153,13 @@ end
 for j = 1:ntrl
   if ~hasdata
     ecg{j} = ft_read_data(cfg.datafile, 'header', hdr, 'begsample', trl(j,1), 'endsample', trl(j,2), 'chanindx', sgnind, 'checkboundary', strcmp(cfg.continuous, 'no'), 'dataformat', cfg.dataformat);
+    currtime = offset2time(trl(j,3), hdr.Fs, size(ecg{j},2));
+    ecg{j} = preproc(ecg{j}, artfctdef.channel, currtime, artfctdef, fltpadding, fltpadding);
+    ecg{j} = ecg{j}.^2;
+  else
+    ecg{j} = preproc(ecg{j}, artfctdef.channel, ecgdata.time{j}, artfctdef, fltpadding, fltpadding);
+    ecg{j} = ecg{j}.^2;
   end
-  ecg{j} = preproc(ecg{j}, artfctdef.channel, hdr.Fs, artfctdef, [], fltpadding, fltpadding);
-  ecg{j} = ecg{j}.^2;
 end
 
 tmp   = cell2mat(ecg);

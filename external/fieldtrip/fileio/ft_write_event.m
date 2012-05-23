@@ -50,7 +50,7 @@ function ft_write_event(filename, event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_event.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_write_event.m 5260 2012-02-08 13:19:05Z roboos $
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql
@@ -115,6 +115,8 @@ switch eventformat
     write_serial_event(filename, event);
 
   case 'fcdc_mysql'
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('mysql', 1);
     % write to a MySQL server listening somewhere else on the network
     db_open(filename);
     for i=1:length(event)

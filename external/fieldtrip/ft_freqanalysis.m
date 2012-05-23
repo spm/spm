@@ -32,7 +32,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                        output will contain a spectral transfer matrix,
 %                        the cross-spectral density matrix, and the
 %                        covariance matrix of the innovatio noise.
-% 
+%
 %                    OR, if you want to use the old implementation (not from
 %                      the specest module)
 %                      'mtmfft_old'
@@ -62,8 +62,8 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   cfg.polyremoval = number (default = 0), specifying the order of the
 %                      polynome which is fitted and subtracted from the
 %                      time domain data prior to the spectral analysis. For example, a
-%                      value of 1 corresponds to a linear trend. The default is a mean 
-%                      subtraction, thus a value of 0. If no removal is requested, 
+%                      value of 1 corresponds to a linear trend. The default is a mean
+%                      subtraction, thus a value of 0. If no removal is requested,
 %                      specify -1.
 %                      see FT_PREPROC_POLYREMOVAL for details
 %
@@ -154,8 +154,25 @@ function [freq] = ft_freqanalysis(cfg, data)
 %
 % See also FT_FREQANALYSIS_OLD
 
+% Guidelines for use in an analysis pipeline:
+% after FT_FREQANALYSIS you will have frequency or time-frequency
+% representations (TFRs) of the data, represented as power-spectra,
+% power and cross-spectra, or complex fourier-spectra, either for individual 
+% trials or an average over trials.
+% This usually serves as input for one of the following functions:
+%    * FT_FREQDESCRIPTIVES  to compute descriptive univariate statistics
+%    * FT_FREQSTATISTICS    to perform parametric or non-parametric statistical tests
+%    * FT_FREQBASELINE      to perform baseline normalization of the spectra
+%    * FT_FREQGRANDAVERAGE  to compute the average spectra over multiple subjects or datasets
+%    * FT_CONNECTIVITYANALYSIS to compute various measures of connectivity
+% Furthermore, the data can be visualised using the various plotting
+% functions, including:
+%    * FT_SINGLEPLOTTFR     to plot the TFR of a single channel or the average over multiple channels
+%    * FT_TOPOPLOTTFR       to plot the topographic distribution over the head
+%    * FT_MULTIPLOTTFR      to plot TFRs in a topographical layout
+
 % Undocumented local options:
-% cfg.method = 'hilbert'. Keeping this as undocumented as it does not make sense to use 
+% cfg.method = 'hilbert'. Keeping this as undocumented as it does not make sense to use
 %              in ft_freqanalysis unless the user is doing his own filter-padding
 %              to remove edge-artifacts
 % cfg.correctt_ftimwin (set to yes to try to determine new t_ftimwins based
@@ -180,7 +197,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 5106 2012-01-10 13:10:28Z jansch $';
+revision = '$Id: ft_freqanalysis.m 5780 2012-05-16 08:37:40Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -214,6 +231,7 @@ cfg = ft_checkconfig(cfg, 'renamed',     {'sgncmb',   'channelcmb'});
 cfg = ft_checkconfig(cfg, 'required',    {'method'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'fft',    'mtmfft'});
 cfg = ft_checkconfig(cfg, 'renamedval',  {'method', 'convol', 'mtmconvol'});
+cfg = ft_checkconfig(cfg, 'forbidden',   {'latency'}); % see bug 1376 and 1076
 
 % NEW OR OLD - switch for selecting which function to call and when to do it
 % this will change when the development of specest proceeds
@@ -260,13 +278,13 @@ switch cfg.method
     specestflg = 1;
     cfg.width  = ft_getopt(cfg, 'width',  7);
     cfg.gwidth = ft_getopt(cfg, 'gwidth', 3);
-   
+    
   case 'tfr'
     cfg = ft_checkconfig(cfg, 'renamed', {'waveletwidth', 'width'});
     cfg = ft_checkconfig(cfg, 'unused',  {'downsample'});
     specestflg = 1;
     cfg.width  = ft_getopt(cfg, 'width',  7);
-    cfg.gwidth = ft_getopt(cfg, 'gwidth', 3); 
+    cfg.gwidth = ft_getopt(cfg, 'gwidth', 3);
     
     
   case 'hilbert'
@@ -426,13 +444,13 @@ else
     error('use either cfg.foi or cfg.foilim')
   elseif ~isempty(cfg.foilim)
     % get the full foi in the current foilim and set it too be used as foilim
-    fboilim = round(cfg.foilim ./ (data.fsample ./ (cfg.pad*data.fsample))) + 1;
+    fboilim = round(cfg.foilim .* cfg.pad) + 1;
     fboi    = fboilim(1):1:fboilim(2);
     cfg.foi = (fboi-1) ./ cfg.pad;
   else
     % correct foi if foilim was empty and try to correct t_ftimwin (by detecting whether there is a constant factor between foi and t_ftimwin: cyclenum)
     oldfoi = cfg.foi;
-    fboi   = round(cfg.foi ./ (data.fsample ./ (cfg.pad*data.fsample))) + 1;
+    fboi   = round(cfg.foi .* cfg.pad) + 1;
     cfg.foi    = (fboi-1) ./ cfg.pad; % boi - 1 because 0 Hz is included in fourier output
     if strcmp(cfg.correctt_ftimwin,'yes')
       cyclenum = oldfoi .* cfg.t_ftimwin;

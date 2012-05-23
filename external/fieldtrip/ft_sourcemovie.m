@@ -1,4 +1,4 @@
-function [cfg] = ft_sourcemovie(cfg, source)
+function [cfg, M] = ft_sourcemovie(cfg, source)
 
 % FT_SOURCEMOVIE displays the source reconstruction on a cortical mesh
 % and allows the user to scroll through time with a movie
@@ -22,13 +22,13 @@ function [cfg] = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 4658 2011-11-02 19:49:23Z roboos $
+% $Id: ft_sourcemovie.m 5256 2012-02-07 15:05:44Z jansch $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_sourcemovie.m 4658 2011-11-02 19:49:23Z roboos $';
+revision = '$Id: ft_sourcemovie.m 5256 2012-02-07 15:05:44Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -163,63 +163,71 @@ set(h, 'toolbar', 'figure');
 
 % add the GUI elements for changing the speed
 p = uicontrol('style', 'text');
-set(p, 'position', [20 75 50 20]);
+set(p, 'position', [20 50 50 20]);
 set(p, 'string', 'speed')
 button_slower = uicontrol('style', 'pushbutton');
-set(button_slower, 'position', [75 75 20 20]);
+set(button_slower, 'position', [75 50 20 20]);
 set(button_slower, 'string', '-')
 set(button_slower, 'Callback', @cb_speed);
 button_faster = uicontrol('style', 'pushbutton');
-set(button_faster, 'position', [100 75 20 20]);
+set(button_faster, 'position', [100 50 20 20]);
 set(button_faster, 'string', '+')
 set(button_faster, 'Callback', @cb_speed);
 
 % add the GUI elements for changing the color limits
 p = uicontrol('style', 'text');
-set(p, 'position', [20 100 50 20]);
+set(p, 'position', [20 72 50 20]);
 set(p, 'string', 'zlim')
 button_slower = uicontrol('style', 'pushbutton');
-set(button_slower, 'position', [75 100 20 20]);
+set(button_slower, 'position', [75 72 20 20]);
 set(button_slower, 'string', '-')
 set(button_slower, 'Callback', @cb_zlim);
 button_faster = uicontrol('style', 'pushbutton');
-set(button_faster, 'position', [100 100 20 20]);
+set(button_faster, 'position', [100 72 20 20]);
 set(button_faster, 'string', '+')
 set(button_faster, 'Callback', @cb_zlim);
 
 % add the GUI elements for changing the opacity limits
 p = uicontrol('style', 'text');
-set(p, 'position', [20 125 50 20]);
+set(p, 'position', [20 94 50 20]);
 set(p, 'string', 'alim')
 button_slower = uicontrol('style', 'pushbutton');
-set(button_slower, 'position', [75 125 20 20]);
+set(button_slower, 'position', [75 94 20 20]);
 set(button_slower, 'string', '-')
 set(button_slower, 'Callback', @cb_alim);
 button_faster = uicontrol('style', 'pushbutton');
-set(button_faster, 'position', [100 125 20 20]);
+set(button_faster, 'position', [100 94 20 20]);
 set(button_faster, 'string', '+')
 set(button_faster, 'Callback', @cb_alim);
 
 sx = uicontrol('style', 'slider');
-set(sx, 'position', [20 20 pos(3)-160 20]);
+set(sx, 'position', [20 25 pos(3)-160 20]);
 % note that "sx" is needed further down
 
 sy = uicontrol('style', 'slider');
-set(sy, 'position', [20 45 pos(3)-160 20]);
+set(sy, 'position', [20 2 pos(3)-160 20]);
 % note that "sy" is needed further down
 
 p = uicontrol('style', 'pushbutton');
-set(p, 'position', [20 150 50 20]);
+set(p, 'position', [20 116 50 20]);
 set(p, 'string', 'play')
 % note that "p" is needed further down
 
+m = uicontrol('style', 'pushbutton');
+set(m, 'position', [20 138 50 20]);
+set(m, 'string', 'record');
+
+q = uicontrol('style', 'pushbutton');
+set(q, 'position', [20 160 50 20]);
+set(q, 'string', 'quit');
+
 hx = uicontrol('style', 'text');
-set(hx, 'position', [pos(3)-140 20 120 20]);
+set(hx, 'position', [pos(3)-140 25 120 20]);
 set(hx, 'string', sprintf('%s = ', cfg.xparam));
 set(hx, 'horizontalalignment', 'left');
 
 hy = uicontrol('style', 'text');
-set(hy, 'position', [pos(3)-140 45 120 20]);
+set(hy, 'position', [pos(3)-140 2 120 20]);
 set(hy, 'string', sprintf('%s = ', cfg.yparam));
 set(hy, 'horizontalalignment', 'left');
 
@@ -238,21 +246,33 @@ opt.yparam  = yparam;
 opt.dat     = fun;
 opt.mask    = mask;
 opt.speed   = 1;
+opt.record  = 0;
+opt.frame   = 0;
+opt.cleanup = false;
 
-ft_plot_mesh(source, 'edgecolor', 'none', 'facecolor', [0.5 0.5 0.5]);
+if isfield(source, 'sulc')
+  vdat = source.sulc;
+  vdat = vdat-min(vdat)+1;
+  vdat = vdat./max(vdat);
+  vdat = 0.8.*repmat(vdat,[1 3]);
+  ft_plot_mesh(source, 'edgecolor', 'none', 'vertexcolor', vdat);
+else
+  ft_plot_mesh(source, 'edgecolor', 'none', 'facecolor', [0.5 0.5 0.5]);
+end
 lighting gouraud
 set(gca, 'Position', [0.2 0.2 0.7 0.7]);
 
 hs = ft_plot_mesh(source, 'edgecolor', 'none', 'vertexcolor', 0*opt.dat(:,1,1), 'facealpha', 0*opt.mask(:,1,1));
 lighting gouraud
-camlight left
-camlight right
+cam1 = camlight('left');
+cam2 = camlight('right');
 
 caxis(cfg.zlim);
 alim(cfg.alim);
 
 
 % remember the varous handles
+opt.h   = h;
 opt.hs  = hs;
 opt.p   = p;
 opt.t   = t;
@@ -268,11 +288,34 @@ guidata(h, opt);
 set(sx, 'Callback', @cb_slider);
 set(sy, 'Callback', @cb_slider);
 set(p,  'Callback', @cb_playbutton);
+set(m,  'Callback', @cb_recordbutton);
+set(q,  'Callback', @cb_quit);
 
-% do the general cleanup and bookkeeping at the end of the function
-ft_postamble trackconfig
-ft_postamble callinfo
-ft_postamble previous source
+if nargout
+  % wait until the user interface is closed
+  %set(h, 'CloseRequestFcn', @cb_quit);
+  
+  while ishandle(h)
+    uiwait(h);
+    opt = guidata(h);
+    if opt.cleanup
+      if isfield(opt, 'movie')
+        M = opt.movie;
+      else
+        M = [];
+      end
+      delete(h);
+    end
+  end
+  
+  
+  % do the general cleanup and bookkeeping at the end of the function
+  ft_postamble trackconfig
+  ft_postamble callinfo
+  ft_postamble previous source
+
+end % if nargout
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -296,6 +339,12 @@ set(opt.hy, 'string', sprintf('%s = %f\n', opt.cfg.yparam, opt.yparam(valy)));
 set(opt.hs, 'FaceVertexCData', squeeze(opt.dat(:,valx,valy)));
 set(opt.hs, 'FaceVertexAlphaData', squeeze(opt.mask(:,valx,valy)));
 
+if opt.record
+  opt.frame = opt.frame + 1;
+  opt.movie(opt.frame) = getframe(opt.h);
+  guidata(h, opt);
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -312,6 +361,35 @@ switch get(h, 'string')
     set(h, 'string', 'play');
     stop(opt.t);
 end
+uiresume;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cb_recordbutton(h, eventdata)
+if ~ishandle(h)
+  return
+end
+opt = guidata(h);
+switch get(h, 'string')
+  case 'record'
+    set(h, 'string', 'stop');
+    opt.record = 1;
+  case 'stop'
+    set(h, 'string', 'record');
+    opt.record = 0;
+end
+guidata(h, opt);
+uiresume;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cb_quit(h, eventdata)
+opt = guidata(h);
+opt.cleanup = 1;
+guidata(h, opt);
+uiresume;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -329,6 +407,7 @@ if val>1
 end
 set(opt.sx, 'value', val);
 cb_slider(h);
+uiresume;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -345,6 +424,7 @@ switch get(h, 'String')
     alim(alim/sqrt(2));
 end % switch
 guidata(h, opt);
+uiresume;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -361,6 +441,7 @@ switch get(h, 'String')
     caxis(caxis/sqrt(2));
 end % switch
 guidata(h, opt);
+uiresume;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -378,5 +459,5 @@ switch get(h, 'String')
     opt.speed = max(opt.speed, 1); % should not be smaller than 1
 end % switch
 guidata(h, opt);
-
+uiresume;
 

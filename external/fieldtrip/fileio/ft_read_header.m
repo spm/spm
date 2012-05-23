@@ -48,6 +48,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
 %   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
+%   GTec (*.mat)
 %
 % The following spike and LFP dataformats are supported (with some limitations)
 %   Plextor (*.nex, *.plx, *.ddt)
@@ -58,7 +59,7 @@ function [hdr] = ft_read_header(filename, varargin)
 % See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT,
 % FT_CHANTYPE, FT_CHANUNIT
 
-% Copyright (C) 2003-2011 Robert Oostenveld
+% Copyright (C) 2003-2012 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -76,7 +77,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 5083 2011-12-31 13:50:43Z jansch $
+% $Id: ft_read_header.m 5733 2012-05-03 20:48:45Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -93,8 +94,13 @@ if ~exist(filename, 'file') && ~strcmp(ft_filetype(filename), 'ctf_shm') && ~str
 end
 
 % get the options
-headerformat = ft_getopt(varargin, 'headerformat', ft_filetype(filename)); % the default is automatically detected
 retry        = ft_getopt(varargin, 'retry', false); % the default is not to retry reading the header
+headerformat = ft_getopt(varargin, 'headerformat');
+
+if isempty(headerformat)
+  % only do the autodetection if the format was not specified
+  headerformat = ft_filetype(filename);
+end
 
 % The checkUniqueLabels flag is used for the realtime buffer in case
 % it contains fMRI data. It prevents 1000000 voxel names to be checked
@@ -120,7 +126,7 @@ else
   fallback = ft_getopt(varargin, 'fallback');
   
   if isempty(cache),
-    if strcmp(headerformat, 'bci2000_dat') || strcmp(headerformat, 'eyelink_asc') || strcmp(headerformat, 'biosig')
+    if strcmp(headerformat, 'bci2000_dat') || strcmp(headerformat, 'eyelink_asc') || strcmp(headerformat, 'gtec_mat') || strcmp(headerformat, 'biosig')
       cache = true;
     else
       cache = false;
@@ -129,7 +135,7 @@ else
   
   % ensure that the headerfile and datafile are defined, which are sometimes different than the name of the dataset
   [filename, headerfile, datafile] = dataset2files(filename, headerformat);
-  if ~strcmp(filename, headerfile) && ~ft_filetype(filename, 'ctf_ds') && ~ft_filetype(filename, 'fcdc_buffer_offline')
+  if ~strcmp(filename, headerfile) && ~ft_filetype(filename, 'ctf_ds') && ~ft_filetype(filename, 'fcdc_buffer_offline') && ~ft_filetype(filename, 'fcdc_matbin')
     filename     = headerfile;                % this function should read the headerfile, not the dataset
     headerformat = ft_filetype(filename);     % update the filetype
   end
@@ -255,14 +261,61 @@ switch headerformat
     hdr.nTrials     = 1;
     hdr.label       = orig.label;
     
-  case {'biosig' 'gdf'}
-    % use the biosig toolbox if available
+  case {'biosig'}
+    % this requires the biosig toolbox
     ft_hastoolbox('BIOSIG', 1);
     hdr = read_biosig_header(filename);
-    % gdf always represents continuous data
-    hdr.nSamples    = hdr.nSamples*hdr.nTrials;
-    hdr.nTrials     = 1;
-    hdr.nSamplesPre = 0;
+    
+  case {'gdf'}
+    % this requires the biosig toolbox
+    ft_hastoolbox('BIOSIG', 1);
+    % In the case that the gdf files are written by one of the FieldTrip
+    % realtime applications, such as biosig2ft, the gdf recording can be
+    % split over multiple 1GB files. The sequence of files is then
+    %   filename.gdf   <- this is the one that should be specified as the filename/dataset
+    %   filename_1.gdf
+    %   filename_2.gdf
+    %   ...
+    
+    [p, f, x] = fileparts(filename);
+    if exist(sprintf('%s_%d%s', fullfile(p, f), 1, x), 'file')
+      % there are multiple files, count the number of additional files (excluding the first one)
+      count = 0;
+      while exist(sprintf('%s_%d%s', fullfile(p, f), count+1, x), 'file')
+        count = count+1;
+      end
+      hdr = read_biosig_header(filename);
+      for i=1:count
+        hdr(i+1) = read_biosig_header(sprintf('%s_%d%s', fullfile(p, f), i, x));
+        % do some sanity checks
+        if hdr(i+1).nChans~=hdr(1).nChans
+          error('multiple GDF files detected that should be appended, but the channel count is inconsistent');
+        elseif hdr(i+1).Fs~=hdr(1).Fs
+          error('multiple GDF files detected that should be appended, but the sampling frequency is inconsistent');
+        elseif ~isequal(hdr(i+1).label, hdr(1).label)
+          error('multiple GDF files detected that should be appended, but the channel names are inconsistent');
+        end
+      end % for count
+      % combine all headers into one
+      combinedhdr             = [];
+      combinedhdr.Fs          = hdr(1).Fs;
+      combinedhdr.nChans      = hdr(1).nChans;
+      combinedhdr.nSamples    = sum([hdr.nSamples].*[hdr.nTrials]);
+      combinedhdr.nSamplesPre = 0;
+      combinedhdr.nTrials     = 1;
+      combinedhdr.label       = hdr(1).label;
+      combinedhdr.orig        = hdr; % include all individual file details
+      hdr = combinedhdr;
+      
+    else
+      % there is only a single file
+      hdr = read_biosig_header(filename);
+      % the GDF format is always continuous
+      hdr.nSamples = hdr.nSamples * hdr.nTrials;
+      hdr.nTrials = 1;
+      hdr.nSamplesPre = 0;
+    end % if single or multiple gdf files
+    
     
   case {'biosemi_bdf', 'bham_bdf'}
     hdr = read_biosemi_bdf(filename);
@@ -282,7 +335,7 @@ switch headerformat
     end
     
   case {'biosemi_old'}
-    % this uses the openbdf and readbdf functions that I copied from the EEGLAB toolbox
+    % this uses the openbdf and readbdf functions that were copied from EEGLAB
     orig = openbdf(filename);
     if any(orig.Head.SampleRate~=orig.Head.SampleRate(1))
       error('channels with different sampling rate not supported');
@@ -645,8 +698,19 @@ switch headerformat
     hdr.orig.CateNames   = CateNames;
     hdr.orig.CatLengths  = CatLengths;
     
-  case 'egi_mff'
-    orig = [];
+  case {'egi_mff_v1' 'egi_mff'} % this is currently the default
+    % The following represents the code that was written by Ingrid, Robert
+    % and Giovanni to get started with the EGI mff dataset format. It might
+    % not support all details of the file formats.
+    % An alternative implementation has been provided by EGI, this is
+    % released as fieldtrip/external/egi_mff and referred further down in
+    % this function as 'egi_mff_v2'.
+    
+    if ~usejava('jvm')
+      error('the xml2struct requires MATLAB to be running with the Java virtual machine (JVM)');
+      % an alternative implementation which does not require the JVM but runs much slower is
+      % available from http://www.mathworks.com/matlabcentral/fileexchange/6268-xml4mat-v2-0
+    end
     
     % get header info from .bin files
     binfiles = dir(fullfile(filename, 'signal*.bin'));
@@ -654,6 +718,7 @@ switch headerformat
       error('could not find any signal.bin in mff directory')
     end
     
+    orig = [];
     for iSig = 1:length(binfiles)
       signalname = binfiles(iSig).name;
       fullsignalname = fullfile(filename, signalname);
@@ -661,7 +726,6 @@ switch headerformat
     end
     
     % get hdr info from xml files
-    ft_hastoolbox('XML4MAT', 1, 0);
     warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
     xmlfiles = dir( fullfile(filename, '*.xml'));
     disp('reading xml files to obtain header info...')
@@ -669,7 +733,7 @@ switch headerformat
       if strcmpi(xmlfiles(i).name(1:2), '._') % Mac sometimes creates this useless files, don't use them
       elseif strcmpi(xmlfiles(i).name(1:6), 'Events') % don't read in events here, can take a lot of time, and we can do that in ft_read_event
       else
-        fieldname = xmlfiles(i).name(1:end-4);
+        fieldname     = xmlfiles(i).name(1:end-4);
         filename_xml  = fullfile(filename, xmlfiles(i).name);
         orig.xml.(fieldname) = xml2struct(filename_xml);
       end
@@ -767,7 +831,7 @@ switch headerformat
           end
         end
       end
-    else %no xml.sensorLayout present
+    else % no xml.sensorLayout present
       warning('no sensorLayout found in xml files, creating channel labels on the fly')
       for iSig = 1:length(orig.signal)
         for iSens = 1:orig.signal(iSig).blockhdr(1).nsignals
@@ -805,6 +869,18 @@ switch headerformat
     end
     hdr.orig      = orig;
     
+  case 'egi_mff_v2'
+    % ensure that the EGI toolbox is on the path
+    ft_hastoolbox('egi_mff', 1);
+    if isunix && filename(1)~=filesep
+      % add the full path to the dataset directory
+      filename = fullfile(pwd, filename);
+    else
+      % FIXME I don't know how this is supposed to work on Windows computers
+      % with the drive letter in front of the path
+    end
+    hdr = read_mff_header(filename);
+      
   case 'fcdc_buffer'
     % read from a networked buffer for realtime analysis
     [host, port] = filetype_check_uri(filename);
@@ -942,6 +1018,8 @@ switch headerformat
     load(headerfile, 'hdr');
     
   case 'fcdc_mysql'
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('mysql', 1);
     % read from a MySQL server listening somewhere else on the network
     db_open(filename);
     if db_blob
@@ -949,6 +1027,30 @@ switch headerformat
     else
       hdr = db_select('fieldtrip.header', {'nChans', 'nSamples', 'nSamplesPre', 'Fs', 'label'}, 1);
       hdr.label = mxDeserialize(hdr.label);
+    end
+    
+  case 'gtec_mat'
+    % this is a simple MATLAB format, it contains a log and a names variable
+    tmp = load(headerfile);
+    log   = tmp.log;
+    names = tmp.names;
+    
+    hdr.label = cellstr(names);
+    hdr.nChans = size(log,1);
+    hdr.nSamples = size(log,2);
+    hdr.nSamplesPre = 0;
+    hdr.nTrials = 1; % assume continuous data, not epoched
+    
+    % compute the sampling frequency from the time channel
+    sel = strcmp(hdr.label, 'Time');
+    time = log(sel,:);
+    
+    hdr.Fs = 1./(time(2)-time(1));
+    
+    % also remember the complete data upon request
+    if cache
+      hdr.orig.log = log;
+      hdr.orig.names = names;
     end
     
   case {'itab_raw' 'itab_mhd'}
@@ -1331,7 +1433,7 @@ switch headerformat
     % do some reformatting/renaming of the header items
     hdr.Fs          = orig.header.rate;
     hdr.nChans      = orig.header.nchannels;
-    hdr.nSamples    = orig.header.nums;
+    hdr.nSamples    = orig.header.numsamples;
     hdr.nSamplesPre = 0;
     hdr.nTrials     = 1;
     for i=1:hdr.nChans
@@ -1518,11 +1620,14 @@ switch headerformat
     hdr.nTrials     = 1; % continuous data
     hdr.label       = {tmp.hdr.entityinfo(tmp.list.analog(tmp.analog.contcount~=0)).EntityLabel}; %%% contains non-unique chans?
     hdr.orig        = tmp; % remember the original header
-  
+    
   case 'bucn_nirs'
     orig = read_bucn_nirshdr(filename);
     hdr  = rmfield(orig, 'time');
     hdr.orig = orig;
+    
+  case 'neurosim'
+    hdr = read_neurosim_signals(filename);
     
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
@@ -1562,6 +1667,13 @@ if ~isfield(hdr, 'chanunit')
   % use a helper function which has some built in intelligence
   hdr.chanunit = ft_chanunit(hdr);
 end % for
+
+% ensure that the output grad/elec is according to the latest definition
+if isfield(hdr, 'grad')
+  hdr.grad = ft_datatype_sens(hdr.grad);
+elseif isfield(hdr, 'elec')
+  hdr.elec = ft_datatype_sens(hdr.elec);
+end
 
 % ensure that these are double precision and not integers, otherwise
 % subsequent computations that depend on these might be messed up
@@ -1634,14 +1746,3 @@ for i=1:length(hdr)
   end
 end
 hdr = tmp;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function out = fixname(str)
-% FIXME this still fails if the string starts with a digit, e.g. "99luftballons"
-out = deblank(lower(str));
-out(out=='-') = '_'; % fix dashes
-out(out==' ') = '_'; % fix spaces
-out(out=='/') = '_'; % fix forward slashes
-out(out=='\') = '_'; % fix backward slashes
-out(out=='.') = '_';
-out(out==',') = '_';

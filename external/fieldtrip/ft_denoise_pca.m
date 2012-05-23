@@ -59,12 +59,13 @@ function data = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 5157 2012-01-22 14:49:34Z roboos $
+% $Id: ft_denoise_pca.m 5318 2012-02-26 13:47:58Z jansch $
 
-revision = '$Id: ft_denoise_pca.m 5157 2012-01-22 14:49:34Z roboos $';
+revision = '$Id: ft_denoise_pca.m 5318 2012-02-26 13:47:58Z jansch $';
 
 % do the general setup of the function
 ft_defaults
+ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 
@@ -80,11 +81,12 @@ cfg.truncate   = ft_getopt(cfg, 'truncate',   'no');
 cfg.zscore     = ft_getopt(cfg, 'zscore',     'no');
 cfg.trials     = ft_getopt(cfg, 'trials',     'all');
 cfg.pertrial   = ft_getopt(cfg, 'pertrial',   'no');
+cfg.feedback   = ft_getopt(cfg, 'feedback',   'none');
 
 if strcmp(cfg.pertrial, 'yes'),
   tmpcfg          = cfg;
   tmpcfg.pertrial = 'no';
-  tmp             = cell(numel(varargin{1}.trial));
+  tmp             = cell(numel(varargin{1}.trial),1);
   for k = 1:numel(varargin{1}.trial)
     tmpcfg.trials = k;
     tmp{k,1}      = ft_denoise_pca(tmpcfg, varargin{:});
@@ -104,6 +106,7 @@ if length(varargin)==1,
   % split data into data and refdata
   tmpcfg  = [];
   tmpcfg.channel = refchan;
+  tmpcfg.feedback = cfg.feedback;
   refdata = ft_preprocessing(tmpcfg, data);
   tmpcfg.channel = megchan;
   data    = ft_preprocessing(tmpcfg, data);
@@ -117,6 +120,7 @@ else
   % split data into data and refdata
   tmpcfg  = [];
   tmpcfg.channel = refchan;
+  tmpcfg.feedback = cfg.feedback;
   refdata = ft_preprocessing(tmpcfg, refdata);
   tmpcfg.channel = megchan;
   data    = ft_preprocessing(tmpcfg, data);

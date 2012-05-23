@@ -30,11 +30,11 @@ function dat = ft_preproc_medianfilter(dat, order);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 2347 2010-12-08 10:40:36Z jansch $
+% $Id: ft_preproc_medianfilter.m 5593 2012-04-04 15:17:51Z roboos $
 
 % set the default filter order
 if nargin<2 || isempty(order)
-  error('the order of the median filter is not specified');;
+  error('the order of the median filter is not specified');
 end
 
 dat = medfilt1(dat, order, [], 2);

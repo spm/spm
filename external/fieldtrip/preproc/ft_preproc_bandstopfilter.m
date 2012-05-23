@@ -44,7 +44,10 @@ function [filt] = ft_preproc_bandstopfilter(dat,Fs,Fbp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandstopfilter.m 5147 2012-01-18 09:23:49Z johzum $
+% $Id: ft_preproc_bandstopfilter.m 5593 2012-04-04 15:17:51Z roboos $
+
+% determine the size of the data
+[nchans, nsamples] = size(dat);
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -110,12 +113,20 @@ switch type
     B = firls(N,f,z); % requires Matlab signal processing toolbox
 end
 
-meandat=mean(dat,2);
-dat=dat-repmat(meandat,[1 size(dat,2)]);
-filt = filter_with_correction(B,A,dat,dir);
-filt=filt+repmat(meandat,[1 size(dat,2)]);
+meandat = mean(dat,2);
+for i=1:nsamples
+  % demean the data
+  dat(:,i) = dat(:,i) - meandat;
+end
 
-%SK: I think the following is non-sense. Approximating a high-order
+filt = filter_with_correction(B,A,dat,dir);
+
+for i=1:nsamples
+  % add the mean back to the filtered data
+  filt(:,i) = filt(:,i) + meandat;
+end
+
+% SK: I think the following is non-sense. Approximating a high-order
 % bandstop filter by a succession of low-order bandstop filters
 % will most likely give you very bad accuracy.
 

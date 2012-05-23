@@ -1,4 +1,4 @@
-function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
+function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 
 % FT_PLOT_TOPO interpolates and plots the 2-D spatial topography of the
 % potential or field distribution over the head
@@ -17,10 +17,11 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %   style         = can be 'surf', 'iso', 'isofill', 'surfiso'
 %   datmask       =
 %   tag           =
+%   parent        = handle which is set as the parent for all plots
 %
 % It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
-%   hpos        = horizontal position of the center of the local axes
-%   vpos        = vertical position of the center of the local axes
+%   hpos        = horizontal position of the lower left corner of the local axes
+%   vpos        = vertical position of the lower left corner of the local axes
 %   width       = width of the local axes
 %   height      = height of the local axes
 %   hlim        = horizontal scaling limits within the local axes
@@ -44,7 +45,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 4544 2011-10-21 09:51:34Z jorhor $
+% $Id: ft_plot_topo.m 5787 2012-05-19 09:25:51Z eelspa $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -54,8 +55,8 @@ ws = warning('on', 'MATLAB:divideByZero');
 % get the optional input arguments
 hpos          = ft_getopt(varargin, 'hpos',           0);
 vpos          = ft_getopt(varargin, 'vpos',           0);
-width         = ft_getopt(varargin, 'width',          1);
-height        = ft_getopt(varargin, 'height',         1);
+width         = ft_getopt(varargin, 'width',          []);
+height        = ft_getopt(varargin, 'height',         []);
 gridscale     = ft_getopt(varargin, 'gridscale',      67); % 67 in original
 shading       = ft_getopt(varargin, 'shading',        'flat');
 interplim     = ft_getopt(varargin, 'interplim',      'electrodes');
@@ -66,6 +67,7 @@ isolines      = ft_getopt(varargin, 'isolines');
 datmask       = ft_getopt(varargin, 'datmask');
 mask          = ft_getopt(varargin, 'mask');
 outline       = ft_getopt(varargin, 'outline');
+parent        = ft_getopt(varargin, 'parent', []);
 
 % everything is added to the current figure
 holdflag = ishold;
@@ -73,8 +75,44 @@ if ~holdflag
   hold on
 end
 
-chanX = chanX(:) * width  + hpos;
-chanY = chanY(:) * height + vpos;
+% layout units can be arbitrary (e.g. pixels for .mat files)
+% so we need to compute the right scaling factor
+% create a matrix with all coordinates
+% from positions, mask, and outline
+allCoords = [chanX chanY];
+if ~isempty(mask)
+  for k = 1:numel(mask)
+    allCoords = [allCoords; mask{k}];
+  end
+end
+if ~isempty(outline)
+  for k = 1:numel(outline)
+    allCoords = [allCoords; outline{k}];
+  end
+end
+
+naturalWidth = (max(allCoords(:,1))-min(allCoords(:,1)));
+naturalHeight = (max(allCoords(:,2))-min(allCoords(:,2)));
+
+if isempty(width) && isempty(height)
+  xScaling = 1;
+  yScaling = 1;
+elseif isempty(width) && ~isempty(height)
+  % height specified, auto-compute width while maintaining aspect ratio
+  yScaling = height/naturalHeight;
+  xScaling = yScaling;
+elseif ~isempty(width) && isempty(height)
+  % width specified, auto-compute height while maintaining aspect ratio
+  xScaling = width/naturalWidth;
+  yScaling = xScaling;
+else
+  % both width and height specified
+  xScaling = width/naturalWidth;
+  yScaling = height/naturalHeight;
+end
+
+chanX = chanX(:) * xScaling + hpos;
+chanY = chanY(:) * yScaling + vpos;
 
 if strcmp(interplim, 'electrodes'),
   hlim = [min(chanX) max(chanX)];
@@ -83,8 +121,8 @@ elseif strcmp(interplim, 'mask') && ~isempty(mask),
   hlim = [inf -inf];
   vlim = [inf -inf];
   for i=1:length(mask)
-    hlim = [min([hlim(1); mask{i}(:,1)*width+hpos]) max([hlim(2); mask{i}(:,1)*width+hpos])];
-    vlim = [min([vlim(1); mask{i}(:,2)*width+vpos]) max([vlim(2); mask{i}(:,2)*width+vpos])];
+    hlim = [min([hlim(1); mask{i}(:,1)*xScaling+hpos]) max([hlim(2); mask{i}(:,1)*xScaling+hpos])];
+    vlim = [min([vlim(1); mask{i}(:,2)*yScaling+vpos]) max([vlim(2); mask{i}(:,2)*yScaling+vpos])];
   end
 else
   hlim = [min(chanX) max(chanX)];
@@ -125,8 +163,8 @@ elseif ~isempty(mask)
     % needs to be fixed (this fixme screws up things, then)
   end
   for i=1:length(mask)
-    mask{i}(:,1) = mask{i}(:,1)*width+hpos;
-    mask{i}(:,2) = mask{i}(:,2)*height+vpos;
+    mask{i}(:,1) = mask{i}(:,1)*xScaling+hpos;
+    mask{i}(:,2) = mask{i}(:,2)*yScaling+vpos;
     mask{i}(end+1,:) = mask{i}(1,:);                   % force them to be closed
     maskimage(inside_contour([Xi(:) Yi(:)], mask{i})) = true;
   end
@@ -163,9 +201,9 @@ end
 
 % plot the outline of the head, ears and nose
 for i=1:length(outline)
-  xval = outline{i}(:,1) * width  + hpos;
-  yval = outline{i}(:,2) * height + vpos;
-  ft_plot_vector(xval, yval, 'Color','k', 'LineWidth',2, 'tag', tag)
+  xval = outline{i}(:,1) * xScaling  + hpos;
+  yval = outline{i}(:,2) * yScaling + vpos;
+  ft_plot_vector(xval, yval, 'Color','k', 'LineWidth',2, 'tag', tag, 'parent', parent);
 end
 
 % Create isolines
@@ -173,6 +211,9 @@ if strcmp(style,'iso') || strcmp(style,'surfiso')
   if ~isempty(isolines)
     [cont, h] = contour(Xi,Yi,Zi,isolines,'k');
     set(h, 'tag', tag);
+    if ~isempty(parent)
+      set(h, 'Parent', parent);
+    end
   end
 end
 
@@ -182,7 +223,9 @@ if strcmp(style,'surf') || strcmp(style,'surfiso')
   deltay = yi(2)-yi(1); % length of grid entry
   h = surf(Xi-deltax/2,Yi-deltay/2,zeros(size(Zi)), Zi, 'EdgeColor', 'none', 'FaceColor', shading);
   set(h, 'tag', tag);
-  
+  if ~isempty(parent)
+    set(h, 'Parent', parent);
+  end
   %if exist('maskimagetmp')
   %  set(h, 'facealpha', 'flat');
   %  set(h, 'alphadatamapping', 'scaled');
@@ -194,6 +237,9 @@ end
 if strcmp(style,'isofill') && ~isempty(isolines)
   [cont,h] = contourf(Xi,Yi,Zi,isolines,'k'); 
   set(h, 'tag', tag);
+  if ~isempty(parent)
+    set(h, 'Parent', parent);
+  end
 end
 
 % remember the current input arguments, so that they can be

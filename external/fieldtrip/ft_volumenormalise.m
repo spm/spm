@@ -63,9 +63,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 5017 2011-12-12 14:33:23Z jansch $
+% $Id: ft_volumenormalise.m 5604 2012-04-11 08:25:38Z jansch $
 
-revision = '$Id: ft_volumenormalise.m 5017 2011-12-12 14:33:23Z jansch $';
+revision = '$Id: ft_volumenormalise.m 5604 2012-04-11 08:25:38Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -163,7 +163,7 @@ cfg.parameter = parameterselection(cfg.parameter, interp);
 % the anatomy should always be normalised as the first volume
 sel = strcmp(cfg.parameter, 'anatomy');
 if ~any(sel)
-  cfg.parameter = {'anatomy' cfg.parameter{:}};
+  cfg.parameter = [{'anatomy'} cfg.parameter];
 else
   [dum, indx] = sort(sel);
   cfg.parameter = cfg.parameter(fliplr(indx));
@@ -227,12 +227,13 @@ else
   params = cfg.spmparams;
 end
 flags.vox = [cfg.downsample,cfg.downsample,cfg.downsample];
-files     = {};
 
 % determine the affine source->template coordinate transformation
 final = VG.mat * inv(params.Affine) * inv(VF.mat) * initial;
 
 % apply the normalisation parameters to each of the volumes
+files  = cell(1,numel(cfg.parameter));
+wfiles = cell(1,numel(cfg.parameter));
 for parlop=1:length(cfg.parameter)
   fprintf('creating normalised analyze-file for %s\n', cfg.parameter{parlop});
   tmp = cfg.parameter{parlop};
@@ -253,6 +254,8 @@ end
 
 normalise.transform = V(1).mat;
 normalise.dim       = size(normalise.anatomy);
+normalise.params    = params;  % this holds the normalization parameters
+normalise.initial   = initial; % this holds the initial co-registration to approximately align with the template
 
 if isfield(normalise, 'inside')
   % convert back to a logical volume

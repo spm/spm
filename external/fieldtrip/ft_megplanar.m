@@ -41,6 +41,9 @@ function [data] = ft_megplanar(cfg, data)
 % If no headshape is specified, the dipole layer will be based on the inner compartment
 % of the volume conduction model.
 %
+% The following cfg fields are optional:
+%   cfg.feedback
+%
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -85,9 +88,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 5176 2012-01-25 14:48:33Z roboos $
+% $Id: ft_megplanar.m 5794 2012-05-22 13:49:11Z jansch $
 
-revision = '$Id: ft_megplanar.m 5176 2012-01-25 14:48:33Z roboos $';
+revision = '$Id: ft_megplanar.m 5794 2012-05-22 13:49:11Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -117,12 +120,13 @@ if isfreq,
 end
 
 % set the default configuration
-cfg.channel      = ft_getopt(cfg, 'channel', 'MEG');
-cfg.trials       = ft_getopt(cfg, 'trials',  'all');
+cfg.channel      = ft_getopt(cfg, 'channel',      'MEG');
+cfg.trials       = ft_getopt(cfg, 'trials',       'all');
 cfg.planarmethod = ft_getopt(cfg, 'planarmethod', 'sincos');
-cfg.inputfile    = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile   = ft_getopt(cfg, 'outputfile', []);
-
+cfg.inputfile    = ft_getopt(cfg, 'inputfile',    []);
+cfg.outputfile   = ft_getopt(cfg, 'outputfile',   []);
+cfg.feedback     = ft_getopt(cfg, 'feedback',     'text');
+ 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
@@ -245,8 +249,12 @@ else
   end
   
   sens = ft_convert_units(data.grad);
+  if any(isnan(sens.chanpos(:)))
+    error('The channel positions contain NaNs; this prohibits correct behavior of the function. Please replace the input channel definition with one that contains valid channel positions');
+  end
   cfg.channel = ft_channelselection(cfg.channel, sens.label);
-  
+  cfg.channel = ft_channelselection(cfg.channel, data.label);
+
   cfg.neighbsel = channelconnectivity(cfg);
   
   % determine
@@ -265,10 +273,11 @@ else
   fprintf('minimum distance between neighbours is %6.2f %s\n', min(cfg.distance(cfg.distance~=0)), sens.unit);
   fprintf('maximum distance between gradiometers is %6.2f %s\n', max(cfg.distance(cfg.distance~=0)), sens.unit);
   
+  
   planarmontage = eval([fun '(cfg, data.grad)']);
   
   % apply the linear transformation to the data
-  interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes');
+  interp  = ft_apply_montage(data, planarmontage, 'keepunused', 'yes', 'feedback', cfg.feedback);
   
   % also apply the linear transformation to the gradiometer definition
   interp.grad = ft_apply_montage(data.grad, planarmontage, 'balancename', 'planar', 'keepunused', 'yes');

@@ -45,7 +45,10 @@ function [filt] = ft_preproc_bandpassfilter(dat, Fs, Fbp, N, type, dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 4739 2011-11-15 09:07:31Z eelspa $
+% $Id: ft_preproc_bandpassfilter.m 5593 2012-04-04 15:17:51Z roboos $
+
+% determine the size of the data
+[nchans, nsamples] = size(dat);
 
 % set the default filter order later
 if nargin<4 || isempty(N)
@@ -107,6 +110,12 @@ switch type
     z(pos1:pos2) = 1;
     A = 1;
     B = firls(N,f,z); % requires Matlab signal processing toolbox
+end
+
+meandat = mean(dat,2);
+for i=1:nsamples
+  % demean the data
+  dat(:,i) = dat(:,i) - meandat;
 end
 
 filt = filter_with_correction(B,A,dat,dir);

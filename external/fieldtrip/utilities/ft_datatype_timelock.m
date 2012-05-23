@@ -61,13 +61,17 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 4715 2011-11-10 15:50:03Z roboos $
+% $Id: ft_datatype_timelock.m 5300 2012-02-22 08:47:12Z arjsto $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
 
 if strcmp(version, 'latest')
   version = '2011v2';
+end
+
+if isempty(timelock)
+  return;
 end
 
 % ensure consistency between the dimord string and the axes that describe the data dimensions
