@@ -45,11 +45,13 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4715 2012-04-17 13:28:41Z klaas $
+% $Id: spm_dcm_estimate.m 4750 2012-05-24 14:05:41Z guillaume $
 
+
+SVNid = '$Rev: 4750 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -344,7 +346,9 @@ DCM.BIC    = evidence.bic_overall;
 
 % Save SPM version and revision number of code used
 %--------------------------------------------------------------------------
-[DCM.version.revision,DCM.version.SPM] = spm('Ver','spm_dcm_estimate.m');
+[DCM.version.SPM.version, DCM.version.SPM.revision] = spm('Ver');
+DCM.version.DCM.version  = spm_dcm_ui('Version');
+DCM.version.DCM.revision = SVNid;
 
 %-Save DCM
 %--------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-function spm_dcm_ui(Action)
+function varargout = spm_dcm_ui(Action)
 % User interface for Dynamic Causal Modelling (DCM)
 % FORMAT spm_dcm_ui('specify')
 % FORMAT spm_dcm_ui('estimate')
@@ -67,8 +67,15 @@ function spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 4685 2012-03-13 15:30:09Z guillaume $
+% $Id: spm_dcm_ui.m 4750 2012-05-24 14:05:41Z guillaume $
 
+
+DCMversion = 'DCM12';
+
+if nargin == 1 && strcmpi(Action,'version')
+    varargout = {DCMversion};
+    return
+end
 
 % Get figure handles
 %--------------------------------------------------------------------------
@@ -80,7 +87,8 @@ spm('Pointer','Arrow');
 
 % Temporary welcome message
 %--------------------------------------------------------------------------
-disp('Please refer to this version as DCM12 in papers and publications.');
+disp(['Please refer to this version as ' ...
+    DCMversion ' in papers and publications.']);
 
 % Options, using pull-down menu
 %--------------------------------------------------------------------------
