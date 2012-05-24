@@ -1,4 +1,4 @@
-function spm_run_results(job)
+function out = spm_run_results(job)
 % SPM job execution function
 % takes a harvested job data structure and call SPM functions to perform
 % computations on the data.
@@ -9,7 +9,7 @@ function spm_run_results(job)
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 4686 2012-03-13 19:45:03Z guillaume $
+% $Id: spm_run_results.m 4747 2012-05-24 11:11:10Z guillaume $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -23,7 +23,7 @@ for k = 1:numel(cspec)
         job1           = job;
         job1.print     = 1;
         job1.conspec   = cspec1;
-        spm_run_results(job1);
+        out = spm_run_results(job1);
     else
         xSPM.swd       = spm_file(job.spmmat{1},'fpath');
         xSPM.Ic        = job.conspec.contrasts;
@@ -69,6 +69,8 @@ for k = 1:numel(cspec)
         assignin('base', 'hReg',   hReg);
         assignin('base', 'xSPM',   xSPM);
         assignin('base', 'SPM',    SPM);
+        out.xSPMvar(k)   = xSPM;
+        out.TabDatvar(k) = TabDat;
         
         fn = fieldnames(job.write);
         switch fn{1}
@@ -77,6 +79,7 @@ for k = 1:numel(cspec)
                 if numel(xSPM.Ic)>1, continue; end
                 fname = spm_file(xSPM.Vspm.fname,...
                     'suffix',['_' job.write.(fn{1}).basename]);
+                out.filtered{k} = fname;
                 descrip = sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',...
                     xSPM.STAT,xSPM.u,xSPM.k);
                 switch fn{1} % see spm_results_ui.m

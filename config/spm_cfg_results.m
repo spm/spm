@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 4686 2012-03-13 19:45:03Z guillaume $
+% $Id: spm_cfg_results.m 4747 2012-05-24 11:11:10Z guillaume $
 
 
 % ---------------------------------------------------------------------
@@ -215,4 +215,26 @@ results.name     = 'Results Report';
 results.val      = {spmmat generic units print write};
 results.help     = {''};
 results.prog     = @spm_run_results;
+results.vout     = @vout_results;
 results.modality = {'FMRI' 'PET' 'EEG'};
+
+
+%==========================================================================
+function dep = vout_results(job)
+
+dep(1)            = cfg_dep;
+dep(1).sname      = 'xSPM Variable';
+dep(1).src_output = substruct('.','xSPMvar');
+dep(1).tgt_spec   = cfg_findspec({{'strtype','e'}});
+
+dep(2)            = cfg_dep;
+dep(2).sname      = 'TabDat Variable';
+dep(2).src_output = substruct('.','TabDatvar');
+dep(2).tgt_spec   = cfg_findspec({{'strtype','e'}});
+
+if ~isfield(job.write,'none')
+    dep(3)            = cfg_dep;
+    dep(3).sname      = 'Filtered image';
+    dep(3).src_output = substruct('.','filtered');
+    dep(3).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+end

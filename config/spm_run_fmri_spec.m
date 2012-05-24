@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4681 2012-03-12 15:09:05Z guillaume $
+% $Id: spm_run_fmri_spec.m 4747 2012-05-24 11:11:10Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -174,7 +174,8 @@ for i = 1:numel(job.sess)
                         end
                     end
                 catch
-                    error('Error specifying parametric modulation.');
+                    warning('Error specifying parametric modulation.');
+                    rethrow(lasterror);
                 end
             end
             
