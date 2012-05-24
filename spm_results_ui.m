@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4660 2012-02-20 17:39:29Z guillaume $
+% $Id: spm_results_ui.m 4751 2012-05-24 16:40:52Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4660 $'; 
+SVNid = '$Rev: 4751 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -674,11 +674,12 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Position',[285 145 100 020].*WS,...
             'Tag','plotButton')
  
-        str  = { 'overlays...','slices','sections','render','previous sections','previous render'};
+        str  = { 'overlays...','slices','slover','sections','render','previous sections','previous render'};
         tstr = { 'overlay filtered SPM on another image: ',...
-            '3 slices / ','ortho sections / ','render /','previous ortho sections /','previous surface rendering'};
+            '3 slices / ','slice overlay /','ortho sections / ','render /','previous ortho sections /','previous surface rendering'};
  
         tmp  = { 'spm_transverse(''set'',xSPM,hReg)',...
+            {@myslover},...
             'spm_sections(xSPM,hReg)',...
             ['spm_render(   struct( ''XYZ'',    xSPM.XYZ,',...
             '''t'',     xSPM.Z'',',...
@@ -1282,3 +1283,32 @@ end
 
 spm_write_filtered(Z, XYZ, xSPM.DIM, xSPM.M,...
     sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',xSPM.STAT,xSPM.u,xSPM.k));
+
+%==========================================================================
+function myslover
+%==========================================================================
+spm_input('!DeleteInputObj');
+xSPM = evalin('base','xSPM;');
+
+so = slover;
+[img,sts] = spm_select(1,'image','Select image for rendering on');
+if ~sts, return; end
+so.img.vol = spm_vol(img);
+%obj.img.type = 'truecolour';
+%obj.img.cmap = gray;
+%[mx,mn] = slover('volmaxmin', obj.img.vol);
+%obj.img.range = [mn mx];
+so.img.prop = 1;
+
+so = add_spm(so,xSPM);
+
+so.transform = deblank(spm_input('Image orientation', '+1', ...
+    'Axial|Coronal|Sagittal', char('axial','coronal','sagittal'), 1));
+so = fill_defaults(so);
+slices = so.slices;
+so.slices = spm_input('Slices to display (mm)', '+1', 'e', ...
+	sprintf('%0.0f:%0.0f:%0.0f',slices(1),mean(diff(slices)),slices(end)));
+
+so.figure = spm_figure('GetWin', 'SliceOverlay');
+so = paint(so);
+assignin('base','so',so);
