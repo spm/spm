@@ -86,7 +86,7 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_LS.m 4508 2011-10-04 16:19:32Z Darren $
+% $Id: spm_nlsi_LS.m 4753 2012-05-25 14:31:56Z ged $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -307,7 +307,8 @@ for k = 1:64
     
     % graphics
     %----------------------------------------------------------------------
-    try
+    if exist('Fsi', 'var')
+        spm_figure('Select', Fsi)
         
         % reshape prediction if necessary
         %------------------------------------------------------------------
@@ -316,7 +317,6 @@ for k = 1:64
         
         % subplot prediction
         %------------------------------------------------------------------
-        set(0,'CurrentFigure',Fsi)
         x    = (1:ns)*Y.dt;
         xLab = 'time (seconds)';
         try
@@ -376,6 +376,6 @@ for k = 1:64
         break
     end  
 end
-
-
-
+if exist('Fsi', 'var')
+    spm_figure('Focus', Fsi)
+end

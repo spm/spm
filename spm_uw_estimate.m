@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 4482 2011-09-12 18:04:53Z guillaume $
+% $Id: spm_uw_estimate.m 4753 2012-05-25 14:31:56Z ged $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -166,7 +166,7 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 4482 $';
+SVNid = '$Rev: 4753 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -423,8 +423,8 @@ cleanup(P,ds)
 spm_uw_show('FinTot');
 
 % Document outcome
-
-if ~isempty(spm_figure('FindWin','Graphics')), spm_print; end
+F = spm_figure('FindWin','Graphics');
+if ~isempty(F), spm_figure('Focus', F), spm_print; end
 
 catch
    cleanup(P,ds)

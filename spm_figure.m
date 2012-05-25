@@ -9,6 +9,8 @@ function varargout=spm_figure(varargin)
 % FORMAT F = spm_figure('Create',Tag,Name,Visible)
 % FORMAT F = spm_figure('FindWin',Tag)
 % FORMAT F = spm_figure('GetWin',Tag)
+% FORMAT spm_figure('Select',F)
+% FORMAT spm_figure('Focus',F)
 % FORMAT spm_figure('Clear',F,Tags)
 % FORMAT spm_figure('Close',F)
 % FORMAT spm_figure('Print',F)
@@ -55,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4576 2011-11-30 17:29:09Z ged $
+% $Id: spm_figure.m 4753 2012-05-25 14:31:56Z ged $
 
 
 %==========================================================================
@@ -89,6 +91,17 @@ function varargout=spm_figure(varargin)
 % window is made current.
 % Tag   - Figure 'Tag' to get, defaults to 'Graphics'
 % F - Figure number (if found/created) or empty (if not).
+%
+% FORMAT spm_figure('Select',F)
+% Set figure F as the current figure, so that any subsequent graphics
+% commands are directed to it; however, this does not focus or raise the
+% figure, so is appropriate for use on each iteration of a repetitive task.
+%
+% FORMAT spm_figure('Focus',F)
+% Set figure F as the current figure and give it the focus (which depending
+% on Operating System / Window Manager behaviour might restore or raise the
+% figure). This is equivalent to the usual figure(F) command, but in many
+% cases spm_figure('Select',F) will be a more appropriate alternative.
 %
 % FORMAT spm_figure('Clear',F,Tags)
 % Clears figure, leaving ToolBar (& other objects with invisible handles)
@@ -243,10 +256,28 @@ if isempty(F)
         end
     end
 else
-    set(0,'CurrentFigure',F);
     figure(F);
 end
 varargout = {F};
+
+%==========================================================================
+case 'select'
+%==========================================================================
+% spm_figure('Select',F)
+F=varargin{2};
+if ishandle(F)
+    set(0, 'CurrentFigure', F)
+end
+
+%==========================================================================
+case 'focus'
+%==========================================================================
+% spm_figure('Focus',F)
+if nargin<2, F=get(0,'CurrentFigure'); else F=varargin{2}; end
+if ishandle(F)
+    figure(F);
+end
+
 
 %==========================================================================
 case 'parentfig'
@@ -875,7 +906,7 @@ function mysatfig(obj,evt)
 %==========================================================================
 SatWindow = spm_figure('FindWin','Satellite');
 if ~isempty(SatWindow)
-    figure(SatWindow)
+    spm_figure('Focus', SatWindow)
 else
     FS   = spm('FontSizes');             %-Scaled font sizes
     PF   = spm_platform('fonts');        %-Font names

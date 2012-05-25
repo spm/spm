@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: spm_DEM.m 4753 2012-05-25 14:31:56Z ged $
 
 
 
@@ -698,7 +698,7 @@ for iE = 1:nE
     
     % report and break if convergence
     %------------------------------------------------------------------
-    figure(Fdem)
+    spm_figure('Select', Fdem)
     spm_DEM_qU(QU)
     if np
         subplot(2*nl,2,4*nl)
@@ -734,7 +734,8 @@ for iE = 1:nE
     if te < -8, break, end
     
 end
- 
+spm_figure('Focus', Fdem)
+
 % Assemble output arguments
 %==========================================================================
  

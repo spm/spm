@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4719 2012-04-19 15:36:15Z karl $
+% $Id: spm_nlsi_N.m 4753 2012-05-25 14:31:56Z ged $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -507,12 +507,11 @@ for ip = 1:64
  
     % graphics
     %----------------------------------------------------------------------
-    try
- 
+    if exist('Fsi', 'var')
+        spm_figure('Select', Fsi)
+        
         % subplot prediction
         %------------------------------------------------------------------
-        set(0,'CurrentFigure',Fsi)
-        
         subplot(3,1,1)
         plot(yt,x)
         xlabel('time (ms)')
@@ -557,7 +556,10 @@ for ip = 1:64
     if all(criterion), fprintf(' convergence\n'), break, end
     
 end
- 
+if exist('Fsi', 'var')
+    spm_figure('Focus', Fsi)
+end
+
 % outputs
 %--------------------------------------------------------------------------
 Cp     = Vp*Cb((1:np),     (1:np)     )*Vp';

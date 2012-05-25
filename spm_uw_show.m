@@ -12,7 +12,7 @@ function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 3285 2009-07-23 19:25:22Z guillaume $
+% $Id: spm_uw_show.m 4753 2012-05-25 14:31:56Z ged $
 
 
 persistent iter;
@@ -91,7 +91,7 @@ switch mode
           %
           % Display deformation maps.
           %
-          figure(fg);
+          spm_figure('Select', fg);
           fg_pos = get(fg,'Position');
           fs = spm('FontSizes');
           pf = spm_platform('fonts');

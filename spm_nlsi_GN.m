@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4719 2012-04-19 15:36:15Z karl $
+% $Id: spm_nlsi_GN.m 4753 2012-05-25 14:31:56Z ged $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -420,7 +420,8 @@ for k = 1:128
  
     % graphics
     %----------------------------------------------------------------------
-    try
+    if exist('Fsi', 'var')
+        spm_figure('Select', Fsi)
  
         % reshape prediction if necessary
         %------------------------------------------------------------------
@@ -428,7 +429,6 @@ for k = 1:128
         
         % subplot prediction
         %------------------------------------------------------------------
-        set(0,'CurrentFigure',Fsi)
         x    = (1:ns)*Y.dt;
         xLab = 'time (seconds)';
         try
@@ -514,7 +514,10 @@ for k = 1:128
     if all(criterion), fprintf(' convergence\n'), break, end
  
 end
- 
+if exist('Fsi', 'var')
+    spm_figure('Focus', Fsi)
+end
+
 % outputs
 %--------------------------------------------------------------------------
 Ep     = spm_unvec(spm_vec(pE) + V*C.p(ip),pE);
