@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4730 2012-05-04 10:27:31Z ged $
+% $Id: spm_dcm_review.m 4759 2012-05-29 17:03:21Z ged $
 
 
 %-Get DCM structure
@@ -111,14 +111,14 @@ end
 try
     if DCM.options.two_state
         Ep.A = exp(DCM.Ep.A);
-        Ep.B = exp(DCM.Ep.B);
-        Ep.D = exp(DCM.Ep.D);
+        Ep.B = full(exp(DCM.Ep.B));
+        Ep.D = full(exp(DCM.Ep.D));
         Ep.C = DCM.Ep.C;
         disp('NB: The (A,B,D) parameters are scale parameters')
     else
         Ep.A = DCM.Ep.A;
-        Ep.B = DCM.Ep.B;
-        Ep.D = DCM.Ep.D;
+        Ep.B = full(DCM.Ep.B);
+        Ep.D = full(DCM.Ep.D);
         Ep.C = DCM.Ep.C;
     end
 end
