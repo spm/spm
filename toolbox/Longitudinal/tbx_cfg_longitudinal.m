@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4703 2012-03-29 20:30:30Z john $
+% $Id: tbx_cfg_longitudinal.m 4758 2012-05-29 15:34:08Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Longitudinal')); end
 
@@ -70,7 +70,7 @@ wparam.help    = {'Registration involves simultaneously minimising two terms.  O
 };
 wparam.strtype = 'e';
 wparam.num     = [1 5];
-wparam.val     = {[0.05 5 100 50 200]};
+wparam.val     = {[0 1 25 25 100]};
 
 write_avg         = cfg_menu;
 write_avg.tag     = 'write_avg';

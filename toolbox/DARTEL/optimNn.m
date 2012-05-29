@@ -63,7 +63,9 @@ function varargout = optimNn(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: optimNn.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: optimNn.m 4758 2012-05-29 15:34:08Z john $
 
-error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
+[varargout{1:nargout}] = optim_compat(1,varargin{:});
+
+%error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

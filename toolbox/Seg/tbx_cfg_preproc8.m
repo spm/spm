@@ -4,7 +4,7 @@ function preproc8 = tbx_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_preproc8.m 4703 2012-03-29 20:30:30Z john $
+% $Id: tbx_cfg_preproc8.m 4758 2012-05-29 15:34:08Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
@@ -271,8 +271,8 @@ reg.tag     = 'reg';
 reg.name    = 'Warping Regularisation';
 reg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 reg.strtype = 'e';
-reg.num     = [1  1];
-reg.val     = {4};
+reg.num     = [1  5];
+reg.val     = {[0 0.03 0.6 0.07 0.3]};
 % ---------------------------------------------------------------------
 % affreg Affine Regularisation
 % ---------------------------------------------------------------------

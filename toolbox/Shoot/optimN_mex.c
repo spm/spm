@@ -4,6 +4,23 @@
 #include "mex.h"
 #include <math.h>
 #include "shoot_optimN.h"
+#include "shoot_boundary.h"
+
+static void boundary_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    if ((nlhs<=1) && (nrhs==0))
+    {
+        mwSize nout[] = {1,1,1};
+        plhs[0] = mxCreateNumericArray(2,nout, mxDOUBLE_CLASS, mxREAL);
+        mxGetPr(plhs[0])[0] = get_bound();
+    }
+    else if ((nrhs==1) && (nlhs==0))
+    {
+        if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
+            mexErrMsgTxt("Data must be numeric, real, full and double");
+        set_bound(mxGetPr(prhs[0])[0]);
+    }
+}
 
 static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -126,6 +143,7 @@ static void vel2mom_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArr
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
+    set_bound(get_bound());
     if ((nrhs>=1) && mxIsChar(prhs[0]))
     {
         int buflen;
@@ -142,6 +160,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             fmg_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"boundary")  || !strcmp(fnc_str,"bound"))
+        {
+            mxFree(fnc_str);
+            boundary_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

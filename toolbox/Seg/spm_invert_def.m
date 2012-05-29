@@ -17,7 +17,7 @@ function y = spm_invert_def(y,M1,d0,M0,args)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_invert_def.m 3211 2009-06-19 12:34:26Z john $
+% $Id: spm_invert_def.m 4758 2012-05-29 15:34:08Z john $
 
 
 d1 = size(y);
@@ -37,7 +37,7 @@ x      = affind(rgrid(d1),M0);
 % These mm coordinates are pushed to their new locations according
 % to the original mapping (y).  Note that the resulting y is scaled
 % at each point by the number of voxels that are mapped (w).
-[y,w]  = dartel3('push',x,y,d0);
+[y,w]  = shoot3('push',x,y,d0);
 
 % Generate another grid of mm indices at each voxel in the template.
 x      = affind(rgrid(d0),M1);
@@ -54,7 +54,8 @@ vx     = sqrt(sum(M1(1:3,1:3).^2));
 for m=1:3,
     % Essentially, divide (y-x*w) by w but avoid divisions by zero by
     % biasing the result to be spatially smooth.
-    y(:,:,:,m) = optimNn(w,y(:,:,:,m)-x(:,:,:,m).*w,[2  vx  0.001 1e-6 0  2 1]) + x(:,:,:,m);
+    optimN_mex('bound',1);
+    y(:,:,:,m) = optimN_mex(w,y(:,:,:,m)-x(:,:,:,m).*w,[vx 0 1e-6 0.001 2 1]) + x(:,:,:,m);
 end
 
 if nargin>=5 && numel(args)>=2 && args(2),

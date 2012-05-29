@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4337 2011-05-31 16:59:44Z john $
+% $Id: spm_preproc_write8.m 4758 2012-05-29 15:34:08Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -105,7 +105,7 @@ if do_defs,
     if df(1),
         [pth,nam,ext1]=fileparts(res.image(1).fname);
         Ndef      = nifti;
-        Ndef.dat  = file_array(fullfile(pth,['iy_', nam1, '.nii']),...
+        Ndef.dat  = file_array(fullfile(pth,['iy_', nam, '.nii']),...
                                [res.image(1).dim(1:3),1,3],...
                                [spm_type('float32') spm_platform('bigend')],...
                                0,1,0);
@@ -324,12 +324,13 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
         if ~isempty(cls{k1}),
             c = single(cls{k1})/255;
             if any(tc(:,3)),
-                [c,w]  = dartel3('push',c,y,d1(1:3));
+                [c,w]  = shoot3('push',c,y,d1(1:3));
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
-                C(:,:,:,k1) = optimNn(w,c,[1  vx  1e-4 1e-6 0  3 2]);
+                optimN_mex('bound',1);
+                C(:,:,:,k1) = optimN_mex(w,c,[vx  1e-6 1e-4 0  3 2]);
                 clear w
             else
-                c      = dartel3('push',c,y,d1(1:3));
+                c      = shoot3('push',c,y,d1(1:3));
             end
             if nargout>=1,
                 cls{k1} = c;
@@ -376,7 +377,7 @@ end
 if df(2),
     y         = spm_invert_def(y,M1,d1,M0,[1 0]);
     N         = nifti;
-    N.dat     = file_array(fullfile(pth,['y_', nam1, '.nii']),...
+    N.dat     = file_array(fullfile(pth,['y_', nam, '.nii']),...
                            [d1,1,3],'float32',0,1,0);
     N.mat     = M1;
     N.mat0    = M1;

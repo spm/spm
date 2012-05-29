@@ -21,6 +21,7 @@ function varargout = spm_shoot_greens(varargin)
 % John Ashburner
 % $Id$
 
+shoot3('bound',0);
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
     d   = varargin{2};
     prm = varargin{3};
@@ -43,11 +44,10 @@ if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
             dt  = A(:,:,:,1,1).*(A(:,:,:,2,2).*A(:,:,:,3,3) - A(:,:,:,2,3).*A(:,:,:,3,2)) +...
                   A(:,:,:,1,2).*(A(:,:,:,2,3).*A(:,:,:,3,1) - A(:,:,:,2,1).*A(:,:,:,3,3)) +...
                   A(:,:,:,1,3).*(A(:,:,:,2,1).*A(:,:,:,3,2) - A(:,:,:,2,2).*A(:,:,:,3,1));
-
             msk     = find(dt==0);
             dt      = 1./dt;
             dt(msk) = 0;
-            if prm(4)==0, dt(1,1,1) = 0; end;
+            if prm(4)==0 && k==1, dt(1,1,1) = 0; end;
             F(:,:,k,1,1) = (A(:,:,:,2,2).*A(:,:,:,3,3) - A(:,:,:,2,3).*A(:,:,:,3,2)).*dt;
             F(:,:,k,2,1) = (A(:,:,:,2,3).*A(:,:,:,3,1) - A(:,:,:,2,1).*A(:,:,:,3,3)).*dt;
             F(:,:,k,3,1) = (A(:,:,:,2,1).*A(:,:,:,3,2) - A(:,:,:,2,2).*A(:,:,:,3,1)).*dt;

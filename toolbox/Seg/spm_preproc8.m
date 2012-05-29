@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 4148 2011-01-04 16:49:23Z guillaume $
+% $Id: spm_preproc8.m 4758 2012-05-29 15:34:08Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -81,6 +81,7 @@ M         = tpm.M\Affine*V(1).mat;
 d0        = V(1).dim(1:3);
 vx        = sqrt(sum(V(1).mat(1:3,1:3).^2));
 sk        = max([1 1 1],round(obj.samp*[1 1 1]./vx));
+sk4       = reshape(sk,[1 1 1 3]);
 [x0,y0,o] = ndgrid(1:sk(1):d0(1),1:sk(2):d0(2),1);
 z0        = 1:sk(3):d0(3);
 tiny      = eps*eps;
@@ -109,16 +110,17 @@ rand('state',0);
 % non-independence of voxels
 ff     = obj.fudge;
 ff     = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
+shoot3('boundary',1);
 
 % Initialise Deformation
 %-----------------------------------------------------------------------
-param  = [2 sk.*vx ff*obj.reg*[1 1e-4 0]];
-lam    = [0 0 0 0 0 0.01 1e-4];
+param  = [sk.*vx ff*obj.reg];
+lam    = [0 0 0  1e-4 0.01 0 0 0];
 scal   = sk;
 d      = [size(x0) length(z0)];
 if isfield(obj,'Twarp'),
     Twarp = obj.Twarp;
-    llr   = -0.5*sum(sum(sum(sum(Twarp.*optimNn('vel2mom',Twarp,param,scal)))));
+    llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,shoot3('vel2mom',bsxfun(@times,Twarp,1./sk4),param),sk4)))));
 else
     Twarp = zeros([d,3],'single');
     llr   = 0;
@@ -164,10 +166,6 @@ end
 
 ll     = -Inf;
 tol1   = 1e-4; % Stopping criterion.  For more accuracy, use a smaller value
-
-if isfield(obj,'moments'),
-    omom = obj.moments;
-end
 
 if isfield(obj,'msk') && ~isempty(obj.msk),
     VM = spm_vol(obj.msk);
@@ -276,20 +274,7 @@ for iter=1:20,
         if use_mog,
             % Starting estimates for Gaussian parameters
             %-----------------------------------------------------------------------
-            if exist('omom','var') && isfield(omom,'mom0'),
-                mom0 = omom.mom0;
-                mom1 = omom.mom1;
-                mom2 = omom.mom2;
-                mg   = zeros(Kb,1);
-                mn   = zeros(N,Kb);
-                vr   = zeros(N,N,Kb);
-                for k=1:K,
-                    tmp       = mom0(lkp==lkp(k));
-                    mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
-                    mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
-                    vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
-                end
-            elseif isfield(obj,'mg') && isfield(obj,'mn') && isfield(obj,'vr'),
+            if isfield(obj,'mg') && isfield(obj,'mn') && isfield(obj,'vr'),
                 mg = obj.mg;
                 mn = obj.mn;
                 vr = obj.vr;
@@ -407,14 +392,6 @@ for iter=1:20,
 
                %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
 
-                % Priors
-               %nmom = struct('mom0',mom0,'mom1',mom1,'mom2',mom2);
-                if exist('omom','var') && isfield(omom,'mom0') && numel(omom.mom0) == numel(mom0),
-                    mom0 = mom0 + omom.mom0;
-                    mom1 = mom1 + omom.mom1;
-                    mom2 = mom2 + omom.mom2;
-                end
-
                 % Mixing proportions, Means and Variances
                 for k=1:K,
                     tmp       = mom0(lkp==lkp(k));
@@ -472,15 +449,6 @@ for iter=1:20,
                         for n=1:N,
                             chan(n).hist(:,k1) = chan(n).hist(:,k1) + accumarray(cr{n},q(:,k1),[K,1]);
                         end
-                    end
-                end
-
-               %nmom = struct('hist',{chan(:).hist});
-                if exist('omom','var'),
-                    for n=1:N,
-                       if isfield(omom(n),'hist') && all(size(omom(n).hist) == size(chan(n).hist)),
-                           chan(n).hist = chan(n).hist + omom(n).hist;
-                       end
                     end
                 end
 
@@ -779,9 +747,9 @@ for iter=1:20,
             % Compute first and second derivatives of the matching term.  Note that
             % these can be represented by a vector and tensor field respectively.
             tmp             = zeros(d(1:2));
-            tmp(buf(z).msk) = dp1./p; dp1 = tmp;
-            tmp(buf(z).msk) = dp2./p; dp2 = tmp;
-            tmp(buf(z).msk) = dp3./p; dp3 = tmp;
+            tmp(buf(z).msk) = dp1./p; dp1 = tmp/sk(1);
+            tmp(buf(z).msk) = dp2./p; dp2 = tmp/sk(2);
+            tmp(buf(z).msk) = dp3./p; dp3 = tmp/sk(3);
 
             Beta(:,:,z,1)   = -dp1;     % First derivatives
             Beta(:,:,z,2)   = -dp2;
@@ -800,28 +768,28 @@ for iter=1:20,
         if ~isfield(obj,'Twarp')
             switch iter
             case 1,
-                prm = [param(1:4) 16*param(5:6) param(7:end)];
+                prm = [param(1:3) 16*param(4:8)];
             case 2,
-                prm = [param(1:4)  8*param(5:6) param(7:end)];
+                prm = [param(1:3)  8*param(4:8)];
             case 3,
-                prm = [param(1:4)  4*param(5:6) param(7:end)];
+                prm = [param(1:3)  4*param(4:8)];
             case 4,
-                prm = [param(1:4)  2*param(5:6) param(7:end)];
+                prm = [param(1:3)  2*param(4:8)];
             otherwise
-                prm = [param(1:4)    param(5:6) param(7:end)];
+                prm = [param(1:3)    param(4:8)];
             end
         else
-            prm = [param(1:4)   param(5:6) param(7:end)];
+            prm = [param(1:3)   param(4:8)];
         end
 
         % Add in the first derivatives of the prior term
-        Beta   = Beta  + optimNn('vel2mom',Twarp,prm,scal);
+        Beta   = Beta  + shoot3('vel2mom',bsxfun(@times,Twarp,1./sk4),prm);
 
         for lmreg=1:6,
             % L-M update
-            Twarp1 = Twarp - optimNn('fmg',Alpha,Beta,[prm+lam 1 1],scal);
+            Twarp1 = Twarp - shoot3('fmg',Alpha,Beta,[prm+lam 1 1]);
 
-            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*optimNn('vel2mom',Twarp1,prm,scal)))));
+            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,shoot3('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),sk4)))));
             ll1    = llr1+llrb;
 
             for z=1:length(z0),
@@ -882,7 +850,6 @@ else
         results.intensity(n).interscal = chan(n).interscal;
     end
 end
-%results.moments = nmom;
 results.ll      = ll;
 return;
 %=======================================================================

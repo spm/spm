@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4675 2012-03-02 19:49:35Z john $ */
+/* $Id: shoot_regularisers.c 4758 2012-05-29 15:34:08Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -1451,7 +1451,7 @@ void relax(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
         relax_me(dm, a, b, s, nit, u);
     else if (s[6]==0 && s[7]==0)
         relax_be(dm, a, b, s, nit, u);
-    else if (s[3]==0 && s[4]==0)
+    else if (s[4]==0 && s[5]==0)
         relax_le(dm, a, b, s, nit, u);
     else
         relax_all(dm, a, b, s, nit, u);
@@ -1463,7 +1463,7 @@ void vel2mom(mwSize dm[], float f[], double s[], float g[])
         vel2mom_me(dm, f, s, g);
     else if (s[6]==0 && s[7]==0)
         vel2mom_be(dm, f, s, g);
-    else if (s[3]==0 && s[4]==0)
+    else if (s[4]==0 && s[5]==0)
         vel2mom_le(dm, f, s, g);
     else
         vel2mom_all(dm, f, s, g);

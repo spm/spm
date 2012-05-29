@@ -3,16 +3,18 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % FORMAT out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_settings, ord)
 % Nii    - a nifti object for two or more image volumes.
 % output - a cell array of output options (as scharacter strings).
-%          'avg'  - return average in out.avg
-%          'wavg' - write average to disk, and return filename in out.avg
-%          'def'  - return mappings from average to individuals in out.def
-%          'wdef' - write mappings to disk, and return filename in out.def
-%          'div'  - return divergence of initial velocities in out.div
-%          'wdiv' - write divergence images to disk and return filename
-%          'jac'  - return Jacobian determinant maps in out.jac
-%          'wjac' - write Jacobians to disk and return filename
-%          'vel'  - return initial velocities
-%          'wvel' - write velocities to disk and return filename
+%          'avg'   - return average in out.avg
+%          'wavg'  - write average to disk, and return filename in out.avg
+%          'def'   - return mappings from average to individuals in out.def
+%          'wdef'  - write mappings to disk, and return filename in out.def
+%          'div'   - return divergence of initial velocities in out.div
+%          'wdiv'  - write divergence images to disk and return filename
+%          'jac'   - return Jacobian determinant maps in out.jac
+%          'wjac'  - write Jacobians to disk and return filename
+%          'vel'   - return initial velocities
+%          'wvel'  - write velocities to disk and return filename
+%          'rigid' - return rigid-body transforms
+%
 % prec       - reciprocal of noise variance on images.
 % w_swttings - regularisation settings for warping.
 % b_settings - regularisation settings for bias field.
@@ -26,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4703 2012-03-29 20:30:30Z john $
+% $Id: spm_groupwise_ls.m 4758 2012-05-29 15:34:08Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -40,10 +42,10 @@ end
 
 % Specify default settings
 %-----------------------------------------------------------------------
-if nargin<3 || ~isfinite(prec), prec = 1/mean(noise_estimate(Nii).^2); end
-if nargin<4, w_settings = [1e-2 1 20 10 40]; end
-if nargin<5, b_settings = [0 0 1e7]; end
-if nargin<6, s_settings = 4; end
+if nargin<3 || ~isfinite(prec), prec = 1/mean(spm_noise_estimate(Nii).^2); end
+if nargin<4, w_settings = [0 1 40 20 80]; end
+if nargin<5, b_settings = [0 0 1e8]; end
+if nargin<6, s_settings = 6; end
 if nargin<7, ord    = [3 3 3 0 0 0]; end
 
 % If settings are not subject-specific, then generate
@@ -74,6 +76,8 @@ for i=numel(Nii):-1:1,
     pyramid(1).img(i).mat = Nii(i).mat;
 end
 
+shoot3('bound',0); % Set boundary condition to circulant
+
 % Generate sucessively lower resolution versions
 %-----------------------------------------------------------------------
 for level = 2:numel(pyramid),
@@ -96,6 +100,10 @@ for level=1:numel(pyramid),
     end
 end
 
+% Adjust precision for number of subjects
+%-----------------------------------------------------------------------
+nscan = numel(pyramid(1).img);
+prec  = prec*(nscan-1)/nscan;
 
 % Stuff for figuring out the orientation, dimensions etc of the highest resolution template
 %-----------------------------------------------------------------------
@@ -105,16 +113,19 @@ for i=1:size(dims,1),
     dims(i,:) = Nii(i).dat.dim(1:3);
 end
 [pyramid(1).mat,pyramid(1).d] = compute_avg_mat(Mat0,dims);
-pyramid(1).sc = abs(det(pyramid(1).mat(1:3,1:3)));
+pyramid(1).sc   = abs(det(pyramid(1).mat(1:3,1:3)));
+pyramid(1).prec = prec;
 
 % Figure out template info for each sucessively lower resolution version
 %-----------------------------------------------------------------------
 for level=2:numel(pyramid),
-    pyramid(level).d   = ceil(pyramid(level-1).d/2);
-    s                  = pyramid(level-1).d./pyramid(level).d;
-    pyramid(level).mat = pyramid(level-1).mat*[diag(s), (1-s(:))*0.5; 0 0 0 1];
-    pyramid(level).sc  = pyramid(1).sc*sqrt(prod(pyramid(1).d)/prod(pyramid(level).d));
-   %pyramid(level).sc  = sqrt(abs(det(pyramid(level).mat(1:3,1:3))));
+    pyramid(level).d    = ceil(pyramid(level-1).d/2);
+    s                   = pyramid(level-1).d./pyramid(level).d;
+    pyramid(level).mat  = pyramid(level-1).mat*[diag(s), (1-s(:))*0.5; 0 0 0 1];
+
+    % Relative scaling of regularisation
+    pyramid(level).sc   = abs(det(pyramid(level).mat(1:3,1:3)));
+    pyramid(level).prec = prec*sqrt(pyramid(level).sc/pyramid(1).sc); % Note that the sqrt is ad hoc
 end
 
 
@@ -130,36 +141,60 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
     d         = pyramid(level).d;
     vx        = sqrt(sum(pyramid(level).mat(1:3,1:3).^2));
     sc        = pyramid(level).sc;
+    prec      = pyramid(level).prec;
 
     if level==nlevels,
         % If lowest resolution, initialise parameter estimates to zero
         %-----------------------------------------------------------------------
         clear param
         for i=numel(Nii):-1:1,
-            param(i) = struct('bias',zeros(size(img(i).f),'single'),'eb',0,...
-                              'R',eye(4),'r',zeros(6,1),...
-                              's2',1,'vr',1,...
-                              'v0',zeros([d 3],'single'),'ev',0,'y',identity(d),...
-                              'J',repmat(reshape(eye(3,'single'),[1 1 1 3 3]),[d(1:3),1,1]));
+            param(i) = struct('R',   eye(4), 'r', zeros(6,1),...
+                              'bias',[],     'eb',0,...
+                              'v0',  [],     'ev',0, 'y',[], 'J',[],...
+                              's2',  1,      'ss',1);
+
+            if all(isfinite(b_settings(i,:))),
+                param(i).bias = zeros(size(img(i).f),'single');
+            end
+
+            if all(isfinite(w_settings(i,:))),
+                param(i).v0   = zeros([d 3],'single');
+                param(i).y    = identity(d);
+                param(i).J    = repmat(reshape(eye(3,'single'),[1 1 1 3 3]),[d(1:3),1,1]);
+            end
+
         end
     else
         % Initialise parameter estimates by prolongation of previous lower resolution versions.
         %-----------------------------------------------------------------------
         for i=1:numel(Nii),
-            vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
-            param(i).bias = shoot3('resize',param(i).bias,size(img(i).f));
-            bmom          = optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
-            param(i).eb   = sum(bmom(:).*param(i).bias(:));
-            clear bmom
 
-            param(i).v0   = shoot3('resize',param(i).v0,d);
-            for i1=1:3,
-                s = pyramid(level).d(i1)/pyramid(level+1).d(i1);
-                param(i).v0(:,:,:,i1) = param(i).v0(:,:,:,i1)*s;
+            if all(isfinite(b_settings(i,:))),
+                vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
+                param(i).bias = shoot3('resize',param(i).bias,size(img(i).f));
+                bmom          = optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
+                param(i).eb   = sum(bmom(:).*param(i).bias(:));
+                clear bmom
+            else
+                param(i).bias = [];
+                param(i).eb   = 0;
             end
-            m0          = shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
-            param(i).ev = sum(sum(sum(sum(m0.*param(i).v0))));
-            clear m0
+
+            if all(isfinite(w_settings(i,:))),
+                param(i).v0   = shoot3('resize',param(i).v0,d);
+                for i1=1:3,
+                    s = pyramid(level).d(i1)/pyramid(level+1).d(i1);
+                    param(i).v0(:,:,:,i1) = param(i).v0(:,:,:,i1)*s;
+                end
+                m0          = shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
+                param(i).ev = sum(sum(sum(sum(m0.*param(i).v0))));
+                clear m0
+            else
+                param(i).v0 = [];
+                param(i).ev = 0;
+                param(i).y  = [];
+                param(i).J  = [];
+            end
         end
 
         % Remove lower resolution versions that are no longer needed
@@ -174,7 +209,9 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
         % Compute deformations from initial velocities
         %-----------------------------------------------------------------------
         for i=1:numel(param),
-            [param(i).y,param(i).J] = spm_shoot3d(param(i).v0,[vx w_settings(i,:)*sc],s_settings(i,:));
+            if all(isfinite(w_settings(i,:)))
+                [param(i).y,param(i).J] = spm_shoot3d(param(i).v0,[vx w_settings(i,:)*sc],s_settings(i,:));
+            end
         end
 
         if true,
@@ -182,14 +219,14 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             %=======================================================================
             % Recompute template data (with gradients)
             %-----------------------------------------------------------------------
-            [mu,vr,D] = compute_mean(pyramid(level), param, ord);
+            [mu,ss,nvox,D] = compute_mean(pyramid(level), param, ord);
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
             ll = 0;
             for i=1:numel(param),
-                param(i).vr = vr(i);
-                ll          = ll - 0.5*prec*numel(img(i).f)*param(i).vr - 0.5*param(i).eb - 0.5*param(i).ev;
+                param(i).ss = ss(i);
+                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
@@ -203,10 +240,23 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                 Hess = zeros(12);
                 gra  = zeros(12,1);
                 for m=1:d(3)
-                    dt    = shoot3('det',param(i).J(:,:,m,:,:));
-                    y     = transform_warp(M,param(i).y(:,:,m,:));
+                    if all(isfinite(w_settings(i,:))),
+                        dt    = shoot3('det',param(i).J(:,:,m,:,:))*abs(det(M(1:3,1:3)));
+                        y     = transform_warp(M,param(i).y(:,:,m,:));
+                    else
+                        dt    = ones(d(1:2),'single')*abs(det(M(1:3,1:3)));
+                        y     = zeros([d(1:2) 1 3],'single');
+                        [y(:,:,1),y(:,:,2),y(:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),single(m));
+                        y     = transform_warp(M,y);
+                    end
+
                     f     = shoot3('bsplins',img(i).f,y,ord);
-                    ebias = exp(shoot3('samp',param(i).bias,y));
+
+                    if all(isfinite(b_settings(i,:))),
+                        ebias = exp(shoot3('samp',param(i).bias,y));
+                    else
+                        ebias = ones(size(f),'single');
+                    end
 
                     b     = f-mu(:,:,m).*ebias;
 
@@ -257,136 +307,157 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
         end
 
 
-        if true,
+        if any(all(isfinite(b_settings),2)),
             % Bias field
             %=======================================================================
             % Recompute template data
             %-----------------------------------------------------------------------
-            [mu,vr] = compute_mean(pyramid(level), param, ord);
+            [mu,ss] = compute_mean(pyramid(level), param, ord);
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
             ll = 0;
             for i=1:numel(param),
-                param(i).vr = vr(i);
-                ll          = ll - 0.5*prec*numel(img(i).f)*param(i).vr - 0.5*param(i).eb - 0.5*param(i).ev;
+                param(i).ss = ss(i);
+                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
             for i=1:numel(img),
-                % Gauss-Newton update of logs of bias field.
-                % Note that 1st and second derivatives are computed in template space
-                % and subsequently pushed back to native space for re-estimation.
-                %-----------------------------------------------------------------------
-                M    = img(i).mat\param(i).R*M_avg;
-                gra  = zeros(d,'single');
-                Hess = zeros(d,'single');
+                if all(isfinite(b_settings(i,:))),
+                    % Gauss-Newton update of logs of bias field.
+                    % Note that 1st and second derivatives are computed in template space
+                    % and subsequently pushed back to native space for re-estimation.
+                    %-----------------------------------------------------------------------
+                    M    = img(i).mat\param(i).R*M_avg;
+                    gra  = zeros(d,'single');
+                    Hess = zeros(d,'single');
 
-                for m=1:d(3)
-                    dt          = shoot3('det',param(i).J(:,:,m,:,:));
-                    y           = transform_warp(M,param(i).y(:,:,m,:));
-                    f           = shoot3('bsplins',img(i).f,y,ord);
-                    ebias       = exp(shoot3('samp',param(i).bias,y));
+                    for m=1:d(3)
+                        if all(isfinite(w_settings(i,:))),
+                            dt    = shoot3('det',param(i).J(:,:,m,:,:))*abs(det(M(1:3,1:3)));
+                            y     = transform_warp(M,param(i).y(:,:,m,:));
+                        else
+                            dt    = ones(d(1:2),'single')*abs(det(M(1:3,1:3)));
+                            y     = zeros([d(1:2) 1 3],'single');
+                            [y(:,:,1),y(:,:,2),y(:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),m);
+                            y     = transform_warp(M,y);
+                        end
 
-                    msk         = isfinite(f);
-                    smu         = mu(:,:,m).*ebias;
-                    f(~msk)     = 0;
-                    smu(~msk)   = 0;
-                    gra(:,:,m)  = smu.*(smu-f).*dt*prec;
-                    Hess(:,:,m) = smu.*smu.*dt*prec;
+                        f           = shoot3('bsplins',img(i).f,y,ord);
+                        ebias       = exp(shoot3('samp',param(i).bias,y));
 
-                    clear dt y f ebias msk smu
+                        msk         = isfinite(f);
+                        smu         = mu(:,:,m).*ebias;
+                        f(~msk)     = 0;
+                        smu(~msk)   = 0;
+                        gra(:,:,m)  = smu.*(smu-f).*dt*prec;
+                        Hess(:,:,m) = smu.*smu.*dt*prec;
+
+                        clear dt y f ebias msk smu
+                    end
+
+                    % Push derivatives to native space
+                    %-----------------------------------------------------------------------
+                    if all(isfinite(w_settings(i,:))),
+                        y    = transform_warp(M,param(i).y);
+                    else
+                        y    = transform_warp(M,identity(d));
+                    end
+                    gra  = shoot3('pushc',gra,y,size(param(i).bias));
+                    Hess = shoot3('pushc',Hess,y,size(param(i).bias));
+                    clear y
+
+                    vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
+                    gra           = gra + optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
+                    param(i).bias = param(i).bias - optimN_mex(Hess,gra,[vxi b_settings(i,:)*sc 2 2]); % Gauss-Newton update
+                    clear M gra Hess
+
+                    % Compute part of objective function
+                    %-----------------------------------------------------------------------
+                    bmom          = optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
+                    param(i).eb   = sum(bmom(:).*param(i).bias(:));
+                    clear bmom vxi
                 end
-
-                % Push derivatives to native space
-                %-----------------------------------------------------------------------
-                y    = transform_warp(M,param(i).y);
-                gra  = shoot3('pushc',gra,y,size(param(i).bias));
-                Hess = shoot3('pushc',Hess,y,size(param(i).bias));
-                clear y
-
-                vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
-                gra           = gra + optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
-                param(i).bias = param(i).bias - optimN_mex(Hess,gra,[vxi b_settings(i,:)*sc 2 2]); % Gauss-Newton update
-                clear M gra Hess
-
-                % Compute part of objective function
-                %-----------------------------------------------------------------------
-                bmom          = optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
-                param(i).eb   = sum(bmom(:).*param(i).bias(:));
-                clear bmom vxi
             end
             clear mu
         end
 
 
-        if true,
+        if any(all(isfinite(w_settings),2)),
             % Deformations
             %=======================================================================
             % Recompute template data (with gradients)
             %-----------------------------------------------------------------------
-            [mu,vr,D] = compute_mean(pyramid(level), param, ord);
+            [mu,ss,nvox,D] = compute_mean(pyramid(level), param, ord);
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
             ll = 0;
             for i=1:numel(param),
-                param(i).vr = vr(i);
-                ll          = ll - 0.5*prec*numel(img(i).f)*param(i).vr - 0.5*param(i).eb - 0.5*param(i).ev;
+                param(i).ss = ss(i);
+                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
             for i=1:numel(img),
-                % Gauss-Newton update of velocity fields.
-                % These are parameterised in template space.
-                %-----------------------------------------------------------------------
-                gra  = zeros([d,3],'single');
-                Hess = zeros([d,6],'single');
-                M    = img(i).mat\param(i).R*M_avg;
+                if all(isfinite(w_settings(i,:))),
+                    % Gauss-Newton update of velocity fields.
+                    % These are parameterised in template space.
+                    %-----------------------------------------------------------------------
+                    gra  = zeros([d,3],'single');
+                    Hess = zeros([d,6],'single');
+                    M    = img(i).mat\param(i).R*M_avg;
 
-                for m=1:d(3)
-                    dt    = shoot3('det',param(i).J(:,:,m,:,:));
-                    y     = transform_warp(M,param(i).y(:,:,m,:));
-                    f     = shoot3('bsplins',img(i).f,y,ord);
-                    ebias = exp(shoot3('samp',param(i).bias,y));
+                    for m=1:d(3)
+                        dt    = shoot3('det',param(i).J(:,:,m,:,:))*abs(det(M(1:3,1:3)));
+                        y     = transform_warp(M,param(i).y(:,:,m,:));
+                        f     = shoot3('bsplins',img(i).f,y,ord);
 
-                    b     = f-mu(:,:,m).*ebias;
+                        if all(isfinite(b_settings(i,:))),
+                            ebias = exp(shoot3('samp',param(i).bias,y));
+                        else
+                            ebias = ones(size(f),'single');
+                        end
 
-                    msk           = ~isfinite(f);
-                    b(msk)        = 0;
-                    dt(msk)       = 0;
-                    d1            = D{1}(:,:,m).*ebias;
-                    d2            = D{2}(:,:,m).*ebias;
-                    d3            = D{3}(:,:,m).*ebias;
-                    gra(:,:,m,1)  = b.*d1.*dt;
-                    gra(:,:,m,2)  = b.*d2.*dt;
-                    gra(:,:,m,3)  = b.*d3.*dt;
-                    Hess(:,:,m,1) = d1.*d1.*dt;
-                    Hess(:,:,m,2) = d2.*d2.*dt;
-                    Hess(:,:,m,3) = d3.*d3.*dt;
-                    Hess(:,:,m,4) = d1.*d2.*dt;
-                    Hess(:,:,m,5) = d1.*d3.*dt;
-                    Hess(:,:,m,6) = d2.*d3.*dt;
+                        b     = f-mu(:,:,m).*ebias;
 
-                    clear dt y f ebias b msk d1 d2 d3
+                        msk           = ~isfinite(f);
+                        b(msk)        = 0;
+                        dt(msk)       = 0;
+                        d1            = D{1}(:,:,m).*ebias;
+                        d2            = D{2}(:,:,m).*ebias;
+                        d3            = D{3}(:,:,m).*ebias;
+                        gra(:,:,m,1)  = b.*d1.*dt;
+                        gra(:,:,m,2)  = b.*d2.*dt;
+                        gra(:,:,m,3)  = b.*d3.*dt;
+                        Hess(:,:,m,1) = d1.*d1.*dt;
+                        Hess(:,:,m,2) = d2.*d2.*dt;
+                        Hess(:,:,m,3) = d3.*d3.*dt;
+                        Hess(:,:,m,4) = d1.*d2.*dt;
+                        Hess(:,:,m,5) = d1.*d3.*dt;
+                        Hess(:,:,m,6) = d2.*d3.*dt;
+
+                        clear dt y f ebias b msk d1 d2 d3
+                    end
+
+                    param(i).y = []; % No longer needed
+                    param(i).J = [];
+
+                    Hess        = Hess*prec;
+                    gra         = gra*prec;
+
+                    gra         = gra + shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
+                    param(i).v0 = param(i).v0 - shoot3('fmg',Hess, gra, [vx w_settings(i,:)*sc 2 2]); % Gauss-Newton
+
+                    clear Hess gra
                 end
-
-                param(i).y = []; % No longer needed
-                param(i).J = [];
-
-                Hess        = Hess*prec;
-                gra         = gra*prec;
-
-                gra         = gra + shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
-                param(i).v0 = param(i).v0 - shoot3('fmg',Hess, gra, [vx w_settings(i,:)*sc 2 2]); % Gauss-Newton
-
-                clear Hess gra
             end
             clear mu D
 
 
             % Zero-mean.
-            % This is currently disabled, as more work is needed in order to handle
+            % This is currently disabled, as more work is needed to handle
             % the use of different differential operators for different images.
             %-----------------------------------------------------------------------
             %avg_v0 = param(1).v0;
@@ -402,9 +473,11 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             % Compute part of objective function
             %-----------------------------------------------------------------------
             for i=1:numel(param),
-                m0          = shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
-                param(i).ev = sum(sum(sum(sum(m0.*param(i).v0))));
-                clear m0
+                if all(isfinite(w_settings(i,:))),
+                    m0          = shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
+                    param(i).ev = sum(sum(sum(sum(m0.*param(i).v0))));
+                    clear m0
+                end
             end
 
         end
@@ -432,12 +505,22 @@ if any(strcmp('bia',output)) || any(strcmp('wbia',output)), need_bia = true; end
 
 if need_avg || need_def || need_jac,
     for i=1:numel(param),
-        [param(i).y,param(i).J] = spm_shoot3d(param(i).v0,[vx w_settings(i,:)*sc],s_settings(i,:));
+        if all(isfinite(w_settings(i,:))),
+            [param(i).y,param(i).J] = spm_shoot3d(param(i).v0,[vx w_settings(i,:)*sc],s_settings(i,:));
+        end
     end
 end
 
 clear out
 out.mat = M_avg;
+
+if any(strcmp('rigid',output))
+    out.rigid = {};
+    for i=1:numel(param),
+        out.rigid{i} = param(i).R;
+    end
+end
+
 
 if need_avg || need_mom,
     mu = compute_mean(pyramid(1), param, ord);
@@ -463,166 +546,187 @@ if need_avg,
 end
 
 if need_mom,
+    out.mom = {};
     for i=1:numel(param),
-        mom = zeros(d,'single');
-        M   = img(i).mat\param(i).R*M_avg;
+        if all(isfinite(w_settings(i,:))),
 
-        for m=1:d(3)
-            dt    = shoot3('det',param(i).J(:,:,m,:,:));
-            y     = transform_warp(M,param(i).y(:,:,m,:));
-            f     = shoot3('bsplins',img(i).f,y,ord);
-            ebias = exp(shoot3('samp',param(i).bias,y));
-            msk   = ~isfinite(f);
-            b     = (f-mu(:,:,m).*ebias).*ebias.*dt;
-            mom(:,:,m) = b;
-            clear dt y f ebias b msk 
+            mom = zeros(d,'single');
+            M   = img(i).mat\param(i).R*M_avg;
+
+            for m=1:d(3)
+                dt    = shoot3('det',param(i).J(:,:,m,:,:));
+                y     = transform_warp(M,param(i).y(:,:,m,:));
+                f     = shoot3('bsplins',img(i).f,y,ord);
+                ebias = exp(shoot3('samp',param(i).bias,y));
+                msk   = ~isfinite(f);
+                b     = (f-mu(:,:,m).*ebias).*ebias.*dt;
+                mom(:,:,m) = b;
+                clear dt y f ebias b msk 
+            end
+
+            if any(strcmp('wmom',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['a_' nam '.nii']);
+                Nio         = nifti;
+                Nio.dat     = file_array(nam,d,'float32',0,1,0);
+                Nio.mat     = M_avg;
+                Nio.mat0    = Nio.mat;
+                Nio.mat_intent  = 'Aligned';
+                Nio.mat0_intent = Nio.mat_intent;
+
+                Nio.descrip = sprintf('Scalar Mom (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
+                create(Nio);
+                Nio.dat(:,:,:,1,1) = mom;
+                out.mom{i}         = nam;
+            else
+                out.mom{i}         = mom;
+            end
+            clear mom
         end
-
-        if any(strcmp('wmom',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['a_' nam '.nii']);
-            Nio         = nifti;
-            Nio.dat     = file_array(nam,d,'float32',0,1,0);
-            Nio.mat     = M_avg;
-            Nio.mat0    = Nio.mat;
-            Nio.mat_intent  = 'Aligned';
-            Nio.mat0_intent = Nio.mat_intent;
-
-            Nio.descrip = sprintf('Scalar Mom (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
-            create(Nio);
-            Nio.dat(:,:,:,1,1) = mom;
-            out.mom{i}         = nam;
-        else
-            out.mom{i}         = mom;
-        end
-        clear mom
     end
 end
 
 clear mu;
 
 if need_bia,
+    out.bia = {};
     for i=1:numel(param),
-        if any(strcmp('wbia',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['BiasField_' nam '.nii']);
-            Nio         = nifti;
-            dm          = [Nii(i).dat.dim 1]; dm = dm(1:3);
-            Nio.dat     = file_array(nam,dm,'float32',0,1,0);
-            Nio.mat     = Nii(i).mat;
-            Nio.mat0    = Nii(i).mat0;
-            Nio.mat_intent  = Nii(i).mat_intent;
-            Nio.mat0_intent = Nii(i).mat0_intent;
+        if all(isfinite(b_settings(i,:))),
 
-            Nio.descrip     = 'Bias Field';
-            create(Nio);
-            Nio.dat(:,:,:)  = exp(param(i).bias);
-            out.bia{i}      = nam;
-        else
-            out.bia{i}      = exp(param(i).bias);
+            if any(strcmp('wbia',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['BiasField_' nam '.nii']);
+                Nio         = nifti;
+                dm          = [Nii(i).dat.dim 1]; dm = dm(1:3);
+                Nio.dat     = file_array(nam,dm,'float32',0,1,0);
+                Nio.mat     = Nii(i).mat;
+                Nio.mat0    = Nii(i).mat0;
+                Nio.mat_intent  = Nii(i).mat_intent;
+                Nio.mat0_intent = Nii(i).mat0_intent;
+
+                Nio.descrip     = 'Bias Field';
+                create(Nio);
+                Nio.dat(:,:,:)  = exp(param(i).bias);
+                out.bia{i}      = nam;
+            else
+                out.bia{i}      = exp(param(i).bias);
+            end
+            clear mom
         end
-        clear mom
     end
 end
 
 if need_def,
+    out.def = {};
     for i=1:numel(param),
-        M   = param(i).R*M_avg;
-        for m=1:d(3)
-            param(i).y(:,:,m,:) = transform_warp(M,param(i).y(:,:,m,:));
-        end
-        if any(strcmp('wdef',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['y_' nam '.nii']);
-            Nio         = nifti;
-            Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
-            Nio.mat     = M_avg;
-            Nio.mat0    = Nio.mat;
-            Nio.mat_intent  = 'Aligned';
-            Nio.mat0_intent = Nio.mat_intent;
+        if all(isfinite(w_settings(i,:))),
 
-            Nio.descrip = 'Deformation (templ. to. ind.)';
-            create(Nio);
-            Nio.dat(:,:,:,1,1) = param(i).y(:,:,:,1);
-            Nio.dat(:,:,:,1,2) = param(i).y(:,:,:,2);
-            Nio.dat(:,:,:,1,3) = param(i).y(:,:,:,3);
-            out.def{i}         = nam;
-        else
-            out.def{i}         = param(i).y;
+            M   = param(i).R*M_avg;
+            for m=1:d(3)
+                param(i).y(:,:,m,:) = transform_warp(M,param(i).y(:,:,m,:));
+            end
+            if any(strcmp('wdef',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['y_' nam '.nii']);
+                Nio         = nifti;
+                Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
+                Nio.mat     = M_avg;
+                Nio.mat0    = Nio.mat;
+                Nio.mat_intent  = 'Aligned';
+                Nio.mat0_intent = Nio.mat_intent;
+
+                Nio.descrip = 'Deformation (templ. to. ind.)';
+                create(Nio);
+                Nio.dat(:,:,:,1,1) = param(i).y(:,:,:,1);
+                Nio.dat(:,:,:,1,2) = param(i).y(:,:,:,2);
+                Nio.dat(:,:,:,1,3) = param(i).y(:,:,:,3);
+                out.def{i}         = nam;
+            else
+                out.def{i}         = param(i).y;
+            end
+            param(i).y = [];
         end
-        param(i).y = [];
     end
 end
 
 if need_jac,
+    out.jac = {};
     for i=1:numel(param),
-        dt = shoot3('det',param(i).J);
-        if any(strcmp('wjac',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['j_' nam '.nii']);
-            Nio         = nifti;
-            Nio.dat     = file_array(nam,d,'float32',0,1,0);
-            Nio.mat     = M_avg;
-            Nio.mat0    = Nio.mat;
-            Nio.mat_intent  = 'Aligned';
-            Nio.mat0_intent = Nio.mat_intent;
+        if all(isfinite(w_settings(i,:))),
+            dt = shoot3('det',param(i).J);
+            if any(strcmp('wjac',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['j_' nam '.nii']);
+                Nio         = nifti;
+                Nio.dat     = file_array(nam,d,'float32',0,1,0);
+                Nio.mat     = M_avg;
+                Nio.mat0    = Nio.mat;
+                Nio.mat_intent  = 'Aligned';
+                Nio.mat0_intent = Nio.mat_intent;
 
-            Nio.descrip = 'Jacobian det (templ. to. ind.)';
-            create(Nio);
-            Nio.dat(:,:,:) = dt;
-            out.jac{i}     = nam;
-        else
-            out.jac{i}     = dt;
+                Nio.descrip = 'Jacobian det (templ. to. ind.)';
+                create(Nio);
+                Nio.dat(:,:,:) = dt;
+                out.jac{i}     = nam;
+            else
+                out.jac{i}     = dt;
+            end
+            clear dt
+            param(i).J = [];
         end
-        clear dt
-        param(i).J = [];
     end
 end
 
 if need_div,
+    out.div = {};
     for i=1:numel(param),
-        dv = shoot3('div',param(i).v0);
-        if any(strcmp('wdiv',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['div_' nam '.nii']);
-            Nio         = nifti;
-            Nio.dat     = file_array(nam,d,'float32',0,1,0);
-            Nio.mat     = M_avg;
-            Nio.mat0    = Nio.mat;
-            Nio.mat_intent  = 'Aligned';
-            Nio.mat0_intent = Nio.mat_intent;
+        if all(isfinite(w_settings(i,:))),
+            dv = shoot3('div',param(i).v0);
+            if any(strcmp('wdiv',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['div_' nam '.nii']);
+                Nio         = nifti;
+                Nio.dat     = file_array(nam,d,'float32',0,1,0);
+                Nio.mat     = M_avg;
+                Nio.mat0    = Nio.mat;
+                Nio.mat_intent  = 'Aligned';
+                Nio.mat0_intent = Nio.mat_intent;
 
-            Nio.descrip = sprintf('Div (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
-            create(Nio);
-            Nio.dat(:,:,:) = dv;
-            out.div{i}     = nam;
-        else
-            out.div{i}     = dv;
+                Nio.descrip = sprintf('Div (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
+                create(Nio);
+                Nio.dat(:,:,:) = dv;
+                out.div{i}     = nam;
+            else
+                out.div{i}     = dv;
+            end
+            clear dv
         end
-        clear dv
     end
 end
 
 if need_vel,
+    out.vel = {};
     for i=1:numel(param),
-        if any(strcmp('wvel',output)),
-            [pth,nam,ext] = fileparts(Nii(i).dat.fname);
-            nam         = fullfile(pth,['v_' nam '.nii']);
-            Nio         = nifti;
-            Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
-            Nio.mat     = M_avg;
-            Nio.mat0    = Nio.mat;
-            Nio.mat_intent  = 'Aligned';
-            Nio.mat0_intent = Nio.mat_intent;
+        if all(isfinite(w_settings(i,:))),
+            if any(strcmp('wvel',output)),
+                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                nam         = fullfile(pth,['v_' nam '.nii']);
+                Nio         = nifti;
+                Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
+                Nio.mat     = M_avg;
+                Nio.mat0    = Nio.mat;
+                Nio.mat_intent  = 'Aligned';
+                Nio.mat0_intent = Nio.mat_intent;
 
-            Nio.descrip = sprintf('Vel (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
-            create(Nio);
-            Nio.dat(:,:,:,1,1) = param(i).v0(:,:,:,1);
-            Nio.dat(:,:,:,1,2) = param(i).v0(:,:,:,2);
-            Nio.dat(:,:,:,1,3) = param(i).v0(:,:,:,3);
-            out.vel{i}         = nam;
-        else
-            out.vel{i}         = param(i).v0;
+                Nio.descrip = sprintf('Vel (%.3g %.3g %.3g %.3g %.3g) (%d)',w_settings(i,:)*sc,s_settings(i,1));
+                create(Nio);
+                Nio.dat(:,:,:,1,1) = param(i).v0(:,:,:,1);
+                Nio.dat(:,:,:,1,2) = param(i).v0(:,:,:,2);
+                Nio.dat(:,:,:,1,3) = param(i).v0(:,:,:,3);
+                out.vel{i}         = nam;
+            else
+                out.vel{i}         = param(i).v0;
+            end
         end
     end
 end
@@ -632,22 +736,20 @@ return;
 
 
 %_______________________________________________________________________
-function [mu,vr,D] = compute_mean(data, param, ord)
+function [mu,ss,nvox,D] = compute_mean(data, param, ord)
 d     = data.d;
 M_avg = data.mat;
 img   = data.img;
 
 mu = zeros(d,'single');
-if nargout>=2, % Compute residual variance
-    ss0 = zeros(numel(img),1);
-    ss1 = zeros(numel(img),1);
-    if nargout>=3, % Compute gradients of template
-        D  = {zeros(d,'single'),zeros(d,'single'),zeros(d,'single')};
-    end
+nvox = zeros(numel(img),1);
+ss   = zeros(numel(img),1);
+if nargout>=4, % Compute gradients of template
+    D  = {zeros(d,'single'),zeros(d,'single'),zeros(d,'single')};
 end
 
 for m=1:d(3),
-    if nargout>=3,
+    if nargout>=4,
         Dm  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
     end
     F  = cell(1,numel(img));
@@ -658,19 +760,31 @@ for m=1:d(3),
 
     for i=1:numel(img),
         M = img(i).mat\param(i).R*M_avg;
-        y = transform_warp(M,param(i).y(:,:,m,:));
-        if nargout>=2,
+        if ~isempty(param(i).y),
+            y     = transform_warp(M,param(i).y(:,:,m,:));
+            Dt{i} = shoot3('det',param(i).J(:,:,m,:,:))*abs(det(M(1:3,1:3)));
+        else
+            Dt{i} = ones(d(1:2),'single')*abs(det(M(1:3,1:3)));
+            y     = zeros([d(1:2) 1 3],'single');
+            [y(:,:,1),y(:,:,2),y(:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),m);
+            y     = transform_warp(M,y);
+        end
+        if nargout>=4,
             [F{i},Dr{1,i},Dr{2,i},Dr{3,i}]  = shoot3('bsplins',img(i).f,y,ord);
         else
             F{i}  = shoot3('bsplins',img(i).f,y,ord);
         end
         Msk{i}       = isfinite(F{i});
-        Bf{i}        = exp(shoot3('samp',param(i).bias,y));
-        Dt{i}        = shoot3('det',param(i).J(:,:,m,:,:));
+
+        if ~isempty(param(i).bias),
+            Bf{i}        = exp(shoot3('samp',param(i).bias,y));
+        else
+            Bf{i}        = ones(d(1:2),'single');
+        end
     end
     mum = zeros(d(1:2),'single');
     mgm = zeros(d(1:2),'single');
-    if nargout>=3,
+    if nargout>=4,
         Dm  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
     end
 
@@ -682,16 +796,21 @@ for m=1:d(3),
         mum(msk) = mum(msk) + f(msk).*ebias(msk).*dt(msk);
         mgm(msk) = mgm(msk) + ebias(msk).*ebias(msk).*dt(msk);
 
-        if nargout>=3
+        if nargout>=4
             % For computing gradients
             M       = img(i).mat\param(i).R*M_avg;
             nm      = sum(msk(:));
-            Jm      = reshape(param(i).J(:,:,m,:,:),[d(1)*d(2),3,3]);
-            Jm      = reshape(reshape(permute(Jm(msk,:,:),[1 2 3]),nm*3,3)*M(1:3,1:3),[nm 3 3]);
+
+            if ~isempty(param(i).J),
+                Jm      = reshape(param(i).J(:,:,m,:,:),[d(1)*d(2),3,3]);
+                Jm      = reshape(reshape(permute(Jm(msk,:,:),[1 2 3]),nm*3,3)*M(1:3,1:3),[nm 3 3]);
+            else
+                Jm      = repmat(reshape(single(M(1:3,1:3)),[1 3 3]),[nm 1 1]);
+            end
+
             d1      = Dr{1,i}(msk);
             d2      = Dr{2,i}(msk);
             d3      = Dr{3,i}(msk);
-
             Dm{1}(msk) = Dm{1}(msk) + (Jm(:,1,1).*d1 + Jm(:,2,1).*d2 + Jm(:,3,1).*d3).*ebias(msk).*dt(msk);
             Dm{2}(msk) = Dm{2}(msk) + (Jm(:,1,2).*d1 + Jm(:,2,2).*d2 + Jm(:,3,2).*d3).*ebias(msk).*dt(msk);
             Dm{3}(msk) = Dm{3}(msk) + (Jm(:,1,3).*d1 + Jm(:,2,3).*d2 + Jm(:,3,3).*d3).*ebias(msk).*dt(msk);
@@ -709,7 +828,9 @@ for m=1:d(3),
             dm = data.d;
             sc = {(1:dm(1))*vx(1),(1:dm(2))*vx(2)};
             subplot(3,2,1); imagesc(sc{:},mu(:,:,m)'); axis image xy off
-            subplot(3,2,2); dt = shoot3('det',param(1).J(:,:,m,:,:)); imagesc(sc{:},dt'); axis image xy off
+            if ~isempty(param(1).J),
+                subplot(3,2,2); dt = shoot3('det',param(1).J(:,:,m,:,:)); imagesc(sc{:},dt'); axis image xy off
+            end
             subplot(3,2,3); imagesc(sc{:},Bf{1}'); axis image xy off
             subplot(3,2,4); imagesc(sc{:},(F{1}-mu(:,:,m).*Bf{1})'); axis image xy off
             drawnow;
@@ -724,8 +845,8 @@ for m=1:d(3),
             dt       = Dt{i}(msk);
             mum      = mu(:,:,m);
             mum      = mum(msk);
-            ss0(i)   = ss0(i) + sum(dt);
-            ss1(i)   = ss1(i) + sum((f-mum.*ebias).^2.*dt);
+            nvox(i)  = nvox(i) + sum(dt);
+            ss(i)    = ss(i) + sum((f-mum.*ebias).^2.*dt);
         end
 
         if nargout>=3,
@@ -735,7 +856,10 @@ for m=1:d(3),
         end
     end
 end
-if nargout>=2, vr = ss1./ss0; end
+
+for i=1:numel(img)
+    ss(i) = ss(i)/nvox(i)*numel(img(i).f);
+end
 return;
 %_______________________________________________________________________
 
@@ -750,7 +874,7 @@ return;
 %_______________________________________________________________________
 function y = identity(d)
 % Generate an identity transform of size d(1) x d(2) x d(3)
-y = zeros([d(1:3) 3]);
+y = zeros([d(1:3) 3],'single');
 [y(:,:,:,1),y(:,:,:,2),y(:,:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),single(1:d(3)));
 %_______________________________________________________________________
 

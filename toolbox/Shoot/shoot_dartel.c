@@ -1,4 +1,4 @@
-/* $Id: shoot_dartel.c 4678 2012-03-05 18:01:33Z john $ */
+/* $Id: shoot_dartel.c 4758 2012-05-29 15:34:08Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -22,7 +22,7 @@ void chol3(mwSize m, float A[])
           *p01 = A+m*3, *p02 = A+m*4, *p12 = A+m*5;
     double a00, a11, a22, a01, a02, a12;
     double s;
-    mwSize i;
+    mwSignedIndex i;
     for(i=0; i<m; i++)
     {
         a00 = *p00+1e-6;
@@ -54,7 +54,7 @@ void chol3recon(mwSize m, float A[])
     float *p00 = A,     *p11 = A+m,   *p22 = A+m*2,
           *p01 = A+m*3, *p02 = A+m*4, *p12 = A+m*5;
     double a00, a11, a22, a01, a02, a12;
-    mwSize i;
+    mwSignedIndex i;
     for(i=0; i<m; i++)
     {
         a00 = *p00;
@@ -317,7 +317,7 @@ void expdefdet(mwSize dm[], int k, double sc, float v[], float t0[], float t1[],
 
 static double smalldef_objfun_mn(mwSize dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
-    mwSize j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
 
     j = 0;
@@ -326,7 +326,7 @@ static double smalldef_objfun_mn(mwSize dm[], float f[], float g[], float v[], f
             for(j0=0; j0<dm[0]; j0++, j++)
     {
         double x, y, z;
-        mwSize ix, iy, iz, ix1, iy1, iz1, k;
+        mwSignedIndex ix, iy, iz, ix1, iy1, iz1, k;
         double dx1, dx2, dy1, dy2, dz1, dz2;
         double k000, k100, k010, k110, k001, k101, k011, k111;
         double dx[128], dy[128], dz[128], Y[128], T[128], sT = 1.0, sY;
@@ -485,7 +485,7 @@ static double smalldef_objfun_mn(mwSize dm[], float f[], float g[], float v[], f
 
 static double smalldef_objfun2(mwSize dm[], float f[], float g[], float v[], float jd[], double sc, float b[], float A[])
 {
-    mwSize j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex j, j0, j1, j2, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
 
     j = 0;
@@ -850,7 +850,7 @@ static double initialise_objfun_mn(mwSize dm[], float f[], float g[], float t0[]
 
 static double initialise_objfun2(mwSize dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
-    mwSize j, m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex j, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0;
     
     for(j=0; j<m; j++)
@@ -970,7 +970,7 @@ static double initialise_objfun2(mwSize dm[], float f[], float g[], float t0[], 
 
 static double initialise_objfun(mwSize dm[], float f[], float g[], float t0[], float J0[], float jd[], float b[], float A[])
 {
-    mwSize j, m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex j, m = dm[0]*dm[1]*dm[2];
     double ssl = 0.0, dt = 1.0;
 
     if (dm[3]>1)
@@ -1150,8 +1150,8 @@ static void squaring(mwSize dm[], int k, int save_transf, float b[], float A[], 
 
 mwSize iteration_scratchsize(mwSize dm[], int code, int k)
 {
-    mwSize m1, m2;
-    mwSize m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex m1, m2;
+    mwSignedIndex m = dm[0]*dm[1]*dm[2];
     if (k>0)
     {
         m1 = 30*m;
@@ -1182,8 +1182,8 @@ void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
     float *b, *A;
     double ssl, ssp, sc;
     static double param[] = {1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0};
-    mwSize m = dm[0]*dm[1]*dm[2];
-    mwSize j;
+    mwSignedIndex m = dm[0]*dm[1]*dm[2];
+    mwSignedIndex j;
 
     /*
         Allocate memory.
@@ -1247,7 +1247,6 @@ void iteration(mwSize dm[], int k, float v[], float g[], float f[], float jd[],
     param[5] = param0[5];
     param[6] = param0[6];
     param[7] = param0[7];
-
 
     vel2mom(dm, v, param, sbuf);
 

@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4703 2012-03-29 20:30:30Z john $
+% $Id: spm_shoot_template.m 4758 2012-05-29 15:34:08Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -32,6 +32,7 @@ eul_its = d.eul_its; % Start with fewer steps
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
 
+shoot3('boundary',0);
 
 % Sort out handles to images
 n1 = numel(job.images);
@@ -152,7 +153,7 @@ NG.dat.scl_inter = 0;
 NG.mat0          = NG.mat;
 vx               = sqrt(sum(NG.mat(1:3,1:3).^2));
 
-if ~isempty(sparam),
+if ~isempty(sparam) || smits==0,
     g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(1)*sparam(3)]],smits);
     for j=1:n1+1,
         g{j} = max(g0(:,:,:,j),1e-4);
@@ -161,7 +162,7 @@ if ~isempty(sparam),
 else
     sumt = max(sum(t,4),0)+eps;
     for j=1:n1+1,
-        g{j} = (t(:,:,:,j)+0.1)./(sumt+0.1*(n1+1));
+        g{j} = (t(:,:,:,j)+0.01)./(sumt+0.01*(n1+1));
     end
     clear sumt
 end
@@ -193,7 +194,7 @@ for it=1:nits,
     for i=1:n2, % Loop over subjects
 
         if ok(i)
-            fprintf(' %-3d %-5d\t| ',it,i);
+            fprintf('%3d %5d | ',it,i);
 
             % Load image data for this subject
             f = loadimage(NF(:,i));
@@ -283,7 +284,7 @@ for it=1:nits,
     %%%%%%%%%%%%%%%
 
     % Re-generate template data from sufficient statistics
-    if ~isempty(sparam),
+    if ~isempty(sparam) || smits==0,
         g0 = reconv(g,bs_args);
         g0 = spm_shoot_blur(t,[vx, prod(vx)*[sparam(1:2) sched(it+1)*sparam(3)]],smits,g0);
         g  = cell(n1+1,1);
@@ -294,7 +295,7 @@ for it=1:nits,
     else
         sumt = max(sum(t,4),0)+eps;
         for j=1:n1+1,
-            g{j} = (t(:,:,:,j)+0.1)./(sumt+0.1*(n1+1));
+            g{j} = (t(:,:,:,j)+0.01)./(sumt+0.01*(n1+1));
         end
         clear sumt
     end

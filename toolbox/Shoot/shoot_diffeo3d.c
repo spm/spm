@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 4675 2012-03-02 19:49:35Z john $ */
+/* $Id: shoot_diffeo3d.c 4758 2012-05-29 15:34:08Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -101,9 +101,9 @@ void bracket(mwSize dm[], float *A, float *B, float *C)
                 cy2 = tx*j01+ty*j11+tz*j21;
                 cz2 = tx*j02+ty*j12+tz*j22;
 
-                Cx[o] = cx1-cx2;
-                Cy[o] = cy1-cy2;
-                Cz[o] = cz1-cz2;
+                Cx[o] = cx2-cx1;
+                Cy[o] = cy2-cy1;
+                Cz[o] = cz2-cz1;
             }
         }
     }
@@ -1345,7 +1345,7 @@ void divergence(mwSize dm[], float v0[], float dv[])
                 op1 = j0+dm[0]*(j1+dm[1]*j2p1);
                 div+= v2[op1]-v2[om1];
 
-                dv[j0+dm[0]*(j1+dm[1]*j2)] = div;
+                dv[j0+dm[0]*(j1+dm[1]*j2)] = 0.5*div;
             }
         }
     }
@@ -1392,8 +1392,8 @@ void minmax_div(mwSize dm[], float v0[], double mnmx[])
             }
         }
     }
-    mnmx[0] = mindiv;
-    mnmx[1] = maxdiv;
+    mnmx[0] = 0.5*mindiv;
+    mnmx[1] = 0.5*maxdiv;
 }
 
 /*

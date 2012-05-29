@@ -201,8 +201,57 @@ function varargout = dartel3(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: dartel3.m 1359 2008-04-10 11:21:34Z john $
+% $Id: dartel3.m 4758 2012-05-29 15:34:08Z john $
 
-error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
+%error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
+
+if nargin==0,
+    error('Incorrect usage.');
+elseif ~isa(varargin{1},'char'),
+    param0 = varargin{4};
+    switch param0(1),
+    case 1,
+        param = [param0(4) param0(2) 0  0 0];
+    case 2,
+        param = [param0(4) param0(3) param0(2) 0 0];
+    otherwise
+        param = [param0(4) 0 0 param0(2) param0(3)];
+    end
+    param = [param param0(5:end)];
+    [varargout{1:nargout}] = shoot3('dartel',varargin{1},varargin{2:3},param);
+else
+    switch varargin{1},
+    case {'fmg','cgs'},
+        param0 = varargin{4};
+        vx2    = mean(param0(2:4).^2);
+        switch param0(1),
+        case 1,
+            param = [param0(7) 0 0 param0(5) 0  0 0]*vx2;
+        case 2,
+            param = [param0(7) param0(6) param0(5) 0 0]*vx2;
+        otherwise
+            param = [param0(7) 0 0 param0(5) param0(6)]*vx2;
+        end
+        param = [param9(2:4) param param0(8:end)];
+        [varargout{1:nargout}] = shoot3('dartel',varargin{1:3},param);
+
+    case {'vel2mom'},
+        param0 = varargin{3};
+        vx2    = mean(param0(2:4).^2);
+        switch param0(1),
+        case 1,
+            param = [param0(7) param0(5) 0  0 0]*vx2;
+        case 2,
+            param = [param0(7) param0(6) param0(5) 0 0]*vx2;
+        otherwise
+            param = [param0(7) 0 0 param0(5) param0(6)]*vx2;
+        end
+        param = [param0(2:4) param param0(8:end)];
+        [varargout{1:nargout}] = shoot3(varargin{1:2},param);
+
+    otherwise
+        [varargout{1:nargout}] = shoot3(varargin{:});
+    end
+end
 
 
