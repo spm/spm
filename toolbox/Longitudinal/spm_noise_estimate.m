@@ -6,7 +6,7 @@ function noise = spm_noise_estimate(Scans)
 % _______________________________________________________________________
 %  Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id$
+% $Id: spm_noise_estimate.m 4761 2012-05-29 17:38:44Z john $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
