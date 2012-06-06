@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4588 2011-12-08 18:28:59Z guillaume $
+% $Id: spm_check_installation.m 4764 2012-06-06 11:23:59Z guillaume $
 
 if isdeployed, return; end
 
@@ -108,7 +108,7 @@ if ispc
             'TAR file smart CR/LF conversion is disabled\n'...
             '(under the Miscellaneous Configuration Options).']));
     end
-    if ~exist(fullfile(d,'toolbox','DARTEL','diffeo3d.c'),'file'),
+    if ~exist(fullfile(d,'toolbox','Shoot','shoot_diffeo3d.c'),'file'),
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'This is probably something to do with the way that the\n'...
