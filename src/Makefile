@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4624 2012-01-13 13:27:08Z john $
+# $Id: Makefile 4765 2012-06-07 14:58:46Z guillaume $
 #
 ###############################################################################
 #
@@ -52,7 +52,6 @@ SPMMEX  =\
 	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)
 
 SUBDIRS =\
-	toolbox/DARTEL \
 	toolbox/FieldMap \
 	toolbox/HDW \
 	toolbox/Seg \
