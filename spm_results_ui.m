@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4751 2012-05-24 16:40:52Z guillaume $
+% $Id: spm_results_ui.m 4768 2012-06-11 17:06:55Z karl $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4751 $'; 
+SVNid = '$Rev: 4768 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -621,7 +621,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Position',[130 120 140 020].*WS,...
             'ToolTipString',...
             'Multivariate Bayes',...
-            'Callback','[MVB] = spm_mvb_ui(xSPM,SPM,hReg)',...
+            'Callback','[MVB] = spm_mvb_ui(xSPM,SPM)',...
             'Interruptible','on','Enable','on',...
             'FontSize',FS(10),'ForegroundColor',[1 1 1]/3)
         uicontrol(Finter,'Style','PushButton','String','BMS',...

@@ -22,7 +22,7 @@ function F = spm_Ncdf_jdw(x,u,v)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Ncdf_jdw.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_Ncdf_jdw.m 4768 2012-06-11 17:06:55Z karl $
 
 
 %-Format arguments
@@ -32,7 +32,8 @@ if nargin < 2, u = 0; end
 
 %-Approximate integral
 %--------------------------------------------------------------------------
-x   = (x - u)./sqrt(abs(v));
-s   = sign(x);
-F   = sqrt(1 - exp(-(2/pi)*x.^2))/2;
-F   = 1/2 + F.*s;
+x    = (x - u)./sqrt(abs(v));
+F    = sqrt(1 - exp(-(2/pi)*x.^2))/2;
+i    = x < 1;
+F(i) = -F(i);
+F    = F + 1/2;

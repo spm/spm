@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_kernels.m 4719 2012-04-19 15:36:15Z karl $
+% $Id: spm_kernels.m 4768 2012-06-11 17:06:55Z karl $
 
 
 % assign inputs
@@ -99,16 +99,29 @@ K1    = zeros(N,l,m);
 K2    = zeros(N,N,l,m,m);
 M0    = full(M0);
 
-
-% pre-compute exponentials
+% pre-compute mmatrix exponentials
 %--------------------------------------------------------------------------
-e     = spm_expm(dt*M0);
-e1    = 1;
-for i = 1:N
-    e1    = e*e1;
-    e2    = spm_pinv(e1);   
+e1    = sparse(expm( dt*M0));
+e2    = sparse(expm(-dt*M0));
+for p = 1:m
+    M{1,p} = e1*M1{p}*e2;
+end
+for i = 2:N
     for p = 1:m
-        M{i,p} = e1*M1{p}*e2;
+        M{i,p} = e1*M{i - 1,p}*e2;
+    end
+end
+
+% check for convergence and apply a more robust scheme if necessary
+%--------------------------------------------------------------------------
+if norm(M{N},'inf') > norm(M{1},'inf') || norm(M{1},'inf') > exp(16)
+    ei    = 1;
+    for i = 1:N
+        ei    = e1*ei;
+        ie    = spm_pinv(ei);
+        for p = 1:m
+            M{i,p} = ei*M1{p}*ie;
+        end
     end
 end
 
@@ -117,7 +130,7 @@ end
 %--------------------------------------------------------------------------
 X0    = sparse(1,1,1,n,1);
 if nargout > 0
-    H0    = e^N*X0;
+    H0    = e1^N*X0;
     K0    = L1*H0;
 end
 

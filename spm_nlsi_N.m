@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_nlsi_N.m 4768 2012-06-11 17:06:55Z karl $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -372,11 +372,12 @@ for ip = 1:64
             % derivatives: dLdh = dL/dh,...
             %--------------------------------------------------------------
             for i = 1:nh
-                dFdh(i,1)      =  trace(PS{i})*nq/2 - ey'*P{i}*ey/2 ...
-                                 -sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
+                dFdh(i,1)      =   trace(PS{i})*nq/2 ...
+                                 - real(ey'*P{i}*ey)/2 ...
+                                 - sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
                 for j = i:nh
-                    dFdhh(i,j) = -sum(sum(PS{i}.*PS{j}))*nq/2;
-                    dFdhh(j,i) =  dFdhh(i,j);
+                    dFdhh(i,j) = - sum(sum(PS{i}.*PS{j}))*nq/2;
+                    dFdhh(j,i) =   dFdhh(i,j);
                 end
             end
  

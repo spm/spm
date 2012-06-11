@@ -1,5 +1,5 @@
 function spm_dcm_post_hoc(P,fun)
-% Post hoc optimisation of DCMs (under Laplace approximation)
+% Post hoc optimisation of DCMs (under the Laplace approximation)
 % FORMAT spm_dcm_post_hoc(P,[fun])
 %
 % P         - character/cell array of DCM filenames
@@ -7,15 +7,15 @@ function spm_dcm_post_hoc(P,fun)
 %
 % fun       - optional family definition function: k = fun(A,B,C,D)
 %             k = 1,2,...,K for K families or proper subsets of a partition
-%             of model space, as function of the adjacency matrices: e.g.,
+%             of model space - a function of the adjacency matrices: e.g.,
 %
 %             fun = inline('any(spm_vec(B(:,:,2))) + 1','A','B','C','D')
 %
-%             return 1 if there are no bilinear parameters for the 2nd
+%             returns 1 if there are no bilinear parameters for the 2nd
 %             bilinear effect and 2 if there are. fun should be an inline
 %             function or script. NB: Model posteriors over families with
 %             and without free parameters (in A,B,C and D) are evaluated
-%             automatically and saved in DCM_bpa (DCM.Pp)
+%             automatically and saved in DCM_BPA (DCM.Pp)
 %
 %--------------------------------------------------------------------------
 % This routine searches over all possible reduced models of a full model
@@ -43,14 +43,15 @@ function spm_dcm_post_hoc(P,fun)
 % The outputs of this routine are graphics reporting the model reduction
 % (optimisation) and a DCM_opt_??? for every specified DCM that contains
 % reduced conditional parameters estimates (for simplicity, the original
-% kernels and predicted states are retained). The structural and function
+% kernels and predicted states are retained). The structural and functional
 % (spectral embedding) graphs are based on Bayesian parameter averages
-% over multiple DCMs, which are stored in DCM_bpa.mat. This DCM also
+% over multiple DCMs, which are stored in DCM_BPA.mat. This DCM also
 % contains the posterior probability of models partitioned according to
 % whether a particular parameter exists or not:
 %
 % DCM.Pp     -  Model posterior over parameters (with and without)
 % DCM.Ep     -  Bayesian parameter average under selected model
+% DCM.Cp     -  Bayesian parameter covariance under selected model
 % DCM.Pf     -  Model posteriors over user specified families
 % DCM.fun    -  User-specified family definition function
 % DCM.files  -  List of DCM files used for Bayesian averaging
@@ -59,19 +60,17 @@ function spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4729 2012-05-03 16:29:45Z karl $
+% $Id: spm_dcm_post_hoc.m 4768 2012-06-11 17:06:55Z karl $
 
 % get filenames
 %--------------------------------------------------------------------------
-try
-    P;
-catch
+if nargin < 1
     [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
 
 if ischar(P),   P = cellstr(P); end
-if isstruct(P), P = {P}; end
+if isstruct(P), P = {P};        end
 N   = numel(P);
 TOL = exp(-16);
 
@@ -94,7 +93,7 @@ for j = 1:N
     if j == 1
         C = pC;
     else
-        if any(~pC - ~C)
+        if any(xor(pC,C))
             fprintf('Please check model %i for compatibility ',j)
             return
         end
@@ -105,19 +104,16 @@ end
 %-Greedy search (GS) - eliminating parameters in a top down fashion
 %==========================================================================
 
-% Accumulated reduction matrix (A)
+% Accumulated reduction vector (C)
 %--------------------------------------------------------------------------
-i  = find(C);
-n  = length(C);
-A  = sparse(i,i,1,n,n);
+C  = ~~C;
 GS = 1;
 while GS
     
     % find free coupling parameters
     %----------------------------------------------------------------------
     k     = spm_fieldindices(DCM.Ep,'A','B','C','D');
-    C     = diag(A);
-    k     = k(find(C(k)));
+    k     = k(C(k));
     
     
     % If there are too many find those with the least evidence
@@ -150,8 +146,8 @@ while GS
             % model search over new prior without the i-th parameter
             % -------------------------------------------------------------
             for i = 1:length(k)
-                R      = speye(n,n) - sparse(k(i),k(i),1,n,n);
-                R      = U'*R*A*U;
+                r      = C; r(k(i)) = 0;
+                R      = U(r,:)'*U(r,:);
                 Z(i,j) = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
                 
                 fprintf('\b\b\b\b')
@@ -208,8 +204,8 @@ while GS
         % model search over new prior (covariance)
         % -----------------------------------------------------------------
         for i = 1:length(K)
-            R      = speye(n,n) - sparse(k,k,K(i,:),n,n);
-            R      = U'*R*A*U;
+            r      = C; r(k(K(i,:))) = 0;
+            R      = U(r,:)'*U(r,:);
             G(i,j) = spm_log_evidence(qE,qC,pE,pC,pE,R*pC*R);
             
             fprintf('\b\b\b\b')
@@ -225,11 +221,10 @@ while GS
     p     = exp(S - max(S));
     p     = p/sum(p);
     
-    % Get selected model
+    % Get selected model and prune redundant parameters
     %======================================================================
-    [q i] = max(p);
-    R     = speye(n,n) - sparse(k,k,K(i,:),n,n);
-    A     = R*A;
+    [~, i]    = max(p);
+    C(k(K(i,:))) = 0;
     
     % Continue greedy search if any parameters have been eliminated
     %----------------------------------------------------------------------
@@ -266,8 +261,8 @@ end
 pE    = DCM.M.pE;
 pC    = DCM.M.pC;
 for i = 1:length(k)
-    Pk(1,i) = mean(p(find(~K(:,i))));
-    Pk(2,i) = mean(p(find( K(:,i))));
+    Pk(1,i) = mean(p(~K(:,i)));
+    Pk(2,i) = mean(p( K(:,i)));
 end
 Pk    = Pk(1,:)./sum(Pk);
 Pn    = full(C);
@@ -279,12 +274,12 @@ Pk    = spm_unvec(Pn,pE);
 if ~isempty(fun)
     for i = 1:length(K)
         Pn     = full(C);
-        Pn(find(K(i,:))) = 0;
+        Pn(K(i,:)) = 0;
         Pn     = spm_unvec(Pn,pE);
         Kf(i)  = fun(Pn.A,Pn.B,Pn.C,Pn.D);
     end
     for i = 1:max(Kf)
-        Pf(i) = mean(p(find(Kf == i)));
+        Pf(i) = mean(p(Kf == i));
     end
     Pf    = Pf/sum(Pf);
 end
@@ -296,11 +291,11 @@ end
 
 % Selected model (reduced prior covariance);
 %--------------------------------------------------------------------------
-rC    = A*pC*A;
+rC    = diag(C)*pC*diag(C);
 
 % record pruned parameters
 %--------------------------------------------------------------------------
-R     = spm_unvec(diag(A),pE);
+R     = spm_unvec(full(C),pE);
 R.a   = DCM.a & R.A;
 R.b   = DCM.b & R.B;
 R.c   = DCM.c & R.C;
@@ -463,13 +458,13 @@ DCM.fun   = fun;      % user-specified family definition function
 DCM.files = P;        % list of DCM files used for Bayesian averaging
 DCM.Pf    = Pf;       % Model posteriors over user specified families
 
-% and save as DCM_bpa
+% and save as DCM_BPA
 % -------------------------------------------------------------------------
 try
-    [pth, name] = fileparts(P{1});
-    name = ['DCM_bpa.mat'];
+    pth  = fileparts(P{1});
+    name = 'DCM_BPA.mat';
     name = fullfile(pth,name);
 catch
-    name = fullfile(pwd,['DCM_bpa.mat']);
+    name = fullfile(pwd,'DCM_BPA.mat');
 end
 save(name,'DCM', spm_get_defaults('mat.format'));

@@ -9,7 +9,7 @@ function [K] = spm_perm_mtx(n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_perm_mtx.m 4100 2010-10-22 19:49:17Z karl $
+% $Id: spm_perm_mtx.m 4768 2012-06-11 17:06:55Z karl $
  
 % get permutations
 %==========================================================================
@@ -46,3 +46,7 @@ elseif isvector(n)
         K = x;
     end
 end
+
+% make logical
+%--------------------------------------------------------------------------
+K  = logical(K);

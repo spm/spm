@@ -7,9 +7,9 @@ function [y,scalefactor] = spm_cond_units(y,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cond_units.m 4720 2012-04-19 15:38:20Z karl $
+% $Id: spm_cond_units.m 4768 2012-06-11 17:06:55Z karl $
  
-% default n = 3
+% default n = 1
 %--------------------------------------------------------------------------
 try, n; catch, n = 1; end
 

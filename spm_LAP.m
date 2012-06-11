@@ -27,6 +27,8 @@ function [DEM] = spm_LAP(DEM)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
 %
+%   M(i).P  = optional initial value for parameters (defaults to M(i).pE)
+%
 %   M(i).m  = number of inputs v(i + 1);
 %   M(i).n  = number of states x(i);
 %   M(i).l  = number of output v(i);
@@ -67,7 +69,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_LAP.m 4768 2012-06-11 17:06:55Z karl $
  
  
 % find or create a DEM figure

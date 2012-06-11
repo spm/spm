@@ -43,7 +43,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: spm_ADEM_M_set.m 4768 2012-06-11 17:06:55Z karl $
  
 % order
 %--------------------------------------------------------------------------
@@ -156,7 +156,7 @@ for i = (g - 1):-1:1
     %----------------------------------------------------------------------
     try
         M(i).f = fcnchk(M(i).f);
-        if nargin(M(i).f) == 3
+        if nargin(M(i).f) ~= 4
             M(i).f = inline(char(M(i).f),'x','v','a','P');
         end
     end
@@ -173,7 +173,7 @@ for i = (g - 1):-1:1
     %----------------------------------------------------------------------
     try
         M(i).g = fcnchk(M(i).g);
-        if nargin(M(i).g) == 3
+        if nargin(M(i).g) ~= 4
             M(i).g = inline(char(M(i).g),'x','v','a','P');
         end
     end

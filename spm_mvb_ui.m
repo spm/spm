@@ -1,6 +1,6 @@
-function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
+function [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 % multivariate Bayes (Bayesian decoding of a contrast)
-% FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
+% FORMAT [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 %
 % Sets up, evaluates and saves an MVB structure:
 %
@@ -77,7 +77,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,hReg,MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_mvb_ui.m 4768 2012-06-11 17:06:55Z karl $
  
  
 %-Get figure handles and set title
@@ -91,46 +91,50 @@ spm_clf(Fmvb);
  
 %-Get contrast: only the first line of F-contrast 
 %--------------------------------------------------------------------------
-contrast   = SPM.xCon(xSPM.Ic).name;
-c          = SPM.xCon(xSPM.Ic).c(:,1); 
+try
+    contrast = SPM.xCon(xSPM.Ic).name;
+    c        = SPM.xCon(xSPM.Ic).c(:,1);
+catch
+    contrast = MVB.contrast;
+    c        = MVB.c;
+end
  
 %-Get VOI name
 %--------------------------------------------------------------------------
 try
-    name   = MVB.name;
+    name = MVB.name;
 catch
-    name   = spm_input('name','-8','s',contrast);
+    name = spm_input('name','-8','s',contrast);
 end
-name       = strrep(name,' ','_');
-name       = ['MVB_' name];
+name     = strrep(name,' ','_');
+name     = ['MVB_' name];
  
 %-Get current location {mm}
 %--------------------------------------------------------------------------
 try
-    xyzmm  = MVB.xyzmm;
+    xyzmm = MVB.xyzmm;
 catch
-    xyzmm  = spm_results_ui('GetCoords');
+    xyzmm = spm_results_ui('GetCoords');
 end
 
 %-Specify search volume
 %--------------------------------------------------------------------------
 try
-    xY     = MVB.xY;
-    MVB    = rmfield(MVB,'xY');
+    xY   = MVB.xY;
+    MVB  = rmfield(MVB,'xY');
 catch
-    xY     = [];
+    xY   = [];
 end
-xY.xyz     = xyzmm;
+xY.xyz   = xyzmm;
+Q        = ones(1,size(SPM.xVol.XYZ,2));
+XYZmm    = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
 
-Q          = ones(1,size(SPM.xVol.XYZ,2));
-XYZmm      = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
-
-[xY, XYZ, j] = spm_ROI(xY, XYZmm);
+[xY,~,j] = spm_ROI(xY, XYZmm);
  
 % Get explanatory variables (data)
 %--------------------------------------------------------------------------
-XYZ        = XYZmm(:,j);
-Y          = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
+XYZ      = XYZmm(:,j);
+Y        = spm_get_data(SPM.xY.VY,SPM.xVol.XYZ(:,j));
  
 % Check there are intracranial voxels
 %--------------------------------------------------------------------------
@@ -185,7 +189,8 @@ V   = SPM.xVi.V;
  
 % invert
 %==========================================================================
-U        = spm_mvb_U(Y,priors,X0,XYZ,xSPM.VOX);
+VOX      = diag(abs(SPM.xVol.M));
+U        = spm_mvb_U(Y,priors,X0,XYZ,VOX);
 try
     Ni   = MVB.Ni;
 catch
@@ -207,7 +212,7 @@ MVB.X0       = X0;                          % null space of design
 MVB.XYZ      = XYZ;                         % location of voxels (mm)
 MVB.V        = V;                           % serial correlation in repeosne
 MVB.K        = full(V)^(-1/2);              % whitening matrix
-MVB.VOX      = xSPM.M;                      % voxel scaling
+MVB.VOX      = SPM.xVol.M;                  % voxel scaling
 MVB.xyzmm    = xyzmm;                       % centre of VOI (mm)
 MVB.Space    = xY.def;                      % VOI definition
 MVB.Sp_info  = xY.spec;                     % parameters of VOI

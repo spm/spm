@@ -1,6 +1,6 @@
-function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
+function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % reduction of a fully nonlinear MIMO system to Bilinear form
-% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P,D);
+% FORMAT [M0,M1,L1,L2] = spm_bireduce(M,P);
 %
 % M   - model specification structure
 % Required fields:
@@ -12,9 +12,10 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 %   M.l   - l outputs
 %   M.x   - (n x 1) = x(0) = expansion point: defaults to x = 0;
 %   M.u   - (m x 1) = u    = expansion point: defaults to u = 0;
+%   M.D   - delay operator df/dx -> D*df/dx
 %
 % P   - model parameters
-% D   - delay operator df/dx -> D*df/dx (default D = 1)
+
 %
 % A Bilinear approximation is returned where the states are
 %
@@ -36,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P,Q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4719 2012-04-19 15:36:15Z karl $
+% $Id: spm_bireduce.m 4768 2012-06-11 17:06:55Z karl $
 
 
 % set up
@@ -68,19 +69,28 @@ end
 
 % f(x(0),0) and derivatives
 %--------------------------------------------------------------------------
-[dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
-[dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
-f0           = spm_vec(f0);
-m            = length(dfdxu);          % m inputs
-n            = length(f0);             % n states
+if all(isfield(M,{'dfdxu','dfdx','dfdu','f0'}))
+    dfdxu = M.dfdxu;
+    dfdx  = M.dfdx;
+    dfdu  = M.dfdu;
+    f0    = M.f0;
+else
+    [dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
+    [dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
+end
+f0        = spm_vec(f0);
+m         = length(dfdxu);          % m inputs
+n         = length(f0);             % n states
 
 % delay operator
 %--------------------------------------------------------------------------
-f0    = Q*f0;
-dfdx  = Q*dfdx;
-dfdu  = Q*dfdu;
-for i = 1:m
-    dfdxu{i} = Q*dfdxu{i};
+if isfield(M,'D')
+    f0    = M.D*f0;
+    dfdx  = M.D*dfdx;
+    dfdu  = M.D*dfdu;
+    for i = 1:m
+        dfdxu{i} = M.D*dfdxu{i};
+    end
 end
 
 

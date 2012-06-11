@@ -37,7 +37,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 3813 2010-04-07 19:21:49Z karl $
+% $Id: spm_reml_sc.m 4768 2012-06-11 17:06:55Z karl $
 
  
 % assume a single sample if not specified
@@ -52,21 +52,24 @@ m     = length(Q);
 h     = zeros(m,1);
 dFdh  = zeros(m,1);
 dFdhh = zeros(m,m);
+Inn   = speye(n,n);
+
+[PQ{1:m}] = deal(zeros(n,n));
  
 % ortho-normalise X
 %--------------------------------------------------------------------------
 if isempty(X)
     X = sparse(n,0);
-    R = speye(n,n);
+    R = Inn;
 else
     X = spm_svd(X,0);
-    R = speye(n,n) - X*X';
+    R = Inn - X*X';
 end
 
 % check fixed component
 %--------------------------------------------------------------------------
 if length(V) == 1
-    V = V*speye(n,n);
+    V = V*Inn;
 end
 
  
@@ -75,11 +78,11 @@ end
 
 % scale Q and YY
 %--------------------------------------------------------------------------
-sY = trace(R*YY)/(N*n);
+sY = spm_trace(R,YY)/(N*n);
 YY = YY/sY;
 V  = V/sY;
 for i = 1:m
-    sh(i,1) = trace(R*Q{i})/n;
+    sh(i,1) = spm_trace(R,Q{i})/n;
     Q{i}    = Q{i}/sh(i);
 end
 
@@ -129,14 +132,14 @@ for k = 1:32
  
     % Gradient dF/dh (first derivatives)
     %----------------------------------------------------------------------
-    P     = iC - iCX*Cq*iCX';
-    U     = speye(n) - P*YY/N;
+    P     = iC  - iCX*Cq*iCX';
+    U     = Inn - P*YY/N;
     for i = as
  
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
         PQ{i}   = P*Q{i};
-        dFdh(i) = -trace(PQ{i}*U)*N/2;
+        dFdh(i) = -spm_trace(PQ{i},U)*N/2;
  
     end
  
@@ -147,7 +150,7 @@ for k = 1:32
  
             % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
-            dFdhh(i,j) = -trace(PQ{i}*PQ{j})*N/2;
+            dFdhh(i,j) = -spm_trace(PQ{i},PQ{j})*N/2;
             dFdhh(j,i) =  dFdhh(i,j);
  
         end
@@ -208,7 +211,7 @@ if nargout > 3
  
     % Accuracy - ln p(Y|h)
     %----------------------------------------------------------------------
-    Fa = Ft/2 - trace(C*P*YY*P)/2 - N*n*log(2*pi)/2  - N*spm_logdet(C)/2;
+    Fa = Ft/2 - spm_trace(C*P,YY*P)/2 - N*n*log(2*pi)/2  - N*spm_logdet(C)/2;
  
     % Free-energy
     %----------------------------------------------------------------------
@@ -221,3 +224,9 @@ end
 %--------------------------------------------------------------------------
 h  = sY*exp(h)./sh;
 C  = sY*C;
+
+
+function C = spm_trace(A,B)
+% fast trace for large matrices: C = spm_trace(A,B) = trace(A*B)
+%--------------------------------------------------------------------------
+C = sum(sum(A'.*B));

@@ -1,7 +1,7 @@
 function [C] = spm_wft(s,k,n)
 % Windowed fourier wavelet transform (time-frequency analysis)
 % FORMAT [C] = spm_wft(s,k,n);
-% s      - 1-D time-series
+% s      - (t X n) time-series
 % k      - Frequencies (cycles per window)
 % n      - window length
 % C      - coefficents (complex)
@@ -9,23 +9,26 @@ function [C] = spm_wft(s,k,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_wft.m 4729 2012-05-03 16:29:45Z karl $
+% $Id: spm_wft.m 4768 2012-06-11 17:06:55Z karl $
+
+
+% transpose so that time runs down columns
+%--------------------------------------------------------------------------
+if size(s,1) < size(s,2); s = s'; end
 
 % window function (Hanning)
 %--------------------------------------------------------------------------
-N     = length(s);
+[N M] = size(s);
 h     = 0.5*(1 - cos(2*pi*(1:n)/(n + 1)));
-h     = h/sum(h);
-C     = zeros(length(k),N);
-
-% pad time-series
-%--------------------------------------------------------------------------
-s     = s(:)';
+h     = h'/sum(h);
+C     = zeros(length(k),N,M);
 
 % spectral density
-%-----------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:length(k)
-    W      = exp(-sqrt(-1)*(2*pi*k(i)*[0:(N - 1)]/n));
-    w      = conv(full(s).*W,h);
-    C(i,:) = w((1:N) + n/2);
+    W      = exp(-1j*(2*pi*k(i)*(0:(N - 1))/n))';
+    for j = 1:M
+        w        = conv(full(s(:,j)).*W,h);
+        C(i,:,j) = w((1:N) + n/2);
+    end
 end
