@@ -89,10 +89,10 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_nlsi_GN.m 4769 2012-06-18 10:46:45Z guillaume $
  
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -476,7 +476,7 @@ for k = 1:128
         grid on
         drawnow
         
-    catch
+    else
         
         if iscell(y)
             
@@ -524,4 +524,3 @@ Ep     = spm_unvec(spm_vec(pE) + V*C.p(ip),pE);
 Cp     = V*C.Cp(ip,ip)*V';
 Eh     = C.h;
 F      = C.F;
-
