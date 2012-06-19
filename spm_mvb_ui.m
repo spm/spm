@@ -77,7 +77,7 @@ function [MVB] = spm_mvb_ui(xSPM,SPM,MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_ui.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_mvb_ui.m 4770 2012-06-19 13:24:40Z guillaume $
  
  
 %-Get figure handles and set title
@@ -129,7 +129,7 @@ xY.xyz   = xyzmm;
 Q        = ones(1,size(SPM.xVol.XYZ,2));
 XYZmm    = SPM.xVol.M(1:3,:)*[SPM.xVol.XYZ; Q];
 
-[xY,~,j] = spm_ROI(xY, XYZmm);
+[xY,XYZ,j] = spm_ROI(xY, XYZmm);
  
 % Get explanatory variables (data)
 %--------------------------------------------------------------------------

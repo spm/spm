@@ -20,7 +20,7 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_ROI.m 4770 2012-06-19 13:24:40Z guillaume $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -43,7 +43,7 @@ if ~isfield(xY,'def')
             xY.rej = {'cluster'};
         end
     end
-    [~, i] = setdiff(def,xY.rej);
+    [q, i] = setdiff(def,xY.rej);
     def    = def(sort(i));
     xY.def = spm_input('VOI definition...','!+1','b',def,[],1);
 end
@@ -159,7 +159,7 @@ switch lower(xY.def)
     
     case 'cluster'
     %----------------------------------------------------------------------
-    [~, i] = spm_XYZreg('NearestXYZ',xY.xyz,XYZmm);
+    [x, i] = spm_XYZreg('NearestXYZ',xY.xyz,XYZmm);
     XYZ    = round(xY.M \ [XYZmm; Q]);
     A      = spm_clusters(XYZ);
     j      = find(A == A(i));
