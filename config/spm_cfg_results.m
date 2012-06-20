@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 4747 2012-05-24 11:11:10Z guillaume $
+% $Id: spm_cfg_results.m 4771 2012-06-20 14:49:22Z volkmar $
 
 
 % ---------------------------------------------------------------------
@@ -46,8 +46,8 @@ threshdesc         = cfg_menu;
 threshdesc.tag     = 'threshdesc';
 threshdesc.name    = 'Threshold type';
 threshdesc.help    = {''};
-threshdesc.labels  = {'FWE' 'none'};
-threshdesc.values  = {'FWE' 'none'};
+threshdesc.labels  = {'FWE' 'none' 'FDR'};
+threshdesc.values  = {'FWE' 'none' 'FDR'};
 threshdesc.val     = {'FWE'};
 % ---------------------------------------------------------------------
 % thresh Threshold
