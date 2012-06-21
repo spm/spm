@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 4678 2012-03-05 18:01:33Z john $
+% $Id: tbx_cfg_shoot.m 4772 2012-06-21 18:27:33Z john $
 addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
 addpath(fullfile(spm('dir'),'toolbox','Shoot'));
 
@@ -135,9 +135,9 @@ interp.name    = 'Interpolation';
 interp.val     = {1};
 interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
+                  '    Nearest Neighbour:          - Fastest, but not normally recommended.'
+                  '    Trilinear Interpolation:    - OK for PET, or realigned fMRI.'
+                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially with higher degree splines.  Do not use B-splines when there is any region of NaN or Inf in the images. '
 }';
 interp.labels  = {
                  'Nearest neighbour'
@@ -210,9 +210,9 @@ interp.name    = 'Interpolation';
 interp.val{1} = double(1);
 interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
-                  '    Nearest Neighbour:     - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:     - OK for PET, or realigned fMRI.'
-                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially       with higher degree splines.  Do not use B-splines when       there is any region of NaN or Inf in the images. '
+                  '    Nearest Neighbour:          - Fastest, but not normally recommended.'
+                  '    Trilinear Interpolation:    - OK for PET, or realigned fMRI.'
+                  '    B-spline Interpolation:     - Better quality (but slower) interpolation/* \cite{thevenaz00a}*/, especially with higher degree splines.  Do not use B-splines when there is any region of NaN or Inf in the images.'
 }';
 interp.labels = {
                  'Nearest neighbour'

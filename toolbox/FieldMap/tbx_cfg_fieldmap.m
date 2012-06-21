@@ -3,7 +3,7 @@ function fieldmap = tbx_cfg_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_fieldmap.m 4572 2011-11-23 17:35:10Z chloe $
+% $Id: tbx_cfg_fieldmap.m 4772 2012-06-21 18:27:33Z john $
 
 addpath(fullfile(spm('dir'),'toolbox','FieldMap'));
 
@@ -666,7 +666,7 @@ applyvdmwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
 rinterp.name    = 'Interpolation';
-rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
+rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Trilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
 rinterp.labels = {
                   'Nearest neighbour'
                   'Trilinear'

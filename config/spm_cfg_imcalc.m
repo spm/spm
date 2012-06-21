@@ -3,7 +3,7 @@ function imcalc = spm_cfg_imcalc
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_imcalc.m 4591 2011-12-15 19:04:13Z guillaume $
+% $Id: spm_cfg_imcalc.m 4772 2012-06-21 18:27:33Z john $
 
 %--------------------------------------------------------------------------
 % input Input Images
@@ -138,7 +138,7 @@ interp.help    = {
                   'The method by which the images are sampled when being written in a different space.'
                   '    Nearest Neighbour'
                   '    - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation'
+                  '    Trilinear Interpolation'
                   '    - OK for PET, or realigned fMRI.'
                   '    Sinc Interpolation'
                   '    - Better quality (but slower) interpolation, especially'

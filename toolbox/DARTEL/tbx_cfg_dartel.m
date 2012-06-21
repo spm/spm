@@ -4,7 +4,7 @@ function dartel = tbx_cfg_dartel
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_dartel.m 4650 2012-02-09 08:14:54Z volkmar $
+% $Id: tbx_cfg_dartel.m 4772 2012-06-21 18:27:33Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','DARTEL')); end
 
@@ -664,7 +664,7 @@ interp.help    = {
                   'rather than as missing data)']
                   '    Nearest Neighbour:'
                   '      - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:'
+                  '    Trilinear Interpolation:'
                   '      - OK for PET, realigned fMRI, or segmentations'
                   '    B-spline Interpolation:'
                   ['      - Better quality (but slower) interpolation',...

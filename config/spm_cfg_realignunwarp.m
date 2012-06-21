@@ -4,9 +4,9 @@ function realignunwarp = spm_cfg_realignunwarp
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 4682 2012-03-12 16:01:49Z guillaume $
+% $Id: spm_cfg_realignunwarp.m 4772 2012-06-21 18:27:33Z john $
 
-rev = '$Rev: 4682 $';
+rev = '$Rev: 4772 $';
 % ---------------------------------------------------------------------
 % scans Images
 % ---------------------------------------------------------------------
@@ -365,7 +365,7 @@ uwwhich.def    = @(val)spm_get_defaults('realign.write.which', val{:});
 rinterp         = cfg_menu;
 rinterp.tag     = 'rinterp';
 rinterp.name    = 'Interpolation';
-rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
+rinterp.help    = {'The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Trilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results/* \cite{thevenaz00a,unser93a,unser93b}*/. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.'};
 rinterp.labels = {
                   'Nearest neighbour'
                   'Trilinear'

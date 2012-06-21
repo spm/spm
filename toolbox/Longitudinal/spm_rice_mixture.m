@@ -17,7 +17,7 @@ function [mg,nu,sig] = spm_rice_mixture(h,x,K)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_rice_mixture.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_rice_mixture.m 4772 2012-06-21 18:27:33Z john $
 
 mg  = ones(K,1)/K;
 nu  = (0:(K-1))'*max(x)/(K+1);
@@ -39,7 +39,8 @@ for iter=1:10000,
     if ll-oll<1e-8*sum(h), break; end
 
     %fprintf('%g\n',ll);
-    %subplot(2,1,1); plot(x(:),p,'c',x(:),h/sum(h)/md,'b.',x(:),sp,'r'); drawnow
+    %subplot(2,1,1);
+    plot(x(:),p,'c',x(:),h/sum(h)/md,'b.',x(:),sp,'r'); drawnow
 
     p = bsxfun(@rdivide,p,sp);
 

@@ -6,26 +6,25 @@ function noise = spm_noise_estimate(Scans)
 % _______________________________________________________________________
 %  Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_noise_estimate.m 4761 2012-05-29 17:38:44Z john $
+% $Id: spm_noise_estimate.m 4772 2012-06-21 18:27:33Z john $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
 noise = zeros(numel(Scans),1);
 for i=1:numel(Scans),
     Nii = Scans(i);
+    f   = Nii.dat(:,:,:);
     if spm_type(Nii.dat.dtype(1:(end-3)),'intt'),
-        f      = Nii.dat(:,:,:);
         f(f==max(f(:))) = 0;
         x      = 0:Nii.dat.scl_slope:max(f(:));
         [h,x]  = hist(f(f~=0),x);
     else
-        f      = Nii.dat(:,:,:);
         x      = (0:1023)*(max(f(:))/1023);
         f(f==max(f(:))) = 0;
         [h,x]  = hist(f(f~=0 & isfinite(f)),x);
     end
     [mg,nu,sd] = spm_rice_mixture(h(:),x(:),2);
     noise(i)   = min(sd);
-    %fprintf('%d %g\n', i, noise(i));
+    fprintf('%d %g\n', i, noise(i));
 end
 

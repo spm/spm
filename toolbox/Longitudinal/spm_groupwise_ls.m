@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4758 2012-05-29 15:34:08Z john $
+% $Id: spm_groupwise_ls.m 4772 2012-06-21 18:27:33Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -459,6 +459,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             % Zero-mean.
             % This is currently disabled, as more work is needed to handle
             % the use of different differential operators for different images.
+            % Different fields of view for the various images is also problematic.
             %-----------------------------------------------------------------------
             %avg_v0 = param(1).v0;
             %for i=2:numel(param),

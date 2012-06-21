@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4758 2012-05-29 15:34:08Z john $
+% $Id: spm_pairwise.m 4772 2012-06-21 18:27:33Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -40,15 +40,15 @@ for i=1:numel(tdif),
     wparam = kron(wparam0,1./(abs(tdif(i)/2)+1/365));
     sparam = round(3*abs(tdif(i)/2)+2);
     Nii    = nifti(strvcat(job.vols1{i},job.vols2{i}));
-    [pth,nam1] = fileparts(Nii(1).dat.fname);
-    [pth,nam2] = fileparts(Nii(2).dat.fname);
+    [pth1,nam1] = fileparts(Nii(1).dat.fname);
+    [pth1,nam2] = fileparts(Nii(2).dat.fname);
     fprintf('*** %s <=> %s ***\n', nam1, nam2);
 
     dat    = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);
 
     if isfield(dat,'jac')
         d           = [size(dat.jac{1}) 1]; d = d(1:3);
-        nam         = fullfile(pth,['jd_' nam1 '_' nam2 '.nii']);
+        nam         = fullfile(pth1,['jd_' nam1 '_' nam2 '.nii']);
         Nio         = nifti;
         Nio.dat     = file_array(nam,d,'float32',0,1,0);
         Nio.mat     = dat.mat;
@@ -63,7 +63,7 @@ for i=1:numel(tdif),
 
     if isfield(dat,'div')
         d           = [size(dat.div{1}) 1]; d = d(1:3);
-        nam         = fullfile(pth,['dv_' nam1 '_' nam2 '.nii']);
+        nam         = fullfile(pth1,['dv_' nam1 '_' nam2 '.nii']);
         Nio         = nifti;
         Nio.dat     = file_array(nam,d,'float32',0,1,0);
         Nio.mat     = dat.mat;

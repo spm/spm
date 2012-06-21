@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4738 2012-05-11 16:41:35Z ged $
+% $Id: spm_cfg_deformations.m 4772 2012-06-21 18:27:33Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -249,7 +249,7 @@ interp.help    = {
                   'rather than as missing data)']
                   '    Nearest Neighbour:'
                   '      - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:'
+                  '    Trilinear Interpolation:'
                   '      - OK for PET, realigned fMRI, or segmentations'
                   '    B-spline Interpolation:'
                   ['      - Better quality (but slower) interpolation' ...

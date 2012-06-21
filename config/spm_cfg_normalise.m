@@ -3,7 +3,7 @@ function normalise = spm_cfg_normalise
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_cfg_normalise.m 4772 2012-06-21 18:27:33Z john $
 
 
 %--------------------------------------------------------------------------
@@ -264,7 +264,7 @@ interp.help    = {
                   'rather than as missing data)']
                   '    Nearest Neighbour:'
                   '      - Fastest, but not normally recommended.'
-                  '    Bilinear Interpolation:'
+                  '    Trilinear Interpolation:'
                   '      - OK for PET, realigned fMRI, or segmentations'
                   '    B-spline Interpolation:'
                   ['      - Better quality (but slower) interpolation' ...
