@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 4766 2012-06-08 10:12:41Z will $
+% $Id: spm_dcm_average.m 4773 2012-06-28 13:56:24Z will $
 
 try
     P;
@@ -74,6 +74,11 @@ for model = 1:N
     Ep              = spm_vec(DCM.Ep);
     miCp(:,:,model) = inv(full(Cp(wsel,wsel)));
     mEp(:,model)    = full(Ep(wsel));
+    
+    if model==1
+        % Get prior precision (assumed same for all models)
+        Lambda0=inv(diag(pCdiag(wsel)));
+    end
 
 end
 
@@ -83,7 +88,7 @@ end
 
 % averaged posterior covariance
 %--------------------------------------------------------------------------
-Cp(wsel,wsel) = inv(sum(miCp,3));
+Cp(wsel,wsel) = inv(sum(miCp,3)-(N-1)*Lambda0);
 
 % averaged posterior mean
 %--------------------------------------------------------------------------
