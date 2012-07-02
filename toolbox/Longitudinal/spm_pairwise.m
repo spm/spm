@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4772 2012-06-21 18:27:33Z john $
+% $Id: spm_pairwise.m 4776 2012-07-02 20:33:35Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -18,23 +18,36 @@ else
 end
 if any(tdif > 50), error('Time differences should be in years.'); end;
 
-if ~isfinite(job.noise),
-    % Make an estimate of the scanner noise
-    Scans = strvcat(job.vols1{:},job.vols2{:});
-    noise = mean(spm_noise_estimate(Scans).^2);
-    fprintf('Noise estimate = %g\n', sqrt(noise));
+if numel(job.noise)==1,
+    noise = repmat(job.noise,[N 2]);
+elseif size(job.noise,2) ~= 2,
+    error('Incompatible numbers of noise estimates for each subject.');
+elseif size(job.noise,1) ~= N,
+    error('Incompatible numbers of noise estimates and subjects.');
 else
     noise = job.noise;
 end
-prec    = 1/noise;
+
+for i=find(~isfinite(noise(:,1)))',
+    % Make an estimate of the scanner noise
+    noise(i,1) = spm_noise_estimate(job.vols1{i});
+    fprintf('Estimated noise sd for "%s" = %g\n', job.vols1{i}, noise(i,1));
+end
+for i=find(~isfinite(noise(:,2)))',
+    % Make an estimate of the scanner noise
+    noise(i,2) = spm_noise_estimate(job.vols2{i});
+    fprintf('Estimated noise sd for "%s" = %g\n', job.vols2{i}, noise(i,2));
+end
+
+prec    = noise.^(-2);
 bparam  = [0 0 job.bparam];
 wparam0 = job.wparam;
 
 output = {};
-if job.write_avg, output = {output{:}, 'wavg'}; end
-if job.write_jac, output = {output{:},  'jac'}; end
-if job.write_div, output = {output{:},  'div'}; end
-if job.write_def, output = {output{:}, 'wdef'}; end
+if job.write_avg, output = [output, {'wavg'}]; end
+if job.write_jac, output = [output, {'jac'} ];  end
+if job.write_div, output = [output, {'div'} ];  end
+if job.write_def, output = [output, {'wdef'}]; end
 
 for i=1:numel(tdif),
     wparam = kron(wparam0,1./(abs(tdif(i)/2)+1/365));

@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4772 2012-06-21 18:27:33Z john $
+% $Id: spm_groupwise_ls.m 4776 2012-07-02 20:33:35Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -42,21 +42,32 @@ end
 
 % Specify default settings
 %-----------------------------------------------------------------------
-if nargin<3 || ~isfinite(prec), prec = 1/mean(spm_noise_estimate(Nii).^2); end
+if nargin<3, prec       = NaN; end
 if nargin<4, w_settings = [0 1 40 20 80]; end
 if nargin<5, b_settings = [0 0 1e8]; end
 if nargin<6, s_settings = 6; end
-if nargin<7, ord    = [3 3 3 0 0 0]; end
+if nargin<7, ord        = [3 3 3 0 0 0]; end
 
 % If settings are not subject-specific, then generate
 %-----------------------------------------------------------------------
 if size(w_settings,1)==1, w_settings = repmat(w_settings,numel(Nii),1); end
 if size(s_settings,1)==1, s_settings = repmat(s_settings,numel(Nii),1); end
 if size(b_settings,1)==1, b_settings = repmat(b_settings,numel(Nii),1); end
+if numel(prec)       ==1, prec       = repmat(prec,1,numel(Nii));       end
+
+% Determine noise estimates when unknown
+for i=find(~isfinite(prec))',
+    prec(i) = 1/spm_noise_estimate(Nii(i)).^2;
+end
 
 % Basis functions for algebra of rigid-body transform
 %-----------------------------------------------------------------------
 B = se3_basis;
+
+% Set boundary conditions 
+%-----------------------------------------------------------------------
+optimN_mex('bound',1); % Bias correction - Neumann
+shoot3('bound',0);     % Diffeomorphism  - circulant
 
 % Computations for figuring out how many grid levels are likely to work
 %-----------------------------------------------------------------------
@@ -75,8 +86,6 @@ for i=numel(Nii):-1:1,
     pyramid(1).img(i).f   = single(Nii(i).dat(:,:,:,1,1));
     pyramid(1).img(i).mat = Nii(i).mat;
 end
-
-shoot3('bound',0); % Set boundary condition to circulant
 
 % Generate sucessively lower resolution versions
 %-----------------------------------------------------------------------
@@ -100,10 +109,10 @@ for level=1:numel(pyramid),
     end
 end
 
-% Adjust precision for number of subjects
-%-----------------------------------------------------------------------
-nscan = numel(pyramid(1).img);
-prec  = prec*(nscan-1)/nscan;
+%% Adjust precision for number of subjects
+%%-----------------------------------------------------------------------
+%nscan = numel(pyramid(1).img);
+%prec  = prec*(nscan-1)/nscan;
 
 % Stuff for figuring out the orientation, dimensions etc of the highest resolution template
 %-----------------------------------------------------------------------
@@ -129,7 +138,6 @@ for level=2:numel(pyramid),
 end
 
 
-LL=[];
 nlevels = numel(pyramid);
 
 for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
@@ -226,7 +234,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             ll = 0;
             for i=1:numel(param),
                 param(i).ss = ss(i);
-                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
+                ll          = ll - 0.5*prec(i)*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
@@ -287,8 +295,8 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                     dA(:,m) = reshape(tmp(1:3,:),12,1);
                 end
 
-                Hess       = dA'*Hess*dA*prec;
-                gra        = dA'*gra*prec;
+                Hess       = dA'*Hess*dA*prec(i);
+                gra        = dA'*gra*prec(i);
                 param(i).r = param(i).r - Hess\gra;
 
                 clear R dR M x1a x2a dA tmp Hess gra
@@ -319,7 +327,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             ll = 0;
             for i=1:numel(param),
                 param(i).ss = ss(i);
-                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
+                ll          = ll - 0.5*prec(i)*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
@@ -351,8 +359,8 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                         smu         = mu(:,:,m).*ebias;
                         f(~msk)     = 0;
                         smu(~msk)   = 0;
-                        gra(:,:,m)  = smu.*(smu-f).*dt*prec;
-                        Hess(:,:,m) = smu.*smu.*dt*prec;
+                        gra(:,:,m)  = smu.*(smu-f).*dt*prec(i);
+                        Hess(:,:,m) = smu.*smu.*dt*prec(i);
 
                         clear dt y f ebias msk smu
                     end
@@ -396,7 +404,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             ll = 0;
             for i=1:numel(param),
                 param(i).ss = ss(i);
-                ll          = ll - 0.5*prec*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
+                ll          = ll - 0.5*prec(i)*param(i).ss - 0.5*param(i).eb - 0.5*param(i).ev;
             end
             spm_plot_convergence('set',ll);
 
@@ -444,8 +452,8 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                     param(i).y = []; % No longer needed
                     param(i).J = [];
 
-                    Hess        = Hess*prec;
-                    gra         = gra*prec;
+                    Hess        = Hess*prec(i);
+                    gra         = gra*prec(i);
 
                     gra         = gra + shoot3('vel2mom',param(i).v0,[vx w_settings(i,:)*sc]);
                     param(i).v0 = param(i).v0 - shoot3('fmg',Hess, gra, [vx w_settings(i,:)*sc 2 2]); % Gauss-Newton
@@ -503,9 +511,9 @@ if any(strcmp('jac',output)) || any(strcmp('wjac',output)), need_jac = true; end
 if any(strcmp('mom',output)) || any(strcmp('wmom',output)), need_mom = true; end
 if any(strcmp('bia',output)) || any(strcmp('wbia',output)), need_bia = true; end
 
-
+out = struct;
 if need_avg || need_def || need_jac,
-    for i=1:numel(param),
+    for i=numel(param):-1:1,
         if all(isfinite(w_settings(i,:))),
             [param(i).y,param(i).J] = spm_shoot3d(param(i).v0,[vx w_settings(i,:)*sc],s_settings(i,:));
         end
@@ -529,7 +537,7 @@ end
 
 if need_avg,
     if any(strcmp('wavg',output)),
-        [pth,nam,ext] = fileparts(Nii(1).dat.fname);
+        [pth,nam]   = fileparts(Nii(1).dat.fname);
         nam         = fullfile(pth,['avg_' nam '.nii']);
         Nio         = nifti;
         Nio.dat     = file_array(nam,size(mu),'uint8',0,max(mu(:))/255,0);
@@ -561,12 +569,13 @@ if need_mom,
                 ebias = exp(shoot3('samp',param(i).bias,y));
                 msk   = ~isfinite(f);
                 b     = (f-mu(:,:,m).*ebias).*ebias.*dt;
+                b(msk)     = 0;
                 mom(:,:,m) = b;
                 clear dt y f ebias b msk 
             end
 
             if any(strcmp('wmom',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['a_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,d,'float32',0,1,0);
@@ -595,7 +604,7 @@ if need_bia,
         if all(isfinite(b_settings(i,:))),
 
             if any(strcmp('wbia',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['BiasField_' nam '.nii']);
                 Nio         = nifti;
                 dm          = [Nii(i).dat.dim 1]; dm = dm(1:3);
@@ -619,7 +628,7 @@ end
 
 if need_def,
     out.def = {};
-    for i=1:numel(param),
+    for i=numel(param):-1:1,
         if all(isfinite(w_settings(i,:))),
 
             M   = param(i).R*M_avg;
@@ -627,7 +636,7 @@ if need_def,
                 param(i).y(:,:,m,:) = transform_warp(M,param(i).y(:,:,m,:));
             end
             if any(strcmp('wdef',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['y_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
@@ -652,11 +661,11 @@ end
 
 if need_jac,
     out.jac = {};
-    for i=1:numel(param),
+    for i=numel(param):-1:1,
         if all(isfinite(w_settings(i,:))),
             dt = shoot3('det',param(i).J);
             if any(strcmp('wjac',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['j_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,d,'float32',0,1,0);
@@ -684,7 +693,7 @@ if need_div,
         if all(isfinite(w_settings(i,:))),
             dv = shoot3('div',param(i).v0);
             if any(strcmp('wdiv',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['div_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,d,'float32',0,1,0);
@@ -710,7 +719,7 @@ if need_vel,
     for i=1:numel(param),
         if all(isfinite(w_settings(i,:))),
             if any(strcmp('wvel',output)),
-                [pth,nam,ext] = fileparts(Nii(i).dat.fname);
+                [pth,nam]   = fileparts(Nii(i).dat.fname);
                 nam         = fullfile(pth,['v_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,[d 1 3],'float32',0,1,0);
@@ -741,8 +750,9 @@ function [mu,ss,nvox,D] = compute_mean(data, param, ord)
 d     = data.d;
 M_avg = data.mat;
 img   = data.img;
+prec  = data.prec;
 
-mu = zeros(d,'single');
+mu   = zeros(d,'single');
 nvox = zeros(numel(img),1);
 ss   = zeros(numel(img),1);
 if nargout>=4, % Compute gradients of template
@@ -794,8 +804,8 @@ for m=1:d(3),
         f        = F{i};
         ebias    = Bf{i};
         dt       = Dt{i};
-        mum(msk) = mum(msk) + f(msk).*ebias(msk).*dt(msk);
-        mgm(msk) = mgm(msk) + ebias(msk).*ebias(msk).*dt(msk);
+        mum(msk) = mum(msk) + f(msk).*ebias(msk).*dt(msk)*prec(i);
+        mgm(msk) = mgm(msk) + ebias(msk).*ebias(msk).*dt(msk)*prec(i);
 
         if nargout>=4
             % For computing gradients
@@ -812,9 +822,9 @@ for m=1:d(3),
             d1      = Dr{1,i}(msk);
             d2      = Dr{2,i}(msk);
             d3      = Dr{3,i}(msk);
-            Dm{1}(msk) = Dm{1}(msk) + (Jm(:,1,1).*d1 + Jm(:,2,1).*d2 + Jm(:,3,1).*d3).*ebias(msk).*dt(msk);
-            Dm{2}(msk) = Dm{2}(msk) + (Jm(:,1,2).*d1 + Jm(:,2,2).*d2 + Jm(:,3,2).*d3).*ebias(msk).*dt(msk);
-            Dm{3}(msk) = Dm{3}(msk) + (Jm(:,1,3).*d1 + Jm(:,2,3).*d2 + Jm(:,3,3).*d3).*ebias(msk).*dt(msk);
+            Dm{1}(msk) = Dm{1}(msk) + (Jm(:,1,1).*d1 + Jm(:,2,1).*d2 + Jm(:,3,1).*d3).*ebias(msk).*dt(msk)*prec(i);
+            Dm{2}(msk) = Dm{2}(msk) + (Jm(:,1,2).*d1 + Jm(:,2,2).*d2 + Jm(:,3,2).*d3).*ebias(msk).*dt(msk)*prec(i);
+            Dm{3}(msk) = Dm{3}(msk) + (Jm(:,1,3).*d1 + Jm(:,2,3).*d2 + Jm(:,3,3).*d3).*ebias(msk).*dt(msk)*prec(i);
 
             clear d1 d2 d3
         end

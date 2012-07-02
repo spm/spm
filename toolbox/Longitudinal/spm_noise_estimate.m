@@ -2,11 +2,11 @@ function noise = spm_noise_estimate(Scans)
 % Estimate avarage noise from a series of images
 % FORMAT noise = spm_noise_estimate(Scans)
 % Scans - nifti structures or filenames of images
-% noise - variance estimate
+% noise - standard deviation estimate
 % _______________________________________________________________________
 %  Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_noise_estimate.m 4772 2012-06-21 18:27:33Z john $
+% $Id: spm_noise_estimate.m 4776 2012-07-02 20:33:35Z john $
 
 if ~isa(Scans,'nifti'), Scans = nifti(Scans); end
 
@@ -25,6 +25,5 @@ for i=1:numel(Scans),
     end
     [mg,nu,sd] = spm_rice_mixture(h(:),x(:),2);
     noise(i)   = min(sd);
-    fprintf('%d %g\n', i, noise(i));
 end
 

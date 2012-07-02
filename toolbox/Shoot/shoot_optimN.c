@@ -114,7 +114,8 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
     double ss = 0.0;
     mwSignedIndex k;
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2);
+    w000 = w000 + lam0;
     w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
     w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
     w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
@@ -173,7 +174,22 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
                 for(m=0; m<dm[3]; m++)
                 {
                     mwSignedIndex n;
-                    float *pm = p[m];
+                    float *pm =  p[m];
+                    double pm0 = pm[0];
+                    tmp =  (lam0*  pm[0] +
+                          + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
+                          + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
+                          + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
+                          + w200*((pm[im2        ]-pm0) + (pm[ip2        ]-pm0))
+                          + w020*((pm[    jm2    ]-pm0) + (pm[    jp2    ]-pm0))
+                          + w002*((pm[        km2]-pm0) + (pm[        kp2]-pm0))
+                          + w110*((pm[im1+jm1    ]-pm0) + (pm[ip1+jm1    ]-pm0) + (pm[im1+jp1    ]-pm0) + (pm[ip1+jp1    ]-pm0))
+                          + w101*((pm[im1    +km1]-pm0) + (pm[ip1    +km1]-pm0) + (pm[im1    +kp1]-pm0) + (pm[ip1    +kp1]-pm0))
+                          + w011*((pm[    jm1+km1]-pm0) + (pm[    jp1+km1]-pm0) + (pm[    jm1+kp1]-pm0) + (pm[    jp1+kp1]-pm0)))*scal[m]
+                          - pb[m][i];
+
+/*
+Note that there are numerical precision problems with this.
                     tmp =  (w000* pm[0] +
                           + w010*(pm[    jm1    ] + pm[    jp1    ])
                           + w020*(pm[    jm2    ] + pm[    jp2    ])
@@ -185,6 +201,7 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
                           + w011*(pm[    jm1+km1] + pm[    jp1+km1] + pm[    jm1+kp1] + pm[    jp1+kp1])
                           + w002*(pm[        km2] + pm[        kp2]))*scal[m]
                           - pb[m][i];
+*/
 
                     if (a)
                     {
@@ -211,7 +228,8 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
     double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2);
+    w000 = w000 + lam0;
     w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
     w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
     w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
@@ -253,11 +271,23 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                 for(i=0; i<dm[0]; i++)
                 {
                     float *p = &pf1[i];
+                    double p0 = p[0];
+
                     im2 = bound(i-2,dm[0])-i;
                     im1 = bound(i-1,dm[0])-i;
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
-
+                    pg1[i] =(lam0*  p[0] +
+                           + w100*((p[im1        ]-p0) + (p[ip1        ]-p0))
+                           + w010*((p[    jm1    ]-p0) + (p[    jp1    ]-p0))
+                           + w001*((p[        km1]-p0) + (p[        kp1]-p0))
+                           + w200*((p[im2        ]-p0) + (p[ip2        ]-p0))
+                           + w020*((p[    jm2    ]-p0) + (p[    jp2    ]-p0))
+                           + w002*((p[        km2]-p0) + (p[        kp2]-p0))
+                           + w110*((p[im1+jm1    ]-p0) + (p[ip1+jm1    ]-p0) + (p[im1+jp1    ]-p0) + (p[ip1+jp1    ]-p0))
+                           + w101*((p[im1    +km1]-p0) + (p[ip1    +km1]-p0) + (p[im1    +kp1]-p0) + (p[ip1    +kp1]-p0))
+                           + w011*((p[    jm1+km1]-p0) + (p[    jp1+km1]-p0) + (p[    jm1+kp1]-p0) + (p[    jp1+kp1]-p0)))*scal[m];
+/*
                     pg1[i] =(w000* p[0]
                            + w010*(p[    jm1    ] + p[    jp1    ])
                            + w020*(p[    jm2    ] + p[    jp2    ])
@@ -268,6 +298,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                            + w101*(p[im1    +km1] + p[ip1    +km1] + p[im1    +kp1] + p[ip1    +kp1])
                            + w011*(p[    jm1+km1] + p[    jp1+km1] + p[    jm1+kp1] + p[    jp1+kp1])
                            + w002*(p[        km2] + p[        kp2]))*scal[m];
+*/
                 }
             }
         }
@@ -286,7 +317,8 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     double lam0 = s[3], lam1 = s[4], lam2 = s[5];
     double v0 = s[0]*s[0], v1 = s[1]*s[1], v2 = s[2]*s[2];
 
-    w000 = lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2) + lam0;
+    w000 = (lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2));
+    w000 = w000 + lam0;
     w100 = lam2*(-4*v0*(v0+v1+v2)) -lam1*v0;
     w010 = lam2*(-4*v1*(v0+v1+v2)) -lam1*v1;
     w001 = lam2*(-4*v2*(v0+v1+v2)) -lam1*v2;
@@ -296,8 +328,6 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
     w110 = lam2*2*v0*v1;
     w101 = lam2*2*v0*v2;
     w011 = lam2*2*v1*v2;
-
-    w000 = w000*1.00001 + 1e-6;
 
     if (dm[0]<=2)
     {
@@ -400,6 +430,42 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     {
                         mwSignedIndex n;
                         float *pm = &pu[m][i];
+
+                        double pm0 = pm[0];
+                        su[m] = pb[m][i]-
+                               (lam0* pm[0] +
+                              + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
+                              + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
+                              + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
+                              + w200*((pm[im2        ]-pm0) + (pm[ip2        ]-pm0))
+                              + w020*((pm[    jm2    ]-pm0) + (pm[    jp2    ]-pm0))
+                              + w002*((pm[        km2]-pm0) + (pm[        kp2]-pm0))
+                              + w110*((pm[im1+jm1    ]-pm0) + (pm[ip1+jm1    ]-pm0) + (pm[im1+jp1    ]-pm0) + (pm[ip1+jp1    ]-pm0))
+                              + w101*((pm[im1    +km1]-pm0) + (pm[ip1    +km1]-pm0) + (pm[im1    +kp1]-pm0) + (pm[ip1    +kp1]-pm0))
+                              + w011*((pm[    jm1+km1]-pm0) + (pm[    jp1+km1]-pm0) + (pm[    jm1+kp1]-pm0) + (pm[    jp1+kp1]-pm0)))*scal[m];
+
+                        if (a)
+                        {
+                            for(n=0; n<dm[3]; n++) su[m] -= a1[m*dm[3]+n]*pu[n][i];
+                            a1[m+dm[3]*m] += w000*scal[m];
+                        }
+                    }
+                    if (a)
+                    {
+                        choldc(dm[3],a1,cp);
+                        cholls(dm[3],a1,cp,su,su);
+                        for(m=0; m<dm[3]; m++) pu[m][i] += su[m];
+                    }
+                    else
+                    {
+                        for(m=0; m<dm[3]; m++) pu[m][i] += su[m]/(w000*scal[m]);
+                    }
+
+/*
+                    for(m=0; m<dm[3]; m++)
+                    {
+                        mwSignedIndex n;
+                        float *pm = &pu[m][i];
                         su[m]     = pb[m][i]-
                                   ( w010*(pm[    jm1    ] + pm[    jp1    ])
                                   + w020*(pm[    jm2    ] + pm[    jp2    ])
@@ -427,8 +493,7 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     {
                         for(m=0; m<dm[3]; m++) pu[m][i] = su[m]/(w000*scal[m]);
                     }
-
-                    /* ss  += sux*sux + suy*suy + suz*suz; */
+*/
                 }
             }
         }

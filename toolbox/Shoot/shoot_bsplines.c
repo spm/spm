@@ -147,7 +147,7 @@ void bsplinc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
     nd = mxGetNumberOfDimensions(prhs[0]);
     if (nd>3) mexErrMsgTxt("Too many dimensions.");
     for(k=0; k<nd; k++) vdim[k] =  mxGetDimensions(prhs[0])[k];
-    for(k=nd; k<3; k++) vdim[k] = 0;
+    for(k=nd; k<3; k++) vdim[k] = 1;
     f = (float *)mxGetPr(prhs[0]);
 
     plhs[0] = mxCreateNumericArray(3,vdim, mxSINGLE_CLASS, mxREAL);

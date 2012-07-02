@@ -29,7 +29,7 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     int   cyc=1, nit=1;
     float *A, *b, *x, *scratch;
     static double param[6] = {1.0, 1.0, 1.0, 1.0, 0.0, 0.0};
-    double scal[256];
+    double scal[256], t[3];
 
     if ((nrhs!=3 && nrhs!=4) || nlhs>1)
         mexErrMsgTxt("Incorrect usage");
@@ -64,6 +64,18 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     param[5] = mxGetPr(prhs[2])[5];
     cyc      = mxGetPr(prhs[2])[6];
     nit      = (int)(mxGetPr(prhs[2])[7]);
+
+    /* Penalise absolute displacements slightly in case supplied Hessian is too small.
+       Extra penalty based on value in centre of difference operator, scaled by some
+       slightly arbitrary amount.
+
+       On second thoughts - I need to think about this one a bit more as it uses too
+       much regularisation if a decent Hessian is supplied.
+    */
+    t[0]     = param[0]*param[0];
+    t[1]     = param[1]*param[1];
+    t[2]     = param[2]*param[2];
+    param[3]+= (param[5]*(6*(t[0]*t[0]+t[1]*t[1]+t[2]*t[2]) + 8*(t[0]*t[1]+t[0]*t[2]+t[1]*t[2]))+param[4]*2*(t[0]+t[1]+t[2]))*1.2e-7;
 
     if (nrhs==4)
     {

@@ -13,7 +13,7 @@ function [E,dE] = spm_dexpm(A,dA)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dexpm.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_dexpm.m 4776 2012-07-02 20:33:35Z john $
 
 if nargin<2,
     dA = zeros([size(A) 0]);
@@ -26,7 +26,6 @@ else
         end
     end
 end 
-E   = eye(size(A))+A;
 An  = A;
 E   = eye(size(A))+A;
 

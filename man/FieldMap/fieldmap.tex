@@ -283,7 +283,7 @@ All Images + Mean Image
 
 
 \subsubsection{Interpolation}
-The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Bilinear Interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results \cite{thevenaz00a,unser93a,unser93b}. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.
+The method by which the images are sampled when being written in a different space. Nearest Neighbour is fastest, but not recommended for image realignment. Trilinear interpolation is probably OK for PET, but not so suitable for fMRI because higher degree interpolation generally gives better results \cite{thevenaz00a,unser93a,unser93b}. Although higher degree methods provide better interpolation, but they are slower because they use more neighbouring voxels.
 
 
 \subsubsection{Wrapping}
