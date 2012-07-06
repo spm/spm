@@ -71,7 +71,7 @@ static void fmg_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
        On second thoughts - I need to think about this one a bit more as it uses too
        much regularisation if a decent Hessian is supplied.
-    */
+    */    
     t[0]     = param[0]*param[0];
     t[1]     = param[1]*param[1];
     t[2]     = param[2]*param[2];

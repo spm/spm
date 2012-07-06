@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4776 2012-07-02 20:33:35Z john $
+% $Id: spm_pairwise.m 4778 2012-07-06 13:10:32Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -54,7 +54,7 @@ for i=1:numel(tdif),
     sparam = round(3*abs(tdif(i)/2)+2);
     Nii    = nifti(strvcat(job.vols1{i},job.vols2{i}));
     [pth1,nam1] = fileparts(Nii(1).dat.fname);
-    [pth1,nam2] = fileparts(Nii(2).dat.fname);
+    [pth2,nam2] = fileparts(Nii(2).dat.fname);
     fprintf('*** %s <=> %s ***\n', nam1, nam2);
 
     dat    = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);

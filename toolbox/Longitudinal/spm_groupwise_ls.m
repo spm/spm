@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4776 2012-07-02 20:33:35Z john $
+% $Id: spm_groupwise_ls.m 4778 2012-07-06 13:10:32Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -44,7 +44,7 @@ end
 %-----------------------------------------------------------------------
 if nargin<3, prec       = NaN; end
 if nargin<4, w_settings = [0 1 40 20 80]; end
-if nargin<5, b_settings = [0 0 1e8]; end
+if nargin<5, b_settings = [0 0 1e6]; end
 if nargin<6, s_settings = 6; end
 if nargin<7, ord        = [3 3 3 0 0 0]; end
 
@@ -56,7 +56,7 @@ if size(b_settings,1)==1, b_settings = repmat(b_settings,numel(Nii),1); end
 if numel(prec)       ==1, prec       = repmat(prec,1,numel(Nii));       end
 
 % Determine noise estimates when unknown
-for i=find(~isfinite(prec))',
+for i=find(~isfinite(prec)),
     prec(i) = 1/spm_noise_estimate(Nii(i)).^2;
 end
 
@@ -179,7 +179,9 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
 
             if all(isfinite(b_settings(i,:))),
                 vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
+                shoot3('bound',1);
                 param(i).bias = shoot3('resize',param(i).bias,size(img(i).f));
+                shoot3('bound',0);
                 bmom          = optimN_mex('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
                 param(i).eb   = sum(bmom(:).*param(i).bias(:));
                 clear bmom
@@ -211,7 +213,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
 
     spm_plot_convergence('Clear');
     spm_plot_convergence('Init',['Optimising (level ' num2str(level) ')'],'Objective Function','Step');
-    for iter=1:(2*2^(level-1)+1), % Use more iterations at lowest resolution (its faster, so may as well)
+    for iter=1:(2*2^(level-1)+1), % Use more iterations at lower resolutions (its faster, so may as well)
 
 
         % Compute deformations from initial velocities
@@ -228,6 +230,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             % Recompute template data (with gradients)
             %-----------------------------------------------------------------------
             [mu,ss,nvox,D] = compute_mean(pyramid(level), param, ord);
+            % for i=1:numel(param), fprintf('  %12.5g %12.5g %12.5g', prec(i)*ss(i), param(i).eb, param(i).ev); end; fprintf('  0\n');
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
@@ -268,7 +271,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
 
                     b     = f-mu(:,:,m).*ebias;
 
-                    msk   = isfinite(f);
+                    msk   = isfinite(b);
                     ebias = ebias(msk);
                     b     = b(msk);
                     dt    = dt(msk);
@@ -314,13 +317,13 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             clear r_avg
         end
 
-
         if any(all(isfinite(b_settings),2)),
             % Bias field
             %=======================================================================
             % Recompute template data
             %-----------------------------------------------------------------------
             [mu,ss] = compute_mean(pyramid(level), param, ord);
+            % for i=1:numel(param), fprintf('  %12.5g %12.5g %12.5g', prec(i)*ss(i), param(i).eb, param(i).ev); end; fprintf('  1\n');
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
@@ -355,7 +358,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                         f           = shoot3('bsplins',img(i).f,y,ord);
                         ebias       = exp(shoot3('samp',param(i).bias,y));
 
-                        msk         = isfinite(f);
+                        msk         = isfinite(f) & isfinite(ebias);
                         smu         = mu(:,:,m).*ebias;
                         f(~msk)     = 0;
                         smu(~msk)   = 0;
@@ -372,8 +375,8 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                     else
                         y    = transform_warp(M,identity(d));
                     end
-                    gra  = shoot3('pushc',gra,y,size(param(i).bias));
-                    Hess = shoot3('pushc',Hess,y,size(param(i).bias));
+                    gra  = shoot3('push',gra,y,size(param(i).bias));
+                    Hess = shoot3('push',Hess,y,size(param(i).bias));
                     clear y
 
                     vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
@@ -398,6 +401,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             % Recompute template data (with gradients)
             %-----------------------------------------------------------------------
             [mu,ss,nvox,D] = compute_mean(pyramid(level), param, ord);
+            % for i=1:numel(param), fprintf('  %12.5g %12.5g %12.5g', prec(i)*ss(i), param(i).eb, param(i).ev); end; fprintf('  2\n');
 
             % Compute objective function (approximately)
             %-----------------------------------------------------------------------
@@ -408,7 +412,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             end
             spm_plot_convergence('set',ll);
 
-            for i=1:numel(img),
+            for i=1:numel(img), % Update velocity for each image in turn
                 if all(isfinite(w_settings(i,:))),
                     % Gauss-Newton update of velocity fields.
                     % These are parameterised in template space.
@@ -428,19 +432,21 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                             ebias = ones(size(f),'single');
                         end
 
-                        b     = f-mu(:,:,m).*ebias;
-
-                        msk           = ~isfinite(f);
+                        b             = f-mu(:,:,m).*ebias;
+                        msk           = ~isfinite(b);
                         b(msk)        = 0;
                         dt(msk)       = 0;
-                        d1            = D{1}(:,:,m).*ebias;
+
+                        d1            = D{1}(:,:,m).*ebias; % Spatial gradient of -b.
                         d2            = D{2}(:,:,m).*ebias;
                         d3            = D{3}(:,:,m).*ebias;
-                        gra(:,:,m,1)  = b.*d1.*dt;
-                        gra(:,:,m,2)  = b.*d2.*dt;
-                        gra(:,:,m,3)  = b.*d3.*dt;
-                        Hess(:,:,m,1) = d1.*d1.*dt;
-                        Hess(:,:,m,2) = d2.*d2.*dt;
+
+                        gra(:,:,m,1)  =  b.*d1.*dt; % 1st derivatives of objecive function
+                        gra(:,:,m,2)  =  b.*d2.*dt; % w.r.t. velocity field.
+                        gra(:,:,m,3)  =  b.*d3.*dt;
+
+                        Hess(:,:,m,1) = d1.*d1.*dt; % 2nd derivatives (approximately) of
+                        Hess(:,:,m,2) = d2.*d2.*dt; % objective function w.r.t. velocity.
                         Hess(:,:,m,3) = d3.*d3.*dt;
                         Hess(:,:,m,4) = d1.*d2.*dt;
                         Hess(:,:,m,5) = d1.*d3.*dt;
@@ -449,7 +455,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                         clear dt y f ebias b msk d1 d2 d3
                     end
 
-                    param(i).y = []; % No longer needed
+                    param(i).y = []; % No longer needed, so free up some memory.
                     param(i).J = [];
 
                     Hess        = Hess*prec(i);
@@ -462,22 +468,6 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                 end
             end
             clear mu D
-
-
-            % Zero-mean.
-            % This is currently disabled, as more work is needed to handle
-            % the use of different differential operators for different images.
-            % Different fields of view for the various images is also problematic.
-            %-----------------------------------------------------------------------
-            %avg_v0 = param(1).v0;
-            %for i=2:numel(param),
-            %    avg_v0 = avg_v0 + param(i).v0;
-            %end
-            %avg_v0 = avg_v0/numel(param);
-            %for i=1:numel(param),
-            %    param(i).v0 = param(i).v0 - avg_v0;
-            %end
-            %clear avg_v0
 
             % Compute part of objective function
             %-----------------------------------------------------------------------
@@ -567,9 +557,8 @@ if need_mom,
                 y     = transform_warp(M,param(i).y(:,:,m,:));
                 f     = shoot3('bsplins',img(i).f,y,ord);
                 ebias = exp(shoot3('samp',param(i).bias,y));
-                msk   = ~isfinite(f);
                 b     = (f-mu(:,:,m).*ebias).*ebias.*dt;
-                b(msk)     = 0;
+                b(~isfinite(b)) = 0;
                 mom(:,:,m) = b;
                 clear dt y f ebias b msk 
             end
@@ -788,7 +777,7 @@ for m=1:d(3),
         Msk{i}       = isfinite(F{i});
 
         if ~isempty(param(i).bias),
-            Bf{i}        = exp(shoot3('samp',param(i).bias,y));
+            Bf{i}        = exp(shoot3('bsplins',param(i).bias,y,[1 1 1 0 0 0]));
         else
             Bf{i}        = ones(d(1:2),'single');
         end
@@ -838,12 +827,17 @@ for m=1:d(3),
             vx = sqrt(sum(data.mat(1:3,1:3).^2));
             dm = data.d;
             sc = {(1:dm(1))*vx(1),(1:dm(2))*vx(2)};
-            subplot(3,2,1); imagesc(sc{:},mu(:,:,m)'); axis image xy off
+            subplot(4,2,1); imagesc(sc{:},mu(:,:,m)'); axis image xy off
             if ~isempty(param(1).J),
-                subplot(3,2,2); dt = shoot3('det',param(1).J(:,:,m,:,:)); imagesc(sc{:},dt'); axis image xy off
+                subplot(4,2,3); dt = shoot3('det',param(1).J(:,:,m,:,:)); imagesc(sc{:},dt'); axis image xy off
+                subplot(4,2,4); dt = shoot3('det',param(2).J(:,:,m,:,:)); imagesc(sc{:},dt'); axis image xy off
             end
-            subplot(3,2,3); imagesc(sc{:},Bf{1}'); axis image xy off
-            subplot(3,2,4); imagesc(sc{:},(F{1}-mu(:,:,m).*Bf{1})'); axis image xy off
+            subplot(4,2,5); imagesc(sc{:},Bf{1}'); axis image xy off
+            subplot(4,2,6); imagesc(sc{:},Bf{2}'); axis image xy off
+
+            subplot(4,2,7); imagesc(sc{:},(F{1}-mu(:,:,m).*Bf{1})'); axis image xy off
+            subplot(4,2,8); imagesc(sc{:},(F{2}-mu(:,:,m).*Bf{2})'); axis image xy off
+
             drawnow;
         end
     end
@@ -966,8 +960,7 @@ if sum(p(10:12).^2)>1e-8,
         d   = M(:)-M_avg(:); % Difference
         gr  = dM'*d;         % Gradient
         Hes = dM'*dM;        % Hessian
-       %fprintf('%d  %g\n', it, 0.5*d'*d);
-        p = p - Hes\gr;      % Gauss-Newton update
+        p   = p - Hes\gr;    % Gauss-Newton update
         if sum(gr.^2)<1e-8, break; end
     end
     M_avg = M;

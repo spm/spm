@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4758 2012-05-29 15:34:08Z john $
+% $Id: tbx_cfg_longitudinal.m 4778 2012-07-06 13:10:32Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Longitudinal')); end
 
@@ -22,7 +22,7 @@ vols1.num     = [1 Inf];
 vols2         = cfg_files;
 vols2.tag     = 'vols2';
 vols2.name    = 'Time 2 Volumes';
-vols2.help    = {'Select second time point scans of each subject.'};
+vols2.help    = {'Select second time point scans of each subject. Note that the order that the first and second time points are specified should be the same.  The algorithm does not incorporate any magical way of figuring out which scans go together.'};
 vols2.filter = 'image';
 vols2.ufilter = '.*';
 vols2.num     = [1 Inf];
@@ -42,8 +42,8 @@ noise.help    = {'.'};
 noise.strtype = 'e';
 noise.num     = [1 1];
 noise.val     = {NaN};
-noise.help    = {'Specify the amount of noise in the images.  If this value is not finite, the algorithm will try to compute a reasonable value based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images.  The RMS variance over all images is used as the estimate of noise.',...
-'Ideally, all the subjects should be dealt with together so that the noise estimate is the same for all scans.'};
+noise.help    = {'Specify the standard deviation of the noise in the images.  If this value is not finite, the algorithm will try to estimate a reasonable value based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images. This works reasonably well for simple MRI scans, but less well for derived images (such as averages).  The assumption is that the residuals. after fitting the registration model, are i.i.d. Gaussian.'
+};
 
 bparam         = cfg_entry;
 bparam.tag     = 'bparam';
@@ -75,7 +75,7 @@ wparam.val     = {[0 1 25 25 100]};
 write_avg         = cfg_menu;
 write_avg.tag     = 'write_avg';
 write_avg.name    = 'Save Mid-point average';
-write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``ave_''''.'};
+write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``ave_'''' and written out in the same directory of the first time point data.'};
 write_avg.labels = {
                 'Save'
                 'Dont save'
@@ -89,7 +89,7 @@ write_avg.val    = {[1]};
 write_div         = cfg_menu;
 write_div.tag     = 'write_div';
 write_div.name    = 'Save divergence';
-write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''''};
+write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''' and written out in the same directory of the first time point data.'};
 write_div.labels = {
                 'Save'
                 'Dont save'
@@ -103,7 +103,7 @@ write_div.val    = {[1]};
 write_jac         = cfg_menu;
 write_jac.tag     = 'write_jac';
 write_jac.name    = 'Save Jacobian Differences';
-write_jac.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_''''.'};
+write_jac.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_'''' and written out in the same directory of the first time point data.'};
 write_jac.labels = {
                 'Save'
                 'Dont save'
@@ -117,7 +117,7 @@ write_jac.val    = {[0]};
 write_defs         = cfg_menu;
 write_defs.tag     = 'write_def';
 write_defs.name    = 'Deformation Fields';
-write_defs.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. Deformations are saved as y_*.nii files, which contain three volumes to encode the x, y and z coordinates.'};
+write_defs.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. Deformations are saved as y_*.nii files, which contain three volumes to encode the x, y and z coordinates.  They are written in the same directory as the corresponding image.'};
 write_defs.labels = {
                 'Save'
                 'Dont save'
@@ -145,16 +145,17 @@ write_defs.val    = {[0]};
 %                [1 1]
 %                }';
 %write.val    = {[0 0]};
+
 % ---------------------------------------------------------------------
-% long Longitudinal Registration
+% longit2 Pairwise Longitudinal Registration
 % ---------------------------------------------------------------------
 long         = cfg_exbranch;
 long.tag     = 'longit2';
-long.name    = 'Longitudinal Registration';
+long.name    = 'Pairwise Longitudinal Registration';
 long.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jac write_div write_defs};
-long.help    = {'This toolbox is for longitudinal registration of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be placed into approximate alignment.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will greatly impact the results obtained.',...
+long.help    = {'This toolbox is for longitudinal registration of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
 '',...
-'The alignment assumes that all scans have the same resolutions and dimensions, and that they are all scaled to similar values.'};
+'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.'};
 long.prog = @spm_pairwise;
 long.vout = @vout;
 %----------------------------------------------------------------------

@@ -287,18 +287,6 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                            + w110*((p[im1+jm1    ]-p0) + (p[ip1+jm1    ]-p0) + (p[im1+jp1    ]-p0) + (p[ip1+jp1    ]-p0))
                            + w101*((p[im1    +km1]-p0) + (p[ip1    +km1]-p0) + (p[im1    +kp1]-p0) + (p[ip1    +kp1]-p0))
                            + w011*((p[    jm1+km1]-p0) + (p[    jp1+km1]-p0) + (p[    jm1+kp1]-p0) + (p[    jp1+kp1]-p0)))*scal[m];
-/*
-                    pg1[i] =(w000* p[0]
-                           + w010*(p[    jm1    ] + p[    jp1    ])
-                           + w020*(p[    jm2    ] + p[    jp2    ])
-                           + w100*(p[im1        ] + p[ip1        ])
-                           + w110*(p[im1+jm1    ] + p[ip1+jm1    ] + p[im1+jp1    ] + p[ip1+jp1    ])
-                           + w200*(p[im2        ] + p[ip2        ])
-                           + w001*(p[        km1] + p[        kp1])
-                           + w101*(p[im1    +km1] + p[ip1    +km1] + p[im1    +kp1] + p[ip1    +kp1])
-                           + w011*(p[    jm1+km1] + p[    jp1+km1] + p[    jm1+kp1] + p[    jp1+kp1])
-                           + w002*(p[        km2] + p[        kp2]))*scal[m];
-*/
                 }
             }
         }
