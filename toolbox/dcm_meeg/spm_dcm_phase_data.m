@@ -10,7 +10,13 @@ function DCM = spm_dcm_phase_data(DCM)
 %    DCM.Lpos       - Matrix of source locations
 %    DCM.options.trials - To select particular trials (otherwise all selected)
 %    DCM.options.Fdcm   - to select frequency window for analysis
-%    DCM.options.Tdcm - to select time window for analysis
+%    DCM.options.Hdcm - to select time window for filtering and Hilbert transform
+%                       default=[beginning of epoch, end of epoch] 
+%    DCM.options.Tdcm - to select time window for phase-coupling analysis
+%    DCM.options.filter_order - order of bandpass filter
+%    DCM.options.Nmodes - specify sub-sampling of trials eg
+%                           Nmodes=2 to use every other trial. This can
+%                           speed up model fitting. Default value=1.
 %
 % Sets
 %
@@ -26,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 4266 2011-03-29 11:16:06Z will $
+% $Id: spm_dcm_phase_data.m 4783 2012-07-12 15:51:51Z will $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -37,9 +43,40 @@ catch
     error('')
 end
 
+try
+    filter_order=DCM.options.filter_order;
+catch
+    filter_order=5;
+end
+
+try
+    trial_step = DCM.options.Nmodes;
+catch
+    trial_step=1;
+end
+
 % load D
 %--------------------------------------------------------------------------
 D = spm_eeg_load(Dfile);
+
+pst=time(D);
+try
+    Hdcm=DCM.options.Hdcm;
+catch
+    Hdcm(1)=1000*pst(1);
+    Hdcm(2)=1000*pst(end);
+end
+
+% Check time windows are valid
+Tdcm=DCM.options.Tdcm;
+if Tdcm(1) < 1000*pst(1) | Tdcm(2) > 1000*pst(end)
+    disp('Error in spm_dcm_phase_data: DCM.options.Tdcm is outside data time window');
+    return
+end
+if Hdcm(1) > Tdcm(1) | Hdcm(2) < Tdcm(2)
+    disp('Error in spm_dcm_phase_data: DCM.options.Hdcm is narrower than DCM.options.Tdcm')
+    return
+end
 
 % DCM.options.trials (from spm_api_erp) contains list of conditions
 % Get list of actual trial indices
@@ -87,7 +124,7 @@ Nc = length(DCM.xY.Ic);
 
 % Compute indices for time window
 DCM.xY.pst=time(D);
-ind = D.indsample(1e-3*DCM.options.Tdcm);
+ind = D.indsample(1e-3*Hdcm);
 ind = ind(1):ind(2);
 
 
@@ -147,9 +184,9 @@ disp('Filter and compute instantaneous phase ...');
 for n=1:Ntrials,
     for c=1:Nr,
         xr=region{n}(:,c);
-
+        
         % Filtering
-        xr = ft_preproc_bandpassfilter(xr, fsample(D), DCM.options.Fdcm, 5);
+        xr = ft_preproc_bandpassfilter(xr', fsample(D), DCM.options.Fdcm, 5);
 
         hx=spm_hilbert(xr);
         DCM.xY.y{n}(:,c)=unwrap(double(angle(hx)));
@@ -157,3 +194,10 @@ for n=1:Ntrials,
 end
 disp('Source extraction complete ...');
 
+% Now crop data into time window of interest for phase coupling analysis
+tcr=1e-3*Tdcm;
+crind=find(DCM.xY.pst >= tcr(1) & DCM.xY.pst <= tcr(2));
+DCM.xY.pst=DCM.xY.pst(crind);
+for n=1:Ntrials,
+    DCM.xY.y{n}=DCM.xY.y{n}(crind,:);
+end
