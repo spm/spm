@@ -32,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 4783 2012-07-12 15:51:51Z will $
+% $Id: spm_dcm_phase_data.m 4784 2012-07-12 16:00:39Z will $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -186,7 +186,7 @@ for n=1:Ntrials,
         xr=region{n}(:,c);
         
         % Filtering
-        xr = ft_preproc_bandpassfilter(xr', fsample(D), DCM.options.Fdcm, 5);
+        xr = ft_preproc_bandpassfilter(xr', fsample(D), DCM.options.Fdcm, filter_order);
 
         hx=spm_hilbert(xr);
         DCM.xY.y{n}(:,c)=unwrap(double(angle(hx)));
