@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4786 2012-07-16 18:26:11Z john $
+% $Id: spm_groupwise_ls.m 4787 2012-07-16 18:33:27Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -856,7 +856,7 @@ for m=1:d(3),
     end
     mu(:,:,m) = mum./mgm; % Weighted mean
 
-    if 1
+    if false
         % Some stuff is displayed to help with debugging
         pl = ceil(size(mu,3)/2);
         if m==pl
