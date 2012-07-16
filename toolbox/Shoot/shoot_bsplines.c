@@ -315,12 +315,9 @@ void bsplins_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prh
         fun(c, m0,m1,m2, n, x0,x1,x2, d, cond,bnd, f);
     else
     {
-        plhs[1] = mxCreateNumericArray(nd,dims, mxSINGLE_CLASS, mxREAL);
-        plhs[2] = mxCreateNumericArray(nd,dims, mxSINGLE_CLASS, mxREAL);
-        plhs[3] = mxCreateNumericArray(nd,dims, mxSINGLE_CLASS, mxREAL);
-        df0 = (float *)mxGetPr(plhs[1]);
-        df1 = (float *)mxGetPr(plhs[2]);
-        df2 = (float *)mxGetPr(plhs[3]);
+        plhs[1] = mxCreateNumericArray(3,dims, mxSINGLE_CLASS, mxREAL); df0 = (float *)mxGetPr(plhs[1]);
+        plhs[2] = mxCreateNumericArray(3,dims, mxSINGLE_CLASS, mxREAL); df1 = (float *)mxGetPr(plhs[2]);
+        plhs[3] = mxCreateNumericArray(3,dims, mxSINGLE_CLASS, mxREAL); df2 = (float *)mxGetPr(plhs[3]);
         dfun(c, m0,m1,m2, n, x0,x1,x2, d, cond,bnd, f,df0,df1,df2);
     }
 }

@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4778 2012-07-06 13:10:32Z john $
+% $Id: spm_groupwise_ls.m 4786 2012-07-16 18:26:11Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -109,8 +109,8 @@ for level=1:numel(pyramid),
     end
 end
 
-%% Adjust precision for number of subjects
-%%-----------------------------------------------------------------------
+% Adjust precision for number of subjects
+%-----------------------------------------------------------------------
 %nscan = numel(pyramid(1).img);
 %prec  = prec*(nscan-1)/nscan;
 
@@ -155,6 +155,11 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
         % If lowest resolution, initialise parameter estimates to zero
         %-----------------------------------------------------------------------
         clear param
+        bias_est = zeros(numel(Nii),1);
+        for i=numel(Nii):-1:1,
+            bias_est(i) = log(mean(mean(mean(img(i).f))));
+        end
+        bias_est = bias_est - mean(bias_est);
         for i=numel(Nii):-1:1,
             param(i) = struct('R',   eye(4), 'r', zeros(6,1),...
                               'bias',[],     'eb',0,...
@@ -162,7 +167,7 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
                               's2',  1,      'ss',1);
 
             if all(isfinite(b_settings(i,:))),
-                param(i).bias = zeros(size(img(i).f),'single');
+                param(i).bias = zeros(size(img(i).f),'single')+bias_est(i);
             end
 
             if all(isfinite(w_settings(i,:))),
@@ -469,6 +474,21 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
             end
             clear mu D
 
+            % If regularisation is the same for each image (apart from scaling), then adjust velocities.
+            %-----------------------------------------------------------------------
+            if sum(var(diag(sqrt(sum(w_settings.^2,2)))\w_settings,0,1)./(mean(w_settings,1).^2+eps)) < 1e-12,
+                wt      = sqrt(sum(w_settings.^2,2));
+                wt      = wt/sum(wt);
+                v0_mean = zeros(size(param(1).v0),'single');
+                for i=1:numel(param),
+                    v0_mean = v0_mean + wt(i)*param(i).v0;
+                end
+                for i=1:numel(param),
+                    param(i).v0 = param(i).v0 - v0_mean;
+                end
+                clear v0_mean
+            end
+
             % Compute part of objective function
             %-----------------------------------------------------------------------
             for i=1:numel(param),
@@ -750,13 +770,18 @@ end
 
 for m=1:d(3),
     if nargout>=4,
-        Dm  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
+        Dm1  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
+        Dm2  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
+        Df   = cell(3,1);
+        Db   = cell(3,1);
     end
     F  = cell(1,numel(img));
     Dt = cell(1,numel(img));
     Bf = cell(1,numel(img));
     Msk= cell(1,numel(img));
-    Dr = cell(3,numel(img));
+
+    mum = zeros(d(1:2),'single');
+    mgm = zeros(d(1:2),'single') + eps('single');
 
     for i=1:numel(img),
         M = img(i).mat\param(i).R*M_avg;
@@ -769,59 +794,70 @@ for m=1:d(3),
             [y(:,:,1),y(:,:,2),y(:,:,3)] = ndgrid(single(1:d(1)),single(1:d(2)),m);
             y     = transform_warp(M,y);
         end
+
         if nargout>=4,
-            [F{i},Dr{1,i},Dr{2,i},Dr{3,i}]  = shoot3('bsplins',img(i).f,y,ord);
+            % Sample image and bias field, along with their gradients.  Gradients are
+            % then transformed by multiplying with the transpose of the Jacobain matrices
+            % of the deformation.
+            if ~isempty(param(i).J),
+                Jm = reshape(param(i).J(:,:,m,:,:),[d(1)*d(2),3,3]);
+                Jm = reshape(reshape(permute(Jm,[1 2 3]),d(1)*d(2)*3,3)*M(1:3,1:3),[d(1) d(2) 3 3]);
+            else
+                Jm = repmat(reshape(single(M(1:3,1:3)),[1 1 3 3]),[d(1) d(2) 1 1]);
+            end
+
+            [F{i} ,d1,d2,d3]  = shoot3('bsplins',img(i).f,y,ord); 
+            Df{1} = Jm(:,:,1,1).*d1 + Jm(:,:,2,1).*d2 + Jm(:,:,3,1).*d3;
+            Df{2} = Jm(:,:,1,2).*d1 + Jm(:,:,2,2).*d2 + Jm(:,:,3,2).*d3;
+            Df{3} = Jm(:,:,1,3).*d1 + Jm(:,:,2,3).*d2 + Jm(:,:,3,3).*d3;
+
+            if ~isempty(param(i).bias),
+                [Bf{i},d1,d2,d3]  = shoot3('bsplins',param(i).bias,y,[1 1 1 ord(4:end)]); % Trilinear
+                Bf{i} = exp(Bf{i});
+                Db{1} = Jm(:,:,1,1).*d1 + Jm(:,:,2,1).*d2 + Jm(:,:,3,1).*d3;
+                Db{2} = Jm(:,:,1,2).*d1 + Jm(:,:,2,2).*d2 + Jm(:,:,3,2).*d3;
+                Db{3} = Jm(:,:,1,3).*d1 + Jm(:,:,2,3).*d2 + Jm(:,:,3,3).*d3;
+            else
+                Bf{i} = ones(d(1:2),'single');
+                Db{1} = zeros(d(1:2),'single');
+                Db{2} = zeros(d(1:2),'single');
+                Db{3} = zeros(d(1:2),'single');
+            end
+            clear d1 d2 d3
         else
             F{i}  = shoot3('bsplins',img(i).f,y,ord);
+            if ~isempty(param(i).bias),
+                Bf{i} = exp(shoot3('bsplins',param(i).bias,y,[1 1 1 ord(4:end)])); % Trilinear
+            else
+                Bf{i} = ones(d(1:2),'single');
+            end
         end
-        Msk{i}       = isfinite(F{i});
 
-        if ~isempty(param(i).bias),
-            Bf{i}        = exp(shoot3('bsplins',param(i).bias,y,[1 1 1 0 0 0]));
-        else
-            Bf{i}        = ones(d(1:2),'single');
-        end
-    end
-    mum = zeros(d(1:2),'single');
-    mgm = zeros(d(1:2),'single');
-    if nargout>=4,
-        Dm  = {zeros(d(1:2),'single'),zeros(d(1:2),'single'),zeros(d(1:2),'single')};
-    end
-
-    for i=1:numel(img),
-        msk      = Msk{i};
-        f        = F{i};
-        ebias    = Bf{i};
-        dt       = Dt{i};
-        mum(msk) = mum(msk) + f(msk).*ebias(msk).*dt(msk)*prec(i);
-        mgm(msk) = mgm(msk) + ebias(msk).*ebias(msk).*dt(msk)*prec(i);
+        msk      = isfinite(F{i}) & isfinite(Bf{i});
+        Msk{i}   = msk;
+        f        = F{i}(msk);
+        ebias    = Bf{i}(msk);
+        dt       = Dt{i}(msk);
+        mum(msk) = mum(msk) + f.*ebias.*dt*prec(i);
+        mgm(msk) = mgm(msk) + ebias.*ebias.*dt*prec(i);
 
         if nargout>=4
             % For computing gradients
-            M       = img(i).mat\param(i).R*M_avg;
-            nm      = sum(msk(:));
+            scal        = ebias.*dt*prec(i);
+            Dm1{1}(msk) = Dm1{1}(msk) + (Df{1}(msk) + f.*Db{1}(msk)).*scal;
+            Dm1{2}(msk) = Dm1{2}(msk) + (Df{2}(msk) + f.*Db{2}(msk)).*scal;
+            Dm1{3}(msk) = Dm1{3}(msk) + (Df{3}(msk) + f.*Db{3}(msk)).*scal;
 
-            if ~isempty(param(i).J),
-                Jm      = reshape(param(i).J(:,:,m,:,:),[d(1)*d(2),3,3]);
-                Jm      = reshape(reshape(permute(Jm(msk,:,:),[1 2 3]),nm*3,3)*M(1:3,1:3),[nm 3 3]);
-            else
-                Jm      = repmat(reshape(single(M(1:3,1:3)),[1 3 3]),[nm 1 1]);
-            end
-
-            d1      = Dr{1,i}(msk);
-            d2      = Dr{2,i}(msk);
-            d3      = Dr{3,i}(msk);
-            Dm{1}(msk) = Dm{1}(msk) + (Jm(:,1,1).*d1 + Jm(:,2,1).*d2 + Jm(:,3,1).*d3).*ebias(msk).*dt(msk)*prec(i);
-            Dm{2}(msk) = Dm{2}(msk) + (Jm(:,1,2).*d1 + Jm(:,2,2).*d2 + Jm(:,3,2).*d3).*ebias(msk).*dt(msk)*prec(i);
-            Dm{3}(msk) = Dm{3}(msk) + (Jm(:,1,3).*d1 + Jm(:,2,3).*d2 + Jm(:,3,3).*d3).*ebias(msk).*dt(msk)*prec(i);
-
-            clear d1 d2 d3
+            scal        = ebias.*scal;
+            Dm2{1}(msk) = Dm2{1}(msk) + Db{1}(msk).*scal;
+            Dm2{2}(msk) = Dm2{2}(msk) + Db{2}(msk).*scal;
+            Dm2{3}(msk) = Dm2{3}(msk) + Db{3}(msk).*scal;
         end
     end
-    mu(:,:,m) = mum./(mgm+eps); % Weighted mean
+    mu(:,:,m) = mum./mgm; % Weighted mean
 
-    if false
-    % Some stuff is displayed to help with debugging
+    if 1
+        % Some stuff is displayed to help with debugging
         pl = ceil(size(mu,3)/2);
         if m==pl
             vx = sqrt(sum(data.mat(1:3,1:3).^2));
@@ -842,7 +878,18 @@ for m=1:d(3),
         end
     end
 
-    if nargout>=2
+    if nargout>=2,
+        if nargout>=4,
+            % Compute "gradients of template (mu)".  Note that the true gradients
+            % would incorporate the gradients of the Jacobians, but we do not want
+            % these to be part of the "template gradients".
+            wt          = 2*mum./(mgm.*mgm);
+            D{1}(:,:,m) = Dm1{1}./mgm - Dm2{1}.*wt;
+            D{2}(:,:,m) = Dm1{2}./mgm - Dm2{2}.*wt;
+            D{3}(:,:,m) = Dm1{3}./mgm - Dm2{3}.*wt;
+        end
+
+        % Compute matching term
         for i=1:numel(img),
             msk      = Msk{i};
             f        = F{i}(msk);
@@ -852,12 +899,6 @@ for m=1:d(3),
             mum      = mum(msk);
             nvox(i)  = nvox(i) + sum(dt);
             ss(i)    = ss(i) + sum((f-mum.*ebias).^2.*dt);
-        end
-
-        if nargout>=3,
-            D{1}(:,:,m) = Dm{1}./(mgm+eps);
-            D{2}(:,:,m) = Dm{2}./(mgm+eps);
-            D{3}(:,:,m) = Dm{3}./(mgm+eps);
         end
     end
 end
