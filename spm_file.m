@@ -52,7 +52,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 4482 2011-09-12 18:04:53Z guillaume $
+% $Id: spm_file.m 4788 2012-07-17 13:40:55Z ged $
 
 
 needchar = ischar(str);
@@ -130,6 +130,12 @@ while ~isempty(options)
                 nam = options{2};
                 ext = '';
             case 'number'
+                if isnumeric(options{2})
+                    if any(round(options{2}) ~= options{2})
+                        error('Frame numbers must be whole')
+                    end
+                    options{2} = sprintf(',%d', options{2});
+                end
                 num = options{2};
             case 'prefix'
                 nam = [options{2} nam];
