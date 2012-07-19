@@ -15,7 +15,7 @@ function fiff_write_int_matrix(fid,kind,mat)
 %   License : BSD 3-clause
 %
 %
-%   $Id$
+%   $Id: fiff_write_int_matrix.m 4624 2011-10-29 10:10:49Z roboos $
 
 %
 %

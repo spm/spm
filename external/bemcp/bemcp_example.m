@@ -21,7 +21,7 @@ function bemcp_example
 % I used it only to ensure a quick & dirty check of the BEM module...
 
 % Christophe Phillips
-% $Id: bemcp_example.m 2801 2009-02-27 17:26:22Z christophe $
+% $Id: bemcp_example.m 4793 2012-07-19 11:35:24Z spm $
 
 % create volume conductor starting from unit sphere
 [pnt, tri] = icosahedron162;
@@ -29,14 +29,14 @@ function bemcp_example
 vol = [];
 vol.cond = [1 1/80 1];
 vol.source = 1; % index of source compartment
-vol.skin   = 3; % index of skin surface
-% brain
+vol.skin_surface   = 3; % index of skin surface
+% inner_skull_surface
 vol.bnd(1).pnt = pnt*88;
 vol.bnd(1).tri = tri;
-% skull
+% outer_skull_surface
 vol.bnd(2).pnt = pnt*92;
 vol.bnd(2).tri = tri;
-% skin
+% skin_surface
 vol.bnd(3).pnt = pnt*100;
 vol.bnd(3).tri = tri;
 
@@ -450,11 +450,11 @@ switch lower(mode)
 
   case 'faces_skin'
     % plot the faces of the 2D or 3D triangulation
-    skin   = [255 213 119]/255;
-    brain  = [202 100 100]/255;
+    skin_surface   = [255 213 119]/255;
+    inner_skull_surface  = [202 100 100]/255;
     cortex = [255 213 119]/255;
     hs = patch('Vertices', pnt, 'Faces', tri);
-    set(hs, 'FaceColor', skin);
+    set(hs, 'FaceColor', skin_surface);
     set(hs, 'EdgeColor', 'none');
     lighting gouraud
     material shiny
