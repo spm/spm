@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_api_erp.m 4798 2012-07-20 11:22:29Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -626,13 +626,15 @@ switch DCM.options.spatial
         % for LFP
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);
-        try
-            set(handles.Slocation, 'String', Sname(1:Nchannels));  
-            set(handles.plot_dipoles,'enable','off')
-        catch
+        
+        if numel(Sname)<numel(DCM.xY.name)
             warndlg('There are more LFP channels than sources')
             return
         end
+        
+        set(handles.Slocation, 'String', DCM.xY.name(1:Nchannels));
+        set(handles.plot_dipoles,'enable','off')              
+       
      
     otherwise
         warndlg('Unknown data modality')

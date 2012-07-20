@@ -7,7 +7,7 @@ function res = sensors(this, type, newsens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensors.m 1406 2008-04-15 09:37:59Z vladimir $
+% $Id: sensors.m 4798 2012-07-20 11:22:29Z vladimir $
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');
@@ -22,7 +22,7 @@ switch lower(type)
                 res = [];
             end
         else
-            this.sensors(1).eeg = newsens;
+            this.sensors(1).eeg = ft_datatype_sens(newsens);
             res = this;
         end
     case 'meg'
@@ -33,7 +33,7 @@ switch lower(type)
                 res = [];
             end
         else
-            this.sensors(1).meg = newsens;
+            this.sensors(1).meg = ft_datatype_sens(newsens);
             res = this;
         end
     otherwise

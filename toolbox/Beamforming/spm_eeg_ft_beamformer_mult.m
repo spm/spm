@@ -21,7 +21,7 @@ function [outfilenames,ctf_inside,ctf_weights,fftnewdata]=spm_eeg_ft_beamformer_
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_mult.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_eeg_ft_beamformer_mult.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -263,7 +263,7 @@ end
 
 cfg.channel = channel_labels;
 cfg.vol                   = vol;
-cfg.resolution            = S.gridstep;
+cfg.grid.resolution            = S.gridstep;
 cfg.feedback='off';
 cfg.inwardshift           = 0; % mm
 grid                      = ft_prepare_leadfield(cfg);
@@ -414,7 +414,7 @@ for f=1:Nbands,
     cfg1.sourceunits   = 'mm';
     cfg1.parameter = 'pow_H_tstat';
     cfg1.downsample = 1;
-    sourceint_H_tstat = ft_sourceinterpolate(cfg1, csource, sMRI);
+    sourceint_H_tstat = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
     
     
     if ~S.rankflag, %% only need to write t images if data hasn't been ranked (ie. on average all the same)
@@ -423,13 +423,13 @@ for f=1:Nbands,
         cfg1.sourceunits   = 'mm';
         cfg1.parameter = 'pow_tstat';
         cfg1.downsample = 1;
-        sourceint_tstat = ft_sourceinterpolate(cfg1, csource, sMRI);
+        sourceint_tstat = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
         
         cfg1 = [];
         cfg1.sourceunits   = 'mm';
         cfg1.parameter = 'pow_diff';
         cfg1.downsample = 1;
-        sourceint_pow_diff = ft_sourceinterpolate(cfg1, csource, sMRI);
+        sourceint_pow_diff = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
     end; % if rankflag
     
     

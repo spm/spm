@@ -9,7 +9,7 @@ function [result meegstruct]=checkmeeg(meegstruct, option)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: checkmeeg.m 4798 2012-07-20 11:22:29Z vladimir $
 
 if nargin==1
     option = 'basic';
@@ -366,13 +366,17 @@ if ~isfield(meegstruct, 'sensors')
     meegstruct.sensors = struct([]);
 else
     if isfield(meegstruct.sensors, 'eeg')
-        if isempty(meegstruct.sensors.eeg) || isempty(meegstruct.sensors.eeg.pnt)
+        if isempty(meegstruct.sensors.eeg)
             meegstruct.sensors = rmfield(meegstruct.sensors, 'eeg');
+        else
+            meegstruct.sensors.eeg = ft_datatype_sens(meegstruct.sensors.eeg);
         end
     end
     if isfield(meegstruct.sensors, 'meg')
-        if isempty(meegstruct.sensors.meg) || isempty(meegstruct.sensors.meg.pnt)
+        if isempty(meegstruct.sensors.meg) 
             meegstruct.sensors = rmfield(meegstruct.sensors, 'meg');
+        else
+            meegstruct.sensors.meg = ft_datatype_sens(meegstruct.sensors.meg);
         end
     end
 end
@@ -525,7 +529,7 @@ if strcmp(option, 'sensfid') || strcmp(option, '3d') ||...
     if ~isfield(meegstruct.fiducials, 'pnt') || isempty(meegstruct.fiducials.pnt)
         if ~isempty(eegind)
             % Copy EEG sensors to fiducials.
-            meegstruct.fiducials.pnt = meegstruct.sensors.eeg.pnt;
+            meegstruct.fiducials.pnt = meegstruct.sensors.eeg.elecpos;
         else
             meegstruct.fiducials.pnt = sparse(0, 3);
         end

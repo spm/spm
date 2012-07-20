@@ -9,7 +9,7 @@ function [stats,mnipositions]=spm_eeg_ft_beamformer_lcmv(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_lcmv.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_ft_beamformer_lcmv.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','univariate LCMV beamformer for power', 0);
 %%
@@ -354,7 +354,7 @@ cfg.vol                   = vol;
 
  
 if  isempty(S.gridpos),
-    cfg.resolution            = S.gridstep;
+    cfg.grid.resolution            = S.gridstep;
 else
     disp('USING pre-specified gridpoints');
     cfg.grid.pos=S.gridpos; %% predefined grid
@@ -632,13 +632,13 @@ end; % if
     cfg1.sourceunits   = 'mm';
     cfg1.parameter = 'pow_tstat';
     cfg1.downsample = 1;
-    sourceint_pow_tstat = ft_sourceinterpolate(cfg1, csource, sMRI);
+    sourceint_pow_tstat = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
     
      cfg1 = [];
      cfg1.sourceunits   = 'mm';
      cfg1.parameter = 'normdiff';
      cfg1.downsample = 1;
-     sourceint_normdiff= ft_sourceinterpolate(cfg1, csource, sMRI);
+     sourceint_normdiff= ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
 %     
     
     

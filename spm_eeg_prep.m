@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_prep.m 4798 2012-07-20 11:22:29Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -139,7 +139,8 @@ switch lower(S.task)
                 end
                 
                 elec = [];
-                elec.pnt = senspos;
+                elec.chanpos = senspos;
+                elec.elecpos = senspos;
                 elec.label = label;
                 
                 headshape = load(S.headshapefile);
@@ -172,7 +173,8 @@ switch lower(S.task)
                 
                 % Remove headshape points
                 hspind = strmatch('headshape', elec.label);
-                elec.pnt(hspind, :) = [];
+                elec.chanpos(hspind, :) = [];
+                elec.elecpos(hspind, :) = [];
                 elec.label(hspind)  = [];
                 
                 % This handles FIL Polhemus case and other possible cases
@@ -266,7 +268,8 @@ switch lower(S.task)
                 [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(elec.label));
                 
                 sens = elec;
-                sens.pnt = sens.pnt(sel2, :);
+                sens.chanpos = sens.chanpos(sel2, :);
+                sens.elecpos = sens.elecpos(sel2, :);
                 % This takes care of possible case mismatch
                 sens.label = D.chanlabels(sel1);
                 
@@ -277,8 +280,8 @@ switch lower(S.task)
                 % Assumes that the first 3 points in standard location files
                 % are the 3 fiducials (nas, lpa, rpa)
                 fid = [];
-                fid.pnt = elec.pnt;
-                fid.fid.pnt = elec.pnt(1:3, :);
+                fid.pnt = elec.elecpos;
+                fid.fid.pnt = elec.elecpos(1:3, :);
                 fid.fid.label = elec.label(1:3);
                 
                 [xy, label] = spm_eeg_project3D(D.sensors('EEG'), 'EEG');

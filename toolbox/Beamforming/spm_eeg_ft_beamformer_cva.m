@@ -21,7 +21,7 @@ function [stats,talpositions,gridpositions,grid,fftnewdata,alllf,allepochdata]=s
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_cva.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_ft_beamformer_cva.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Multivariate LCMV beamformer for power', 0);
 %%
@@ -928,26 +928,26 @@ for boot=1:Nboot,
             cfg1.sourceunits   = 'mm';
             cfg1.parameter = 'pow_maxchi';
             cfg1.downsample = 1;
-            sourceint_pow_maxchi = ft_sourceinterpolate(cfg1, csource, sMRI);
+            sourceint_pow_maxchi = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
             
             cfg1 = [];
             cfg1.sourceunits   = 'mm';
             cfg1.parameter = 'evoked_maxchi';
             cfg1.downsample = 1;
-            sourceint_evoked_maxchi = ft_sourceinterpolate(cfg1, csource, sMRI);
+            sourceint_evoked_maxchi = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
             
             
             cfg1 = [];
             cfg1.sourceunits   = 'mm';
             cfg1.parameter = 'logp_power';
             cfg1.downsample = 1;
-            sourceint_logp_pow = ft_sourceinterpolate(cfg1, csource, sMRI);
+            sourceint_logp_pow = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
             
             cfg1 = [];
             cfg1.sourceunits   = 'mm';
             cfg1.parameter = 'logp_evoked';
             cfg1.downsample = 1;
-            sourceint_logp_evoked = ft_sourceinterpolate(cfg1, csource, sMRI);
+            sourceint_logp_evoked = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
             
             
             
@@ -1075,7 +1075,7 @@ cfg1 = [];
 cfg1.sourceunits   = 'mm';
 cfg1.parameter = 'pow_maxchi';
 cfg1.downsample = 1;
-sourceint_pow_maxchi = ft_sourceinterpolate(cfg1, csource, sMRI);
+sourceint_pow_maxchi = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
 
 
 cfg = [];

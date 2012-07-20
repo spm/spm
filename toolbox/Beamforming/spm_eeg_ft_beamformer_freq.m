@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_ft_beamformer_freq.m 4798 2012-07-20 11:22:29Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -218,7 +218,7 @@ if strcmp('EEG', modality)
     cfg.elec = sens;
 else
     cfg.grad = sens;
-    cfg.reducerank            = 2;
+    cfg.dics.reducerank            = 2;
 end
 
 cfg.channel = D.chanlabels(D.meegchannels(modality));
@@ -245,7 +245,7 @@ if strcmp('EEG', modality)
     cfg.elec = D.inv{D.val}.datareg.sensors;
 else
     cfg.grad = D.sensors('MEG');
-    cfg.reducerank = 2;
+    cfg.dics.reducerank = 2;
 end
 
 cfg.channel = D.chanlabels(D.meegchannels(modality));
@@ -254,7 +254,7 @@ if ~isempty(refchan)
     cfg.refchan = refchan;
 end
 
-cfg.keepfilter   = 'yes';
+cfg.dics.keepfilter   = 'yes';
 cfg.frequency    = S.centerfreq;
 cfg.method       = 'dics';
 
@@ -266,11 +266,11 @@ cfg.dics.realfilter = 'yes';
 
 cfg.dics.powmethod  = 'trace';
 
-cfg.projectnoise = 'no';
+cfg.dics.projectnoise = 'no';
 cfg.grid         = grid;
 cfg.vol          = vol;
-cfg.lambda       = S.lambda;
-cfg.keepcsd = 'yes';
+cfg.dics.lambda       = S.lambda;
+cfg.dics.keepcsd = 'yes';
 
 if isfield(S, 'usewholetrial') && S.usewholetrial
     filtsource   = ft_sourceanalysis(cfg, filtfreq);
@@ -286,7 +286,7 @@ if isfield(S, 'geteta') && S.geteta
     save(fullfile(D.path, 'ori.mat'), 'filtsource', spm_get_defaults('mat.format'));
 end
 %
-cfg.keepfilter   = 'no';
+cfg.dics.keepfilter   = 'no';
 cfg.grid.filter  = filtsource.avg.filter; % use the filter computed in the previous step
 
 sMRI = fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii');
@@ -330,11 +330,43 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan) ||...
     
     if (isfield(S, 'preview') && S.preview)
         cfg1 = [];
-        cfg1.funparameter = 'pow';
-        cfg1.funcolorlim = 0.1*[-1 1]*max(abs(csource.pow));
-        cfg1.interactive = 'yes';
-        figure
-        ft_sourceplot(cfg1,sourceint);
+        cfg1.sourceunits   = 'mm';
+        cfg1.parameter = 'pow';
+        cfg1.downsample = 1;
+        sourceint = ft_sourceinterpolate(cfg1, csource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
+        %%
+        
+        if (isfield(S, 'preview') && S.preview)
+            cfg1 = [];
+            cfg1.funparameter = 'pow';
+            cfg1.funcolorlim = 0.1*[-1 1]*max(abs(csource.pow));
+            if ~(S.bycondition && numel(cind)>1)
+                cfg1.interactive = 'yes';
+            end
+            figure
+            ft_sourceplot(cfg1,sourceint);
+        end
+        
+        if ~isempty(refchan) || (isfield(S, 'singleimage') && S.singleimage)
+            res = mkdir(D.path, 'images');
+            outvol = spm_vol(sMRI);
+            outvol.dt(1) = spm_type('float32');
+            
+            outvol.fname= fullfile(D.path, 'images', ['img_' spm_str_manip(D.fname, 'r')]);
+            
+            if S.bycondition
+                outvol.fname= [outvol.fname '_' clb{cl(c)}];
+            end
+            
+            if ~isempty(refchan)
+                outvol.fname= [outvol.fname '_coh.nii'];
+            else
+                outvol.fname= [outvol.fname '.nii'];
+            end
+            
+            outvol = spm_create_vol(outvol);
+            spm_write_vol(outvol, sourceint.pow);
+        end
     end
     
     if ~isempty(refchan) || (isfield(S, 'singleimage') && S.singleimage)  
@@ -387,7 +419,7 @@ else
         
         source.pow = (pow*S.contrast(:));
 
-        sourceint = ft_sourceinterpolate(cfg, source, sMRI);
+        sourceint = ft_sourceinterpolate(cfg, source, ft_read_mri(sMRI, 'format', 'nifti_spm'));
 
         outvol.fname= fullfile(D.path, 'images', ['img_' spm_file(D.fname, 'basename') '_' clb{cond} '_trial_' num2str(trialind(i)) '.nii']);
         outvol = spm_create_vol(outvol);

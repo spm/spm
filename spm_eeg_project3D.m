@@ -6,9 +6,11 @@ function [xy,label] = spm_eeg_project3D(sens, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_project3D.m 3192 2009-06-09 08:29:22Z vladimir $
+% $Id: spm_eeg_project3D.m 4798 2012-07-20 11:22:29Z vladimir $
 
 cfg = [];
+
+cfg.showcallinfo = 'no';
 
 switch modality
     case 'EEG'

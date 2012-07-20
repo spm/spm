@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -116,11 +116,10 @@ source = ft_dipolefitting(cfg, data);
 %% =========== Plot the actual and the predicted scalp maps
 
 cfg=[];
-cfg.xparam='time';
 cfg.xlim=[min(source.time) max(source.time)];
 cfg.comment ='xlim';
 cfg.commentpos='middlebottom';
-cfg.electrodes='on';
+cfg.marker='on';
 cfg.rotate = 0;
 
 if strcmp('EEG', modality)
@@ -132,12 +131,12 @@ end
 figure;
 clf
 subplot(1,2,1);
-cfg.zparam='Vdata';
-ft_topoplotER(cfg, source);
+cfg.parameter ='Vdata';
+ft_topoplotER(cfg, rmfield(source, 'dip'));
 title('Data');
 subplot(1,2,2);
-cfg.zparam='Vmodel';
-ft_topoplotER(cfg, source);
+cfg.parameter ='Vmodel';
+ft_topoplotER(cfg, rmfield(source, 'dip'));
 title('Model');
 
 %% =========== Convert dipole position to MNI coordinates

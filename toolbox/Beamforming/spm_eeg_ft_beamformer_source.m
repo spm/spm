@@ -23,7 +23,7 @@ function Dsource = spm_eeg_ft_beamformer_source(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_ft_beamformer_source.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: spm_eeg_ft_beamformer_source.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup', 'Beamformer source activity extraction',0);
 
@@ -192,6 +192,7 @@ data.time = data.time(trialind);
 cfg = [];
 cfg.channel = D.chanlabels(setdiff(D.meegchannels(modality), D.badchannels))';
 cfg.covariance = 'yes';
+cfg.covariancewindow = 'all';
 cfg.keeptrials = 'no';
 timelock1 = ft_timelockanalysis(cfg, data);
 cfg.keeptrials = 'yes';
@@ -203,7 +204,7 @@ nsources = numel(S.sources.label);
 cfg = [];
 
 if ismember(modality, {'MEG', 'MEGPLANAR'})
-    cfg.reducerank = 2;
+    cfg.lcmv.reducerank = 2;
 end
 
 if ~isfield(S, 'voi') || isequal(S.voi, 'no')
@@ -232,9 +233,9 @@ cfg.inwardshift = -30;
 cfg.vol = vol;
 cfg.channel = modality;
 cfg.method = 'lcmv';
-cfg.keepfilter = 'yes';
+cfg.lcmv.keepfilter = 'yes';
 cfg.keepleadfield = 'yes';
-cfg.lambda =  S.lambda;
+cfg.lcmv.lambda =  S.lambda;
 source1 = ft_sourceanalysis(cfg, timelock1);
 
 if isfield(S, 'makecorrimage') &&  S.makecorrimage
@@ -269,7 +270,7 @@ if isfield(S, 'makecorrimage') &&  S.makecorrimage
         cfg1.sourceunits   = 'mm';
         cfg1.parameter = 'pow';
         cfg1.downsample = 1;
-        sourceint = ft_sourceinterpolate(cfg1, fsource, sMRI);
+        sourceint = ft_sourceinterpolate(cfg1, fsource, ft_read_mri(sMRI, 'format', 'nifti_spm'));
         %%           
         outvol = spm_vol(sMRI);
         outvol.dt(1) = spm_type('float32');
@@ -292,7 +293,7 @@ cfg.vol = vol;
 cfg.grad = sens;
 cfg.grid = ft_source2grid(source1);
 cfg.channel = modality;
-cfg.lambda =  S.lambda;
+cfg.lcmv.lambda =  S.lambda;
 cfg.rawtrial = 'yes';
 source2 = ft_sourceanalysis(cfg, timelock2);
 

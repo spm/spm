@@ -1,7 +1,7 @@
 function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % LCMV univariate beamformer
 % FORMAT [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
-% 
+%
 % S            - struct (optional)
 % (optional) fields of S:
 % S.D          - meeg object or filename
@@ -10,7 +10,7 @@ function [stats,talpositions]=spm_eeg_ft_beamformer_gui(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_ft_beamformer_gui.m 3971 2010-07-06 09:53:38Z gareth $
+% $Id: spm_eeg_ft_beamformer_gui.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','LCMV beamformer for power', 0);
 %%
@@ -77,10 +77,10 @@ if ~ok
 end
 
 
- if ~isfield(D,'inv')
-     errordlg('Need to set up a forward model before you start');
-     return;
- end;
+if ~isfield(D,'inv')
+    errordlg('Need to set up a forward model before you start');
+    return;
+end;
 
 
 
@@ -150,7 +150,7 @@ type1ind=find(trialtypes==1);
 type2ind=find(trialtypes==2);
 
 if 2*abs((length(type1ind)-length(type2ind)))./(length(type1ind)+length(type2ind))>0.1,
-
+    
     balance = spm_input('trial numbers diffe (>10%). Randomly resample ?','+1', 'yes|no', [1, 0]);
     minlen=min(length(type1ind),length(type2ind));
     m1=randperm(length(type1ind));
@@ -160,8 +160,8 @@ if 2*abs((length(type1ind)-length(type2ind)))./(length(type1ind)+length(type2ind
     disp(sprintf('Now both conditions have %d trials',minlen));
 end;
 
-    
-    
+
+
 
 %% Set up design matrix for a t test
 S.design.X=size(latencies,1);
@@ -170,12 +170,12 @@ S.design.X(type2ind,2)=1;
 S.design.X(:,3)=1;
 
 
- 
- contrast=[1 -1 0];
-      S.design.contrast=contrast;
-      S.design.Xwindowduration=duration/1000; %% in seconds 
-      S.design.Xtrials=triallist'; % correspond to the trials 
-      S.design.Xstartlatencies=latencies(:,1); %% correspond to start latencies within trials
+
+contrast=[1 -1 0];
+S.design.contrast=contrast;
+S.design.Xwindowduration=duration/1000; %% in seconds
+S.design.Xtrials=triallist'; % correspond to the trials
+S.design.Xstartlatencies=latencies(:,1); %% correspond to start latencies within trials
 
 
 freqbands=[];
@@ -190,8 +190,8 @@ end;
 Nbands=numel(S.freqbands);
 
 if ~isfield(S,'gridstep');
- S.gridstep = spm_input('Grid step (mm):', '+1', 'r', '5');
-end; 
+    S.gridstep = spm_input('Grid step (mm):', '+1', 'r', '5');
+end;
 
 
 if ~isfield(S,'logflag'),
@@ -201,17 +201,17 @@ end; % if
 if isempty(S.logflag),
     S.logflag=0;
 end; % if
-  
- if ~isfield(S, 'regpc')
-     S.regpc =spm_input('Regularization (%):', '+1', 'r', '0');
- end
+
+if ~isfield(S, 'regpc')
+    S.regpc =spm_input('Regularization (%):', '+1', 'r', '0');
+end
 
 if ~isfield(S, 'preview')
     S.preview = spm_input('Preview results?','+1', 'yes|no', [1, 0]);
 end
 %%
- 
- [stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S);
- 
-    
+
+[stats,talpositions]=spm_eeg_ft_beamformer_lcmv(S);
+
+
 end % function

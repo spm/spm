@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 4701 2012-03-22 16:47:05Z guillaume $
+% $Id: spm_eeg_inv_forward.m 4798 2012-07-20 11:22:29Z vladimir $
 
 
 %-Initialisation
@@ -35,6 +35,7 @@ for i = 1:numel(D.inv{val}.forward)
         case '3-Shell Sphere (experimental)'
             cfg              = [];
             cfg.feedback     = graph;
+            cfg.showcallinfo           = 'no';
             cfg.headshape(1) = export(gifti(mesh.tess_scalp),  'ft');
             cfg.headshape(2) = export(gifti(mesh.tess_oskull), 'ft');
             cfg.headshape(3) = export(gifti(mesh.tess_iskull), 'ft');
@@ -48,7 +49,9 @@ for i = 1:numel(D.inv{val}.forward)
             cfg.headshape(4).pnt = pnt(sel, :);
             cfg.headshape(4).tri = convhulln(pnt(sel, :));
             
-            vol  = ft_prepare_concentricspheres(cfg);
+            cfg.method = 'concentricspheres';
+            
+            vol  = ft_prepare_headmodel(cfg);
             vert = spm_eeg_inv_mesh_spherify(mesh.tess_ctx.vert, mesh.tess_ctx.face, 'shift', 'no');
             mesh.tess_ctx.vert = vol.r(1)*vert + repmat(vol.o, size(vert, 1), 1);
             modality = 'EEG';
@@ -72,10 +75,11 @@ for i = 1:numel(D.inv{val}.forward)
                 % create the BEM system matrix
                 cfg        = [];
                 cfg.method = 'bemcp';
-                vol        = ft_prepare_bemmodel(cfg, vol);
-                
-                spm_progress_bar('Set', 1);
-                
+                cfg.showcallinfo = 'no';
+                vol = ft_prepare_headmodel(cfg, vol);
+
+                spm_progress_bar('Set', 1); drawnow;
+
                 save(volfile, 'vol');
                 
                 spm_progress_bar('Clear');
@@ -98,28 +102,29 @@ for i = 1:numel(D.inv{val}.forward)
             
             cfg        = [];
             cfg.method = 'openmeeg';
-            vol        = ft_prepare_bemmodel(cfg, vol);
-            modality   = 'EEG';
-            
+            cfg.showcallinfo = 'no';
+            vol = ft_prepare_headmodel(cfg, vol);
+            modality = 'EEG';
         case 'Single Sphere'
-            cfg              = [];
-            cfg.feedback     = graph;
-            cfg.grad         = D.inv{val}.datareg(i).sensors;
-            cfg.headshape    = mesh.tess_iskull.vert;
-            cfg.singlesphere = 'yes';
-            vol              = ft_prepare_localspheres(cfg);
-            modality         = 'MEG';
-            
+            cfg                        = [];
+            cfg.feedback               = 'yes';
+            cfg.showcallinfo           = 'no';
+            cfg.grad                   = D.inv{val}.datareg(i).sensors;
+            cfg.headshape              = export(gifti(mesh.tess_scalp), 'ft');
+            cfg.method                 = 'singlesphere';
+            vol                        = ft_prepare_headmodel(cfg);
+            modality                   = 'MEG';
         case 'MEG Local Spheres'
-            cfg              = [];
-            cfg.feedback     = graph;
-            cfg.grad         = D.inv{val}.datareg(i).sensors;
-            cfg.headshape    = mesh.tess_scalp.vert;
-            cfg.radius       = 85;
-            cfg.maxradius    = 200;
-            vol              = ft_prepare_localspheres(cfg);
-            modality         = 'MEG';
-            
+            cfg                        = [];
+            cfg.feedback               = 'yes';
+            cfg.showcallinfo           = 'no';
+            cfg.grad                   = D.inv{val}.datareg(i).sensors;
+            cfg.headshape              = export(gifti(mesh.tess_scalp), 'ft');
+            cfg.radius                 = 85;
+            cfg.maxradius              = 200;
+            cfg.method                 = 'localspheres';
+            vol  = ft_prepare_headmodel(cfg);
+            modality = 'MEG';
         case  'Single Shell'
             vol              = [];
             vol.bnd          = export(gifti(mesh.tess_iskull), 'ft');

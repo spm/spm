@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 4304 2011-04-12 15:24:23Z vladimir $
+% $Id: spm_eeg_var_measures.m 4798 2012-07-20 11:22:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -260,8 +260,8 @@ cfg.ivar  = 1;  % number or list with indices, independent variable(s)
 
 cfg.neighbours=[];
 for c=1:length(dummy.label)
-    cfg.neighbours{c}.label = dummy.label{c};
-    cfg.neighbours{c}.neighblabel ={};
+    cfg.neighbours(c).label = dummy.label{c};
+    cfg.neighbours(c).neighblabel ={};
 end
 
 cfg.parameter='trial';

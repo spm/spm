@@ -6,18 +6,19 @@ function [xy,label] = spm_eeg_layout3D(sens, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_layout3D.m 2720 2009-02-09 19:50:46Z vladimir $
+% $Id: spm_eeg_layout3D.m 4798 2012-07-20 11:22:29Z vladimir $
 
 
 switch modality
     case 'EEG'
-        xy = sens.pnt;
+        xy = sens.chanpos;
         label = sens.label;
     case 'MEG'
         cfg = [];
         cfg.style = '3d';
         cfg.rotate = 0;
         cfg.grad = sens;
+        cfg.showcallinfo = 'no';
 
         lay = ft_prepare_layout(cfg);
 
