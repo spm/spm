@@ -29,7 +29,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4799 2012-07-20 11:53:59Z guillaume $
+% $Id: spm_dcm_erp.m 4801 2012-07-23 12:44:12Z rosalyn $
 
 
 clear spm_erp_L
@@ -200,7 +200,7 @@ M.ns  = Ns;
 
 % Spatial modes
 %--------------------------------------------------------------------------
-if Nc < Nm
+if Nc <= Nm
     U     = speye(Nc);
     M.E   = U;
 else
