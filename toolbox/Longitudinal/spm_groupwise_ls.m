@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4787 2012-07-16 18:33:27Z john $
+% $Id: spm_groupwise_ls.m 4802 2012-07-23 18:37:30Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -838,12 +838,12 @@ for m=1:d(3),
         f        = F{i}(msk);
         ebias    = Bf{i}(msk);
         dt       = Dt{i}(msk);
-        mum(msk) = mum(msk) + f.*ebias.*dt*prec(i);
-        mgm(msk) = mgm(msk) + ebias.*ebias.*dt*prec(i);
+        scal     = ebias.*dt*prec(i);
+        mum(msk) = mum(msk) + f.*scal;
+        mgm(msk) = mgm(msk) + ebias.*scal;
 
         if nargout>=4
             % For computing gradients
-            scal        = ebias.*dt*prec(i);
             Dm1{1}(msk) = Dm1{1}(msk) + (Df{1}(msk) + f.*Db{1}(msk)).*scal;
             Dm1{2}(msk) = Dm1{2}(msk) + (Df{2}(msk) + f.*Db{2}(msk)).*scal;
             Dm1{3}(msk) = Dm1{3}(msk) + (Df{3}(msk) + f.*Db{3}(msk)).*scal;

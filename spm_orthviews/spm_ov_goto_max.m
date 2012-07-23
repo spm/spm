@@ -11,9 +11,9 @@ function ret = spm_ov_goto_max(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_goto_max.m 4785 2012-07-16 13:27:45Z volkmar $
+% $Id: spm_ov_goto_max.m 4802 2012-07-23 18:37:30Z john $
 
-rev = '$Revision: 4785 $';
+rev = '$Revision: 4802 $';
 
 global st;
 if isempty(st)
@@ -40,7 +40,7 @@ switch cmd
     case 'global'
         if ~isfield(st.vols{volhandle}, 'goto_max')
             [dat, xyz] = spm_read_vols(st.vols{volhandle});
-            [~, mxind] = max(dat(:));
+            [unused, mxind] = max(dat(:));
             st.vols{volhandle}.goto_max.globalmm = xyz(:, mxind);
         end
         posmm = st.vols{volhandle}.premul*[st.vols{volhandle}.goto_max.globalmm;1];
@@ -62,9 +62,9 @@ switch cmd
         catch
             sel = isfinite(dat(:));
         end
-        [~, ~, XYZ]  = spm_max(dat(sel), xyz(:,sel));
+        [unused, unused, XYZ]  = spm_max(dat(sel), xyz(:,sel));
         XYZdist      = bsxfun(@minus,XYZ,posvx(1:3));
-        [~, nmaxind] = min(sum(XYZdist.^2));
+        [unused, nmaxind] = min(sum(XYZdist.^2));
         posmm        = st.vols{volhandle}.premul*st.vols{volhandle}.mat*[XYZ(:, nmaxind); 1];
         spm_orthviews('reposition', posmm(1:3));
 end

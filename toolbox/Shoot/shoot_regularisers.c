@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4758 2012-05-29 15:34:08Z john $ */
+/* $Id: shoot_regularisers.c 4802 2012-07-23 18:37:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -282,7 +282,7 @@ double sumsq(mwSize dm[], float a[], float b[], double s[], float u[])
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *px = pux+i, *py = puy+i, *pz = puz+i;
-                double tmp, abx, aby, abz;
+                double tmp, abx, aby, abz, c;
 
                 im2 = bound(i-2,dm[0])-i;
                 im1 = bound(i-1,dm[0])-i;
@@ -300,46 +300,51 @@ double sumsq(mwSize dm[], float a[], float b[], double s[], float u[])
                     abx = aby = abz = 0.0;
                 }
 
+                /* Note that a few things have been done here to reduce rounding errors.
+                   This may slow things down, but it does lead to more accuracy. */
+                c   = px[0];
                 tmp = abx - pbx[i]
-                        + wx000* px[0]
-                        + wx100*(px[im1        ] + px[ip1        ])
-                        + wx010*(px[    jm1    ] + px[    jp1    ])
-                        + wx001*(px[        km1] + px[        kp1])
-                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
-                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                        +  w200*(px[im2        ] + px[ip2        ])
-                        +  w020*(px[    jm2    ] + px[    jp2    ])
-                        +  w002*(px[        km2] + px[        kp2]))/v0;
+                        + wx100*((px[im1        ]-c) + (px[ip1        ]-c))
+                        + wx010*((px[    jm1    ]-c) + (px[    jp1    ]-c))
+                        + wx001*((px[        km1]-c) + (px[        kp1]-c))
+                        + w2   *( py[ip1+jm1] - py[ip1+jp1] + py[im1+jp1] - py[im1+jm1] + pz[ip1+km1] - pz[ip1+kp1] + pz[im1+kp1] - pz[im1+km1])
+                        + (lam0*c
+                        +  w110*((px[im1+jm1    ]-c) + (px[ip1+jm1    ]-c) + (px[im1+jp1    ]-c) + (px[ip1+jp1    ]-c))
+                        +  w101*((px[im1    +km1]-c) + (px[ip1    +km1]-c) + (px[im1    +kp1]-c) + (px[ip1    +kp1]-c))
+                        +  w011*((px[    jm1+km1]-c) + (px[    jp1+km1]-c) + (px[    jm1+kp1]-c) + (px[    jp1+kp1]-c))
+                        +  w200*((px[im2        ]-c) + (px[ip2        ]-c))
+                        +  w020*((px[    jm2    ]-c) + (px[    jp2    ]-c))
+                        +  w002*((px[        km2]-c) + (px[        kp2]-c)))/v0;
                 ss += tmp*tmp;
 
+                c   = py[0];
                 tmp = aby - pby[i]
-                        + wy000* py[0]
-                        + wy100*(py[im1        ] + py[ip1        ])
-                        + wy010*(py[    jm1    ] + py[    jp1    ])   
-                        + wy001*(py[        km1] + py[        kp1])   
-                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
-                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                        +  w200*(py[im2        ] + py[ip2        ])
-                        +  w020*(py[    jm2    ] + py[    jp2    ])
-                        +  w002*(py[        km2] + py[        kp2]))/v1;
+                        + wy100*((py[im1        ]-c) + (py[ip1        ]-c))
+                        + wy010*((py[    jm1    ]-c) + (py[    jp1    ]-c))   
+                        + wy001*((py[        km1]-c) + (py[        kp1]-c))   
+                        + w2   *( px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1])
+                        + (lam0*c
+                        +  w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
+                        +  w101*((py[im1    +km1]-c) + (py[ip1    +km1]-c) + (py[im1    +kp1]-c) + (py[ip1    +kp1]-c))
+                        +  w011*((py[    jm1+km1]-c) + (py[    jp1+km1]-c) + (py[    jm1+kp1]-c) + (py[    jp1+kp1]-c))
+                        +  w200*((py[im2        ]-c) + (py[ip2        ]-c))
+                        +  w020*((py[    jm2    ]-c) + (py[    jp2    ]-c))
+                        +  w002*((py[        km2]-c) + (py[        kp2]-c)))/v1;
                 ss += tmp*tmp;
 
+                c   = pz[0];
                 tmp = abz - pbz[i]
-                        + wz000* pz[0]
-                        + wz100*(pz[im1        ] + pz[ip1        ])
-                        + wz010*(pz[    jm1    ] + pz[    jp1    ])   
-                        + wz001*(pz[        km1] + pz[        kp1])   
-                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
-                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                        +  w200*(pz[im2        ] + pz[ip2        ])
-                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
-                        +  w002*(pz[        km2] + pz[        kp2]))/v2;
+                        + wz100*((pz[im1        ]-c) + (pz[ip1        ]-c))
+                        + wz010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))   
+                        + wz001*((pz[        km1]-c) + (pz[        kp1]-c))   
+                        + w2   *( px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1])
+                        + (lam0*c
+                        +  w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
+                        +  w101*((pz[im1    +km1]-c) + (pz[ip1    +km1]-c) + (pz[im1    +kp1]-c) + (pz[ip1    +kp1]-c))
+                        +  w011*((pz[    jm1+km1]-c) + (pz[    jp1+km1]-c) + (pz[    jm1+kp1]-c) + (pz[    jp1+kp1]-c))
+                        +  w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                        +  w020*((pz[    jm2    ]-c) + (pz[    jp2    ]-c))
+                        +  w002*((pz[        km2]-c) + (pz[        kp2]-c)))/v2;
                 ss += tmp*tmp;
             }
         }
@@ -414,27 +419,33 @@ void vel2mom_le(mwSize dm[], float f[], double s[], float g[])
             {
                 mwSignedIndex im1,ip1;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
+                double c;
 
                 im1 = bound(i-1,dm[0])-i;
                 ip1 = bound(i+1,dm[0])-i;
 
-                pgx[i] = wx000*px[0]
-                       + wx100*(px[ip1] + px[im1])
-                       + wx010*(px[jp1] + px[jm1])
-                       + wx001*(px[kp1] + px[km1])
-                       + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]);
+                /* Note that a few things have been done here to reduce rounding errors.
+                   This may slow things down, but it does lead to more accuracy. */
+                c      = px[0];
+                pgx[i] =  lam0/v0*c
+                       + wx100*((px[ip1]-c) + (px[im1]-c))
+                       + wx010*((px[jp1]-c) + (px[jm1]-c))
+                       + wx001*((px[kp1]-c) + (px[km1]-c))
+                       + w2   *(py[ip1+jm1] - py[ip1+jp1] + py[im1+jp1] - py[im1+jm1] + pz[ip1+km1] - pz[ip1+kp1] + pz[im1+kp1] - pz[im1+km1]);
 
-                pgy[i] = wy000*py[0]
-                       + wy100*(py[ip1] + py[im1])
-                       + wy010*(py[jp1] + py[jm1])
-                       + wy001*(py[kp1] + py[km1])
-                       + w2*(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]);
+                c      = py[0];
+                pgy[i] =  lam0/v1*c
+                       + wy100*((py[ip1]-c) + (py[im1]-c))
+                       + wy010*((py[jp1]-c) + (py[jm1]-c))
+                       + wy001*((py[kp1]-c) + (py[km1]-c))
+                       + w2   *(px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1]);
 
-                pgz[i] = wz000*pz[0]
-                       + wz100*(pz[ip1] + pz[im1])
-                       + wz010*(pz[jp1] + pz[jm1])
-                       + wz001*(pz[kp1] + pz[km1])
-                       + w2*(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]);
+                c      = pz[0];
+                pgz[i] = lam0/v2*c
+                       + wz100*((pz[ip1]-c) + (pz[im1]-c))
+                       + wz010*((pz[jp1]-c) + (pz[jm1]-c))
+                       + wz001*((pz[kp1]-c) + (pz[km1]-c))
+                       + w2   *(px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1]);
             }
         }
     }
@@ -538,17 +549,17 @@ void relax_le(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     sux = pbx[i] - ( wx100*(px[im1] + px[ip1])
                                    + wx010*(px[jm1] + px[jp1])
                                    + wx001*(px[km1] + px[kp1])
-                                   + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1]));
+                                   + w2   *(py[ip1+jm1] - py[ip1+jp1] + py[im1+jp1] - py[im1+jm1] + pz[ip1+km1] - pz[ip1+kp1] + pz[im1+kp1] - pz[im1+km1]));
 
                     suy = pby[i] - ( wy100*(py[im1] + py[ip1])
                                    + wy010*(py[jm1] + py[jp1])
                                    + wy001*(py[km1] + py[kp1])
-                                   + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1]));
+                                   + w2   *(px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1]));
 
                     suz = pbz[i] - ( wz100*(pz[im1] + pz[ip1])
                                    + wz010*(pz[jm1] + pz[jp1])
                                    + wz001*(pz[km1] + pz[kp1])
-                                   + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1]));
+                                   + w2   *(px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1]));
 
                     if (a)
                     {
@@ -848,42 +859,51 @@ void vel2mom_be(mwSize dm[], float f[], double s[], float g[])
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
+                double c;
 
                 im2 = bound(i-2,dm[0])-i;
                 im1 = bound(i-1,dm[0])-i;
                 ip1 = bound(i+1,dm[0])-i;
                 ip2 = bound(i+2,dm[0])-i;
 
-                pgx[i] =(w000* px[0]
-                       + w010*(px[    jm1    ] + px[    jp1    ])
-                       + w020*(px[    jm2    ] + px[    jp2    ])
-                       + w100*(px[im1        ] + px[ip1        ])
-                       + w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                       + w200*(px[im2        ] + px[ip2        ])
-                       + w001*(px[        km1] + px[        kp1])
-                       + w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                       + w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                       + w002*(px[        km2] + px[        kp2]))/v0;
-                pgy[i] =(w000* py[0]
-                       + w010*(py[    jm1    ] + py[    jp1    ])
-                       + w020*(py[    jm2    ] + py[    jp2    ])
-                       + w100*(py[im1        ] + py[ip1        ])
-                       + w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                       + w200*(py[im2        ] + py[ip2        ])
-                       + w001*(py[        km1] + py[        kp1])
-                       + w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                       + w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                       + w002*(py[        km2] + py[        kp2]))/v1;
-                pgz[i] =(w000* pz[0]
-                       + w010*(pz[    jm1    ] + pz[    jp1    ])
-                       + w020*(pz[    jm2    ] + pz[    jp2    ])
-                       + w100*(pz[im1        ] + pz[ip1        ])
-                       + w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                       + w200*(pz[im2        ] + pz[ip2        ])
-                       + w001*(pz[        km1] + pz[        kp1])
-                       + w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                       + w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                       + w002*(pz[        km2] + pz[        kp2]))/v2;
+                /* Note that a few things have been done here to reduce rounding errors.
+                   This may slow things down, but it does lead to more accuracy. */
+                c      = px[0];
+                pgx[i] =(lam0*c
+                       + w100*((px[im1        ]-c) + (px[ip1        ]-c))
+                       + w010*((px[    jm1    ]-c) + (px[    jp1    ]-c))
+                       + w001*((px[        km1]-c) + (px[        kp1]-c))
+                       + w200*((px[im2        ]-c) + (px[ip2        ]-c))
+                       + w020*((px[    jm2    ]-c) + (px[    jp2    ]-c))
+                       + w002*((px[        km2]-c) + (px[        kp2]-c))
+                       + w110*((px[im1+jm1    ]-c) + (px[ip1+jm1    ]-c) + (px[im1+jp1    ]-c) + (px[ip1+jp1    ]-c))
+                       + w101*((px[im1    +km1]-c) + (px[ip1    +km1]-c) + (px[im1    +kp1]-c) + (px[ip1    +kp1]-c))
+                       + w011*((px[    jm1+km1]-c) + (px[    jp1+km1]-c) + (px[    jm1+kp1]-c) + (px[    jp1+kp1]-c)))/v0;
+
+                c      = py[0];
+                pgy[i] =(lam0*c
+                       + w100*((py[im1        ]-c) + (py[ip1        ]-c))
+                       + w010*((py[    jm1    ]-c) + (py[    jp1    ]-c))
+                       + w001*((py[        km1]-c) + (py[        kp1]-c))
+                       + w200*((py[im2        ]-c) + (py[ip2        ]-c))
+                       + w020*((py[    jm2    ]-c) + (py[    jp2    ]-c))
+                       + w002*((py[        km2]-c) + (py[        kp2]-c))
+                       + w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
+                       + w101*((py[im1    +km1]-c) + (py[ip1    +km1]-c) + (py[im1    +kp1]-c) + (py[ip1    +kp1]-c))
+                       + w011*((py[    jm1+km1]-c) + (py[    jp1+km1]-c) + (py[    jm1+kp1]-c) + (py[    jp1+kp1]-c)))/v1;
+
+                c      = pz[0];
+                pgz[i] =(lam0*c
+                       + w100*((pz[im1        ]-c) + (pz[ip1        ]-c))
+                       + w010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))
+                       + w001*((pz[        km1]-c) + (pz[        kp1]-c))
+                       + w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                       + w020*((pz[    jm2    ]-c) + (pz[    jp2    ]-c))
+                       + w002*((pz[        km2]-c) + (pz[        kp2]-c))
+                       + w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
+                       + w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                       + w101*((pz[im1    +km1]-c) + (pz[ip1    +km1]-c) + (pz[im1    +kp1]-c) + (pz[ip1    +kp1]-c))
+                       + w011*((pz[    jm1+km1]-c) + (pz[    jp1+km1]-c) + (pz[    jm1+kp1]-c) + (pz[    jp1+kp1]-c)))/v2;
             }
         }
     }
@@ -1007,7 +1027,7 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                 for(i=it%3; i<dm[0]; i+=3)
                 {
                     mwSignedIndex im2,im1,ip1,ip2;
-                    double sux, suy, suz;
+                    double sux, suy, suz, c;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
                     im2 = bound(i-2,dm[0])-i;
@@ -1015,44 +1035,52 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
 
-                    sux = pbx[i] - (w010*(px[    jm1    ] + px[    jp1    ])
-                                  + w020*(px[    jm2    ] + px[    jp2    ])
-                                  + w100*(px[im1        ] + px[ip1        ])
-                                  + w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                                  + w200*(px[im2        ] + px[ip2        ])
-                                  + w001*(px[        km1] + px[        kp1])
-                                  + w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                                  + w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                                  + w002*(px[        km2] + px[        kp2]))/v0;
+                    /* Note that a few things have been done here to reduce rounding errors.
+                       This may slow things down, but it does lead to more accuracy. */
+                    c   = px[0];
+                    sux = pbx[i] - (lam0*c
+                                  + w100*((px[im1        ]-c) + (px[ip1        ]-c))
+                                  + w010*((px[    jm1    ]-c) + (px[    jp1    ]-c))
+                                  + w001*((px[        km1]-c) + (px[        kp1]-c))
+                                  + w200*((px[im2        ]-c) + (px[ip2        ]-c))
+                                  + w020*((px[    jm2    ]-c) + (px[    jp2    ]-c))
+                                  + w002*((px[        km2]-c) + (px[        kp2]-c))
+                                  + w110*((px[im1+jm1    ]-c) + (px[ip1+jm1    ]-c) + (px[im1+jp1    ]-c) + (px[ip1+jp1    ]-c))
+                                  + w101*((px[im1    +km1]-c) + (px[ip1    +km1]-c) + (px[im1    +kp1]-c) + (px[ip1    +kp1]-c))
+                                  + w011*((px[    jm1+km1]-c) + (px[    jp1+km1]-c) + (px[    jm1+kp1]-c) + (px[    jp1+kp1]-c)))/v0;
 
-                    suy = pby[i] - (w010*(py[    jm1    ] + py[    jp1    ])
-                                  + w020*(py[    jm2    ] + py[    jp2    ])
-                                  + w100*(py[im1        ] + py[ip1        ])
-                                  + w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                                  + w200*(py[im2        ] + py[ip2        ])
-                                  + w001*(py[        km1] + py[        kp1])
-                                  + w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                                  + w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                                  + w002*(py[        km2] + py[        kp2]))/v1;
+                    c   = py[0];
+                    suy = pby[i] - (lam0*c
+                                  + w100*((py[im1        ]-c) + (py[ip1        ]-c))
+                                  + w010*((py[    jm1    ]-c) + (py[    jp1    ]-c))
+                                  + w001*((py[        km1]-c) + (py[        kp1]-c))
+                                  + w200*((py[im2        ]-c) + (py[ip2        ]-c))
+                                  + w020*((py[    jm2    ]-c) + (py[    jp2    ]-c))
+                                  + w002*((py[        km2]-c) + (py[        kp2]-c))
+                                  + w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
+                                  + w101*((py[im1    +km1]-c) + (py[ip1    +km1]-c) + (py[im1    +kp1]-c) + (py[ip1    +kp1]-c))
+                                  + w011*((py[    jm1+km1]-c) + (py[    jp1+km1]-c) + (py[    jm1+kp1]-c) + (py[    jp1+kp1]-c)))/v1;
 
-                    suz = pbz[i] - (w010*(pz[    jm1    ] + pz[    jp1    ])
-                                  + w020*(pz[    jm2    ] + pz[    jp2    ])
-                                  + w100*(pz[im1        ] + pz[ip1        ])
-                                  + w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                                  + w200*(pz[im2        ] + pz[ip2        ])
-                                  + w001*(pz[        km1] + pz[        kp1])
-                                  + w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                                  + w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                                  + w002*(pz[        km2] + pz[        kp2]))/v2;
+                    c   = pz[0];
+                    suz = pbz[i] - (lam0*c
+                                  + w100*((pz[im1        ]-c) + (pz[ip1        ]-c))
+                                  + w010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))
+                                  + w001*((pz[        km1]-c) + (pz[        kp1]-c))
+                                  + w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                                  + w020*((pz[    jm2    ]-c) + (pz[    jp2    ]-c))
+                                  + w002*((pz[        km2]-c) + (pz[        kp2]-c))
+                                  + w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
+                                  + w101*((pz[im1    +km1]-c) + (pz[ip1    +km1]-c) + (pz[im1    +kp1]-c) + (pz[ip1    +kp1]-c))
+                                  + w011*((pz[    jm1+km1]-c) + (pz[    jp1+km1]-c) + (pz[    jm1+kp1]-c) + (pz[    jp1+kp1]-c)))/v2;
 
                     if (a)
                     {
                         double axx, ayy, azz, axy, axz, ayz, idt;
-/*
+
                         sux -= (paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]);
                         suy -= (paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0]);
                         suz -= (paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0]);
-*/
+
                         axx  = paxx[i] + w000/v0;
                         ayy  = payy[i] + w000/v1;
                         azz  = pazz[i] + w000/v2;
@@ -1060,15 +1088,15 @@ void relax_be(mwSize dm[], float a[], float b[], double s[], int nit, float u[])
                         axz  = paxz[i];
                         ayz  = payz[i];
                         idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
-                        *px = idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
-                        *py = idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
-                        *pz = idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
+                        *px += idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
+                        *py += idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
+                        *pz += idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
                     }
                     else
                     {
-                        *px = v0*sux/w000;
-                        *py = v1*suy/w000;
-                        *pz = v2*suz/w000;
+                        *px += v0*sux/w000;
+                        *py += v1*suy/w000;
+                        *pz += v2*suz/w000;
                     }
                 }
             }
@@ -1166,47 +1194,53 @@ void vel2mom_all(mwSize dm[], float f[], double s[], float g[])
             {
                 mwSignedIndex im2,im1,ip1,ip2;
                 float *px = &pfx[i], *py = &pfy[i], *pz = &pfz[i];
+                double c;
 
                 im2 = bound(i-2,dm[0])-i;
                 im1 = bound(i-1,dm[0])-i;
                 ip1 = bound(i+1,dm[0])-i;
                 ip2 = bound(i+2,dm[0])-i;
 
-                pgx[i] = (wx000* px[0]
-                        + wx100*(px[im1        ] + px[ip1        ])
-                        + wx010*(px[    jm1    ] + px[    jp1    ])
-                        + wx001*(px[        km1] + px[        kp1])
-                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
-                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                        +  w200*(px[im2        ] + px[ip2        ])
-                        +  w020*(px[    jm2    ] + px[    jp2    ])
-                        +  w002*(px[        km2] + px[        kp2]))/v0);
+                /* Note that a few things have been done here to reduce rounding errors.
+                   This may slow things down, but it does lead to more accuracy. */
+                c      = px[0];
+                pgx[i] = (wx100*((px[im1        ]-c) + (px[ip1        ]-c))
+                        + wx010*((px[    jm1    ]-c) + (px[    jp1    ]-c))
+                        + wx001*((px[        km1]-c) + (px[        kp1]-c))
+                        + w2   *( py[ip1+jm1] - py[ip1+jp1] + py[im1+jp1] - py[im1+jm1] + pz[ip1+km1] - pz[ip1+kp1] + pz[im1+kp1] - pz[im1+km1])
+                        + (lam0*c
+                        +  w110*((px[im1+jm1    ]-c) + (px[ip1+jm1    ]-c) + (px[im1+jp1    ]-c) + (px[ip1+jp1    ]-c))
+                        +  w101*((px[im1    +km1]-c) + (px[ip1    +km1]-c) + (px[im1    +kp1]-c) + (px[ip1    +kp1]-c))
+                        +  w011*((px[    jm1+km1]-c) + (px[    jp1+km1]-c) + (px[    jm1+kp1]-c) + (px[    jp1+kp1]-c))
+                        +  w200*((px[im2        ]-c) + (px[ip2        ]-c))
+                        +  w020*((px[    jm2    ]-c) + (px[    jp2    ]-c))
+                        +  w002*((px[        km2]-c) + (px[        kp2]-c)))/v0);
 
-                pgy[i] = (wy000* py[0]
-                        + wy100*(py[im1        ] + py[ip1        ])
-                        + wy010*(py[    jm1    ] + py[    jp1    ])
-                        + wy001*(py[        km1] + py[        kp1])
-                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
-                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                        +  w200*(py[im2        ] + py[ip2        ])
-                        +  w020*(py[    jm2    ] + py[    jp2    ])
-                        +  w002*(py[        km2] + py[        kp2]))/v1);
+                c      = py[0];
+                pgy[i] = (wy100*((py[im1        ]-c) + (py[ip1        ]-c))
+                        + wy010*((py[    jm1    ]-c) + (py[    jp1    ]-c))
+                        + wy001*((py[        km1]-c) + (py[        kp1]-c))
+                        + w2   *( px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1])
+                        + (lam0*c
+                        +  w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
+                        +  w101*((py[im1    +km1]-c) + (py[ip1    +km1]-c) + (py[im1    +kp1]-c) + (py[ip1    +kp1]-c))
+                        +  w011*((py[    jm1+km1]-c) + (py[    jp1+km1]-c) + (py[    jm1+kp1]-c) + (py[    jp1+kp1]-c))
+                        +  w200*((py[im2        ]-c) + (py[ip2        ]-c))
+                        +  w020*((py[    jm2    ]-c) + (py[    jp2    ]-c))
+                        +  w002*((py[        km2]-c) + (py[        kp2]-c)))/v1);
 
-                pgz[i] = (wz000* pz[0]
-                        + wz100*(pz[im1        ] + pz[ip1        ])
-                        + wz010*(pz[    jm1    ] + pz[    jp1    ])
-                        + wz001*(pz[        km1] + pz[        kp1])
-                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
-                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                        +  w200*(pz[im2        ] + pz[ip2        ])
-                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
-                        +  w002*(pz[        km2] + pz[        kp2]))/v2);
+                c      = pz[0];
+                pgz[i] = (wz100*((pz[im1        ]-c) + (pz[ip1        ]-c))
+                        + wz010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))
+                        + wz001*((pz[        km1]-c) + (pz[        kp1]-c))
+                        + w2   *( px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1])
+                        + (lam0*c
+                        +  w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
+                        +  w101*((pz[im1    +km1]-c) + (pz[ip1    +km1]-c) + (pz[im1    +kp1]-c) + (pz[ip1    +kp1]-c))
+                        +  w011*((pz[    jm1+km1]-c) + (pz[    jp1+km1]-c) + (pz[    jm1+kp1]-c) + (pz[    jp1+kp1]-c))
+                        +  w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                        +  w020*((pz[    jm2    ]-c) + (pz[    jp2    ]-c))
+                        +  w002*((pz[        km2]-c) + (pz[        kp2]-c)))/v2);
             }
         }
     }
@@ -1363,7 +1397,7 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
                 for(i=it%3; i<dm[0]; i+=3)
                 {
                     mwSignedIndex im2,im1,ip1,ip2;
-                    double sux, suy, suz;
+                    double sux, suy, suz, c;
                     float *px = pux+i, *py = puy+i, *pz = puz+i;
 
                     im2 = bound(i-2,dm[0])-i;
@@ -1371,50 +1405,58 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
 
-                sux = pbx[i]
-                      - ( wx100*(px[im1        ] + px[ip1        ])
-                        + wx010*(px[    jm1    ] + px[    jp1    ])
-                        + wx001*(px[        km1] + px[        kp1])
-                        + w2   *(py[ip1+jm1] - py[ip1+jp1] - py[im1+jm1] + py[im1+jp1] + pz[ip1+km1] - pz[ip1+kp1] - pz[im1+km1] + pz[im1+kp1])
-                        + (w110*(px[im1+jm1    ] + px[ip1+jm1    ] + px[im1+jp1    ] + px[ip1+jp1    ])
-                        +  w101*(px[im1    +km1] + px[ip1    +km1] + px[im1    +kp1] + px[ip1    +kp1])
-                        +  w011*(px[    jm1+km1] + px[    jp1+km1] + px[    jm1+kp1] + px[    jp1+kp1])
-                        +  w200*(px[im2        ] + px[ip2        ])
-                        +  w020*(px[    jm2    ] + px[    jp2    ])
-                        +  w002*(px[        km2] + px[        kp2]))/v0);
+                    /* Note that a few things have been done here to reduce rounding errors.
+                       This may slow things down, but it does lead to more accuracy. */
+                    c   = px[0];
+                    sux = pbx[i]
+                          - ( wx100*((px[im1        ]-c) + (px[ip1        ]-c))
+                            + wx010*((px[    jm1    ]-c) + (px[    jp1    ]-c))
+                            + wx001*((px[        km1]-c) + (px[        kp1]-c))
+                            + w2   *( py[ip1+jm1] - py[ip1+jp1] + py[im1+jp1] - py[im1+jm1] + pz[ip1+km1] - pz[ip1+kp1] + pz[im1+kp1] - pz[im1+km1])
+                            + (lam0*c
+                            +  w110*((px[im1+jm1    ]-c) + (px[ip1+jm1    ]-c) + (px[im1+jp1    ]-c) + (px[ip1+jp1    ]-c))
+                            +  w101*((px[im1    +km1]-c) + (px[ip1    +km1]-c) + (px[im1    +kp1]-c) + (px[ip1    +kp1]-c))
+                            +  w011*((px[    jm1+km1]-c) + (px[    jp1+km1]-c) + (px[    jm1+kp1]-c) + (px[    jp1+kp1]-c))
+                            +  w200*((px[im2        ]-c) + (px[ip2        ]-c))
+                            +  w020*((px[    jm2    ]-c) + (px[    jp2    ]-c))
+                            +  w002*((px[        km2]-c) + (px[        kp2]-c)))/v0);
 
-                suy = pby[i]
-                      - ( wy100*(py[im1        ] + py[ip1        ])
-                        + wy010*(py[    jm1    ] + py[    jp1    ])
-                        + wy001*(py[        km1] + py[        kp1])
-                        + w2   *(px[jp1+im1] - px[jp1+ip1] - px[jm1+im1] + px[jm1+ip1] + pz[jp1+km1] - pz[jp1+kp1] - pz[jm1+km1] + pz[jm1+kp1])
-                        + (w110*(py[im1+jm1    ] + py[ip1+jm1    ] + py[im1+jp1    ] + py[ip1+jp1    ])
-                        +  w101*(py[im1    +km1] + py[ip1    +km1] + py[im1    +kp1] + py[ip1    +kp1])
-                        +  w011*(py[    jm1+km1] + py[    jp1+km1] + py[    jm1+kp1] + py[    jp1+kp1])
-                        +  w200*(py[im2        ] + py[ip2        ])
-                        +  w020*(py[    jm2    ] + py[    jp2    ])
-                        +  w002*(py[        km2] + py[        kp2]))/v1);
+                    c   = py[0];
+                    suy = pby[i]
+                          - ( wy100*((py[im1        ]-c) + (py[ip1        ]-c))
+                            + wy010*((py[    jm1    ]-c) + (py[    jp1    ]-c))
+                            + wy001*((py[        km1]-c) + (py[        kp1]-c))
+                            + w2   *( px[jp1+im1] - px[jp1+ip1] + px[jm1+ip1] - px[jm1+im1] + pz[jp1+km1] - pz[jp1+kp1] + pz[jm1+kp1] - pz[jm1+km1])
+                            + (lam0*c
+                            +  w110*((py[im1+jm1    ]-c) + (py[ip1+jm1    ]-c) + (py[im1+jp1    ]-c) + (py[ip1+jp1    ]-c))
+                            +  w101*((py[im1    +km1]-c) + (py[ip1    +km1]-c) + (py[im1    +kp1]-c) + (py[ip1    +kp1]-c))
+                            +  w011*((py[    jm1+km1]-c) + (py[    jp1+km1]-c) + (py[    jm1+kp1]-c) + (py[    jp1+kp1]-c))
+                            +  w200*((py[im2        ]-c) + (py[ip2        ]-c))
+                            +  w020*((py[    jm2    ]-c) + (py[    jp2    ]-c))
+                            +  w002*((py[        km2]-c) + (py[        kp2]-c)))/v1);
 
-                suz = pbz[i]
-                      - ( wz100*(pz[im1        ] + pz[ip1        ])
-                        + wz010*(pz[    jm1    ] + pz[    jp1    ])
-                        + wz001*(pz[        km1] + pz[        kp1])
-                        + w2   *(px[kp1+im1] - px[kp1+ip1] - px[km1+im1] + px[km1+ip1] + py[kp1+jm1] - py[kp1+jp1] - py[km1+jm1] + py[km1+jp1])
-                        + (w110*(pz[im1+jm1    ] + pz[ip1+jm1    ] + pz[im1+jp1    ] + pz[ip1+jp1    ])
-                        +  w101*(pz[im1    +km1] + pz[ip1    +km1] + pz[im1    +kp1] + pz[ip1    +kp1])
-                        +  w011*(pz[    jm1+km1] + pz[    jp1+km1] + pz[    jm1+kp1] + pz[    jp1+kp1])
-                        +  w200*(pz[im2        ] + pz[ip2        ])
-                        +  w020*(pz[    jm2    ] + pz[    jp2    ])
-                        +  w002*(pz[        km2] + pz[        kp2]))/v2);
+                    c   = pz[0];
+                    suz = pbz[i]
+                          - ( wz100*((pz[im1        ]-c) + (pz[ip1        ]-c))
+                            + wz010*((pz[    jm1    ]-c) + (pz[    jp1    ]-c))
+                            + wz001*((pz[        km1]-c) + (pz[        kp1]-c))
+                            + w2   *(px[kp1+im1] - px[kp1+ip1] + px[km1+ip1] - px[km1+im1] + py[kp1+jm1] - py[kp1+jp1] + py[km1+jp1] - py[km1+jm1])
+                            + (lam0*c
+                            +  w110*((pz[im1+jm1    ]-c) + (pz[ip1+jm1    ]-c) + (pz[im1+jp1    ]-c) + (pz[ip1+jp1    ]-c))
+                            +  w101*((pz[im1    +km1]-c) + (pz[ip1    +km1]-c) + (pz[im1    +kp1]-c) + (pz[ip1    +kp1]-c))
+                            +  w011*((pz[    jm1+km1]-c) + (pz[    jp1+km1]-c) + (pz[    jm1+kp1]-c) + (pz[    jp1+kp1]-c))
+                            +  w200*((pz[im2        ]-c) + (pz[ip2        ]-c))
+                            +  w020*((pz[    jm2    ]-c) + (pz[    jp2    ]-c))
+                            +  w002*((pz[        km2]-c) + (pz[        kp2]-c)))/v2);
 
                     if (a)
                     {
                         double axx, ayy, azz, axy, axz, ayz, idt;
-/*
+
                         sux -= (paxx[i]*px[0] + paxy[i]*py[0] + paxz[i]*pz[0]);
                         suy -= (paxy[i]*px[0] + payy[i]*py[0] + payz[i]*pz[0]);
                         suz -= (paxz[i]*px[0] + payz[i]*py[0] + pazz[i]*pz[0]);
-*/
+
                         axx  = paxx[i] + wx000;
                         ayy  = payy[i] + wy000;
                         azz  = pazz[i] + wz000;
@@ -1422,15 +1464,15 @@ void relax_all(mwSize dm[], float a[], float b[], double s[], int nit, float u[]
                         axz  = paxz[i];
                         ayz  = payz[i];
                         idt  = 1.0/(axx*ayy*azz -axx*ayz*ayz-ayy*axz*axz-azz*axy*axy +2*axy*axz*ayz);
-                        *px = idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
-                        *py = idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
-                        *pz = idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
+                        *px += idt*(sux*(ayy*azz-ayz*ayz)+suy*(axz*ayz-axy*azz)+suz*(axy*ayz-axz*ayy));
+                        *py += idt*(sux*(axz*ayz-axy*azz)+suy*(axx*azz-axz*axz)+suz*(axy*axz-axx*ayz));
+                        *pz += idt*(sux*(axy*ayz-axz*ayy)+suy*(axy*axz-axx*ayz)+suz*(axx*ayy-axy*axy));
                     }
                     else
                     {
-                        *px = sux/wx000;
-                        *py = suy/wy000;
-                        *pz = suz/wz000;
+                        *px += sux/wx000;
+                        *py += suy/wy000;
+                        *pz += suz/wz000;
                     }
                 }
             }

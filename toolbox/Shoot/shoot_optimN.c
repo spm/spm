@@ -176,7 +176,7 @@ static double sumsq(mwSize dm[], float a[], float b[], double s[], double scal[]
                     mwSignedIndex n;
                     float *pm =  p[m];
                     double pm0 = pm[0];
-                    tmp =  (lam0*  pm[0] +
+                    tmp =  (lam0*  pm0 +
                           + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
                           + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
                           + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
@@ -277,7 +277,7 @@ void LtLf(mwSize dm[], float f[], double s[], double scal[], float g[])
                     im1 = bound(i-1,dm[0])-i;
                     ip1 = bound(i+1,dm[0])-i;
                     ip2 = bound(i+2,dm[0])-i;
-                    pg1[i] =(lam0*  p[0] +
+                    pg1[i] =(lam0*  p0 +
                            + w100*((p[im1        ]-p0) + (p[ip1        ]-p0))
                            + w010*((p[    jm1    ]-p0) + (p[    jp1    ]-p0))
                            + w001*((p[        km1]-p0) + (p[        kp1]-p0))
@@ -417,11 +417,10 @@ static void relax(mwSize dm[], float a[], float b[], double s[], double scal[], 
                     for(m=0; m<dm[3]; m++)
                     {
                         mwSignedIndex n;
-                        float *pm = &pu[m][i];
-
+                        float *pm  = &pu[m][i];
                         double pm0 = pm[0];
                         su[m] = pb[m][i]-
-                               (lam0* pm[0] +
+                               (lam0* pm0 
                               + w100*((pm[im1        ]-pm0) + (pm[ip1        ]-pm0))
                               + w010*((pm[    jm1    ]-pm0) + (pm[    jp1    ]-pm0))
                               + w001*((pm[        km1]-pm0) + (pm[        kp1]-pm0))
