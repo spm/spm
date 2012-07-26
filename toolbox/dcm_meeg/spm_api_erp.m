@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_api_erp.m 4807 2012-07-26 16:15:49Z guillaume $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -53,14 +53,15 @@ end
 function load_Callback(hObject, eventdata, handles, varargin)
 try
     DCM         = varargin{1};
-    [~,f]       = fileparts(DCM.name);
+    f           = spm_file(DCM.name,'filename');
 catch
-    [f,p]       = uigetfile('*.mat','please select DCM file'); 
-    cd(p)
-    name        = fullfile(p,f);
-    DCM         = load(name,'-mat');
+    [name, sts] = spm_select(1,'mat','please select DCM file');
+    if ~sts, return; end
+    cd(spm_file(name,'fpath'));
+    f           = spm_file(name,'filename');
+    DCM         = load(f,'-mat');
     DCM         = DCM.DCM;
-    DCM.name    = name;
+    DCM.name    = f;
     handles.DCM = DCM;
     guidata(hObject,handles);
 end
@@ -242,16 +243,16 @@ function handles = save_Callback(hObject, eventdata, handles)
  
 handles = reset_Callback(hObject, eventdata, handles);
 try
-   [~,file]  = fileparts(handles.DCM.name);
+   file      = spm_file(handles.DCM.name,'filename');
 catch
     try
-        [~,file] = fileparts(handles.DCM.xY.Dfile);
-        file     = ['DCM_' file];
+        file = spm_file(handles.DCM.xY.Dfile,'filename');
+        file = ['DCM_' file];
     catch
-        file     = ['DCM' date];
+        file = ['DCM' date];
     end
 end
-[file,fpath]     = uiputfile(['DCM*.mat'],'DCM file to save',file);
+[file,fpath] = uiputfile('DCM*.mat','DCM file to save',file);
  
 if fpath
     handles.DCM.name = fullfile(fpath,file);
@@ -270,7 +271,7 @@ guidata(hObject,handles);
  
 % store selections in DCM
 % -------------------------------------------------------------------------
-function handles = reset_Callback(hObject, ~, handles)
+function handles = reset_Callback(hObject, eventdata, handles)
  
 % analysis type
 %--------------------------------------------------------------------------
@@ -668,7 +669,7 @@ guidata(hObject,handles);
  
 % --- Executes on button press in pos.
 %--------------------------------------------------------------------------
-function pos_Callback(~, ~, handles)
+function pos_Callback(hObject, eventdata, handles)
 [f,p]     = uigetfile('*.mat','source (n x 3) location file');
 Slocation = load(fullfile(p,f));
 name      = fieldnames(Slocation);
@@ -707,7 +708,7 @@ ERP_Callback(hObject, eventdata, handles);
  
 % --- Executes on button press in plot_dipoles.
 %--------------------------------------------------------------------------
-function plot_dipoles_Callback(~, ~, handles)
+function plot_dipoles_Callback(hObject, eventdata, handles)
  
 % read location coordinates
 %--------------------------------------------------------------------------
@@ -963,7 +964,7 @@ guidata(hObject,handles)
  
 % --- Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
-function connectivity_back_Callback(~, ~, handles)
+function connectivity_back_Callback(hObject, eventdata, handles)
  
 set(handles.con_reset,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
@@ -1104,7 +1105,7 @@ guidata(hObject, handles);
  
 % --- Executes on button press in results.
 % -------------------------------------------------------------------------
-function varargout = results_Callback(~, ~, handles, varargin)
+function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
  
@@ -1143,7 +1144,7 @@ end
  
 % --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
-function initialise_Callback(hObject, ~, handles)
+function initialise_Callback(hObject, eventdata, handles)
  
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
 DCM             = load(fullfile(p,f), '-mat');
@@ -1153,14 +1154,14 @@ guidata(hObject, handles);
 
 % --- Executes on button press in Imaging.
 % -------------------------------------------------------------------------
-function Imaging_Callback(~, ~, handles)
+function Imaging_Callback(hObject, eventdata, handles)
  
 spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
  
  
 % default design matrix
 %==========================================================================
-function handles = Xdefault(~,handles,m)
+function handles = Xdefault(hObject,handles,m)
 % m - number of trials
  
 X       = eye(m);
@@ -1178,7 +1179,7 @@ return
  
 % --- Executes on button press in BMC.
 %--------------------------------------------------------------------------
-function BMS_Callback(~, ~, ~)
+function BMS_Callback(hObject, eventdata, handles)
 %spm_api_bmc
 spm_jobman('Interactive','','spm.stats.bms.bms_dcm')
  
@@ -1194,80 +1195,80 @@ switch handles.DCM.options.analysis
  
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP'}
+    case {'ERP'}
         Action = {
-            'ERPs (mode)',
-            'ERPs (sources)',
-            'coupling (A)',
-            'coupling (B)',
-            'coupling (C)',
-            'trial-specific effects',
-            'Input',
-            'Response',
-            'Response (image)',
-            'Scalp maps',
+            'ERPs (mode)',...
+            'ERPs (sources)',...
+            'coupling (A)',...
+            'coupling (B)',...
+            'coupling (C)',...
+            'trial-specific effects',...
+            'Input',...
+            'Response',...
+            'Response (image)',...
+            'Scalp maps',...
             'Dipoles'};
         try
-            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes, 'Value',handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes, 'Value', 8);
+            set(handles.Nmodes, 'Value',8);
         end
         
-        set(handles.text20,     'String', 'modes');
-        set(handles.model,      'Enable','on');
-        set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
-        set(handles.Wavelet,    'Enable','off','String','-');
-        set(handles.onset,      'Enable','on');
-        set(handles.dur,        'Enable','on');
+        set(handles.text20,  'String','modes');
+        set(handles.model,   'Enable','on');
+        set(handles.Spatial, 'String',{'IMG','ECD','LFP'});
+        set(handles.Wavelet, 'Enable','off','String','-');
+        set(handles.onset,   'Enable','on');
+        set(handles.dur,     'Enable','on');
         
     % Cross-spectral density model (complex)
     %----------------------------------------------------------------------
-    case{'CSD'}
+    case {'CSD'}
         Action = {
-              'spectral data',...
-              'Coupling (A)',...
-              'Coupling (B)',...
-              'Coupling (C)',...
-              'trial-specific effects',...
-              'Input',...
-              'Transfer functions',...
-              'Cross-spectra (sources)',...
-              'Cross-spectra (channels)',...
-              'Coherence (sources)',...
-              'Coherence (channels)',...
-              'Covariance (sources)',...
-              'Covariance (channels)',...
-              'Dipoles'};
+            'spectral data',...
+            'Coupling (A)',...
+            'Coupling (B)',...
+            'Coupling (C)',...
+            'trial-specific effects',...
+            'Input',...
+            'Transfer functions',...
+            'Cross-spectra (sources)',...
+            'Cross-spectra (channels)',...
+            'Coherence (sources)',...
+            'Coherence (channels)',...
+            'Covariance (sources)',...
+            'Covariance (channels)',...
+            'Dipoles'};
         try
-            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes, 'Value',handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes, 'Value', 4);
+            set(handles.Nmodes, 'Value',4);
         end
         
-        set(handles.text20, 'String', 'modes');
-        set(handles.model,  'Enable','on');              
-        set(handles.Spatial,'String',{'IMG','ECD','LFP'});
-        set(handles.Wavelet,'Enable','on','String','Spectral density');
-        set(handles.onset,  'Enable','off');
-        set(handles.dur,    'Enable','off');
+        set(handles.text20,  'String','modes');
+        set(handles.model,   'Enable','on');              
+        set(handles.Spatial, 'String',{'IMG','ECD','LFP'});
+        set(handles.Wavelet, 'Enable','on','String','Spectral density');
+        set(handles.onset,   'Enable','off');
+        set(handles.dur,     'Enable','off');
 
  
     % Cross-spectral density model (steady-state responses)
     %----------------------------------------------------------------------
-    case{'TFR'}
+    case {'TFR'}
         Action = {
-            'spectral data',
-            'coupling (A)',
-            'coupling (B)',
-            'coupling (C)',
-            'trial-specific effects',
-            'Input',
-            'Cross-spectral density',
+            'spectral data',...
+            'coupling (A)',...
+            'coupling (B)',...
+            'coupling (C)',...
+            'trial-specific effects',...
+            'Input',...
+            'Cross-spectral density',...
             'Dipoles'};
         try
-            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes, 'Value',handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes, 'Value', 4);
+            set(handles.Nmodes, 'Value',4);
         end
         
         set(handles.text20,     'String', 'modes');
@@ -1279,50 +1280,50 @@ switch handles.DCM.options.analysis
         
     % induced responses
     %----------------------------------------------------------------------
-    case{'IND'}
+    case {'IND'}
         Action = {
-            'Frequency modes'
-            'Time-modes'
-            'Time-frequency'
-            'Coupling (A - Hz)'
-            'Coupling (B - Hz)'
-            'Coupling (A - modes)'
-            'Coupling (B - modes)'
-            'Input (C - Hz)'
-            'Input (u - ms)'
-            'Input (C x u)'
-            'Dipoles'
+            'Frequency modes',...
+            'Time-modes',...
+            'Time-frequency',...
+            'Coupling (A - Hz)',...
+            'Coupling (B - Hz)',...
+            'Coupling (A - modes)',...
+            'Coupling (B - modes)',...
+            'Input (C - Hz)',...
+            'Input (u - ms)',...
+            'Input (C x u)',...
+            'Dipoles',...
             'Save results as img'};
         try
-            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes,  'Value',handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes, 'Value', 4);
+            set(handles.Nmodes,  'Value',4);
         end
         
-        set(handles.text20,     'String', 'modes');
-        set(handles.model,      'Enable','off');
-        if get(handles.Spatial, 'Value') > 2
-            set(handles.Spatial,'Value', 2);
+        set(handles.text20,      'String', 'modes');
+        set(handles.model,       'Enable','off');
+        if get(handles.Spatial,  'Value') > 2
+            set(handles.Spatial, 'Value', 2);
         end
-        set(handles.Spatial,    'String',{'ECD','LFP'});
-        set(handles.Wavelet,    'Enable','on','String','Wavelet transform');
-        set(handles.Imaging,    'Enable','off' )
-        set(handles.onset,      'Enable','on');
-        set(handles.dur,        'Enable','on');
+        set(handles.Spatial,     'String',{'ECD','LFP'});
+        set(handles.Wavelet,     'Enable','on','String','Wavelet transform');
+        set(handles.Imaging,     'Enable','off' )
+        set(handles.onset,       'Enable','on');
+        set(handles.dur,         'Enable','on');
         
-    case{'PHA'}
-          Action = {
-            'Sin(Data) - Region 1'
-            'Sin(Data) - Region 2'
-            'Sin(Data) - Region 3'
-            'Sin(Data) - Region 4'
-            'Coupling (As)'
+    case {'PHA'}
+        Action = {
+            'Sin(Data) - Region 1',...
+            'Sin(Data) - Region 2',...
+            'Sin(Data) - Region 3',...
+            'Sin(Data) - Region 4',...
+            'Coupling (As)',...
             'Coupling (Bs)'};
        
         try
-            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+            set(handles.Nmodes,  'Value',handles.DCM.options.Nmodes);
         catch
-            set(handles.Nmodes, 'Value', 1);
+            set(handles.Nmodes,  'Value',1);
         end
         
         set(handles.text20,      'String', 'sub-trials');
@@ -1330,14 +1331,14 @@ switch handles.DCM.options.analysis
         if get(handles.Spatial,  'Value') > 2
             set(handles.Spatial, 'Value', 2);
         end
-        set(handles.Spatial, 'String',{'ECD','LFP'});
-        set(handles.Wavelet, 'Enable','on','String','Hilbert transform');
-        set(handles.Imaging, 'Enable','off' )
-        set(handles.onset,   'Enable','off');
-        set(handles.dur,     'Enable','off');
+        set(handles.Spatial,     'String',{'ECD','LFP'});
+        set(handles.Wavelet,     'Enable','on','String','Hilbert transform');
+        set(handles.Imaging,     'Enable','off' )
+        set(handles.onset,       'Enable','off');
+        set(handles.dur,         'Enable','off');
         
     otherwise
-        warndlg('unknown analysis type')
+        spm('alert!','unknown analysis type');
         return
 end
  
@@ -1354,38 +1355,38 @@ function Wavelet_Callback(hObject, eventdata, handles)
 % get transform
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
- 
+
 handles.DCM = spm_dcm_erp_dipfit(handles.DCM, 1);
 
 switch handles.DCM.options.analysis
     
-    case{'CSD'}
+    case {'CSD'}
         
         % cross-spectral density (if DCM.M.U (eigen-space) exists
         %------------------------------------------------------------------
         try
             handles.DCM = spm_dcm_csd_data(handles.DCM);
         end
- 
+        
         % and display
         %------------------------------------------------------------------
         spm_dcm_csd_results(handles.DCM,'spectral data');
         
- 
- 
-    case{'IND','TFR'}
+        
+        
+    case {'IND','TFR'}
         
         % wavelet tranform
         %------------------------------------------------------------------
         handles.DCM = spm_dcm_ind_data(handles.DCM);
- 
+        
         % and display
         %------------------------------------------------------------------
         spm_dcm_ind_results(handles.DCM,'Wavelet');
         
-     case{'PHA'}
+    case {'PHA'}
         handles.DCM = spm_dcm_phase_data(handles.DCM);
- 
+        
 end
 guidata(hObject,handles);
 

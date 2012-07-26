@@ -21,7 +21,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_dcm_tfm.m 4807 2012-07-26 16:15:49Z guillaume $
  
  
 % check options
@@ -141,7 +141,7 @@ DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
 % scale     = mean(abs(spm_vec(y)));
 % DCM.M.U   = DCM.M.U/sqrt(scale);
 
-[csd,w,~,x,~,~,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
+[csd,x,x,x,x,x,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
 xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,DCM.xY.pst,DCM.xY.Hz)
@@ -189,9 +189,9 @@ qp.L      = ones(1,Ns);             % set virtual electrode gain to unity
 qp.b      = qp.b - 32;              % and suppress non-specific and
 qp.c      = qp.c - 32;              % specific channel noise
 
-[Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU);
-[ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz);
-[coh fsd]   = spm_csd2coh(Hs,DCM.M.Hz);
+[Hs,Hz,dtf] = spm_csd_mtf(qp,M,DCM.xU);
+[ccf,pst]   = spm_csd2ccf(Hs,DCM.M.Hz);
+[coh,fsd]   = spm_csd2coh(Hs,DCM.M.Hz);
 DCM.dtf  = dtf;
 DCM.ccf  = ccf;
 DCM.coh  = coh;

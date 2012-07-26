@@ -22,7 +22,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_csd_mtf.m 4807 2012-07-26 16:15:49Z guillaume $
 
 
 % between-trial (experimental) inputs
@@ -68,7 +68,7 @@ ns   = length(M.u);
 
 
 % cycle over trials (experimental conditions)
-%==========================================================================the
+%==========================================================================
 for  c = 1:size(X,1)
     
     % baseline parameters
@@ -105,7 +105,7 @@ for  c = 1:size(X,1)
     % delay operator - if parameterised
     %----------------------------------------------------------------------
     if nargout(M.f) == 3
-        [~,~,D] = feval(M.f,M.x,M.u,Q,M);
+        [unused,unused,D] = feval(M.f,M.x,M.u,Q,M);
     else
         D = 1;
     end
@@ -123,7 +123,7 @@ for  c = 1:size(X,1)
     
     % check for stability (a controllable system)
     %----------------------------------------------------------------------
-    [E V]  = eig(full(M0));
+    [E,V]  = eig(full(M0));
     V      = diag(V);
     if max(real(V)) > 0
         V  = real(V).*(real(V) < 0) + sqrt(-1)*imag(V);
@@ -132,11 +132,11 @@ for  c = 1:size(X,1)
     
     % kernels
     %----------------------------------------------------------------------
-    [~,K] = spm_kernels(M0,M1,L,N,dt);
+    [K0,K] = spm_kernels(M0,M1,L,N,dt);
     
     % Transfer functions (FFT of kernel)
     %----------------------------------------------------------------------
-    S     = fft(K);
+    S      = fft(K);
     
     % [cross]-spectral density from neuronal innovations
     %----------------------------------------------------------------------

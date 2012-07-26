@@ -1,6 +1,6 @@
 function DCM = spm_dcm_post_hoc(P,fun)
 % Post hoc optimisation of DCMs (under the Laplace approximation)
-% FORMAT spm_dcm_post_hoc(P,[fun])
+% FORMAT DCM = spm_dcm_post_hoc(P,[fun])
 %
 % P         - character/cell array of DCM filenames
 %           - or cell array of DCM structures
@@ -57,12 +57,13 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % DCM.files  -  List of DCM files used for Bayesian averaging
 %
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_dcm_post_hoc.m 4807 2012-07-26 16:15:49Z guillaume $
 
-% get filenames
+
+% Get filenames
 %--------------------------------------------------------------------------
 if nargin < 1
     [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
@@ -74,7 +75,7 @@ if isstruct(P), P = {P};        end
 N   = numel(P);
 TOL = exp(-16);
 
-% check family definition functions
+% Check family definition functions
 %--------------------------------------------------------------------------
 if nargin < 2; fun = {}; Pf = 0; end
 
@@ -82,11 +83,10 @@ if nargin < 2; fun = {}; Pf = 0; end
 %==========================================================================
 for j = 1:N
     
-    % get prior covariances
+    % Get prior covariances
     %----------------------------------------------------------------------
     try, load(P{j}); catch, DCM = P{j}; end
-    pC   = diag(DCM.M.pC);
-    
+    pC = diag(DCM.M.pC);
     
     % and compare it with the first model
     %----------------------------------------------------------------------
@@ -94,7 +94,7 @@ for j = 1:N
         C = pC;
     else
         if any(xor(pC,C))
-            fprintf('Please check model %i for compatibility ',j)
+            fprintf('Please check model %i for compatibility.\n',j)
             return
         end
     end
@@ -110,17 +110,17 @@ C  = ~~C;
 GS = 1;
 while GS
     
-    % find free coupling parameters
+    % Find free coupling parameters
     %----------------------------------------------------------------------
-    k     = spm_fieldindices(DCM.Ep,'A','B','C','D');
-    k     = k(C(k));
+    k = spm_fieldindices(DCM.Ep,'A','B','C','D');
+    k = k(C(k));
     
     
     % If there are too many find those with the least evidence
     %----------------------------------------------------------------------
     if length(k) > 16
         
-        %-Loop through DCMs and free parameters and get log-evidences
+        % Loop through DCMs and free parameters and get log-evidences
         %------------------------------------------------------------------
         Z     = [];
         for j = 1:N
@@ -129,22 +129,22 @@ while GS
             fprintf('\ninitial search (%i): 00%%',j)
             
             % Get priors and posteriors
-            % -------------------------------------------------------------
+            %--------------------------------------------------------------
             qE    = DCM.Ep;
             qC    = DCM.Cp;
             pE    = DCM.M.pE;
             pC    = DCM.M.pC;
             
             % Remove (a priori) null space
-            % -------------------------------------------------------------
+            %--------------------------------------------------------------
             U     = spm_svd(pC);
             qE    = U'*spm_vec(qE);
             pE    = U'*spm_vec(pE);
             qC    = U'*qC*U;
             pC    = U'*pC*U;
             
-            % model search over new prior without the i-th parameter
-            % -------------------------------------------------------------
+            % Model search over new prior without the i-th parameter
+            %--------------------------------------------------------------
             for i = 1:length(k)
                 r      = C; r(k(i)) = 0;
                 R      = U(r,:)'*U(r,:);
@@ -155,19 +155,19 @@ while GS
             end
         end
         
-        % find parameters with the least evidence
+        % Find parameters with the least evidence
         %------------------------------------------------------------------
-        Z      = sum(Z,2);
-        [~,i]  = sort(-Z);
-        k      = k(i(1:8));
+        Z          = sum(Z,2);
+        [unused,i] = sort(-Z);
+        k          = k(i(1:8));
         
-        % flag a greedy search
+        % Flag a greedy search
         %------------------------------------------------------------------
         GS = 1;
         
     elseif isempty(k)
         
-        sprintf('\n There are no free parameters in this model\n')
+        fprintf('\nThere are no free parameters in this model.\n')
         return
         
     else
@@ -187,22 +187,22 @@ while GS
         fprintf('\nsearching (%i): 00%%',j)
         
         % Get priors and posteriors
-        % -----------------------------------------------------------------
+        %------------------------------------------------------------------
         qE    = DCM.Ep;
         qC    = DCM.Cp;
         pE    = DCM.M.pE;
         pC    = DCM.M.pC;
         
         % Remove (a priori) null space
-        % -----------------------------------------------------------------
+        %------------------------------------------------------------------
         U     = spm_svd(pC);
         qE    = U'*spm_vec(qE);
         pE    = U'*spm_vec(pE);
         qC    = U'*qC*U;
         pC    = U'*pC*U;
         
-        % model search over new prior (covariance)
-        % -----------------------------------------------------------------
+        % Model search over new prior (covariance)
+        %------------------------------------------------------------------
         for i = 1:length(K)
             r      = C; r(k(K(i,:))) = 0;
             R      = U(r,:)'*U(r,:);
@@ -221,9 +221,9 @@ while GS
     p     = exp(S - max(S));
     p     = p/sum(p);
     
-    % Get selected model and prune redundant parameters
+    %-Get selected model and prune redundant parameters
     %======================================================================
-    [~, i]       = max(p);
+    [unused, i]  = max(p);
     C(k(K(i,:))) = 0;
     
     % Continue greedy search if any parameters have been eliminated
@@ -256,7 +256,7 @@ while GS
 end
 
 
-% Inference over families (one family per coupling parameter)
+%-Inference over families (one family per coupling parameter)
 %==========================================================================
 pE    = DCM.M.pE;
 pC    = DCM.M.pC;
@@ -269,7 +269,8 @@ Pn    = full(C);
 Pn(k) = Pk;
 Pk    = spm_unvec(Pn,pE);
 
-% Inference over families (specified by fun)
+
+%-Inference over families (specified by fun)
 %==========================================================================
 if ~isempty(fun)
     for i = 1:length(K)
@@ -285,54 +286,53 @@ if ~isempty(fun)
 end
 
 
-
-% conditional estimates of selected model for each data set
+%-Conditional estimates of selected model for each data set
 %==========================================================================
 
 % Selected model (reduced prior covariance);
 %--------------------------------------------------------------------------
-rC    = diag(C)*pC*diag(C);
+rC      = diag(C)*pC*diag(C);
 
-% record pruned parameters
+% Record pruned parameters
 %--------------------------------------------------------------------------
-R     = spm_unvec(full(C),pE);
+R       = spm_unvec(full(C),pE);
 try
-    R.a   = DCM.a & R.A;
-    R.b   = DCM.b & R.B;
-    R.c   = DCM.c & R.C;
-    R.d   = DCM.d & R.D;
+    R.a = DCM.a & R.A;
+    R.b = DCM.b & R.B;
+    R.c = DCM.c & R.C;
+    R.d = DCM.d & R.D;
 end
 
-EQ    = 0;
-PQ    = 0;
-Eq    = 0;
-Pq    = 0;
+EQ      = 0;
+PQ      = 0;
+Eq      = 0;
+Pq      = 0;
 for j = 1:N
     
     % Get priors and posteriors
-    % ---------------------------------------------------------------------
+    %----------------------------------------------------------------------
     try, load(P{j}); catch, DCM = P{j}; end
     
-    qE   = DCM.Ep;
-    qC   = DCM.Cp;
-    pE   = DCM.M.pE;
-    pC   = DCM.M.pC;
+    qE  = DCM.Ep;
+    qC  = DCM.Cp;
+    pE  = DCM.M.pE;
+    pC  = DCM.M.pC;
     
     % Get posterior of selected model - rC
-    % ---------------------------------------------------------------------
-    [F Ep Cp] = spm_log_evidence(qE,qC,pE,pC,pE,rC);
+    %----------------------------------------------------------------------
+    [F, Ep, Cp] = spm_log_evidence(qE,qC,pE,pC,pE,rC);
     
     % Bayesian parameter average (for full and reduced selected model)
     %----------------------------------------------------------------------
-    PP   = spm_inv(qC,TOL);
-    Pp   = spm_inv(Cp,TOL);
-    EQ   = EQ + PP*spm_vec(qE);
-    Eq   = Eq + Pp*spm_vec(Ep);
-    PQ   = PQ + PP;
-    Pq   = Pq + Pp;
+    PP  = spm_inv(qC,TOL);
+    Pp  = spm_inv(Cp,TOL);
+    EQ  = EQ + PP*spm_vec(qE);
+    Eq  = Eq + Pp*spm_vec(Ep);
+    PQ  = PQ + PP;
+    Pq  = Pq + Pp;
     
     
-    % Put reduced conditional estimates in DCM
+    %-Put reduced conditional estimates in DCM
     %======================================================================
     
     % Bayesian inference and variance
@@ -370,7 +370,7 @@ for j = 1:N
         DCM.d   = R.d;
     end
     
-    % report and save
+    % Report and save
     %----------------------------------------------------------------------
     subplot(2,2,4); plot(diag(Cp));drawnow
     
@@ -395,11 +395,10 @@ for j = 1:N
     end
     save(P{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
     
-    
 end
 
 
-% Bayesian parameter average
+%-Bayesian parameter average
 %==========================================================================
 CQ  = spm_inv(PQ,TOL);
 Cq  = spm_inv(Pq,TOL);

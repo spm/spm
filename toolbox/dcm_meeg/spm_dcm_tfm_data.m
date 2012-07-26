@@ -1,7 +1,7 @@
 function DCM = spm_dcm_tfm_data(DCM)
-% gets cross-spectral density data-features using a wavelet trsnaform
+% Get cross-spectral density data-features using a wavelet trsnaform
 % FORMAT DCM = spm_dcm_tfm_data(DCM)
-% DCM    -  DCM structure
+% DCM        -  DCM structure
 % requires
 %
 %    DCM.xY.Dfile        - name of data file
@@ -28,18 +28,19 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_dcm_tfm_data.m 4807 2012-07-26 16:15:49Z guillaume $
 
-% Set defaults and Get D filename
+
+% Set defaults and get D filename
 %-------------------------------------------------------------------------
 try
     Dfile = DCM.xY.Dfile;
 catch
-    errordlg('Please specify data and trials');
-    error('')
+    spm('alert*','Please specify data and trials');
+    return
 end
 
-% ensure spatial modes have been computed (see spm_dcm_csd)
+% Ensure spatial modes have been computed (see spm_dcm_csd)
 %-------------------------------------------------------------------------
 try
     DCM.M.U;
@@ -47,23 +48,23 @@ catch
     DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,DCM.options.Nmodes);
 end
 
-% load D
+% Load D
 %--------------------------------------------------------------------------
 try
     D = spm_eeg_load(Dfile);
 catch
     try
-        [~,f]        = fileparts(Dfile);
-        D            = spm_eeg_load(f);
-        DCM.xY.Dfile = fullfile(pwd,f);
+        f                = spm_file(Dfile,'path',pwd);
+        D                = spm_eeg_load(f);
+        DCM.xY.Dfile     = f;
     catch
         try
-            [f,p]        = uigetfile('*.mat','please select data file');
-            name         = fullfile(p,f);
-            D            = spm_eeg_load(name);
-            DCM.xY.Dfile = fullfile(name);
+            [f, sts]     = spm_select(1,'mat','select data file');
+            if ~sts, return; end
+            D            = spm_eeg_load(f);
+            DCM.xY.Dfile = f;
         catch
-            warndlg([Dfile ' could not be found'])
+            spm('alert!',[Dfile ' could not be found']);
             return
         end
     end
@@ -128,19 +129,19 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    DCM.xY.Time = 1000*D.time;               % Samples (ms)
-    T1          = DCM.options.Tdcm(1);
-    T2          = DCM.options.Tdcm(2);
-    [~, T1]     = min(abs(DCM.xY.Time - T1));
-    [~, T2]     = min(abs(DCM.xY.Time - T2));
+    DCM.xY.Time  = 1000*D.time;               % Samples (ms)
+    T1           = DCM.options.Tdcm(1);
+    T2           = DCM.options.Tdcm(2);
+    [unused, T1] = min(abs(DCM.xY.Time - T1));
+    [unused, T2] = min(abs(DCM.xY.Time - T2));
     
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
-    It          = (T1:DT:T2)';               % indices - bins
-    DCM.xY.pst  = DCM.xY.Time(It);           % PST
-    DCM.xY.It   = It;                        % Indices of time bins
-    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
-    Nb          = length(It);                % number of bins
+    It           = (T1:DT:T2)';               % indices - bins
+    DCM.xY.pst   = DCM.xY.Time(It);           % PST
+    DCM.xY.It    = It;                        % Indices of time bins
+    DCM.xY.dt    = DT/D.fsample;              % sampling in seconds
+    Nb           = length(It);                % number of bins
     
 catch
     errordlg('Please specify time window');
@@ -227,7 +228,7 @@ for e = 1:Ne;
     end
     
     % normalise induced responses
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Vm    = mean(mean(squeeze(var(Y,[],3))));
     Vs    = mean(diag(squeeze(mean(squeeze(mean(Q))))));
     Q     = Vm*Q/Vs;
@@ -254,7 +255,4 @@ return
 % plot responses
 %--------------------------------------------------------------------------
 spm_dcm_tfm_response(DCM.xY,DCM.xY.pst,DCM.xY.Hz);
-
-
-
 

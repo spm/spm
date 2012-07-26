@@ -4,10 +4,10 @@ function spm_est_V(SPM)
  
 % SPM    - structure containing generic analysis details
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_est_V.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_est_V.m 4807 2012-07-26 16:15:49Z guillaume $
  
 % get data and model
 %==========================================================================
@@ -25,7 +25,7 @@ N     = 4000;                                  % number of voxels
 Vspm  = SPM.xCon(1).Vspm;                      % get first SPM
 XYZ   = SPM.xVol.XYZ;
 F     = spm_sample_vol(Vspm,XYZ(1,:),XYZ(2,:),XYZ(3,:),0);
-[~,i] = sort(F,2,'descend');                  
+[F,i] = sort(F,2,'descend');                  
 XYZ   = XYZ(:,i(1:16000));
 rpv   = SPM.xVol.R(end)/SPM.xVol.S;            % resels per voxel
  
@@ -107,7 +107,7 @@ for k = 1:8                         % number of ReML
     
     % Residual forming matrix
     %----------------------------------------------------------------------
-    [m n] = size(X);
+    [m,n] = size(X);
     R     = speye(m,m) - X*spm_pinv(X);   
     for q = 1:length(Q)
         
@@ -156,14 +156,14 @@ for k = 1:8                         % number of ReML
     
     
     % null distributions
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,2,3)
     semilogy(t,Tpdf{end},'k',t,TPDF,'k-.',t,Tpdf{1},'r')
     title('t-distributions','FontSize',16)
     xlabel('t-value')
     ylabel('log-frequnecy')
     axis square
-    legend({'whitened – empirical','true','unwhitened - empirical'})
+    legend({'whitened - empirical','true','unwhitened - empirical'})
     drawnow
     
 end
