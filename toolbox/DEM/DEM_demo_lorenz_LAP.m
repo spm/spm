@@ -1,3 +1,4 @@
+function DEM_demo_lorenz_LAP
 % Dual estimation of the Lorenz system: Cross-validation of Laplace schemes
 %__________________________________________________________________________
 % Inversion of the Lorenz attractor with DEM, LAP and SCKS schemes: This
@@ -13,7 +14,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_lorenz_LAP.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_lorenz_LAP.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % get model

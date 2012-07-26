@@ -1,3 +1,4 @@
+function DEM_demo_convolution
 % DEM demo for linear deconvolution:  This demo considers the deconvolution
 % of the responses of a single-input-multiple output input-state-output
 % model (DCM) to disclose the input or causes.  It focuses on estimating the
@@ -69,7 +70,6 @@ end
 %--------------------------------------------------------------------------
 clear D F Sx Sv
 for i = 1:6
-    clear functions
     DEM.M(1).E.n = 15;
     DEM.M(1).E.d = i - 1;
     

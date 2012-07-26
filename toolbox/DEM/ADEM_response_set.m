@@ -29,7 +29,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_response_set.m 4230 2011-03-07 20:58:38Z karl $
+% $Id: ADEM_response_set.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hidden causes and states
@@ -47,9 +47,9 @@
 %   g.p  - target locations (visual) - intrinsic coordinates (polar)
 %   g.c  - target contrast  (visual)
 %--------------------------------------------------------------------------
- 
-clear
- 
+M      = struct;
+G      = struct;
+
 % parameters mapping from (unstable) point attractors to visual space
 %--------------------------------------------------------------------------
 P      = [-1  1  1 -1;                       % target locations (extrinsic)

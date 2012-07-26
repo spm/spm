@@ -1,3 +1,4 @@
+function DEM_demo_OU
 % DEM demo for linear deconvolution:  This demo considers the deconvolution
 % of one of the simplest dynamical process; a random walk or Ornstein-
 % Uhlenbeck process.  It shows how DEM can infer on the causes as stochastic

@@ -1,3 +1,4 @@
+function DEM_demo_SOC
 % Demo for a bird songs: this routine illustrates self organised
 % criticality in terms of stimulus induced bifurcations and weak
 % synchronisation of recognition (neuronal) dynamics. It uses the birdsong
@@ -12,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_SOC.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_SOC.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hierarchical non-linear generative model of birdsong

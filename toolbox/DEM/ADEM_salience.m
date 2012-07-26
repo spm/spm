@@ -1,3 +1,4 @@
+function ADEM_salience
 % Saccadic eye movements under active inference:
 %__________________________________________________________________________
 % This demo illustrates exploration or visual search in terms of optimality
@@ -19,7 +20,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4672 2012-03-02 19:41:58Z karl $
+% $Id: ADEM_salience.m 4804 2012-07-26 13:14:18Z karl $
 
 
 % hidden causes and states

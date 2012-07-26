@@ -1,3 +1,4 @@
+function ADEM_lorenz_entropy
 % This demo shows how structure can be instilled from an environment. It
 % uses an agent that optimises its recognition density over successive
 % epochs of exposure to an environment. This environment causes the agent
@@ -10,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz_entropy.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_lorenz_entropy.m 4804 2012-07-26 13:14:18Z karl $
  
 % generative process (environment)
 %==========================================================================

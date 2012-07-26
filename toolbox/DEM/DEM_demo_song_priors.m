@@ -1,3 +1,4 @@
+function DEM_demo_song_priors
 % Demo for a bird songs: In this example, we simulate local field potential
 % using the prediction error from the song-bird example above. We look at
 % these responses under natural stimuli and after removing the second
@@ -8,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_song_priors.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)

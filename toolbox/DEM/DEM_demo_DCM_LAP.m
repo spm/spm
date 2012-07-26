@@ -1,3 +1,4 @@
+function DEM_demo_DCM_LAP
 % Demo applying the Laplace scheme to DCM with hidden states
 %__________________________________________________________________________
 % This routine demonstrates Generalized filtering for a DCM (Dynamic Causal
@@ -11,7 +12,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: DEM_demo_DCM_LAP.m 4804 2012-07-26 13:14:18Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================

@@ -1,3 +1,4 @@
+function DEM_demo_doublewell_LAP
 % The double-well revisited:
 %__________________________________________________________________________
 % This demonstration compares generalised filtering and a state-of-the-art 
@@ -11,7 +12,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_doublewell_LAP.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: DEM_demo_doublewell_LAP.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % Create model and data

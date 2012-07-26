@@ -1,3 +1,4 @@
+function DEM_demo_dendrite
 % Free-energy and the single neuron:
 %__________________________________________________________________________
 % This demo illustrates the use of Lotka-Volterra form SHCs (Stable
@@ -23,7 +24,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_dendrite.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_dendrite.m 4804 2012-07-26 13:14:18Z karl $
  
 % preliminaries
 %==========================================================================

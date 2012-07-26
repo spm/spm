@@ -1,3 +1,4 @@
+function DFP_demo_hdm
 % demo for Hemodynamic deconvolution usinf variational filtering
 %__________________________________________________________________________
 

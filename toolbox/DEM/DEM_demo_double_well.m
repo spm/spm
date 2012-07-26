@@ -1,3 +1,4 @@
+function DEM_demo_double_well
 % DEMO comparing DEM with particle filtering in the context of a bimodal
 % conditional density.  This demonstrates a shortcoming of DEM in that it
 % fails to represent the true density.

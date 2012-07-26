@@ -1,3 +1,4 @@
+function DEM_demo_face_inference
 % Recognising facial expressions: This demo uses the linear convolution
 % model with two hidden states and one cause to generate coefficients of
 % visual basis functions that produce a moving face. The basis functions are
@@ -17,7 +18,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_face_inference.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: DEM_demo_face_inference.m 4804 2012-07-26 13:14:18Z karl $
 
 
 % temporal smoothness - s.d. of kernel
@@ -29,7 +30,8 @@ G(1).E.s = 1;
 G(1).m  = 1;                                % 1 input or cause
 G(1).n  = 2;                                % 2 hidden states
 G(1).l  = 3;                                % 3 outputs (coefficients for face)
- 
+
+P       = struct;
 P.f     = [-1  4 ;
            -2 -1]/16;                        % The Jacobian
 P.g     = [0 -1];                           % The mixing parameters

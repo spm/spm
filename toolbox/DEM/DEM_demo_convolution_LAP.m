@@ -1,3 +1,4 @@
+function DEM_demo_convolution_LAP
 % Linear convolution revisited: A dual estimation problem
 %__________________________________________________________________________
 % This demonstration compares generalised filtering and a state-of-the-art 
@@ -10,7 +11,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_convolution_LAP.m 4626 2012-01-24 20:55:59Z karl $
+% $Id: DEM_demo_convolution_LAP.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % create model and data

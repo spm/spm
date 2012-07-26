@@ -1,3 +1,4 @@
+function DEM_demo_Gabor
 % State-space demo routine simulating position invariant representations
 % in the visual system.  The generative model predicts a one-dimensional
 % Gabor patch that moves in a (one-dimensional) visual field. The
@@ -9,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_Gabor.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_Gabor.m 4804 2012-07-26 13:14:18Z karl $
  
 % temporal correlations
 %--------------------------------------------------------------------------
@@ -38,7 +39,7 @@ U(1,:)  = 4*sin(pi*[1:T]/16);
 U(3,:)  = 2*sin(pi*[1:T]/8);
 DEM     = spm_DEM_generate(M,U);
 
-spm_figure('GetWin','Figure 1');
+spm_figure('GetWin','Figure 1'); clf
 spm_DEM_qU(DEM.pU)
  
 subplot(2,2,4)
@@ -67,7 +68,7 @@ end
  
 % plot
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2');
+spm_figure('GetWin','Figure 2'); clf
 
 subplot(2,2,1)
 imagesc(DEM.Y)

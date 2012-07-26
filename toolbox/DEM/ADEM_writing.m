@@ -1,3 +1,4 @@
+function ADEM_writing
 % This demo illustrates how action can fulfill prior expectations by 
 % explaining away sensory prediction errors prescribed by desired movement 
 % trajectories. In this example a two-joint arm follows a stable 
@@ -9,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_writing.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_writing.m 4804 2012-07-26 13:14:18Z karl $
 
 
 % hidden causes and states

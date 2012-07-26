@@ -3,7 +3,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % FORMAT [p dp] = spm_LAP_eval(M,qu,qh)
 %
 % p.h     - vector of precisions for causal states (v)
-% p.g     - vector of precisions for hidden states (v)
+% p.g     - vector of precisions for hidden states (x)
 %
 % dp.h.dx - dp.h/dx
 % dp.h.dv - dp.h/dv
@@ -16,7 +16,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_LAP_eval.m 4804 2012-07-26 13:14:18Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})

@@ -1,3 +1,4 @@
+function ADEM_occulomotor_delays
 % Oculomotor following and delays under active inference:
 %__________________________________________________________________________
 % This demo illustrates oculomotor following and slow pursuit. The focus
@@ -18,7 +19,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occulomotor_delays.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_occulomotor_delays.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hidden causes and states

@@ -1,3 +1,4 @@
+function DEM_demo_MMN
 % This Demo uses the linear convolution model of previous examples to
 % simulate chirps (c.f., the bird song demos). By presenting a train of
 % chirps and changing the stimulus after a couple of presentations, we can
@@ -13,7 +14,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: DEM_demo_MMN.m 4804 2012-07-26 13:14:18Z karl $
  
 
 % level 1

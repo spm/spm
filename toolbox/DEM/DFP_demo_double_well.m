@@ -1,3 +1,4 @@
+function DFP_demo_double_well
 % DEMO comparing Variational filtering with particle filtering in the 
 % context of a bimodal conditional density.  This demonstrates that the
 % variational filter can not only represent free-form densities on the 

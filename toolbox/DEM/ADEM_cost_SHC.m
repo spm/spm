@@ -1,3 +1,4 @@
+function ADEM_cost_SHC
 % This demo illustrates the use of priors on the motion of hidden states as
 % polices. It simulates exploration and exploitation using radial basis
 % function attractors and auto-vitiative (self-destroying) attractors
@@ -18,7 +19,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost_SHC.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_cost_SHC.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % switch for demo

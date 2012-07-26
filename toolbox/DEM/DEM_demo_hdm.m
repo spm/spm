@@ -1,3 +1,4 @@
+function DEM_demo_hdm
 % demo for Hemodynamic deconvolution
 %__________________________________________________________________________
 

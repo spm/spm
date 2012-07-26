@@ -1,3 +1,4 @@
+function ADEM_SHC_demo
 % This demo illustrates the use of Lotka-Volterra form SHCs (Stable
 % heteroclinic channel) to prescribe active sampling (inference). In this
 % example each (unstable) fixed point in the SHC attracts the agent to
@@ -6,7 +7,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_SHC_demo.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_SHC_demo.m 4804 2012-07-26 13:14:18Z karl $
  
 % generative process
 %==========================================================================

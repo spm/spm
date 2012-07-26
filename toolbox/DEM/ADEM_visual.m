@@ -1,3 +1,4 @@
+function ADEM_visual
 % DEM demo for active inference (i.e. action-perception optimisation of free
 % energy).  This simulation calls on spm_ADEM to simulate visual sampling of
 % the world and demonstrate retinal stabilisation or visual tracking. We
@@ -12,11 +13,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_visual.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % recognition model (M)
 %==========================================================================
+M             = struct;
 M(1).E.s      = 1;                          % smoothness
 M(1).E.n      = 4;                          % smoothness
 M(1).E.d      = 2;                          % smoothness
@@ -25,6 +27,7 @@ M(1).E.d      = 2;                          % smoothness
 % the hidden states correspond to horizontal and vertical displacement of a
 % Gaussian modulated plaid
 %--------------------------------------------------------------------------
+pE      = struct;
 pE.f    = [-1  4   ;                        % the Jacobian for the
            -2 -1]/8;                        % hidden states (x and y)
 pE.h    = [1; 0];                           % input parameters

@@ -1,3 +1,4 @@
+function DEM_demo_EM
 % Dual estimation of parameters and hyperparameters; under known causes:
 % This demo focuses on conditional parameter estimation with DEM and
 % provides a comparative evaluation using EM.  This proceeds by removing

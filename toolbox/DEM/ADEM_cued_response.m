@@ -1,3 +1,4 @@
+function ADEM_cued_response
 % Cued responses under active inference: 
 %__________________________________________________________________________
 % This demo illustrates cued sequential movements. It uses active inference
@@ -29,7 +30,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cued_response.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_cued_response.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hidden causes and states

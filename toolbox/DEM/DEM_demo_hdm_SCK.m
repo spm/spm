@@ -1,3 +1,4 @@
+function DEM_demo_hdm_SCK
 % Demo for Hemodynamic deconvolution: Cross-validation of Laplace scheme
 %__________________________________________________________________________
 % This demonstration compares generalised filtering and SCKS in the context 
@@ -12,7 +13,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_hdm_SCK.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_hdm_SCK.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % create model and generate data

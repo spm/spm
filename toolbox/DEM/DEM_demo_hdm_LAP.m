@@ -1,3 +1,4 @@
+function DEM_demo_hdm_LAP
 % Demo for Hemodynamic deconvolution: Cross-validation of Laplace scheme
 %__________________________________________________________________________
 % This demonstration compares generalised filtering and DEM in the context
@@ -11,7 +12,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_hdm_LAP.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: DEM_demo_hdm_LAP.m 4804 2012-07-26 13:14:18Z karl $
 
 % set-up
 %--------------------------------------------------------------------------

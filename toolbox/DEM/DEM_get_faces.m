@@ -1,3 +1,4 @@
+function DEM_get_faces
 % Utility routine to load images and create basis functions using a
 % discrete cosine basis set (over a feature dimension). This is written
 % specifically for the images used in this demonstration and should be
@@ -6,12 +7,10 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_get_faces.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: DEM_get_faces.m 4804 2012-07-26 13:14:18Z karl $
  
 % try to read all images in current directory
 %--------------------------------------------------------------------------
-clear
- 
 file  = dir;
 IMG   = [];
 for i = 1:length(file)
@@ -58,7 +57,6 @@ for i = 1:Nm
     U(:,i) = cos((i - 1)*pi*v');
 end
 V     = Y*U;
- 
  
 % Save DEM_IMG .mat file
 %--------------------------------------------------------------------------

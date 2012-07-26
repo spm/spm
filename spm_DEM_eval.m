@@ -30,15 +30,15 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 %
 % M(1).E.linear = 0: full        - evaluates 1st and 2nd derivatives
 % M(1).E.linear = 1: linear      - equations are linear in x and v
-% M(1).E.linear = 2: bilinear    - equations are linear in x, v and x.v
-% M(1).E.linear = 3: nonlinear   - equations are linear in x, v, x.v, and x.x
+% M(1).E.linear = 2: bilinear    - equations are linear in x, v & x*v
+% M(1).E.linear = 3: nonlinear   - equations are linear in x, v, x*v, & x*x
 % M(1).E.linear = 4: full linear - evaluates 1st derivatives (for generalised 
 %                                  filtering, where parameters change)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_DEM_eval.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % get dimensions

@@ -1,3 +1,4 @@
+function DEM_demo_contact_lens
 % This demo illustrates tracking under the contact lens problem:
 % The contact lens refers to the non-Gaussian uncertainty induced by
 % nonlinear measurements. Here it is illustrated in terms of tracking the
@@ -14,7 +15,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_contact_lens.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_contact_lens.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % non-linear generative model

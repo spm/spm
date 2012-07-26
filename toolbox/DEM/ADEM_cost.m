@@ -10,15 +10,17 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_cost.m 3757 2010-03-08 11:41:53Z guillaume $
+% $Id: ADEM_cost.m 4804 2012-07-26 13:14:18Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================
-% switch for demo
-clear
+
  
 % parameters of generative process
 %--------------------------------------------------------------------------
+P       = struct;
+M       = struct;
+G       = struct;
 P.p     = [1;
            2];
        

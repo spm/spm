@@ -1,3 +1,4 @@
+function ADEM_lorenz
 % Action-DEM demo specifying an attractor (in terms of the parameters of
 % desired equations of motion) This demo first exposes an agent to a Lorenz
 % attractor world such that it can learn the three parameters of the Lorenz
@@ -8,7 +9,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_lorenz.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_lorenz.m 4804 2012-07-26 13:14:18Z karl $
 
 % generative model
 %==========================================================================

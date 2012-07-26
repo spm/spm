@@ -27,10 +27,12 @@ function spm_MDP(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP.m 4339 2011-06-02 13:04:49Z karl $
+% $Id: spm_MDP.m 4804 2012-07-26 13:14:18Z karl $
  
 % set up and preliminaries
 %==========================================================================
+global eta
+eta  = 16;
 TOL  = 64;                                  % tolerance for log
 u    = [-2 -1 0 1 2];                       % levels of control
 Nu   = length(u);                           % number of control/actions
@@ -67,7 +69,7 @@ for k = 1:Nu
             
             % change in state
             %--------------------------------------------------------------
-            ds = spm_fx_mountaincar([x(i);v(j)],0,u(k),[],16);
+            ds = spm_fx_mountaincar([x(i);v(j)],0,u(k),[]);
             
             
             % transition probabilities - position

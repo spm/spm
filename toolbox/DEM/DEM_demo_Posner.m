@@ -1,3 +1,4 @@
+function DEM_demo_Posner
 % This demonstration routine simulates the Posner paradigm to show that 
 % some of the characteristic speed-accuracy trade-offs associated with 
 % valid and invalid cueing can be explained easily in terms of optimizing 
@@ -20,7 +21,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: DEM_demo_Posner.m 4804 2012-07-26 13:14:18Z karl $
  
 
 % Create a generative model: To keep thing simple we will model just 2 
@@ -75,9 +76,9 @@ M(2).V  = 0;
 %--------------------------------------------------------------------------
 T   = 64;                                   % length of data sequence
 dt  = 640/T;                                % ms time bins; 512 ms trials
-pst = [1:T]*dt;                             % peristimulus time (ms bins)
-TS  = spm_Npdf([1:T + 1],2*T/3,T/8);        % this is the Gaussian target
-CS  = spm_Npdf([1:T],T/4,T/16);             % this is the Gaussian cue
+pst = (1:T)*dt;                             % peristimulus time (ms bins)
+TS  = spm_Npdf((1:T + 1),2*T/3,T/8);        % this is the Gaussian target
+CS  = spm_Npdf((1:T),T/4,T/16);             % this is the Gaussian cue
 TS  = diff(TS);
 TS  = TS/max(TS);
 CS  = CS/max(CS);

@@ -116,8 +116,6 @@ return
  
 % Demo of synchronization manifold using coupled Lorenz attractors
 %--------------------------------------------------------------------------
-clear
- 
 W    = 2;                            % amplitude of random fluctuations
 N    = 16;                           % number of (Lorenz) oscillators
 T    = 512;                          % number of time bins

@@ -12,11 +12,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss_2.m 3140 2009-05-21 18:38:17Z karl $
+% $Id: ADEM_mountaincar_loss_2.m 4804 2012-07-26 13:14:18Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
-clear
+P       = struct;
+M       = struct;
+G       = struct;
 DEMO    = 0;
  
 % range of position for later plotting

@@ -280,7 +280,7 @@ run_demo_Callback(hObject, handles, 'ADEM_cost_SHC')
 % --- Executes on button press in pushbutton94.
 function pushbutton94_Callback(hObject, eventdata, handles)
 handles.web = '';
-run_demo_Callback(hObject, handles, 'DEM_demo_CM_Lorenz')
+run_demo_Callback(hObject, handles, '%%%% DEM_demo_CM_Lorenz %%%')
 
 % --- Executes on button press in pushbutton96.
 function pushbutton96_Callback(hObject, eventdata, handles)

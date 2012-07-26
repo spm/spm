@@ -1,8 +1,8 @@
-function f = spm_fx_mountaincar(x,v,varargin)
+function f = spm_fx_mountaincar(x,v,a,P)
 % state equations for mountain car problem
 % FORMAT f = spm_fx_mountaincar(x,v,P)
 % FORMAT f = spm_fx_mountaincar(x,v,a,P)
-% FORMAT f = spm_fx_mountaincar(x,v,P,eta)
+% FORMAT f = spm_fx_mountaincar(x,v,P,M)
 % x    - [x, x']
 % v    - exogenous force
 % a    - action
@@ -26,7 +26,7 @@ function f = spm_fx_mountaincar(x,v,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mountaincar.m 4516 2011-10-07 19:18:32Z karl $
+% $Id: spm_fx_mountaincar.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % determine controlled forces (a)
@@ -34,30 +34,25 @@ function f = spm_fx_mountaincar(x,v,varargin)
  
 % spm_fx_mountaincar(x,v,P) - recognition model (no action)
 %--------------------------------------------------------------------------
-if length(varargin) == 1
+global eta
+if isempty(eta), eta = 8; end
+if nargin == 3
     
+    P    = a;
     a    = 0;
-    P    = varargin{1};
-    
-elseif length(varargin) > 1
+  
+elseif all(isfield(P,{'f','g'}))
     
     % spm_fx_mountaincar(x,v,P,M) - generative model (no action)
     %----------------------------------------------------------------------
-    try
-        varargin{2}.f;
-        varargin{2}.g;
-        a    = 0;
-        P    = varargin{1};
- 
-    % spm_fx_mountaincar(x,v,a,P) - generative model (action)
-    %----------------------------------------------------------------------
-    catch
-        a    = varargin{1};
-        P    = varargin{2};
-    end
+    P.f;
+    P.g;
+    M    = P;
+    P    = a;
+    a    = 0;
+
 end
 
-try, eta = varargin{3}; catch, eta = 8; end
 
 % default parameters
 %--------------------------------------------------------------------------
@@ -86,6 +81,7 @@ f     = [x(2); a + v - dHdx - x(2)/eta]*dt;
  
 
 return
+
  
 % NOTES: Plots for figure
 %--------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+function DEM_demo_PEB
 % DEM demo for a hierarchical linear model (MFX).  This inversion is
 % cross-validated with restricted maximum likelihood using and parametric
 % empirical Bayes (spm_PEB). It uses a simple two level model that embodies
@@ -29,6 +30,7 @@ qH    = DEM.qH;
 
 % compare real and estimated factor and causes (using ReML and PEB)
 %==========================================================================
+P            = cell(1,2);
 Q1           = DEM.M(1).Q{1};
 Q2           = DEM.M(2).Q{1};
 [Ce,hr,W,Fr] = spm_reml_sc(DEM.Y*DEM.Y',X1*X2,{Q1; X1*Q2*X1'},N);

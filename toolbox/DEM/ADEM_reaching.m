@@ -1,3 +1,4 @@
+function ADEM_reaching
 % This demo illustrates how action can fulfil prior expectations by
 % explaining away sensory prediction errors prescribed by desired movement
 % trajectories. In this example a two-joint arm is trained to touch a target
@@ -6,7 +7,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_reaching.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_reaching.m 4804 2012-07-26 13:14:18Z karl $
 
 % hidden causes and states
 %==========================================================================
@@ -21,10 +22,10 @@
 %   v(3) - force (cue strength)
 %--------------------------------------------------------------------------
 
-clear
- 
+
 % Recognition model (linear for expediency)
 %==========================================================================
+M         = struct;
 M(1).E.s  = 1/2;                              % smoothness
 M(1).E.n  = 4;                                % order of 
 M(1).E.d  = 2;                                % generalised motion

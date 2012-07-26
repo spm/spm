@@ -1,3 +1,4 @@
+function ADEM_occlusion
 % Slow pursuit and occlusion under active inference:
 %__________________________________________________________________________
 % This demo illustrates slow pursuit in the context of visual occlusion. We
@@ -29,7 +30,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_occlusion.m 4672 2012-03-02 19:41:58Z karl $
+% $Id: ADEM_occlusion.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hidden causes and states
@@ -46,8 +47,6 @@
 %   g(2) - oculomotor velocity
 %   g(:) - visual input - intrinsic coordinates
 %--------------------------------------------------------------------------
- 
-clear all
  
  
 % Set-up

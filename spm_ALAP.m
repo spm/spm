@@ -16,6 +16,8 @@ function [DEM] = spm_ALAP(DEM)
 %   M(i).ph = pi(v) = ph(x,v,h,M) {inline function, string or m-file}
 %   M(i).pg = pi(x) = pg(x,v,g,M) {inline function, string or m-file}
 %
+%   pi(v,x) = vectors of log-precisions; (h,g) = precision parameters
+%
 %   M(i).pE = prior expectation of p model-parameters
 %   M(i).pC = prior covariances of p model-parameters
 %   M(i).hE = prior expectation of h log-precision (cause noise)
@@ -86,7 +88,26 @@ function [DEM] = spm_ALAP(DEM)
 %   qH.g    = Conditional expectation (state noise)
 %   qH.C    = Conditional covariance
 %
-% F         = log-evidence = log-marginal likelihood = negative free-energy
+%   F       = log-evidence = log-marginal likelihood = negative free-energy
+%
+%__________________________________________________________________________
+% Accelerated methods: To accelerate computations one can specify the 
+% nature of the model equations using:
+%
+% M(1).E.linear = 0: full        - evaluates 1st and 2nd derivatives
+% M(1).E.linear = 1: linear      - equations are linear in x and v
+% M(1).E.linear = 2: bilinear    - equations are linear in x, v & x*v
+% M(1).E.linear = 3: nonlinear   - equations are linear in x, v, x*v, & x*x
+% M(1).E.linear = 4: full linear - evaluates 1st derivatives (for GF)
+%
+% similarly, for evaluating precisions:
+%
+% M(1).E.method.h = 0,1  switch for precision parameters (hidden causes)
+% M(1).E.method.g = 0,1  switch for precision parameters (hidden states)
+% M(1).E.method.x = 0,1  switch for precision (hidden causes)
+% M(1).E.method.v = 0,1  switch for precision (hidden states)
+%__________________________________________________________________________
+%
 %__________________________________________________________________________
 %
 % spm_ALAP implements a variational scheme under the Laplace
@@ -117,7 +138,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: spm_ALAP.m 4804 2012-07-26 13:14:18Z karl $
 
 
 % check model, data and priors
@@ -583,7 +604,7 @@ for iN = 1:nN
             Lppb    = dE.dp'*diSdh{i}*dE.dp;
             diCdh   = spm_cat({Luub Lpub';
                                Lpub Lppb});
-            dHdh(i) = sum(sum(diCdh.*Cup))/2;
+            dHdh(i) = spm_trace(diCdh,Cup)/2;
         end
         for i = 1:ng
             Luub    = dE.du'*diSdg{i}*dE.du;
@@ -591,7 +612,7 @@ for iN = 1:nN
             Lppb    = dE.dp'*diSdg{i}*dE.dp;
             diCdg   = spm_cat({Luub Lpub';
                                Lpub Lppb});
-            dHdg(i) = sum(sum(diCdg.*Cup))/2;
+            dHdg(i) = spm_trace(diCdg,Cup)/2;
         end
         
         % parameters
@@ -602,7 +623,7 @@ for iN = 1:nN
             Luup    = Luup + Luup';
             diCdp   = spm_cat({Luup Lpup';
                                Lpup [] });
-            dHdp(i) = sum(sum(diCdp.*Cup))/2;
+            dHdp(i) = spm_trace(diCdp,Cup)/2;
         end
         
         % and concatenate

@@ -1,3 +1,4 @@
+function DEM_demo_DEM
 % Triple estimation of states, parameters and hyperparameters:
 % This demo focuses estimating both the states and parameters to furnish a
 % complete system identification, given only the form of the system and its

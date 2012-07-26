@@ -1,3 +1,4 @@
+function DEM_demo_DFP
 % DEM demo for linear deconvolution:  This demo considers the deconvolution
 % of the responses of a single-input-multiple output input-state-output
 % model (DCM) to disclose the input or causes.  It starts by demonstrating

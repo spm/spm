@@ -1,3 +1,4 @@
+function DEM_demo_MMN_deviance
 % This Demo is a more refined illustration of the mismatch negativity that
 % uses a plausible (nonlinear) mapping from hidden states to sensory
 % samples; namely, a discrete spectral density (with a fixed frequency or
@@ -26,7 +27,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN_deviance.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_MMN_deviance.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % Create the generative model

@@ -1,3 +1,4 @@
+function ADEM_mountaincar_loss
 % This demo re-visits the mountain car problem to show that adaptive
 % (desired) behaviour can be prescribed in terms of loss-functions (i.e.
 % reward functions of state-space).
@@ -10,11 +11,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_mountaincar_loss.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_mountaincar_loss.m 4804 2012-07-26 13:14:18Z karl $
  
 % generative process (mountain car terrain)
 %==========================================================================                        % switch for demo
-clear
+P       = struct;
+M       = struct;
+G       = struct;
 DEMO    = 0;
  
 % range of position for later plotting
@@ -38,7 +41,7 @@ G(1).g  = inline('x','x','v','a','P');
 G(1).pE = P;
 G(1).V  = exp(16);                          % error precision
 G(1).W  = exp(16);                          % error precision
-G(1).U  = exp(4);                           % error precision
+G(1).U  = exp(5);                           % error precision
  
 % level 2
 %--------------------------------------------------------------------------
@@ -115,7 +118,7 @@ DEM.G(1).x = [0; -1/2];
 DEM.M(1).x = DEM.G(1).x;
 DEM        = spm_ADEM(DEM);
 
-spm_figure('GetWin','Figure 1'); 
+spm_figure('GetWin','Figure 1'); clf
 spm_DEM_qU(DEM.qU)
  
 % true and inferred position
@@ -237,7 +240,7 @@ spm_figure('GetWin','Figure 3'); clf
 DEM.G(1).x = [0; -1/2];
 DEM.M(1).x = DEM.G(1).x;
  
-W     = [2 4 6 8];
+W     = [5 6 7 8];
 for i = 1:4
     
     % active inference

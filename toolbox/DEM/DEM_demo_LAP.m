@@ -1,3 +1,4 @@
+function DEM_demo_LAP
 % This demonstration compares Generalised filtering under the Laplace
 % assumption (spm_LAP) with variational filtering under the same fixed form
 % approximation (i.e. DEM). We use a simple linear convolution model to
@@ -11,7 +12,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_LAP.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: DEM_demo_LAP.m 4804 2012-07-26 13:14:18Z karl $
  
 % get basic convolution model
 %==========================================================================

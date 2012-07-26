@@ -1,3 +1,4 @@
+function DEM_demo_Lorenz
 % Demo for a Lorentz attractor: In this example we show that DEM and
 % Bayesian filtering can estimate the hidden states of an autonomous system
 % showing deterministic chaos.  Although all schemes perform well given the

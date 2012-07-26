@@ -1,3 +1,4 @@
+function ADEM_observe
 % This demo illustrates action-observation using synthetic writing under 
 % active inference. It shows how expectations about hidden states can be 
 % both cause and consequence of observed action (of self and others 
@@ -12,7 +13,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_observe.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: ADEM_observe.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % hidden causes and states

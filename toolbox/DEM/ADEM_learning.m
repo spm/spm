@@ -1,3 +1,4 @@
+function ADEM_learning
 % Value learning demo using the mountain car problem. This demo questions
 % the need for reinforcement learning and related paradigms from
 % machine-learning, when trying to optimise the behaviour of an agent.  We
@@ -18,7 +19,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_learning.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: ADEM_learning.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % generative model

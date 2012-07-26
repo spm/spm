@@ -1,3 +1,4 @@
+function DEM_demo_filtering
 % State-space demo routine comparing Bayesian filtering and DEM:  The
 % system here is chosen to highlight changes in conditional moments
 % (including precision) induced by nonlinearities in the model.  A
@@ -11,6 +12,7 @@
 
 % temporal correlations
 %--------------------------------------------------------------------------
+M         = struct;
 M(1).E.s  = 1/32;
 M(1).E.nD = 4;
 M(1).E.linear = 3;

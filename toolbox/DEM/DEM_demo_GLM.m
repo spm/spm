@@ -1,3 +1,4 @@
+function DEM_demo_GLM
 % Demo comparing DEM and ReML (restricted maximum likelihood) under a simple
 % general linear model (GLM).  Slight differences in the hyperpriors of both
 % schemes make this an interesting exercise.  Note that ReML uses a

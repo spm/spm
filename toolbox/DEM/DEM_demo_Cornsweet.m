@@ -1,3 +1,4 @@
+function DEM_demo_Cornsweet
 % The Cornsweet effect: This demo illustrates the inference underlying the
 % Cornsweet effect or illusion. It exploits formal priors on the spatial
 % contiguity of the illuminant and reflectance; where the illuminant does not
@@ -11,7 +12,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4628 2012-01-27 20:51:41Z karl $
+% $Id: DEM_demo_Cornsweet.m 4804 2012-07-26 13:14:18Z karl $
  
  
 % Illustrate the Cornsweet effect
@@ -173,7 +174,7 @@ drawnow
  
 % Cycle over different levels of visual precision (cf contrast)
 %==========================================================================
-C   = -2:12;
+C   = -2:2:12;
 for i = 1:length(C)
     
     % Change precision (contrast) and invert
@@ -216,7 +217,7 @@ spm_axis tight square
 % and associated percepts
 %--------------------------------------------------------------------------
 colormap([1:255]'*[1 1 1]/255)
-j     = [1 5 11];
+j     = [1 5 7];
 nj    = length(j);
 for i = 1:nj
    
@@ -303,6 +304,7 @@ G.sim      = sim;     % place in model
  
 % empirical responses
 %--------------------------------------------------------------------------
+Y          = struct;
 Y.y{1}     = cornsweet.stepMatch(:);
 Y.y{2}     = mach.pSeeMach(:);
 Y.Q        = spm_Ce([length(Y.y{1}) length(Y.y{2})]); % error precisions
@@ -329,8 +331,8 @@ G.hC = exp(-4);               % prior covariance of log-precisions
  
 % invert model of empirical responses and plot
 %--------------------------------------------------------------------------
-[Ep,Cp,Ce] = spm_nlsi_GN(G,[],Y);
-spm_cornsweet(Ep,G,Y)
+Ep   = spm_nlsi_GN(G,[],Y);
+spm_cornsweet(Ep,G,Y);
 
 
 

@@ -11,64 +11,59 @@ function DEM_demo_ALAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_ALAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ALAP_demo_attenuation.m 4804 2012-07-26 13:14:18Z karl $
  
-% get basic convolution model
+% process (G) and model (M)
 %==========================================================================
-M       = spm_DEM_M('convolution model');
 
-% gradient functions for speed (not implemented here)
+% set dimensions for generalised coordinates
 %--------------------------------------------------------------------------
-% M(1).fx = inline('P.f','x','v','P');
-% M(1).fv = inline('P.h','x','v','P');
-% M(1).gx = inline('P.g','x','v','P');
-% M(1).gv = inline('sparse(4,1)','x','v','P');
+G(1).E.d        = 2;                   % approximation order
+G(1).E.n        = 4;                   % embedding order
+G(1).E.s        = 1/2;                 % temporal smoothness
 
-M(1).E.nN = 8;                                 % number of E steps
-M(1).E.nE = 8;                                 % number of E steps
-M(1).E.nD = 1;                                 % number of time steps
-M(1).E.s  = 1;                                 % smoothness
-G(1).E.s  = 1;                                 % smoothness
-M(1).E.d  = 2;                                 % order
-M(1).E.n  = 6;                                 % order
-
+M(1).E.d        = 2;                   % approximation order
+M(1).E.n        = 4;                   % embedding order
+M(1).E.s        = 1/2;                 % temporal smoothness
+M(1).E.method.x = 1;                   % state-dependent noise
  
-% free parameters
+G(1).f  = inline('[a; v] - x/4','x','v','a','P');
+G(1).g  = inline('[x(1); sum(x)]','x','v','a','P');
+G(1).x  = [0; 0];                      % hidden state
+G(1).v  = [0; 0];                      % hidden cause
+G(1).V  = exp(8);                      % precision (noise)
+G(1).W  = exp(8);                      % precision (states)
+ 
+ 
+% level 2; causes
 %--------------------------------------------------------------------------
-P       = M(1).pE;                             % true parameters
-ip      = [1 2 5 9];                           % free parameters
-pE      = spm_vec(P);
-np      = length(pE);
-pE(ip)  = 0;
-pE      = spm_unvec(pE,P);
-pC      = sparse(ip,ip,exp(4),np,np);
-M(1).pE = pE;
-M(1).pC = pC;
+G(2).v  = 0;                           % hidden cause
+G(2).V  = exp(16);
  
+ 
+% state-dependent precision (attentional bias) in generative model (M):
+%--------------------------------------------------------------------------
+M(1).f  = inline('v - x/4','x','v','P');
+M(1).g  = inline('[x(1); sum(x)]','x','v','P');
+M(1).x  = [0; 0];                      % hidden state
+M(1).v  = [0; 0];                      % hidden cause
+M(1).W  = exp(8);                      % precision (states)
+M(1).ph = inline('[1; 1]*(8 + h*x(1))','x','v','h','M');
+
+
+% level 2; causes
+%--------------------------------------------------------------------------
+M(2).v  = [0; 0];                      % hidden cause
+M(2).V  = exp(4);
+
+
 % free hyperparameters
 %--------------------------------------------------------------------------
-M(1).Q  = {speye(M(1).l,M(1).l)};
-M(1).R  = {speye(M(1).n,M(1).n)};
 M(1).hE = 8;
-M(1).gE = 6;
-M(1).hC = 1/4;
-M(1).gC = 1/4;
+
  
-% generative process
-%==========================================================================
-G(1).f  = M(1).f;
-G(1).g  = M(1).g;
-G(1).x  = M(1).x;
-G(1).V  = exp(8);
-G(1).W  = exp(6);
-G(1).pE = P;
-
-G(2).v  = 0;
-G(2).V  = exp(16);
-
-
-% hidden cause
-%-------------------------------------------------------------------------- 
+% hidden cause and prior expectations
+%========================================================================== 
 N      = 32;
 U      = exp(-((1:N) - 12).^2/(2.^2));
 
@@ -76,18 +71,15 @@ U      = exp(-((1:N) - 12).^2/(2.^2));
 %==========================================================================
 DEM.M  = M;
 DEM.G  = G;
-DEM.C  = U;
+DEM.C  = C;
+DEM.U  = U;
 
 % generate and filter responses
 %-------------------------------------------------------------------------- 
 LAP    = spm_ALAP(DEM);
 
-% filter generated responses
-%-------------------------------------------------------------------------- 
-DEM.Y  = LAP.Y;
-DEM.pU = LAP.pU;
-DEM.pP = LAP.pP;
-DEM    = spm_LAP(DEM);
+
+
 
  
 % Show results for LAP (standard scheme)

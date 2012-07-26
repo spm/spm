@@ -1,3 +1,4 @@
+function ADEM_motor
 % This demo illustrates how action can fulfil prior expectations by
 % explaining away sensory prediction errors prescribed by desired movement
 % trajectory. It is based on the same linear convolution model of the
@@ -10,7 +11,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_motor.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: ADEM_motor.m 4804 2012-07-26 13:14:18Z karl $
  
 % Recognition model (linear for expediency)
 %==========================================================================
