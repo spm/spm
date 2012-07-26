@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 4283 2011-04-01 16:53:36Z karl $
+% $Id: spm_PEB.m 4805 2012-07-26 13:16:18Z karl $
 
 % set default
 %--------------------------------------------------------------------------
@@ -279,7 +279,7 @@ for k = 1:M
 
                 % ddF/dhh = -trace{P*Q{i}*P*Q{j}}
                 %----------------------------------------------------------
-                dFdhh(i,j)  = -sum(sum(PQ{i}.*PQ{j}'))/2;
+                dFdhh(i,j)  = -spm_trace(PQ{i},PQ{j})/2;
                 dFdhh(j,i)  =  dFdhh(i,j);
 
             end

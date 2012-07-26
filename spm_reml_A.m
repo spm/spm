@@ -35,7 +35,7 @@ function  [C,h,Ph,F,Fa,Fc] = spm_reml_A(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_reml_A.m 4195 2011-02-05 18:39:13Z ged $
+% $Id: spm_reml_A.m 4805 2012-07-26 13:16:18Z karl $
 
 
 % assume a single sample if not specified
@@ -116,23 +116,22 @@ for k = 1:32
     %----------------------------------------------------------------------
     P     = iC - iCX*Cq*iCX';
     U     = speye(n) - P*YY/N;
-    PQ = cell(m, 1);
+    PQ    = cell(m,1);
     for i = 1:m
         
         % dF/dh
         %------------------------------------------------------------------
         PQ{i}   = P*(A*Q{i}' + Q{i}'*A);
-        dFdh(i) = -sum(sum(PQ{i}.*U'))*N/2; % = -trace(PQ{i}*U)*N/2;
+        dFdh(i) = -spm_trace(PQ{i},U)*N/2;
         
     end
     
     % Expected curvature E{dF/dhh} (second derivatives)
-    % dF/dhh = -trace{P*Q{i}*P*Q{j}} NB trace(A*B)==sum(sum(A.*B'))
+    % dF/dhh = -trace{P*Q{i}*P*Q{j}}
     %----------------------------------------------------------------------
     for i = 1:m
-        dFdhh(i,i) = -sum(sum(PQ{i}.*PQ{i}'))*N/2;
-        for j = i+1:m
-            dFdhh(i,j) = -sum(sum(PQ{i}.*PQ{j}'))*N/2;
+        for j = i:m
+            dFdhh(i,j) = -spm_trace(PQ{i},PQ{j})*N/2;
             dFdhh(j,i) =  dFdhh(i,j);
         end
     end

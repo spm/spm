@@ -8,7 +8,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_dcm_graph.m 4805 2012-07-26 13:16:18Z karl $
 
 
 % defaults
@@ -36,7 +36,7 @@ end
 
 % Render graph in anatomical space
 %==========================================================================
-subplot(2,1,1);cla
+subplot(2,1,1); cla
 set(gca,'position',[0 .5 1 .5])
 options.query = [];
 options.hfig  = gcf;
@@ -83,7 +83,7 @@ D      = diag(sum(W));
 G      = D - W;
 [U V]  = eig(full(spm_pinv(G)));
 U      = U*sqrt(V);
-[V i]  = sort(-diag(V));
+[~,i]  = sort(-diag(V));
 U      = U(:,i(1:3))';
  
 % Procrustean transform to align with anatomy (not currently used)

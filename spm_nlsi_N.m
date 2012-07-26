@@ -83,15 +83,15 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_nlsi_N.m 4805 2012-07-26 13:16:18Z karl $
  
+% options
+%--------------------------------------------------------------------------
+try, M.nograph; catch, M.nograph = 0;  end
+try, M.Nmax;    catch, M.Nmax    = 64; end
+
 % figure (unless disabled)
 %--------------------------------------------------------------------------
-try
-    M.nograph;
-catch 
-    M.nograph = 0;
-end
 if ~M.nograph
     Fsi = spm_figure('GetWin','SI');
 end
@@ -293,7 +293,7 @@ dFdhh = zeros(nh,nh);
  
 % Optimize p: parameters of f(x,u,p)
 %==========================================================================
-for ip = 1:64
+for ip = 1:M.Nmax
  
     % time
     %----------------------------------------------------------------------  
@@ -374,9 +374,9 @@ for ip = 1:64
             for i = 1:nh
                 dFdh(i,1)      =   trace(PS{i})*nq/2 ...
                                  - real(ey'*P{i}*ey)/2 ...
-                                 - sum(sum(Cb.*(dgdb'*P{i}*dgdb)))/2;
+                                 - spm_trace(Cb,dgdb'*P{i}*dgdb)/2;
                 for j = i:nh
-                    dFdhh(i,j) = - sum(sum(PS{i}.*PS{j}))*nq/2;
+                    dFdhh(i,j) = - spm_trace(PS{i},PS{j})*nq/2;
                     dFdhh(j,i) =   dFdhh(i,j);
                 end
             end

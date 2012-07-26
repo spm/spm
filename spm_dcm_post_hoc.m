@@ -1,4 +1,4 @@
-function spm_dcm_post_hoc(P,fun)
+function DCM = spm_dcm_post_hoc(P,fun)
 % Post hoc optimisation of DCMs (under the Laplace approximation)
 % FORMAT spm_dcm_post_hoc(P,[fun])
 %
@@ -60,7 +60,7 @@ function spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_dcm_post_hoc.m 4805 2012-07-26 13:16:18Z karl $
 
 % get filenames
 %--------------------------------------------------------------------------
@@ -223,7 +223,7 @@ while GS
     
     % Get selected model and prune redundant parameters
     %======================================================================
-    [~, i]    = max(p);
+    [~, i]       = max(p);
     C(k(K(i,:))) = 0;
     
     % Continue greedy search if any parameters have been eliminated
@@ -296,11 +296,12 @@ rC    = diag(C)*pC*diag(C);
 % record pruned parameters
 %--------------------------------------------------------------------------
 R     = spm_unvec(full(C),pE);
-R.a   = DCM.a & R.A;
-R.b   = DCM.b & R.B;
-R.c   = DCM.c & R.C;
-R.d   = DCM.d & R.D;
-
+try
+    R.a   = DCM.a & R.A;
+    R.b   = DCM.b & R.B;
+    R.c   = DCM.c & R.C;
+    R.d   = DCM.d & R.D;
+end
 
 EQ    = 0;
 PQ    = 0;
@@ -336,7 +337,11 @@ for j = 1:N
     
     % Bayesian inference and variance
     %----------------------------------------------------------------------
-    T    = full(spm_vec(pE)) + DCM.T;
+    try
+        T = full(spm_vec(pE)) + DCM.T;
+    catch
+        T = full(spm_vec(pE));
+    end
     sw   = warning('off','SPM:negativeVariance');
     Pp   = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
     Vp   = spm_unvec(diag(Cp),Ep);
@@ -358,23 +363,27 @@ for j = 1:N
     
     % and in prior constraints fields
     %----------------------------------------------------------------------
-    DCM.a       = R.a;
-    DCM.b       = R.b;
-    DCM.c       = R.c;
-    DCM.d       = R.d;
+    try
+        DCM.a   = R.a;
+        DCM.b   = R.b;
+        DCM.c   = R.c;
+        DCM.d   = R.d;
+    end
     
-    % Save approximations to model evidence: negative free energy, AIC, BIC
+    % report and save
     %----------------------------------------------------------------------
-    evidence = spm_dcm_evidence(DCM);
+    subplot(2,2,4); plot(diag(Cp));drawnow
+    
+    
+    % approximations to model evidence: negative free energy, AIC, BIC
+    %------------------------------------------------------------------
     DCM.F    = F;
+    evidence = spm_dcm_evidence(DCM);
     DCM.AIC  = evidence.aic_overall;
     DCM.BIC  = evidence.bic_overall;
     
-    subplot(2,2,4); plot(diag(Cp));
-    drawnow
-    
     %-Save optimised DCM
-    %======================================================================
+    %==================================================================
     try
         [pth, name] = fileparts(P{j});
         if ~strncmp(name,'DCM_opt_',8)
@@ -385,6 +394,7 @@ for j = 1:N
         P{j} = fullfile(pwd,['DCM_opt_' date '.mat']);
     end
     save(P{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
+    
     
 end
 
@@ -397,6 +407,8 @@ EQ  = CQ*EQ;
 Eq  = Cq*Eq;
 EQ  = spm_unvec(EQ,pE);
 Eq  = spm_unvec(Eq,pE);
+CQ  = spm_inv(PQ + (1 - N)*spm_inv(pC),TOL);
+Cq  = spm_inv(Pq + (1 - N)*spm_inv(rC),TOL);
 
 
 % Show full and reduced conditional estimates (for Bayesian average)
@@ -423,9 +435,10 @@ drawnow
 
 % Show structural and functional graphs
 %--------------------------------------------------------------------------
-spm_figure('Getwin','Parameter posterior'); clf
-
-spm_dcm_graph(DCM.xY,Eq.A)
+try
+    spm_figure('Getwin','Parameter posterior'); clf
+    spm_dcm_graph(DCM.xY,Eq.A)
+end
 
 % Show coupling matrices
 %--------------------------------------------------------------------------
@@ -467,4 +480,6 @@ try
 catch
     name = fullfile(pwd,'DCM_BPA.mat');
 end
+
 save(name,'DCM', spm_get_defaults('mat.format'));
+

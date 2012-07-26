@@ -89,18 +89,18 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4769 2012-06-18 10:46:45Z guillaume $
+% $Id: spm_nlsi_GN.m 4805 2012-07-26 13:16:18Z karl $
  
+% options
+%--------------------------------------------------------------------------
+try, M.nograph; catch, M.nograph = 0;  end
+try, M.Nmax;    catch, M.Nmax    = 64; end
+
 % figure (unless disabled)
 %--------------------------------------------------------------------------
-try
-    M.nograph;
-catch 
-    M.nograph = 0;
-end
 if ~M.nograph
     Fsi = spm_figure('GetWin','SI');
 end
@@ -272,7 +272,7 @@ C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-for k = 1:128
+for k = 1:M.Nmax
     
     % time
     %----------------------------------------------------------------------  
@@ -280,10 +280,27 @@ for k = 1:128
  
     % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
     %======================================================================
- 
+    
     % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
-    [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+    try
+        
+        [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+        
+    catch
+        
+        % reset expansion point and increase regularization
+        %------------------------------------------------------------------
+        p        = C.p;
+        v        = min(v - 2,-4);
+       
+        % E-Step: update
+        %------------------------------------------------------------------
+        p        = p + spm_dx(dFdpp,dFdp,{v});
+        Ep       = spm_unvec(spm_vec(pE) + V*p(ip),pE);
+        [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+        
+    end
     
        
     % prediction error and full gradients
@@ -327,9 +344,9 @@ for k = 1:128
         for i = 1:nh
             dFdh(i,1)      =   trace(PS{i})*nq/2 ...
                              - real(e'*P{i}*e)/2 ...
-                             - sum(sum(Cp.*JPJ{i}))/2;
+                             - spm_trace(Cp,JPJ{i})/2;
             for j = i:nh
-                dFdhh(i,j) = - sum(sum(PS{i}.*PS{j}))*nq/2;
+                dFdhh(i,j) = - spm_trace(PS{i},PS{j})*nq/2;
                 dFdhh(j,i) =   dFdhh(i,j);
             end
         end
@@ -375,11 +392,11 @@ for k = 1:128
     catch
         F0 = F;
     end
- 
+    
     % if F has increased, update gradients and curvatures for E-Step
     %----------------------------------------------------------------------
     if F > C.F || k < 4
- 
+        
         % accept current estimates
         %------------------------------------------------------------------
         C.p   = p;
@@ -398,38 +415,46 @@ for k = 1:128
         str   = 'EM:(+)';
         
     else
- 
+        
         % reset expansion point
         %------------------------------------------------------------------
         p     = C.p;
         h     = C.h;
         Cp    = C.Cp;
- 
+        
         % and increase regularization
         %------------------------------------------------------------------
         v     = min(v - 2,-4);
         str   = 'EM:(-)';
         
     end
- 
+    
     % E-Step: update
     %======================================================================
     dp    = spm_dx(dFdpp,dFdp,{v});
     p     = p + dp;
     Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
- 
+    
+    
+    
     % graphics
-    %----------------------------------------------------------------------
+    %======================================================================
     if exist('Fsi', 'var')
         spm_figure('Select', Fsi)
- 
+        
+        
         % reshape prediction if necessary
         %------------------------------------------------------------------
-        f  = reshape(spm_vec(f),ns,nr);
+        e  = spm_vec(e);
+        f  = spm_vec(f);
+        try
+            e  = reshape(e,ns,nr);
+            f  = reshape(f,ns,nr);
+        end
         
         % subplot prediction
         %------------------------------------------------------------------
-        x    = (1:ns)*Y.dt;
+        x    = (1:size(e,1))*Y.dt;
         xLab = 'time (seconds)';
         try
             if length(M.Hz) == ns
@@ -438,73 +463,53 @@ for k = 1:128
             end
         end
         
+        
+        % plot real or complex predictions
+        %------------------------------------------------------------------
+        tstr = sprintf('%s: %i','prediction and response: E-Step',k);
+
         if isreal(e)
             
             subplot(2,1,1)
             plot(x,f), hold on
-            plot(x,f + spm_unvec(e,f),':'), hold off
+            plot(x,f + e,':'), hold off
             xlabel(xLab)
-            title(sprintf('%s: %i','prediction and response: E-Step',k))
+            title(tstr,'FontSize',16)
             grid on
             
         else
             
             subplot(2,2,1)
             plot(x,real(f)), hold on
-            plot(x,real(f + spm_unvec(e,f)),':'), hold off
+            plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             ylabel('real')
-            title(sprintf('%s: %i','prediction and response: E-Step',k))
+            title(tstr,'FontSize',16)
             grid on
             
             subplot(2,2,2)
             plot(x,imag(f)), hold on
-            plot(x,imag(f + spm_unvec(e,f)),':'), hold off
+            plot(x,imag(f + e),':'), hold off
             xlabel(xLab)
             ylabel('imaginary')
-            title(sprintf('%s: %i','prediction and response: E-Step',k))
+            title(tstr,'FontSize',16)
             grid on
             
         end
         
+        
         % subplot parameters
-        %------------------------------------------------------------------
+        %--------------------------------------------------------------
         subplot(2,1,2)
         bar(full(V*p(ip)))
         xlabel('parameter')
-        title('conditional [minus prior] expectation')
+        tstr = 'conditional [minus prior] expectation';
+        title(tstr,'FontSize',16)
         grid on
         drawnow
         
-    else
-        
-        if iscell(y)
-            
-            % subplot predictions
-            %--------------------------------------------------------------
-            e    = spm_unvec(e,f);
-            for i = 1:length(y)
-                subplot(2,length(y),i)
-                plot(f{i},'ko'), hold on
-                plot(f{i} + e{i},'rx'), hold off
-                xlabel(sprintf('%s: %i','observation ',i))
-                title(sprintf('%s: %i','prediction and response: E-Step',k))
-                grid on
-            end
-            
-            % subplot parameters
-            %--------------------------------------------------------------
-            subplot(2,1,2)
-            bar(full(V*p(ip)))
-            xlabel('parameter')
-            title('conditional [minus prior] expectation')
-            grid on
-            drawnow
-            
-        end
-        
     end
- 
+    
     % convergence
     %----------------------------------------------------------------------
     dF  = dFdp'*dp;
@@ -512,8 +517,9 @@ for k = 1:128
     
     criterion = [(dF < 1e-1) criterion(1:end - 1)];
     if all(criterion), fprintf(' convergence\n'), break, end
- 
+    
 end
+
 if exist('Fsi', 'var')
     spm_figure('Focus', Fsi)
 end
@@ -524,3 +530,4 @@ Ep     = spm_unvec(spm_vec(pE) + V*C.p(ip),pE);
 Cp     = V*C.Cp(ip,ip)*V';
 Eh     = C.h;
 F      = C.F;
+

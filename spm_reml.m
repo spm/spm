@@ -35,7 +35,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 4693 2012-03-16 20:43:17Z karl $
+% $Id: spm_reml.m 4805 2012-07-26 13:16:18Z karl $
  
  
 % check defaults
@@ -133,7 +133,7 @@ for k = 1:K
         % dF/dh = -trace(dF/diC*iC*Q{i}*iC)
         %------------------------------------------------------------------
         PQ{i}     = P*Q{i};
-        dFdh(i,1) = -sum(sum(PQ{i}'.*U))*N/2;
+        dFdh(i,1) = -spm_trace(PQ{i},U)*N/2;
 
     end
 
@@ -144,7 +144,7 @@ for k = 1:K
 
             % dF/dhh = -trace{P*Q{i}*P*Q{j}}
             %--------------------------------------------------------------
-            dFdhh(i,j) = -sum(sum(PQ{i}'.*PQ{j}))*N/2;
+            dFdhh(i,j) = -spm_trace(PQ{i},PQ{j})*N/2;
             dFdhh(j,i) =  dFdhh(i,j);
 
         end

@@ -37,7 +37,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_reml_sc(YY,X,Q,N,hE,hC,V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_reml_sc.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_reml_sc.m 4805 2012-07-26 13:16:18Z karl $
 
  
 % assume a single sample if not specified
@@ -225,8 +225,3 @@ end
 h  = sY*exp(h)./sh;
 C  = sY*C;
 
-
-function C = spm_trace(A,B)
-% fast trace for large matrices: C = spm_trace(A,B) = trace(A*B)
-%--------------------------------------------------------------------------
-C = sum(sum(A'.*B));
