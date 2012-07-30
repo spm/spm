@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 4700 2012-03-22 13:57:20Z vladimir $
+% $Id: spm_lfp_mtf.m 4812 2012-07-30 19:54:59Z karl $
 
 
 % compute log-spectral density
@@ -31,7 +31,7 @@ catch
     dt = 1/N;
     If = 1:N/2;
 end
-f    = [1:N/2]';
+f    = (1:N/2)';
 w    = f(If);
 
 % exogenous (neuronal) inputs
@@ -51,9 +51,8 @@ M.x  = x;
 % get delay operator
 %--------------------------------------------------------------------------
 try
-    [fx dfdx D] = feval(M.f,M.x,M.u,P,M);
-catch
-    D = 1;
+    [~,~,D] = feval(M.f,M.x,M.u,P,M);
+    M.D     = D;
 end
 
 % spectrum of innovations (Gu)
@@ -95,7 +94,7 @@ for  c = 1:size(X,1)
 
     % augment and bi-linearise (with delays)
     %----------------------------------------------------------------------
-    [M0,M1,L] = spm_bireduce(M,Q,D);
+    [M0,M1,L] = spm_bireduce(M,Q);
 
     % project onto spatial modes
     %----------------------------------------------------------------------
@@ -105,7 +104,7 @@ for  c = 1:size(X,1)
 
     % compute modulation transfer function using FFT of the kernels
     %----------------------------------------------------------------------
-    [K0,K1]   = spm_kernels(M0,M1,L,N,dt);
+    [~,K1]    = spm_kernels(M0,M1,L,N,dt);
 
 
     % [cross]-spectral density

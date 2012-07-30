@@ -1,6 +1,6 @@
-function [b,a] = spm_csd_mtf_pole_zero(P,M,U,region_stab)
+function [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 % Spectral response of a NMM (transfer function x noise spectrum)
-% FORMAT [y,w,s] = spm_csd_mtf(P,M,U)
+% FORMAT [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 %
 % P - parameters
 % M - neural mass model structure
@@ -52,9 +52,6 @@ x    = spm_int_L(P,S,V);
 x    = spm_unvec(x(end,:),S.x);
 M.x  = x;
 
-% spectrum of innovations (Gu) and noise (Gs and Gn)
-%--------------------------------------------------------------------------
-[Gu,Gs,Gn] = spm_csd_mtf_gu(P,M);
 
 % get prior means (delays)
 %--------------------------------------------------------------------------
@@ -132,23 +129,22 @@ for  c = 1:size(X,1)
     
     % project onto spatial modes
     %----------------------------------------------------------------------
-    try,    L = M.U'*L;   end
+    try, L = M.U'*L; end
     
     % kernels
     %----------------------------------------------------------------------
-    [K0,K1]   = spm_kernels(M0,M1,L,N,dt);
-    
-    [N,nc,nu] = size(K1);
+    [~,K1] = spm_kernels(M0,M1,L,N,dt);
     
     % State Space Representation
+    %----------------------------------------------------------------------
     A = full(M0(2:end,2:end));
     for i = 1:nc
         B(:,i) = full(M1{i}(2:end,1));
     end
     
-    C = full(L(:,2:end));
-    D = zeros(nc,nc);
-    [b,a]     =  spm_ss2tf(A,B,C(region_stab,:),D(region_stab,:),1);
+    C     = full(L(:,2:end));
+    D     = zeros(nc,nc);
+    [b,a] = spm_ss2tf(A,B,C(region_stab,:),D(region_stab,:),1);
     zplane(b,a)    
 
 end

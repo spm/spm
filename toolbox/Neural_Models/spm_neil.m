@@ -1,3 +1,4 @@
+function spm_neil
 % Demo routine for hemodynamic model
 %==========================================================================
 % For Prof Neil Burgess
@@ -6,12 +7,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_neil.m 2521 2008-12-02 19:49:39Z karl $ 
+% $Id: spm_neil.m 4812 2012-07-30 19:54:59Z karl $ 
  
 
 % Model specification
 %==========================================================================
-clear
 
 % create BOLD model
 %--------------------------------------------------------------------------

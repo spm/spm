@@ -1,3 +1,4 @@
+function spm_ind_demo
 % Demo for models of induced frequency responses and nonlinear coupling
 %==========================================================================
 %
@@ -36,10 +37,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 2374 2008-10-21 18:52:29Z karl $
- 
-clear
- 
+% $Id: spm_ind_demo.m 4812 2012-07-30 19:54:59Z karl $
+
+
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
 n     = 1;
@@ -63,6 +63,8 @@ C     = sparse(1,1,1,n,1);
  
 % create LFP model
 %--------------------------------------------------------------------------
+M.dipfit.type = 'LFP';
+
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_erp';
 M.x   = sparse(n,13);

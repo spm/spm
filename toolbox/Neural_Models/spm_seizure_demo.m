@@ -1,3 +1,4 @@
+function spm_seizure_demo
 % Demo routine for local field potential models
 %==========================================================================
 % 
@@ -15,7 +16,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 4718 2012-04-19 15:34:45Z karl $ 
+% $Id: spm_seizure_demo.m 4812 2012-07-30 19:54:59Z karl $ 
  
 
 % Model specification
@@ -28,16 +29,16 @@ Ns    = 1;
 options.spatial  = 'LFP';
 options.model    = 'CMC';
 options.analysis = 'TFA';
-dipfit.model = options.model;
-dipfit.type  = options.spatial;
-dipfit.Nc    = Nc;
-dipfit.Ns    = Ns;
+M.dipfit.model = options.model;
+M.dipfit.type  = options.spatial;
+M.dipfit.Nc    = Nc;
+M.dipfit.Ns    = Ns;
 
  
 % get priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_dcm_neural_priors({0 0 0},{},[1 0],options.model);
-[pE,pC] = spm_L_priors(dipfit,pE,pC);
+[pE,pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE,pC] = spm_ssr_priors(pE,pC);
 [x,f]   = spm_dcm_x_neural(pE,options.model);
 
@@ -81,7 +82,8 @@ spm_figure('GetWin','Volterra kernels and transfer functions');
 %--------------------------------------------------------------------------
 [f,J,D]       = spm_fx_tfm(x,u,pE,M);
 M.u           = sparse(Ns,1);
-[M0,M1,L1,L2] = spm_bireduce(M,pE,D);
+M.D           = D;
+[M0,M1,L1,L2] = spm_bireduce(M,pE);
 
 
 % compute kernels (over 64 ms)
@@ -189,11 +191,23 @@ drawnow
 
 % now integrate a generative model to simulate a time frequency response
 %==========================================================================
-[y,w,t,x] = spm_csd_tfm(pE,M,U);
-
-% plot
-%--------------------------------------------------------------------------
 spm_figure('GetWin','Simulated time frequency responses');
+
+% time-frequency
+%--------------------------------------------------------------------------
+W     = 128;
+TFR   = spm_wft(LFP,w*W*U.dt,W);
+subplot(4,1,4)
+imagesc(t,w,abs(TFR));
+title('simulated repsonse','FontSize',16)
+axis  xy
+xlabel('time (s)')
+ylabel('Hz')
+drawnow
+
+% prediction
+%--------------------------------------------------------------------------
+[y,w,t,x] = spm_csd_tfm(pE,M,U);
 
 subplot(4,1,1)
 plot(t,U.u)
@@ -213,7 +227,7 @@ spm_axis tight
 %--------------------------------------------------------------------------
 subplot(4,1,3)
 imagesc(t,w,abs(y{1}'));
-title('Time-frequency response','FontSize',16)
+title('Predicted response','FontSize',16)
 axis  xy
 xlabel('time (s)')
 ylabel('Hz')

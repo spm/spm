@@ -1,3 +1,4 @@
+function spm_mfm_demo
 % Demo routine for mean-field models
 %==========================================================================
 % 
@@ -42,12 +43,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfm_demo.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_mfm_demo.m 4812 2012-07-30 19:54:59Z karl $
  
  
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
-clear
 n     = 1;
  
 % extrinsic network connections
@@ -125,6 +125,8 @@ end
  
 % input
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 1'); clf
+
 pop   = {'stellate', 'interneurons', 'pyramidal'};
 state = {'Voltage', 'excitatory conductance', 'inhibitory conductance'};
 
@@ -157,12 +159,11 @@ title('Pyramidal depolarisation')
 axis square
 xlabel('time (ms)')
 drawnow
-  
-spm_demo_proceed
 
  
 % plot
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 2'); clf
 for i = 1:3
     for j = 1:3
         subplot(3,3,(i - 1)*3 + j)
@@ -173,9 +174,6 @@ for i = 1:3
 end
 drawnow
 
-spm_demo_proceed
-
- 
  
 % Integrate system to see Transient response - MFM
 %==========================================================================
@@ -186,6 +184,8 @@ NMM   = spm_int_B(pE,NM,U);
 
 % LFP - ensemble
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 3'); clf
+
 m   = mean(Y(:,:,1,p,1),2)';
 s   =  std(Y(:,:,1,p,1),0,2)'*1.64;
 subplot(3,1,1)
@@ -223,9 +223,6 @@ axis square
 xlabel('time (ms)')
 drawnow
 
-spm_demo_proceed
-
-
 % create exogenous inputs for responses to transient and sustained input
 %==========================================================================
 dt    = 2;
@@ -256,7 +253,9 @@ for i = 1:length(u)
     fprintf('input level (spike) %i (%i)\n',i,length(u))
  
 end
- 
+
+spm_figure('GetWin','Figure 4'); clf
+
 subplot(2,2,1)
 imagesc(u,t,squeeze(YMF(:,p,:)))
 xlabel('input amplitude (spike)')
@@ -304,13 +303,13 @@ xlabel('input amplitude (sustained)')
 ylabel('time (ms)')
 title([pop{p} ': NMM'])
 drawnow
- 
-spm_demo_proceed
 
  
 % frequency responses
 %--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 5'); clf
 clear FMF SMF
+
 p     = 3;
 for i = 1:length(u)
     

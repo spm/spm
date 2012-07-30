@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 19-Apr-2012 17:21:33
+% Last Modified by GUIDE v2.5 07-May-2012 18:16:19
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -89,15 +89,7 @@ guidata(hObject, handles);
 function pushbutton24_Callback(hObject, eventdata, handles)
 set(handles.pushbutton24,'String','please wait')
 drawnow
-try
-    guidata(1,handles);
-catch
-    spm_figure('GetWin','DEM');
-    guidata(1,handles);
-end
 eval(handles.file)
-handles = set(0,'UserData');
-handles = guidata(1);
 set(handles.pushbutton24,'String','run demo')
 
 
@@ -153,3 +145,8 @@ run_demo_Callback(hObject, handles, 'spm_seizure_demo')
 function pushbutton22_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
 run_demo_Callback(hObject, handles, 'spm_induced_demo')
+
+% --- Executes on button press in pushbutton25.
+function pushbutton25_Callback(hObject, ~, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
+run_demo_Callback(hObject, handles, 'spm_induced_optimise')

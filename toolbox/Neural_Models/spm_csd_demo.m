@@ -1,3 +1,4 @@
+function spm_csd_demo
 % Demo routine for inverting local field potential models using
 % cross-spectral density summaries of steady-state dynamics
 %__________________________________________________________________________
@@ -48,10 +49,9 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 4402 2011-07-21 12:37:24Z karl $
+% $Id: spm_csd_demo.m 4812 2012-07-30 19:54:59Z karl $
  
 clear global
-clear
  
 % specify model
 %==========================================================================
@@ -77,6 +77,8 @@ C     = speye(n,n);                        % sources receiving innovations
  
 % create LFP model
 %--------------------------------------------------------------------------
+M.dipfit.type = 'LFP';
+
 M.IS  = 'spm_lfp_mtf';
 M.FS  = 'spm_lfp_sqrt';
 M.f   = 'spm_fx_lfp';
@@ -95,8 +97,9 @@ M.Hz  = [1:64]';
 P           = pE;
 P.A{1}(2,1) = 1;                          % strong forward connections
 CSD         = spm_lfp_mtf(P,M);
+CSD         = CSD{1};
  
-% or generate data
+% or generate data and use the sample CSD
 %==========================================================================
  
 % Integrate with pink noise process
@@ -115,8 +118,11 @@ catch
     warndlg('please include spectral toolbax in Matlab path')
 end
 mar  = spm_mar_spectra(mar,M.Hz,1/U.dt);
-CSD  = abs(mar.P);
- 
+CSD  = spm_cond_units(abs(mar.P));
+
+
+spm_figure('GetWin','Figure 1'); clf
+
 subplot(2,1,1)
 plot([1:N]*U.dt,LFP)
 xlabel('time')
@@ -128,24 +134,22 @@ xlabel('frequency')
 title('[cross]-spectral density')
 axis square
 
-spm_demo_proceed
- 
  
 % inversion (in frequency space)
 %==========================================================================
  
 % data and confounds
 %--------------------------------------------------------------------------
-Y.y    = spm_lfp_mtf(P,M);
-nf     = size(Y.y{1},1);                  % number of frequency bins
-Y.Q    = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
+Y.y   = {CSD};
+nf    = size(Y.y{1},1);                  % number of frequency bins
+Y.Q   = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
  
 % invert
 %--------------------------------------------------------------------------
-[Ep,Cp,Eh,F] = spm_nlsi_GN(M,[],Y);
+Ep    = spm_nlsi_GN(M,[],Y);
  
 
-spm_demo_proceed
+spm_figure('GetWin','Figure 2'); clf
  
 % plot spectral density
 %==========================================================================
@@ -154,7 +158,7 @@ spm_demo_proceed
 % plot
 %--------------------------------------------------------------------------
 g = G{1};
-y = CSD{1};
+y = Y.y{1};
 for i = 1:nc
     for j = 1:nc
         

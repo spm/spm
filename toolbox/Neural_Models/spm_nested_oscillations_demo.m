@@ -1,3 +1,4 @@
+function spm_nested_oscillations_demo
 % Demo routine for neural mass models of nested oscillations
 %==========================================================================
 % 
@@ -34,12 +35,11 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nested_oscillations_demo.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_nested_oscillations_demo.m 4812 2012-07-30 19:54:59Z karl $
  
  
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
-clear
 n     = 1;
  
 % extrinsic network connections

@@ -1,225 +1,260 @@
-% Demo routine for local field potential models
+function spm_induced_demo
+% Demo routine for induced responses
 %==========================================================================
 %
-% This is a generic demonstration of neural-mass models that illustrates
-% various impulse response behaviours. It is meant to show how to specify
-% a neural-mass model, examine its response properties using Volterra
-% kernels and transfer functions and generate electrophysiological and
-% hemodynamic responses from the same model. It is anticipated that people
-% will go through the code to see how the routines relate to each other.
+% This demonstration illustrates the generative or forward model used for
+% time frequency responses - in other words, a biophysically plausible
+% dynamic causal model for induced responses. The basic idea is to
+% integrate a neural mass model to obtain expected hidden neuronal
+% states produced by an unknown (parameterised) exogenous input. The states 
+% are used as the expansion point for a linear perturbation analysis of
+% the frequency response properties that are local in peristimulus time.
+% The ensuing spectra (induced complex cross spectra) are then convolved
+% with a wavelet window to generate predictions of a conventional time
+% frequency (wavelet) transform. Crucially, these predictions are complex
+% and can be used to characterise delays – in terms of cross covariance
+% functions. Nonlinearities in the neural mass model mean that the spectral
+% responses caused by random neuronal fluctuations are state dependent and
+% therefore change with the expected hidden states over peristimulus time.
 %
-% This demo contains a linear stability analysis, which can be useful for
-% identifying useful domains of parameter space (here the inhibitory time-
-% constant)
+% This routine first creates a simple – two source – generative model using
+% a canonical microcircuit architecture and conductance based dynamics. It
+% then produces predictions of induced responses to a short and sustained
+% input to the first source – as measured by two local field potential
+% recordings at each source. Exactly the same model is then integrated in
+% time,  using (serially correlated) random fluctuations to drive each
+% source (in addition to the exogenous input). This is repeated over 16
+% trials and the simulated responses are characterised in terms of a
+% wavelet transform – to produce complex cross spectral  data features. 
+% These are shown graphically with their analytic predictions from the 
+% generative model.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_induced_demo.m 4721 2012-04-21 08:53:29Z karl $
-
-
+% $Id: spm_induced_demo.m 4812 2012-07-30 19:54:59Z karl $
+ 
+ 
 % Model specification
 %==========================================================================
-
+ 
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
-Nc    = 1;
-Ns    = 1;
+Nc    = 2;                                       % number of channels
+Ns    = 2;                                       % number of sources
 options.spatial  = 'LFP';
-options.model    = 'CMC';
-options.analysis = 'TFA';
-dipfit.model = options.model;
-dipfit.type  = options.spatial;
-dipfit.Nc    = Nc;
-dipfit.Ns    = Ns;
-
-
+options.model    = 'CMM';
+options.analysis = 'TFR';
+M.dipfit.model = options.model;
+M.dipfit.type  = options.spatial;
+M.dipfit.Nc    = Nc;
+M.dipfit.Ns    = Ns;
+ 
+% extrinsic connections (forward an backward)
+%--------------------------------------------------------------------------
+A{1} = [0 0; 1 0];
+A{2} = [0 1; 0 0];
+C    = [1; 0];
+ 
+ 
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_neural_priors({0 0 0},{},1,options.model);
-P       = fieldnames(pE);
-[pE,pC] = spm_L_priors(dipfit,pE,pC);
+[pE,pC] = spm_dcm_neural_priors(A,{},C,options.model);
+[pE,pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE,pC] = spm_ssr_priors(pE,pC);
 [x,f]   = spm_dcm_x_neural(pE,options.model);
 
-% eliminate channel noise and make innovations white
-%--------------------------------------------------------------------------
-pE.a    = [  0; -16];                  % log amplitude ang f^(-a) exponent
-pE.b    = [-32; -32];                  % log amplitude ang f^(-a) exponent
-pE.c    = [-32; -32];                  % log amplitude ang f^(-a) exponent
-
-
+pE.J(1:4) = [0 1 0 0];
+ 
+ 
 % orders and model
 %==========================================================================
-np      = length(spm_vec(pE));
-nx      = length(spm_vec(x ));
-nu      = size(pE.C,2);
-u       = sparse(1,nu);
-
-% create LFP model
+np    = length(spm_vec(pE));
+nx    = length(spm_vec(x ));
+nu    = size(pE.C,2);
+u     = sparse(1,Ns);
+ 
+% create forward model
 %--------------------------------------------------------------------------
-M.f     = f;
-M.g     = 'spm_gx_erp';
-M.h     = f;
-M.x     = x;
-M.n     = nx;
-M.pE    = pE;
-M.m     = nu;
-M.l     = Nc;
-
-% Volterra Kernels and transfer functions
-%==========================================================================
-M.u     = u;
-M.Hz    = 4:68;
-
-% compute transfer functions for different parameters
+M.f   = f;
+M.g   = 'spm_gx_erp';
+M.x   = x;
+M.n   = nx;
+M.pE  = pE;
+M.m   = nu;
+M.l   = Nc;
+M.Hz  = 4:64;
+M.Rft = 4;
+ 
+% solve for steady state
 %--------------------------------------------------------------------------
-iplot = 1;
-ifig  = 1;
-D     = 1.5;
-for k = 1:0 %length(P)
-    
-    
-    % check paremter exists
-    %----------------------------------------------------------------------
-    spm_figure('GetWin',sprintf('Panel %i',ifig));
-    Q = getfield(pE,P{k});
-    if isnumeric(Q)
-        for i = 1:size(Q,1)
-            for j = 1:size(Q,2);
-                
-                % line search
-                %----------------------------------------------------------
-                dQ    = linspace(Q(i,j) - D,Q(i,j) + D,32);
-                for q = 1:length(dQ)
-                    qE      = pE;
-                    qE      = setfield(qE,P{k},{i,j},dQ(q));
-                    [G w]   = spm_csd_mtf(qE,M);
-                    GW(:,q) = G{1};
-                end
-
-                if any(var(GW') > 1e-6)
-                    
-                    % plot
-                    %------------------------------------------------------
-                    subplot(4,2,2*iplot - 1)
-                    plot(w,GW)
-                    xlabel('frequency {Hz}')
-                    title(sprintf('Param: %s(%i,%i)',P{k},i,j),'FontSize',16)
-                   
-                    
-                    subplot(4,2,2*iplot - 0)
-                    imagesc(dQ,w,log(GW))
-                    title('transfer functions','FontSize',16)
-                    ylabel('Frequency')
-                    xlabel('Inhibitory connection','FontSize',16)
-                    axis xy; drawnow
-                    
-                    % update graphics
-                    %------------------------------------------------------
-                    iplot = iplot + 1;
-                    if iplot > 4
-                        iplot = 1;
-                        ifig  = ifig + 1;
-                        spm_figure('GetWin',sprintf('Panel %i',ifig));
-                    end
-                    
-                end
-            end
-        end
-    end
-end
-
-
-% exogenous input-dependent parameters
-%==========================================================================
-M.f     = 'spm_fx_tfm';
-pE.X    = sparse(np,nu);
-pC.X    = sparse(np,nu);
-
-% state-dependent parameters
-%--------------------------------------------------------------------------
-ix      = 3;
-ip      = spm_fieldindices(pE,'G');jp = 2;  % gamma (High - 50 Hz)
-pE.Y    = sparse(ip(jp),ix,64,np,nx);
-
-ix      = 1;
-ip      = spm_fieldindices(pE,'G');jp = 3;  % Beta (24 Hz)
-pE.Y    = pE.Y + sparse(ip(jp),ix,16,np,nx);
-
-ix      = 7;
-ip      = spm_fieldindices(pE,'G');jp = 4;  % Gamms (low - 38 Hz)
-pE.Y    = pE.Y + sparse(ip(jp),ix,-64,np,nx);
-
-
-pC.Y    = sparse(np,nx);
-
+M.x   = spm_dcm_neural_x(pE,M);
+ 
 % Integrate system to see response (time-frequency)
 %==========================================================================
-
+ 
 % remove M.u to invoke exogenous inputs
 %--------------------------------------------------------------------------
-M     = rmfield(M,'u');
 N     = 128;
 U.dt  = 4/1000;
 t     = (1:N)'*U.dt;
 U.u   = sparse(N,M.m);
-
-% exogenous input
+ 
+ 
+% exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = exp(-(t - 128/1000).^2*1024)*32;
-U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*32,4);
+U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*32,8);
+ 
+% integrate generative model to simulate a time frequency response
+%--------------------------------------------------------------------------
+[csd,w,t,x,y,s,erp] = spm_csd_int(pE,M,U);
 
-% now integrate a generative model to simulate a time frequency response
+ 
+% plot expected responses
 %==========================================================================
-[y,w,t,x] = spm_csd_tfm(pE,M,U);
-
-% basline correction
-%--------------------------------------------------------------------------
-for i = 1:length(y)
-    y{i} = log(y{i});
-    y{i} = y{i} - ones(size(y{i},1),1)*y{i}(1,:);
-end
-
-% plot (in ms)
-%--------------------------------------------------------------------------
 spm_figure('GetWin','Simulated time frequency responses');
-
-t     = t*1000;
-
+ 
+pst   = t*1000;
+ 
 subplot(4,1,1)
-plot(t,U.u)
-xlabel('time (ms)')
+plot(pst,U.u)
+xlabel('peristimulus time (ms)')
 title('Exogenous input','FontSize',16)
 spm_axis tight
-
+ 
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,1,2)
-plot(t,x(:,1:2:8))
-xlabel('time (ms)')
-title('Hidden neuronal states','FontSize',16)
+plot(pst,x)
+xlabel('peristimulus time (ms)')
+title('Hidden neuronal states (conductance and depolarisation)','FontSize',16)
 spm_axis tight
-
-% predicted time frequency response
+ 
+ 
+% expected time frequency response (coherence and cross-covariance)
 %--------------------------------------------------------------------------
-subplot(4,1,3)
-imagesc(t,w,y{1}');
-title('Time-frequency response (baseline corrected)','FontSize',16)
-axis  xy
-xlabel('time (ms)')
-ylabel('Hz')
+spm_dcm_tfm_image(y{1},pst,w,0)
+ 
 
-
-% predicted time frequency response
+% expected time frequency response
 %--------------------------------------------------------------------------
-subplot(4,1,4)
-plot(t,y{1}');
-title('Time-frequency response (baseline corrected)','FontSize',16)
-xlabel('time (ms)')
-ylabel('Hz')
+spm_figure('GetWin','tansfer functions');
 
+spm_dcm_tfm_transfer(s{1},pst,w)
+
+% simulated responses
+%==========================================================================
+spm_figure('GetWin','Smpirical responses');
+ 
+% time-frequency
+%--------------------------------------------------------------------------
+xY.erp = erp;
+xY.csd = csd;
+spm_dcm_tfm_response(xY,pst,w)
 
 return
 
 
+% Integrate system to simulate responses
+%==========================================================================
+spm_figure('GetWin','Simulated trials');
+ 
+ 
+% get serial correlations among random fluctuations
+%--------------------------------------------------------------------------
+Hz        = 1:M.Hz(end);
+Gu        = spm_csd_mtf_gu(pE,Hz);
+[ccf,lag] = spm_csd2ccf(full(Gu),Hz);
+ccf       = ccf((length(ccf) + 1)/2:fix(U.dt/(lag(2) - lag(1))):end,1);
+ccf       = ccf(1:N)/max(ccf);
+ccf       = spm_sqrtm(toeplitz(ccf));
+ 
+% enable exogenous input to affect all sources
+%--------------------------------------------------------------------------
+qE    = pE;
+qE.C  = log(eye(2,2) + exp(-32));
+V     = U;
+ 
+% simulate Nt trials
+%--------------------------------------------------------------------------
+Nt    = 16;
+for j = 1:Nt
+    fprintf('\nsimulating trial %i',j)
+    V.u      = [U.u + ccf*randn(N,1), ccf*randn(N,1)];
+    D(:,:,j) = spm_int_J(qE,M,V);
+end
+ 
+% plot simulated data
+%==========================================================================
+ 
+% LFP – expectation
+%--------------------------------------------------------------------------
+subplot(4,1,1)
+plot(pst,erp{1})
+xlabel('time (s)')
+title('LFP response – expectation','FontSize',16)
+spm_axis tight
+ 
+% LFP – random fluctuations
+%--------------------------------------------------------------------------
+subplot(4,1,2)
+for i = 1:size(D,3)
+    plot(pst,D(:,:,i),':'), hold on
+end
+plot(pst,mean(D,3),'Linewidth',2)
+hold off
+xlabel('time (s)')
+title('simulated response and ERP','FontSize',16)
+spm_axis tight
+ 
+ 
+% Time frequency response
+%--------------------------------------------------------------------------
+Nf    = length(M.Hz);
+Nb    = length(pst);
+Nm    = Nc;
+ 
+P     = zeros(Nb,Nf,Nm,Nm);
+Q     = zeros(Nb,Nf,Nm,Nm);
+c     = 1;
+E     = mean(D,3);
+for k = 1:Nt
+    
+    fprintf('\nevaluating condition %i (trial %i)',c,k)
+    d     = full(double(D(:,:,k)));
+    G     = spm_morlet(d - E,w*U.dt,M.Rft);
+    for i = 1:Nm
+        for j = 1:Nm
+            P(:,:,i,j) = (G(:,:,i).*conj(G(:,:,j)));
+        end
+    end
+    Q = Q + P;
+end
+
+% normalise induced responses
+%--------------------------------------------------------------------------
+Vm    = mean(mean(squeeze(var(D,[],3))));
+Vs    = mean(diag(squeeze(mean(squeeze(mean(Q))))));
+Q     = Vm*Q/Vs;
+
+% time-frequency
+%--------------------------------------------------------------------------
+spm_dcm_tfm_image(Q,pst,w,0)
+
+% simulated responses
+%==========================================================================
+spm_figure('GetWin','Empirical (simulated) responses');
+ 
+% time-frequency
+%--------------------------------------------------------------------------
+xY.erp{1} = E;
+xY.csd{1} = Q;
+spm_dcm_tfm_response(xY,pst,w)
+ 
+ 
+% compare expected and simulated responses
+%==========================================================================
+spm_figure('GetWin','Expected and simulated responses');
+
+spm_dcm_tfm_image(csd{1},pst,w,1)
+spm_dcm_tfm_image(Q,pst,w,0)
