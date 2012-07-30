@@ -16,7 +16,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_LAP_eval.m 4811 2012-07-30 19:54:03Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
@@ -24,7 +24,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 N          = length(M);
 v          = cell(N,1);
 x          = cell(N,1);
-v(1 + 1:N) = spm_unvec(qu.v{1},{M(1 + 1:N).v});
+v(1:N - 1) = spm_unvec(qu.v{1},{M(1 + 1:N).v});
 x(1:N - 1) = spm_unvec(qu.x{1},{M(1:N - 1).x});
 
 

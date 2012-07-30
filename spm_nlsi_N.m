@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_nlsi_N.m 4811 2012-07-30 19:54:03Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -395,7 +395,7 @@ for ip = 1:M.Nmax
  
             % convergence
             %--------------------------------------------------------------
-            if dFdh'*dh < 1e-1, break, end
+            if dFdh'*dh < 1e-2, break, end
  
         end
  
@@ -425,7 +425,7 @@ for ip = 1:M.Nmax
         % convergence
         %------------------------------------------------------------------
         dG    = dFdg'*dg;
-        if ig > 1 && dG < 1e-1, break, end
+        if ig > 1 && dG < 1e-2, break, end
         
     end
     

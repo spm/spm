@@ -4,7 +4,7 @@ function [DEM] = spm_ALAP(DEM)
 %
 % DEM.G  - generative process
 % DEM.M  - recognition  model
-% DEM.C  - causes
+% DEM.C  - causes (n x t)
 % DEM.U  - prior expectation of causes
 %__________________________________________________________________________
 %
@@ -24,15 +24,21 @@ function [DEM] = spm_ALAP(DEM)
 %   M(i).hC = prior covariances of h log-precision (cause noise)
 %   M(i).gE = prior expectation of g log-precision (state noise)
 %   M(i).gC = prior covariances of g log-precision (state noise)
-%   M(i).xP = precision (states)
+%
 %   M(i).Q  = precision components (input noise)
 %   M(i).R  = precision components (state noise)
 %   M(i).V  = fixed precision (input noise)
 %   M(i).W  = fixed precision (state noise)
+%   M(i).xP = precision (states)
 %
-%   M(i).m  = number of inputs v(i + 1);
-%   M(i).n  = number of states x(i);
-%   M(i).l  = number of output v(i);
+%   M(i).m  = number of hidden inputs v(i + 1);
+%   M(i).n  = number of hidden states x(i);
+%   M(i).l  = number of outputs v(i);
+%
+% or (inital values)
+%
+%   M(i).x  = hidden states
+%   M(i).v  = hidden causes
 %
 % hierarchical process G(i)
 %--------------------------------------------------------------------------
@@ -40,7 +46,7 @@ function [DEM] = spm_ALAP(DEM)
 %   G(i).f  = dx/dt = f(x,v,[a],P)    {inline function, string or m-file}
 %
 %   G(i).pE = model-parameters
-%   G(i).U  = precision (action)
+%   G(i).U  = precision (on sensory prediction errors - for action)
 %   G(i).V  = precision (input noise)
 %   G(i).W  = precision (state noise)
 %
@@ -49,6 +55,11 @@ function [DEM] = spm_ALAP(DEM)
 %   G(i).l  = number of output v(i)
 %   G(i).k  = number of action a(i)
 %
+% or (inital values)
+%
+%   G(i).x  = states
+%   G(i).v  = causes
+%   G(i).a  = action
 %
 % Returns the following fields of DEM
 %--------------------------------------------------------------------------
@@ -138,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_ALAP.m 4811 2012-07-30 19:54:03Z karl $
 
 
 % check model, data and priors
