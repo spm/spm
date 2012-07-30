@@ -1,4 +1,4 @@
-function DEM_demo_ALAP
+% function ALAP_demo_attenuation
 % This demonstration is essentially the same as DEM_demo_LAP – however
 % here, we compare two generalised filtering schemes that are implemented
 % very differently: the first integrates the generative process in
@@ -11,7 +11,7 @@ function DEM_demo_ALAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ALAP_demo_attenuation.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ALAP_demo_attenuation.m 4813 2012-07-30 19:55:26Z karl $
  
 % process (G) and model (M)
 %==========================================================================
@@ -33,11 +33,13 @@ G(1).x  = [0; 0];                      % hidden state
 G(1).v  = [0; 0];                      % hidden cause
 G(1).V  = exp(8);                      % precision (noise)
 G(1).W  = exp(8);                      % precision (states)
- 
+G(1).U  = [exp(4) 0];                  % precision (action)
+
  
 % level 2; causes
 %--------------------------------------------------------------------------
-G(2).v  = 0;                           % hidden cause
+G(2).v  = 0;                           % exogenous  cause
+G(2).a  = 0;                           % endogenous cause (action)
 G(2).V  = exp(16);
  
  
@@ -48,24 +50,22 @@ M(1).g  = inline('[x(1); sum(x)]','x','v','P');
 M(1).x  = [0; 0];                      % hidden state
 M(1).v  = [0; 0];                      % hidden cause
 M(1).W  = exp(8);                      % precision (states)
-M(1).ph = inline('[1; 1]*(8 + h*x(1))','x','v','h','M');
+M(1).ph = inline('[1; 1]*(8 - 2*x(1))','x','v','h','M');
 
 
 % level 2; causes
 %--------------------------------------------------------------------------
 M(2).v  = [0; 0];                      % hidden cause
-M(2).V  = exp(4);
+M(2).V  = [exp(2); exp(-2)];
 
 
-% free hyperparameters
-%--------------------------------------------------------------------------
-M(1).hE = 8;
-
- 
 % hidden cause and prior expectations
 %========================================================================== 
-N      = 32;
-U      = exp(-((1:N) - 12).^2/(2.^2));
+N      = 128;
+C      = exp(-((1:N) -   N/4).^2/(4.^2));
+U(1,:) = exp(-((1:N) - 3*N/4).^2/(4.^2));
+U(2,:) = C*0;
+
 
 % invert
 %==========================================================================
@@ -76,8 +76,11 @@ DEM.U  = U;
 
 % generate and filter responses
 %-------------------------------------------------------------------------- 
-LAP    = spm_ALAP(DEM);
+DEM    = spm_ALAP(DEM);
+spm_DEM_qU(DEM.qU,DEM.pU)
 
+
+return
 
 
 

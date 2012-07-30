@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 06-Apr-2012 18:53:38
+% Last Modified by GUIDE v2.5 27-Jul-2012 18:35:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -324,7 +324,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_dendrite')
 
 % --- Executes on button press in pushbutton104.
 function pushbutton104_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Free-energy%20and%20illusions%20the%20Cornsweet%20effect.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_Cornsweet')
 
 % --- Executes on button press in pushbutton105.
@@ -339,7 +339,7 @@ run_demo_Callback(hObject, handles, 'ADEM_cued_response')
 
 % --- Executes on button press in pushbutton118.
 function pushbutton118_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Attractors%20in%20song.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_MMN_deviance')
 
 % --- Executes on button press in pushbutton119.
@@ -359,12 +359,12 @@ run_demo_Callback(hObject, handles, 'spm_MDP')
 
 % --- Executes on button press in pushbutton122.
 function pushbutton122_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Perceptions%20as%20hypotheses%20saccades%20as%20experiments.pdf';
 run_demo_Callback(hObject, handles, 'ADEM_salience')
 
 % --- Executes on button press in pushbutton123.
 function pushbutton123_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Perception%20and%20self-organized%20instability.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_SOC')
 
 % --- Executes on button press in pushbutton124.
@@ -381,3 +381,11 @@ run_demo_Callback(hObject, handles, 'ADEM_occlusion')
 function pushbutton126_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Generalised%20Filtering.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_ALAP')
+
+% --- Executes on button press in pushbutton127.
+function pushbutton127_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'ALAP_demo_attenuation')
+
+
+
