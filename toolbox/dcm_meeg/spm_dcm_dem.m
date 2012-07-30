@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_dem.m 4814 2012-07-30 19:56:05Z karl $
 
 % check options
 %==========================================================================
@@ -133,19 +133,8 @@ M.ns  = Ns;
 
 % Spatial modes
 %--------------------------------------------------------------------------
-if Nc < Nm
-    U     = speye(Nc);
-    M.E   = U;
-else
-    dGdg  = spm_diff(M.G,gE,M,1);
-    L     = spm_cat(dGdg);
-    U     = spm_svd(L*L',exp(-8));
-    try
-        U = U(:,1:Nm);
-    end
-    M.E   = U;
-end
-Nm    = size(U,2);
+M.U   = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
+Nm    = size(M.U,2);
 
 
 % EM: inversion
@@ -182,8 +171,8 @@ L       = feval(M.G, Qg,M);                 % get gain matrix
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
 for i = 1:Nt
-    y{i} = x{i}*L'*M.E;                 % prediction (sensor space)
-    r{i} = T0*(xY.y{i}*M.E - y{i});     % residuals  (sensor space)
+    y{i} = x{i}*L'*M.U;                 % prediction (sensor space)
+    r{i} = T0*(xY.y{i}*M.U - y{i});     % residuals  (sensor space)
 end
 
 

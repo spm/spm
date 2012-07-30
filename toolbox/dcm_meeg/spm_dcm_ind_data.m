@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_ind_data.m 4814 2012-07-30 19:56:05Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -97,7 +97,6 @@ Nc   = length(DCM.xY.Ic);
 try, Nm  = DCM.options.Nmodes; catch, Nm  = 4; DCM.options.Nmodes = Nm; end
 try, h   = DCM.options.h;      catch, h   = 1; DCM.options.h      = h;  end
 try, DT  = DCM.options.D;      catch, DT  = 2; DCM.options.D      = DT; end
-try, DT  = DCM.options.D;      catch, DT  = 2; DCM.options.D      = DT; end
 try, Rft = DCM.options.Rft;    catch, Rft = 6; DCM.options.Rft    = Rft;end
 
 try
@@ -134,8 +133,8 @@ ms          = DCM.options.Tdcm(1) - DCM.xY.Time(1);
 ms          = max(min(ms,512),64);
 T1          = DCM.options.Tdcm(1) - ms;
 T2          = DCM.options.Tdcm(2) + ms;
-[i, T1]     = min(abs(DCM.xY.Time - T1));
-[i, T2]     = min(abs(DCM.xY.Time - T2));
+[~, T1]     = min(abs(DCM.xY.Time - T1));
+[~, T2]     = min(abs(DCM.xY.Time - T2));
 B1          = T1 + fix(ms*D.fsample/1000);
 B2          = T2 - fix(ms*D.fsample/1000);
 
@@ -270,7 +269,7 @@ if strcmp(DCM.options.spatial, 'ECD')
         Ng     = 3;
         G.L    = kron(ones(1,Nr),speye(Ng,Ng));
         G.Lpos = kron(pos,ones(1,Ng));
-        L      = spm_erp_L(G,DCM.M);
+        L      = spm_erp_L(G,DCM.M.dipfit);
         MAP    = pinv(L);
         
         

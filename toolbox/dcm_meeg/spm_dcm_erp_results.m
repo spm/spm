@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_erp_results.m 4814 2012-07-30 19:56:05Z karl $
 
 
 % get Action if necessary
@@ -241,9 +241,13 @@ switch(lower(Action))
         % spm_dcm_erp_results(DCM,'coupling (A)');
         %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'A'), return, end
-        str   = {'Forward','Backward','Lateral'};
+        if length(DCM.Ep.A) == 3
+            str = {'Forward','Backward','Lateral'};
+        else
+            str = {'Forward (i)','Forward (ii)','Backward (i)'};
+        end
         
-        for i = 1:length(DCM.Ep.A)
+        for i = 1:3
             
             % images
             %--------------------------------------------------------------
@@ -421,7 +425,7 @@ switch(lower(Action))
         % get spatial projector
         % -----------------------------------------------------------------
         try
-            U = DCM.M.E';
+            U = DCM.M.U';
         catch
             U = 1;
         end
@@ -467,7 +471,7 @@ switch(lower(Action))
         % get spatial projector
         % -----------------------------------------------------------------
         try
-            U = DCM.M.E';
+            U = DCM.M.U';
         catch
             U = 1;
         end
@@ -502,7 +506,7 @@ switch(lower(Action))
         % get spatial projector
         % -----------------------------------------------------------------
         try
-            U = DCM.M.E';
+            U = DCM.M.U';
         catch
             U = 1;
         end

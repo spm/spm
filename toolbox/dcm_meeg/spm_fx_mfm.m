@@ -4,7 +4,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 %
 % x - states and covariances
 %
-% x{1}(i,j,k)   - k-th state of j-th population on i-th source
+% x{1}(i,j,k)   - k-th state of j-th population of i-th source
 %                 i.e., running over sources, pop. and states
 % x{2}(:,:,i,j) - covariance among k states
 %                 i.e., running over states x states, sources and pop.
@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_fx_mfm.m 4814 2012-07-30 19:56:05Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------

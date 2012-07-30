@@ -1,5 +1,5 @@
 function x = spm_dcm_erp_sensitivity(DCM,C)
-% plots change in source activity with a contrast of parameters
+% plots change in source activity w.r.t. a contrast of parameters
 % FORMAT x = spm_dcm_erp_sensitivity(DCM,C)
 %
 % DCM - DCM structure:
@@ -30,13 +30,15 @@ function x = spm_dcm_erp_sensitivity(DCM,C)
 %
 % C      - contrast (in the form of DCM.pE)
 %        - or string identifying a parameter: e.g. 'A{2}(3,1)' 
+
+% e.g.,  >> spm_dcm_erp_sensitivity(DCM, 'A{2}(3,1)' )
 %
 % x{i}   - dx/dC for contributing sources {trial i}
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_sensitivity.m 4186 2011-02-01 20:11:32Z karl $
+% $Id: spm_dcm_erp_sensitivity.m 4814 2012-07-30 19:56:05Z karl $
 
 % check options
 %==========================================================================
@@ -60,12 +62,10 @@ end
 % dimensions
 %--------------------------------------------------------------------------
 Nr     = size(DCM.C,1);                 % number of sources
-Nu     = size(DCM.C,2);                 % number of exogenous inputs
 Ns     = size(xY.xy{1},1);              % number of time bins
 
 % confounds and parameters
 %--------------------------------------------------------------------------
-T0     = speye(Ns) - xY.X0*((xY.X0'*xY.X0)\xY.X0');
 Qp     = DCM.Ep;
 
 % neuronal responses

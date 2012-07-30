@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_csd_results.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % get figure
@@ -83,7 +83,7 @@ switch(lower(Action))
     
 case{lower('spectral data')}
     
-    % spm_dcm_ssr_results(DCM,'Data');
+    % spm_dcm_csd_results(DCM,'Data');
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz    = xY.Hz;
@@ -141,7 +141,7 @@ switch(lower(Action))
     
 case{lower('Coupling (A)')}
     
-    % spm_dcm_ssr_results(DCM,'coupling (A)');
+    % spm_dcm_csd_results(DCM,'coupling (A)');
     %----------------------------------------------------------------------
     str = {'Forward (i)','Forward (ii)','Backward (i)','Backward (ii)'};
     m   = length(DCM.Ep.A);
@@ -184,7 +184,7 @@ case{lower('Coupling (A)')}
     
 case{lower('Coupling (C)')}
     
-    % spm_dcm_ssr_results(DCM,'coupling (C)');
+    % spm_dcm_csd_results(DCM,'coupling (C)');
     %----------------------------------------------------------------------
     
     % images
@@ -221,7 +221,7 @@ case{lower('Coupling (C)')}
  
 case{lower('Coupling (B)')}
     
-    % spm_dcm_ssr_results(DCM,'coupling (B)');
+    % spm_dcm_csd_results(DCM,'coupling (B)');
     %----------------------------------------------------------------------
     for i = 1:nu
         
@@ -263,7 +263,7 @@ case{lower('Coupling (B)')}
     
 case{lower('trial-specific effects')}
     
-    % spm_dcm_ssr_results(DCM,'trial-specific effects');
+    % spm_dcm_csd_results(DCM,'trial-specific effects');
     %----------------------------------------------------------------------
     for i = 1:ns
         for j = 1:ns
@@ -306,33 +306,33 @@ case{lower('Input')}
     % ---------------------------------------------------------------------
     subplot(2,1,1)
     plot(Hz,Gu)
-    xlabel('frquency (Hz)')
+    xlabel('frequency (Hz)')
     title('Spectrum of innovations','FontSize',16)
     axis square, grid on
     legend(DCM.Sname)
-
+ 
     % plot spectral density of noise
     % ---------------------------------------------------------------------
     subplot(2,2,3)
     plot(Hz,Gs)
-    xlabel('frquency (Hz)')
-    title('Channel-specifc noise')
+    xlabel('frequency (Hz)')
+    title('Channel-specific noise')
     axis square, grid on
     legend(xY.name)
-
+ 
     % plot spectral density of noise
     % ---------------------------------------------------------------------
     subplot(2,2,4)
     plot(Hz,Gn)
-    xlabel('frquency (Hz)')
-    title('Non-specifc noise')
+    xlabel('frequency (Hz)')
+    title('Non-specific noise')
     axis square, grid on
     
     
     
 case{lower('Transfer functions')}
     
-    % spm_dcm_ssr_results(DCM,'Cross-spectral density');
+    % spm_dcm_csd_results(DCM,'Cross-spectral density');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz   = DCM.Hz;
@@ -342,7 +342,7 @@ case{lower('Transfer functions')}
     
     % spectrum of innovations or noise (Gu)
     %----------------------------------------------------------------------
-    Gu   = spm_csd_mtf_gu(DCM.Ep,DCM.M);
+    Gu   = spm_csd_mtf_gu(DCM.Ep,Hz);
     
     
     tstr = {};
@@ -359,9 +359,8 @@ case{lower('Transfer functions')}
             for k = 1:nt
                 
                 dtf = abs(DCM.dtf{k}(:,i,j));
-                stf = dtf.*Gu(Hz,j);
+                dtf = dtf.*sqrt(Gu(:,j));
                 dtf = dtf/sum(dtf);
-                stf = stf/sum(stf);
                 
                 plot(Hz,dtf,'color',co{k}), hold on
                 title(sprintf('Spectral transfer: %s to %s',name{j},name{i}))
@@ -380,7 +379,7 @@ case{lower('Transfer functions')}
     
 case{lower('Cross-spectra (sources)')}
     
-    % spm_dcm_ssr_results(DCM,'Cross-spectral density');
+    % spm_dcm_csd_results(DCM,'Cross-spectral density');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz   = DCM.Hz;
@@ -434,7 +433,7 @@ case{lower('Cross-spectra (sources)')}
     
 case{lower('Cross-spectra (channels)')}
     
-    % spm_dcm_ssr_results(DCM,'Cross-spectral density');
+    % spm_dcm_csd_results(DCM,'Cross-spectral density');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz   = DCM.Hz;
@@ -494,7 +493,7 @@ case{lower('Coherence (sources)')}
     %----------------------------------------------------------------------
     [coh fsd] = spm_csd2coh(DCM.Hs,DCM.Hz);
     
-    % spm_dcm_ssr_results(DCM, 'Coherence (sources)’);
+    % spm_dcm_csd_results(DCM, 'Coherence (sources)’);
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz    = DCM.Hz;
@@ -547,7 +546,7 @@ case{lower('Coherence (channels)')}
     [COH FSD] = spm_csd2coh(DCM.xY.y,DCM.Hz);
  
     
-    % spm_dcm_ssr_results(DCM,'Coherence (channels)’);
+    % spm_dcm_csd_results(DCM,'Coherence (channels)’);
     %----------------------------------------------------------------------
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     nm    = min(nm,4);
@@ -601,7 +600,7 @@ case{lower('Covariance (sources)')}
     [ccf pst] = spm_csd2ccf(DCM.Hs,DCM.Hz);
     
     
-    % spm_dcm_ssr_results(DCM,'Cross-covariance (sources)');
+    % spm_dcm_csd_results(DCM,'Cross-covariance (sources)');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     pst  = 1000*pst;
@@ -662,7 +661,7 @@ case{lower('Covariance (channels)')}
     [ccf pst] = spm_csd2ccf(DCM.Hc,DCM.Hz);
     
     
-    % spm_dcm_ssr_results(DCM,'Cross-covariance (sources)');
+    % spm_dcm_csd_results(DCM,'Cross-covariance (sources)');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     pst  = 1000*pst;

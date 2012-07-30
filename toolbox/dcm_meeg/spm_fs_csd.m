@@ -13,13 +13,11 @@ function [y] = spm_fs_csd(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fs_csd.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_fs_csd.m 4814 2012-07-30 19:56:05Z karl $
 
 
 % just return auto-spectra at present
 %--------------------------------------------------------------------------
-y     = y;
-
 return
 
 % log-transform (real) auto-spectra

@@ -17,11 +17,39 @@ function DCM = spm_dcm_tfm(DCM)
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.spatial      - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
+%
+% Returns:
+%
+% sensor space
+%--------------------------------------------------------------------------
+% DCM.csd;                  % conditional cross-spectral density
+% DCM.tfm;                  % conditional induced responses 
+% DCM.dtf;                  % conditional directed transfer functions
+% DCM.erp;                  % conditional evoked responses
+% DCM.Qu;                   % conditional neuronal responses
+% DCM.pst;                  % peristimulus times
+% DCM.Hz;                   % frequencies
+% 
+% store estimates in DCM
+%--------------------------------------------------------------------------
+% DCM.Ep;                   % conditional expectation - parameters
+% DCM.Cp;                   % conditional covariance  - parameters
+% DCM.Pp;                   % conditional probability - parameters
+% DCM.Ce;                   % error covariance
+% DCM.F;                    % Laplace log evidence
+% DCM.ID;                   % data ID
+% 
+% source space
+%--------------------------------------------------------------------------
+% DCM.CSD;                  % conditional cross-spectral density
+% DCM.TFM;                  % conditional induced responses 
+% DCM.DTF;                  % conditional directed transfer functions
+% DCM.ERP;                  % conditional evoked responses
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 4807 2012-07-26 16:15:49Z guillaume $
+% $Id: spm_dcm_tfm.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % check options
@@ -29,55 +57,91 @@ function DCM = spm_dcm_tfm(DCM)
 drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
+DCM.options.analysis  = 'TFM';
  
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                    catch, DCM.name = name;      end
-try, Nm    = DCM.options.Nmodes;  catch, Nm = 8;               end
-try, onset = DCM.options.onset;   catch, onset     = 60;       end
-try, dur   = DCM.options.dur;     catch, dur       = 16;       end
+try, name  = DCM.name;            catch, DCM.name = name;     end
+try, Nm    = DCM.options.Nmodes;  catch, Nm       = 8;        end
+try, onset = DCM.options.onset;   catch, onset    = 60;       end
+try, dur   = DCM.options.dur;     catch, dur      = 16;       end
+try, Nmax  = DCM.options.Nmax;    catch, Nmax     = 64;       end
+
+% Design model and exogenous inputs
+%==========================================================================
+if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
+
+
  
 % Spatial model
 %==========================================================================
 model                = 'CMM';
-DCM.options.analysis = 'TFR';
 DCM.options.Nmodes   = Nm;
 DCM.options.model    = model;
 DCM.M.dipfit.model   = model;
+DCM.options.Nmax     = 32;
+DCM.options.h        = 2;
 
-DCM  = spm_dcm_erp_dipfit(DCM, 1);                  % spatial model
-DCM  = spm_dcm_erp_data(DCM);                       % data
-Ns   = length(DCM.A{1});                            % number of sources
- 
+DCM     = spm_dcm_erp_dipfit(DCM,1);                   % spatial model
+DCM     = spm_dcm_erp_data(DCM);                       % data
+Ns      = length(DCM.A{1});                            % number of sources
 
-% Design model and exogenous inputs
+
+
+% Get posterior from event-related responses
 %==========================================================================
-if isempty(DCM.xU.X), DCM.xU.X = sparse(1 ,0); end
-if ~isfield(DCM,'C'), DCM.C    = sparse(Ns,0); end
-if isempty(DCM.xU.X), DCM.C    = sparse(Ns,0); end
+ERP                  = DCM;
+ERP.options.analysis = 'ERP';
+[pth name] = fileparts(DCM.name); cd(pth)
 
-% Neural mass model
+ERP.name   = fullfile(pth,[name '_erp']);
+ERP        = spm_dcm_erp(ERP);
+
+
+%-Feature selection using principal components (U) of lead-field
 %==========================================================================
+DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
  
-% prior moments on parameters
+% get data-features (in reduced eigenspace)
 %--------------------------------------------------------------------------
-[pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
-[pE,pC]  = spm_L_priors(DCM.M.dipfit,pE,pC);
-[pE,pC]  = spm_ssr_priors(pE,pC);
+DCM      = spm_dcm_tfm_data(DCM);
+
+% scale lead field paramters to align induced and evoked DCMs
+%--------------------------------------------------------------------------
+scale    = DCM.xY.scale/ERP.xY.scale;
+ERP.Eg.L = ERP.Eg.L*scale;
+
+
+% Use posterior as the prior in a model of induced responses
+%==========================================================================
+ 
+% prior moments on parameters (neuronal and spatial)
+%--------------------------------------------------------------------------
+pE       = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
+pE       = spm_L_priors(DCM.M.dipfit,pE);
+pE       = spm_unvec(spm_vec(ERP.Ep,ERP.Eg),pE);
+
+
+% prior moments on parameters (spectral)
+%--------------------------------------------------------------------------
+[pE,pC]  = spm_ssr_priors(pE);
+pC       = diag(spm_vec(pC));
+pC       = spm_cat(spm_diag({ERP.Cp,ERP.Cg,pC}));
+
  
 % initial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]    = spm_dcm_x_neural(pE,model);
-
+ 
  
 % orders and model
 %==========================================================================
 nx       = length(spm_vec(x));
 nu       = size(pE.C,2);
 
+
 % create DCM
 %--------------------------------------------------------------------------
-% DCM.M.FS = 'spm_fs_csd';
 DCM.M.IS = 'spm_csd_int';
 DCM.M.g  = 'spm_gx_erp';
 DCM.M.f  = f;
@@ -88,27 +152,16 @@ DCM.M.pE = pE;
 DCM.M.pC = pC;
 DCM.M.hE = 8;
 DCM.M.hC = exp(-4);
-
+ 
 % solve for steady state
 %--------------------------------------------------------------------------
 DCM.M.x  = spm_dcm_neural_x(pE,DCM.M);
-
-
-%-Feature selection using principal components (U) of lead-field
-%==========================================================================
-DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
-
-
-% get data-features (in reduced eigenspace)
-%--------------------------------------------------------------------------
-DCM      = spm_dcm_tfm_data(DCM);
-
+ 
 % within-trial effects: adjust onset relative to PST
 %--------------------------------------------------------------------------
 DCM.M.ons = onset - DCM.xY.pst(1);
 DCM.M.dur = dur;
 DCM.xU.dt = DCM.xY.dt;
-
  
  
 % complete model specification and invert
@@ -120,97 +173,85 @@ Nt        = length(DCM.xY.csd);                 % number of trial types
 DCM.M.l   = Nm;
 DCM.M.Hz  = DCM.xY.Hz;
 DCM.M.Rft = DCM.xY.Rft;
-
-
+ 
+ 
 % precision of noise
 %--------------------------------------------------------------------------
-Qf        = spm_Q(1/4,Nf,1);
 Qt        = spm_Q(1/4,Nb,1);
-Q         = kron(Qf,Qt);
-DCM.xY.Q  = Q;
+Qf        = spm_Q(1/4,Nf,1);
+DCM.xY.Q  = kron(Qf,Qt);
 DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
+ 
+ 
+% check neural activity (without sensor noise) and extrinsic coupling
+%--------------------------------------------------------------------------%
+% [csd,~,~,~,~,~,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
+% xY.erp = erp;
+% xY.csd = csd;
+% spm_dcm_tfm_response(    xY,DCM.xY.pst,DCM.xY.Hz)
+% spm_dcm_tfm_response(DCM.xY,DCM.xY.pst,DCM.xY.Hz)
 
-
-% adjust gain to accommodate scaling differences among models and data
-%==========================================================================
-
-
-% % check neural activity (without sensor noise) and extrinsic coupling
-% %--------------------------------------------------------------------------
-% y         = feval(DCM.M.IS,pE,DCM.M,DCM.xU);
-% scale     = mean(abs(spm_vec(y)));
-% DCM.M.U   = DCM.M.U/sqrt(scale);
-
-[csd,x,x,x,x,x,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
-xY.erp = erp;
-xY.csd = csd;
-spm_dcm_tfm_response(xY,DCM.xY.pst,DCM.xY.Hz)
-
-
+ 
 % Variational Laplace: model inversion
 %==========================================================================
 [Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
-
-
+ 
+ 
 % Data ID
 %--------------------------------------------------------------------------
-try
-    try
-        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
-    catch
-        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y));
-    end
-catch
-    ID  = spm_data_id(DCM.xY.y);
-end
+ID  = spm_data_id(DCM.xY.y);
  
  
 % Bayesian inference {threshold = prior} NB Prior on A,B and C = exp(0) = 1
-%==========================================================================
+%--------------------------------------------------------------------------
 warning('off','SPM:negativeVariance');
 dp  = spm_vec(Qp) - spm_vec(pE);
 Pp  = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Qp);
 warning('on', 'SPM:negativeVariance');
  
  
-% predictions (csd) and error (sensor space)
+% predictions (csd and erp) - sensor space
+%==========================================================================
+[csd,Hz,pst,x,tfm,dtf,erp] = spm_csd_int(Qp,DCM.M,DCM.xU);
+ 
+ 
+% sensor space
 %--------------------------------------------------------------------------
-Hc  = spm_csd_mtf(Qp,DCM.M,DCM.xU);                      % prediction
-Ec  = spm_unvec(spm_vec(DCM.xY.y) - spm_vec(Hc),Hc);     % prediction error
- 
- 
-% predictions (source space - cf, a LFP from virtual electrode)
-%--------------------------------------------------------------------------
-M             = DCM.M;    
-M.dipfit.type = 'LFP';
- 
-qp        = Qp;
-qp.L      = ones(1,Ns);             % set virtual electrode gain to unity
-qp.b      = qp.b - 32;              % and suppress non-specific and
-qp.c      = qp.c - 32;              % specific channel noise
-
-[Hs,Hz,dtf] = spm_csd_mtf(qp,M,DCM.xU);
-[ccf,pst]   = spm_csd2ccf(Hs,DCM.M.Hz);
-[coh,fsd]   = spm_csd2coh(Hs,DCM.M.Hz);
-DCM.dtf  = dtf;
-DCM.ccf  = ccf;
-DCM.coh  = coh;
-DCM.fsd  = fsd;
-DCM.pst  = pst;
-DCM.Hz   = Hz;
-
+DCM.csd = csd;                  % conditional cross-spectral density
+DCM.tfm = tfm;                  % conditional induced responses 
+DCM.dtf = dtf;                  % conditional directed transfer functions
+DCM.erp = erp;                  % conditional evoked responses
+DCM.Qu  = x;                    % conditional neuronal responses
+DCM.pst = pst;                  % peristimulus times
+DCM.Hz  = Hz;                   % frequencies
  
 % store estimates in DCM
 %--------------------------------------------------------------------------
-DCM.Ep = Qp;                   % conditional expectation
-DCM.Cp = Cp;                   % conditional covariance
-DCM.Pp = Pp;                   % conditional probability
-DCM.Hc = Hc;                   % conditional responses (y), channel space
-DCM.Rc = Ec;                   % conditional residuals (y), channel space
-DCM.Hs = Hs;                   % conditional responses (y), source space
-DCM.Ce = exp(-Eh);             % ReML error covariance
-DCM.F  = F;                    % Laplace log evidence
-DCM.ID = ID;                   % data ID
+DCM.Ep  = Qp;                   % conditional expectation - parameters
+DCM.Cp  = Cp;                   % conditional covariance  - parameters
+DCM.Pp  = Pp;                   % conditional probability - parameters
+DCM.Ce  = exp(-Eh);             % error covariance
+DCM.F   = F;                    % Laplace log evidence
+DCM.ID  = ID;                   % data ID
+ 
+% predictions (source space) - cf, a LFP from virtual electrode
+%==========================================================================
+M             = rmfield(DCM.M,'U');    
+M.dipfit.type = 'LFP';
+ 
+Qp.L    = ones(1,Ns);           % set virtual electrode gain to unity
+Qp.b    = Qp.b - 32;            % and suppress non-specific and
+Qp.c    = Qp.c - 32;            % specific channel noise
+ 
+[csd,~,~,~,tfm,dtf,erp] = spm_csd_int(Qp,M,DCM.xU);
+ 
+% source space
+%--------------------------------------------------------------------------
+DCM.CSD = csd;                  % conditional cross-spectral density
+DCM.TFM = tfm;                  % conditional induced responses 
+DCM.DTF = dtf;                  % conditional directed transfer functions
+DCM.ERP = erp;                  % conditional evoked responses
+ 
  
 % and save
 %--------------------------------------------------------------------------

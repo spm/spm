@@ -3,7 +3,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % FORMAT [x,f] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
-% 'model'   - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
+% 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM' or 'MFM'
 %
 % x   - initial states
 % f   - state euquation
@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_x_neural.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % initial state and equation
@@ -64,6 +64,15 @@ switch lower(model)
         %------------------------------------------------------------------
         x  = spm_x_nmm(P);
         f  = 'spm_fx_mfm';
+        
+    % Canonical mass model (nonlinear in states)
+    %======================================================================
+    case{'cmm'}
+ 
+        % inital states and model
+        %------------------------------------------------------------------
+        x  = spm_x_cmm(P);
+        f  = 'spm_fx_cmm';
  
  
     % Mean field model (nonlinear in states) - with covariance

@@ -1,8 +1,12 @@
-function [L] = spm_lx_erp(P,M)
-% observer matrix for a neural mass model of erps: y = G*x
+function [L] = spm_lx_erp(P,dipfit)
+% observer matrix for a neural mass model: y = G*x
+% FORMAT [G] = spm_lx_erp(P,dipfit)
 % FORMAT [G] = spm_lx_erp(P,M)
-% x      - state vector
-% G      - where y = L*x; G = dy/dx
+%
+% M.dipfit - spatial model specification
+%
+% G        - where y = L*x; G = dy/dx
+% x        - state vector
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -11,9 +15,13 @@ function [L] = spm_lx_erp(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_erp.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_lx_erp.m 4814 2012-07-30 19:56:05Z karl $
+
+% extract dipfit from model if necessary
+%--------------------------------------------------------------------------
+if isfield(dipfit,'dipfit'), dipfit = dipfit.dipfit; end
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------
-L       = spm_erp_L(P,M);                    % lead field per source
+L       = spm_erp_L(P,dipfit);               % lead field per source
 L       = kron(P.J,L);                       % lead-field per state

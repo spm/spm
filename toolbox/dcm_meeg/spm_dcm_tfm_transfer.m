@@ -1,8 +1,8 @@
-function spm_dcm_tfm_transfer(mtf,pst,hz)
-% displays time-frequency transfer functions (in time and frequency space)
-% FORMAT spm_dcm_tfm_transfer(mtf,pst,hz)
+function spm_dcm_tfm_transfer(dtf,pst,Hz)
+% displays time-frequency directed transfer functions
+% FORMAT spm_dcm_tfm_transfer(dtf,pst,Hz)
 % 
-% mtf - (t x w x n x u): a MTF array over t time bins, w frequency bins,
+% dtf - (t x w x n x u): an array over t time bins, w frequency bins,
 %                        n channels and u inputs
 % pst - peristimulus time (for plotting)
 % Hz  - frequency range (for plotting)
@@ -11,30 +11,39 @@ function spm_dcm_tfm_transfer(mtf,pst,hz)
 % This routine displays complex modulation transfer functions over 
 % peristimulus time as images of the absolute values and first order
 % kernels mapping from endogenous inputs to neuronal states
+%
+% See also: spm_dcm_tfm_responses (and spm_dcm_tfm_image) 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_transfer.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_dcm_tfm_transfer.m 4814 2012-07-30 19:56:05Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
-if nargin < 2, pst = 1:size(mtf,1); end
-if nargin < 3, hz  = 1:size(mtf,2); end
+if nargin < 2, pst = 1:size(dtf,1); end
+if nargin < 3, Hz  = 1:size(dtf,2); end
  
  
 % plot modulation transfer functions (in frequency space) - MTF
 %==========================================================================
-nc    = size(mtf,3);
-nu    = size(mtf,4);
+nc    = size(dtf,3);
+nu    = size(dtf,4);
 bands = kron([8; 13; 32],[1 1]);
+
+if nc > 2
+    FontSize = 12;
+else
+    FontSize = 16;
+end
+
 for i = 1:nc
     for j = 1:nu
         subplot(2*nc,nu,(i - 1)*nc + j)
         
-        imagesc(pst,hz,abs(mtf(:,:,i,j)).^2');
+        imagesc(pst,Hz,abs(dtf(:,:,i,j)).^2');
         str  = sprintf('tansfer function: %i to %i',j,i);
-        title(str,'FontSize',16)
+        title(str,'FontSize',FontSize)
         xlabel('peristimulus time (ms)')
         ylabel('Hz'), axis xy
         
@@ -48,7 +57,7 @@ end
 
 % get inverse Fourier transform of MTF
 %--------------------------------------------------------------------------
-[irf, lag]  = spm_csd2ccf(mtf,hz);
+[irf, lag]  = spm_csd2ccf(dtf,Hz);
 
 % restrict range of lags
 %--------------------------------------------------------------------------
@@ -63,7 +72,7 @@ for i = 1:nc
         
         plot(lag,real(irf(:,:,i,j)));
         str  = sprintf('kernel: %i to %i',j,i);
-        title(str,'FontSize',16)
+        title(str,'FontSize',FontSize)
         xlabel('lag (ms)')
         
     end

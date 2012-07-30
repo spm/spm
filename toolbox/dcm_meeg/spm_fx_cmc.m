@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_fx_cmc.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % get dimensions and configure state variables
@@ -100,16 +100,23 @@ G    = ones(n,1)*G;
  
 % free parameters on time constants and intrinsic connections
 %--------------------------------------------------------------------------
-% G(:,1)  ss -> ss
-% G(:,2)  sp -> ss
-% G(:,3)  ii -> ss
-% G(:,4)  ii -> ii
-% G(:,5)  ss -> ii
-% G(:,6)  dp -> ii
-% G(:,7)  sp -> sp
-% G(:,8)  ss -> sp
-% G(:,9)  ii -> dp
-% G(:,10) dp -> dp
+% G(:,1)  ss -> ss (-ve self)  4
+% G(:,2)  sp -> ss (-ve rec )  4
+% G(:,3)  ii -> ss (-ve rec )  4
+% G(:,4)  ii -> ii (-ve self)  4
+% G(:,5)  ss -> ii (+ve rec )  4
+% G(:,6)  dp -> ii (+ve rec )  2
+% G(:,7)  sp -> sp (-ve self)  4
+% G(:,8)  ss -> sp (+ve rec )  4
+% G(:,9)  ii -> dp (-ve rec )  2
+% G(:,10) dp -> dp (-ve self)  1
+%--------------------------------------------------------------------------
+% extrinsic connections
+%--------------------------------------------------------------------------
+% foward   (i)   2  sp -> ss (+ve)
+% foward   (ii)  1  sp -> dp (+ve)
+% backward (i)   2  dp -> sp (-ve)
+% backward (ii)  1  dp -> ii (-ve)
 %--------------------------------------------------------------------------
 for i = 1:size(P.T,2)
     T(:,i) = T(:,i).*exp(P.T(:,i));

@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_erp_dipfit.m 4814 2012-07-30 19:56:05Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -59,12 +59,10 @@ D    = spm_eeg_load(DCM.xY.Dfile);
 % set options in dipfit
 %--------------------------------------------------------------------------
 try, spatial  = DCM.options.spatial;  catch, spatial  = 'IMG'; end
-try, model    = DCM.options.model;    catch, model    = 'NMM'; end
 try, location = DCM.options.location; catch, location = 0;     end
 try, symmetry = DCM.options.symmetry; catch, symmetry = 0;     end
 
 DCM.M.dipfit.type     = spatial;
-DCM.M.dipfit.model    = model;
 DCM.M.dipfit.location = location;
 DCM.M.dipfit.symmetry = symmetry;
 

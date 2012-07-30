@@ -1,29 +1,31 @@
-function spm_dcm_tfm_image(csd,top,pst,hz)
+function spm_dcm_tfm_image(csd,pst,hz,top)
 % displays time-frequency complex cross spectra
 % FORMAT spm_dcm_tfm_image(csd,top,pst,hz)
 % 
 % csd - (t x w x n x n): a data array over t time bins, w frequency bins
 %                       and n times n channels
-% top - switch to display at the top or bottom of the current figure
 % pst - peristimulus time (for plotting)
 % Hz  - frequency range (for plotting)
+% top - [0/1] switch to display at the top or bottom of the current figure
 %__________________________________________________________________________
 %
-% this routine displays complex cross spectra over peristimulus time as
+% This routine displays complex cross spectra over peristimulus time as
 % images of the absolute values (coherence) and cross covariance functions
-% over pairs of channels
+% over pairs of channels.
+%
+% See also: spm_dcm_tfm_responses (and spm_dcm_tfm_transfer) 
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_image.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_dcm_tfm_image.m 4814 2012-07-30 19:56:05Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
-if nargin < 2, top = 1;           end
-if nargin < 3, pst = 1:size(csd,1); end
-if nargin < 4, hz  = 1:size(csd,2); end
-
+two = 2;
+if nargin < 2, pst = 1:size(csd,1); end
+if nargin < 3, hz  = 1:size(csd,2); end
+if nargin < 4, top = 0; two = 1;    end
 
 % plot time frequency responses
 %==========================================================================
@@ -44,7 +46,10 @@ for i = 1:nc
     % spectral power
     %----------------------------------------------------------------------
     for j = i:i
-        subplot(2*nc,nc,~top*nc*nc + (i - 1)*nc + j)
+        
+
+        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
+    
         
         imagesc(pst,hz,abs(g(:,:,i,j)).^2');
         title('Spectral density','FontSize',16)
@@ -58,7 +63,7 @@ for i = 1:nc
     % coherence functions
     %----------------------------------------------------------------------
     for j = (i + 1):nc
-        subplot(2*nc,nc,~top*nc*nc + (i - 1)*nc + j)
+        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
         
         imagesc(pst,hz,abs(g(:,:,i,j)).^2');
         title('Coherence','FontSize',16)
@@ -72,7 +77,7 @@ for i = 1:nc
     % cross covariance functions
     %----------------------------------------------------------------------
     for j = 1:(i - 1)
-        subplot(2*nc,nc,~top*nc*nc + (i - 1)*nc + j)
+        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
         
         imagesc(pst,lag,ccf(:,:,i,j)');
         title('Cross-covariance','FontSize',16)

@@ -11,17 +11,30 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_neural_x.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % solve for fixed point (with 64 ms burn in) - if no exogenous input
 %--------------------------------------------------------------------------
-if strcmp(M.f,'spm_fx_mfm')
-    M.g  = {};
-    U.u  = sparse(8,M.m);
-    U.dt = 8/1000;
-    x    = spm_int_L(P,M,U);
-    x    = spm_unvec(x(end,:),M.x);
-else
-    x    = M.x;
+model = M.f;
+switch lower(model)
+    
+    % conductance based models
+    %----------------------------------------------------------------------
+    case lower({'spm_fx_mfm','spm_fx_nmm','spm_fx_cmm'})
+        
+        try, M = rmfield(M,{'g'}); end
+        try, M = rmfield(M,{'u'}); end
+        
+        U.u  = sparse(16,M.m);
+        U.dt = 8/1000;
+        x    = spm_int_L(P,M,U);
+        x    = spm_unvec(x(end,:),M.x);
+        
+        
+    % convolution based models
+    %----------------------------------------------------------------------
+    otherwise
+        x    = M.x;
+        
 end

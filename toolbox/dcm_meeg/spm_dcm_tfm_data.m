@@ -1,7 +1,7 @@
 function DCM = spm_dcm_tfm_data(DCM)
-% Get cross-spectral density data-features using a wavelet trsnaform
+% gets cross-spectral density data-features using a wavelet transform
 % FORMAT DCM = spm_dcm_tfm_data(DCM)
-% DCM        -  DCM structure
+% DCM    -  DCM structure
 % requires
 %
 %    DCM.xY.Dfile        - name of data file
@@ -23,54 +23,54 @@ function DCM = spm_dcm_tfm_data(DCM)
 %    DCM.xY.Ic      - Indices of good channels
 %    DCM.xY.Hz      - Frequency bins
 %    DCM.xY.code    - trial codes evaluated
+%    DCM.xY.scale   - scalefactor applied to data
 %    DCM.xY.Rft     - Wavelet number or ratio of frequency to time
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 4807 2012-07-26 16:15:49Z guillaume $
-
-
-% Set defaults and get D filename
+% $Id: spm_dcm_tfm_data.m 4814 2012-07-30 19:56:05Z karl $
+ 
+% Set defaults and Get D filename
 %-------------------------------------------------------------------------
 try
     Dfile = DCM.xY.Dfile;
 catch
-    spm('alert*','Please specify data and trials');
-    return
+    errordlg('Please specify data and trials');
+    error('')
 end
-
-% Ensure spatial modes have been computed (see spm_dcm_csd)
+ 
+% ensure spatial modes have been computed (see spm_dcm_csd)
 %-------------------------------------------------------------------------
 try
     DCM.M.U;
 catch
     DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,DCM.options.Nmodes);
 end
-
-% Load D
+ 
+% load D
 %--------------------------------------------------------------------------
 try
     D = spm_eeg_load(Dfile);
 catch
     try
-        f                = spm_file(Dfile,'path',pwd);
-        D                = spm_eeg_load(f);
-        DCM.xY.Dfile     = f;
+        [~,f]        = fileparts(Dfile);
+        D            = spm_eeg_load(f);
+        DCM.xY.Dfile = fullfile(pwd,f);
     catch
         try
-            [f, sts]     = spm_select(1,'mat','select data file');
-            if ~sts, return; end
-            D            = spm_eeg_load(f);
-            DCM.xY.Dfile = f;
+            [f,p]        = uigetfile('*.mat','please select data file');
+            name         = fullfile(p,f);
+            D            = spm_eeg_load(name);
+            DCM.xY.Dfile = fullfile(name);
         catch
-            spm('alert!',[Dfile ' could not be found']);
+            warndlg([Dfile ' could not be found'])
             return
         end
     end
 end
-
-
+ 
+ 
 % Modality 
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'modality')
@@ -89,7 +89,7 @@ if ~isfield(DCM.xY, 'modality')
             
         else
             
-            % Ugly but can accomodate more buttons
+            % Ugly but can accommodate more buttons
             %--------------------------------------------------------------
             ind = menu(qstr, list);
             DCM.xY.modality = list{ind};
@@ -98,56 +98,56 @@ if ~isfield(DCM.xY, 'modality')
         DCM.xY.modality = mod;
     end
 end
-
+ 
 % channel indices (excluding bad channels)
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'Ic')
     DCM.xY.Ic  = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
 end
-
+ 
 Ic        = DCM.xY.Ic;
 Nm        = size(DCM.M.U,2);
 DCM.xY.Ic = Ic;
-
+ 
 % options
 %--------------------------------------------------------------------------
 try, DT    = DCM.options.D;      catch, DT    = 1;             end
 try, trial = DCM.options.trials; catch, trial = D.nconditions; end
 try, Rft   = DCM.options.Rft;    catch, Rft   = 4;             end
-
+ 
 % check data are not oversampled (< 4ms)
 %--------------------------------------------------------------------------
 if DT/D.fsample < 0.004
     DT            = ceil(0.004*D.fsample);
     DCM.options.D = DT;
 end
-
-
+ 
+ 
 % get peristimulus times
 %--------------------------------------------------------------------------
 try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    DCM.xY.Time  = 1000*D.time;               % Samples (ms)
-    T1           = DCM.options.Tdcm(1);
-    T2           = DCM.options.Tdcm(2);
-    [unused, T1] = min(abs(DCM.xY.Time - T1));
-    [unused, T2] = min(abs(DCM.xY.Time - T2));
+    DCM.xY.Time = 1000*D.time;               % Samples (ms)
+    T1          = DCM.options.Tdcm(1);
+    T2          = DCM.options.Tdcm(2);
+    [~, T1]     = min(abs(DCM.xY.Time - T1));
+    [~, T2]     = min(abs(DCM.xY.Time - T2));
     
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
-    It           = (T1:DT:T2)';               % indices - bins
-    DCM.xY.pst   = DCM.xY.Time(It);           % PST
-    DCM.xY.It    = It;                        % Indices of time bins
-    DCM.xY.dt    = DT/D.fsample;              % sampling in seconds
-    Nb           = length(It);                % number of bins
+    It          = (T1:DT:T2)';               % indices - bins
+    DCM.xY.pst  = DCM.xY.Time(It);           % PST
+    DCM.xY.It   = It;                        % Indices of time bins
+    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
+    Nb          = length(It);                % number of bins
     
 catch
     errordlg('Please specify time window');
     error('')
 end
-
+ 
 % get frequency range
 %--------------------------------------------------------------------------
 try
@@ -162,35 +162,35 @@ catch
         Hz2 = 128;
     end
 end
-
-
+ 
+ 
 % Frequencies
 %--------------------------------------------------------------------------
 Hz  = fix(Hz1:Hz2);                         % Frequencies
-Nf  = length(DCM.xY.Hz);                    % number of frequencies
+Nf  = length(Hz);                           % number of frequencies
 Ne  = length(trial);                        % number of ERPs
-
+ 
 % get induced responses (use previous CSD results if possible)
 %==========================================================================
 try
     if length(DCM.xY.csd) == Ne;
         if all(size(DCM.xY.csd{1}) == [Nb Nf Nm Nm])
             if DCM.xY.Rft  == Rft;
-                DCM.xY.y  = spm_cond_units(DCM.xY.csd);
-                % return
+                DCM.xY.y  = DCM.xY.csd;
+                return
             end
         end
     end
 end
-
+ 
 % Cross spectral density for each trial type
 %==========================================================================
-condlabels = D.condlist;
+cond  = D.condlist;
 for e = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
-    c = D.pickconditions(condlabels{trial(e)});
+    c = D.pickconditions(cond{trial(e)});
     
     % use only the first 512 trial
     %----------------------------------------------------------------------
@@ -207,7 +207,7 @@ for e = 1:Ne;
     for k = 1:Nt
         Y(:,:,k) = full(double(D(Ic,It,c(k))'*DCM.M.U));
     end
-
+ 
     
     % store
     %----------------------------------------------------------------------
@@ -227,8 +227,8 @@ for e = 1:Ne;
         Q = Q + P;
     end
     
-    % normalise induced responses
-    %----------------------------------------------------------------------
+    % normalise induced responses in relation to evoked responses
+    %--------------------------------------------------------------------------
     Vm    = mean(mean(squeeze(var(Y,[],3))));
     Vs    = mean(diag(squeeze(mean(squeeze(mean(Q))))));
     Q     = Vm*Q/Vs;
@@ -238,21 +238,22 @@ for e = 1:Ne;
     csd{e} = Q;
     
 end
-
+ 
 % place cross-spectral density in xY.y
 %==========================================================================
-[csd,scale] = spm_cond_units(csd);
-DCM.xY.erp  = spm_unvec(spm_vec(erp)*sqrt(scale),erp);
-DCM.xY.csd  = csd;
-DCM.xY.y    = csd;
-DCM.xY.U    = DCM.M.U;
-DCM.xY.code = condlabels(trial);
-DCM.xY.Rft  = Rft;
-DCM.xY.Hz   = Hz;
-
+[erp,scale]  = spm_cond_units(erp,1);
+csd          = spm_unvec(spm_vec(csd)*(scale^2),csd);
+DCM.xY.erp   = erp;
+DCM.xY.csd   = csd;
+DCM.xY.y     = csd;
+DCM.xY.U     = DCM.M.U;
+DCM.xY.scale = scale;
+DCM.xY.Hz    = Hz;
+DCM.xY.Rft   = Rft;
+DCM.xY.Hz    = Hz;
+ 
 return
-
+ 
 % plot responses
 %--------------------------------------------------------------------------
 spm_dcm_tfm_response(DCM.xY,DCM.xY.pst,DCM.xY.Hz);
-

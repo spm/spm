@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_ssr.m 4814 2012-07-30 19:56:05Z karl $
 
 
 % check options
@@ -91,44 +91,30 @@ DCM.M.m  = Ns;
 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
-
-% Spatial modes
-%--------------------------------------------------------------------------
-if Nc < Nm
-    U     = speye(Nc,Nc);
-    DCM.M.U = U;
-else
-    dGdg  = spm_diff('spm_lx_erp',pE,DCM.M,1);
-    L     = spm_cat(dGdg);
-    U     = spm_svd(L*L',exp(-8));
-    try
-        U = U(:,1:Nm);
-    end
-    DCM.M.U = U;
-end
+DCM.M.U   = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
 
 % get data-features (in reduced eigen-space)
 %--------------------------------------------------------------------------
-DCM        = spm_dcm_ssr_data(DCM);
-DCM.xY.y   = spm_unvec(abs(spm_vec(DCM.xY.y)),DCM.xY.y);
+DCM       = spm_dcm_ssr_data(DCM);
+DCM.xY.y  = spm_unvec(abs(spm_vec(DCM.xY.y)),DCM.xY.y);
 
 
 % complete model specification and invert
 %==========================================================================
-Nm         = size(DCM.M.U,2);                    % number of spatial modes
-Nf         = size(DCM.xY.y{1},1);                % number of frequency bins
-DCM.M.l    = Nm;
-DCM.M.Hz   = DCM.xY.Hz;
+Nm        = size(DCM.M.U,2);                    % number of spatial modes
+Nf        = size(DCM.xY.y{1},1);                % number of frequency bins
+DCM.M.l   = Nm;
+DCM.M.Hz  = DCM.xY.Hz;
 
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
-DCM.xY.Q   = spm_Q(1/2,Nf,1);
-DCM.xY.X0  = sparse(Nf,0);
+DCM.xY.Q  = spm_Q(1/2,Nf,1);
+DCM.xY.X0 = sparse(Nf,0);
 
 % adjust priors on gain to accomodate scaling differences among models
 %--------------------------------------------------------------------------
-Hc         = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
-DCM.M.U    = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
+Hc        = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
+DCM.M.U   = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
 
 
 % EM: inversion

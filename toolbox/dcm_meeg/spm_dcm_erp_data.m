@@ -10,7 +10,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.options.trials  - trial codes
 %    DCM.options.Tdcm    - Peri-stimulus time window
 %    DCM.options.D       - Down-sampling
-%    DCM.options.han     - hanning
+%    DCM.options.han     - Hanning
 %
 % sets
 %    DCM.xY.modality - 'MEG','EEG' or 'LFP'
@@ -22,6 +22,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.xY.It       - Indices of (ns) time bins
 %    DCM.xY.Ic       - Indices of (nc) good channels
 %    DCM.xY.name     - names of (nc) channels
+%    DCM.xY.scale    - scalefactor applied to raw data
 %    DCM.xY.coor2D   - 2D coordinates for plotting
  
 %
@@ -31,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 4367 2011-06-15 17:04:45Z vladimir $
+% $Id: spm_dcm_erp_data.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % Set defaults and Get D filename
@@ -45,7 +46,7 @@ end
  
 % order of drift terms
 %--------------------------------------------------------------------------
-try, h; catch h = 0; end
+try, h; catch, h = 0; end
  
 % load D
 %--------------------------------------------------------------------------
@@ -53,7 +54,7 @@ try
     D = spm_eeg_load(Dfile);
 catch
     try
-        [p,f]        = fileparts(Dfile);
+        [~,f]        = fileparts(Dfile);
         D            = spm_eeg_load(f);
         DCM.xY.Dfile = fullfile(pwd,f);
     catch
@@ -68,7 +69,9 @@ catch
         end
     end
 end
-
+ 
+% get time-frequency data if appropriate
+%--------------------------------------------------------------------------
 if isequal(D.transformtype, 'TF')
     DCM = spm_dcm_ind_data(DCM);
     return;
@@ -78,17 +81,21 @@ end
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'modality')
     [mod, list] = modality(D, 0, 1);
-
     if isequal(mod, 'Multimodal')
-        qstr = 'Only one modality can be modelled at a time. Please select.';
+        qstr    = 'Only one modality can be modelled at a time. Please select.';
         if numel(list) < 4
-            % Nice looking dialog. Will usually be OK
+            
+            % Pretty dialog box
+            %--------------------------------------------------------------
             options = [];
             options.Default = list{1};
             options.Interpreter = 'none';
             DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
+            
         else
-            % Ugly but can accomodate more buttons
+            
+            % can accommodate more buttons
+            %--------------------------------------------------------------
             ind = menu(qstr, list);
             DCM.xY.modality = list{ind};
         end
@@ -96,30 +103,26 @@ if ~isfield(DCM.xY, 'modality')
         DCM.xY.modality = mod;
     end
 end
-
-channels = D.chanlabels;
  
+% good channels
+%--------------------------------------------------------------------------
+channels  = D.chanlabels;
 Ic        = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
-
 if isempty(Ic)
-    warndlg('No good channels found in the dataset');
+    warndlg('No good channels in these data');
     return
 end
-
-DCM.xY.Ic = Ic;
-
  
-Ic            = DCM.xY.Ic;
-Nc            = length(Ic);
-DCM.xY.name   = channels(Ic);
-DCM.xY.Ic     = Ic;
-DCM.xY.Time   = 1000*D.time; % PST (ms)
-DCM.xY.dt     = 1/D.fsample;
-DCM.xY.coor2D = D.coor2D(Ic);
+Nc            = length(Ic);               % number of channels
+DCM.xY.name   = channels(Ic);             % channel names
+DCM.xY.Ic     = Ic;                       % channel indices
+DCM.xY.Time   = 1000*D.time;              % PST (ms)
+DCM.xY.dt     = 1/D.fsample;              % time bins
+DCM.xY.coor2D = D.coor2D(Ic);             % coordinates (topographic)
 DCM.xY.xy     = {};
  
 % options
-%--------------------------------------------------------------------------
+%==========================================================================
 try
     DT   = DCM.options.D;
 catch
@@ -143,8 +146,8 @@ try
     %----------------------------------------------------------------------
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
-    [i, T1]     = min(abs(DCM.xY.Time - T1));
-    [i, T2]     = min(abs(DCM.xY.Time - T2));
+    [~, T1]     = min(abs(DCM.xY.Time - T1));
+    [~, T2]     = min(abs(DCM.xY.Time - T2));
  
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
@@ -161,12 +164,12 @@ end
  
 % get trial averages - ERP
 %--------------------------------------------------------------------------
-condlabels = D.condlist;
+cond  = D.condlist;
 for i = 1:length(trial)
  
     % trial indices
     %----------------------------------------------------------------------
-    c     = D.pickconditions(condlabels{trial(i)});
+    c     = D.pickconditions(cond{trial(i)});
     Nt    = length(c);
  
     % ERP
@@ -176,6 +179,7 @@ for i = 1:length(trial)
         Y = Y + squeeze(D(Ic,It,c(j)))';
     end
     DCM.xY.xy{i} = Y/Nt;
+    DCM.xY.nt(i) = Nt;
 end
  
  
@@ -202,5 +206,7 @@ end
  
 % condition units of measurement
 %--------------------------------------------------------------------------
-DCM.xY.y    = spm_cond_units(DCM.xY.xy,1);
-DCM.xY.code = condlabels(trial);
+[erp,scale]  = spm_cond_units(DCM.xY.xy,1);
+DCM.xY.y     = erp;
+DCM.xY.code  = cond(trial);
+DCM.xY.scale = scale;

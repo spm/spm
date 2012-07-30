@@ -32,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 4784 2012-07-12 16:00:39Z will $
+% $Id: spm_dcm_phase_data.m 4814 2012-07-30 19:56:05Z karl $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -153,7 +153,7 @@ if ~isequal(modality, 'LFP')
     Ng     = 3;
     G.L    = kron(ones(1,Nr),speye(Ng,Ng));
     G.Lpos = kron(pos,ones(1,Ng));
-    L      = spm_erp_L(G,DCM.M);
+    L      = spm_erp_L(G,DCM.M.dipfit);
     MAP    = pinv(L);
     [Ntime,Nchannels]=size(DCM.xY.y{1});
     for n=1:Ntrials,
@@ -178,7 +178,7 @@ else
     region=DCM.xY.y;
 end
 
-DCM.xY.y=[];
+DCM.xY.y = [];
 % Get instantaneous phase
 disp('Filter and compute instantaneous phase ...');
 for n=1:Ntrials,

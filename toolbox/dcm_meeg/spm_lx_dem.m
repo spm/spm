@@ -13,9 +13,9 @@ function [L] = spm_lx_dem(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_dem.m 2806 2009-03-02 12:08:22Z karl $
+% $Id: spm_lx_dem.m 4814 2012-07-30 19:56:05Z karl $
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------
-L       = spm_erp_L(P,M)*P.J;                 % lead field per state
+L       = spm_erp_L(P,M.dipfit)*P.J;               % lead field per state
 

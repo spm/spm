@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4800 2012-07-23 08:36:11Z rosalyn $
+% $Id: spm_dcm_csd.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % check options
@@ -30,6 +30,7 @@ function DCM = spm_dcm_csd(DCM)
 drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
+DCM.options.analysis  = 'CSD';
  
 % Filename and options
 %--------------------------------------------------------------------------
@@ -115,18 +116,7 @@ DCM.M.u  = sparse(Ns,1);
  
 % Spatial modes
 %--------------------------------------------------------------------------
-if Nc < Nm
-    U     = speye(Nc,Nc);
-    DCM.M.U = U;
-else
-    dGdg  = spm_diff('spm_lx_erp',pE,DCM.M,1);
-    L     = spm_cat(dGdg);
-    U     = spm_svd(L*L',exp(-8));
-    try
-        U = U(:,1:Nm);
-    end
-    DCM.M.U = U;
-end
+DCM.M.U   = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
  
 % get data-features (in reduced eigenspace)
 %--------------------------------------------------------------------------
@@ -207,7 +197,7 @@ Ec  = spm_unvec(spm_vec(DCM.xY.y) - spm_vec(Hc),Hc);     % prediction error
  
 % predictions (source space - cf, a LFP from virtual electrode)
 %--------------------------------------------------------------------------
-M             = DCM.M;    
+M             = rmfield(DCM.M,'U'); 
 M.dipfit.type = 'LFP';
 M.U           = 1; 
 M.l       = Ns;

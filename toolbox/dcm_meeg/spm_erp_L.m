@@ -1,21 +1,21 @@
-function [L] = spm_erp_L(P,M)
+function [L] = spm_erp_L(P,dipfit)
 % returns [projected] lead field L as a function of position and moments
-% FORMAT [L] = spm_erp_L(P,M)
-% P  - model parameters
-% M  - model specification
-% L  - lead field
+% FORMAT [L] = spm_erp_L(P,dipfit)
+% P       - model parameters
+% dipfit  - spatial model specification
+% L       - lead field
 %__________________________________________________________________________
 %
 % The lead field (L) is constructed using the specific parameters in P and,
-% where necessary information in the dipole structure M.dipfit. For ECD
+% where necessary information in the dipole structure dipfit. For ECD
 % models P.Lpos and P.L encode the position and moments of the ECD. The
-% field M.dipfit.type:
+% field dipfit.type:
 %
 %    'ECD', 'LFP' or 'IMG'
 %
 % determines whether the model is ECD or not. For imaging reconstructions
 % the paramters P.L are a (m x n) matrix of coefficients that scale the
-% contrition of n sources to m = M.dipfit.Nm modes encoded in M.dipfit.G.
+% contrition of n sources to m = dipfit.Nm modes encoded in dipfit.G.
 %
 % For LFP models (the default) P.L simply encodes the electrode gain for 
 % each source contributing a LFP.
@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 4336 2011-05-31 16:49:34Z rosalyn $
+% $Id: spm_erp_L.m 4814 2012-07-30 19:56:05Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ persistent LastLpos LastL
 
 % type of spatial model and modality
 %==========================================================================
-try,   type = M.dipfit.type;  catch, type = 'LFP'; end
+if isfield(dipfit,'type'),   type   = dipfit.type; else, type = 'LFP'; end
 
 switch type
 
@@ -59,9 +59,9 @@ switch type
         LastLpos = P.Lpos;
         for i  = Id
             if any(P.Lpos(:,i)>=200)
-                Lf = zeros(M.dipfit.Nc, 3);
+                Lf = zeros(dipfit.Nc, 3);
             else
-                Lf = ft_compute_leadfield(transform_points(M.dipfit.datareg.fromMNI, P.Lpos(:,i)'), M.dipfit.sens, M.dipfit.vol);
+                Lf = ft_compute_leadfield(transform_points(dipfit.datareg.fromMNI, P.Lpos(:,i)'), dipfit.sens, dipfit.vol);
             end
             LastL(:,:,i) = Lf;
         end
@@ -70,7 +70,7 @@ switch type
             L(:,i) = G(:,:,i)*P.L(:,i);
         end
               
-    % Imaging solution {specified in M.dipfit.G}
+    % Imaging solution {specified in dipfit.G}
     %----------------------------------------------------------------------
     case{'IMG'}
         
@@ -86,7 +86,7 @@ switch type
             Id = 1:n;
         end
         for i = Id
-            LastL(:,i) = M.dipfit.G{i}*P.L(:,i);
+            LastL(:,i) = dipfit.G{i}*P.L(:,i);
         end
 
         % record new spatial parameters
@@ -99,7 +99,7 @@ switch type
     case{'LFP'}
         m     = length(P.L);
         try
-            n = M.dipfit.Ns;
+            n = dipfit.Ns;
         catch
             n = m;
         end

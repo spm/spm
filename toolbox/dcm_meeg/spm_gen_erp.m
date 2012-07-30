@@ -15,7 +15,7 @@ function [y] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_gen_erp.m 4814 2012-07-30 19:56:05Z karl $
 
 % default inputs - one trial (no between-tria effects)
 %--------------------------------------------------------------------------
@@ -53,11 +53,11 @@ end
 %--------------------------------------------------------------------------
 y      = cell(size(X,1),1);
 for  c = 1:size(X,1)
-
+    
     % baseline parameters
     %----------------------------------------------------------------------
     Q  = P;
-
+    
     % trial-specific effects
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
@@ -75,16 +75,15 @@ for  c = 1:size(X,1)
         catch
             Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         end
-        
     end
     
     % solve for steady-state - for each condition
     %----------------------------------------------------------------------
     M.x  = spm_dcm_neural_x(Q,M);
-
+    
     % integrate DCM for this trial
     %----------------------------------------------------------------------
     y{c} = spm_int_L(Q,M,U);
-
+    
 end
 

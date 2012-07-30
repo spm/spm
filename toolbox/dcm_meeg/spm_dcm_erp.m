@@ -20,32 +20,22 @@ function DCM = spm_dcm_erp(DCM)
 %   options.h            - number of DCT drift terms (usually 1 or 2)
 %   options.Nmodes       - number of spatial models to invert
 %   options.analysis     - 'ERP', 'SSR' or 'IND'
-%   options.model        - 'ERP', 'SEP', 'CMC', 'NMM' or 'MFM'
+%   options.model        - 'ERP', 'SEP', 'CMC', 'CMM', 'NMM' or 'MFM'
 %   options.spatial      - 'ECD', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
-%   options.artefacts    - N x 2 [start end] time window in ms 
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4801 2012-07-23 12:44:12Z rosalyn $
-
-
-clear spm_erp_L
+% $Id: spm_dcm_erp.m 4814 2012-07-30 19:56:05Z karl $
 
 % check options
 %==========================================================================
+drawnow
+clear spm_erp_L
 name = sprintf('DCM_%s',date);
-if ~nargin
-    [DCM, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
-    if ~sts, DCM = []; return; end
-end
-if ~isstruct(DCM)
-    name = spm_file(DCM,'cpath');
-    load(DCM);
-    DCM.name = name;
-end
+DCM.options.analysis  = 'ERP';
 
 % Filename and options
 %--------------------------------------------------------------------------
@@ -58,7 +48,8 @@ try, dur   = DCM.options.dur;       catch, dur       = 16;          end
 try, model = DCM.options.model;     catch, model     = 'NMM';       end
 try, lock  = DCM.options.lock;      catch, lock      = 0;           end
 try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
-try, artf  = DCM.options.artefacts; catch, artf      = [0 15];     end
+try, Nmax  = DCM.options.Nmax;      catch, Nmax      = 64;          end
+
 
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
     
@@ -95,17 +86,10 @@ end
 T0     = speye(Ns) - X0*((X0'*X0)\X0');
 xY.X0  = X0;
 
-% Serial additional error components to suppress artefacts (if present)
-%--------------------------------------------------------------------------
-N   = ones(1, Ns);
-for i = 1:size(artf, 1)
-    N(xY.pst >= artf(i, 1) & xY.pst<= artf(i, 2)) = exp(-8);    
-end
-N = diag(N);
-
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
-xY.Q{1}   = N*spm_Q(3/4,Ns,1)*N;
+xY.Q   = {spm_Q(1/2,Ns,1)};
+
 
 %-Inputs
 %==========================================================================
@@ -138,16 +122,6 @@ try, M = rmfield(M,'g'); end
 %--------------------------------------------------------------------------
 [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
-% check for previous priors
-%--------------------------------------------------------------------------
-try
-    if length(spm_vec(pE)) == length(spm_vec(M.pE))
-        pE  = M.pE;
-        pC  = M.pC;
-        fprintf('Using previous priors\n')
-    end
-end
-
 % check for initial parameters
 %--------------------------------------------------------------------------
 try
@@ -159,60 +133,50 @@ end
 % priors on spatial model
 %--------------------------------------------------------------------------
 M.dipfit.model = model;
-[gE,gC]     = spm_L_priors(M.dipfit);
+[gE,gC]        = spm_L_priors(M.dipfit);
 
 % Set prior correlations (locking trial effects and dipole orientations
 %--------------------------------------------------------------------------
-if lock, pC = spm_dcm_lock(pC);    end
-if symm, gC = spm_dcm_symm(gC,gE); end
+if lock,    pC = spm_dcm_lock(pC);      end
+if symm,    gC = spm_dcm_symm(gC,gE);   end
 
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f] = spm_dcm_x_neural(pE,model);
+[x,f]  = spm_dcm_x_neural(pE,model);
 
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
-hE    = 8 - log(var(spm_vec(xY.y)));
-hC    = exp(-4);
+hE     = 8;
+hC     = exp(-4);
 
 
 % likelihood model
 %--------------------------------------------------------------------------
-M.IS  = 'spm_gen_erp';
-M.FS  = 'spm_fy_erp';
-M.G   = 'spm_lx_erp';
-M.f   = f;
-M.x   = x;
-M.pE  = pE;
-M.pC  = pC;
-M.gE  = gE;
-M.gC  = gC;
-M.hE  = hE;
-M.hC  = hC;
-M.m   = Nu;
-M.n   = length(spm_vec(M.x));
-M.l   = Nc;
-M.ns  = Ns;
+M.IS   = 'spm_gen_erp';
+M.FS   = 'spm_fy_erp';
+M.G    = 'spm_lx_erp';
+M.f    = f;
+M.x    = x;
+M.pE   = pE;
+M.pC   = pC;
+M.gE   = gE;
+M.gC   = gC;
+M.hE   = hE;
+M.hC   = hC;
+M.m    = Nu;
+M.n    = length(spm_vec(M.x));
+M.l    = Nc;
+M.ns   = Ns;
+M.Nmax = Nmax;
 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
 
 % Spatial modes
 %--------------------------------------------------------------------------
-if Nc <= Nm
-    U     = speye(Nc);
-    M.E   = U;
-else
-    dGdg  = spm_diff(M.G,gE,M,1);
-    L     = spm_cat(dGdg);
-    U     = spm_svd(L*L',exp(-8));
-    try
-        U = U(:,1:Nm);
-    end
-    M.E   = U;
-end
-Nm    = size(U,2);
+M.U    = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
+Nm     = size(M.U,2);
 
 % EM: inversion
 %==========================================================================
@@ -223,12 +187,12 @@ Nm    = size(U,2);
 %==========================================================================
 if isfield(M,'FS')
     try
-        ID  = spm_data_id(feval(M.FS,xY.y,M));
+        ID = spm_data_id(feval(M.FS,xY.y,M));
     catch
-        ID  = spm_data_id(feval(M.FS,xY.y));
+        ID = spm_data_id(feval(M.FS,xY.y));
     end
 else
-    ID  = spm_data_id(xY.y);
+    ID = spm_data_id(xY.y);
 end
 
 
@@ -252,8 +216,8 @@ x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 j     = find(kron(gE.J,ones(1,Nr)));    % Indices of contributing states
 for i = 1:Nt
     x{i} = x{i} - x0;                   % centre on expansion point
-    y{i} = T0*x{i}*L'*M.E;              % prediction (sensor space)
-    r{i} = T0*xY.y{i}*M.E - y{i};       % residuals  (sensor space)
+    y{i} = T0*x{i}*L'*M.U;              % prediction (sensor space)
+    r{i} = T0*xY.y{i}*M.U - y{i};       % residuals  (sensor space)
     x{i} = x{i}(:,j);                   % Depolarization in sources
 end
 
@@ -330,15 +294,15 @@ if strcmp(M.dipfit.type,'IMG')
 
     % get D and dipole space lead field
     %----------------------------------------------------------------------
-    try, val = DCM.val;  catch, val = 1; end
+    try, val = DCM.val; catch, val = 1; end
     D     = spm_eeg_load(DCM.xY.Dfile);
     L     = spm_eeg_lgainmat(D, Is, DCM.xY.name);
-    L     = U'*L;
+    L     = M.U'*L;
 
     % reduced data (for each trial
     %----------------------------------------------------------------------
     for i = 1:Nt
-        Y{i} = U'*xY.y{i}'*T0;
+        Y{i} = M.U'*xY.y{i}'*T0;
     end
 
     % fill in fields of inverse structure
@@ -350,7 +314,7 @@ if strcmp(M.dipfit.type,'IMG')
     inverse.L        = L;                    % Lead field (reduced)
     inverse.R        = speye(Nc,Nc);         % Re-referencing matrix
     inverse.T        = T0;                   % temporal subspace
-    inverse.U        = U;                    % spatial subspace
+    inverse.U        = M.U;                  % spatial subspace
     inverse.Is       = Is;                   % Indices of active dipoles
     inverse.It       = DCM.xY.It;            % Indices of time bins
     inverse.Ic       = DCM.xY.Ic;            % Indices of good channels
@@ -366,7 +330,7 @@ if strcmp(M.dipfit.type,'IMG')
     %----------------------------------------------------------------------
     D.inv{end + 1}      = D.inv{val};
     D.inv{end}.date     = date;
-    [pathstr,fname]     = fileparts(DCM.name);
+    [~,fname]           = fileparts(DCM.name);
     D.inv{end}.comment  = {fname};
     D.inv{end}.DCMfile  = DCM.name;
     D.inv{end}.inverse  = inverse;

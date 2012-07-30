@@ -14,7 +14,7 @@ function [y,w] = spm_nfm_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Dimitris Pinotsis, Karl Friston
-% $Id: spm_nfm_mtf.m 4305 2011-04-12 18:15:32Z karl $
+% $Id: spm_nfm_mtf.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % compute log-spectral density
@@ -23,21 +23,17 @@ function [y,w] = spm_nfm_mtf(P,M,U)
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
-    dt = 1/(2*round(M.Hz(end)));
-    N  = 1/dt;
-    If = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
+    w  = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
 catch
-    N  = 128;
-    dt = 1/N;
-    If = 1:N/2;
+    w  = 1:64;
 end
  
  
 % spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
-[Gu,Gs,Gn,w] = spm_csd_mtf_gu(P,M);
-Gs           = Gs/8;
-Gn           = Gn/8;
+[Gu,Gs,Gn] = spm_csd_mtf_gu(P,w);
+Gs         = Gs/8;
+Gn         = Gn/8;
  
  
 % trial-specific effects
@@ -131,7 +127,7 @@ for  t = 1:size(X,1)
     % save trial-specific frequencies of interest
     %----------------------------------------------------------------------
     G    = M.U*sum(G,2);
-    y{t} = full(G(If).*Gu(If));
+    y{t} = full(G.*Gu);
     
 end
  
@@ -145,17 +141,21 @@ for t = 1:length(y)
         
         % channel specific noise
         %------------------------------------------------------------------
-        G(:,i,i) = G(:,i,i) + Gs(If,i);
+        try
+            G(:,i,i) = G(:,i,i) + Gs(:,i);
+        catch
+            G(:,i,i) = G(:,i,i) + Gs(:,1);
+        end
         
         % and cross-spectral density from common channel noise
         %------------------------------------------------------------------
         for j = 1:nc
-            G(:,i,j) = G(:,i,j) + Gn(If);
+            G(:,i,j) = G(:,i,j) + Gn;
         end
     end
-    y{t} = G(If,:);
+    y{t} = G;
     
 end
- 
+
 
 

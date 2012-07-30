@@ -1,6 +1,6 @@
-function DCM = spm_dcm_ssr_data(DCM)
+function DCM = spm_dcm_csd_data(DCM)
 % gets cross-spectral density data-features using a VAR model
-% FORMAT DCM = spm_dcm_ssr_data(DCM)
+% FORMAT DCM = spm_dcm_csd_data(DCM)
 % DCM    -  DCM structure
 % requires
 %
@@ -26,7 +26,7 @@ function DCM = spm_dcm_ssr_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 4095 2010-10-22 19:37:51Z karl $
+% $Id: spm_dcm_csd_data.m 4814 2012-07-30 19:56:05Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -37,7 +37,7 @@ catch
     error('')
 end
 
-% ensure spatial modes have been computed (see spm_dcm_ssr)
+% ensure spatial modes have been computed (see spm_dcm_csd)
 %-------------------------------------------------------------------------
 try
     DCM.M.U;

@@ -42,12 +42,13 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_ind.m 4814 2012-07-30 19:56:05Z karl $
  
  
 % check options 
 %==========================================================================
 clear spm_erp_L
+DCM.options.analysis  = 'IND';
  
 % Filename and options
 %--------------------------------------------------------------------------

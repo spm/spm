@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_L_priors.m 4814 2012-07-30 19:56:05Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -62,19 +62,19 @@ switch type
     
     case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
-        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;      % positions
-        pE.L    = sparse(3,n);   pC.L    = ones(3,n)*exp(8); % orientations
+        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;       % positions
+        pE.L    = zeros(3,n);    pC.L    = ones(3,n)*exp(8);  % orientations
         
     case{'IMG'}
         %------------------------------------------------------------------
-        m       = dipfit.Nm;                                 % number modes
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);      % positions
-        pE.L    = sparse(m,n);   pC.L    = ones(m,n)*exp(8); % modes
+        m       = dipfit.Nm;                                  % number modes
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);       % positions
+        pE.L    = zeros(m,n);    pC.L    = ones(m,n)*exp(8);  % modes
         
     case{'LFP'}
         %------------------------------------------------------------------
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);      % positions
-        pE.L    = ones(1,m);     pC.L    = ones(1,m)*64;     % gains
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);       % positions
+        pE.L    = ones(1,m);     pC.L    = ones(1,m)*64;      % gains
         
     otherwise
         warndlg('Unknown spatial model')
@@ -104,6 +104,11 @@ switch upper(model)
         %------------------------------------------------------------------
         pE.J = sparse(1,[1,2,3],[0.1 0.1 1],1,9);         % 9 states
         pC.J = sparse(1,[1,2],[1/32 1/128],1,9);
+        
+    case{'CMM'}
+        %------------------------------------------------------------------
+        pE.J = sparse(1,[1,2,3],[0.1 1 0.1],1,12);        % 12 states
+        pC.J = sparse(1,[1,2],[1/32 1/128],1,12);
         
     case{'MFM'}
         %------------------------------------------------------------------
