@@ -1,5 +1,5 @@
 /*
- * $Id: spm_mapping.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_mapping.c 4809 2012-07-30 14:55:59Z guillaume $
  * John Ashburner
  */
 
@@ -278,13 +278,10 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
 #ifdef SPM_WIN32
         HANDLE hFile, hMapping;
 #endif
-        int buflen;
-        char *buf;
+        char *buf = NULL;
         int fd;
         struct stat stbuf;
-        buflen = mxGetN(tmp)*mxGetM(tmp)+1;
-        buf    = mxCalloc(buflen,sizeof(char));
-        if (mxGetString(tmp,buf,buflen))
+        if ((buf = mxArrayToString(tmp)) == NULL)
         {
             mxFree(buf);
             free_maps(maps,i+1);
@@ -301,7 +298,7 @@ static void get_map_file(int i, const mxArray *ptr, MAPTYPE *maps)
             (void)close(fd);
             mxFree(buf);
             free_maps(maps,i+1);
-            mexErrMsgTxt("Cant stat image file.");
+            mexErrMsgTxt("Cant get file size.");
         }
         maps[i].len = stbuf.st_size;
 #ifdef SPM_WIN32

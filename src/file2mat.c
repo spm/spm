@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 4594 2011-12-16 19:14:55Z john $
+ * $Id: file2mat.c 4809 2012-07-30 14:55:59Z guillaume $
  * John Ashburner
  */
 
@@ -471,13 +471,10 @@ void do_map_file(const mxArray *ptr, MTYPE *map)
     if (arr == (mxArray *)0) mexErrMsgTxt("Cant find fname.");
     if (mxIsChar(arr))
     {
-        int buflen;
-        char *buf;
+        char *buf = NULL;
         int fd;
         struct stat stbuf;
-        buflen = mxGetN(arr)*mxGetM(arr)+1;
-        buf    = mxCalloc(buflen,sizeof(char));
-        if (mxGetString(arr,buf,buflen))
+        if ((buf = mxArrayToString(arr)) == NULL)
         {
             mxFree(buf);
             mexErrMsgTxt("Cant get filename.");
