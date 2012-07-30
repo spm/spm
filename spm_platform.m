@@ -53,7 +53,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_platform.m 4810 2012-07-30 16:22:56Z guillaume $
 
 
 %-Initialise
@@ -165,8 +165,6 @@ PDefs = {'PCWIN',     'win',   0;...
          'MAC',       'unx',   1;...
          'MACI',      'unx',   0;...
          'MACI64',    'unx',   0;...
-         'SOL2',      'unx',   1;...
-         'SOL64',     'unx',   1;...
          'GLNX86',    'unx',   0;...
          'GLNXA64',   'unx',   0};
 
@@ -210,18 +208,20 @@ if isempty(PLATFORM.user), PLATFORM.user = 'anonymous'; end
 
 %-Hostname
 %--------------------------------------------------------------------------
-[sts, Host]  = system('hostname');
-if sts
-    if strcmp(PLATFORM.filesys,'win')
-        Host = getenv('COMPUTERNAME');
-    else
-        Host = getenv('HOSTNAME'); 
-    end
-    Host = regexp(Host,'(.*?)\.','tokens','once');
-else
-    Host = Host(1:end-1);
+switch PLATFORM.filesys
+    case 'unx'
+        [sts, PLATFORM.host] = system('hostname');
+        if sts
+            PLATFORM.host = getenv('HOSTNAME');
+        else
+            PLATFORM.host = PLATFORM.host(1:end-1);
+        end
+    case 'win'
+        PLATFORM.host = getenv('COMPUTERNAME');
+    otherwise
+        error(['Don''t know filesystem ',PLATFORM.filesys])
 end
-PLATFORM.host = Host;
+PLATFORM.host = strtok(PLATFORM.host,'.');
 
 
 %-Drives
@@ -245,7 +245,7 @@ switch comp
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
         PLATFORM.font.symbol    = 'Symbol';
-    case {'SOL2','SOL64','GLNX86','GLNXA64'}
+    case {'GLNX86','GLNXA64'}
         PLATFORM.font.helvetica = 'Helvetica';
         PLATFORM.font.times     = 'Times';
         PLATFORM.font.courier   = 'Courier';
