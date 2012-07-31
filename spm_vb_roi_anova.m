@@ -18,7 +18,7 @@ function [post,model] = spm_vb_roi_anova (VOI_fname,SPM,factor)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_roi_anova.m 4445 2011-08-26 17:53:00Z guillaume $     
+% $Id: spm_vb_roi_anova.m 4818 2012-07-31 14:53:10Z guillaume $     
 
 
 if nargin < 2
@@ -108,10 +108,11 @@ SPM.xBF.order=2;
 SPM.xBF.length=32;
 SPM.xBF = spm_get_bf(SPM.xBF);
 
-
 nf=length(factor);
 
 model = spm_vb_models (SPM,factor);
+
+original_SPM = SPM;
 
 %-Fit models
 %--------------------------------------------------------------------------

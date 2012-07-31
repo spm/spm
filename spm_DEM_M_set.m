@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_DEM_M_set.m 4818 2012-07-31 14:53:10Z guillaume $
 
 % order
 %--------------------------------------------------------------------------
@@ -399,7 +399,7 @@ try M(1).E.s;  catch, if nx, M(1).E.s = 1/2; else M(1).E.s = 0; end, end
  
 % time step
 %--------------------------------------------------------------------------
-try M(1).E.dt; catch M(1).E.dt = 1; end
+try M(1).E.dt; catch, M(1).E.dt = 1; end
  
 % embedding orders
 %--------------------------------------------------------------------------

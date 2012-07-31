@@ -43,7 +43,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_ADEM_M_set.m 4818 2012-07-31 14:53:10Z guillaume $
  
 % order
 %--------------------------------------------------------------------------
@@ -268,7 +268,7 @@ try M(1).E.s;  catch, if nx, M(1).E.s = 1/2; else M(1).E.s = 0; end, end
  
 % time step
 %--------------------------------------------------------------------------
-try M(1).E.dt; catch M(1).E.dt = 1; end
+try M(1).E.dt; catch, M(1).E.dt = 1; end
  
 % embedding orders
 %--------------------------------------------------------------------------

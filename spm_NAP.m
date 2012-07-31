@@ -67,7 +67,7 @@ function [DEM] = spm_NAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_NAP.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_NAP.m 4818 2012-07-31 14:53:10Z guillaume $
 
 
 % find or create a DEM figure
@@ -81,8 +81,8 @@ Fdem = spm_figure('GetWin','DEM');
 
 % number of iterations
 %--------------------------------------------------------------------------
-try nD = M(1).E.nD; catch nD = 1;   end
-try nN = M(1).E.nN; catch nN = 16;  end
+try nD = M(1).E.nD; catch, nD = 1;   end
+try nN = M(1).E.nN; catch, nN = 16;  end
 
 
 % ensure integration scheme evaluates gradients at each time-step

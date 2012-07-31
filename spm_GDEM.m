@@ -107,7 +107,7 @@ function [DEM] = spm_GDEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_GDEM.m 3588 2009-11-20 14:06:08Z guillaume $
+% $Id: spm_GDEM.m 4818 2012-07-31 14:53:10Z guillaume $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -150,8 +150,8 @@ nu   = nv*d + nx*n;                    % number of generalised states
  
 % number of iterations
 %--------------------------------------------------------------------------
-try nM = M(1).E.nM; catch nM = 8;  end
-try nN = M(1).E.nN; catch nN = 16; end
+try nM = M(1).E.nM; catch, nM = 8;  end
+try nN = M(1).E.nN; catch, nN = 16; end
  
 % initialise regularisation parameters
 %--------------------------------------------------------------------------

@@ -10,7 +10,7 @@ function varargout = spm_eeg_inv_visu3D_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_visu3D_api.m 4211 2011-02-23 16:00:02Z vladimir $
+% $Id: spm_eeg_inv_visu3D_api.m 4818 2012-07-31 14:53:10Z guillaume $
 
 % INITIALISATION CODE
 %--------------------------------------------------------------------------
@@ -455,7 +455,7 @@ guidata(hObject,handles);
 function DataFile_Callback(hObject, eventdata, handles)
 S     = get(handles.DataFile,'String');
 try
-    D = spm_eeg_ldata(S);
+    D = spm_eeg_load(S);
 catch
     LoadData_Callback(hObject, eventdata, handles);
 end

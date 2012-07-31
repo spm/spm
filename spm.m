@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm.m 4818 2012-07-31 14:53:10Z guillaume $
 
 
 %=======================================================================
@@ -1263,7 +1263,7 @@ if isempty(SPM_VER) || (nargin > 0 && ReDo)
             vfile = fullfile(spm('Dir'),'Contents.m');
         end
         fid = fopen(vfile,'rt');
-        if fid == -1, error(str); end
+        if fid == -1, error('Can''t open %s.',vfile); end
         l1 = fgetl(fid); l2 = fgetl(fid);
         fclose(fid);
         l1 = strtrim(l1(2:end)); l2 = strtrim(l2(2:end));
