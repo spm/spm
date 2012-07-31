@@ -1,11 +1,12 @@
 /*
- * $Id: spm_unlink.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_unlink.c 4819 2012-07-31 17:51:45Z guillaume $
  * John Ashburner
  */
 
 /* Do a silent deletion of files on disk */
 
 #include <stdio.h>
+#include <string.h>
 #include "mex.h"
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -20,19 +21,18 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             char *str = NULL;
             mwIndex k;
-            mwSize stlen;
+            mwSize len;
             
-            stlen = mxGetN(matptr);
-            str = (char *)mxCalloc(stlen+1, sizeof(char));
-            mxGetString(matptr,str,stlen+1);
+            str = mxArrayToString(matptr);
+            len = strlen(str);
 
             /* delete white space */
-            for(k=0; k<stlen; k++)
+            for (k=len-1;k>=0;k--)
                 if (str[k] == ' ')
-                {
                     str[k] = '\0';
+                else
                     break;
-                }
+            
             remove(str); /* not bothered about return status */
             mxFree(str);
         }
