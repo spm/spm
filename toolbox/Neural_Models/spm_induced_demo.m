@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_induced_demo.m 4821 2012-08-01 15:52:35Z vladimir $
  
  
 % Model specification
@@ -138,13 +138,13 @@ spm_dcm_tfm_image(y{1},pst,w,0)
 
 % expected time frequency response
 %--------------------------------------------------------------------------
-spm_figure('GetWin','tansfer functions');
+spm_figure('GetWin','transfer functions');
 
 spm_dcm_tfm_transfer(s{1},pst,w)
 
 % simulated responses
 %==========================================================================
-spm_figure('GetWin','Smpirical responses');
+spm_figure('GetWin','Empirical responses');
  
 % time-frequency
 %--------------------------------------------------------------------------

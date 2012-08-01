@@ -17,7 +17,7 @@ function spm_dcm_tfm_transfer(dtf,pst,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_transfer.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_tfm_transfer.m 4821 2012-08-01 15:52:35Z vladimir $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ for i = 1:nc
         subplot(2*nc,nu,(i - 1)*nc + j)
         
         imagesc(pst,Hz,abs(dtf(:,:,i,j)).^2');
-        str  = sprintf('tansfer function: %i to %i',j,i);
+        str  = sprintf('transfer function: %i to %i',j,i);
         title(str,'FontSize',FontSize)
         xlabel('peristimulus time (ms)')
         ylabel('Hz'), axis xy
