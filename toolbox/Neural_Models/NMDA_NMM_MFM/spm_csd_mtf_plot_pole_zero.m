@@ -14,7 +14,7 @@ function [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rosalyn Moran
-% $Id: spm_csd_mtf_pole_zero.m 4281 2011-03-31 19:49:57Z karl $
+% $Id: spm_csd_mtf_plot_pole_zero.m 4820 2012-08-01 12:20:00Z guillaume $
 
 
 % compute log-spectral density

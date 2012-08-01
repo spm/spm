@@ -1,6 +1,6 @@
-function [x,f] = spm_dcm_x_neural(P,model)
+function [x,f] = spm_dcm_x_neural_NMDA(P,model)
 % Returns the state and equation of neural mass models
-% FORMAT [x,f] = spm_dcm_x_neural(P,'model')
+% FORMAT [x,f] = spm_dcm_x_neural_NMDA(P,'model')
 %
 %  P      - parameter structure
 % 'model' - 'ERP','SEP','LFP','NNM' or 'MFM'
@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_dcm_x_neural_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
 
 
 % initial state and equation

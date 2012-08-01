@@ -1,6 +1,6 @@
-function [pE,pC] = spm_nmm_priors(A,B,C)
+function [pE,pC] = spm_nmm_priors_NMDA(A,B,C)
 % prior moments for a neural-mass model of ERPs
-% FORMAT [pE,pC] = spm_nmm_priors(A,B,C)
+% FORMAT [pE,pC] = spm_nmm_priors_NMDA(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 %
@@ -46,7 +46,7 @@ function [pE,pC] = spm_nmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nmm_priors.m 2374 2008-10-21 18:52:29Z karl $
+% $Id: spm_nmm_priors_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
  
  
 % disable log zero warning

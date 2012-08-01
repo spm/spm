@@ -1,6 +1,6 @@
-function [x,M] = spm_x_mfm(P)
+function [x,M] = spm_x_mfm_NMDA(P)
 % initialises a state structure for a mean field model
-% FORMAT [x,M] = spm_x_mfm(P)
+% FORMAT [x,M] = spm_x_mfm_NMDA(P)
 %
 % P - parameter structure (encoding extrinsic connections)
 % M - model structure
@@ -23,7 +23,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_x_mfm_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
 
  
 % dimensions

@@ -1,6 +1,6 @@
-function [f,J,Q] = spm_fx_mfm_scale_gaba_NMDA(x,u,P,M)
+function [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 % state equations for neural-mass and mean-field models
-% FORMAT [f,J,Q] = spm_fx_mfm(x,u,P,M)
+% FORMAT [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 %
 % x - states and covariances
 %
@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm_scale_gaba_NMDA(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 2395 2008-10-23 18:28:16Z karl $
+% $Id: spm_fx_mfm_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------

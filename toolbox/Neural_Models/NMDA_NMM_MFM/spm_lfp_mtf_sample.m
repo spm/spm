@@ -1,6 +1,6 @@
-function [y,w] = spm_lfp_mtf(P,M,U)
+function [y,w] = spm_lfp_mtf_sample(P,M,U)
 % Spectral response of a NMM (transfer function x noise spectrum)
-% FORMAT [G,w] = spm_lfp_mtf(P,M,U)
+% FORMAT [G,w] = spm_lfp_mtf_sample(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 3119 2009-05-13 10:53:31Z rosalyn $
+% $Id: spm_lfp_mtf_sample.m 4820 2012-08-01 12:20:00Z guillaume $
 
 
 % compute log-spectral density

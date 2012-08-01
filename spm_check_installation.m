@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 4764 2012-06-06 11:23:59Z guillaume $
+% $Id: spm_check_installation.m 4820 2012-08-01 12:20:00Z guillaume $
 
 if isdeployed, return; end
 
@@ -484,7 +484,8 @@ for i=1:length(f)
     [p,name,ext] = fileparts(f{i});
     info = struct('file','', 'id',[], 'date','', 'md5','');
     if ismember(ext,{'.m','.man','.txt','.xml','.c','.h',''})
-        info = extract_info(fullfile(ccd,f{i}));
+        [info, sts] = extract_info(fullfile(ccd,f{i}));
+        if ~sts, dispw = true; end
     end
     info.file = fullfile(r,f{i});
     try
@@ -527,9 +528,10 @@ end
 %==========================================================================
 % FUNCTION extract_info
 %==========================================================================
-function svnprops = extract_info(f)
+function [svnprops, sts] = extract_info(f)
 %Extract Subversion properties (Id tag)
 
+sts = true;
 svnprops = struct('file',f, 'id',[], 'date','', 'md5','');
 
 fp  = fopen(f,'rt');
@@ -541,6 +543,7 @@ r = regexp(str,['\$Id: (?<file>\S+) (?<id>[0-9]+) (?<date>\S+) ' ...
                 '(\S+Z) (?<author>\S+) \$'],'names');
                 
 if isempty(r)
+    %sts = false;
     %fprintf('\n%s has no SVN Id.\n',f);
 else
     svnprops.file = r(1).file;
@@ -548,9 +551,11 @@ else
     svnprops.date = r(1).date;
     [p,name,ext]  = fileparts(f);
     if ~strcmp(svnprops.file,[name ext])
+        sts = false;
         fprintf('\nSVN Id does not match filename for file:\n  %s\n',f);
     end
 end
 if numel(r) > 1
+    %sts = false;
     %fprintf('\n%s has several SVN Ids.\n',f);
 end
