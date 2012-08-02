@@ -71,9 +71,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 5360 2012-03-01 10:49:32Z jorhor $
+% $Id: ft_redefinetrial.m 6249 2012-07-08 10:43:10Z jansch $
 
-revision = '$Id: ft_redefinetrial.m 5360 2012-03-01 10:49:32Z jorhor $';
+revision = '$Id: ft_redefinetrial.m 6249 2012-07-08 10:43:10Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -85,16 +85,16 @@ ft_preamble loadvar data
 % ft_checkdata is done further down
 
 % set the defaults
-if ~isfield(cfg, 'offset'),     cfg.offset = [];      end
-if ~isfield(cfg, 'toilim'),     cfg.toilim = [];      end
-if ~isfield(cfg, 'begsample'),  cfg.begsample = [];   end
-if ~isfield(cfg, 'endsample'),  cfg.endsample = [];   end
-if ~isfield(cfg, 'minlength'),  cfg.minlength = [];   end
-if ~isfield(cfg, 'trials'),     cfg.trials = 'all';   end
-if ~isfield(cfg, 'feedback'),   cfg.feedback = 'yes'; end
-if ~isfield(cfg, 'trl'),        cfg.trl =  [];        end
-if ~isfield(cfg, 'length'),     cfg.length = [];      end
-if ~isfield(cfg, 'overlap'),    cfg.overlap = 0;      end
+cfg.offset    = ft_getopt(cfg, 'offset',    []);
+cfg.toilim    = ft_getopt(cfg, 'toilim',    []);
+cfg.begsample = ft_getopt(cfg, 'begsample', []);
+cfg.endsample = ft_getopt(cfg, 'endsample', []);
+cfg.minlength = ft_getopt(cfg, 'minlength', []);
+cfg.trials    = ft_getopt(cfg, 'trials',    []);
+cfg.feedback  = ft_getopt(cfg, 'feedback',  'yes');
+cfg.trl       = ft_getopt(cfg, 'trl',       []);
+cfg.length    = ft_getopt(cfg, 'length',    []);
+cfg.overlap   = ft_getopt(cfg, 'overlap',   0);
 
 % store original datatype
 dtype = ft_datatype(data);
@@ -211,7 +211,6 @@ elseif ~isempty(cfg.trl)
   hdr = ft_fetch_header(dataold);
 
   trl = cfg.trl;
-  remove = 0;
   
   % start with a completely new data structure
   data          = [];
@@ -232,7 +231,11 @@ elseif ~isempty(cfg.trl)
     if isempty(iTrlorig)
       error('some sample indices [%d %d] specified in cfg.trl are not present in the data', begsample, endsample);
     end
-   
+    if numel(iTrlorig)>2
+      % this explicit check is done since July 2012
+      error('some of the new trials need to be constructed from more than one input trial. This is not supported.');
+    end
+    
     % used to speed up ft_fetch_data
     if iTrl==1,
       tmpdata = dataold;
@@ -246,26 +249,26 @@ elseif ~isempty(cfg.trl)
     data.time{iTrl}  = offset2time(offset, dataold.fsample, trllength);
     
     % ensure correct handling of trialinfo
-    if isfield(dataold, 'sampleinfo'),
-      if numel(iTrlorig)==1 && isfield(dataold, 'trialinfo'),
-        data.trialinfo(iTrl,:) = dataold.trialinfo(iTrlorig,:);
-      elseif isfield(dataold, 'trialinfo'),
-        remove = 1;
-      end
+    if isfield(dataold, 'trialinfo'),
+      data.trialinfo(iTrl,:) = dataold.trialinfo(iTrlorig,:);
     end
-  end
+  end %for iTrl
+  
+  % add the necessary fields to the output
   if isfield(dataold, 'grad')
     data.grad      = dataold.grad;
   end
   if isfield(dataold, 'elec')
     data.elec      = dataold.elec;
   end
-  if remove && isfield(data, 'trialinfo')
-    data = rmfield(data, 'trialinfo');
-  end
   if isfield(dataold, 'sampleinfo')
     % adjust the trial definition
     data.sampleinfo  = trl(:, 1:2);
+  end
+  if ~isfield(data, 'trialinfo') && size(trl,2)>3
+    data.trialinfo = trl(:,4:end);
+  elseif isfield(data, 'trialinfo') && size(trl,2)>3
+    warning('the input trl-matrix contains more than 3 columns, but the data already has a trialinfo-field. Keeping the trialinfo from the data');
   end
   
 elseif ~isempty(cfg.length)

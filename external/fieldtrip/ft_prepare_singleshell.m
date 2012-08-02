@@ -35,6 +35,10 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %   G. Nolte, "The magnetic lead field theorem in the quasi-static
 %   approximation and its use for magnetoencephalography forward calculation
 %   in realistic volume conductors", Phys Med Biol. 2003 Nov 21;48(22):3637-52.
+%
+% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_LOCALSPHERES,
+% FT_PREPARE_BEMMODEL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
+% FT_PREPARE_MESH_NEW
 
 % TODO the spheremesh option should be renamed consistently with other mesh generation cfgs
 % TODO shape should contain pnt as subfield and not be equal to pnt (for consistency with other use of shape)
@@ -57,9 +61,9 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_singleshell.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_prepare_singleshell.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_singleshell.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

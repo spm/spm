@@ -24,10 +24,8 @@ function [data] = ft_megrealign(cfg, data)
 % gradiometer array. This requires the specification of a volume conduction
 % model of the head and of a source model.
 %
-% A head model must be specified, see FT_FETCH_SENS,or alternatively 
-% manually using
-%   cfg.vol.r       = radius of sphere
-%   cfg.vol.o       = [x, y, z] position of origin
+% A volume conduction model of the head should be specified with
+%   cfg.vol         = structure, see FT_PREPARE_HEADMODEL
 %
 % A source model (i.e. a superficial layer with distributed sources) can be
 % constructed from a headshape file, or from the volume conduction model
@@ -104,9 +102,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_megrealign.m 6215 2012-07-04 07:11:19Z roboos $
 
-revision = '$Id: ft_megrealign.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_megrealign.m 6215 2012-07-04 07:11:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -189,7 +187,7 @@ template.grad = grad;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % FT_PREPARE_VOL_SENS will match the data labels, the gradiometer labels and the
-% volume model labels (in case of a multisphere model) and result in a gradiometer
+% volume model labels (in case of a localspheres model) and result in a gradiometer
 % definition that only contains the gradiometers that are present in the data.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

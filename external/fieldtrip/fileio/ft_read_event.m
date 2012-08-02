@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 5750 2012-05-08 14:04:35Z borreu $
+% $Id: ft_read_event.m 6081 2012-06-17 00:40:31Z josdie $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -725,6 +725,11 @@ switch eventformat
     warning('off', 'MATLAB:REGEXP:deprecated') % due to some small code xml2struct
     xmlfiles = dir( fullfile(filename, '*.xml'));
     disp('reading xml files to obtain event info... This might take a while if many events/triggers are present')
+    if isempty(xmlfiles)
+        xml=struct([]);
+    else
+        xml=[];
+    end;
     for i = 1:numel(xmlfiles)
       if strcmpi(xmlfiles(i).name(1:6), 'Events')
         fieldname       = xmlfiles(i).name(1:end-4);

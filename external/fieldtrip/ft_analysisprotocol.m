@@ -52,6 +52,8 @@ function [script, details] = ft_analysisprotocol(cfg, datacfg)
 % Note that the nested cfg and cfg.previous in your data might not contain
 % all details that are required to reconstruct a complete and valid
 % analysis script.
+%
+% See also FT_PREPROCESSING,FT_TIMELOCKANALYSIS, FT_SOURCEANALYSIS, FT_FREQSTATISTICS
 
 % TODO the output of this function can perhaps be used as input for the wizard function
 
@@ -73,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, datacfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 5141 2012-01-16 14:10:43Z eelspa $
+% $Id: ft_analysisprotocol.m 6272 2012-07-19 13:00:05Z roevdmei $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 5141 2012-01-16 14:10:43Z eelspa $';
+revision = '$Id: ft_analysisprotocol.m 6272 2012-07-19 13:00:05Z roevdmei $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -270,7 +272,11 @@ end
 
 % check all fields of the cfg to see if any of them have a sub-cfg that
 % would be appropriate to include as a branch
-fn = fieldnames(datacfg);
+if isempty(datacfg)
+  fn = {};
+else
+  fn = fieldnames(datacfg);
+end
 for i=1:length(fn)
   if isa(datacfg.(fn{i}), 'struct') && isfield(datacfg.(fn{i}), 'cfg')
     % increment the depth counter
@@ -486,6 +492,11 @@ for k = 1:numel(cfg.showinfo)
       end
   end
 end
+
+% dublicate backslashes to escape tex interpreter (in case of windows filenames)
+label = strrep(label, '\', '\\');
+label = strrep(label, '{\\bf', '{\bf'); % undo for bold formatting
+
 
 % escape underscores
 label = strrep(label, '_', '\_');

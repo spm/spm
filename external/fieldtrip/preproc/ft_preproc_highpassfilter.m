@@ -2,7 +2,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 
 % FT_PREPROC_HIGHPASSFILTER applies a high-pass filter to the data and thereby
 % removes the low frequency components in the data
-% 
+%
 % Use as
 %   [filt] = ft_preproc_highpassfilter(dat, Fsample, Fhp, N, type, dir)
 % where
@@ -13,12 +13,14 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %              frequency band and data length (fir/firls)
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
-%                'fir' FIR filter using Matlab fir1 function 
+%                'fir' FIR filter using Matlab fir1 function
 %                'firls' FIR filter using Matlab firls function (requires Matlab Signal Processing Toolbox)
 %   dir        optional filter direction, can be
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
 %                'twopass'         zero-phase forward and reverse filter (default)
+%                'twopass-reverse' zero-phase reverse and forward filter
+%                'twopass-average' average of the twopass and the twopass-reverse
 %
 % Note that a one- or two-pass filter has consequences for the
 % strength of the filter, i.e. a two-pass filter with the same filter
@@ -44,14 +46,14 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 5593 2012-04-04 15:17:51Z roboos $
+% $Id: ft_preproc_highpassfilter.m 6160 2012-06-27 14:17:12Z jorhor $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
 
 % set the default filter order later
 if nargin<4 || isempty(N)
-    N = [];
+  N = [];
 end
 
 % set the default filter type
@@ -93,7 +95,6 @@ switch type
       N=floor(size(dat,2)/3) - 2;
       if rem(N,2)==1,   N=N+1;    end
     end
-    
     f = 0:0.001:1;
     if rem(length(f),2)~=0
       f(end)=[];
@@ -104,7 +105,9 @@ switch type
     z(pos1:pos2) = 1;
     A = 1;
     B = firls(N,f,z); % requires Matlab signal processing toolbox
-end  
+  otherwise
+    error('unsupported filter type "%s"', type);
+end
 
 meandat = mean(dat,2);
 for i=1:nsamples

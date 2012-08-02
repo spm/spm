@@ -30,8 +30,15 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %   cfg.grid.inside     = vector with indices of the sources inside the brain (optional)
 %   cfg.grid.outside    = vector with indices of the sources outside the brain (optional)
 %
-% You should specify the volume conductor model, see FT_FETCH_VOL, and the 
-% sensor information, see FT_FETCH_SENS.
+% The volume conduction model of the head should be specified as
+%   cfg.vol           = structure with volume conduction model, see FT_PREPARE_HEADMODEL
+%   cfg.hdmfile       = name of file containing the volume conduction model, see FT_READ_VOL
+%
+% The EEG or MEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
 %
 % Optionally, you can modify the leadfields by reducing the rank (i.e.
 % remove the weakest orientation), or by normalizing each column.
@@ -46,7 +53,8 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 % file on disk. This mat files should contain only a single variable named 'data',
 % corresponding to the input structure.
 %
-% See also FT_SOURCEANALYSIS
+% See also FT_SOURCEANALYSIS, FT_DIPOLEFITTING, FT_PREPARE_HEADMODEL,
+% FT_PREPARE_SOURCEMODEL
 
 % Undocumented local options:
 % cfg.feedback
@@ -96,9 +104,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 5684 2012-04-20 14:54:10Z roboos $
+% $Id: ft_prepare_leadfield.m 6197 2012-07-02 20:47:53Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 5684 2012-04-20 14:54:10Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 6197 2012-07-02 20:47:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults

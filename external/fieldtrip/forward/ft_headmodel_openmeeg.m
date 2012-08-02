@@ -1,4 +1,4 @@
-function vol = ft_headmodel_bem_openmeeg(geom, varargin)
+function vol = ft_headmodel_openmeeg(geom, varargin)
 
 % FT_HEADMODEL_OPENMEEG creates a volume conduction model of the
 % head using the boundary element method (BEM). This function takes
@@ -31,7 +31,7 @@ function vol = ft_headmodel_bem_openmeeg(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-%$Id: ft_headmodel_bem_openmeeg.m 5407 2012-03-07 11:40:45Z crimic $
+%$Id: ft_headmodel_openmeeg.m 6211 2012-07-03 13:33:09Z roboos $
 
 ft_hastoolbox('openmeeg', 1);
 

@@ -141,9 +141,9 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 5791 2012-05-21 14:46:07Z jansch $
+% $Id: ft_componentanalysis.m 6046 2012-06-13 07:01:33Z roboos $
 
-revision = '$Id: ft_componentanalysis.m 5791 2012-05-21 14:46:07Z jansch $';
+revision = '$Id: ft_componentanalysis.m 6046 2012-06-13 07:01:33Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -573,18 +573,22 @@ end % switch method
 
 % make sure we have both mixing and unmixing matrices
 % if not, compute (pseudo-)inverse to go from one to the other
-if isempty(unmixing)
+if isempty(unmixing) && ~isempty(mixing)
   if (size(mixing,1)==size(mixing,2))
     unmixing = inv(mixing);
   else
     unmixing = pinv(mixing);
   end
-elseif isempty(mixing)
+elseif isempty(mixing) && ~isempty(unmixing)
   if (size(unmixing,1)==size(unmixing,2)) && rank(unmixing)==size(unmixing,1)
     mixing = inv(unmixing);
   else
     mixing = pinv(unmixing);
   end
+elseif isempty(mixing) && isempty(unmixing)
+  % this sanity check is needed to catch convergence problems in fastica
+  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1519
+  error('the component unmixing failed');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

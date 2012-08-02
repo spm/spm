@@ -60,9 +60,9 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 5744 2012-05-07 20:50:48Z arjsto $
+% $Id: ft_regressconfound.m 5863 2012-06-04 07:36:52Z roboos $
 
-revision = '$Id: ft_regressconfound.m 5744 2012-05-07 20:50:48Z arjsto $';
+revision = '$Id: ft_regressconfound.m 5863 2012-06-04 07:36:52Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -168,7 +168,10 @@ elseif isfreq
   end % switch
   
 elseif issource
-  
+
+  % ensure that the source structure contains inside/outside specification
+  datain = ft_checkdata(datain, 'datatype', 'source', 'hasinside', 'yes');
+
   % descriptives
   nrpt    = size(datain.trial, 2);
   nvox    = size(datain.pos, 1);

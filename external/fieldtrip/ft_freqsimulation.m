@@ -127,6 +127,9 @@ function [data] = ft_freqsimulation(cfg)
 %     2nd channel: sine wave with base frequency and phase, i.e. s1
 %     3rd channel: asymmetric signal
 %     4th channel: noise
+%
+% See also FT_FREQANALYSIS, FT_FREQDESCRIPTIVES, FT_FREQINTERPOLATION,
+% FT_MULTIPLOTTFR, FT_TOPOPLOTTFR, FT_SINGLEPLOTTFR
 
 % Copyright (C) 2007-2008, Ingrid Nieuwenhuis & Robert Oostenveld, F.C. Donders Centre
 %
@@ -146,14 +149,13 @@ function [data] = ft_freqsimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqsimulation.m 5219 2012-02-01 15:52:38Z roevdmei $
+% $Id: ft_freqsimulation.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_freqsimulation.m 5219 2012-02-01 15:52:38Z roevdmei $';
+revision = '$Id: ft_freqsimulation.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble distribute
 ft_preamble callinfo
 ft_preamble trackconfig
 

@@ -34,6 +34,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %                         'depsamplesF'       dependent samples F-statistic,
 %                         'depsamplesregrT'   dependent samples regression coefficient T-statistic,
 %                         'actvsblT'          activation versus baseline T-statistic.
+% or you can specify your own low-level statistical function.
 %
 % See also FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS, FT_SOURCESTATISTICS
 
@@ -55,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 5650 2012-04-18 14:00:33Z roevdmei $
+% $Id: ft_statistics_analytic.m 6202 2012-07-03 06:43:40Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

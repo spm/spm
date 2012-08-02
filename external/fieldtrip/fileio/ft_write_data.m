@@ -48,7 +48,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 5260 2012-02-08 13:19:05Z roboos $
+% $Id: ft_write_data.m 6203 2012-07-03 06:44:34Z roboos $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -58,11 +58,16 @@ if isempty(db_blob)
 end
 
 % get the options
-dataformat    = ft_getopt(varargin, 'dataformat', ft_filetype(filename));
 append        = ft_getopt(varargin, 'append', false);
 nbits         = ft_getopt(varargin, 'nbits'); % for riff_wave
 chanindx      = ft_getopt(varargin, 'chanindx');
 hdr           = ft_getopt(varargin, 'header');
+dataformat    = ft_getopt(varargin, 'dataformat');
+
+if isempty(dataformat)
+  % only do the autodetection if the format was not specified
+  dataformat = ft_filetype(filename);
+end
 
 % determine the data size
 [nchans, nsamples] = size(dat);

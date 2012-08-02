@@ -101,7 +101,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 5591 2012-04-04 14:51:18Z roboos $
+% $Id: preproc.m 5928 2012-06-06 18:58:06Z borreu $
 
 % compute fsample
 fsample = 1./mean(diff(time));
@@ -139,8 +139,9 @@ end
 % demean, and blcwindow into baselinewindow. to avoid having to create an
 % svn external for ft_checkconfig in fieldtrip/private, do the check
 % manually
-if isfield(cfg, 'blc'),       cfg.demean         = cfg.blc;       cfg = rmfield(cfg, 'blc'); end
-if isfield(cfg, 'blcwindow'), cfg.baselinewindow = cfg.blcwindow; cfg = rmfield(cfg, 'blcwindow'); end
+ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
+ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
+
 % set the defaults for the rereferencing options
 if ~isfield(cfg, 'reref'),        cfg.reref = 'no';             end
 if ~isfield(cfg, 'refchannel'),   cfg.refchannel = {};          end

@@ -36,7 +36,7 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headsurface.m 4510 2011-10-18 18:53:15Z roboos $
+% $Id: headsurface.m 6215 2012-07-04 07:11:19Z roboos $
 
 if nargin<1
   vol = [];
@@ -121,7 +121,7 @@ elseif ~isempty(vol) && isfield(vol, 'r') && length(vol.r)<5
   pnt(:,3) = pnt(:,3) + origin(3);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif ft_voltype(vol, 'multisphere')
+elseif ft_voltype(vol, 'localspheres')
   % local spheres MEG model, this also requires a gradiometer structure
   grad = sens;
   if ~isfield(grad, 'tra') || ~isfield(grad, 'coilpos')

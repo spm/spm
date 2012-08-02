@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 5645 2012-04-17 13:45:11Z eelspa $
+% $Id: ft_progress.m 6036 2012-06-12 09:30:19Z eelspa $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -215,10 +215,15 @@ else
       end
       
       varargin{2} = [repmat(sprintf('\b'),[1 strlen]) varargin{2}];
+      if usejava('desktop')
+        % a newline is appropriate when using the desktop environment
+        varargin{2} = [varargin{2} '\n'];
+      end
+      
       strlentmp = fprintf(varargin{2:end});
       strlen = strlentmp - strlen;
     else
-      strlentmp = fprintf([repmat(sprintf('\b'),[1 strlen]) '%6.2f %%\n'], 100*varargin{1});
+      strlentmp = fprintf([repmat(sprintf('\b'),[1 strlen]) '%6.2f %%'], 100*varargin{1});
       strlen = strlentmp - strlen;
     end
 

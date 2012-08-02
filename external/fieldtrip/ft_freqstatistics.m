@@ -70,9 +70,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 5650 2012-04-18 14:00:33Z roevdmei $
+% $Id: ft_freqstatistics.m 6213 2012-07-03 19:53:05Z roboos $
 
-revision = '$Id: ft_freqstatistics.m 5650 2012-04-18 14:00:33Z roevdmei $';
+revision = '$Id: ft_freqstatistics.m 6213 2012-07-03 19:53:05Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -340,7 +340,7 @@ stat.dimord = cfg.dimord;
 
 % HACK if a bivariate statistic is in the output, replace label with the
 % appropriate labelcmb
-if isfield(cfg,'statistic') && strcmp(cfg.statistic, 'indepsamplesZcoh') && isfield(stat, 'label')
+if isfield(cfg,'statistic') && isequal(cfg.statistic, 'indepsamplesZcoh') && isfield(stat, 'label')
   stat.labelcmb(:,1) = stat.label(cfg.chancmbindx(:,1));
   stat.labelcmb(:,2) = stat.label(cfg.chancmbindx(:,2));
   stat = rmfield(stat, 'label');

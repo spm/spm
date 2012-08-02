@@ -19,6 +19,8 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 % file on disk and/or the output data will be written to a *.mat file. These mat
 % files should contain only a single variable, corresponding with the
 % input/output structure.
+%
+% See also FT_FREQANALYSIS, FT_FREQDESCRIPTIVES, FT_FREQSIMULATION
 
 % Copyright (C) 2009, Aldemar Torres Valderama
 %
@@ -38,9 +40,9 @@ function [freq] = ft_freqinterpolate(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqinterpolate.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_freqinterpolate.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_freqinterpolate.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_freqinterpolate.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

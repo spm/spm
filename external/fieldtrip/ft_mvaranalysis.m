@@ -64,6 +64,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 % file on disk and/or the output data will be written to a *.mat file. These mat
 % files should contain only a single variable, corresponding with the
 % input/output structure.
+%
+% See also FT_PREPROCESSING, FT_SOURCESTATISTICS, FT_FREQSTATISTICS,
+% FT_TIMELOCKSTATISTICS
 
 % Undocumented local options:
 %   cfg.keeptapers
@@ -87,9 +90,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 5439 2012-03-12 13:17:15Z giopia $
+% $Id: ft_mvaranalysis.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_mvaranalysis.m 5439 2012-03-12 13:17:15Z giopia $';
+revision = '$Id: ft_mvaranalysis.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

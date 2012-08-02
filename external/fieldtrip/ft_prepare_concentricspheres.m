@@ -32,6 +32,10 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %   cfg.headshape    = headshape;
 %   cfg.conductivity = [0.3300 1 0.0042 0.3300]
 %   [vol, cfg] = prepare_concentricspheres(cfg)
+%
+% See also FT_PREPARE_BEMMODEL, FT_PREPARE_LOCALSPHERES,
+% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
+% FT_PREPARE_MESH_NEW
 
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
@@ -51,9 +55,9 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_concentricspheres.m 6211 2012-07-03 13:33:09Z roboos $
 
-revision = '$Id: ft_prepare_concentricspheres.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_concentricspheres.m 6211 2012-07-03 13:33:09Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -148,7 +152,7 @@ else
   error('incorrect specification of cfg.conductivity');
 end
 
-vol.type = 'concentric';
+vol.type = 'concentricspheres';
 
 % ensure that the geometrical units are specified
 vol = ft_convert_units(vol);

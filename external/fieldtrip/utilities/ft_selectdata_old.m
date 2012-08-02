@@ -48,7 +48,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_old.m 5138 2012-01-13 10:34:04Z roboos $
+% $Id: ft_selectdata_old.m 6240 2012-07-05 14:05:13Z johzum $
 
 % FIXME ROI selection is not yet implemented
 
@@ -523,8 +523,10 @@ if selecttoi && ~israw,
   if length(seltoi)==1, seltoi(2) = seltoi; end;
   if numel(seltoi)==2,
     % treat seltoi as lower limit and upper limit
-    seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
-    % seltoi = find(data.time>=seltoi(1) & data.time<=seltoi(2));
+    toitmp=nearest(data.time,[seltoi(1) seltoi(2)]);
+    seltoi=toitmp(1):toitmp(2);
+%     seltoi = nearest(data.time, seltoi(1)):nearest(data.time, seltoi(2));
+%     seltoi = find(data.time>=seltoi(1) & data.time<=seltoi(2));
   else
     % treat seltoi as a list of timepoints
     tmptoi = zeros(1,numel(seltoi));

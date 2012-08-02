@@ -14,12 +14,11 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %   - regular 3D grid with explicit specification
 %   - regular 3D grid with specification of the resolution
 %   - regular 3D grid, based on segmented MRI, restricted to gray matter
-%   - regular 3D grid, based on a warped template grid, based on the MNI
-%       brain
-%   - surface grid based on brain surface from volume conductor
-%   - surface grid based on head surface from external file
-%   - using user-supplied grid positions, which can be regular or irregular
+%   - regular 3D grid, based on a warped template grid, based on the MNI brain
+%   - surface grid based on the brain surface from the volume conduction model
+%   - surface grid based on the head surface from an external file
 %   - cortical sheet that was created in MNE or Freesurfer
+%   - using user-supplied grid positions, which can be regular or irregular
 % The approach that will be used depends on the configuration options that
 % you specify.
 %
@@ -68,10 +67,19 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 % Configuration options for reading a cortical sheet from file
 %   cfg.headshape     = string, should be a *.fif file
 %
+% The EEG or MEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
+%
+% The headmodel or volume conduction model can be specified as
+%   cfg.hdmfile       = string, file containing the volume conduction model, see FT_READ_SENS
+% or alternatively
+%   cfg.vol           = structure with volume conduction model
+%   data.vol          = structure with volume conduction model
+%
 % Other configuration options
-%   cfg.vol          = volume conduction model
-%   cfg.grad         = gradiometer definition
-%   cfg.elec         = electrode definition
 %   cfg.grid.tight   = 'yes' or 'no' (default is automatic)
 %   cfg.inwardshift  = depth of the bounding layer for the source space, relative to the head model surface (default = 0)
 %   cfg.symmetry     = 'x', 'y' or 'z' symmetry for two dipoles, can be empty (default = [])
@@ -79,7 +87,8 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %                      single triangulated boundary, or a Nx3 matrix with surface
 %                      points
 %
-% See also FT_PREPARE_LEADFIELD, FT_SOURCEANALYSIS, FT_DIPOLEFITTING, FT_MEGREALIGN
+% See also FT_PREPARE_LEADFIELD, FT_PREPARE_HEADMODEL, FT_SOURCEANALYSIS,
+% FT_DIPOLEFITTING, FT_MEGREALIGN
 
 % Searching through the code, it seems that the following cfg fields are being used
 % cfg.grid
@@ -111,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 5677 2012-04-20 11:08:09Z jansch $
+% $Id: ft_prepare_sourcemodel.m 6295 2012-07-31 12:39:30Z jansch $
 
-revision = '$Id: ft_prepare_sourcemodel.m 5677 2012-04-20 11:08:09Z jansch $';
+revision = '$Id: ft_prepare_sourcemodel.m 6295 2012-07-31 12:39:30Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -153,15 +162,15 @@ if isfield(cfg.grid, 'resolution') && isfield(cfg.grid, 'zgrid') && ~ischar(cfg.
   error('You cannot specify cfg.grid.resolution and an explicit cfg.grid.zgrid simultaneously');
 end
 
-% a grid can be constructed based on a number of ways
-basedongrid   = isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid);  % regular 3D grid with explicit specification
-basedonpos    = isfield(cfg.grid, 'pos');                               % using user-supplied grid positions, which can be regular or irregular
-basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);   % surface grid based on inward shifted head surface from external file
+% a source model can be constructed in a number of ways
+basedongrid   = isfield(cfg.grid, 'xgrid') && ~ischar(cfg.grid.xgrid);                              % regular 3D grid with explicit specification
+basedonpos    = isfield(cfg.grid, 'pos');                                                           % using user-supplied grid positions, which can be regular or irregular
+basedonshape  = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);                               % surface grid based on inward shifted head surface from external file
 basedonmri    = isfield(cfg, 'mri') && ~(isfield(cfg.grid, 'warpmni') && istrue(cfg.grid.warpmni)); % regular 3D grid, based on segmented MRI, restricted to gray matter
 basedonmni    = isfield(cfg, 'mri') && (isfield(cfg.grid, 'warpmni') && istrue(cfg.grid.warpmni));  % regular 3D grid, based on warped MNI template
-basedonvol    = false;                                                  % surface grid based on inward shifted brain surface from volume conductor
+basedonvol    = false;                                                                              % surface grid based on inward shifted brain surface from volume conductor
 basedoncortex = isfield(cfg, 'headshape') && (iscell(cfg.headshape) || ft_filetype(cfg.headshape, 'neuromag_fif') || ft_filetype(cfg.headshape, 'freesurfer_triangle_binary')); % cortical sheet from MNE or Freesurfer, also in case of multiple files/hemispheres
-basedonauto   = isfield(cfg.grid, 'resolution') && ~basedonmri && ~basedonmni; % regular 3D grid with specification of the resolution
+basedonauto   = isfield(cfg.grid, 'resolution') && ~basedonmri && ~basedonmni;                      % regular 3D grid with specification of the resolution
 
 if basedonshape && basedoncortex
   % treating it as cortical sheet has preference
@@ -253,25 +262,19 @@ end
 % start with an empty grid
 grid = [];
 
-% copy the volume conductor and sensor array out of the cfg
-if isfield(cfg, 'vol')
-  vol = cfg.vol;
-else
+% get the volume conduction model
+try
+  vol = ft_fetch_vol(cfg);
+catch
   vol = [];
 end
 
-% these are mutually exclusive
-if isfield(cfg, 'grad')
-  sens = cfg.grad;
-elseif isfield(cfg, 'elec')
-  sens = cfg.elec;
-else
-  sens = [];
+% get the gradiometer or electrode definition
+try
+  sens = ft_fetch_sens(cfg);
+catch
+  sens =[];
 end
-
-% ensure that the sensor description is up-to-date, for backward compatibility Oct 2011
-% FIXME see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1055
-sens = ft_datatype_sens(sens);
 
 % ensure cfg.sourceunits to have a value and/or enforce the units in the sensors
 % to conform to this value
@@ -617,11 +620,12 @@ if basedonmni
     mri = cfg.mri;
   end
   
-  % ensure the mri to have units
-  if ~isfield(mri, 'unit')
-    mri = ft_convert_units(mri);
-  end
-  
+  % ensure the mri to have mm units
+  %if ~isfield(mri, 'unit')
+  %  mri = ft_convert_units(mri);
+  %end
+  mri = ft_convert_units(mri, 'mm');  
+
   % get template grid
   if ischar(fname)
     load(fname, 'grid');
@@ -651,6 +655,7 @@ if basedonmni
   grid.unit        = mnigrid.unit;
   grid.inside      = mnigrid.inside;
   grid.outside     = mnigrid.outside;
+  grid.params      = normalise.params;
   
   % convert to the requested units
   grid             = ft_convert_units(grid, cfg.sourceunits);

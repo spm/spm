@@ -20,6 +20,8 @@ function [filt] = ft_preproc_bandpassfilter(dat, Fs, Fbp, N, type, dir)
 %                'onepass'         forward filter only
 %                'onepass-reverse' reverse filter only, i.e. backward in time
 %                'twopass'         zero-phase forward and reverse filter (default)
+%                'twopass-reverse' zero-phase reverse and forward filter
+%                'twopass-average' average of the twopass and the twopass-reverse
 %
 % Note that a one- or two-pass filter has consequences for the
 % strength of the filter, i.e. a two-pass filter with the same filter
@@ -45,7 +47,7 @@ function [filt] = ft_preproc_bandpassfilter(dat, Fs, Fbp, N, type, dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 5593 2012-04-04 15:17:51Z roboos $
+% $Id: ft_preproc_bandpassfilter.m 6160 2012-06-27 14:17:12Z jorhor $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -90,7 +92,6 @@ switch type
     if N > floor( (size(dat,2) - 1) / 3)
       N=floor(size(dat,2)/3) - 1;
     end
-    
     f = 0:0.001:1;
     if rem(length(f),2)~=0
       f(end)=[];
@@ -98,7 +99,7 @@ switch type
     z = zeros(1,length(f));
     if(isfinite(min(Fbp)))
       [val,pos1] = min(abs(Fs*f/2 - min(Fbp)));
-    else 
+    else
       [val,pos2] = min(abs(Fs*f/2 - max(Fbp)));
       pos1=pos2;
     end
@@ -110,6 +111,8 @@ switch type
     z(pos1:pos2) = 1;
     A = 1;
     B = firls(N,f,z); % requires Matlab signal processing toolbox
+  otherwise
+    error('unsupported filter type "%s"', type);
 end
 
 meandat = mean(dat,2);

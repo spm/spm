@@ -21,7 +21,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
 %   cfg.zlim          = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
 %   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
-%   cfg.baselinetype  = 'absolute' or 'relative' (default = 'absolute')
+%   cfg.baselinetype  = 'absolute', 'relative' or 'relchange' (default = 'absolute')
 %   cfg.trials        = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'),
 %                       see FT_CHANNELSELECTION for details
@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $
+% $Id: ft_singleplotTFR.m 5822 2012-05-31 10:23:41Z jansch $
 
-revision = '$Id: ft_singleplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $';
+revision = '$Id: ft_singleplotTFR.m 5822 2012-05-31 10:23:41Z jansch $';
 
 % do the general setup of the function
 ft_defaults

@@ -57,9 +57,10 @@ function [result, M] = warp_optim(input, target, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_optim.m 5575 2012-04-02 10:40:42Z jansch $
+% $Id: warp_optim.m 5835 2012-06-01 07:12:19Z roboos $
 
-global fb;
+% this can be used for printing detailled user feedback
+fb = false;
 
 if nargin<3
   method='traditional';

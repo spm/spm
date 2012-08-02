@@ -27,14 +27,14 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample, chani
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_eeg.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: read_brainvision_eeg.m 6293 2012-07-26 11:45:18Z jansch $
 
 if nargin<5
   % read all channels
   chanindx = [];
 end
 
-if isequal(chanindx, 1:hdr.NumberOfChannels);
+if isequal(chanindx(:)', 1:hdr.NumberOfChannels);
   % read all channels
   chanindx = [];
 end
@@ -64,9 +64,13 @@ if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexe
     fseek(fid, hdr.NumberOfChannels*2*(begsample-1), 'cof');
     dat = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], sampletype);
     % compute real microvolts using the calibration factor (resolution)
-    calib = diag(hdr.resolution);
-    % using a sparse multiplication speeds it up
-    dat = full(sparse(calib) * dat);
+    % calib = diag(hdr.resolution);
+    % % using a sparse multiplication speeds it up
+    % dat = full(sparse(calib) * dat);
+    calib = reshape(hdr.resolution,[],1);
+    for k = 1:size(dat,2)
+      dat(:,k) = calib.*dat(:,k);
+    end
     
   else
     % read only the selected channels
@@ -76,9 +80,14 @@ if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexe
       dat(chan,:) = fread(fid, [1, (endsample-begsample+1)], sampletype, (hdr.NumberOfChannels-1)*samplesize);
     end
     % compute real microvolts using the calibration factor (resolution)
-    calib = diag(hdr.resolution(chanindx));
-    % using a sparse multiplication speeds it up
-    dat = full(sparse(calib) * dat);
+    % calib = diag(hdr.resolution(chanindx));
+    % % using a sparse multiplication speeds it up
+    % dat = full(sparse(calib) * dat);
+    calib = reshape(hdr.resolution(chanindx),[],1);
+    for k = 1:size(dat,2)
+      dat(:,k) = calib.*dat(:,k);
+    end
+    
     % don't do the channel selection again at the end of the function
     chanindx = [];
   end

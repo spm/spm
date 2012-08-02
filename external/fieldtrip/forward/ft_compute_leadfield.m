@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 5775 2012-05-13 12:20:18Z roboos $
+% $Id: ft_compute_leadfield.m 6215 2012-07-04 07:11:19Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -160,9 +160,9 @@ elseif ismeg
         lf = sens.tra * lf;
       end
 
-    case 'multisphere'
+    case 'localspheres'
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % MEG multi-sphere volume conductor model
+      % MEG multiple overlapping sphere volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       ncoils = length(sens.coilpos);
 
@@ -293,7 +293,8 @@ elseif iseeg
     case 'multisphere'
       % Based on the approximation of the potential due to a single dipole in
       % a multishell sphere by three dipoles in a homogeneous sphere, code
-      % contributed by Punita Christopher
+      % contributed by Punita Christopher. Note that this one should not get
+      % confused with the MEG localspheres model.
 
       Nelec = size(sens.elecpos,1);
       Nspheres = length(vol.r);
@@ -336,7 +337,7 @@ elseif iseeg
         q1 = [0 0 1] ; lf(:,3) = multisphere(Nspheres, radii, sigma, r, rq, q1);
       end
 
-    case {'singlesphere', 'concentric'}
+    case {'singlesphere', 'concentricspheres'}
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % EEG spherical volume conductor model
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

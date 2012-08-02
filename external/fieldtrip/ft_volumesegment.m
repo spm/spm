@@ -94,7 +94,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_READ_MRI FT_DETERMINE_COORDSYS
+% See also FT_READ_MRI, FT_DETERMINE_COORDSYS, FT_PREPARE_HEADMODEL
 
 % undocumented options
 %   cfg.keepintermediate = 'yes' or 'no'
@@ -115,9 +115,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 5680 2012-04-20 11:11:57Z jansch $
+% $Id: ft_volumesegment.m 6241 2012-07-07 14:20:05Z roboos $
 
-revision = '$Id: ft_volumesegment.m 5680 2012-04-20 11:11:57Z jansch $';
+revision = '$Id: ft_volumesegment.m 6241 2012-07-07 14:20:05Z roboos $';
 
 % do the general setup of the function
 ft_defaults

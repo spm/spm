@@ -34,9 +34,9 @@ function [data] = ft_appendspike(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 5238 2012-02-04 09:40:29Z roboos $
+% $Id: ft_appendspike.m 6057 2012-06-13 14:11:09Z marvin $
 
-revision = '$Id: ft_appendspike.m 5238 2012-02-04 09:40:29Z roboos $';
+revision = '$Id: ft_appendspike.m 6057 2012-06-13 14:11:09Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -69,9 +69,16 @@ if all(isspike)
   data = spike{1};
   for i=2:length(spike)
     data.label     = cat(2, data.label, spike{i}.label);
-    data.waveform  = cat(2, data.waveform, spike{i}.waveform);
-    data.timestamp = cat(2, data.timestamp, spike{i}.timestamp);
-    data.unit      = cat(2, data.unit, spike{i}.unit);
+    
+    % use a try construction in case a field is missing
+    try, data.waveform  = cat(2, data.waveform, spike{i}.waveform); end
+    try, data.timestamp = cat(2, data.timestamp, spike{i}.timestamp); end
+    try, data.unit      = cat(2, data.unit, spike{i}.unit); end
+    
+    % these are optional fields, so use a try construction.
+    try, data.time  = cat(2,data.time,spike{i}.time);    end
+    try, data.trial = cat(2, data.trial,spike{i}.trial); end  
+    try, data.fourierspctrm = cat(2,data.fourierspctrm,spike{i}.fourierspctrm); end
   end
   
 else
@@ -106,9 +113,13 @@ else
     
     % determine the corresponding sample numbers for each timestamp
     ts = spike.timestamp{i};
-    % timestamps can be uint64, hence explicitely convert to double at the right moment
-    sample = round(double(ts-FirstTimeStamp)/TimeStampPerSample + 1);
-    
+    % timestamps can be uint64, hence explicitely convert to double at the
+    % right moment
+    if strcmp(class(ts),class(FirstTimeStamp))
+      sample = round(double(ts-FirstTimeStamp)/TimeStampPerSample + 1);
+    else
+      sample = round(double(double(ts)-double(FirstTimeStamp))/TimeStampPerSample + 1);
+    end    
     fprintf('adding spike channel %s\n', spike.label{i});
     for j=1:size(trl,1)
       begsample = trl(j,1);

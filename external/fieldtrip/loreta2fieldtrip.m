@@ -10,6 +10,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %
 % The following optional arguments are supported
 %   'timeframe'  =  integer number, which timepoint to read (default is to read all)
+% 
+% See also NUTMEG2FIELDTRIP, SPASS2FIELDTRIP, FIELDTRIP2SPSS,
+% FT_SOURCEANALYSIS, FT_SOURCEPLOT
 
 % This function depends on the loreta_ind.mat file
 
@@ -31,9 +34,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $
+% $Id: loreta2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: loreta2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $';
+revision = '$Id: loreta2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 5664 2012-04-19 11:35:55Z jansch $
+% $Id: statistics_wrapper.m 6284 2012-07-25 09:36:56Z jorhor $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -127,10 +127,14 @@ if issource
     roimask  = {};
     roilabel = {};
     for i=1:length(cfg.roi)
-      tmpcfg.roi = cfg.roi{i};
-      tmpcfg.inputcoord = cfg.inputcoord;
-      tmpcfg.atlas = cfg.atlas;
-      tmp = volumelookup(tmpcfg, varargin{1});
+      if islogical(cfg.roi{i})
+        tmp = cfg.roi{i};
+      else
+        tmpcfg.roi = cfg.roi{i};
+        tmpcfg.inputcoord = cfg.inputcoord;
+        tmpcfg.atlas = cfg.atlas;
+        tmp = volumelookup(tmpcfg, varargin{1});
+      end
       if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
         % no reason to deal with seperated left/right hemispheres
         cfg.hemisphere = 'combined';
@@ -159,7 +163,11 @@ if issource
       elseif strcmp(cfg.hemisphere, 'combined')
         % all voxels of the ROI can be combined
         roimask{end+1}  = tmp;
-        roilabel{end+1} = cfg.roi{i};
+        if ischar(cfg.roi{i})
+          roilabel{end+1} = cfg.roi{i};
+        else
+          roilabel{end+1} = ['ROI ' num2str(i)];
+        end
 
       else
         error('incorrect specification of cfg.hemisphere');

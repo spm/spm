@@ -65,9 +65,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_sourcegrandaverage.m 6287 2012-07-25 13:16:41Z jorhor $
 
-revision = '$Id: ft_sourcegrandaverage.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 6287 2012-07-25 13:16:41Z jorhor $';
 
 if 1,
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -153,16 +153,20 @@ if 1,
   % get the source parameter from each input source reconstruction
   %  get the inside parameter from each input source reconstruction
   for i=1:Nsubject
-    % TODO this function should use parameterselection
-    if issubfield(varargin{i}, ['avg.' cfg.parameter])
-      tmp = getsubfield(varargin{i}, ['avg.' cfg.parameter]);
-    else
-      tmp = getsubfield(varargin{i}, cfg.parameter);
-    end
+    tmp = getsubfield(varargin{i}, parameterselection(cfg.parameter, varargin{i}));
     dat(:,i) = tmp(:);
     tmp = getsubfield(varargin{i}, 'inside');
     inside(tmp,i) = 1;
   end
+  
+  % remove 'avg' if cfg.parameter contains it to avoid avg.avg field
+  [partok, parrem] = strtok(cfg.parameter, '.');
+  if isequal('avg', partok)
+    cfg.parameter = parrem(2:end);
+  elseif ~isempty(parrem)
+    warning_once('nested parameters in grandaverage are not recommended and not fully supported!');
+  end
+  
   % ensure that voxels that are not in the scanned brain region are excluded from the averaging
   dat(~inside) = nan;
   

@@ -180,6 +180,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 
 % Copyright (C) 2003-2006, F.C. Donders Centre, Pascal Fries
 % Copyright (C) 2004-2006, F.C. Donders Centre, Markus Siegel
+% Copyright (C) 2007-2012, DCCN, The FieldTrip team
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -197,7 +198,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 5780 2012-05-16 08:37:40Z roevdmei $';
+revision = '$Id: ft_freqanalysis.m 6228 2012-07-04 13:12:27Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -387,6 +388,12 @@ else
   % ensure that channelselection and selection of channelcombinations is
   % perfomed consistently
   cfg.channel = ft_channelselection(cfg.channel, data.label);
+
+  if isempty(cfg.channel)
+    error('no channels were selected');
+  end
+        
+    
   if isfield(cfg, 'channelcmb')
     cfg.channelcmb = ft_channelcombination(cfg.channelcmb, data.label);
     % check whether there are channels in channelcmb that are not in cfg.channel

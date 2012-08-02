@@ -38,7 +38,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 5589 2012-04-04 10:50:34Z roboos $
+% $Id: ft_convert_units.m 6245 2012-07-08 09:13:25Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -82,16 +82,21 @@ else
     siz = obj.r;
     unit = ft_estimate_units(siz);
     
-  elseif ft_voltype(obj,'multisphere')
+  elseif ft_voltype(obj,'localspheres')
     siz = median(obj.r);
     unit = ft_estimate_units(siz);
     
-  elseif ft_voltype(obj,'concentric')
+  elseif ft_voltype(obj,'concentricspheres')
     siz = max(obj.r);
     unit = ft_estimate_units(siz);
     
   elseif isfield(obj, 'bnd') && isstruct(obj.bnd) && isfield(obj.bnd(1), 'pnt') && ~isempty(obj.bnd(1).pnt)
     siz = norm(idrange(obj.bnd(1).pnt));
+    unit = ft_estimate_units(siz);
+    
+  elseif isfield(obj, 'nas') && isfield(obj, 'lpa') && isfield(obj, 'rpa')
+    pnt = [obj.nas; obj.lpa; obj.rpa];
+    siz = norm(idrange(pnt));
     unit = ft_estimate_units(siz);
     
   else
@@ -177,16 +182,7 @@ obj.unit = target;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % IDRANGE interdecile range for more robust range estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function r = idrange(x, dim)
-  if nargin == 1
-    dim = [];
-  end
-
-  [x, perm, nshifts] = shiftdata(x, dim);        % reorder dims
-
+function r = idrange(x)
   sx = sort(x, 1);
-  ii = round(interp1([0, 1], [1, size(x, 1)], [.1, .9]));
-  vals = sx(ii, :);
-
-  vals = unshiftdata(vals, perm, nshifts);       % restore original dims
-  r = diff(vals, dim);                           % calculate actual range
+  ii = round(interp1([0, 1], [1, size(x, 1)], [.1, .9]));  % indices for 10 & 90 percentile
+  r = diff(sx(ii, :));

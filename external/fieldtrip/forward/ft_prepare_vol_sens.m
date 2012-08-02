@@ -27,7 +27,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 % - in case of EEG boundary element models, the electrodes are projected on
 %   the surface and a blilinear interpoaltion matrix from vertices to
 %   electrodes is computed.
-% - in case of MEG and a multispheres model, a local sphere is determined
+% - in case of MEG and a localspheres model, a local sphere is determined
 %   for each coil in the gradiometer definition.
 %  - in case of MEG with a singleshell Nolte model, the volume conduction
 %    model is initialized
@@ -35,9 +35,10 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 % order returned by this function corresponds to the order in the 'channel'
 % option, or if not specified, to the order in the input sensor array.
 %
-% See also FT_READ_VOL, FT_READ_SENS, FT_TRANSFORM_VOL, FT_TRANSFORM_SENS, FT_COMPUTE_LEADFIELD
+% See also FT_COMPUTE_LEADFIELD, FT_READ_VOL, FT_READ_SENS, FT_TRANSFORM_VOL,
+% FT_TRANSFORM_SENS
 
-% Copyright (C) 2004-2009, Robert Oostenveld
+% Copyright (C) 2004-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -55,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 5468 2012-03-15 11:49:05Z crimic $
+% $Id: ft_prepare_vol_sens.m 6215 2012-07-04 07:11:19Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -64,6 +65,9 @@ order   = ft_getopt(varargin, 'order', 10);             % order of expansion for
 
 % ensure that the sensor description is up-to-date (Aug 2011)
 sens = ft_datatype_sens(sens);
+
+% ensure that the volume conduction description is up-to-date (Jul 2012)
+vol = ft_datatype_headmodel(vol);
 
 % determine whether the input contains EEG or MEG sensors
 iseeg = ft_senstype(sens, 'eeg');
@@ -109,7 +113,7 @@ elseif ~ismeg && ~iseeg
 
 elseif ismeg
   
-  % keep a copy of the original sensor array, this is needed for the MEG multisphere model
+  % keep a copy of the original sensor array, this is needed for the MEG localspheres model
   sens_orig = sens;
   
   % always ensure that there is a linear transfer matrix for combining the coils into gradiometers
@@ -144,7 +148,7 @@ elseif ismeg
     case 'singlesphere'
       % nothing to do
 
-    case 'concentric'
+    case 'concentricspheres'
       % nothing to do
 
     case 'neuromag'
@@ -156,7 +160,7 @@ elseif ismeg
       [selchan, selsens] = match_str(channel, sens.label);
       vol.chansel = selsens;
 
-    case 'multisphere'
+    case 'localspheres'
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % If the volume conduction model consists of multiple spheres then we
       % have to match the channels in the gradiometer array and the volume
@@ -174,7 +178,7 @@ elseif ismeg
       sens.coilori = sens.coilori(selcoil,:);
       sens.tra     = sens.tra(:,selcoil);
 
-      % the initial multisphere volume conductor has a local sphere per
+      % the initial localspheres volume conductor has a local sphere per
       % channel, whereas it should have a local sphere for each coil
       if size(vol.r,1)==size(sens.coilpos,1) && ~isfield(vol, 'label')
         % it appears that each coil already has a sphere, which suggests
@@ -221,7 +225,7 @@ elseif ismeg
         end
       end
 
-      multisphere = [];
+      localspheres = [];
       % for each coil in the MEG helmet, determine the corresponding channel and from that the corresponding local sphere 
       for i=1:Ncoils
         coilindex = find(sens.tra(:,i)~=0); % to which channel does this coil belong
@@ -233,10 +237,10 @@ elseif ismeg
 
         coillabel = sens.label{coilindex};                    % what is the label of this channel
         chanindex = strmatch(coillabel, vol.label, 'exact');  % what is the index of this channel in the list of local spheres
-        multisphere.r(i,:) = vol.r(chanindex);
-        multisphere.o(i,:) = vol.o(chanindex,:);
+        localspheres.r(i,:) = vol.r(chanindex);
+        localspheres.o(i,:) = vol.o(chanindex,:);
       end
-      vol = multisphere;
+      vol = localspheres;
       
       % finally do the selection of channels and coils
       % order them according to the users specification
@@ -251,7 +255,7 @@ elseif ismeg
       sens.coilpos = sens.coilpos(selcoil,:);
       sens.coilori = sens.coilori(selcoil,:);
       sens.tra     = sens.tra(:,selcoil);
-      % make the same selection of coils in the multisphere model
+      % make the same selection of coils in the localspheres model
       vol.r = vol.r(selcoil);
       vol.o = vol.o(selcoil,:);
 
@@ -377,7 +381,7 @@ elseif iseeg
       end
       sens.elecpos = pnt;
       
-    case {'singlesphere', 'concentric'}
+    case {'singlesphere', 'concentricspheres'}
       % ensure that the electrodes ly on the skin surface
       radius = max(vol.r);
       pnt    = sens.elecpos;

@@ -77,7 +77,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 5733 2012-05-03 20:48:45Z roboos $
+% $Id: ft_read_header.m 6261 2012-07-11 11:53:57Z borreu $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -766,20 +766,28 @@ switch headerformat
     hdr.nSamples    = nSamples(1);
     hdr.nTrials     = 1;
     
-    %-get channel labels, otherwise create them
+    %-get channel labels for signal 1 (main net), otherwise create them
     if isfield(orig.xml, 'sensorLayout') % asuming that signal1 is hdEEG sensornet, and channels are in xml file sensorLayout
       for iSens = 1:numel(orig.xml.sensorLayout.sensors)
-        if strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '0') %EEG chans
+        if ~isempty(orig.xml.sensorLayout.sensors(iSens).sensor.name) && ~(isstruct(orig.xml.sensorLayout.sensors(iSens).sensor.name) && numel(fieldnames(orig.xml.sensorLayout.sensors(iSens).sensor.name))==0)
+          %only get name when channel is EEG (type 0), or REF (type 1),
+          %rest are non interesting channels like place holders and COM and should not be added.
+          if strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '0') || strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '1')
+            % get the sensor name from the datafile
+            hdr.label{iSens} = orig.xml.sensorLayout.sensors(iSens).sensor.name;
+          end
+        elseif strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '0') % EEG chan
           % this should be consistent with ft_senslabel
           hdr.label{iSens} = ['E' num2str(orig.xml.sensorLayout.sensors(iSens).sensor.number)];
-        elseif strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '1') %REF;
-          hdr.label{iSens} = ['E' num2str(iSens)]; % to be consistent with other egi formats
+        elseif strcmp(orig.xml.sensorLayout.sensors(iSens).sensor.type, '1') % REF chan
+          % ingnie: I now choose REF as name for REF channel since our discussion see bug 1407. Arbitrary choice...
+          hdr.label{iSens} = ['REF' num2str(iSens)]; 
         else
-          %non interesting channels like place holders and COM
+          % non interesting channels like place holders and COM
         end
       end
       %check if the amount of lables corresponds with nChannels in signal 1
-      if length(hdr.label) == orig.signal(1).blockhdr(1).nsignals
+      if length(hdr.label) == nChans(1)
         %good
       elseif length(hdr.label) > orig.signal(1).blockhdr(1).nsignals
         warning('found more lables in xml.sensorLayout than channels in signal 1, thus can not use info in sensorLayout, creating labels on the fly')
@@ -801,7 +809,7 @@ switch headerformat
             hdr.label{nbEEGchan+iSens} = num2str(orig.xml.pnsSet.sensors(iSens).sensor.name);
           end
           if length(hdr.label) == orig.signal(2).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
-            %good
+            % good
           elseif length(hdr.label) < orig.signal(1).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
             warning('found less lables in xml.pnsSet than channels in signal 2, labeling with s2_unknownN instead')
             for iSens = length(hdr.label)+1 : orig.signal(1).blockhdr(1).nsignals + orig.signal(2).blockhdr(1).nsignals
@@ -867,11 +875,14 @@ switch headerformat
       end
       orig.epochdef = epochdef;
     end
-    hdr.orig      = orig;
+    hdr.orig = orig;
     
   case 'egi_mff_v2'
-    % ensure that the EGI toolbox is on the path
+    % ensure that the EGI_MFF toolbox is on the path
     ft_hastoolbox('egi_mff', 1);
+    % ensure that the JVM is running and the jar file is on the path
+    mff_setup;
+
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory
       filename = fullfile(pwd, filename);
@@ -1004,7 +1015,7 @@ switch headerformat
         % no labels generated (fMRI etc)
         checkUniqueLabels = false; % no need to check these
       case 1
-        % hase generated fake channels
+        % has generated fake channels
         % give this warning only once
         warning_once('creating fake channel names');
         checkUniqueLabels = false; % no need to check these
@@ -1087,7 +1098,7 @@ switch headerformat
     % give this warning only once
     warning('creating fake channel names');
     for i=1:hdr.nChans
-      hdr.label{i} = sprintf('%3d', i);
+      hdr.label{i} = sprintf('%d', i);
     end
     % this should be a column vector
     hdr.label = hdr.label(:);
@@ -1421,11 +1432,11 @@ switch headerformat
     
   case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
     if strcmp(headerformat, 'ns_cnt')
-      orig = loadcnt(filename, 'ldnsamples', 1);
+      orig = loadcnt(filename);
     elseif strcmp(headerformat, 'ns_cnt16')
-      orig = loadcnt(filename, 'ldnsamples', 1, 'dataformat', 'int16');
+      orig = loadcnt(filename, 'dataformat', 'int16');
     elseif strcmp(headerformat, 'ns_cnt32')
-      orig = loadcnt(filename, 'ldnsamples', 1, 'dataformat', 'int32');
+      orig = loadcnt(filename, 'dataformat', 'int32');
     end
     
     orig = rmfield(orig, {'data', 'ldnsamples'});
@@ -1433,7 +1444,7 @@ switch headerformat
     % do some reformatting/renaming of the header items
     hdr.Fs          = orig.header.rate;
     hdr.nChans      = orig.header.nchannels;
-    hdr.nSamples    = orig.header.numsamples;
+    hdr.nSamples    = orig.header.nums;
     hdr.nSamplesPre = 0;
     hdr.nTrials     = 1;
     for i=1:hdr.nChans
@@ -1441,7 +1452,7 @@ switch headerformat
     end
     % remember the original header details
     hdr.orig = orig;
-    
+
   case 'ns_eeg'
     orig = read_ns_hdr(filename);
     % do some reformatting/renaming of the header items
@@ -1637,6 +1648,21 @@ switch headerformat
     end
 end % switch headerformat
 
+
+% Sometimes, the not all labels are correctly filled in by low-level reading
+% functions. See for example bug #1572. 
+% First, make sure that there are enough (potentially empty) labels:
+if numel(hdr.label) < hdr.nChans
+  warning('low-level reading function did not supply enough channel labels');
+  hdr.label{hdr.nChans} = []; 
+end
+
+% Now, replace all empty labels with new name:
+if any(cellfun(@isempty, hdr.label))
+  warning('channel labels should not be empty, creating unique labels');
+  hdr.label = fix_empty(hdr.label);
+end
+
 if checkUniqueLabels
   if length(hdr.label)~=length(unique(hdr.label))
     % all channels must have unique names
@@ -1652,7 +1678,7 @@ if checkUniqueLabels
   end
 end
 
-% ensure taht it is a column array
+% ensure that it is a column array
 hdr.label = hdr.label(:);
 
 % as of November 2011, the header is supposed to include the channel type
@@ -1746,3 +1772,12 @@ for i=1:length(hdr)
   end
 end
 hdr = tmp;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION to fill in empty labels
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function labels = fix_empty(labels)
+for i = find(cellfun(@isempty, {labels{:}}));
+  labels{i} = sprintf('%d', i); 
+end

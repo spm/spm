@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 5750 2012-05-08 14:04:35Z borreu $
+% $Id: ft_filetype.m 6155 2012-06-26 07:30:57Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -590,6 +590,11 @@ elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.nte'))
   type = 'neuralynx_ds';
   manufacturer = 'Neuralynx';
   content = 'spike timestamps';
+elseif isdir(filename) && most(filetype_check_extension({ls.name}, '.ntt'))
+  % a directory containing tetrode recordings in Neuralynx format
+  type = 'neuralynx_ds';
+  manufacturer = 'Neuralynx';
+  content = 'tetrode recordings ';
   
 elseif isdir(p) && exist(fullfile(p, 'header'), 'file') && exist(fullfile(p, 'events'), 'file')
   type = 'fcdc_buffer_offline';
@@ -602,7 +607,7 @@ elseif isdir(filename) && exist(fullfile(filename, 'info.xml'), 'file') && exist
   type = 'egi_mff';
   manufacturer = 'Electrical Geodesics Incorporated';
   content = 'raw EEG data';
-elseif ~isdir(filename) && filetype_check_extension(p, 'mff') && (strcmp(f, 'Contents') || filetype_check_extension(filename, 'xml') || filetype_check_extension(filename, 'bin') || filetype_check_extension(filename, 'plist') || filetype_check_extension(filename, 'bak'))
+elseif ~isdir(filename) && isdir(p) && exist(fullfile(p, 'info.xml'), 'file') && exist(fullfile(p, 'signal1.bin'), 'file')
   % the file that the user specified is one of the files in an mff package directory
   type = 'egi_mff';
   manufacturer = 'Electrical Geodesics Incorporated';

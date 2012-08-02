@@ -63,9 +63,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 5604 2012-04-11 08:25:38Z jansch $
+% $Id: ft_volumenormalise.m 6103 2012-06-21 07:09:03Z jansch $
 
-revision = '$Id: ft_volumenormalise.m 5604 2012-04-11 08:25:38Z jansch $';
+revision = '$Id: ft_volumenormalise.m 6103 2012-06-21 07:09:03Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -256,6 +256,7 @@ normalise.transform = V(1).mat;
 normalise.dim       = size(normalise.anatomy);
 normalise.params    = params;  % this holds the normalization parameters
 normalise.initial   = initial; % this holds the initial co-registration to approximately align with the template
+normalise.coordsys  = 'spm';
 
 if isfield(normalise, 'inside')
   % convert back to a logical volume

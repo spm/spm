@@ -34,13 +34,13 @@ function [inside] = ft_inside_vol(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 5353 2012-02-29 23:44:21Z crimic $
+% $Id: ft_inside_vol.m 6215 2012-07-04 07:11:19Z roboos $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)
 
   % single-sphere or multiple concentric spheres
-  case {'singlesphere' 'concentric'}
+  case {'singlesphere' 'concentricspheres'}
     if ~isfield(vol, 'source')
       % locate the innermost compartment and remember it
       [dum, vol.source] = min(vol.r);
@@ -55,8 +55,8 @@ switch ft_voltype(vol)
     % positive if outside, negative if inside
     inside   = distance<0;
 
-    % multi-sphere volume conductor model
-  case 'multisphere'
+    % multiple overlapping sphere volume conductor model
+  case 'localspheres'
 
     % nspheres = size(vol.r,1);
     % ndipoles = size(pos,1);
@@ -89,7 +89,7 @@ switch ft_voltype(vol)
     end
     inside  = inside>0;
 
-    % realistic BEM volume conductor model
+    % model with a realistic shape described by a triangulated boundary
   case {'bem', 'dipoli', 'bemcp', 'asa', 'nolte', 'neuromag'}
     if ~isfield(vol, 'source')
       % locate the innermost compartment and remember it
@@ -108,4 +108,4 @@ end
 
 % ensure that these are column vectors
 inside(find(isnan(inside(:)))) = 0;
-inside  = logical(inside(:));
+inside = logical(inside(:));

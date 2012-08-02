@@ -32,13 +32,13 @@ function [depth] = ft_sourcedepth(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedepth.m 5353 2012-02-29 23:44:21Z crimic $
+% $Id: ft_sourcedepth.m 6211 2012-07-03 13:33:09Z roboos $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)
 
 % single-sphere or multiple concentric spheres
-case {'singlesphere', 'concentric'}
+case {'singlesphere', 'concentricspheres'}
   if ~isfield(vol, 'source')
     % locate the innermost compartment and remember it
     [dum, vol.source] = min(vol.r);

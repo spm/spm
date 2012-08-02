@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 5722 2012-05-01 20:35:03Z roboos $
+% $Id: ft_hastoolbox.m 5895 2012-06-05 11:43:46Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -114,6 +114,7 @@ url = {
   'MYSQL'      'see http://www.mathworks.com/matlabcentral/fileexchange/8663-mysql-database-connector'
   'ISO2MESH'   'see http://iso2mesh.sourceforge.net/cgi-bin/index.cgi?Home or contact Qianqian Fang'
   'DATAHASH'   'see http://www.mathworks.com/matlabcentral/fileexchange/31272'
+  'SPIKE'      'see http://www.ru.nl/neuroimaging/fieldtrip'
   };
 
 if nargin<2
@@ -275,7 +276,8 @@ switch toolbox
     status = exist('enginefeval.m', 'file') && exist('enginecellfun.m', 'file');
   case 'DATAHASH'
     status = exist('DataHash.m', 'file');
-    
+  case 'SPIKE'
+    status = exist('ft_spiketriggeredaverage.m', 'file') && exist('ft_spiketriggeredspectrum.m', 'file');
     % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
     % these are added in ft_defaults and are specified with unix-style forward slashes
   case 'COMPAT'
@@ -321,6 +323,18 @@ if autoadd>0 && ~status
   
   % for external fieldtrip modules
   prefix = fullfile(fileparts(which('ft_defaults')), 'external');
+  if ~status
+    status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
+    licensefile = [lower(toolbox) '_license'];
+    if status && exist(licensefile, 'file')
+      % this will execute openmeeg_license and mne_license
+      % which display the license on screen for three seconds
+      feval(licensefile);
+    end
+  end
+  
+  % for contributed fieldtrip extensions
+  prefix = fullfile(fileparts(which('ft_defaults')), 'contrib');
   if ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
     licensefile = [lower(toolbox) '_license'];

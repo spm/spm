@@ -48,7 +48,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 5733 2012-05-03 20:48:45Z roboos $
+% $Id: ft_read_data.m 5980 2012-06-08 08:39:55Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -64,10 +64,13 @@ begtrial      = ft_getopt(varargin, 'begtrial');
 endtrial      = ft_getopt(varargin, 'endtrial');
 chanindx      = ft_getopt(varargin, 'chanindx');
 checkboundary = ft_getopt(varargin, 'checkboundary');
-dataformat    = ft_getopt(varargin, 'dataformat', ft_filetype(filename));
 headerformat  = ft_getopt(varargin, 'headerformat');
 fallback      = ft_getopt(varargin, 'fallback');
 cache         = ft_getopt(varargin, 'cache', false);
+dataformat    = ft_getopt(varargin, 'dataformat');
+if isempty(dataformat)
+  dataformat = ft_filetype(filename);  % the default is automatically detected, but only if not specified
+end
 
 % test whether the file or directory exists
 if ~exist(filename, 'file') && ~strcmp(dataformat, 'ctf_shm') && ~strcmp(dataformat, 'fcdc_mysql') && ~strcmp(dataformat, 'fcdc_buffer')
@@ -701,8 +704,11 @@ switch dataformat
     dat = cat(1,dat{:});
     
   case 'egi_mff_v2'
-    % ensure that the EGI toolbox is on the path
+    % ensure that the EGI_MFF toolbox is on the path
     ft_hastoolbox('egi_mff', 1);
+    % ensure that the JVM is running and the jar file is on the path
+    mff_setup;
+
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory
       filename = fullfile(pwd, filename);
@@ -806,11 +812,11 @@ switch dataformat
     end
     
     if strcmp(dataformat, 'ns_cnt')
-      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'blockread', 1);
+      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples);
     elseif strcmp(dataformat, 'ns_cnt16')
-      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'blockread', 1, 'dataformat', 'int16');
+      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'dataformat', 'int16');
     elseif strcmp(dataformat, 'ns_cnt32')
-      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'blockread', 1, 'dataformat', 'int32');
+      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'dataformat', 'int32');
     end
     dat = tmp.data(chanindx,:);
     

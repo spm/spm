@@ -20,9 +20,11 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_distribute.m 5558 2012-03-28 18:57:50Z roboos $
+% $Id: ft_preamble_distribute.m 5917 2012-06-06 13:10:28Z roboos $
 
-return; %JM added this because of unexpected behavior in FT-functions with optional input arguments (that are not defined
+% FIXME this fails if the calling function (e.g. ft_preprocessing)
+% is called with only a cfg and not with a second data argument, see
+% http://bugzilla.fcdonders.nl/show_bug.cgi?id=1250
 
 % determine the name of the calling FieldTrip function
 s = dbstack;

@@ -43,13 +43,10 @@ function [meg] = read_ctf_meg4(fname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_meg4.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ctf_meg4.m 5835 2012-06-01 07:12:19Z roboos $
 
-% use global flag for feedback
-global fb
-if isempty(fb)
-  fb = 0;
-end
+% this can be used for printing detailled user feedback
+fb = false;
 
 nsmp = hdr.nSamples;
 ntrl = hdr.nTrials;

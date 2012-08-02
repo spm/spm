@@ -10,6 +10,9 @@ function [s] = setsubfield(s, f, v);
 % or as
 %   s = setsubfield(s, 'fieldname.subfieldname', value)
 %
+% where nested is a logical, false denoting that setsubfield will create
+% s.subfieldname instead of s.fieldname.subfieldname
+%
 % See also SETFIELD, GETSUBFIELD, ISSUBFIELD
 
 % Copyright (C) 2005, Robert Oostenveld
@@ -30,7 +33,7 @@ function [s] = setsubfield(s, f, v);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: setsubfield.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: setsubfield.m 6287 2012-07-25 13:16:41Z jorhor $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');
@@ -42,5 +45,8 @@ while (1)
   if isempty(f)
     break
   end
+  
 end
+
 s = setfield(s, t{:}, v);
+  

@@ -5,23 +5,27 @@ function [data] = ft_determine_coordsys(data, varargin)
 % labels for the coordinate system axes.
 %
 % Use as
-%   [dataout] = ft_determine_coordsys(datain, 'key1', value1, ...)
+%   [dataout] = ft_determine_coordsys(datain, ...)
 % where the input data structure can be
 %  - an anatomical MRI
 %  - an electrode or gradiometer definition
-%  - a volume conduction model
+%  - a volume conduction model of the head
 % or most other FieldTrip structures that represent geometrical information.
 %
 % Additional optional input arguments should be specified as key-value pairs 
 % and can include
 %   interactive  = string, 'yes' or 'no' (default = 'yes')
+%   axisscale    = scaling factor for the reference axes and sphere (default = 1)
 %
 % This function wil pop up a figure that allows you to check whether the
 % alignment of the object relative to the coordinate system axes is correct
-% and what the anatomical labels of the coordinate system axes are. You should
-% switch on the 3D rotation option in the figure panel to rotate and see the
-% figure from all angles. To change the anatomical labels of the coordinate
-% system, you should press the corresponding keyboard button.
+% and what the anatomical labels of the coordinate system axes are. You
+% should switch on the 3D rotation option in the figure panel to rotate and
+% see the figure from all angles. To change the anatomical labels of the
+% coordinate system, you should press the corresponding keyboard button.
+%
+% Recognized and supported coordinate systems include: ctf, 4d, bti, itab,
+% neuromag, spm, mni, als, ras. T
 %
 % See also FT_VOLUMEREALIGN, FT_VOLUMERESLICE
 
@@ -41,7 +45,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 5682 2012-04-20 11:15:33Z jansch $
+% $Id: ft_determine_coordsys.m 6247 2012-07-08 09:14:55Z roboos $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -56,6 +60,8 @@ unit  = data.unit;
 if strcmp(dtype, 'unknown')
   if isfield(data, 'fid') || (isfield(data, 'tri') && isfield(data, 'pnt'))
     dtype = 'headshape';
+  elseif isfield(data, 'tet') && isfield(data, 'pnt')
+    dtype = 'mesh';
   elseif ~strcmp(ft_voltype(data), 'unknown')
     dtype = 'headmodel';
   elseif ~strcmp(ft_senstype(data), 'unknown')
@@ -175,7 +181,12 @@ switch dtype
     view([110 36]);
     
   case 'source'
-    ft_plot_mesh(data, 'edgecolor','none', 'facecolor', [0.6 0.8 0.6], 'facealpha', 0.6);
+    if isfield(data, 'inside') && ~isfield(data, 'tri')
+      % only plot the source locations that are inside the volume conduction model
+      ft_plot_mesh(data.pos(data.inside, :));
+    else
+      ft_plot_mesh(data, 'edgecolor','none', 'facecolor', [0.6 0.8 0.6], 'facealpha', 0.6);
+    end
     camlight;
     
   case 'dip'
@@ -186,6 +197,10 @@ switch dtype
     ft_plot_headshape(data);
     camlight;
     
+  case 'mesh'
+    ft_plot_mesh(data);
+    camlight;
+
   case 'headmodel'
     ft_plot_vol(data);
     camlight;
@@ -244,7 +259,7 @@ text(xdat(2,1),ydat(2,1),zdat(2,1),labelx{2},'color','y','fontsize',15,'linewidt
 text(xdat(2,2),ydat(2,2),zdat(2,2),labely{2},'color','y','fontsize',15,'linewidth',2);
 text(xdat(2,3),ydat(2,3),zdat(2,3),labelz{2},'color','y','fontsize',15,'linewidth',2);
 
-if dointeractive,
+if istrue(dointeractive),
   
   if ~isfield(data, 'coordsys') || isempty(data.coordsys)
     % default is yes

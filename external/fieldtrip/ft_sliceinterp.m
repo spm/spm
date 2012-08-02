@@ -80,6 +80,8 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 % 
 % The coordinates are not affected by any transformations used for displaying 
 % the data such as cfg.dim, cfg.rotate,cfg.flipdim or cfg.resample.
+%
+% See also FT_SOURCEANALYSIS, FT_VOLUMERESLICE
 
 % Copyright (C) 2004, Markus Siegel, markus.siegel@fcdonders.kun.nl
 %
@@ -99,9 +101,9 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sliceinterp.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_sliceinterp.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_sliceinterp.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_sliceinterp.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

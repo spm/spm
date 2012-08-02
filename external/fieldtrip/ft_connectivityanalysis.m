@@ -69,6 +69,8 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
+% See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS,
+% FT_MVARANALYSIS, FT_SOURCEANALYSIS, FT_NETWORKANALYSIS
 
 % Undocumented options:
 %   cfg.refindx     
@@ -102,9 +104,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 5777 2012-05-14 10:27:48Z jansch $
+% $Id: ft_connectivityanalysis.m 6071 2012-06-15 12:22:15Z marvin $
 
-revision = '$Id: ft_connectivityanalysis.m 5777 2012-05-14 10:27:48Z jansch $';
+revision = '$Id: ft_connectivityanalysis.m 6071 2012-06-15 12:22:15Z marvin $';
 
 % do the general setup of the function
 ft_defaults
@@ -760,6 +762,9 @@ if exist('powindx', 'var') && ~isempty(powindx),
         keepchn = powindx(:,1) ~= powindx(:,2);
         datout  = datout(keepchn,:,:,:,:);
         if ~isempty(varout),
+          if all(size(varout)==size(nrpt))
+            nrpt = nrpt(keepchn,:,:,:,:);
+          end
           varout = varout(keepchn,:,:,:,:);
         end
         data.labelcmb = data.labelcmb(keepchn,:);

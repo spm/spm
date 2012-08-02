@@ -27,7 +27,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.channel          = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel       = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline         = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
-%   cfg.baselinetype     = 'absolute' or 'relative' (default = 'absolute')
+%   cfg.baselinetype     = 'absolute', 'relative' or 'relchange' (default = 'absolute')
 %   cfg.trials           = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.box              = 'yes', 'no' (default = 'no' if maskparameter given default = 'yes')
 %                          Draw a box around each graph
@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $
+% $Id: ft_multiplotTFR.m 6268 2012-07-12 14:22:03Z roevdmei $
 
-revision = '$Id: ft_multiplotTFR.m 5716 2012-05-01 10:33:34Z roevdmei $';
+revision = '$Id: ft_multiplotTFR.m 6268 2012-07-12 14:22:03Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -167,7 +167,7 @@ cfg.interactive    = ft_getopt(cfg, 'interactive',     'no');
 cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',         'no');
 cfg.renderer       = ft_getopt(cfg, 'renderer',        []); % let matlab decide on default
 cfg.maskalpha      = ft_getopt(cfg, 'maskalpha',       1);
-cfg.masknans       = ft_getopt(cfg, 'masknans',        'no');
+cfg.masknans       = ft_getopt(cfg, 'masknans',        'yes');
 cfg.maskparameter  = ft_getopt(cfg, 'maskparameter',   []);
 cfg.maskstyle      = ft_getopt(cfg, 'maskstyle',       'opacity');
 cfg.directionality = ft_getopt(cfg, 'directionality',  '');
@@ -245,9 +245,10 @@ end % if hasrpt
 
 % Read or create the layout that will be used for plotting:
 clf; 
+hold on
 lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
-ft_plot_lay(lay, 'box', false,'label','no','point','no');
+
 
 % Apply baseline correction:
 if ~strcmp(cfg.baseline, 'no')
@@ -485,8 +486,6 @@ chanX = lay.pos(sellay, 1);
 chanY = lay.pos(sellay, 2);
 chanWidth  = lay.width(sellay);
 chanHeight = lay.height(sellay);
-chanLabels = lay.label(sellay);
-
 
 % Get physical z-axis range (color axis):
 if strcmp(cfg.zlim,'maxmin')
@@ -498,20 +497,6 @@ elseif strcmp(cfg.zlim,'maxabs')
 else
   zmin = cfg.zlim(1);
   zmax = cfg.zlim(2);
-end
-
-hold on;
-
-if isfield(lay, 'outline') && strcmp(cfg.showoutline, 'yes')
-  for i=1:length(lay.outline)
-    if ~isempty(lay.outline{i})
-      tmpX = lay.outline{i}(:,1);
-      tmpY = lay.outline{i}(:,2);
-      h = line(tmpX, tmpY);
-      set(h, 'color', 'k');
-      set(h, 'linewidth', 2);
-    end
-  end
 end
 
 % set colormap
@@ -536,45 +521,26 @@ for k=1:length(seldat)
     cdata = cdata .* cfg.gradscale;
   end
   
-  % Get axes for this panel
-  xas = (chanX(k) + linspace(0,1,size(cdata,2))*chanWidth(k)) - chanWidth(k)/2;
-  yas = (chanY(k) + linspace(0,1,size(cdata,1))*chanHeight(k)) - chanHeight(k)/2;
-  
+
   % Draw plot (and mask Nan's with maskfield if requested)
   if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
     nans_mask = ~isnan(cdata);
     mask = double(nans_mask);
-    patch([min(xas) min(xas) max(xas) max(xas)],[min(yas) max(yas) max(yas) min(yas)],'k');
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
   elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
     nans_mask = ~isnan(cdata);
     mask = nans_mask .* mdata;
     mask = double(mask);
-    patch([min(xas) min(xas) max(xas) max(xas)],[min(yas) max(yas) max(yas) min(yas)],'k');
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
   elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
     mask = mdata;
     mask = double(mask);
-    patch([min(xas) min(xas) max(xas) max(xas)],[min(yas) max(yas) max(yas) min(yas)],'k');
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
   else
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip')
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip', 'hpos', chanX(k), 'vpos', chanY(k), 'width', chanWidth(k), 'height', chanHeight(k))
   end
   % Currently the handle isn't being used below, this is here for possible use in the future
   h = findobj('tag','cip');
-  
-  % Draw box around plot
-  if strcmp(cfg.box,'yes')
-    xstep = xas(2) - xas(1); ystep = yas(2) - yas(1);
-    xvalmin(1:length(yas)+2) = min(xas)-(0.5*xstep); xvalmax(1:length(yas)+2) = max(xas)+(0.5*xstep); yvalmin(1:length(xas)+2) = min(yas)-(0.5*ystep); yvalmax(1:length(xas)+2) = max(yas)+(0.5*ystep);
-    xas2 = [xvalmin(1) xas xvalmax(1)]; yas2 = [yvalmin(1) yas yvalmax(1)];
-    ft_plot_box([min(xas2) max(xas2) min(yas2) max(yas2)])
-  end
-
-  % Draw channel labels:
-  if strcmp(cfg.showlabels,'yes')
-    ft_plot_text(chanX(k)-chanWidth(k)/2, chanY(k)+chanHeight(k)/2, sprintf(' %0s\n ', chanLabels{k}), 'Fontsize', cfg.fontsize);
-  end
 end
 
 % write comment:
@@ -591,34 +557,35 @@ end
 k = cellstrmatch('SCALE',lay.label);
 if ~isempty(k)
   % Get average cdata across channels:
-  cdata = squeeze(mean(datavector, 1));
-  
-  % Get axes for this panel:
-  xas = (lay.pos(k,1) + linspace(0,1,size(cdata,2))*lay.width(k));
-  yas = (lay.pos(k,2) + linspace(0,1,size(cdata,1))*lay.height(k));
-  
+  cdata = squeeze(mean(datavector, 1)); 
+ 
   % Draw plot (and mask Nan's with maskfield if requested)
   if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
     mask = ~isnan(cdata);
     mask = double(mask);
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', lay.pos(k,1), 'vpos', lay.pos(k,2), 'width', lay.width(k,1), 'height', lay.height(k,1))
   elseif isequal(cfg.masknans,'yes') && ~isempty(cfg.maskparameter)
     mask = ~isnan(cdata);
     mask = mask .* mdata;
     mask = double(mask);
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', lay.pos(k,1), 'vpos', lay.pos(k,2), 'width', lay.width(k,1), 'height', lay.height(k,1))
   elseif isequal(cfg.masknans,'no') && ~isempty(cfg.maskparameter)
     mask = mdata;
     mask = double(mask);
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask)
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip','highlightstyle',cfg.maskstyle,'highlight', mask, 'hpos', lay.pos(k,1), 'vpos', lay.pos(k,2), 'width', lay.width(k,1), 'height', lay.height(k,1))
   else
-    ft_plot_matrix(xas, yas, cdata,'clim',[zmin zmax],'tag','cip')
+    ft_plot_matrix(cdata,'clim',[zmin zmax],'tag','cip', 'hpos', lay.pos(k,1), 'vpos', lay.pos(k,2), 'width', lay.width(k,1), 'height', lay.height(k,1))
   end
   % Currently the handle isn't being used below, this is here for possible use in the future
   h = findobj('tag','cip');
 
 end
 
+% plot layout
+boxflg     = istrue(cfg.box);
+labelflg   = istrue(cfg.showlabels);
+outlineflg = istrue(cfg.showoutline);
+ft_plot_lay(lay, 'box', boxflg, 'label',labelflg, 'outline', outlineflg, 'point','no', 'mask', 'no');
 
 % plot colorbar:
 if isfield(cfg, 'colorbar') && (strcmp(cfg.colorbar, 'yes'))
@@ -633,7 +600,6 @@ if strcmp('yes',cfg.hotkeys)
 end
 
 % set the figure window title
-
 if isfield(cfg,'funcname')
   funcname = cfg.funcname;
 else
@@ -642,13 +608,13 @@ end
 if isfield(cfg,'dataname')
     dataname = cfg.dataname;
 elseif nargin > 1
-  dataname = inputname(2);;
+  dataname = inputname(2);
 else % data provided through cfg.inputfile
   dataname = cfg.inputfile;
 end
-
 set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
 set(gcf, 'NumberTitle', 'off');
+
 
 % Make the figure interactive:
 if strcmp(cfg.interactive, 'yes')
@@ -667,10 +633,6 @@ end
 
 axis tight
 axis off
-if strcmp(cfg.box, 'yes')
-  abc = axis;
-  axis(abc + [-1 +1 -1 +1]*mean(abs(abc))/10)
-end
 orient landscape
 hold off
 

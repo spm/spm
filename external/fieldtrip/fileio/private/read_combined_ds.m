@@ -33,7 +33,7 @@ function [dat] = read_combined_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_combined_ds.m 5568 2012-03-30 09:38:12Z roboos $
+% $Id: read_combined_ds.m 6162 2012-06-27 20:51:19Z roboos $
 
 needhdr = nargin==1 || isempty(hdr);
 needdat = nargin>1;
@@ -132,18 +132,22 @@ if needhdr
     hdr.nTrials = filehdr(1).nTrials;
   end
 
-  if isfield(filehdr, 'TimeStampPerSample') && any(diff([filehdr.TimeStampPerSample]))
-    error('different TimeStampPerSample per file not supported');
-  else
-    hdr.TimeStampPerSample = filehdr(1).TimeStampPerSample;
+  if isfield(filehdr, 'TimeStampPerSample')
+    if any(diff([filehdr.TimeStampPerSample]))
+      error('different TimeStampPerSample per file not supported');
+    else
+      hdr.TimeStampPerSample = filehdr(1).TimeStampPerSample;
+    end
   end
-
-  if isfield(filehdr, 'FirstTimeStamp') && any(diff([filehdr.FirstTimeStamp]))
-    error('different FirstTimeStamp per file not supported');
-  else
-    hdr.FirstTimeStamp = filehdr(1).FirstTimeStamp;
+  
+  if isfield(filehdr, 'FirstTimeStamp')
+    if any(diff([filehdr.FirstTimeStamp]))
+      error('different FirstTimeStamp per file not supported');
+    else
+      hdr.FirstTimeStamp = filehdr(1).FirstTimeStamp;
+    end
   end
-
+  
   % remember the original header details
   hdr.orig.header = filehdr;
   hdr.orig.fname  = fname;

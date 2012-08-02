@@ -23,7 +23,7 @@ function [downsample] = ft_volumedownsample(cfg, source)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% This function is used by FT_SOURCEINTERPOLATE, FT_VOLUMEWRITE and FT_VOLUMENORMALISE.
+% See also FT_SOURCEINTERPOLATE, FT_VOLUMEWRITE and FT_VOLUMENORMALISE.
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -43,9 +43,9 @@ function [downsample] = ft_volumedownsample(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_volumedownsample.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_volumedownsample.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_volumedownsample.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

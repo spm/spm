@@ -37,7 +37,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 5551 2012-03-28 10:30:02Z eelspa $
+% $Id: ft_defaults.m 6152 2012-06-25 14:55:00Z jorhor $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -46,8 +46,18 @@ if ~isfield(ft_default, 'checkconfig'),  ft_default.checkconfig  = 'loose';  end
 if ~isfield(ft_default, 'checksize'),    ft_default.checksize    = 1e5;      end % number in bytes, can be inf
 if ~isfield(ft_default, 'showcallinfo'), ft_default.showcallinfo = 'yes';    end % yes or no, this is used in ft_postamble_callinfo
 
-% some people mess up their path settings and then have
-% different versions of certain toolboxes on the path
+% Ensure that the path containing ft_defaults (i.e. the fieldtrip toolbox
+% itself) is on the path. This allows people to do "cd path_to_fieldtrip; ft_defaults"
+ftPath = fileparts(mfilename('fullpath')); % get path, strip away 'ft_defaults'
+ftPath = strrep(ftPath, '\', '\\');
+if isempty(regexp(path, [ftPath pathsep '|' ftPath '$'], 'once'))
+  warning('FieldTrip is not yet on your MATLAB path, adding %s', ftPath);
+  addpath(ftPath);
+end
+
+% Some people mess up their path settings and then have
+% different versions of certain toolboxes on the path.
+% The following will issue a warning
 checkMultipleToolbox('FieldTrip',           'ft_defaults');
 checkMultipleToolbox('mne',                 'fiff_copy_tree');
 checkMultipleToolbox('eeglab',              'eeglab2fieldtrip.m');
@@ -75,8 +85,7 @@ checkMultipleToolbox('bct',                 'degrees_und.m');
 checkMultipleToolbox('yokogawa_meg_reader', 'getYkgwHdrEvent.p');
 checkMultipleToolbox('biosig',              'sopen');
 
-% check for SPM last, which also includes a general warning about
-% addpath(genpath(...))
+% check for different SPM versions, which also includes a general warning about addpath(genpath(...))
 list = which('spm', '-all');
 if length(list)>1
   [ws, warned] = warning_once('multiple versions of SPM on your path will confuse FieldTrip');
@@ -84,8 +93,6 @@ if length(list)>1
   % use the presence of SPM versions as a proxy for the user probably
   % having used addpath(genpath(<FT>))
   ftSpmFound = 0;
-  ftPath = mfilename('fullpath');
-  ftPath = ftPath(1:end-numel(mfilename())); % get path, strip away 'ft_defaults'
   
   if warned % only throw the warning once
     for i=1:length(list)
@@ -94,12 +101,11 @@ if length(list)>1
       if list{i}(1:numel(ftPath)) == ftPath
         ftSpmFound = ftSpmFound + 1;
         if (ftSpmFound > 1)
-          warning('You probably used addpath(genpath(<FieldTrip>)), this can lead to unexpected behaviour! You should only add FieldTrip''s root directory to your path.');
+          warning('You probably used addpath(genpath(''path_to_fieldtrip'')), this can lead to unexpected behaviour. See http://fieldtrip.fcdonders.nl/faq/should_i_add_fieldtrip_with_all_subdirectories_to_my_matlab_path');
         end
       end
     end
   end
-  
 end
 
 if ~isdeployed 
@@ -175,8 +181,8 @@ if ~isdeployed
   end
   
   try
-    % this can be used for distrubuted/parallel computing
-    ft_hastoolbox('peer', 1,1);
+    % this contains the functions for spike and spike-field analysis
+    ft_hastoolbox('spike', 1,1);
   end
   
   try

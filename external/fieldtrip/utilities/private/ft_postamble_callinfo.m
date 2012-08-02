@@ -22,7 +22,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_callinfo.m 5113 2012-01-11 07:57:16Z roboos $
+% $Id: ft_postamble_callinfo.m 6292 2012-07-26 09:44:28Z eelspa $
 
 stack = dbstack('-completenames');
 % stack(1) is this script
@@ -54,7 +54,13 @@ if istrue(ft_getopt(cfg, 'showcallinfo', 'yes'))
   % print some feedback on screen, this is meant to educate the user about
   % the requirements of certain computations and to use that knowledge in
   % distributed computing
-  fprintf('the call to "%s" took %d seconds and an estimated %d MB\n', stack.name, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+  if ispc()
+    % don't print memory usage info under Windows; this does not work (yet)
+    fprintf('the call to "%s" took %d seconds\n', stack.name, round(cfg.callinfo.proctime));
+  else
+    fprintf('the call to "%s" took %d seconds and required the additional allocation of an estimated %d MB\n', stack.name, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
+  end
+  
 end
 
 clear stack

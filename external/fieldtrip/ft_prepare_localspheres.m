@@ -45,6 +45,10 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 % Undocumented local options:
 % cfg.spheremesh = number of points that is placed on the brain surface (default 4000)
 % cfg.maxradius
+%
+% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_BEMMODEL,
+% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
+% FT_PREPARE_MESH_NEW
 
 % Copyright (C) 2005-2006, Jan-Mathijs Schoffelen & Robert Oostenveld
 %
@@ -64,9 +68,9 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 4955 2011-12-07 21:07:50Z roboos $
+% $Id: ft_prepare_localspheres.m 6215 2012-07-04 07:11:19Z roboos $
 
-revision = '$Id: ft_prepare_localspheres.m 4955 2011-12-07 21:07:50Z roboos $';
+revision = '$Id: ft_prepare_localspheres.m 6215 2012-07-04 07:11:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -213,7 +217,7 @@ for chan=1:Nchan
   vol.label{chan} = grad.label{chan};
 end % for all channels
 
-vol.type = 'multisphere';
+vol.type = 'localspheres';
 
 % ensure that the geometrical units are specified
 vol = ft_convert_units(vol);

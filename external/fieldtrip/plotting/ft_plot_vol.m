@@ -38,7 +38,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 5353 2012-02-29 23:44:21Z crimic $
+% $Id: ft_plot_vol.m 6215 2012-07-04 07:11:19Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -60,7 +60,7 @@ vertexindex = istrue(vertexindex); % yes=view the vertex number
 
 % prepare a single or multiple triangulated boundaries
 switch ft_voltype(vol)
-  case {'singlesphere' 'concentric'}
+  case {'singlesphere' 'concentricspheres'}
     vol.r = sort(vol.r);
     bnd = [];
     for i=1:length(vol.r)
@@ -70,7 +70,7 @@ switch ft_voltype(vol)
       bnd(i).tri = tri;
     end
     
-  case 'multisphere'
+  case 'localspheres'
     bnd = [];
     for i=1:length(vol.label)
       bnd(i).pnt(:,1) = pnt(:,1)*vol.r(i) + vol.o(i,1);

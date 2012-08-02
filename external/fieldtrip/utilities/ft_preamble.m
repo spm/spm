@@ -2,7 +2,12 @@ function ft_preamble(cmd, varargin)
 
 % FT_PREAMBLE is a helper function that is included in many of the FieldTrip
 % functions and which takes care of some general settings and operations at the
-% begin of the function
+% begin of the function.
+%
+% This ft_preamble m-file is a function, but internally it executes a
+% number of private scripts in the callers workspace. This allows the
+% private script to access the variables in the callers workspace and
+% behave as if the script were included as a header file in C-code.
 %
 % See also FT_POSTAMBLE
 
@@ -24,20 +29,21 @@ function ft_preamble(cmd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble.m 5113 2012-01-11 07:57:16Z roboos $
+% $Id: ft_preamble.m 6202 2012-07-03 06:43:40Z roboos $
 
 % ideally this would be a script, because the local variables would then be
 % shared with the calling function. Instead, this is a function which then
 % passes the variables explicitely to another script which is eval'ed.
 
-% the following ensures that these scripts are included as dependencies
-% when using the MATLAB compiler
+% the following section ensures that these scripts are included as
+% dependencies when using the MATLAB compiler
 %
 %#function ft_preamble_help
 %#function ft_preamble_distribute
 %#function ft_preamble_trackconfig
 %#function ft_preamble_callinfo
 %#function ft_preamble_loadvar
+%#function ft_preamble_randomseed
 
 global ft_default
 

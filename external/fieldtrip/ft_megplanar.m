@@ -26,11 +26,6 @@ function [data] = ft_megplanar(cfg, data)
 % the head and of a source model. The 'sourceproject' method is not supported for
 % frequency domain data.
 %
-% A head model must be specified, see FT_FETCH_VOL, or alternatively 
-% manually using
-%   cfg.vol.r       = radius of sphere
-%   cfg.vol.o       = [x, y, z] position of origin
-%
 % A dipole layer representing the brain surface must be specified with
 %   cfg.inwardshift = depth of the source layer relative to the head model surface (default = 2.5, which is adequate for a skin-based head model)
 %   cfg.spheremesh  = number of dipoles in the source layer (default = 642)
@@ -40,6 +35,10 @@ function [data] = ft_megplanar(cfg, data)
 %                     points
 % If no headshape is specified, the dipole layer will be based on the inner compartment
 % of the volume conduction model.
+%
+% The volume conduction model of the head should be specified as
+%   cfg.vol           = structure with volume conduction model, see FT_PREPARE_HEADMODEL
+%   cfg.hdmfile       = name of file containing the volume conduction model, see FT_READ_VOL
 %
 % The following cfg fields are optional:
 %   cfg.feedback
@@ -88,9 +87,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 5794 2012-05-22 13:49:11Z jansch $
+% $Id: ft_megplanar.m 6215 2012-07-04 07:11:19Z roboos $
 
-revision = '$Id: ft_megplanar.m 5794 2012-05-22 13:49:11Z jansch $';
+revision = '$Id: ft_megplanar.m 6215 2012-07-04 07:11:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -163,7 +162,7 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   Ntrials = length(data.trial);
   
   % FT_PREPARE_VOL_SENS will match the data labels, the gradiometer labels and the
-  % volume model labels (in case of a multisphere model) and result in a gradiometer
+  % volume model labels (in case of a localspheres model) and result in a gradiometer
   % definition that only contains the gradiometers that are present in the data.
   [vol, axial.grad, cfg] = prepare_headmodel(cfg, data);
   
@@ -199,7 +198,7 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   lfold = ft_compute_leadfield(pos, axial.grad, vol);
   
   % construct the planar gradient definition and compute its forward model
-  % this will not work for a multisphere model, compute_leadfield will catch
+  % this will not work for a localspheres model, compute_leadfield will catch
   % the error
   planar.grad = constructplanargrad([], axial.grad);
   lfnew = ft_compute_leadfield(pos, planar.grad, vol);

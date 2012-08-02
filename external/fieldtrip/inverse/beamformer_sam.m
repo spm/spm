@@ -32,7 +32,7 @@ function [dipout] = beamformer_sam(dip, sens, vol, dat, all_cov, varargin)
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
-% $Id: beamformer_sam.m 5724 2012-05-01 21:13:35Z roboos $
+% $Id: beamformer_sam.m 6215 2012-07-04 07:11:19Z roboos $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -54,7 +54,7 @@ if isempty(meansphereorigin)
   switch ft_voltype(vol)
     case 'singlesphere'
       meansphereorigin = vol.o;
-    case 'multisphere'
+    case 'localspheres'
       meansphereorigin = mean(vol.o, 1);
     otherwise
       error('unsupported voltype for determining the mean sphere origin')

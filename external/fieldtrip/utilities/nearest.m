@@ -5,6 +5,9 @@ function [indx] = nearest(array, val, insideflag, toleranceflag)
 % Use as
 %   [indx] = nearest(array, val, insideflag, toleranceflag)
 %
+% The second input val can be a scalar, or a [minval maxval] vector for
+% limits selection.
+%
 % If not specified or if left empty, the insideflag and the toleranceflag
 % will default to false.
 %
@@ -38,15 +41,35 @@ function [indx] = nearest(array, val, insideflag, toleranceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nearest.m 5130 2012-01-11 16:46:49Z roboos $
+% $Id: nearest.m 6239 2012-07-05 14:04:05Z johzum $
 
 mbreal(array);
 mbreal(val);
 
 mbvector(array);
+assert(all(~isnan(val)), 'incorrect value (NaN)');
+
+if numel(val)==2
+  % interpret this as a range specification like [minval maxval]
+  % see also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1431
+  intervaltol=eps;
+  sel = find(array>=val(1) & array<=val(2));
+  if isempty(sel)
+    error('The limits you selected are outside the range available in the data');
+  end
+  indx(1) = sel(1);
+  indx(2) = sel(end);  
+  if indx(1)>1 && abs(array(indx(1)-1)-val(1))<=intervaltol
+    indx(1)=indx(1)-1;
+  end
+  if indx(2)<length(array) && abs(array(indx(2)+1)-val(2))<=intervaltol
+    indx(2)=indx(2)+1;
+  end
+  return
+end
+
 mbscalar(val);
 
-assert(~isnan(val), 'incorrect value (NaN)');
 
 if nargin<3 || isempty(insideflag)
   insideflag = false;
@@ -85,7 +108,7 @@ if insideflag
 end % insideflag
 
 % FIXME it would be possible to do some soft checks and potentially give a
-% warning in case the user did not explicitely specify the inside and
+% warning in case the user did not explicitly specify the inside and
 % tolerance flags
 
 % note that [dum, indx] = min([1 1 2]) will return indx=1
@@ -102,8 +125,8 @@ elseif val<minarray
   [dum, indx] = min(array);
   
 else
-  % return the first occurence of the nearest number
-  [dum, indx] = min(abs(array(:) - val));
+  % return the first occurence of the nearest number and implements a threshold to correct for errors due to numerical precision 
+  [dum, indx] = min(round(10^6.*(abs(array(:) - val)))./10^6); 
   
 end
 

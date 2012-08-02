@@ -36,8 +36,8 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 % at the locations at which the anatomical data are defined. For
 % example, if the anatomical data was volumetric, the output data is
 % a volume-structure, containing the resliced source and the anatomical
-% volume that can be plotted together, using FT_SOURCEPLOT or
-% FT_SLICEINTERP, or that can be written to file using FT_SOURCEWRITE.
+% volume that can be plotted together, using FT_SOURCEPLOT or, or that can
+% be written to file using FT_SOURCEWRITE.
 %
 % Use as
 %   [interp] = ft_sourceinterpolate(cfg, source, anatomy)
@@ -50,13 +50,14 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %           3D grid created with FT_PREPARE_SOURCEMODEL. 
 % and cfg is a structure with any of the following fields
 %   cfg.parameter     = string (or cell-array) of the parameter(s) to be interpolated
-%   cfg.interpmethod  = 'linear', 'cubic', 'nearest' or 'spline' when
-%                       interpolating two 3D volumes onto each other
-%                       (default = 'linear')
-%   cfg.interpmethod  = 'nearest', 'sphere_avg' or 'smudge' when
-%                       interpolating a point cloud onto a 3D volume, a
-%                       3D volume onto a point cloud, or a point cloud
-%                       with another point cloud (default = 'nearest')
+%   cfg.interpmethod  = when interpolating two 3D volumes onto each
+%                       other: 'linear', 'cubic', 'nearest' or 'spline'
+%                       (default = 'linear') 
+%                       when interpolating a point
+%                       cloud onto a 3D volume, a 3D volume onto a point
+%                       cloud, or a point cloud with another point cloud:
+%                       'nearest', 'sphere_avg' or 'smudge' (default =
+%                       'nearest')
 %   cfg.downsample    = integer number (default = 1, i.e. no downsampling)
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
@@ -95,9 +96,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 5675 2012-04-20 09:53:22Z jansch $
+% $Id: ft_sourceinterpolate.m 6289 2012-07-25 13:50:40Z jorhor $
 
-revision = '$Id: ft_sourceinterpolate.m 5675 2012-04-20 09:53:22Z jansch $';
+revision = '$Id: ft_sourceinterpolate.m 6289 2012-07-25 13:50:40Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -137,7 +138,7 @@ if isfield(anatomical, 'transform') && isfield(anatomical, 'dim')
 elseif isfield(anatomical, 'pos') && isfield(anatomical, 'dim')
   % 3D regular grid
   is2Dana  = 0;
-elseif isfield(anatomical, 'pnt')
+elseif isfield(anatomical, 'pos') || isfield(anatomical, 'pnt')
   % anatomical data consists of a mesh, but no smudging possible
   is2Dana  = 1; 
 end
@@ -184,27 +185,37 @@ if dosmudge && is2Dana && is2Dfun
     interp = setsubfield(interp, cfg.parameter{k}, interpmat*getsubfield(functional, cfg.parameter{k}));
   end
   
-elseif is2Dana && is2Dfun
+% elseif is2Dana && is2Dfun
   
-  % 'interp_ungridded'
-  error('not yet implemented');
   
-elseif ~is2Dana && is2Dfun
+elseif (~is2Dana && is2Dfun) || (is2Dana && is2Dfun)
   % set default interpmethod for this situation
   cfg.interpmethod = ft_getopt(cfg, 'interpmethod', 'nearest');
   cfg.sphereradius = ft_getopt(cfg, 'sphereradius', 0.5);
   
   % interpolate onto a 3D volume, ensure that the anatomical is indeed a volume
-  anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
+  if ~is2Dana
+    anatomical = ft_checkdata(anatomical, 'datatype', 'volume', 'inside', 'logical', 'feedback', 'yes', 'hasunits', 'yes');
+  
+    % get voxel indices, convert to positions and use interp_ungridded
+    dim     = anatomical.dim;
+    [x,y,z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
+    pos     = warp_apply(anatomical.transform, [x(:) y(:) z(:)]);
+    clear x y z
+  else
+    anatomical = ft_checkdata(anatomical, 'hasunits', 'yes');
+    if isfield(anatomical, 'pos')
+      pos = anatomical.pos;
+    elseif isfield(anatomical, 'pnt')
+      pos = anatomical.pos;
+    else
+      error('the input data sould contain either a pos or pnt field');
+    end
+  end
   functional = ft_convert_units(functional, anatomical.unit);
   
-  % get voxel indices and use interp_ungridded
-  dim       = anatomical.dim;
-  [X, Y, Z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
-  
-  interpmat = interp_ungridded(functional.pos, warp_apply(anatomical.transform, [X(:) Y(:) Z(:)]), ...
+  interpmat = interp_ungridded(functional.pos, pos, ...
     'projmethod', cfg.interpmethod, 'sphereradius', cfg.sphereradius); %FIXME include other key-value pairs as well
-  clear X Y Z;
   
   interp = [];
   if isfield(functional, 'time')
@@ -223,19 +234,13 @@ elseif ~is2Dana && is2Dfun
   
   for k = 1:numel(cfg.parameter)
     tmp    = getsubfield(functional, cfg.parameter{k});
-    siz    = size(tmp);
     tmp    = interpmat*tmp;
     tmp(newoutside,:) = nan;
     interp = setsubfield(interp, cfg.parameter{k}, tmp);
   end
  
-  % get the positions
-  [x,y,z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
-  pos     = warp_apply(anatomical.transform, [x(:) y(:) z(:)]);
-  clear x y z
-  
   interp.pos     = pos;
-  interp.dim     = dim;
+  if ~is2Dana, interp.dim     = dim; end
   interp.inside  = newinside(:)';
   interp.outside = newoutside(:)';
   
@@ -294,6 +299,11 @@ elseif ~is2Dana && ~is2Dfun
   vol_name = {};
   vol_data = {};
   for i=1:length(cfg.parameter)
+    if ~issubfield(functional, cfg.parameter{i}) && issubfield(functional, ['avg.' cfg.parameter{i}])
+      % the data is located in the avg sub-structure
+      cfg.parameter{i} = ['avg.' cfg.parameter{i}];
+    end
+    
     if ~iscell(getsubfield(functional, cfg.parameter{i}))
       vol_name{end+1} = cfg.parameter{i};
       vol_data{end+1} = getsubfield(functional, cfg.parameter{i});
@@ -465,7 +475,7 @@ av  = zeros(size(ax));
 ft_progress('init', feedback, 'interpolating');
 while (1)
   ft_progress(sel(1)/num, 'interpolating %.1f%%\n', 100*sel(1)/num);
-  if sel(end)>num
+  if sel(end)>=num
     sel = sel(1):num;
     lastblock = 1;
   end

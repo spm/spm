@@ -10,6 +10,8 @@ function [grad] = ft_headmovement(cfg)
 %   cfg.dataset      = string with the filename
 %   cfg.trl          = Nx3 matrix with the trial definition, see FT_DEFINETRIAL
 %   cfg.numclusters  = number of segments with constant headposition in which to split the data (default = 12)
+%
+% See also FT_REGRESSCONFOUND FT_REALTIME_HEADLOCALIZER
 
 % Copyright (C) 2008-2010, Jan-Mathijs Schoffelen
 %
@@ -29,9 +31,9 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_headmovement.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: ft_headmovement.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_headmovement.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

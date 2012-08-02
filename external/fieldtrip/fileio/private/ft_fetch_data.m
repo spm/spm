@@ -27,7 +27,7 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ft_fetch_data.m 6300 2012-08-01 13:08:58Z roevdmei $
     
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
@@ -37,6 +37,7 @@ hdr           = ft_getopt(varargin, 'header');
 begsample     = ft_getopt(varargin, 'begsample');
 endsample     = ft_getopt(varargin, 'endsample');
 chanindx      = ft_getopt(varargin, 'chanindx');
+allowoverlap  = ft_getopt(varargin, 'allowoverlap');
     
 if isempty(hdr)
   hdr = ft_fetch_header(data);
@@ -128,7 +129,9 @@ if trlnum>1,
       if any(count==0)
         warning('not all requested samples are present in the data, filling with NaNs');
       elseif any(count>1)
-        error('some of the requested samples occur twice in the data');
+        if ~allowoverlap
+          error('some of the requested samples occur twice in the data');
+        end
       end
 
       % construct the output data array

@@ -29,7 +29,10 @@ function [s] = getsubfield(s, f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: getsubfield.m 6288 2012-07-25 13:16:43Z jorhor $
+if iscell(f)
+  f = f{1};
+end
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');

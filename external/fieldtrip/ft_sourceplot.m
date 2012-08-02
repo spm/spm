@@ -157,9 +157,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 5674 2012-04-20 09:52:38Z jansch $
+% $Id: ft_sourceplot.m 6276 2012-07-23 10:38:09Z jorhor $
 
-revision = '$Id: ft_sourceplot.m 5674 2012-04-20 09:52:38Z jansch $';
+revision = '$Id: ft_sourceplot.m 6276 2012-07-23 10:38:09Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -585,6 +585,10 @@ elseif hasroi
   error('you can not have a roi without functional data')
 end
 
+%% start building the figure
+set(gcf, 'renderer', cfg.renderer);
+title(cfg.title);
+
 %%% set color and opacity mapping for this figure
 if hasfun
   cfg.funcolormap = colormap(cfg.funcolormap);
@@ -791,7 +795,7 @@ if isequal(cfg.method,'ortho')
     if hasfun,
       if hasmsk && ~exist('funhandles', 'var')
         tmpqi = [qi 1];
-        ft_plot_ortho(fun(:,:,:,tmpqi(1),tmpqi(2)), msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', ijk, ...
+        ft_plot_ortho(fun(:,:,:,tmpqi(1),tmpqi(2)), 'datmask', msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', ijk, ...
                            'style', 'subplot', 'parents', [h1 h2 h3].*update, ...
                            'colormap', cfg.funcolormap, 'colorlim', [fcolmin fcolmax], ...
                            'opacitylim', [opacmin opacmax]);
@@ -828,7 +832,7 @@ if isequal(cfg.method,'ortho')
         
       elseif hasmsk
         tmpqi = [qi 1];
-        ft_plot_ortho(fun(:,:,:,tmpqi(1),tmpqi(2)), msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', ijk, ...
+        ft_plot_ortho(fun(:,:,:,tmpqi(1),tmpqi(2)), 'datmask', msk(:,:,:,tmpqi(1),tmpqi(2)), 'transform', eye(4), 'location', ijk, ...
                            'style', 'subplot', 'surfhandle', funhandles.*update, ...
                            'colormap', cfg.funcolormap, 'colorlim', [fcolmin fcolmax], ...
                            'opacitylim', [opacmin opacmax]);
@@ -870,7 +874,7 @@ if isequal(cfg.method,'ortho')
       caxis([fcolmin fcolmax]);
       %colorbar;
       %set(gca, 'Visible', 'off');
-    elseif hasfreq && hasfun,
+    elseif hasfreq && numel(data.freq)>1 && hasfun,
       h4 = subplot(2,2,4);
       plot(data.freq, squeeze(fun(xi,yi,zi,:))); xlabel('freq');
       axis([data.freq(1) data.freq(end) fcolmin fcolmax]);
@@ -923,20 +927,21 @@ if isequal(cfg.method,'ortho')
 
       try
         kk = waitforbuttonpress;
+        if kk==0
+          % mouse press
+          key = '';
+        else
+          % key press get the value for the key
+          key = get(gcf, 'currentcharacter');
+        end
+        % determine in which subplot the user clicked
+        tag = get(gca, 'Tag');
       catch
         % this happens if the figure is closed
-        key='q';
+        key = 'q';
+        tag = '';
       end
 
-      if kk==0
-        % mouse press
-        key = '';
-      else
-        % key press get the value for the key
-        key = get(gcf, 'currentcharacter');
-      end
-      
-      tag = get(gca, 'Tag');
       if ~isempty(tag) && kk==0
         ijk = mean(get(gca,'currentpoint'));
         if strcmp(tag, 'ik')
@@ -966,6 +971,7 @@ if isequal(cfg.method,'ortho')
         % this happens if you press the apple key
         key = '';
       end
+      
       switch key
         case ''
           % do nothing
@@ -1283,9 +1289,6 @@ elseif isequal(cfg.method,'slice')
   end
 
 end
-
-title(cfg.title);
-set(gcf, 'renderer', cfg.renderer);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig

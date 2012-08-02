@@ -75,9 +75,9 @@ function [lay, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 5655 2012-04-18 14:52:40Z eelspa $
+% $Id: ft_prepare_layout.m 6274 2012-07-19 13:39:37Z roevdmei $
 
-revision = '$Id: ft_prepare_layout.m 5655 2012-04-18 14:52:40Z eelspa $';
+revision = '$Id: ft_prepare_layout.m 6274 2012-07-19 13:39:37Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -782,7 +782,12 @@ else
     d(:, tmpsel) = inf;
   end
   
-  mindist = min(d(d>100*eps));
+  % take mindist as the median of the first quartile of closest channel pairs with non-zero distance
+  mindist = min(d); % get closest neighbour for all channels
+  mindist = sort(mindist(mindist>1e-6),'ascend');
+  mindist = mindist(1:round(numel(label)/4)); 
+  mindist = median(mindist);
+   
   X = prj(:,1);
   Y = prj(:,2);
   Width  = ones(size(X)) * mindist * 0.8;

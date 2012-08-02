@@ -55,8 +55,9 @@ function [norm] = ft_electroderealign(cfg)
 %                        between electrode labels are case sensitive (default = 'yes')
 %   cfg.feedback       = 'yes' or 'no' (default = 'no')
 %
-% The electrode set that will be realigned is specified in the cfg, see
-% FT_FETCH_SENS.
+% The EEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
 %
 % If you want to align the electrodes to a single template electrode set
 % or to multiple electrode sets (which will be averaged), you should
@@ -101,9 +102,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 5174 2012-01-25 11:42:24Z jorhor $
+% $Id: ft_electroderealign.m 6197 2012-07-02 20:47:53Z roboos $
 
-revision = '$Id: ft_electroderealign.m 5174 2012-01-25 11:42:24Z jorhor $';
+revision = '$Id: ft_electroderealign.m 6197 2012-07-02 20:47:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -113,9 +114,6 @@ ft_preamble trackconfig
 
 % text output
 disp('Close the figure to output new sensor positions');
-
-% this is used for feedback of the lower-level functions
-global fb
 
 % set the defaults
 if ~isfield(cfg, 'channel'),       cfg.channel = 'all';       end
@@ -134,13 +132,6 @@ cfg = ft_checkconfig(cfg, 'renamedval',{'warp', 'homogenous', 'rigidbody'});
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
-end
-
-if strcmp(cfg.feedback, 'yes')
-  % use the global fb field to tell the warping toolbox to print feedback
-  fb = 1;
-else
-  fb = 0;
 end
 
 % get the electrode definition that should be warped

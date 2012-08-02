@@ -42,6 +42,10 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %   cfg.numvertices=[2000 1000 800];
 %   cfg.sourceunits=segment.unit;
 %   bnd = ft_prepare_mesh(cfg, segment);
+%
+% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_LOCALSPHERES,
+% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_BEMMODEL,
+% FT_PREPARE_MESH_NEW
 
 % Copyrights (C) 2009, Cristiano Micheli & Robert Oostenveld
 %
@@ -61,9 +65,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 5727 2012-05-02 13:59:43Z crimic $
+% $Id: ft_prepare_mesh.m 6215 2012-07-04 07:11:19Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 5727 2012-05-02 13:59:43Z crimic $';
+revision = '$Id: ft_prepare_mesh.m 6215 2012-07-04 07:11:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -144,7 +148,7 @@ elseif basedonsphere
   end
   
   switch ft_voltype(vol)
-    case {'singlesphere' 'concentric'}
+    case {'singlesphere' 'concentricspheres'}
       vol.r = sort(vol.r);
       bnd = [];
       for i=1:length(vol.r)
@@ -153,7 +157,7 @@ elseif basedonsphere
         bnd(i).pnt(:,3) = pnt(:,3)*vol.r(i) + vol.o(3);
         bnd(i).tri = tri;
       end
-    case 'multisphere'
+    case 'localspheres'
       bnd = [];
       for i=1:length(vol.label)
         bnd(i).pnt(:,1) = pnt(:,1)*vol.r(i) + vol.o(i,1);

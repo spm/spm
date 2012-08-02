@@ -24,15 +24,13 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %   cfg.template      = name of the template file, e.g. CTF275_neighb.mat
 %   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
 %   cfg.channel       = channels for which neighbours should be found
-%   cfg.elec          = structure with EEG electrode positions
-%   cfg.grad          = structure with MEG gradiometer positions
-%   cfg.elecfile      = filename containing EEG electrode positions
-%   cfg.gradfile      = filename containing MEG gradiometer positions
 %   cfg.feedback      = 'yes' or 'no' (default = 'no')
 %
-% The following data fields may also be used by FT_PREPARE_NEIGHBOURS:
-%   data.elec     = structure with EEG electrode positions
-%   data.grad     = structure with MEG gradiometer positions
+% The EEG or MEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
 %
 % The output is an array of structures with the "neighbours" which is
 % structured like this:
@@ -45,7 +43,7 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %        etc.
 % Note that a channel is not considered to be a neighbour of itself.
 %
-% See also FT_NEIGHBOURPLOT, FT_FETCH_SENS
+% See also FT_NEIGHBOURPLOT
 
 % Copyright (C) 2006-2011, Eric Maris, Jorn M. Horschig, Robert Oostenveld
 %
@@ -65,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 5702 2012-04-25 08:24:21Z jorhor $
+% $Id: ft_prepare_neighbours.m 6197 2012-07-02 20:47:53Z roboos $
 
-revision = '$Id: ft_prepare_neighbours.m 5702 2012-04-25 08:24:21Z jorhor $';
+revision = '$Id: ft_prepare_neighbours.m 6197 2012-07-02 20:47:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -155,6 +153,7 @@ else
           % don't provide a default in case the dimensions of the sensor array are unknown
           error('Sensor distance is measured in an unknown unit type');
         end
+        fprintf('using a distance threshold of %g\n', cfg.neighbourdist);
       end
       
       neighbours = compneighbstructfromgradelec(sens, cfg.neighbourdist);
@@ -186,7 +185,11 @@ end
 % only select those channels that are in the data
 neighb_chans = {neighbours(:).label};
 if isfield(cfg, 'channel') && ~isempty(cfg.channel)
-  desired = cfg.channel;
+  if hasdata
+    desired = ft_channelselection(cfg.channel, data.label);
+  else
+    desired = ft_channelselection(cfg.channel, neighb_chans);
+  end
 elseif (hasdata)
   desired = data.label;
 else
@@ -196,8 +199,7 @@ end
 % in any case remove SCALE and COMNT
 desired = ft_channelselection({'all', '-SCALE', '-COMNT'}, desired);
 
-chans = ft_channelselection(desired, neighb_chans);
-neighb_idx = ismember(neighb_chans, chans);
+neighb_idx = ismember(neighb_chans, desired);
 neighbours = neighbours(neighb_idx);
   
 k = 0;
@@ -205,7 +207,7 @@ for i=1:length(neighbours)
   if isempty(neighbours(i).neighblabel)
     warning('FIELDTRIP:NoNeighboursFound', 'no neighbours found for %s\n', neighbours(i).label);
   else % only selected desired channels    
-    neighbours(i).neighblabel = ft_channelselection(desired, neighbours(i).neighblabel);
+    neighbours(i).neighblabel = neighbours(i).neighblabel(ismember(neighbours(i).neighblabel, desired));
   end
   k = k + length(neighbours(i).neighblabel);
 end

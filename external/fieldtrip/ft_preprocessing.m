@@ -76,7 +76,7 @@ function [data] = ft_preprocessing(cfg, data)
 %
 % Preprocessing options that you should only use for EEG data are
 %   cfg.reref         = 'no' or 'yes' (default = 'no')
-%   cfg.refchannel    = cell-array with new EEG reference channel(s)
+%   cfg.refchannel    = cell-array with new EEG reference channel(s), this can be 'all' for a common average reference
 %   cfg.implicitref   = 'label' or empty, add the implicit EEG reference as zeros (default = [])
 %   cfg.montage       = 'no' or a montage structure (default = 'no')
 %
@@ -160,7 +160,7 @@ function [data] = ft_preprocessing(cfg, data)
 % cfg.refchannel, documented
 % cfg.reref, documented
 
-% Copyright (C) 2003-2007, Robert Oostenveld, SMI, FCDC
+% Copyright (C) 2003-2012, Robert Oostenveld, SMI, FCDC
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -178,14 +178,13 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 5764 2012-05-11 07:30:53Z giopia $
+% $Id: ft_preprocessing.m 5917 2012-06-06 13:10:28Z roboos $
 
-revision = '$Id: ft_preprocessing.m 5764 2012-05-11 07:30:53Z giopia $';
+revision = '$Id: ft_preprocessing.m 5917 2012-06-06 13:10:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-%ft_preamble distribute
 ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble loadvar data

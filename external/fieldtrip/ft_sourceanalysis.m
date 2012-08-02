@@ -39,19 +39,16 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %   cfg.grid.inside     = vector with indices of the sources inside the brain (optional)
 %   cfg.grid.outside    = vector with indices of the sources outside the brain (optional)
 % You can also use the FT_PREPARE_LEADFIELD function to create a grid with
-% dipole positions and with precomputed leadfields.
-% You may also include (if previously computed):
+% dipole positions and with precomputed leadfields. 
+%
+% Besides the source positions, you may also include previously computed
+% spatial filters and/or leadfields like this
 %   cfg.grid.filter
 %   cfg.grid.leadfield
-% and please add them in addition to cfg.grid.pos, else they could be removed by ft_preapre_sourcemodel.m
-%
-
 %
 % The following strategies are supported to obtain statistics for the source parameters using
 % multiple trials in the data, either directly or through a resampling-based approach
-%   cfg.singletrial   = 'no' or 'yes'   construct filter from average, apply to single trials
-%   cfg.rawtrial      = 'no' or 'yes'   construct filter from single trials, apply to single trials
-%                       Note: also set cfg.keeptrials='yes' to keep out trial information, especially if using in combination with grid.filter
+%   cfg.rawtrial      = 'no' or 'yes'   construct filter from single trials, apply to single trials. Note that you also may want to set cfg.keeptrials='yes' to keep all trial information, especially if using in combination with grid.filter
 %   cfg.jackknife     = 'no' or 'yes'   jackknife resampling of trials
 %   cfg.pseudovalue   = 'no' or 'yes'   pseudovalue resampling of trials
 %   cfg.bootstrap     = 'no' or 'yes'   bootstrap resampling of trials
@@ -70,10 +67,6 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %   cfg.permutation        = 'no' or 'yes'
 %   cfg.numrandomization   = number, e.g. 500
 %   cfg.numpermutation     = number, e.g. 500 or 'all'
-%
-% You should specify the volume conductor model, see FT_FETCH_VOL.
-%
-% If the sensor information is obtained using FT_FETCH_SENS.
 %
 % If you have not specified a grid with pre-computed leadfields,
 % the leadfield for each grid location will be computed on the fly.
@@ -101,6 +94,15 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %   cfg.keepmom       = 'no' or 'yes'
 %   cfg.feedback      = 'no', 'text', 'textbar', 'gui' (default = 'text')
 %
+% The volume conduction model of the head should be specified as
+%   cfg.vol           = structure with volume conduction model, see FT_PREPARE_HEADMODEL
+%   cfg.hdmfile       = name of file containing the volume conduction model, see FT_READ_VOL
+%
+% The EEG or MEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -111,7 +113,8 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_SOURCEDESCRIPTIVES, FT_SOURCESTATISTICS, FT_PREPARE_LEADFIELD
+% See also FT_SOURCEDESCRIPTIVES, FT_SOURCESTATISTICS, FT_PREPARE_LEADFIELD,
+% FT_PREPARE_HEADMODEL, FT_PREPARE_SOURCEMODEL
 
 % Undocumented local options:
 % cfg.numcomponents
@@ -189,9 +192,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 5496 2012-03-21 09:22:57Z jorhor $
+% $Id: ft_sourceanalysis.m 6282 2012-07-25 09:09:17Z jorhor $
 
-revision = '$Id: ft_sourceanalysis.m 5496 2012-03-21 09:22:57Z jorhor $';
+revision = '$Id: ft_sourceanalysis.m 6282 2012-07-25 09:09:17Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -323,7 +326,7 @@ end
 
 % It might be that the number of channels in the data, the number of
 % channels in the electrode/gradiometer definition and the number of
-% channels in the multisphere volume conduction model are different.
+% channels in the localspheres volume conduction model are different.
 % Hence a subset of the data channels will be used.
 Nchans = length(cfg.channel);
 
@@ -369,6 +372,14 @@ else
   try, tmpcfg.inwardshift = cfg.inwardshift;  end
   try, tmpcfg.sourceunits = cfg.sourceunits;  end
   grid = ft_prepare_sourcemodel(tmpcfg);
+end
+
+if isfield(cfg.grid, 'filter')
+  if numel(cfg.grid.filter) == size(grid.pos, 1)
+    grid.filter = cfg.grid.filter;
+  else
+    warning_once('ignoring predefined filter as it does not match the grid''s dimension');
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -623,7 +634,8 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
         data.cov(i,:,:) = eye(Nchans);
       end
     end
-    hascovariance = 0;
+    hascovariance = 0;    
+    warning_once('No covariance matrix found - will assume identity covariance matrix (mininum-norm solution)');
   end
   
   if strcmp(cfg.method, 'pcc')
@@ -810,6 +822,7 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
     tmpdip = beamformer_lcmv(grid, sens, vol, tmpdat, squeeze(mean(Cy,1)), optarg{:});
     tmpmom = tmpdip.mom{tmpdip.inside(1)};
     sizmom = size(tmpmom);
+
     for i=1:length(tmpdip.inside)
       indx = tmpdip.inside(i);
       tmpdip.mom{indx} = permute(reshape(tmpdip.mom{indx}, [sizmom(1) siz(3) siz(1)]), [3 1 2]);
@@ -822,12 +835,18 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
       dip(i).inside  = tmpdip.inside;
       dip(i).outside = tmpdip.outside;
       dip(i).mom     = cell(1,size(tmpdip.pos,1));
+      if isfield(tmpdip, 'ori')
+        dip(i).ori   = cell(1,size(tmpdip.pos,1));
+      end
       dip(i).cov     = cell(1,size(tmpdip.pos,1));
       dip(i).pow     = zeros(size(tmpdip.pos,1),1)*nan;
       for ii=1:length(tmpdip.inside)
         indx             = tmpdip.inside(ii);
         tmpmom           = reshape(tmpdip.mom{indx}(i,:,:),[sizmom(1) siz(3)]);
         dip(i).mom{indx} = tmpmom;
+        if isfield(tmpdip, 'ori')
+          dip(i).ori{indx} = tmpdip.ori{indx};
+        end
        
         % the following recovers the single trial power and covariance, but
         % importantly the latency over which the power is defined is the

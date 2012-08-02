@@ -101,9 +101,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 5756 2012-05-09 11:59:28Z jansch $
+% $Id: ft_artifact_zvalue.m 6172 2012-06-29 11:48:08Z roboos $
 
-revision = '$Id: ft_artifact_zvalue.m 5756 2012-05-09 11:59:28Z jansch $';
+revision = '$Id: ft_artifact_zvalue.m 6172 2012-06-29 11:48:08Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -142,7 +142,7 @@ if nargin > 1
   % data given as input
   isfetch = 1;
   hdr  = ft_fetch_header(data);
-  data = ft_checkdata(data, 'datatype', 'raw', 'hassampleopt', 'yes');
+  data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
 elseif nargin == 1
   % only cfg given
   isfetch = 0;

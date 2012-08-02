@@ -28,12 +28,14 @@ function [lfp, spike, stm, bhv] = spass2fieldtrip(dirname)
 %   ft_write_spike('jeb012a02_ch1.nex', spike, 'dataformat', 'plexon_nex', 'chanindx', 1)
 %   ft_write_spike('jeb012a02_ch2.nex', spike, 'dataformat', 'plexon_nex', 'chanindx', 2)
 %   ft_write_spike('jeb012a02_ch3.nex', spike, 'dataformat', 'plexon_nex', 'chanindx', 3)
+%
+% See also NUTMEG2FIELDTRIP, LORETA2FIELDTRIP, FIELDTRIP2SPSS
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% $Id: spass2fieldtrip.m 5132 2012-01-11 19:41:03Z roboos $
+% $Id: spass2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: spass2fieldtrip.m 5132 2012-01-11 19:41:03Z roboos $';
+revision = '$Id: spass2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

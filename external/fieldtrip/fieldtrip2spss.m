@@ -13,6 +13,8 @@ function fieldtrip2spss(filename, labels, data)
 %   - first case of data on line number: '2'
 %   - delimiter appearing between variables: 'tab'
 %
+% See also NUTMEG2FIELDTRIP, SPASS2FIELDTRIP, LORETA2FIELDTRIP
+
 % Copyright (C) 2011, Arjen Stolk
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -31,9 +33,9 @@ function fieldtrip2spss(filename, labels, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2spss.m 4675 2011-11-04 08:55:17Z roboos $
+% $Id: fieldtrip2spss.m 6060 2012-06-13 15:05:49Z jorhor $
 
-revision = '$Id: fieldtrip2spss.m 4675 2011-11-04 08:55:17Z roboos $';
+revision = '$Id: fieldtrip2spss.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

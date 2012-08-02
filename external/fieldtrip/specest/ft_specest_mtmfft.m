@@ -19,12 +19,14 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 %   tapsmofrq  = the amount of spectral smoothing through multi-tapering. Note: 4 Hz smoothing means plus-minus 4 Hz, i.e. a 8 Hz smoothing box
 %   polyorder  = number, the order of the polynomial to fitted to and removed from the data
 %                  prior to the fourier transform (default = 0 -> remove DC-component)
+%   taperopt   = additional taper options to be used in the WINDOW function, see WINDOW
+%
 %
 % See also FT_FREQANALYSIS, FT_SPECEST_MTMCONVOL, FT_SPECEST_TFR, FT_SPECEST_HILBERT, FT_SPECEST_WAVELET
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 5780 2012-05-16 08:37:40Z roevdmei $
+% $Id: ft_specest_mtmfft.m 6224 2012-07-04 12:21:48Z roevdmei $
 
 % get the optional input arguments
 taper     = ft_getopt(varargin, 'taper'); if isempty(taper), error('You must specify a taper'); end
@@ -33,6 +35,8 @@ freqoi    = ft_getopt(varargin, 'freqoi', 'all');
 tapsmofrq = ft_getopt(varargin, 'tapsmofrq'); 
 fbopt     = ft_getopt(varargin, 'feedback');
 polyorder = ft_getopt(varargin, 'polyorder', 0);
+tapopt    = ft_getopt(varargin, 'taperopt');
+
 
 if isempty(fbopt),
   fbopt.i = 1;
@@ -116,7 +120,11 @@ switch taper
 
   otherwise
     % create the taper and ensure that it is normalized
-    tap = window(taper, ndatsample)';
+    if isempty(tapopt) % some windowing functions don't support nargin>1, and window.m doesn't check it
+      tap = window(taper, ndatsample)';
+    else
+      tap = window(taper, ndatsample, tapopt)';
+    end
     tap = tap ./ norm(tap,'fro');
     
 end % switch taper

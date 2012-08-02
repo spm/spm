@@ -99,9 +99,9 @@ function [simulated] = ft_connectivitysimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivitysimulation.m 5343 2012-02-29 16:15:32Z roevdmei $
+% $Id: ft_connectivitysimulation.m 5812 2012-05-29 07:01:01Z giopia $
 
-revision = '$Id: ft_connectivitysimulation.m 5343 2012-02-29 16:15:32Z roevdmei $';
+revision = '$Id: ft_connectivitysimulation.m 5812 2012-05-29 07:01:01Z giopia $';
 
 % do the general setup of the function
 ft_defaults
@@ -121,7 +121,7 @@ switch cfg.method
   case {'linear_mix'}
     if ~isfield(cfg, 'bpfilter'), cfg.bpfilter = 'yes';   end
     if ~isfield(cfg, 'bpfreq'),   cfg.bpfreq   = [15 25]; end
-    if ~isfield(cfg, 'demean'),   cfg.dmean    = 'yes';   end
+    if ~isfield(cfg, 'demean'),   cfg.demean   = 'yes';   end
     if ~isfield(cfg, 'absnoise'), cfg.absnoise = 1;       end
     cfg = ft_checkconfig(cfg, 'required', {'mix' 'delay'});
   case {'mvnrnd'}

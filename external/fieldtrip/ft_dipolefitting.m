@@ -22,9 +22,6 @@ function [source] = ft_dipolefitting(cfg, data)
 %   cfg.nonlinear   = 'yes' or 'no', perform nonlinear search for optimal
 %                     dipole parameters (default = 'yes')
 %
-% You should specify the volume conductor model, see FT_FETCH_VOL, and the 
-% sensor information, see FT_FETCH_SENS.
-%
 % If you start with a grid search, you should specify the grid locations at
 % which a test dipole will be placed. The positions of the dipoles can be
 % specified as a regular 3-D grid that is aligned with the axes of the head
@@ -71,6 +68,16 @@ function [source] = ft_dipolefitting(cfg, data)
 %   cfg.dipfit.optimfun = function to use, can be 'fminsearch' or 'fminunc' (default is determined automatic)
 %   cfg.dipfit.maxiter  = maximum number of function evaluations allowed (default depends on the optimfun)
 %
+% The volume conduction model of the head should be specified as
+%   cfg.vol           = structure with volume conduction model, see FT_PREPARE_HEADMODEL
+%   cfg.hdmfile       = name of file containing the volume conduction model, see FT_READ_VOL
+%
+% The EEG or MEG sensor positions can be present in the data or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
+%
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -80,7 +87,7 @@ function [source] = ft_dipolefitting(cfg, data)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_SOURCEANALYSIS, FT_PREPARE_LEADFIELD, FT_FETCH_SENS
+% See also FT_SOURCEANALYSIS, FT_PREPARE_LEADFIELD, FT_PREPARE_HEADMODEL
 
 % TODO change the output format, more suitable would be something like:
 % dip.label
@@ -119,7 +126,7 @@ function [source] = ft_dipolefitting(cfg, data)
 % cfg.order
 % cfg.vol, documented
 
-% Copyright (C) 2004-2006, Robert Oostenveld
+% Copyright (C) 2004-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -137,9 +144,9 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 5439 2012-03-12 13:17:15Z giopia $
+% $Id: ft_dipolefitting.m 6199 2012-07-02 21:16:16Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 5439 2012-03-12 13:17:15Z giopia $';
+revision = '$Id: ft_dipolefitting.m 6199 2012-07-02 21:16:16Z roboos $';
 
 % do the general setup of the function
 ft_defaults

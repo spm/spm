@@ -63,9 +63,11 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %                        between electrode labels are case sensitive (default = 'yes')
 %   cfg.feedback       = 'yes' or 'no' (default = 'no')
 %
-% The electrodes or the gradiometers that will be realigned can be
-% specified in the second input argument, or optionally as specified in the
-% cfg. See FT_FETCH_SENS.
+% The EEG or MEG sensor positions can be present in the second input argument or can be specified as
+%   cfg.elec          = structure with electrode positions, see FT_DATATYPE_SENS
+%   cfg.grad          = structure with gradiometer definition, see FT_DATATYPE_SENS
+%   cfg.elecfile      = name of file containing the electrode positions, see FT_READ_SENS
+%   cfg.gradfile      = name of file containing the gradiometer definition, see FT_READ_SENS
 %
 % To realign the sensors using the fiducials, the target has to contain the
 % three template fiducials, e.g.
@@ -88,8 +90,7 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %                        single triangulated boundary, or a Nx3 matrix with surface
 %                        points
 %
-% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN,
-% FT_FETCH_SENS
+% See also FT_READ_SENS, FT_VOLUMEREALIGN, FT_INTERACTIVEREALIGN
 
 % Copyright (C) 2005-2011, Robert Oostenveld
 %
@@ -109,9 +110,9 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 5439 2012-03-12 13:17:15Z giopia $
+% $Id: ft_sensorrealign.m 6197 2012-07-02 20:47:53Z roboos $
 
-revision = '$Id: ft_sensorrealign.m 5439 2012-03-12 13:17:15Z giopia $';
+revision = '$Id: ft_sensorrealign.m 6197 2012-07-02 20:47:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -119,10 +120,7 @@ ft_preamble help
 ft_preamble callinfo
 ft_preamble trackconfig
 
-% this is used for feedback of the lower-level functions
-global fb
-
-% the interactive method uses a global variable to get the  data from the figure when it is closed
+% the interactive method uses a global variable to get the data from the figure when it is closed
 global norm
 
 % set the defaults
@@ -172,13 +170,6 @@ switch cfg.method
   case 'manual'          % manual positioning of the electrodes by clicking in a graphical user interface
     cfg = ft_checkconfig(cfg, 'required', 'headshape', 'forbidden', 'target');
 end % switch cfg.method
-
-if strcmp(cfg.feedback, 'yes')
-  % use the global fb field to tell the warping toolbox to print feedback
-  fb = 1;
-else
-  fb = 0;
-end
 
 % get the electrode definition that should be warped
 if nargin==1

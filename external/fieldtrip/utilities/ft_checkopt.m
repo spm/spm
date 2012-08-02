@@ -22,6 +22,9 @@ function opt = ft_checkopt(opt, key, allowedtype, allowedval)
 % Furthermore, the following custom types can be specified
 %   'doublescalar'
 %   'doublevector'
+%   'doublebivector'             i.e. [1 1] or [1 2]
+%   'ascendingdoublevector'      i.e. [1 2 3 4 5], but not [1 3 2 4 5]
+%   'ascendingdoublebivector'    i.e. [1 2], but not [2 1]
 %   'doublematrix'
 %   'numericscalar'
 %   'numericvector'
@@ -40,7 +43,7 @@ function opt = ft_checkopt(opt, key, allowedtype, allowedval)
 
 % Copyright (C) 2011-2012, Robert Oostenveld
 %
-% $Id: ft_checkopt.m 5559 2012-03-28 19:00:02Z roboos $
+% $Id: ft_checkopt.m 6106 2012-06-22 07:54:36Z roboos $
 
 if nargin<3
   allowedtype = {};
@@ -79,6 +82,12 @@ for i=1:length(allowedtype)
       ok = isa(val, 'double') && numel(val)==1;
     case 'doublevector'
       ok = isa(val, 'double') && sum(size(val)>1)==1;
+    case 'ascendingdoublevector'
+      ok = isa(val,'double') && issorted(val);
+    case 'doublebivector'
+      ok = isa(val,'double') && sum(size(val)>1)==1 && length(val)==2;
+    case 'ascendingdoublebivector'
+      ok = isa(val,'double') && sum(size(val)>1)==1 && length(val)==2 && val(2)>val(1);       
     case 'doublematrix'
       ok = isa(val, 'double') && sum(size(val)>1)>1;
     case 'numericscalar'

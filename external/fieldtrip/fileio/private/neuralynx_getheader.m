@@ -22,7 +22,7 @@ function [hdr] = neuralynx_getheader(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: neuralynx_getheader.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: neuralynx_getheader.m 6030 2012-06-11 20:37:31Z marvin $
 
 fid     = fopen(filename, 'rb', 'ieee-le');
 buf     = fread(fid, 16*1024, 'uint8=>char');
@@ -69,6 +69,10 @@ for i=1:num
       % remove unuseable characters from the variable name (key)
       key = key(key~=':');
       % assign the value to the header structure
+      indx =  strfind(key,'µs'); % avoid problems with this field in the new Neuralynx header      
+      if ~isempty(indx)
+        key(indx:indx+1) = 'ms';
+      end
       hdr = setfield(hdr, key, val);
     end
   end

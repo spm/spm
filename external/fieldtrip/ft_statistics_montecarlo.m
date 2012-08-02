@@ -58,6 +58,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %                         'depsamplesF'       dependent samples F-statistic,
 %                         'depsamplesregrT'   dependent samples regression coefficient T-statistic,
 %                         'actvsblT'          activation versus baseline T-statistic.
+% or you can specify your own low-level statistical function.
 %
 % You can also use a custom statistic of your choise that is sensitive
 % to the expected effect in the data. You can implement the statistic
@@ -97,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 5650 2012-04-18 14:00:33Z roevdmei $
+% $Id: ft_statistics_montecarlo.m 6278 2012-07-24 13:21:57Z jorhor $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
@@ -260,7 +261,7 @@ else
   statfull.stat = statobs;
 end
 time_eval = cputime - time_pre;
-fprintf('estimated time per randomization is %d seconds\n', round(time_eval));
+fprintf('estimated time per randomization is %.2f seconds\n', time_eval);
 
 % pre-allocate some memory
 if strcmp(cfg.correctm, 'cluster')

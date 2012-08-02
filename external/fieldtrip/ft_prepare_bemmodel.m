@@ -25,6 +25,10 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %   Oostendorp TF, van Oosterom A.
 %   Source parameter estimation in inhomogeneous volume conductors of arbitrary shape
 %   IEEE Trans Biomed Eng. 1989 Mar;36(3):382-91.
+%
+% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_LOCALSPHERES,
+% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
+% FT_PREPARE_MESH_NEW
 
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
@@ -44,11 +48,11 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 5697 2012-04-24 08:44:46Z crimic $
+% $Id: ft_prepare_bemmodel.m 6060 2012-06-13 15:05:49Z jorhor $
 
 warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''dipoli/openmeeg/bem_cp ...'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 5697 2012-04-24 08:44:46Z crimic $';
+revision = '$Id: ft_prepare_bemmodel.m 6060 2012-06-13 15:05:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

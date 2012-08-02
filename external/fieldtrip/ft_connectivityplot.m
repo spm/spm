@@ -38,7 +38,7 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 5157 2012-01-22 14:49:34Z roboos $';
+revision = '$Id: ft_connectivityplot.m 6093 2012-06-18 08:40:57Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -72,6 +72,8 @@ if numel(varargin)>1
   end
   ft_connectivityplot(tmpcfg, data);
   tmpcfg = cfg;
+  
+  % FIXME also set the zlim scale to be consistent across inputs
   for k = 2:numel(varargin)
     tmpcfg.color   = tmpcfg.color(2:end);
     tmpcfg.holdfig = 1;
@@ -123,6 +125,18 @@ for k = 1:nchan
       % use the convention of the row-channel causing the column-channel
       tmp = reshape(dat(m,k,:), [nfreq 1]);
       ft_plot_vector(tmp, 'width', 1, 'height', 1, 'hpos', ix.*1.2, 'vpos', iy.*1.2, 'vlim', cfg.zlim, 'box', 'yes', 'color', cfg.color(1));
+      if k==1,
+        % first column, plot scale on y axis
+        fontsize = 10;
+        ft_plot_text( ix.*1.2-0.5,iy.*1.2-0.5,num2str(cfg.zlim(1),3),'HorizontalAlignment','Right','VerticalAlignment','Middle','Fontsize',fontsize);
+        ft_plot_text( ix.*1.2-0.5,iy.*1.2+0.5,num2str(cfg.zlim(2),3),'HorizontalAlignment','Right','VerticalAlignment','Middle','Fontsize',fontsize);
+      end
+      if m==nchan,
+        % bottom row, plot scale on x axis
+        fontsize = 10;
+        ft_plot_text( ix.*1.2-0.5,iy.*1.2-0.5,num2str(data.freq(1  ),3),'HorizontalAlignment','Center','VerticalAlignment','top','Fontsize',fontsize);
+        ft_plot_text( ix.*1.2+0.5,iy.*1.2-0.5,num2str(data.freq(end),3),'HorizontalAlignment','Center','VerticalAlignment','top','Fontsize',fontsize);
+      end
     end
   end
 end
@@ -135,8 +149,9 @@ end
 axis([-0.2 (nchan+1).*1.2+0.2 0 (nchan+1).*1.2+0.2]);
 axis off;
 
+set(gcf, 'color', [1 1 1]);
+
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble callinfo
 ft_postamble previous varargin
-
