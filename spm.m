@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm.m 4823 2012-08-02 16:23:49Z guillaume $
 
 
 %=======================================================================
@@ -193,9 +193,6 @@ function varargout=spm(varargin)
 % use without recomputation).
 % If Redo [default false] is true, then the cached current SPM information
 % are not used but recomputed (and recached).
-%
-% FORMAT v = spm('MLver')
-% Returns MATLAB version, truncated to major & minor revision numbers
 %
 % FORMAT xTB = spm('TBs')
 % Identifies installed SPM toolboxes: SPM toolboxes are defined as the
@@ -898,6 +895,7 @@ case 'mlver'                       %-MATLAB major & point version number
 %=======================================================================
 % v = spm('MLver')
 %-----------------------------------------------------------------------
+warning('spm(''MLver'') is deprecated. Use spm_check_version instead.');
 v = version; tmp = find(v=='.');
 if length(tmp)>1, varargout={v(1:tmp(2)-1)}; end
 
@@ -955,7 +953,9 @@ case 'tblaunch'                                  %-Launch an SPM toolbox
 if nargin < 3, i   = 1;          else i   = varargin{3}; end
 if nargin < 2, xTB = spm('TBs'); else xTB = varargin{2}; end
 
-if i > 0
+if i == 0
+    spm_toolbox;
+else
     %-Addpath (& report)
     %-------------------------------------------------------------------
     if isempty(strfind(path,xTB(i).dir))

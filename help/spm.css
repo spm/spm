@@ -20,3 +20,16 @@ hr {
     background-color:#000;
     border:1px solid #FFF;
 }
+
+.tbx {
+	border: 1px solid #559;
+	background: #eef;
+	margin: 0 0 1em 0;
+	padding: 0.5em 0.5em 0 0.5em;
+}
+
+.tbx>h3 {
+	margin-left: 0px;
+}
+
+.star {display: inline; float: right;}

@@ -10,30 +10,32 @@ function [H, HC] = spm_browser(url,F,pos,format)
 %          'wiki' option uses Wikipedia wiki markup:
 %          http://en.wikipedia.org/wiki/Wikipedia:Cheatsheet
 % 
-% H      - Java component
+% H      - handle to the Java component
+% HC     - handle to the HG container
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_browser.m 4498 2011-09-23 18:40:43Z guillaume $
+% $Id: spm_browser.m 4823 2012-08-02 16:23:49Z guillaume $
 
 %-Input arguments
 %--------------------------------------------------------------------------
 if nargin < 1
-    url = 'http://www.fil.ion.ucl.ac.uk/spm/';
+    url  = 'http://www.fil.ion.ucl.ac.uk/spm/';
 end
 
 if nargin < 2 || isempty(F)
-    F   = spm_figure('GetWin','Graphics');
+    F    = spm_figure('GetWin','Graphics');
 end
-F       = spm_figure('FindWin',F);
+isUpdate = ismethod(F,'setCurrentLocation');
+if ~isUpdate, F = spm_figure('FindWin',F); end
 
-if nargin < 3 || isempty(pos)
-    u   = get(F,'Units');
+if (nargin < 3 || isempty(pos)) && ~isUpdate
+    u    = get(F,'Units');
     set(F,'Units','pixels');
-    pos = get(F,'Position');
+    pos  = get(F,'Position');
     set(F,'Units',u);
-    pos = [10, 10, pos(3)-20, pos(4)-20];
+    pos  = [10, 10, pos(3)-20, pos(4)-20];
 end
 
 if nargin < 4 || isempty(format)
@@ -44,21 +46,29 @@ end
 %--------------------------------------------------------------------------
 try
     % if usejava('awt') && spm_check_version('matlab','7.4') >= 0
-    if strcmpi(format,'html') && any(strncmp(url,{'file','http','ftp:'},4))
-        url     = strrep(url,'\','/');
-        browser = com.mathworks.mlwidgets.html.HTMLBrowserPanel(url);
-    else
+    %-Create HTML browser panel
+    %----------------------------------------------------------------------
+    if ~isUpdate
         browser = com.mathworks.mlwidgets.html.HTMLBrowserPanel;
+        [H, HC] = javacomponent(browser,pos,F);
+    else
+        H       = F;
+        HC      = [];
     end
-    [H, HC] = javacomponent(browser,pos,F);
-    if strcmpi(format,'wiki')
+    
+    %-Set content
+    %----------------------------------------------------------------------
+    if strcmpi(format,'html') && any(strncmp(url,{'file','http','ftp:'},4))
+        H.setCurrentLocation(strrep(url,'\','/'))
+    elseif strcmpi(format,'wiki')
         H.setHtmlText(wiki2html(url));
-    end
-    if all(~strncmp(url,{'file','http','ftp:'},4))
+    elseif all(~strncmp(url,{'file','http','ftp:'},4))
         H.setHtmlText(url);
     end
+    drawnow
 catch
-    H   = [];
+    H  = [];
+    HC = [];
 end
 
 %==========================================================================
