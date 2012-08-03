@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp.m 4827 2012-08-03 16:45:56Z karl $
 
 % check options
 %==========================================================================
@@ -137,8 +137,8 @@ M.dipfit.model = model;
 
 % Set prior correlations (locking trial effects and dipole orientations
 %--------------------------------------------------------------------------
-if lock,    pC = spm_dcm_lock(pC);      end
-if symm,    gC = spm_dcm_symm(gC,gE);   end
+if lock, pC = spm_dcm_lock(pC);      end
+if symm, gC = spm_dcm_symm(gC,gE);   end
 
 
 % intial states and equations of motion
@@ -147,7 +147,7 @@ if symm,    gC = spm_dcm_symm(gC,gE);   end
 
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
-hE     = 8;
+hE     = 8 - log(var(spm_vec(xY.y)));
 hC     = exp(-4);
 
 
@@ -170,6 +170,10 @@ M.l    = Nc;
 M.ns   = Ns;
 M.Nmax = Nmax;
 
+% intialise states
+%-------------------------------------------------------------------------
+M.x    = spm_dcm_neural_x(pE,M);
+    
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
 

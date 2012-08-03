@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp_results.m 4827 2012-08-03 16:45:56Z karl $
 
 
 % get Action if necessary
@@ -241,17 +241,20 @@ switch(lower(Action))
         % spm_dcm_erp_results(DCM,'coupling (A)');
         %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'A'), return, end
-        if length(DCM.Ep.A) == 3
+        n    = length(DCM.Ep.A);
+        if n == 2
+            str = {'Forward','Backward'};
+        elseif n == 3
             str = {'Forward','Backward','Lateral'};
         else
-            str = {'Forward (i)','Forward (ii)','Backward (i)'};
+            str = {'Forward (i)','Forward (ii)','Backward (i)','Backward (ii)'};
         end
         
-        for i = 1:3
+        for i = 1:n
             
             % images
             %--------------------------------------------------------------
-            subplot(4,3,i)
+            subplot(4,n,i)
             imagesc(exp(DCM.Ep.A{i}))
             title(str{i},'FontSize',10)
             set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
@@ -262,14 +265,14 @@ switch(lower(Action))
             
             % table
             %--------------------------------------------------------------
-            subplot(4,3,i + 3)
+            subplot(4,n,i + n)
             text(0,1/2,num2str(full(exp(DCM.Ep.A{i})),' %.2f'),'FontSize',8)
             axis off,axis square
             
             
             % PPM
             %--------------------------------------------------------------
-            subplot(4,3,i + 6)
+            subplot(4,n,i + n + n)
             image(64*DCM.Pp.A{i})
             set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
             set(gca,'XTick',[])
@@ -278,7 +281,7 @@ switch(lower(Action))
             
             % table
             %--------------------------------------------------------------
-            subplot(4,3,i + 9)
+            subplot(4,n,i + n + n + n)
             text(0,1/2,num2str(DCM.Pp.A{i},' %.2f'),'FontSize',8)
             axis off, axis square
             

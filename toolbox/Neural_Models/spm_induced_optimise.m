@@ -12,7 +12,7 @@ function spm_induced_optimise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_induced_optimise.m 4827 2012-08-03 16:45:56Z karl $
  
  
 % Model specification
@@ -24,7 +24,7 @@ function spm_induced_optimise
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMC';
+options.model    = 'CMM';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
@@ -33,10 +33,10 @@ M.dipfit.Ns    = Ns;
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_neural_priors({0 0 0},{},1,options.model);
+pE      = spm_dcm_neural_priors({0 0 0},{},1,options.model);
 P       = fieldnames(pE);
-[pE,pC] = spm_L_priors(M.dipfit,pE,pC);
-[pE,pC] = spm_ssr_priors(pE,pC);
+pE      = spm_L_priors(M.dipfit,pE);
+pE      = spm_ssr_priors(pE);
 [x,f]   = spm_dcm_x_neural(pE,options.model);
  
 % hidden neuronal states of interest

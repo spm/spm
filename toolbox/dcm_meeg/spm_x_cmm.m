@@ -24,7 +24,7 @@ function [x,M] = spm_x_cmm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_cmm.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_x_cmm.m 4827 2012-08-03 16:45:56Z karl $
  
 
 % dimensions
@@ -35,3 +35,26 @@ np   = 4;                                        % number of populations
 % create (initialise voltage at -70mV)
 %--------------------------------------------------------------------------
 x    = zeros(ns,np,3);
+
+% steady-state solution 
+%==========================================================================
+
+% create MFM model
+%--------------------------------------------------------------------------
+M.g   = {};
+M.f   = 'spm_fx_cmm';
+M.x   = x;
+M.pE  = P;
+M.n   = length(spm_vec(x));
+M.m   = size(P.C,2);
+M.l   = size(P.C,1);
+
+
+% solve for fixed point 
+%--------------------------------------------------------------------------
+U.u   = sparse(16,1);
+U.dt  = 32/1000;
+x     = spm_int_ode(P,M,U);
+x     = spm_unvec(x(end,:),M.x);
+M.x   = x;
+

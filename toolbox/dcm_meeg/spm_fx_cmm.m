@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_fx_cmm.m 4827 2012-08-03 16:45:56Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -60,10 +60,8 @@ x    = reshape(x,ns,np,nk);              % hidden states
  
 % exponential transform to ensure positivity constraints
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1});                      % forward  (i)
-A{2} = exp(P.A{2});                      % forward  (ii)
-A{3} = exp(P.A{3});                      % backward (i)
-A{4} = exp(P.A{4});                      % backward (ii)
+A{1} = exp(P.A{1});                      % forward
+A{2} = exp(P.A{2});                      % backward
 C    = exp(P.C);                         % subcortical
  
 
@@ -90,12 +88,12 @@ G          = exp(P.G);
 % 3 - inhibitory interneurons         (intrisic interneuons)
 % 4 - deep pyramidal cells            (backward output cells)
 
-% extrinsic connections (F(i) F(ii) B(i) B(ii)
+% extrinsic connections (F B) - from superficial and deep pyramidal cells
 %--------------------------------------------------------------------------
-SA   = [1   0   0   0;
-        0   0   64  0;
-        0   0   0   8;
-        0   1/2 0   0]/8;
+SA   = [1   0   ;
+        0   0   ;
+        0   16  ;
+        0   0]/8;
  
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
@@ -136,10 +134,8 @@ Vx   = exp(P.S)*64;
 % mean population firing and afferent extrinsic input
 %--------------------------------------------------------------------------
 m      = spm_Ncdf_jdw(x(:,:,1),VR,Vx);  
-a(:,1) = A{1}*m(:,2);
-a(:,2) = A{2}*m(:,2);
-a(:,3) = A{3}*m(:,4);
-a(:,4) = A{4}*m(:,4);
+a(:,1) = A{1}*m(:,2);                    % forward 
+a(:,2) = A{2}*m(:,4);                    % backward
 
  
 % input
@@ -153,7 +149,7 @@ if isfield(M,'u')
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:)/4;
+    U = C*u(:);
     
 end
 

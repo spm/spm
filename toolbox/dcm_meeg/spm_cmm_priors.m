@@ -42,7 +42,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_cmm_priors.m 4827 2012-08-03 16:45:56Z karl $
  
  
 % disable log zero warning
@@ -70,26 +70,19 @@ pE.H  = zeros(n,1);        pC.H = zeros(n,1)/16;
 
 % restructure adjacency matrices
 %--------------------------------------------------------------------------
-D{1}  = A{1};                                     % forward  (i)
-D{2}  = A{1};                                     % forward  (ii)
-D{3}  = A{2};                                     % backward (i)
-D{4}  = A{2};                                     % backward (ii)
-A     = D;
-Q     = sparse(n,n);
-for i = 1:length(A)
-    A{i}    = ~~A{i};
-    pE.A{i} = A{i}*32 - 32;                       % forward
-    pC.A{i} = A{i}/8;                             % backward
-    Q       = Q | A{i};                           % and lateral connections
+A{1}  = A{1} | A{3};                              % forward
+A{2}  = A{2} | A{3};                              % backward
+for i = 1:2
+    pE.A{i} = A{i}*32 - 32;
+    pC.A{i} = A{i}/8;
 end
  
 % input-dependent scaling
 %--------------------------------------------------------------------------
 for i = 1:length(B)
     B{i} = ~~B{i};
-    pE.B{i} = 0*B{i};
+    pE.B{i} = B{i} - B{i};
     pC.B{i} = B{i}/8;
-    Q       = Q | B{i};
 end
 
 % exogenous inputs
@@ -101,9 +94,18 @@ pC.C  = C/32;
 
 % intrinsic connectivity (p x p x n)
 %==========================================================================
+% 1 - excitatory spiny stellate cells (granular input cells)
+% 2 - superficial pyramidal cells     (forward  output cells)
+% 3 - inhibitory interneurons         (intrisic interneuons)
+% 4 - deep pyramidal cells            (backward output cells)
+%--------------------------------------------------------------------------
+gC    = [1   0   1   0;
+         0   1   0   0;
+         1   0   1   1;
+         0   0   1   0];
+     
 pE.G  = repmat(zeros(p,p),[1 1 n]);
-pC.G  = repmat(  eye(p,p),[1 1 n]);
-
+pC.G  = repmat(gC        ,[1 1 n]);
 
 % Exogenous inputs: onset and dispersion
 %--------------------------------------------------------------------------

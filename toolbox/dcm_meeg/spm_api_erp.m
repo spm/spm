@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_api_erp.m 4827 2012-08-03 16:45:56Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -892,7 +892,7 @@ end
 switch DCM.options.model
     case{'NMM','MFM'}
         constr = {'Excit.' 'Inhib.'    'Mixed'       'input'};
-    case{'CMC','CMM'}
+    case{'CMC'}
         constr = {'forward' 'back'     '(not used)'  'input'};
     case{'DEM'}
         constr = {'States' ' '         ' '           ' '    };
@@ -1032,7 +1032,7 @@ handles = reset_Callback(hObject, eventdata, handles);
 % -------------------------------------------------------------------------
 try
     Ep  = handles.DCM.Ep;
-    Str = questdlg('use previous posteriors');
+    Str = questdlg('initialise with previous posteriors');
     if strcmp(Str,'Yes')
         handles.DCM.M.P = Ep;
     elseif strcmp(Str,'No')
@@ -1044,15 +1044,15 @@ end
 
 % initialise with posteriors if required
 % -------------------------------------------------------------------------
-try
-    handles.DCM.M.pE;
-    Str = questdlg('use previous priors');
-    if strcmp(Str,'No')
-        handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
-    elseif strcmp(Str,'Cancel')
-        return
-    end
-end
+% try
+%     handles.DCM.M.pE;
+%     Str = questdlg('use previous priors');
+%     if strcmp(Str,'No')
+%         handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
+%     elseif strcmp(Str,'Cancel')
+%         return
+%     end
+% end
  
  
 % invert and save

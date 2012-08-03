@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 4821 2012-08-01 15:52:35Z vladimir $
+% $Id: spm_induced_demo.m 4827 2012-08-03 16:45:56Z karl $
  
  
 % Model specification
@@ -44,7 +44,7 @@ Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
 options.spatial  = 'LFP';
 options.model    = 'CMM';
-options.analysis = 'TFR';
+options.analysis = 'TFM';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
@@ -54,15 +54,16 @@ M.dipfit.Ns    = Ns;
 %--------------------------------------------------------------------------
 A{1} = [0 0; 1 0];
 A{2} = [0 1; 0 0];
+A{3} = [0 0; 0 0];
 C    = [1; 0];
  
  
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_dcm_neural_priors(A,{},C,options.model);
-[pE,pC] = spm_L_priors(M.dipfit,pE,pC);
-[pE,pC] = spm_ssr_priors(pE,pC);
-[x,f]   = spm_dcm_x_neural(pE,options.model);
+pE    = spm_dcm_neural_priors(A,{},C,options.model);
+pE    = spm_L_priors(M.dipfit,pE);
+pE    = spm_ssr_priors(pE);
+[x,f] = spm_dcm_x_neural(pE,options.model);
 
 pE.J(1:4) = [0 1 0 0];
  
@@ -103,7 +104,7 @@ U.u   = sparse(N,M.m);
  
 % exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*32,8);
+U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*8,8);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
@@ -138,21 +139,19 @@ spm_dcm_tfm_image(y{1},pst,w,0)
 
 % expected time frequency response
 %--------------------------------------------------------------------------
-spm_figure('GetWin','transfer functions');
+spm_figure('GetWin','tansfer functions');
 
 spm_dcm_tfm_transfer(s{1},pst,w)
 
 % simulated responses
 %==========================================================================
-spm_figure('GetWin','Empirical responses');
+spm_figure('GetWin','Simulated responses');
  
 % time-frequency
 %--------------------------------------------------------------------------
 xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
-
-return
 
 
 % Integrate system to simulate responses
