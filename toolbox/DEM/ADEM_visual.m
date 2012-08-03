@@ -13,7 +13,7 @@ function ADEM_visual
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: ADEM_visual.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_visual.m 4826 2012-08-03 16:45:09Z karl $
  
  
 % recognition model (M)
@@ -55,7 +55,7 @@ G(1).f  = inline('P.f*x + P.h*v + P.a*a','x','v','a','P');
 G(1).g  = inline('ADEM_plaid(x)','x','v','a','P');
 G(1).pE = pE;                               % prior expectation
 G(1).V  = exp(16);                          % error precision
-G(1).W  = exp(8);                           % error precision
+G(1).W  = exp(16);                          % error precision
 G(1).U  = exp(2);                           % error precision
 
 % second level
