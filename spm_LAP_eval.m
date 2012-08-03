@@ -16,7 +16,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 4811 2012-07-30 19:54:03Z karl $
+% $Id: spm_LAP_eval.m 4824 2012-08-03 16:42:24Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
@@ -73,11 +73,13 @@ end
 %--------------------------------------------------------------------------
 nx      = numel(spm_vec(x));
 nv      = numel(spm_vec(v));
+hn      = numel(spm_vec(qh.h));
+gn      = numel(spm_vec(qh.g));
 nh      = size(p.h,1);
 ng      = size(p.g,1);
 
-dp.h.dh = sparse(nh,0);
-dp.g.dg = sparse(ng,0);
+dp.h.dh = sparse(nh,hn);
+dp.g.dg = sparse(ng,gn);
 dp.h.dx = sparse(nh,nx);
 dp.h.dv = sparse(nh,nv);
 dp.g.dx = sparse(ng,nx);

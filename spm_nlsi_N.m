@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4811 2012-07-30 19:54:03Z karl $
+% $Id: spm_nlsi_N.m 4824 2012-08-03 16:42:24Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -286,9 +286,6 @@ C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
-
- 
-
 
  
 % Optimize p: parameters of f(x,u,p)

@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 4811 2012-07-30 19:54:03Z karl $
+% $Id: spm_ALAP.m 4824 2012-08-03 16:42:24Z karl $
 
 
 % check model, data and priors
@@ -364,8 +364,9 @@ Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
 Dw    = kron(spm_speye(n,n,1),spm_speye(gx,gx,0));
 Dz    = kron(spm_speye(n,n,1),spm_speye(gv,gv,0));
 Du    = spm_cat(spm_diag({Dx,Dv}));
+Dx    = kron(spm_speye(n,n,1),spm_speye(gx,gx,0));
+Iw    = kron(spm_speye(n,n,0),spm_speye(gx,gx,0));
 Ib    = spm_speye(np + nb,np + nb);
-Iw    = kron(speye(n,n),speye(gx,gx));
 
 dbdt  = sparse(np + nb,1);
 dydv  = kron(speye(n,n),speye(gy,gv));
@@ -390,9 +391,12 @@ dHdu  = sparse(nu,1);
 
 % preclude unnecessary iterations and set switches
 %--------------------------------------------------------------------------
-if ~np && ~nh && ~ng, nN = 1; end
-mnx   = nx*~~method.x;
-mnv   = nv*~~method.v;
+mnh   = nh*method.h;
+mng   = ng*method.g;
+mnx   = nx*method.x;
+mnv   = nv*method.v;
+if ~np && ~mnh && ~mng, nN = 1; end
+
 
 % preclude very precise states from entering free-energy/action
 %--------------------------------------------------------------------------
@@ -432,7 +436,7 @@ for iN = 1:nN
     
     % get time and clear persistent variables in evaluation routines
     %----------------------------------------------------------------------
-    tic; clear spm_DEM_eval
+    tic; clear spm_DEM_eval qa
     
     % [re-]set states & their derivatives
     %----------------------------------------------------------------------
@@ -449,8 +453,7 @@ for iN = 1:nN
         
         % pass action to pu.a (external states)
         %==================================================================
-        if exist('a','var'), A = spm_cat({a,qu.a}); end
-        
+        if exist('qa','var'), A = spm_cat({qa,qu.a}); end
         
         % derivatives of responses and random fluctuations
         %------------------------------------------------------------------
@@ -724,7 +727,7 @@ for iN = 1:nN
         
         % and action
         %------------------------------------------------------------------
-        if na, a(is) = qu.a{1}; end
+        if na, qa(is) = qu.a{1}; end
         
         % and conditional covariances
         %------------------------------------------------------------------

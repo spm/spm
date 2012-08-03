@@ -30,8 +30,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %
 % spm_regions extracts a representative time course from voxel data in
 % terms of the first eigenvariate of the filtered and adjusted response in
-% all suprathreshold voxels within a specified VOI centered on the current
-% MIP cursor location.
+% all suprathreshold voxels within a specified VOI centred on the current
+% MIP cursor location. Responses are adjusted by removing variance that
+% can be predicted by the null space of the F contrast specified (usually 
+% an F-contrast testing for all effects of interest),
 %
 % If temporal filtering has been specified, then the data will be filtered.
 % Similarly for whitening. Adjustment is with respect to the null space of
@@ -43,12 +45,12 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_regions.m 4643 2012-02-03 17:31:02Z guillaume $
-
+% $Id: spm_regions.m 4824 2012-08-03 16:42:24Z karl $
+ 
 if nargin < 4, xY = []; end
-
+ 
 %-Get figure handles
 %--------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
@@ -56,7 +58,7 @@ if isempty(Finter), noGraph = 1; else noGraph = 0; end
 header = get(Finter,'Name');
 set(Finter,'Name','VOI time-series extraction');
 if ~noGraph, Fgraph = spm_figure('GetWin','Graphics'); end
-
+ 
 %-Find nearest voxel [Euclidean distance] in point list
 %--------------------------------------------------------------------------
 if isempty(xSPM.XYZmm)
@@ -71,12 +73,12 @@ catch
              spm_XYZreg('GetCoords',hReg),xSPM.XYZmm);
     xY.xyz = xyz;
 end
-
+ 
 % and update GUI location
 %--------------------------------------------------------------------------
 spm_XYZreg('SetCoords',xyz,hReg);
-
-
+ 
+ 
 %-Get adjustment options and VOI name
 %--------------------------------------------------------------------------
 if ~noGraph
@@ -87,11 +89,11 @@ if ~noGraph
     end
     spm_input(posstr,1,'d','VOI time-series extraction');
 end
-
+ 
 if ~isfield(xY,'name')
     xY.name    = spm_input('name of region','!+1','s','VOI');
 end
-
+ 
 if ~isfield(xY,'Ic')
     q(1)   = 0;
     Con    = {'<don''t adjust>'};
@@ -109,7 +111,7 @@ if ~isfield(xY,'Ic')
     i     = spm_input('adjust data for (select contrast)','!+1','m',Con);
     xY.Ic = q(i);
 end
-
+ 
 %-If fMRI data then ask user to select session
 %--------------------------------------------------------------------------
 if isfield(SPM,'Sess') && ~isfield(xY,'Sess')
@@ -119,42 +121,42 @@ if isfield(SPM,'Sess') && ~isfield(xY,'Sess')
     end
     xY.Sess = s;
 end
-
+ 
 %-Specify VOI
 %--------------------------------------------------------------------------
 xY.M = xSPM.M;
 [xY, xY.XYZmm, Q] = spm_ROI(xY, xSPM.XYZmm);
 try, xY = rmfield(xY,'M'); end
 try, xY = rmfield(xY,'rej'); end
-
+ 
 if isempty(xY.XYZmm)
     warning('Empty region.');
     Y = [];
     return;
 end
-
-
+ 
+ 
 %-Extract required data from results files
 %==========================================================================
 spm('Pointer','Watch')
-
+ 
 %-Get raw data, whiten and filter 
 %--------------------------------------------------------------------------
 y        = spm_get_data(SPM.xY.VY,xSPM.XYZ(:,Q));
 y        = spm_filter(SPM.xX.K,SPM.xX.W*y);
-
-
+ 
+ 
 %-Computation
 %==========================================================================
-
+ 
 %-Remove null space of contrast
 %--------------------------------------------------------------------------
 if xY.Ic ~= 0
-
+ 
     %-Parameter estimates: beta = xX.pKX*xX.K*y
     %----------------------------------------------------------------------
     beta  = spm_get_data(SPM.Vbeta,xSPM.XYZ(:,Q));
-
+ 
     %-subtract Y0 = XO*beta,  Y = Yc + Y0 + e
     %----------------------------------------------------------------------
     if ~isnan(xY.Ic)
@@ -162,13 +164,13 @@ if xY.Ic ~= 0
     else
         y = y - SPM.xX.xKXs.X * beta;
     end
-
+ 
 end
-
+ 
 %-Confounds
 %--------------------------------------------------------------------------
 xY.X0     = SPM.xX.xKXs.X(:,[SPM.xX.iB SPM.xX.iG]);
-
+ 
 %-Extract session-specific rows from data and confounds
 %--------------------------------------------------------------------------
 try
@@ -176,7 +178,7 @@ try
     y     = y(i,:);
     xY.X0 = xY.X0(i,:);
 end
-
+ 
 % and add session-specific filter confounds
 %--------------------------------------------------------------------------
 try
@@ -185,12 +187,12 @@ end
 try
     xY.X0 = [xY.X0 SPM.xX.K(xY.Sess).KH]; % Compatibility check
 end
-
+ 
 %-Remove null space of X0
 %--------------------------------------------------------------------------
 xY.X0     = xY.X0(:,any(xY.X0));
-
-
+ 
+ 
 %-Compute regional response in terms of first eigenvariate
 %--------------------------------------------------------------------------
 [m n]   = size(y);
@@ -209,14 +211,14 @@ d       = sign(sum(v));
 u       = u*d;
 v       = v*d;
 Y       = u*sqrt(s(1)/n);
-
+ 
 %-Set in structure
 %--------------------------------------------------------------------------
 xY.y    = y;
 xY.u    = Y;
 xY.v    = v;
 xY.s    = s;
-
+ 
 %-Display VOI weighting and eigenvariate
 %==========================================================================
 if ~noGraph
@@ -227,7 +229,7 @@ if ~noGraph
     figure(Fgraph);
     subplot(2,2,3)
     spm_dcm_display(xY)
-
+ 
     % show dynamics
     %----------------------------------------------------------------------
     subplot(2,2,4)
@@ -251,7 +253,7 @@ if ~noGraph
     xlabel(str)
     axis tight square
 end
-
+ 
 %-Save
 %==========================================================================
 str = ['VOI_' xY.name '.mat'];
@@ -259,9 +261,9 @@ if isfield(xY,'Sess') && isfield(SPM,'Sess')
     str = sprintf('VOI_%s_%i.mat',xY.name,xY.Sess);
 end
 save(fullfile(SPM.swd,str),'Y','xY', spm_get_defaults('mat.format'))
-
+ 
 fprintf('   VOI saved as %s\n',spm_file(fullfile(SPM.swd,str),'short55'));
-
+ 
 %-Reset title
 %--------------------------------------------------------------------------
 set(Finter,'Name',header);
