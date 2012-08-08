@@ -15,7 +15,7 @@ function out=spm_api_bmc(F,N,exp_r,xp,family)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_api_bmc.m 4749 2012-05-24 12:25:12Z will $
+% $Id: spm_api_bmc.m 4832 2012-08-08 14:28:00Z will $
 
 if nargin < 4 || isempty(xp)
     inf_method = 'FFX';
@@ -85,19 +85,6 @@ switch inf_method
             figure(F);
             
             Nfam = length(family.post);
-            subplot(2,1,1)
-            
-            logev  = log(family.like);    
-            bar(1:Nfam,logev);
-            set(gca,'XTick',1:Nfam)
-            set(gca,'XTickLabel',family.names)
-            ylabel('Log-evidence (relative)','Fontsize',14)
-            xlabel('Families','Fontsize',14)
-            title(['Bayesian Model Selection: ',inf_method],'Fontsize',14)
-            axis square
-            grid on
-            
-            subplot(2,1,2)
             bar(1:Nfam,family.post)
             set(gca,'XTick',1:Nfam)
             set(gca,'XTickLabel',family.names)
