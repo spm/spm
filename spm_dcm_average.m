@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 4828 2012-08-07 11:19:46Z will $
+% $Id: spm_dcm_average.m 4830 2012-08-08 10:52:12Z will $
 
 try
     P;
@@ -53,9 +53,13 @@ for model = 1:N
 
     % Only look at those parameters with non-zero prior variance
     %----------------------------------------------------------------------
-    pCdiag = spm_vec(DCM.M.pC);
-    if size(pCdiag,2)>1
-        pCdiag=diag(pCdiag);
+    if isstruct(DCM.M.pC)
+        pCdiag = spm_vec(DCM.M.pC);
+        if size(pCdiag,2)>1
+            pCdiag=diag(pCdiag);
+        end
+    else
+       pCdiag = diag(DCM.M.pC);
     end
     wsel   = find(pCdiag);
 
