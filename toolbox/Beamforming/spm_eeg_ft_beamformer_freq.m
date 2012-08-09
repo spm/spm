@@ -10,7 +10,7 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_eeg_ft_beamformer_freq.m 4835 2012-08-09 17:12:18Z guillaume $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
@@ -352,7 +352,7 @@ if (isfield(S, 'preview') && S.preview) || ~isempty(refchan) ||...
             outvol = spm_vol(sMRI);
             outvol.dt(1) = spm_type('float32');
             
-            outvol.fname= fullfile(D.path, 'images', ['img_' spm_str_manip(D.fname, 'r')]);
+            outvol.fname= fullfile(D.path, 'images', ['img_' spm_file(D.fname, 'basename')]);
             
             if S.bycondition
                 outvol.fname= [outvol.fname '_' clb{cl(c)}];

@@ -61,7 +61,7 @@ cfg.resamplefs = 200;
 cfg.detrend    = 'no';
 data = ft_resampledata(cfg, data);
 %% Convert to SPM8 format
-D = spm_eeg_ft2spm(data, ['ft_' spm_str_manip(datasets{1}, 'r')]);
+D = spm_eeg_ft2spm(data, ['ft_' spm_file(datasets{1}, 'basename')]);
 
 %% Posp-processing of converted data
 
