@@ -14,7 +14,7 @@ function spm_plot_ci(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4169 2011-01-24 18:34:20Z karl $
+% $Id: spm_plot_ci.m 4836 2012-08-10 15:55:21Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -89,8 +89,8 @@ elseif n == 2
     
     % plot in state-space
     %======================================================================    try,  C = C{1};  end
-    [x y] = ellipsoid(E(1),E(2),0,c(1),c(2),0,32);
-    fill(x',y',[1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+    [x y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
+    fill(x(16,:)',y(16,:)',[1 1 1]*.9,'EdgeColor',[1 1 1]*.8),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)
     
 else

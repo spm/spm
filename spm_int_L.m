@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 4811 2012-07-30 19:54:03Z karl $
+% $Id: spm_int_L.m 4836 2012-08-10 15:55:21Z karl $
  
  
 % convert U to U.u if necessary
@@ -127,7 +127,7 @@ for i = 1:size(U.u,1)
         u  = U.u(i,:);
     end
  
-    % update dx = (expm(dt*J) - I)*inv(J)*fx
+    % update dx = (expm(dt*J) - I)*inv(J)*f(x,u)
     %----------------------------------------------------------------------
     for j = 1:N
         x = spm_vec(x) + Q*spm_vec(f(x,u,P,M));

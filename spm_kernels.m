@@ -32,30 +32,30 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_kernels.m 4768 2012-06-11 17:06:55Z karl $
-
-
+% $Id: spm_kernels.m 4836 2012-08-10 15:55:21Z karl $
+ 
+ 
 % assign inputs
 %--------------------------------------------------------------------------
 if nargin == 4
-
+ 
     M0 = varargin{1};
     M1 = varargin{2};
     N  = varargin{3};
     dt = varargin{4};
-
+ 
 elseif nargin == 5
-
+ 
     M0 = varargin{1};
     M1 = varargin{2};
     L1 = varargin{3};
     N  = varargin{4};
     dt = varargin{5};
-
+ 
 elseif nargin == 6
-
+ 
     M0 = varargin{1};
     M1 = varargin{2};
     L1 = varargin{3};
@@ -63,17 +63,17 @@ elseif nargin == 6
     N  = varargin{5};
     dt = varargin{6};
 end
-
+ 
 % bilinear reduction if necessary
 %--------------------------------------------------------------------------
 if isstruct(M0)
     [M0,M1,L1,L2] = spm_bireduce(M0,M1);
 end
-
-
+ 
+ 
 % Volterra kernels for bilinear systems
 %==========================================================================
-
+ 
 % make states the outputs (i.e. remove constant) if L1 is not specified
 %--------------------------------------------------------------------------
 try
@@ -87,7 +87,7 @@ try
 catch
     L2 = [];
 end
-
+ 
 % parameters
 %--------------------------------------------------------------------------
 N     = fix(N);                     % kernel depth
@@ -98,23 +98,29 @@ H1    = zeros(N,n,m);
 K1    = zeros(N,l,m);
 K2    = zeros(N,N,l,m,m);
 M0    = full(M0);
-
+ 
 % pre-compute mmatrix exponentials
 %--------------------------------------------------------------------------
-e1    = sparse(expm( dt*M0));
-e2    = sparse(expm(-dt*M0));
+e1    = expm( dt*M0);
+e2    = expm(-dt*M0);
 for p = 1:m
     M{1,p} = e1*M1{p}*e2;
 end
+ei    = e1;
 for i = 2:N
+    ei    = e1*ei;
     for p = 1:m
         M{i,p} = e1*M{i - 1,p}*e2;
     end
 end
-
+ 
+ 
 % check for convergence and apply a more robust scheme if necessary
 %--------------------------------------------------------------------------
 if norm(M{N},'inf') > norm(M{1},'inf') || norm(M{1},'inf') > exp(16)
+    
+    M0    = spm_condition(M0);
+    e1    = expm( dt*M0);
     ei    = 1;
     for i = 1:N
         ei    = e1*ei;
@@ -124,23 +130,23 @@ if norm(M{N},'inf') > norm(M{1},'inf') || norm(M{1},'inf') > exp(16)
         end
     end
 end
-
-
+ 
+ 
 % 0th order kernel
 %--------------------------------------------------------------------------
 X0    = sparse(1,1,1,n,1);
 if nargout > 0
-    H0    = e1^N*X0;
+    H0    = ei*X0;
     K0    = L1*H0;
 end
-
-
+ 
+ 
 % 1st order kernel
 %--------------------------------------------------------------------------
 if nargout > 1
     for p = 1:m
         for i = 1:N
-
+ 
             % 1st order kernel
             %--------------------------------------------------------------
             H1(i,:,p) = M{i,p}*H0;
@@ -148,26 +154,27 @@ if nargout > 1
         end
     end
 end
-
+ 
+ 
 % 2nd order kernels
 %--------------------------------------------------------------------------
 if nargout > 2
     for p = 1:m
         for q = 1:m
             for j = 1:N
-
+ 
                 % 2nd order kernel
                 %----------------------------------------------------------
-                H  = L1*M{j,q}*H1([j:N],:,p)';
+                H  = L1*M{j,q}*H1((j:N),:,p)';
                 K2(j,[j:N],:,q,p) = H';
                 K2([j:N],j,:,p,q) = H';
-
+ 
             end
         end
     end
-
+ 
     if isempty(L2), return, end
-
+ 
     % add output nonlinearity
     %----------------------------------------------------------------------
     for i = 1:m
@@ -178,3 +185,22 @@ if nargout > 2
         end
     end
 end
+
+return
+
+ 
+function M0 = spm_condition(M0)
+
+% conditions a bilinear operator by suppressing positive eigenmodes
+%==========================================================================
+ 
+% remove unstable modes from Jacobian
+%--------------------------------------------------------------------------
+dfdx  = M0(2:end,2:end);
+[u s] = eig(full(dfdx));
+S     = diag(s);
+S     = real(S).*real(S < 0) + sqrt(-1)*imag(S);
+ 
+% replace in bilinear operator
+%--------------------------------------------------------------------------
+M0(2:end,2:end) = real(u*diag(S)*spm_inv(u));

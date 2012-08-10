@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 27-Jul-2012 18:35:15
+% Last Modified by GUIDE v2.5 10-Aug-2012 16:43:09
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -90,7 +90,7 @@ guidata(hObject, handles);
 function pdf_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to pdf (see GCBO)
 try
-    web(handles.web);
+    web(handles.web,'-browser');
 end
 
 % --- Executes on button press in pushbutton51.
@@ -386,6 +386,12 @@ run_demo_Callback(hObject, handles, 'DEM_demo_ALAP')
 function pushbutton127_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'ALAP_demo_attenuation')
+
+% --- Executes on button press in pushbutton128.
+function pushbutton128_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Observing%20the%20Observer%20I.pdf';
+run_demo_Callback(hObject, handles, 'spm_meta_model')
+
 
 
 

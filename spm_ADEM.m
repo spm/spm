@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 4712 2012-04-10 13:22:50Z karl $
+% $Id: spm_ADEM.m 4836 2012-08-10 15:55:21Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -138,6 +138,15 @@ M     = DEM.M;
 G     = DEM.G;
 C     = DEM.C;
 U     = DEM.U;
+
+% check whether to print 
+%--------------------------------------------------------------------------
+db     = dbstack;
+if strcmpi(db(2).file,'spm_meta_model.m')
+    db = 0;
+else
+    db = 1;
+end
  
 % ensure embedding dimensions are compatible
 %--------------------------------------------------------------------------
@@ -770,7 +779,9 @@ for iE = 1:nE
     str{3} = sprintf('p:%.2e',full(dp'*dp));
     str{4} = sprintf('h:%.2e',full(mh'*mh));
     str{5} = sprintf('(%.2e sec)',full(toc));
-    fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
+    if db
+        fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
+    end
     
     if (norm(dp,1) < exp(-8)) && (norm(mh,1) < exp(-8)), break, end
  

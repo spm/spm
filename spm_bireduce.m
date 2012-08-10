@@ -12,10 +12,10 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 %   M.l   - l outputs
 %   M.x   - (n x 1) = x(0) = expansion point: defaults to x = 0;
 %   M.u   - (m x 1) = u    = expansion point: defaults to u = 0;
-%   M.D   - delay operator df/dx -> D*df/dx
+%
+%   M.D   - delay operator df/dx -> D*df/dx [optional]
 %
 % P   - model parameters
-
 %
 % A Bilinear approximation is returned where the states are
 %
@@ -37,12 +37,11 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_bireduce.m 4836 2012-08-10 15:55:21Z karl $
 
 
 % set up
 %==========================================================================
-if nargin < 3, Q = 1; end
 
 % create inline functions
 %--------------------------------------------------------------------------

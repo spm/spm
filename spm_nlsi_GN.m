@@ -33,7 +33,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % U.u  - inputs
 % U.dt - sampling interval
 %
-% Y.y  - outputs
+% Y.y  - outputs (samples x observations)
 % Y.dt - sampling interval for outputs
 % Y.X0 - Confounds or null space      (over size(y,1) bins or all vec(y))
 % Y.Q  - q error precision components (over size(y,1) bins or all vec(y))
@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_nlsi_GN.m 4836 2012-08-10 15:55:21Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -135,7 +135,11 @@ catch
     % otherwise FS(y) = y
     %----------------------------------------------------------------------
     y   = Y.y;
-    IS  = inline([M.IS '(P,M,U)'],'P','M','U');
+    try
+        IS = inline([M.IS '(P,M,U)'],'P','M','U');
+    catch
+        IS = M.IS;
+    end
 end
  
 % size of data (usually samples x channels)

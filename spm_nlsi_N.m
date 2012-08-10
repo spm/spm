@@ -13,7 +13,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 %        that returns hidden states - x; however, it can be any nonlinear
 %        function of the inputs u. I.e., x = IS(p,M,U)
 %
-% M.G  - G(g,M) - linear observer: y = x*G(g,M)'
+% M.G  - G(g,M) - linear observer: y = (x - M.x')*G(g,M)'
 %
 % M.FS - function name f(y,M) - feature selection
 %        This [optional] function performs feature selection assuming the
@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4824 2012-08-03 16:42:24Z karl $
+% $Id: spm_nlsi_N.m 4836 2012-08-10 15:55:21Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -273,7 +273,11 @@ Eu    = spm_pinv(dgdu)*spm_vec(y);
 
 % expansion point
 %--------------------------------------------------------------------------
-x0     = ones(size(y,1),1)*spm_vec(M.x)';
+if ~isempty(M.x)
+    x0 = ones(size(y,1),1)*spm_vec(M.x)';
+else
+    x0 = 0;
+end
 
 
 

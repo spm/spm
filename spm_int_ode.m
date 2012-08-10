@@ -60,12 +60,12 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int_ode.m 4836 2012-08-10 15:55:21Z karl $
 
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
-if ~isstruct(U), U.u = U;   end
+if ~isstruct(U),  U.u  = U; end
 try, U.dt; catch, U.dt = 1; end
 
 % sample times
