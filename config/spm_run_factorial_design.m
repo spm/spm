@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 4535 2011-10-27 15:26:17Z guillaume $
+% $Id: spm_run_factorial_design.m 4837 2012-08-13 18:10:04Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -553,8 +553,8 @@ SPM = spm_get_vc(SPM);
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %==========================================================================
 dstr   = {'covariate','nuisance variable'};
-C  = []; Cnames = [];  %-Covariate DesMtx partitions & names
-G  = []; Gnames = [];
+C  = []; Cnames = {};  %-Covariate DesMtx partitions & names
+G  = []; Gnames = {};
 
 xC = [];                         %-Struct array to hold raw covariates
 

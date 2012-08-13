@@ -13,7 +13,7 @@ function [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_flexible.m 4111 2010-11-05 12:59:10Z guillaume $
+% $Id: spm_design_flexible.m 4837 2012-08-13 18:10:04Z guillaume $
 
 %-Sort main effects and interactions
 %--------------------------------------------------------------------------
@@ -27,8 +27,8 @@ for k=1:numel(fblock.maininters)
     end
 end
 
-H = []; Hnames = [];
-B = []; Bnames = [];
+H = []; Hnames = {};
+B = []; Bnames = {};
 
 %-Create main effects
 %--------------------------------------------------------------------------

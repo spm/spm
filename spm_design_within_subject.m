@@ -8,15 +8,16 @@ function [I,P,cov] = spm_design_within_subject(fblock,cov)
 % I        - Nscan x 4 factor matrix
 % P        - List of scans
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_within_subject.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: spm_design_within_subject.m 4837 2012-08-13 18:10:04Z guillaume $
 
 %-Specify design subject-by-subject
 %--------------------------------------------------------------------------
-[P, I, subj] = deal([]);
-for s = 1:numel(fblock.fsuball.fsubject)
+P      = {};
+[I, subj] = deal([]);
+for s  = 1:numel(fblock.fsuball.fsubject)
     P  = [P; fblock.fsuball.fsubject(s).scans];
     ns = length(fblock.fsuball.fsubject(s).scans);
     cc = fblock.fsuball.fsubject(s).conds;
