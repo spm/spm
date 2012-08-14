@@ -1,8 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 4772 2012-06-21 18:27:33Z john $
-addpath(fullfile(spm('dir'),'toolbox','DARTEL'));
+% $Id: tbx_cfg_shoot.m 4839 2012-08-14 18:53:20Z john $
 addpath(fullfile(spm('dir'),'toolbox','Shoot'));
 
 % ---------------------------------------------------------------------

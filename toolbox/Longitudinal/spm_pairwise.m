@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4778 2012-07-06 13:10:32Z john $
+% $Id: spm_pairwise.m 4839 2012-08-14 18:53:20Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -39,7 +39,6 @@ for i=find(~isfinite(noise(:,2)))',
     fprintf('Estimated noise sd for "%s" = %g\n', job.vols2{i}, noise(i,2));
 end
 
-prec    = noise.^(-2);
 bparam  = [0 0 job.bparam];
 wparam0 = job.wparam;
 
@@ -57,6 +56,7 @@ for i=1:numel(tdif),
     [pth2,nam2] = fileparts(Nii(2).dat.fname);
     fprintf('*** %s <=> %s ***\n', nam1, nam2);
 
+    prec   = noise(i,:).^(-2);
     dat    = spm_groupwise_ls(Nii, output, prec, wparam, bparam, sparam);
 
     if isfield(dat,'jac')

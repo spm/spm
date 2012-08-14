@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: mat2file.c 4839 2012-08-14 18:53:20Z john $
  * John Ashburner
  */
 
@@ -128,13 +128,13 @@ void put_bytes(int ndim, FILE *fp, int *ptr[], int idim[], unsigned char idat[],
                 {
                     /* Problem */
                     (void)fclose(fp);
-                    (void)mexErrMsgTxt("Problem writing data (1).");
+                    (void)mexErrMsgTxt("Problem writing data (could be a disk space or quota issue).");
                 }
                 if (fseeko(fp, off, SEEK_SET) == -1)
                 {
                     /* Problem */
                     (void)fclose(fp);
-                    (void)mexErrMsgTxt("Problem writing data (2).");
+                    (void)mexErrMsgTxt("Problem writing data (can not move to the appropriate place in the file).");
                 }
                 dptr   = idat+indi+i*nb;
                 len    = 0;
@@ -182,7 +182,7 @@ void put(FTYPE map, int *ptr[], int idim[], void *idat)
     {
         /* Problem */
        (void)fclose(map.fp);
-       (void)mexErrMsgTxt("Problem writing data (3).");
+       (void)mexErrMsgTxt("Problem writing last piece of data (could be a disk space or quota issue).");
     }
 }
 
@@ -288,7 +288,7 @@ void open_file(const mxArray *ptr, FTYPE *map)
             if (map->fp == (FILE *)0)
             {
                 mxFree(buf);
-                mexErrMsgTxt("Cant open file.");
+                mexErrMsgTxt("Cant open file for writing (check for write permission or whether the directory exists).");
             }
         }
 

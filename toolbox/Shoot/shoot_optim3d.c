@@ -1,4 +1,4 @@
-/* $Id: shoot_optim3d.c 4583 2011-12-06 16:03:01Z john $ */
+/* $Id: shoot_optim3d.c 4839 2012-08-14 18:53:20Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>
@@ -8,41 +8,6 @@ extern double log(double x);
 #include "shoot_optim3d.h"
 #include "shoot_multiscale.h"
 #include "shoot_regularisers.h"
-
-/*
-syms a0 a1 a2 a3 a4 a5 b0 b1 b2
-A = [a0 a3 a4; a3 a1 a5; a4 a5 a2];
-b = [b0 b1 b2].';
-A\b
-*/
-static void solve33(float a[], float b[], double s[], float u[])
-{
-    double sb2 = (b[0]*b[0]+b[1]*b[1]+b[2]*b[2]+1e-32)*1e-3;
-    if (a)
-    {
-        double dt;
-        double a0 = a[0]+s[3]/(s[0]*s[0]), a1 = a[1]+s[3]/(s[1]*s[1]), a2 = a[2]+s[3]/(s[2]*s[2]);
-        dt  = a0*a2*a1-a0*a[5]*a[5]-a1*a[4]*a[4]-a2*a[3]*a[3]+2*a[5]*a[3]*a[4]+sb2;
-        u[0] = (b[0]*(a2*a1-a[5]*a[5])+b[1]*(a[4]*a[5]-a[3]*a2)+b[2]*(a[3]*a[5]-a[4]*a1))/dt;
-        u[1] = (b[0]*(a[5]*a[4]-a[3]*a2)+b[1]*(a0*a2-a[4]*a[4])+b[2]*(a[4]*a[3]-a0*a[5]))/dt;
-        u[2] = (b[0]*(a[5]*a[3]-a[4]*a1)+b[1]*(a[4]*a[3]-a0*a[5])+b[2]*(a0*a1-a[3]*a[3]))/dt;
-    }
-    else
-    {
-        double dt;
-        double a0 = s[3]/(s[0]*s[0]), a1 = s[3]/(s[1]*s[1]), a2 = s[3]/(s[2]*s[2]);
-        dt  = a0*a1*a2+sb2;
-        u[0] = b[0]*a2*a1/dt;
-        u[1] = b[1]*a0*a2/dt;
-        u[2] = b[2]*a0*a1/dt;
-/*
-        u[0] = b[0]*(s[0]*s[0])/(s[5]+sb2);
-        u[1] = b[1]*(s[1]*s[1])/(s[5]+sb2);
-        u[2] = b[2]*(s[2]*s[2])/(s[5]+sb2);
-*/
-    }
-/* printf("%g %g %g    %g %g %g  %g %g %g %g %g\n", b[0], b[1], b[2], u[0], u[1], u[2], s[0],s[1],s[2],s[5],sb2); */
-}
 
 static double dotprod(mwSize m, float a[], float b[])
 {
@@ -364,8 +329,6 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
     if (u[0][0]==0) /* No starting estimate so do Full Multigrid */
     {
         relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]); 
-     /* solve33(a[ng-1], b[ng-1], param[ng-1], u[ng-1]); */
-
         for(j=ng-2; j>=0; j--)
         {
             mwSignedIndex jc;
@@ -384,7 +347,6 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
                     zeros(3*m[jj+1],u[jj+1]);
                 }
                 relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]); 
-             /* solve33(a[ng-1], b[ng-1], param[ng-1], u[ng-1]); */
                 for(jj=ng-2; jj>=j; jj--) /* From lowest res to high res */
                 {
                     prolong(n[jj+1],u[jj+1],n[jj],res,rbuf);
@@ -413,8 +375,6 @@ void fmg3(mwSize n0[], float *a0, float *b0, double param0[], int c, int nit,
                 zeros(3*m[jj+1],u[jj+1]);
             }
             relax(n[ng-1], a[ng-1], b[ng-1], param[ng-1], nit, u[ng-1]); 
-         /* solve33(a[ng-1], b[ng-1], param[ng-1], u[ng-1]); */
-
             for(jj=ng-2; jj>=0; jj--) /* From lowest res to highest res */
             {
                 prolong(n[jj+1],u[jj+1],n[jj],res,rbuf);

@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4802 2012-07-23 18:37:30Z john $
+% $Id: spm_groupwise_ls.m 4839 2012-08-14 18:53:20Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -43,7 +43,7 @@ end
 % Specify default settings
 %-----------------------------------------------------------------------
 if nargin<3, prec       = NaN; end
-if nargin<4, w_settings = [0 1 40 20 80]; end
+if nargin<4, w_settings = [0 1 80 20 80]; end
 if nargin<5, b_settings = [0 0 1e6]; end
 if nargin<6, s_settings = 6; end
 if nargin<7, ord        = [3 3 3 0 0 0]; end
@@ -703,7 +703,7 @@ if need_div,
             dv = shoot3('div',param(i).v0);
             if any(strcmp('wdiv',output)),
                 [pth,nam]   = fileparts(Nii(i).dat.fname);
-                nam         = fullfile(pth,['div_' nam '.nii']);
+                nam         = fullfile(pth,['dv_' nam '.nii']);
                 Nio         = nifti;
                 Nio.dat     = file_array(nam,d,'float32',0,1,0);
                 Nio.mat     = M_avg;
