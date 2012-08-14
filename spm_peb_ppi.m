@@ -44,10 +44,10 @@ function PPI = spm_peb_ppi(varargin)
 % conforms to Wiener filtering. The neuronal process is then used to form 
 % PPIs. See help text within function for more details.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_peb_ppi.m 4838 2012-08-14 11:35:41Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -119,7 +119,8 @@ function PPI = spm_peb_ppi(varargin)
 
 % Set up the graphical interface
 %--------------------------------------------------------------------------
-Finter = spm_figure('GetWin','Interactive');
+Finter = spm_figure('FindWin','Interactive');
+if ~nargin, Finter = spm_figure('GetWin','Interactive'); end
 header = get(Finter,'Name');
 spm_clf(Finter); set(Finter,'name','PPI Setup');
 
@@ -191,7 +192,7 @@ switch lower(ppiflag)
     if nargin>2 && isstruct(varargin{3})
         xY = varargin{3};
         xY = xY(:)';
-        if size(xY) ~= [1 2]
+        if numel(xY) ~= 2
             error('Must include 2 VOI structures for physiophysiologic interactions')
         end
     else
@@ -206,10 +207,10 @@ switch lower(ppiflag)
             end
         catch
             spm_input('physiological variables:...  ',2,'d');
-            voi      = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
-            for  i = 1:2
-                p      = load(deblank(voi(i,:)),'xY');
-                xY(i)  = p.xY;
+            voi       = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
+            for i = 1:2
+                p     = load(deblank(voi(i,:)),'xY');
+                xY(i) = p.xY;
             end
         end
     end
@@ -268,6 +269,10 @@ switch lower(ppiflag)
         end
     end
 
+    otherwise
+    %======================================================================
+    error('Unknown type of analysis');
+    
 end % (switch setup)
 
 
@@ -278,7 +283,7 @@ try
 catch
     PPI.name = spm_input('Name of PPI',3,'s','PPI');
 end
-[tmp ppiFilename] = fileparts(PPI.name);
+ppiFilename  = spm_file(PPI.name,'basename');
 
 
 % Check if Graphical output should be shown
