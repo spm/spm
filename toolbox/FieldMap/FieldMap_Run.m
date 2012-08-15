@@ -33,7 +33,7 @@ function vdm = FieldMap_Run(job)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: FieldMap_Run.m 4843 2012-08-15 18:57:36Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -129,18 +129,19 @@ end
 %--------------------------------------------------------------------------
 % Call FieldMap_create
 %--------------------------------------------------------------------------
-[VDM IPcell] = FieldMap_create(fm_imgs,epi_img,pm_defs);
+[VDM, IPcell] = FieldMap_create(fm_imgs,epi_img,pm_defs);
 
 for sessnum=1:max([1 nsessions]);
     
-    IP=IPcell{sessnum};
+    IP = IPcell{sessnum};
     
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % Display and print results
-    %-----------------------------------------------------------------------
-    fg=spm_figure('FindWin','Graphics');
+    %----------------------------------------------------------------------
+    fg = spm_figure('FindWin','Graphics');
     if ~isempty(fg)
         spm_figure('Clear','Graphics');
+        spm_orthviews('Reset');
     end
     FieldMap('DisplayImage',FieldMap('MakedP'),[.05 .75 .95 .2],1);
     if ~isempty(IP.epiP)
@@ -150,9 +151,9 @@ for sessnum=1:max([1 nsessions]);
         FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
     end
     
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     % Coregister structural with the unwarped image and display if required
-    %-----------------------------------------------------------------------
+    %----------------------------------------------------------------------
     do_matchanat = 0;
     if iscell(job.anat)
         if ~isempty(job.anat{1})
@@ -163,8 +164,7 @@ for sessnum=1:max([1 nsessions]);
     
     if ~isempty(IP.nwarp)==1 && ~isempty(IP.epiP)
         if do_matchanat == 1
-            msg=sprintf('\nMatching anatomical to unwarped EPI in session %d...\n',sessnum);
-            disp(msg);
+            fprintf('\nMatching anatomical to unwarped EPI in session %d...\n\n',sessnum);
             FieldMap('MatchStructural',IP);
         end
     end
@@ -181,5 +181,6 @@ for sessnum=1:max([1 nsessions]);
         end
     end
     if ~isempty(fg), spm_print; end
-    vdm.vdmfile{sessnum}={VDM{sessnum}.fname};
+    
+    vdm.vdmfile{sessnum} = {VDM{sessnum}.fname};
 end
