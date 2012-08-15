@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4839 2012-08-14 18:53:20Z john $
+% $Id: spm_groupwise_ls.m 4841 2012-08-15 15:03:58Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -781,7 +781,7 @@ for m=1:d(3),
     Msk= cell(1,numel(img));
 
     mum = zeros(d(1:2),'single');
-    mgm = zeros(d(1:2),'single') + eps('single');
+    mgm = zeros(d(1:2),'single') + eps;
 
     for i=1:numel(img),
         M = img(i).mat\param(i).R*M_avg;
@@ -818,7 +818,7 @@ for m=1:d(3),
                 Db{2} = Jm(:,:,1,2).*d1 + Jm(:,:,2,2).*d2 + Jm(:,:,3,2).*d3;
                 Db{3} = Jm(:,:,1,3).*d1 + Jm(:,:,2,3).*d2 + Jm(:,:,3,3).*d3;
             else
-                Bf{i} = ones(d(1:2),'single');
+                Bf{i} =  ones(d(1:2),'single');
                 Db{1} = zeros(d(1:2),'single');
                 Db{2} = zeros(d(1:2),'single');
                 Db{3} = zeros(d(1:2),'single');

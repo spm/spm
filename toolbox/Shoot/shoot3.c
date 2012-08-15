@@ -1,4 +1,4 @@
-/* $Id: shoot3.c 4705 2012-03-30 17:25:33Z guillaume $ */
+/* $Id: shoot3.c 4841 2012-08-15 15:03:58Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -135,6 +135,24 @@ static void fmg3_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     param[7] = mxGetPr(prhs[2])[7];
     cyc      = mxGetPr(prhs[2])[8];
     nit      = (int)(mxGetPr(prhs[2])[9]);
+
+    {
+     /* Penalise absolute displacements slightly in case supplied Hessian is too small.
+        Extra penalty based on value in centre of difference operator, scaled by some
+        slightly arbitrary amount.
+      */
+        double v0   = param[0]*param[0],
+               v1   = param[1]*param[1],
+               v2   = param[2]*param[2],
+               lam1 = param[4], lam2 = param[5],
+               mu   = param[6], lam  = param[7],
+               w000, wx000, wy000, wz000;
+        w000      =  lam2*(6*(v0*v0+v1*v1+v2*v2) +8*(v0*v1+v0*v2+v1*v2)) +lam1*2*(v0+v1+v2);
+        wx000     =  2*mu*(2*v0+v1+v2)/v0+2*lam + w000/v0;
+        wy000     =  2*mu*(v0+2*v1+v2)/v1+2*lam + w000/v1;
+        wz000     =  2*mu*(v0+v1+2*v2)/v2+2*lam + w000/v2;
+        param[3] += (wx000 + wy000 + wz000)*1.2e-7/3.0;
+    }
 
     if (nrhs>=4)
     {
