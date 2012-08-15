@@ -37,12 +37,12 @@ function varargout = pm_invert_phasemap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_invert_phasemap.m 3644 2009-12-16 10:51:34Z christophe $
+% $Id: pm_invert_phasemap.m 4842 2012-08-15 18:02:30Z guillaume $
 
 %
 % Decode first input parameter.
 %
-if isfield(varargin{1},'dim') | ischar(varargin{1})
+if isfield(varargin{1},'dim') || ischar(varargin{1})
    if isfield(varargin{1},'dim')
       P = varargin{1}; 
    elseif ischar(varargin{1})
@@ -73,8 +73,8 @@ end
 %
 % Take care of the 1D case.
 %
-if nargin == 1 & length(size(pm)) == 2 & any(size(pm) == 1)
-   sz = size(pm)
+if nargin == 1 && length(size(pm)) == 2 && any(size(pm) == 1)
+   sz = size(pm);
    if sz(1) > sz(2)
       idim = 1;
    else
@@ -97,7 +97,7 @@ if 1==0
          gy = [1:dim(2)]+pm(col,:,sl);
          for i=1:dim(2)
             indx = find(gy > i);
-            if ~isempty(indx) & indx(1) > 1 
+            if ~isempty(indx) && indx(1) > 1 
                y(i) = (indx(1)-1) + (i-gy(indx(1)-1))*1/(gy(indx(1))-gy(indx(1)-1));
             else
                y(i) = NaN;
@@ -122,7 +122,7 @@ end
 if nargout == 1
    varargout{1} = ipm;
 end
-if length(varargin) == 2 & exist('P','var') == 1
+if length(varargin) == 2 && exist('P','var') == 1
    oP = struct('fname',     varargin{2},...
                'dim',       [dim spm_type('int16')],...
                'mat',       P.mat,...
@@ -132,6 +132,3 @@ if length(varargin) == 2 & exist('P','var') == 1
 end
 
 return
-
-
-

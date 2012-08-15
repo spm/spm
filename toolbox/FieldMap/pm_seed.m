@@ -32,7 +32,7 @@ function seed = pm_seed(angvar,mask,pxs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_seed.m 4243 2011-03-11 15:38:50Z chloe $
+% $Id: pm_seed.m 4842 2012-08-15 18:02:30Z guillaume $
 
 if nargin < 3
    mask = ones(size(angvar));
@@ -80,13 +80,3 @@ seed = zeros(1,3);
 [seed(1),seed(2),seed(3)] = ind2sub(size(angvar),indx(mi));
 
 return
-
-
-
-
-
-
-
-
-
-

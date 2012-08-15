@@ -36,7 +36,7 @@ function out = FieldMap_applyvdm(job)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: FieldMap_applyvdm.m 4228 2011-03-04 15:00:15Z chloe $
+% $Id: FieldMap_applyvdm.m 4842 2012-08-15 18:02:30Z guillaume $
 
 tiny = 5e-2;
 
@@ -53,7 +53,7 @@ hold = [repmat(flags.interp,1,3) flags.wrap];
 
 % Determine dimension along which to apply vdm
 applydim=flags.pedir;
-if applydim~=1 &  applydim~=2 & applydim~=3
+if applydim~=1 &&  applydim~=2 && applydim~=3
     applydim=2;
 end
 

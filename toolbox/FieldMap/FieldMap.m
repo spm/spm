@@ -114,7 +114,7 @@ function varargout=FieldMap(varargin)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 4572 2011-11-23 17:35:10Z chloe $
+% $Id: FieldMap.m 4842 2012-08-15 18:02:30Z guillaume $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants
@@ -150,7 +150,7 @@ switch lower(Action)
               
       % Unless specified, set visibility to on
       if nargin==2
-          if ~strcmp(varargin{2},'off') & ~strcmp(varargin{2},'Off')
+          if ~strcmp(varargin{2},'off') && ~strcmp(varargin{2},'Off')
             visibility = 'On';
           else
             visibility = 'Off';
@@ -952,7 +952,7 @@ switch lower(Action)
       FieldMap('Reset_Gui');
 
       % Load Real and Imaginary or Phase and Magnitude Buttons
-      if IP.uflags.iformat=='PM'
+      if strcmp(IP.uflags.iformat,'PM')
          h=findobj('Tag','LoadRI');
          set(h,'Visible','Off');
          uicontrol(PM,'String','Load Phase',...
@@ -1066,16 +1066,16 @@ switch lower(Action)
       else
          go = 1;
          for i=1:2
-            if isempty(IP.P{i}) go = 0; end
+            if isempty(IP.P{i}), go = 0; end
          end
          for i=3:4
-            if (isempty(IP.P{i}) & IP.uflags.iformat=='RI')  go = 0; end
+            if (isempty(IP.P{i}) && strcmp(IP.uflags.iformat,'RI')), go = 0; end
          end  
          h = findobj(get(PM,'Children'),'Tag','ShortTime');
          IP.et{1} = str2num(get(h,'String'));
          h = findobj(get(PM,'Children'),'Tag','LongTime');
          IP.et{2} = str2num(get(h,'String'));
-         if isempty(IP.et{1}) | isempty(IP.et{2}) | IP.et{2} < IP.et{1}
+         if isempty(IP.et{1}) || isempty(IP.et{2}) || IP.et{2} < IP.et{1}
             go = 0;
          end
       end
@@ -1227,7 +1227,7 @@ switch lower(Action)
       h = findobj(get(PM,'Children'),'Tag','ReadTime');
       IP.tert = str2num(get(h,'String'));
 
-      if isempty(IP.tert) | isempty(IP.fm) | isempty(IP.fm.fpm)       
+      if isempty(IP.tert) || isempty(IP.fm) || isempty(IP.fm.fpm)       
          varargout{1} = 0;
          FieldMap('ToggleGui','On','ReadTime');
       else
@@ -1244,7 +1244,7 @@ switch lower(Action)
       global curpos;
 
       for i=1:length(ID)
-         if ~isempty(ID{i}) & ~isempty(st.vols{i})
+         if ~isempty(ID{i}) && ~isempty(st.vols{i})
             set(st.vols{i}.ax{2}.ax,'Visible','Off'); % Disable event delivery in Coronal
             set(st.vols{i}.ax{2}.d,'Visible','Off');   % Make Coronal invisible
             set(st.vols{i}.ax{1}.ax,'Position',ID{i}.tra_pos); 
@@ -1264,11 +1264,11 @@ switch lower(Action)
    case 'orthviews' 
    
    if strcmp(get(gcf,'SelectionType'),'normal')
-      spm_orthviews('Reposition');,...
-      %spm_orthviews('set_pos2cm');,...
+      spm_orthviews('Reposition');
+      %spm_orthviews('set_pos2cm');
    elseif strcmp(get(gcf,'SelectionType'),'extend')
-      spm_orthviews('Reposition');,...
-      %spm_orthviews('set_pos2cm');,...
+      spm_orthviews('Reposition');
+      %spm_orthviews('set_pos2cm');
       spm_orthviews('context_menu','ts',1);
    end;
    curpos = spm_orthviews('pos',1); 
@@ -1403,10 +1403,13 @@ switch lower(Action)
 
    case 'setparams'
        if nargin == 1
-           pm_defaults;        % "Default" default file
+           % "Default" default file
+           pm_defaults;
        else
-           %eval(varargin{2});  % Scanner or sequence specific default file
-           run(varargin{2});  % Scanner or sequence specific default file
+           % Scanner or sequence specific default file
+           %eval(varargin{2});
+           spm('Run',varargin{2});
+           pm_def = spm('GetGlobal','pm_def');
        end
 
       % Define parameters for fieldmap creation
@@ -1449,8 +1452,8 @@ switch lower(Action)
       fmdir = fullfile(spm('Dir'),'toolbox','FieldMap');
       defdir = dir(fullfile(fmdir,'pm_defaults*.m'));
       for i=1:length(defdir)
-     if defdir(i).name(12) ~= '.' & defdir(i).name(12) ~= '_'
-        error(sprintf('Error in default file spec: %s',defdir(i).name));
+     if defdir(i).name(12) ~= '.' && defdir(i).name(12) ~= '_'
+        error('Error in default file spec: %s',defdir(i).name);
      end
      defnames{i} = defdir(i).name;
       end
@@ -1507,7 +1510,7 @@ switch lower(Action)
       % SPM
       IP.P{index} = spm_vol(spm_select(1,'image',prompt_string{index}));
 
-      if isfield(IP,'pP') & ~isempty(IP.pP)
+      if isfield(IP,'pP') && ~isempty(IP.pP)
      IP.pP = [];
       end
       varargout{1} = IP.P{index};
@@ -1530,10 +1533,10 @@ switch lower(Action)
          % SPM5 Update
          IP.P{index} = spm_vol(spm_select(1,'image',prompt_string{index}));
          if index==1
-            do=spm_input('Scale this to radians?',1,'b','Yes|No',[1,0]);
+            doscl=spm_input('Scale this to radians?',1,'b','Yes|No',[1,0]);
             Finter=spm_figure('FindWin','Interactive');
             close(Finter);
-            if do==1
+            if doscl==1
                tmp=FieldMap('Scale',IP.P{index}.fname);
                IP.P{index} = spm_vol(tmp.fname);
             end
@@ -1542,17 +1545,17 @@ switch lower(Action)
          %IP.P{index} = spm_vol(spm_get([0 1],'*.img',prompt_string{index}));
          % SPM5 Update
          IP.P{index} = spm_vol(spm_select([0 1],'image',prompt_string{index}));
-         if index==3 & ~isempty(IP.P{index})
-            do=spm_input('Scale this to radians?',1,'b','Yes|No',[1,0]);
+         if index==3 && ~isempty(IP.P{index})
+            doscl=spm_input('Scale this to radians?',1,'b','Yes|No',[1,0]);
             Finter=spm_figure('FindWin','Interactive');
             close(Finter);
-            if do==1
+            if doscl==1
                tmp=FieldMap('Scale',IP.P{index}.fname);
                IP.P{index} = spm_vol(tmp.fname);
             end
           end
       end
-      if isfield(IP,'pP') & ~isempty(IP.pP)
+      if isfield(IP,'pP') && ~isempty(IP.pP)
      IP.pP = [];
       end
       varargout{1} = IP.P{index};
@@ -1575,7 +1578,7 @@ switch lower(Action)
 
       IP.fm.fpm = spm_read_vols(IP.pP);
       IP.fm.jac = pm_diff(IP.fm.fpm,2);
-      if isfield(IP,'P') & ~isempty(IP.P{1})
+      if isfield(IP,'P') && ~isempty(IP.P{1})
      IP.P = cell(1,4);
       end
       varargout{1} = IP.fm;
@@ -1649,7 +1652,7 @@ switch lower(Action)
       %
       % If no pointer already exist we'll make one.
       %
-      if isfield(IP,'vdmP') & ~isempty(IP.vdmP)
+      if isfield(IP,'vdmP') && ~isempty(IP.vdmP)
      msgbox({'Changing this parameter means that if previously',...
                  'you matched VDM to EPI, this result may no longer',...
                  'be optimal. In this case we recommend you redo the',...
@@ -1723,7 +1726,7 @@ switch lower(Action)
 
    case 'makedp'
 
-   if isfield(IP,'vdmP') & ~isempty(IP.vdmP);
+   if isfield(IP,'vdmP') && ~isempty(IP.vdmP);
       dP = struct('dim',  IP.vdmP.dim,...
                   'dt',[64 spm_platform('bigend')],...
                   'pinfo',   [1 0]',...
@@ -1731,14 +1734,14 @@ switch lower(Action)
                   'dat',     reshape(IP.fm.fpm,IP.vdmP.dim),...
                   'fname',   'display_image');
    else
-      if isfield(IP,'P') & ~isempty(IP.P{1})
+      if isfield(IP,'P') && ~isempty(IP.P{1})
          dP = struct('dim',     IP.P{1}.dim,...
                      'dt',[64 spm_platform('bigend')],...
                      'pinfo',   [1 0]',...
                      'mat',     IP.P{1}.mat,...
                      'dat',     reshape(IP.fm.fpm,IP.P{1}.dim),...
                      'fname',   'display_image');
-      elseif isfield(IP,'pP') & ~isempty(IP.pP)
+      elseif isfield(IP,'pP') && ~isempty(IP.pP)
          dP = struct('dim',     IP.pP.dim,...
                      'dt',[64 spm_platform('bigend')],...
                      'pinfo',   [1 0]',...
@@ -2002,7 +2005,7 @@ switch lower(Action)
       % Need a fieldmap magnitude image
       %
 
-      if isempty(IP.pP) & ~isempty(IP.P{1})
+      if isempty(IP.pP) && ~isempty(IP.P{1})
 
          IP.fmagP=struct(...
              'fname', spm_file(IP.P{1}.fname,'prefix','mag_'),...
@@ -2013,12 +2016,12 @@ switch lower(Action)
       
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if IP.uflags.iformat=='RI' 
+         if strcmp(IP.uflags.iformat,'RI') 
             IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
             IP.fmagP = IP.P{2};
          end
-      elseif ~isempty(IP.pP) & ~isempty(IP.fmagP)
+      elseif ~isempty(IP.pP) && ~isempty(IP.fmagP)
           msg=sprintf('Using %s for matching\n',IP.fmagP.fname);
           disp(msg);
       else
@@ -2297,21 +2300,21 @@ return;
 
 function udat = loaduint8(V)
 % Load data from file indicated by V into an array of unsigned bytes.
-if size(V.pinfo,2)==1 & V.pinfo(1) == 2,
+if size(V.pinfo,2)==1 && V.pinfo(1) == 2
     mx = 255*V.pinfo(1) + V.pinfo(2);
     mn = V.pinfo(2);
-else,
+else
     spm_progress_bar('Init',V.dim(3),...
         ['Computing max/min of ' spm_file(V.fname,'filename')],...
         'Planes complete');
     mx = -Inf; mn =  Inf;
-    for p=1:V.dim(3),
+    for p=1:V.dim(3)
         img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
         mx  = max([max(img(:))+paccuracy(V,p) mx]);
         mn  = min([min(img(:)) mn]);
         spm_progress_bar('Set',p);
-    end;
-end;
+    end
+end
 spm_progress_bar('Init',V.dim(3),...
     ['Loading ' spm_file(V.fname,'filename')],...
     'Planes loaded');
@@ -2319,29 +2322,29 @@ spm_progress_bar('Init',V.dim(3),...
 udat = uint8(0);
 udat(V.dim(1),V.dim(2),V.dim(3))=0;
 rand('state',100);
-for p=1:V.dim(3),
+for p=1:V.dim(3)
     img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
     acc = paccuracy(V,p);
-    if acc==0,
+    if acc==0
         udat(:,:,p) = uint8(round((img-mn)*(255/(mx-mn))));
-    else,
+    else
         % Add random numbers before rounding to reduce aliasing artifact
         r = rand(size(img))*acc;
         udat(:,:,p) = uint8(round((img+r-mn)*(255/(mx-mn))));
-    end;
+    end
     spm_progress_bar('Set',p);
-end;
+end
 spm_progress_bar('Clear');
 return;
 
 function acc = paccuracy(V,p)
-if ~spm_type(V.dt(1),'intt'),
+if ~spm_type(V.dt(1),'intt')
     acc = 0;
-else,
-    if size(V.pinfo,2)==1,
+else
+    if size(V.pinfo,2)==1
         acc = abs(V.pinfo(1,1));
-    else,
+    else
         acc = abs(V.pinfo(1,p));
-    end;
-end;
+    end
+end
 %_______________________________________________________________________

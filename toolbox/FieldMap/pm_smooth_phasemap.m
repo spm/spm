@@ -15,9 +15,9 @@ function pm = pm_smooth_phasemap(pm,angvar,vxs,fwhm)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_smooth_phasemap.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_smooth_phasemap.m 4842 2012-08-15 18:02:30Z guillaume $
 
-if nargin ~= 4 | nargout ~= 1
+if nargin ~= 4 || nargout ~= 1
    help pm_smooth_phasemap
    pm = [];
    return;
@@ -46,13 +46,6 @@ z  = z/sum(z);
 
 krnl = reshape(kron(z,kron(y,x)),[length(x) length(y) length(z)]);
 
-pm = pm_smooth_phasemap_dtj(pm,1/angvar,krnl);
+pm = pm_smooth_phasemap_dtj(pm,1./angvar,krnl);
 
 return
-
-
-
-
-
-
-

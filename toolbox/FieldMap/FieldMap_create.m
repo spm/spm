@@ -22,7 +22,7 @@ function [VDM IPcell]=FieldMap_create(fm_imgs,epi_img,pm_defs)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_create.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: FieldMap_create.m 4842 2012-08-15 18:02:30Z guillaume $
 %_______________________________________________________________________
 
   
@@ -135,7 +135,7 @@ case 1  % precalculated and unwrapped Hz map
    IP.pP = spm_vol(fm_imgs);
    IP.fm.fpm = spm_read_vols(IP.pP);
    IP.fm.jac = pm_diff(IP.fm.fpm,2);
-   if isfield(IP,'P') & ~isempty(IP.P{1})
+   if isfield(IP,'P') && ~isempty(IP.P{1})
       IP.P = cell(1,4); 
    end
    if isfield(pm_defs,'magfieldmap')

@@ -72,7 +72,7 @@ function fm = pm_make_fieldmap(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton
-% $Id: pm_make_fieldmap.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_make_fieldmap.m 4842 2012-08-15 18:02:30Z guillaume $
 
 % The default values below will be used if any flags haven't been defined 
 % or are empty.
@@ -118,7 +118,7 @@ end
 flags_fields = fieldnames(flags);
 for i=1:length(flags_fields)
    if ~isfield(def_flags,flags_fields{i})
-      error(sprintf('pm_make_fieldmap: Unknown flag %s passed',flags_fields{i}));
+      error('pm_make_fieldmap: Unknown flag %s passed',flags_fields{i});
    end
 end
 
@@ -127,26 +127,26 @@ if ~isfield(P,'dim')
 end
 
 nfiles = length(P);
-if nfiles~=2 & nfiles~=4
+if nfiles~=2 && nfiles~=4
    error('Requires 2 or 4 images');
    help pm_make_fieldmap
 
-elseif nfiles == 2 & flags.iformat == 'RI'
+elseif nfiles == 2 && strcmp(flags.iformat,'RI')
    I1 = spm_read_vols(P(1));
    I2 = spm_read_vols(P(2));
    cmap = I1 + sqrt(-1)*I2;
 
-elseif nfiles == 4 & flags.iformat == 'RI'
+elseif nfiles == 4 && strcmp(flags.iformat,'RI')
    cte1 = spm_read_vols(P(1)) + sqrt(-1)*spm_read_vols(P(2));
    cte2 = spm_read_vols(P(3)) + sqrt(-1)*spm_read_vols(P(4));
    cmap = abs(cte2).*exp(sqrt(-1)*angle(cte2))./exp(sqrt(-1)*angle(cte1));
 
-elseif nfiles == 2 & flags.iformat == 'PM'
+elseif nfiles == 2 && strcmp(flags.iformat,'PM')
    phase = spm_read_vols(P(1));
    mag = spm_read_vols(P(2));
    cmap = mag.*exp(sqrt(-1)*phase);
 
-elseif nfiles == 4 & flags.iformat == 'PM'
+elseif nfiles == 4 && strcmp(flags.iformat,'PM')
    cte1 = spm_read_vols(P(2)).*exp(sqrt(-1)*spm_read_vols(P(1)));
    cte2 = spm_read_vols(P(4)).*exp(sqrt(-1)*spm_read_vols(P(3)));
    cmap = abs(cte2).*exp(sqrt(-1)*angle(cte2))./exp(sqrt(-1)*angle(cte1));
@@ -219,47 +219,3 @@ end
 fm.upm = fm.upm/(2*pi*flags.etd*1e-3);
 
 return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

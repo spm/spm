@@ -16,16 +16,16 @@ function angvar = pm_angvar(cmap)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_angvar.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_angvar.m 4842 2012-08-15 18:02:30Z guillaume $
 
 % Get mutual histogram of Re and Im part of all voxels.
 %
 maxr = max(real(cmap(:)));
 minr = min(real(cmap(:)));
-if maxr > abs(minr) minr = -maxr; else maxr = -minr; end
+if maxr > abs(minr), minr = -maxr; else maxr = -minr; end
 maxi = max(imag(cmap(:)));
 mini = min(imag(cmap(:)));
-if maxi > abs(mini) mini = -maxi; else maxi = -mini; end
+if maxi > abs(mini), mini = -maxi; else maxi = -mini; end
 hs = 255;
 
 

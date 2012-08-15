@@ -79,7 +79,7 @@ function varargout = pm_unwrap(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_unwrap.m 4175 2011-01-27 12:42:36Z chloe $
+% $Id: pm_unwrap.m 4842 2012-08-15 18:02:30Z guillaume $
 
 %
 % The following are a set of parameters that
@@ -128,9 +128,9 @@ nstep = 8;             % No. of angular steps for initial regions.
 % Fiddle about with input a bit to make sure it's OK.
 %
 if ~isnumeric(varargin{1})
-   if ischar(varargin{1}) & isstruct(spm_vol(varargin{1}))
+   if ischar(varargin{1}) && isstruct(spm_vol(varargin{1}))
       P = spm_vol(varargin{1});
-   elseif isstruct(varargin{1}) & isfield(varargin{1},'dim')
+   elseif isstruct(varargin{1}) && isfield(varargin{1},'dim')
       P = spm_vol(varargin{1});
    else
       error('');
@@ -214,7 +214,7 @@ switch lower(method)
       %
       % Added this little bug fix which prevents pm_merge_regions crashing
       % because it has too many regions to merge. 
-      while cn>1800 & nstep > 2
+      while cn>1800 && nstep > 2
           nstep=nstep-1;
           [irima,cn] = pm_initial_regions(opm,mask,nstep);
       end
@@ -268,7 +268,7 @@ switch lower(method)
       upm = pm_merge_regions(upm,vrima,ii,jj,nn,pp,rs);
       wmap = mask;
    otherwise
-      error(sprintf('Unknown method %s passed to my_unwrap',method));
+      error('Unknown method %s passed to my_unwrap',method);
 end
 
 %
@@ -280,15 +280,9 @@ end
 
 mask = wmap;
 
-if nargout > 0 varargout{1} = upm; end
-if nargout > 1 varargout{2} = angvar; end
-if nargout > 2 varargout{3} = mask; end
-if nargout > 3 varargout{4} = opm; end
+if nargout > 0, varargout{1} = upm;    end
+if nargout > 1, varargout{2} = angvar; end
+if nargout > 2, varargout{3} = mask;   end
+if nargout > 3, varargout{4} = opm;    end
 
 return;
-
-
-
-
-
-

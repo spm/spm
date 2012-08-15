@@ -1,4 +1,4 @@
-function varargout = pm_pad(varargin);
+function varargout = pm_pad(varargin)
 % Pads a (partially) unwrapped phasemap such that the phase
 % at a non-unwrapped location is a weighted average of unwrapped
 % neighbouring phase-values.
@@ -23,6 +23,6 @@ function varargout = pm_pad(varargin);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_pad.m 1317 2008-04-08 16:16:38Z chloe $
+% $Id: pm_pad.m 4842 2012-08-15 18:02:30Z guillaume $
 
 error('mex-function pm_pad.c not compiled');

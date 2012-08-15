@@ -67,7 +67,7 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
 
 % Chloe Hutton 
-% $Id: FieldMap_preprocess.m 3756 2010-03-05 18:43:37Z guillaume $
+% $Id: FieldMap_preprocess.m 4842 2012-08-15 18:02:30Z guillaume $
 %_______________________________________________________________________
 
  
@@ -75,7 +75,7 @@ if nargin < 3
   error('Usage: FieldMap_preprocess(fm_dir,epi_dir,pm_defs)');
 end
 
-if size(pm_defs,1)<5 & size(pm_defs,2)<5
+if size(pm_defs,1)<5 && size(pm_defs,2)<5
   error('The following parameters are required: te1, te2, epifm, tert, kdir');
 end
 
@@ -102,7 +102,7 @@ if pm_def.EPI_BASED_FIELDMAPS==1
 elseif pm_def.EPI_BASED_FIELDMAPS==0
    pm_def.INPUT_DATA_FORMAT='PM';
    pm_def.MASKBRAIN=1;
-   if size(pm_defs,1)>5 | size(pm_defs,2)>5
+   if size(pm_defs,1)>5 || size(pm_defs,2)>5
       if pm_defs(6)==1
          pm_def.MASKBRAIN=1;
       elseif pm_defs(6)==0
@@ -117,7 +117,7 @@ end
 % Match the VDM to EPI unless unless switched off in pm_defs(7)
 %----------------------------------------------------------------------
 pm_def.match_vdm=1;
-if size(pm_defs,1)>6 | size(pm_defs,2)>6
+if size(pm_defs,1)>6 || size(pm_defs,2)>6
    if pm_defs(7)==0
       pm_def.match_vdm=0;
    end
@@ -127,7 +127,7 @@ end
 % Write the unwarped EPI unless unless switched off in pm_defs(8)
 %----------------------------------------------------------------------
 pm_def.write_unwarped=1;
-if size(pm_defs,1)>7 | size(pm_defs,2)>7
+if size(pm_defs,1)>7 || size(pm_defs,2)>7
    if pm_defs(8)==0
       pm_def.write_unwarped=0;
    end
@@ -152,7 +152,7 @@ end
 %----------------------------------------------------------------------
 % Load field map data from fieldmap directory
 %----------------------------------------------------------------------
-if pm_def.INPUT_DATA_FORMAT=='PM'
+if strcmp(pm_def.INPUT_DATA_FORMAT,'PM')
    fm_imgs = strvcat(spm_select('List',fm_dir,'^s.*\.nii$'),spm_select('List',fm_dir,'^s.*\.img$'));
    if ~isempty(fm_imgs)
       nfiles=size(fm_imgs,1);
@@ -170,8 +170,7 @@ if pm_def.INPUT_DATA_FORMAT=='PM'
           fm_imgs=nfm_imgs;
       end
       if nfiles~=3
-         msg=sprintf('Wrong number of field map (s*.img) images! There should be 3!');
-         error(msg);
+         error('Wrong number of field map (s*.img) images! There should be 3!');
       else
          % Need first of two mag images and the phase
          % These may have been acquired in either order so need to check for this
@@ -187,10 +186,9 @@ if pm_def.INPUT_DATA_FORMAT=='PM'
          fm_imgs=char(scphase.fname,mag);
       end
    else
-      msg=sprintf('Sorry. I cannot find the fieldmap files in %s',fm_dir);
-      error(msg);
+      error('Sorry. I cannot find the fieldmap files in %s',fm_dir);
    end       
-elseif pm_def.INPUT_DATA_FORMAT=='RI'  
+elseif strcmp(pm_def.INPUT_DATA_FORMAT,'RI')
 
    % This expects to find six EPI field map files: 
    % 3 short (real, imag and mag) and 3 long (real, imag and mag).
@@ -198,17 +196,15 @@ elseif pm_def.INPUT_DATA_FORMAT=='RI'
    all_fm_imgs = strvcat(spm_select('List',fm_dir,'^f.*\.nii$'), spm_select('List',fm_dir,'^f.*\.img$'));
    nfiles=size(all_fm_imgs,1);
    if nfiles~=6
-         msg=sprintf('Wrong number of field map (f*.img) images! There should be 6!');
-         error(msg);
+         error('Wrong number of field map (f*.img) images! There should be 6!');
    else
 
       % Now the FieldMap creation expects the files in the order:
       % short-real, short-imag, long-real, long-imag
 
       fm_imgs=all_fm_imgs([2 1 5 4],:); 
-      if (isempty(strfind(fm_imgs(1,:),'short-real')) | isempty(strfind(fm_imgs(2,:),'short-imag')) | isempty(strfind(fm_imgs(3,:),'long-real')) | isempty(strfind(fm_imgs(4,:),'long-imag')))
-         msg=sprintf('There is a problem with the files. FieldMap needs short-real, short-imag, long-real, long-imag');
-         error(msg);
+      if (isempty(strfind(fm_imgs(1,:),'short-real')) || isempty(strfind(fm_imgs(2,:),'short-imag')) || isempty(strfind(fm_imgs(3,:),'long-real')) | isempty(strfind(fm_imgs(4,:),'long-imag')))
+         error('There is a problem with the files. FieldMap needs short-real, short-imag, long-real, long-imag');
       end
    end
 else

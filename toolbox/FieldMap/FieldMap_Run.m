@@ -33,7 +33,7 @@ function vdm = FieldMap_Run(job)
 % Copyright (C) 2007 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton & Jesper Andersson
-% $Id: FieldMap_Run.m 4572 2011-11-23 17:35:10Z chloe $
+% $Id: FieldMap_Run.m 4842 2012-08-15 18:02:30Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ FieldMap('Welcome','Off');
 % Here load the selected defaults file if selected
 if isfield(job.defaults,'defaultsfile')
     m_file = job.defaults.defaultsfile;
-    m_file = m_file{1}(1:end-2);
+    m_file = spm_file(m_file{1},'ext','');
     %m_file = spm_file(m_file{1},'basename');
     pm_defs = FieldMap('SetParams',m_file); % Gets default params from pm_defaults
 elseif isfield(job.defaults,'defaultsval')
@@ -180,6 +180,6 @@ for sessnum=1:max([1 nsessions]);
             FieldMap('DisplayImage',IP.uepiP,[.05 .25 .95 .2],3);
         end
     end
-    spm_print
+    if ~isempty(fg), spm_print; end
     vdm.vdmfile{sessnum}={VDM{sessnum}.fname};
 end
