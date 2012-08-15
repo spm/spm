@@ -19,6 +19,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % CVA.w        - canonical variates (design)
 % CVA.C        - canonical contrast (design)
 % 
+% CVA.r        - canonical correlations
 % CVA.chi      - Chi-squared statistics testing D >= i
 % CVA.df       - d.f.
 % CVA.p        - p-values
@@ -52,8 +53,11 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 4604 2011-12-20 18:21:03Z guillaume $
+% $Id: spm_cva.m 4845 2012-08-15 19:23:46Z guillaume $
 
+
+if nargin < 3, X0 = [];             end
+if nargin < 4, c  = eye(size(X,2)); end
 
 %-Get null-space of contrast
 %--------------------------------------------------------------------------
@@ -106,23 +110,26 @@ C     = c*W;                       % canonical contrast (design)
 
 %-Inference on dimensionality - p(i) test of D >= i; Wilks' Lambda := p(1)
 %--------------------------------------------------------------------------
-cval  = log(diag(d) + 1);
+cval  = diag(d);
+[chi, df, p, r] = deal(zeros(1,h));
 for i = 1:h
-    chi(i) = (f - (m - b + 1)/2)*sum(cval(i:h));
+    chi(i) = (f - (m - b + 1)/2)*sum(log(cval(i:h) + 1));
     df(i)  = (m - i + 1)*(b - i + 1);
     p(i)   = 1 - spm_Xcdf(chi(i),df(i));
+    r(i)   = sqrt(cval(i) / (1 + cval(i)));
 end
 
 %-Prevent overflow
 %--------------------------------------------------------------------------
-p     = max(p,exp(-16));
+p          = max(p,exp(-16));
+r          = min(max(r,0),1);
 
 
 %-Assemble results
 %==========================================================================
-CVA.c      = c;                    % contrast weights
 CVA.X      = X;                    % contrast subspace
 CVA.Y      = Y;                    % whitened and adjusted data
+CVA.c      = c;                    % contrast weights
 CVA.X0     = X0;                   % null space of contrast
  
 CVA.V      = V;                    % canonical vectors  (data)
@@ -130,7 +137,8 @@ CVA.v      = v;                    % canonical variates (data)
 CVA.W      = W;                    % canonical vectors  (design)
 CVA.w      = w;                    % canonical variates (design)
 CVA.C      = C;                    % canonical contrast (design)
- 
+
+CVA.r      = r;                    % canonical correlations
 CVA.chi    = chi;                  % Chi-squared statistics testing D >= i
 CVA.df     = df;                   % d.f.
 CVA.p      = p;                    % p-values

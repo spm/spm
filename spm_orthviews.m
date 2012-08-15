@@ -3,14 +3,8 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT H = spm_orthviews('Image',filename[,position])
 % filename - name of image to display
 % area     - position of image {relative}
-%            -  area(1) - position x
-%            -  area(2) - position y
-%            -  area(3) - size x
-%            -  area(4) - size y
-% H        - handle for ortho sections
-%
-% FORMAT spm_orthviews('Redraw')
-% Redraws the images
+%            [left, bottom, width, height]
+% H        - handle for orthogonal sections
 %
 % FORMAT spm_orthviews('Reposition',centre)
 % centre   - X, Y & Z coordinates of centre voxel
@@ -34,11 +28,11 @@ function varargout = spm_orthviews(action,varargin)
 %             hiX hiY hiZ]
 %
 % FORMAT spm_orthviews('MaxBB')
-% sets the bounding box big enough display the whole of all images
+% Set the bounding box big enough to display the whole of all images
 %
 % FORMAT spm_orthviews('Resolution'[,res])
 % res      - resolution (mm)
-% sets the sampling resolution for all images. The effective resolution
+% Set the sampling resolution for all images. The effective resolution
 % will be the minimum of res and the voxel sizes of all images. If no
 % resolution is specified, the minimum of 1mm and the voxel sizes of the
 % images is used.
@@ -46,7 +40,7 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('Zoom'[,fov[,res]])
 % fov      - half width of field of view (mm)
 % res      - resolution (mm)
-% sets the displayed part and sampling resolution for all images. The
+% Set the displayed part and sampling resolution for all images. The
 % image display will be centered at the current crosshair position. The
 % image region [xhairs-fov xhairs+fov] will be shown.
 % If no argument is given or fov == Inf, the image display will be reset to
@@ -56,44 +50,47 @@ function varargout = spm_orthviews(action,varargin)
 % the bounding box of the voxels above this threshold.
 % Optionally, the display resolution can be set as well.
 %
+% FORMAT spm_orthviews('Redraw')
+% Redraw the images
+%
 % FORMAT spm_orthviews('Delete', handle)
 % handle   - image number to delete
 %
 % FORMAT spm_orthviews('Reset')
-% clears the orthogonal views
+% Clear the orthogonal views
 %
 % FORMAT spm_orthviews('Pos')
-% returns the co-ordinate of the crosshairs in millimetres in the
+% Return the co-ordinate of the crosshairs in millimetres in the
 % standard space.
 %
 % FORMAT spm_orthviews('Pos', i)
-% returns the voxel co-ordinate of the crosshairs in the image in the
+% Return the voxel co-ordinate of the crosshairs in the image in the
 % ith orthogonal section.
 %
 % FORMAT spm_orthviews('Xhairs','off') OR spm_orthviews('Xhairs')
-% disables the cross-hairs on the display.
+% Disable the cross-hairs on the display
 %
 % FORMAT spm_orthviews('Xhairs','on')
-% enables the cross-hairs.
+% Enable the cross-hairs
 %
 % FORMAT spm_orthviews('Interp',hld)
-% sets the hold value to hld (see spm_slice_vol).
+% Set the hold value to hld (see spm_slice_vol)
 %
 % FORMAT spm_orthviews('AddBlobs',handle,XYZ,Z,mat,name)
-% Adds blobs from a pointlist to the image specified by the handle(s).
+% Add blobs from a pointlist to the image specified by the handle(s)
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations
 % Z        - blob voxel intensities
 % mat      - matrix from voxels to millimeters of blob.
 % name     - a name for this blob
-% This method only adds one set of blobs, and displays them using a
-% split colour table.
+% This method only adds one set of blobs, and displays them using a split
+% colour table.
 %
 % FORMAT spm_orthviews('SetBlobsMax', vn, bn, mx)
 % Set maximum value for blobs overlay number bn of view number vn to mx.
 %
 % FORMAT spm_orthviews('AddColouredBlobs',handle,XYZ,Z,mat,colour,name)
-% Adds blobs from a pointlist to the image specified by the handle(s).
+% Add blobs from a pointlist to the image specified by the handle(s)
 % handle   - image number to add blobs to
 % XYZ      - blob voxel locations
 % Z        - blob voxel intensities
@@ -105,36 +102,34 @@ function varargout = spm_orthviews(action,varargin)
 % blobs print well.
 %
 % FORMAT spm_orthviews('AddColourBar',handle,blobno)
-% Adds colourbar for a specified blob set.
-% handle   - image number
-% blobno   - blob number
+% Add colourbar for a specified blob set
+% handle    - image number
+% blobno    - blob number
 %
 % FORMAT spm_orthviews('RemoveBlobs',handle)
-% Removes all blobs from the image specified by the handle(s).
+% Remove all blobs from the image specified by the handle(s)
 %
 % FORMAT spm_orthviews('Addtruecolourimage',handle,filename,colourmap,prop,mx,mn)
-% Adds blobs from an image in true colour.
-% handle   - image number to add blobs to [default: 1]
-% filename - image containing blob data [default: request via GUI]
-% colourmap - colormap to display blobs in [default: GUI input]
-% prop     - intensity proportion of activation cf grayscale [default: 0.4]
-% mx       - maximum intensity to scale to [maximum value in activation image]
-% mn       - minimum intensity to scale to [minimum value in activation image]
+% Add blobs from an image in true colour
+% handle    - image number to add blobs to [Default: 1]
+% filename  - image containing blob data [Default: GUI input]
+% colourmap - colormap to display blobs in [Default: GUI input]
+% prop      - intensity proportion of activation cf grayscale [default: 0.4]
+% mx        - maximum intensity to scale to [maximum value in activation image]
+% mn        - minimum intensity to scale to [minimum value in activation image]
 %
 % FORMAT spm_orthviews('Register',hReg)
-% hReg     - Handle of HandleGraphics object to build registry in.
+% hReg      - Handle of HandleGraphics object to build registry in
 % See spm_XYZreg for more information.
 %
 % FORMAT spm_orthviews('AddContext',handle)
-% handle   - image number to add context menu to
-%
 % FORMAT spm_orthviews('RemoveContext',handle)
-% handle   - image number to remove context menu from
+% handle    - image number to add/remove context menu to
 %
 % FORMAT spm_orthviews('ZoomMenu',zoom,res)
 % FORMAT [zoom, res] = spm_orthviews('ZoomMenu')
-% zoom     - A list of predefined zoom values
-% res      - A list of predefined resolutions
+% zoom      - A list of predefined zoom values
+% res       - A list of predefined resolutions
 % This list is used by spm_image and spm_orthviews('addcontext',...) to
 % create the 'Zoom' menu. The values can be retrieved by calling
 % spm_orthviews('ZoomMenu') with 2 output arguments. Values of 0, NaN and
@@ -149,10 +144,10 @@ function varargout = spm_orthviews(action,varargin)
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4405 2011-07-22 12:54:59Z guillaume $
+% $Id: spm_orthviews.m 4845 2012-08-15 19:23:46Z guillaume $
 
 
 % The basic fields of st are:
@@ -244,21 +239,20 @@ function varargout = spm_orthviews(action,varargin)
 %                callback handling. The order in which plugins are called is
 %                undefined.
 
-global st;
+global st
 
-persistent zoomlist;
-persistent reslist;
+persistent zoomlist reslist
 
 if isempty(st), reset_st; end
 
-if nargin == 0, action = ''; end
+if ~nargin, action = ''; end
 
 if ~any(strcmpi(action,{'reposition','pos'}))
     spm('Pointer','Watch');
 end
     
 switch lower(action)
-    case 'image',
+    case 'image'
         H = specify_image(varargin{1});
         if ~isempty(H)
             if numel(varargin)>=2
@@ -298,19 +292,19 @@ switch lower(action)
         end
         varargout{1} = xlh;
         
-    case 'bb',
+    case 'bb'
         if ~isempty(varargin) && all(size(varargin{1})==[2 3]), st.bb = varargin{1}; end
         bbox;
         redraw_all;
         
-    case 'redraw',
+    case 'redraw'
         redraw_all;
         eval(st.callback);
-        if isfield(st,'registry'),
+        if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
         
-    case 'reposition',
+    case 'reposition'
         if isempty(varargin), tmp = findcent;
         else tmp = varargin{1}; end
         if numel(tmp) == 3
@@ -328,15 +322,15 @@ switch lower(action)
         end
         cm_pos;
         
-    case 'setcoords',
+    case 'setcoords'
         st.centre = varargin{1};
         st.centre = st.centre(:);
         redraw_all;
         eval(st.callback);
         cm_pos;
         
-    case 'space',
-        if numel(varargin)<1
+    case 'space'
+        if numel(varargin) < 1
             st.Space = eye(4);
             st.bb = maxbb;
             resolution;
@@ -349,17 +343,17 @@ switch lower(action)
             redraw_all;
         end
         
-    case 'maxbb',
+    case 'maxbb'
         st.bb = maxbb;
         bbox;
         redraw_all;
         
-    case 'resolution',
+    case 'resolution'
         resolution(varargin{:});
         bbox;
         redraw_all;
         
-    case 'window',
+    case 'window'
         if numel(varargin)<2
             win = 'auto';
         elseif numel(varargin{2})==2
@@ -370,17 +364,17 @@ switch lower(action)
         end
         redraw(varargin{1});
         
-    case 'delete',
+    case 'delete'
         my_delete(varargin{1});
         
-    case 'move',
+    case 'move'
         move(varargin{1},varargin{2});
         % redraw_all;
         
-    case 'reset',
+    case 'reset'
         my_reset;
         
-    case 'pos',
+    case 'pos'
         if isempty(varargin)
             H = st.centre(:);
         else
@@ -388,17 +382,17 @@ switch lower(action)
         end
         varargout{1} = H;
         
-    case 'interp',
+    case 'interp'
         st.hld = varargin{1};
         redraw_all;
         
-    case 'xhairs',
+    case 'xhairs'
         xhairs(varargin{1});
         
-    case 'register',
+    case 'register'
         register(varargin{1});
         
-    case 'addblobs',
+    case 'addblobs'
         addblobs(varargin{:});
         % redraw(varargin{1});
         
@@ -406,19 +400,19 @@ switch lower(action)
         st.vols{varargin{1}}.blobs{varargin{2}}.max = varargin{3};
         spm_orthviews('redraw')
         
-    case 'addcolouredblobs',
+    case 'addcolouredblobs'
         addcolouredblobs(varargin{:});
         % redraw(varargin{1});
         
-    case 'addimage',
+    case 'addimage'
         addimage(varargin{1}, varargin{2});
         % redraw(varargin{1});
         
-    case 'addcolouredimage',
+    case 'addcolouredimage'
         addcolouredimage(varargin{1}, varargin{2},varargin{3});
         % redraw(varargin{1});
         
-    case 'addtruecolourimage',
+    case 'addtruecolourimage'
         if nargin < 2
             varargin(1) = {1};
         end
@@ -447,14 +441,14 @@ switch lower(action)
             varargin{5}, varargin{6});
         % redraw(varargin{1});
         
-    case 'addcolourbar',
+    case 'addcolourbar'
         addcolourbar(varargin{1}, varargin{2});
         
-    case {'removeblobs','rmblobs'},
+    case {'removeblobs','rmblobs'}
         rmblobs(varargin{1});
         redraw(varargin{1});
         
-    case 'addcontext',
+    case 'addcontext'
         if nargin == 1
             handles = 1:24;
         else
@@ -462,7 +456,7 @@ switch lower(action)
         end
         addcontexts(handles);
         
-    case {'removecontext','rmcontext'},
+    case {'removecontext','rmcontext'}
         if nargin == 1
             handles = 1:24;
         else
@@ -470,10 +464,10 @@ switch lower(action)
         end
         rmcontexts(handles);
         
-    case 'context_menu',
+    case 'context_menu'
         c_menu(varargin{:});
         
-    case 'valid_handles',
+    case 'valid_handles'
         if nargin == 1
             handles = 1:24;
         else
@@ -481,10 +475,10 @@ switch lower(action)
         end
         varargout{1} = valid_handles(handles);
 
-    case 'zoom',
+    case 'zoom'
         zoom_op(varargin{:});
         
-    case 'zoommenu',
+    case 'zoommenu'
         if isempty(zoomlist)
             zoomlist = [NaN 0 5    10  20 40 80 Inf];
             reslist  = [1   1 .125 .25 .5 .5 1  1  ];
@@ -506,7 +500,7 @@ switch lower(action)
             varargout{2} = reslist;
         end
         
-    otherwise,
+    otherwise
         addonaction = strcmpi(st.plugins,action);
         if any(addonaction)
             feval(['spm_ov_' st.plugins{addonaction}],varargin{:});
@@ -514,18 +508,63 @@ switch lower(action)
 end
 
 spm('Pointer','Arrow');
-return;
 
 
-%_______________________________________________________________________
-%_______________________________________________________________________
+%==========================================================================
+% function H = specify_image(img)
+%==========================================================================
+function H = specify_image(img)
+global st
+H = [];
+if isstruct(img)
+    V = img(1);
+else
+    try
+        V = spm_vol(img);
+    catch
+        fprintf('Can not use image "%s"\n', img);
+        return;
+    end
+end
+if numel(V)>1, V=V(1); end
+
+ii = 1;
+while ~isempty(st.vols{ii}), ii = ii + 1; end
+
+DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
+V.ax = cell(3,1);
+for i=1:3
+    ax = axes('Visible','off', 'DrawMode','fast', 'Parent',st.fig, ...
+        'YDir','normal', 'DeleteFcn',DeleteFcn, 'ButtonDownFcn',@repos_start);
+    d  = image(0, 'Tag','Transverse', 'Parent',ax, 'DeleteFcn',DeleteFcn);
+    set(ax, 'Ydir','normal', 'ButtonDownFcn',@repos_start);
+    
+    lx = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn);
+    ly = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn);
+    if ~st.xhairs
+        set(lx, 'Visible','off');
+        set(ly, 'Visible','off');
+    end
+    V.ax{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
+end
+V.premul    = eye(4);
+V.window    = 'auto';
+V.mapping   = 'linear';
+st.vols{ii} = V;
+
+H = ii;
+
+
+%==========================================================================
+% function addblobs(handle, xyz, t, mat, name)
+%==========================================================================
 function addblobs(handle, xyz, t, mat, name)
 global st
 if nargin < 5
     name = '';
-end;
-for i=valid_handles(handle),
-    if ~isempty(xyz),
+end
+for i=valid_handles(handle)
+    if ~isempty(xyz)
         rcp      = round(xyz);
         dim      = max(rcp,[],2)';
         off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
@@ -537,285 +576,305 @@ for i=valid_handles(handle),
         mn = min([0 min(t)]);
         st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx, 'min',mn,'name',name);
         addcolourbar(handle,1);
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    end
+end
+
+
+%==========================================================================
+% function addimage(handle, fname)
+%==========================================================================
 function addimage(handle, fname)
 global st
-for i=valid_handles(handle),
-    if isstruct(fname),
+for i=valid_handles(handle)
+    if isstruct(fname)
         vol = fname(1);
     else
         vol = spm_vol(fname);
-    end;
+    end
     mat = vol.mat;
     st.vols{i}.blobs=cell(1,1);
     mx = max([eps maxval(vol)]);
     mn = min([0 minval(vol)]);
     st.vols{i}.blobs{1} = struct('vol',vol,'mat',mat,'max',mx,'min',mn);
     addcolourbar(handle,1);
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function addcolouredblobs(handle, xyz, t, mat, colour, name)
+%==========================================================================
 function addcolouredblobs(handle, xyz, t, mat, colour, name)
 if nargin < 6
     name = '';
-end;
+end
 global st
-for i=valid_handles(handle),
-    if ~isempty(xyz),
+for i=valid_handles(handle)
+    if ~isempty(xyz)
         rcp      = round(xyz);
         dim      = max(rcp,[],2)';
         off      = rcp(1,:) + dim(1)*(rcp(2,:)-1 + dim(2)*(rcp(3,:)-1));
         vol      = zeros(dim)+NaN;
         vol(off) = t;
         vol      = reshape(vol,dim);
-        if ~isfield(st.vols{i},'blobs'),
+        if ~isfield(st.vols{i},'blobs')
             st.vols{i}.blobs=cell(1,1);
             bset = 1;
         else
             bset = numel(st.vols{i}.blobs)+1;
-        end;
+        end
         mx = max([eps maxval(vol)]);
         mn = min([0 minval(vol)]);
         st.vols{i}.blobs{bset} = struct('vol',vol, 'mat',mat, ...
-            'max',mx, 'min',mn, ...
-            'colour',colour, 'name',name);
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+            'max',mx, 'min',mn, 'colour',colour, 'name',name);
+    end
+end
+
+
+%==========================================================================
+% function addcolouredimage(handle, fname,colour)
+%==========================================================================
 function addcolouredimage(handle, fname,colour)
 global st
-for i=valid_handles(handle),
-    if isstruct(fname),
+for i=valid_handles(handle)
+    if isstruct(fname)
         vol = fname(1);
     else
         vol = spm_vol(fname);
-    end;
+    end
     mat = vol.mat;
-    if ~isfield(st.vols{i},'blobs'),
+    if ~isfield(st.vols{i},'blobs')
         st.vols{i}.blobs=cell(1,1);
         bset = 1;
     else
         bset = numel(st.vols{i}.blobs)+1;
-    end;
+    end
     mx = max([eps maxval(vol)]);
     mn = min([0 minval(vol)]);
-    st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx,'min',mn,'colour',colour);
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    st.vols{i}.blobs{bset} = struct('vol',vol, 'mat',mat, ...
+        'max',mx, 'min',mn, 'colour',colour);
+end
+
+
+%==========================================================================
+% function addtruecolourimage(handle,fname,colourmap,prop,mx,mn)
+%==========================================================================
 function addtruecolourimage(handle,fname,colourmap,prop,mx,mn)
 % adds true colour image to current displayed image
 global st
-for i=valid_handles(handle),
-    if isstruct(fname),
+for i=valid_handles(handle)
+    if isstruct(fname)
         vol = fname(1);
     else
         vol = spm_vol(fname);
-    end;
+    end
     mat = vol.mat;
-    if ~isfield(st.vols{i},'blobs'),
+    if ~isfield(st.vols{i},'blobs')
         st.vols{i}.blobs=cell(1,1);
         bset = 1;
     else
         bset = numel(st.vols{i}.blobs)+1;
-    end;
+    end
     c = struct('cmap', colourmap,'prop',prop);
-    st.vols{i}.blobs{bset} = struct('vol',vol,'mat',mat,'max',mx, ...
-        'min',mn,'colour',c);
+    st.vols{i}.blobs{bset} = struct('vol',vol, 'mat',mat, ...
+        'max',mx, 'min',mn, 'colour',c);
     addcolourbar(handle,bset);
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function addcolourbar(vh,bh)
+%==========================================================================
 function addcolourbar(vh,bh)
 global st
 if st.mode == 0,
     axpos = get(st.vols{vh}.ax{2}.ax,'Position');
 else
     axpos = get(st.vols{vh}.ax{1}.ax,'Position');
-end;
+end
 st.vols{vh}.blobs{bh}.cbar = axes('Parent',st.fig,...
     'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1) (axpos(2)+0.005) 0.05 (axpos(4)-0.01)],...
     'Box','on', 'YDir','normal', 'XTickLabel',[], 'XTick',[]);
 if isfield(st.vols{vh}.blobs{bh},'name')
     ylabel(st.vols{vh}.blobs{bh}.name,'parent',st.vols{vh}.blobs{bh}.cbar);
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function rmblobs(handle)
+%==========================================================================
 function rmblobs(handle)
 global st
-for i=valid_handles(handle),
-    if isfield(st.vols{i},'blobs'),
-        for j=1:numel(st.vols{i}.blobs),
+for i=valid_handles(handle)
+    if isfield(st.vols{i},'blobs')
+        for j=1:numel(st.vols{i}.blobs)
             if isfield(st.vols{i}.blobs{j},'cbar') && ishandle(st.vols{i}.blobs{j}.cbar),
                 delete(st.vols{i}.blobs{j}.cbar);
-            end;
-        end;
+            end
+        end
         st.vols{i} = rmfield(st.vols{i},'blobs');
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    end
+end
+
+
+%==========================================================================
+% function register(hreg)
+%==========================================================================
 function register(hreg)
 global st
-tmp = uicontrol('Position',[0 0 1 1],'Visible','off','Parent',st.fig);
+%tmp = uicontrol('Position',[0 0 1 1],'Visible','off','Parent',st.fig);
 h   = valid_handles(1:24);
-if ~isempty(h),
+if ~isempty(h)
     tmp = st.vols{h(1)}.ax{1}.ax;
     st.registry = struct('hReg',hreg,'hMe', tmp);
     spm_XYZreg('Add2Reg',st.registry.hReg,st.registry.hMe, 'spm_orthviews');
 else
     warning('Nothing to register with');
-end;
+end
 st.centre = spm_XYZreg('GetCoords',st.registry.hReg);
 st.centre = st.centre(:);
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function xhairs(arg1)
+
+
+%==========================================================================
+% function xhairs(state)
+%==========================================================================
+function xhairs(state)
 global st
 st.xhairs = 0;
 opt = 'on';
-if ~strcmp(arg1,'on'),
+if ~strcmpi(state,'on')
     opt = 'off';
 else
     st.xhairs = 1;
-end;
-for i=valid_handles(1:24),
-    for j=1:3,
-        set(st.vols{i}.ax{j}.lx,'Visible',opt);
-        set(st.vols{i}.ax{j}.ly,'Visible',opt);
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function H = pos(arg1)
-global st
-H = [];
-for arg1=valid_handles(arg1),
-    is = inv(st.vols{arg1}.premul*st.vols{arg1}.mat);
-    H = is(1:3,1:3)*st.centre(:) + is(1:3,4);
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function my_reset
-global st
-if ~isempty(st) && isfield(st,'registry') && ishandle(st.registry.hMe),
-    delete(st.registry.hMe); st = rmfield(st,'registry');
-end;
-my_delete(1:24);
-reset_st;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function my_delete(arg1)
-global st
-% remove blobs (and colourbars, if any)
-rmblobs(arg1);
-% remove displayed axes
-for i=valid_handles(arg1),
-    kids = get(st.fig,'Children');
-    for j=1:3,
-        if any(kids == st.vols{i}.ax{j}.ax),
-            set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
-            delete(st.vols{i}.ax{j}.ax);
-        end;
-    end;
-    st.vols{i} = [];
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function resolution(arg1)
-global st
-if nargin == 0
-    res = 1; % Default minimum resolution 1mm
-else
-    res = arg1;
 end
 for i=valid_handles(1:24)
+    for j=1:3
+        set(st.vols{i}.ax{j}.lx,'Visible',opt);
+        set(st.vols{i}.ax{j}.ly,'Visible',opt);
+    end
+end
+
+
+%==========================================================================
+% function H = pos(handle)
+%==========================================================================
+function H = pos(handle)
+global st
+H = [];
+for i=valid_handles(handle)
+    is = inv(st.vols{i}.premul*st.vols{i}.mat);
+    H = is(1:3,1:3)*st.centre(:) + is(1:3,4);
+end
+
+
+%==========================================================================
+% function my_reset
+%==========================================================================
+function my_reset
+global st
+if ~isempty(st) && isfield(st,'registry') && ishandle(st.registry.hMe)
+    delete(st.registry.hMe); st = rmfield(st,'registry');
+end
+my_delete(1:24);
+reset_st;
+
+
+%==========================================================================
+% function my_delete(handle)
+%==========================================================================
+function my_delete(handle)
+global st
+% remove blobs (and colourbars, if any)
+rmblobs(handle);
+% remove displayed axes
+for i=valid_handles(handle)
+    kids = get(st.fig,'Children');
+    for j=1:3
+        if any(kids == st.vols{i}.ax{j}.ax)
+            set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
+            delete(st.vols{i}.ax{j}.ax);
+        end
+    end
+    st.vols{i} = [];
+end
+
+
+%==========================================================================
+% function resolution(res)
+%==========================================================================
+function resolution(res)
+global st
+if ~nargin, res = 1; end % Default minimum resolution 1mm
+for i=valid_handles
     % adapt resolution to smallest voxel size of displayed images
-    res = min([res,sqrt(sum((st.vols{i}.mat(1:3,1:3)).^2))]);
+    res  = min([res,sqrt(sum((st.vols{i}.mat(1:3,1:3)).^2))]);
 end
 res      = res/mean(svd(st.Space(1:3,1:3)));
 Mat      = diag([res res res 1]);
 st.Space = st.Space*Mat;
 st.bb    = st.bb/res;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function move(handle,pos)
+%==========================================================================
 function move(handle,pos)
 global st
-for handle = valid_handles(handle),
-    st.vols{handle}.area = pos;
-end;
+for i=valid_handles(handle)
+    st.vols{i}.area = pos;
+end
 bbox;
 % redraw(valid_handles(handle));
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function bb = maxbb
+%==========================================================================
 function bb = maxbb
 global st
 mn = [Inf Inf Inf];
 mx = -mn;
-for i=valid_handles(1:24)
+for i=valid_handles
     premul = st.Space \ st.vols{i}.premul;
     bb = spm_get_bbox(st.vols{i}, 'fv', premul);
     mx = max([bb ; mx]);
     mn = min([bb ; mn]);
-end;
+end
 bb = [mn ; mx];
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function space(arg1,M,dim)
+
+
+%==========================================================================
+% function space(handle,M,dim)
+%==========================================================================
+function space(handle,M,dim)
 global st
-if ~isempty(st.vols{arg1})
-    num = arg1;
+if ~isempty(st.vols{handle})
     if nargin < 2
-        M = st.vols{num}.mat;
-        dim = st.vols{num}.dim(1:3);
-    end;
-    Mat = st.vols{num}.premul(1:3,1:3)*M(1:3,1:3);
-    vox = sqrt(sum(Mat.^2));
-    if det(Mat(1:3,1:3))<0, vox(1) = -vox(1); end;
-    Mat = diag([vox 1]);
+        M = st.vols{handle}.mat;
+        dim = st.vols{handle}.dim(1:3);
+    end
+    Mat   = st.vols{handle}.premul(1:3,1:3)*M(1:3,1:3);
+    vox   = sqrt(sum(Mat.^2));
+    if det(Mat(1:3,1:3))<0, vox(1) = -vox(1); end
+    Mat   = diag([vox 1]);
     Space = (M)/Mat;
-    bb = [1 1 1; dim];
-    bb = [bb [1;1]];
-    bb=bb*Mat';
-    bb=bb(:,1:3);
-    bb=sort(bb);
-    st.Space  = Space;
+    bb    = [1 1 1; dim];
+    bb    = [bb [1;1]];
+    bb    = bb*Mat';
+    bb    = bb(:,1:3);
+    bb    = sort(bb);
+    st.Space = Space;
     st.bb = bb;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function zoom_op(varargin)
+end
+
+
+%==========================================================================
+% function zoom_op(fov,res)
+%==========================================================================
+function zoom_op(fov,res)
 global st
-if nargin > 0
-    fov = varargin{1};
-else
-    fov = Inf;
-end
-if nargin > 1
-    res = varargin{2};
-else
-    res = Inf;
-end
+if nargin < 1, fov = Inf; end
+if nargin < 2, res = Inf; end
+
 if isinf(fov)
     st.bb = maxbb;
 elseif isnan(fov) || fov == 0
@@ -833,134 +892,76 @@ elseif isnan(fov) || fov == 0
     premul = st.Space \ st.vols{current_handle}.premul;
     st.bb = spm_get_bbox(st.vols{current_handle}, thr, premul);
 else
-    vx = sqrt(sum(st.Space(1:3,1:3).^2));
-    vx = vx.^(-1);
-    pos = spm_orthviews('pos');
-    pos = st.Space\[pos ; 1];
-    pos = pos(1:3)';
+    vx    = sqrt(sum(st.Space(1:3,1:3).^2));
+    vx    = vx.^(-1);
+    pos   = spm_orthviews('pos');
+    pos   = st.Space\[pos ; 1];
+    pos   = pos(1:3)';
     st.bb = [pos-fov*vx; pos+fov*vx];
-end;
+end
 resolution(res);
 bbox;
 redraw_all;
 if isfield(st.vols{1},'sdip')
     spm_eeg_inv_vbecd_disp('RedrawDip');
 end
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function H = specify_image(arg1)
-global st
-H=[];
-if isstruct(arg1),
-    V = arg1(1);
-else
-    try
-        V = spm_vol(arg1);
-    catch
-        fprintf('Can not use image "%s"\n', arg1);
-        return;
-    end;
-end;
-if numel(V)>1, V=V(1); end
 
-ii = 1;
-while ~isempty(st.vols{ii}), ii = ii + 1; end;
 
-DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
-V.ax = cell(3,1);
-for i=1:3,
-    ax = axes('Visible','off','DrawMode','fast','Parent',st.fig,'DeleteFcn',DeleteFcn,...
-        'YDir','normal','ButtonDownFcn',@repos_start);
-    d  = image(0,'Tag','Transverse','Parent',ax,...
-        'DeleteFcn',DeleteFcn);
-    set(ax,'Ydir','normal','ButtonDownFcn',@repos_start);
-    
-    lx = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
-    ly = line(0,0,'Parent',ax,'DeleteFcn',DeleteFcn);
-    if ~st.xhairs,
-        set(lx,'Visible','off');
-        set(ly,'Visible','off');
-    end;
-    V.ax{i} = struct('ax',ax,'d',d,'lx',lx,'ly',ly);
-end;
-V.premul    = eye(4);
-V.window    = 'auto';
-V.mapping   = 'linear';
-st.vols{ii} = V;
-
-H = ii;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+%==========================================================================
+% function repos_start(varargin)
+% function repos_move(varargin)
+% function repos_end(varargin)
+%==========================================================================
 function repos_start(varargin)
 % don't use right mouse button to start reposition
 if ~strcmpi(get(gcbf,'SelectionType'),'alt')
     set(gcbf,'windowbuttonmotionfcn',@repos_move, 'windowbuttonupfcn',@repos_end);
     spm_orthviews('reposition');
 end
-%_______________________________________________________________________
-%_______________________________________________________________________
+
 function repos_move(varargin)
 spm_orthviews('reposition');
-%_______________________________________________________________________
-%_______________________________________________________________________
+
 function repos_end(varargin)
 set(gcbf,'windowbuttonmotionfcn','', 'windowbuttonupfcn','');
-%_______________________________________________________________________
-%_______________________________________________________________________
-function addcontexts(handles)
-for ii = valid_handles(handles),
-    addcontext(ii);
-end;
-spm_orthviews('reposition',spm_orthviews('pos'));
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function rmcontexts(handles)
-global st
-for ii = valid_handles(handles),
-    for i=1:3,
-        set(st.vols{ii}.ax{i}.ax,'UIcontextmenu',[]);
-        st.vols{ii}.ax{i} = rmfield(st.vols{ii}.ax{i},'cm');
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function bbox
+%==========================================================================
 function bbox
 global st
 Dims = diff(st.bb)'+1;
 
 TD = Dims([1 2])';
 CD = Dims([1 3])';
-if st.mode == 0, SD = Dims([3 2])'; else SD = Dims([2 3])'; end;
+if st.mode == 0, SD = Dims([3 2])'; else SD = Dims([2 3])'; end
 
 un    = get(st.fig,'Units');set(st.fig,'Units','Pixels');
 sz    = get(st.fig,'Position');set(st.fig,'Units',un);
 sz    = sz(3:4);
 sz(2) = sz(2)-40;
 
-for i=valid_handles(1:24),
-    area = st.vols{i}.area(:);
-    area = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
-    if st.mode == 0,
-        sx   = area(3)/(Dims(1)+Dims(3))/1.02;
+for i=valid_handles(1:24)
+    area   = st.vols{i}.area(:);
+    area   = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
+    if st.mode == 0
+        sx = area(3)/(Dims(1)+Dims(3))/1.02;
     else
-        sx   = area(3)/(Dims(1)+Dims(2))/1.02;
-    end;
-    sy   = area(4)/(Dims(2)+Dims(3))/1.02;
-    s    = min([sx sy]);
+        sx = area(3)/(Dims(1)+Dims(2))/1.02;
+    end
+    sy     = area(4)/(Dims(2)+Dims(3))/1.02;
+    s      = min([sx sy]);
     
-    offy = (area(4)-(Dims(2)+Dims(3))*1.02*s)/2 + area(2);
-    sky = s*(Dims(2)+Dims(3))*0.02;
-    if st.mode == 0,
+    offy   = (area(4)-(Dims(2)+Dims(3))*1.02*s)/2 + area(2);
+    sky    = s*(Dims(2)+Dims(3))*0.02;
+    if st.mode == 0
         offx = (area(3)-(Dims(1)+Dims(3))*1.02*s)/2 + area(1);
-        skx = s*(Dims(1)+Dims(3))*0.02;
+        skx  = s*(Dims(1)+Dims(3))*0.02;
     else
         offx = (area(3)-(Dims(1)+Dims(2))*1.02*s)/2 + area(1);
-        skx = s*(Dims(1)+Dims(2))*0.02;
-    end;
+        skx  = s*(Dims(1)+Dims(2))*0.02;
+    end
     
     % Transverse
     set(st.vols{i}.ax{1}.ax,'Units','pixels', ...
@@ -975,7 +976,7 @@ for i=valid_handles(1:24),
         'Visible','on','XTick',[],'YTick',[]);
     
     % Sagittal
-    if st.mode == 0,
+    if st.mode == 0
         set(st.vols{i}.ax{3}.ax,'Units','Pixels', 'Box','on',...
             'Position',[offx+s*Dims(1)+skx offy s*Dims(3) s*Dims(2)],...
             'Units','normalized','Xlim',[0 SD(1)]+0.5,'Ylim',[0 SD(2)]+0.5,...
@@ -985,43 +986,45 @@ for i=valid_handles(1:24),
             'Position',[offx+s*Dims(1)+skx offy+s*Dims(2)+sky s*Dims(2) s*Dims(3)],...
             'Units','normalized','Xlim',[0 SD(1)]+0.5,'Ylim',[0 SD(2)]+0.5,...
             'Visible','on','XTick',[],'YTick',[]);
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-function redraw_all
-redraw(1:24);
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    end
+end
+
+
+%==========================================================================
+% function mx = maxval(vol)
+%==========================================================================
 function mx = maxval(vol)
-if isstruct(vol),
+if isstruct(vol)
     mx = -Inf;
-    for i=1:vol.dim(3),
+    for i=1:vol.dim(3)
         tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
         imx = max(tmp(isfinite(tmp)));
-        if ~isempty(imx),mx = max(mx,imx);end
-    end;
+        if ~isempty(imx), mx = max(mx,imx); end
+    end
 else
     mx = max(vol(isfinite(vol)));
-end;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function mn = minval(vol)
+%==========================================================================
 function mn = minval(vol)
-if isstruct(vol),
+if isstruct(vol)
     mn = Inf;
-    for i=1:vol.dim(3),
+    for i=1:vol.dim(3)
         tmp = spm_slice_vol(vol,spm_matrix([0 0 i]),vol.dim(1:2),0);
         imn = min(tmp(isfinite(tmp)));
-        if ~isempty(imn),mn = min(mn,imn);end
-    end;
+        if ~isempty(imn), mn = min(mn,imn); end
+    end
 else
     mn = min(vol(isfinite(vol)));
-end;
+end
 
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+%==========================================================================
+% function redraw(arg1)
+%==========================================================================
 function redraw(arg1)
 global st
 bb   = st.bb;
@@ -1032,45 +1035,45 @@ cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 for i = valid_handles(arg1),
     M = st.Space\st.vols{i}.premul*st.vols{i}.mat;
     TM0 = [ 1 0 0 -bb(1,1)+1
-        0 1 0 -bb(1,2)+1
-        0 0 1 -cent(3)
-        0 0 0 1];
+            0 1 0 -bb(1,2)+1
+            0 0 1 -cent(3)
+            0 0 0 1];
     TM = inv(TM0*M);
     TD = Dims([1 2]);
     
     CM0 = [ 1 0 0 -bb(1,1)+1
-        0 0 1 -bb(1,3)+1
-        0 1 0 -cent(2)
-        0 0 0 1];
+            0 0 1 -bb(1,3)+1
+            0 1 0 -cent(2)
+            0 0 0 1];
     CM = inv(CM0*M);
     CD = Dims([1 3]);
     
     if st.mode ==0,
         SM0 = [ 0 0 1 -bb(1,3)+1
-            0 1 0 -bb(1,2)+1
-            1 0 0 -cent(1)
-            0 0 0 1];
+                0 1 0 -bb(1,2)+1
+                1 0 0 -cent(1)
+                0 0 0 1];
         SM = inv(SM0*M); 
         SD = Dims([3 2]);
     else
         SM0 = [ 0 -1 0 +bb(2,2)+1
-            0  0 1 -bb(1,3)+1
-            1  0 0 -cent(1)
-            0  0 0 1];
+                0  0 1 -bb(1,3)+1
+                1  0 0 -cent(1)
+                0  0 0 1];
         SM = inv(SM0*M);
         SD = Dims([2 3]);
-    end;
+    end
     
     try
-        imgt  = spm_slice_vol(st.vols{i},TM,TD,st.hld)';
-        imgc  = spm_slice_vol(st.vols{i},CM,CD,st.hld)';
-        imgs  = spm_slice_vol(st.vols{i},SM,SD,st.hld)';
-        ok    = true;
+        imgt = spm_slice_vol(st.vols{i},TM,TD,st.hld)';
+        imgc = spm_slice_vol(st.vols{i},CM,CD,st.hld)';
+        imgs = spm_slice_vol(st.vols{i},SM,SD,st.hld)';
+        ok   = true;
     catch
         fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
-        ok     = false;
+        ok   = false;
     end
-    if ok,
+    if ok
         % get min/max threshold
         if strcmp(st.vols{i}.window,'auto')
             mn = -Inf;
@@ -1078,7 +1081,7 @@ for i = valid_handles(arg1),
         else
             mn = min(st.vols{i}.window);
             mx = max(st.vols{i}.window);
-        end;
+        end
         % threshold images
         imgt = max(imgt,mn); imgt = min(imgt,mx);
         imgc = max(imgc,mn); imgc = min(imgc,mx);
@@ -1086,10 +1089,10 @@ for i = valid_handles(arg1),
         % compute intensity mapping, if histeq is available
         if license('test','image_toolbox') == 0
             st.vols{i}.mapping = 'linear';
-        end;
-        switch st.vols{i}.mapping,
-            case 'linear',
-            case 'histeq',
+        end
+        switch st.vols{i}.mapping
+            case 'linear'
+            case 'histeq'
                 % scale images to a range between 0 and 1
                 imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
                 imgc1=(imgc-min(imgc(:)))/(max(imgc(:)-min(imgc(:)))+eps);
@@ -1100,7 +1103,7 @@ for i = valid_handles(arg1),
                 imgs = reshape(img(numel(imgt1)+numel(imgc1)+(1:numel(imgs1))),size(imgs1));
                 mn = 0;
                 mx = 1;
-            case 'quadhisteq',
+            case 'quadhisteq'
                 % scale images to a range between 0 and 1
                 imgt1=(imgt-min(imgt(:)))/(max(imgt(:)-min(imgt(:)))+eps);
                 imgc1=(imgc-min(imgc(:)))/(max(imgc(:)-min(imgc(:)))+eps);
@@ -1111,7 +1114,7 @@ for i = valid_handles(arg1),
                 imgs = reshape(img(numel(imgt1)+numel(imgc1)+(1:numel(imgs1))),size(imgs1));
                 mn = 0;
                 mx = 1;
-            case 'loghisteq',
+            case 'loghisteq'
                 sw = warning('off','MATLAB:log:logOfZero');
                 imgt = log(imgt-min(imgt(:)));
                 imgc = log(imgc-min(imgc(:)));
@@ -1130,30 +1133,30 @@ for i = valid_handles(arg1),
                 imgs = reshape(img(numel(imgt1)+numel(imgc1)+(1:numel(imgs1))),size(imgs1));
                 mn = 0;
                 mx = 1;
-        end;
+        end
         % recompute min/max for display
         if strcmp(st.vols{i}.window,'auto')
             mx = -inf; mn = inf;
-        end;
-        if ~isempty(imgt),
+        end
+        if ~isempty(imgt)
             tmp = imgt(isfinite(imgt));
             mx = max([mx max(max(tmp))]);
             mn = min([mn min(min(tmp))]);
-        end;
-        if ~isempty(imgc),
+        end
+        if ~isempty(imgc)
             tmp = imgc(isfinite(imgc));
             mx = max([mx max(max(tmp))]);
             mn = min([mn min(min(tmp))]);
-        end;
-        if ~isempty(imgs),
+        end
+        if ~isempty(imgs)
             tmp = imgs(isfinite(imgs));
             mx = max([mx max(max(tmp))]);
             mn = min([mn min(min(tmp))]);
-        end;
-        if mx==mn, mx=mn+eps; end;
+        end
+        if mx==mn, mx=mn+eps; end
         
-        if isfield(st.vols{i},'blobs'),
-            if ~isfield(st.vols{i}.blobs{1},'colour'),
+        if isfield(st.vols{i},'blobs')
+            if ~isfield(st.vols{i}.blobs{1},'colour')
                 % Add blobs for display using the split colourmap
                 scal = 64/(mx-mn);
                 dcoff = -mn*scal;
@@ -1161,18 +1164,18 @@ for i = valid_handles(arg1),
                 imgc = imgc*scal+dcoff;
                 imgs = imgs*scal+dcoff;
                 
-                if isfield(st.vols{i}.blobs{1},'max'),
+                if isfield(st.vols{i}.blobs{1},'max')
                     mx = st.vols{i}.blobs{1}.max;
                 else
                     mx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
                     st.vols{i}.blobs{1}.max = mx;
-                end;
-                if isfield(st.vols{i}.blobs{1},'min'),
+                end
+                if isfield(st.vols{i}.blobs{1},'min')
                     mn = st.vols{i}.blobs{1}.min;
                 else
                     mn = min([0 minval(st.vols{i}.blobs{1}.vol)]);
                     st.vols{i}.blobs{1}.min = mn;
-                end;
+                end
                 
                 vol  = st.vols{i}.blobs{1}.vol;
                 M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
@@ -1194,18 +1197,15 @@ for i = valid_handles(arg1),
                 if size(cmap,1)~=128
                     figure(st.fig)
                     spm_figure('Colormap','gray-hot')
-                end;
+                end
                 redraw_colourbar(i,1,[mn mx],(1:64)'+64);
-            elseif isstruct(st.vols{i}.blobs{1}.colour),
-                % Add blobs for display using a defined
-                % colourmap
+            elseif isstruct(st.vols{i}.blobs{1}.colour)
+                % Add blobs for display using a defined colourmap
                 
                 % colourmaps
                 gryc = (0:63)'*ones(1,3)/63;
-                actc = ...
-                    st.vols{1}.blobs{1}.colour.cmap;
-                actp = ...
-                    st.vols{1}.blobs{1}.colour.prop;
+                actc = st.vols{1}.blobs{1}.colour.cmap;
+                actp = st.vols{1}.blobs{1}.colour.prop;
                 
                 % scale grayscale image, not isfinite -> black
                 imgt = scaletocmap(imgt,mn,mx,gryc,65);
@@ -1214,16 +1214,16 @@ for i = valid_handles(arg1),
                 gryc = [gryc; 0 0 0];
                 
                 % get max for blob image
-                if isfield(st.vols{i}.blobs{1},'max'),
+                if isfield(st.vols{i}.blobs{1},'max')
                     cmx = st.vols{i}.blobs{1}.max;
                 else
                     cmx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
-                end;
-                if isfield(st.vols{i}.blobs{1},'min'),
+                end
+                if isfield(st.vols{i}.blobs{1},'min')
                     cmn = st.vols{i}.blobs{1}.min;
                 else
                     cmn = -cmx;
-                end;
+                end
                 
                 % get blob data
                 vol  = st.vols{i}.blobs{1}.vol;
@@ -1273,27 +1273,27 @@ for i = valid_handles(arg1),
                 
                 colour = zeros(numel(st.vols{i}.blobs),3);
                 for j=1:numel(st.vols{i}.blobs) % get colours of all images first
-                    if isfield(st.vols{i}.blobs{j},'colour'),
+                    if isfield(st.vols{i}.blobs{j},'colour')
                         colour(j,:) = reshape(st.vols{i}.blobs{j}.colour, [1 3]);
                     else
                         colour(j,:) = [1 0 0];
-                    end;
-                end;
+                    end
+                end
                 %colour = colour/max(sum(colour));
                 
-                for j=1:numel(st.vols{i}.blobs),
-                    if isfield(st.vols{i}.blobs{j},'max'),
+                for j=1:numel(st.vols{i}.blobs)
+                    if isfield(st.vols{i}.blobs{j},'max')
                         mx = st.vols{i}.blobs{j}.max;
                     else
                         mx = max([eps max(st.vols{i}.blobs{j}.vol(:))]);
                         st.vols{i}.blobs{j}.max = mx;
-                    end;
-                    if isfield(st.vols{i}.blobs{j},'min'),
+                    end
+                    if isfield(st.vols{i}.blobs{j},'min')
                         mn = st.vols{i}.blobs{j}.min;
                     else
                         mn = min([0 min(st.vols{i}.blobs{j}.vol(:))]);
                         st.vols{i}.blobs{j}.min = mn;
-                    end;
+                    end
                     
                     vol  = st.vols{i}.blobs{j}.vol;
                     M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
@@ -1325,7 +1325,7 @@ for i = valid_handles(arg1),
                     cdata=permute(shiftdim((1/64:1/64:1)'* ...
                         colour(j,:),-1),[2 1 3]);
                     redraw_colourbar(i,j,[mn mx],cdata);
-                end;
+                end
                 
                 imgt = repmat(1-wt,[1 1 3]).*imgt+cimgt;
                 imgc = repmat(1-wc,[1 1 3]).*imgc+cimgc;
@@ -1334,14 +1334,14 @@ for i = valid_handles(arg1),
                 imgt(imgt<0)=0; imgt(imgt>1)=1;
                 imgc(imgc<0)=0; imgc(imgc>1)=1;
                 imgs(imgs<0)=0; imgs(imgs>1)=1;
-            end;
+            end
         else
             scal = 64/(mx-mn);
             dcoff = -mn*scal;
             imgt = imgt*scal+dcoff;
             imgc = imgc*scal+dcoff;
             imgs = imgs*scal+dcoff;
-        end;
+        end
         
         set(st.vols{i}.ax{1}.d,'HitTest','off', 'Cdata',imgt);
         set(st.vols{i}.ax{1}.lx,'HitTest','off',...
@@ -1356,7 +1356,7 @@ for i = valid_handles(arg1),
             'Ydata',[0 CD(2)]+0.5,'Xdata',[1 1]*(cent(1)-bb(1,1)+1));
         
         set(st.vols{i}.ax{3}.d,'HitTest','off','Cdata',imgs);
-        if st.mode ==0,
+        if st.mode ==0
             set(st.vols{i}.ax{3}.lx,'HitTest','off',...
                 'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(2)-bb(1,2)+1));
             set(st.vols{i}.ax{3}.ly,'HitTest','off',...
@@ -1366,34 +1366,43 @@ for i = valid_handles(arg1),
                 'Xdata',[0 SD(1)]+0.5,'Ydata',[1 1]*(cent(3)-bb(1,3)+1));
             set(st.vols{i}.ax{3}.ly,'HitTest','off',...
                 'Ydata',[0 SD(2)]+0.5,'Xdata',[1 1]*(bb(2,2)+1-cent(2)));
-        end;
+        end
         
         if ~isempty(st.plugins) % process any addons
-            for k = 1:numel(st.plugins),
-                if isfield(st.vols{i},st.plugins{k}),
+            for k = 1:numel(st.plugins)
+                if isfield(st.vols{i},st.plugins{k})
                     feval(['spm_ov_', st.plugins{k}], ...
                         'redraw', i, TM0, TD, CM0, CD, SM0, SD);
-                end;
-            end;
-        end;
-    end;
-end;
+                end
+            end
+        end
+    end
+end
 drawnow;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function redraw_all
+%==========================================================================
+function redraw_all
+redraw(1:24);
+
+
+%==========================================================================
+% function redraw_colourbar(vh,bh,interval,cdata)
+%==========================================================================
 function redraw_colourbar(vh,bh,interval,cdata)
 global st
 if isfield(st.vols{vh}.blobs{bh},'cbar')
-    if st.mode == 0,
+    if st.mode == 0
         axpos = get(st.vols{vh}.ax{2}.ax,'Position');
     else
         axpos = get(st.vols{vh}.ax{1}.ax,'Position');
-    end;
+    end
     % only scale cdata if we have out-of-range truecolour values
     if ndims(cdata)==3 && max(cdata(:))>1
         cdata=cdata./max(cdata(:));
-    end;
+    end
     image([0 1],interval,cdata,'Parent',st.vols{vh}.blobs{bh}.cbar);
     set(st.vols{vh}.blobs{bh}.cbar, ...
         'Position',[(axpos(1)+axpos(3)+0.05+(bh-1)*.1)...
@@ -1401,68 +1410,77 @@ if isfield(st.vols{vh}.blobs{bh},'cbar')
         'YDir','normal','XTickLabel',[],'XTick',[]);
     if isfield(st.vols{vh}.blobs{bh},'name')
         ylabel(st.vols{vh}.blobs{bh}.name,'parent',st.vols{vh}.blobs{bh}.cbar);
-    end;
-end;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    end
+end
+
+
+%==========================================================================
+% function centre = findcent
+%==========================================================================
 function centre = findcent
 global st
 obj    = get(st.fig,'CurrentObject');
 centre = [];
 cent   = [];
 cp     = [];
-for i=valid_handles(1:24),
-    for j=1:3,
-        if ~isempty(obj),
+for i=valid_handles(1:24)
+    for j=1:3
+        if ~isempty(obj)
             if (st.vols{i}.ax{j}.ax == obj),
                 cp = get(obj,'CurrentPoint');
-            end;
-        end;
-        if ~isempty(cp),
+            end
+        end
+        if ~isempty(cp)
             cp   = cp(1,1:2);
             is   = inv(st.Space);
             cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
-            switch j,
-                case 1,
+            switch j
+                case 1
                     cent([1 2])=[cp(1)+st.bb(1,1)-1 cp(2)+st.bb(1,2)-1];
-                case 2,
+                case 2
                     cent([1 3])=[cp(1)+st.bb(1,1)-1 cp(2)+st.bb(1,3)-1];
-                case 3,
-                    if st.mode ==0,
+                case 3
+                    if st.mode ==0
                         cent([3 2])=[cp(1)+st.bb(1,3)-1 cp(2)+st.bb(1,2)-1];
                     else
                         cent([2 3])=[st.bb(2,2)+1-cp(1) cp(2)+st.bb(1,3)-1];
-                    end;
-            end;
+                    end
+            end
             break;
-        end;
-    end;
-    if ~isempty(cent), break; end;
-end;
-if ~isempty(cent), centre = st.Space(1:3,1:3)*cent(:) + st.Space(1:3,4); end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+        end
+    end
+    if ~isempty(cent), break; end
+end
+if ~isempty(cent), centre = st.Space(1:3,1:3)*cent(:) + st.Space(1:3,4); end
+
+
+%==========================================================================
+% function handles = valid_handles(handles)
+%==========================================================================
 function handles = valid_handles(handles)
-global st;
+global st
+if ~nargin, handles = 1:24; end
 if isempty(st) || ~isfield(st,'vols')
     handles = [];
 else
     handles = handles(:)';
     handles = handles(handles<=24 & handles>=1 & ~rem(handles,1));
-    for h=handles,
-        if isempty(st.vols{h}), handles(handles==h)=[]; end;
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+    for h=handles
+        if isempty(st.vols{h}), handles(handles==h)=[]; end
+    end
+end
+
+
+%==========================================================================
+% function reset_st
+%==========================================================================
 function reset_st
 global st
-fig     = spm_figure('FindWin','Graphics');
-bb      = []; %[ [-78 78]' [-112 76]' [-50 85]' ];
-st      = struct('n', 0, 'vols',[], 'bb',bb,'Space',eye(4),'centre',[0 0 0],'callback',';','xhairs',1,'hld',1,'fig',fig,'mode',1,'plugins',{{}},'snap',[]);
-st.vols = cell(24,1);
+fig = spm_figure('FindWin','Graphics');
+bb  = []; %[ [-78 78]' [-112 76]' [-50 85]' ];
+st  = struct('n', 0, 'vols',{cell(24,1)}, 'bb',bb, 'Space',eye(4), ...
+             'centre',[0 0 0], 'callback',';', 'xhairs',1, 'hld',1, ...
+             'fig',fig, 'mode',1, 'plugins',{{}}, 'snap',[]);
 
 xTB = spm('TBs');
 if ~isempty(xTB)
@@ -1476,66 +1494,71 @@ for k = 1:numel(pluginbase)
         pluginfiles = dir(fullfile(pluginpath,'spm_ov_*.m'));
         if ~isempty(pluginfiles)
             if ~isdeployed, addpath(pluginpath); end
-            % fprintf('spm_orthviews: Using Plugins in %s\n', pluginpath);
             for l = 1:numel(pluginfiles)
-                [p, pluginname, e, v] = spm_fileparts(pluginfiles(l).name);
+                pluginname = spm_file(pluginfiles(l).name,'basename');
                 st.plugins{end+1} = strrep(pluginname, 'spm_ov_','');
-                % fprintf('%s\n',st.plugins{k});
-            end;
-        end;
-    end;
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+            end
+        end
+    end
+end
+
+
+%==========================================================================
+% function img = scaletocmap(inpimg,mn,mx,cmap,miscol)
+%==========================================================================
 function img = scaletocmap(inpimg,mn,mx,cmap,miscol)
-if nargin < 5, miscol=1;end
+if nargin < 5, miscol=1; end
 cml = size(cmap,1);
 scf = (cml-1)/(mx-mn);
 img = round((inpimg-mn)*scf)+1;
 img(img<1)   = 1;
 img(img>cml) = cml;
-img(~isfinite(img))  = miscol;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+img(~isfinite(img)) = miscol;
+
+
+%==========================================================================
+% function cmap = getcmap(acmapname)
+%==========================================================================
 function cmap = getcmap(acmapname)
 % get colormap of name acmapname
-if ~isempty(acmapname),
+if ~isempty(acmapname)
     cmap = evalin('base',acmapname,'[]');
-    if isempty(cmap), % not a matrix, is .mat file?
-        [p, f, e] = fileparts(acmapname);
-        acmat     = fullfile(p, [f '.mat']);
-        if exist(acmat, 'file'),
+    if isempty(cmap) % not a matrix, is .mat file?
+        acmat = spm_file(acmapname, 'ext','.mat');
+        if exist(acmat, 'file')
             s    = struct2cell(load(acmat));
             cmap = s{1};
-        end;
-    end;
-end;
-if size(cmap, 2)~=3,
+        end
+    end
+end
+if size(cmap, 2)~=3
     warning('Colormap was not an N by 3 matrix')
     cmap = [];
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function item_parent = addcontext(volhandle)
+%==========================================================================
 function item_parent = addcontext(volhandle)
-global st;
-%create context menu
-fg = spm_figure('Findwin','Graphics');set(0,'CurrentFigure',fg);
-%contextmenu
+global st
+% create context menu
+fg = spm_figure('Findwin','Graphics'); set(0,'CurrentFigure',fg);
+% contextmenu
 item_parent = uicontextmenu;
 
-%contextsubmenu 0
-item00  = uimenu(item_parent, 'Label','unknown image');
+% contextsubmenu 0
+item00 = uimenu(item_parent, 'Label','unknown image');
 spm_orthviews('context_menu','image_info',item00,volhandle);
-item0a    = uimenu(item_parent, 'UserData','pos_mm',     'Callback','spm_orthviews(''context_menu'',''repos_mm'');','Separator','on');
-item0b    = uimenu(item_parent, 'UserData','pos_vx',     'Callback','spm_orthviews(''context_menu'',''repos_vx'');');
-item0c    = uimenu(item_parent, 'UserData','v_value');
+item0a = uimenu(item_parent, 'UserData','pos_mm', 'Separator','on', ...
+    'Callback','spm_orthviews(''context_menu'',''repos_mm'');');
+item0b = uimenu(item_parent, 'UserData','pos_vx', ...
+    'Callback','spm_orthviews(''context_menu'',''repos_vx'');');
+item0c = uimenu(item_parent, 'UserData','v_value');
 
-%contextsubmenu 1
-item1     = uimenu(item_parent,'Label','Zoom','Separator','on');
-[zl, rl]  = spm_orthviews('ZoomMenu');
+% contextsubmenu 1
+item1    = uimenu(item_parent,'Label','Zoom', 'Separator','on');
+[zl, rl] = spm_orthviews('ZoomMenu');
 for cz = numel(zl):-1:1
     if isinf(zl(cz))
         czlabel = 'Full Volume';
@@ -1548,67 +1571,66 @@ for cz = numel(zl):-1:1
     end
     item1_x = uimenu(item1, 'Label',czlabel,...
         'Callback', sprintf(...
-        'spm_orthviews(''context_menu'',''zoom'',%d,%d)',...
-        zl(cz),rl(cz)));
+        'spm_orthviews(''context_menu'',''zoom'',%d,%d)',zl(cz),rl(cz)));
     if isinf(zl(cz)) % default display is Full Volume
         set(item1_x, 'Checked','on');
     end
 end
 
-%contextsubmenu 2
-checked={'off','off'};
+% contextsubmenu 2
+checked   = {'off','off'};
 checked{st.xhairs+1} = 'on';
 item2     = uimenu(item_parent,'Label','Crosshairs');
 item2_1   = uimenu(item2,      'Label','on',  'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked',checked{2});
 item2_2   = uimenu(item2,      'Label','off', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');','Checked',checked{1});
 
-%contextsubmenu 3
+% contextsubmenu 3
 if st.Space == eye(4)
     checked = {'off', 'on'};
 else
     checked = {'on', 'off'};
-end;
+end
 item3     = uimenu(item_parent,'Label','Orientation');
 item3_1   = uimenu(item3,      'Label','World space', 'Callback','spm_orthviews(''context_menu'',''orientation'',3);','Checked',checked{2});
 item3_2   = uimenu(item3,      'Label','Voxel space (1st image)', 'Callback','spm_orthviews(''context_menu'',''orientation'',2);','Checked',checked{1});
 item3_3   = uimenu(item3,      'Label','Voxel space (this image)', 'Callback','spm_orthviews(''context_menu'',''orientation'',1);','Checked','off');
 
-%contextsubmenu 3
+% contextsubmenu 3
 if isempty(st.snap)
     checked = {'off', 'on'};
 else
     checked = {'on', 'off'};
-end;
+end
 item3     = uimenu(item_parent,'Label','Snap to Grid');
 item3_1   = uimenu(item3,      'Label','Don''t snap', 'Callback','spm_orthviews(''context_menu'',''snap'',3);','Checked',checked{2});
 item3_2   = uimenu(item3,      'Label','Snap to 1st image', 'Callback','spm_orthviews(''context_menu'',''snap'',2);','Checked',checked{1});
 item3_3   = uimenu(item3,      'Label','Snap to this image', 'Callback','spm_orthviews(''context_menu'',''snap'',1);','Checked','off');
 
-%contextsubmenu 4
-if st.hld == 0,
+% contextsubmenu 4
+if st.hld == 0
     checked = {'off', 'off', 'on'};
-elseif st.hld > 0,
+elseif st.hld > 0
     checked = {'off', 'on', 'off'};
 else
     checked = {'on', 'off', 'off'};
-end;
+end
 item4     = uimenu(item_parent,'Label','Interpolation');
 item4_1   = uimenu(item4,      'Label','NN',    'Callback','spm_orthviews(''context_menu'',''interpolation'',3);', 'Checked',checked{3});
 item4_2   = uimenu(item4,      'Label','Bilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked',checked{2});
 item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''context_menu'',''interpolation'',1);','Checked',checked{1});
 
-%contextsubmenu 5
+% contextsubmenu 5
 % item5     = uimenu(item_parent,'Label','Position', 'Callback','spm_orthviews(''context_menu'',''position'');');
 
-%contextsubmenu 6
+% contextsubmenu 6
 item6       = uimenu(item_parent,'Label','Image','Separator','on');
 item6_1     = uimenu(item6,      'Label','Window');
 item6_1_1   = uimenu(item6_1,    'Label','local');
-item6_1_1_1 = uimenu(item6_1_1,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window'',2);');
-item6_1_1_2 = uimenu(item6_1_1,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window'',1);');
+item6_1_1_1 = uimenu(item6_1_1,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window'',2);');
+item6_1_1_2 = uimenu(item6_1_1,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window'',1);');
 item6_1_2   = uimenu(item6_1,    'Label','global');
-item6_1_2_1 = uimenu(item6_1_2,  'Label','auto',       'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
-item6_1_2_2 = uimenu(item6_1_2,  'Label','manual',     'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
+item6_1_2_1 = uimenu(item6_1_2,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
+item6_1_2_2 = uimenu(item6_1_2,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
 if license('test','image_toolbox') == 1
     offon = {'off', 'on'};
     checked = offon(strcmp(st.vols{volhandle}.mapping, ...
@@ -1632,8 +1654,9 @@ if license('test','image_toolbox') == 1
         'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''loghisteq'');');
     item6_2_2_4 = uimenu(item6_2_2,  'Label','Equalised squared-histogram', 'Checked',checked{4}, ...
         'Callback','spm_orthviews(''context_menu'',''mapping_gl'',''quadhisteq'');');
-end;
-%contextsubmenu 7
+end
+
+% contextsubmenu 7
 item7     = uimenu(item_parent,'Label','Blobs');
 item7_1   = uimenu(item7,      'Label','Add blobs');
 item7_1_1 = uimenu(item7_1,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
@@ -1653,59 +1676,83 @@ item7_6_1 = uimenu(item7_6,    'Label','local', 'Visible','on');
 item7_6_2 = uimenu(item7_6,    'Label','global','Visible','on');
 item7_7   = uimenu(item7,      'Label','Set blobs max', 'Visible','off');
 
-for i=1:3,
+for i=1:3
     set(st.vols{volhandle}.ax{i}.ax,'UIcontextmenu',item_parent);
     st.vols{volhandle}.ax{i}.cm = item_parent;
-end;
+end
 
 % process any plugins
-for k = 1:numel(st.plugins),
-    feval(['spm_ov_', st.plugins{k}], ...
-        'context_menu', volhandle, item_parent);
+for k = 1:numel(st.plugins)
+    feval(['spm_ov_', st.plugins{k}],'context_menu',volhandle,item_parent);
     if k==1
         h = get(item_parent,'Children');
         set(h(1),'Separator','on'); 
     end
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function addcontexts(handles)
+%==========================================================================
+function addcontexts(handles)
+for ii = valid_handles(handles)
+    addcontext(ii);
+end
+spm_orthviews('reposition',spm_orthviews('pos'));
+
+
+%==========================================================================
+% function rmcontexts(handles)
+%==========================================================================
+function rmcontexts(handles)
+global st
+for ii = valid_handles(handles)
+    for i=1:3
+        set(st.vols{ii}.ax{i}.ax,'UIcontextmenu',[]);
+        st.vols{ii}.ax{i} = rmfield(st.vols{ii}.ax{i},'cm');
+    end
+end
+
+
+%==========================================================================
+% function c_menu(varargin)
+%==========================================================================
 function c_menu(varargin)
 global st
 
-switch lower(varargin{1}),
-    case 'image_info',
-        if nargin <3,
+switch lower(varargin{1})
+    case 'image_info'
+        if nargin <3
             current_handle = get_current_handle;
         else
             current_handle = varargin{3};
-        end;
-        if isfield(st.vols{current_handle},'fname'),
+        end
+        if isfield(st.vols{current_handle},'fname')
             [p,n,e,v] = spm_fileparts(st.vols{current_handle}.fname);
             if isfield(st.vols{current_handle},'n')
                 v = sprintf(',%d',st.vols{current_handle}.n);
-            end;
+            end
             set(varargin{2}, 'Label',[n e v]);
-        end;
+        end
         delete(get(varargin{2},'children'));
         if exist('p','var')
             item1 = uimenu(varargin{2}, 'Label', p);
-        end;
-        if isfield(st.vols{current_handle},'descrip'),
+        end
+        if isfield(st.vols{current_handle},'descrip')
             item2 = uimenu(varargin{2}, 'Label',...
                 st.vols{current_handle}.descrip);
-        end;
+        end
         dt = st.vols{current_handle}.dt(1);
         item3 = uimenu(varargin{2}, 'Label', sprintf('Data type: %s', spm_type(dt)));
         str   = 'Intensity: varied';
-        if size(st.vols{current_handle}.pinfo,2) == 1,
-            if st.vols{current_handle}.pinfo(2),
+        if size(st.vols{current_handle}.pinfo,2) == 1
+            if st.vols{current_handle}.pinfo(2)
                 str = sprintf('Intensity: Y = %g X + %g',...
                     st.vols{current_handle}.pinfo(1:2)');
             else
                 str = sprintf('Intensity: Y = %g X', st.vols{current_handle}.pinfo(1)');
-            end;
-        end;
+            end
+        end
         item4  = uimenu(varargin{2}, 'Label',str);
         item5  = uimenu(varargin{2}, 'Label', 'Image dims', 'Separator','on');
         item51 = uimenu(varargin{2}, 'Label',...
@@ -1726,7 +1773,7 @@ switch lower(varargin{1}),
             'Callback','spm_orthviews(''context_menu'',''swap_img'');',...
             'Separator','on');
         
-    case 'repos_mm',
+    case 'repos_mm'
         oldpos_mm = spm_orthviews('pos');
         newpos_mm = spm_input('New Position (mm)','+1','r',sprintf('%.2f %.2f %.2f',oldpos_mm),3);
         spm_orthviews('reposition',newpos_mm);
@@ -1743,85 +1790,85 @@ switch lower(varargin{1}),
         bbox;
         redraw_all;
         
-    case 'xhair',
+    case 'xhair'
         spm_orthviews('Xhairs',varargin{2});
         cm_handles = get_cm_handles;
-        for i = 1:numel(cm_handles),
+        for i = 1:numel(cm_handles)
             z_handle = get(findobj(cm_handles(i),'label','Crosshairs'),'Children');
             set(z_handle,'Checked','off'); %reset check
             if strcmp(varargin{2},'off'), op = 1; else op = 2; end
             set(z_handle(op),'Checked','on');
-        end;
+        end
         
-    case 'orientation',
+    case 'orientation'
         cm_handles = get_cm_handles;
-        for i = 1:numel(cm_handles),
+        for i = 1:numel(cm_handles)
             z_handle = get(findobj(cm_handles(i),'label','Orientation'),'Children');
             set(z_handle,'Checked','off');
-        end;
-        if varargin{2} == 3,
+        end
+        if varargin{2} == 3
             spm_orthviews('Space');
             for i = 1:numel(cm_handles),
                 z_handle = findobj(cm_handles(i),'label','World space');
                 set(z_handle,'Checked','on');
-            end;
+            end
         elseif varargin{2} == 2,
             spm_orthviews('Space',1);
-            for i = 1:numel(cm_handles),
+            for i = 1:numel(cm_handles)
                 z_handle = findobj(cm_handles(i),'label',...
                     'Voxel space (1st image)');
                 set(z_handle,'Checked','on');
-            end;
+            end
         else
             spm_orthviews('Space',get_current_handle);
             z_handle = findobj(st.vols{get_current_handle}.ax{1}.cm, ...
                 'label','Voxel space (this image)');
             set(z_handle,'Checked','on');
             return;
-        end;
+        end
         
-    case 'snap',
+    case 'snap'
         cm_handles = get_cm_handles;
-        for i = 1:numel(cm_handles),
+        for i = 1:numel(cm_handles)
             z_handle = get(findobj(cm_handles(i),'label','Snap to Grid'),'Children');
             set(z_handle,'Checked','off');
-        end;
-        if varargin{2} == 3,
+        end
+        if varargin{2} == 3
             st.snap = [];
-        elseif varargin{2} == 2,
+        elseif varargin{2} == 2
             st.snap = 1;
         else
             st.snap = get_current_handle;
             z_handle = get(findobj(st.vols{get_current_handle}.ax{1}.cm,'label','Snap to Grid'),'Children');
             set(z_handle(1),'Checked','on');
             return;
-        end;
-        for i = 1:numel(cm_handles),
+        end
+        for i = 1:numel(cm_handles)
             z_handle = get(findobj(cm_handles(i),'label','Snap to Grid'),'Children');
             set(z_handle(varargin{2}),'Checked','on');
-        end;
+        end
         
-    case 'interpolation',
+    case 'interpolation'
         tmp        = [-4 1 0];
         st.hld     = tmp(varargin{2});
         cm_handles = get_cm_handles;
-        for i = 1:numel(cm_handles),
+        for i = 1:numel(cm_handles)
             z_handle = get(findobj(cm_handles(i),'label','Interpolation'),'Children');
             set(z_handle,'Checked','off');
             set(z_handle(varargin{2}),'Checked','on');
-        end;
+        end
         redraw_all;
         
-    case 'window',
+    case 'window'
         current_handle = get_current_handle;
-        if varargin{2} == 2,
+        if varargin{2} == 2
             spm_orthviews('window',current_handle);
         else
             if isnumeric(st.vols{current_handle}.window)
                 defstr = sprintf('%.2f %.2f', st.vols{current_handle}.window);
             else
                 defstr = '';
-            end;
+            end
             [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
             while numel(w) < 1 || numel(w) > 2
                 uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
@@ -1831,20 +1878,20 @@ switch lower(varargin{1}),
                 w(2) = w(1)+eps;
             end
             spm_orthviews('window',current_handle,w);
-        end;
+        end
         
-    case 'window_gl',
-        if varargin{2} == 2,
-            for i = 1:numel(get_cm_handles),
+    case 'window_gl'
+        if varargin{2} == 2
+            for i = 1:numel(get_cm_handles)
                 st.vols{i}.window = 'auto';
-            end;
+            end
         else
             current_handle = get_current_handle;
             if isnumeric(st.vols{current_handle}.window)
                 defstr = sprintf('%d %d', st.vols{current_handle}.window);
             else
                 defstr = '';
-            end;
+            end
             [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
             while numel(w) < 1 || numel(w) > 2
                 uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
@@ -1853,16 +1900,15 @@ switch lower(varargin{1}),
             if numel(w) == 1
                 w(2) = w(1)+eps;
             end
-            for i = 1:numel(get_cm_handles),
+            for i = 1:numel(get_cm_handles)
                 st.vols{i}.window = w;
-            end;
-        end;
+            end
+        end
         redraw_all;
         
-    case 'mapping',
+    case 'mapping'
         checked = strcmp(varargin{2}, ...
-            {'linear', 'histeq', 'loghisteq', ...
-            'quadhisteq'});
+            {'linear', 'histeq', 'loghisteq', 'quadhisteq'});
         checked = checked(end:-1:1); % Handles are stored in inverse order
         current_handle = get_current_handle;
         cm_handles = get_cm_handles;
@@ -1873,15 +1919,15 @@ switch lower(varargin{1}),
             c_handle = get(z_handle(k), 'Children');
             set(c_handle, 'checked', 'off');
             set(c_handle(checked), 'checked', 'on');
-        end;
+        end
         redraw_all;
         
-    case 'mapping_gl',
+    case 'mapping_gl'
         checked = strcmp(varargin{2}, ...
             {'linear', 'histeq', 'loghisteq', 'quadhisteq'});
         checked = checked(end:-1:1); % Handles are stored in inverse order
         cm_handles = get_cm_handles;
-        for k = valid_handles(1:24),
+        for k = valid_handles(1:24)
             st.vols{k}.mapping = varargin{2};
             z_handle = get(findobj(cm_handles(k), ...
                 'label','Intensity mapping'),'Children');
@@ -1889,11 +1935,11 @@ switch lower(varargin{1}),
                 c_handle = get(z_handle(l), 'Children');
                 set(c_handle, 'checked', 'off');
                 set(c_handle(checked), 'checked', 'on');
-            end;
-        end;
+            end
+        end
         redraw_all;
         
-    case 'swap_img',
+    case 'swap_img'
         current_handle = get_current_handle;
         newimg = spm_select(1,'image','select new image');
         if ~isempty(newimg)
@@ -1901,19 +1947,19 @@ switch lower(varargin{1}),
             fn = fieldnames(new_info);
             for k=1:numel(fn)
                 st.vols{current_handle}.(fn{k}) = new_info.(fn{k});
-            end;
+            end
             spm_orthviews('context_menu','image_info',get(gcbo, 'parent'));
             redraw_all;
         end
         
-    case 'add_blobs',
+    case 'add_blobs'
         % Add blobs to the image - in split colortable
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle; end;
+        if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
-            for i = 1:numel(cm_handles),
+            for i = 1:numel(cm_handles)
                 addblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M);
                 % Add options for removing blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
@@ -1922,23 +1968,23 @@ switch lower(varargin{1}),
                 item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
                 if varargin{2} == 1,
                     item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
-                end;
+                end
                 % Add options for setting maxima for blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
-                if varargin{2} == 1,
+                if varargin{2} == 1
                     uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
-                end;
-            end;
+                end
+            end
             redraw_all;
         end
         
-    case 'remove_blobs',
+    case 'remove_blobs'
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle; end;
-        for i = 1:numel(cm_handles),
+        if varargin{2} == 2, cm_handles = get_current_handle; end
+        for i = 1:numel(cm_handles)
             rmblobs(cm_handles(i));
             % Remove options for removing blobs
             c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
@@ -1947,51 +1993,51 @@ switch lower(varargin{1}),
             % Remove options for setting maxima for blobs
             c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
             set(c_handle,'Visible','off');
-        end;
+        end
         redraw_all;
         
-    case 'add_image',
+    case 'add_image'
         % Add blobs to the image - in split colortable
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle; end;
+        if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         fname = spm_select(1,'image','select image');
         if ~isempty(fname)
-            for i = 1:numel(cm_handles),
+            for i = 1:numel(cm_handles)
                 addimage(cm_handles(i),fname);
                 % Add options for removing blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
-                if varargin{2} == 1,
+                if varargin{2} == 1
                     item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
-                end;
+                end
                 % Add options for setting maxima for blobs
                 c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
-                if varargin{2} == 1,
+                if varargin{2} == 1
                     uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''setblobsmax'',1);');
-                end;
-            end;
+                end
+            end
             redraw_all;
         end
         
-    case 'add_c_blobs',
+    case 'add_c_blobs'
         % Add blobs to the image - in full colour
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle; end;
+        if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
         if ~isempty(SPM)
-            c         = spm_input('Colour','+1','m',...
+            c = spm_input('Colour','+1','m',...
                 'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-            colours   = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-            c_names   = {'red';'yellow';'green';'cyan';'blue';'magenta'};
+            colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+            c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
             hlabel = sprintf('%s (%s)',xSPM.title,c_names{c});
-            for i = 1:numel(cm_handles),
+            for i = 1:numel(cm_handles)
                 addcolouredblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:),xSPM.title);
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
                 c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
@@ -2001,51 +2047,53 @@ switch lower(varargin{1}),
                 item7_4_1   = uimenu(ch_c_handle(2),'Label',hlabel,'ForegroundColor',colours(c,:),...
                     'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',2,c);',...
                     'UserData',c);
-                if varargin{2} == 1,
+                if varargin{2} == 1
                     item7_4_2 = uimenu(ch_c_handle(1),'Label',hlabel,'ForegroundColor',colours(c,:),...
                         'Callback','c = get(gcbo,''UserData'');spm_orthviews(''context_menu'',''remove_c_blobs'',1,c);',...
                         'UserData',c);
-                end;
-            end;
+                end
+            end
             redraw_all;
         end
-    case 'remove_c_blobs',
+        
+    case 'remove_c_blobs'
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle; end;
+        if varargin{2} == 2, cm_handles = get_current_handle; end
         colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-        for i = 1:numel(cm_handles),
-            if isfield(st.vols{cm_handles(i)},'blobs'),
-                for j = 1:numel(st.vols{cm_handles(i)}.blobs),
+        for i = 1:numel(cm_handles)
+            if isfield(st.vols{cm_handles(i)},'blobs')
+                for j = 1:numel(st.vols{cm_handles(i)}.blobs)
                     if all(st.vols{cm_handles(i)}.blobs{j}.colour == colours(varargin{3},:));
                         if isfield(st.vols{cm_handles(i)}.blobs{j},'cbar')
                             delete(st.vols{cm_handles(i)}.blobs{j}.cbar);
                         end
                         st.vols{cm_handles(i)}.blobs(j) = [];
                         break;
-                    end;
-                end;
+                    end
+                end
                 rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
                 delete(gcbo);
-                if isempty(st.vols{cm_handles(i)}.blobs),
+                if isempty(st.vols{cm_handles(i)}.blobs)
                     st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
                     set(rm_c_menu, 'Visible', 'off');
-                end;
-            end;
-        end;
+                end
+            end
+        end
         redraw_all;
         
-    case 'add_c_image',
+    case 'add_c_image'
         % Add truecolored image
         cm_handles = valid_handles(1:24);
-        if varargin{2} == 2, cm_handles = get_current_handle;end;
+        if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
-        fname   = spm_select([1 Inf],'image','select image(s)');
+        fname = spm_select([1 Inf],'image','select image(s)');
         for k = 1:size(fname,1)
-            c       = spm_input(sprintf('Image %d: Colour',k),'+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
+            c = spm_input(sprintf('Image %d: Colour',k),'+1','m',...
+                'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
             colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
             c_names = {'red';'yellow';'green';'cyan';'blue';'magenta'};
             hlabel = sprintf('%s (%s)',fname(k,:),c_names{c});
-            for i = 1:numel(cm_handles),
+            for i = 1:numel(cm_handles)
                 addcolouredimage(cm_handles(i),fname(k,:),colours(c,:));
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
                 c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
@@ -2096,20 +2144,24 @@ switch lower(varargin{1}),
             end
         end
         redraw_all;
-        
-end;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function current_handle = get_current_handle
+%==========================================================================
 function current_handle = get_current_handle
 cm_handle      = get(gca,'UIContextMenu');
 cm_handles     = get_cm_handles;
 current_handle = find(cm_handles==cm_handle);
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function cm_pos
+%==========================================================================
 function cm_pos
 global st
-for i = 1:numel(valid_handles(1:24)),
+for i = 1:numel(valid_handles(1:24))
     if isfield(st.vols{i}.ax{1},'cm')
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_mm'),...
             'Label',sprintf('mm:  %.1f %.1f %.1f',spm_orthviews('pos')));
@@ -2119,21 +2171,24 @@ for i = 1:numel(valid_handles(1:24)),
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','v_value'),...
             'Label',sprintf('Y = %g',spm_sample_vol(st.vols{i},pos(1),pos(2),pos(3),st.hld)));
     end
-end;
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+end
+
+
+%==========================================================================
+% function cm_handles = get_cm_handles
+%==========================================================================
 function cm_handles = get_cm_handles
 global st
 cm_handles = [];
-for i=valid_handles(1:24),
+for i = valid_handles(1:24)
     cm_handles = [cm_handles st.vols{i}.ax{1}.cm];
 end
-return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function zoom_all(zoom,res)
+%==========================================================================
 function zoom_all(zoom,res)
-global st
 cm_handles = get_cm_handles;
 zoom_op(zoom,res);
 for i = 1:numel(cm_handles)
@@ -2145,4 +2200,3 @@ for i = 1:numel(cm_handles)
         set(findobj(z_handle,'Label',sprintf('%dx%d mm', 2*zoom, 2*zoom)),'Checked','on');
     end % leave all unchecked if either bounding box option was chosen
 end
-return;

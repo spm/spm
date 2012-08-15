@@ -12,11 +12,11 @@ function spm_check_registration(images, captions, varargin)
 % Copyright (C) 1997-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 4330 2011-05-23 18:04:16Z ged $
+% $Id: spm_check_registration.m 4845 2012-08-15 19:23:46Z guillaume $
 
 
 if ~nargin
-    [images, sts] = spm_select([1 15],'image','Select images');
+    [images, sts] = spm_select([1 24],'image','Select images');
     if ~sts, return; end
 end
 

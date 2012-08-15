@@ -1,7 +1,7 @@
 function spm_update(update)
-% Check (and install) SPM12 updates from the FIL FTP server
+% Check (and install) SPM updates from the FIL server
 % FORMAT spm_update
-% This function will connect itself to the FIL FTP server, compare the
+% This function will connect itself to the FIL server, compare the
 % version number of the updates with the one of the SPM installation 
 % currently in the MATLAB path and will display the outcome.
 %
@@ -9,12 +9,13 @@ function spm_update(update)
 % Invoking this function with any input parameter will do the same as
 % above but will also attempt to download and install the updates.
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 4588 2011-12-08 18:28:59Z guillaume $
+% $Id: spm_update.m 4845 2012-08-15 19:23:46Z guillaume $
 
-url = 'ftp://ftp.fil.ion.ucl.ac.uk/spm/spm12_updates/';
+url  = 'ftp://ftp.fil.ion.ucl.ac.uk/spm/spm12_updates/';
+vspm = 'SPM12';
 
 if ~nargin
     update = false;
@@ -23,8 +24,8 @@ else
 end
 
 [s,sts] = urlread(url);
-if ~sts, error('Cannot access the FIL FTP server.'); end
-n       = regexp(s,'spm12_updates_r(\d.*?)\.zip','tokens','once');
+if ~sts, error('Cannot access the FIL server.'); end
+n       = regexp(s,[lower(vspm) '_updates_r(\d.*?)\.zip'],'tokens','once');
 if isempty(n)
     fprintf('         There are no updates available yet.\n');
     return;
@@ -37,10 +38,10 @@ try
 catch
     error('SPM cannot be found in MATLAB path.');
 end
-if ~strcmp(v,'SPM12'), error('Your SPM version is %s and not SPM12',v); end
+if ~strcmp(v,vspm), error('Your SPM version is %s and not %s',v,vspm); end
 rs = [];
 if isnan(r), r = rs(1); end 
-if floor(r) == 12
+if floor(r) == str2double(vspm(4:end))
     try
         r = rs(round((r-floor(r))*10)+1);
     catch
@@ -49,7 +50,7 @@ if floor(r) == 12
 end
 
 if n > r
-    fprintf('         A new version of SPM is available on:\n');
+    fprintf('         A new version of %s is available on:\n',vspm);
     fprintf('     %s\n',url);
     fprintf('        (Your version: %d - New version: %d)\n',r,n);
 
@@ -57,13 +58,14 @@ if n > r
         d = spm('Dir'); 
         delete(get(0,'Children')); spm('clean'); evalc('spm_rmpath');
         try
-            s = unzip([url sprintf('spm12_updates_r%d.zip',n)], d);
+            s = unzip([url sprintf('%s_updates_r%d.zip',lower(vspm),n)], d);
             fprintf('             %d files have been updated.\n',numel(s));
         catch
             fprintf('          Update failed: check file permissions.\n');
         end
         addpath(d);
+        rehash toolboxcache;
     end
 else
-    fprintf('         Your version of SPM is up to date.\n');
+    fprintf('         Your version of %s is up to date.\n',vspm);
 end
