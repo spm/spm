@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 3999 2010-07-19 10:54:18Z guillaume $
+% $Id: subsasgn.m 4848 2012-08-17 11:39:06Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -15,6 +15,7 @@ switch subs(1).type
             [i,n] = isintent(this,subs(1).subs);
             if isempty(i) && ~strcmp(subs(1).subs,'private')
                 n = length(this.data) + 1;
+                if n==1, this.data = {};end
                 % TODO % Initialise data field appropriately
                 this.data{n}.metadata = struct([]);
                 this.data{n}.space    = [];

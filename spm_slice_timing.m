@@ -92,10 +92,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 4479 2011-09-12 11:28:04Z guillaume $
+% $Id: spm_slice_timing.m 4848 2012-08-17 11:39:06Z guillaume $
 
 
-SVNid = '$Rev: 4479 $';
+SVNid = '$Rev: 4848 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -127,6 +127,9 @@ nslices = Vin(1).dim(3);
 TR  = (nslices-1)*timing(1)+timing(2);
 fprintf('%-40s: %30s\n','Number of slices is...',num2str(nslices))      %-#
 fprintf('%-40s: %30s\n','Time to Repeat (TR) is...',num2str(TR))        %-#
+if nslices ~= length(sliceorder)
+    error('Mismatch between number of slices and slice acquisition order');
+end
 factor = timing(1)/TR;
 
 if nargin < 5, prefix = 'a'; end
