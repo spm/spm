@@ -3,7 +3,7 @@ function out = bf_features
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_features.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_features.m 4849 2012-08-18 12:51:28Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -69,7 +69,7 @@ for i = 1:numel(feature_funs)
 end
 
 out = cfg_exbranch;
-out.tag = 'bf_features';
+out.tag = 'features';
 out.name = 'Covariance features';
 out.val = {BF, whatconditions, woi, foi, plugin};
 out.help = {'Define features for covariance computation'};

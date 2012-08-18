@@ -4,7 +4,7 @@ function bf = tbx_cfg_bf
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tbx_cfg_bf.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: tbx_cfg_bf.m 4849 2012-08-18 12:51:28Z vladimir $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Beamforming')); end
 
@@ -18,7 +18,7 @@ components = {
     };
 
 bf = cfg_choice;
-bf.tag = 'bf_main';
+bf.tag = 'beamforming';
 bf.name = 'Beamforming';
 bf.help = {'Beamforming toolbox'};
 

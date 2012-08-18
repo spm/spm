@@ -3,7 +3,7 @@ function out = bf_sources
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_sources.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_sources.m 4849 2012-08-18 12:51:28Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -29,7 +29,7 @@ end
 
 
 out = cfg_exbranch;
-out.tag = 'bf_sources';
+out.tag = 'sources';
 out.name = 'Define sources';
 out.val = {BF, plugin};
 out.help = {'Define source space for beamforming'};

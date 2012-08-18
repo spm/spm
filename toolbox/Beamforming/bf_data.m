@@ -3,7 +3,7 @@ function out = bf_data
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_data.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_data.m 4849 2012-08-18 12:51:28Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -38,7 +38,7 @@ space.values = {'MNI-aligned', 'Head', 'Native'};
 space.val = {'MNI-aligned'};
 
 out = cfg_exbranch;
-out.tag = 'bf_data';
+out.tag = 'data';
 out.name = 'Prepare data';
 out.val = {dir, D, val, space};
 out.help = {'Prepare the input for beamforming'};

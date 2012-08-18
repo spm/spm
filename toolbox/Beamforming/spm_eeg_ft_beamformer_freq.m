@@ -10,11 +10,10 @@ function spm_eeg_ft_beamformer_freq(S)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_beamformer_freq.m 4835 2012-08-09 17:12:18Z guillaume $
+% $Id: spm_eeg_ft_beamformer_freq.m 4849 2012-08-18 12:51:28Z vladimir $
         
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip beamformer for power', 0);
 %%
-
 %% ============ Load SPM EEG file and verify consistency
 if nargin == 0
     S = [];
@@ -179,6 +178,11 @@ end
 %%
 cfg = [];
 cfg.method    = 'mtmfft';
+
+if ~license('checkout','signal_toolbox') || isdeployed;
+    cfg.taper = 'sine';
+end
+
 cfg.output    = 'powandcsd';
 cfg.tapsmofrq = S.tapsmofrq;
 cfg.foilim    = [S.centerfreq S.centerfreq];

@@ -3,7 +3,7 @@ function out = bf_output
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_output.m 4849 2012-08-18 12:51:28Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -28,7 +28,7 @@ for i = 1:numel(output_funs)
 end
 
 out = cfg_exbranch;
-out.tag = 'bf_output';
+out.tag = 'output';
 out.name = 'Output';
 out.val = {BF, plugin};
 out.help = {'Generate output'};

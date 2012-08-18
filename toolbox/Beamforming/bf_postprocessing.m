@@ -3,7 +3,7 @@ function out = bf_postprocessing
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_postprocessing.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_postprocessing.m 4849 2012-08-18 12:51:28Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -28,7 +28,7 @@ for i = 1:numel(postprocessing_funs)
 end
 
 out = cfg_exbranch;
-out.tag = 'bf_postprocessing';
+out.tag = 'postprocessing';
 out.name = 'Postprocessing';
 out.val = {BF, plugin};
 out.help = {'Perform postprocessing'};

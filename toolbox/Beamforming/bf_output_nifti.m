@@ -3,7 +3,7 @@ function res = bf_output_nifti(BF, S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output_nifti.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_output_nifti.m 4849 2012-08-18 12:51:28Z vladimir $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -89,6 +89,7 @@ nimages = numel(BF.postprocessing.image);
 cfg = [];
 cfg.parameter = 'pow';
 cfg.downsample = 1;
+cfg.showcallinfo = 'no';
 
 spm('Pointer', 'Watch');drawnow;
 spm_progress_bar('Init', nimages , 'Writing out images'); drawnow;
