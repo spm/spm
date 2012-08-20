@@ -1,4 +1,4 @@
-function [DCM] = spm_dcm_csd_results(DCM,Action,fig)
+function spm_dcm_csd_results(DCM,Action)
 % Results for CSD (SSR) Dynamic Causal Modeling (DCM)
 % FORMAT spm_dcm_csd_results(DCM,'spectral data');
 % FORMAT spm_dcm_csd_results(DCM,'Coupling (A)');
@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_csd_results.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % get figure

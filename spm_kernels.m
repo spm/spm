@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kernels.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_kernels.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % assign inputs
@@ -92,7 +92,7 @@ end
 %--------------------------------------------------------------------------
 N     = fix(N);                     % kernel depth
 n     = size(M0,1);                 % state variables
-m     = size(M1,2);                 % inputs
+m     = size(M1,1);                 % inputs
 l     = size(L1,1);                 % outputs
 H1    = zeros(N,n,m);
 K1    = zeros(N,l,m);
@@ -119,7 +119,7 @@ end
 %--------------------------------------------------------------------------
 if norm(M{N},'inf') > norm(M{1},'inf') || norm(M{1},'inf') > exp(16)
     
-    M0    = spm_condition(M0);
+    M0    = spm_bilinear_condition(M0,N,dt);
     e1    = expm( dt*M0);
     ei    = 1;
     for i = 1:N
@@ -186,21 +186,3 @@ if nargout > 2
     end
 end
 
-return
-
- 
-function M0 = spm_condition(M0)
-
-% conditions a bilinear operator by suppressing positive eigenmodes
-%==========================================================================
- 
-% remove unstable modes from Jacobian
-%--------------------------------------------------------------------------
-dfdx  = M0(2:end,2:end);
-[u s] = eig(full(dfdx));
-S     = diag(s);
-S     = real(S).*real(S < 0) + sqrt(-1)*imag(S);
- 
-% replace in bilinear operator
-%--------------------------------------------------------------------------
-M0(2:end,2:end) = real(u*diag(S)*spm_inv(u));

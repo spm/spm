@@ -49,7 +49,7 @@ function spm_csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_csd_demo.m 4852 2012-08-20 15:04:49Z karl $
  
 clear global
  
@@ -74,6 +74,11 @@ C     = speye(n,n);                        % sources receiving innovations
 [pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
 [pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
 [pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
+
+% Suppress channel noise
+%--------------------------------------------------------------------------
+pE.b  = pE.b - 16;
+pE.c  = pE.c - 16;
  
 % create LFP model
 %--------------------------------------------------------------------------
@@ -89,13 +94,13 @@ M.pE  = pE;
 M.pC  = pC;
 M.m   = n;
 M.l   = nc;
-M.Hz  = [1:64]';
+M.Hz  = (1:64)';
  
  
 % simulate spectral data directly
 %==========================================================================
 P           = pE;
-P.A{1}(2,1) = 1;                          % strong forward connections
+P.A{1}(2,1) = 1/2;                          % strong forward connections
 CSD         = spm_lfp_mtf(P,M);
 CSD         = CSD{1};
  
@@ -118,13 +123,13 @@ catch
     warndlg('please include spectral toolbax in Matlab path')
 end
 mar  = spm_mar_spectra(mar,M.Hz,1/U.dt);
-CSD  = spm_cond_units(abs(mar.P));
+% CSD  = spm_cond_units(abs(mar.P));
 
 
 spm_figure('GetWin','Figure 1'); clf
 
 subplot(2,1,1)
-plot([1:N]*U.dt,LFP)
+plot((1:N)*U.dt,LFP)
 xlabel('time')
 title('LFP')
  

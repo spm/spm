@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_ssr_priors.m 4852 2012-08-20 15:04:49Z karl $
  
 % catch
 %--------------------------------------------------------------------------
@@ -43,13 +43,13 @@ if size(pE.C,1),      m = size(pE.C,1); else, m = 1; end
 
 % add prior on spectral density of innovations (pink and white coeficients)
 %--------------------------------------------------------------------------
-pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/16; % neuronal innovations
+pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/64; % neuronal innovations
 pE.b = sparse(2,1); pC.b = sparse(2,1) + 1/16; % channel noise non-specific
 pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/16; % channel noise specific
 
-% neuronal innovations
+% neuronal innovations (coeficicents for structured spectra)
 %--------------------------------------------------------------------------
-pE.d = sparse(4,m); pC.d = sparse(4,m) + 1/32; 
+pE.d = sparse(4,1); pC.d = sparse(4,1) + 1/64; 
 
 
 

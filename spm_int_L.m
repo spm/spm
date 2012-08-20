@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_int_L.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % convert U to U.u if necessary
@@ -102,17 +102,15 @@ end
 %--------------------------------------------------------------------------
 D    = 1;
 if nargout(f) == 3
-    [fx dfdx D] = f(x,u,P,M);
+    [~, dfdx D] = f(x,u,P,M);
     
 elseif nargout(f) == 2
-    [fx dfdx]   = f(x,u,P,M);
+    [~, dfdx]   = f(x,u,P,M);
     
 else
-    fx          = f(x,u,P,M);
-    dfdx        = spm_cat(spm_diff(f,x,u,P,M,1));
+    dfdx        = spm_cat(spm_diff(f,x,u,P,M,1)); 
 end
-dfdx  = full(dfdx);
-p     = max(abs(real(eig(dfdx))));
+p     = max(abs(real(eig(full(dfdx)))));
 N     = ceil(max(1,dt*p*2));
 n     = length(spm_vec(x));
 Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
@@ -123,9 +121,7 @@ for i = 1:size(U.u,1)
  
     % input
     %----------------------------------------------------------------------
-    try
-        u  = U.u(i,:);
-    end
+    u  = U.u(i,:);
  
     % update dx = (expm(dt*J) - I)*inv(J)*f(x,u)
     %----------------------------------------------------------------------

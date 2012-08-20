@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_tfm_data.m 4852 2012-08-20 15:04:49Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -169,19 +169,6 @@ end
 Hz  = fix(Hz1:Hz2);                         % Frequencies
 Nf  = length(Hz);                           % number of frequencies
 Ne  = length(trial);                        % number of ERPs
- 
-% get induced responses (use previous CSD results if possible)
-%==========================================================================
-try
-    if length(DCM.xY.csd) == Ne;
-        if all(size(DCM.xY.csd{1}) == [Nb Nf Nm Nm])
-            if DCM.xY.Rft  == Rft;
-                DCM.xY.y  = DCM.xY.csd;
-                return
-            end
-        end
-    end
-end
  
 % Cross spectral density for each trial type
 %==========================================================================

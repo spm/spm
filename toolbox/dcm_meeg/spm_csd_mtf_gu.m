@@ -17,12 +17,17 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_csd_mtf_gu.m 4852 2012-08-20 15:04:49Z karl $
 
  
 % frequencies of interest
 %--------------------------------------------------------------------------
 try, f = M.Hz(:); catch, f = M(:); end
+
+% Number of sources and fequencies
+%--------------------------------------------------------------------------
+ns     = max(size(P.a,2),size(P.d,2));
+nf     = size(f,1);
 
 
 % spectrum of neuronal innovations (Gu)
@@ -31,17 +36,24 @@ for i = 1:size(P.a,2)
     Gu(:,i) = exp(P.a(1,i))*f.^(-exp(P.a(2,i)));
 end
 
+if size(Gu,2) == 1, Gu = Gu*ones(1,ns); end
+
+
 % add structured innovations - a discrete cosine set of order length(P.d)
 %--------------------------------------------------------------------------
 if isfield(P,'d')
-    X  = spm_dctmtx(size(Gu,1),size(P.d,1) + 1);
-    Gu = Gu.*exp(X(:,2:end)*P.d);
+    nd = size(P.d,1);
+    X  = spm_dctmtx(nf,nd + 1);
+    Mu = exp(X(:,2:end)*P.d);
+else
+    Mu = ones(nf,1);
 end
 
-if size(Gu,2) == 1, Gu = Gu*ones(1,size(P.a,2)); end
+if size(Mu,2) == 1, Mu = Mu*ones(1,ns); end
 
 % return unless channel noise is required
 %--------------------------------------------------------------------------
+Gu     = Gu.*Mu;
 if nargout < 2, return, end
 
 

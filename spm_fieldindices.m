@@ -10,29 +10,29 @@ function [i] = spm_fieldindices(X,varargin)
 %
 %__________________________________________________________________________
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_fieldindices.m 4400 2011-07-20 17:06:44Z guillaume $
- 
- 
+% $Id: spm_fieldindices.m 4852 2012-08-20 15:04:49Z karl $
+
+
 % create structure of zeros
 %--------------------------------------------------------------------------
 X0    = spm_vec(X)*0;
 ix    = X0;
 X0    = spm_unvec(X0,X);
- 
+
 % and add one to specified fields
 %--------------------------------------------------------------------------
 for i = 1:length(varargin)
     
     if ischar(varargin{i})
-    
-    x  = X0;
-    f  = getfield(x,varargin{i});
-    f  = spm_unvec(spm_vec(f) + 1,f);
-    x  = setfield(x,varargin{i},f);
-    ix = ix + spm_vec(x);
-    
+        
+        x  = X0;
+        f  = getfield(x,varargin{i});
+        f  = spm_unvec(spm_vec(f) + 1,f);
+        x  = setfield(x,varargin{i},f);
+        ix = ix + spm_vec(x);
+        
     else
         name  = fieldnames(X);
         for j = 1:length(name)
@@ -44,7 +44,7 @@ for i = 1:length(varargin)
         end
     end
 end
- 
+
 % find indices
 %--------------------------------------------------------------------------
 i = find(ix);

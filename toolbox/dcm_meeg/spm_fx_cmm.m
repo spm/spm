@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_fx_cmm.m 4852 2012-08-20 15:04:49Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -92,19 +92,19 @@ G          = exp(P.G);
 %--------------------------------------------------------------------------
 SA   = [1   0   ;
         0   0   ;
-        0   16  ;
-        0   0]/8;
+        0   8  ;
+        0   0]/4;
  
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
 GE   = [0   0   0   0;  
-        48  0   0   0;
+        32  0   0   0;
         8   0   0   4;
         0   0   0   0];
  
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI   = [6   1   1   0;
+GI   = [4   2   1   0;
         0   32  0   0;
         0   0   8   0;
         0   0   8   4];
@@ -153,6 +153,9 @@ else
     
 end
 
+% Averge background activity
+%==========================================================================
+BE    = exp(P.E)/8;
  
 % flow and dispersion over every (ns x np) subpopulation
 %==========================================================================
@@ -170,7 +173,7 @@ for i = 1:ns
         
         % extrinsic coupling (excitatory only) and background activity
         %------------------------------------------------------------------
-        E = E + 1/8 + SA(j,:)*a(i,:)';
+        E = E + BE + SA(j,:)*a(i,:)';
  
         % Voltage
         %------------------------------------------------------------------

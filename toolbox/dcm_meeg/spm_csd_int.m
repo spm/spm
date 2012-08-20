@@ -10,7 +10,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 %                    - for w frequencies over time t in M.Hz
 % w - frequencies
 % t – peristimulus time
-% x - expectation of hidden (neuronal) states
+% x - expectation of hidden (neuronal) states (for last trial)
 % G - {G(t,w,nc,nc}} - cross spectrum density before dispersion
 % S - {S(t,w,nc,nu}} - transfer functions
 % E - {E(t,nc}}      - event-related average (sensor space)
@@ -21,17 +21,17 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % expansion point to generate complex cross spectral responses due to
 % random neuronal fluctuations. The ensuing spectral (induced) response is
 % then convolved (in time) with a window that corresponds to the window of
-% a standard wavelet transform. In other words, this routine  generates
-% predictions of data features based upon a wavelet transforms
+% a standard wavelet transform. In other words, this routine generates
+% predictions of data features based upon a wavelet transform
 % characterisation of induced responses.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_csd_int.m 4852 2012-08-20 15:04:49Z karl $
 
 
-% check input - one trial (no between-tria effects)
+% check input - default: one trial (no between-trial effects)
 %--------------------------------------------------------------------------
 if nargin < 3
     U.dt = 0.004;
@@ -54,7 +54,7 @@ try, dt  = U.dt;    catch, dt  = 0.004;       end
 
 % within-trial (exogenous) inputs
 %==========================================================================
-if ~isfield(U,'u') 
+if ~isfield(U,'u')
     u = feval(fu,(1:ns)*dt,P,M)';
 else
     u = U.u';
@@ -75,16 +75,17 @@ catch
     X = sparse(1,0);
 end
 
-% disperson (FWHM) of time-frequency responses
+% number of endogenous inputs and hidden states
 %==========================================================================
 nu    = length(P.A{1});
+nx    = M.n;
 
 % accelerate bilinear reduction by assuming inputs enter linearly
 %--------------------------------------------------------------------------
-[dfdxu{1:nu}] = deal(sparse(M.n,M.n));
+[dfdxu{1:nu}] = deal(sparse(nx,nx));
 
 
-% cycle over trials
+% cycle over trials or conditions
 %--------------------------------------------------------------------------
 for c = 1:size(X,1)
     
@@ -102,7 +103,7 @@ for c = 1:size(X,1)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
         
-        % intrinsic connections
+        % intrinsic connections (encoded by H or G)
         %------------------------------------------------------------------
         try
             Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
@@ -112,107 +113,122 @@ for c = 1:size(X,1)
         
     end
     
-    % initialise steady state
+    % initialise hidden states
     %----------------------------------------------------------------------
-    try
-        x = spm_vec(spm_dcm_neural_x(Q,M));
-    catch
-        x = M.x;
+    x = spm_vec(spm_dcm_neural_x(Q,M));
+    
+    % remove state (X) and input (Y) dependent parameter from Q
+    %----------------------------------------------------------------------
+    if isfield(Q,'X'), Q = rmfield(Q,'X'); end
+    if isfield(Q,'Y'), Q = rmfield(Q,'Y'); end
+    
+    
+    
+    % get local linear operator LL and delay operator D
+    %==================================================================
+    if nargout(f) == 3
+        [~, dfdx D] = f(x(:,1),u(:,1),Q,M);
+        
+    elseif nargout(f) == 2
+        [~, dfdx]   = f(x(:,1),u(:,1),Q,M);
+        D           = 1;
+        
+    else
+        dfdx        = spm_diff(f,x(:,1),u(:,1),Q,M,1);
+        D           = 1;
     end
+    
+    % get local linear operator LL
+    %------------------------------------------------------------------
+    p     = max(abs(real(eig(full(dfdx)))));
+    N     = ceil(max(1,dt*p*2));
+    LL    = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
+    
     
     % cycle over time – expanding around expected states and input
     %======================================================================
-    if isfield(Q,'X')
-        Q = rmfield(Q,'X');
-        Q = rmfield(Q,'Y');
-    end
     for i = 1:length(t)
         
         % hidden states
         %------------------------------------------------------------------
-        if i == 1
-            x(:,i) = spm_vec(M.x);
-        else
-            x(:,i) = x(:,i - 1);
-        end
+        if i > 1, x(:,i) = x(:,i - 1);  end
         
         
-        % state-dependent parmeters
+        % state-dependent parameters
         %==================================================================
         
         % update state-dependent parameters (first order)
         %------------------------------------------------------------------
         dQ  = 0;
-        if isfield(P,'X')
-            dQ  = P.X*u(:,i) + P.Y*x(:,i);
-        end
-        
+        if isfield(P,'X'), dQ  = dQ + P.X*u(:,i);  end
+        if isfield(P,'Y'), dQ  = dQ + P.Y*x(:,i);  end
         
         % update state-dependent parameters (second order)
         %------------------------------------------------------------------
         % dQ = dQ + spm_csd_cch(Q,M); dQ
         R   = spm_unvec(spm_vec(Q) + dQ,Q);
         
+       
+        
+        % compute complex cross spectral density
+        %==================================================================
         
         % flow dx(t)/dt and Jacobian df/dx
         %------------------------------------------------------------------
         if nargout(f) == 3
-            [fx dfdx D] = f(x(:,i),u(:,i),R,M);
+            [f0 dfdx D] = f(x(:,i),u(:,i),Q,M);
             
         elseif nargout(f) == 2
-            [fx dfdx]   = f(x(:,i),u(:,i),R,M);
+            [f0 dfdx]   = f(x(:,i),u(:,i),Q,M);
             D           = 1;
             
         else
-            fx          = f(x(:,i),u(:,i),P,M);
-            dfdx        = spm_cat(spm_diff(f,x(:,i),u(:,i),R,M,1));
+            [dfdx f0]   = spm_diff(f,x(:,i),u(:,i),Q,M,1);
             D           = 1;
         end
         
-
-        % update expansion point (hidden states and endogenous input)
+        % use current states and endogenous input
         %------------------------------------------------------------------
         M.x     = spm_unvec(x(:,i),M.x);
-        M.u     = sparse(nu,1) + exp(R.C)*u(:,i);
+        M.u     = sparse(nu,1) + 0*exp(R.C)*u(:,i);
         
+        % place in M to accelerate bilinear reduction
+        %------------------------------------------------------------------        
         M.dfdxu = dfdxu;
         M.dfdx  = dfdx;
         M.dfdu  = spm_diff(f,M.x,M.u,R,M,2);
-        M.f0    = fx; 
-        M.D     = D;      
-        
-        % compute complex cross spectral density
-        %==================================================================
+        M.f0    = f0;
+        M.D     = D;
         [g,w,s] = spm_csd_mtf(R,M);
         
-        M       = rmfield(M,'u');
-        M.x     = spm_unvec(x(:,1),M.x);
         
-        
-        % and place in response
+        % place CSD and transfer functions in response
         %------------------------------------------------------------------
         G{c}(i,:,:,:) = g{1};
         S{c}(i,:,:,:) = s{1};
+
         
-        % update states: dx = (expm(dt*J) - I)*inv(J)*fx
-        %------------------------------------------------------------------
-        x(:,i)  = x(:,i) + spm_dx(D*dfdx,D*fx,dt);
+        % update dx = (expm(dt*J) - I)*inv(J)*f(x,u) = LL*f(x,u)
+        %==================================================================
         
-        % and response
+        % reset to exmpsnaion point (hidden states and exoogenous input)
         %------------------------------------------------------------------
-        e(:,i)  = feval(M.g,x(:,i),u(:,i),R,M);
+        M     = rmfield(M,'u');
+        M.x   = spm_unvec(x(:,1),M.x); 
+        
+        for j = 1:N
+            x(:,i) = x(:,i) + LL*f(x(:,i),u(:,i),R,M);
+        end
+        
+        % and ERP response
+        %------------------------------------------------------------------
+        erp(:,i)  = feval(M.g,x(:,i),u(:,i),R,M);
         
     end
     
     % model dispersion associated with wavelet transforms
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     Y{c}  = spm_morlet_conv(G{c},w*dt,Rft);
-    E{c}  = e';
+    E{c}  = erp';
     
 end
-
-
-
-
-
-

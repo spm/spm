@@ -12,13 +12,13 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % w - frequencies
 % s - directed transfer functions (complex)
 %
-% When called with U this function will return a cross-spectral respsone
-% for each of the condition-specific paramters specifed in U.X; otherwise
-% it simple return the complex CSD for the parameters in P.
+% When called with U this function will return a cross-spectral response
+% for each of the condition-specific parameters specified in U.X; otherwise
+% it returns the complex CSD for the parameters in P.
 %
-% When the observer function M.g is pecifed the CSD repsonse is
-% supplemented with channel noise in sneosr space; otherwsie the CSD
-% pertins to hidden states.
+% When the observer function M.g is specified the CSD response is
+% supplemented with channel noise in sensor space; otherwise the CSD
+% pertains to hidden states.
 %
 % NB: requires M.u to specify the number of endogenous inputs
 % This routine and will solve for the (hidden) steady state and use it as
@@ -27,11 +27,11 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_csd_mtf.m 4814 2012-07-30 19:56:05Z karl $
-
-
+% $Id: spm_csd_mtf.m 4852 2012-08-20 15:04:49Z karl $
+ 
+ 
 % between-trial (experimental) inputs
 %==========================================================================
 try
@@ -46,10 +46,10 @@ catch
     X = sparse(1,0);
     
 end
-
+ 
 % compute log-spectral density
 %==========================================================================
-
+ 
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
@@ -61,13 +61,13 @@ catch
     dt = 1/N;
     w  = 1:N/2;
 end
-
+ 
 % number of channels and exogenous (neuronal) inputs or sources
 %--------------------------------------------------------------------------
 nc   = M.l;
 ns   = length(M.u);
 nw   = length(w);
-
+ 
 % spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
 if isfield(M,'g')
@@ -75,10 +75,10 @@ if isfield(M,'g')
 else
     Gu         = spm_csd_mtf_gu(P,w);
 end
-
-
+ 
+ 
 % cycle over trials (experimental conditions)
-%==========================================================================the
+%==========================================================================
 for  c = 1:size(X,1)
     
     % baseline parameters
@@ -112,7 +112,7 @@ for  c = 1:size(X,1)
     end
     
     
-    % delay operator - if not specfied already and it is parameterised
+    % delay operator - if not specified already
     %----------------------------------------------------------------------
     if ~isfield(M,'D') && nargout(M.f) == 3
         [~,~,D] = feval(M.f,M.x,M.u,Q,M);
@@ -123,12 +123,15 @@ for  c = 1:size(X,1)
     % augment and bi-linearise
     %----------------------------------------------------------------------
     [M0,M1,L] = spm_bireduce(M,Q);
-
+    M0        = spm_bilinear_condition(M0,N,dt);
+    
+    
     % kernels
     %----------------------------------------------------------------------
     [~,K] = spm_kernels(M0,M1,L,N,dt);
     
-    % Transfer functions (FFT of kernel)
+
+    % transfer functions (FFT of kernel)
     %----------------------------------------------------------------------
     S     = fft(K);
     S     = S(w + 1,:,:);
@@ -151,7 +154,7 @@ for  c = 1:size(X,1)
     s{c}  = S;
     
 end
-
+ 
 % and add channel noise
 %==========================================================================
 if isfield(M,'g')
@@ -180,4 +183,3 @@ if isfield(M,'g')
 else
     y = g;
 end
-

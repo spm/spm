@@ -30,7 +30,7 @@ model = {'ECD','IMG'};
 for i = 1:length(model)
     
     % report
-    %---------------------------------------------------------------------- 
+    %----------------------------------------------------------------------
     fprintf('\nChecking spatial models %s\n',model{i})
     
     try
@@ -55,6 +55,8 @@ for i = 1:length(model)
         
     end
     
+    fprintf('\n\n     --------***--------   \n\n')
+    
 end
 
 
@@ -70,7 +72,7 @@ model = {'ERP','SEP','LFP','CMC','CMM','NMM','MFM'};
 for i = 1:length(model)
     
     % report
-    %---------------------------------------------------------------------- 
+    %----------------------------------------------------------------------
     fprintf('\nChecking neural models %s\n',model{i})
     
     try
@@ -103,6 +105,7 @@ for i = 1:length(model)
         
     end
     
+    fprintf('\n\n     --------***--------   \n\n')
 end
 
 % compare models
@@ -150,6 +153,8 @@ catch
     
 end
 
+fprintf('\n\n     --------***--------   \n\n')
+
 % test of induced response models
 %==========================================================================
 load DCM_FACES
@@ -176,6 +181,8 @@ catch
     
 end
 
+fprintf('\n\n     --------***--------   \n\n')
+
 % test of time-frequency models
 %==========================================================================
 load DCM_TFM
@@ -189,9 +196,9 @@ try
     DCM  = rmfield(DCM,'M');
     DCM  = spm_dcm_tfm(DCM);
     
-    spm_figure('GetWin','time-frequency model - empirical');
+    spm_figure('GetWin','induced and evoked responses');
     spm_dcm_tfm_results(DCM,'induced and evoked responses',gcf);
-    spm_figure('GetWin','time-frequency model - predictions');
+    spm_figure('GetWin','induced and evoked predictions');
     spm_dcm_tfm_results(DCM,'induced and evoked predictions',gcf);
     
     % print graphics
@@ -206,11 +213,14 @@ catch
     
 end
 
+fprintf('\n\n     --------***--------   \n\n')
+
 % Show failed routines
 %--------------------------------------------------------------------------
 for i = 1:length(E)
     disp(E{i}.message)
     disp(E{i}.stack(end - 1))
+    disp(E{i}.stack(1))
     disp('------------------------------------------------')
 end
 

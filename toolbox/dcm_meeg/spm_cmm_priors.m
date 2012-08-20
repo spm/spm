@@ -42,7 +42,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_cmm_priors.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % disable log zero warning
@@ -89,7 +89,7 @@ end
 %--------------------------------------------------------------------------
 C     = ~~C;
 pE.C  = C*32 - 32;
-pC.C  = C/32;
+pC.C  = C/8;
 
 
 % intrinsic connectivity (p x p x n)
@@ -99,10 +99,10 @@ pC.C  = C/32;
 % 3 - inhibitory interneurons         (intrisic interneuons)
 % 4 - deep pyramidal cells            (backward output cells)
 %--------------------------------------------------------------------------
-gC    = [1   0   1   0;
-         0   1   0   0;
+gC    = [1   1   1   0;
+         1   1   0   0;
          1   0   1   1;
-         0   0   1   0];
+         0   0   1   0]/8;
      
 pE.G  = repmat(zeros(p,p),[1 1 n]);
 pC.G  = repmat(gC        ,[1 1 n]);
@@ -118,6 +118,7 @@ pE.D  = [0 0];          pC.D  = [1 1]/64;
 % Capacitance
 %--------------------------------------------------------------------------
 pE.CV = 0;              pC.CV = 1/16;
+pE.E  = 0;              pC.E  = 1/16;
 
 
  

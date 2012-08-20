@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_dcm_erp_results.m 4852 2012-08-20 15:04:49Z karl $
 
 
 % get Action if necessary
@@ -486,7 +486,8 @@ switch(lower(Action))
             for i = 1:nt
                 subplot(nt,2,2*i - 1)
                 imagesc([1:ne],t,(DCM.H{i} + DCM.R{i})*U)
-                xlabel('time (ms)')
+                xlabel('channels')
+                ylabel('time (ms)')
                 try
                     title(sprintf('Observed (adjusted-code:%i)',xY.code(i)))
                 catch
@@ -495,7 +496,7 @@ switch(lower(Action))
                 axis square, grid on, A = axis;
                 
                 subplot(nt,2,2*i - 0)
-                imagesc([1:ne],t,DCM.H{i}*U)
+                imagesc(1:ne,t,DCM.H{i}*U)
                 xlabel('channels')
                 ylabel('time (ms)')
                 title('Predicted')

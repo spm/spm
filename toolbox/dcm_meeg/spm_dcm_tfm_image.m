@@ -18,7 +18,7 @@ function spm_dcm_tfm_image(csd,pst,hz,top)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_image.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_tfm_image.m 4852 2012-08-20 15:04:49Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -47,10 +47,8 @@ for i = 1:nc
     %----------------------------------------------------------------------
     for j = i:i
         
-
         subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
     
-        
         imagesc(pst,hz,abs(g(:,:,i,j)).^2');
         title('Spectral density','FontSize',16)
         xlabel('peristimulus time (ms)')

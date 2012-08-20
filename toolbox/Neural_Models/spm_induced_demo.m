@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_induced_demo.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % Model specification
@@ -70,10 +70,8 @@ pE.J(1:4) = [0 1 0 0];
  
 % orders and model
 %==========================================================================
-np    = length(spm_vec(pE));
 nx    = length(spm_vec(x ));
 nu    = size(pE.C,2);
-u     = sparse(1,Ns);
  
 % create forward model
 %--------------------------------------------------------------------------
@@ -113,7 +111,7 @@ U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*8,8);
  
 % plot expected responses
 %==========================================================================
-spm_figure('GetWin','Simulated time frequency responses');
+spm_figure('GetWin','Simulated time-frequency responses');
  
 pst   = t*1000;
  
@@ -134,7 +132,7 @@ spm_axis tight
  
 % expected time frequency response (coherence and cross-covariance)
 %--------------------------------------------------------------------------
-spm_dcm_tfm_image(y{1},pst,w,0)
+spm_dcm_tfm_image(y{1},pst,w,1)
  
 
 % expected time frequency response
@@ -145,7 +143,7 @@ spm_dcm_tfm_transfer(s{1},pst,w)
 
 % simulated responses
 %==========================================================================
-spm_figure('GetWin','Simulated responses');
+spm_figure('GetWin','Predicted responses');
  
 % time-frequency
 %--------------------------------------------------------------------------
@@ -193,6 +191,7 @@ plot(pst,erp{1})
 xlabel('time (s)')
 title('LFP response – expectation','FontSize',16)
 spm_axis tight
+set(gca,'YLim',[-8 8])
  
 % LFP – random fluctuations
 %--------------------------------------------------------------------------
@@ -205,6 +204,7 @@ hold off
 xlabel('time (s)')
 title('simulated response and ERP','FontSize',16)
 spm_axis tight
+set(gca,'YLim',[-8 8])
  
  
 % Time frequency response
@@ -238,7 +238,7 @@ Q     = Vm*Q/Vs;
 
 % time-frequency
 %--------------------------------------------------------------------------
-spm_dcm_tfm_image(Q,pst,w,0)
+spm_dcm_tfm_image(Q,pst,w,1)
 
 % simulated responses
 %==========================================================================
@@ -249,11 +249,13 @@ spm_figure('GetWin','Empirical (simulated) responses');
 xY.erp{1} = E;
 xY.csd{1} = Q;
 spm_dcm_tfm_response(xY,pst,w)
- 
- 
+
+
 % compare expected and simulated responses
 %==========================================================================
 spm_figure('GetWin','Expected and simulated responses');
 
 spm_dcm_tfm_image(csd{1},pst,w,1)
 spm_dcm_tfm_image(Q,pst,w,0)
+ 
+ 

@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_tfm_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_results.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_tfm_results.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % get figure
@@ -44,22 +44,6 @@ if nargin < 3, spm_figure('GetWin','Graphics'); end, colormap(gray), clf
 %--------------------------------------------------------------------------
 if nargin == 1
     
-    % FORMAT spm_dcm_tfm_results(DCM,'induced responses');
-% FORMAT spm_dcm_tfm_results(DCM,'induced and evoked responses');
-% FORMAT spm_dcm_tfm_results(DCM,'Coupling (A)');
-% FORMAT spm_dcm_tfm_results(DCM,'Coupling (B)');
-% FORMAT spm_dcm_tfm_results(DCM,'Coupling (C)');
-% FORMAT spm_dcm_tfm_results(DCM,'trial-specific effects');
-% FORMAT spm_dcm_tfm_results(DCM,'Endogenous input');
-% FORMAT spm_dcm_tfm_results(DCM,'Exogenous input');
-% FORMAT spm_dcm_tfm_results(DCM,'Transfer functions');
-% FORMAT spm_dcm_tfm_results(DCM,'induced predictions')
-% FORMAT spm_dcm_tfm_results(DCM,'induced and evoked predictions')
-% FORMAT spm_dcm_tfm_results(DCM,'induced predictions - sources')
-% FORMAT spm_dcm_tfm_results(DCM,'induced and evoked predictions - sources')
-% FORMAT spm_dcm_tfm_results(DCM,'Dipoles');
-
-
     str    = {'induced responses',...
               'induced and evoked responses',...
               'Coupling (A)',...
@@ -312,7 +296,7 @@ switch(lower(Action))
         U     = spm_erp_u(pst,DCM.Ep,DCM.M)/8;
         
         subplot(2,1,1)
-        plot(DCM.pst,U)
+        plot(DCM.xY.pst,U)
         xlabel('time (ms)')
         title('input')
         axis square, grid on
@@ -327,7 +311,7 @@ switch(lower(Action))
         for c = 1:length(DCM.DTF)
             str = sprintf('Directed transfer functions (among sources): condition %i',c);
             spm_figure('GetWin',str);
-            spm_dcm_tfm_transfer(DCM.DTF{c},DCM.pst,DCM.Hz)
+            spm_dcm_tfm_transfer(DCM.DTF{c},DCM.xY.pst,DCM.xY.Hz)
         end
         
         
@@ -346,8 +330,7 @@ switch(lower(Action))
         
         % induced and evoked predictions (channels)
         % -----------------------------------------------------------------
-        str    = 'induced and evoked predictions (among channels)';
-        spm_figure('GetWin',str);
+        spm_figure('GetWin','induced and evoked predictions');
         xY.csd = DCM.csd;
         xY.erp = DCM.erp;
         spm_dcm_tfm_response(xY,DCM.xY.pst,DCM.xY.Hz)

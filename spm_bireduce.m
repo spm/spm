@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_bireduce.m 4852 2012-08-20 15:04:49Z karl $
 
 
 % set up
@@ -103,7 +103,7 @@ M0    = spm_cat({0                     []    ;
 
 % Bilinear operator - M1 = dM0/du
 %--------------------------------------------------------------------------
-M1    = {};
+M1    = cell(m,1);
 for i = 1:m
     M1{i} = spm_cat({0,                                []        ;
                     (dfdu(:,i) - dfdxu{i}*spm_vec(x)), dfdxu{i}});

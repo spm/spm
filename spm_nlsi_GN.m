@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_nlsi_GN.m 4852 2012-08-20 15:04:49Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -258,7 +258,7 @@ iu    = (1:nu)' + np;
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
 pC    = V'*pC*V;
-uC    = speye(nu)/1e-8;
+uC    = speye(nu,nu)/1e-8;
 ipC   = inv(spm_cat(spm_diag({pC,uC})));
  
 % initialize conditional density
@@ -332,7 +332,6 @@ for k = 1:M.Nmax
         iS    = kron(speye(nq),iS);
         Pp    = real(J'*iS*J);
         Cp    = spm_inv(Pp + ipC);
-        if any(isnan(Cp(:))) || rcond(full(Cp)) < exp(-32), break, end
  
         % precision operators for M-Step
         %------------------------------------------------------------------

@@ -12,7 +12,7 @@ function spm_induced_optimise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_induced_optimise.m 4852 2012-08-20 15:04:49Z karl $
  
  
 % Model specification
@@ -112,7 +112,7 @@ for k = 1:length(P)
                     imagesc(dQ,w,log(GW))
                     title('Transfer functions','FontSize',16)
                     ylabel('Frequency')
-                    xlabel('Inhibitory connection','FontSize',16)
+                    xlabel('(log) parameter scaling','FontSize',16)
                     axis xy; drawnow
                     
                     % update graphics
