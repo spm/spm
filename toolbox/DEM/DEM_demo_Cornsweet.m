@@ -12,7 +12,7 @@ function DEM_demo_Cornsweet
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Cornsweet.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_Cornsweet.m 4851 2012-08-20 15:03:48Z karl $
  
  
 % Illustrate the Cornsweet effect
@@ -162,8 +162,8 @@ end
  
  
 subplot(2,2,4)
-spm_plot_ci(t,D1,V1), hold on
-spm_plot_ci(t,D2,V2), hold off
+spm_plot_ci(D1,V1,t), hold on
+spm_plot_ci(D2,V2,t), hold off
 title('Perceived reflectance','FontSize',16)
 xlabel('time (ms)','FontSize',12)
 ylabel('eccentricity ','FontSize',12)
@@ -199,7 +199,7 @@ end
 spm_figure('GetWin','Figure 3'); clf
  
 subplot(3,1,1)
-spm_plot_ci(C,d1,v1),                hold on
+spm_plot_ci(d1,v1,C),                hold on
 plot(C,d1,'ob',C,C*0,'LineWidth',2), hold off
 title('Conditional difference (Cornsweet)','FontSize',16)
 xlabel('log-precision (contrast)','FontSize',12)
@@ -207,7 +207,7 @@ ylabel('reflectance difference','FontSize',12)
 spm_axis tight square
  
 subplot(3,1,2)
-spm_plot_ci(C,d2,v2),                hold on
+spm_plot_ci(d2,v2,C),                hold on
 plot(C,d2,'or',C,C*0,'LineWidth',2), hold off
 title('Conditional difference (Mach Band)','FontSize',16)
 xlabel('log-precision (contrast)','FontSize',12)

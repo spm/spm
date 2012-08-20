@@ -14,7 +14,7 @@ function DEM_demo_MMN
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_MMN.m 4851 2012-08-20 15:03:48Z karl $
  
 
 % level 1
@@ -109,6 +109,7 @@ DEM   = DEM(2:end);                      % discard burn-in trial
 %==========================================================================
 spm_figure('GetWin','Figure 1');
 colormap('pink')
+pst = (1:N)*dt;
 
 for i = 1:(n + 1)
     
@@ -126,9 +127,9 @@ for i = 1:(n + 1)
     % plot recognition density and prediction
     %----------------------------------------------------------------------
     subplot(n + 1,3,(i - 1)*3 + 1)
-    spm_plot_ci([1:N]*dt,DEM{i}.qU.x{1},DEM{i}.qU.S)
+    spm_plot_ci(DEM{i}.qU.x{1},DEM{i}.qU.S,pst)
     hold on
-    plot([1:N]*dt,DEM{i}.pU.x{1},':')
+    plot(pst,DEM{i}.pU.x{1},':')
     hold off
     
     subplot(n + 1,3,(i - 1)*3 + 2)

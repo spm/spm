@@ -25,7 +25,7 @@ function spm_dem_search_plot(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dem_search_plot.m 4595 2011-12-19 13:06:22Z karl $
+% $Id: spm_dem_search_plot.m 4851 2012-08-20 15:03:48Z karl $
  
  
 % Preliminaries
@@ -125,7 +125,7 @@ xlabel('time (ms)')
 axis([1 t(end) -2 2])
  
 subplot(6,1,5)
-spm_plot_ci(t,q(1,:),c); hold on
+spm_plot_ci(q(1,:),c,t); hold on
 plot(t,q), hold off
 axis([1 t(end) -8 8])
 title('Posterior belief','FontSize',16)

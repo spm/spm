@@ -21,7 +21,7 @@ function DEM_demo_Posner
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_Posner.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_Posner.m 4851 2012-08-20 15:03:48Z karl $
  
 
 % Create a generative model: To keep thing simple we will model just 2 
@@ -165,8 +165,8 @@ spm_DEM_qU(LAPU.qU,LAPU.pU)
 %--------------------------------------------------------------------------
 subplot(2,2,4)
  
-spm_plot_ci(pst,LAPV.qU.v{2},LAPV.qU.C,2,'g'), hold on
-spm_plot_ci(pst,LAPU.qU.v{2},LAPU.qU.C,1,'b'), hold off
+spm_plot_ci(LAPV.qU.v{2},LAPV.qU.C,pst,2,'g'), hold on
+spm_plot_ci(LAPU.qU.v{2},LAPU.qU.C,pst,1,'b'), hold off
  
 set(gca,'XLim',[pst(1) pst(end)])
 xlabel('time (ms)','FontSize',12)
@@ -238,8 +238,8 @@ spm_DEM_qU(LAPB.qU,LAPB.pU)
 %--------------------------------------------------------------------------
 subplot(2,2,4)
  
-spm_plot_ci(pst,LAPB.qU.v{2},LAPB.qU.C,1,'b-.'), hold on
-spm_plot_ci(pst,LAPU.qU.v{2},LAPU.qU.C,1,'b'), hold off
+spm_plot_ci(LAPB.qU.v{2},LAPB.qU.C,pst,1,'b-.'), hold on
+spm_plot_ci(LAPU.qU.v{2},LAPU.qU.C,pst,1,'b'),  hold off
  
 set(gca,'XLim',[pst(1) pst(end)])
 xlabel('time (ms)','FontSize',12)

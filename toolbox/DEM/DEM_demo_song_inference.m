@@ -20,7 +20,7 @@ function DEM_demo_song_inference
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_song_inference.m 4851 2012-08-20 15:03:48Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -98,13 +98,13 @@ for i = 1:size(P,2)
     title(str{i},'Fontsize',16)  
     
     subplot(3,1,2)
-    spm_plot_ci(t,DEM.qU.v{2},DEM.qU.C)
+    spm_plot_ci(DEM.qU.v{2},DEM.qU.C,t)
     text(t(end) + 1/8,DEM.qU.v{2}(1,end - 8),str{i},'Fontsize',16)
     axis square
     hold on
     
     subplot(3,1,3)
-    spm_plot_ci(t,DEM.qU.v{2}(:,end - 8),DEM.qU.C(end - 8))
+    spm_plot_ci(DEM.qU.v{2}(:,end - 8),DEM.qU.C(end - 8),t)
     axis square
     hold on
     plot(P(1,i),P(2,i),'or')

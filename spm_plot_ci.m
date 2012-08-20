@@ -1,47 +1,23 @@
-function spm_plot_ci(varargin)
+function spm_plot_ci(E,C,x,j,s)
 % plots mean and conditional confidence intervals
-% FORMAT spm_plot_ci(t,E,C,j,s)
-% FORMAT spm_plot_ci(t,E,C,j)
-% FORMAT spm_plot_ci(t,E,C)
-% FORMAT spm_plot_ci(E,C)
-%
-% t - domain
+% FORMAT spm_plot_ci(E,C,x,j,s)
 % E - expectation
 % C - variance or covariance
-% j - indices of spm_cat(E(:)) to plot
+% x - domain
+% j - rows of E to plot
 % s - string to specify plot type
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_plot_ci.m 4851 2012-08-20 15:03:48Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
-if nargin == 5
-    t = varargin{1};
-    E = varargin{2};
-    C = varargin{3};
-    j = varargin{4};
-    s = varargin{5};
-elseif nargin == 4
-    t = varargin{1};
-    E = varargin{2};
-    C = varargin{3};
-    j = varargin{4};
-elseif nargin == 3
-    t = varargin{1};
-    E = varargin{2};
-    C = varargin{3};
-else
-    E = varargin{1};
-    C = varargin{2};
-end
-
-if iscell(E), E = spm_cat(E(:));       end
-if ~exist('j','var'), j = 1:size(E,1); end
-if ~exist('t','var'), t = 1:size(E,2); end
-if ~exist('s','var'), s = '';          end
+if iscell(E),         E = spm_cat(E(:)); end
+if ~exist('x','var'), x = 1:size(E,2);   end
+if ~exist('j','var'), j = 1:size(E,1);   end
+if ~exist('s','var'), s = '';            end
 
 % order and length of sequence
 %--------------------------------------------------------------------------
@@ -56,8 +32,8 @@ if iscell(C)
         c(:,i) = ci*sqrt(diag(C{i}(j,j)));
     end
 else
-    if isvector(C)
-        c = ci*sqrt(C);
+    if all(size(C) == size(E))
+        c = ci*sqrt(C(j,:));
     else
         C = diag(C);
         c = ci*sqrt(C(j,:));
@@ -77,13 +53,13 @@ end
 
 % conditional covariances
 %--------------------------------------------------------------------------
-if N > 1
+if N > 8
     
     % time-series plot
     %======================================================================
-    fill([t fliplr(t)],[full(E + c) fliplr(full(E - c))],...
+    fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
          [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
-    plot(t,E,s)
+    plot(x,E,s)
     
 elseif n == 2
     
@@ -93,23 +69,42 @@ elseif n == 2
     fill(x(16,:)',y(16,:)',[1 1 1]*.9,'EdgeColor',[1 1 1]*.8),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)
     
+    
 else
+    
     
     % bar
     %======================================================================
-    
-    % conditional means
-    %----------------------------------------------------------------------
-    bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8), hold on
-    box off
-    set(gca,'XLim',[0 n + 1])
-    
-    % conditional variances
-    %----------------------------------------------------------------------
-
-    for k = 1:n
-        line([k k], [-1 1]*c(k) + E(k),'LineWidth',4,'Color',col);
+    if N == 1
+        
+        % conditional means
+        %------------------------------------------------------------------
+        bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8), hold on
+        box off
+        set(gca,'XLim',[0 n + 1])
+        
+        % conditional variances
+        %------------------------------------------------------------------
+        for k = 1:n
+            line([k k],[-1 1]*c(k) + E(k),'LineWidth',4,'Color',col);
+        end
+        
+    else
+        
+        % conditional means
+        %------------------------------------------------------------------
+        h = bar(E);
+        
+        % conditional variances
+        %------------------------------------------------------------------
+        for m = 1:N
+            x = mean(get(get(h(m),'Children'),'Xdata'));
+            for k = 1:n
+                line([x(k) x(k)],[-1 1]*c(k,m) + E(k,m),'LineWidth',4,'Color',col);
+            end
+        end
     end
+    
 end
 hold off
 drawnow
