@@ -17,7 +17,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 %
 % prec       - reciprocal of noise variance on images.
 % w_swttings - regularisation settings for warping.
-% b_settings - regularisation settings for bias field.
+% b_settings - regularisation settings for nonuniformity field.
 % s_settings - number of time steps for geodesic shooting.
 % ord        - degree of B-spline interpolation used for sampline images.
 %
@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4846 2012-08-16 12:04:58Z john $
+% $Id: spm_groupwise_ls.m 4853 2012-08-21 16:21:43Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------

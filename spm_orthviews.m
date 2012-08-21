@@ -147,7 +147,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4845 2012-08-15 19:23:46Z guillaume $
+% $Id: spm_orthviews.m 4853 2012-08-21 16:21:43Z john $
 
 
 % The basic fields of st are:
@@ -1616,7 +1616,7 @@ else
 end
 item4     = uimenu(item_parent,'Label','Interpolation');
 item4_1   = uimenu(item4,      'Label','NN',    'Callback','spm_orthviews(''context_menu'',''interpolation'',3);', 'Checked',checked{3});
-item4_2   = uimenu(item4,      'Label','Bilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked',checked{2});
+item4_2   = uimenu(item4,      'Label','Trilin', 'Callback','spm_orthviews(''context_menu'',''interpolation'',2);','Checked',checked{2});
 item4_3   = uimenu(item4,      'Label','Sinc',  'Callback','spm_orthviews(''context_menu'',''interpolation'',1);','Checked',checked{1});
 
 % contextsubmenu 5
