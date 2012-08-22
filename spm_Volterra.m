@@ -9,6 +9,7 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % Xname      -  names of regressors [columns] in X
 % Fc(i).i    -  indices pertaining to input i (and interactions)
 % Fc(i).name -  names pertaining to input i   (and interactions)
+% Fc(i).p    -  grouping of regressors per parameter
 %__________________________________________________________________________
 %
 % For first order expansions spm_Volterra simply convolves the causes (e.g.
@@ -22,7 +23,7 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Volterra.m 4845 2012-08-15 19:23:46Z guillaume $
+% $Id: spm_Volterra.m 4855 2012-08-22 15:50:22Z guillaume $
 
 
 %-Order of Volterra expansion
@@ -39,6 +40,7 @@ Xname = {};
 Fc    = [];
 for i = 1:numel(U)
     ind   = [];
+    ip    = [];
     for k = 1:size(U(i).u,2)
     for p = 1:size(bf,2)
         x = U(i).u(:,k);
@@ -51,10 +53,12 @@ for i = 1:numel(U)
         %------------------------------------------------------------------
         Xname{end + 1} = sprintf('%s*bf(%i)',U(i).name{k},p);
         ind(end + 1)   = size(X,2);
+        ip(end + 1)    = k;
     end
     end
     Fc(end + 1).i = ind;
     Fc(end).name  = U(i).name{1};
+    Fc(end).p     = ip;
 end
 
 %-Return if first order
@@ -66,6 +70,7 @@ if V == 1, return, end
 for i = 1:numel(U) 
 for j = i:numel(U)
     ind   = [];
+    ip    = [];
     for p = 1:size(bf,2)
     for q = 1:size(bf,2)
         x = U(i).u(:,1);
@@ -82,9 +87,11 @@ for j = i:numel(U)
                          	U(i).name{1}, p,...
                             U(j).name{1}, q);
         ind(end + 1)   = size(X,2);
+        ip(end + 1)    = 1;
     end
     end
     Fc(end + 1).i = ind;
     Fc(end).name  = [U(i).name{1} 'x' U(j).name{1}];
+    Fc(end).p     = ip;
 end
 end

@@ -12,6 +12,7 @@ function [U] = spm_get_ons(SPM,s)
 %   U(i).dt     - time bin (seconds)
 %   U(i).ons    - onsets    (in SPM.xBF.UNITS)
 %   U(i).dur    - durations (in SPM.xBF.UNITS)
+%   U(i).orth   - orthogonalise inputs?
 %   U(i).P      - parameter structure
 %
 %       U(i).P(p).name - parameter name
@@ -34,10 +35,10 @@ function [U] = spm_get_ons(SPM,s)
 % there is a negligible gap between volume acquisitions).
 % Default values are defined in spm_defaults.m
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_ons.m 4474 2011-09-09 15:20:38Z guillaume $
+% $Id: spm_get_ons.m 4855 2012-08-22 15:50:22Z guillaume $
 
 
 %-Time units
@@ -111,12 +112,14 @@ for i = 1:numel(U)
 
     %-Orthogonalise inputs
     %----------------------------------------------------------------------
-    u     = spm_orth(u);
+    if ~isfield(U(i),'orth') || U(i).orth
+        u     = spm_orth(u);
+    end
 
     %-And scale so sum(u*dt) = number of events, if event-related
     %----------------------------------------------------------------------
     if ~any(dur)
-        u = u/dt;
+        u     = u/dt;
     end
 
     %-Create stimulus functions (32 bin offset)
@@ -145,4 +148,4 @@ for i = 1:numel(U)
     U(i).pst  = pst;        % - pst (seconds)
     U(i).P    = xP;         % - parameter struct
 
-end % (v)
+end

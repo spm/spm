@@ -54,6 +54,7 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %                P: - Parameter stucture
 %                u: - (t x j) inputs or stimulus function matrix
 %              pst: - (1 x k) peristimulus times (seconds)
+%             orth: - boolean: orthogonalise inputs?
 %
 %
 %        SPM.Sess(s).C
@@ -64,8 +65,9 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %
 %        SPM.Sess(s).Fc
 %
-%                i: - F Contrast colums for input-specific effects
-%             name: - F Contrast names  for input-specific effects
+%                i: - indices pertaining to each input
+%             name: - names pertaining to each input
+%                p: - grouping of regressors per parameter
 %
 %
 %            4th level
@@ -161,13 +163,13 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % are computed for only the first column of U(u).u.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_fMRI_design.m 4855 2012-08-22 15:50:22Z guillaume $
 
 
-SVNid = '$Rev: 4492 $';
+SVNid = '$Rev: 4855 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------
@@ -191,20 +193,11 @@ end
 
 %-Time units, dt = time bin {secs}
 %--------------------------------------------------------------------------
-SPM.xBF.dt        = SPM.xY.RT/SPM.xBF.T;
+SPM.xBF.dt     = SPM.xY.RT/SPM.xBF.T;
 
 %-Get basis functions
 %--------------------------------------------------------------------------
-try
-    bf      = SPM.xBF.bf;
-catch
-    SPM.xBF = spm_get_bf(SPM.xBF);
-    bf      = SPM.xBF.bf;
-end
-
-%-1st or 2nd order Volterra expansion?
-%--------------------------------------------------------------------------
-V     = SPM.xBF.Volterra;
+SPM.xBF        = spm_get_bf(SPM.xBF);
 
 
 %-Get session specific design parameters
@@ -229,18 +222,23 @@ for s = 1:length(SPM.nscan)
     
     %-Convolve stimulus functions with basis functions
     %----------------------------------------------------------------------
-    [X,Xn,Fc] = spm_Volterra(U,bf,V);
+    [X,Xn,Fc] = spm_Volterra(U, SPM.xBF.bf, SPM.xBF.Volterra);
     
     %-Resample regressors at acquisition times (32 bin offset)
     %----------------------------------------------------------------------
-    try
-        X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
-    end
+    X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
     
-    % and orthogonalise (within trial type)
+    %-Orthogonalise (within trial type)
     %----------------------------------------------------------------------
     for i = 1:length(Fc)
-        X(:,Fc(i).i) = spm_orth(X(:,Fc(i).i));
+        try, p = Fc(i).p; catch, p = ones(size(Fc(i).i)); end
+        if i<= numel(U) && ... % for Volterra expansions
+                (~isfield(U(i),'orth') || U(i).orth)
+            p = ones(size(p));
+        end
+        for j = 1:max(p)
+            X(:,Fc(i).i(p==j)) = spm_orth(X(:,Fc(i).i(p==j)));
+        end
     end
     
     
@@ -252,7 +250,7 @@ for s = 1:length(SPM.nscan)
     %-Append mean-corrected regressors and names
     %----------------------------------------------------------------------
     X     = [X spm_detrend(C)];
-    Xn    = {Xn{:}   Cname{:}};
+    Xn    = {Xn{:} Cname{:}};
     
     
     %-Confounds: Session effects
@@ -260,14 +258,21 @@ for s = 1:length(SPM.nscan)
     B     = ones(k,1);
     Bn    = {'constant'};
     
+    
     %-Session structure array
-    %----------------------------------------------------------------------
+    %======================================================================
     SPM.Sess(s).U      = U;
     SPM.Sess(s).C.C    = C;
     SPM.Sess(s).C.name = Cname;
     SPM.Sess(s).row    = size(Xx,1) + (1:k);
     SPM.Sess(s).col    = size(Xx,2) + (1:size(X,2));
     SPM.Sess(s).Fc     = Fc;
+    
+    
+    %-Append into Xx and Xb
+    %======================================================================
+    Xx      = blkdiag(Xx,X);
+    Xb      = blkdiag(Xb,B);
     
     %-Append names
     %----------------------------------------------------------------------
@@ -277,12 +282,6 @@ for s = 1:length(SPM.nscan)
     for i = 1:length(Bn)
         Bname{end + 1} = [sprintf('Sn(%i) ',s) Bn{i}];
     end
-    
-    
-    %-Append into Xx and Xb
-    %======================================================================
-    Xx    = blkdiag(Xx,X);
-    Xb    = blkdiag(Xb,B);
     
 end
 
