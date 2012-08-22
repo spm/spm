@@ -3,9 +3,9 @@ function fmri_design = spm_cfg_fmri_design
 %_______________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 4649 2012-02-06 15:55:04Z guillaume $
+% $Id: spm_cfg_fmri_design.m 4856 2012-08-22 17:32:16Z guillaume $
 
-rev = '$Rev: 4649 $';
+rev = '$Rev: 4856 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -181,7 +181,7 @@ pmod.tag     = 'pmod';
 pmod.name    = 'Parameter';
 pmod.val     = {name1 param poly };
 pmod.help    = {
-                'Model interractions with user specified parameters. This allows nonlinear effects relating to some other measure to be modelled in the design matrix.'
+                'Model interactions with user specified parameters. This allows nonlinear effects relating to some other measure to be modelled in the design matrix.'
                 ''
                 'Interactions or response modulations can enter at two levels.  Firstly the stick function itself can be modulated by some parametric variate (this can be time or some trial-specific variate like reaction time) modeling the interaction between the trial and the variate or, secondly interactions among the trials themselves can be modeled using a Volterra series formulation that accommodates interactions over time (and therefore within and between trial types).'
 }';
@@ -195,12 +195,22 @@ generic2.help    = {'The stick function itself can be modulated by some parametr
 generic2.values  = {pmod };
 generic2.num     = [0 Inf];
 % ---------------------------------------------------------------------
+% porth Orthogonalise modulations
+% ---------------------------------------------------------------------
+porth         = cfg_menu;
+porth.tag     = 'orth';
+porth.name    = 'Orthogonalise modulations';
+porth.help    = {'Orthogonalise regressors within trial types.'};
+porth.labels  = {'Yes' 'No'};
+porth.values  = {1 0};
+porth.val     = {1};
+% ---------------------------------------------------------------------
 % cond Condition
 % ---------------------------------------------------------------------
 cond         = cfg_branch;
 cond.tag     = 'cond';
 cond.name    = 'Condition';
-cond.val     = {name onset duration tmod generic2 };
+cond.val     = {name onset duration tmod generic2 porth};
 cond.check   = @cond_check;
 cond.help    = {'An array of input functions is contructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.'};
 % ---------------------------------------------------------------------

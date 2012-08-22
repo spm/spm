@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4681 2012-03-12 15:09:05Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4856 2012-08-22 17:32:16Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -206,12 +206,23 @@ generic2.values  = {pmod };
 generic2.num     = [0 Inf];
 
 %--------------------------------------------------------------------------
+% porth Orthogonalise modulations
+%--------------------------------------------------------------------------
+porth         = cfg_menu;
+porth.tag     = 'orth';
+porth.name    = 'Orthogonalise modulations';
+porth.help    = {'Orthogonalise regressors within trial types.'};
+porth.labels  = {'Yes' 'No'};
+porth.values  = {1 0};
+porth.val     = {1};
+
+%--------------------------------------------------------------------------
 % cond Condition
 %--------------------------------------------------------------------------
 cond         = cfg_branch;
 cond.tag     = 'cond';
 cond.name    = 'Condition';
-cond.val     = {name onset duration tmod generic2 };
+cond.val     = {name onset duration tmod generic2 porth};
 cond.check   = @cond_check;
 cond.help    = {'An array of input functions is contructed, specifying occurrence events or epochs (or both). These are convolved with a basis set at a later stage to give regressors that enter into the design matrix. Interactions of evoked responses with some parameter (time or a specified variate) enter at this stage as additional columns in the design matrix with each trial multiplied by the [expansion of the] trial-specific parameter. The 0th order expansion is simply the main effect in the first column.'};
 

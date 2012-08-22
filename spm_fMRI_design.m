@@ -166,10 +166,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 4855 2012-08-22 15:50:22Z guillaume $
+% $Id: spm_fMRI_design.m 4856 2012-08-22 17:32:16Z guillaume $
 
 
-SVNid = '$Rev: 4855 $';
+SVNid = '$Rev: 4856 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------
@@ -231,10 +231,11 @@ for s = 1:length(SPM.nscan)
     %-Orthogonalise (within trial type)
     %----------------------------------------------------------------------
     for i = 1:length(Fc)
-        try, p = Fc(i).p; catch, p = ones(size(Fc(i).i)); end
-        if i<= numel(U) && ... % for Volterra expansions
+        if i<= numel(U) && ... % for Volterra kernels
                 (~isfield(U(i),'orth') || U(i).orth)
-            p = ones(size(p));
+            p = ones(size(Fc(i).i));
+        else
+            p = Fc(i).p;
         end
         for j = 1:max(p)
             X(:,Fc(i).i(p==j)) = spm_orth(X(:,Fc(i).i(p==j)));

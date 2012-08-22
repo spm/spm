@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4747 2012-05-24 11:11:10Z guillaume $
+% $Id: spm_run_fmri_spec.m 4856 2012-08-22 17:32:16Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -59,7 +59,8 @@ SPM.xBF.T0    = job.timing.fmri_t0;
 
 %-Basis functions
 %--------------------------------------------------------------------------
-if strcmp(fieldnames(job.bases),'hrf')
+bf = char(fieldnames(job.bases));
+if strcmp(bf,'hrf')
     if all(job.bases.hrf.derivs == [0 0])
         SPM.xBF.name = 'hrf';
     elseif all(job.bases.hrf.derivs == [1 0])
@@ -70,7 +71,7 @@ if strcmp(fieldnames(job.bases),'hrf')
         error('Unknown HRF derivative choices.');
     end
 else
-    switch char(fieldnames(job.bases))
+    switch bf
         case 'fourier'
             SPM.xBF.name = 'Fourier set';
         case 'fourier_han'
@@ -197,6 +198,7 @@ for i = 1:numel(job.sess)
         U(j).name = {cond.name};
         U(j).ons  = cond.onset(:);
         U(j).dur  = cond.duration(:);
+        U(j).orth = cond.orth;
         if length(U(j).dur) == 1
             U(j).dur = repmat(U(j).dur,size(U(j).ons));
         elseif numel(U(j).dur) ~= numel(U(j).ons)
