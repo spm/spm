@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4758 2012-05-29 15:34:08Z john $
+% $Id: spm_shoot_template.m 4854 2012-08-22 13:29:10Z ged $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -323,10 +323,9 @@ if any(~ok)
 end
 
 % Finish off
-[tdir,nam,ext] = fileparts(job.images{1}{1});
-out.template = cell(floor(nits/3)+1,1);
+out.template = cell(1+ceil(nits/6),1);
 if ~isempty(tname),
-    for it=0:floor(nits/3),
+    for it=0:ceil(nits/6),
         fname    = fullfile(tdir,[tname '_' num2str(it) '.nii']);
         out.template{it+1} = fname;
     end

@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 4502 2011-09-28 09:47:40Z volkmar $
+% $Id: spm_mip_ui.m 4854 2012-08-22 13:29:10Z ged $
 
 
 %==========================================================================
@@ -372,7 +372,7 @@ switch lower(varargin{1}), case 'display'
         if hC<=0
             [xyz,d] = spm_XYZreg('RoundCoords',xyz,MD.M,MD.DIM);
             if d>0 && nargout<2, warning(sprintf(...
-                    '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
+                    '%s: Co-ords rounded to nearest voxel center: Discrepancy %.2f',...
                     mfilename,d));
             end
         else

@@ -34,7 +34,7 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_XYZreg_Ex2.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_XYZreg_Ex2.m 4854 2012-08-22 13:29:10Z ged $
 
 
 %=======================================================================
@@ -87,7 +87,7 @@ UD = get(hMe,'UserData');
 if hC<=0
     [xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.D);
     if d>0 & nargout<2, warning(sprintf(...
-        '%s: Co-ords rounded to neatest voxel center: Discrepancy %.2f',...
+        '%s: Co-ords rounded to nearest voxel center: Discrepancy %.2f',...
         mfilename,d)), end
 else
     d = [];

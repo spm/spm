@@ -9,10 +9,10 @@ function Vo = spm_file_split(V, odir)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file_split.m 3614 2009-12-07 18:04:24Z guillaume $
+% $Id: spm_file_split.m 4854 2012-08-22 13:29:10Z ged $
 
 if ~nargin
-    [V, sts] = spm_select(1,'image','Select a 4D volume file to split');
+    [V, sts] = spm_select(1,'nifti','Select a 4D volume file to split');
     if ~sts, return; end
 end
 if ischar(V)
