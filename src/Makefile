@@ -1,16 +1,16 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4765 2012-06-07 14:58:46Z guillaume $
+# $Id: Makefile 4857 2012-08-23 17:17:30Z guillaume $
 #
 ###############################################################################
 #
 # This Makefile has been tested under Linux, Windows and MacOS.
 # 
 # If you have to tweak this Makefile or Makefile.var to compile the SPM 
-# mex-files for your platform, please send the details to <spm@fil.ion.ucl.ac.uk> 
+# mex-files for your platform, please send the details to <fil.spm@ucl.ac.uk> 
 # so they can be included here. 
 #
 # To compile and install SPM, type the following in a Unix console:
@@ -49,7 +49,8 @@ SPMMEX  =\
 	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
 	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)
+	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
+	spm_mesh_utils.$(SUF)
 
 SUBDIRS =\
 	toolbox/FieldMap \

@@ -8,7 +8,7 @@ function varargout = spm_toolbox(action,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 4834 2012-08-09 15:15:19Z guillaume $
+% $Id: spm_toolbox.m 4857 2012-08-23 17:17:30Z guillaume $
 
 
 if ~nargin, action = 'Display'; end
@@ -281,7 +281,7 @@ h = figure(...
     'Resize',      'off',...
     'Toolbar',     'none',...
     'Tag',         'SPMtbx',...
-    'WindowStyle', 'Normal',... 'Modal'
+    'WindowStyle', 'Normal',... %'Modal'
     'Color',       [1 1 1],...
     'Visible',     'off');
 pos = get(h,'Position');
