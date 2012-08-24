@@ -10,19 +10,19 @@ function [DEM] = spm_ADEM_set(DEM)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_set.m 4580 2011-12-02 20:22:19Z karl $
+% $Id: spm_ADEM_set.m 4862 2012-08-24 19:21:27Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
 try
     DEM.M = spm_DEM_M_set(DEM.M);
 catch
-    errordlg('please check your inversion model')
+    errordlg('please check your generative model')
 end
 try
     DEM.G = spm_ADEM_M_set(DEM.G);
 catch
-    errordlg('please check your generative model')
+    errordlg('please check your generative process')
 end
 
 % check data or generative model

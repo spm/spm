@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 4824 2012-08-03 16:42:24Z karl $
+% $Id: spm_ALAP.m 4862 2012-08-24 19:21:27Z karl $
 
 
 % check model, data and priors
@@ -363,9 +363,8 @@ Dv    = kron(spm_speye(d,d,1),spm_speye(nv,nv,0));
 Dc    = kron(spm_speye(d,d,1),spm_speye(nc,nc,0));
 Dw    = kron(spm_speye(n,n,1),spm_speye(gx,gx,0));
 Dz    = kron(spm_speye(n,n,1),spm_speye(gv,gv,0));
-Du    = spm_cat(spm_diag({Dx,Dv}));
-Dx    = kron(spm_speye(n,n,1),spm_speye(gx,gx,0));
 Iw    = kron(spm_speye(n,n,0),spm_speye(gx,gx,0));
+Du    = spm_cat(spm_diag({Dx,Dv}));
 Ib    = spm_speye(np + nb,np + nb);
 
 dbdt  = sparse(np + nb,1);
@@ -785,7 +784,7 @@ for iN = 1:nN
             Dgdv  Dgdx Dz   []   []       []    Dgda   []  [];
             dfdv  dfdx []   Iw   []       []    dfda   []  [];
             []    []   Dz   []   []       []    []     []  [];
-            []    []   []   Dx   []       []    []     []  [];
+            []    []   []   Dw   []       []    []     []  [];
             dVduv []   []   []   Du-dLduu dVduc dVdua  []  [];
             []    []   []   []   []       Dc    []     []  [];
             dVdav []   []   []   dVdau    dVdac dVdaa  []  [];

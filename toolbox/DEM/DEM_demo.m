@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 10-Aug-2012 16:43:09
+% Last Modified by GUIDE v2.5 20-Aug-2012 16:09:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -393,5 +393,7 @@ handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Observing%20the%20Observer%20I
 run_demo_Callback(hObject, handles, 'spm_meta_model')
 
 
-
-
+% --- Executes on button press in pushbutton129.
+function pushbutton129_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEM_evidence_accumulation')

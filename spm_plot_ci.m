@@ -5,12 +5,12 @@ function spm_plot_ci(E,C,x,j,s)
 % C - variance or covariance
 % x - domain
 % j - rows of E to plot
-% s - string to specify plot type
+% s - string to specify plot type:e.g. '--r' or 'exp'
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4851 2012-08-20 15:03:48Z karl $
+% $Id: spm_plot_ci.m 4862 2012-08-24 19:21:27Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -18,6 +18,9 @@ if iscell(E),         E = spm_cat(E(:)); end
 if ~exist('x','var'), x = 1:size(E,2);   end
 if ~exist('j','var'), j = 1:size(E,1);   end
 if ~exist('s','var'), s = '';            end
+
+if isempty(x),        x = 1:size(E,2);   end
+if isempty(j),        j = 1:size(E,1);   end
 
 % order and length of sequence
 %--------------------------------------------------------------------------
@@ -53,13 +56,21 @@ end
 
 % conditional covariances
 %--------------------------------------------------------------------------
-if N > 8
+if N >= 8
     
     % time-series plot
     %======================================================================
-    fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-         [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
-    plot(x,E,s)
+    if strcmpi(s,'exp')
+        fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
+            [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+        plot(x,exp(E))
+        
+    else
+        fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
+            [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+        plot(x,E,s)
+    end
+    
     
 elseif n == 2
     
