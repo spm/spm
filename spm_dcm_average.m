@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 4830 2012-08-08 10:52:12Z will $
+% $Id: spm_dcm_average.m 4858 2012-08-24 10:04:13Z guillaume $
 
 try
     P;
@@ -98,7 +98,7 @@ m0=m0(wsel);
 
 % averaged posterior mean
 %--------------------------------------------------------------------------
-pE            = DCM.Ep;
+pE            = DCM.M.pE;
 wEp           = 0;
 for model=1:N
     wEp       = wEp + miCp(:,:,model) * mEp(:,model);
