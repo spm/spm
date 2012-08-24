@@ -1,15 +1,18 @@
-function conf = spm_cfg_deformations
+function conf = spm_cfg_defs
 % Configuration file for deformation jobs.
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4772 2012-06-21 18:27:33Z john $
+% $Id: spm_cfg_deformations.m 4861 2012-08-24 15:56:39Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
 'They can be loaded, inverted, combined etc, and the results ',...
-'either saved to disk, or applied to some image.']};
+'either saved to disk, or applied to some image or surface file. ',...
+'This utility was intended for imaging experts and may therefore ',...
+'be a bit difficult for naive users. ',...
+'It provides a great deal of flexibility, which may be confusing to some.']};
 
 hinv = {[...
 'Creates the inverse of a deformation field. ',...
@@ -60,8 +63,10 @@ hbb = {[...
 'that was originally used to estimate the deformation.']};
 
 himgr = {[...
-'Deformations can be thought of as vector fields. These can be represented ',...
-'by three-volume images.']};
+'Deformations can be thought of as vector fields, and represented ',...
+'by three-volume images.  In SPM, deformation fields are saved in ',...
+'NIfTI format, with dimensions xdim x ydim x zdim x 1 x 3. ',...
+'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
 
 himgw = {[...
 'Save the result as a three-volume image.  "y_" will be prepended to the ',...
@@ -81,23 +86,10 @@ himg = {...
 'Specify the image file on which to base the dimensions, orientation etc.'};
 
 hid = {[...
-'This option generates an identity transform, but this can be useful for ',...
-'changing the dimensions of the resulting deformation (and any images that ',...
-'are generated from it).  Dimensions, orientation etc are derived from ',...
-'a specified image.']};
-
-hidbbvox = {[...
-'This option generates an identity transform, but this can be useful for ',...
-'changing the dimensions of the resulting deformation (and any images that ',...
-'are generated from it).  Dimensions, orientation etc are derived from ',...
-'specified bounding box and voxel dimensions.']};
-
-haff = {[...
-'This option generates an affine transform (with a specified matrix that ',...
-'maps from reference to source image coordinates; you may often want to ',...
-'specify the inverse matrix, inv(Affine), to get the desired results).']
-''
-'Dimensions, orientation etc are derived from a specified image.'};
+'This option generates an identity transform, but this can be useful for '...
+'changing the dimensions of the resulting deformation (and any images that '...
+'are generated from it).  Dimensions, orientation etc are derived from '...
+'an image.']};
 
 def          = files('Deformation Field','def','.*y_.*\.nii$',[1 1]);
 def.help     = himgr;
@@ -116,21 +108,17 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-img          = files('Image to define domain','space','image',[1 1]);
+img          = files('Image to base Id on','space','nifti',[1 1]);
 img.help     = himg;
 
 id           = branch('Identity (Reference Image)','id',{img});
 id.help      = hid;
 
-A            = entry('Affine Matrix','aff','e',[4 4]);
-aff          = branch('Affine (Reference Image)', 'aff',{img, A});
-aff.help     = haff;
-
 voxid        = entry('Voxel sizes','vox','e',[1 3]);
 bbid         = entry('Bounding box','bb','e',[2 3]);
 
 idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
-idbbvox.help = hidbbvox;
+id.help      = hid;
 
 ffield = files('Flow field','flowfield','nifti',[1 1]);
 ffield.ufilter = '^u_.*';
@@ -163,9 +151,9 @@ K.help = {...
 drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
 drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
-other = {sn2def,drtl,def,id,idbbvox,aff};
+other = {sn2def,drtl,def,id,idbbvox};
 
-img          = files('Image to base inverse on','space','image',[1 1]);
+img          = files('Image to base inverse on','space','nifti',[1 1]);
 img.help     = himg;
 
 comp0        = repeat('Composition','comp',other);
@@ -196,7 +184,7 @@ saveas       = entry('Save as','ofname','s',[0 Inf]);
 saveas.val   = {''};
 saveas.help  = himgw;
 
-applyto      = files('Apply to','fnames','image',[0 Inf]);
+applyto      = files('Apply to','fnames','nifti',[0 Inf]);
 applyto.val  = {''};
 applyto.help = happly;
 
@@ -231,8 +219,14 @@ saveusr.help = {['The combined deformation field and the warped images ' ...
 savedir      = cfg_choice;
 savedir.name = 'Output destination';
 savedir.tag  = 'savedir';
-savedir.values = {savepwd savesrc savedef saveusr};
+savedir.values = {savepwd savesrc saveusr};
 savedir.val  = {savepwd};
+
+savedir1      = cfg_choice;
+savedir1.name = 'Output destination';
+savedir1.tag  = 'savedir';
+savedir1.values = {savepwd saveusr};
+savedir1.val  = {savepwd};
 
 interp      = cfg_menu;
 interp.name = 'Interpolation';
@@ -259,7 +253,176 @@ interp.help    = {
                   'originally all positive image).']
 }';
 
-conf         = exbranch('Deformations','defs',{comp,saveas,applyto,savedir,interp});
+% ---------------------------------------------------------------------
+fwhm         = cfg_entry;
+fwhm.tag     = 'fwhm';
+fwhm.name    = 'Gaussian FWHM';
+fwhm.val     = {[0 0 0]};
+fwhm.strtype = 'e';
+fwhm.num     = [1 3];
+fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian blurring kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions. Note that you can also specify [0 0 0], but any ``modulated'' data will show aliasing (see eg Wikipedia), which occurs because of the way the warped images are generated.'};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+mask         = cfg_menu;
+mask.tag     = 'mask';
+mask.name    = 'Masking';
+mask.help    = {'Because of subject motion, different images are likely to have different patterns of zeros from where it was not possible to sample data. With masking enabled, the program searches through the whole time series looking for voxels which need to be sampled from outside the original images. Where this occurs, that voxel is set to zero for the whole set of images (unless the image format can represent NaN, in which case NaNs are used where possible).'};
+mask.labels = {
+               'Mask images'
+               'Dont mask images'
+}';
+mask.values = {1 0};
+mask.val    = {1};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+preserve         = cfg_menu;
+preserve.tag     = 'preserve';
+preserve.name    = 'Preserve';
+preserve.help    = {
+'Preserve Concentrations: Smoothed spatially normalised images (sw*) represent weighted averages of the signal under the smoothing kernel, approximately preserving the intensities of the original images. This option is currently suggested for eg fMRI.'
+''
+'Preserve Total: Smoothed and spatially normalised images preserve the total amount of signal from each region in the images (smw*). Areas that are expanded during warping are correspondingly reduced in intensity. This option is suggested for VBM.'
+}';
+preserve.labels = {
+                   'Preserve Concentrations (no "modulation")'
+                   'Preserve Amount ("modulation")'
+}';
+preserve.values = {0 1};
+preserve.val    = {0};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+fromimage       = cfg_files;
+fromimage.name   = 'Image Defined';
+fromimage.tag    = 'file';
+fromimage.filter = 'nifti';
+fromimage.num    = [1 1];
+fromimage.help   = {'Use the dimensions, orientation etc of some pre-existing image.'};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+surfa        = cfg_files;
+surfa.name   = 'Surface';
+surfa.tag    = 'surface';
+surfa.filter = 'gifti';;
+surfa.num    = [1 Inf];
+surfa.help   = {'Select a GIFTI file to warp.'};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+vox          = cfg_entry;
+vox.tag      = 'vox';
+vox.name     = 'Voxel sizes';
+vox.num      = [1 3];
+vox.strtype  = 'e';
+vox.val      = {[NaN NaN NaN]};
+vox.help     = {[...
+'Specify the voxel sizes of the deformation field to be produced. ',...
+'Non-finite values will default to the voxel sizes of the template image',...
+'that was originally used to estimate the deformation.']};
+% ---------------------------------------------------------------------
+
+% ---------------------------------------------------------------------
+bb           = cfg_entry;
+bb.tag       = 'bb';
+bb.name      = 'Bounding box';
+bb.strtype   = 'e';
+bb.num       = [2 3];
+bb.val       = {[NaN NaN NaN; NaN NaN NaN]};
+bb.help      = {[...
+'Specify the bounding box of the deformation field to be produced. ',...
+'Non-finite values will default to the bounding box of the template image',...
+'that was originally used to estimate the deformation.']};
+% ---------------------------------------------------------------------
+
+bbvox         = cfg_branch;
+bbvox.name    = 'User Defined';
+bbvox.tag     = 'bbvox';
+bbvox.val     = {bb,vox};
+bbvox.help   = {[...
+'The part of the deformation to use is specified by defining the bounding box and ',...
+'voxel sizes that you would like to have. This is probably stating the obvious to many ',...
+'but smaller voxels and a broader bounding box will take up more disk space, but may ',...
+'give a little more accuracy.']};
+
+deffov        = cfg_choice;
+deffov.name   = 'Field of View';
+deffov.tag    = 'fov';
+deffov.values = {fromimage,bbvox};
+deffov.help   = {[...
+'The dimensions and voxel size of the resulting deformation may be defined from some image, ',...
+'or by specifying voxel sizes and a bounding box.']};
+
+savedef       = cfg_branch;
+savedef.name  = 'Save Deformation';
+savedef.tag   = 'savedef';
+savedef.val   ={saveas,savedir1};
+savedef.help  = {['The deformation may be saved to disk as a ``y_*.nii'''' file.']};
+
+pullback      = cfg_branch;
+pullback.name = 'Pullback';
+pullback.tag  = 'pull';
+pullback.val  = {applyto,savedir,interp,mask,fwhm};
+pullback.help = {[...
+'This is the old way of warping images, which involves resampling images based on a mapping from ',...
+'the new (warped) image space back to the original image.  ',...
+'The deformation should be the inverse of the deformation that would be used for the pushforward procedure.']};
+
+weight        = cfg_files;
+weight.name   = 'Weight Image';
+weight.tag    = 'weight';
+weight.filter = 'nifti';;
+weight.num    = [0 1];
+weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
+weight.val    = {''};
+
+pushfo        = cfg_branch;
+pushfo.name   = 'Pushforward';
+pushfo.tag    = 'push';
+pushfo.val    = {applyto,weight,savedir,deffov,preserve,fwhm};
+pushfo.help   = {[...
+'This is a newer way of warping images (for SPM at least), and involves the ',...
+'forward pushing of voxel values from the original image into the appropriate place in the warped image. ',...
+'The deformation field should be the inverse of the one used for the pullback procedure.'],...
+'',...
+[...
+'``Smoothed'''' (blurred) spatially normalised images are generated in such a '...
+'way that the original signal is preserved. Normalised images are '...
+'generated by a ``pushing'''' rather than a ``pulling'''' (the usual) procedure. '...
+'Note that a procedure related to trilinear interpolation is used, and no masking is done.  It '...
+'is therefore recommended that the images are realigned and resliced '...
+'before they are spatially normalised, in order to benefit from motion correction using higher order interpolation.  Alternatively, contrast images '...
+'generated from unsmoothed native-space fMRI/PET data can be spatially '...
+'normalised for a 2nd level analysis.'],[...
+'Two ``preserve'''' options are provided.  One of them should do the '...
+'equavalent of generating smoothed ``modulated'''' spatially normalised '...
+'images.  The other does the equivalent of smoothing the modulated '...
+'normalised fMRI/PET, and dividing by the smoothed Jacobian determinants.']};
+
+pushsurf      = cfg_branch;
+pushsurf.name = 'Surface';
+pushsurf.tag  = 'surf';
+pushsurf.val  = {surfa,savedir};
+pushsurf.help = {[...
+'Surfaces may be warped using the resulting deformation. ',...
+'Note that a procedure similar to the pushforward is used, so the deformation should ',...
+'be the inverse of the one that would be used for spatially normalising images via the pullback procedure.']}; 
+
+output        = cfg_repeat;
+output.name   = 'Output';
+output.tag    = 'out';
+output.values = {savedef,pullback, pushfo,pushsurf};
+output.help = {[...
+'Various output options are available.  ',...
+'The deformation may be saved to disk as a ``y_*.nii'''' file.',...
+'Images may be warped using the resulting deformation, either using a ``pullback'''' procedure, or a ``pushforward''''.',...
+'The old style of spatial normalisation involved the pullback, whereas the pushforward requires ',...
+'the inverse of the deformation used by the pullback.  ',...
+'Finally, the deformation may be used to warp a GIFTI surface file.']};
+
+conf         = exbranch('Deformations','defs',{comp,output});
 conf.prog    = @spm_deformations;
 conf.vout    = @vout;
 conf.help    = hsummary;
@@ -270,17 +433,32 @@ return;
 
 function vo = vout(job)
 vo = [];
-if ~isempty(job.ofname) && ~isequal(job.ofname,'<UNDEFINED>') 
-    vo            = cfg_dep;
-    vo.sname      = 'Combined deformation';
-    vo.src_output = substruct('.','def');
-    vo.tgt_spec   = cfg_findspec({{'filter','image','filter','nifti'}});
-end
-if ~isempty(job.fnames) && ~isequal(job.fnames, {''})
-    if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
-    vo(end).sname      = 'Warped images';
-    vo(end).src_output = substruct('.','warped');
-    vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
+savedef   = false;
+saveimage = false;
+savesurf  = false;
+for i=1:numel(job.out)
+    out = job.out{i};
+    if isfield(out,'savedef') && ~savedef;
+        savedef = true;
+        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        vo(end).sname      = 'Deformation';
+        vo(end).src_output = substruct('.','def');
+        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+    end
+    if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage;
+        saveimage = true;
+        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        vo(end).sname      = 'Warped Images';
+        vo(end).src_output = substruct('.','warped');
+        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+    end
+    if isfield(out,'surf') && ~savesurf;
+        savesurf = true;
+        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        vo(end).sname      = 'Warped Surfaces';
+        vo(end).src_output = substruct('.','surf');
+        vo(end).tgt_spec   = cfg_findspec({{'filter','gifti'}});
+    end
 end
 return;
 %_______________________________________________________________________
@@ -324,3 +502,4 @@ menu_item.name   = name;
 menu_item.tag    = tag;
 menu_item.labels = labels;
 menu_item.values = values;
+
