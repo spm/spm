@@ -25,15 +25,15 @@ function [str, sts] = gencode_rvalue(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 3355 2009-09-04 09:37:35Z volkmar $
+% $Id: gencode_rvalue.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 3355 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 str = {};
 sts = true;
 switch class(item)
     case 'char'
-        if ndims(item) == 2
+        if ndims(item) == 2 %#ok<ISMAT>
             cstr = {''};
             % Create cell string, keep white space padding
             for k = 1:size(item,1)
@@ -54,7 +54,7 @@ switch class(item)
     case 'cell'
         if isempty(item)
             str = {'{}'};
-        elseif ndims(item) == 2 && any(size(item) == 1)
+        elseif ndims(item) == 2 && any(size(item) == 1) %#ok<ISMAT>
             str1 = {};
             for k = 1:numel(item)
                 [str2 sts] = gencode_rvalue(item{k});
@@ -90,14 +90,14 @@ switch class(item)
             str{1} = sprintf('@%s', fstr);
         end
     otherwise
-        if isobject(item) || ~(isnumeric(item) || islogical(item)) || issparse(item) || ndims(item) > 2
+        if isobject(item) || ~(isnumeric(item) || islogical(item)) || issparse(item) || ndims(item) > 2 %#ok<ISMAT>
             sts = false;
         else
             % treat item as numeric or logical, don't create 'class'(...)
             % classifier code for double
             clsitem = class(item);
             if isempty(item)
-                if strcmp(clsitem, 'double')
+                if strcmp(clsitem, 'double') %#ok<STISA>
                     str{1} = '[]';
                 else
                     str{1} = sprintf('%s([])', clsitem);

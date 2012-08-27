@@ -5,7 +5,8 @@ function [item, defaults] = val2def(item, defaults, funname, deftag)
 % much simpler logic. Also, it modifies the returned configuration tree by
 % clearing the .val fields if they are moved to defaults.
 % Initially, defaults and deftag should be empty.
-% This function is identical for cfg_branch and cfg_choice classes.
+%
+% This function is identical for cfg_branch and cfg_(m)choice classes.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -14,9 +15,9 @@ function [item, defaults] = val2def(item, defaults, funname, deftag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: val2def.m 2673 2009-01-30 13:34:53Z volkmar $
+% $Id: val2def.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 2673 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 csubs = substruct('.', treepart(item, true));
 citems = subsref(item, csubs);

@@ -23,9 +23,9 @@ function varargout = subsref(item, subs)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: subsref.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 4073 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 persistent local_mysubs_fields;
 persistent par_class;
@@ -65,7 +65,9 @@ switch subs(1).type,
                        '''(x).%s'''], subs(1).subs, subs(1).subs);
         end;
         if numel(subs) > 1
-            val = cfg_callbuiltin('subsref',val,subs(2:end));
+            [varargout{1:nargout}] = cfg_callbuiltin('subsref',val,subs(2:end));
+        else
+            varargout = {val};
         end
 %    case {'()','{}'},
 %        val = subsref_job(item, subs, false);
@@ -73,5 +75,3 @@ switch subs(1).type,
         cfg_message('matlabbatch:subsref:unknowntype', ...
               'Unknown subsref type: ''%s''. This should not happen.', subs(1).type);
 end
-
-varargout = {val};

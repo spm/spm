@@ -42,7 +42,8 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % 'showdoc' - calls showmydoc to display the help text and option hints for
 %             the current item (without recursive calls for .val/.values
 %             items).
-% This function is identical for all in-tree items.
+%
+% This function is identical for all cfg_intree classes.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -51,9 +52,9 @@ function [id, stop, val] = list(item, spec, tropts, fn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: list.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: list.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 if match(item, spec)
     id = {struct('type', {}, 'subs', {})};

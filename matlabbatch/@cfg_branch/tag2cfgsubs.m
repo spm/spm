@@ -3,8 +3,6 @@ function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % Return the index into the values branch of a configuration tree which
 % corresponds to a list of tags. 
-% This is the tag2cfgsubs function for within-tree cfg_items (cfg_[ex]branch,
-% cfg_repeat, cfg_choice).
 % Traversal stops if taglist contains only one element or item matches a
 % non-empty tropts.stopspec. In this case, stop returns the match status.
 % Id is an empty substruct, if gettag(item) matches taglist{1} and item
@@ -16,6 +14,8 @@ function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % rtaglist contains the remaining tags that were not matched due to a
 % stopping criterion.
 %
+% This function is identical for all cfg_intree classes.
+%
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
 % for a general overview.
@@ -23,9 +23,9 @@ function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: tag2cfgsubs.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: tag2cfgsubs.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 if numel(taglist) == 1 || (~isempty(tropts.stopspec) ...
                            && match(item, tropts.stopspec))
     if strcmp(gettag(item), taglist{1}) && match(item, finalspec)

@@ -25,6 +25,8 @@ function [item, sts] = expand(item, eflag, tropts)
 % stopspec criteria are met, but with an eflag of -1 (i.e. only 'expanded'
 % status is queried, but not changed).
 %
+% This function is identical for all cfg_intree classes.
+%
 % This code is part of a batch job configuration system for MATLAB. See
 %      help matlabbatch
 % for a general overview.
@@ -32,9 +34,9 @@ function [item, sts] = expand(item, eflag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: expand.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: expand.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 % Set expanded based on eflag in item
 if eflag >= 0 && eflag <= 2

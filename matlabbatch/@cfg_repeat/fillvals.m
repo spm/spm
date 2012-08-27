@@ -9,7 +9,8 @@ function [item, inputs] = fillvals(item, inputs, infcn)
 % [val sts] = infcn(item) 
 % will be called to obtain a value for this item. This call will be
 % repeated until either val can be assigned to item or sts is true.
-% This function is identical for all cfg_intree items.
+%
+% This function is identical for all cfg_intree classes.
 %
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
@@ -18,9 +19,9 @@ function [item, inputs] = fillvals(item, inputs, infcn)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: fillvals.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: fillvals.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 % Set item itself
 if ~all_set_item(item)

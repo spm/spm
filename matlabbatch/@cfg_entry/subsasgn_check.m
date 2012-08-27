@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4089 2010-10-11 11:53:34Z volkmar $
+% $Id: subsasgn_check.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 4089 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -82,6 +82,16 @@ else
                 sts = false;
             else
                 [sts val] = numcheck(item,val);
+                if sts && ~isempty(item.extras) && (ischar(item.extras) || iscellstr(item.extras))
+                    pats = cellstr(item.extras);
+                    mch = regexp(val, pats);
+                    sts = any(~cellfun(@isempty, mch));
+                    if ~sts
+                        cfg_message('matlabbatch:checkval:strtype', ...
+                            '%s: Item must match one of these patterns:\n%s', subsasgn_checkstr(item,substruct('.','val')), sprintf('%s\n', pats{:}));
+                        sts = false;
+                    end
+                end
             end
         case {'s+'}
             cfg_message('matlabbatch:checkval:strtype', ...
@@ -133,6 +143,12 @@ else
                 return;
             end
             [sts val] = numcheck(item,val);
+        case {'e'}
+            if ~isempty(item.extras) && subsasgn_check_funhandle(item.extras)
+                [sts val] = feval(item.extras, val, item.num);
+            else
+                [sts val] = numcheck(item,val);
+            end
         otherwise
             % only do size check for other strtypes
             [sts val] = numcheck(item,val);

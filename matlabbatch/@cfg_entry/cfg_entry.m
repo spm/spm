@@ -31,7 +31,12 @@ function item = cfg_entry(varargin)
 %                2-by-ndims array encoding min/max values for each
 %                dimension.
 %    * def
-%    * extras
+%    * extras  - Extra information used for content checks of item.val{1}. The
+%                following strtypes can use this extra information:
+%                's' - a cell array of regular expressions. The val
+%                string must match at least one of the regular
+%                expressions.
+%                'e' - a function handle [sts val] = f(val, item.num)
 %
 % Public Methods
 % ==============
@@ -90,9 +95,9 @@ function item = cfg_entry(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_entry.m 4166 2011-01-17 15:06:41Z volkmar $
+% $Id: cfg_entry.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 4166 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

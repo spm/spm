@@ -5,6 +5,8 @@ function item = update_deps(item, varargin)
 % cfg_menu, cfg_files) nodes of a configuration tree and update their
 % dependency information (mod_job_ids) if necessary.
 %
+% This function is identical for all cfg_intree classes.
+%
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
 % for a general overview.
@@ -12,9 +14,9 @@ function item = update_deps(item, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: update_deps.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: update_deps.m 4864 2012-08-27 13:57:31Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4864 $'; %#ok
 
 val = subsref(item, substruct('.','val'));
 for k = 1:numel(val)
