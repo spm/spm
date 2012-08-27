@@ -20,9 +20,9 @@ function dep = subsasgn(dep, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 4075 2010-10-04 07:36:23Z volkmar $
+% $Id: subsasgn.m 4863 2012-08-27 08:09:23Z volkmar $
 
-rev = '$Rev: 4075 $'; %#ok
+rev = '$Rev: 4863 $'; %#ok
 
 persistent my_cfg_dep
 sflag = false;
@@ -40,9 +40,10 @@ if strcmpi(subs(1).type, '()')
         [dep(subs(1).subs{:})] = deal(my_cfg_dep);
     end
     if numel(subs) == 1
+        [dep(subs(1).subs{:})] = deal(varargin{:});
         return;
     else
-        % select referenced depects from input array, run subsasgn on them an
+        % select referenced objects from input array, run subsasgn on them an
         % put results back into input array
         odep  = dep;
         osubs = subs(1);

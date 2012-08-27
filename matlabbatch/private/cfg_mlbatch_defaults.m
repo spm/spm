@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 4166 2011-01-17 15:06:41Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 4863 2012-08-27 08:09:23Z volkmar $
 
-rev = '$Rev: 4166 $'; %#ok
+rev = '$Rev: 4863 $'; %#ok
 
 try
     % Font definition for cfg_ui user interface
@@ -125,3 +125,8 @@ cfg_defaults.msgtpl(14).destination = 'none';
 % initialisation/harvest/run - set this to true if you want to debug some
 % configuration or the batch system itself
 cfg_defaults.cfg_item.checkval = false;
+
+% verbosity of code generation for cfg_dep objects
+% true  - one-line code containing only source information
+% false - full code, including source and target specifications
+cfg_defaults.cfg_dep.gencode_short = true;
