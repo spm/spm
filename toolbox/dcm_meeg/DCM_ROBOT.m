@@ -8,7 +8,7 @@ function E = DCM_ROBOT
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
-cd('C:\home\spm\DCM\DCM tests')
+cd('C:\Users\karl\Documents\SPM\DCM tests')
 clear all
 close all
 delete(get(0,'Children'))
@@ -24,6 +24,7 @@ E = {};
 load DCM_MMN
 DCM.options.analysis = 'ERP';
 DCM.options.model    = 'ERP';
+DCM.name             = 'DCM_MMN';
 
 
 model = {'ECD','IMG'};
@@ -65,6 +66,7 @@ end
 load DCM_MMN
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'ERP';
+DCM.name             = 'DCM_MMN';
 
 % neural models
 %--------------------------------------------------------------------------
@@ -133,6 +135,8 @@ load DCM_CSD
 DCM.options.model    = 'CMC';
 DCM.options.spatial  = 'LFP';
 DCM.options.analysis = 'CSD';
+DCM.name             = 'DCM_CSD';
+
 fprintf('\nChecking spm_dcm_csd\n')
 
 try
@@ -145,6 +149,7 @@ try
     % print graphics
     %----------------------------------------------------------------------
     spm_demo_print
+    
 catch
     
     % errors
@@ -161,7 +166,10 @@ load DCM_FACES
 
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'IND';
+DCM.name             = 'DCM_FACES';
+
 fprintf('\nChecking spm_dcm_ind\n')
+
 try
     
     DCM  = rmfield(DCM,'M');
@@ -188,12 +196,14 @@ fprintf('\n\n     --------***--------   \n\n')
 load DCM_TFM
 
 DCM.options.spatial  = 'ECD';
-DCM.options.analysis = 'IND';
+DCM.options.analysis = 'TFM';
+DCM.name             = 'DCM_TFM';
+
 fprintf('\nChecking spm_dcm_tfm\n')
 
 try
     
-    DCM  = rmfield(DCM,'M');
+    DCM = rmfield(DCM,'M'); 
     DCM  = spm_dcm_tfm(DCM);
     
     spm_figure('GetWin','induced and evoked responses');
@@ -219,8 +229,10 @@ fprintf('\n\n     --------***--------   \n\n')
 %--------------------------------------------------------------------------
 for i = 1:length(E)
     disp(E{i}.message)
-    disp(E{i}.stack(end - 1))
-    disp(E{i}.stack(1))
+    try
+        disp(E{i}.stack(end - 1))
+        disp(E{i}.stack(1))
+    end
     disp('------------------------------------------------')
 end
 
@@ -234,6 +246,8 @@ function spm_demo_print
 
 % print graphics
 %--------------------------------------------------------------------------
+drawnow
+
 H     = sort(get(0,'Children'));
 for j = 1:length(H);
     

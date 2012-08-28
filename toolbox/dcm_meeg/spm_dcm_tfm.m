@@ -49,7 +49,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_tfm.m 4866 2012-08-28 12:47:34Z karl $
  
  
 % check options
@@ -86,7 +86,7 @@ DCM.options.h        = 2;
 %==========================================================================
 ERP                  = DCM;
 ERP.options.analysis = 'ERP';
-[pth name] = fileparts(DCM.name); cd(pth)
+[pth name] = fileparts(DCM.name);
 ERP.name   = fullfile(pth,[name '_erp']);
 ERP        = spm_dcm_erp(ERP);
  

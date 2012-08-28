@@ -5,7 +5,7 @@ function M0 = spm_bilinear_condition(M0,N,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bilinear_condition.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_bilinear_condition.m 4866 2012-08-28 12:47:34Z karl $
 
 % conditions a bilinear operator by suppressing positive eigenmodes
 %==========================================================================
@@ -14,9 +14,9 @@ function M0 = spm_bilinear_condition(M0,N,dt)
 % regulariser (1/8 of kernel support)
 %--------------------------------------------------------------------------
 if nargin == 1
-    t = 32;
+    t = 16;
 else
-    t = 32/(N*dt);
+    t = 16/(N*dt);
 end
 
 % remove unstable modes from Jacobian

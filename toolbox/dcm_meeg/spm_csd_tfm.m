@@ -16,7 +16,7 @@ function [y,w,t,x] = spm_csd_tfm(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_tfm.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_csd_tfm.m 4866 2012-08-28 12:47:34Z karl $
 
 
 % check input - one trial (no between-tria effects)
@@ -94,7 +94,7 @@ for  c = 1:size(X,1)
     % solve for expected hidden states (by removing observer function)
     %======================================================================
     S     = rmfield(M,'g');
-    x     = spm_int_J(Q,S,U);
+    x     = spm_int_L(Q,S,U);
     
     % reconfigure model for endogenous inputs
     %----------------------------------------------------------------------

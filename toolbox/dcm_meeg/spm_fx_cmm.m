@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_fx_cmm.m 4866 2012-08-28 12:47:34Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -155,7 +155,7 @@ end
 
 % Averge background activity
 %==========================================================================
-BE    = exp(P.E)/8;
+BE    = exp(P.E)/12;
  
 % flow and dispersion over every (ns x np) subpopulation
 %==========================================================================

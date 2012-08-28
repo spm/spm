@@ -37,7 +37,7 @@ function spm_ind_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_ind_demo.m 4866 2012-08-28 12:47:34Z karl $
 
 
 % number of regions in coupled map lattice
@@ -79,7 +79,7 @@ M.l   = size(pE.L,1);
 N     = 256;                          % number of samples
 U.dt  = 8/1000;                       % sampling interval
 pst   = [1:N]*U.dt;                   % peristimulus time
-t     = 32;                           % sample window for WFT
+t     = 64;                           % sample window for WFT
 cpt   = 1:1/8:16;                     % cycles per window         
 w     = cpt./(t*U.dt);                % Hz
  
@@ -96,6 +96,7 @@ LFP   = spm_int_ode(pE,M,U);
  
 % display
 %==========================================================================
+spm_figure('GetWin','Figure 1')
  
 % input - time
 %--------------------------------------------------------------------------
@@ -109,7 +110,7 @@ title('input')
 % Input - time-frequency
 %--------------------------------------------------------------------------
 subplot(2,2,3)
-imagesc(pst,w,sqrt(abs(spm_wft(U.u,cpt,t))));
+imagesc(pst,w,abs(spm_wft(U.u,cpt,t)));
 axis square xy
 xlabel('time (s)')
 ylabel('frequency')
@@ -127,7 +128,7 @@ title('response')
 % LFP - time-frequency
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-imagesc(pst,w,sqrt(abs(spm_wft(LFP,cpt,t))));
+imagesc(pst,w,abs(spm_wft(LFP,cpt,t)));
 axis square xy
 xlabel('time (s)')
 ylabel('frequency')
