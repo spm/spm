@@ -12,10 +12,10 @@ function [z,w] = spm_DEM_z(M,N)
 % dependent terms, specified by M.ph and M.pg in spm_DEM_int
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_DEM_z.m 4625 2012-01-24 20:53:10Z karl $
- 
+% $Id: spm_DEM_z.m 4865 2012-08-28 12:46:50Z karl $
+
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
 s  = M(1).E.s + exp(-16);
@@ -23,7 +23,7 @@ dt = M(1).E.dt;
 t  = ((1:N) - 1)*dt;
 K  = toeplitz(exp(-t.^2/(2*s^2)));
 K  = diag(1./sqrt(diag(K*K')))*K;
- 
+
 % create innovations z{i} and w{i}
 %--------------------------------------------------------------------------
 for i = 1:length(M)
@@ -32,7 +32,7 @@ for i = 1:length(M)
     %======================================================================
     P     = M(i).V;
     
-    % plus prior expectations’
+    % plus prior expectations
     %----------------------------------------------------------------------
     try
         for j = 1:length(M(i).Q)
@@ -40,9 +40,11 @@ for i = 1:length(M)
         end
     end
     
-    % create causes: assume i.i.d. if precision (P) is zero
+    % create causes: assume i.i.d. if precision is zero
     %----------------------------------------------------------------------
-    if ~norm(P,1); P = 1; end
+    if norm(P,1) == 0;       P = 1;   end
+    if norm(P,1) >= exp(32); P = Inf; end
+    
     z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
     
     % precision of states
@@ -60,7 +62,8 @@ for i = 1:length(M)
     % create states: assume i.i.d. if precision (P) is zero
     %----------------------------------------------------------------------
     if ~isempty(P)
-        if ~norm(P,1); P = 1; end
+        if norm(P,1) == 0;       P = 1;   end
+        if norm(P,1) >= exp(16); P = Inf; end
         w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
     else
         w{i} = sparse(0,0);

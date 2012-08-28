@@ -23,14 +23,14 @@ function [M] = spm_ADEM_M_set(M)
 % for each level (i); optional fields
 %
 %   M(i).pE = prior expectation of p model-parameters
-%   M(i).V  = fixed precision (input noise)
-%   M(i).W  = fixed precision (state noise)
-%   M(i).U  = fixed precision (action)
+%   M(i).V  = precision (input noise)
+%   M(i).W  = precision (state noise)
+%   M(i).U  = precision (action)
 %
 %
 % sets fields, checks internal consistency of model specification and sets
-% estimation parameters.  If a single hyperparameter is supplied i.i.d
-% components are assumed (i.e., Q = I, R = I)
+% estimation parameters.  If (V,W) are not specified infinite precision is
+% assumed.
 %--------------------------------------------------------------------------
 %
 %   M(1).E.s;     = smoothness (s.d. in time bins)
@@ -43,7 +43,7 @@ function [M] = spm_ADEM_M_set(M)
 % Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
  
 % Karl Friston
-% $Id: spm_ADEM_M_set.m 4824 2012-08-03 16:42:24Z karl $
+% $Id: spm_ADEM_M_set.m 4865 2012-08-28 12:46:50Z karl $
  
 % order
 %--------------------------------------------------------------------------
@@ -225,7 +225,7 @@ for i = 1:g
         try
             M(i).V = speye(M(i).l,M(i).l)*M(i).V(1);
         catch
-            M(i).V = speye(M(i).l,M(i).l);
+            M(i).V = speye(M(i).l,M(i).l)*exp(32);
         end
     end
                 
@@ -236,7 +236,7 @@ for i = 1:g
         try
             M(i).W = speye(M(i).n,M(i).n)*M(i).W(1);
         catch
-            M(i).W = speye(M(i).n,M(i).n);
+            M(i).W = speye(M(i).n,M(i).n)*exp(32);
         end
     end
 end
@@ -245,6 +245,7 @@ end
 % check restiction of precision for action (gain)
 %==========================================================================
 try, M(1).U;  catch, M(1).U = []; end
+
 if isvector(M(1).U), M(1).U = diag(M(1).U); end
 if length(M(1).U) ~= M(1).l
     try

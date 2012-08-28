@@ -1,4 +1,4 @@
-% function DEM_evidence_accumulation
+function DEM_evidence_accumulation
 % Saccadic eye movements under active inference:
 %__________________________________________________________________________
 % This demo illustrates exploration or visual search in terms of optimality
@@ -20,7 +20,7 @@
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_evidence_accumulation.m 4862 2012-08-24 19:21:27Z karl $
+% $Id: DEM_evidence_accumulation.m 4865 2012-08-28 12:46:50Z karl $
 
 
 % hidden causes and states
@@ -43,24 +43,20 @@
 %--------------------------------------------------------------------------
 
 
-clear
-
-
-
 % generative model
 %==========================================================================
-M(1).E.s = 1/2;                               % smoothness
-M(1).E.n = 4;                                 % order of
-M(1).E.d = 1;                                 % generalised motion
+M(1).E.s = 1/2;                                % smoothness
+M(1).E.n = 4;                                  % order of
+M(1).E.d = 1;                                  % generalised motion
 
 % level 1: Displacement dynamics and mapping to sensory/proprioception
 %--------------------------------------------------------------------------
-M(1).f  = inline('([1 - sum(exp(x)) - x/128 - [0; 1; 0]*v])/8','x','v','P');
+M(1).f  = inline('([1 - sum(exp(x)) - (x + log(3))/32 - [0; 1; 0]*v])/32','x','v','P');
 M(1).g  = inline('[ [-1 0 1]*spm_phi(16*(exp(x) - 1)); [-1 0 1]*exp(x) + zeros(16,1)]','x','v','P');
-M(1).x  = -log(3)*[1; 1; 1];                          % hidden states
-M(1).V  = [0 (zeros(1,16) + exp(0))];           % error precision (g)
-M(1).W  = exp(16);                              % error precision (f)
-M(1).xP = exp(2);                               % error precision (f)
+M(1).x  = -log(3)*[1; 1; 1];                   % hidden states
+M(1).V  = [0 (zeros(1,16) + exp(-4))];         % error precision (g)
+M(1).W  = exp(32);                             % error precision (f)
+% M(1).xP = exp(2);                            % error precision (f)
 
 % level 2:
 %--------------------------------------------------------------------------
@@ -75,7 +71,7 @@ M(2).V  = exp(8);
 % first level
 %--------------------------------------------------------------------------
 G(1).g  = inline('[a; v + zeros(16,1)]','x','v','a','P');
-G(1).V  = [exp(8) zeros(1,16) + exp(-2)];       % error precision
+G(1).V  = [exp(8) zeros(1,16) + exp(-2)];      % error precision
 G(1).U  = [1 zeros(1,16)];                     % motor gain
 
 % second level

@@ -54,7 +54,7 @@ function DCM = spm_meta_model(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_meta_model.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_meta_model.m 4865 2012-08-28 12:46:50Z karl $
  
  
  
@@ -141,16 +141,13 @@ catch
     G(1).f = '[x.o(2); a/4 - x.o(2)/8; v - x.x]';
     G(1).g = g;
     G(1).x = x;                                  % hidden states
-    G(1).V = exp(16);                            % error precision (errors)
-    G(1).W = exp(16);                            % error precision (motion)
     G(1).U = sparse(1,[1 2],[1 1],1,19)*exp(4);  % motor gain
     
     % second level
     %----------------------------------------------------------------------
     G(2).v = 0;                                  % exogenous force
     G(2).a = 0;                                  % action force
-    G(2).V = exp(16);
-    
+
 end
  
 % Check generative model
