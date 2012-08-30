@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4656 2012-02-10 15:02:39Z volkmar $
+% $Id: cfg_ui.m 4867 2012-08-30 13:04:51Z volkmar $
 
-rev = '$Rev: 4656 $'; %#ok
+rev = '$Rev: 4867 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -1187,8 +1187,24 @@ udmodlist = get(handles.modlist, 'userdata');
 try
     cfg_util('run',udmodlist(1).cjob);
 catch
-    l = lasterror;
-    errordlg(l.message,'Error in job execution', 'modal');
+    le = lasterror;
+    if strcmpi(questdlg(sprintf('%s\n\nSave error information?', le.message),'Error in job execution', 'Yes','No','Yes'), 'yes')
+        opwd = pwd;
+        if ~isempty(udmodlist.wd)
+            cd(udmodlist.wd);
+        end;
+        [file pth idx] = uiputfile({'*.mat','Matlab .mat File'},...
+            'Error .mat File name');
+        cd(opwd);
+        if ~(isnumeric(file) && file == 0)
+            [u1 ojob] = cfg_util('harvest',udmodlist(1).cjob);
+            [u1 rjob] = cfg_util('harvestrun',udmodlist(1).cjob);
+            outputs   = cfg_util('getalloutputs', udmodlist(1).cjob);
+            diarystr  = cfg_util('getdiary',udmodlist(1).cjob);
+            [p n e] = fileparts(file);
+            save(fullfile(pth, [n '.mat']), 'ojob', 'rjob', 'outputs', 'diarystr');
+        end;
+    end
 end;
 local_pointer('arrow');
 

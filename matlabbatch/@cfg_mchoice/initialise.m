@@ -70,10 +70,11 @@ else
     item.cfg_item.val = {};
     if ~isempty(vtags)
         for k = 1:numel(item.values)
-            if strcmp(gettag(item.values{k}), vtags{1})
-                item.cfg_item.val{1} = initialise(item.values{k}, ...
-                                                  val.(vtags{1}), dflag);
-                break;
+            % find fields in values that corresponds to one of the branch vals
+            vi = strcmp(gettag(item.values{k}), vtags);
+            if any(vi) % field names are unique, so there will be at most one match
+                item.cfg_item.val{end+1} = initialise(item.values{k}, ...
+                                                      val.(vtags{vi}), dflag);
             end;
         end;
     end;

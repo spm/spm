@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 4863 2012-08-27 08:09:23Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 4867 2012-08-30 13:04:51Z volkmar $
 
-rev = '$Rev: 4863 $'; %#ok
+rev = '$Rev: 4867 $'; %#ok
 
 try
     % Font definition for cfg_ui user interface
@@ -53,8 +53,11 @@ cfg_defaults.cfg_util.runparallel = false;
 % add job execution code (flag == true) or not (flag == false).
 % The generated code will be inserted after the for loop which collects the
 % input. In the generated code, variables 'jobs' and 'inputs' can be
-% referenced. These will hold the 
+% referenced. These will hold the jobs and corresponding inputs.
 cfg_defaults.cfg_util.genscript_run = [];
+% A diary of command window output can be kept for jobs. This is useful for
+% debugging various problems related to job execution.
+cfg_defaults.cfg_util.run_diary = false;
 
 % Message defaults
 cfg_defaults.msgdef.identifier  = 'cfg_defaults:defaultmessage';

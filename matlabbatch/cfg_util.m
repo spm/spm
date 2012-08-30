@@ -111,6 +111,18 @@ function varargout = cfg_util(cmd, varargin)
 %            If mod_job_id is supplied, only virtual output descriptions of
 %            the referenced module are returned.
 %
+%  cfg = cfg_util('getcfg')
+%
+% Get internal cfg representation from cfg_util.
+%
+%  diary = cfg_util('getdiary', job_id)
+%
+% diary - cellstr containing command window output of job execution.
+% If cfg_get_defaults('cfg_util.run_diary') is set to true, cfg_util will
+% use MATLABs diary function to capture all command line output of a
+% running job. cfg_util('getdiary', jobid) retrieves the last diary saved
+% for a job.
+%
 %  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
 %
 % Harvest is a method defined for all 'cfg_item' objects. It collects the
@@ -375,9 +387,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 4252 2011-03-15 17:49:51Z volkmar $
+% $Id: cfg_util.m 4867 2012-08-30 13:04:51Z volkmar $
 
-rev = '$Rev: 4252 $';
+rev = '$Rev: 4867 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -437,6 +449,7 @@ switch lower(cmd),
                 jobs(varargin{1}).cjid2subs = {};
                 jobs(varargin{1}).cjrun = [];
                 jobs(varargin{1}).cjid2subsrun = {};
+                jobs(varargin{1}).diary = {};
             end
         end
     case 'dumpcfg'
@@ -482,6 +495,21 @@ switch lower(cmd),
             sts = false;
         end
         varargout{1} = sts;
+    case 'getcfg',
+        varargout{1} = c0;
+    case 'getdiary',
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob)
+            try
+                fid          = fopen(jobs(cjob).diary{1},'r');
+                varargout{1} = subsref(textscan(fid,'%s','delimiter','\n'), substruct('{}',{1}));
+                fclose(fid);
+            catch
+                varargout{1} = {};
+            end
+        else
+            varargout{1} = {};
+        end
     case 'gencode',
         fname = varargin{1};
         cm = local_getcm(c0, varargin{2});
@@ -828,11 +856,10 @@ switch lower(cmd),
         pflag = any(strcmpi(cmd, {'run','cont'})) && cfg_get_defaults([mfilename '.runparallel']);
         cflag = any(strcmpi(cmd, {'cont','contserial'}));
         [jobs(cjob) err] = local_runcj(jobs(cjob), cjob, pflag, cflag);
-        if dflag
-            cfg_util('deljob', cjob);
-        end
         if ~isempty(err)
             cfg_message(err);
+        elseif dflag
+            cfg_util('deljob', cjob);
         end
     case {'savejob','savejobrun'}
         cjob = varargin{1};
@@ -1322,6 +1349,7 @@ jobs(cjob).c0        = c0;
 jobs(cjob).cjid2subs = {};
 jobs(cjob).cjrun     = [];
 jobs(cjob).cjid2subsrun = {};
+jobs(cjob).diary     = {};
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
@@ -1456,6 +1484,17 @@ function [job err] = local_runcj(job, cjob, pflag, cflag)
 % If cflag is true, and a job with pre-set module outputs .jout is passed
 % in job.cjrun, the corresponding modules will not be run again.
 
+if cfg_get_defaults('cfg_util.run_diary')
+    % create diary file
+    fid   = fopen(tempname, 'w');
+    % get diary filename and start diary
+    dname = fopen(fid);
+    fclose(fid);
+    % save old diary state
+    odstate = get(0, 'Diary');
+    odname = get(0, 'DiaryFile');
+    diary(dname);
+end
 cfg_message('matlabbatch:run:jobstart', ...
             ['\n\n------------------------------------------------------------------------\n',...
              'Running job #%d\n', ...
@@ -1576,6 +1615,13 @@ else
                         '------------------ \nRunning job #%d' ...
                         '\n------------------\n'], cjob);
     err.stack      = struct('file','','name','MATLABbatch system','line',0);
+end
+if cfg_get_defaults('cfg_util.run_diary')
+    diary off
+    % restore old diary state
+    set(0, 'DiaryFile', odname);
+    set(0, 'Diary', odstate);
+    job.diary = {dname};
 end
 %-----------------------------------------------------------------------
 

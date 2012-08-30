@@ -1,13 +1,7 @@
 function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 
 % function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
-% Harvest a cfg_choice. 
-% If dflag is false, the filled item.val{1} cfg_item is harvested. The
-% returned val is a struct with a single field. The field name
-% corresponds to the tag of item.val{1}, the value is the harvested 
-% val of the item.val{1} cfg_item. 
-% If dflag is true, all item.value{:} cfg_items will be harvested, and
-% the returned struct will contain one field per cfg_item.
+% Harvest a cfg_branch object.
 % Input arguments:
 % item  - item to be harvested
 % cj    - configuration tree (passed unmodified)
@@ -23,6 +17,8 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 %       childrens check functions. A job is ready to run if all
 %       dependencies are resolved and chk status is true.
 %
+% This function is identical for cfg_branch and cfg_(m)choice classes.
+%
 % This code is part of a batch job configuration system for MATLAB. See 
 %      help matlabbatch
 % for a general overview.
@@ -30,9 +26,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: harvest.m 4867 2012-08-30 13:04:51Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 4867 $'; %#ok
 
 typ = class(item);
 tag = gettag(item);
@@ -44,19 +40,23 @@ chk = ~dflag && rflag;
 tname = treepart(item, dflag);
 ntgt_input = substruct('.', tname, '{}', {});
 citems = subsref(item, ntgt_input(1));
+
+% add references into harvested struct/cell
+njtsubs.type = '.';
+njtsubs.subs = '';
+
 for k = 1:numel(citems)
     [ctag cval unused cdep cchk cj] = harvest(citems{k}, cj, dflag, rflag);
     val(1).(ctag) = cval;
     if ~dflag && ~isempty(cdep)
         % augment cdep tsubs references
-        ntgt_input(2).subs = {1};
-        njtsubs.type = '.';
-        njtsubs.subs = ctag;
+        njtsubs.subs  = ctag;
+        ntgt_input(2).subs  = {k};
         dep = dep_add(cdep, dep, ntgt_input, njtsubs);
     end;
     chk = chk && cchk;
 end;
-if ~dflag && isempty(val)
+if ~dflag && isempty(val) && isa(item, 'cfg_choice')
     val = '<UNDEFINED>';
     chk = false;
 end

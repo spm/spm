@@ -42,9 +42,9 @@ function varargout = cfg_message(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_message.m 4655 2012-02-10 15:02:22Z volkmar $
+% $Id: cfg_message.m 4867 2012-08-30 13:04:51Z volkmar $
 
-rev = '$Rev: 4655 $'; %#ok
+rev = '$Rev: 4867 $'; %#ok
 
 if nargin < 1 || isempty(varargin{1})
     return;
@@ -178,18 +178,18 @@ else
             % no matching id (or invalid msgid), use default setting
             cmsgcfg = msgdef;
             cmsgcfg.identifier = msgid;
-            issuemsg(cmsgcfg, msgfmt, extras);
+            issuemsg(cmsgcfg, msgfmt, extras, stack);
         case 1
             % exact match
-            issuemsg(cmsgcfg(sel), msgfmt, extras);
+            issuemsg(cmsgcfg(sel), msgfmt, extras, stack);
         otherwise
             % multiple matches, use last match (i.e. least recently added rule)
             is = find(sel);
-            issuemsg(cmsgcfg(is(end)), msgfmt, extras);
+            issuemsg(cmsgcfg(is(end)), msgfmt, extras, stack);
     end
 end
 
-function issuemsg(msgcfg, msgfmt, extras)
+function issuemsg(msgcfg, msgfmt, extras, stack)
 if strcmp(msgcfg.level,'error') || ~strcmp(msgcfg.destination, 'none')
     switch msgcfg.destination
         case 'none'
@@ -250,7 +250,7 @@ if strcmp(msgcfg.level,'error') || ~strcmp(msgcfg.destination, 'none')
             end
             le.identifier = msgcfg.identifier;
             le.message    = msg;
-            le.stack      = dbstack(2);
+            le.stack      = stack;
             error(le);
     end
 end
