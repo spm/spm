@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.h 4871 2012-08-30 14:11:53Z john $ */
+/* $Id: shoot_diffeo3d.h 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2007) */
 extern void composition(mwSize ma[], mwSize mm, float *A, float *B, float *C);
 extern void composition_jacobian(mwSize ma[], mwSize mm,

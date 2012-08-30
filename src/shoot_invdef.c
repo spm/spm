@@ -1,5 +1,5 @@
 /*
- * $Id: shoot_invdef.c 4871 2012-08-30 14:11:53Z john $
+ * $Id: shoot_invdef.c 4875 2012-08-30 20:04:30Z john $
  * John Ashburner
  */
 

@@ -1,4 +1,4 @@
-/* $Id: shoot_optim3d.c 4839 2012-08-14 18:53:20Z john $ */
+/* $Id: shoot_optim3d.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>

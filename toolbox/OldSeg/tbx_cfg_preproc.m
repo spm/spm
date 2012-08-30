@@ -3,7 +3,7 @@ function preproc = spm_cfg_preproc
 %______________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_preproc.m 4873 2012-08-30 19:06:26Z john $
+% $Id: tbx_cfg_preproc.m 4875 2012-08-30 20:04:30Z john $
 
 
 % ---------------------------------------------------------------------
@@ -149,8 +149,8 @@ tpm.help    = {
                ''
                'The model is refined further by allowing the tissue probability maps to be deformed according to a set of estimated parameters. This allows spatial normalisation and segmentation to be combined into the same model. This implementation uses a low-dimensional approach, which parameterises the deformations by a linear combination of about a thousand cosine transform bases. This is not an especially precise way of encoding deformations, but it can model the variability of overall brain shape. Evaluations by Hellier et al have shown that this simple model can achieve a registration accuracy comparable to other fully automated methods with many more parameters.'
 }';
-tpm.filter = 'image';
-tpm.dir = fullfile(spm('dir'),'tpm');
+tpm.filter  = 'image';
+tpm.dir     = fileparts(mfilename('fullpath'));
 tpm.ufilter = '.*';
 tpm.num     = [3 3];
 tpm.def     = @(val)spm_get_defaults('old.preproc.tpm', val{:});

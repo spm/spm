@@ -1,4 +1,4 @@
-/* $Id: shoot_boundary.c 4583 2011-12-06 16:03:01Z john $ */
+/* $Id: shoot_boundary.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"

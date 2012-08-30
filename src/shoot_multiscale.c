@@ -1,4 +1,4 @@
-/* $Id: shoot_multiscale.c 4652 2012-02-09 18:39:33Z john $ */
+/* $Id: shoot_multiscale.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>

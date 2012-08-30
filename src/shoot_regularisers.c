@@ -1,4 +1,4 @@
-/* $Id: shoot_regularisers.c 4802 2012-07-23 18:37:30Z john $ */
+/* $Id: shoot_regularisers.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include<mex.h>

@@ -4,7 +4,7 @@ function normalise = tbx_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 4874 2012-08-30 19:08:31Z john $
+% $Id: spm_cfg_norm.m 4875 2012-08-30 20:04:30Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
@@ -478,9 +478,9 @@ normalise.values   = {est write estwrite};
 function dep = vout_est(job)
 for k=1:numel(job.subj)
     dep(k)            = cfg_dep;
-    dep(k).sname      = sprintf('Norm Params File (Subj %d)',k);
-    dep(k).src_output = substruct('()',{k},'.','params');
-    dep(k).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
+    dep(k).sname      = sprintf('Deformation (Subj %d)',k);
+    dep(k).src_output = substruct('()',{k},'.','def');
+    dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
 
 %==========================================================================

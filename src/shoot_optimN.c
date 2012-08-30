@@ -1,4 +1,4 @@
-/* $Id: shoot_optimN.c 4820 2012-08-01 12:20:00Z guillaume $ */
+/* $Id: shoot_optimN.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2007) */
 
 #include<mex.h>

@@ -9,8 +9,7 @@ function out = spm_run_norm(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 4873 2012-08-30 19:06:26Z john $
-
+% $Id: spm_run_norm.m 4875 2012-08-30 20:04:30Z john $
 
 for i=1:numel(job.subj)
 
@@ -34,7 +33,7 @@ end
 %--------------------------------------------------------------------------
 for i=1:numel(job.subj)
     if ~isfield(job.subj(i),'def'),
-        out(i).def = {spm_file(char(job.subj(i).vol), 'suffix','_sn', 'ext','.mat')};
+        out(i).def = {spm_file(char(job.subj(i).vol), 'prefix','y_', 'ext','.nii')};
     end
     
     if isfield(job,'woptions'),

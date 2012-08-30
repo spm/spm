@@ -394,7 +394,7 @@ function varargout = shoot3(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: shoot3.m 4871 2012-08-30 14:11:53Z john $
+% $Id: shoot3.m 4875 2012-08-30 20:04:30Z john $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

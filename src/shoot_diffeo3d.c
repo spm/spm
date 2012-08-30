@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 4758 2012-05-29 15:34:08Z john $ */
+/* $Id: shoot_diffeo3d.c 4875 2012-08-30 20:04:30Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>

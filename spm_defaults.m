@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_defaults.m 4875 2012-08-30 20:04:30Z john $
 
 
 global defaults
@@ -156,9 +156,9 @@ defaults.old.normalise.write.wrap       = [0 0 0];
 % VBM Preprocessing defaults
 %==========================================================================
 defaults.old.preproc.tpm     = cellstr(char(...
-    fullfile(spm('Dir'),'tpm','grey.nii'),...
-    fullfile(spm('Dir'),'tpm','white.nii'),...
-    fullfile(spm('Dir'),'tpm','csf.nii')));   % Prior probability maps
+    fullfile(spm('Dir'),'toolbox','OldSeg','grey.nii'),...
+    fullfile(spm('Dir'),'toolbox','OldSeg','white.nii'),...
+    fullfile(spm('Dir'),'toolbox','OldSeg','csf.nii'))); % Prior probability maps
 defaults.old.preproc.ngaus          = [2 2 2 4]'; % Gaussians per class
 defaults.old.preproc.warpreg        = 1;          % Warping Regularisation
 defaults.old.preproc.warpco         = 25;         % Warp Frequency Cutoff
