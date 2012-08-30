@@ -1,8 +1,8 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2011 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 4452 2011-09-02 10:45:26Z guillaume $
+# $Id: Makefile.var 4872 2012-08-30 15:29:15Z guillaume $
 #
 ###############################################################################
 #
@@ -10,7 +10,7 @@
 # Linux, Windows and MacOS.
 # 
 # If you have to tweak this file to compile the SPM mex-files for your 
-# platform, please send the details to <spm@fil.ion.ucl.ac.uk> so they can be 
+# platform, please send the details to <fil.spm@ucl.ac.uk> so they can be 
 # included here. 
 #
 # You can find some more help online on the SPM wikibook:
@@ -23,7 +23,6 @@
 #      MinGW: http://www.mingw.org/
 #      Gnumex: http://gnumex.sourceforge.net/
 #      MinGW-w64: http://mingw-w64.sourceforge.net/
-#      WPG System64: http://www.horizonchess.com/wpg64/
 #  * MacOS:
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
@@ -94,7 +93,7 @@ ifndef SUF
     MEXEND     = "
     MOSUF      = obj
   endif
-  ifeq (WPGSystem64,$(word 2,$(subst _, ,$(PLATFORM))))
+  ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
     SUF        = mexw64
     MEXBIN     = cmd /c "mex.bat
     MEXOPTS   += -DSPM_WIN32

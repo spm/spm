@@ -1,5 +1,5 @@
 /*
- * $Id: spm_unlink.c 4819 2012-07-31 17:51:45Z guillaume $
+ * $Id: spm_unlink.c 4872 2012-08-30 15:29:15Z guillaume $
  * John Ashburner
  */
 
@@ -17,7 +17,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     for(i=0; i<nrhs; i++)
     {
         const mxArray *matptr = prhs[i];
-        if (!mxIsNumeric(matptr))
+        if (mxIsChar(matptr))
         {
             char *str = NULL;
             mwIndex k;

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4857 2012-08-23 17:17:30Z guillaume $
+# $Id: Makefile 4872 2012-08-30 15:29:15Z guillaume $
 #
 ###############################################################################
 #
@@ -54,7 +54,6 @@ SPMMEX  =\
 
 SUBDIRS =\
 	toolbox/FieldMap \
-	toolbox/HDW \
 	toolbox/Seg \
 	toolbox/Shoot \
 	@xmltree/private
@@ -68,7 +67,7 @@ all: verb.$(SUF) $(SPMMEX) verb.end
 clean: verb.clean
 	$(DEL) $(OBS)
 ifeq (mex,$(SUF))
-	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o
+	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o bsplines.o
 endif
 
 distclean: clean verb.distclean
