@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4502 2011-09-28 09:47:40Z volkmar $
+% $Id: spm_defaults.m 4871 2012-08-30 14:11:53Z john $
 
 
 global defaults
@@ -127,7 +127,7 @@ defaults.coreg.estimate.cost_fun = 'nmi';
 defaults.coreg.estimate.sep      = [4 2];
 defaults.coreg.estimate.tol      = [0.02 0.02 0.02 0.001 0.001 0.001 0.01 0.01 0.01 0.001 0.001 0.001];
 defaults.coreg.estimate.fwhm     = [7 7];
-defaults.coreg.write.interp      = 1;
+defaults.coreg.write.interp      = 4;
 defaults.coreg.write.wrap        = [0 0 0];
 defaults.coreg.write.mask        = 0;
 
@@ -140,10 +140,9 @@ defaults.normalise.estimate.weight  = '';
 defaults.normalise.estimate.cutoff  = 25;
 defaults.normalise.estimate.nits    = 16;
 defaults.normalise.estimate.reg     = 1;
-defaults.normalise.write.preserve   = 0;
 defaults.normalise.write.bb         = [[-78 -112 -50];[78 76 85]];
 defaults.normalise.write.vox        = [2 2 2];
-defaults.normalise.write.interp     = 1;
+defaults.normalise.write.interp     = 4;
 defaults.normalise.write.wrap       = [0 0 0];
 
 % VBM Preprocessing defaults

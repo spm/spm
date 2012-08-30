@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4758 2012-05-29 15:34:08Z john $
+% $Id: spm_preproc_write8.m 4871 2012-08-30 14:11:53Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -375,7 +375,7 @@ if any(tc(:,3)),
 end
 
 if df(2),
-    y         = spm_invert_def(y,M1,d1,M0,[1 0]);
+    y         = shoot3('invdef',y,d1,eye(4),M0);
     N         = nifti;
     N.dat     = file_array(fullfile(pth,['y_', nam, '.nii']),...
                            [d1,1,3],'float32',0,1,0);

@@ -1,4 +1,4 @@
-/* $Id: shoot3.c 4841 2012-08-15 15:03:58Z john $ */
+/* $Id: shoot3.c 4871 2012-08-30 14:11:53Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -976,6 +976,78 @@ static void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
     (void)bracket((mwSize *)dm,A,B,C);
 }
 
+static void get_mat(const mxArray *ptr, double M[4][3])
+{
+    int i, j;
+    double *p;
+
+        if (!mxIsNumeric(ptr) || mxIsComplex(ptr) || mxIsComplex(ptr) ||
+            !mxIsDouble(ptr) || mxGetM(ptr) != 4 || mxGetN(ptr) != 4)
+                mexErrMsgTxt("Affine transform matrix must be 4x4.");
+    p = mxGetPr(ptr);
+
+    for(i=0; i<3; i++)
+        for(j=0; j<4; j++)
+            M[j][i] = p[i+4*j];
+
+    if (p[3+4*0] != 0.0 || p[3+4*1] != 0.0 || p[3+4*2] != 0.0 || p[3+4*3] != 1.0)
+        mexErrMsgTxt("No perspective projections allowed.");
+}
+
+static void id_mat(double M[4][3])
+{
+    int i, j;
+    for(i=0; i<3; i++)
+    {
+        for(j=0; j<4; j++)
+        {
+            if (i==j) M[j][i] = 1.0;
+            else      M[j][i] = 0.0;
+        }
+    }
+}
+
+void invdef_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+{
+    float *Y=0, *iY=0;
+    mwSize dim_y[4], dim_iy[4];
+    int i;
+    double M1[4][3], M2[4][3];
+
+    if (nrhs <1 || nrhs>4 || nlhs > 1) mexErrMsgTxt("Incorrect usage.");
+
+    if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsSingle(prhs[0]))
+        mexErrMsgTxt("Data must be numeric, real, full and single");
+    if (mxGetNumberOfDimensions(prhs[0])!=4) mexErrMsgTxt("Wrong number of dimensions.");
+    for(i=0; i<4; i++)
+    {
+        dim_y[i] = dim_iy[i] = mxGetDimensions(prhs[0])[i];
+    }
+    if (dim_y[3]!=3) mexErrMsgTxt("4th dimension of 1st arg must be 3.");
+
+    Y  = (float *)mxGetData(prhs[0]);
+
+    if (nrhs>1)
+    {
+        if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) ||
+            mxIsComplex(prhs[1]) || !mxIsDouble(prhs[1]) || mxGetM(prhs[1]) * mxGetN(prhs[1]) != 3)
+            mexErrMsgTxt("Output dimensions must be numeric, real, full, double and contain three elements.");
+
+        dim_iy[0] = (mwSize)mxGetPr(prhs[1])[0];
+        dim_iy[1] = (mwSize)mxGetPr(prhs[1])[1];
+        dim_iy[2] = (mwSize)mxGetPr(prhs[1])[2];
+
+        if (nrhs>2) get_mat(prhs[2],M1); else id_mat(M1);
+        if (nrhs>3) get_mat(prhs[3],M2); else id_mat(M2);
+
+    }
+
+    plhs[0] = mxCreateNumericArray(4, dim_iy,mxSINGLE_CLASS,mxREAL);
+    iY      = (float *)mxGetData(plhs[0]);
+
+    invdef(dim_y, Y, dim_iy, iY, M1, M2);
+}
+
 #include<string.h>
 
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
@@ -1110,6 +1182,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             mxFree(fnc_str);
             def2jac_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
+        }
+        else if (!strcmp(fnc_str,"invdef") || !strcmp(fnc_str,"inv"))
+        {
+            mxFree(fnc_str);
+            invdef_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
         else
         {

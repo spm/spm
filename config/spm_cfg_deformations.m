@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4861 2012-08-24 15:56:39Z john $
+% $Id: spm_cfg_deformations.m 4871 2012-08-30 14:11:53Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -70,6 +70,10 @@ himgr = {[...
 
 himgw = {[...
 'Save the result as a three-volume image.  "y_" will be prepended to the ',...
+'filename.  The result will be written to the current directory.']};
+
+hdetw = {[...
+'Save the Jacobian determinants as an image.  "j_" will be prepended to the ',...
 'filename.  The result will be written to the current directory.']};
 
 happly = {[...
@@ -183,6 +187,10 @@ comp.help    = hcomp;
 saveas       = entry('Save as','ofname','s',[0 Inf]);
 saveas.val   = {''};
 saveas.help  = himgw;
+
+savedas       = entry('Save as','ofname','s',[0 Inf]);
+savedas.val   = {''};
+savedas.help  = hdetw;
 
 applyto      = files('Apply to','fnames','nifti',[0 Inf]);
 applyto.val  = {''};
@@ -361,6 +369,12 @@ savedef.tag   = 'savedef';
 savedef.val   ={saveas,savedir1};
 savedef.help  = {['The deformation may be saved to disk as a ``y_*.nii'''' file.']};
 
+savedet       = cfg_branch;
+savedet.name  = 'Save Jacobian Determinants';
+savedet.tag   = 'savejac';
+savedet.val   ={savedas,savedir1};
+savedet.help  = {['The Jacobian determinants may be saved to disk as a ``j_*.nii'''' file.']};
+
 pullback      = cfg_branch;
 pullback.name = 'Pullback';
 pullback.tag  = 'pull';
@@ -413,7 +427,7 @@ pushsurf.help = {[...
 output        = cfg_repeat;
 output.name   = 'Output';
 output.tag    = 'out';
-output.values = {savedef,pullback, pushfo,pushsurf};
+output.values = {savedef,pullback, pushfo,pushsurf,savedet};
 output.help = {[...
 'Various output options are available.  ',...
 'The deformation may be saved to disk as a ``y_*.nii'''' file.',...
@@ -436,6 +450,7 @@ vo = [];
 savedef   = false;
 saveimage = false;
 savesurf  = false;
+savejac   = false;
 for i=1:numel(job.out)
     out = job.out{i};
     if isfield(out,'savedef') && ~savedef;
@@ -458,6 +473,13 @@ for i=1:numel(job.out)
         vo(end).sname      = 'Warped Surfaces';
         vo(end).src_output = substruct('.','surf');
         vo(end).tgt_spec   = cfg_findspec({{'filter','gifti'}});
+    end
+    if isfield(out,'savejac') && ~savejac;
+        savejac = true;
+        if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
+        vo(end).sname      = 'Jacobian';
+        vo(end).src_output = substruct('.','jac');
+        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
 end
 return;

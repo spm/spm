@@ -11,10 +11,10 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4861 2012-08-24 15:56:39Z john $
+% $Id: spm_deformations.m 4871 2012-08-30 14:11:53Z john $
 
 [Def,mat] = get_comp(job.comp);
-out = struct('def',{{}},'warped',{{}},'surf',{{}});
+out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
 for i=1:numel(job.out)
     fn = fieldnames(job.out{i});
     fn = fn{1};
@@ -27,6 +27,8 @@ for i=1:numel(job.out)
         out.warped = [out.warped, push_def(Def,mat,job.out{i}.(fn))];
     case 'surf'
         out.surf   = [out.surf,   surf_def(Def,mat,job.out{i}.(fn))];
+    case 'savejac'
+        out.jac    = [out.jac,     jac_def(Def,mat,job.out{i}.(fn))];
     otherwise
         error('Unknown option');
     end
@@ -299,6 +301,47 @@ create(N);
 N.dat(:,:,:,1,1) = Def{1};
 N.dat(:,:,:,1,2) = Def{2};
 N.dat(:,:,:,1,3) = Def{3};
+return;
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function fname = jac_def(Def,mat,job)
+% Save Jacobian determinants of deformation field 
+
+ofname = job.ofname;
+if isempty(ofname), fname = {}; return; end;
+
+[pth,nam,ext] = fileparts(ofname);
+if isfield(job.savedir,'savepwd')
+    wd = pwd;
+elseif isfield(job.savedir,'saveusr')
+    wd = job.savedir.saveusr{1};
+else
+    wd = pwd;
+end
+
+Y     = cat(4,Def{:});
+Dets  = shoot3('def2det',Y)/det(mat(1:3,1:3));
+
+fname = {fullfile(wd,['j_' nam '.nii'])};
+dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 1];
+dtype = 'FLOAT32-LE';
+off   = 0;
+scale = 1;
+inter = 0;
+dat   = file_array(fname{1},dim,dtype,off,scale,inter);
+
+N      = nifti;
+N.dat  = dat;
+N.mat  = mat;
+N.mat0 = mat;
+N.mat_intent  = 'Aligned';
+N.mat0_intent = 'Aligned';
+N.intent.code = 0;
+N.intent.name = 'Mapping';
+N.descrip     = 'Jacobian Determinants';
+create(N);
+N.dat(:,:,:,1,1) = Dets;
 return;
 %_______________________________________________________________________
 

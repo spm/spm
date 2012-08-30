@@ -120,6 +120,28 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
+% FORMAT iy = shoot3('invdef',y,d,M1,M2);
+%
+% iy - inverted deformation field of size d(1)*d(2)*d(3)*3.
+% y  - original deformation field.
+% M1 - An affine mapping from mm to voxels in the co-ordinate
+%      system of the inverse deformation field.
+% M2 - An affine mapping from voxels to mm in the co-ordinate
+%      system of the forward deformation field.
+%
+% Inversion of a deformation field.
+%
+% The field is assumed to consist of a piecewise affine transformations,
+% whereby each cube jointing 8 neighbouring voxels contains eight
+% tetrahedra.  The mapping within each tetrahedron is assumed to be
+% affine.
+%
+%  Reference:
+%    J. Ashburner, J. Andersson and K. J. Friston (2000).
+%    "Image Registration using a Symmetric Prior - in Three-Dimensions".
+%    Human Brain Mapping 9(4):212-225 (appendix).
+%_______________________________________________________________________
+%
 % FORMAT [f,dfx,dfy,dfz] = shoot3('bsplins', c, y,d)
 % c          - input image(s) of B-spline coefficients n1*n2*n3*n4
 %              - see 'bsplinc'
@@ -372,7 +394,7 @@ function varargout = shoot3(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: shoot3.m 4703 2012-03-29 20:30:30Z john $
+% $Id: shoot3.m 4871 2012-08-30 14:11:53Z john $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 
