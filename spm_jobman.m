@@ -7,17 +7,24 @@ function varargout = spm_jobman(varargin)
 % FORMAT spm_jobman('initcfg')
 % Initialise jobs configuration and set MATLAB path accordingly.
 %
-% FORMAT spm_jobman('run',job)
-% FORMAT output_list = spm_jobman('run',job)
+% FORMAT spm_jobman('run',job[,input1,...inputN])
+% FORMAT output_list = spm_jobman('run',job[,input1,...inputN])
+% FORMAT [output_list hjob] = spm_jobman('run',job[,input1,...inputN])
 % Run specified job
 % job         - filename of a job (.m, .mat or .xml), or
 %               cell array of filenames, or
 %               'jobs'/'matlabbatch' variable, or
 %               cell array of 'jobs'/'matlabbatch' variables.
+% input1,...  - optional list of input arguments. These are filled into
+%               open inputs ('X->' marked in the GUI) before a job is run.
 % output_list - cell array containing the output arguments from each
 %               module in the job. The format and contents of these
 %               outputs is defined in the configuration of each module
 %               (.prog and .vout callbacks).
+% hjob        - harvested job after it has been filled and run. Note that
+%               this job has no dependencies any more. If one loads this
+%               job back to the batch system and changes some of the
+%               inputs, changed outputs will not be passed on.
 %
 % FORMAT job_id = spm_jobman
 %        job_id = spm_jobman('interactive')
@@ -99,7 +106,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4242 2011-03-11 15:12:04Z guillaume $
+% $Id: spm_jobman.m 4868 2012-08-30 13:35:56Z volkmar $
 
 
 persistent isInitCfg;
@@ -203,20 +210,27 @@ switch cmd
                 cfg_util('addtojob', cjob, mod_cfg_id);
             end
         end
-        sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{4:end});
+        sts = fill_run_job(cjob, varargin{4:end});
         if sts
-            cfg_util('run', cjob);
             if nargout > 0
                 varargout{1} = cfg_util('getalloutputs', cjob);
+            end
+            if nargout > 1
+                varargout{2} = cfg_util('harvestrun', cjob);
             end
         end
         cfg_util('deljob', cjob);
         
     case {'run'}
         cjob = cfg_util('initjob', mljob);
-        cfg_util('run', cjob);
-        if nargout > 0
-            varargout{1} = cfg_util('getalloutputs', cjob);
+        sts = fill_run_job(cjob, varargin{3:end});
+        if sts
+            if nargout > 0
+                varargout{1} = cfg_util('getalloutputs', cjob);
+            end
+            if nargout > 1
+                varargout{2} = cfg_util('harvestrun', cjob);
+            end
         end
         cfg_util('deljob', cjob);
         
@@ -499,6 +513,30 @@ end
 cfg_util('deljob', cjob);
 
 %==========================================================================
+% function sts = fill_run_job(cjob, varargin)
+%==========================================================================
+function sts = fill_run_job(cjob, varargin)
+sts  = cfg_util('filljobui', cjob, @serial_ui, varargin{:});
+if sts
+    try
+        cfg_util('run', cjob);
+    catch
+        le = lasterror;
+        try
+            errfile   = fullfile(pwd, sprintf('spm_error_%s.mat', datestr(now, 'yyyy-mm-dd_HH:MM:SS.FFF')));
+            [u1 ojob] = cfg_util('harvest', cjob);
+            [u1 rjob] = cfg_util('harvestrun', cjob);
+            outputs   = cfg_util('getalloutputs', cjob);
+            diarystr  = cfg_util('getdiary', cjob);
+            save(errfile, 'ojob', 'rjob', 'outputs', 'diarystr');
+            le.message = sprintf('%s\nError information has been saved to file:\n\n%s', le.message, errfile);
+        end
+        le.stack = struct('file','', 'name','SPM Job', 'line',0);
+        rethrow(le);
+    end
+end
+
+%==========================================================================
 % function [val sts] = serial_ui(item)
 %==========================================================================
 function [val sts] = serial_ui(item)
@@ -564,5 +602,5 @@ function [code cont] = genscript_run
 % cfg_util('genscript',...) through spm_jobman.
 modality = spm('CheckModality');
 code{1}  = sprintf('spm(''defaults'', ''%s'');', modality);
-code{2}  = 'spm_jobman(''serial'', jobs, '''', inputs{:});';
+code{2}  = 'spm_jobman(''run'', jobs, inputs{:});';
 cont     = false;
