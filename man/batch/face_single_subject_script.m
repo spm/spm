@@ -14,4 +14,4 @@ for crun = 1:nrun
     inputs{4, crun} = MATLAB_CODE_TO_FILL_INPUT; % fMRI model specification: Multiple conditions - cfg_files
 end
 spm('defaults','fmri');
-spm_jobman('serial',jobs,'',inputs{:});
+spm_jobman('run',jobs,inputs{:});

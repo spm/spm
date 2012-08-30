@@ -30,6 +30,12 @@ of advantages:
   complete before entering the results in the next one, all processing steps
   can be run in the specified order without any user interaction.
 \item[Multiple batches] Multiple batches can be loaded and executed together.
+\item[Error reporting] If a batch fails to complete, a standardised report
+  will be given in the MATLAB command window. When running a batch from the
+  GUI, this can be saved to an error \verb|.mat| file. When running a batch
+  from the command line, such a file will be created always. It will be
+  located in the current MATLAB directory and named
+  \verb|spm_error_<DATE-TIME>.mat|.
 \end{description}
 
 \section{Single subject}
@@ -482,13 +488,12 @@ can be run in the same MATLAB session.
 \subsubsection{Complete and run a pre-specified job}
 \label{sec:batch_interface_cmd_cfg_serial}
 
-\verb|spm_jobman('serial', job[,'', input1, input2 ...])|
+\verb|spm_jobman('run', job[, input1, input2 ...])|
 
-This interface is called the ``serial'' interface. It takes a job, and asks
-for the input to any open configuration items one after another. If a list of
-inputs is supplied, these will be filled in (if they are appropriate). After
-all inputs are filled, the job will be run. Note that only items 
-without a pre-set value will be filled (marked with \verb|<-X| in
+This interface takes a job and asks for the input to any open configuration
+items one after another. If a list of appropriate inputs is supplied, these
+will be filled in. After all inputs are filled, the job will be run. Note that
+only items without a pre-set value will be filled (marked with \verb|<-X| in
 the GUI). To force a item to to be filled, use ``Edit:Clear Value''
 in the GUI or set its value to \verb|'<UNDEFINED>'| in the harvested job.
 
@@ -526,7 +531,7 @@ for crun = 1:nrun
     inputs{4, crun} = MATLAB_CODE_TO_FILL_INPUT; 
 end
 spm('defaults','fmri');
-spm_jobman('serial',jobs,'',inputs{:});
+spm_jobman('run',jobs,inputs{:});
 \end{verbatim}
 
 The skeleton needs to be adapted to the actual data layout by adding

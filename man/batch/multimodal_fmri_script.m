@@ -33,4 +33,4 @@ for sub = 1:numel(subjdirs)
     inputs{6,sub} = {fullfile(inputs{1,sub}{1},'fMRI','trials_ses2.mat')};
 end
 spm('defaults','fmri');
-spm_jobman('serial',jobs,'',inputs{:});
+spm_jobman('run',jobs,inputs{:});
