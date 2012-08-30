@@ -76,27 +76,6 @@ function varargout = spm_jobman(varargin)
 % cfg_item or cfg_struct tree, it will be harvested outside cfg_util. 
 % tag - tag of the root node of the current job/cfg_item tree
 % job - harvested data from the current job/cfg_item tree
-%
-% FORMAT spm_jobman('pulldown')
-% Create a pulldown 'TASKS' menu in the Graphics window.
-%__________________________________________________________________________
-% 
-% not implemented: FORMAT spm_jobman('jobhelp')
-% Create a cell array containing help information specific for a certain
-% job. Help is only printed for items where job specific help is
-% present. This can be used together with spm_jobman('help') to create a
-% job specific manual.
-%
-% not implemented: FORMAT spm_jobman('chmod')
-% Change the modality for the TASKS pulldown.
-%
-% not implemented: FORMAT spm_jobman('defaults')
-% Run the interactive defaults editor.
-%
-% not implemented: FORMAT output_list = spm_jobman('run_nogui',job)
-% Run a job without X11 (as long as there is no graphics output from the
-% job itself). The matlabbatch system does not need graphics output to run
-% a job.
 %__________________________________________________________________________
 % 
 % This code is based on earlier versions by John Ashburner, Philippe 
@@ -106,7 +85,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4868 2012-08-30 13:35:56Z volkmar $
+% $Id: spm_jobman.m 4870 2012-08-30 13:47:00Z volkmar $
 
 
 persistent isInitCfg;
@@ -272,9 +251,6 @@ switch cmd
             width = varargin{3};
         end
         varargout{1} = cfg_util('showdocwidth', width, node);
-        
-    case {'pulldown'}
-        pulldown;
         
     case {'defaults'}
         warning('spm:spm_jobman:NotImplemented', ...
@@ -469,26 +445,6 @@ for i0 = 1:numel(jobs)
         njobs{end+1} = jobs{i0};
     end
 end
-
-%==========================================================================
-% function pulldown
-%==========================================================================
-function pulldown
-fg = spm_figure('findwin','Graphics');
-if isempty(fg), return; end;
-delete(findall(fg,'tag','jobs'));
-f0 = uimenu(fg,'Label','TASKS', ...
-            'HandleVisibility','off', 'tag','jobs');
-f1 = uimenu(f0,'Label','BATCH', 'Callback',@cfg_ui, ...
-            'HandleVisibility','off', 'tag','jobs');
-f4 = uimenu(f0,'Label','SPM (interactive)', ...
-            'HandleVisibility','off', 'tag','jobs', 'Separator','on');
-cfg_ui('local_setmenu', f4, cfg_util('tag2cfg_id', 'spm'), ...
-       @local_init_interactive, false);
-f5 = uimenu(f0,'Label','SPM (serial)', ...
-            'HandleVisibility','off', 'tag','jobs');
-cfg_ui('local_setmenu', f5, cfg_util('tag2cfg_id', 'spm'), ...
-       @local_init_serial, false);
 
 %==========================================================================
 % function local_init_interactive(varargin)

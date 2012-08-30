@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_figure.m 4870 2012-08-30 13:47:00Z volkmar $
 
 
 %==========================================================================
@@ -803,9 +803,6 @@ uimenu(t1, 'Label','&Decrease', 'CallBack','spm_figure(''FontSize'',-1)', 'Accel
 uimenu(t0,    'Label','&Results Table', 'HandleVisibility','off', ...
     'Separator','on', 'Callback',@mysatfig);
     
-% Tasks Menu
-%try, spm_jobman('pulldown'); end
-
 %==========================================================================
 case 'figcontextmenu'
 %==========================================================================
