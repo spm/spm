@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4872 2012-08-30 15:29:15Z guillaume $
+# $Id: Makefile 4873 2012-08-30 19:06:26Z john $
 #
 ###############################################################################
 #
@@ -45,12 +45,12 @@ SPMMEX  =\
 	spm_sample_vol.$(SUF) spm_slice_vol.$(SUF) spm_brainwarp.$(SUF)\
 	spm_add.$(SUF) spm_conv_vol.$(SUF) spm_render_vol.$(SUF)\
 	spm_global.$(SUF) spm_resels_vol.$(SUF)\
-	spm_bsplinc.$(SUF) spm_bsplins.$(SUF) spm_bias_mex.$(SUF)\
+	spm_bsplinc.$(SUF) spm_bsplins.$(SUF)\
 	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
 	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
-	spm_mesh_utils.$(SUF)
+	spm_mesh_utils.$(SUF) spm_mrf.$(SUF)
 
 SUBDIRS =\
 	toolbox/FieldMap \
@@ -204,10 +204,6 @@ spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_add.c spm_vol_utils.$(SUF).a $(MEXEND)
 
-spm_bias_mex.$(SUF): spm_bias_mex.c spm_vol_utils.$(SUF).a\
-		spm_mapping.h spm_datatypes.h
-	$(MEX) spm_bias_mex.c spm_vol_utils.$(SUF).a $(MEXEND)
-
 spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
@@ -284,6 +280,9 @@ spm_unlink.$(SUF): spm_unlink.c
 
 spm_voronoi.$(SUF): spm_voronoi.c
 	$(MEX) spm_voronoi.c $(MEXEND)
+
+spm_mrf.$(SUF): spm_mrf.c
+	$(MEX) spm_mrf.c $(MEXEND)
 
 ###############################################################################
 # General messages

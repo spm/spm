@@ -27,10 +27,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 4086 2010-10-08 12:35:36Z vladimir $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 4873 2012-08-30 19:06:26Z john $
 
 
-SVNrev = '$Rev: 4086 $';
+SVNrev = '$Rev: 4873 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -55,7 +55,7 @@ Nw           = size(woi,1);
 %-Get output image field of view and resolution
 %--------------------------------------------------------------------------
 if space
-    sMRIfile = fullfile(spm('dir'),'templates','T2.nii');
+    sMRIfile = fullfile(spm('dir'),'canonical','avg152T2.nii');
 else
     sMRIfile = D.inv{val}.mesh.sMRI;
 end

@@ -52,15 +52,16 @@ function [VO,M] = pm_segment(VF,PG,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: pm_segment.m 4446 2011-08-30 10:50:29Z guillaume $
+% $Id: pm_segment.m 4873 2012-08-30 19:06:26Z john $
 
 % Create some suitable default values
 %-----------------------------------------------------------------------
 
+dr = fileparts(mfilename('fullpath'));
 def_flags.estimate.priors = char(...
-        fullfile(spm('Dir'),'apriori','grey.nii'),...
-        fullfile(spm('Dir'),'apriori','white.nii'),...
-        fullfile(spm('Dir'),'apriori','csf.nii'));
+        fullfile(dr,'grey.nii'),...
+        fullfile(dr,'white.nii'),...
+        fullfile(dr,'csf.nii'));
 def_flags.estimate.reg    = 0.01;
 def_flags.estimate.cutoff = 30;
 def_flags.estimate.samp   = 3;

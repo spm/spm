@@ -4,8 +4,10 @@ function varargout = tbx_def_fieldmap
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_def_fieldmap.m 1810 2008-06-10 14:30:33Z chloe $
+% $Id: tbx_def_fieldmap.m 4873 2012-08-30 19:06:26Z john $
 % ---------------------------------------------------------------------
+dr = fileparts(mfilename('fullpath'));
+
 fieldmap.presubphasemag.subj.phase = '<UNDEFINED>';
 fieldmap.presubphasemag.subj.magnitude = '<UNDEFINED>';
 fieldmap.presubphasemag.subj.defaults.defaultsval.et = '<UNDEFINED>';
@@ -18,7 +20,7 @@ fieldmap.presubphasemag.subj.defaults.defaultsval.uflags.method = 'Mark3D';
 fieldmap.presubphasemag.subj.defaults.defaultsval.uflags.fwhm = 10;
 fieldmap.presubphasemag.subj.defaults.defaultsval.uflags.pad = 0;
 fieldmap.presubphasemag.subj.defaults.defaultsval.uflags.ws = 1;
-fieldmap.presubphasemag.subj.defaults.defaultsval.mflags.template = {fullfile(spm('Dir'),'templates','T1.nii')};
+fieldmap.presubphasemag.subj.defaults.defaultsval.mflags.template = {dr,'T1.nii')};
 fieldmap.presubphasemag.subj.defaults.defaultsval.mflags.fwhm = 5;
 fieldmap.presubphasemag.subj.defaults.defaultsval.mflags.nerode = 1;
 fieldmap.presubphasemag.subj.defaults.defaultsval.mflags.ndilate = 2;
@@ -45,7 +47,7 @@ fieldmap.realimag.subj.defaults.defaultsval.uflags.method = 'Mark3D';
 fieldmap.realimag.subj.defaults.defaultsval.uflags.fwhm = 10;
 fieldmap.realimag.subj.defaults.defaultsval.uflags.pad = 0;
 fieldmap.realimag.subj.defaults.defaultsval.uflags.ws = 1;
-fieldmap.realimag.subj.defaults.defaultsval.mflags.template = {fullfile(spm('Dir'),'templates','T1.nii')};
+fieldmap.realimag.subj.defaults.defaultsval.mflags.template = {dr,'T1.nii')};
 fieldmap.realimag.subj.defaults.defaultsval.mflags.fwhm = 5;
 fieldmap.realimag.subj.defaults.defaultsval.mflags.nerode = 1;
 fieldmap.realimag.subj.defaults.defaultsval.mflags.ndilate = 2;
@@ -72,7 +74,7 @@ fieldmap.phasemag.subj.defaults.defaultsval.uflags.method = 'Mark3D';
 fieldmap.phasemag.subj.defaults.defaultsval.uflags.fwhm = 10;
 fieldmap.phasemag.subj.defaults.defaultsval.uflags.pad = 0;
 fieldmap.phasemag.subj.defaults.defaultsval.uflags.ws = 1;
-fieldmap.phasemag.subj.defaults.defaultsval.mflags.template = {fullfile(spm('Dir'),'templates','T1.nii')};
+fieldmap.phasemag.subj.defaults.defaultsval.mflags.template = {dr,'T1.nii')};
 fieldmap.phasemag.subj.defaults.defaultsval.mflags.fwhm = 5;
 fieldmap.phasemag.subj.defaults.defaultsval.mflags.nerode = 1;
 fieldmap.phasemag.subj.defaults.defaultsval.mflags.ndilate = 2;
@@ -97,7 +99,7 @@ fieldmap.precalcfieldmap.subj.defaults.defaultsval.uflags.method = 'Mark3D';
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.uflags.fwhm = 10;
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.uflags.pad = 0;
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.uflags.ws = 1;
-fieldmap.precalcfieldmap.subj.defaults.defaultsval.mflags.template = {fullfile(spm('Dir'),'templates','T1.nii')};
+fieldmap.precalcfieldmap.subj.defaults.defaultsval.mflags.template = {dr,'T1.nii')};
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.mflags.fwhm = 5;
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.mflags.nerode = 1;
 fieldmap.precalcfieldmap.subj.defaults.defaultsval.mflags.ndilate = 2;

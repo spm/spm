@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4871 2012-08-30 14:11:53Z john $
+% $Id: spm_defaults.m 4873 2012-08-30 19:06:26Z john $
 
 
 global defaults
@@ -133,37 +133,45 @@ defaults.coreg.write.mask        = 0;
 
 % Spatial Normalisation defaults
 %==========================================================================
-defaults.normalise.estimate.smosrc  = 8;
-defaults.normalise.estimate.smoref  = 0;
-defaults.normalise.estimate.regtype = 'mni';
-defaults.normalise.estimate.weight  = '';
-defaults.normalise.estimate.cutoff  = 25;
-defaults.normalise.estimate.nits    = 16;
-defaults.normalise.estimate.reg     = 1;
+defaults.normalise.write.preserve   = 0;
 defaults.normalise.write.bb         = [[-78 -112 -50];[78 76 85]];
 defaults.normalise.write.vox        = [2 2 2];
 defaults.normalise.write.interp     = 4;
-defaults.normalise.write.wrap       = [0 0 0];
+
+% Old Spatial Normalisation defaults
+%==========================================================================
+defaults.old.normalise.estimate.smosrc  = 8;
+defaults.old.normalise.estimate.smoref  = 0;
+defaults.old.normalise.estimate.regtype = 'mni';
+defaults.old.normalise.estimate.weight  = '';
+defaults.old.normalise.estimate.cutoff  = 25;
+defaults.old.normalise.estimate.nits    = 16;
+defaults.old.normalise.estimate.reg     = 1;
+defaults.old.normalise.write.preserve   = 0;
+defaults.old.normalise.write.bb         = [[-78 -112 -50];[78 76 85]];
+defaults.old.normalise.write.vox        = [2 2 2];
+defaults.old.normalise.write.interp     = 1;
+defaults.old.normalise.write.wrap       = [0 0 0];
 
 % VBM Preprocessing defaults
 %==========================================================================
-defaults.preproc.tpm     = cellstr(char(...
+defaults.old.preproc.tpm     = cellstr(char(...
     fullfile(spm('Dir'),'tpm','grey.nii'),...
     fullfile(spm('Dir'),'tpm','white.nii'),...
     fullfile(spm('Dir'),'tpm','csf.nii')));   % Prior probability maps
-defaults.preproc.ngaus          = [2 2 2 4]'; % Gaussians per class
-defaults.preproc.warpreg        = 1;          % Warping Regularisation
-defaults.preproc.warpco         = 25;         % Warp Frequency Cutoff
-defaults.preproc.biasreg        = 0.0001;     % Bias regularisation
-defaults.preproc.biasfwhm       = 60;         % Bias FWHM
-defaults.preproc.regtype        = 'mni';      % Affine Regularisation
-defaults.preproc.fudge          = 5;          % Fudge factor, can not be set in batch GUI
-defaults.preproc.samp           = 3;          % Sampling distance
-defaults.preproc.output.GM      = [0 0 1];
-defaults.preproc.output.WM      = [0 0 1];
-defaults.preproc.output.CSF     = [0 0 0];
-defaults.preproc.output.biascor = 1;
-defaults.preproc.output.cleanup = 0;
+defaults.old.preproc.ngaus          = [2 2 2 4]'; % Gaussians per class
+defaults.old.preproc.warpreg        = 1;          % Warping Regularisation
+defaults.old.preproc.warpco         = 25;         % Warp Frequency Cutoff
+defaults.old.preproc.biasreg        = 0.0001;     % Bias regularisation
+defaults.old.preproc.biasfwhm       = 60;         % Bias FWHM
+defaults.old.preproc.regtype        = 'mni';      % Affine Regularisation
+defaults.old.preproc.fudge          = 5;          % Fudge factor, can not be set in batch GUI
+defaults.old.preproc.samp           = 3;          % Sampling distance
+defaults.old.preproc.output.GM      = [0 0 1];
+defaults.old.preproc.output.WM      = [0 0 1];
+defaults.old.preproc.output.CSF     = [0 0 0];
+defaults.old.preproc.output.biascor = 1;
+defaults.old.preproc.output.cleanup = 0;
 
 % Smooth defaults
 %==========================================================================

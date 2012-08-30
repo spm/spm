@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4552 2011-11-08 17:33:58Z will $
+% $Id: spm_cfg.m 4873 2012-08-30 19:06:26Z john $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -21,7 +21,7 @@ spatial         = cfg_choice;
 spatial.tag     = 'spatial';
 spatial.name    = 'Spatial';
 spatial.help    = {'Various spatial and other pre-processing functions.'};
-spatial.values  = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc spm_cfg_normalise spm_cfg_smooth };
+spatial.values  = { spm_cfg_realign spm_cfg_realignunwarp spm_cfg_coreg spm_cfg_preproc8 spm_cfg_norm spm_cfg_smooth };
 
 %--------------------------------------------------------------------------
 % Stats

@@ -4,7 +4,7 @@ function conf = spm_cfg_defs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4871 2012-08-30 14:11:53Z john $
+% $Id: spm_cfg_deformations.m 4873 2012-08-30 19:06:26Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -155,7 +155,7 @@ K.help = {...
 drtl = branch('DARTEL flow','dartel',{ffield,forbak,K});
 drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
-other = {sn2def,drtl,def,id,idbbvox};
+other = {drtl,def,id,idbbvox};
 
 img          = files('Image to base inverse on','space','nifti',[1 1]);
 img.help     = himg;
