@@ -1,10 +1,10 @@
-function normalise = tbx_cfg_normalise
+function normalise = tbx_cfg_norm
 % MATLABBATCH Configuration file for Spatial Normalisation
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_cfg_norm.m 4874 2012-08-30 19:08:31Z john $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
