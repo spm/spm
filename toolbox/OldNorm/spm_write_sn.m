@@ -62,10 +62,10 @@ function VO = spm_write_sn(V,prm,flags,extras)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_write_sn.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_write_sn.m 4878 2012-08-31 12:07:30Z guillaume $
 
 
-SVNid = '$Rev: 4873 $';
+SVNid = '$Rev: 4878 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -91,8 +91,7 @@ end
 
 %-Get parameters
 %--------------------------------------------------------------------------
-def_flags        = spm_get_defaults('normalise.write');
-def_flags.prefix = 'w';
+def_flags        = spm_get_defaults('old.normalise.write');
 
 if nargin < 3
     flags = def_flags;
