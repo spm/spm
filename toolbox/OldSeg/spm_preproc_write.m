@@ -11,12 +11,12 @@ function spm_preproc_write(p,opts)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_preproc_write.m 4877 2012-08-31 11:40:43Z guillaume $
 
 if ischar(p), p = cellstr(p); end
 
 if nargin==1
-    opts = spm_get_defaults('preproc.output');
+    opts = spm_get_defaults('old.preproc.output');
 end
 
 for i=1:numel(p)
