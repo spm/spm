@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4854 2012-08-22 13:29:10Z ged $
+% $Id: spm_shoot_template.m 4883 2012-09-03 12:34:55Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -32,7 +32,7 @@ eul_its = d.eul_its; % Start with fewer steps
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
 
-shoot3('boundary',0);
+spm_diffeo('boundary',0);
 
 % Sort out handles to images
 n1 = numel(job.images);
@@ -103,7 +103,7 @@ for i=1:n2,
     NJ(i).mat0    = NJ(i).mat;
 
     create(NU(i)); NU(i).dat(:,:,:,:,:) = 0;
-    create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(shoot3('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
+    create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(spm_diffeo('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
     create(NJ(i)); NJ(i).dat(:,:,:)     = 1;
 
     % Add to sufficient statistics for generating initial template
@@ -242,7 +242,7 @@ for it=1:nits,
             % Generate inverse deformation and save
             [y,J] = spm_shoot3d(u,prm,int_args, K);
             clear u
-            dt    = shoot3('det',J); clear J
+            dt    = spm_diffeo('det',J); clear J
 
             if any(~isfinite(dt(:)) | dt(:)>100 | dt(:)<1/100)
                 ok(i) = false;
@@ -261,7 +261,7 @@ for it=1:nits,
 
             % Increment sufficient statistic for template
             for j=1:n1+1,
-                tmp        = shoot3('samp',f{j},y);
+                tmp        = spm_diffeo('samp',f{j},y);
                 t(:,:,:,j) = t(:,:,:,j) + tmp.*dt;
                 drawnow
             end;

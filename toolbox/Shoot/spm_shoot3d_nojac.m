@@ -78,36 +78,36 @@ d        = size(v0);
 d        = d(1:3);
 vt       = v0;
 
-m0       = shoot3('vel2mom',v0,prm); % Initial momentum (m_0 = L v_0)
-phi      = shoot3('smalldef', vt,1/N);
+m0       = spm_diffeo('vel2mom',v0,prm); % Initial momentum (m_0 = L v_0)
+phi      = spm_diffeo('smalldef', vt,1/N);
 
-%crap=shoot3('mom2vel',m0,[prm,fmg_args]);
+%crap=spm_diffeo('mom2vel',m0,[prm,fmg_args]);
 %fprintf('---------\n\n');
 
-%crap=shoot3('mom2vel',m0,[prm,fmg_args],v0);
+%crap=spm_diffeo('mom2vel',m0,[prm,fmg_args],v0);
 %fprintf('---------\n\n');
 
-if nargout>=3, theta = shoot3('smalldef', vt,-1/N); end
+if nargout>=3, theta = spm_diffeo('smalldef', vt,-1/N); end
 
 for t=2:abs(N),
 if 0
-    crap = shoot3('mom2vel',shoot3('pushg',m0,phi),[prm,fmg_args]);
+    crap = spm_diffeo('mom2vel',spm_diffeo('pushg',m0,phi),[prm,fmg_args]);
 fprintf('\n');
-    crap = shoot3('pushg',m0,phi);
-    crap1 = shoot3('vel2mom',vt,prm);
-    crap  = shoot3('mom2vel',crap-crap1,[prm,fmg_args])+vt;
+    crap = spm_diffeo('pushg',m0,phi);
+    crap1 = spm_diffeo('vel2mom',vt,prm);
+    crap  = spm_diffeo('mom2vel',crap-crap1,[prm,fmg_args])+vt;
 fprintf('\n');
 end
-    vt  = shoot3('mom2vel',shoot3('pushg',m0,phi),[prm,fmg_args],vt);
-    phi = shoot3('comp', shoot3('smalldef',vt,1/N), phi);
-    if nargout>=3, theta = shoot3('comp', theta, shoot3('smalldef',vt,-1/N)); end
+    vt  = spm_diffeo('mom2vel',spm_diffeo('pushg',m0,phi),[prm,fmg_args],vt);
+    phi = spm_diffeo('comp', spm_diffeo('smalldef',vt,1/N), phi);
+    if nargout>=3, theta = spm_diffeo('comp', theta, spm_diffeo('smalldef',vt,-1/N)); end
     drawnow
 %fprintf('\n---\n');
 
 end
 
 varargout{1} = phi;
-if nargout>=2, varargout{2} = shoot3('mom2vel',shoot3('pushg',m0,phi),[prm,fmg_args],vt); end
+if nargout>=2, varargout{2} = spm_diffeo('mom2vel',spm_diffeo('pushg',m0,phi),[prm,fmg_args],vt); end
 if nargout>=3, varargout{3} = theta; end
 %__________________________________________________________________________________
 

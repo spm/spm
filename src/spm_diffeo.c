@@ -1,4 +1,4 @@
-/* $Id: shoot3.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: spm_diffeo.c 4883 2012-09-03 12:34:55Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"

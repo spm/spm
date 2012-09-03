@@ -47,7 +47,7 @@ for j=1:size(Py,1), % Loop over subjects
 
         % Loop over imported data
         for i=1:d(4)-1,
-            f  = shoot3('samp',F{i},y);   % Warp the imported tissue
+            f  = spm_diffeo('samp',F{i},y);   % Warp the imported tissue
             fe = fe-f;                    % Subtract from background
             t  = single(Nt.dat(:,:,z,i)); % Slice of template
             x(:,:,i) = (f-t).*jd;         % Compute scalar momentum

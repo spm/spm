@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_shoot_warp.m 4883 2012-09-03 12:34:55Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -90,7 +90,7 @@ for i=1:n2, % Loop over subjects
     NY(i).dat = file_array(fullfile(pth,['y_' nam '.nii']),[dm 1 3], 'float32-le', offs, 1, 0);
     NY(i).descrip = 'Deformation (templ. to. ind.)';
     NY(i).mat     = NF(1,i).NI.mat;
-    create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(shoot3('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
+    create(NY(i)); NY(i).dat(:,:,:,:,:) = reshape(affind(spm_diffeo('Exp',zeros([dm,3],'single'),[0 1]),NU(i).mat0),[dm,1,3]);
     y  = affind(squeeze(single(NY(i).dat(:,:,:,:,:))),inv(NU(i).mat0));
 
     NJ(i) = nifti;
@@ -117,7 +117,7 @@ for i=1:n2, % Loop over subjects
         % Gauss-Newton iteration to re-estimate deformations for this subject
         u     = spm_shoot_update(g,f,u,y,dt,prm,int_args,bs_args); drawnow
         [y,J] = spm_shoot3d(u,prm,int_args); drawnow
-        dt    = shoot3('det',J); clear J
+        dt    = spm_diffeo('det',J); clear J
         clear J
 
         if any(~isfinite(dt(:)) | dt(:)>100 | dt(:)<1/100)

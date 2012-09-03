@@ -1,9 +1,9 @@
-function varargout = shoot3(varargin)
-% Geodesic Shooting image registration stuff
+function varargout = spm_diffeo(varargin)
+% Mex function called for image registration stuff
 %
 %_______________________________________________________________________
 %
-% FORMAT u = shoot3('vel2mom', v, param)
+% FORMAT u = spm_diffeo('vel2mom', v, param)
 % v     - velocity (flow) field n1*n2*n3*3.
 % param - 8 parameters (settings)
 %         - [1][2][3] Voxel sizes
@@ -41,7 +41,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = shoot3('mom2vel',g, param)
+% FORMAT v = spm_diffeo('mom2vel',g, param)
 % v     - the solution n1*n2*n3*3
 % g     - parameterisation of first derivatives
 % param - 10 parameters (settings)
@@ -57,7 +57,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = shoot3('fmg',H, g, param)
+% FORMAT v = spm_diffeo('fmg',H, g, param)
 % v     - the solution n1*n2*n3*3
 % H     - parameterisation of 2nd derivatives 
 % g     - parameterisation of first derivatives
@@ -74,7 +74,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = shoot3('cgs',H, g, param)
+% FORMAT v = spm_diffeo('cgs',H, g, param)
 % v     - the solution
 % H     - parameterisation of 2nd derivatives
 % g     - parameterisation of first derivatives
@@ -92,7 +92,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT F = shoot3('kernel',d,prm)
+% FORMAT F = spm_diffeo('kernel',d,prm)
 % d   - image dimensions
 % prm - 8 parameters (settings).
 %       These are described above (for 'vel2mom').
@@ -101,7 +101,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT y3 = shoot3('comp',y1,y2)
+% FORMAT y3 = spm_diffeo('comp',y1,y2)
 % y1, y2 - deformation fields n1*n2*n3*3.
 % y3     - deformation field field n1*n2*n3*3.
 %
@@ -109,7 +109,7 @@ function varargout = shoot3(varargin)
 % y1, y2 and y3 are single precision floating point.
 %
 %
-% FORMAT [y3,J3] = shoot3('comp', y1, y2, J1, J2)
+% FORMAT [y3,J3] = spm_diffeo('comp', y1, y2, J1, J2)
 % y1, y2 - deformation fields n1*n2*n3*3.
 % y3     - deformation field n1*n2*n3*3.
 % J1, J2 - Jacobian tensor fields n1*n2*n3*3*3.
@@ -120,7 +120,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT iy = shoot3('invdef',y,d,M1,M2);
+% FORMAT iy = spm_diffeo('invdef',y,d,M1,M2);
 %
 % iy - inverted deformation field of size d(1)*d(2)*d(3)*3.
 % y  - original deformation field.
@@ -142,7 +142,7 @@ function varargout = shoot3(varargin)
 %    Human Brain Mapping 9(4):212-225 (appendix).
 %_______________________________________________________________________
 %
-% FORMAT [f,dfx,dfy,dfz] = shoot3('bsplins', c, y,d)
+% FORMAT [f,dfx,dfy,dfz] = spm_diffeo('bsplins', c, y,d)
 % c          - input image(s) of B-spline coefficients n1*n2*n3*n4
 %              - see 'bsplinc'
 % y          - points to sample n1*n2*n3*3
@@ -185,7 +185,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT c = shoot3('bsplinc',f,d)
+% FORMAT c = spm_diffeo('bsplinc',f,d)
 %   f - an image
 %   d(1:3) - degree of B-spline (from 0 to 7) along different dimensions
 %       d(4:6) - 1/0 to indicate wrapping along the dimensions
@@ -197,7 +197,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT f2 = shoot3('samp', f1, y)
+% FORMAT f2 = spm_diffeo('samp', f1, y)
 % f1 - input image(s) n1*n2*n3*n4
 % y  - points to sample n1*n2*n3*3
 % f2 - output image n1*n2*n3*n4
@@ -208,7 +208,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT f2 = shoot3('push', f1, y)
+% FORMAT f2 = spm_diffeo('push', f1, y)
 % f1 - input image(s) n1*n2*n3*n4
 % y  - points to sample n1*n2*n3*3
 % f2 - output image n1*n2*n3*n4
@@ -219,7 +219,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT f2 = shoot3('pushc', f1, y)
+% FORMAT f2 = spm_diffeo('pushc', f1, y)
 % f1 - input image(s) n1*n2*n3*n4
 % y  - points to sample n1*n2*n3*3
 % f2 - output image n1*n2*n3*n4
@@ -230,12 +230,12 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT ut = shoot3('pushg', u0, y)
+% FORMAT ut = spm_diffeo('pushg', u0, y)
 % u0 - input momentum n1*n2*n3*3
 % y  - points to sample n1*n2*n3*3
 % ut - output momentum n1*n2*n3*3
 %
-% FORMAT ut = shoot3('pushg', u0, y)
+% FORMAT ut = spm_diffeo('pushg', u0, y)
 % u0 - input momentum n1*n2*n3*3
 % y  - points to sample n1*n2*n3*3
 % J  - Jacobian tensor field of y n1*n2*n3*3*3
@@ -249,7 +249,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT f2 = shoot3('resize', f1, dim)
+% FORMAT f2 = spm_diffeo('resize', f1, dim)
 % f1  - input fields n1*n2*n3*n4
 % f2  - output field dim1*dim2*dim3*n4
 % dim - output dimensions
@@ -259,7 +259,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v2 = shoot3('restrict', v1)
+% FORMAT v2 = spm_diffeo('restrict', v1)
 % v1  - input fields n1*n2*n3*n4
 % v2  - output field dim1*dim2*dim3*n4
 %
@@ -268,7 +268,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT J = shoot3('def2jac',y)
+% FORMAT J = spm_diffeo('def2jac',y)
 % y - Deformation field
 % J - Jacobian tensor field of y
 %
@@ -276,7 +276,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT J = shoot3('def2det',y)
+% FORMAT J = spm_diffeo('def2det',y)
 % y - Deformation field
 % j - Jacobian determinant field of y
 %
@@ -284,7 +284,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT j = shoot3('det',J)
+% FORMAT j = spm_diffeo('det',J)
 % J - Jacobian tensor field
 % j - Jacobian determinant field
 %
@@ -292,7 +292,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT dv = shoot3('div',v)
+% FORMAT dv = spm_diffeo('div',v)
 % v  - velocity field
 % dv - divergences of velocity field
 %
@@ -301,7 +301,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT [y,J] = shoot3('smalldef',v,s)
+% FORMAT [y,J] = spm_diffeo('smalldef',v,s)
 % v - velocity field
 % s - scaling factor
 % y - small deformation
@@ -314,7 +314,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v3 = shoot3('brc', v1, v2)
+% FORMAT v3 = spm_diffeo('brc', v1, v2)
 % v1, v2, v3 - flow fields n1*n2*n3*3
 %
 % Lie Bracket.  Useful for many things
@@ -328,7 +328,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT v = shoot3('dartel',v,g,f,param)
+% FORMAT v = spm_diffeo('dartel',v,g,f,param)
 % v     - flow field n1*n2*n3*3 (single precision float)
 % g     - first image n1*n2*n3*n4 (single precision float)
 % f     - second image n1*n2*n3*n4 (single precision float)
@@ -368,7 +368,7 @@ function varargout = shoot3(varargin)
 %
 %_______________________________________________________________________
 %
-% FORMAT [y,J] = shoot3('Exp', v, param)
+% FORMAT [y,J] = spm_diffeo('Exp', v, param)
 % v - flow field
 % J - Jacobian. Usually a tensor field of Jacobian matrices, but can
 %     be a field of Jacobian determinants.
@@ -394,7 +394,7 @@ function varargout = shoot3(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: shoot3.m 4875 2012-08-30 20:04:30Z john $
+% $Id: spm_diffeo.m 4883 2012-09-03 12:34:55Z john $
 
 error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

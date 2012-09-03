@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_preproc_write8.m 4883 2012-09-03 12:34:55Z john $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -324,13 +324,13 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
         if ~isempty(cls{k1}),
             c = single(cls{k1})/255;
             if any(tc(:,3)),
-                [c,w]  = shoot3('push',c,y,d1(1:3));
+                [c,w]  = spm_diffeo('push',c,y,d1(1:3));
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
-                optimN_mex('bound',1);
-                C(:,:,:,k1) = optimN_mex(w,c,[vx  1e-6 1e-4 0  3 2]);
+                spm_field('bound',1);
+                C(:,:,:,k1) = spm_field(w,c,[vx  1e-6 1e-4 0  3 2]);
                 clear w
             else
-                c      = shoot3('push',c,y,d1(1:3));
+                c      = spm_diffeo('push',c,y,d1(1:3));
             end
             if nargout>=1,
                 cls{k1} = c;
@@ -375,7 +375,7 @@ if any(tc(:,3)),
 end
 
 if df(2),
-    y         = shoot3('invdef',y,d1,eye(4),M0);
+    y         = spm_diffeo('invdef',y,d1,eye(4),M0);
     N         = nifti;
     N.dat     = file_array(fullfile(pth,['y_', nam, '.nii']),...
                            [d1,1,3],'float32',0,1,0);

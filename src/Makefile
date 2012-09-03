@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4875 2012-08-30 20:04:30Z john $
+# $Id: Makefile 4883 2012-09-03 12:34:55Z john $
 #
 ###############################################################################
 #
@@ -50,7 +50,7 @@ SPMMEX  =\
 	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
-	spm_mesh_utils.$(SUF) spm_mrf.$(SUF) shoot3.$(SUF) optimN_mex.$(SUF)
+	spm_mesh_utils.$(SUF) spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF)
 
 SUBDIRS =\
 	toolbox/FieldMap \
@@ -284,11 +284,11 @@ spm_voronoi.$(SUF): spm_voronoi.c
 spm_mrf.$(SUF): spm_mrf.c
 	$(MEX) spm_mrf.c $(MEXEND)
 
-shoot3.$(SUF): shoot3.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
-	$(MEX) shoot3.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
+spm_diffeo.$(SUF): spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c
+	$(MEX) spm_diffeo.c shoot_diffeo3d.c shoot_optim3d.c shoot_multiscale.c shoot_regularisers.c shoot_expm3.c shoot_invdef.c shoot_dartel.c shoot_boundary.c shoot_bsplines.c bsplines.c -DIMAGE_SINGLE $(MEXEND)
 
-optimN_mex.$(SUF): optimN_mex.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
-	$(MEX)  optimN_mex.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
+spm_field.$(SUF): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.c
+	$(MEX)  spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
 
 ###############################################################################
 # General messages

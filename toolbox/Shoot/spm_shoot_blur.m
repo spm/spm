@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4758 2012-05-29 15:34:08Z john $
+% $Id: spm_shoot_blur.m 4883 2012-09-03 12:34:55Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 16;                         end; % Maximum no. iterations
@@ -140,7 +140,7 @@ for i=1:its,
     % At convergence, the derivatives from the likelihood term should match those
     % from the prior (regularisation) term.
     ss1 = sum(sum(sum(sum(gr.^2))));
-    gr1 = optimN_mex('vel2mom',a,prm);        % 1st derivative of the prior term
+    gr1 = spm_field('vel2mom',a,prm);        % 1st derivative of the prior term
     ll1 = 0.5*sum(sum(sum(sum(gr1.*a)))); % -ve log probability of the prior term
     gr  = gr + gr1;                       % Combine the derivatives of the two terms
     ss2 = sum(sum(sum(sum(gr.^2))));      % This should approach zero at convergence
@@ -150,7 +150,7 @@ for i=1:its,
 
     reg = double(0.1*sqrt(mx)*d(4));
    %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
-    a   = a - optimN_mex(W,gr,[prm(1:3) prm(4)+reg prm(5:6) rits]); % Gauss-Newton update
+    a   = a - spm_field(W,gr,[prm(1:3) prm(4)+reg prm(5:6) rits]); % Gauss-Newton update
 
     if ss2/ss1<1e-4, break; end        % Converged?
 end

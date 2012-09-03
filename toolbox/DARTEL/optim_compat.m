@@ -3,7 +3,7 @@ function varargout = optim_compat(bc,varargin)
 % FORMAT varargout = optim_compat(bc,varargin)
 % bc - boundary condition (0=circulant, 1-Neumann)
 %
-% Calls the new optimN_mex function via the old API of the
+% Calls the new spm_field function via the old API of the
 % optimN and optimNn functions.
 %
 %_______________________________________________________________________
@@ -13,8 +13,8 @@ function varargout = optim_compat(bc,varargin)
 % $Id$
 
 if nargin>1 && isa(varargin{1},'char')
-    obc = optimN_mex('boundary'); % Old boundary condition
-    optimN_mex('boundary',bc);    % Circulant boundary condition
+    obc = spm_field('boundary'); % Old boundary condition
+    spm_field('boundary',bc);    % Circulant boundary condition
 
     switch varargin{1},
     case 'fmg',
@@ -30,7 +30,7 @@ if nargin>1 && isa(varargin{1},'char')
         param = [param0(2:4) param param0(8:end)];
         vi    = varargin;
         vi{4} = param;
-        [varargout{1:nargout}] = optimN_mex(vi{:});
+        [varargout{1:nargout}] = spm_field(vi{:});
 
     case 'vel2mom',
         param0 = varargin{3};
@@ -45,13 +45,13 @@ if nargin>1 && isa(varargin{1},'char')
         param = [param0(2:4) param param0(8:end)];
         vi    = varargin;
         vi{3} = param;
-        [varargout{1:nargout}] = optimN_mex(vi{:});
+        [varargout{1:nargout}] = spm_field(vi{:});
 
     otherwise
-        optimN_mex('boundary',obc);
+        spm_field('boundary',obc);
         error('Incorrect usage.');
     end
-    optimN_mex('boundary',obc);
+    spm_field('boundary',obc);
 else
     [varargout{1:nargout}] = optim_compat(bc,'fmg',varargin{:});
 end

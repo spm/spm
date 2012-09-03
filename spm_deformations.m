@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4871 2012-08-30 14:11:53Z john $
+% $Id: spm_deformations.m 4883 2012-09-03 12:34:55Z john $
 
 [Def,mat] = get_comp(job.comp);
 out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
@@ -321,7 +321,7 @@ else
 end
 
 Y     = cat(4,Def{:});
-Dets  = shoot3('def2det',Y)/det(mat(1:3,1:3));
+Dets  = spm_diffeo('def2det',Y)/det(mat(1:3,1:3));
 
 fname = {fullfile(wd,['j_' nam '.nii'])};
 dim   = [size(Def{1},1) size(Def{1},2) size(Def{1},3) 1 1];
@@ -625,14 +625,14 @@ for m=1:numel(PI),
                 if isempty(wt)
                     if ~job.preserve,
                         % Unmodulated - note the slightly novel procedure
-                        [f,c] = shoot3('push',f,y,dim);
+                        [f,c] = spm_diffeo('push',f,y,dim);
                         spm_smooth(f,f,krn); % Side effects
                         spm_smooth(c,c,krn); % Side effects
                         f = f./(c+0.001);
                     else
                         % Modulated, by pushing
                         scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
-                        f    = shoot3('push',f,y,dim)*scal;
+                        f    = spm_diffeo('push',f,y,dim)*scal;
                         spm_smooth(f,f,krn); % Side effects
                     end
                 else
@@ -648,15 +648,15 @@ for m=1:numel(PI),
                     end
                     if ~job.preserve,
                         % Unmodulated - note the slightly novel procedure
-                        f = shoot3('push',f.*wtw,y,dim);
-                        c = shoot3('push',wtw,y,dim);
+                        f = spm_diffeo('push',f.*wtw,y,dim);
+                        c = spm_diffeo('push',wtw,y,dim);
                         spm_smooth(f,f,krn); % Side effects
                         spm_smooth(c,c,krn); % Side effects
                         f = f./(c+0.001);
                     else
                         % Modulated, by pushing
                         scal = abs(det(NI.mat(1:3,1:3))/det(NO.mat(1:3,1:3))); % Account for vox sizes
-                        f    = shoot3('push',f.*wtw,y,dim)*scal;
+                        f    = spm_diffeo('push',f.*wtw,y,dim)*scal;
                         spm_smooth(f,f,krn); % Side effects
                     end
                     clear wtw

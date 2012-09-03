@@ -72,7 +72,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_preproc8.m 4883 2012-09-03 12:34:55Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -110,7 +110,7 @@ rand('state',0);
 % non-independence of voxels
 ff     = obj.fudge;
 ff     = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
-shoot3('boundary',1);
+spm_diffeo('boundary',1);
 
 % Initialise Deformation
 %-----------------------------------------------------------------------
@@ -120,7 +120,7 @@ scal   = sk;
 d      = [size(x0) length(z0)];
 if isfield(obj,'Twarp'),
     Twarp = obj.Twarp;
-    llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,shoot3('vel2mom',bsxfun(@times,Twarp,1./sk4),param),sk4)))));
+    llr   = -0.5*sum(sum(sum(sum(Twarp.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),param),sk4)))));
 else
     Twarp = zeros([d,3],'single');
     llr   = 0;
@@ -783,13 +783,13 @@ for iter=1:20,
         end
 
         % Add in the first derivatives of the prior term
-        Beta   = Beta  + shoot3('vel2mom',bsxfun(@times,Twarp,1./sk4),prm);
+        Beta   = Beta  + spm_diffeo('vel2mom',bsxfun(@times,Twarp,1./sk4),prm);
 
         for lmreg=1:6,
             % L-M update
-            Twarp1 = Twarp - shoot3('fmg',Alpha,Beta,[prm+lam 1 1]);
+            Twarp1 = Twarp - spm_diffeo('fmg',Alpha,Beta,[prm+lam 1 1]);
 
-            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,shoot3('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),sk4)))));
+            llr1   = -0.5*sum(sum(sum(sum(Twarp1.*bsxfun(@times,spm_diffeo('vel2mom',bsxfun(@times,Twarp1,1./sk4),prm),sk4)))));
             ll1    = llr1+llrb;
 
             for z=1:length(z0),

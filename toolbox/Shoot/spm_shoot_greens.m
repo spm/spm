@@ -21,12 +21,12 @@ function varargout = spm_shoot_greens(varargin)
 % John Ashburner
 % $Id$
 
-shoot3('bound',0);
+spm_diffeo('bound',0);
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
     d   = varargin{2};
     prm = varargin{3};
 
-    F = shoot3('kernel',d,prm);
+    F = spm_diffeo('kernel',d,prm);
     if size(F,4) == 1,
         % The differential operator is symmetric, so the Fourier transform should be real
         F = 1./real(fftn(F));
