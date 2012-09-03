@@ -1,10 +1,11 @@
-function normalise = tbx_cfg_normalise
-% SPM Configuration file for Normalise
+function normalise = spm_cfg_normalise
+% SPM Configuration file for toolbox 'Old Normalise'
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_normalise.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_cfg_normalise.m 4882 2012-09-03 11:02:30Z guillaume $
 
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end
 
 %--------------------------------------------------------------------------
 % source Source Image
@@ -425,7 +426,7 @@ normalise.help    = {
                      ''
                      'All normalised images are written to the same subdirectory as the original images, prefixed with a ''w''.  The details of the transformations are displayed in the results window, and the parameters are saved in the "*_sn.mat" file.'
 }';
-normalise.values   = {est write estwrite };
+normalise.values   = {est write estwrite};
 
 %==========================================================================
 function dep = vout_estimate(job)

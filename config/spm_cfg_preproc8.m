@@ -1,10 +1,10 @@
-function preproc = tbx_cfg_preproc8
+function preproc = spm_cfg_preproc8
 % MATLABBATCH Configuration file for toolbox 'Segment'
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_cfg_preproc8.m 4882 2012-09-03 11:02:30Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
@@ -429,4 +429,3 @@ if job.warp.write(2),
 end
 
 dep = cdep;
-

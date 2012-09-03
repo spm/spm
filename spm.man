@@ -1,5 +1,5 @@
 
-% Statistical Parametric Mapping - SPM8
+% Statistical Parametric Mapping - SPM12
 % ______________________________________________________________________
 % 
 %  ___  ____  __  __
@@ -21,7 +21,7 @@
 %
 %                           ----------------
 %
-% Please refer to this version as "SPM8" in papers and communications.
+% Please refer to this version as "SPM12" in papers and communications.
 %
 %                           ----------------
 %
@@ -91,7 +91,7 @@
 %
 %                           ----------------
 %
-% Please report bugs to the authors at <spm@fil.ion.ucl.ac.uk>
+% Please report bugs to the authors at <fil.spm@ucl.ac.uk>
 % Peculiarities may actually be features, and should be raised on the
 % SPM eMail discussion list, <spm@jiscmail.ac.uk>.
 % ______________________________________________________________________
@@ -134,8 +134,8 @@
 % No formal support or maintenance is provided or implied.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm.man 3028 2009-04-01 12:02:59Z guillaume $
+% $Id: spm.man 4882 2012-09-03 11:02:30Z guillaume $
 

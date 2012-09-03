@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 4612 2012-01-08 11:54:26Z guillaume $
+% $Id: save.m 4882 2012-09-03 11:02:30Z guillaume $
 
 
 % Check filename and file format
@@ -78,6 +78,12 @@ def.DataType           = 'NIFTI_TYPE_FLOAT32';
 def.ExternalFileName   = '';
 def.ExternalFileOffset = '';
 def.offset             = 0;
+
+if strcmp(def.Encoding,'GZipBase64Binary') && ~usejava('jvm')
+    warning(['Cannot save GIfTI in ''GZipBase64Binary'' encoding. ' ...
+        'Revert to ''Base64Binary''.']);
+    def.Encoding = 'Base64Binary';
+end
 
 % Edit object DataArray attributes
 %--------------------------------------------------------------------------

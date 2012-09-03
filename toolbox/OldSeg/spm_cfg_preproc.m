@@ -1,10 +1,11 @@
 function preproc = spm_cfg_preproc
-% SPM Configuration file for Unified Segmentation
+% SPM Configuration file for toolbox 'Old Segment'
 %______________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: tbx_cfg_preproc.m 4875 2012-08-30 20:04:30Z john $
+% $Id: spm_cfg_preproc.m 4882 2012-09-03 11:02:30Z guillaume $
 
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end
 
 % ---------------------------------------------------------------------
 % data Data
@@ -293,7 +294,7 @@ opts.help    = {'Various options can be adjusted in order to improve the perform
 preproc         = cfg_exbranch;
 preproc.tag     = 'preproc';
 preproc.name    = 'Old Segment';
-preproc.val     = {data output opts };
+preproc.val     = {data output opts};
 preproc.help    = {
                    'Segment, bias correct and spatially normalise - all in the same model/* \cite{ashburner05}*/. This function can be used for bias correcting, spatially normalising or segmenting your data. Note that this module needs the images to be roughly aligned with the tissue probability maps before you begin.  If strange results are obtained, then this is usually because the images were poorly aligned beforehand.  The Display option can be used to manually reposition the images so that the AC is close to coordinate 0,0,0 (within a couple of cm) and the orientation is within a few degrees of the tissue probability map data.'
                    ''
@@ -349,5 +350,3 @@ for k1=1:3,
     end
 end;
 dep = cdep;
-
-

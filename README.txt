@@ -90,7 +90,7 @@ methodological and practical issues of Statistical Parametric Mapping
 and SPM. The SPMweb site has further details:
                  http://www.fil.ion.ucl.ac.uk/spm/support/
 
-Please report bugs to the authors at <spm@fil.ion.ucl.ac.uk>.
+Please report bugs to the authors at <fil.spm@ucl.ac.uk>.
 Peculiarities may actually be features, and should be raised on the SPM
 eMail discussion list, <spm@jiscmail.ac.uk>.
 
@@ -109,4 +109,4 @@ ________________________________________________________________________
 SPM is developed by members and collaborators of the
                                   Wellcome Trust Centre for Neuroimaging
 
-$Id: README.txt 3028 2009-04-01 12:02:59Z guillaume $
+$Id: README.txt 4882 2012-09-03 11:02:30Z guillaume $

@@ -1,8 +1,9 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 4839 2012-08-14 18:53:20Z john $
-addpath(fullfile(spm('dir'),'toolbox','Shoot'));
+% $Id: tbx_cfg_shoot.m 4882 2012-09-03 11:02:30Z guillaume $
+
+if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
 % ---------------------------------------------------------------------
 % images Images
@@ -739,7 +740,3 @@ dep.sname      = 'Residual Files';
 dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
-
-
-
-
