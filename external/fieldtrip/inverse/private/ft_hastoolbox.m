@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 5895 2012-06-05 11:43:46Z roboos $
+% $Id: ft_hastoolbox.m 6370 2012-08-16 17:37:05Z vlalit $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -148,6 +148,8 @@ switch toolbox
     status = exist('spm.m') && strcmp(spm('ver'),'SPM5');
   case 'SPM8'
     status = exist('spm.m') && strncmp(spm('ver'),'SPM8', 4);
+  case 'SPM12'
+    status = exist('spm.m') && strncmp(spm('ver'),'SPM12', 5);
   case 'MEG-PD'
     status = (exist('rawdata') && exist('channames'));
   case 'MEG-CALC'

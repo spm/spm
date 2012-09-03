@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 5678 2012-04-20 11:08:33Z jansch $
+% $Id: ft_topoplotTFR.m 6337 2012-08-07 13:14:04Z roevdmei $
 
-revision = '$Id: ft_topoplotTFR.m 5678 2012-04-20 11:08:33Z jansch $';
+revision = '$Id: ft_topoplotTFR.m 6337 2012-08-07 13:14:04Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -287,8 +287,10 @@ cfg.highlightfontsize = ft_getopt(cfg, 'highlightfontsize', 8);
 cfg.labeloffset       = ft_getopt(cfg, 'labeloffset',       0.005);
 cfg.maskparameter     = ft_getopt(cfg, 'maskparameter',     []);
 cfg.component         = ft_getopt(cfg, 'component',         []);
-cfg.directionality        = ft_getopt(cfg, 'directionality',        []);
+cfg.directionality    = ft_getopt(cfg, 'directionality',    []);
 cfg.channel           = ft_getopt(cfg, 'channel',           'all');
+cfg.figurename        = ft_getopt(cfg, 'figurename',        []);
+
 
 % compatibility for previous highlighting option
 if isnumeric(cfg.highlight)
@@ -971,8 +973,15 @@ else % data provided through cfg.inputfile
   dataname = cfg.inputfile;
 end
 
-set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
-set(gcf, 'NumberTitle', 'off');
+if isempty(cfg.figurename)
+  set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+  set(gcf, 'NumberTitle', 'off');
+else
+  set(gcf, 'name', cfg.figurename);
+  set(gcf, 'NumberTitle', 'off');
+end
+
+
 
 axis off
 hold off

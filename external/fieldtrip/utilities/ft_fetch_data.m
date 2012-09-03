@@ -27,7 +27,7 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 6299 2012-08-01 13:08:56Z roevdmei $
+% $Id: ft_fetch_data.m 6373 2012-08-17 12:10:37Z roevdmei $
     
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
@@ -125,12 +125,16 @@ if trlnum>1,
       trialnum  = trialnum(begsample:endsample);
       samplenum = samplenum(begsample:endsample);
 
-      % check if all samples are present and are not present twice or more 
+      % check if all samples are present and are not present twice or more
       if any(count==0)
         warning('not all requested samples are present in the data, filling with NaNs');
+        % prealloc with NaNs
+        dat = NaN(numel(chanindx),endsample-begsample+1);
       elseif any(count>1)
         if ~allowoverlap
           error('some of the requested samples occur twice in the data');
+        else
+          warnign('samples present in multiple trials, using only the last occurence of each sample')
         end
       end
 
@@ -147,6 +151,8 @@ if trlnum>1,
       % the following piece of code achieves the same as the commented code above,
       % but much smaller. rather than looping over samples it loops over the blocks
       % of samples defined by the original trials
+
+      
       utrl = unique(trialnum);
       utrl(~isfinite(utrl)) = 0;
       utrl(utrl==0) = [];

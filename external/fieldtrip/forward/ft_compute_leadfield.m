@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: ft_compute_leadfield.m 6344 2012-08-08 16:10:45Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -212,7 +212,7 @@ elseif ismeg
       % select only those channels from the forward model that are part of the gradiometer definition
       lf = lf(vol.chansel,:);
 
-    case 'nolte'
+    case 'singleshell'
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % use code from Guido Nolte for the forward computation
       % this requires that "meg_ini" is initialized, which is done in PREPARE_VOL_SENS

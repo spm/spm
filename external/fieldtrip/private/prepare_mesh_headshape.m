@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 4702 2011-11-10 09:23:27Z borreu $
+% $Id: prepare_mesh_headshape.m 6319 2012-08-03 15:10:19Z roevdmei $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -210,7 +210,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: prepare_mesh_headshape.m 4702 2011-11-10 09:23:27Z borreu $
+% $Id: prepare_mesh_headshape.m 6319 2012-08-03 15:10:19Z roevdmei $
 
 ts = [];
 ts.XYZmm = pnt';
@@ -263,18 +263,17 @@ tri1 = tri;
 
 if 0
   % this is some test/demo code
-  [pnt, tri] = icosahedron162;
-
+  bnd = [];
+  [bnd.pnt, bnd.tri] = icosahedron162;
+  
   scale = 1+0.3*randn(size(pnt,1),1);
-  pnt = pnt .* [scale scale scale];
-
+  bnd.pnt = bnd.pnt .* [scale scale scale];
+  
   figure
-  triplot(pnt, tri, [], 'faces')
-  triplot(pnt, tri, [], 'edges')
-
-  [pnt, tri] = fairsurface(pnt, tri, 10);
-
+  ft_plot_mesh(bnd)
+  
+  [bnd.pnt, bnd.tri] = fairsurface(bnd.pnt, bnd.tri, 10);
+  
   figure
-  triplot(pnt, tri, [], 'faces')
-  triplot(pnt, tri, [], 'edges')
+  ft_plot_mesh(bnd)
 end

@@ -64,8 +64,7 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.medianfiltord = length of median filter (default = 9)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
-%   cfg.baselinewindow = [begin end] in seconds, the default is the
-%   complete trial (default = 'all')
+%   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
 %   cfg.detrend       = 'no' or 'yes', remove linear trend from the data (done per trial) (default = 'no')
 %   cfg.polyremoval   = 'no' or 'yes', remove higher order trend from the data (done per trial) (default = 'no')
 %   cfg.polyorder     = polynome order for poly trend removal (default = 2; note that all lower-order trends will also be removed when using cfg.polyremoval)
@@ -100,7 +99,7 @@ function [data] = ft_preprocessing(cfg, data)
 % See also FT_DEFINETRIAL, FT_REDEFINETRIAL, FT_APPENDDATA, FT_APPENDSPIKE
 
 % Guidelines for use in an analysis pipeline: 
-% after FT_PREPROCESSING you will have raw data represented as a single 
+% After FT_PREPROCESSING you will have raw data represented as a single 
 % continuous segment or as multiple data segments that often correspond to 
 % trials in an experiment.
 % This usually serves as input for one of the following functions:
@@ -178,9 +177,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 5917 2012-06-06 13:10:28Z roboos $
+% $Id: ft_preprocessing.m 6396 2012-08-22 14:14:39Z roevdmei $
 
-revision = '$Id: ft_preprocessing.m 5917 2012-06-06 13:10:28Z roboos $';
+revision = '$Id: ft_preprocessing.m 6396 2012-08-22 14:14:39Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults

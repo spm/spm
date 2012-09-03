@@ -104,7 +104,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 5701 2012-04-25 08:23:25Z jorhor $';
+revision = '$Id: ft_singleplotER.m 6388 2012-08-21 12:18:51Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -144,6 +144,8 @@ cfg.linewidth       = ft_getopt(cfg, 'linewidth',    0.5);
 cfg.maskstyle       = ft_getopt(cfg, 'maskstyle',    'box');
 cfg.channel         = ft_getopt(cfg, 'channel',      'all');
 cfg.directionality  = ft_getopt(cfg, 'directionality',   []);
+cfg.figurename      = ft_getopt(cfg, 'figurename',       []);
+
 
 Ndata = numel(varargin);
 
@@ -560,8 +562,13 @@ elseif nargin > 1
 else
   dataname = cfg.inputfile;
 end
-set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
-set(gcf, 'NumberTitle', 'off');
+if isempty(cfg.figurename)
+  set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
+  set(gcf, 'NumberTitle', 'off');
+else
+  set(gcf, 'name', cfg.figurename);
+  set(gcf, 'NumberTitle', 'off');
+end
 
 % make the figure interactive
 if strcmp(cfg.interactive, 'yes')
@@ -591,8 +598,12 @@ ft_postamble previous varargin
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % subfunction which is called after selecting a time range
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_topoplotER(range, cfg, varargin)
-fprintf('DUS\n\n');
+function select_topoplotER(cfg, varargin)
+% first to last callback-input of ft_select_range is range
+% last callback-input of ft_select_range is contextmenu label, if used
+range = varargin{end-1}; 
+varargin = varargin(1:end-2); % remove range and last
+
 cfg.comment = 'auto';
 cfg.xlim = range(1:2);
 if isfield(cfg, 'inputfile')

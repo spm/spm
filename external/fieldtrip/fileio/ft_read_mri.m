@@ -43,7 +43,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 5797 2012-05-23 06:53:10Z jansch $
+% $Id: ft_read_mri.m 6369 2012-08-16 17:37:02Z vlalit $
 
 % get the options
 mriformat = ft_getopt(varargin, 'format'); % FIXME this is inconsistent with ft_read_mri, which uses 'dataformat'

@@ -15,10 +15,11 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.parameter        = field to be represented as color (default depends on data.dimord)
 %                          'powspctrm' or 'cohspctrm' 
 %   cfg.maskparameter    = field in the data to be used for opacity masking of data
-%   cfg.maskstyle        = style used to mask nans, 'opacity' or 'saturation' (default = 'opacity')
+%   cfg.maskstyle        = style used to masking, 'opacity' or 'saturation' (default = 'opacity')
 %                          use 'saturation' when saving to vector-format (like *.eps) to avoid all 
 %                          sorts of image-problems (currently only possible with a white backgroud)
 %   cfg.maskalpha        = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
+%   cfg.masknans         = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim             = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim             = 'maxmin' or [ymin ymax] (default = 'maxmin')
 %   cfg.zlim             = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
@@ -43,15 +44,14 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %                          In a interactive plot you can select areas and produce a new
 %                          interactive plot when a selected area is clicked. Multiple areas 
 %                          can be selected by holding down the SHIFT key.
-%   cfg.masknans         = 'yes' or 'no' (default = 'yes')
 %   cfg.renderer         = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
-%   cfg.directionality = '', 'inflow' or 'outflow' specifies for
-%                       connectivity measures whether the inflow into a
-%                       node, or the outflow from a node is plotted. The
-%                       (default) behavior of this option depends on the dimor
-%                       of the input data (see below).
-%   cfg.layout        = specify the channel layout for plotting using one of
-%                       the supported ways (see below).
+%   cfg.directionality   = '', 'inflow' or 'outflow' specifies for
+%                          connectivity measures whether the inflow into a
+%                          node, or the outflow from a node is plotted. The
+%                          (default) behavior of this option depends on the dimor
+%                          of the input data (see below).
+%   cfg.layout           = specify the channel layout for plotting using one of
+%                         the supported ways (see below).
 %
 % For the plotting of directional connectivity data the cfg.directionality
 % option determines what is plotted. The default value and the supported
@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 6268 2012-07-12 14:22:03Z roevdmei $
+% $Id: ft_multiplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $
 
-revision = '$Id: ft_multiplotTFR.m 6268 2012-07-12 14:22:03Z roevdmei $';
+revision = '$Id: ft_multiplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -172,6 +172,7 @@ cfg.maskparameter  = ft_getopt(cfg, 'maskparameter',   []);
 cfg.maskstyle      = ft_getopt(cfg, 'maskstyle',       'opacity');
 cfg.directionality = ft_getopt(cfg, 'directionality',  '');
 cfg.channel        = ft_getopt(cfg, 'channel',         'all');
+cfg.figurename     = ft_getopt(cfg, 'figurename',      []);
 if ~isfield(cfg,'box')             
   if ~isempty(cfg.maskparameter)
     cfg.box = 'yes';
@@ -462,8 +463,8 @@ if ~isempty(cfg.maskparameter)
 end
 
 % Select the channels in the data that match with the layout:
-[seldat, sellay] = match_str(label, lay.label);
-if isempty(seldat)
+[chanseldat, chansellay] = match_str(label, lay.label);
+if isempty(chanseldat)
   error('labels in data and labels in layout do not match'); 
 end
 
@@ -476,24 +477,24 @@ if (cfg.gradscale ~= 1)
   gradInd = match_str(label, ft_channelselection('MEGGRAD', label));
 end
 
-datavector = dat(seldat,:,:);
+datsel = dat(chanseldat,:,:);
 if ~isempty(cfg.maskparameter)
-  maskvector = mask(seldat,:,:);
+  maskdat = mask(chanseldat,:,:);
 end
 
 % Select x and y coordinates and labels of the channels in the data
-chanX = lay.pos(sellay, 1);
-chanY = lay.pos(sellay, 2);
-chanWidth  = lay.width(sellay);
-chanHeight = lay.height(sellay);
+chanX = lay.pos(chansellay, 1);
+chanY = lay.pos(chansellay, 2);
+chanWidth  = lay.width(chansellay);
+chanHeight = lay.height(chansellay);
 
 % Get physical z-axis range (color axis):
 if strcmp(cfg.zlim,'maxmin')
-  zmin = min(datavector(:));
-  zmax = max(datavector(:));
+  zmin = min(datsel(:));
+  zmax = max(datsel(:));
 elseif strcmp(cfg.zlim,'maxabs')
-  zmin = -max(abs(datavector(:)));
-  zmax = max(abs(datavector(:)));
+  zmin = -max(abs(datsel(:)));
+  zmax = max(abs(datsel(:)));
 else
   zmin = cfg.zlim(1);
   zmax = cfg.zlim(2);
@@ -506,18 +507,18 @@ if isfield(cfg,'colormap')
 end;
 
 % Plot channels:
-for k=1:length(seldat)
+for k=1:length(chanseldat)
   % Get cdata:
-  cdata = squeeze(datavector(k,:,:));
+  cdata = squeeze(datsel(k,:,:));
   if ~isempty(cfg.maskparameter)
-    mdata = squeeze(maskvector(k,:,:));
+    mdata = squeeze(maskdat(k,:,:));
   end
   
   % scale if needed
-  if (cfg.magscale ~= 1 && any(magInd == seldat(k)))
+  if (cfg.magscale ~= 1 && any(magInd == chanseldat(k)))
     cdata = cdata .* cfg.magscale;
   end
-  if (cfg.gradscale ~= 1 && any(gradInd == seldat(k)))
+  if (cfg.gradscale ~= 1 && any(gradInd == chanseldat(k)))
     cdata = cdata .* cfg.gradscale;
   end
   
@@ -557,7 +558,7 @@ end
 k = cellstrmatch('SCALE',lay.label);
 if ~isempty(k)
   % Get average cdata across channels:
-  cdata = squeeze(mean(datavector, 1)); 
+  cdata = squeeze(mean(datsel, 1)); 
  
   % Draw plot (and mask Nan's with maskfield if requested)
   if isequal(cfg.masknans,'yes') && isempty(cfg.maskparameter)
@@ -612,9 +613,13 @@ elseif nargin > 1
 else % data provided through cfg.inputfile
   dataname = cfg.inputfile;
 end
-set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
-set(gcf, 'NumberTitle', 'off');
-
+if isempty(cfg.figurename)
+  set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
+  set(gcf, 'NumberTitle', 'off');
+else
+  set(gcf, 'name', cfg.figurename);
+  set(gcf, 'NumberTitle', 'off');
+end
 
 % Make the figure interactive:
 if strcmp(cfg.interactive, 'yes')
@@ -687,8 +692,6 @@ if ~isempty(label)
     % the reading has already been done and varargin contains the data
     cfg = rmfield(cfg, 'inputfile');
   end
-  %cfg.xlim = 'maxmin';
-  cfg.ylim = 'maxmin';
   cfg.channel = label;
   
   % make sure ft_singleplotTFR does not apply a baseline correction again

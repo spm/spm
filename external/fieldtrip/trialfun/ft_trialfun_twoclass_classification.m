@@ -1,6 +1,6 @@
-function [trl] = trialfun_twoclass_classification(cfg)
+function [trl] = ft_trialfun_twoclass_classification(cfg)
 
-% TRIALFUN_TWOCLASS_CLASSIFICATION
+% FT_TRIALFUN_TWOCLASS_CLASSIFICATION
 %
 % This trial function can be used to train and test a real-time
 % classifier in offline and online mode. It selects pieces of data
@@ -18,7 +18,7 @@ function [trl] = trialfun_twoclass_classification(cfg)
 
 % Copyright (C) 2009, DCCN
 %
-% $Id: trialfun_twoclass_classification.m 3497 2011-05-10 21:22:40Z roboos $
+% $Id: ft_trialfun_twoclass_classification.m 6326 2012-08-06 12:36:24Z eelspa $
 
 % these are used to count the number of training items in each class
 persistent numtrain1

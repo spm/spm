@@ -11,7 +11,7 @@ function [cfg] = ft_definetrial(cfg)
 %   [cfg] = ft_definetrial(cfg)
 % where the configuration structure should contain either
 %   cfg.trialdef   = structure with details of trial definition, see below
-%   cfg.trialfun   = function name, see below (default = 'trialfun_general')
+%   cfg.trialfun   = function name, see below (default = 'ft_trialfun_general')
 % and also
 %   cfg.dataset    = pathname to dataset from which to read the events
 % 
@@ -22,7 +22,7 @@ function [cfg] = ft_definetrial(cfg)
 % the trial function) which returns "trl". The user can specify the
 % name of his/her custom trial function that is tailored to the
 % experimental paradigm, or use the default trial function
-% TRIALFUN_GENERAL.
+% FT_TRIALFUN_GENERAL.
 %
 % The trial definition "trl" is an Nx3 matrix, N is the number of trials.
 % The first column contains the sample-indices of the begin of each trial 
@@ -46,7 +46,7 @@ function [cfg] = ft_definetrial(cfg)
 % pieces of data according to this information.
 %
 % Simple trial definitions (e.g. based on a single trigger) are supported
-% by TRIALFUN_GENERAL, which is the default trial function. This function
+% by FT_TRIALFUN_GENERAL, which is the default trial function. This function
 % supports the following options
 %   cfg.trialdef.eventtype  = 'string'
 %   cfg.trialdef.eventvalue = number, string or list with numbers or strings
@@ -76,7 +76,7 @@ function [cfg] = ft_definetrial(cfg)
 % function to get the event information from your data file.
 %
 % See also FT_PREPROCESSING, FT_READ_HEADER, FT_READ_DATA, FT_READ_EVENT,
-% TRIALFUN_GENERAL, TRIALFUN_EXAMPLE1, TRIALFUN_EXAMPLE2
+% FT_TRIALFUN_GENERAL, FT_TRIALFUN_EXAMPLE1, FT_TRIALFUN_EXAMPLE2
 
 % Undocumented local options:
 % cfg.datafile
@@ -103,9 +103,9 @@ function [cfg] = ft_definetrial(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 5553 2012-03-28 13:56:29Z roboos $
+% $Id: ft_definetrial.m 6331 2012-08-06 14:15:42Z eelspa $
 
-revision = '$Id: ft_definetrial.m 5553 2012-03-28 13:56:29Z roboos $';
+revision = '$Id: ft_definetrial.m 6331 2012-08-06 14:15:42Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -119,17 +119,17 @@ if ~isfield(cfg, 'trl') && (~isfield(cfg, 'trialfun') || isempty(cfg.trialfun))
   % there used to be other system specific trialfuns in previous versions
   % of fieldtrip, but they are deprecated and not included in recent
   % versions any more
-  cfg.trialfun = 'trialfun_general';
-  warning('no trialfun was specified, using trialfun_general');
+  cfg.trialfun = 'ft_trialfun_general';
+  warning('no trialfun was specified, using ft_trialfun_general');
 end
 
 % create the trial definition for this dataset and condition
 if isfield(cfg, 'trl')
   % the trial definition is already part of the configuration
-  fprintf('retaining exist trial definition\n');
+  fprintf('retaining existing trial definition\n');
   trl = cfg.trl;
   if isfield(cfg, 'event')
-    fprintf('retaining exist event information\n');
+    fprintf('retaining existing event information\n');
     event = cfg.event;
   else
     event = [];
@@ -137,23 +137,10 @@ if isfield(cfg, 'trl')
 
 elseif isfield(cfg, 'trialfun')
 
-  % provide support for xxx and trialfun_xxx when the user specifies cfg.trialfun=xxx
-  if isa(cfg.trialfun, 'function_handle') || exist(cfg.trialfun, 'file')
-    % evaluate this function, this is the default
-  elseif exist(['trialfun_' cfg.trialfun], 'file')
-    % prepend trialfun to the function name
-    cfg.trialfun = ['trialfun_' cfg.trialfun];
-  else
-    if ischar(cfg.trialfun)
-      error('cannot locate the specified trialfun (%s)', cfg.trialfun)
-    else
-      error('cannot locate the specified trialfun (%s)', func2str(cfg.trialfun))
-    end
-  end
-  
-  % evaluate the user-defined function that gives back the trial definition
-  if ischar(cfg.trialfun)
-    fprintf('evaluating trialfunction ''%s''\n', cfg.trialfun);
+  cfg.trialfun = ft_getuserfun(cfg.trialfun, 'trialfun');
+    
+  if isempty(cfg.trialfun)
+    error('the specified trialfun was not found');
   else
     fprintf('evaluating trialfunction ''%s''\n', func2str(cfg.trialfun));
   end

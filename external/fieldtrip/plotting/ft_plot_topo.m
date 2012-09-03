@@ -45,7 +45,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 5787 2012-05-19 09:25:51Z eelspa $
+% $Id: ft_plot_topo.m 6310 2012-08-02 15:00:26Z roevdmei $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -111,6 +111,9 @@ else
   yScaling = height/naturalHeight;
 end
 
+% keep original channel positions
+chanXorg = chanX;
+chanYorg = chanY;
 chanX = chanX(:) * xScaling + hpos;
 chanY = chanY(:) * yScaling + vpos;
 
@@ -141,7 +144,8 @@ end
 
 
 % try to speed up the preparation of the mask on subsequent calls
-current_argin = {chanX, chanY, gridscale, mask, datmask};
+%current_argin = {chanX, chanY, gridscale, mask, datmask}; % old: to be plotted channel positions must be the same
+current_argin = {chanXorg, chanYorg, gridscale, mask, datmask}; % new: unscaled channel positions must be the same over calls
 if isequal(current_argin, previous_argin)
   % don't construct the binary image, but reuse it from the previous call
   maskimage = previous_maskimage;

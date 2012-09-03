@@ -52,7 +52,7 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_wpli.m 6063 2012-06-13 15:23:22Z jansch $
+% $Id: ft_connectivity_wpli.m 6408 2012-08-27 13:24:12Z marvin $
 
 feedback    = ft_getopt(varargin, 'feedback', 'none');
 debias      = ft_getopt(varargin, 'debias');
@@ -96,7 +96,7 @@ if dojack && n>2 % n needs to be larger than 2 to get a meaningful variance
     leave1outssq = leave1outssq + tmp.^2; % added this for nan support                              
   end  
   % compute the sem here 
-  n = nansum(~isnan(input),1); % this is the actual df when nans are found in the input matrix
+  n = sum(~isnan(input),1); % this is the actual df when nans are found in the input matrix
   v = (n-1).^2.*(leave1outssq - (leave1outsum.^2)./n)./(n - 1); % 11.5 efron, sqrt and 1/n done in ft_connectivityanalysis
   v = reshape(v,siz(2:end)); % remove the first singular dimension   
   n = reshape(n,siz(2:end));  

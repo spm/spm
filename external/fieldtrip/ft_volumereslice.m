@@ -54,9 +54,9 @@ function [reslice] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 5679 2012-04-20 11:11:31Z jansch $
+% $Id: ft_volumereslice.m 6393 2012-08-22 09:05:01Z jansch $
 
-revision = '$Id: ft_volumereslice.m 5679 2012-04-20 11:11:31Z jansch $';
+revision = '$Id: ft_volumereslice.m 6393 2012-08-22 09:05:01Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -145,6 +145,9 @@ fprintf('reslicing from [%d %d %d] to [%d %d %d]\n', mri.dim(1), mri.dim(2), mri
 tmpcfg = [];
 tmpcfg.parameter = 'anatomy';
 reslice = ft_sourceinterpolate(tmpcfg, mri, reslice);
+
+% convert any non-finite values to 0 to avoid problems later on
+reslice.anatomy(~isfinite(reslice.anatomy)) = 0;
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig

@@ -4,7 +4,11 @@ function [cfg] = ft_databrowser(cfg, data)
 % were detected by artifact functions (see FT_ARTIFACT_xxx functions where
 % xxx is the type of artifact) are marked. Additionally data pieces can be
 % marked and unmarked as artifact by manual selection. The output cfg
-% contains the updated specification of the artifacts.
+% contains the updated specification of the artifacts. When visually selection
+% data, a right-click will bring up a context-menu containing functions to be 
+% executed on the selected data. You can use your own function using cfg.selfun
+% and cfg.selcfg. You can use multiple functions by giving the names/cfgs as a
+% cell-array.
 %
 % Use as
 %   cfg = ft_databrowser(cfg)
@@ -43,9 +47,9 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.colorgroups             = 'sequential' 'allblack' 'labelcharx' (x = xth character in label), 'chantype' or
 %                                  vector with length(data/hdr.label) defining groups (default = 'sequential')
 %   cfg.channelcolormap         = COLORMAP (default = customized lines map with 15 colors)
-%   cfg.selfun                  = string, name of function which is evaluated if selectmode is set to 'eval'.
-%                                  The selected data and the selcfg are passed on to this function.
-%   cfg.selcfg                  = configuration options for selfun
+%   cfg.selfun                  = string, name of function which is evaluated using the right-click context menu
+%                                  The selected data and cfg.selcfg are passed on to this function.
+%   cfg.selcfg                  = configuration options for function in cfg.selfun
 %   cfg.eegscale                = number, scaling to apply to the EEG channels prior to display
 %   cfg.eogscale                = number, scaling to apply to the EOG channels prior to display
 %   cfg.ecgscale                = number, scaling to apply to the ECG channels prior to display
@@ -53,6 +57,8 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.megscale                = number, scaling to apply to the MEG channels prior to display
 %   cfg.gradscale               = number, scaling to apply to the MEG gradiometer channels prior to display (in addition to the cfg.megscale factor)
 %   cfg.magscale                = number, scaling to apply to the MEG magnetometer channels prior to display (in addition to the cfg.megscale factor)
+%   cfg.mychanscale             = number, scaling to apply to the channels specified in cfg.mychan
+%   cfg.mychan                  = Nx1 cell-array with selection of channels
 %   cfg.chanscale               = Nx1 vector with scaling factors, one per channel specified in cfg.channel
 %   cfg.compscale               = string, 'global' or 'local', defines whether the colormap for the topographic scaling is 
 %                                  applied per topography or on all visualized components (default 'global')
@@ -102,10 +108,10 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 6304 2012-08-01 16:41:58Z roevdmei $
+% $Id: ft_databrowser.m 6413 2012-08-28 15:02:09Z roevdmei $
 
 % Undocumented options
-% cfg.enablepreprocedit = 'yes'/'no' - roevdmei
+% 
 
 % FIXME these should be removed
 % FIXME document these
@@ -113,7 +119,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 6304 2012-08-01 16:41:58Z roevdmei $';
+revision = '$Id: ft_databrowser.m 6413 2012-08-28 15:02:09Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -125,7 +131,7 @@ hasdata = (nargin>1);
 hascomp = hasdata && ft_datatype(data, 'comp');
 
 % for backward compatibility
-cfg = ft_checkconfig(cfg, 'unused', {'comps', 'inputfile', 'outputfile'});
+cfg = ft_checkconfig(cfg, 'unused', {'comps', 'inputfile', 'outputfile', 'selectmode'});
 cfg = ft_checkconfig(cfg, 'renamed', {'zscale', 'ylim'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'ylim', 'auto', 'maxabs'});
 
@@ -139,8 +145,8 @@ if ~isfield(cfg, 'selectfeature'),   cfg.selectfeature = 'visual';        end % 
 if ~isfield(cfg, 'selectmode'),      cfg.selectmode = 'mark';             end
 if ~isfield(cfg, 'blocksize'),       cfg.blocksize = [];                  end % now used for both continuous and non-continuous data, defaulting done below
 if ~isfield(cfg, 'preproc'),         cfg.preproc = [];                    end % see preproc for options
-if ~isfield(cfg, 'selfun'),          cfg.selfun = 'browse_multiplotER';   end
-if ~isfield(cfg, 'selcfg'),          cfg.selcfg = [];                     end
+if ~isfield(cfg, 'selfun'),          cfg.selfun = [];                     end % default functions: 'simpleFFT','multiplotER','topoplotER','topoplotVAR','movieplotER' 
+if ~isfield(cfg, 'selcfg'),          cfg.selcfg = [];                     end % defaulting done below, requires layouts/etc to be processed
 if ~isfield(cfg, 'colorgroups'),     cfg.colorgroups = 'sequential';      end
 if ~isfield(cfg, 'channelcolormap'), cfg.channelcolormap = [0.75 0 0;0 0 1;0 1 0;0.44 0.19 0.63;0 0.13 0.38;0.5 0.5 0.5;1 0.75 0;1 0 0;0.89 0.42 0.04;0.85 0.59 0.58;0.57 0.82 0.31;0 0.69 0.94;1 0 0.4;0 0.69 0.31;0 0.44 0.75];   end
 if ~isfield(cfg, 'eegscale'),        cfg.eegscale = [];                   end
@@ -151,20 +157,17 @@ if ~isfield(cfg, 'megscale'),        cfg.megscale = [];                   end
 if ~isfield(cfg, 'magscale'),        cfg.magscale = [];                   end
 if ~isfield(cfg, 'gradscale'),       cfg.gradscale = [];                  end
 if ~isfield(cfg, 'chanscale'),       cfg.chanscale = [];                  end
+if ~isfield(cfg, 'mychanscale'),     cfg.mychanscale = [];                end
 if ~isfield(cfg, 'layout'),          cfg.layout = [];                     end
 if ~isfield(cfg, 'plotlabels'),      cfg.plotlabels = 'yes';              end
 if ~isfield(cfg, 'event'),           cfg.event = [];                      end % this only exists for backward compatibility and should not be documented
 if ~isfield(cfg, 'continuous'),      cfg.continuous = [];                 end % the default is set further down in the code, conditional on the input data
 if ~isfield(cfg, 'ploteventlabels'), cfg.ploteventlabels = 'type=value';  end
-if ~isfield(cfg, 'enablepreprocedit'), cfg.enablepreprocedit = 'no';      end
-
-
-if ~isfield(cfg, 'develscalefix'), cfg.develscalefix = 'no';      end
-
-
-
 cfg.zlim           = ft_getopt(cfg, 'zlim',          'maxmin');
 cfg.compscale      = ft_getopt(cfg, 'compscale',     'global');
+
+
+
 
 if ~isfield(cfg, 'viewmode')
   % butterfly, vertical, component
@@ -187,7 +190,11 @@ if ~isempty(cfg.chanscale)
   if size(cfg.chanscale,2) > size(cfg.chanscale,1)
     cfg.chanscale = cfg.chanscale';
   end
-  
+end
+
+if ~isempty(cfg.mychanscale) && ~isfield(cfg,'mychan')
+  warning('ignoring cfg.mychanscale; no channels specified in cfg.mychan');
+  cfg.mychanscale = [];
 end
 
 if ~isfield(cfg, 'channel'),
@@ -202,20 +209,25 @@ if ~isfield(cfg, 'channel'),
   end
 end
 
+
 if strcmp(cfg.viewmode, 'component')
   % read or create the layout that will be used for the topoplots
   tmpcfg = [];
   tmpcfg.layout = cfg.layout;
   if isempty(cfg.layout)
     warning('No layout specified - will try to construct one using sensor positions');
-    if ft_dataype(data, 'meg')
+    if ft_datatype(data, 'meg')
       tmpcfg.grad = ft_fetch_sens(cfg, data);
-    elseif ft_dataype(data, 'eeg')
+    elseif ft_datatype(data, 'eeg')
       tmpcfg.elec = ft_fetch_sens(cfg, data);
     else
       error('cannot infer sensor type');
     end
   end
+  cfg.layout = ft_prepare_layout(tmpcfg);
+elseif ~isempty(cfg.layout)
+  tmpcfg = [];
+  tmpcfg.layout = cfg.layout;
   cfg.layout = ft_prepare_layout(tmpcfg);
 end
 
@@ -249,10 +261,14 @@ if hasdata
   Nchans  = length(chansel);
   
   if isempty(cfg.continuous)
-    if length(data.trial) == 1 && ~istimelock
+    if numel(data.trial) == 1 && ~istimelock
       cfg.continuous = 'yes';
     else
       cfg.continuous = 'no';
+    end
+  else
+    if strcmp(cfg.continuous, 'yes') && (numel(data.trial) > 1)
+      warning('interpreting trial-based data as continous, time-axis is no longer appropriate. t(0) now corresponds to the first sample of the first trial, and t(end) to the last sample of the last trial')
     end
   end
   
@@ -368,8 +384,12 @@ if ischar(cfg.ylim)
       error('unsupported value for cfg.ylim');
   end % switch ylim
   % zoom in a bit when viemode is vertical
-  if strcmp(cfg.viewmode,'vertical') && strcmp(cfg.develscalefix,'yes')
+  if strcmp(cfg.viewmode,'vertical')
     cfg.ylim = cfg.ylim/10;
+  end
+else
+  if (numel(cfg.ylim) ~= 2) || ~isnumeric(cfg.ylim)
+    error('cfg.ylim needs to be a 1x2 vector [ymin ymax], describing the upper and lower limits')
   end
 end
 
@@ -464,6 +484,57 @@ else
   eventtypes = [];
 end
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% set up default defselfuns
+% use two cfg sections
+% cfg.selfun - labels that are presented in rightclick menu, and is appended using ft_getuserfun(..., 'browse') later on to create a function handle
+% cfg.selcfg - cfgs for functions to be executed
+defselfun = [];
+defselcfg = [];
+% simplefft
+defselfun{1} = 'simpleFFT';
+tmpcfg = [];
+tmpcfg.chancolors = chancolors;
+defselcfg{1}  = tmpcfg;
+% multiplotER
+defselfun{2}  = 'multiplotER';
+tmpcfg = [];
+tmpcfg.layout = cfg.layout;
+defselcfg{2}  = tmpcfg;
+% topoplotER
+defselfun{3}  = 'topoplotER';
+tmpcfg = [];
+tmpcfg.layout = cfg.layout;
+defselcfg{3}  = tmpcfg;
+% topoplotVAR
+defselfun{4}  = 'topoplotVAR';
+tmpcfg = [];
+tmpcfg.layout = cfg.layout;
+defselcfg{4}  = tmpcfg;
+% movieplotER
+defselfun{5}  = 'movieplotER';
+tmpcfg = [];
+tmpcfg.layout = cfg.layout;
+tmpcfg.interactive = 'yes';
+defselcfg{5}  = tmpcfg;
+
+
+% add defselfuns to user-specified defselfuns
+if ~iscell(cfg.selfun) && ~isempty(cfg.selfun)
+  cfg.selfun = {cfg.selfun};
+  cfg.selfun = [cfg.selfun defselfun];
+  % do the same for the cfgs
+  cfg.selcfg = {cfg.selcfg}; % assume the cfg isnt a cell
+  cfg.selcfg = [cfg.selcfg defselcfg];
+else
+  cfg.selfun = defselfun;
+  cfg.selcfg = defselcfg;
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % set up the data structures used in the GUI
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -483,9 +554,9 @@ else
   opt.orgdata   = [];      % this means that it will look in cfg.dataset
 end
 if strcmp(cfg.continuous, 'yes')
-  opt.trialname = 'segment';  % this will be shown in the figure title
+  opt.trialviewtype = 'segment';  
 else
-  opt.trialname = 'trial';    % this will be shown in the figure title
+  opt.trialviewtype = 'trial';   
 end
 opt.artdata     = artdata;
 opt.hdr         = hdr;
@@ -503,6 +574,11 @@ opt.eventtypescolors = [0 0 0; 1 0 0; 0 0 1; 0 1 0; 1 0 1; 0.5 0.5 0.5; 0 1 1; 1
 opt.eventtypecolorlabels = {'black', 'red', 'blue', 'green', 'cyan', 'grey', 'light blue', 'yellow'};
 opt.nanpaddata  = []; % this is used to allow horizontal scaling to be constant (when looking at last segment continous data, or when looking at segmented/zoomed-out non-continous data)
 opt.trllock     = []; % this is used when zooming into trial based data
+
+% save original layout when viewmode = component
+if strcmp(cfg.viewmode,'component')
+  opt.layorg    = cfg.layout;
+end
 
 % determine labelling of channels
 if strcmp(cfg.plotlabels, 'yes')
@@ -542,12 +618,13 @@ set(gcf, 'NumberTitle', 'off');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 set(h, 'KeyPressFcn',           @keyboard_cb);
-set(h, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonDownFcn'});
-set(h, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonUpFcn'});
-set(h, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonMotionFcn'});
+set(h, 'WindowButtonDownFcn',   {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'contextmenu', cfg.selfun, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonDownFcn'});
+set(h, 'WindowButtonUpFcn',     {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'contextmenu', cfg.selfun, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonUpFcn'});
+set(h, 'WindowButtonMotionFcn', {@ft_select_range, 'multiple', false, 'xrange', true, 'yrange', false, 'clear', true, 'contextmenu', cfg.selfun, 'callback', {@select_range_cb, h}, 'event', 'WindowButtonMotionFcn'});
+
 
 % make the user interface elements for the data view
-uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', opt.trialname, 'userdata', 't')
+uicontrol('tag', 'group1', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', opt.trialviewtype, 'userdata', 't')
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '<', 'userdata', 'leftarrow')
 uicontrol('tag', 'group2', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', '>', 'userdata', 'rightarrow')
 
@@ -578,10 +655,9 @@ if strcmp(cfg.viewmode, 'butterfly')
   uicontrol('tag', 'group3', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string', 'identify', 'userdata', 'i', 'position', [0.91, 0.1, 0.08, 0.05], 'backgroundcolor', [1 1 1])
 end
 
-% implement devel 'edit preproc'-button
-if strcmp(cfg.enablepreprocedit,'yes')
-  uicontrol('tag', 'preproccfg', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string','preproc cfg','position', [0.91, 0.55 - ((iArt-1)*0.09), 0.08, 0.04],'callback',@preproc_cfg1_cb)
-end
+% 'edit preproc'-button
+uicontrol('tag', 'preproccfg', 'parent', h, 'units', 'normalized', 'style', 'pushbutton', 'string','preproc cfg','position', [0.91, 0.55 - ((iArt-1)*0.09), 0.08, 0.04],'callback',@preproc_cfg1_cb)
+
 
 
 ft_uilayout(h, 'tag', 'group1', 'width', 0.10, 'height', 0.05);
@@ -654,13 +730,12 @@ if nargout
     cfg.artfctdef.(opt.artdata.label{i}).artifact = convert_event(opt.artdata.trial{1}(i,:), 'artifact');
   end
   
-  if strcmp(cfg.enablepreprocedit,'yes')
-    % add the updated preproc to the output
-    try
-      browsecfg = getappdata(h, 'cfg');
-      cfg.preproc = browsecfg.preproc;
-    end
+  % add the updated preproc to the output
+  try
+    browsecfg = getappdata(h, 'cfg');
+    cfg.preproc = browsecfg.preproc;
   end
+
 
   % do the general cleanup and bookkeeping at the end of the function
   ft_postamble trackconfig
@@ -713,10 +788,10 @@ if strcmp(cfg.continuous, 'no')
     end
     datbegsample = min(opt.trlorg(opt.trllock,1));
     datendsample = max(opt.trlorg(opt.trllock,2));
-    smppertrl  = round(opt.fsample * cfg.blocksize);
-    begsamples = datbegsample:smppertrl:datendsample;
-    endsamples = datbegsample+smppertrl-1:smppertrl:datendsample;
-    offset     = (((1:numel(begsamples))-1)*smppertrl) + opt.trlorg(opt.trllock,3);
+    smpperseg  = round(opt.fsample * cfg.blocksize);
+    begsamples = datbegsample:smpperseg:datendsample;
+    endsamples = datbegsample+smpperseg-1:smpperseg:datendsample;
+    offset     = (((1:numel(begsamples))-1)*smpperseg) + opt.trlorg(opt.trllock,3);
     if numel(endsamples)<numel(begsamples)
       endsamples(end+1) = datendsample;
     end
@@ -726,17 +801,17 @@ if strcmp(cfg.continuous, 'no')
     trlvis(:,3) = offset;
     % determine length of each trial, and determine the offset with the current requested zoom-level
     trllen   = (trlvis(:,2) - trlvis(:,1)+1);
-    sizediff = smppertrl - trllen;
+    sizediff = smpperseg - trllen;
     opt.nanpaddata = sizediff;
     
     if isfield(opt, 'trlvis')
       % update the current trial counter and try to keep the current sample the same
       opt.trlop   = nearest(begsamples, thissegbeg);
     end
-    % update trialname
-    opt.trialname = 'trialsegment'; 
+    % update trialviewtype
+    opt.trialviewtype = 'trialsegment'; 
     % update button
-    set(findobj(get(h,'children'),'string','trial'),'string',opt.trialname);
+    set(findobj(get(h,'children'),'string','trial'),'string','segment');
     %%%%%%%%%
     
 
@@ -748,16 +823,16 @@ if strcmp(cfg.continuous, 'no')
     if ~isempty(opt.trllock)
       opt.trlop = opt.trllock;
     end
-    smppertrl  = round(opt.fsample * cfg.blocksize);
+    smpperseg  = round(opt.fsample * cfg.blocksize);
     % determine length of each trial, and determine the offset with the current requested zoom-level
     trllen   = (trlvis(:,2) - trlvis(:,1)+1);
-    sizediff = smppertrl - trllen;
+    sizediff = smpperseg - trllen;
     opt.nanpaddata = sizediff;
     
-    % update trialname
-    opt.trialname = 'trial';
+    % update trialviewtype
+    opt.trialviewtype = 'trial';
     % update button
-    set(findobj(get(h,'children'),'string','trialsegment'),'string',opt.trialname);
+    set(findobj(get(h,'children'),'string','trialsegment'),'string',opt.trialviewtype);
     
     % release trial lock
     opt.trllock = [];
@@ -768,51 +843,41 @@ if strcmp(cfg.continuous, 'no')
   opt.trlvis  = trlvis;
 else
   % construct a trial definition for visualisation
-  if isfield(opt, 'trlvis')
+  if isfield(opt, 'trlvis') % if present, remember where we were
     thistrlbeg = opt.trlvis(opt.trlop,1);
-    thistrlend = opt.trlvis(opt.trlop,2);
-    % remember a representative sample of the current trial
-    % thissample = round((thistrlbeg+thistrlend)/2);
-    thissample = thistrlbeg;
   end
   % look at cfg.blocksize and make opt.trl accordingly
-  % if original data contains more than one trial, it will fail in ft_fetch_data
   datbegsample = min(opt.trlorg(:,1));
   datendsample = max(opt.trlorg(:,2));
-  smppertrl  = round(opt.fsample * cfg.blocksize);
-  begsamples = datbegsample:smppertrl:datendsample;
-  endsamples = datbegsample+smppertrl-1:smppertrl:datendsample;
+  smpperseg  = round(opt.fsample * cfg.blocksize);
+  begsamples = datbegsample:smpperseg:datendsample;
+  endsamples = datbegsample+smpperseg-1:smpperseg:datendsample;
   if numel(endsamples)<numel(begsamples)
     endsamples(end+1) = datendsample;
   end
   trlvis = [];
   trlvis(:,1) = begsamples';
   trlvis(:,2) = endsamples';
-  
-  % The following was here originally:
-  %if size(opt.trlorg,1) > 1 || isempty(opt.orgdata)
-    % offset is now (re)defined that 1st sample is time 0
-    %trlvis(:,3) = begsamples-1;
-  %else
-    % offset according to original time axis
-    %trlvis(:,3) = opt.trlorg(3) + begsamples - opt.trlorg(1);
-  %end
-  % I removed it and added
-  trlvis(:,3) = begsamples - 1;
-  % instead, which solves bug 1160. (eelspa, 16-nov-2011)
-  % Added this comment because I was not sure what the purpose of the
-  % original code was.
-  
+  % compute the offset. In case if opt.trlorg has multiple trials, the first sample is t=0, otherwise use the offset in opt.trlorg
+  if size(opt.trlorg,1)==1
+    offset = begsamples - repmat(begsamples(1),[1 numel(begsamples)]); % offset for all segments compared to the first
+    offset = offset + opt.trlorg(1,3);
+    trlvis(:,3) = offset;
+  else 
+    offset = begsamples - repmat(begsamples(1),[1 numel(begsamples)]);
+    trlvis(:,3) = offset;
+  end
+ 
   if isfield(opt, 'trlvis')
     % update the current trial counter and try to keep the current sample the same
     % opt.trlop   = nearest(round((begsamples+endsamples)/2), thissample);
-    opt.trlop   = nearest(begsamples, thissample);
+    opt.trlop   = nearest(begsamples, thistrlbeg);
   end
   opt.trlvis  = trlvis;
   
   % NaN-padding when horizontal scaling is bigger than the data
   % two possible situations, 1) zoomed out so far that all data is one segment, or 2) multiple segments but last segment is smaller than the rest
-  sizediff = smppertrl-(endsamples-begsamples+1);
+  sizediff = smpperseg-(endsamples-begsamples+1);
   opt.nanpaddata = sizediff;
 end % if continuous
 setappdata(h, 'opt', opt);
@@ -824,7 +889,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function help_cb(h, eventdata)
 fprintf('------------------------------------------------------------------------------------\n')
-fprintf('You can use the following buttons in the data viewer\n')
+fprintf('You can use the following keyboard buttons in the databrowser\n')
 fprintf('1-9                : select artifact type 1-9\n');
 fprintf('shift 1-9          : select previous artifact of type 1-9\n');
 fprintf('                     (does not work with numpad keys)\n');
@@ -844,7 +909,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_range_cb(range, h) %range 1X4 in sec relative to current trial
+function select_range_cb(h, range, cmenulab) %range 1X4 in sec relative to current trial
 opt = getappdata(h, 'opt');
 cfg = getappdata(h, 'cfg');
 
@@ -859,31 +924,21 @@ range = range * (opt.hlim(2) - opt.hlim(1)) + opt.hlim(1);   % 0 becomes hlim(1)
 begsample = opt.trlvis(opt.trlop,1);
 endsample = opt.trlvis(opt.trlop,2);
 offset    = opt.trlvis(opt.trlop,3);
+
 % determine the selection
-if strcmp(opt.trialname, 'trial') || strcmp(opt.trialname, 'trialsegment')
-  % this is appropriate when the offset is defined according to a
-  % different trigger in each trial, which is usually the case in trial data
-  begsel = round(range(1)*opt.fsample+begsample-offset-1);
-  endsel = round(range(2)*opt.fsample+begsample-offset);
-elseif strcmp(opt.trialname, 'segment')
-  % this is appropriate when the offset is defined according to
-  % one trigger, which is always the case in segment data [I think ingnie]
-  begsel = round(range(1)*opt.fsample+1);
-  endsel = round(range(2)*opt.fsample+1);
-end
+begsel = round(range(1)*opt.fsample+begsample-offset-1);
+endsel = round(range(2)*opt.fsample+begsample-offset);
+% artifact selection is now always based on begsample/endsample/offset
+% -roevdmei
+
 % the selection should always be confined to the current trial
 begsel = max(begsample, begsel);
 endsel = min(endsample, endsel);
 
-
-if strcmp(cfg.selectmode, 'disp')
-  % FIXME this is on
-  %   otherwise
-  %     error('unknown cfg.viewmode "%s"', cfg.viewmode);
-  % end % switchly for debugging
-  disp([begsel endsel])
+% mark or execute selfun
+if isempty(cmenulab)
+  % the left button was clicked INSIDE a selected range, update the artifact definition
   
-elseif strcmp(cfg.selectmode, 'mark')
   % mark or unmark artifacts
   artval = opt.artdata.trial{1}(opt.ftsel, begsel:endsel);
   artval = any(artval,1);
@@ -895,7 +950,18 @@ elseif strcmp(cfg.selectmode, 'mark')
     opt.artdata.trial{1}(opt.ftsel, begsel:endsel) = 1;
   end
   
-elseif strcmp(cfg.selectmode, 'eval')
+  % redraw only when marking (so the focus doesn't go back to the databrowser after calling selfuns
+  setappdata(h, 'opt', opt);
+  setappdata(h, 'cfg', cfg);
+  redraw_cb(h);
+  
+else
+  % the right button was used to activate the context menu and the user made a selection from that menu
+  % execute the corresponding function
+  
+  % get index into cfgs
+  selfunind = strcmp(cfg.selfun, cmenulab);
+  
   % cut out the requested data segment
   seldata.label    = opt.curdat.label;
   seldata.time{1}  = offset2time(offset+begsel-begsample, opt.fsample, endsel-begsel+1);
@@ -903,15 +969,19 @@ elseif strcmp(cfg.selectmode, 'eval')
   seldata.fsample  = opt.fsample;
   seldata.cfg.trl  = [begsel endsel offset];
   
-  feval(cfg.selfun, cfg.selcfg, seldata);
-  
-else
-  error('unknown value for cfg.selectmode');
+  % prepare input
+  funhandle = ft_getuserfun(cmenulab,'browse');
+  funcfg = cfg.selcfg{selfunind};
+  % get windowname and give as input (can be used for the other functions as well, not implemented yet)
+  if ~strcmp(opt.trialviewtype,'trialsegment')
+    str = sprintf('%s %d/%d, time from %g to %g s', opt.trialviewtype, opt.trlop, size(opt.trlvis,1), seldata.time{1}(1), seldata.time{1}(end));
+  else
+    str = sprintf('trial %d/%d: segment: %d/%d , time from %g to %g s', opt.trllock, size(opt.trlorg,1), opt.trlop, size(opt.trlvis,1), seldata.time{1}(1), seldata.time{1}(end));
+  end
+  funcfg.figurename = [cmenulab ': ' str];
+  feval(funhandle, funcfg, seldata);
 end
 
-setappdata(h, 'opt', opt);
-setappdata(h, 'cfg', cfg);
-redraw_cb(h);
 end % function
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -923,27 +993,31 @@ cfg = getappdata(parent, 'cfg');
 
 % parse cfg.preproc
 if ~isempty(cfg.preproc)
-  code = printstruct('cfg', cfg.preproc);
+  tmpcfg = cfg.preproc;
+  cfg = [];
+  cfg.preproc = tmpcfg;
+  code = printstruct('cfg', cfg);
 else
   code = [];
 end
 
 % add descriptive lines
-nl      = sprintf('\n');
-sep     = sprintf('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n');
-descrip = sprintf('%% Add/change config options for preprocessing\n%% (similar to in the script editor)\n');
+sep     = sprintf('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n');
+descrip = sprintf('%% Add/change cfg options for on-the-fly preprocessing\n%% Use as cfg.preproc.xxx\n');
 code    = [sep descrip sep code];
 
 
 % make figure displaying the edit box
 pph = figure;
+axis off
 % add save button
 uicontrol('tag', 'preproccfg_l2', 'parent', pph, 'units', 'normalized', 'style', 'pushbutton', 'string','save and close','position', [0.81, 0.6 , 0.18, 0.10],'callback',@preproc_cfg2_cb);
+
 % add edit box
 ppeh = uicontrol('style', 'edit');
 set(pph, 'toolBar', 'none')
 set(pph, 'menuBar', 'none')
-set(pph, 'Name', 'cfg editor')
+set(pph, 'Name', 'cfg.preproc editor')
 set(pph, 'NumberTitle', 'off')
 set(ppeh, 'Units', 'normalized');
 set(ppeh, 'Position', [0 0 .8 1]);
@@ -967,28 +1041,44 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function preproc_cfg2_cb(h,eventdata)
 parent = get(h,'parent');
+superparent = getappdata(parent,'superparent');
 ppeh   = getappdata(parent,'ppeh');
 code = get(ppeh, 'string');
 
 % remove descriptive lines (so they don't display on command line)
-code = code(4:end,:);
+code = cellstr(code(5:end,:));
+% get rid of empty lines and white space
+remind = [];
+for iline = 1:numel(code)
+  code{iline} = strtrim(code{iline});
+  if isempty(code{iline})
+    remind = [remind iline];
+  end
+end
+code(remind) = [];
 
-% eval the code
-for iline = 1:size(code,1)
-  eval([code(iline,:) ';']);
+if ~isempty(code)
+  ispreproccfg = strncmp(code,'cfg.preproc.',12);
+  if ~all(ispreproccfg)
+    errordlg('cfg-options must be specified as cfg.preproc.xxx','cfg.preproc editor','modal')
+  end
+  % eval the code
+  for icomm = 1:numel(code)
+    eval([code{icomm} ';']);
+  end
+  
+  % check for cfg and output into the original appdata-window
+  if ~exist('cfg','var')
+    cfg = [];
+    cfg.preproc = [];
+  end
+  maincfg = getappdata(superparent,'cfg');
+  maincfg.preproc = cfg.preproc;
+  setappdata(superparent,'cfg',maincfg)
 end
 
-% check for cfg and output into the original appdata-window
-if ~exist('cfg','var')
-  cfg = [];
-end
-superparent = getappdata(parent,'superparent');
-maincfg = getappdata(superparent,'cfg');
-maincfg.preproc = cfg;
-setappdata(superparent,'cfg',maincfg)
 close(parent)
 redraw_cb(superparent)
-uiresume(superparent)
 end
 
 
@@ -1141,7 +1231,12 @@ switch key
     cleanup_cb(h);
   case 't'
     % select the trial to display
-    response = inputdlg(sprintf('%s to display', opt.trialname), 'specify', 1, {num2str(opt.trlop)});
+    if ~strcmp(opt.trialviewtype,'trialsegment')
+      str = sprintf('%s to display (current trial = %d/%d)', opt.trialviewtype, opt.trlop, size(opt.trlvis,1));
+    else
+      str = sprintf('segment to display (current segment = %d/%d)', opt.trlop, size(opt.trlvis,1));
+    end  
+    response = inputdlg(str, 'specify', 1, {num2str(opt.trlop)});
     if ~isempty(response)
       opt.trlop = str2double(response);
       opt.trlop = min(opt.trlop, size(opt.trlvis,1)); % should not be larger than the number of trials
@@ -1342,6 +1437,10 @@ if ~isempty(cfg.chanscale)
   chansel = match_str(lab, ft_channelselection(cfg.channel, lab));
   dat(chansel,:) = dat(chansel,:) .* repmat(cfg.chanscale,1,size(dat,2));
 end
+if ~isempty(cfg.mychanscale)
+  chansel = match_str(lab, ft_channelselection(cfg.mychan, lab));
+  dat(chansel,:) = dat(chansel,:) .* cfg.mychanscale;
+end
 
 % to assure current feature is plotted on top
 ordervec = 1:length(opt.artdata.label);
@@ -1419,24 +1518,40 @@ if strcmp(cfg.ploteventlabels , 'colorvalue') && ~isempty(opt.event)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 delete(findobj(h,'tag', 'event'));
-
-for k=1:length(event)
+% save stuff to able to shift event labels downwards when they occur at the same time-point
+eventcol = cell(1,numel(event));
+eventstr = cell(1,numel(event));
+eventtim = NaN(1,numel(event));
+% gather event info and plot lines 
+for ievent = 1:numel(event) 
   try
     if strcmp(cfg.ploteventlabels , 'type=value')
-      eventstr = sprintf('%s=%s', event(k).type, num2str(event(k).value)); % value can be both number and string
-      eventcol = 'k';
+      if isempty(event(ievent).value)
+        eventstr{ievent} = '';
+      else
+        eventstr{ievent} = sprintf('%s = %s', event(ievent).type, num2str(event(ievent).value)); % value can be both number and string
+      end
+      eventcol{ievent} = 'k';
     elseif strcmp(cfg.ploteventlabels , 'colorvalue')
-      eventcol = opt.eventtypescolors(match_str(opt.eventtypes, event(k).type),:);
-      eventstr = sprintf('%s', num2str(event(k).value)); % value can be both number and string
+      eventcol{ievent} = opt.eventtypescolors(match_str(opt.eventtypes, event(ievent).type),:);
+      eventstr{ievent} = sprintf('%s', num2str(event(ievent).value)); % value can be both number and string
     end
   catch
-    eventstr = 'unknown';
-    eventcol = 'k';
+    eventstr{ievent} = 'unknown';
+    eventcol{ievent} = 'k';
   end
-  eventtim = (event(k).sample-begsample)/opt.fsample + opt.hlim(1);
-  ft_plot_line([eventtim eventtim], [-1 1], 'tag', 'event', 'color', eventcol, ...
+  eventtim(ievent) = (event(ievent).sample-begsample)/opt.fsample + opt.hlim(1);
+  ft_plot_line([eventtim(ievent) eventtim(ievent)], [-1 1], 'tag', 'event', 'color', eventcol{ievent}, ...
     'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
-  ft_plot_text(eventtim, 0.9, eventstr, 'tag', 'event', 'Color', eventcol, ...
+end
+% count the consecutive occurrence of each time point
+concount = NaN(1,numel(event));
+for ievent = 1:numel(event)
+  concount(ievent) = sum(eventtim(ievent)==eventtim(1:ievent-1));
+end
+% plot labels
+for ievent = 1:numel(event)
+  ft_plot_text(eventtim(ievent), 0.9-concount(ievent)*.06, eventstr{ievent}, 'tag', 'event', 'Color', eventcol{ievent}, ...
     'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
 end
 
@@ -1526,13 +1641,11 @@ set(gca, 'xTickLabel', xTickLabel)
 if strcmp(cfg.viewmode, 'component')
   
   % determine the position of each of the original channels for the topgraphy
-  tmpcfg = [];
-  tmpcfg.layout = cfg.layout;
-  laychan = ft_prepare_layout(tmpcfg, opt.orgdata);
+  laychan = opt.layorg;
   
   % determine the position of each of the topographies
-  laytopo.pos(:,1)  = opt.laytime.pos(:,1) - opt.laytime.width/2 - opt.laytime.height*2;
-  laytopo.pos(:,2)  = opt.laytime.pos(:,2);
+  laytopo.pos(:,1)  = opt.laytime.pos(:,1) - opt.laytime.width/2 - opt.laytime.height;
+  laytopo.pos(:,2)  = opt.laytime.pos(:,2) + opt.laytime.height/2;
   laytopo.width     = opt.laytime.height;
   laytopo.height    = opt.laytime.height;
   laytopo.label     = opt.laytime.label;
@@ -1595,10 +1708,10 @@ if strcmp(cfg.viewmode, 'component')
         laychan.outline, 'tag', 'topography', ...
         'hpos', laytopo.pos(laysel,1)-laytopo.width(laysel)/2,...
         'vpos', laytopo.pos(laysel,2)-laytopo.height(laysel)/2,...
-        'width', laytopo.width(laysel), 'height', laytopo.height(laysel));
+        'width', laytopo.width(laysel), 'height', laytopo.height(laysel), 'gridscale', 45);
       
       %axis equal
-      drawnow
+      %drawnow
     end    
     
     caxis([0 1]);
@@ -1607,13 +1720,11 @@ if strcmp(cfg.viewmode, 'component')
   
   set(gca, 'yTick', [])
   
-  ax(1) = min(laytopo.pos(:,1) - laytopo.width/2);
+  ax(1) = min(laytopo.pos(:,1) - laytopo.width);
   ax(2) = max(opt.laytime.pos(:,1) + opt.laytime.width/2);
   ax(3) = min(opt.laytime.pos(:,2) - opt.laytime.height/2);
   ax(4) = max(opt.laytime.pos(:,2) + opt.laytime.height/2);
   axis(ax)
-  
-  
 end % plotting topographies
 
 startim = tim(1);
@@ -1623,13 +1734,17 @@ else
   endtim = tim(end);
 end
 
-if ~strcmp(opt.trialname,'trialsegment')
-  title(sprintf('%s %d/%d, time from %g to %g s', opt.trialname, opt.trlop, size(opt.trlvis,1), startim, endtim));
+if ~strcmp(opt.trialviewtype,'trialsegment')
+  str = sprintf('%s %d/%d, time from %g to %g s', opt.trialviewtype, opt.trlop, size(opt.trlvis,1), startim, endtim);
 else
-  title(sprintf('trial %d/%d: segment: %d/%d , time from %g to %g s', opt.trllock, size(opt.trlorg,1), opt.trlop, size(opt.trlvis,1), startim, endtim));
+  str = sprintf('trial %d/%d: segment: %d/%d , time from %g to %g s', opt.trllock, size(opt.trlorg,1), opt.trlop, size(opt.trlvis,1), startim, endtim);
 end
+title(str);
+
 xlabel('time');
 
+% possibly adds some responsiveness if the 'thing' is clogged
+drawnow
 
 setappdata(h, 'opt', opt);
 setappdata(h, 'cfg', cfg);

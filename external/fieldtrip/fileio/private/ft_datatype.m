@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 5867 2012-06-04 07:39:04Z roboos $
+% $Id: ft_datatype.m 6365 2012-08-16 07:52:51Z roboos $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip
 israw      =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
@@ -44,14 +44,16 @@ isdip      =  isfield(data, 'dip');
 ismvar     =  isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
 isfreqmvar =  isfield(data, 'freq') && isfield(data, 'transfer');
 ischan     =  isfield(data, 'dimord') && strcmp(data.dimord, 'chan') && ~isfield(data, 'time') && ~isfield(data, 'freq'); 
+issegment  = false; % FIXME
+
 % check if isspike:
-spk_hastimestamp = isfield(data,'label') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
-spk_hastrials = isfield(data,'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ...
-isfield(data, 'trialtime') && isa(data.trialtime, 'numeric');
-spk_hasorig = isfield(data,'origtrial') && isfield(data,'origtime'); %% for compatibility
-isspike = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials || spk_hasorig);
+spk_hastimestamp  = isfield(data,'label') && isfield(data, 'timestamp') && isa(data.timestamp, 'cell');
+spk_hastrials     = isfield(data,'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && isfield(data, 'trialtime') && isa(data.trialtime, 'numeric');
+spk_hasorig       = isfield(data,'origtrial') && isfield(data,'origtime'); %% for compatibility
+isspike           = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials || spk_hasorig);
 
 if iscomp
+  % a comp data structure is a raw data structure, but in general not vice versa
   % comp should conditionally go before raw, otherwise the returned ft_datatype will be raw
   type = 'comp';  
 elseif isfreqmvar
@@ -72,6 +74,9 @@ elseif isspike
   type = 'spike';
 elseif isvolume
   type = 'volume';
+  % elseif issegment
+  %  % a segmentation is a volume, but in general vice versa
+  %  type = 'segment'; % FIXME
 elseif issource
   type = 'source';
 elseif ischan

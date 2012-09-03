@@ -38,7 +38,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: ft_plot_vol.m 6344 2012-08-08 16:10:45Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -79,7 +79,7 @@ switch ft_voltype(vol)
       bnd(i).tri = tri;
     end
     
-  case {'bem', 'dipoli', 'asa', 'bemcp', 'nolte' 'openmeeg'}
+  case {'bem', 'dipoli', 'asa', 'bemcp', 'singleshell' 'openmeeg'}
     % these already contain one or multiple triangulated surfaces for the boundaries
     bnd = vol.bnd;
     

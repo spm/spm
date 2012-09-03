@@ -46,7 +46,7 @@ function [s, cfg] = statfun_roc(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statfun_roc.m 5998 2012-06-08 13:55:35Z roboos $
+% $Id: ft_statfun_roc.m 6328 2012-08-06 13:40:30Z eelspa $
 
 if ~isfield(cfg, 'ivar'),         cfg.ivar   =  1;         end
 if ~isfield(cfg, 'logtransform'), cfg.logtransform = 'no'; end

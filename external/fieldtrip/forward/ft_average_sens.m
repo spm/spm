@@ -31,7 +31,7 @@ function [asens, afiducials] = ft_average_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_average_sens.m 4510 2011-10-18 18:53:15Z roboos $
+% $Id: ft_average_sens.m 6362 2012-08-15 14:52:06Z vlalit $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');

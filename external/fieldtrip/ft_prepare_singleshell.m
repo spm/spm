@@ -61,9 +61,9 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 6060 2012-06-13 15:05:49Z jorhor $
+% $Id: ft_prepare_singleshell.m 6344 2012-08-08 16:10:45Z roboos $
 
-revision = '$Id: ft_prepare_singleshell.m 6060 2012-06-13 15:05:49Z jorhor $';
+revision = '$Id: ft_prepare_singleshell.m 6344 2012-08-08 16:10:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -95,7 +95,7 @@ else
   vol.bnd = ft_prepare_mesh(cfg);
 end
 
-vol.type = 'nolte';
+vol.type = 'singleshell';
 
 % ensure that the geometrical units are specified
 vol = ft_convert_units(vol);

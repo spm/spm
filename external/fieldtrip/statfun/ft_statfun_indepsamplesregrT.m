@@ -1,23 +1,23 @@
-function [s,cfg] = statfun_depsamplesregrT(cfg, dat, design)
+function [s,cfg] = ft_statfun_indepsamplesregrT(cfg, dat, design)
 
-% STATFUN_depsamplesregrT calculates dependent samples regression T-statistic 
-% on the biological data in dat (the dependent variable), using the information on 
-% the independent variable (iv) in design.
+% FT_STATFUN_indepsamplesregrT calculates independent samples regression
+% coefficient T-statistics on the biological data in dat (the dependent
+% variable), using the information on the independent variable
+% (predictor) in design.
 %
 % Use this function by calling one of the high-level statistics functions as:
 %   [stat] = ft_timelockstatistics(cfg, timelock1, timelock2, ...)
 %   [stat] = ft_freqstatistics(cfg, freq1, freq2, ...)
 %   [stat] = ft_sourcestatistics(cfg, source1, source2, ...)
 % with the following configuration option:
-%   cfg.statistic = 'depsamplesregrT'
+%   cfg.statistic = 'indepsamplesregrT'
 % see FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS or FT_SOURCESTATISTICS for details.
 %
 % For low-level use, the external interface of this function has to be
-%   [s,cfg] = statfun_depsamplesregrT(cfg, dat, design);
+%   [s,cfg] = statfun_indepsamplesregrT(cfg, dat, design);
 % where
-%   dat    contains the biological data, Nsamples x Nreplications
-%   design contains the independent variable (iv) and the unit-of-observation (UO) 
-%          factor,  Nreplications x Nvar
+%   dat    contains the biological data,  Nsamples x Nreplications
+%   design contains the independent variable,  Nreplications x Nvar
 %
 % Configuration options:
 %   cfg.computestat    = 'yes' or 'no', calculate the statistic (default='yes')
@@ -35,30 +35,9 @@ function [s,cfg] = statfun_depsamplesregrT(cfg, dat, design)
 %              quantile (1-cfg.alpha) (with cfg.tail=1).
 %
 % Design specification:
-%   cfg.ivar        = row number of the design that contains the independent variable.
-%   cfg.uvar        = row number of design that contains the labels of the UOs (subjects or trials)
-%                        (default=2). The labels are assumed to be integers ranging from 1 to 
-%                        the number of UOs.
+%   cfg.ivar        = row number of the design that contains the independent variable (default=1)
 
 % Copyright (C) 2006, Eric Maris
-%
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
-% for the documentation and details.
-%
-%    FieldTrip is free software: you can redistribute it and/or modify
-%    it under the terms of the GNU General Public License as published by
-%    the Free Software Foundation, either version 3 of the License, or
-%    (at your option) any later version.
-%
-%    FieldTrip is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id: statfun_depsamplesregrT.m 5994 2012-06-08 10:59:23Z roboos $
 
 % set defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;
@@ -71,8 +50,8 @@ if ~isfield(cfg, 'tail'),              cfg.tail=1;                end;
 if strcmp(cfg.computeprob,'yes') & strcmp(cfg.computestat,'no')
     error('P-values can only be calculated if the test statistics are calculated.');
 end;
-if ~isfield(cfg,'uvar') || isempty(cfg.uvar)
-    error('uvar must be specified for dependent samples statistics');
+if isfield(cfg,'uvar') && ~isempty(cfg.uvar)
+    error('cfg.uvar should not exist for an independent samples statistic');
 end
 
 if ~isempty(cfg.cvar)
@@ -82,34 +61,38 @@ else
   nblocks=1;
 end;
 
-nunits = max(design(cfg.uvar,:));
-df = nunits - 1;
-if nunits<2
-    error('The data must contain at least two units-of-observation (usually subjects).')
+[nsmpl,nrepl] = size(dat);
+df = nrepl - nblocks - 1;
+if df<1
+  error('Insufficient error degrees of freedom for this analysis.')
 end;
 
-if strcmp(cfg.computestat,'yes')
-% compute the statistic
-  regrweights=zeros(size(dat,1),nunits);
-  for indx=1:nunits
-    unitselvec=find(design(cfg.uvar,:)==indx);
-    indvar=design(cfg.ivar,unitselvec); 
+if strcmp(cfg.computestat, 'yes')
+  % compute the statistic
+    indvar = design(cfg.ivar,:);
     if isempty(cfg.cvar)
-      designmat=[ones(1,length(indvar));indvar];
+      designmat = [ones(nrepl,1) indvar']; % designmat is a matrix of order Nrepl x 2
     else
-      designmat=zeros((nblocks+1),length(indvar));
+      designmat = zeros(nrepl,(nblocks+1));
       for blockindx=1:nblocks
-        blockselvec=find(design(cfg.cvar,unitselved)==condlabels(blockindx));
-        designmat(blockindx,blockselvec)=1;
+        selvec=find(design(cfg.cvar,:)==condlabels(blockindx));
+        designmat(selvec,blockindx)=1; 
       end;
-      designmat((nblocks+1),:)=indvar;
+      designmat(:,(nblocks+1))=indvar'; % designmat is a matrix of order Nrepl x (nblocks+1)
     end;
-    coeff=(designmat*designmat')\(designmat*dat(:,unitselvec)');
-    regrweights(:,indx)=coeff((nblocks+1),:)';
-  end;
-  avgw=mean(regrweights,2);
-  varw=var(regrweights,0,2);
-  s.stat=sqrt(nunits)*avgw./sqrt(varw);
+    cpmat = designmat'*designmat;
+    invcpmat = inv(cpmat);
+    projmat = invcpmat*designmat';
+    B = dat*projmat'; % B is a matrix of order Nsamples x (nblocks+1)
+    res = dat - B*designmat';
+    resvar = zeros(nsmpl,1);
+    for indx=1:nsmpl
+      resvar(indx)=res(indx,:)*res(indx,:)';
+    end;
+    resvar=resvar/df;
+    
+    se=sqrt(invcpmat(nblocks+1,nblocks+1)*resvar);
+    s.stat=B(:,nblocks+1)./se;
 end;
 
 if strcmp(cfg.computecritval,'yes')

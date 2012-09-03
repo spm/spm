@@ -14,9 +14,10 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %   cfg.maskparameter = field in the data to be used for masking of data
 %                       (not possible for mean over multiple channels, or when input contains multiple subjects
 %                       or trials)
-%   cfg.maskstyle     = style used to mask nans, 'opacity' or 'saturation' (default = 'opacity')
+%   cfg.maskstyle     = style used to masking, 'opacity' or 'saturation' (default = 'opacity')
 %                       use 'saturation' when saving to vector-format (like *.eps) to avoid all sorts of image-problems
 %   cfg.maskalpha     = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
+%   cfg.masknans      = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
 %   cfg.zlim          = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
@@ -35,7 +36,6 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %                       interactive plot when a selected area is clicked. Multiple areas
 %                       can be selected by holding down the SHIFT key.
 %   cfg.renderer      = 'painters', 'zbuffer',' opengl' or 'none' (default = [])
-%   cfg.masknans      = 'yes' or 'no' (default = 'yes')
 %   cfg.directionality = '', 'inflow' or 'outflow' specifies for
 %                       connectivity measures whether the inflow into a
 %                       node, or the outflow from a node is plotted. The
@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 5822 2012-05-31 10:23:41Z jansch $
+% $Id: ft_singleplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $
 
-revision = '$Id: ft_singleplotTFR.m 5822 2012-05-31 10:23:41Z jansch $';
+revision = '$Id: ft_singleplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -127,6 +127,8 @@ cfg.maskstyle      = ft_getopt(cfg, 'maskstyle',    'opacity');
 cfg.channel        = ft_getopt(cfg, 'channel',      'all');
 cfg.masknans       = ft_getopt(cfg, 'masknans',     'yes');
 cfg.directionality = ft_getopt(cfg, 'directionality',[]);
+cfg.figurename     = ft_getopt(cfg, 'figurename',    []);
+
 
 dimord = data.dimord;
 dimtok = tokenize(dimord, '_');
@@ -504,9 +506,13 @@ elseif nargin > 1
 else
   dataname = cfg.inputfile;
 end
-set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, dataname, chans));
-set(gcf, 'NumberTitle', 'off');
-
+if isempty(cfg.figurename)
+  set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, dataname, chans));
+  set(gcf, 'NumberTitle', 'off');
+else
+  set(gcf, 'name', cfg.figurename);
+  set(gcf, 'NumberTitle', 'off');
+end
 axis tight;
 hold off;
 
@@ -523,7 +529,12 @@ ft_postamble previous data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting a time range
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_topoplotTFR(range, cfg, varargin)
+function select_topoplotTFR(cfg, varargin)
+% first to last callback-input of ft_select_range is range
+% last callback-input of ft_select_range is contextmenu label, if used
+range = varargin{end-1}; 
+varargin = varargin(1:end-2); % remove range and last
+
 if isfield(cfg, 'inputfile')
   % the reading has already been done and varargin contains the data
   cfg = rmfield(cfg, 'inputfile');

@@ -1,5 +1,4 @@
-function v = ft_version(cmd)
-
+function [v,ftpath] = ft_version(cmd)
 % FT_VERSION provides functionality for displaying version information on
 % the current version of FieldTrip being used, as well us for updating the
 % FieldTrip installation.
@@ -37,6 +36,8 @@ function v = ft_version(cmd)
 %                                 additionally provides the option of
 %                                 downloading new or updated files from the
 %                                 code repository
+%   [v,ftpath] = ft_version     - also get information about the root of
+%                                 your FieldTrip installation
 
 % 'Hidden' options:
 %   ft_version signature        - generate a new signature file, without
@@ -64,7 +65,7 @@ function v = ft_version(cmd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_version.m 5987 2012-06-08 10:18:19Z eelspa $
+% $Id: ft_version.m 6406 2012-08-23 14:15:47Z eelspa $
 
 if nargin<1
   cmd = 'info';

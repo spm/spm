@@ -57,7 +57,7 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_select_channel.m 6377 2012-08-17 13:47:50Z roevdmei $
 
 % get optional input arguments
 multiple = ft_getopt(varargin, 'multiple', false);
@@ -124,7 +124,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION to assist in the selection of multiple channels
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_channel_multiple(range, callback)
+function select_channel_multiple(callback,range,cmenulab) % last input is context menu label, see ft_select_range
 
 info   = guidata(gcf);
 x      = info.x(:);

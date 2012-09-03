@@ -2,7 +2,7 @@ function [obj] = ft_convert_units(obj, target)
 
 % FT_CONVERT_UNITS changes the geometrical dimension to the specified SI unit.
 % The units of the input object is determined from the structure field
-% object.unit, or is estimated based on the spatial extend of the structure, 
+% object.unit, or is estimated based on the spatial extend of the structure,
 % e.g. a volume conduction model of the head should be approximately 20 cm large.
 %
 % Use as
@@ -16,7 +16,9 @@ function [obj] = ft_convert_units(obj, target)
 %   dipole grid definition
 %   anatomical mri
 %
-% Possible target units are 'm', 'dm', 'cm ' or 'mm'.
+% Possible target units are 'm', 'dm', 'cm ' or 'mm'. If no target units
+% are specified, this function will only determine the native geometrical
+% units of the object.
 %
 % See FT_ESTIMATE_UNITS, FT_READ_VOL, FT_READ_SENS
 
@@ -38,7 +40,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 6246 2012-07-08 09:13:27Z roboos $
+% $Id: ft_convert_units.m 6357 2012-08-15 07:41:20Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units

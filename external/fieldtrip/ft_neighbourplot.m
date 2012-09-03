@@ -12,6 +12,8 @@ function [cfg] = ft_neighbourplot(cfg, data)
 % where the configuration can contain
 %   cfg.verbose       = 'yes' or 'no', if 'yes' then the plot callback will include text output
 %   cfg.neighbours    = neighbourhood structure, see FT_PREPARE_NEIGHBOURS (optional)
+%   cfg.enableedit    = 'yes' or 'no' (default). allows the user to
+%                       flexibly add or remove edges between vertices
 % or one of the following options
 %   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
 %   cfg.elec          = structure with EEG electrode positions
@@ -19,11 +21,14 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %   cfg.elecfile      = filename containing EEG electrode positions
 %   cfg.gradfile      = filename containing MEG gradiometer positions
 %
-% If cfg.neighbours is not defined or empty, this function will call
+% If cfg.neighbours is not defined, this function will call
 % FT_PREPARE_NEIGHBOURS to determine the channel neighbours. The
 % following data fields may also be used by FT_PREPARE_NEIGHBOURS
 %   data.elec     = structure with EEG electrode positions
 %   data.grad     = structure with MEG gradiometer positions
+% If cfg.neighbours is empty, no neighbouring sensors are assumed. 
+%
+% Use cfg.enableedit to create or extend your own neighbourtemplate
 %
 % See also FT_PREPARE_NEIGHBOURS, FT_PREPARE_LAYOUT
 
@@ -45,7 +50,7 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_neighbourplot.m 5176 2012-01-25 14:48:33Z roboos $';
+revision = '$Id: ft_neighbourplot.m 6404 2012-08-23 11:51:10Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -55,6 +60,8 @@ ft_preamble trackconfig
 
 hasdata = nargin>1;
 if hasdata, data = ft_checkdata(data); end
+
+cfg.enabledit = ft_getopt(cfg, 'enableedit', 'no');
 
 if isfield(cfg, 'neighbours')
   cfg.neighbours = cfg.neighbours;
@@ -76,6 +83,20 @@ if hasdata
 else
   sens = ft_fetch_sens(cfg);
 end
+% insert sensors that are not in neighbourhood structure
+if isempty(cfg.neighbours)
+  nsel = 1:numel(sens.label);
+else
+  nsel = find(~ismember(sens.label, {cfg.neighbours.label}));
+end
+
+for i=1:numel(nsel)
+  cfg.neighbours(end+1).label = sens.label{nsel(i)};
+  cfg.neighbours(end).neighblabel = {};
+end
+
+[tmp, sel] = match_str(sens.label, {cfg.neighbours.label});
+cfg.neighbours = cfg.neighbours(sel);
 
 % give some graphical feedback
 if all(sens.chanpos(:,3)==0)
@@ -85,10 +106,11 @@ else
   % use 3-dimensional data for plotting
   proj = sens.chanpos;
 end
-figure
+hf = figure;
 axis equal
 axis off
 hold on;
+hl = [];
 for i=1:length(cfg.neighbours)
   this = cfg.neighbours(i);
   
@@ -104,17 +126,18 @@ for i=1:length(cfg.neighbours)
     X = [x1 x2];
     Y = [y1 y2];
     if size(proj, 2) == 2
-      line(X, Y, 'color', 'r');
+      hl(sel1, sel2(j)) = line(X, Y, 'color', 'r');
     elseif size(proj, 2) == 3
       z1 = proj(sel1,3);
       z2 = proj(sel2(j),3);
       Z = [z1 z2];
-      line(X, Y, Z, 'color', 'r');
+      hl(sel1, sel2(j)) = line(X, Y, Z, 'color', 'r');
     end
   end
 end
 
 % this is for putting the channels on top of the connections
+hs = [];
 for i=1:length(cfg.neighbours)
   this = cfg.neighbours(i);
   sel1 = match_str(sens.label, this.label);
@@ -129,7 +152,7 @@ for i=1:length(cfg.neighbours)
       'MarkerEdgeColor',  'k',                                        ...
       'MarkerFaceColor',  'k',                                        ...
       'Marker',           'o',                                        ...
-      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel)^2), ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel))^2, ...
       'UserData',         i,                                          ...
       'ButtonDownFcn',    @showLabelInTitle);
     
@@ -138,7 +161,7 @@ for i=1:length(cfg.neighbours)
       'MarkerEdgeColor',  'k',                                        ...
       'MarkerFaceColor',  'k',                                        ...
       'Marker',           'o',                                        ...
-      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel)^2), ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(i).neighblabel))^2, ...
       'UserData',         i,                        ...
       'ButtonDownFcn',    @showLabelInTitle);
   else
@@ -151,8 +174,29 @@ title('[Click on a sensor to see its label]');
 % store what is needed in UserData of figure
 userdata.lastSensId = [];
 userdata.cfg = cfg;
+userdata.sens = sens;
 userdata.hs = hs;
-set(gcf, 'UserData', userdata);
+userdata.hl = hl;
+userdata.quit = false;
+hf   = getparent(hf);
+set(hf, 'UserData', userdata);
+
+if istrue(cfg.enableedit)
+  set(hf, 'CloseRequestFcn', @cleanup_cb);
+  while ~userdata.quit
+    uiwait(hf);
+    userdata = get(hf, 'UserData');
+  end
+  cfg = userdata.cfg;
+end
+hf   = getparent(hf);
+delete(hf);
+
+% in any case remove SCALE and COMNT
+desired = ft_channelselection({'all', '-SCALE', '-COMNT'}, {cfg.neighbours.label});
+
+neighb_idx = ismember({cfg.neighbours.label}, desired);
+cfg.neighbours = cfg.neighbours(neighb_idx);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
@@ -162,30 +206,166 @@ ft_postamble previous data
 end % main function
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function showLabelInTitle(gcbo, EventData, handles)
 
-    userdata    = get(gcf, 'UserData');
-    lastSensId  = userdata.lastSensId;
-    cfg         = userdata.cfg;
-    hs          = userdata.hs;
-    curSensId   = get(gcbo, 'UserData');
-    
+userdata    = get(gcf, 'UserData');
+lastSensId  = userdata.lastSensId;
+cfg         = userdata.cfg;
+hs          = userdata.hs;
+curSensId   = get(gcbo, 'UserData');
+
+if lastSensId == curSensId
+  
+  title('[Click on a sensor to see its label]');
+  set(hs(curSensId), 'MarkerFaceColor', 'k');
+  userdata.lastSensId = [];
+  
+elseif isempty(lastSensId) || ~istrue(cfg.enableedit)
+  
+  userdata.lastSensId = curSensId;
+  if istrue(cfg.enableedit)
+    title(['Selected channel: ' cfg.neighbours(curSensId).label ' click on another to (dis-)connect']);
+  else
     title(['Selected channel: ' cfg.neighbours(curSensId).label]);
-    if cfg.verbose
-      str = sprintf('%s, ', cfg.neighbours(curSensId).neighblabel{:});
-      if length(str)>2
-        % remove the last comma and space
-        str = str(1:end-2);
-      end
-      fprintf('Selected channel %s, which has %d neighbours: %s\n', ...
-        cfg.neighbours(curSensId).label, ...
-        length(cfg.neighbours(curSensId).neighblabel), ...
-        str);
-    end
-    
-    set(hs(curSensId), 'MarkerFaceColor', 'g');
-    set(hs(lastSensId), 'MarkerFaceColor', 'k');
-    
-    userdata.lastSensId = curSensId';    
-    set(gcf, 'UserData', userdata);
   end
+  if cfg.verbose
+    str = sprintf('%s, ', cfg.neighbours(curSensId).neighblabel{:});
+    if length(str)>2
+      % remove the last comma and space
+      str = str(1:end-2);
+    end
+    fprintf('Selected channel %s, which has %d neighbours: %s\n', ...
+      cfg.neighbours(curSensId).label, ...
+      length(cfg.neighbours(curSensId).neighblabel), ...
+      str);
+  end
+  set(hs(curSensId), 'MarkerFaceColor', 'g');
+  set(hs(lastSensId), 'MarkerFaceColor', 'k');
+  
+elseif istrue(cfg.enableedit)
+  hl    = userdata.hl;
+  sens  = userdata.sens;
+  if all(sens.chanpos(:,3)==0)
+    % the sensor positions are already projected on a 2D plane
+    proj = sens.chanpos(:,1:2);
+  else
+    % use 3-dimensional data for plotting
+    proj = sens.chanpos;
+  end
+  
+  % find out whether they are connected
+  connected1 = ismember(cfg.neighbours(curSensId).neighblabel, cfg.neighbours(lastSensId).label);
+  connected2 = ismember(cfg.neighbours(lastSensId).neighblabel, cfg.neighbours(curSensId).label);
+  
+  if any(connected1) % then disconnect
+    cfg.neighbours(curSensId).neighblabel(connected1) = [];
+    cfg.neighbours(lastSensId).neighblabel(connected2) = [];
+    title(['Disconnected channels ' cfg.neighbours(curSensId).label ' and ' cfg.neighbours(lastSensId).label]);
+    delete(hl(curSensId, lastSensId));
+    hl(curSensId, lastSensId) = 0;
+    delete(hl(lastSensId, curSensId));
+    hl(lastSensId, curSensId) = 0;
+  else % then connect
+    cfg.neighbours(curSensId).neighblabel{end+1} = cfg.neighbours(lastSensId).label;
+    cfg.neighbours(lastSensId).neighblabel{end+1} = cfg.neighbours(curSensId).label;
+    title(['Connected channels ' cfg.neighbours(curSensId).label ' and ' cfg.neighbours(lastSensId).label]);
+    
+    % draw new edge
+    x1 = proj(curSensId,1);
+    y1 = proj(curSensId,2);
+    x2 = proj(lastSensId,1);
+    y2 = proj(lastSensId,2);
+    X = [x1 x2];
+    Y = [y1 y2];
+    
+    hl(curSensId, lastSensId) = line(X, Y, 'color', 'r');
+    hl(lastSensId, curSensId) = line(X, Y, 'color', 'r');
+  end
+  % draw nodes on top again
+  delete(hs(curSensId));
+  delete(hs(lastSensId));
+  if size(proj, 2) == 2
+    hs(curSensId) = line(proj(curSensId, 1), proj(curSensId, 2),                                            ...
+      'MarkerEdgeColor',  'k',                                        ...
+      'MarkerFaceColor',  'k',                                        ...
+      'Marker',           'o',                                        ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(curSensId).neighblabel))^2, ...
+      'UserData',         curSensId,                                          ...
+      'ButtonDownFcn',    @showLabelInTitle);
+    hs(lastSensId) = line(proj(lastSensId, 1), proj(lastSensId, 2),                                            ...
+      'MarkerEdgeColor',  'k',                                        ...
+      'MarkerFaceColor',  'k',                                        ...
+      'Marker',           'o',                                        ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(lastSensId).neighblabel))^2, ...
+      'UserData',         lastSensId,                                          ...
+      'ButtonDownFcn',    @showLabelInTitle);
+    
+  elseif size(proj, 2) == 3
+    hs(curSensId) = line(proj(curSensId, 1), proj(curSensId, 2), proj(curSensId, 3),                                ...
+      'MarkerEdgeColor',  'k',                                        ...
+      'MarkerFaceColor',  'k',                                        ...
+      'Marker',           'o',                                        ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(curSensId).neighblabel))^2, ...
+      'UserData',         curSensId,                        ...
+      'ButtonDownFcn',    @showLabelInTitle);
+    hs(lastSensId) = line(proj(lastSensId, 1), proj(lastSensId, 2), proj(lastSensId, 3),                                ...
+      'MarkerEdgeColor',  'k',                                        ...
+      'MarkerFaceColor',  'k',                                        ...
+      'Marker',           'o',                                        ...
+      'MarkerSize',       .125*(2+numel(cfg.neighbours(lastSensId).neighblabel))^2, ...
+      'UserData',         lastSensId,                        ...
+      'ButtonDownFcn',    @showLabelInTitle);
+  else
+    error('Channel coordinates are too high dimensional');
+  end
+  
+  if cfg.verbose
+    str = sprintf('%s, ', cfg.neighbours(curSensId).neighblabel{:});
+    if length(str)>2
+      % remove the last comma and space
+      str = str(1:end-2);
+    end
+    fprintf('Selected channel %s, which has %d neighbours: %s\n', ...
+      cfg.neighbours(curSensId).label, ...
+      length(cfg.neighbours(curSensId).neighblabel), ...
+      str);
+  end
+  set(hs(curSensId), 'MarkerFaceColor', 'g');
+  set(hs(lastSensId), 'MarkerFaceColor', 'k');
+  userdata.lastSensId = curSensId;
+  userdata.hl = hl;
+  userdata.hs = hs;
+  userdata.cfg = cfg;
+  set(gcf, 'UserData', userdata);
+  return;
+else
+  % can never happen, so do nothing
+end
+
+set(gcf, 'UserData', userdata);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function cleanup_cb(h, eventdata)
+userdata = get(h, 'UserData');
+h   = getparent(h);
+userdata.quit = true;
+set(h, 'UserData', userdata);
+uiresume
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function h = getparent(h)
+p = h;
+while p~=0
+  h = p;
+  p = get(h, 'parent');
+end
+end

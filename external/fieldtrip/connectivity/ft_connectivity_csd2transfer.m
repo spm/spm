@@ -1,9 +1,9 @@
 function [output] = ft_connectivity_csd2transfer(freq, varargin)
 
-% CSD2TRANSFER computes the transfer-function from frequency domain data
-% using the Wilson-Burg algorithm. The transfer function can be used for
-% the computation of directional measures of connectivity, such as granger
-% causality, partial directed coherence, or directed transfer functions
+% FT_CONNECTIVITY_CSD2TRANSFER computes the transfer-function from frequency
+% domain data using the Wilson-Burg algorithm. The transfer function can be
+% used for the computation of directional measures of connectivity, such as
+% granger causality, partial directed coherence, or directed transfer functions
 %
 % Use as
 %   [output] = ft_connectivity_csd2transfer(freq, varargin)
@@ -27,8 +27,8 @@ function [output] = ft_connectivity_csd2transfer(freq, varargin)
 %
 % If you use this code for studying directed interactions, please cite from
 % the following references:
-% -M.Dhamala, R.Rangarajan, M.Ding, Physical Review Letters 100, 018701 (2008)
-% -M.Dhamala, R.rangarajan, M.Ding, Neuroimage 41, 354 (2008)
+% -M.Dhamala, G.Rangarajan, M.Ding, Physical Review Letters 100, 018701 (2008)
+% -M.Dhamala, G.rangarajan, M.Ding, Neuroimage 41, 354 (2008)
 
 % Undocumented options:
 %
@@ -54,7 +54,7 @@ function [output] = ft_connectivity_csd2transfer(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_csd2transfer.m 4747 2011-11-16 09:26:55Z jansch $
+% $Id: ft_connectivity_csd2transfer.m 6379 2012-08-19 11:14:50Z jansch $
 
 numiteration = ft_getopt(varargin, 'numiteration', 100);
 channelcmb   = ft_getopt(varargin, 'channelcmb',   {});

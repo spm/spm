@@ -36,7 +36,7 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headsurface.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: headsurface.m 6344 2012-08-08 16:10:45Z roboos $
 
 if nargin<1
   vol = [];
@@ -156,7 +156,7 @@ elseif ft_voltype(vol, 'localspheres')
   tri = projecttri(pnt);
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif ft_voltype(vol, 'bem') ||  ft_voltype(vol, 'nolte')
+elseif ft_voltype(vol, 'bem') ||  ft_voltype(vol, 'singleshell')
   % volume conduction model with triangulated boundaries
   switch surface
     case 'skin'

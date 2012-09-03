@@ -56,9 +56,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 5449 2012-03-13 13:06:57Z jorhor $
+% $Id: ft_clusterplot.m 6315 2012-08-03 12:44:47Z roevdmei $
 
-revision = '$Id: ft_clusterplot.m 5449 2012-03-13 13:06:57Z jorhor $';
+revision = '$Id: ft_clusterplot.m 6315 2012-08-03 12:44:47Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -100,7 +100,7 @@ if ~isfield(cfg,'highlightsizeseries'),    cfg.highlightsizeseries = [6 6 6 6 6]
 if ~isfield(cfg,'hllinewidthseries'),      cfg.hllinewidthseries = [1 1 1 1 1];                 end;
 if ~isfield(cfg,'highlightcolorpos'),      cfg.highlightcolorpos = [0 0 0];                     end;
 if ~isfield(cfg,'highlightcolorneg'),      cfg.highlightcolorneg = [0 0 0];                     end;
-if ~isfield(cfg,'parameter'),              cfg.parameter = 'parameter';                         end;
+if ~isfield(cfg,'parameter'),              cfg.parameter = 'stat';                              end;
 if ~isfield(cfg,'saveaspng'),              cfg.saveaspng = 'no';                                end;
 
 % error if cfg.highlightseries is not a cell, for possible confusion with cfg-options

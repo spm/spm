@@ -34,7 +34,7 @@ function [inside] = ft_inside_vol(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 6216 2012-07-04 07:11:23Z roboos $
+% $Id: ft_inside_vol.m 6345 2012-08-08 16:10:48Z roboos $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)
@@ -90,7 +90,7 @@ switch ft_voltype(vol)
     inside  = inside>0;
 
     % model with a realistic shape described by a triangulated boundary
-  case {'bem', 'dipoli', 'bemcp', 'asa', 'nolte', 'neuromag'}
+  case {'bem', 'dipoli', 'bemcp', 'asa', 'singleshell', 'neuromag'}
     if ~isfield(vol, 'source')
       % locate the innermost compartment and remember it
       vol.source = find_innermost_boundary(vol.bnd);

@@ -1,6 +1,6 @@
-function [s,cfg] = statfun_depsamplesF(cfg, dat, design)
+function [s,cfg] = ft_statfun_depsamplesF(cfg, dat, design)
 
-% STATFUN_depsamplesF calculates the dependent samples F-statistic 
+% FT_STATFUN_depsamplesF calculates the dependent samples F-statistic 
 % on the biological data in dat (the dependent variable), using the information on 
 % the independent variable (iv) in design.
 %
@@ -66,7 +66,7 @@ function [s,cfg] = statfun_depsamplesF(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statfun_depsamplesF.m 5992 2012-06-08 10:56:08Z roboos $
+% $Id: ft_statfun_depsamplesF.m 6329 2012-08-06 13:58:46Z eelspa $
 
 
 % set defaults
