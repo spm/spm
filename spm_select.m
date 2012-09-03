@@ -1,19 +1,19 @@
 function varargout = spm_select(varargin)
 % File selector
 % FORMAT [t,sts] = spm_select(n,typ,mesg,sel,wd,filt,frames)
-% n      - number of files [Default: Inf)
+% n      - number of files [Default: Inf]
 %          A single value or a range.  e.g.
-%          1       - Select one file
-%          Inf     - Select any number of files
-%          [1 Inf] - Select 1 to Inf files
+%          1       - select one file
+%          Inf     - select any number of files
+%          [1 Inf] - select 1 to Inf files
 %          [0 1]   - select 0 or 1 files
 %          [10 12] - select from 10 to 12 files
 % typ    - file type [Default: 'any']
 %          'any'   - all files
 %          'image' - Image files (".img" and ".nii")
-%                    Note that it gives the option to select
-%                    individual volumes of the images.
-%          'mesh'  - Surface mesh files (".gii" or ".mat")
+%                    Note that it gives the option to select individuals
+%                    volumes of the images.
+%          'mesh'  - Surface mesh files (".gii")
 %          'xml'   - XML files
 %          'mat'   - MATLAB .mat files or .txt files (assumed to contain
 %                    ASCII representation of a 2D-numeric array)
@@ -30,25 +30,18 @@ function varargout = spm_select(varargin)
 % t      - selected files
 % sts    - status (1 means OK, 0 means window quit)
 %
-% FORMAT cpath = spm_select('CPath',path,cwd)
-% Canonicalise paths: prepend cwd to relative paths, process '..' & '.'
-% directories embedded in path.
-% path   - string matrix containing path name
-% cwd    - current working directory [default '.']
-% cpath  - canonicalised paths, in same format as input path argument
-%
 % FORMAT [files,dirs] = spm_select('List',direc,filt)
 % Return files matching the filter 'filt' and directories within 'direc'
-% direc  - directory to search
-% filt   - filter to select files with (see regexp) e.g. '^w.*\.img$'
+% direc  - directory to search [Default: pwd]
+% filt   - filter to select files with regexp, e.g. '^w.*\.img$' [Default: '.*']
 % files  - files matching 'filt' in directory 'direc'
 % dirs   - subdirectories of 'direc'
 %
 % FORMAT [files,dirs] = spm_select('ExtList',direc,filt,frames)
 % As above, but for selecting frames of 4D NIfTI files
-% frames - vector of frames to select (defaults to 1, if not
-%            specified). If the frame number is Inf, all frames for the
-%            matching images are listed. 
+% frames - vector of frames to select (defaults to 1, if not specified).
+%          If the frame number is Inf, all frames for the matching images
+%          are listed. 
 %
 % FORMAT [files,dirs] = spm_select('FPList',direc,filt)
 % FORMAT [files,dirs] = spm_select('ExtFPList',direc,filt,frames)
@@ -56,8 +49,15 @@ function varargout = spm_select(varargin)
 %
 % FORMAT [files,dirs] = spm_select('FPListRec',direc,filt)
 % FORMAT [files,dirs] = spm_select('ExtFPListRec',direc,filt,frames)
-% As above, but return files with full paths (i.e. prefixes 'direc' to
-% each) and search through sub directories recursively.
+% As above, but return files with full paths (i.e. prefixes 'direc' to each)
+% and search through sub directories recursively.
+% 
+% FORMAT cpath = spm_select('CPath',path,cwd)
+% Canonicalise paths: prepend cwd to relative paths, process '..' & '.'
+% directories embedded in path.
+% path   - string matrix containing path name
+% cwd    - current working directory [Default: '.']
+% cpath  - canonicalised paths, in same format as input path argument
 %__________________________________________________________________________
 %
 % For developers:
@@ -77,25 +77,26 @@ function varargout = spm_select(varargin)
 % FORMAT dirs = spm_select('prevdirs')
 % Retrieve list of previous directories.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4886 2012-09-03 14:15:20Z volkmar $
+% $Id: spm_select.m 4892 2012-09-03 17:27:37Z guillaume $
+
 
 if ~isdeployed && ~exist('cfg_getfile','file')
     addpath(fullfile(spm('dir'),'matlabbatch'));
 end
 
-% commands that are not passed to cfg_getfile
+%-Commands that are not passed to cfg_getfile
 local_cmds = {'spm_regfilters'};
 
-if ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
+if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
     switch lower(varargin{1})
         case 'spm_regfilters'
             % Regexp based filters without special handlers
-            cfg_getfile('regfilter','mesh',{'\.gii$','\.mat$'});
-            cfg_getfile('regfilter','gifti',{'\.gii$'});
-            cfg_getfile('regfilter','nifti',{'\.nii$'});
+            cfg_getfile('regfilter', 'mesh',  {'\.gii$'});
+            cfg_getfile('regfilter', 'gifti', {'\.gii$'});
+            cfg_getfile('regfilter', 'nifti', {'\.nii$'});
             % Filter for 3D images that handles frame expansion
             frames = cfg_entry;
             frames.name    = 'Frames';
@@ -108,22 +109,24 @@ if ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
                         false, @spm_select_image, {frames});
     end
 else
-    % cfg_getfile expects and returns cellstr arguments for multi-line strings
-    if nargin > 0 && ischar(varargin{1}) && ...
-            strcmpi(varargin{1},'filter') && ischar(varargin{2})
+    needchar = false;
+    % cfg_getfile expects cellstr arguments for multi-line strings
+    if nargin > 1 && ischar(varargin{1}) && ...
+            ismember(lower(varargin{1}),{'filter','cpath'}) && ischar(varargin{2})
         varargin{2} = cellstr(varargin{2});
+        needchar = true;
     end
     
     [t, sts] = cfg_getfile(varargin{:});
     
-    % cfg_getfile returns cell arrays, convert to char arrays
+    % cfg_getfile returns cellstr arrays, convert to char arrays
     if nargin > 0 && ischar(varargin{1})
         switch lower(varargin{1})
             case {'filter','cpath'}
-                if ischar(varargin{2})
+                if needchar
                     t = char(t);
                 end
-            case {'list','fplist','extlist','extfplist'}
+            case {'list','fplist','extlist','extfplist','fplistrec','extlistrec'}
                 t = char(t);
                 sts = char(sts);
         end
@@ -136,9 +139,11 @@ else
         varargout{2} = sts;
     end
 end
-%--------------------------------------------------------------------------
-% Local functions
-%--------------------------------------------------------------------------
+
+
+%==========================================================================
+% FUNCTION varargout = spm_select_image(cmd, varargin)
+%==========================================================================
 function varargout = spm_select_image(cmd, varargin)
 % Implements extended filtering for NIfTI images (including 3D frame
 % selection)
@@ -149,10 +154,10 @@ switch lower(cmd)
         prms   = varargin{3};
         frames = prms.frames;
         ii = cell(1,numel(files));
-        if (numel(frames)~=1 || frames(1)~=1),
-            %     if domsg
-            %         msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
-            %     end
+        if (numel(frames)~=1 || frames(1)~=1)
+            % if domsg
+            %     msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
+            % end
             for i=1:numel(files)
                 try
                     ni = nifti(fullfile(dr,files{i}));
@@ -171,9 +176,9 @@ switch lower(cmd)
             [ii{:}] = deal(1);
         end
 
-        %         if domsg
-        %             msg(ob,['Listing ' num2str(numel(f)) ' files...']);
-        %         end
+        % if domsg
+        %     msg(ob,['Listing ' num2str(numel(f)) ' files...']);
+        % end
 
         % Combine filename and frame number(s)
         nii      = cellfun(@numel, ii);
@@ -184,9 +189,9 @@ switch lower(cmd)
         end
         ii = [ii{:}];
         fi = [fi{:}];
-        for i=1:numel(cfiles),
+        for i=1:numel(cfiles)
             cfiles{i} = sprintf('%s,%d', files{fi(i)}, ii(i));
-        end;
+        end
         varargout{1} = cfiles;
     case 'filter'
         % Do not filter for frame numbers
