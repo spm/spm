@@ -80,7 +80,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4892 2012-09-03 17:27:37Z guillaume $
+% $Id: spm_select.m 4893 2012-09-03 17:58:57Z guillaume $
 
 
 if ~isdeployed && ~exist('cfg_getfile','file')
@@ -126,7 +126,7 @@ else
                 if needchar
                     t = char(t);
                 end
-            case {'list','fplist','extlist','extfplist','fplistrec','extlistrec'}
+            case {'list','fplist','extlist','extfplist','fplistrec','extfplistrec'}
                 t = char(t);
                 sts = char(sts);
         end
@@ -154,7 +154,7 @@ switch lower(cmd)
         prms   = varargin{3};
         frames = prms.frames;
         ii = cell(1,numel(files));
-        if (numel(frames)~=1 || frames(1)~=1)
+        if numel(frames)~=1 || frames(1)~=1
             % if domsg
             %     msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
             % end
@@ -167,12 +167,12 @@ switch lower(cmd)
                     d4 = 1;
                 end
                 if all(isfinite(frames))
-                    ii{i} = intersect(d4, frames);
+                    ii{i} = intersect(d4, frames(:))';
                 else
-                    ii{i} = d4;
+                    ii{i} = d4(:)';
                 end
             end
-        elseif (numel(frames)==1 && frames(1)==1),
+        elseif numel(frames)==1 && frames(1)==1
             [ii{:}] = deal(1);
         end
 
