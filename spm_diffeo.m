@@ -394,8 +394,8 @@ function varargout = spm_diffeo(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_diffeo.m 4883 2012-09-03 12:34:55Z john $
-
-error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
+% $Id: spm_diffeo.m 4890 2012-09-03 15:19:46Z guillaume $
 
 
+%-This is merely the help file for the compiled routine
+error('spm_diffeo.c not compiled - see Makefile')
