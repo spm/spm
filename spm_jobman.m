@@ -16,7 +16,13 @@ function varargout = spm_jobman(varargin)
 %               'jobs'/'matlabbatch' variable, or
 %               cell array of 'jobs'/'matlabbatch' variables.
 % input1,...  - optional list of input arguments. These are filled into
-%               open inputs ('X->' marked in the GUI) before a job is run.
+%               open inputs ('X->' marked in the GUI) before a job is
+%               run. When using an "{:}" subscript on a cell array,
+%               MATLAB expands this cell array into a comma separated 
+%               list of arguments. Therefore, one can collect input
+%               arguments in the right order into a cell array named e.g.
+%               input_array and call spm_jobman('run',job,input_array{:})
+%               to run a job using the collected inputs.
 % output_list - cell array containing the output arguments from each
 %               module in the job. The format and contents of these
 %               outputs is defined in the configuration of each module
@@ -41,10 +47,10 @@ function varargout = spm_jobman(varargin)
 %
 % Programmers help:
 %
-% FORMAT output_list = spm_jobman('serial')
-%        output_list = spm_jobman('serial',job[,'',   input1,...inputN])
-%        output_list = spm_jobman('serial',job ,node[,input1,...inputN])
-%        output_list = spm_jobman('serial',''  ,node[,input1,...inputN])
+% FORMAT [output_list hjob] = spm_jobman('serial')
+%        [output_list hjob] = spm_jobman('serial',job[,'',   input1,...inputN])
+%        [output_list hjob] = spm_jobman('serial',job ,node[,input1,...inputN])
+%        [output_list hjob] = spm_jobman('serial',''  ,node[,input1,...inputN])
 % Run the user interface in serial mode. If job is not empty, then node
 % is silently ignored. Inputs can be a list of arguments. These are passed
 % on to the open inputs of the specified job/node. Each input should be
@@ -70,10 +76,12 @@ function varargout = spm_jobman(varargin)
 %     h = spm_jobman('help','spm.spatial.coreg.estimate');
 %     for i=1:numel(h), fprintf('%s\n',h{i}); end
 %
-% FORMAT [tag, job] = spm_jobman('harvest', job_id|cfg_item|cfg_struct)
+% FORMAT [tag, job] = spm_jobman('harvest', job_id|job|cfg_item|cfg_struct)
 % Take the job with id job_id in cfg_util and extract what is
-% needed to save it as a batch job (for experts only). If the argument is a
-% cfg_item or cfg_struct tree, it will be harvested outside cfg_util. 
+% needed to save it as a batch job (for experts only). If a (partial) job
+% is given instead, the output job is augmented with default settings. 
+% If the argument is a cfg_item or cfg_struct tree, it will be harvested
+% outside cfg_util.  
 % tag - tag of the root node of the current job/cfg_item tree
 % job - harvested data from the current job/cfg_item tree
 %__________________________________________________________________________
@@ -85,7 +93,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4870 2012-08-30 13:47:00Z volkmar $
+% $Id: spm_jobman.m 4879 2012-09-03 07:31:59Z volkmar $
 
 
 persistent isInitCfg;
@@ -195,7 +203,7 @@ switch cmd
                 varargout{1} = cfg_util('getalloutputs', cjob);
             end
             if nargout > 1
-                varargout{2} = cfg_util('harvestrun', cjob);
+                [un varargout{2}] = cfg_util('harvestrun', cjob);
             end
         end
         cfg_util('deljob', cjob);
@@ -210,6 +218,9 @@ switch cmd
             if nargout > 1
                 varargout{2} = cfg_util('harvestrun', cjob);
             end
+        end
+        if nargout > 1
+            [un varargout{2}] = cfg_util('harvestrun', cjob);
         end
         cfg_util('deljob', cjob);
         
@@ -226,6 +237,10 @@ switch cmd
                 'spm_jobman(''harvest'', job_id).']);
         elseif cfg_util('isjob_id', varargin{2})
             [tag job] = cfg_util('harvest', varargin{2});
+        elseif iscell(varargin{2})
+            cjob      = cfg_util('initjob', varargin{2});
+            [tag job] =  cfg_util('harvest', cjob);
+            cfg_util('deljob', cjob);
         elseif isa(varargin{2}, 'cfg_item')
             [tag job] = harvest(varargin{2}, varargin{2}, false, false);
         elseif isstruct(varargin{2})
