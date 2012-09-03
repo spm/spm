@@ -93,7 +93,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4879 2012-09-03 07:31:59Z volkmar $
+% $Id: spm_jobman.m 4884 2012-09-03 13:33:17Z guillaume $
 
 
 persistent isInitCfg;
@@ -113,7 +113,7 @@ end
 cmd = lower(varargin{1});
 if strcmp(cmd,'run_nogui')
     warning('spm:spm_jobman:NotImplemented', ...
-            'Callback ''%s'' not implemented.', cmd);
+            'Callback ''%s'' is deprecated. Use ''run'' instead.', cmd);
     cmd = 'run';
 end
 if any(strcmp(cmd, {'serial','interactive','run'}))
@@ -203,12 +203,15 @@ switch cmd
                 varargout{1} = cfg_util('getalloutputs', cjob);
             end
             if nargout > 1
-                [un varargout{2}] = cfg_util('harvestrun', cjob);
+                [un, varargout{2}] = cfg_util('harvestrun', cjob);
             end
         end
         cfg_util('deljob', cjob);
         
     case {'run'}
+        if ~exist('mljob', 'var')
+            error('Not enough input arguments.');
+        end
         cjob = cfg_util('initjob', mljob);
         sts = fill_run_job(cjob, varargin{3:end});
         if sts
@@ -220,7 +223,7 @@ switch cmd
             end
         end
         if nargout > 1
-            [un varargout{2}] = cfg_util('harvestrun', cjob);
+            [un, varargout{2}] = cfg_util('harvestrun', cjob);
         end
         cfg_util('deljob', cjob);
         
@@ -236,17 +239,17 @@ switch cmd
                 ['Can not harvest job without job_id. Please use ' ...
                 'spm_jobman(''harvest'', job_id).']);
         elseif cfg_util('isjob_id', varargin{2})
-            [tag job] = cfg_util('harvest', varargin{2});
+            [tag, job] = cfg_util('harvest', varargin{2});
         elseif iscell(varargin{2})
             cjob      = cfg_util('initjob', varargin{2});
-            [tag job] =  cfg_util('harvest', cjob);
+            [tag, job] =  cfg_util('harvest', cjob);
             cfg_util('deljob', cjob);
         elseif isa(varargin{2}, 'cfg_item')
-            [tag job] = harvest(varargin{2}, varargin{2}, false, false);
+            [tag, job] = harvest(varargin{2}, varargin{2}, false, false);
         elseif isstruct(varargin{2})
             % try to convert into class before harvesting
             c = cfg_struct2cfg(varargin{2});
-            [tag job] = harvest(c,c,false,false);
+            [tag, job] = harvest(c,c,false,false);
         else
             error('spm:spm_jobman:CantHarvestThis', ...
                 'Can not harvest this argument.');
@@ -315,6 +318,7 @@ for cj = 1:numel(job)
     end
 end
 
+
 %==========================================================================
 % function conv_jobs(varargin)
 %==========================================================================
@@ -323,7 +327,7 @@ function conv_jobs(varargin)
 % using gencode.
 spm('Pointer','Watch');
 if nargin == 0 || ~iscellstr(varargin{1})
-    [fname sts] = spm_select([1 Inf], 'batch', 'Select job file(s)');
+    [fname, sts] = spm_select([1 Inf], 'batch', 'Select job file(s)');
     fname = cellstr(fname);
     if ~sts, return; end
 else
@@ -333,7 +337,7 @@ end
 joblist = load_jobs(fname);
 for k = 1:numel(fname)
     if ~isempty(joblist{k})
-        [p n] = spm_fileparts(fname{k});
+        [p, n] = spm_fileparts(fname{k});
         % Save new job as genvarname(*_spm8).m
         newfname = fullfile(p, sprintf('%s.m', ...
             genvarname(sprintf('%s_spm8', n))));
@@ -345,12 +349,13 @@ for k = 1:numel(fname)
 end
 spm('Pointer','Arrow');
 
+
 %==========================================================================
 % function load_job(varargin)
 %==========================================================================
 function load_job(varargin)
 % Select a single job file, canonicalise it and display it in GUI
-[fname sts] = spm_select([1 Inf], 'batch', 'Select job file');
+[fname, sts] = spm_select([1 Inf], 'batch', 'Select job file');
 if ~sts, return; end
 
 spm('Pointer','Watch');
@@ -359,6 +364,7 @@ if ~isempty(joblist{1})
     spm_jobman('interactive',joblist{1});
 end
 spm('Pointer','Arrow');
+
 
 %==========================================================================
 % function newjobs = load_jobs(job)
@@ -375,9 +381,8 @@ else
 end
 newjobs = {};
 for cf = 1:numel(filenames)
-    [p,nam,ext] = fileparts(filenames{cf});
-    switch ext
-        case '.xml'
+    switch spm_file(filenames{cf},'ext')
+        case 'xml'
             spm('Pointer','Watch');
             try
                 loadxml(filenames{cf},'jobs');
@@ -389,9 +394,9 @@ for cf = 1:numel(filenames)
                 end
             end
             spm('Pointer','Arrow');
-        case '.mat'
+        case 'mat'
             try
-                S=load(filenames{cf});
+                S = load(filenames{cf});
                 if isfield(S,'matlabbatch')
                     matlabbatch = S.matlabbatch;
                 elseif isfield(S,'jobs')
@@ -402,7 +407,7 @@ for cf = 1:numel(filenames)
             catch
                 warning('spm:spm_jobman:LoadFailed','Load failed: ''%s''',filenames{cf});
             end
-        case '.m'
+        case 'm'
             try
                 fid = fopen(filenames{cf},'rt');
                 str = fread(fid,'*char');
@@ -425,6 +430,7 @@ for cf = 1:numel(filenames)
         clear matlabbatch;
     end
 end
+
 
 %==========================================================================
 % function njobs = convert_jobs(jobs)
@@ -461,6 +467,7 @@ for i0 = 1:numel(jobs)
     end
 end
 
+
 %==========================================================================
 % function local_init_interactive(varargin)
 %==========================================================================
@@ -469,6 +476,7 @@ cjob = cfg_util('initjob');
 mod_cfg_id = get(gcbo,'userdata');
 cfg_util('addtojob', cjob, mod_cfg_id);
 cfg_ui('local_showjob', findobj(0,'tag','cfg_ui'), cjob);
+
 
 %==========================================================================
 % function local_init_serial(varargin)
@@ -483,6 +491,7 @@ if sts
 end
 cfg_util('deljob', cjob);
 
+
 %==========================================================================
 % function sts = fill_run_job(cjob, varargin)
 %==========================================================================
@@ -494,11 +503,11 @@ if sts
     catch
         le = lasterror;
         try
-            errfile   = fullfile(pwd, sprintf('spm_error_%s.mat', datestr(now, 'yyyy-mm-dd_HH:MM:SS.FFF')));
-            [u1 ojob] = cfg_util('harvest', cjob);
-            [u1 rjob] = cfg_util('harvestrun', cjob);
-            outputs   = cfg_util('getalloutputs', cjob);
-            diarystr  = cfg_util('getdiary', cjob);
+            errfile    = fullfile(pwd, sprintf('spm_error_%s.mat', datestr(now, 'yyyy-mm-dd_HH:MM:SS.FFF')));
+            [u1, ojob] = cfg_util('harvest', cjob);
+            [u1, rjob] = cfg_util('harvestrun', cjob);
+            outputs    = cfg_util('getalloutputs', cjob);
+            diarystr   = cfg_util('getdiary', cjob);
             save(errfile, 'ojob', 'rjob', 'outputs', 'diarystr');
             le.message = sprintf('%s\nError information has been saved to file:\n\n%s', le.message, errfile);
         end
@@ -507,10 +516,11 @@ if sts
     end
 end
 
+
 %==========================================================================
 % function [val sts] = serial_ui(item)
 %==========================================================================
-function [val sts] = serial_ui(item)
+function [val, sts] = serial_ui(item)
 % wrapper function to translate cfg_util('filljobui'... input requests into
 % spm_input/cfg_select calls.
 sts = true;
@@ -565,10 +575,11 @@ switch class(item)
         end
 end
 
+
 %==========================================================================
 % function [code cont] = genscript_run
 %==========================================================================
-function [code cont] = genscript_run
+function [code, cont] = genscript_run
 % Return code snippet to initialise SPM defaults and run a job generated by
 % cfg_util('genscript',...) through spm_jobman.
 modality = spm('CheckModality');

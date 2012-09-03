@@ -28,7 +28,7 @@ function DCM = spm_dcm_phase(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
 % Will Penny
-% $Id: spm_dcm_phase.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_phase.m 4884 2012-09-03 13:33:17Z guillaume $
 
 
 % check options 
@@ -128,7 +128,7 @@ M.l   = Nr;
 M.ns  = Ns;
 
 % Don't plot progress
-M.nograph=0;
+try, M.nograph; catch, M.nograph=0; end
 
 % Initial state
 try

@@ -1,4 +1,4 @@
-/* $Id$ */
+/* $Id: spm_field.c 4884 2012-09-03 13:33:17Z guillaume $ */
 /* (c) John Ashburner (2007) */
 
 #include "mex.h"

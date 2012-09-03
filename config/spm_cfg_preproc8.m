@@ -1,12 +1,11 @@
 function preproc = spm_cfg_preproc8
-% MATLABBATCH Configuration file for toolbox 'Segment'
+% Configuration file for 'Combined Segmentation and Spatial Normalisation'
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: spm_cfg_preproc8.m 4884 2012-09-03 13:33:17Z guillaume $
 
-if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','Seg')); end
 
 % ---------------------------------------------------------------------
 % vols Volumes
