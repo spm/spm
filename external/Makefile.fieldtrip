@@ -4,7 +4,7 @@
 # Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 4619 2012-01-12 13:05:16Z guillaume $
+# $Id: Makefile.fieldtrip 4887 2012-09-03 14:29:42Z guillaume $
 
 include ../src/Makefile.var
 
@@ -58,6 +58,7 @@ endif
 	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/plgndr.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/routlm.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/private/
         
 tarball: all

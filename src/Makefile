@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4883 2012-09-03 12:34:55Z john $
+# $Id: Makefile 4887 2012-09-03 14:29:42Z guillaume $
 #
 ###############################################################################
 #
@@ -54,8 +54,6 @@ SPMMEX  =\
 
 SUBDIRS =\
 	toolbox/FieldMap \
-	toolbox/Seg \
-	toolbox/Shoot \
 	@xmltree/private
 
 ###############################################################################
