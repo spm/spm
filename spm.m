@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4823 2012-08-02 16:23:49Z guillaume $
+% $Id: spm.m 4886 2012-09-03 14:15:20Z volkmar $
 
 
 %=======================================================================
@@ -342,8 +342,9 @@ spm_defaults;                                              fprintf('.');
 
 %-Setup for batch system
 %-----------------------------------------------------------------------
-spm_jobman('initcfg');
+spm_select('spm_regfilters');
 spm_select('prevdirs',[spm('Dir') filesep]);
+spm_jobman('initcfg');
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------

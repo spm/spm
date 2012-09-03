@@ -12,9 +12,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4089 2010-10-11 11:53:34Z volkmar $
+% $Id: subsasgn_check.m 4886 2012-09-03 14:15:20Z volkmar $
 
-rev = '$Rev: 4089 $'; %#ok
+rev = '$Rev: 4886 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -38,14 +38,9 @@ switch subs(1).subs
                     % item.ufilter only, which is ignored here
                     val1 = val{1};
                 else
-                    if strcmpi(item.filter,'image') || strcmpi(item.filter,'nifti')
-                        typ = 'extimage';
-                    else
-                        typ = item.filter;
-                    end;
                     % don't filter for item.ufilter - this may have been
                     % overridden by user interface
-                    [val1 sts1] = cfg_getfile('filter',val{1},typ,'.*',Inf);
+                    [val1 sts1] = cfg_getfile('filter',val{1},item.filter,'.*');
                 end
                 if numel(val1) < item.num(1)
                     sts = false;
