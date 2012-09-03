@@ -10,9 +10,9 @@ function [str, tag, cind] = gencode(item, tag, tagctx)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode.m 4863 2012-08-27 08:09:23Z volkmar $
+% $Id: gencode.m 4885 2012-09-03 13:48:28Z volkmar $
 
-rev = '$Rev: 4863 $'; %#ok
+rev = '$Rev: 4885 $'; %#ok
 
 if nargin < 2
     tag = inputname(1);
@@ -31,7 +31,7 @@ fn = fieldnames(item);
 for k = 1:numel(item)
     % explicitly create each item in array
     if cfg_get_defaults('cfg_dep.gencode_short')
-        str{end+1} = sprintf('%s(%d) = %s(''%s'', %s, %s);', tag, k, class(item(k)), item(k).sname, char(gencode_substructcode(item(k).src_exbranch)), char(gencode_substructcode(item(k).src_output)));
+        str{end+1} = sprintf('%s(%d) = %s(%s, %s, %s);', tag, k, class(item(k)), char(gencode_rvalue(item(k).sname)), char(gencode_substructcode(item(k).src_exbranch)), char(gencode_substructcode(item(k).src_output)));
     else
         str{end+1} = sprintf('%s(%d) = %s;', tag, k, class(item(k)));
         for l = 1:numel(fn)
