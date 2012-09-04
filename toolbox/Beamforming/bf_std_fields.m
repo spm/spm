@@ -5,8 +5,8 @@ fields = {
     'sources'
     'features'
     'inverse'
-    'postprocessing'
     'output'
+    'write'
     };
 
 if nargin > 0

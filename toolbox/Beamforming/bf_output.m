@@ -1,9 +1,9 @@
 function out = bf_output
-% Outputs the results of beamforming analysis
+% Performs postprocessing based on beamforming projectors
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output.m 4849 2012-08-18 12:51:28Z vladimir $
+% $Id: bf_output.m 4897 2012-09-04 16:32:18Z vladimir $
 
 % dir Directory
 % ---------------------------------------------------------------------
@@ -31,7 +31,7 @@ out = cfg_exbranch;
 out.tag = 'output';
 out.name = 'Output';
 out.val = {BF, plugin};
-out.help = {'Generate output'};
+out.help = {'Compute output measures'};
 out.prog = @bf_output_run;
 out.vout = @bf_output_vout;
 out.modality = {'EEG'};
@@ -43,11 +43,11 @@ outdir = spm_file(job.BF{1}, 'fpath');
 
 cd(outdir);
 
-BF = bf_load('BF.mat', {'data', 'sources', 'postprocessing'});
+BF = bf_load('BF.mat', {'data', 'inverse'});
 
 plugin_name   = cell2mat(fieldnames(job.plugin));
 
-outfield_name =  strtok('plugin_name', '_');
+outfield_name =  strtok(plugin_name, '_');
 
 BF.output.(outfield_name) = feval(['bf_output_' plugin_name], BF, job.plugin.(plugin_name));
 

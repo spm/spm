@@ -4,7 +4,7 @@ function bf = tbx_cfg_bf
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: tbx_cfg_bf.m 4849 2012-08-18 12:51:28Z vladimir $
+% $Id: tbx_cfg_bf.m 4897 2012-09-04 16:32:18Z vladimir $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Beamforming')); end
 
@@ -13,8 +13,8 @@ components = {
     'bf_sources'
     'bf_features'
     'bf_inverse'
-    'bf_postprocessing'
     'bf_output'
+    'bf_write'
     };
 
 bf = cfg_choice;

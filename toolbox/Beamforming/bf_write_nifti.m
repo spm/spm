@@ -1,9 +1,9 @@
-function res = bf_output_nifti(BF, S)
+function res = bf_write_nifti(BF, S)
 % Writes out nifti images of beamformer results
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_output_nifti.m 4849 2012-08-18 12:51:28Z vladimir $
+% $Id: bf_write_nifti.m 4897 2012-09-04 16:32:18Z vladimir $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -66,15 +66,15 @@ switch S.space
         sMRI   = BF.data.mesh.sMRI;
 end
 
-scale = ones(1, numel(BF.postprocessing.image));
+scale = ones(1, numel(BF.output.image));
 switch S.normalise
     case  'separate'
-        for i = 1:numel(BF.postprocessing.image)
-            val = BF.postprocessing.image(i).val;
+        for i = 1:numel(BF.output.image)
+            val = BF.output.image(i).val;
             scale(i) = 1./mean(val(~isnan(val)));
         end
     case  'all'
-        val = spm_vec({BF.postprocessing.image(:).val});
+        val = spm_vec({BF.output.image(:).val});
         scale = scale./mean(val(~isnan(val)));
 end
 
@@ -84,7 +84,7 @@ outvol = spm_vol(sMRI);
 outvol.dt(1) = spm_type('float32');
 
 
-nimages = numel(BF.postprocessing.image);
+nimages = numel(BF.output.image);
 
 cfg = [];
 cfg.parameter = 'pow';
@@ -98,10 +98,10 @@ else Ibar = 1:nimages; end
 
 
 for i = 1:nimages
-    source.pow = scale(i)*BF.postprocessing.image(i).val;
+    source.pow = scale(i)*BF.output.image(i).val;
     sourceint = ft_sourceinterpolate(cfg, source, ft_read_mri(sMRI, 'format', 'nifti_spm'));
     
-    outvol.fname= fullfile(pwd, [BF.postprocessing.image(i).label '.nii']);
+    outvol.fname= fullfile(pwd, [BF.output.image(i).label '.nii']);
     outvol = spm_create_vol(outvol);
     spm_write_vol(outvol, sourceint.pow);
     

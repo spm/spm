@@ -1,9 +1,9 @@
-function res = bf_postprocessing_image_power(BF, S)
+function res = bf_output_image_power(BF, S)
 % Computes power image
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: bf_postprocessing_image_power.m 4847 2012-08-16 17:29:23Z vladimir $
+% $Id: bf_output_image_power.m 4897 2012-09-04 16:32:18Z vladimir $
 
 %--------------------------------------------------------------------------
 if nargin == 0
@@ -47,21 +47,21 @@ if nargin == 0
     contrast.num = [1 Inf];
     contrast.val = {1};
     
-    output         = cfg_menu;
-    output.tag     = 'output';
-    output.name    = 'What to output';
-    output.help    = {'Specify output type.'};
-    output.labels  = {
+    result         = cfg_menu;
+    result.tag     = 'result';
+    result.name    = 'What to output';
+    result.help    = {'Specify output type.'};
+    result.labels  = {
         'Single image'
         'Image per condition'
         'Image per trial'
         }';
-    output.values  = {
+    result.values  = {
         'singleimage'
         'bycondition'
         'bytrial'
         }';
-    output.val = {'singleimage'};
+    result.val = {'singleimage'};
     
     modality         = cfg_menu;
     modality.tag     = 'modality';
@@ -80,7 +80,7 @@ if nargin == 0
     image_power      = cfg_branch;
     image_power.tag  = 'image_power';
     image_power.name = 'Power image';
-    image_power.val  = {whatconditions, woi, contrast, output, modality};
+    image_power.val  = {whatconditions, woi, contrast, result, modality};
     
     res = image_power;
     
@@ -142,7 +142,7 @@ spm_progress_bar('Clear');
 W = BF.inverse.W.(S.modality);
 nvert = numel(W);
 
-switch S.output
+switch S.result
     case 'singleimage'
         Cy = {};
         for i = 1:size(YY, 2)
