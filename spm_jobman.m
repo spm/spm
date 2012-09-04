@@ -93,7 +93,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4894 2012-09-03 18:58:00Z guillaume $
+% $Id: spm_jobman.m 4896 2012-09-04 15:11:23Z guillaume $
 
 
 persistent isInitCfg;
@@ -151,6 +151,7 @@ switch cmd
             addpath(fullfile(spm('Dir'),'matlabbatch'));
             addpath(fullfile(spm('Dir'),'config'));
         end
+        spm_select('init');
         cfg_get_defaults('cfg_util.genscript_run', @genscript_run);
         cfg_util('initcfg'); % This must be the first call to cfg_util
         if ~spm('cmdline')

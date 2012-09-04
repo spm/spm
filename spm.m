@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4886 2012-09-03 14:15:20Z volkmar $
+% $Id: spm.m 4896 2012-09-04 15:11:23Z guillaume $
 
 
 %=======================================================================
@@ -342,9 +342,7 @@ spm_defaults;                                              fprintf('.');
 
 %-Setup for batch system
 %-----------------------------------------------------------------------
-spm_select('spm_regfilters');
-spm_select('prevdirs',[spm('Dir') filesep]);
-spm_jobman('initcfg');
+spm_jobman('initcfg');                                     fprintf('.');
 
 %-Draw SPM windows
 %-----------------------------------------------------------------------
@@ -357,7 +355,7 @@ else
 end
 Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
    
-spm_figure('WaterMark',Finter,spm('Ver'),'',45);           fprintf('.');
+spm_figure('WaterMark',Finter,spm('Ver'),'',45);
 
 Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
 if exist(Fmotd,'file'), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end

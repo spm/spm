@@ -80,19 +80,29 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4895 2012-09-04 09:11:10Z volkmar $
+% $Id: spm_select.m 4896 2012-09-04 15:11:23Z guillaume $
 
 
-if ~isdeployed && ~exist('cfg_getfile','file')
-    addpath(fullfile(spm('dir'),'matlabbatch'));
+persistent isInitSelect;
+if isempty(isInitSelect)
+    isInitSelect = true;
+    spm_select('init');
+    if nargin == 1 && strcmpi(varargin{1},'init'), return; end
 end
 
 %-Commands that are not passed to cfg_getfile
-local_cmds = {'spm_regfilters'};
+local_cmds = {'regfilter', 'init'};
 
 if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
     switch lower(varargin{1})
-        case 'spm_regfilters'
+        case 'init'
+            if ~isdeployed && ~exist('cfg_getfile','file')
+                addpath(fullfile(spm('dir'),'matlabbatch'));
+            end
+            spm_select('regfilter');
+            spm_select('prevdirs',spm('Dir'));
+            
+        case 'regfilter'
             % Regexp based filters without special handlers
             cfg_getfile('regfilter', 'mesh',  {'\.gii$'});
             cfg_getfile('regfilter', 'gifti', {'\.gii$'});
@@ -105,8 +115,8 @@ if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
             frames.num     = [1 Inf];
             frames.val     = {1};
             cfg_getfile('regfilter', 'image',...
-                        {'.*\.nii(,\d+){0,2}$','.*\.img(,\d+){0,2}$'},...
-                        false, @spm_select_image, {frames});
+                {'.*\.nii(,\d+){0,2}$','.*\.img(,\d+){0,2}$'},...
+                false, @spm_select_image, {frames});
     end
 else
     needchar = false;
