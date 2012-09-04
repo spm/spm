@@ -80,7 +80,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4893 2012-09-03 17:58:57Z guillaume $
+% $Id: spm_select.m 4895 2012-09-04 09:11:10Z volkmar $
 
 
 if ~isdeployed && ~exist('cfg_getfile','file')
@@ -96,7 +96,7 @@ if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
             % Regexp based filters without special handlers
             cfg_getfile('regfilter', 'mesh',  {'\.gii$'});
             cfg_getfile('regfilter', 'gifti', {'\.gii$'});
-            cfg_getfile('regfilter', 'nifti', {'\.nii$'});
+            cfg_getfile('regfilter', 'nifti', {'\.nii$','\.img$'});
             % Filter for 3D images that handles frame expansion
             frames = cfg_entry;
             frames.name    = 'Frames';
