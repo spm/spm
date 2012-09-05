@@ -16,7 +16,7 @@ function item = cfg_files(varargin)
 %    * expanded
 %    * hidden
 % All fields above are inherited from the generic configuration item class.
-%    * filter  - default '.*'
+%    * filter  - cellstr of filter expressions, default {'any'}
 %    * num     - default [0 Inf]
 %    * dir     - default ''
 %    * ufilter - default '.*'
@@ -69,9 +69,9 @@ function item = cfg_files(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_files.m 4166 2011-01-17 15:06:41Z volkmar $
+% $Id: cfg_files.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 4166 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields

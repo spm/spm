@@ -21,9 +21,9 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: initialise.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 4073 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 if strcmp(val,'<DEFAULTS>')
     item = initialise_def(item, val, dflag);
@@ -45,6 +45,10 @@ for k = 1:numel(item.values)
 end;
 
 function item = initialise_job(item, val, dflag)
+% Modify job before initialisation
+if ~dflag && ~isempty(item.cfg_item.rewrite_job)
+    val = feval(item.cfg_item.rewrite_job, val);
+end
 if numel(item.values)==1 && isa(item.values{1},'cfg_branch') ...
         && ~item.forcestruct,
     if isstruct(val)
@@ -103,15 +107,19 @@ else
     else
         citem = cell(1,numel(val));
         if numel(item.values) > 1 || item.forcestruct
+            tnames = tagnames(item, true);
             for l = 1:numel(val)
                 % val{l} should be a struct with a single field
                 vtag = fieldnames(val{l});
-                for k = 1:numel(item.values)
-                    if strcmp(gettag(item.values{k}), vtag{1})
-                        citem{l} = initialise(item.values{k}, ...
-                            val{l}.(vtag{1}), ...
-                            dflag);
-                    end;
+                k = find(strcmp(vtag{1}, tnames));
+                if numel(k) == 1
+                    citem{l} = initialise(item.values{k}, ...
+                        val{l}.(vtag{1}), ...
+                        dflag);
+                else
+                    cfg_message('matlabbatch:initialise', ...
+                        'Item %s: No repeat named%s', ...
+                        gettag(item), sprintf('\n%s', vtag{1}));
                 end;
             end;
         else
@@ -123,4 +131,3 @@ else
         item.cfg_item.val = citem;
     end;
 end;
-

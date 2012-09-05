@@ -31,14 +31,13 @@ function sts = match(item, spec)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: match.m 1716 2008-05-23 08:18:45Z volkmar $
+% $Id: match.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 1716 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 % match an empty spec
 sts = true;
 
-specflt = {'image','nifti','mat','mattxt','batch','xml','any','dir'};
 for k = 1:numel(spec)
     % Assume no match
     sts = false;
@@ -46,20 +45,18 @@ for k = 1:numel(spec)
         switch spec{k}(l).name,
             % don't try any matching of regexp filters
             case 'filter',
-                if strcmpi(item.filter,'nifti')
-                    ifilter = 'image';
-                else
-                    ifilter = item.filter;
-                end;
-                if strcmpi(spec{k}(l).value,'nifti')
-                    sfilter = 'image';
-                else
-                    sfilter = spec{k}(l).value;
-                end;                
-                if strcmpi(ifilter,'any')
+                specflt = cfg_getfile('regfilter');
+                specflt = {specflt.typ};
+                ifilter = item.filter;
+                [ifilter{strcmpi(item.filter,'nifti')}] = deal('image');
+                sfilter = cellstr(spec{k}(l).value);
+                [sfilter{strcmpi(sfilter,'nifti')}] = deal('image');
+                if isequal(ifilter, sfilter)
                     sts = true;
-                elseif any(strcmpi(sfilter,specflt)) && any(strcmpi(ifilter,specflt))
-                    sts = strcmpi(sfilter,ifilter);
+                elseif any(strcmpi(ifilter,'any'))
+                    sts = any(~strcmpi(sfilter,'dir'));
+                elseif ~isempty(intersect(sfilter,specflt)) && ~isempty(intersect(ifilter,specflt))
+                    sts = ~isempty(intersect(sfilter,ifilter));
                 else
                     sts = true;
                 end;

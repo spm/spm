@@ -24,9 +24,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 2512 2008-12-01 13:21:29Z volkmar $
+% $Id: subsasgn_check.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 2512 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 sts = true;
 switch class(item)
@@ -40,13 +40,6 @@ switch class(item)
                 end
                 %case {'val'},
                 % No checks. All checks must be run in derived classes.
-            case {'check'},
-                if ~subsasgn_check_funhandle(val)
-                    cfg_message('matlabbatch:check:funhandle', ...
-                            ['%s: Value must be a function or function ' ...
-                             'handle on MATLAB path.'], subsasgn_checkstr(item,subs));
-                    sts = false;
-                end
             case {'help'},
                 if isempty(val)
                     val = {};
@@ -54,11 +47,11 @@ switch class(item)
                     cfg_message('matlabbatch:check:help', '%s: Value must be a cell string.', subsasgn_checkstr(item,subs));
                     sts = false;
                 end
-            case {'def'},
+            case {'check','def','rewrite_job'},
                 if isempty(val)
                     val = [];
                 elseif ~subsasgn_check_funhandle(val)
-                    cfg_message('matlabbatch:check:def', '%s: Value must be a function or function handle.', subsasgn_checkstr(item,subs));
+                    cfg_message('matlabbatch:check:funhandle', '%s: Value must be a function or function handle.', subsasgn_checkstr(item,subs));
                     sts = false;
                 end
             case {'hidden', 'expanded'},

@@ -4,7 +4,121 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2010-06-11 13:56:06.
+% Created at 2012-09-04 16:45:44.
+% ---------------------------------------------------------------------
+% files Files
+% ---------------------------------------------------------------------
+files         = cfg_files;
+files.tag     = 'files';
+files.name    = 'Files';
+files.help    = {'Enter file names.'};
+files.filter = {'any', 'dir'};
+files.ufilter = '.*';
+files.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% cfg_fileparts Get Pathnames
+% ---------------------------------------------------------------------
+cfg_fileparts         = cfg_exbranch;
+cfg_fileparts.tag     = 'cfg_fileparts';
+cfg_fileparts.name    = 'Get Pathnames';
+cfg_fileparts.val     = {files };
+cfg_fileparts.help    = {'Split a list of path names into lists of parent directory, name and extension. The list of parent directories can be passed to any other file selector. The list of names and extensions can only be passed to evaluated inputs, not to string inputs.'};
+cfg_fileparts.prog = @cfg_run_fileparts;
+cfg_fileparts.vout = @cfg_vout_fileparts;
+% ---------------------------------------------------------------------
+% dir Directory
+% ---------------------------------------------------------------------
+dir         = cfg_files;
+dir.tag     = 'dir';
+dir.name    = 'Directory';
+dir.help    = {'New working directory.'};
+dir.filter = 'dir';
+dir.ufilter = '.*';
+dir.num     = [1 1];
+% ---------------------------------------------------------------------
+% cfg_cd Change Directory
+% ---------------------------------------------------------------------
+cfg_cd         = cfg_exbranch;
+cfg_cd.tag     = 'cfg_cd';
+cfg_cd.name    = 'Change Directory';
+cfg_cd.val     = {dir };
+cfg_cd.help    = {'Change working directory.'};
+cfg_cd.prog = @cfg_run_cd;
+% ---------------------------------------------------------------------
+% parent Parent Directory
+% ---------------------------------------------------------------------
+parent         = cfg_files;
+parent.tag     = 'parent';
+parent.name    = 'Parent Directory';
+parent.help    = {'Directory where the new directory will be created.'};
+parent.filter = 'dir';
+parent.ufilter = '.*';
+parent.num     = [1 1];
+% ---------------------------------------------------------------------
+% name New Directory Name
+% ---------------------------------------------------------------------
+name         = cfg_entry;
+name.tag     = 'name';
+name.name    = 'New Directory Name';
+name.help    = {'Name for the new directory.'};
+name.strtype = 's';
+name.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% cfg_mkdir Make Directory
+% ---------------------------------------------------------------------
+cfg_mkdir         = cfg_exbranch;
+cfg_mkdir.tag     = 'cfg_mkdir';
+cfg_mkdir.name    = 'Make Directory';
+cfg_mkdir.val     = {parent name };
+cfg_mkdir.help    = {'Create a new directory.'};
+cfg_mkdir.prog = @cfg_run_mkdir;
+cfg_mkdir.vout = @cfg_vout_mkdir;
+% ---------------------------------------------------------------------
+% name Input Name
+% ---------------------------------------------------------------------
+name         = cfg_entry;
+name.tag     = 'name';
+name.name    = 'Input Name';
+name.help    = {'Enter a name for this directory selection. This name will be displayed in the ''Dependency'' listing as output name.'};
+name.strtype = 's';
+name.num     = [1  Inf];
+% ---------------------------------------------------------------------
+% dirs Directory
+% ---------------------------------------------------------------------
+dirs1         = cfg_files;
+dirs1.tag     = 'dirs';
+dirs1.name    = 'Directory';
+dirs1.help    = {'Select a directory.'};
+dirs1.filter = 'dir';
+dirs1.ufilter = '.*';
+dirs1.num     = [1 1];
+% ---------------------------------------------------------------------
+% dirs Directories
+% ---------------------------------------------------------------------
+dirs         = cfg_repeat;
+dirs.tag     = 'dirs';
+dirs.name    = 'Directories';
+dirs.help    = {'Select one or more directories.'};
+dirs.values  = {dirs1 };
+dirs.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% cfg_named_dir Named Directory Selector
+% ---------------------------------------------------------------------
+cfg_named_dir         = cfg_exbranch;
+cfg_named_dir.tag     = 'cfg_named_dir';
+cfg_named_dir.name    = 'Named Directory Selector';
+cfg_named_dir.val     = {name dirs };
+cfg_named_dir.help    = {'Named Directory Selector allows to select directories that can be referenced as common input by other modules.'};
+cfg_named_dir.prog = @cfg_run_named_dir;
+cfg_named_dir.vout = @cfg_vout_named_dir;
+% ---------------------------------------------------------------------
+% dir_ops Dir Operations
+% ---------------------------------------------------------------------
+dir_ops         = cfg_choice;
+dir_ops.tag     = 'dir_ops';
+dir_ops.name    = 'Dir Operations';
+dir_ops.help    = {''};
+dir_ops.values  = {cfg_cd cfg_mkdir cfg_named_dir };
 % ---------------------------------------------------------------------
 % files Files to move/copy/delete
 % ---------------------------------------------------------------------
@@ -201,92 +315,6 @@ file_move.help    = {'Move or delete files.'};
 file_move.prog = @cfg_run_file_move;
 file_move.vout = @cfg_vout_file_move;
 % ---------------------------------------------------------------------
-% dir Directory
-% ---------------------------------------------------------------------
-dir         = cfg_files;
-dir.tag     = 'dir';
-dir.name    = 'Directory';
-dir.help    = {'New working directory.'};
-dir.filter = 'dir';
-dir.ufilter = '.*';
-dir.num     = [1 1];
-% ---------------------------------------------------------------------
-% cfg_cd Change Directory
-% ---------------------------------------------------------------------
-cfg_cd         = cfg_exbranch;
-cfg_cd.tag     = 'cfg_cd';
-cfg_cd.name    = 'Change Directory';
-cfg_cd.val     = {dir };
-cfg_cd.help    = {'Change working directory.'};
-cfg_cd.prog = @cfg_run_cd;
-% ---------------------------------------------------------------------
-% parent Parent Directory
-% ---------------------------------------------------------------------
-parent         = cfg_files;
-parent.tag     = 'parent';
-parent.name    = 'Parent Directory';
-parent.help    = {'Directory where the new directory will be created.'};
-parent.filter = 'dir';
-parent.ufilter = '.*';
-parent.num     = [1 1];
-% ---------------------------------------------------------------------
-% name New Directory Name
-% ---------------------------------------------------------------------
-name         = cfg_entry;
-name.tag     = 'name';
-name.name    = 'New Directory Name';
-name.help    = {'Name for the new directory.'};
-name.strtype = 's';
-name.num     = [1  Inf];
-% ---------------------------------------------------------------------
-% cfg_mkdir Make Directory
-% ---------------------------------------------------------------------
-cfg_mkdir         = cfg_exbranch;
-cfg_mkdir.tag     = 'cfg_mkdir';
-cfg_mkdir.name    = 'Make Directory';
-cfg_mkdir.val     = {parent name };
-cfg_mkdir.help    = {'Create a new directory.'};
-cfg_mkdir.prog = @cfg_run_mkdir;
-cfg_mkdir.vout = @cfg_vout_mkdir;
-% ---------------------------------------------------------------------
-% name Input Name
-% ---------------------------------------------------------------------
-name         = cfg_entry;
-name.tag     = 'name';
-name.name    = 'Input Name';
-name.help    = {'Enter a name for this directory selection. This name will be displayed in the ''Dependency'' listing as output name.'};
-name.strtype = 's';
-name.num     = [1  Inf];
-% ---------------------------------------------------------------------
-% dirs Directory
-% ---------------------------------------------------------------------
-dirs1         = cfg_files;
-dirs1.tag     = 'dirs';
-dirs1.name    = 'Directory';
-dirs1.help    = {'Select a directory.'};
-dirs1.filter = 'dir';
-dirs1.ufilter = '.*';
-dirs1.num     = [1 1];
-% ---------------------------------------------------------------------
-% dirs Directories
-% ---------------------------------------------------------------------
-dirs         = cfg_repeat;
-dirs.tag     = 'dirs';
-dirs.name    = 'Directories';
-dirs.help    = {'Select one or more directories.'};
-dirs.values  = {dirs1 };
-dirs.num     = [1 Inf];
-% ---------------------------------------------------------------------
-% cfg_named_dir Named Directory Selector
-% ---------------------------------------------------------------------
-cfg_named_dir         = cfg_exbranch;
-cfg_named_dir.tag     = 'cfg_named_dir';
-cfg_named_dir.name    = 'Named Directory Selector';
-cfg_named_dir.val     = {name dirs };
-cfg_named_dir.help    = {'Named Directory Selector allows to select directories that can be referenced as common input by other modules.'};
-cfg_named_dir.prog = @cfg_run_named_dir;
-cfg_named_dir.vout = @cfg_vout_named_dir;
-% ---------------------------------------------------------------------
 % name Input Name
 % ---------------------------------------------------------------------
 name         = cfg_entry;
@@ -471,6 +499,22 @@ cfg_file_split.help    = {
                           }';
 cfg_file_split.prog = @cfg_run_file_split;
 cfg_file_split.vout = @cfg_vout_file_split;
+% ---------------------------------------------------------------------
+% file_ops File Operations
+% ---------------------------------------------------------------------
+file_ops         = cfg_choice;
+file_ops.tag     = 'file_ops';
+file_ops.name    = 'File Operations';
+file_ops.help    = {''};
+file_ops.values  = {file_move cfg_named_file file_fplist file_filter cfg_file_split };
+% ---------------------------------------------------------------------
+% file_dir File/Dir Operations
+% ---------------------------------------------------------------------
+file_dir         = cfg_choice;
+file_dir.tag     = 'file_dir';
+file_dir.name    = 'File/Dir Operations';
+file_dir.help    = {''};
+file_dir.values  = {cfg_fileparts dir_ops file_ops };
 % ---------------------------------------------------------------------
 % name Input Name
 % ---------------------------------------------------------------------
@@ -839,6 +883,14 @@ cfg_assignin.help    = {
                         }';
 cfg_assignin.prog = @cfg_run_assignin;
 % ---------------------------------------------------------------------
+% var_ops Variable Input/Output
+% ---------------------------------------------------------------------
+var_ops         = cfg_choice;
+var_ops.tag     = 'var_ops';
+var_ops.name    = 'Variable Input/Output';
+var_ops.help    = {''};
+var_ops.values  = {cfg_named_input load_vars cfg_save_vars subsrefvar cfg_assignin };
+% ---------------------------------------------------------------------
 % jobs Job File(s)
 % ---------------------------------------------------------------------
 jobs         = cfg_files;
@@ -1184,10 +1236,19 @@ call_matlab.val     = {inputs outputs fun };
 call_matlab.prog = @(job)cfg_run_call_matlab('run',job);
 call_matlab.vout = @(job)cfg_run_call_matlab('vout',job);
 % ---------------------------------------------------------------------
+% run_ops Run
+% ---------------------------------------------------------------------
+run_ops         = cfg_choice;
+run_ops.tag     = 'run_ops';
+run_ops.name    = 'Run';
+run_ops.help    = {''};
+run_ops.values  = {runjobs call_matlab };
+% ---------------------------------------------------------------------
 % cfg_basicio BasicIO
 % ---------------------------------------------------------------------
 cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
-cfg_basicio.values  = {file_move cfg_cd cfg_mkdir cfg_named_dir cfg_named_file file_fplist file_filter cfg_file_split cfg_named_input load_vars cfg_save_vars subsrefvar cfg_assignin runjobs call_matlab };
+cfg_basicio.values  = {file_dir var_ops run_ops };
+cfg_basicio.rewrite_job = @cfg_basicio_rewrite;

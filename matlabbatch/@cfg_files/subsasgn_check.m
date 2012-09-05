@@ -12,14 +12,20 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4886 2012-09-03 14:15:20Z volkmar $
+% $Id: subsasgn_check.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 4886 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 sts = true;
 switch subs(1).subs
     case {'num'}
         sts = subsasgn_check_num(val);
+    case {'filter'}
+        try
+            val = cellstr(val);
+        catch
+            sts = false;
+        end
     case {'val'}
         % val{1} should be a cellstr or a cfg_dep
         sts = iscell(val) && (isempty(val) || isempty(val{1}) || ...

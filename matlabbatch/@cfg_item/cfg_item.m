@@ -15,7 +15,15 @@ function item = cfg_item(varargin)
 %              dependencies in the harvested subtree are resolved and all
 %              val's are set. 
 %              This function should return an empty string on success and
-%              a string explaining why it failed otherwise. 
+%              a string explaining why it failed otherwise.
+%    * rewrite_job - (optional) function handle to rewrite a job prior to
+%              initialisation. This function will be called during
+%              initialise(), before any validity checks, subtree
+%              initialisation or value assignments are made. The function
+%              takes a proposed subjob as input, and should return a valid
+%              subjob as output. rewrite_job can be used to implement
+%              silent upgrades to jobs when configuration trees have
+%              changed.
 %    * help  - help text
 %    * def   - defaults setting (only evaluated for cfg_leaf items),
 %              holding a function handle. This function handle should
@@ -78,9 +86,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_item.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
@@ -123,6 +131,12 @@ switch nargin
         item.tag   = varargin{2};
         item.check = varargin{3};
         item.help  = varargin{4};
+    case 5
+        item.name         = varargin{1};
+        item.tag          = varargin{2};
+        item.check        = varargin{3};
+        item.help         = varargin{4};
+        item.rewrite_job  = varargin{5};
     otherwise
         cfg_message('matlabbatch:constructor:nargin', 'Wrong number of arguments.');
 end;

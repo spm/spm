@@ -46,17 +46,18 @@ function [t,sts] = cfg_getfile(varargin)
 % cwd      - cellstr containing current working directory [default '.']
 % cpath    - conditioned paths, in same format as input path argument
 %
-% FORMAT [files,dirs]=cfg_getfile('List',direc[,typ[,filt[,prms]]])
+% FORMAT [files,dirs]=cfg_getfile('List'[,direc[,typ[,filt[,prms]]]])
 % Returns files matching the filter (filt) and directories within direc
-% direc    - directory to search
+% direc    - directory to search. Defaults to pwd.
 % typ      - file type
-% filt     - filter to select files with (see regexp) e.g. '^w.*\.img$'
+% filt     - additional filter to select files with (see regexp)
+%            e.g. '^w.*\.img$' 
 % files    - files matching 'typ' and 'filt' in directory 'direc'
 % dirs     - subdirectories of 'direc'
-% FORMAT [files,dirs]=cfg_getfile('FPList',direc[,typ[,filt[,prms]]])
+% FORMAT [files,dirs]=cfg_getfile('FPList'[,direc[,typ[,filt[,prms]]]])
 % As above, but returns files with full paths (i.e. prefixes direc to
 % each).
-% FORMAT [files,dirs]=cfg_getfile('FPListRec',direc[,typ[,filt[,prms]]])
+% FORMAT [files,dirs]=cfg_getfile('FPListRec'[,direc[,typ[,filt[,prms]]]])
 % As above, but returns files with full paths (i.e. prefixes direc to
 % each) and searches through sub directories recursively.
 %
@@ -77,7 +78,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4886 2012-09-03 14:15:20Z volkmar $
+% $Id: cfg_getfile.m 4898 2012-09-05 13:40:16Z volkmar $
 
 t = {};
 sts = false;
@@ -104,6 +105,11 @@ if nargin > 0 && ischar(varargin{1})
             [unused,sts] = do_filter_exp(t1,filt);
             t            = t(sts);
         case {'list', 'fplist', 'fplistrec'}
+            if nargin < 2
+                direc = pwd;
+            else
+                direc = varargin{2};
+            end
             if nargin < 3
                 typ = 'any';
             else
@@ -121,12 +127,12 @@ if nargin > 0 && ischar(varargin{1})
             end
             filt    = mk_filter(typ, filt, prms{:});
             if regexpi(varargin{1},'rec')
-                [t sts] = select_rec1(varargin{2}, filt);
+                [t sts] = select_rec1(direc, filt);
             else
-                [t sts] = listfiles(varargin{2}, filt); % (sts is subdirs here)
+                [t sts] = listfiles(direc, filt); % (sts is subdirs here)
                 sts = sts(~(strcmp(sts,'.')|strcmp(sts,'..'))); % remove '.' and '..' entries
                 if regexpi(varargin{1}, 'fplist') % return full pathnames
-                    direc = cpath(varargin(2));
+                    direc = cpath(cellstr(direc));
                     if ~isempty(t)
                         t = strcat(direc, filesep, t);
                     end
@@ -144,7 +150,7 @@ if nargin > 0 && ischar(varargin{1})
                 sts = true;
             end
         case 'regfilter'
-            reg_filter(varargin{2:end});
+            t = reg_filter(varargin{2:end});
         otherwise
             cfg_message('matlabbatch:usage','Inappropriate usage.');
     end
@@ -804,11 +810,11 @@ function [f,d]=select_rec1(cdir,filt)
 if isempty(f)
     f = {};
 else
-    f = cellfun(@(f1)fullfile(cdir,filesep,f1),f,'UniformOutput',false);
+    f = strcat(cdir,filesep,f);
 end
 dsel = cellfun(@(d1)any(strcmp(d1,{'.','..'})),d);
 if any(~dsel)
-    d       = cellfun(@(d1)fullfile(cdir,filesep,d1),d(~dsel),'UniformOutput',false);
+    d       = strcat(cdir,filesep,d(~dsel));
     [f1 d1] = cellfun(@(d1)select_rec1(d1,filt),d,'UniformOutput',false);
     f       = [f(:);cat(1,f1{:})];
     d       = [d(:);cat(1,d1{:})];
@@ -864,11 +870,18 @@ end
 
 d = sort({de([de.isdir]).name})';
 d = d(~strcmp(d,'.'));
-if any(strcmp({filt.tfilt.typ},'dir'))
-    f = d(~strcmp(d,'..'));
+dsel = strcmp({filt.tfilt.typ},'dir');
+if any(dsel)
+    fd = d(~strcmp(d,'..'));
 else
-    f = {de(~[de.isdir]).name}';
+    fd = {};
 end
+if any(~dsel)
+    ff = {de(~[de.isdir]).name}';
+else
+    ff = {};
+end
+f = [fd(:); ff(:)];
 
 if domsg
     msg('Filtering %d files...',numel(f));
@@ -1081,7 +1094,9 @@ if isempty(lfilt)
     dprms  = {cfg_branch};
     lfilt = struct('typ',dtypes, 'regex',dregex, 'cflag',dcflag, 'fun',dfun, 'prms',dprms);
 end
-if nargin == 1
+if nargin == 0
+    filt = lfilt;
+elseif nargin == 1
     sel  = any(cell2mat(cellfun(@(t)strcmpi({lfilt.typ},t),cellstr(typ),'UniformOutput',false)'),1);
     if any(sel)
         filt = lfilt(sel);
@@ -1415,10 +1430,11 @@ return;
 
 %=======================================================================
 function varargout = local_isdir(cmd,varargin)
-% assume that only directory names are passed.
 switch lower(cmd)
     case 'list'
-        varargout{1} = varargin{2};
+        d  = dir(varargin{1});
+        dn = {d([d.isdir]).name}';
+        varargout{1} = intersect(dn, varargin{2});
     case 'filter'
         varargout{1} = varargin{1};
         varargout{2} = 1:numel(varargout{1});

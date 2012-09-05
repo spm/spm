@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: harvest.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -61,9 +61,35 @@ else
             cj = del_in_source(item.tdeps, cj);
         end;
         if ~isempty(tdeps)
-            cj = add_to_source(tdeps, cj);
+            [cj ntdeps cflag dflag] = add_to_source(tdeps, cj);
+            item.tdeps = ntdeps;
+            % need to update dependencies in this item (possibly a 2nd
+            % time), otherwise changes might get lost
+            if any(cflag)
+                % update tgt_input deps if necessary
+                otdeps = tdeps(~dflag);
+                item.cfg_branch = update_deps(item.cfg_branch, {otdeps(cflag).src_exbranch}, {ntdeps(cflag).src_exbranch});
+            end
+            if any(dflag)
+                % delete missing deps
+                otdeps = tdeps(dflag);
+                for k = 1:numel(otdeps)
+                    cdeps = subsref(item, [otdeps(k).tgt_input substruct('.','val','{}',{1})]);
+                    dsel = false(size(cdeps));
+                    for l = 1:numel(cdeps)
+                        dsel(l)  = isequalsource(cdeps(l),otdeps(k));
+                    end
+                    if any(~dsel)
+                        item  = subsasgn(item, [otdeps(k).tgt_input substruct('.','val','{}',{1})], cdeps(~dsel));
+                    else % Work around buggy cfg_dep subsref for empty arrays
+                        item  = subsasgn(item, [otdeps(k).tgt_input substruct('.','val')], {});
+                    end
+                    cfg_message('matlabbatch:harvest:srcnotfound', 'Item %s: Dependency ''%s'' could not be added.', gettag(item), otdeps(k).sname);
+                end
+            end
+        else
+            item.tdeps = [];
         end;
-        item.tdeps = tdeps;
     end;
     if all_leafs(item)
         osout = item.sout;

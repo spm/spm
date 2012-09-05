@@ -15,10 +15,11 @@ function item = initialise(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: initialise.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: initialise.m 4898 2012-09-05 13:40:16Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 4898 $'; %#ok
 
+d1flag = false;
 if ischar(val) && strcmp(val, '<DEFAULTS>')
     if isempty(item.def)
         % don't change anything if no .def field
@@ -26,6 +27,7 @@ if ischar(val) && strcmp(val, '<DEFAULTS>')
     else
         try
             val = feval(item.def, {});
+            d1flag = true;
         catch
             cfg_message('matlabbatch:initialise:defaults', ...
                     '%s: No matching defaults value found.', ...
@@ -39,5 +41,9 @@ subs = substruct('.', 'val', '{}', {1});
 if ischar(val) && strcmp(val, '<UNDEFINED>') % val may be <UNDEFINED>
     item.val = {};
 else
+    % Modify job before initialisation
+    if ~d1flag && ~dflag && ~isempty(item.rewrite_job)
+        val = feval(item.rewrite_job, val);
+    end
     item = subsasgn(item, subs, val);
 end;
