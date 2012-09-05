@@ -3,7 +3,7 @@ function spm_defaults
 %__________________________________________________________________________
 %
 % If you want to customise some defaults for your installation, do not
-% modify this file directly, but create a file names spm_my_defaults.m
+% modify this file directly, but create a file named spm_my_defaults.m
 % instead, accessible from MATLAB search path; e.g., it can be saved in
 % MATLAB Startup Folder: userhome/Documents/MATLAB.
 %
@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4878 2012-08-31 12:07:30Z guillaume $
+% $Id: spm_defaults.m 4902 2012-09-05 18:56:48Z guillaume $
 
 
 global defaults
@@ -34,10 +34,10 @@ defaults.cmdline  = 0;
 
 % User Interface defaults
 %==========================================================================
-defaults.ui.print  = struct('opt',{{'-dpsc2','-append'}},'append',true,'ext','.ps');
 defaults.ui.colour = [0.73 0.78 0.96];
-defaults.renderer  = 'zbuffer';
 defaults.ui.fs     = 14;  % unused
+defaults.ui.print  = 'ps';
+defaults.renderer  = 'zbuffer';
 
 % File format specific
 %==========================================================================
@@ -182,15 +182,15 @@ defaults.smooth.fwhm = [8 8 8];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %-Prevent users from making direct calls to spm_defaults
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-persistent runonce
+persistent runOnce
 try
-    if ~isdeployed && isempty(runonce)
+    if ~isdeployed && isempty(runOnce)
         d = dbstack;
         if isempty(intersect({'spm','spm_get_defaults'},{d.name}))
             fprintf(['Direct calls to spm_defauts are deprecated.\n' ...
                 'Please use spm(''Defaults'',modality) ' ...
                 'or spm_get_defaults instead.\n']);
-            runonce = 1;
+            runOnce = 1;
         end
     end
 end
