@@ -3,7 +3,7 @@ function preproc = spm_cfg_preproc
 %______________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_preproc.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: spm_cfg_preproc.m 4900 2012-09-05 14:06:50Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldSeg')); end
 
@@ -289,10 +289,10 @@ opts.name    = 'Custom';
 opts.val     = {tpm ngaus regtype warpreg warpco biasreg biasfwhm samp msk };
 opts.help    = {'Various options can be adjusted in order to improve the performance of the algorithm with your data.  Knowing what works best should be a matter of empirical exploration.  For example, if your data has very little intensity non-uniformity artifact, then the bias regularisation should be increased.  This effectively tells the algorithm that there is very little bias in your data, so it does not try to model it.'};
 % ---------------------------------------------------------------------
-% preproc Segment
+% oldseg Old Segment
 % ---------------------------------------------------------------------
 preproc         = cfg_exbranch;
-preproc.tag     = 'preproc';
+preproc.tag     = 'oldseg';
 preproc.name    = 'Old Segment';
 preproc.val     = {data output opts};
 preproc.help    = {

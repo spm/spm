@@ -3,7 +3,7 @@ function normalise = spm_cfg_normalise
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: spm_cfg_normalise.m 4900 2012-09-05 14:06:50Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end
 
@@ -408,10 +408,10 @@ estwrite.prog = @spm_run_normalise;
 estwrite.vout = @vout_estwrite;
 
 %--------------------------------------------------------------------------
-% normalise Normalise
+% oldnorm Old Normalise
 %--------------------------------------------------------------------------
 normalise         = cfg_choice;
-normalise.tag     = 'normalise';
+normalise.tag     = 'oldnorm';
 normalise.name    = 'Old Normalise';
 normalise.help    = {
                      'This very ancient module spatially (stereotactically) normalises MRI, PET or SPECT images into a standard space defined by some ideal model or template image[s].  The template images supplied with SPM conform to the space defined by the ICBM, NIH P-20 project, and approximate that of the the space described in the atlas of Talairach and Tournoux (1988). The transformation can also be applied to any other image that has been coregistered with these scans. A few researchers may wish to continue using this strategy, but (when good quality anatomical MRI scans are available) the DARTEL approach is now generally recommended instead.'
