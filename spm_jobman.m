@@ -93,7 +93,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4896 2012-09-04 15:11:23Z guillaume $
+% $Id: spm_jobman.m 4903 2012-09-05 19:10:42Z guillaume $
 
 
 persistent isInitCfg;
@@ -363,24 +363,28 @@ for i=1:numel(jobs)
             jobs{i}{j}.spm.spatial.preproc.data;
             fprintf('Conversion Segment -> Old Segment\n');
             jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
+            jobs{i}{j}.spm.tools = struct('oldseg',jobs{i}{j}.spm.tools.preproc);
         end
         
         try
             jobs{i}{j}.spm.spatial.normalise.est.subj(1).source ;
             fprintf('Conversion Normalise:Est -> Old Normalise:Est\n');
             jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
+            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
         end
         
         try
             jobs{i}{j}.spm.spatial.normalise.write.subj(1).matname;
             fprintf('Conversion Normalise:Write -> Old Normalise:Write\n');
             jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
+            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
         end
         
         try
             jobs{i}{j}.spm.spatial.normalise.estwrite.subj(1).source;
             fprintf('Conversion Normalise:EstWrite -> Old Normalise:EstWrite\n');
             jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
+            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
         end
     end
 end
