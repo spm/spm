@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 4905 2012-09-06 15:34:26Z guillaume $
+% $Id: spm_rewrite_job.m 4908 2012-09-06 19:53:19Z guillaume $
 
 
 try
@@ -33,4 +33,15 @@ end
 try
     job.tools.sendmail;
     job = struct('util', job.tools);
+end
+
+try
+    util = char(fieldnames(job.util));
+    if ismember(util, {'cdir','md','deletefiles','movefile'})
+        ws = warning('off','backtrace');
+        warning(['spm.util.%s was DEPRECATED in SPM8 and has now been REMOVED.\n' ...
+            'Please update your batches to use BasicIO instead.'],util);
+        warning(ws);
+        %job = struct([]);
+    end
 end

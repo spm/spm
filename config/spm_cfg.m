@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4904 2012-09-06 15:08:56Z guillaume $
+% $Id: spm_cfg.m 4908 2012-09-06 19:53:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -75,7 +75,7 @@ util         = cfg_choice;
 util.tag     = 'util';
 util.name    = 'Util';
 util.help    = {'Various useful tools.'};
-util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_cdir spm_cfg_md spm_cfg_movefile spm_cfg_deletefiles spm_cfg_deformations spm_cfg_print spm_cfg_cat spm_cfg_exp_frames spm_cfg_sendmail };
+util.values  = { spm_cfg_disp spm_cfg_checkreg spm_cfg_imcalc spm_cfg_reorient spm_cfg_voi spm_cfg_dicom spm_cfg_minc spm_cfg_ecat spm_cfg_spm_surf spm_cfg_cdir spm_cfg_md spm_cfg_deformations spm_cfg_print spm_cfg_cat spm_cfg_exp_frames spm_cfg_sendmail };
 
 %--------------------------------------------------------------------------
 % Tools
