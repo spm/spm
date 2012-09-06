@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_groupwise_ls.m 4906 2012-09-06 17:30:56Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -973,7 +973,7 @@ end
 
 % Average of these matrices
 %-----------------------------------------------------------------------
-M_avg = spm_karcher(Matrices);
+M_avg = spm_meanm(Matrices);
 
 % If average involves shears, then find the closest matrix that does not
 % require them

@@ -1,16 +1,17 @@
-function M = spm_karcher(A)
-% Compute Karcher mean
-% FORMAT M = spm_karcher(A)
+function M = spm_meanm(A)
+% Compute barycentre of matrix exponentials
+% FORMAT M = spm_meanm(A)
 % A - A 3D array, where each slice is a matrix
 % M - the resulting mean
 %
 % Note that matrices should not be too dissimilar to each other or the
 % procedure fails.
+% See http://hal.archives-ouvertes.fr/hal-00699361/
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_karcher.m 4678 2012-03-05 18:01:33Z john $
+% $Id: spm_meanm.m 4906 2012-09-06 17:30:56Z john $
 
 N = size(A,3);
 M = eye(size(A,1),size(A,2));
