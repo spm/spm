@@ -42,7 +42,7 @@ function [cfgname, defname] = spm_tbx_config2cfg(c0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_tbx_config2cfg.m 3460 2009-10-13 12:48:52Z volkmar $
+% $Id: spm_tbx_config2cfg.m 4905 2012-09-06 15:34:26Z guillaume $
 
 % Convert to cfg_ tree. This will produce warnings if some elements could
 % not be converted properly.

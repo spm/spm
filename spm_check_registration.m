@@ -1,5 +1,5 @@
 function spm_check_registration(images, captions, varargin)
-% A visual check of image registration quality.
+% A visual check of image registration quality
 % FORMAT spm_check_registration
 % FORMAT spm_check_registration(images, captions)
 % Orthogonal views of one or more images are displayed. Clicking in
@@ -9,11 +9,13 @@ function spm_check_registration(images, captions, varargin)
 % the bottom right. The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %__________________________________________________________________________
-% Copyright (C) 1997-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1997-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 4845 2012-08-15 19:23:46Z guillaume $
+% $Id: spm_check_registration.m 4905 2012-09-06 15:34:26Z guillaume $
 
+
+SVNid = '$Rev: 4905 $';
 
 if ~nargin
     [images, sts] = spm_select([1 24],'image','Select images');
@@ -21,6 +23,12 @@ if ~nargin
 end
 
 if ischar(images), images = spm_vol(images); end
+
+spm('FnBanner',mfilename,SVNid);                                        %-#
+for i=1:numel(images)
+    if i==1, fprintf('Display %s\n',images(i).fname);                   %-#
+    else     fprintf('        %s\n',images(i).fname); end               %-#
+end
 
 spm_figure('GetWin','Graphics');
 spm_figure('Clear','Graphics');
