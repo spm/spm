@@ -3,7 +3,7 @@ function normalise = spm_cfg_normalise
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_normalise.m 4900 2012-09-05 14:06:50Z john $
+% $Id: spm_cfg_normalise.m 4904 2012-09-06 15:08:56Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','OldNorm')); end
 
@@ -161,11 +161,11 @@ eoptions.val  = {template weight smosrc smoref regtype cutoff nits reg };
 eoptions.help = {'Various settings for estimating warps.'};
 
 %--------------------------------------------------------------------------
-% est Normalise: Estimate
+% est Old Normalise: Estimate
 %--------------------------------------------------------------------------
 est         = cfg_exbranch;
 est.tag     = 'est';
-est.name    = 'Normalise: Estimate';
+est.name    = 'Old Normalise: Estimate';
 est.val     = {esubjs eoptions };
 est.help    = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to a file imagename''_sn.mat''.'};
 est.prog    = @spm_run_normalise;
@@ -333,11 +333,11 @@ roptions.val  = {preserve bb vox interp wrap prefix };
 roptions.help = {'Various options for writing normalised images.'};
 
 %--------------------------------------------------------------------------
-% write Normalise: Write
+% write Old Normalise: Write
 %--------------------------------------------------------------------------
 write         = cfg_exbranch;
 write.tag     = 'write';
-write.name    = 'Normalise: Write';
+write.name    = 'Old Normalise: Write';
 write.val     = {wsubjs roptions };
 write.help    = {'Allows previously estimated warps (stored in imagename''_sn.mat'' files) to be applied to series of images.'};
 write.prog    = @spm_run_normalise;
@@ -397,11 +397,11 @@ ewsubjs.values  = {subj };
 ewsubjs.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
-% estwrite Normalise: Estimate & Write
+% estwrite Old Normalise: Estimate & Write
 %--------------------------------------------------------------------------
 estwrite      = cfg_exbranch;
 estwrite.tag  = 'estwrite';
-estwrite.name = 'Normalise: Estimate & Write';
+estwrite.name = 'Old Normalise: Estimate & Write';
 estwrite.val  = {ewsubjs eoptions roptions };
 estwrite.help = {'Computes the warp that best registers a source image (or series of source images) to match a template, saving it to the file imagename''_sn.mat''. This option also allows the contents of the imagename''_sn.mat'' files to be applied to a series of images.'};
 estwrite.prog = @spm_run_normalise;

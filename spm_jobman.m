@@ -93,7 +93,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2008 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4903 2012-09-05 19:10:42Z guillaume $
+% $Id: spm_jobman.m 4904 2012-09-06 15:08:56Z guillaume $
 
 
 persistent isInitCfg;
@@ -133,7 +133,6 @@ if any(strcmp(cmd, {'serial','interactive','run'}))
                 end
             end
             mljob = canonicalise_job(jobs);
-            mljob = convert2spm12(mljob);
         elseif any(strcmp(cmd, {'interactive','serial'})) && nargin>=3 && isempty(varargin{2})
             % Node spec only allowed for 'interactive', 'serial'
             arg3       = regexprep(varargin{3},'^spmjobs\.','spm.');
@@ -350,44 +349,6 @@ for k = 1:numel(fname)
     end
 end
 spm('Pointer','Arrow');
-
-
-%==========================================================================
-% function jobs = convert2spm12(jobs)
-%==========================================================================
-function jobs = convert2spm12(jobs)
-% Attempt to convert an SPM8 job to SPM12
-for i=1:numel(jobs)
-    for j=1:numel(jobs{i})
-        try
-            jobs{i}{j}.spm.spatial.preproc.data;
-            fprintf('Conversion Segment -> Old Segment\n');
-            jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
-            jobs{i}{j}.spm.tools = struct('oldseg',jobs{i}{j}.spm.tools.preproc);
-        end
-        
-        try
-            jobs{i}{j}.spm.spatial.normalise.est.subj(1).source ;
-            fprintf('Conversion Normalise:Est -> Old Normalise:Est\n');
-            jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
-            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
-        end
-        
-        try
-            jobs{i}{j}.spm.spatial.normalise.write.subj(1).matname;
-            fprintf('Conversion Normalise:Write -> Old Normalise:Write\n');
-            jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
-            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
-        end
-        
-        try
-            jobs{i}{j}.spm.spatial.normalise.estwrite.subj(1).source;
-            fprintf('Conversion Normalise:EstWrite -> Old Normalise:EstWrite\n');
-            jobs{i}{j}.spm = struct('tools',jobs{i}{j}.spm.spatial);
-            jobs{i}{j}.spm.tools = struct('oldnorm',jobs{i}{j}.spm.tools.normalise);
-        end
-    end
-end
 
 
 %==========================================================================

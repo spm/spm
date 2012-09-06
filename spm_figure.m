@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4870 2012-08-30 13:47:00Z volkmar $
+% $Id: spm_figure.m 4904 2012-09-06 15:08:56Z guillaume $
 
 
 %==========================================================================
@@ -121,9 +121,9 @@ function varargout=spm_figure(varargin)
 % FORMAT spm_figure('Print',F)
 % F - [Optional] Figure to print. ('Tag' or figure number)
 %     Defaults to figure 'Tag'ed as 'Graphics'.
-%     If none found, uses CurrentFigure if avaliable.
+%     If none found, uses CurrentFigure if available.
 % If objects 'Tag'ed 'NextPage' and 'PrevPage' are found, then the
-% pages are shown and printed in order. In breif, pages are held as
+% pages are shown and printed in order. In brief, pages are held as
 % seperate axes, with ony one 'Visible' at any one time. The handles of
 % the "page" axes are stored in the 'UserData' of the 'NextPage'
 % object, while the 'PrevPage' object holds the current page number.

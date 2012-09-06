@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_cfg.m 4904 2012-09-06 15:08:56Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -125,7 +125,9 @@ else
         if ~isempty(ft)
             % The toolbox developer MUST add path to his/her toolbox in his/her
             % 'prog' function, with a command line like:
-            % >> addpath(fullfile(spm('Dir'),'toolbox','mytoolbox'),'-end');
+            % >> if ~isdeployed,
+            % >>   addpath(fileparts(mfilename('fullpath')),'-end');
+            % >> end
             cwd = pwd;
             for j=1:length(ft)
                 try
@@ -157,3 +159,4 @@ spmjobs.help    = {
                 ''
 }';
 spmjobs.values  = { temporal spatial stats meeg util tools};
+spmjobs.rewrite_job = @spm_rewrite_job;

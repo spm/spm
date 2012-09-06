@@ -1,6 +1,7 @@
 function spm_image(action,varargin)
 % Image and header display
 % FORMAT spm_image
+% FORMAT spm_image('Display',fname)
 %__________________________________________________________________________
 %
 % spm_image is an interactive facility that allows orthogonal sections
@@ -47,11 +48,13 @@ function spm_image(action,varargin)
 % Blobs (from activation studies) can be superimposed on the images and 
 % the intensity windowing can also be changed.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_image.m 4904 2012-09-06 15:08:56Z guillaume $
 
+
+SVNid = '$Rev: 4904 $';
 
 global st
 
@@ -69,6 +72,7 @@ switch lower(action)
     case {'init','display'}
     % Display image
     %----------------------------------------------------------------------
+    spm('FnBanner',mfilename,SVNid);                                    %-#
     if isempty(varargin)
         [P, sts] = spm_select(1,'image','Select image');
         if ~sts, return; end
@@ -78,6 +82,8 @@ switch lower(action)
     if ischar(P), P = spm_vol(P); end
     P = P(1);
 
+    fprintf('Display %s\n',P.fname);                                    %-#
+    
     init_display(P);
     
     case 'repos'
@@ -272,6 +278,15 @@ switch lower(action)
     spm_orthviews('Reset');
     spm_figure('Clear','Graphics');
 
+    otherwise
+    % Otherwise
+    %----------------------------------------------------------------------
+    if spm_existfile(action)
+        fprintf('Correct syntax is: spm_image(''Display'',''%s'')\n',action);
+        spm_image('Display', action);
+    else
+        error('Unknown action ''%s''.', action);
+    end
 end
 
 
