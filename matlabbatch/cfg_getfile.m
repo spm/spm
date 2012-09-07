@@ -11,7 +11,8 @@ function [t,sts] = cfg_getfile(varargin)
 %     typ  - file type
 %            'any'   - all files
 %            'batch' - matlabbatch batch files (.m, .mat and XML)
-%            'dir'   - select a directory
+%            'dir'   - select a directory. By default, hidden ('.xyz') and
+%                      MATLAB class directories are not shown.
 %            'mat'   - Matlab .mat files or .txt files (assumed to contain
 %                      ASCII representation of a 2D-numeric array)
 %            'xml'   - XML files
@@ -66,6 +67,11 @@ function [t,sts] = cfg_getfile(varargin)
 % FORMAT dirs=cfg_getfile('prevdirs')
 % Retrieve list of previous directories.
 %
+% FORMAT cfg_getfile('DirFilters', filter_list)
+% Specify a list of regular expressions to filter directory names. To show
+% all directories, use {'.*'}. Default is {'^[^.@]'}, i.e. directory names
+% starting with '.' or '@' will not be shown.
+%
 % This code is based on the file selection dialog in SPM5, with virtual
 % file handling turned off.
 %____________________________________________________________________________
@@ -78,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4898 2012-09-05 13:40:16Z volkmar $
+% $Id: cfg_getfile.m 4909 2012-09-07 11:29:29Z volkmar $
 
 t = {};
 sts = false;
@@ -151,6 +157,11 @@ if nargin > 0 && ischar(varargin{1})
             end
         case 'regfilter'
             t = reg_filter(varargin{2:end});
+        case 'dirfilters'
+            df       = reg_filter('dir');
+            df.regex = varargin{2};
+            df       = struct2cell(df);
+            reg_filter(df{:});
         otherwise
             cfg_message('matlabbatch:usage','Inappropriate usage.');
     end
@@ -433,6 +444,7 @@ db = uicontrol(pfd,...
     'Max',1,...
     'Min',0,...
     'String','',...
+    'ToolTipString','Navigate Directories',...
     'UserData',wd,...
     'Value',1);
 
@@ -450,6 +462,7 @@ tmp = uicontrol(pfd,...
     'Max',10240,...
     'Min',0,...
     'String','',...
+    'ToolTipString','Select Items',...
     'Value',1);
 c0 = uicontextmenu('Parent',fg);
 set(tmp,'uicontextmenu',c0);
@@ -870,9 +883,15 @@ end
 
 d = sort({de([de.isdir]).name})';
 d = d(~strcmp(d,'.'));
+dfilt = mk_filter('dir');
+d = do_filter(d,dfilt.tfilt.regex);
+% add back '..'
+if ~any(strcmp('..',d))
+    d = [{'..'}; d(:)];
+end
 dsel = strcmp({filt.tfilt.typ},'dir');
 if any(dsel)
-    fd = d(~strcmp(d,'..'));
+    fd = d(~strcmp('..',d));
 else
     fd = {};
 end
@@ -1088,7 +1107,7 @@ function filt = reg_filter(typ,filt,cflag,fun,prms)
 persistent lfilt;
 if isempty(lfilt)
     dtypes = {'any'  ,'xml'     ,'mat'              ,'batch'                   ,'dir'};
-    dregex = {{'.*'} ,{'\.xml$'},{'\.mat$','\.txt$'},{'\.mat$','\.m$','\.xml$'},{'.*'}};
+    dregex = {{'.*'} ,{'\.xml$'},{'\.mat$','\.txt$'},{'\.mat$','\.m$','\.xml$'},{'^[^.@]'}};
     dcflag = false;
     dfun   = {''     ,''        ,''                 ,''                        ,@local_isdir};
     dprms  = {cfg_branch};
@@ -1116,7 +1135,11 @@ else
         nfilt.fun   = fun;
     end
     if nargin > 4
-        nfilt.prms.val  = prms;
+        if isa(prms, 'cfg_branch')
+            nfilt.prms = prms;
+        else
+            nfilt.prms.val  = prms;
+        end
     end
     sel  = strcmpi({lfilt.typ},typ);
     if any(sel)
