@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4909 2012-09-07 11:29:29Z volkmar $
+% $Id: cfg_getfile.m 4910 2012-09-07 12:41:18Z volkmar $
 
 t = {};
 sts = false;
@@ -132,21 +132,27 @@ if nargin > 0 && ischar(varargin{1})
                 prms = varargin(5:end);
             end
             filt    = mk_filter(typ, filt, prms{:});
-            if regexpi(varargin{1},'rec')
-                [t sts] = select_rec1(direc, filt);
-            else
-                [t sts] = listfiles(direc, filt); % (sts is subdirs here)
-                sts = sts(~(strcmp(sts,'.')|strcmp(sts,'..'))); % remove '.' and '..' entries
-                if regexpi(varargin{1}, 'fplist') % return full pathnames
-                    direc = cpath(cellstr(direc));
-                    if ~isempty(t)
-                        t = strcat(direc, filesep, t);
-                    end
-                    if (nargout > 1) && ~isempty(sts)
-                        sts = cpath(sts, direc);
+            direc   = cpath(cellstr(direc));
+            t       = cell(numel(direc),1);
+            sts     = cell(numel(direc),1);
+            for k = 1:numel(t)
+                if regexpi(varargin{1},'rec')
+                    [t{k} sts{k}] = select_rec1(direc{k}, filt);
+                else
+                    [t{k} sts{k}] = listfiles(direc{k}, filt); % (sts is subdirs here)
+                    sts{k} = sts{k}(~(strcmp(sts{k},'.')|strcmp(sts{k},'..'))); % remove '.' and '..' entries
+                    if regexpi(varargin{1}, 'fplist') % return full pathnames
+                        if ~isempty(t)
+                            t{k} = strcat(direc{k}, filesep, t{k});
+                        end
+                        if (nargout > 1) && ~isempty(sts{k})
+                            sts{k} = cpath(sts{k}, direc{k});
+                        end
                     end
                 end
             end
+            t   = cat(1,t{:});
+            sts = cat(1,sts{:});
         case 'prevdirs',
             if nargin > 1
                 prevdirs(varargin{2});
@@ -222,7 +228,7 @@ else
 end
 
 % Working directory
-if nargin<5 || isempty(wd) || ~ischar(wd)
+if nargin<5 || isempty(wd) || ~(iscellstr(wd) || ischar(wd))
     if isempty(already)
         wd      = pwd;
     else
@@ -232,6 +238,7 @@ if nargin<5 || isempty(wd) || ~ischar(wd)
         end
     end
 end
+wd = char(wd);
 
 [col1,col2,col3,lf,bf] = colours;
 
