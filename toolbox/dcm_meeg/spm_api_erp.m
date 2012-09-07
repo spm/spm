@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_api_erp.m 4912 2012-09-07 19:52:41Z karl $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -636,12 +636,12 @@ switch DCM.options.spatial
         %------------------------------------------------------------------
         DCM.Lpos = zeros(3,0);
         
-        if numel(Sname)<numel(DCM.xY.name)
+        if numel(Sname) < Nchannels
             warndlg('There are more LFP channels than sources')
             return
         end
         
-        set(handles.Slocation, 'String', DCM.xY.name(1:Nchannels));
+        set(handles.Slocation, 'String', sprintf('%i channels',Nchannels));
         set(handles.plot_dipoles,'enable','off')              
        
      

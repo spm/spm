@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp_data.m 4912 2012-09-07 19:52:41Z karl $
  
  
 % Set defaults and Get D filename
@@ -192,10 +192,14 @@ else
 end
 R      = speye(Ns) - X0*X0';
  
-% hanning
+% hanning (omit second residualization for very long time-series)
 %--------------------------------------------------------------------------
 if han
-    R  = R*diag(hanning(Ns))*R;
+    if Ns < 2048
+        R  = R*sparse(diag(hanning(Ns)))*R;
+    else
+        R  = sparse(diag(hanning(Ns)))*R;
+    end
 end
  
 % adjust data

@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_csd.m 4912 2012-09-07 19:52:41Z karl $
  
  
 % check options
@@ -48,9 +48,7 @@ DCM.M.dipfit.model = model;
 DCM  = spm_dcm_erp_dipfit(DCM, 1);                  % spatial model
 DCM  = spm_dcm_erp_data(DCM);                       % data
 Ns   = length(DCM.A{1});                            % number of sources
-Nc   = DCM.M.dipfit.Nc;                             % number of channels
 
- 
 
 % Design model and exogenous inputs
 %==========================================================================
@@ -64,13 +62,7 @@ if isempty(DCM.xU.X), DCM.C    = sparse(Ns,0); end
 % prior moments on parameters
 %--------------------------------------------------------------------------
 [pE,pC]  = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
- 
-% reduce prior conduction delays for LFP spatial models
-%--------------------------------------------------------------------------
-if strcmpi(spatial,'LFP')
-    DCM.M.Pf.D = [2 16];
-end
- 
+  
 % check to see if neuronal priors have already been specified
 %--------------------------------------------------------------------------
 try
