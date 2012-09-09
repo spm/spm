@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_ssr_priors.m 4913 2012-09-09 19:54:16Z karl $
  
 % catch
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/16; % channel noise specific
 
 % neuronal innovations (coeficicents for structured spectra)
 %--------------------------------------------------------------------------
-pE.d = sparse(4,1); pC.d = sparse(4,1) + 1/64; 
+pE.d = sparse(4,m); pC.d = sparse(4,m) + 1/64; 
 
 
 

@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 4912 2012-09-07 19:52:41Z karl $
+% $Id: spm_fx_cmm.m 4913 2012-09-09 19:54:16Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -234,6 +234,6 @@ D  = d(2)*Dp + d(1)*Ds;
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-Q  = inv(speye(length(J)) - D.*J);
+Q  = spm_inv(speye(length(J)) - D.*J);
 
 

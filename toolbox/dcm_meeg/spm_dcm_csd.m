@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4912 2012-09-07 19:52:41Z karl $
+% $Id: spm_dcm_csd.m 4913 2012-09-09 19:54:16Z karl $
  
  
 % check options
@@ -142,17 +142,18 @@ y         = spm_vec(DCM.xY.y);
 scale     = mean(abs(y));
 DCM.xY.y  = spm_unvec(y/scale,DCM.xY.y);
 
-% check neural activity (without sensor noise) and extrinsic coupling
+% reduce extrinsic coupling if necessary
 %--------------------------------------------------------------------------
-pE.b      = pE.b - 32;
-pE.c      = pE.c - 32;
-scale     = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
-while scale > 32
-    pE.A  = spm_unvec(spm_vec(pE.A) - 1/8,pE.A);
-    scale = mean(abs(spm_vec(feval(DCM.M.IS,pE,DCM.M,DCM.xU))));
+scale     = mean(abs(spm_vec(feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU))));
+for i = 1:8
+    
+    if scale < 32, break, end
+    
+    DCM.M.pE.A = spm_unvec(spm_vec(DCM.M.pE.A) - 1/8,DCM.M.pE.A);
+    scale = mean(abs(spm_vec(feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU))));
+
 end
-DCM.M.pE.A = pE.A;
-DCM.M.U    = DCM.M.U/sqrt(scale)/2;
+DCM.M.U   = DCM.M.U/sqrt(scale);
 
 
 % Variational Laplace: model inversion

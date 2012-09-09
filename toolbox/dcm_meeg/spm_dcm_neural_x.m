@@ -11,7 +11,7 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_neural_x.m 4913 2012-09-09 19:54:16Z karl $
  
  
 % solve for fixed point (with 64 ms burn in) - if no exogenous input
@@ -24,9 +24,8 @@ switch lower(model)
     case lower({'spm_fx_mfm','spm_fx_nmm','spm_fx_cmm'})
         
         try, M = rmfield(M,{'g'}); end
-        try, M = rmfield(M,{'u'}); end
-        
-        U.u  = sparse(16,M.m);
+
+        U.u  = sparse(32,M.m);
         U.dt = 8/1000;
         x    = spm_int_L(P,M,U);
         x    = spm_unvec(x(end,:),M.x);

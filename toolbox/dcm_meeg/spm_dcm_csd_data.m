@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_csd_data.m 4913 2012-09-09 19:54:16Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -42,8 +42,8 @@ end
 try
     DCM.M.U;
 catch
-    errordlg('Please estimate this model first');
-    error('')
+    Nm      = DCM.options.Nmodes;
+    DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
 end
 
 % load D
@@ -77,13 +77,17 @@ if ~isfield(DCM.xY, 'modality')
     if isequal(mod, 'Multimodal')
         qstr = 'Only one modality can be modelled at a time. Please select.';
         if numel(list) < 4
-            % Nice looking dialog. Will usually be OK
+            
+            % Nice looking dialog
+            %--------------------------------------------------------------
             options = [];
             options.Default = list{1};
             options.Interpreter = 'none';
             DCM.xY.modality = questdlg(qstr, 'Select modality', list{:}, options);
         else
-            % Ugly but can accomodate more buttons
+            
+            % accomodate more buttons
+            %--------------------------------------------------------------
             ind = menu(qstr, list);
             DCM.xY.modality = list{ind};
         end
@@ -99,7 +103,6 @@ if ~isfield(DCM.xY, 'Ic')
 end
 
 Ic        = DCM.xY.Ic;
-Nc        = length(Ic);
 Nm        = size(DCM.M.U,2);
 DCM.xY.Ic = Ic;
 

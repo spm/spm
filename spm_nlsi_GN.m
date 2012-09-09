@@ -6,7 +6,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %__________________________________________________________________________
 %
 % M.IS - function name f(P,M,U) - generative model
-%        This function specifies the nonlinear model: 
+%        This function specifies the nonlinear model:
 %        y = Y.y = IS(P,M,U) + X0*P0 + e
 %        were e ~ N(0,C).  For dynamic systems this would be an integration
 %        scheme (e.g. spm_int). spm_int expects the following:
@@ -51,8 +51,8 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %
 %__________________________________________________________________________
 % Returns the moments of the posterior p.d.f. of the parameters of a
-% nonlinear model specified by IS(P,M,U) under Gaussian assumptions. 
-% Usually, IS is an integrator of a dynamic MIMO input-state-output model 
+% nonlinear model specified by IS(P,M,U) under Gaussian assumptions.
+% Usually, IS is an integrator of a dynamic MIMO input-state-output model
 %
 %              dx/dt = f(x,u,P)
 %              y     = g(x,u,P)  + X0*P0 + e
@@ -76,28 +76,28 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % An optional feature selection can be specified with parameters M.FS.
 %
 % For generic aspects of the scheme see:
-% 
-% Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W. 
-% Variational free energy and the Laplace approximation. 
+%
+% Friston K, Mattout J, Trujillo-Barreto N, Ashburner J, Penny W.
+% Variational free energy and the Laplace approximation.
 % NeuroImage. 2007 Jan 1;34(1):220-34.
-% 
+%
 % This scheme handels complex data along the lines originally described in:
-% 
-% Sehpard RJ, Lordan BP, and Grant EH. 
+%
+% Sehpard RJ, Lordan BP, and Grant EH.
 % Least squares analysis of complex data with applications to permittivity
 % measurements.
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4852 2012-08-20 15:04:49Z karl $
- 
+% $Id: spm_nlsi_GN.m 4913 2012-09-09 19:54:16Z karl $
+
 % options
 %--------------------------------------------------------------------------
 try, M.nograph; catch, M.nograph = 0;  end
-try, M.Nmax;    catch, M.Nmax    = 64; end
+try, M.Nmax;    catch, M.Nmax    = 128; end
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -112,7 +112,7 @@ try
 catch
     M.IS = 'spm_int';
 end
- 
+
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
 try
@@ -123,8 +123,8 @@ try
         y  = feval(M.FS,Y.y,M);
         IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
         
-    % try FS(y)
-    %----------------------------------------------------------------------
+        % try FS(y)
+        %----------------------------------------------------------------------
     catch
         y  = feval(M.FS,Y.y);
         IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
@@ -141,7 +141,7 @@ catch
         IS = M.IS;
     end
 end
- 
+
 % size of data (usually samples x channels)
 %--------------------------------------------------------------------------
 if iscell(y)
@@ -151,7 +151,7 @@ else
 end
 nr   = length(spm_vec(y))/ns;       % number of samples and responses
 M.ns = ns;                          % store in M.ns for integrator
- 
+
 % initial states
 %--------------------------------------------------------------------------
 try
@@ -160,7 +160,7 @@ catch
     if ~isfield(M,'n'), M.n = 0;    end
     M.x = sparse(M.n,1);
 end
- 
+
 % input
 %--------------------------------------------------------------------------
 try
@@ -168,7 +168,7 @@ try
 catch
     U = [];
 end
- 
+
 % initial parameters
 %--------------------------------------------------------------------------
 try
@@ -177,7 +177,7 @@ try
 catch
     M.P = M.pE;
 end
- 
+
 % time-step
 %--------------------------------------------------------------------------
 try
@@ -185,7 +185,7 @@ try
 catch
     Y.dt = 1;
 end
- 
+
 % precision components Q
 %--------------------------------------------------------------------------
 try
@@ -198,12 +198,12 @@ nh    = length(Q);                  % number of precision components
 nt    = length(Q{1});               % number of time bins
 nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
 
- 
+
 % prior moments
 %--------------------------------------------------------------------------
 pE    = M.pE;
 pC    = M.pC;
- 
+
 % confounds (if specified)
 %--------------------------------------------------------------------------
 try
@@ -240,7 +240,7 @@ catch
 end
 
 
- 
+
 % unpack covariance
 %--------------------------------------------------------------------------
 if isstruct(pC);
@@ -254,20 +254,20 @@ nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
 ip    = (1:np)';
 iu    = (1:nu)' + np;
- 
+
 % second-order moments (in reduced space)
 %--------------------------------------------------------------------------
 pC    = V'*pC*V;
 uC    = speye(nu,nu)/1e-8;
 ipC   = inv(spm_cat(spm_diag({pC,uC})));
- 
+
 % initialize conditional density
 %--------------------------------------------------------------------------
 Eu    = spm_pinv(dfdu)*spm_vec(y);
 p     = [V'*(spm_vec(M.P) - spm_vec(M.pE)); Eu];
 Ep    = spm_unvec(spm_vec(pE) + V*p(ip),pE);
 
- 
+
 % EM
 %==========================================================================
 criterion = [0 0 0 0];
@@ -279,49 +279,55 @@ dFdhh = zeros(nh,nh);
 for k = 1:M.Nmax
     
     % time
-    %----------------------------------------------------------------------  
-    tStart = tic;
- 
-    % M-Step: ReML estimator of variance components:  h = max{F(p,h)}
-    %======================================================================
-    
-    % prediction f, and gradients; dfdp
     %----------------------------------------------------------------------
+    tStart = tic;
+    revert = false;
+    
+    % E-Step: prediction f, and gradients; dfdp
+    %======================================================================
     try
         
         [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+        dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
+
         
+        % check for stability
+        %------------------------------------------------------------------
+        normdfdp = norm(dfdp,'inf');
+        revert   = isnan(normdfdp) || normdfdp > exp(32);
+            
     catch
+        revert   = true;
+    end
+    
+    if revert
         
         % reset expansion point and increase regularization
         %------------------------------------------------------------------
         p        = C.p;
         v        = min(v - 2,-4);
-       
+        
         % E-Step: update
         %------------------------------------------------------------------
         p        = p + spm_dx(dFdpp,dFdp,{v});
         Ep       = spm_unvec(spm_vec(pE) + V*p(ip),pE);
         [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
+        dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
+
         
     end
     
-       
+    
     % prediction error and full gradients
     %----------------------------------------------------------------------
     e     =  spm_vec(y) - spm_vec(f) - dfdu*p(iu);
-    dfdp  =  reshape(spm_vec(dfdp),ns*nr,np);
     J     = -[dfdp dfdu];
     
- 
+    
     % M-step; Fisher scoring scheme to find h = max{F(p,h)}
     %======================================================================
     for m = 1:8
- 
-        % check for stability
-        %------------------------------------------------------------------
-        if any(isnan(J(:))) || norm(J,'inf') > exp(32), break, end
-        
+               
         % precision and conditional covariance
         %------------------------------------------------------------------
         iS    = sparse(0);
@@ -332,7 +338,7 @@ for k = 1:M.Nmax
         iS    = kron(speye(nq),iS);
         Pp    = real(J'*iS*J);
         Cp    = spm_inv(Pp + ipC);
- 
+        
         % precision operators for M-Step
         %------------------------------------------------------------------
         for i = 1:nh
@@ -341,13 +347,13 @@ for k = 1:M.Nmax
             P{i}   = kron(speye(nq),P{i});
             JPJ{i} = real(J'*P{i}*J);
         end
-                    
+        
         % derivatives: dLdh = dL/dh,...
         %------------------------------------------------------------------
         for i = 1:nh
             dFdh(i,1)      =   trace(PS{i})*nq/2 ...
-                             - real(e'*P{i}*e)/2 ...
-                             - spm_trace(Cp,JPJ{i})/2;
+                - real(e'*P{i}*e)/2 ...
+                - spm_trace(Cp,JPJ{i})/2;
             for j = i:nh
                 dFdhh(i,j) = - spm_trace(PS{i},PS{j})*nq/2;
                 dFdhh(j,i) =   dFdhh(i,j);
@@ -359,25 +365,25 @@ for k = 1:M.Nmax
         d     = h     - hE;
         dFdh  = dFdh  - ihC*d;
         dFdhh = dFdhh - ihC;
-        Ch    = spm_inv(-dFdhh); 
+        Ch    = spm_inv(-dFdhh);
         
         % update ReML estimate
         %------------------------------------------------------------------
         dh    = spm_dx(dFdhh,dFdh,{4});
         dh    = min(max(dh,-1),1);
         h     = h  + dh;
- 
+        
         % convergence
         %------------------------------------------------------------------
         dF    = dFdh'*dh;
         if dF < 1e-2, break, end
- 
+        
     end
-
+    
     
     % E-Step with Levenberg-Marquardt regularization
     %======================================================================
- 
+    
     % objective function: F(p) (= log evidence - divergence)
     %----------------------------------------------------------------------
     F = - real(e'*iS*e)/2 ...
@@ -387,7 +393,7 @@ for k = 1:M.Nmax
         - spm_logdet(S)*nq/2 ...
         + spm_logdet(ipC*Cp)/2 ...
         + spm_logdet(ihC*Ch)/2;
- 
+    
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
@@ -470,7 +476,7 @@ for k = 1:M.Nmax
         % plot real or complex predictions
         %------------------------------------------------------------------
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
-
+        
         if isreal(e)
             
             subplot(2,1,1)

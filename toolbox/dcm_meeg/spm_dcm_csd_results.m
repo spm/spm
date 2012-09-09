@@ -33,7 +33,7 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4866 2012-08-28 12:47:34Z karl $
+% $Id: spm_dcm_csd_results.m 4913 2012-09-09 19:54:16Z karl $
  
  
 % get figure
@@ -93,12 +93,13 @@ case{lower('spectral data')}
     co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
     Hz    = xY.Hz;
     nm    = min(nm,4);
-    name  = DCM.xY.name;
-    
-    for k = 1:nt
-        str{k} = sprintf('trial %i',k);
+    try
+        name = DCM.xY.name;
+    catch
+        name = DCM.Sname;
     end
     
+    str   = {};
     for i = 1:nm
         for j = i:nm
  
@@ -119,6 +120,7 @@ case{lower('spectral data')}
         for k = 1:nt
             plot(Hz,abs(xY.y{k}(:,i,i)),'color',co{i}), hold on
             axis square, spm_axis tight
+            str{end + 1} = sprintf('%s: condition %i',name{i},k);
         end
     end
     
@@ -126,7 +128,7 @@ case{lower('spectral data')}
     xlabel('Frequency (Hz)')
     ylabel('CSD')
     axis square, spm_axis tight
-    legend(name)
+    legend(str)
     
     subplot(nm,nm,nm)
     legend('real','imag')
@@ -394,10 +396,7 @@ case{lower('Cross-spectra (sources)')}
     tstr = {};
     mstr = {};
     for k = 1:nt
-        tstr{end + 1} = sprintf('predicted: trial %i',k);
-    end
-    for k = 1:nm
-        mstr{end + 1} = sprintf('predicted: %s',name{k});
+        mstr{end + 1} = sprintf('trial: %i',k);
     end
     
     for i = 1:nm
@@ -417,7 +416,7 @@ case{lower('Cross-spectra (sources)')}
         % legend
         %------------------------------------------------------------------      
         if i == nm && j == nm
-            legend(tstr)
+            legend(mstr)
         end
         
         % spectral density
@@ -426,14 +425,15 @@ case{lower('Cross-spectra (sources)')}
         for k = 1:nt
             plot(Hz,abs(DCM.Hs{k}(:,i,i)),'color',co{i}), hold on
             axis square, spm_axis tight
+            tstr{end + 1} = sprintf('%s: trial %i',name{i},k);
         end
     end
    
-    title({'Spectral density over sources';'(in source-space)'},'FontSize',16)
+    title({'Spectral density (source-space)'},'FontSize',16)
     xlabel('frequency (Hz)')
     ylabel('abs(CSD)')
     axis square, spm_axis tight
-    legend(mstr)
+    legend(tstr)
     
     
 case{lower('Cross-spectra (channels)')}

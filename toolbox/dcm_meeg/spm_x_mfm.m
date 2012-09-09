@@ -23,7 +23,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 2393 2008-10-23 14:58:50Z karl $
+% $Id: spm_x_mfm.m 4913 2012-09-09 19:54:16Z karl $
 
  
 % dimensions
@@ -52,13 +52,12 @@ M.f   = 'spm_fx_mfm';
 M.x   = x;
 M.pE  = P;
 M.n   = length(spm_vec(x));
-M.m   = size(P.C,2);
-M.l   = size(P.C,1);
+M.u   = sparse(ns,1);
 
 
 % solve for fixed point 
 %--------------------------------------------------------------------------
-U.u   = sparse(16,1);
+U.u   = sparse(16,ns);
 U.dt  = 32/1000;
 x     = spm_int_ode(P,M,U);
 x     = spm_unvec(x(end,:),M.x);
