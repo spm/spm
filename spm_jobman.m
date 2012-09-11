@@ -52,7 +52,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4916 2012-09-11 19:15:53Z guillaume $
+% $Id: spm_jobman.m 4917 2012-09-11 19:31:44Z guillaume $
 
 
 %__________________________________________________________________________
@@ -108,8 +108,8 @@ isInitCfg = true;
 %-Open GUI when called without input arguments
 %--------------------------------------------------------------------------
 if ~nargin
-    h = cfg_ui;
-    if nargout > 0, varargout = {h}; end
+    spm_jobman('interactive');
+    if nargout > 0, varargout = {findobj(0,'tag','cfg_ui')}; end
     return;
 end
 
@@ -191,8 +191,8 @@ switch action
         else
             cjob = cfg_util('initjob');
         end
-        f = findobj(0,'flat','tag','cfg_ui');
-        if isempty(f), f = cfg_ui('Visible','off'); end
+        f = findobj(0,'tag','cfg_ui');
+        if isempty(f), f = cfg_ui; end
         cfg_ui('local_showjob', f, cjob);
         if nargout > 0
             varargout{1} = cjob;
