@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4902 2012-09-05 18:56:48Z guillaume $
+% $Id: spm_defaults.m 4915 2012-09-11 17:38:30Z ged $
 
 
 global defaults
@@ -58,7 +58,7 @@ defaults.dicom.root = 'flat'; % Folder hierarchy
 % fMRI design defaults
 %==========================================================================
 defaults.stats.fmri.t   = 16;
-defaults.stats.fmri.t0  = 1;
+defaults.stats.fmri.t0  = 8;
 defaults.stats.fmri.hpf = 128;
 defaults.stats.fmri.cvi = 'AR(1)';
 

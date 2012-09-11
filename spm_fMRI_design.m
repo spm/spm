@@ -18,8 +18,8 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 %           RT: - repetition time {seconds)
 %
 %    SPM.xBF
-%            T: - number of time bins per scan
-%           T0: - first time bin (see slice timing)
+%            T: - microtime resolution (number of time bins per scan)
+%           T0: - microtime onset (reference time bin, see slice timing)
 %        UNITS: - 'scans'|'secs' - units in which onsets are specified
 %     Volterra: - 1|2 - order of [Volterra] convolution
 %           dt: - length of time bin {seconds}
@@ -166,10 +166,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 4856 2012-08-22 17:32:16Z guillaume $
+% $Id: spm_fMRI_design.m 4915 2012-09-11 17:38:30Z ged $
 
 
-SVNid = '$Rev: 4856 $';
+SVNid = '$Rev: 4915 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------

@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4856 2012-08-22 17:32:16Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 4915 2012-09-11 17:38:30Z ged $
 
 
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ fmri_t.tag     = 'fmri_t';
 fmri_t.name    = 'Microtime resolution';
 fmri_t.help    = {
                   'The microtime resolution, t, is the number of time-bins per scan used when building regressors. '
-                  'Change this parameter if you wish to shift regressors so that they are aligned to a particular slice. '
+                  'If you have performed slice-timing correction, change this parameter to match the number of slices specified there; otherwise, you would typically not need to change this.'
                   ''
 }';
 fmri_t.strtype = 'e';
@@ -59,9 +59,11 @@ fmri_t0         = cfg_entry;
 fmri_t0.tag     = 'fmri_t0';
 fmri_t0.name    = 'Microtime onset';
 fmri_t0.help    = {
-                   'The microtime onset, t0, is the first time-bin at which the regressors are resampled to coincide with data acquisition.'
-                   'If t0 = 1 then the regressors will be appropriate for the first slice.  If you want to temporally realign the regressors so that they match responses in the middle slice then make t0 = t/2 (assuming there is a negligible gap between volume acquisitions).'
-                   'This parameter has to be consistent with your choice of reference slice if you used slice timing correction.'
+                   'The microtime onset, t0, is the reference time-bin at which the regressors are resampled to coincide with data acquisition.'
+                   'If you have performed slice-timing correction, you must change this parameter to match the reference slice specified there.'
+                   'Otherwise, you might still want to change this if you have non-interleaved acquisition and you wish to sample the regressors so that they are appropriate for a slice in a particular part of the brain.'
+                   'For example, if t0 = 1, then the regressors will be appropriate for the first slice; if t0=t, then the regressors will be appropriate for the last slice.'
+                   'Setting t0 = t/2 is a good compromise if you are interested in slices at the beginning and end of the acquisition, or if you have interleaved data, or if you have 3D EPI data.'
                    ''
 }';
 fmri_t0.strtype = 'e';

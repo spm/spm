@@ -7,7 +7,7 @@ function DCM = spm_dcm_specify(SPM,xY)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify.m 4715 2012-04-17 13:28:41Z klaas $
+% $Id: spm_dcm_specify.m 4915 2012-09-11 17:38:30Z ged $
 
 
 %-Interactive window
@@ -100,10 +100,13 @@ end
 
 spm_input('Timing information:...  ',-1,'d');
 
-%-Slice timings
+%-VOI timings
 %--------------------------------------------------------------------------
 RT     = SPM.xY.RT;
-delays = spm_input('Slice timings [s]','+1','r', repmat(RT,1,m),m,[0 RT]);
+t0     = spm_get_defaults('stats.fmri.t0');
+t      = spm_get_defaults('stats.fmri.t');
+T0     = RT * t0 / t;
+delays = spm_input('VOI timings [s]','+1','r', repmat(T0,1,m),m,[0 RT]);
 
 %-Echo time (TE) of data acquisition
 %--------------------------------------------------------------------------
