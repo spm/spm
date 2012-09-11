@@ -12,10 +12,10 @@ function spm_check_registration(images, captions, varargin)
 % Copyright (C) 1997-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 4905 2012-09-06 15:34:26Z guillaume $
+% $Id: spm_check_registration.m 4916 2012-09-11 19:15:53Z guillaume $
 
 
-SVNid = '$Rev: 4905 $';
+SVNid = '$Rev: 4916 $';
 
 if ~nargin
     [images, sts] = spm_select([1 24],'image','Select images');
@@ -25,9 +25,15 @@ end
 if ischar(images), images = spm_vol(images); end
 
 spm('FnBanner',mfilename,SVNid);                                        %-#
+if desktop('-inuse')
+    dispf = @(f) ...
+        sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
+else
+    dispf = @(f) f;
+end
 for i=1:numel(images)
-    if i==1, fprintf('Display %s\n',images(i).fname);                   %-#
-    else     fprintf('        %s\n',images(i).fname); end               %-#
+    if i==1, fprintf('Display %s\n',dispf(images(i).fname));            %-#
+    else     fprintf('        %s\n',dispf(images(i).fname)); end        %-#
 end
 
 spm_figure('GetWin','Graphics');

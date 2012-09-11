@@ -17,12 +17,13 @@ function results = spm_preproc(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc.m 4877 2012-08-31 11:40:43Z guillaume $
+% $Id: spm_preproc.m 4916 2012-09-11 19:15:53Z guillaume $
 
 
-SVNid     = '$Rev: 4877 $';
+SVNid     = '$Rev: 4916 $';
 
 if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldSeg')); end
+if ~isdeployed, addpath(fullfile(spm('Dir'),'toolbox','OldNorm')); end
 
 %-Say hello
 %--------------------------------------------------------------------------
