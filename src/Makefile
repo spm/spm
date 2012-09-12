@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4887 2012-09-03 14:29:42Z guillaume $
+# $Id: Makefile 4918 2012-09-12 15:28:50Z guillaume $
 #
 ###############################################################################
 #
@@ -103,7 +103,7 @@ tarball: all toolbox-all toolbox-tarball verb.archive
 
 spm_vol_utils.$(SUF).a: $(OBS)
 	$(DEL) $@
-ifeq (win64,$(PLATFORM))
+ifeq (windows,$(PLATFORM))
 	$(AR)$@ $(OBS)
 else
 	$(AR) $@ $(OBS)

@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 4872 2012-08-30 15:29:15Z guillaume $
+# $Id: Makefile.var 4918 2012-09-12 15:28:50Z guillaume $
 #
 ###############################################################################
 #
@@ -83,25 +83,15 @@ ifndef SUF
     endif
   endif
   ##### Windows #####
-  ifeq (windows,$(PLATFORM))
-    override PLATFORM = MINGW32
-  endif
   ifeq (MINGW32,$(word 1,$(subst _, ,$(PLATFORM))))
-    SUF        = mexw32
-    MEXBIN     = cmd /c "mex.bat
-    MEXOPTS   += -DSPM_WIN32
-    MEXEND     = "
-    MOSUF      = obj
+    override PLATFORM = windows
   endif
-  ifeq (MINGW64,$(word 1,$(subst _, ,$(PLATFORM))))
-    SUF        = mexw64
-    MEXBIN     = cmd /c "mex.bat
-    MEXOPTS   += -DSPM_WIN32
-    MEXEND     = "
-    MOSUF      = obj
-  endif
-  ifeq (win64,$(PLATFORM))
-    SUF        = mexw64
+  ifeq (windows,$(PLATFORM))
+    ifeq (x86,$(PROCESSOR_ARCHITECTURE))
+      SUF      = mexw32
+    else
+      SUF      = mexw64
+    endif
     MEXBIN     = cmd /c "mex.bat
     MEXOPTS   += -DSPM_WIN32
     MEXEND     = "

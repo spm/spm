@@ -1,21 +1,21 @@
 #!/usr/bin/env make -f
 # Makefile called by {SPM}/src/Makefile to compile SPM external's
 #
-# Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4541 2011-11-03 16:37:35Z guillaume $
+# $Id: Makefile 4918 2012-09-12 15:28:50Z guillaume $
 
 include ../src/Makefile.var
 
-all: fieldtrip-all bemcp-all peer-all
+all: fieldtrip-all bemcp-all
 
-clean: fieldtrip-clean bemcp-clean peer-clean
+clean: fieldtrip-clean bemcp-clean
 
-distclean: clean fieldtrip-distclean bemcp-distclean peer-distclean
+distclean: clean fieldtrip-distclean bemcp-distclean
 
-install: fieldtrip-install bemcp-install peer-instal
+install: fieldtrip-install bemcp-install
 
-tarball: fieldtrip-tarball bemcp-tarball peer-tarball
+tarball: fieldtrip-tarball bemcp-tarball
 	$(TAR) Af spm_mex.tar fieldtrip_mex.tar
 	$(TAR) Af spm_mex.tar bemcp/spm_mex.tar
 	$(TAR) Af spm_mex.tar peer_mex.tar
@@ -43,15 +43,3 @@ bemcp bemcp-%:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ $(MAKE) -C bemcp --no-print-directory $*;
-        
-###############################################################################
-# PEER
-###############################################################################
-.PHONY: peer
-peer peer-%:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In peer"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ $(MAKE) -f Makefile.peer --no-print-directory $*;
