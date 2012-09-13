@@ -1,5 +1,5 @@
 /*
- * $Id: spm_global.c 4872 2012-08-30 15:29:15Z guillaume $
+ * $Id: spm_global.c 4921 2012-09-13 11:16:21Z guillaume $
  * John Ashburner
  */
 
@@ -15,7 +15,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     MAPTYPE *map = NULL;
     static double M[] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
     
-    if (nrhs > 3 || nlhs > 1)
+    if (nrhs < 1 || nrhs > 3 || nlhs > 1)
     {
         mexErrMsgTxt("Incorrect usage.");
     }
