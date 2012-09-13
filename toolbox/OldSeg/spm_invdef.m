@@ -1,5 +1,5 @@
-function varargout = spm_invdef(varargin)
-% Create the inverse of a deformation field - a compiled routine
+function [Y1,Y2,Y3] = spm_invdef(X1,X2,X3,dimY,MX,MY)
+% Create the inverse of a deformation field
 % FORMAT [Y1,Y2,Y3] = spm_invdef(X1,X2,X3,dimY,MX,MY)
 %   X1, X2 & X3 - Three components of original deformation field.
 %                 Note that these point from voxels to a coordinate
@@ -28,7 +28,7 @@ function varargout = spm_invdef(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_invdef.m 4922 2012-09-13 12:45:46Z john $
+% $Id: spm_invdef.m 4924 2012-09-13 16:55:09Z guillaume $
 
 Y  = cat(4,X1,X2,X3);
 Y  = spm_diffeo('invdef',Y,dimY,MX,MY);
