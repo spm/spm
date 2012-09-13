@@ -1,5 +1,5 @@
 function varargout = spm_brainwarp(varargin)
-% Part of the obsolete OldNorm toolbox
+% Part of old nonlinear spatial normalisation - a compiled routine
 %_______________________________________________________________________
 % [Alpha,Beta,Var] = spm_brainwarp(VG,VF,Affine,basX,basY,basZ,...
 %                                   dbasX,dbasY,dbasZ,T,fwhm,VW,VW2)
@@ -66,14 +66,10 @@ function varargout = spm_brainwarp(varargin)
 % The vector b contains [diag(w)*(f - diag(g1)*s1 - diag(g1)*x*s2 - ...)].
 %
 %_______________________________________________________________________
-%
-% This compiled function should ideally be moved to the OldNorm toolbox.
-% It remains in the main part of SPM12 to make compilation easier.
-%_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_brainwarp.m 4922 2012-09-13 12:45:46Z john $
+% $Id: spm_brainwarp.m 4923 2012-09-13 15:01:01Z guillaume $
 
 
 %-This is merely the help file for the compiled routine

@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4922 2012-09-13 12:45:46Z john $
+# $Id: Makefile 4923 2012-09-13 15:01:01Z guillaume $
 #
 ###############################################################################
 #
@@ -76,6 +76,7 @@ archive: spm_vol_utils.$(SUF).a
 install: verb.install $(SPMMEX)
 	$(COPY) $(SPMMEX) ..
 	$(MOVE) ../file2mat.$(SUF) ../mat2file.$(SUF) ../@file_array/private
+	$(MOVE) ../spm_brainwarp.$(SUF) ../toolbox/OldNorm
 
 toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
 	@@for p in $(SUBDIRS); do \
@@ -202,7 +203,6 @@ spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_add.c spm_vol_utils.$(SUF).a $(MEXEND)
 
-# spm_brainwarp should eventually be relegated to the OldNorm toolbox.
 spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
