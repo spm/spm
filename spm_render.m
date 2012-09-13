@@ -30,12 +30,12 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 4018 2010-07-27 18:22:42Z guillaume $
+% $Id: spm_render.m 4920 2012-09-13 10:25:07Z guillaume $
 
-SVNrev = '$Rev: 4018 $';
+SVNrev = '$Rev: 4920 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -66,7 +66,7 @@ end
 %-Get surface
 %--------------------------------------------------------------------------
 if nargin < 3 || isempty(prevrend.rendfile)
-    [rendfile, sts] = spm_select(1,'mesh','Render file'); % .mat or .gii file
+    [rendfile, sts] = spm_select(1,{'mat','mesh'},'Render file');
     if ~sts, return; end
 end
 prevrend.rendfile = rendfile;
