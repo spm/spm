@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: spm_cfg_deformations.m 4922 2012-09-13 12:45:46Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -166,21 +166,21 @@ comp0.help   = hcomp;
 iv0          = branch('Inverse','inv',{comp0,img});
 iv0.help     = hinv;
 
-comp1        = repeat('Composition','comp',{other{:},iv0,comp0});
+comp1        = repeat('Composition','comp',[other,{iv0},{comp0}]);
 comp1.num    = [1 Inf];
 comp1.help   = hcomp;
 
 iv1          = branch('Inverse','inv',{comp1,img});
 iv1.help     = hinv;
 
-comp2        = repeat('Composition','comp',{other{:},iv1,comp1});
+comp2        = repeat('Composition','comp',[other,{iv1},{comp1}]);
 comp2.num    = [1 Inf];
 comp2.help   = hcomp;
 
 iv2          = branch('Inverse','inv',{comp2,img});
 iv2.help     = hinv;
 
-comp         = repeat('Composition','comp',{other{:},iv2,comp2});
+comp         = repeat('Composition','comp',[other,{iv2},{comp2}]);
 comp.num     = [1 Inf];
 comp.help    = hcomp;
 
@@ -314,7 +314,7 @@ fromimage.help   = {'Use the dimensions, orientation etc of some pre-existing im
 surfa        = cfg_files;
 surfa.name   = 'Surface';
 surfa.tag    = 'surface';
-surfa.filter = 'gifti';;
+surfa.filter = 'gifti';
 surfa.num    = [1 Inf];
 surfa.help   = {'Select a GIFTI file to warp.'};
 % ---------------------------------------------------------------------
@@ -367,13 +367,13 @@ savedef       = cfg_branch;
 savedef.name  = 'Save Deformation';
 savedef.tag   = 'savedef';
 savedef.val   ={saveas,savedir1};
-savedef.help  = {['The deformation may be saved to disk as a ``y_*.nii'''' file.']};
+savedef.help  = {'The deformation may be saved to disk as a ``y_*.nii'''' file.'};
 
 savedet       = cfg_branch;
 savedet.name  = 'Save Jacobian Determinants';
 savedet.tag   = 'savejac';
 savedet.val   ={savedas,savedir1};
-savedet.help  = {['The Jacobian determinants may be saved to disk as a ``j_*.nii'''' file.']};
+savedet.help  = {'The Jacobian determinants may be saved to disk as a ``j_*.nii'''' file.'};
 
 pullback      = cfg_branch;
 pullback.name = 'Pullback';
@@ -387,7 +387,7 @@ pullback.help = {[...
 weight        = cfg_files;
 weight.name   = 'Weight Image';
 weight.tag    = 'weight';
-weight.filter = 'nifti';;
+weight.filter = 'nifti';
 weight.num    = [0 1];
 weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
 weight.val    = {''};
@@ -453,28 +453,28 @@ savesurf  = false;
 savejac   = false;
 for i=1:numel(job.out)
     out = job.out{i};
-    if isfield(out,'savedef') && ~savedef;
+    if isfield(out,'savedef') && ~savedef,
         savedef = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Deformation';
         vo(end).src_output = substruct('.','def');
         vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
-    if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage;
+    if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage,
         saveimage = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Images';
         vo(end).src_output = substruct('.','warped');
         vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
-    if isfield(out,'surf') && ~savesurf;
+    if isfield(out,'surf') && ~savesurf,
         savesurf = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Surfaces';
         vo(end).src_output = substruct('.','surf');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','gifti'}});
+        vo(end).tgt_spec   = cfg_findspec({{'filter','gifti'}}); % Doesn't work.
     end
-    if isfield(out,'savejac') && ~savejac;
+    if isfield(out,'savejac') && ~savejac,
         savejac = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Jacobian';

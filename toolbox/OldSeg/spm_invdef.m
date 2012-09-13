@@ -28,8 +28,11 @@ function varargout = spm_invdef(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_invdef.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_invdef.m 4922 2012-09-13 12:45:46Z john $
 
-%-This is merely the help file for the compiled routine
-error('spm_invdef.c not compiled - see Makefile')
+Y  = cat(4,X1,X2,X3);
+Y  = spm_diffeo('invdef',Y,dimY,MX,MY);
+Y1 = Y(:,:,:,1);
+Y2 = Y(:,:,:,2);
+Y3 = Y(:,:,:,3);
 

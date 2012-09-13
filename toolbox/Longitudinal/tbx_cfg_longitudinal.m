@@ -4,7 +4,7 @@ function long = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4839 2012-08-14 18:53:20Z john $
+% $Id: tbx_cfg_longitudinal.m 4922 2012-09-13 12:45:46Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -83,11 +83,8 @@ write_avg.labels = {
                 'Save'
                 'Dont save'
                 }';
-write_avg.values = {
-                [1]
-                [0]
-                }';
-write_avg.val    = {[1]};
+write_avg.values = { 1 0 };
+write_avg.val    = {1};
 
 write_div         = cfg_menu;
 write_div.tag     = 'write_div';
@@ -97,11 +94,8 @@ write_div.labels = {
                 'Save'
                 'Dont save'
                 }';
-write_div.values = {
-                [1]
-                [0]
-                }';
-write_div.val    = {[1]};
+write_div.values = { 1 0 };
+write_div.val    = {1};
 
 write_jac         = cfg_menu;
 write_jac.tag     = 'write_jac';
@@ -111,11 +105,8 @@ write_jac.labels = {
                 'Save'
                 'Dont save'
                 }';
-write_jac.values = {
-                [1]
-                [0]
-                }';
-write_jac.val    = {[0]};
+write_jac.values = { 1 0 };
+write_jac.val    = {0};
 
 write_defs         = cfg_menu;
 write_defs.tag     = 'write_def';
@@ -125,11 +116,8 @@ write_defs.labels = {
                 'Save'
                 'Dont save'
                 }';
-write_defs.values = {
-                [1]
-                [0]
-                }';
-write_defs.val    = {[0]};
+write_defs.values = { 1 0 };
+write_defs.val    = {0};
 
 %write         = cfg_menu;
 %write.tag     = 'write';

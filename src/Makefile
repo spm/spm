@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4918 2012-09-12 15:28:50Z guillaume $
+# $Id: Makefile 4922 2012-09-13 12:45:46Z john $
 #
 ###############################################################################
 #
@@ -49,7 +49,7 @@ SPMMEX  =\
 	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
 	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	spm_invdef.$(SUF) mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
+	mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
 	spm_mesh_utils.$(SUF) spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF)
 
 SUBDIRS =\
@@ -202,6 +202,7 @@ spm_add.$(SUF): spm_add.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_add.c spm_vol_utils.$(SUF).a $(MEXEND)
 
+# spm_brainwarp should eventually be relegated to the OldNorm toolbox.
 spm_brainwarp.$(SUF): spm_brainwarp.c spm_matfuns.c spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_brainwarp.c spm_vol_utils.$(SUF).a spm_matfuns.c $(MEXEND)
@@ -263,9 +264,6 @@ spm_hist.$(SUF): spm_hist.c
 
 spm_hist2.$(SUF): spm_hist2.c
 	$(MEX) spm_hist2.c $(MEXEND)
-
-spm_invdef.$(SUF): spm_invdef.c
-	$(MEX) spm_invdef.c $(MEXEND)
 
 spm_krutil.$(SUF): spm_krutil.c
 	$(MEX) spm_krutil.c $(MEXEND)
