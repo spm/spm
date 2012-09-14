@@ -18,11 +18,11 @@ function [N,cdf] = spm_mnc2nifti(fname,opts)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_mnc2nifti.m 4466 2011-09-07 16:50:29Z guillaume $
+% $Id: spm_mnc2nifti.m 4927 2012-09-14 16:15:10Z ged $
 
 
 if nargin==1
-    opts = struct('dtype',4, 'ext',['.' spm_file_ext]);
+    opts = struct('dtype',4, 'ext',spm_file_ext);
 else
     if opts.ext(1) ~= '.', opts.ext = ['.' opts.ext]; end
 end
