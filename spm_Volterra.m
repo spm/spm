@@ -23,7 +23,7 @@ function [X,Xname,Fc] = spm_Volterra(U,bf,V)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_Volterra.m 4855 2012-08-22 15:50:22Z guillaume $
+% $Id: spm_Volterra.m 4925 2012-09-14 11:17:01Z guillaume $
 
 
 %-Order of Volterra expansion
@@ -84,7 +84,7 @@ for j = i:numel(U)
         %-Indices and regressor names
         %------------------------------------------------------------------
         Xname{end + 1} = sprintf('%s*bf(%i)x%s*bf(%i)',...
-                         	U(i).name{1}, p,...
+                            U(i).name{1}, p,...
                             U(j).name{1}, q);
         ind(end + 1)   = size(X,2);
         ip(end + 1)    = 1;

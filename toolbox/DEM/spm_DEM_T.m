@@ -12,12 +12,12 @@ function [T] = spm_DEM_T(n,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_T.m 4663 2012-02-27 11:56:23Z karl $
+% $Id: spm_DEM_T.m 4925 2012-09-14 11:17:01Z guillaume $
 
 % Delay operator
 %--------------------------------------------------------------------------
 T = spm_expm(spm_speye(n,n,1)*dt);
-	
+    
 return
 
 % NOTES

@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_results_ui.m 4925 2012-09-14 11:17:01Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4768 $'; 
+SVNid = '$Rev: 4925 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1307,7 +1307,7 @@ so.transform = deblank(spm_input('Image orientation', '+1', ...
 so = fill_defaults(so);
 slices = so.slices;
 so.slices = spm_input('Slices to display (mm)', '+1', 'e', ...
-	sprintf('%0.0f:%0.0f:%0.0f',slices(1),mean(diff(slices)),slices(end)));
+    sprintf('%0.0f:%0.0f:%0.0f',slices(1),mean(diff(slices)),slices(end)));
 
 so.figure = spm_figure('GetWin', 'SliceOverlay');
 so = paint(so);

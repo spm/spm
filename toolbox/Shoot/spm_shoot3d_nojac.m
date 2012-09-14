@@ -61,7 +61,7 @@ function varargout = spm_shoot3d_nojac(v0,prm,args)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id$
+% $Id: spm_shoot3d_nojac.m 4925 2012-09-14 11:17:01Z guillaume $
 
 args0 = [8 1 1];
 if nargin<3,

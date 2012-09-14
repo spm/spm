@@ -10,7 +10,7 @@ function varargout = optim_compat(bc,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id$
+% $Id: optim_compat.m 4925 2012-09-14 11:17:01Z guillaume $
 
 if nargin>1 && isa(varargin{1},'char')
     obc = spm_field('boundary'); % Old boundary condition
