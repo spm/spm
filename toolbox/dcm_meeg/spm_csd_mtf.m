@@ -29,7 +29,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_csd_mtf.m 4928 2012-09-14 21:40:18Z karl $
  
  
 % between-trial (experimental) inputs
@@ -105,7 +105,7 @@ for  c = 1:size(X,1)
         
     end
     
-    % solve for steady-state - for each condition
+    % solve for steady-state - if exogenous inputs are specified
     %----------------------------------------------------------------------
     if nargin > 2
         M.x   = spm_dcm_neural_x(Q,M);

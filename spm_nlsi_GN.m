@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_nlsi_GN.m 4928 2012-09-14 21:40:18Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -116,17 +116,23 @@ end
 % composition of feature selection and prediction (usually an integrator)
 %--------------------------------------------------------------------------
 try
+    y  = Y.y;
+catch
+    y  = Y;
+end
+
+try
     
     % try FS(y,M)
     %----------------------------------------------------------------------
     try
-        y  = feval(M.FS,Y.y,M);
+        y  = feval(M.FS,y,M);
         IS = inline([M.FS '(' M.IS '(P,M,U),M)'],'P','M','U');
         
         % try FS(y)
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
     catch
-        y  = feval(M.FS,Y.y);
+        y  = feval(M.FS,y);
         IS = inline([M.FS '(' M.IS '(P,M,U))'],'P','M','U');
     end
     
@@ -134,7 +140,6 @@ catch
     
     % otherwise FS(y) = y
     %----------------------------------------------------------------------
-    y   = Y.y;
     try
         IS = inline([M.IS '(P,M,U)'],'P','M','U');
     catch
@@ -181,9 +186,9 @@ end
 % time-step
 %--------------------------------------------------------------------------
 try
-    Y.dt;
+    dt = Y.dt;
 catch
-    Y.dt = 1;
+    dt = 1;
 end
 
 % precision components Q
@@ -463,7 +468,7 @@ for k = 1:M.Nmax
         
         % subplot prediction
         %------------------------------------------------------------------
-        x    = (1:size(e,1))*Y.dt;
+        x    = (1:size(e,1))*dt;
         xLab = 'time (seconds)';
         try
             if length(M.Hz) == ns
