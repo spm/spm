@@ -147,7 +147,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4853 2012-08-21 16:21:43Z john $
+% $Id: spm_orthviews.m 4926 2012-09-14 11:58:16Z guillaume $
 
 
 % The basic fields of st are:
@@ -1709,7 +1709,7 @@ global st
 for ii = valid_handles(handles)
     for i=1:3
         set(st.vols{ii}.ax{i}.ax,'UIcontextmenu',[]);
-        st.vols{ii}.ax{i} = rmfield(st.vols{ii}.ax{i},'cm');
+        try, st.vols{ii}.ax{i} = rmfield(st.vols{ii}.ax{i},'cm'); end
     end
 end
 

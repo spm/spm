@@ -4,31 +4,30 @@ function spm_image(action,varargin)
 % FORMAT spm_image('Display',fname)
 %__________________________________________________________________________
 %
-% spm_image is an interactive facility that allows orthogonal sections
-% from an image volume to be displayed.  Clicking the cursor on either
-% of the three images moves the point around which the orthogonal
-% sections are viewed.  The co-ordinates of the cursor are shown both
-% in voxel co-ordinates and millimeters within some fixed framework.
-% The intensity at that point in the image (sampled using the current
-% interpolation scheme) is also given. The position of the crosshairs
-% can also be moved by specifying the co-ordinates in millimeters to
-% which they should be moved.  Clicking on the horizontal bar above
-% these boxes will move the cursor back to the origin  (analogous to
-% setting the crosshair position (in mm) to [0 0 0]).
+% spm_image is an interactive facility that allows orthogonal sections from
+% an image volume to be displayed.  Clicking the cursor on either of the
+% three images moves the point around which the orthogonal sections are
+% viewed.  The co-ordinates of the cursor are shown both in voxel
+% co-ordinates and millimeters within some fixed framework. The intensity
+% at that point in the image (sampled using the current interpolation
+% scheme) is also given. The position of the crosshairs can also be moved
+% by specifying the coordinates in millimeters to which they should be
+% moved.  Clicking on 'Origin' button will move the cursor back to the
+% origin  (analogous to setting the crosshair position (in mm) to [0 0 0]).
 %
 % The images can be re-oriented by entering appropriate translations,
-% rotations and zooms into the panel on the left.  The transformations
-% can then be saved by hitting the "Reorient images..." button.  The
+% rotations and zooms into the panel on the left.  The transformations can
+% then be saved by hitting the "Reorient images..." button.  The
 % transformations that were applied to the image are saved to the header
 % information of the selected images.  The transformations are considered
-% to be relative to any existing transformations that may be stored.
-% Note that the order that the transformations are applied in is the
-% same as in spm_matrix.m.
+% to be relative to any existing transformations that may be stored. Note
+% that the order that the transformations are applied in is the same as in
+% spm_matrix.m.
 %
 % The ``Reset...'' button next to it is for setting the orientation of
-% images back to transverse.  It retains the current voxel sizes,
-% but sets the origin of the images to be the centre of the volumes
-% and all rotations back to zero.
+% images back to transverse.  It retains the current voxel sizes, but sets
+% the origin of the images to be the centre of the volumes and all
+% rotations back to zero.
 %
 % The right panel shows miscellaneous information about the image.
 % This includes:
@@ -38,32 +37,32 @@ function spm_image(action,varargin)
 %   Miscellaneous other information about the image.
 %   Vox size   - the distance (in mm) between the centres of
 %                neighbouring voxels.
-%   Origin     - the voxel at the origin of the co-ordinate system
-%   Dir Cos    - Direction cosines.  This is a widely used
-%                representation of the orientation of an image.
+%   Origin     - the voxel at the origin of the coordinate system
+%   Dir Cos    - Direction cosines.  This is a widely used representation
+%                of the orientation of an image.
 %
-% There are also a few options for different resampling modes, zooms
-% etc.  You can also flip between voxel space or world space.  If you
-% are re-orienting the images, make sure that world space is specified.
-% Blobs (from activation studies) can be superimposed on the images and 
-% the intensity windowing can also be changed.
+% There are also a few options for different resampling modes, zooms etc.
+% You can also flip between voxel space or world space.  If you are
+% re-orienting the images, make sure that world space is specified. SPM{.}
+% or images can be superimposed and the intensity windowing can also be
+% changed.
 %__________________________________________________________________________
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4904 2012-09-06 15:08:56Z guillaume $
+% $Id: spm_image.m 4926 2012-09-14 11:58:16Z guillaume $
 
 
-SVNid = '$Rev: 4904 $';
+SVNid = '$Rev: 4926 $';
 
 global st
 
 if ~nargin, action = 'Init'; end
 
-if ~any(strcmpi(action,{'init','reset'})) && ...
+if ~any(strcmpi(action,{'init','reset','display'})) && ...
         (isempty(st) || ~isfield(st,'vols') || isempty(st.vols{1}))
+    warning('spm:spm_image:lostInfo','Lost image information. Resetting.');
     spm_image('Reset');
-    warning('Lost all the image information');
     return;
 end
 
@@ -82,106 +81,122 @@ switch lower(action)
     if ischar(P), P = spm_vol(P); end
     P = P(1);
 
-    fprintf('Display %s\n',P.fname);                                    %-#
+    if desktop('-inuse')
+        dispf = @(f) ...
+            sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
+    else
+        dispf = @(f) f;
+    end
+    fprintf('Display %s\n',dispf(P.fname));                             %-#
     
     init_display(P);
     
+    
     case 'repos'
-    % The widgets for translation rotation or zooms have been modified
+    % The widgets for translation, rotation or zooms have been modified
     %----------------------------------------------------------------------
+    h = findobj(st.fig,'Tag','spm_image:reorient'); if isempty(h), spm_image('Reset'); end
+    B = get(h,'UserData');
     trz = varargin{1};
-    try, st.B(trz) = eval(get(gco,'String')); end
-    set(gco,'String',st.B(trz));
-    st.vols{1}.premul = spm_matrix(st.B);
+    try, B(trz) = eval(get(gco,'String')); end
+    set(gco,'String',B(trz));
+    st.vols{1}.premul = spm_matrix(B);
+    set(h,'UserData',B);
     % spm_orthviews('MaxBB');
     spm_image('Zoom');
     spm_image('Update');
     
+    
     case 'shopos'
     % The position of the crosshairs has been moved
     %----------------------------------------------------------------------
-    if isfield(st,'mp')
-        fg = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.mp)
-            set(st.mp,'String',sprintf('%.1f %.1f %.1f',spm_orthviews('Pos')));
-            pos = spm_orthviews('Pos',1);
-            set(st.vp,'String',sprintf('%.1f %.1f %.1f',pos));
-            set(st.in,'String',sprintf('%g',spm_sample_vol(st.vols{1},pos(1),pos(2),pos(3),st.hld)));
-        else
-            st.Callback = ';';
-            st = rmfield(st,{'mp','vp','in'});
-        end
-    else
-        st.Callback = ';';
-    end
- 
+    XYZmm = spm_orthviews('Pos');
+    XYZ   = spm_orthviews('Pos',1);
+    h = findobj(st.fig,'Tag','spm_image:mm'); if isempty(h), spm_image('Reset'); end
+    set(h,'String',sprintf('%.1f %.1f %.1f',XYZmm));
+    h = findobj(st.fig,'Tag','spm_image:vx'); if isempty(h), spm_image('Reset'); end
+    set(h,'String',sprintf('%.1f %.1f %.1f',XYZ));
+    h = findobj(st.fig,'Tag','spm_image:intensity'); if isempty(h), spm_image('Reset'); end
+    set(h,'String',sprintf('%g',spm_sample_vol(st.vols{1},XYZ(1),XYZ(2),XYZ(3),st.hld)));
+    
+    
     case 'setposmm'
     % Move the crosshairs to the specified position {mm}
     %----------------------------------------------------------------------
-    if isfield(st,'mp')
-        fg = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.mp)
-            pos = sscanf(get(st.mp,'String'), '%g %g %g');
-            if length(pos)~=3
-                pos = spm_orthviews('Pos');
-            end
-            spm_orthviews('Reposition',pos);
-        end
+    h = findobj(st.fig,'Tag','spm_image:mm'); if isempty(h), spm_image('Reset'); end
+    pos = sscanf(get(h,'String'), '%g %g %g');
+    if length(pos)~=3
+        pos = spm_orthviews('Pos');
     end
+    spm_orthviews('Reposition',pos);
+    
     
     case 'setposvx'
     % Move the crosshairs to the specified position {vx}
     %----------------------------------------------------------------------
-    if isfield(st,'mp')
-        fg = spm_figure('Findwin','Graphics');
-        if any(findobj(fg) == st.vp)
-            pos = sscanf(get(st.vp,'String'), '%g %g %g');
-            if length(pos)~=3
-                pos = spm_orthviews('pos',1);
-            end
-            tmp = st.vols{1}.premul*st.vols{1}.mat;
-            pos = tmp(1:3,:)*[pos ; 1];
-            spm_orthviews('Reposition',pos);
-        end
+    h = findobj(st.fig,'Tag','spm_image:vx'); if isempty(h), spm_image('Reset'); end
+    pos = sscanf(get(h,'String'), '%g %g %g');
+    if length(pos)~=3
+        pos = spm_orthviews('pos',1);
     end
+    tmp = st.vols{1}.premul*st.vols{1}.mat;
+    pos = tmp(1:3,:)*[pos ; 1];
+    spm_orthviews('Reposition',pos);
 
+    
     case 'addblobs'
     % Add blobs to the image - in full colour
     %----------------------------------------------------------------------
+    [f, sts] = spm_select([1 6],{'image','mat'}); % {'image','^SPM\.mat$'}
+    if ~sts, return; else f = cellstr(f); end
     spm_figure('Clear','Interactive');
-    nblobs = spm_input('Number of sets of blobs',1,'1|2|3|4|5|6',[1 2 3 4 5 6],1);
-    for i=1:nblobs
-        [SPM,xSPM] = spm_getSPM;
-        c = spm_input('Colour','+1','m','Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs',[1 2 3 4 5 6],1);
-        colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
-        spm_orthviews('AddColouredBlobs',1,xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:));
-        set(st.blobber,'String','Remove Blobs','Callback','spm_image(''RemoveBlobs'');');
+    colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
+    cnames  = 'Red blobs|Yellow blobs|Green blobs|Cyan blobs|Blue blobs|Magenta blobs';
+    h = findobj(st.fig,'Tag','spm_image:overlay'); if isempty(h), spm_image('Reset'); end
+    for i=1:numel(f)
+        c = spm_input(['Colour for ' spm_file(f{i},'short25')],'+1','m',cnames,[1 2 3 4 5 6],i);
+        if strcmp(spm_file(f{i},'filename'),'SPM.mat')
+            load(f{i});
+            [SPM,xSPM] = spm_getSPM(SPM);
+            if isempty(xSPM), continue; end
+            spm_orthviews('AddColouredBlobs',1,xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:));
+        else
+            spm_orthviews('AddColouredImage',1,f{i},colours(c,:));
+        end
     end
+    set(h,'String','Remove Overlay','Callback','spm_image(''RemoveBlobs'');');
     spm_orthviews('AddContext',1);
     spm_orthviews('Redraw');
 
+    
     case {'removeblobs','rmblobs'}
     % Remove all blobs from the images
     %----------------------------------------------------------------------
     spm_orthviews('RemoveBlobs',1);
-    set(st.blobber,'String','Add Blobs','Callback','spm_image(''AddBlobs'');');
+    h = findobj(st.fig,'Tag','spm_image:overlay'); if isempty(h), spm_image('Reset'); end
+    set(h,'String','Add Overlay...','Callback','spm_image(''AddBlobs'');');
     spm_orthviews('RemoveContext',1); 
     spm_orthviews('Redraw');
 
+    
     case 'window'
     % Window
     %----------------------------------------------------------------------
-    op = get(st.win,'Value');
+    h = findobj(st.fig,'Tag','spm_image:window'); if isempty(h), spm_image('Reset'); end
+    op = get(h,'Value');
     if op == 1
         spm_orthviews('Window',1); % automatic
     else
         spm_orthviews('Window',1,spm_input('Range','+1','e','',2));
     end
     
+    
     case 'reorient'
     % Reorient images
     %----------------------------------------------------------------------
-    mat = spm_matrix(st.B);
+    h = findobj(st.fig,'Tag','spm_image:reorient'); if isempty(h), spm_image('Reset'); end
+    B = get(h,'UserData');
+    mat = spm_matrix(B);
     if det(mat)<=0
         spm('alert!','This will flip the images',mfilename,0,1);
     end
@@ -206,6 +221,7 @@ switch lower(action)
         spm_image('Init',st.vols{1}.fname);
     end
 
+    
     case 'resetorient'
     % Reset orientation of images
     %----------------------------------------------------------------------
@@ -233,6 +249,7 @@ switch lower(action)
         spm_image('Init',st.vols{1}.fname);
     end
 
+    
     case 'update'
     % Modify the positional information in the right hand panel
     %----------------------------------------------------------------------
@@ -240,44 +257,67 @@ switch lower(action)
     Z = spm_imatrix(mat);
     Z = Z(7:9);
 
-    set(st.posinf.z,'String', sprintf('%.3g x %.3g x %.3g', Z));
+    h = findobj(st.fig,'Tag','spm_image:hdr:vx'); if isempty(h), spm_image('Reset'); end
+    set(h, 'String', sprintf('%.3g x %.3g x %.3g', Z));
 
     O = mat\[0 0 0 1]'; O=O(1:3)';
-    set(st.posinf.o, 'String', sprintf('%.3g %.3g %.3g', O));
+    h = findobj(st.fig,'Tag','spm_image:hdr:orig'); if isempty(h), spm_image('Reset'); end
+    set(h, 'String', sprintf('%.3g %.3g %.3g', O));
 
     R = spm_imatrix(mat);
     R = spm_matrix([0 0 0 R(4:6)]);
     R = R(1:3,1:3);
 
-    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(tmp2=='+') = ' ';
-    set(st.posinf.m1, 'String', tmp2);
-    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(tmp2=='+') = ' ';
-    set(st.posinf.m2, 'String', tmp2);
-    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(tmp2=='+') = ' ';
-    set(st.posinf.m3, 'String', tmp2);
+    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f',R(1,1:3)); tmp2(tmp2=='+') = ' ';
+    h = findobj(st.fig,'Tag','spm_image:hdr:m1'); if isempty(h), spm_image('Reset'); end
+    set(h, 'String', tmp2);
+    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f',R(2,1:3)); tmp2(tmp2=='+') = ' ';
+    h = findobj(st.fig,'Tag','spm_image:hdr:m2'); if isempty(h), spm_image('Reset'); end
+    set(h, 'String', tmp2);
+    tmp2 = sprintf('%+5.3f %+5.3f %+5.3f',R(3,1:3)); tmp2(tmp2=='+') = ' ';
+    h = findobj(st.fig,'Tag','spm_image:hdr:m3'); if isempty(h), spm_image('Reset'); end
+    set(h, 'String', tmp2);
 
     tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
-
+    h = findobj(st.fig,'Tag','spm_image:hdr:shear'); if isempty(h), spm_image('Reset'); end
     if sum(tmp(:).^2)>1e-5
-        set(st.posinf.w, 'String', 'Warning: shears involved');
+        set(h, 'String', 'Warning: shears involved');
     else
-        set(st.posinf.w, 'String', '');
+        set(h, 'String', '');
     end
 
+    
     case 'zoom'
     % Zoom in
     %----------------------------------------------------------------------
-    [zl rl] = spm_orthviews('ZoomMenu');
+    [zl, rl] = spm_orthviews('ZoomMenu');
+    h = findobj(st.fig,'Tag','spm_image:zoom'); if isempty(h), spm_image('Reset'); end
     % Values are listed in reverse order
-    cz = numel(zl)-get(st.zoomer,'Value')+1;
+    cz = numel(zl)-get(h,'Value')+1;
     spm_orthviews('Zoom',zl(cz),rl(cz));
 
+    
+    case 'xhairs'
+    % Display/hide crosshair
+    %----------------------------------------------------------------------
+    h = findobj(st.fig,'Tag','spm_image:xhairs'); if isempty(h), spm_image('Reset'); end
+    if get(h,'UserData')
+        spm_orthviews('Xhairs','off');
+        set(h,'String','Show Crosshair');
+    else
+        spm_orthviews('Xhairs','on');
+        set(h,'String','Hide Crosshair');
+    end
+    set(h,'UserData',~get(h,'UserData'));
+
+    
     case 'reset'
     % Reset
     %----------------------------------------------------------------------
     spm_orthviews('Reset');
     spm_figure('Clear','Graphics');
 
+    
     otherwise
     % Otherwise
     %----------------------------------------------------------------------
@@ -303,72 +343,86 @@ if isempty(st.vols{1}), return; end
 spm_orthviews('MaxBB');
 st.callback = 'spm_image(''shopos'');';
 
-st.B = [0 0 0  0 0 0  1 1 1  0 0 0];
-
-% Widgets for re-orienting images.
-%--------------------------------------------------------------------------
 WS = spm('WinScale');
 
-uicontrol(fg,'Style','Frame','Position',[60 25 200 325].*WS,'DeleteFcn','spm_image(''reset'');');
-uicontrol(fg,'Style','Text', 'Position',[75 220 100 016].*WS,'String','right  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[75 200 100 016].*WS,'String','forward  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[75 180 100 016].*WS,'String','up  {mm}');
-uicontrol(fg,'Style','Text', 'Position',[75 160 100 016].*WS,'String','pitch  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[75 140 100 016].*WS,'String','roll  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[75 120 100 016].*WS,'String','yaw  {rad}');
-uicontrol(fg,'Style','Text', 'Position',[75 100 100 016].*WS,'String','resize  {x}');
-uicontrol(fg,'Style','Text', 'Position',[75  80 100 016].*WS,'String','resize  {y}');
-uicontrol(fg,'Style','Text', 'Position',[75  60 100 016].*WS,'String','resize  {z}');
-
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',1)','Position',[175 220 065 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',2)','Position',[175 200 065 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',3)','Position',[175 180 065 020].*WS,'String','0','ToolTipString','translate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',4)','Position',[175 160 065 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',5)','Position',[175 140 065 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',6)','Position',[175 120 065 020].*WS,'String','0','ToolTipString','rotate');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',7)','Position',[175 100 065 020].*WS,'String','1','ToolTipString','zoom');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',8)','Position',[175  80 065 020].*WS,'String','1','ToolTipString','zoom');
-uicontrol(fg,'Style','edit','Callback','spm_image(''repos'',9)','Position',[175  60 065 020].*WS,'String','1','ToolTipString','zoom');
-
-uicontrol(fg,'Style','Pushbutton','String','Reorient images...','Callback','spm_image(''reorient'')',...
-         'Position',[70 35 125 020].*WS,'ToolTipString','modify position information of selected images');
-
-uicontrol(fg,'Style','Pushbutton','String','Reset...','Callback','spm_image(''resetorient'')',...
-         'Position',[195 35 55 020].*WS,'ToolTipString','reset orientations of selected images');
+u0 = uipanel(fg,'Units','Pixels','Title','','Position',[60 25 200 325].*WS,...
+    'DeleteFcn','spm_image(''reset'');');
 
 % Crosshair position
 %--------------------------------------------------------------------------
-uicontrol(fg,'Style','Frame','Position',[70 250 180 90].*WS);
-uicontrol(fg,'Style','Text', 'Position',[75 320 170 016].*WS,'String','Crosshair Position');
-uicontrol(fg,'Style','PushButton', 'Position',[75 316 170 006].*WS,...
-    'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
-% uicontrol(fg,'Style','PushButton', 'Position',[75 315 170 020].*WS,'String','Crosshair Position',...
-%   'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','move crosshairs to origin');
-uicontrol(fg,'Style','Text', 'Position',[75 295 35 020].*WS,'String','mm:');
-uicontrol(fg,'Style','Text', 'Position',[75 275 35 020].*WS,'String','vx:');
-uicontrol(fg,'Style','Text', 'Position',[75 255 65 020].*WS,'String','Intensity:');
+u1 = uipanel('Parent',u0,'Units','Pixels','Title','','Position',[5 225 189 94].*WS,...
+    'BorderType','Line', 'HighlightColor',[0 0 0]);
+uicontrol('Parent',u1,'Style','Text', 'Position',[10 67 120 020].*WS,...
+    'String','Crosshair Position','FontWeight','bold');
+uicontrol('Parent',u1,'Style','PushButton', 'Position',[135 69 050 020].*WS,...
+    'String','Origin',...
+	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','Move crosshair to origin');
+uicontrol('Parent',u1,'Style','Text', 'Position',[10 45 35 020].*WS,'String','mm:');
+uicontrol('Parent',u1,'Style','Text', 'Position',[10 25 35 020].*WS,'String','vx:');
+uicontrol('Parent',u1,'Style','Text', 'Position',[10  1 65 020].*WS,'String','Intensity:');
 
-st.mp = uicontrol(fg,'Style','edit', 'Position',[110 295 135 020].*WS,'String','','Callback','spm_image(''setposmm'')','ToolTipString','move crosshairs to mm coordinates');
-st.vp = uicontrol(fg,'Style','edit', 'Position',[110 275 135 020].*WS,'String','','Callback','spm_image(''setposvx'')','ToolTipString','move crosshairs to voxel coordinates');
-st.in = uicontrol(fg,'Style','Text', 'Position',[140 255  85 020].*WS,'String','');
+uicontrol('Parent',u1,'Style','Edit', 'Position',[50 45 135 020].*WS,...
+    'String','', 'Tag','spm_image:mm',...
+    'Callback','spm_image(''setposmm'')','ToolTipString','Move crosshair to mm coordinates');
+uicontrol('Parent',u1,'Style','Edit', 'Position',[50 25 135 020].*WS,...
+    'String','', 'Tag','spm_image:vx',...
+    'Callback','spm_image(''setposvx'')','ToolTipString','Move crosshair to voxel coordinates');
+uicontrol('Parent',u1,'Style','Text', 'Position',[80 1  85 020].*WS,...
+    'String','', 'Tag','spm_image:intensity');
 
-% General information
+% Widgets for re-orienting images
 %--------------------------------------------------------------------------
-uicontrol(fg,'Style','Frame','Position',[305  25 280 325].*WS);
-uicontrol(fg,'Style','Text','Position' ,[310 330 50 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'File:');
-uicontrol(fg,'Style','Text','Position' ,[360 330 210 016].*WS,...
-    'HorizontalAlignment','left', 'String', spm_file(st.vols{1}.fname,'short25'),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 310 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Dimensions:');
-uicontrol(fg,'Style','Text','Position' ,[410 310 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', sprintf('%d x %d x %d', st.vols{1}.dim(1:3)),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 290 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Datatype:');
-uicontrol(fg,'Style','Text','Position' ,[410 290 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', spm_type(st.vols{1}.dt(1)),'FontWeight','bold');
-uicontrol(fg,'Style','Text','Position' ,[310 270 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Intensity:');
+B = [0 0 0  0 0 0  1 1 1  0 0 0];
+u2 = uipanel('Parent',u0,'Units','Pixels','Title','','Position',[5 5 189 214].*WS,...
+    'BorderType','Line', 'HighlightColor',[0 0 0], 'Tag','spm_image:reorient', 'UserData', B);
+uicontrol('Parent',u2,'Style','Text', 'Position',[5 190 100 016].*WS,'String','right  {mm}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5 170 100 016].*WS,'String','forward  {mm}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5 150 100 016].*WS,'String','up  {mm}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5 130 100 016].*WS,'String','pitch  {rad}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5 110 100 016].*WS,'String','roll  {rad}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5  90 100 016].*WS,'String','yaw  {rad}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5  70 100 016].*WS,'String','resize  {x}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5  50 100 016].*WS,'String','resize  {y}');
+uicontrol('Parent',u2,'Style','Text', 'Position',[5  30 100 016].*WS,'String','resize  {z}');
+
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 190 065 020].*WS,'String','0','Callback','spm_image(''repos'',1)','ToolTipString','Translation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 170 065 020].*WS,'String','0','Callback','spm_image(''repos'',2)','ToolTipString','Translation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 150 065 020].*WS,'String','0','Callback','spm_image(''repos'',3)','ToolTipString','Translation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 130 065 020].*WS,'String','0','Callback','spm_image(''repos'',4)','ToolTipString','Rotation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 110 065 020].*WS,'String','0','Callback','spm_image(''repos'',5)','ToolTipString','Rotation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  90 065 020].*WS,'String','0','Callback','spm_image(''repos'',6)','ToolTipString','Rotation');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  70 065 020].*WS,'String','1','Callback','spm_image(''repos'',7)','ToolTipString','Zoom');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  50 065 020].*WS,'String','1','Callback','spm_image(''repos'',8)','ToolTipString','Zoom');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  30 065 020].*WS,'String','1','Callback','spm_image(''repos'',9)','ToolTipString','Zoom');
+
+uicontrol('Parent',u2,'Style','Pushbutton','Position',[5 5 125 020].*WS,'String','Reorient images...',...
+    'Callback','spm_image(''reorient'')','ToolTipString','Modify position information of selected images');
+uicontrol('Parent',u2,'Style','Pushbutton','Position',[130 5 55 020].*WS,'String','Reset...',...
+    'Callback','spm_image(''resetorient'')','ToolTipString','Reset orientations of selected images');
+
+% Header information
+%--------------------------------------------------------------------------
+u0 = uipanel(fg,'Units','Pixels','Title','','Position',[305 25 280 325].*WS);
+u1 = uipanel('Parent',u0,'Units','Pixels','Title','','Position',[5 80 269 239].*WS,...
+    'BorderType','Line','HighlightColor',[0 0 0]);
+
+uicontrol('Parent',u1, 'Style','Text', 'Position', [5 215 50 016].*WS,...
+    'String','File:', 'HorizontalAlignment','right');
+str = spm_file(st.vols{1}.fname,'short25');
+uicontrol('Parent',u1, 'Style','Text','Position', [55 215 210 016].*WS,...
+    'String',str, 'HorizontalAlignment','left', 'FontWeight','bold');
+uicontrol('Parent',u1, 'Style','Text', 'Position', [5 195 100 016].*WS,...
+    'String','Dimensions:', 'HorizontalAlignment','right');
+str = sprintf('%d x %d x %d', st.vols{1}.dim(1:3));
+uicontrol('Parent',u1, 'Style','Text', 'Position', [105 195 160 016].*WS,...
+    'String',str, 'HorizontalAlignment','left', 'FontWeight','bold');
+uicontrol('Parent',u1, 'Style','Text', 'Position', [5 175 100 016].*WS,...
+    'String','Datatype:', 'HorizontalAlignment','right');
+str = spm_type(st.vols{1}.dt(1));
+uicontrol('Parent',u1, 'Style','Text', 'Position', [105 175 160 016].*WS,...
+    'String',str, 'HorizontalAlignment','left', 'FontWeight','bold');
+uicontrol('Parent',u1, 'Style','Text', 'Position', [5 155 100 016].*WS,...
+    'String','Intensity:', 'HorizontalAlignment','right');
 str = 'varied';
 if size(st.vols{1}.pinfo,2) == 1
     if st.vols{1}.pinfo(2)
@@ -377,12 +431,13 @@ if size(st.vols{1}.pinfo,2) == 1
         str = sprintf('Y = %g X', st.vols{1}.pinfo(1)');
     end
 end
-uicontrol(fg,'Style','Text','Position' ,[410 270 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', str,'FontWeight','bold');
+uicontrol('Parent',u1, 'Style','Text', 'Position', [105 155 160 016].*WS,...
+    'String',str, 'HorizontalAlignment','left', 'FontWeight','bold');
 
 if isfield(st.vols{1}, 'descrip')
-    uicontrol(fg,'Style','Text','Position' ,[310 250 260 016].*WS,...
-    'HorizontalAlignment','center', 'String', st.vols{1}.descrip,'FontWeight','bold');
+    str = st.vols{1}.descrip;
+    uicontrol('Parent',u1,'Style','Text', 'Position', [5 135 260 016].*WS,...
+        'String',str, 'HorizontalAlignment','center', 'FontWeight','bold');
 end
 
 % Positional information
@@ -390,43 +445,52 @@ end
 mat = st.vols{1}.premul*st.vols{1}.mat;
 Z = spm_imatrix(mat);
 Z = Z(7:9);
-uicontrol(fg,'Style','Text','Position' ,[310 210 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Vox size:');
-st.posinf = struct('z',uicontrol(fg,'Style','Text','Position' ,[410 210 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', sprintf('%.3g x %.3g x %.3g', Z),'FontWeight','bold'));
+uicontrol('Parent',u1,'Style','Text', 'Position',[5 105 100 016].*WS,...
+    'HorizontalAlignment','right', 'String','Vox size:');
+uicontrol('Parent',u1,'Style','Text', 'Position',[105 105 160 016].*WS,...
+    'String', sprintf('%.3g x %.3g x %.3g', Z), 'Tag','spm_image:hdr:vx',...
+    'HorizontalAlignment','left', 'FontWeight','bold');
 
 O = mat\[0 0 0 1]'; O=O(1:3)';
-uicontrol(fg,'Style','Text','Position' ,[310 190 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Origin:');
-st.posinf.o = uicontrol(fg,'Style','Text','Position' ,[410 190 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', sprintf('%.3g %.3g %.3g', O),'FontWeight','bold');
+uicontrol('Parent',u1,'Style','Text','Position', [5 85 100 016].*WS,...
+    'HorizontalAlignment','right', 'String','Origin:');
+uicontrol('Parent',u1,'Style','Text', 'Position',[105 85 160 016].*WS,...
+    'String',sprintf('%.3g %.3g %.3g', O), 'Tag','spm_image:hdr:orig',...
+    'HorizontalAlignment','left', 'FontWeight','bold');
 
 R = spm_imatrix(mat);
 R = spm_matrix([0 0 0 R(4:6)]);
 R = R(1:3,1:3);
 
-uicontrol(fg,'Style','Text','Position' ,[310 170 100 016].*WS,...
-    'HorizontalAlignment','right', 'String', 'Dir Cos:');
+uicontrol('Parent',u1,'Style','Text', 'Position', [5 65 100 016].*WS,...
+    'HorizontalAlignment','right', 'String','Dir Cos:');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(1,1:3)); tmp2(tmp2=='+') = ' ';
-st.posinf.m1 = uicontrol(fg,'Style','Text','Position' ,[410 170 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
+uicontrol('Parent',u1,'Style','Text', 'Position', [105 65 160 016].*WS,...
+    'String',tmp2, 'Tag','spm_image:hdr:m1',...
+    'HorizontalAlignment','left', 'FontWeight','bold');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(2,1:3)); tmp2(tmp2=='+') = ' ';
-st.posinf.m2 = uicontrol(fg,'Style','Text','Position' ,[410 150 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
+uicontrol('Parent',u1,'Style','Text', 'Position', [105 45 160 016].*WS,...
+    'String',tmp2, 'Tag','spm_image:hdr:m2',...
+    'HorizontalAlignment','left', 'FontWeight','bold');
 tmp2 = sprintf('%+5.3f %+5.3f %+5.3f', R(3,1:3)); tmp2(tmp2=='+') = ' ';
-st.posinf.m3 = uicontrol(fg,'Style','Text','Position' ,[410 130 160 016].*WS,...
-    'HorizontalAlignment','left', 'String', tmp2,'FontWeight','bold');
+uicontrol('Parent',u1,'Style','Text', 'Position', [105 25 160 016].*WS,...
+    'String',tmp2, 'Tag','spm_image:hdr:m3',...
+    'HorizontalAlignment','left', 'FontWeight','bold');
 
 tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
-st.posinf.w = uicontrol(fg,'Style','Text','Position' ,[310 110 260 016].*WS,...
-    'HorizontalAlignment','center', 'String', '','FontWeight','bold');
 if sum(tmp(:).^2)>1e-8
-    set(st.posinf.w, 'String', 'Warning: shears involved');
+    str = 'Warning: shears involved';
+else
+    str = '';
 end
+uicontrol('Parent',u1,'Style','Text', 'Position', [5 5 260 016].*WS,...
+    'String',str, 'Tag','spm_image:hdr:shear',...
+    'HorizontalAlignment','center','FontWeight','bold');
 
 % Assorted other buttons
 %--------------------------------------------------------------------------
-uicontrol(fg,'Style','Frame','Position',[310 30 270 70].*WS);
+u2 = uipanel('Parent',u0,'Units','Pixels','Title','','Position',[5 5 269 70].*WS,...
+    'BorderType','Line', 'HighlightColor',[0 0 0]);
 zl = spm_orthviews('ZoomMenu');
 czlabel = cell(size(zl));
 % List zoom steps in reverse order
@@ -442,23 +506,24 @@ for cz = 1:numel(zl)
         czlabel{cz} = sprintf('%dx%dx%dmm', 2*zl(cz), 2*zl(cz), 2*zl(cz));
     end
 end
-st.zoomer = uicontrol(fg,'Style','popupmenu' ,'Position',[315 75 125 20].*WS,...
-    'String',czlabel,...
-    'Callback','spm_image(''zoom'')','ToolTipString','zoom in by different amounts');
+uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 45 125 20].*WS,...
+    'String',czlabel, 'Tag','spm_image:zoom',...
+    'Callback','spm_image(''zoom'')','ToolTipString','Zoom in by different amounts');
 c = 'if get(gco,''Value'')==1, spm_orthviews(''Space''), else, spm_orthviews(''Space'', 1);end;spm_image(''zoom'')';
-uicontrol(fg,'Style','popupmenu' ,'Position',[315 55 125 20].*WS,...
+uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 25 125 20].*WS,...
     'String',char('World Space','Voxel Space'),...
-    'Callback',c,'ToolTipString','display in aquired/world orientation');
-c = 'if get(gco,''Value'')==1, spm_orthviews(''Xhairs'',''off''), else, spm_orthviews(''Xhairs'',''on''); end;';
-uicontrol(fg,'Style','togglebutton','Position',[450 75 125 20].*WS,...
-    'String','Hide Crosshairs','Callback',c,'ToolTipString','show/hide crosshairs');
-uicontrol(fg,'Style','popupmenu' ,'Position',[450 55 125 20].*WS,...
-    'String',char('NN interp','bilin interp','sinc interp'),...
-    'Callback','tmp_ = [0 1 -4];spm_orthviews(''Interp'',tmp_(get(gco,''Value'')))',...
-    'Value',2,'ToolTipString','interpolation method for displaying images');
-st.win = uicontrol(fg,'Style','popupmenu','Position',[315 35 125 20].*WS,...
-    'String',char('Auto Window','Manual Window'),'Callback','spm_image(''window'');','ToolTipString','range of voxel intensities displayed');
-% uicontrol(fg,'Style','pushbutton','Position',[315 35 125 20].*WS,...
-%   'String','Window','Callback','spm_image(''window'');','ToolTipString','range of voxel intensities % displayed');
-st.blobber = uicontrol(fg,'Style','pushbutton','Position',[450 35 125 20].*WS,...
-    'String','Add Blobs','Callback','spm_image(''addblobs'');','ToolTipString','superimpose activations');
+    'Callback',c,'ToolTipString','Display in aquired/world orientation');
+uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5  5 125 20].*WS,...
+    'String',char('Auto Window','Manual Window'), 'Tag','spm_image:window',...
+    'Callback','spm_image(''window'');','ToolTipString','Range of voxel intensities displayed');
+uicontrol('Parent',u2,'Style','Pushbutton', 'Position',[140 45 125 20].*WS,...
+    'String','Hide Crosshair', 'Tag','spm_image:xhairs', 'UserData', true,...
+    'Callback','spm_image(''Xhairs'');','ToolTipString','Show/hide crosshair');
+uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[140 25 125 20].*WS,...
+    'String',char('NN interp.','Trilinear interp.','Sinc interp.'),...
+    'UserData',[0 1 -4],'Value',2,...
+    'Callback','spm_orthviews(''Interp'',subsref(get(gco,''UserData''),substruct(''()'',{get(gco,''Value'')})))',...
+    'ToolTipString','Interpolation method for displaying images');
+uicontrol('Parent',u2,'Style','Pushbutton', 'Position',[140 5 125 20].*WS,...
+    'String','Add Overlay...', 'Tag','spm_image:overlay',...
+    'Callback','spm_image(''addblobs'');','ToolTipString','Superimpose activations');

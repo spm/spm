@@ -1,6 +1,6 @@
 
 % Load Alan
-x=imread('Alan02','jpg');
+x=imread('Alan.jpg','jpg');
 
 % Crop Alan
 startx=100;
