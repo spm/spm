@@ -59,15 +59,16 @@ function varargout = spm_check_version(tbx,chk)
 %
 % See also VERSION, VER.
 %__________________________________________________________________________
-% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_check_version.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_check_version.m 4932 2012-09-17 17:27:01Z guillaume $
+
 
 %-Detect software used
 %==========================================================================
 if ~nargin || isempty(tbx)
-    if exist('OCTAVE_VERSION')
+    if exist('OCTAVE_VERSION','builtin')
         tbx = 'octave';
     else
         tbx = 'matlab';

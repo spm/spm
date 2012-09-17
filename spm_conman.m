@@ -90,14 +90,10 @@ function varargout=spm_conman(varargin)
 %   multi-contrast selections will be handled, and whether you can press
 %   "Done" yet!
 %
-% * A "?" help button (at the right hand end of the status line):
-%   This brings up this help text (the help text for spm_conman.m) in the
-%   spm help viewer.
-%
 % In addition, the dialog has a figure ContextMenu, accessed by
 % right-clicking in the figure background: In addition to providing
-% repeats of the "Define new contrast...", "Reset", "Done" & "Help"
-% buttons described above, there are two additional options:
+% repeats of the "Define new contrast...", "Reset" & "Done" buttons
+% described above, there are two additional options:
 %
 %   - crash out: this bails out of the contrast manager in a nice way!
 %   - rename:    This permits a single contrast to be re-named. You
@@ -214,10 +210,7 @@ function varargout=spm_conman(varargin)
 %   This indicates progress in contrast definition.
 %   Once a valid set of contrast weights have been specified, and a
 %   the contrast named, then the status line turns green, indicating
-%   that the current contrast can be defined by presing "OK".
-%
-% * A "?" help button (at the right hand end of the status line):
-%   (As described above for the contrast selection interface)
+%   that the current contrast can be defined by pressing "OK".
 %
 %
 %==========================================================================
@@ -244,7 +237,7 @@ function varargout=spm_conman(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_conman.m 4742 2012-05-16 09:51:15Z volkmar $
+% $Id: spm_conman.m 4932 2012-09-17 17:27:01Z guillaume $
 
 
 %==========================================================================
@@ -856,8 +849,8 @@ switch lower(varargin{1})
 
         if ~isempty(str)        %-error: display error dialog box
             spm('Beep')
-            msgbox(str,sprintf('%s%s: %s...',spm('ver'),...
-                spm('GetUser',' (%s)'),mfilename),'error','modal')
+            msgbox(str,sprintf('%s: %s...',spm('Version'),mfilename),...
+                'error','modal')
         else                    %-OK, set Done UserData tag for handling
             set(findobj(F,'Tag','Done'),'UserData',1)
         end
@@ -1034,8 +1027,8 @@ switch lower(varargin{1})
         %------------------------------------------------------------------
         if length(i)~=1
             msgbox('Can only rename a single contrast!',...
-                sprintf('%s%s: %s...',spm('ver'),...
-                spm('GetUser',' (%s)'),mfilename),'error','modal')
+                sprintf('%s: %s...',spm('Version'),mfilename),...
+                'error','modal')
             return
         end
 
@@ -1345,8 +1338,8 @@ switch lower(varargin{1})
             str = { 'contrast name not defined!','',...
                 'no valid contrast defined!',''};
             msgbox(str([dNam+1,dCon+3]),...
-                sprintf('%s%s: %s...',spm('ver'),...
-                spm('GetUser',' (%s)'),mfilename),'error','modal')
+                sprintf('%s: %s...',spm('Version'),mfilename),...
+                'error','modal')
             return
         end
 
@@ -1543,12 +1536,6 @@ switch lower(varargin{1})
         uicontrol(F,'Style','Frame','Tag','StatusArea',...
             'Position',[010 010 480 030].*WS);
 
-        uicontrol(F,'Style','Pushbutton','String','?',...
-            'ToolTipString','help on contrasts and the contrast manager',...
-            'ForegroundColor','g',...
-            'Callback','spm_help(''spm_con.man'')',...
-            'Position',[460 015 020 020].*WS);
-
         hStatLin = uicontrol(F,'Style','Text','Tag','StatusLine',...
             'String','<Not set yet>',...
             'FontAngle','Italic',...
@@ -1587,9 +1574,6 @@ switch lower(varargin{1})
             'Interruptible','off','BusyAction','Cancel');
         uimenu(h,'Label','Done',...
             'CallBack','spm_conman(''Done_CB'')',...
-            'Interruptible','off','BusyAction','Cancel');
-        uimenu(h,'Label','help','Separator','on',...
-            'CallBack','spm_help(''spm_conman'')',...
             'Interruptible','off','BusyAction','Cancel');
         uimenu(h,'Label','crash out','Separator','on',...
             'CallBack','spm_conman(''Initialise'',''reset'');',...

@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 4143 2010-12-22 11:55:43Z guillaume $
+% $Id: spm_input.m 4932 2012-09-17 17:27:01Z guillaume $
 
 
 %=======================================================================
@@ -1037,8 +1037,8 @@ switch lower(Type), case {'b','bd','b|','y/n'}    %-Process button types
         end
 
         k = min(find(strcmp(tmp,...
-            questdlg(Prompt,sprintf('%s%s: %s...',spm('ver'),...
-                spm('GetUser',' (%s)'),Title),tmp{:}))));
+            questdlg(Prompt,sprintf('%s: %s...',spm('Version'),Title),...
+            tmp{:}))));
 
         p = Values(k,:); if ischar(p), p=deblank(p); end
 

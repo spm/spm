@@ -63,7 +63,7 @@ function varargout=spm(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 4896 2012-09-04 15:11:23Z guillaume $
+% $Id: spm.m 4932 2012-09-17 17:27:01Z guillaume $
 
 
 %=======================================================================
@@ -194,6 +194,9 @@ function varargout=spm(varargin)
 % If Redo [default false] is true, then the cached current SPM information
 % are not used but recomputed (and recached).
 %
+% FORMAT ver = spm('Version')
+% Returns a string containing SPM version and release numbers.
+%
 % FORMAT xTB = spm('TBs')
 % Identifies installed SPM toolboxes: SPM toolboxes are defined as the
 % contents of sub-directories of fullfile(spm('Dir'),'toolbox') - the
@@ -304,7 +307,7 @@ end
 %-Open startup window, set window defaults
 %-----------------------------------------------------------------------
 Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
-set(Fwelcome,'name',sprintf('%s%s',spm('ver'),spm('GetUser',' (%s)')));
+set(Fwelcome,'name',spm('Version'));
 set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
 set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
 RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
@@ -503,7 +506,7 @@ if nargin<2, Vis='on'; else Vis=varargin{2}; end
 %-----------------------------------------------------------------------
 delete(spm_figure('FindWin','Menu'))
 Fmenu = openfig(fullfile(spm('Dir'),'spm_Menu.fig'),'new','invisible');
-set(Fmenu,'name',sprintf('%s%s: Menu',spm('ver'),spm('GetUser',' (%s)')));
+set(Fmenu,'name',[spm('Version') ': Menu']);
 S0 = spm('WinSize','0',1);
 SM = spm('WinSize','M');
 set(Fmenu,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] + SM);
@@ -577,7 +580,7 @@ S0     = spm('WinSize','0',1);
 SI     = spm('WinSize','I');
 Finter = figure('IntegerHandle','off',...
     'Tag','Interactive',...
-    'Name',spm('Ver'),...
+    'Name',spm('Version'),...
     'NumberTitle','off',...
     'Units','pixels',...
     'Position',[S0(1) S0(2) 0 0] +  SI,...
@@ -611,7 +614,7 @@ else
     Finter = spm_figure('GetWin','Interactive');
     spm_figure('Clear',Finter)
     if ~isempty(Iname)
-        str = sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname);
+        str = sprintf('%s: %s',spm('Version'),Iname);
     else
         str = '';
     end
@@ -758,7 +761,7 @@ if nargin<2, Iname=''; else Iname=varargin{2}; end
 if CmdLine, varargout={[]}; return, end
 F = spm_figure('FindWin',F);
 if ~isempty(F) && ~isempty(Iname)
-    set(F,'Name',sprintf('%s (%s): %s',spm('ver'),spm('GetUser'),Iname))
+    set(F,'Name',sprintf('%s: %s',spm('Version'),Iname))
 end
 varargout={F};
 
@@ -800,7 +803,7 @@ case {'fnbanner','sfnbanner','ssfnbanner'}  %-Text banners for functions
 % SPMid = spm('SSFnBanner',Fn,FnV)
 %-----------------------------------------------------------------------
 time = spm('time');
-str  = spm('ver');
+str  = spm('Ver');
 if nargin>=2, str = [str,': ',varargin{2}]; end
 if nargin>=3 
     v = regexp(varargin{3},'\$Rev: (\d*) \$','tokens','once');
@@ -856,7 +859,7 @@ case 'ver'                                                 %-SPM version
 %=======================================================================
 % [SPMver, SPMrel] = spm('Ver',Mfile,ReDo)
 %-----------------------------------------------------------------------
-if nargin > 3, warning('This usage of "spm ver" is now deprecated.'); end
+if nargin > 3, error('Too many input arguments.'); end
 if nargin ~= 3, ReDo = false; else ReDo = logical(varargin{3}); end
 if nargin == 1 || (nargin > 1 && isempty(varargin{2}))
     Mfile = ''; 
@@ -870,7 +873,7 @@ end
 v = spm_version(ReDo);
 
 if isempty(Mfile)
-    varargout = {v.Release v.Version};
+    varargout = {v.Release, v.Version};
 else
     unknown = struct('file',Mfile,'id','???','date','','author','');
     if ~isdeployed
@@ -887,6 +890,15 @@ else
     end
     varargout = {r(1).id v.Release};
 end
+
+
+%=======================================================================
+case 'version'                                             %-SPM version
+%=======================================================================
+% v = spm('Version')
+%-----------------------------------------------------------------------
+[v, r] = spm('Ver');
+varargout = {sprintf('%s (%s)',v,r)};
 
 
 %=======================================================================
@@ -1096,7 +1108,7 @@ else
     CmdLine2 = 1;
 end
 timestr = spm('Time');
-SPMv    = spm('ver');
+SPMver  = spm('Ver');
 
 switch(lower(Action))
     case 'alert',  icon = 'none';  str = '--- ';
@@ -1107,7 +1119,7 @@ end
 
 if CmdLine || CmdLine2
     Message(strcmp(Message,'')) = {' '};
-    tmp = sprintf('%s: %s',SPMv,Title);
+    tmp = sprintf('%s: %s',SPMver,Title);
     fprintf('\n    %s%s  %s\n\n',str,tmp,repmat('-',1,62-length(tmp)))
     fprintf('        %s\n',Message{:})
     fprintf('\n        %s  %s\n\n',repmat('-',1,62-length(timestr)),timestr)
@@ -1115,10 +1127,10 @@ if CmdLine || CmdLine2
 end
 
 if ~CmdLine
-    tmp = max(size(char(Message),2),42) - length(SPMv) - length(timestr);
-    str = sprintf('%s  %s  %s',SPMv,repmat(' ',1,tmp-4),timestr);
+    tmp = max(size(char(Message),2),42) - length(SPMver) - length(timestr);
+    str = sprintf('%s  %s  %s',SPMver,repmat(' ',1,tmp-4),timestr);
     h   = msgbox([{''};Message(:);{''};{''};{str}],...
-          sprintf('%s%s: %s',SPMv,spm('GetUser',' (%s)'),Title),...
+          sprintf('%s: %s',spm('Version'),Title),...
           icon,'non-modal');
     drawnow
     set(h,'windowstyle','modal');

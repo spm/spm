@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4930 2012-09-17 14:30:38Z guillaume $
+% $Id: spm_figure.m 4932 2012-09-17 17:27:01Z guillaume $
 
 
 %==========================================================================
@@ -699,8 +699,7 @@ F    = figure(...
     'Visible','off',...
     'Toolbar','none');
 if ~isempty(Name)
-    set(F,'Name',sprintf('%s%s: %s',spm('ver'),...
-        spm('getUser',' (%s)'),Name),'NumberTitle','off')
+    set(F,'Name',sprintf('%s: %s',spm('Version'),Name),'NumberTitle','off');
 end
 set(F,'Visible',Visible)
 varargout = {F};
