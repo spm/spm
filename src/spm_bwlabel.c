@@ -1,5 +1,5 @@
 /*
- * $Id: spm_bwlabel.c 4453 2011-09-02 10:47:25Z guillaume $
+ * $Id: spm_bwlabel.c 4929 2012-09-17 14:21:01Z guillaume $
  * Jesper Andersson
  */
 
@@ -266,19 +266,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    mwSize        dim[3];
    const mwSize  *cdim = NULL;
    unsigned int  conn;
-   mwSize        tmp1;
-   mwSize        tmp2;
    unsigned int  ttn = 0;
    unsigned int  *il = NULL;
    unsigned int  *tt = NULL;
    double        *bw = NULL;
    double        *l = NULL;
-   double        dconn = 0.0;
    double        nl = 0.0;
 
-   if (nrhs < 2) mexErrMsgTxt("Not enough input arguments.");
+   if (nrhs < 1) mexErrMsgTxt("Not enough input arguments.");
    if (nrhs > 2) mexErrMsgTxt("Too many input arguments.");
-   if (nlhs < 2) mexErrMsgTxt("Not enough output arguments");
    if (nlhs > 2) mexErrMsgTxt("Too many output arguments.");
 
    /* Get binary map */
@@ -301,19 +297,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    }
    bw = mxGetPr(prhs[0]);
 
-   /* Get connectedness criterion */
+   /* Get connectivity criterion */
    
-   if (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || mxIsSparse(prhs[1]) || !mxIsDouble(prhs[1]))
+   if (nrhs==1)
    {
-      mexErrMsgTxt("spm_bwlabel: CONN must be numeric, real, full and double");
+       conn = 18;
    }
-   tmp1 = mxGetM(prhs[1]);
-   tmp2 = mxGetN(prhs[1]);
-   dconn = mxGetScalar(prhs[1]);
-   conn = (unsigned int) (dconn + 0.1); /* Truncation or rounding. */
-   if ((tmp1 != 1) || (tmp2 != 1) || ((conn!=6) && (conn!=18) && (conn!=26)))
+   else
    {
-      mexErrMsgTxt("spm_bwlabel: CONN must be 6, 18 or 26");
+       if (!mxIsNumeric(prhs[1]) || mxGetNumberOfElements(prhs[1])!=1)
+       {
+           mexErrMsgTxt("Input 'n' must be a scalar.");
+       }
+       conn = (unsigned int)(mxGetScalar(prhs[1]) + 0.1);
+   }
+   if ((conn!=6) && (conn!=18) && (conn!=26))
+   {
+       mexErrMsgTxt("Input 'n' must be 6, 18 or 26.");
    }
 
    /* Allocate memory for output and initialise to 0 */
@@ -325,17 +325,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    il = (unsigned int *) mxCalloc(n,sizeof(unsigned int));
 
-   /* Do initial labelling and create translation table. */
+   /* Do initial labelling and create translation table */
 
    ttn = do_initial_labelling(bw,dim,conn,il,&tt);
 
-   /* Translate labels to terminal numbers. */
+   /* Translate labels to terminal numbers */
 
    nl = translate_labels(il,dim,tt,ttn,l);
 
-   plhs[1] = mxCreateDoubleScalar(nl);
+   if (nlhs > 1)
+   {
+       plhs[1] = mxCreateDoubleScalar(nl);
+   }
 
-   /* Clean up a bit. */
+   /* Clean up a bit */
 
    mxFree(il);
    mxFree(tt);
