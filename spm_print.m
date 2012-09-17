@@ -12,13 +12,13 @@ function varargout = spm_print(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 4902 2012-09-05 18:56:48Z guillaume $
+% $Id: spm_print.m 4930 2012-09-17 14:30:38Z guillaume $
 
 
 %-Shortcut for list of graphics file formats available
 %--------------------------------------------------------------------------
 if nargin > 0 && isequal(lower(varargin{1}),'format')
-    varargout = { print_format(varargin{2:end}) };
+    [varargout{1:nargout}] = print_format(varargin{2:end});
     return;
 end
 
@@ -102,14 +102,16 @@ end
 
 %-Report
 %--------------------------------------------------------------------------
-fprintf('Printing ''%s'' figure to:\n',get(F,'Tag'));
+str = '';
+if ~isempty(get(F,'Tag')), str = sprintf('''%s'' ',get(F,'Tag')); end
+fprintf('Printing %sfigure to:\n',str);
 fprintf('  %s\n',fname);
 
 
 %==========================================================================
 % function pf = print_format(f)
 %==========================================================================
-function pf = print_format(f)
+function [pf, i] = print_format(f)
 
 pf(1).name   = 'PostScript (PS)';
 pf(1).opt    = {'-dpsc2'};
@@ -159,5 +161,5 @@ if nargin
             pf = pf(i); return;
         end
     end
-    pf = [];
+    pf = []; i = [];
 end

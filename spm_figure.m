@@ -54,10 +54,10 @@ function varargout=spm_figure(varargin)
 %
 % See also: spm_print, spm_clf
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 4904 2012-09-06 15:08:56Z guillaume $
+% $Id: spm_figure.m 4930 2012-09-17 14:30:38Z guillaume $
 
 
 %==========================================================================
@@ -127,7 +127,6 @@ function varargout=spm_figure(varargin)
 % seperate axes, with ony one 'Visible' at any one time. The handles of
 % the "page" axes are stored in the 'UserData' of the 'NextPage'
 % object, while the 'PrevPage' object holds the current page number.
-% See spm_help('!Disp') for details on setting up paging axes.
 %
 % FORMAT [hNextPage, hPrevPage, hPageNo] = spm_figure('NewPage',hPage)
 % SPM pagination function: Makes objects with handles hPage paginated
@@ -362,10 +361,11 @@ end
 %==========================================================================
 case 'print'
 %==========================================================================
-% spm_figure('Print',F,fname)
+% spm_figure('Print',F,fname,opt)
 
 %-Arguments & defaults
-if nargin<3, fname=''; else fname=varargin{3};end
+if nargin<4, opt=spm_get_defaults('ui.print'); else opt=varargin{4}; end
+if nargin<3, fname=''; else fname=varargin{3}; end
 if nargin<2, F='Graphics'; else F=varargin{2}; end
 
 %-Find window to print, default to gcf if specified figure not found
@@ -393,7 +393,7 @@ end
 
 %-Print
 if ~iPaged
-    spm_print(fname,F);
+    spm_print(fname,F,opt);
 else
     hPg    = get(hNextPage,'UserData');
     Cpage  = get(hPageNo,  'UserData');
@@ -405,7 +405,7 @@ else
     end
     for p = 1:nPages
         set(hPg{p,1},'Visible','on');
-        spm_print(fname,F);
+        spm_print(fname,F,opt);
         set(hPg{p,1},'Visible','off');
     end
     set(hPg{Cpage,1},'Visible','on');
@@ -428,11 +428,20 @@ F=spm_figure('FindWin',F);
 if isempty(F), F = get(0,'CurrentFigure'); end
 if isempty(F), return, end
 
-[fn, pn, fi] = uiputfile({'*.ps','PostScript file (*.ps)'},'Print to File');
+def = spm_get_defaults('ui.print');
+if ischar(def), [def, i] = spm_print('format',def); end
+pf  = spm_print('format');
+pf  = pf([i setxor(1:numel(pf),i)]);
+fs  = cell(numel(pf),2);
+for i=1:numel(pf)
+    fs{i,1} = ['*' pf(i).ext];
+    fs{i,2} = [pf(i).name sprintf(' (*%s)',pf(i).ext)];
+end
+[fn, pn, fi] = uiputfile(fs,'Save figure as');
 if isequal(fn,0) || isequal(pn,0), return, end
 
-psname = fullfile(pn, fn);
-spm_figure('Print',F,psname);
+fname = fullfile(pn, fn);
+spm_figure('Print',F,fname,pf(fi));
 
 %==========================================================================
 case 'newpage'
@@ -758,10 +767,10 @@ uimenu(t0, 'Label','&Dock SPM Windows', 'HandleVisibility','off',...
     'CallBack',@mydockspm);
 
 %-Print Menu
-t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off','Separator','on');
-uimenu(t1,    'Label','&Default File', 'HandleVisibility','off', ...
-    'CallBack','spm_figure(''Print'',gcf)');
-uimenu(t1,    'Label','&Specify File...', 'HandleVisibility','off', ...
+%t1=uimenu(t0, 'Label','&Save Figure', 'HandleVisibility','off','Separator','on');
+uimenu(t0,    'Label','&Save Figure', 'HandleVisibility','off', ...
+    'CallBack','spm_figure(''Print'',gcf)', 'Separator','on');
+uimenu(t0,    'Label','Save Figure &As...', 'HandleVisibility','off', ...
     'CallBack','spm_figure(''PrintTo'',gcf)');
 
 %-Copy Figure
@@ -973,7 +982,7 @@ hMenu = spm_figure('FindWin','Menu');
 hInt  = spm_figure('FindWin','Interactive');
 hGra  = spm_figure('FindWin','Graphics');
 h     = setdiff(findobj(get(0,'children'),'flat','visible','on'), ...
-    [hMenu hInt hGra gcf]);
+    [hMenu; hInt; hGra; gcf]);
 close(h,'force');
 
 %==========================================================================

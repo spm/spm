@@ -147,7 +147,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4926 2012-09-14 11:58:16Z guillaume $
+% $Id: spm_orthviews.m 4930 2012-09-17 14:30:38Z guillaume $
 
 
 % The basic fields of st are:
@@ -1543,7 +1543,7 @@ end
 function item_parent = addcontext(volhandle)
 global st
 % create context menu
-fg = spm_figure('Findwin','Graphics'); set(0,'CurrentFigure',fg);
+set(0,'CurrentFigure',st.fig);
 % contextmenu
 item_parent = uicontextmenu;
 
