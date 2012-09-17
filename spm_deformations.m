@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4922 2012-09-13 12:45:46Z john $
+% $Id: spm_deformations.m 4931 2012-09-17 15:42:46Z john $
 
 [Def,mat] = get_comp(job.comp);
 out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
@@ -683,8 +683,8 @@ function Def = identity(d,M)
 [y1,y2]   = ndgrid(single(1:d(1)),single(1:d(2)));
 Def       = zeros([d 3],'single');
 for y3=1:d(3),
-    Def(:,:,:,1) = y1*M(1,1) + y2*M(1,2) + (y3*M(1,3) + M(1,4));
-    Def(:,:,:,2) = y1*M(2,1) + y2*M(2,2) + (y3*M(2,3) + M(2,4));
-    Def(:,:,:,3) = y1*M(3,1) + y2*M(3,2) + (y3*M(3,3) + M(3,4));
+    Def(:,:,y3,1) = y1*M(1,1) + y2*M(1,2) + (y3*M(1,3) + M(1,4));
+    Def(:,:,y3,2) = y1*M(2,1) + y2*M(2,2) + (y3*M(2,3) + M(2,4));
+    Def(:,:,y3,3) = y1*M(3,1) + y2*M(3,2) + (y3*M(3,3) + M(3,4));
 end
 

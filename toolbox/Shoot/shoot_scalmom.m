@@ -1,12 +1,16 @@
-Py    = spm_select(Inf,'^y_.*\.nii$', 'Select deformations');
-N     = size(Py,1);
-Pj    = spm_select(N,'^j_.*\.nii$', 'Select Jacobians');
-Pc{1} = spm_select(N,'^rc1.*\.nii$','Select imported GM');
-Pc{2} = spm_select(N,'^rc2.*\.nii$','Select imported WM');
-Pt    = spm_select(1,'nifti','Select template');
+Py = spm_select(Inf,'^y_.*\.nii$', 'Select deformations');
+N  = size(Py,1);
+Pj = spm_select(N,'^j_.*\.nii$', 'Select Jacobians');
+Pt = spm_select(1,'nifti','Select template');
 
 Nt = nifti(Pt);
 d  = size(Nt.dat);
+
+Pc = cell(d(4)-1,1);
+for i=1:d(4)-1,
+    Pc{i} = spm_select(N,['^rc' num2str(i) '.*\.nii$'],['Select imported rc' num2str(i) ' images']);
+end
+
 R  = null(ones(1,d(4)));     % Weights for linear combination of momentum
 A  = zeros([d(1:3),d(4)-1]); % Linear combination of momentum
 
@@ -34,7 +38,7 @@ for j=1:size(Py,1), % Loop over subjects
     for z=1:d(3) % Loop over slices
 
         % Load deformation and make it map to voxels instead of mm
-        y  = reshape(affind(single(Ny.dat(:,:,z,:,:)),inv(Mat)),[d(1:2),1,d(4)]);
+        y  = reshape(affind(single(Ny.dat(:,:,z,:,:)),inv(Mat)),[d(1:2),1,3]);
 
         % Load Jacobian determinants
         jd = squeeze(single(Nj.dat(:,:,z)));

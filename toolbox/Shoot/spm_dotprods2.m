@@ -7,7 +7,7 @@ function out = spm_dotprods2(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dotprods2.m 4573 2011-11-25 23:01:01Z john $
+% $Id: spm_dotprods2.m 4931 2012-09-17 15:42:46Z john $
 
 P      = strvcat(job.images);
 
@@ -23,7 +23,7 @@ if isfield(job,'images2'),
     P2 = strvcat(job.images2);
     N2 = nifti(P2);
     n2 = numel(N2);
-    dm= size(N2(1).dat);
+    dm = size(N2(1).dat);
     dat2=cell(1,numel(N2));
     for i=1:numel(N2),
         dat2{i} = reshape(N2(i).dat,[prod(dm),1]);
