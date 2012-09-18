@@ -47,13 +47,12 @@ function varargout=spm_platform(varargin)
 % variable, if it exists.
 %
 % Platform specific definitions are contained in the data structures at
-% the beginning of the init_platform subfunction at the end of this
-% file.
+% the beginning of the init_platform subfunction at the end of this file.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 4810 2012-07-30 16:22:56Z guillaume $
+% $Id: spm_platform.m 4933 2012-09-18 11:07:49Z guillaume $
 
 
 %-Initialise
@@ -79,7 +78,7 @@ varargout = {PLATFORM.filesys};
 
 case 'sepchar'                            %-Return file separator character
 %==========================================================================
-warning('use filesep instead (supported by MathWorks)')
+warning('Use FILESEP instead.')
 varargout = {PLATFORM.sepchar};
 
 case 'rootlen'           %-Return length in chars of root directory name 
@@ -140,20 +139,24 @@ end
 function PLATFORM = init_platform(comp)     %-Initialise platform variables
 %==========================================================================
 if nargin<1
-    comp = computer;
-    
-    if any(comp=='-') % Octave
+    if ~strcmpi(spm_check_version,'octave')
+        comp = computer;
+    else
         if isunix
             switch uname.machine
-                case 'x86_64'
+                case {'x86_64'}
                     comp = 'GLNXA64';
                 case {'i586','i686'}
                     comp = 'GLNX86';
+                case {'armv6l'}
+                    comp = 'ARM';
+                otherwise
+                    error('%s is not supported.',comp);
             end
         elseif ispc
-            comp = 'PCWIN';
+            comp = 'PCWIN64';
         elseif ismac
-            comp = 'MACI';
+            comp = 'MACI64';
         end
     end
 end
@@ -166,7 +169,8 @@ PDefs = {'PCWIN',     'win',   0;...
          'MACI',      'unx',   0;...
          'MACI64',    'unx',   0;...
          'GLNX86',    'unx',   0;...
-         'GLNXA64',   'unx',   0};
+         'GLNXA64',   'unx',   0;...
+         'ARM',       'unx',   0};
 
 PDefs = cell2struct(PDefs,{'computer','filesys','endian'},2);
 
@@ -200,8 +204,6 @@ switch PLATFORM.filesys
         PLATFORM.user = getenv('USER');
     case 'win'
         PLATFORM.user = getenv('USERNAME');
-    otherwise
-        error(['Don''t know filesystem ',PLATFORM.filesys])
 end
 if isempty(PLATFORM.user), PLATFORM.user = 'anonymous'; end
 
@@ -218,8 +220,6 @@ switch PLATFORM.filesys
         end
     case 'win'
         PLATFORM.host = getenv('COMPUTERNAME');
-    otherwise
-        error(['Don''t know filesystem ',PLATFORM.filesys])
 end
 PLATFORM.host = strtok(PLATFORM.host,'.');
 
