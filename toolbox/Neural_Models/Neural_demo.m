@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 07-May-2012 18:16:19
+% Last Modified by GUIDE v2.5 18-Sep-2012 18:00:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -150,3 +150,15 @@ run_demo_Callback(hObject, handles, 'spm_induced_demo')
 function pushbutton25_Callback(hObject, ~, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Mechanisms%20of%20evoked%20and%20induced%20responses.pdf';
 run_demo_Callback(hObject, handles, 'spm_induced_optimise')
+
+
+% --- Executes on button press in pushbutton27.
+function pushbutton27_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'spm_induced_optimise_parameters')
+
+
+% --- Executes on button press in pushbutton26.
+function pushbutton26_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Stochastic%20models%20of%20neuronal%20dynamics.pdf';
+run_demo_Callback(hObject, handles, 'spm_mfa_demo')

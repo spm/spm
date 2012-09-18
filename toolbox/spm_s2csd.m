@@ -10,7 +10,7 @@ function [csd,Hz] = spm_s2csd(S,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_s2csd.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_s2csd.m 4936 2012-09-18 19:47:55Z karl $
  
 
 % frequencies of interest
@@ -33,7 +33,7 @@ s     = [];
 for i = 1:length(S)
     if imag(S(i))
         s(end + 1) = S(i);
-        % s(end + 1) = conj(S(i));
+        s(end + 1) = conj(S(i));
     else
         s(end + 1) = S(i);
     end

@@ -14,7 +14,7 @@ function [S] = spm_ssm2s(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_ssm2s.m 4936 2012-09-18 19:47:55Z karl $
  
 
 % Jacobian and eigenspecturm
@@ -28,10 +28,10 @@ s      = diag(s);
 [q i]  = sort(imag(s),'descend');
 i      = i(1:3);
 S      = s(i);
-s(i) = [];
+s(i)   = [];
 
 
 % principal eigenmodes (most unstable)
 %----------------------------------------------------------
 [u i]   = sort(real(s),'descend');
-S       = [S; u(1:3)];
+S       = [S; u(1)];

@@ -13,7 +13,7 @@ function spm_induced_optimise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_induced_optimise.m 4936 2012-09-18 19:47:55Z karl $
  
  
 % Model specification
@@ -200,47 +200,6 @@ for i = 1:size(x,1)
         end
     end
 end
-
-return
-
-
-% Demonstration of how to optise a single source mean filed model in terms
-% of its spectrial respsones
-%==========================================================================
-
-% Target spectrun (Y)
-%--------------------------------------------------------------------------
-
-H      = 2*pi*[48 24 12]';
-Y      = -H/4 + 1i*H;
-Y(4:6) = -4;
-
-spm_figure('GetWin','Oprimzation');
-subplot(2,1,1)
-[g,w]  = spm_s2csd(Y);
-plot(w,g)
-title('Target spectral density','FontSize',16)
-xlabel('Frequency')
-ylabel('Power')
-
-% create generative mdoel of the eigenspectrum (M) and invert
-%--------------------------------------------------------------------------
-M.IS  = 'spm_ssm2s'
-for i = 1:32
-    Ep   = spm_nlsi_GN(M,[],Y);
-    M.pE = Ep;
-end
-
-% Show results with iotmised parameters
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Oprimzation');
-subplot(2,1,2)
-[g,w]  = spm_s2csd(spm_ssm2s(Ep,M,[]));
-plot(w,g)
-title('Target spectral density','FontSize',16)
-xlabel('Frequency')
-ylabel('Power')
-
 
 
 
