@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4856 2012-08-22 17:32:16Z guillaume $
+% $Id: spm_run_fmri_spec.m 4938 2012-09-19 18:47:57Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -83,8 +83,8 @@ else
         otherwise
             error('Unknown basis functions.');
     end
-    SPM.xBF.length = job.bases.(nam).length;
-    SPM.xBF.order  = job.bases.(nam).order;
+    SPM.xBF.length = job.bases.(bf).length;
+    SPM.xBF.order  = job.bases.(bf).order;
 end
 
 %-Model interactions (Volterra)
