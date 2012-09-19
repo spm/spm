@@ -7,10 +7,10 @@ function [csd,Hz] = spm_s2csd(S,Hz)
 %
 % csd  (n,:,:)          - cross spectral density
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_s2csd.m 4936 2012-09-18 19:47:55Z karl $
+% $Id: spm_s2csd.m 4937 2012-09-19 10:40:26Z guillaume $
  
 
 % frequencies of interest
@@ -53,4 +53,3 @@ for i = 1:length(s)
 end
 
 csd = real(sum(G)');
-
