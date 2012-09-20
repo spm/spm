@@ -27,13 +27,13 @@ function [xVi, mask] = spm_est_non_sphericity(SPM)
 % array of non-sphericity components (xVi.Vi), providing a high precise
 % estimate of the non-sphericity matrix (xVi.V).
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
-% Karl Friston
-% $Id: spm_est_non_sphericity.m 4563 2011-11-14 18:48:25Z guillaume $
+% Karl Friston & Guillaume Flandin
+% $Id: spm_est_non_sphericity.m 4940 2012-09-20 17:27:54Z guillaume $
 
 
-SVNid = '$Rev: 4563 $';
+SVNid = '$Rev: 4940 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -228,7 +228,7 @@ Cy = Cy / s;                                    %-Sample covariance matrix
 
 %-ReML estimate of residual correlations through hyperparameters (h)
 %--------------------------------------------------------------------------
-str    = 'Temporal non-sphericity (over voxels)';
+str    = sprintf('Temporal non-sphericity (%d voxels)',s);
 fprintf('%-40s: %30s\n',str,'...ReML estimation');                      %-#
 
 %-ReML for separable designs and covariance components
@@ -275,20 +275,3 @@ V      = V*nScan/trace(V);
 xVi.h  = h;
 xVi.V  = V;                                     % Save non-sphericity xVi.V
 xVi.Cy = Cy;                                    % spatially whitened <Y*Y'>
-
-
-%==========================================================================
-%-function Y = spm_data_read(V, I)
-%==========================================================================
-function Y = spm_data_read(V, I)
-% Perform Y = V(I)
-if isstruct(V)
-    V = V.private.dat;
-elseif isa(V,'nifti')
-    V = V.dat;
-end
-if nargin > 1
-    Y = V(I);
-else
-    Y = subsref(V,substruct('()',repmat({':'},1,ndims(V))));
-end

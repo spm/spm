@@ -43,25 +43,25 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 %__________________________________________________________________________
 %
 % spm_fmri_spm_ui configures the design matrix, data specification and
-% filtering that specify the ensuing statistical analysis. These
-% arguments are passed to spm_spm that then performs the actual parameter
-% estimation.
+% filtering that specify the ensuing statistical analysis. These arguments
+% are passed to spm_spm that then performs the actual parameter estimation.
 %
 % The design matrix defines the experimental design and the nature of
-% hypothesis testing to be implemented.  The design matrix has one row
-% for each scan and one column for each effect or explanatory variable
-% (e.g. regressor or stimulus function).  The parameters are estimated in
-% a least squares sense using the general linear model.  Specific profiles
-% within these parameters are tested using a linear compound or contrast
-% with the T or F statistic.  The resulting statistical map constitutes
-% an SPM.  The SPM{T}/{F} is then characterized in terms of focal or regional
-% differences by assuming that (under the null hypothesis) the components of
-% the SPM (i.e. residual fields) behave as smooth stationary Gaussian fields.
+% hypothesis testing to be implemented.  The design matrix has one row for
+% each scan and one column for each effect or explanatory variable (e.g.
+% regressor or stimulus function).  The parameters are estimated in a least
+% squares sense using the general linear model.  Specific profiles within
+% these parameters are tested using a linear compound or contrast with the
+% T or F statistic.  The resulting statistical map constitutes an SPM.  The
+% SPM{T}/{F} is then characterized in terms of focal or regional
+% differences by assuming that (under the null hypothesis) the components
+% of the SPM (i.e. residual fields) behave as smooth stationary Gaussian
+% fields.
 %
-% spm_fmri_spm_ui allows you to (i) specify a statistical model in terms
-% of a design matrix, (ii) associate some data with a pre-specified design
-% [or (iii) specify both the data and design] and then proceed to estimate
-% the parameters of the model.
+% spm_fmri_spm_ui allows you to (i) specify a statistical model in terms of
+% a design matrix, (ii) associate some data with a pre-specified design [or
+% (iii) specify both the data and design] and then proceed to estimate the
+% parameters of the model.
 % Inferences can be made about the ensuing parameter estimates (at a first
 % or fixed-effect level) in the results section, or they can be re-entered
 % into a second (random-effect) level analysis by treating the session or
@@ -69,83 +69,83 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Inferences at any level obtain by specifying appropriate T or F contrasts
 % in the results section to produce SPMs and tables of p values and statistics.
 %
-% spm_fmri_spm calls spm_fMRI_design which allows you to configure a
-% design matrix in terms of events or epochs.
+% spm_fmri_spm calls spm_fMRI_design which allows you to configure a design
+% matrix in terms of events or epochs.
 %
 % spm_fMRI_design allows you to build design matrices with separable
 % session-specific partitions.  Each partition may be the same (in which
 % case it is only necessary to specify it once) or different.  Responses
-% can be either event- or epoch related, The only distinction is the duration
-% of the underlying input or stimulus function. Mathematically they are both
-% modelled by convolving a series of delta (stick) or box functions (u),
-% indicating the onset of an event or epoch with a set of basis
-% functions.  These basis functions model the hemodynamic convolution,
-% applied by the brain, to the inputs.  This convolution can be first-order
-% or a generalized convolution modelled to second order (if you specify the
-% Volterra option). [The same inputs are used by the hemodynamic model or
-% or dynamic causal models which model the convolution explicitly in terms of
-% hidden state variables (see spm_hdm_ui and spm_dcm_ui).]
+% can be either event- or epoch related, The only distinction is the
+% duration of the underlying input or stimulus function. Mathematically
+% they are both modelled by convolving a series of delta (stick) or box
+% functions (u), indicating the onset of an event or epoch with a set of
+% basis functions.  These basis functions model the hemodynamic
+% convolution, applied by the brain, to the inputs.  This convolution can
+% be first-order or a generalized convolution modelled to second order (if
+% you specify the Volterra option). [The same inputs are used by the
+% hemodynamic model or or dynamic causal models which model the convolution
+% explicitly in terms of hidden state variables (see spm_hdm_ui and
+% spm_dcm_ui).]
 % Basis functions can be used to plot estimated responses to single events
-% once the parameters (i.e. basis function coefficients) have
-% been estimated.  The importance of basis functions is that they provide
-% a graceful transition between simple fixed response models (like the
+% once the parameters (i.e. basis function coefficients) have been
+% estimated.  The importance of basis functions is that they provide a
+% graceful transition between simple fixed response models (like the
 % box-car) and finite impulse response (FIR) models, where there is one
-% basis function for each scan following an event or epoch onset.  The
-% nice thing about basis functions, compared to FIR models, is that data
+% basis function for each scan following an event or epoch onset.  The nice
+% thing about basis functions, compared to FIR models, is that data
 % sampling and stimulus presentation does not have to be synchronized
 % thereby allowing a uniform and unbiased sampling of peri-stimulus time.
 %
 % Event-related designs may be stochastic or deterministic.  Stochastic
-% designs involve one of a number of trial-types occurring with a
-% specified probably at successive intervals in time.  These
-% probabilities can be fixed (stationary designs) or time-dependent
-% (modulated or non-stationary designs).  The most efficient designs
-% obtain when the probabilities of every trial type are equal.
+% designs involve one of a number of trial-types occurring with a specified
+% probably at successive intervals in time.  These probabilities can be
+% fixed (stationary designs) or time-dependent (modulated or non-stationary
+% designs).  The most efficient designs obtain when the probabilities of
+% every trial type are equal.
 % A critical issue in stochastic designs is whether to include null events
-% If you wish to estimate the evoke response to a specific event
-% type (as opposed to differential responses) then a null event must be
-% included (even if it is not modelled explicitly).
+% If you wish to estimate the evoke response to a specific event type (as
+% opposed to differential responses) then a null event must be included
+% (even if it is not modelled explicitly).
 %
 % The choice of basis functions depends upon the nature of the inference
 % sought.  One important consideration is whether you want to make
-% inferences about compounds of parameters (i.e.  contrasts).  This is
-% the case if (i) you wish to use a SPM{T} to look separately at
-% activations and deactivations or (ii) you with to proceed to a second
-% (random-effect) level of analysis.  If this is the case then (for
-% event-related studies) use a canonical hemodynamic response function
-% (HRF) and derivatives with respect to latency (and dispersion).  Unlike
-% other bases, contrasts of these effects have a physical interpretation
-% and represent a parsimonious way of characterising event-related
-% responses.  Bases such as a Fourier set require the SPM{F} for
-% inference.
+% inferences about compounds of parameters (i.e.  contrasts).  This is the
+% case if (i) you wish to use a SPM{T} to look separately at activations
+% and deactivations or (ii) you with to proceed to a second (random-effect)
+% level of analysis.  If this is the case then (for event-related studies)
+% use a canonical hemodynamic response function (HRF) and derivatives with
+% respect to latency (and dispersion).  Unlike other bases, contrasts of
+% these effects have a physical interpretation and represent a parsimonious
+% way of characterising event-related responses.  Bases such as a Fourier
+% set require the SPM{F} for inference.
 %
 % See spm_fMRI_design for more details about how designs are specified.
 %
-% Serial correlations in fast fMRI time-series are dealt with as
-% described in spm_spm.  At this stage you need to specify the filtering
-% that will be applied to the data (and design matrix) to give a
-% generalized least squares (GLS) estimate of the parameters required.
-% This filtering is important to ensure that the GLS estimate is
-% efficient and that the error variance is estimated in an unbiased way.
+% Serial correlations in fast fMRI time-series are dealt with as described
+% in spm_spm.  At this stage you need to specify the filtering that will be
+% applied to the data (and design matrix) to give a generalized least
+% squares (GLS) estimate of the parameters required.  This filtering is
+% important to ensure that the GLS estimate is efficient and that the error
+% variance is estimated in an unbiased way.
 %
-% The serial correlations will be estimated with a ReML (restricted
-% maximum likelihood) algorithm using an autoregressive AR(1) model
-% during parameter estimation.  This estimate assumes the same
-% correlation structure for each voxel, within each session.  The ReML
-% estimates are then used to correct for non-sphericity during inference
-% by adjusting the statistics and degrees of freedom appropriately.  The
-% discrepancy between estimated and actual intrinsic (i.e. prior to
-% filtering) correlations are greatest at low frequencies.  Therefore
-% specification of the high-pass filter is particularly important.
+% The serial correlations will be estimated with a ReML (restricted maximum
+% likelihood) algorithm using an autoregressive AR(1) model during
+% parameter estimation.  This estimate assumes the same correlation
+% structure for each voxel, within each session.  The ReML estimates are
+% then used to correct for non-sphericity during inference by adjusting the
+% statistics and degrees of freedom appropriately.  The discrepancy between
+% estimated and actual intrinsic (i.e. prior to filtering) correlations are
+% greatest at low frequencies.  Therefore specification of the high-pass
+% filter is particularly important.
 %
-% High-pass filtering is implemented at the level of the
-% filtering matrix K (as opposed to entering as confounds in the design
-% matrix).  The default cut-off period is 128 seconds.  Use 'explore design'
-% to ensure this cut-off is not removing too much experimental variance.
-% Note that high-pass filtering uses a residual forming matrix (i.e.
-% it is not a convolution) and is simply to a way to remove confounds
-% without estimating their parameters explicitly.  The constant term
-% is also incorporated into this filter matrix.
+% High-pass filtering is implemented at the level of the filtering matrix K
+% (as opposed to entering as confounds in the design matrix).  The default
+% cut-off period is 128 seconds. Use 'explore design' to ensure this
+% cut-off is not removing too much experimental variance.
+% Note that high-pass filtering uses a residual forming matrix (i.e. it is
+% not a convolution) and is simply to a way to remove confounds without
+% estimating their parameters explicitly.  The constant term is also
+% incorporated into this filter matrix.
 %
 %--------------------------------------------------------------------------
 % Refs:
@@ -168,13 +168,13 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 5:243-248
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 4546 2011-11-04 13:14:42Z guillaume $
+% $Id: spm_fmri_spm_ui.m 4940 2012-09-20 17:27:54Z guillaume $
 
-SVNid = '$Rev: 4546 $';
 
+SVNid = '$Rev: 4940 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -267,7 +267,7 @@ spm('Pointer','Watch');
 %-Map files
 %--------------------------------------------------------------------------
 fprintf('%-40s: ','Mapping files')                                      %-#
-VY    = spm_vol(SPM.xY.P);
+VY    = spm_data_hdr_read(SPM.xY.P);
 fprintf('%30s\n','...done')                                             %-#
 
 %-Check internal consistency of images
@@ -286,9 +286,17 @@ q     = length(VY);
 g     = zeros(q,1);
 fprintf('%-40s: ','Calculating globals')                                %-#
 spm_progress_bar('Init',q,'Calculating globals');
-for i = 1:q
-    g(i) = spm_global(VY(i));
-    spm_progress_bar('Set',i)
+if strcmpi(spm_file(VY(1).fname,'ext'),'gii')
+    for i = 1:q
+        dat = spm_data_read(VY(i));
+        g(i) = mean(dat(~isnan(dat)));
+        spm_progress_bar('Set',i)
+    end
+else
+    for i = 1:q
+        g(i) = spm_global(VY(i));
+        spm_progress_bar('Set',i)
+    end
 end
 spm_progress_bar('Clear');
 fprintf('%30s\n','...done')                                             %-#
@@ -305,7 +313,18 @@ end
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %--------------------------------------------------------------------------
 for i = 1:q
-    SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:)*gSF(i);
+    SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:) * gSF(i);
+    if strcmpi(spm_file(VY(1).fname,'ext'),'gii')
+        SPM.xY.VY(i).private.private.data{1}.data.scl_slope = ...
+            SPM.xY.VY(i).private.private.data{1}.data.scl_slope * gSF(i);
+        SPM.xY.VY(i).private.private.data{1}.data.scl_inter = ...
+            SPM.xY.VY(i).private.private.data{1}.data.scl_inter * gSF(i);
+    else
+        SPM.xY.VY(i).private.dat.scl_slope = ...
+            SPM.xY.VY(i).private.dat.scl_slope * gSF(i);
+        SPM.xY.VY(i).private.dat.scl_inter = ...
+            SPM.xY.VY(i).private.dat.scl_inter * gSF(i);
+    end
 end
 
 %-Place global variates in xGX
