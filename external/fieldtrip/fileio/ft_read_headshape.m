@@ -7,6 +7,34 @@ function [shape] = ft_read_headshape(filename, varargin)
 % Use as
 %   [shape] = ft_read_headshape(filename)
 %
+% Optional input arguments should be specified as key-value pairs and
+% should include
+%   format		= string, see below
+%   coordinates = string, e.g. 'head' or 'dewar' (CTF)
+%   unit        = string, e.g. 'cm'
+%
+% Supported input formats are
+%   'ctf_*'
+%   '4d_*'
+%   'itab_asc'
+%   'neuromag_*'
+%   'mne_source'
+%   'yokogawa_*'
+%   'polhemus_*'
+%   'spmeeg_mat'
+%   'matlab'
+%   'freesurfer_*'
+%   'stl'          STereoLithography file format (often supported by
+%                  CAD/generic 3D mesh editing programs)
+%   'off'
+%   'mne_*'        MNE surface description in ascii format ('mne_tri')
+%                  or MNE source grid in ascii format, described as 3D
+%                  points ('mne_pos')
+%   'netmeg'
+%   'vista'
+%   'tet'
+%   'tetgen'
+%
 % See also FT_READ_VOL, FT_READ_SENS, FT_WRITE_HEADSHAPE
 
 % Copyright (C) 2008-2010 Robert Oostenveld
@@ -27,7 +55,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 6367 2012-08-16 10:06:29Z jansch $
+% $Id: ft_read_headshape.m 6482 2012-09-19 20:09:54Z arjsto $
 
 % Check the input, if filename is a cell-array, call ft_read_headshape recursively and combine the outputs.
 % This is used to read the left and right hemisphere of a Freesurfer cortical segmentation.
@@ -84,10 +112,15 @@ end
 fileformat  = ft_getopt(varargin, 'format');
 coordinates = ft_getopt(varargin, 'coordinates', 'head'); % the alternative for CTF coil positions is dewar
 unit        = ft_getopt(varargin, 'unit'); % the default for yokogawa is cm, see below
+annotationfile = ft_getopt(varargin, 'annotationfile');
 
 if isempty(fileformat)
   % only do the autodetection if the format was not specified
   fileformat = ft_filetype(filename);
+end
+
+if ~isempty(annotationfile) && ~strcmp(fileformat, 'mne_source')
+  error('at present extracting annotation information only works in conjunction with mne_source files');
 end
 
 % test whether the file exists
@@ -193,6 +226,32 @@ switch fileformat
     ft_hastoolbox('mne', 1);
     
     src = mne_read_source_spaces(filename, 1);
+    
+    if ~isempty(annotationfile)
+      ft_hastoolbox('freesurfer', 1);
+      if numel(annotationfile)~=2
+        error('two annotationfiles expected, one for each hemisphere');
+      end
+      for k = 1:numel(annotationfile)
+        [v{k}, label{k}, c(k)] = read_annotation(annotationfile{k}, 1);
+      end
+      
+      % match the annotations with the src structures
+      if src(1).np == numel(label{1}) && src(2).np == numel(label{2})
+        src(1).labelindx = label{1};
+        src(2).labelindx = label{2};
+      elseif src(1).np == numel(label{2}) && src(1).np == numel(label{1})
+        src(1).labelindx = label{2};
+        src(2).labelindx = label{1};
+      else
+        warning('incompatible annotation with triangulations, not using annotation information');
+      end
+      if ~isequal(c(1),c(2))
+        error('the annotation tables differ, expecting equal tables for the hemispheres');
+      end
+      c = c(1);
+    end
+
     shape = [];
     % only keep the points that are in use
     inuse1 = src(1).inuse==1;
@@ -212,6 +271,22 @@ switch fileformat
     shape.orig.pnt = [src(1).rr; src(2).rr];
     shape.orig.tri = [src(1).tris; src(2).tris + src(1).np];
     shape.orig.inuse = [src(1).inuse src(2).inuse]';
+    if isfield(src(1), 'labelindx')
+      shape.orig.labelindx = [src(1).labelindx;src(2).labelindx];
+      shape.labelindx      = [src(1).labelindx(inuse1); src(2).labelindx(inuse2)];
+%      ulabelindx = unique(c.table(:,5));
+%       for k = 1:c.numEntries
+%         % the values are really high (apart from the 0), so I guess it's safe to start
+%         % numbering from 1
+%         shape.orig.labelindx(shape.orig.labelindx==ulabelindx(k)) = k;
+%         shape.labelindx(shape.labelindx==ulabelindx(k)) = k;
+%       end
+% FIXME the above screws up the interpretation of the labels, because the
+% color table is not sorted
+      shape.label = c.struct_names;
+      shape.annotation = c.orig_tab; % to be able to recover which one
+      shape.ctable = c.table;
+    end
     
   case {'neuromag_mne', 'neuromag_fif'}
     % read the headshape and fiducials from an MNE file

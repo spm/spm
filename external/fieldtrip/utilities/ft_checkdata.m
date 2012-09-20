@@ -52,7 +52,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 6415 2012-09-02 18:24:32Z roboos $
+% $Id: ft_checkdata.m 6460 2012-09-14 10:22:03Z marvin $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1922,7 +1922,11 @@ for iTrial = 1:nTrials
     ts       = ts(hasTrial);
    
     [N] = histc(ts,timeBins); 
-    N(end) = [];
+    if isempty(N)
+        N  =  zeros(1,length(timeBins)-1);
+    else
+        N(end) = [];
+    end
         
     % store it in a matrix
     trialData(iUnit,:) = N;

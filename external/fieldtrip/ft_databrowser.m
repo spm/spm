@@ -40,10 +40,6 @@ function [cfg] = ft_databrowser(cfg, data)
 %   cfg.viewmode                = string, 'butterfly', 'vertical', 'component' for visualizing components e.g. from an ICA (default is 'butterfly')
 %   cfg.artfctdef.xxx.artifact  = Nx2 matrix with artifact segments see FT_ARTIFACT_xxx functions
 %   cfg.selectfeature           = string, name of feature to be selected/added (default = 'visual')
-%   cfg.selectmode              = string, what to do with a selection, can be 'mark', or 'eval' (default = 'mark')
-%                                 'mark': artfctdef field is updated, 'eval': the function defined in
-%                                 cfg.selfun is evaluated f.i. browse_movieplotER calls movieplotER which makes
-%                                 a movie of the selected data
 %   cfg.colorgroups             = 'sequential' 'allblack' 'labelcharx' (x = xth character in label), 'chantype' or
 %                                  vector with length(data/hdr.label) defining groups (default = 'sequential')
 %   cfg.channelcolormap         = COLORMAP (default = customized lines map with 15 colors)
@@ -108,7 +104,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 6413 2012-08-28 15:02:09Z roevdmei $
+% $Id: ft_databrowser.m 6464 2012-09-14 12:12:07Z roevdmei $
 
 % Undocumented options
 % 
@@ -119,7 +115,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 6413 2012-08-28 15:02:09Z roevdmei $';
+revision = '$Id: ft_databrowser.m 6464 2012-09-14 12:12:07Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -1302,7 +1298,7 @@ switch key
       channb = match_str(opt.curdat.label,channame);
       fprintf('channel name: %s\n',channame);
       redraw_cb(h, eventdata);
-      ft_plot_text(pos, 0.9, channame, 'FontSize', 16, 'tag', 'identify');
+      ft_plot_text(pos, 0.9, channame, 'FontSize', 16, 'tag', 'identify','interpreter','none');
       if ~ishold
         hold on
         ft_plot_vector(opt.curdat.time{1}, opt.curdat.trial{1}(channb,:), 'box', false, 'tag', 'identify', ...
@@ -1552,7 +1548,7 @@ end
 % plot labels
 for ievent = 1:numel(event)
   ft_plot_text(eventtim(ievent), 0.9-concount(ievent)*.06, eventstr{ievent}, 'tag', 'event', 'Color', eventcol{ievent}, ...
-    'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1]);
+    'hpos', opt.hpos, 'vpos', opt.vpos, 'width', opt.width, 'height', opt.height, 'hlim', opt.hlim, 'vlim', [-1 1],'interpreter','none');
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1595,7 +1591,7 @@ elseif any(strcmp(cfg.viewmode, {'vertical' 'component'}))
     if ~isempty(datsel) && ~isempty(laysel)
       
       if opt.plotLabelFlag == 1 || (opt.plotLabelFlag == 2 && mod(i,10)==0)
-        ft_plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'tag', 'timecourse', 'HorizontalAlignment', 'right');
+        ft_plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'tag', 'timecourse', 'HorizontalAlignment', 'right','interpreter','none');
       end
       
       ft_plot_vector(tim, dat(datsel, :), 'box', false, 'color', color, 'tag', 'timecourse', ...

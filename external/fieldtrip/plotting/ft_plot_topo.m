@@ -45,7 +45,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 6310 2012-08-02 15:00:26Z roevdmei $
+% $Id: ft_plot_topo.m 6446 2012-09-11 11:56:12Z eelspa $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -68,6 +68,11 @@ datmask       = ft_getopt(varargin, 'datmask');
 mask          = ft_getopt(varargin, 'mask');
 outline       = ft_getopt(varargin, 'outline');
 parent        = ft_getopt(varargin, 'parent', []);
+
+% check for nans in the data, these should be dealt with by the caller
+if any(isnan(dat))
+  warning('the data passed to ft_plot_topo contains NaNs, the interpolation will have unexpected results. NaNs should be dealt with by the caller function.');
+end
 
 % everything is added to the current figure
 holdflag = ishold;

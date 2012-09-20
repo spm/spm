@@ -16,9 +16,9 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %
 % The configuration can contain
 %   cfg.statistic        = string, statistic to compute for each sample or voxel (see below)
-%   cfg.correctm         = apply multiple-comparison correction, 'no', 'bonferoni', 'holms', 'fdr' (default = 'no')
-%   cfg.alpha            = critical value for rejecting the null-hypothesis (default = 0.05)
-%   cfg.tail             = -1, 1 or 0 (default = 0)
+%   cfg.correctm         = string, apply multiple-comparison correction, 'no', 'bonferoni', 'holms', 'fdr' (default = 'no')
+%   cfg.alpha            = number, critical value for rejecting the null-hypothesis (default = 0.05)
+%   cfg.tail             = number, -1, 1 or 0 (default = 0)
 %   cfg.ivar             = number or list with indices, independent variable(s)
 %   cfg.uvar             = number or list with indices, unit variable(s)
 %   cfg.wvar             = number or list with indices, within-block variable(s)
@@ -56,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 6328 2012-08-06 13:40:30Z eelspa $
+% $Id: ft_statistics_analytic.m 6420 2012-09-03 13:45:02Z lilmag $
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

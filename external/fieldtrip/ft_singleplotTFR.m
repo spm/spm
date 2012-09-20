@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $
+% $Id: ft_singleplotTFR.m 6500 2012-09-20 14:21:42Z roboos $
 
-revision = '$Id: ft_singleplotTFR.m 6396 2012-08-22 14:14:39Z roevdmei $';
+revision = '$Id: ft_singleplotTFR.m 6500 2012-09-20 14:21:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -425,7 +425,7 @@ if ~isempty(cfg.maskparameter)
   end
 end
 siz        = size(dat);
-datamatrix = reshape(mean(dat, 1), siz(2:end));
+datamatrix = reshape(mean(dat, 1), [siz(2:end) 1]);
 xvector    = data.(xparam)(xmin:xmax);
 yvector    = data.(yparam)(ymin:ymax);
 

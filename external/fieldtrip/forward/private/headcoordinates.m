@@ -85,7 +85,7 @@ function [h, flag] = headcoordinates(nas, lpa, rpa, extrapoint, flag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headcoordinates.m 5802 2012-05-24 06:50:57Z jansch $
+% $Id: headcoordinates.m 6449 2012-09-12 05:48:24Z roboos $
 
 % check whether function call is old or new style
 if nargin<4
@@ -127,7 +127,7 @@ switch lower(flag)
     dirz = cross(dirx,lpa-rpa);
     dirz = dirz/norm(dirz);
     diry = cross(dirz,dirx);
-  case 'als_asa'
+  case {'als_asa' 'asa'}
     % follow ASA convention
     dirz = cross(nas-rpa, lpa-rpa);
     diry = lpa-rpa;

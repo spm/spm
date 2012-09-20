@@ -37,7 +37,7 @@ function [channel] = ft_channelselection(desired, datachannel)
 % Other channel groups are
 %   'EEG1010'    with approximately 90 electrodes
 %   'EEG1005'    with approximately 350 electrodes
-%   'EEGCHWILLA' for Dorothee Chwilla's electrode caps (used at the NICI)
+%   'EEGCHWILLA' for Dorothee Chwilla's electrode caps (used at the DCC)
 %   'EEGBHAM'    for the 128 channel EEG system used in Birmingham
 %   'EEGREF'     for mastoid and ear electrodes (M1, M2, LM, RM, A1, A2)
 %   'MZ'         for MEG zenith
@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 6060 2012-06-13 15:05:49Z jorhor $
+% $Id: ft_channelselection.m 6438 2012-09-07 06:24:17Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -92,6 +92,11 @@ if any(size(channel) == 0)
   return
 end
 
+if ~iscell(datachannel)
+  % ensure that a single input argument like 'all' also works
+  datachannel = {datachannel};
+end
+
 if isnumeric(channel)
   % remove channels tha fall outside the range
   channel = channel(channel>=1 & channel<=numel(datachannel));
@@ -102,12 +107,8 @@ end
 
 if ~iscell(channel)
   % ensure that a single input argument like 'all' also works
+  % the case of a vector with channel indices has already been dealt with
   channel = {channel};
-end
-
-if ~iscell(datachannel)
-  % ensure that a single input argument like 'all' also works
-  datachannel = {datachannel};
 end
 
 % ensure that both inputs are column vectors

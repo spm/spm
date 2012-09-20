@@ -50,7 +50,7 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_neighbourplot.m 6404 2012-08-23 11:51:10Z jorhor $';
+revision = '$Id: ft_neighbourplot.m 6427 2012-09-04 12:54:39Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -61,7 +61,7 @@ ft_preamble trackconfig
 hasdata = nargin>1;
 if hasdata, data = ft_checkdata(data); end
 
-cfg.enabledit = ft_getopt(cfg, 'enableedit', 'no');
+cfg.enableedit = ft_getopt(cfg, 'enableedit', 'no');
 
 if isfield(cfg, 'neighbours')
   cfg.neighbours = cfg.neighbours;
@@ -188,10 +188,10 @@ if istrue(cfg.enableedit)
     userdata = get(hf, 'UserData');
   end
   cfg = userdata.cfg;
-end
-hf   = getparent(hf);
-delete(hf);
 
+  hf   = getparent(hf);
+  delete(hf);
+end
 % in any case remove SCALE and COMNT
 desired = ft_channelselection({'all', '-SCALE', '-COMNT'}, {cfg.neighbours.label});
 

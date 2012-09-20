@@ -87,9 +87,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: ft_megplanar.m 6478 2012-09-19 14:44:57Z jorhor $
 
-revision = '$Id: ft_megplanar.m 6215 2012-07-04 07:11:19Z roboos $';
+revision = '$Id: ft_megplanar.m 6478 2012-09-19 14:44:57Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -254,6 +254,11 @@ else
   cfg.channel = ft_channelselection(cfg.channel, sens.label);
   cfg.channel = ft_channelselection(cfg.channel, data.label);
 
+  % ensure channel order according to cfg.channel (there might be one check
+  % too much in here somewhere or in the subfunctions, but I don't care.
+  % Better one too much than one too little - JMH @ 09/19/12
+  [neighbsel] = match_str({cfg.neighbours.label}, cfg.channel);
+  cfg.neighbours = cfg.neighbours(neighbsel);
   cfg.neighbsel = channelconnectivity(cfg);
   
   % determine

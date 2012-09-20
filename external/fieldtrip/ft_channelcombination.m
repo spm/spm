@@ -44,7 +44,7 @@ function [collect] = ft_channelcombination(channelcmb, datachannel, includeauto)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelcombination.m 4790 2011-11-23 08:05:11Z roboos $
+% $Id: ft_channelcombination.m 6476 2012-09-19 13:51:24Z jansch $
 
 if nargin==2,
   includeauto = 0;
@@ -58,6 +58,7 @@ end
 % it should have a selection of two channels or channelgroups in each row
 if size(channelcmb,1)==2 && size(channelcmb,2)~=2
   warning('transposing channelcombination matrix');
+  channelcmb = channelcmb';
 end
 
 % this will hold the output

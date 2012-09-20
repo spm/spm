@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 6155 2012-06-26 07:30:57Z roboos $
+% $Id: ft_filetype.m 6440 2012-09-07 09:56:35Z jansch $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -356,8 +356,10 @@ elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
   type = '4d';
   manufacturer = '4D/BTi';
   content = '';
-elseif length(filename)<=4 && exist(fullfile(p,'config'), 'file') %&& exist(fullfile(p,'hs_file'), 'file')
+elseif length(f)<=4 && filetype_check_dir(p, 'config')%&& ~isempty(p) && exist(fullfile(p,'config'), 'file') %&& exist(fullfile(p,'hs_file'), 'file')
   % this could be a 4D file with non-standard/processed name
+  % it will be detected as a 4D file when there is a config file in the
+  % same directory as the specified file
   type = '4d';
   manufacturer = '4D/BTi';
   content = '';
@@ -1117,3 +1119,17 @@ function res = filetype_check_gtec_mat(filename)
 % check the content of the *.mat file
 var = whos('-file', filename);
 res = length(intersect({'log', 'names'}, {var.name}))==2;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION that checks the presence of a specified file in a directory
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function res = filetype_check_dir(p, filename)
+
+if ~isempty(p)
+  d = dir(p);
+else
+  d = dir;
+end
+
+res = ~isempty(strmatch(filename,{d.name},'exact'));
+

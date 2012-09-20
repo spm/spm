@@ -20,7 +20,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %   cfg.maskparameter = field in the first dataset to be used for marking significant data
 %   cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
 %   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
+%   cfg.ylim          = 'maxmin', 'maxabs', or [ymin ymax] (default = 'maxmin')
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 6337 2012-08-07 13:14:04Z roevdmei $
+% $Id: ft_multiplotER.m 6422 2012-09-03 18:07:42Z eelspa $
 
-revision = '$Id: ft_multiplotER.m 6337 2012-08-07 13:14:04Z roevdmei $';
+revision = '$Id: ft_multiplotER.m 6422 2012-09-03 18:07:42Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -481,7 +481,7 @@ elseif strcmp('time',yparam) && strcmp('freq',dtype)
 end
 
 % Get physical y-axis range (ylim / parameter):
-if strcmp(cfg.ylim,'maxmin')
+if strcmp(cfg.ylim, 'maxmin') || strcmp(cfg.ylim, 'maxabs')
   % Find maxmin throughout all varargins:
   ymin = [];
   ymax = [];
@@ -499,6 +499,13 @@ if strcmp(cfg.ylim,'maxmin')
     ymin = min([ymin min(min(min(data)))]);
     ymax = max([ymax max(max(max(data)))]);
   end
+  
+  % handle maxabs, make y-axis center on 0
+  if strcmp(cfg.ylim, 'maxabs')
+    ymax = max([abs(ymax) abs(ymin)]);
+    ymin = -ymax;
+  end
+  
 else
   ymin = cfg.ylim(1);
   ymax = cfg.ylim(2);

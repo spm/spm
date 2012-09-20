@@ -21,8 +21,8 @@ function comp = ft_datatype_comp(comp, varargin)
 %           cfg: [1x1 struct]
 %
 % The only difference to the raw data structure is that the comp structure
-% contains the additional fields topo and topolabel. See FT_DATATYPE_RAW for
-% further details.
+% contains the additional fields unmixing, topo and topolabel. See
+% FT_DATATYPE_RAW for further details.
 %
 % Required fields:
 %   - time, trial, label, topo, unmixing
@@ -64,7 +64,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 5301 2012-02-22 08:47:14Z arjsto $
+% $Id: ft_datatype_comp.m 6470 2012-09-17 12:18:24Z lilmag $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

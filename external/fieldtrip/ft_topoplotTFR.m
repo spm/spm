@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 6337 2012-08-07 13:14:04Z roevdmei $
+% $Id: ft_topoplotTFR.m 6446 2012-09-11 11:56:12Z eelspa $
 
-revision = '$Id: ft_topoplotTFR.m 6337 2012-08-07 13:14:04Z roevdmei $';
+revision = '$Id: ft_topoplotTFR.m 6446 2012-09-11 11:56:12Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -822,6 +822,15 @@ if strcmp(cfg.style,'straight');    style = 'surf';         end
 if strcmp(cfg.style,'contour');     style = 'iso';         end
 if strcmp(cfg.style,'fill');        style = 'isofill';     end
 
+% check for nans
+nanInds = isnan(datavector);
+if any(nanInds)
+  warning('removing NaNs from the data');
+  chanX(nanInds) = [];
+  chanY(nanInds) = [];
+  datavector(nanInds) = [];
+end
+
 % Draw plot
 if ~strcmp(cfg.style,'blank')
   ft_plot_topo(chanX,chanY,datavector,'interpmethod',cfg.interpolation,...
@@ -870,7 +879,10 @@ for icell = 1:length(cfg.highlight)
 end % for icell
 % For Markers (all channels)
 if ~strcmp(cfg.marker,'off')
-  [dum labelindex] = match_str(ft_channelselection(setdiff(1:length(data.label),highlightchansel), data.label),lay.label);
+  channelsToMark = 1:length(data.label);
+  channelsToMark(nanInds) = [];
+  channelsToMark(highlightchansel) = [];
+  [dum labelindex] = match_str(ft_channelselection(channelsToMark, data.label),lay.label);
   templay.pos      = lay.pos(labelindex,:);
   templay.width    = lay.width(labelindex);
   templay.height   = lay.height(labelindex);

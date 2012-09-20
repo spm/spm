@@ -27,12 +27,14 @@ function ft_write_headshape(filename, bnd, varargin)
 %   'vista'
 %   'tetgen'
 %   'gifti'
+%   'stl'       STereoLithography file format (often supported by
+%               CAD/generic 3D mesh editing programs)
 %
 % See also FT_READ_HEADSHAPE
 
 % Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
 %
-% $Rev: 5022 $
+% $Rev: 6431 $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 data       = ft_getopt(varargin,'data',  []); % can be stored in a gifti file

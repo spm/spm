@@ -38,21 +38,24 @@ function [hdr] = ft_read_header(filename, varargin)
 %   BTi - 4D Neuroimaging (*.m4d, *.pdf, *.xyz)
 %   Yokogawa (*.ave, *.con, *.raw)
 %   NetMEG (*.nc)
+%   ITAB - Chieti (*.mhd)
 %
 % The following EEG dataformats are supported
 %   ANT - Advanced Neuro Technology, EEProbe (*.avr, *.eeg, *.cnt)
+%   BCI2000 (*.dat)
 %   Biosemi (*.bdf)
-%   CED - Cambridge Electronic Design (*. smr)
-%   Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw, *.sbin, MFF fileformat)
+%   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
+%   CED - Cambridge Electronic Design (*.smr)
+%   EGI - Electrical Geodesics, Inc. (*.egis, *.ave, *.gave, *.ses, *.raw, *.sbin, *.mff)
+%   GTec (*.mat)
+%   Generic data formats (*.edf, *.gdf)
 %   Megis/BESA (*.avr, *.swf)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
-%   BrainVision (*.eeg, *.seg, *.dat, *.vhdr, *.vmrk)
-%   GTec (*.mat)
 %
 % The following spike and LFP dataformats are supported (with some limitations)
-%   Plextor (*.nex, *.plx, *.ddt)
 %   Neuralynx (*.ncs, *.nse, *.nts, *.nev, DMA log files)
+%   Plextor (*.nex, *.plx, *.ddt)
 %   CED - Cambridge Electronic Design (*.smr)
 %   MPI - Max Planck Institute (*.dap)
 %
@@ -77,7 +80,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 6261 2012-07-11 11:53:57Z borreu $
+% $Id: ft_read_header.m 6477 2012-09-19 14:04:54Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -443,7 +446,7 @@ switch headerformat
         warning('cannot read balancing coefficients for G3BR');
       end
     end
-    if any(~cellfun(@isempty,strfind(coeftype, 'G1AR')))
+    if any(~cellfun(@isempty,strfind(coeftype, 'G3AR')))
       try
         [alphaMEG,MEGlist,Refindex] = getCTFBalanceCoefs(orig, 'G3AR', 'T');
         orig.BalanceCoefs.G3AR.alphaMEG  = alphaMEG;
@@ -746,6 +749,7 @@ switch headerformat
     nChans = zeros(length(orig.signal),1);
     nSamples = zeros(length(orig.signal),1);
     for iSig = 1:length(orig.signal)
+q
       Fs(iSig)      = orig.signal(iSig).blockhdr(1).fsample(1);
       nChans(iSig)  = orig.signal(iSig).blockhdr(1).nsignals;
       % the number of samples per block can be different
@@ -997,7 +1001,6 @@ switch headerformat
         end
       end
     end
-    
     
     hdr.orig.bufsize = orig.bufsize;
     

@@ -30,7 +30,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: ctf2grad.m 6495 2012-09-20 10:05:18Z jansch $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -209,7 +209,8 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
   % sofar the gradiometer definition was the ideal, non-balenced one
   if isfield(grad, 'balance') && ~strcmp(grad.balance.current, 'none')
     % apply the current balancing parameters to the gradiometer definition
-    grad = ft_apply_montage(grad, getfield(grad.balance, grad.balance.current));
+    %grad = ft_apply_montage(grad, getfield(grad.balance, grad.balance.current));
+    grad = ft_apply_montage(grad, getfield(grad.balance, grad.balance.current), 'keepunused', 'yes');
   end
 
 
