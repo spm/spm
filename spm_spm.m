@@ -269,10 +269,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 4940 2012-09-20 17:27:54Z guillaume $
+% $Id: spm_spm.m 4943 2012-09-20 18:25:25Z guillaume $
 
 
-SVNid = '$Rev: 4940 $';
+SVNid = '$Rev: 4943 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -312,15 +312,15 @@ end
 
 for i = 1:numel(VY)
     if ~spm_existfile(VY(i).fname)
-        fname = spm_file(VY(i).fname, 'filename');
-        if ~spm_existfile(fname)
+        %fname = spm_file(VY(i).fname, 'filename');
+        %if ~spm_existfile(fname)
             error('File not found: %s',VY(i).fname);
-        end
-        VY(i).fname = fname;
-        VY(i).private.dat.fname = fname;
+        %end
+        %VY(i).fname = fname;
+        %VY(i).private.dat.fname = fname;
     end
-    %VY(i).private.dat.scl_slope = VY(i).pinfo(1); % see spm_fmri_spm_ui.m
-    %VY(i).private.dat.scl_inter = VY(i).pinfo(2); % see spm_fmri_spm_ui.m
+    VY(i).private.dat.scl_slope = VY(i).pinfo(1); % see spm_fmri_spm_ui.m
+    VY(i).private.dat.scl_inter = VY(i).pinfo(2); % see spm_fmri_spm_ui.m
 end
 
 spm_check_orientations(VY);
@@ -341,7 +341,7 @@ if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
     str = {'Current directory contains SPM estimation files:',...
         'pwd = ',SPM.swd,...
         'Existing results will be overwritten!'};
-    if false %spm_input(str,1,'bd','stop|continue',[1,0],1)
+    if spm_input(str,1,'bd','stop|continue',[1,0],1)
         spm('Pointer','Arrow')
         return
     else
