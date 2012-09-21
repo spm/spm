@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: cfg_ui.m 4944 2012-09-21 14:08:06Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 4944 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 04-Mar-2010 16:09:52
+% Last Modified by GUIDE v2.5 17-Sep-2012 21:54:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1420,8 +1420,18 @@ if udmodule.oldvalue ~= value
     udmodule.oldvalue = value;
     set(hObject, 'Userdata', udmodule);
     local_showvaledit(hObject);
-end;
-if strcmp(get(handles.cfg_ui,'SelectionType'),'open')
+    doopen = false;
+else
+    doopen = strcmp(get(handles.cfg_ui,'SelectionType'),'open');
+    % When the user hits SPACE, the listbox callback will be executed twice
+    % out of order. Once, it will be called to open an item for editing.
+    % Meanwhile, a second call will advance to the next line in the module
+    % list. To make sure we show the right data, we try to restore the
+    % original value setting from the 'open' call.
+    set(hObject, 'Value', value);
+    local_showvaledit(hObject);
+end
+if doopen
     % open modal MenuEdit window, do editing
     % Unfortunately, MATLAB focus behaviour makes it impossible to do this
     % in the existing valshow object - if this object looses focus, it will
