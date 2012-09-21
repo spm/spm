@@ -84,14 +84,19 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4910 2012-09-07 12:41:18Z volkmar $
+% $Id: cfg_getfile.m 4945 2012-09-21 14:09:50Z volkmar $
 
 t = {};
 sts = false;
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
         case 'cpath'
-            cfg_message(nargchk(2,3,nargin,'struct'));
+            try
+                narginchk(2,3);
+            catch
+                l = lasterror;
+                cfg_message(l);
+            end
             if all(cellfun(@iscellstr,varargin(2:end)))
                 t = cpath(varargin{2:end});
                 sts = true;
@@ -899,6 +904,11 @@ end
 dsel = strcmp({filt.tfilt.typ},'dir');
 if any(dsel)
     fd = d(~strcmp('..',d));
+    if ~any(strcmp('.',fd))
+        fd = [{'.'}; fd(:)];
+    end
+    % reset regex filter
+    filt.tfilt(dsel).regex = {'.*'};
 else
     fd = {};
 end
@@ -1123,15 +1133,18 @@ end
 if nargin == 0
     filt = lfilt;
 elseif nargin == 1
-    sel  = any(cell2mat(cellfun(@(t)strcmpi({lfilt.typ},t),cellstr(typ),'UniformOutput',false)'),1);
-    if any(sel)
-        filt = lfilt(sel);
+    ctyp = cellstr(typ);
+    fsel  = any(cell2mat(cellfun(@(t)strcmpi({lfilt.typ},t),ctyp,'UniformOutput',false)'),1);
+    tsel  = any(cell2mat(cellfun(@(t)strcmpi(ctyp,t),{lfilt.typ},'UniformOutput',false)'),1);
+    if any(fsel)
+        filt = lfilt(fsel);
         % sort filters into typ order
-        [unused st] = sort(cellstr(typ));
+        [unused st] = sort(ctyp(tsel));
         [unused sf] = sort({filt.typ});
         filt = filt(st(sf));
-    else
-        filt = struct('typ','ad-hoc', 'regex',{cellstr(typ)}, 'cflag',true, 'fun','', 'prms',cfg_branch);
+    end
+    if any(~tsel)
+        filt(end+1) = struct('typ','ad-hoc', 'regex',{ctyp(~tsel)}, 'cflag',true, 'fun','', 'prms',cfg_branch);
     end
 else
     nfilt = struct('typ',typ, 'regex',{cellstr(filt)}, 'cflag',false, 'fun','', 'prms',cfg_branch);
@@ -1248,13 +1261,11 @@ else
                 str = dstr;
         end
     end
-    filt = getfilt(ob);
-    if filt.code >= 0 % filter files, but not dirs
-        [p n e] = cellfun(@fileparts, str, 'uniformoutput',false);
-        fstr = strcat(n, e);
-        [fstr1 fsel] = do_filter(fstr, filt.ext);
-        str = str(fsel);
-    end
+    filt = getfilt;
+    [p n e] = cellfun(@fileparts, str, 'uniformoutput',false);
+    fstr = strcat(n, e);
+    [fstr1 fsel] = do_filter_exp(fstr, filt);
+    str = str(fsel);
 end
 select(str,true);
 editclear;
