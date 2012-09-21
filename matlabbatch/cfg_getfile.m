@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4947 2012-09-21 14:49:21Z volkmar $
+% $Id: cfg_getfile.m 4948 2012-09-21 15:05:11Z volkmar $
 
 t = {};
 sts = false;
@@ -151,7 +151,7 @@ if nargin > 0 && ischar(varargin{1})
                             t{k} = strcat(direc{k}, filesep, t{k});
                         end
                         if (nargout > 1) && ~isempty(sts{k})
-                            sts{k} = cpath(sts{k}, direc{k});
+                            sts{k} = cpath(sts{k}, direc(k));
                         end
                     end
                 end
