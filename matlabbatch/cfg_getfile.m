@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4946 2012-09-21 14:33:52Z volkmar $
+% $Id: cfg_getfile.m 4947 2012-09-21 14:49:21Z volkmar $
 
 t = {};
 sts = false;
@@ -1133,7 +1133,8 @@ end
 if nargin == 0
     filt = lfilt;
 elseif nargin == 1
-    ctyp = cellstr(typ);
+    filt  = struct('typ',{}, 'regex',{}, 'cflag',{}, 'fun',{}, 'prms',{});
+    ctyp  = cellstr(typ);
     fsel  = any(cell2mat(cellfun(@(t)strcmpi({lfilt.typ},t),ctyp,'UniformOutput',false)'),1);
     tsel  = any(cell2mat(cellfun(@(t)strcmpi(ctyp,t),{lfilt.typ},'UniformOutput',false)'),1);
     if any(fsel)
