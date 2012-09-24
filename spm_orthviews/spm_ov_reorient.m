@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4955 2012-09-24 15:37:52Z ged $
+% $Id: spm_ov_reorient.m 4957 2012-09-24 15:53:31Z ged $
 
-rev = '$Revision: 4955 $';
+rev = '$Revision: 4957 $';
 
 global st;
 if isempty(st)
@@ -127,9 +127,13 @@ switch cmd
             delete(st.vols{volhandle(1)}.reorient.l);
             delete(st.vols{volhandle(1)}.reorient.b);
             delete(st.vols{volhandle(1)}.reorient.order);
-            if ~isempty(st.vols{volhandle(1)}.reorient.lh)
-                delete(cat(1,st.vols{volhandle(1)}.reorient.lh{:}));
-            end;
+        end
+        try
+            for v = volhandle
+                if ~isempty(st.vols{v}.reorient.lh)
+                    delete(cat(1,st.vols{v}.reorient.lh{:}));
+                end
+            end
         end
         
         for k = spm_orthviews('valid_handles')
