@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4949 2012-09-24 09:51:16Z volkmar $
+% $Id: cfg_getfile.m 4950 2012-09-24 10:12:17Z volkmar $
 
 t = {};
 sts = false;
@@ -929,19 +929,19 @@ end
 f1   = cell(size(filt.tfilt));
 i1   = cell(size(filt.tfilt));
 for k = 1:numel(filt.tfilt)
-    [f11 i11] = do_filter(f,filt.tfilt(k).regex);
+    [f11,i11] = do_filter(f,filt.tfilt(k).regex);
     if isempty(f11)||isempty(filt.tfilt(k).fun)
         f1{k} = f11;
         i1{k} = i11;
     else
         [unused,prms] = harvest(filt.tfilt(k).prms, filt.tfilt(k).prms, false, false);
-        [f1{k} i12] = filt.tfilt(k).fun('list',dr,f11,prms);
+        [f1{k},i12] = filt.tfilt(k).fun('list',dr,f11,prms);
         i1{k}       = i11(i12);
     end
 end
 % files might have been matched by multiple filters. Sort into roughly
 % alphabetical order before removing duplicates with 'stable' option.
-ind = sort(cat(1,i1{:}));
+[unused,ind] = sort(cat(1,i1{:}));
 f   = cat(1,f1{:});
 f = unique(f(ind), 'stable');
 d = unique(d(:));
