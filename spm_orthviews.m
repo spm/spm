@@ -53,6 +53,10 @@ function varargout = spm_orthviews(action,varargin)
 % FORMAT spm_orthviews('Redraw')
 % Redraw the images
 %
+% FORMAT spm_orthviews('Reload_mats')
+% Reload the voxel-world mapping matrices from the headers stored on disk,
+% e.g. following reorientation of some images.
+%
 % FORMAT spm_orthviews('Delete', handle)
 % handle   - image number to delete
 %
@@ -147,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4930 2012-09-17 14:30:38Z guillaume $
+% $Id: spm_orthviews.m 4955 2012-09-24 15:37:52Z ged $
 
 
 % The basic fields of st are:
@@ -303,6 +307,18 @@ switch lower(action)
         if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
+        
+    case 'reload_mats'
+        if nargin > 1
+            handles = valid_handles(varargin{1});
+        else
+            handles = valid_handles;
+        end
+        for i = handles
+            fnm = spm_file(st.vols{i}.fname, 'number', st.vols{i}.n);
+            st.vols{i}.mat = spm_get_space(fnm);
+        end
+        % redraw_all (done in spm_orthviews('reorient','context_quit'))
         
     case 'reposition'
         if isempty(varargin), tmp = findcent;

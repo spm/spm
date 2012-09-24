@@ -14,9 +14,9 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the matlab prompt.
 %_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_ov_reorient.m 4955 2012-09-24 15:37:52Z ged $
 
-rev = '$Revision: 4492 $';
+rev = '$Revision: 4955 $';
 
 global st;
 if isempty(st)
@@ -52,7 +52,7 @@ switch cmd
         item5 = uimenu(item0, 'Label', 'Help', 'Callback', ...
             sprintf('spm_help(''%s'');', mfilename));
         ret = item0;
-
+        
     case 'context_init'
         Finter = spm_figure('GetWin', 'Interactive');
         Fgraph = spm_figure('GetWin', 'Graphics');
@@ -87,8 +87,8 @@ switch cmd
         st.vols{volhandle(1)}.reorient.b(1) = uicontrol(...
             Finter, 'Style','PushButton', 'Position',[75 30 165 025], ...
             'String','Apply to image(s)', ...
-            'Callback',['spm_orthviews(''reorient'',''apply'',',...
-            num2str(volhandle(1)), ');']);
+            'Callback',['spm_orthviews(''reorient'',''apply'',[',...
+            num2str(volhandle), ']);']);
         for k = handles
             % Find context menu handles
             obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
@@ -118,7 +118,7 @@ switch cmd
                 'ToolTipString',tooltips{k});
         end;
         spm_orthviews('redraw');
-
+        
     case 'context_quit'
         Finter = spm_figure('FindWin', 'Interactive');
         Fgraph = spm_figure('FindWin', 'Graphics');
@@ -127,19 +127,15 @@ switch cmd
             delete(st.vols{volhandle(1)}.reorient.l);
             delete(st.vols{volhandle(1)}.reorient.b);
             delete(st.vols{volhandle(1)}.reorient.order);
-        catch
-        end;
-        if isfield(st.vols{volhandle(1)}.reorient,'lh')
             if ~isempty(st.vols{volhandle(1)}.reorient.lh)
                 delete(cat(1,st.vols{volhandle(1)}.reorient.lh{:}));
             end;
-        end;
-
+        end
+        
         for k = spm_orthviews('valid_handles')
             try
                 st.vols{k}.premul = st.vols{k}.reorient.oldpremul;
                 st.vols{k} = rmfield(st.vols{k},'reorient');
-            catch
             end;
             obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
             if any(k == volhandle)
@@ -152,73 +148,58 @@ switch cmd
             end;
         end;
         spm_orthviews('redraw');
-
+        
     case 'context_origin'
         pos = spm_orthviews('pos');
-        P = {st.vols{volhandle}.fname};
-        qu = questdlg({'If you have other images coregistered to this image, you may shift their origin by the same amount.', ...
-            'Do you want to do this?'},'Select other images', ...
-            'This image only','Add other images','Cancel','This image only');
-        if isempty(qu) || strcmpi(qu, 'cancel')
+        M = spm_matrix(-pos');
+        P = {spm_file(st.vols{volhandle}.fname, 'number', st.vols{volhandle}.n)};
+        p = spm_fileparts(st.vols{volhandle}.fname);
+        P = cfg_getfile(Inf, 'image', {'Image(s) to reorient'}, P, p);
+        if isempty(P) || isempty(P{1})
             disp('''Set origin to Xhairs'' cancelled.');
             return;
-        end            
-        if strcmpi(qu, 'add other images')
-            [p n e v] = spm_fileparts(st.vols{volhandle}.fname);
-            P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p));
-            if isempty(P) || isempty(P{1})
-                disp('''Set origin to Xhairs'' cancelled.');
-                return;
-            end
         end
-        st.vols{volhandle}.premul = spm_matrix(-pos');
-        spm_jobman('serial','','spm.util.reorient',P,st.vols{volhandle}.premul);
         sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
         if strcmpi(sv, 'yes')
             [p n] = spm_fileparts(st.vols{volhandle}.fname);
             [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
             if ~isequal(f,0)
-                M = st.vols{volhandle}.premul;
                 save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
             end
         end
-        qu = questdlg({'Image positions are changed!', ...
-            'To make sure images are displayed correctly, it is recommended to quit and restart spm_orthviews now.', ...
-            'Do you want to quit?'},'Reorient done','Yes','No','Yes');
-        if strcmpi(qu, 'yes')
-            spm_orthviews('reset');
-            return;
-        end;
-
-
+        spm_jobman('serial', '', 'spm.util.reorient', P, M);
+        spm_orthviews('reload_mats');
+        spm_orthviews('Reposition', [0 0 0])
+        
         %-------------------------------------------------------------------------
         % Interaction callbacks
-
+        
     case 'apply'
-        [p n e v] = spm_fileparts(st.vols{volhandle}.fname);
-        P = cellstr(spm_select(Inf, 'image', {'Image(s) to reorient'}, '', p));
+        M = st.vols{volhandle(1)}.premul;
+        N = numel(volhandle);
+        P = cell(N, 1);
+        for i = 1:N
+            P{i} = spm_file(st.vols{volhandle(i)}.fname, ...
+                'number', st.vols{volhandle(i)}.n);
+        end
+        P = cfg_getfile(Inf, 'image', {'Image(s) to reorient'}, P);
         if ~isempty(P) && ~isempty(P{1})
-            spm_jobman('serial','','spm.util.reorient',P,st.vols{volhandle}.premul);
-            st.vols{volhandle}.reorient.oldpremul = eye(4);
+            spm_jobman('serial', '', 'spm.util.reorient', P, M);
+            for i = 1:N
+                st.vols{volhandle(i)}.reorient.oldpremul = eye(4);
+            end
             sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
             if strcmpi(sv, 'yes')
-                [p n] = spm_fileparts(st.vols{volhandle}.fname);
+                [p n] = spm_fileparts(st.vols{volhandle(1)}.fname);
                 [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
                 if ~isequal(f,0)
-                    M = st.vols{volhandle}.premul;
                     save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
                 end
             end
-            qu=questdlg({'Image positions are changed!', ...
-                'To make sure images are displayed correctly, it is recommended to quit and restart spm_orthviews now.', ...
-                'Do you want to quit?'},'Reorient done','Yes','No','Yes');
-            if strcmpi(qu, 'yes')
-                spm_orthviews('reset');
-                return;
-            end;
+            spm_orthviews('reload_mats');
         end;
-        spm_orthviews('reorient','context_quit', volhandle);
-
+        spm_orthviews('reorient', 'context_quit', volhandle);
+        
     case 'reorient'
         prms=zeros(1,12);
         for k=1:9
@@ -237,7 +218,7 @@ switch cmd
                 st.vols{k}.reorient.oldpremul;
         end;
         spm_orthviews('redraw');
-
+        
     case 'redraw'
         if isfield(st.vols{volhandle}.reorient, 'e') && numel(st.vols{volhandle}.reorient.e)==10
             if isfield(st.vols{volhandle}.reorient,'lh')
