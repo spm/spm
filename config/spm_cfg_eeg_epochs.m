@@ -1,12 +1,12 @@
 function S = spm_cfg_eeg_epochs
-% configuration file for M/EEG epoching
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Configuration file for M/EEG epoching
+%__________________________________________________________________________
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 4956 2012-09-24 15:49:08Z christophe $
+% $Id: spm_cfg_eeg_epochs.m 4958 2012-09-24 16:37:04Z guillaume $
 
-rev = '$Rev: 4956 $';
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -15,9 +15,9 @@ D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
 
 bl_cor = cfg_menu;
-bl_cor.tag     = 'bl_cor';
+bl_cor.tag     = 'bc';
 bl_cor.name    = 'Baseline corrrection';
-bl_cor.help    = {'Perform baseline correction when epoching, or not'};
+bl_cor.help    = {'Perform baseline correction when epoching, or not.'};
 bl_cor.labels  = {'Yes'
                   'No'}';
 bl_cor.values  = {1 0};
@@ -71,7 +71,7 @@ eventvalue.strtype = 'e';
 trialdef = cfg_branch;
 trialdef.tag = 'trialdef';
 trialdef.name = 'Trial';
-trialdef.val = {conditionlabel, eventtype, eventvalue};
+trialdef.val = {conditionlabel eventtype eventvalue};
 
 define1 = cfg_repeat;
 define1.tag = 'unused';
@@ -93,7 +93,7 @@ trlchoice.values = {epochinfo define};
 S = cfg_exbranch;
 S.tag = 'epoch';
 S.name = 'M/EEG Epoching';
-S.val = {D trlchoice bl_cor};
+S.val = {D trlchoice bc};
 S.help = {'Epoch continuous EEG/MEG data.'};
 S.prog = @eeg_epochs;
 S.vout = @vout_eeg_epochs;
@@ -112,7 +112,7 @@ else
     S.epochinfo = job.trialchoice.epochinfo;
     S.epochinfo.trlfile = S.epochinfo.trlfile{1};
 end
-S.bc = job.bl_cor;
+S.bc = job.bc;
 
 % set review and save options both to 0 to not pop up something
 S.reviewtrials = 0;
@@ -120,6 +120,7 @@ S.save = 0;
 
 out.D = spm_eeg_epochs(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
+
 
 function dep = vout_eeg_epochs(job)
 % Output is always in field "D", no matter how job is structured
@@ -136,4 +137,3 @@ dep(2).sname = 'Epoched Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
