@@ -30,7 +30,7 @@ function [D, montage] = spm_eeg_montage(S)
 %
 % NOTE:
 % montage are always defined based on the raw data on disk, i.e. discarding
-% any curently applied montage!
+% any curently applied online montage!
 % Example: Data with 256 channels, online montage with a subset of 64
 % channels. The montage must be based on the original 256 channels, not the
 % "online" 64 ones.
@@ -48,9 +48,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel
-% $Id: spm_eeg_montage.m 4471 2011-09-08 15:07:09Z christophe $
+% $Id: spm_eeg_montage.m 4956 2012-09-24 15:49:08Z christophe $
 
-SVNrev = '$Rev: 4471 $';
+SVNrev = '$Rev: 4956 $';
 
 % Sequence of steps
 % 1/ Data re-reference: (a) write data on disk or (b) apply online montage
@@ -105,7 +105,11 @@ else
     if ~isfield(S,'onlineopt')
         S.onlineopt = 0;
     end
-    write_data = 1;
+    if S.onlineopt<2
+        write_data = 1;
+    else
+        write_data = 0;
+    end
 end
 
 %-Get montage
@@ -410,8 +414,8 @@ else
 %             Dnew = montage(D,'switch',Midx);
             Dnew = D.montage('switch',Midx);
         case 3
-%             Dnew = montage(D,'add',S.montage);
-            Dnew = D.montage('add',S.montage);
+%             Dnew = montage(D,'add',montage);
+            Dnew = D.montage('add',montage);
     end
 end
 

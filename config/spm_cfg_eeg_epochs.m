@@ -4,15 +4,24 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 4956 2012-09-24 15:49:08Z christophe $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 4956 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
 D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
+
+bl_cor = cfg_menu;
+bl_cor.tag     = 'bl_cor';
+bl_cor.name    = 'Baseline corrrection';
+bl_cor.help    = {'Perform baseline correction when epoching, or not'};
+bl_cor.labels  = {'Yes'
+                  'No'}';
+bl_cor.values  = {1 0};
+bl_cor.val     = {1};
 
 % input via trl file
 trlfile = cfg_files;
@@ -84,7 +93,7 @@ trlchoice.values = {epochinfo define};
 S = cfg_exbranch;
 S.tag = 'epoch';
 S.name = 'M/EEG Epoching';
-S.val = {D trlchoice};
+S.val = {D trlchoice bl_cor};
 S.help = {'Epoch continuous EEG/MEG data.'};
 S.prog = @eeg_epochs;
 S.vout = @vout_eeg_epochs;
@@ -103,6 +112,7 @@ else
     S.epochinfo = job.trialchoice.epochinfo;
     S.epochinfo.trlfile = S.epochinfo.trlfile{1};
 end
+S.bc = job.bl_cor;
 
 % set review and save options both to 0 to not pop up something
 S.reviewtrials = 0;
