@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4950 2012-09-24 10:12:17Z volkmar $
+% $Id: cfg_getfile.m 4953 2012-09-24 13:05:39Z volkmar $
 
 t = {};
 sts = false;
@@ -851,13 +851,13 @@ end
 %=======================================================================
 function unselect(lb,varargin)
 vl      = get(lb,'Value');
-if isempty(vl)||vl==0, return; end
+if isempty(vl)||(numel(vl)==1 && vl==0), return; end
 str     = get(lb,'String');
 msk     = true(numel(str),1);
 msk(vl) = false;
 str2    = str(msk);
 set(lb,'Value',min(vl(1),numel(str2)),'String',str2);
-if numel(str2) == 1, s = ''; else s = 's'; end
+if nnz(~msk) == 1, s = ''; else s = 's'; end
 checkdone(sprintf('Unselected %d file%s.',numel(vl),s));
 return;
 %=======================================================================
