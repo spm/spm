@@ -84,7 +84,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4948 2012-09-21 15:05:11Z volkmar $
+% $Id: cfg_getfile.m 4949 2012-09-24 09:51:16Z volkmar $
 
 t = {};
 sts = false;
@@ -917,7 +917,7 @@ if any(~dsel)
 else
     ff = {};
 end
-f = [fd(:); ff(:)];
+f = [sort(fd(:)); sort(ff(:))];
 
 if domsg
     msg('Filtering %d files...',numel(f));
@@ -927,17 +927,23 @@ if domsg
     msg('Listing %d files...',numel(f));
 end
 f1   = cell(size(filt.tfilt));
+i1   = cell(size(filt.tfilt));
 for k = 1:numel(filt.tfilt)
-    f11 = do_filter(f,filt.tfilt(k).regex);
+    [f11 i11] = do_filter(f,filt.tfilt(k).regex);
     if isempty(f11)||isempty(filt.tfilt(k).fun)
         f1{k} = f11;
+        i1{k} = i11;
     else
         [unused,prms] = harvest(filt.tfilt(k).prms, filt.tfilt(k).prms, false, false);
-        f1{k} = filt.tfilt(k).fun('list',dr,f11,prms);
+        [f1{k} i12] = filt.tfilt(k).fun('list',dr,f11,prms);
+        i1{k}       = i11(i12);
     end
 end
-
-f = unique(cat(1,f1{:}));
+% files might have been matched by multiple filters. Sort into roughly
+% alphabetical order before removing duplicates with 'stable' option.
+ind = sort(cat(1,i1{:}));
+f   = cat(1,f1{:});
+f = unique(f(ind), 'stable');
 d = unique(d(:));
 if domsg
     msg(omsg);
@@ -1110,8 +1116,11 @@ function filt = reg_filter(typ,filt,cflag,fun,prms)
 %             prms  - optional parameters - a struct with fields with
 %                     tagnames according to registered prms cfg_entry
 %                     objects
-%             ind   - index vector into the input list of files such that
-%                     files_out = files(ind). 
+%             ind   - 'filter' mode: index vector into the output list of
+%                     files such that ind(k) = l if files_out{k} is
+%                     expanded from files_in{l}. 
+%             ind   - 'list' mode: index vector into the input list of
+%                     files such that files_out = files_in(ind). 
 %             In 'list' mode, the handler may modify the list of
 %             files (delete non-matching files, add indices to filenames
 %             etc). In 'filter' mode, the handler may delete files from the
@@ -1487,6 +1496,7 @@ switch lower(cmd)
         d  = dir(varargin{1});
         dn = {d([d.isdir]).name}';
         varargout{1} = intersect(dn, varargin{2});
+        varargout{2} = find([d.isdir]);
     case 'filter'
         varargout{1} = varargin{1};
         varargout{2} = 1:numel(varargout{1});
