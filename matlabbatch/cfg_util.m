@@ -23,7 +23,7 @@ function varargout = cfg_util(cmd, varargin)
 % The commands to manipulate these structures are described below in
 % alphabetical order.
 %
-%  cfg_util('addapp', cfg[, def])
+%  cfg_util('addapp', cfg[, def[, ver]])
 %
 % Add an application to cfg_util. If cfg is a cfg_item, then it is used
 % as initial configuration. Alternatively, if cfg is a MATLAB function,
@@ -36,6 +36,8 @@ function varargout = cfg_util(cmd, varargin)
 % These defaults should be rooted at the application's root node, not at
 % the overall root node. They will be inserted by calling initialise on the
 % application specific part of the configuration tree.
+% Optionally, a version string can be specified. This version string will
+% be documented in all batches that are saved as .m files.
 %
 %  mod_job_id = cfg_util('addtojob', job_id, mod_cfg_id)
 %
@@ -387,9 +389,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: cfg_util.m 4954 2012-09-24 14:36:16Z volkmar $
 
-rev = '$Rev: 4867 $';
+rev = '$Rev: 4954 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -881,6 +883,11 @@ switch lower(cmd),
                     fid = fopen(fullfile(p, [n '.m']), 'wt');
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
                     fprintf(fid, '%% Job configuration created by %s (rev %s)\n', mfilename, rev);
+                    versions = cfg_get_defaults('versions');
+                    vtags    = fieldnames(versions);
+                    for k = 1:numel(vtags)
+                        fprintf(fid, '%% %s %s - %s\n', vtags{k}, versions.(vtags{k}).name, versions.(vtags{k}).ver);
+                    end
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
                     fprintf(fid, '%s\n', jobstr{:});
                     fclose(fid);
@@ -975,6 +982,8 @@ function [c0, jobs] = local_addapp(c0, jobs, cfg, varargin)
 %         This function should return a job struct suitable to initialise
 %         the defaults branches of the cfg tree.
 %         If def is empty or does not exist, no defaults will be added.
+% * ver - Optional. Version string for application. This will be added to
+%         saved batch .m files in a comment line.
 
 if isempty(cfg)
     % Gracefully return if there is nothing to do
@@ -1012,6 +1021,13 @@ for k = 1:numel(jobs)
     jobs(k).cjrun = [];
     jobs(k).cjid2subsrun = {};
 end
+apptag = gettag(c1);
+if nargin > 4 && ischar(varargin{2})
+    ver = varargin{2};
+else
+    ver = 'Unknown';
+end
+cfg_get_defaults(sprintf('versions.%s', apptag), struct('name', c1.name, 'ver', ver));
 cfg_message('matlabbatch:cfg_util:addapp:done', 'Added application ''%s''\n', c1.name);
 %-----------------------------------------------------------------------
 
@@ -1321,8 +1337,15 @@ else
         dirs{k} = pwd;
         if ~any(strcmp(dirs{k}, dirs(1:k-1)))
             try
-                [cfg def] = feval('cfg_mlbatch_appcfg');
-                ests = true;
+                try
+                    [cfg def ver] = feval('cfg_mlbatch_appcfg');
+                    ests = true;
+                    vsts = true;
+                catch
+                    [cfg def] = feval('cfg_mlbatch_appcfg');
+                    ests = true;
+                    vsts = false;
+                end
             catch
                 ests = false;
                 estr = cfg_disp_error(lasterror);
@@ -1331,7 +1354,11 @@ else
                 cfg_message('matlabbatch:cfg_util:eval_appcfg', '%s\n', estr{:});
             end
             if ests
-                cfg_util('addapp', cfg, def);
+                if vsts
+                    cfg_util('addapp', cfg, def, ver);
+                else
+                    cfg_util('addapp', cfg, def);
+                end
             end
         end
     end
