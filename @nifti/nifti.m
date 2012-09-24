@@ -1,21 +1,17 @@
 function h = nifti(varargin)
 % Create a NIFTI-1 object
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: nifti.m 4959 2012-09-24 18:26:31Z guillaume $
 
 
 switch nargin
-case 0,
-    org = niftistruc;
-    hdr = [];
-    for i=1:length(org)
-        hdr.(org(i).label) = feval(org(i).dtype.conv,org(i).def);
-    end
-    h = struct('hdr',hdr,'dat',[],'extras',struct);
-    h = class(h,'nifti');
+case 0
+    hdr = empty_hdr;
+    h   = struct('hdr',hdr,'dat',[],'extras',struct);
+    h   = class(h,'nifti');
 
 case 1
     if ischar(varargin{1})
@@ -83,8 +79,9 @@ case 1
         end
 
     else
-        error('Dont know what to do yet.');
+        error('Don''t know what to do yet.');
     end
+    
 otherwise
-    error('Dont know what to do yet');
+    error('Don''t know what to do yet.');
 end
