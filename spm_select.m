@@ -80,7 +80,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4896 2012-09-04 15:11:23Z guillaume $
+% $Id: spm_select.m 4951 2012-09-24 10:22:16Z volkmar $
 
 
 persistent isInitSelect;
@@ -125,6 +125,16 @@ else
             ismember(lower(varargin{1}),{'filter','cpath'}) && ischar(varargin{2})
         varargin{2} = cellstr(varargin{2});
         needchar = true;
+    elseif ischar(varargin{1}) && ...
+            ismember(lower(varargin{1}),{'extlist','extfplist','extfplistrec'})
+        varargin{1} = varargin{1}(4:end);
+        if nargin > 3
+            varargin{5} = struct('frames', varargin{4});
+        else
+            varargin{5} = struct('frames', Inf);
+        end
+        varargin{4} = varargin{3};
+        varargin{3} = 'image';
     end
     
     [t, sts] = cfg_getfile(varargin{:});
@@ -203,6 +213,7 @@ switch lower(cmd)
             cfiles{i} = sprintf('%s,%d', files{fi(i)}, ii(i));
         end
         varargout{1} = cfiles;
+        varargout{2} = fi;
     case 'filter'
         % Do not filter for frame numbers
         varargout{1} = varargin{1};
