@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 4958 2012-09-24 16:37:04Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 4960 2012-09-25 13:42:53Z guillaume $
 
 
 D = cfg_files;
@@ -14,14 +14,14 @@ D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
 
-bl_cor = cfg_menu;
-bl_cor.tag     = 'bc';
-bl_cor.name    = 'Baseline corrrection';
-bl_cor.help    = {'Perform baseline correction when epoching, or not.'};
-bl_cor.labels  = {'Yes'
+bc = cfg_menu;
+bc.tag     = 'bc';
+bc.name    = 'Baseline corrrection';
+bc.help    = {'Perform baseline correction when epoching, or not.'};
+bc.labels  = {'Yes'
                   'No'}';
-bl_cor.values  = {1 0};
-bl_cor.val     = {1};
+bc.values  = {1 0};
+bc.val     = {1};
 
 % input via trl file
 trlfile = cfg_files;
