@@ -4,7 +4,7 @@ function o = nifti1struc
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti1struc.m 4959 2012-09-24 18:26:31Z guillaume $
+% $Id: nifti1struc.m 4962 2012-09-25 19:48:18Z john $
 
 
 persistent org;
@@ -70,6 +70,7 @@ org = struct('label',table(:,3),'dtype',table(:,1),'len',table(:,2),...
     'offset',0,'def',table(:,4));
 os  = 0;
 for j=1:length(org)
+    os  = org(j).dtype.size*ceil(os/org(j).dtype.size);
     fun = org(j).dtype.conv;
     def = [org(j).def zeros(1,org(j).len-length(org(j).def))];
     org(j).def    = feval(fun,def);
