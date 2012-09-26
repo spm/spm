@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4963 2012-09-26 08:57:46Z volkmar $
+% $Id: cfg_getfile.m 4965 2012-09-26 11:45:14Z volkmar $
 
 t = {};
 sts = false;
@@ -638,7 +638,7 @@ return;
 %=======================================================================
 function drivestr = listdrives(reread)
 persistent mydrivestr;
-if isempty(mydrivestr) || reread
+if isempty(mydrivestr) || (nargin > 0 && reread)
     driveLett  = strcat(cellstr(char(('C':'Z')')), ':');
     dsel       = cellfun(@(dl)exist([dl '\'],'dir'),driveLett)~=0;
     mydrivestr = driveLett(dsel);
