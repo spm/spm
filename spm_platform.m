@@ -52,7 +52,7 @@ function varargout=spm_platform(varargin)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Matthew Brett
-% $Id: spm_platform.m 4933 2012-09-18 11:07:49Z guillaume $
+% $Id: spm_platform.m 4964 2012-09-26 10:51:05Z guillaume $
 
 
 %-Initialise
@@ -81,10 +81,6 @@ case 'sepchar'                            %-Return file separator character
 warning('Use FILESEP instead.')
 varargout = {PLATFORM.sepchar};
 
-case 'rootlen'           %-Return length in chars of root directory name 
-%=======================================================================
-varargout = {PLATFORM.rootlen};
-
 case 'user'                                            %-Return user string
 %==========================================================================
 varargout = {PLATFORM.user};
@@ -95,6 +91,7 @@ varargout = {PLATFORM.host};
 
 case 'drives'                                               %-Return drives
 %==========================================================================
+warning('Use spm_select(''ListDrives'') instead.');
 varargout = {PLATFORM.drives};
 
 case 'tempdir'                                 %-Return temporary directory
@@ -228,12 +225,8 @@ PLATFORM.host = strtok(PLATFORM.host,'.');
 %--------------------------------------------------------------------------
 PLATFORM.drives = '';
 if strcmp(PLATFORM.filesys,'win')
-    driveLett = cellstr(char(('C':'Z')'));
-    for i=1:numel(driveLett)
-        if exist([driveLett{i} ':\'],'dir')
-            PLATFORM.drives = [PLATFORM.drives driveLett{i}];
-        end
-    end
+    driveLett = spm_select('ListDrives');
+    PLATFORM.drives = strrep(strcat(driveLett{:}),':','');
 end
 
 

@@ -4,8 +4,8 @@ function [cfg, def, ver] = cfg_mlbatch_appcfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: cfg_mlbatch_appcfg.m 4954 2012-09-24 14:36:16Z volkmar $
+% $Id: cfg_mlbatch_appcfg.m 4964 2012-09-26 10:51:05Z guillaume $
 
 cfg = spm_cfg;
 def = [];
-ver = spm('ver');
+ver = spm('Version');
