@@ -1,17 +1,17 @@
 function d = getdict
 % Dictionary of NIFTI stuff
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% _________________________________________________________________________
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: getdict.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: getdict.m 4967 2012-09-26 18:19:23Z guillaume $
 
 
 persistent dict;
-if ~isempty(dict),
+if ~isempty(dict)
     d = dict;
     return;
-end;
+end
 
 % Datatype
 t = true;
@@ -46,7 +46,7 @@ dtype = struct(...
     'unsigned' ,table(:,8),...
     'min',-Inf,'max',Inf',...
     'supported',table(:,9));
-for i=1:length(dtype),
+for i=1:length(dtype)
     if dtype(i).isint
         if dtype(i).unsigned
             dtype(i).min =  0;
@@ -54,9 +54,9 @@ for i=1:length(dtype),
         else
             dtype(i).min = -2^(8*dtype(i).size-1);
             dtype(i).max =  2^(8*dtype(i).size-1)-1;
-        end;
-    end;
-end;
+        end
+    end
+end
 % Intent
 table = {...
     0   ,'NONE'         ,'None',{}
@@ -148,6 +148,6 @@ dict = struct('dtype',dtype,'intent',intent,'units',units,...
 d = dict;
 return;
 
+
 function varargout = crash(varargin)
 error('There is a NIFTI-1 data format problem (an invalid datatype).');
-

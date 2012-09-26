@@ -4,7 +4,7 @@ function o = nifti2struc
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti2struc.m 4962 2012-09-25 19:48:18Z john $
+% $Id: nifti2struc.m 4967 2012-09-26 18:19:23Z guillaume $
 
 
 persistent org;
@@ -60,7 +60,7 @@ table = {...
     i,  1, 'xyzt_units', 10
     i,  1, 'intent_code', 0
     c, 16, 'intent_name', ''
-    c,  1, 'dim_info', []
+    b,  1, 'dim_info', []
     c, 15, 'unused_str', ''};
 
 
