@@ -62,7 +62,7 @@ function [t,sts] = cfg_getfile(varargin)
 % As above, but returns files with full paths (i.e. prefixes direc to
 % each) and searches through sub directories recursively.
 %
-% FORMAT cfg_getfile('prevdirs',dir)
+% FORMAT cfg_getfile('PrevDirs',dir)
 % Add directory dir to list of previous directories.
 % FORMAT dirs=cfg_getfile('prevdirs')
 % Retrieve list of previous directories.
@@ -71,6 +71,10 @@ function [t,sts] = cfg_getfile(varargin)
 % Specify a list of regular expressions to filter directory names. To show
 % all directories, use {'.*'}. Default is {'^[^.@]'}, i.e. directory names
 % starting with '.' or '@' will not be shown.
+%
+% FORMAT cfg_getfile('ListDrives'[, reread])
+% On PCWIN(64) machines, list all available drive letters. If reread is
+% true, refresh internally cached list of drive letters.
 %
 % This code is based on the file selection dialog in SPM5, with virtual
 % file handling turned off.
@@ -84,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4961 2012-09-25 17:38:58Z ged $
+% $Id: cfg_getfile.m 4963 2012-09-26 08:57:46Z volkmar $
 
 t = {};
 sts = false;
@@ -173,6 +177,12 @@ if nargin > 0 && ischar(varargin{1})
             df.regex = varargin{2};
             df       = struct2cell(df);
             reg_filter(df{:});
+        case 'listdrives'
+            if ispc
+                t = listdrives(varargin{2:end});
+            else
+                t = {};
+            end
         otherwise
             cfg_message('matlabbatch:usage','Inappropriate usage.');
     end
@@ -502,7 +512,7 @@ if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
     delete(tmp);
     fh = 2*fnp(4); % Heuristics: why do we need 2*
     sz = get(db,'Position');
-    sz(4) = sz(4)-fh-2*0.01;
+    sz(4) = sz(4)-fh-0.05;
     set(db,'Position',sz);
     uicontrol(pfd,...
         'style','text',...
