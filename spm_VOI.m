@@ -1,6 +1,6 @@
-function TabDat = spm_VOI(SPM,xSPM,hReg)
+function TabDat = spm_VOI(SPM,xSPM,hReg,xY)
 % List of local maxima and adjusted p-values for a small Volume of Interest
-% FORMAT TabDat = spm_VOI(SPM,xSPM,hReg)
+% FORMAT TabDat = spm_VOI(SPM,xSPM,hReg,[xY])
 %
 % SPM   - structure containing analysis details (see spm_spm)
 %
@@ -21,7 +21,7 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % .M     - voxels - > mm matrix
 % .VOX   - voxel dimensions {mm}
 % .DIM   - image dimensions {voxels} - column vector
-% .Vspm  - Mapped statistic image(s)
+% .Vspm  - mapped statistic image(s)
 % .Ps    - uncorrected P values in searched volume (for voxel FDR)
 % .Pp    - uncorrected P values of peaks (for peak FDR)
 % .Pc    - uncorrected P values of cluster extents (for cluster FDR)
@@ -29,9 +29,9 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
 %
-% TabDat - Structure containing table data
-%        - see spm_list for definition
+% xY     - VOI structure
 %
+% TabDat - Structure containing table data (see spm_list.m)
 %__________________________________________________________________________
 %
 % spm_VOI is  called by the SPM results section and takes variables in
@@ -41,27 +41,26 @@ function TabDat = spm_VOI(SPM,xSPM,hReg)
 % the current voxel or by a mask image.
 %
 % If the VOI is defined by a mask this mask must have been defined
-% independently of the SPM (e.g.using a mask based on an orthogonal
-% contrast)
+% independently of the SPM (e.g. using a mask based on an orthogonal
+% contrast).
 %
 % External mask images should be in the same orientation as the SPM
 % (i.e. as the input used in stats estimation). The VOI is defined by
 % voxels with values greater than 0.
-%
-% FDR computations are similarly resticted by the small search volume.
 %
 % See also: spm_list
 %__________________________________________________________________________
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 4633 2012-02-01 18:44:02Z guillaume $
+% $Id: spm_VOI.m 4966 2012-09-26 14:17:35Z guillaume $
 
 
 %-Parse arguments
 %--------------------------------------------------------------------------
-if nargin < 2, error('insufficient arguments'), end
+if nargin < 2, error('Not enough input arguments.'); end
 if nargin < 3, hReg = []; end
+if nargin < 4, xY = []; end
 
 Num = spm_get_defaults('stats.results.svc.nbmax');   % maxima per cluster
 Dis = spm_get_defaults('stats.results.svc.distmin'); % distance among maxima {mm}
@@ -72,13 +71,30 @@ spm('FigName',['SPM{',xSPM.STAT,'}: Small Volume Correction']);
 
 %-Get current location {mm}
 %--------------------------------------------------------------------------
-xyzmm      = spm_results_ui('GetCoords');
-
+try
+    xyzmm  = xY.xyz;
+catch
+    xyzmm  = spm_results_ui('GetCoords');
+end
+    
 %-Specify search volume
 %--------------------------------------------------------------------------
-str        = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
-SPACE      = spm_input('Search volume...',-1,'m',...
-                {['Sphere',str],['Box',str],'Image'},['S','B','I']);
+if isfield(xY,'def')
+    switch xY.def
+        case 'sphere'
+            SPACE = 'S';
+        case 'box'
+            SPACE = 'B';
+        case 'mask'
+            SPACE = 'I';
+        otherwise
+            error('Unknown VOI type.');
+    end
+else
+    str    = sprintf(' at [%.0f,%.0f,%.0f]',xyzmm(1),xyzmm(2),xyzmm(3));
+    SPACE  = spm_input('Search volume...',-1,'m',...
+             {['Sphere',str],['Box',str],'Image'},['S','B','I']);
+end
 
 %-Voxels in entire search volume {mm}
 %--------------------------------------------------------------------------
@@ -92,7 +108,11 @@ switch SPACE
 
     case 'S' %-Sphere
     %----------------------------------------------------------------------
-    D      = spm_input('radius of VOI {mm}',-2);
+    if ~isfield(xY,'spec')
+        D  = spm_input('radius of VOI {mm}',-2);
+    else
+        D  = xY.spec;
+    end
     str    = sprintf('%0.1fmm sphere',D);
     j      = find(sum((xSPM.XYZmm - xyzmm*Q).^2) <= D^2);
     k      = find(sum((     XYZmm - xyzmm*O).^2) <= D^2);
@@ -101,7 +121,11 @@ switch SPACE
 
     case 'B' %-Box
     %----------------------------------------------------------------------
-    D      = spm_input('box dimensions [k l m] {mm}',-2);
+    if ~isfield(xY,'spec')
+        D  = spm_input('box dimensions [k l m] {mm}',-2);
+    else
+        D  = xY.spec;
+    end
     if length(D)~=3, D = ones(1,3)*D(1); end
     str    = sprintf('%0.1f x %0.1f x %0.1f mm box',D(1),D(2),D(3));
     j      = find(all(abs(xSPM.XYZmm - xyzmm*Q) <= D(:)*Q/2));
@@ -111,9 +135,13 @@ switch SPACE
 
     case 'I' %-Mask Image
     %----------------------------------------------------------------------
-    Msk    = spm_select(1,'image','Image defining search volume');
+    if ~isfield(xY,'spec')
+        Msk= spm_select(1,'image','Image defining search volume');
+    else
+        Msk= xY.spec;
+    end
     D      = spm_vol(Msk);
-    str    = spm_file(Msk,'short30');
+    str    = spm_file(D.fname,'short30');
     str    = regexprep(str, {'\\' '\^' '_' '{' '}'}, ...
         {'\\\\' '\\^' '\\_' '\\{' '\\}'}); % Escape TeX special characters
     str    = sprintf('image mask: %s',str); 
