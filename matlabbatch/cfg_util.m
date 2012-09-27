@@ -389,9 +389,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 4954 2012-09-24 14:36:16Z volkmar $
+% $Id: cfg_util.m 4972 2012-09-27 11:44:53Z volkmar $
 
-rev = '$Rev: 4954 $';
+rev = '$Rev: 4972 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -882,7 +882,7 @@ switch lower(cmd),
                     jobstr = gencode(matlabbatch, tag);
                     fid = fopen(fullfile(p, [n '.m']), 'wt');
                     fprintf(fid, '%%-----------------------------------------------------------------------\n');
-                    fprintf(fid, '%% Job configuration created by %s (rev %s)\n', mfilename, rev);
+                    fprintf(fid, '%% Job saved on %s by %s (rev %s)\n', datestr(now), mfilename, rev);
                     versions = cfg_get_defaults('versions');
                     vtags    = fieldnames(versions);
                     for k = 1:numel(vtags)
