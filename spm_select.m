@@ -80,7 +80,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 4952 2012-09-24 11:44:51Z guillaume $
+% $Id: spm_select.m 4969 2012-09-27 09:58:43Z volkmar $
 
 
 persistent isInitSelect;
@@ -208,7 +208,7 @@ switch lower(cmd)
             fi{k} = k*ones(1,nii(k));
         end
         ii = [ii{:}];
-        fi = [fi{:}];
+        fi = [fi{:}]';
         for i=1:numel(cfiles)
             cfiles{i} = sprintf('%s,%d', files{fi(i)}, ii(i));
         end

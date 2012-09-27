@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4968 2012-09-26 18:32:47Z guillaume $
+% $Id: cfg_getfile.m 4969 2012-09-27 09:58:43Z volkmar $
 
 t = {};
 sts = false;
@@ -962,9 +962,14 @@ for k = 1:numel(filt.tfilt)
 end
 % files might have been matched by multiple filters. Sort into roughly
 % alphabetical order before removing duplicates with 'stable' option.
-[unused,ind] = sort(cat(1,i1{:}));
-f   = cat(1,f1{:});
-try, f = unique(f(ind), 'stable'); catch, f = f(ind); end
+f = cat(1,f1{:});
+o = cat(1,i1{:});
+% [un,so] = sort(o);
+% f       = unique(f(so), 'stable');
+[un,fi,fj] = unique(f);
+ufi        = unique(fi(fj));
+[un,so]    = sort(o(ufi));
+f = f(ufi(so));
 d = unique(d(:));
 if domsg
     msg(omsg);
