@@ -125,7 +125,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 4925 2012-09-14 11:17:01Z guillaume $
+% $Id: spm_results_ui.m 4976 2012-09-27 18:16:10Z guillaume $
  
  
 %==========================================================================
@@ -237,7 +237,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 4925 $'; 
+SVNid = '$Rev: 4976 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1218,8 +1218,9 @@ if ~isempty(xSPM.thresDesc)
     if strcmp(xSPM.STAT,'P')
         % These are soon overwritten by spm_getSPM
         xSPM2.thresDesc = xSPM.thresDesc;
-        xSPM2.u = 0;
+        xSPM2.u = xSPM.u;
         xSPM2.k = xSPM.k;
+        % xSPM.STATstr contains Gamma
     else
         td = regexp(xSPM.thresDesc,'p\D?(?<u>[\.\d]+) \((?<thresDesc>\S+)\)','names');
         if isempty(td)
