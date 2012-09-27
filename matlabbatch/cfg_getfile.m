@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4969 2012-09-27 09:58:43Z volkmar $
+% $Id: cfg_getfile.m 4973 2012-09-27 14:22:14Z volkmar $
 
 t = {};
 sts = false;
@@ -1521,8 +1521,7 @@ switch lower(cmd)
     case 'list'
         d  = dir(varargin{1});
         dn = {d([d.isdir]).name}';
-        varargout{1} = intersect(dn, varargin{2});
-        varargout{2} = find([d.isdir]);
+        [varargout{1:2}] = intersect(varargin{2}, dn);
     case 'filter'
         varargout{1} = varargin{1};
         varargout{2} = 1:numel(varargout{1});
