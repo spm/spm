@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 6560 2012-09-27 11:01:59Z vlalit $
+% $Id: channelposition.m 6564 2012-09-27 12:52:32Z vlalit $
 
 % FIXME varargin is not documented
 
@@ -146,6 +146,8 @@ switch ft_senstype(sens)
       pnt(sel,:) = refpnt;
       ori(sel,:) = refori;
     end
+    
+    sens = sensorig;
     
   case {'ctf151_planar', 'ctf275_planar', 'bti148_planar', 'bti248_planar', 'itab153_planar', 'yokogawa160_planar', 'yokogawa64_planar'}
     % create a list with planar channel names
