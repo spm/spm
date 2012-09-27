@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 6369 2012-08-16 17:37:02Z vlalit $
+% $Id: ft_hastoolbox.m 6511 2012-09-21 13:38:30Z jansch $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -114,7 +114,9 @@ url = {
   'MYSQL'      'see http://www.mathworks.com/matlabcentral/fileexchange/8663-mysql-database-connector'
   'ISO2MESH'   'see http://iso2mesh.sourceforge.net/cgi-bin/index.cgi?Home or contact Qianqian Fang'
   'DATAHASH'   'see http://www.mathworks.com/matlabcentral/fileexchange/31272'
+  'IBTB'       'see http://www.ibtb.org'
   'SPIKE'      'see http://www.ru.nl/neuroimaging/fieldtrip'
+  'ICASSO'     'see http://www.cis.hut.fi/projects/ica/icasso'
   };
 
 if nargin<2
@@ -201,7 +203,7 @@ switch toolbox
   case 'COMPILER'
     status = license('checkout', 'compiler');                   % also check the availability of a toolbox license
   case 'FASTICA'
-    status  = exist('fastica', 'file');
+    status  = exist('fpica', 'file');
   case 'BRAINSTORM'
     status  = exist('bem_xfer');
   case 'FILEIO'
@@ -278,6 +280,10 @@ switch toolbox
     status = exist('enginefeval.m', 'file') && exist('enginecellfun.m', 'file');
   case 'DATAHASH'
     status = exist('DataHash.m', 'file');
+  case 'IBTB'
+    status = exist('make_ibtb.m', 'file') && exist('binr.m', 'file');
+  case 'ICASSO'
+    status = exist('icassoEst.m', 'file');
   case 'SPIKE'
     status = exist('ft_spiketriggeredaverage.m', 'file') && exist('ft_spiketriggeredspectrum.m', 'file');
     % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox

@@ -101,7 +101,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 6465 2012-09-14 12:33:10Z jansch $
+% $Id: preproc.m 6549 2012-09-26 12:51:08Z arjsto $
 
 % compute fsample
 fsample = 1./mean(diff(time));
@@ -357,7 +357,7 @@ if isnumeric(cfg.conv)
   dat = convn(dat, kernel, 'same');
 end
 if strcmp(cfg.derivative, 'yes'),
-  dat = ft_preproc_derivative(dat, 1, 'end');
+  dat = ft_preproc_derivative(dat, 1);
 end
 if strcmp(cfg.absdiff, 'yes'),
   % this implements abs(diff(data), which is required for jump detection

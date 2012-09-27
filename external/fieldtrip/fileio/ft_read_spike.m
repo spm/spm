@@ -49,7 +49,10 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 5883 2012-06-05 10:17:04Z marvin $
+% $Id: ft_read_spike.m 6552 2012-09-26 20:28:03Z roboos $
+
+% optionally get the data from the URL and make a temporary local copy
+filename = fetch_url(filename);
 
 % get the options
 spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));

@@ -48,13 +48,17 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 6391 2012-08-22 08:02:10Z roboos $
+% $Id: ft_read_data.m 6554 2012-09-27 08:30:42Z jorhor $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
+
 if isempty(db_blob)
   db_blob = 0;
 end
+
+% optionally get the data from the URL and make a temporary local copy
+filename = fetch_url(filename);
 
 % get the optional input arguments
 hdr           = ft_getopt(varargin, 'header');
@@ -199,7 +203,7 @@ else
     cachedata.time    = {};
     cachedata.trial   = {};
     cachedata.cfg     = [];
-    cachedata.cfg.trl = zeros(0,3);
+    cachedata.sampleinfo = zeros(0,2);
   elseif cache && ~isempty(cachedata)
     % try to fetch the requested segment from the cache
     try
@@ -1092,7 +1096,7 @@ else
   if cache && requestsamples
     % add the new segment to the cache
     % FIMXE the cache size should be limited
-    cachedata.cfg.trl(end+1,:) = [begsample endsample 0];
+    cachedata.sampleinfo(end+1,:) = [begsample endsample];
     cachedata.trial{end+1} = dat;
     cachedata.time{end+1} = (1:size(dat,2))/cachedata.fsample;
   end

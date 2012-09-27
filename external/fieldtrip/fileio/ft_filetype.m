@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 6440 2012-09-07 09:56:35Z jansch $
+% $Id: ft_filetype.m 6535 2012-09-25 12:50:38Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -329,7 +329,10 @@ elseif isdir(filename) && exist(fullfile(filename, 'signals'), 'file') && exist(
    type = 'neurosim';
    manufacturer = 'Jan van der Eerden (DCCN)';
    content = 'simulated spikes and continuous signals';
-  
+elseif isempty(x) && (strcmp(filename,'signals') || strcmp(filename,'spikes')) % file does not have an extension and is called signals or spikes
+   type = 'neurosim';
+   manufacturer = 'Jan van der Eerden (DCCN)';
+   content = 'simulated spikes and continuous signals'; 
 
   % known 4D/BTI file types
 elseif filetype_check_extension(filename, '.pdf') && filetype_check_header(filename, 'E|lk') % I am not sure whether this header always applies
@@ -1004,6 +1007,15 @@ elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filen
   type = 'gifti';
   manufacturer = 'Neuroimaging Informatics Technology Initiative';
   content = 'tesselated surface description';
+elseif filetype_check_extension(filename, '.foci') && filetype_check_header(filename, '<?xml')
+  type = 'caret_foci';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.border') && filetype_check_header(filename, '<?xml')
+  type = 'caret_border';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.spec') && filetype_check_header(filename, '<?xml')
+  type = 'caret_spec';
+  manufacturer = 'Caret and ConnectomeWB';
 elseif filetype_check_extension(filename, '.v')
   type = 'vista'; 
   manufacturer = 'University of British Columbia, Canada, http://www.cs.ubc.ca/nest/lci/vista/vista.html';

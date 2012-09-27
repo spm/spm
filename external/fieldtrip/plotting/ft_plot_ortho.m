@@ -30,7 +30,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %   'colormap'     = string, see COLORMAP
 %   'interplim'
 %
-% See also FT_PLOT_SLICE, FT_SOURCEPLOT
+% See also FT_PLOT_SLICE, FT_PLOT_MONTAGE, FT_SOURCEPLOT
 
 % Copyrights (C) 2010, Jan-Mathijs Schoffelen
 %
@@ -50,7 +50,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 6276 2012-07-23 10:38:09Z jorhor $
+% $Id: ft_plot_ortho.m 6507 2012-09-20 20:43:30Z roboos $
 
 % parse first input argument(s). it is either
 % (dat, varargin)

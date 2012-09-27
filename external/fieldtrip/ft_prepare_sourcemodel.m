@@ -120,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 6295 2012-07-31 12:39:30Z jansch $
+% $Id: ft_prepare_sourcemodel.m 6538 2012-09-25 14:59:25Z jansch $
 
-revision = '$Id: ft_prepare_sourcemodel.m 6295 2012-07-31 12:39:30Z jansch $';
+revision = '$Id: ft_prepare_sourcemodel.m 6538 2012-09-25 14:59:25Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -599,10 +599,12 @@ if basedonmni
   elseif isfield(cfg.grid, 'template')
       % let the template filename prevail
       fname = cfg.grid.template;
-  elseif isfield(cfg.grid, 'resolution')
+  elseif isfield(cfg.grid, 'resolution') && cfg.grid.resolution==round(cfg.grid.resolution)
       % use one of the templates that are in Fieldtrip, this requires a
       % resolution
       fname = ['standard_grid3d',num2str(cfg.grid.resolution),'mm.mat'];
+  elseif isfield(cfg.grid, 'resolution') && cfg.grid.resolution~=round(cfg.grid.resolution)
+      fname = ['standard_grid3d',num2str(floor(cfg.grid.resolution)),'point',num2str(10*(cfg.grid.resolution-floor(cfg.grid.resolution))),'mm.mat'];
   end
     
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

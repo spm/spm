@@ -40,7 +40,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 6357 2012-08-15 07:41:20Z roboos $
+% $Id: ft_convert_units.m 6556 2012-09-27 09:29:39Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -107,7 +107,7 @@ else
   end % recognized type of volume conduction model or sensor array
 end % determine input units
 
-if nargin<2
+if nargin<2 || isempty(target)
   % just remember the units in the output and return
   obj.unit = unit;
   return

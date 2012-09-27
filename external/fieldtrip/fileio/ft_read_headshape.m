@@ -55,7 +55,10 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 6482 2012-09-19 20:09:54Z arjsto $
+% $Id: ft_read_headshape.m 6552 2012-09-26 20:28:03Z roboos $
+
+% optionally get the data from the URL and make a temporary local copy
+filename = fetch_url(filename);
 
 % Check the input, if filename is a cell-array, call ft_read_headshape recursively and combine the outputs.
 % This is used to read the left and right hemisphere of a Freesurfer cortical segmentation.
@@ -204,6 +207,9 @@ switch fileformat
   case 'gifti'
     ft_hastoolbox('gifti', 1);
     g = gifti(filename);
+    if ~isfield(g, 'vertices')
+      error('%s does not contain a tesselated surface', filename);
+    end
     shape.pnt = warp_apply(g.mat, g.vertices);
     shape.tri = g.faces;
     if isfield(g, 'cdata')

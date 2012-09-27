@@ -99,6 +99,12 @@ function [comp] = ft_componentanalysis(cfg, data)
 %   cfg.csp.classlabels = vector that assigns a trial to class 1 or 2.
 %   cfg.csp.numfilters  = the number of spatial filters to use (default: 6).
 %
+% The icasso method implements icasso. It runs fastica a specified number of 
+% times, and provides information about the stability of the components found
+% The following specific options can be defined, see ICASSOEST:
+%   cfg.icasso.mode
+%   cfg.icasso.Niter
+%
 % Instead of specifying a component analysis method, you can also specify
 % a previously computed unmixing matrix, which will be used to estimate the
 % component timecourses in this data. This requires
@@ -121,7 +127,7 @@ function [comp] = ft_componentanalysis(cfg, data)
 % input/output structure.
 %
 % See also FT_TOPOPLOTIC, FT_REJECTCOMPONENT, FASTICA, RUNICA, BINICA, SVD,
-% JADER, VARIMAX, DSS, CCA, SOBI
+% JADER, VARIMAX, DSS, CCA, SOBI, ICASSO
 
 % Copyright (C) 2003-2012, Robert Oostenveld
 %
@@ -141,9 +147,9 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 6463 2012-09-14 11:58:25Z jansch $
+% $Id: ft_componentanalysis.m 6547 2012-09-26 12:35:57Z jansch $
 
-revision = '$Id: ft_componentanalysis.m 6463 2012-09-14 11:58:25Z jansch $';
+revision = '$Id: ft_componentanalysis.m 6547 2012-09-26 12:35:57Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -213,6 +219,13 @@ end
 
 % add the options for the specified methods to the configuration, only if needed
 switch cfg.method
+case 'icasso'
+  cfg.icasso        = ft_getopt(cfg,        'icasso', []);
+  cfg.icasso.mode   = ft_getopt(cfg.icasso, 'mode',   'both');
+  cfg.icasso.Niter  = ft_getopt(cfg.icasso, 'Niter',  15);
+  cfg.icasso.method = ft_getopt(cfg.icasso, 'method', 'fastica');
+  
+  cfg.fastica       = ft_getopt(cfg, 'fastica', []);
 case 'fastica'
   % additional options, see FASTICA for details
   cfg.fastica = ft_getopt(cfg, 'fastica', []);
@@ -353,7 +366,54 @@ end
 % perform the component analysis
 fprintf('starting decomposition using %s\n', cfg.method);
 switch cfg.method
-  
+ 
+  case 'icasso'
+    % check whether the required low-level toolboxes are installed
+    ft_hastoolbox('icasso',  1);
+    
+    if strcmp(cfg.icasso.method, 'fastica')
+      ft_hastoolbox('fastica', 1); 
+      cfg.fastica.numOfIC = cfg.numcomponent;  
+    
+      optarg = ft_cfg2keyval(cfg.(cfg.icasso.method));
+      sR     = icassoEst(cfg.icasso.mode, dat, cfg.icasso.Niter, optarg{:});
+    else
+      error('only ''fastica'' is supported as method for icasso');
+     
+      % FIXME the code below does not work yet 
+      % prewhiten using fastica
+      [whitedat, A, B] = fastica(dat, 'only', 'white', 'lastEig', cfg.icasso.Npca);
+      tmpdata          = rmfield(data, 'trial');
+      tmpdata.trial{1} = whitedat;
+      tmpdata.time     = {1:size(whitedat,2)};
+      tmpdata.label    = data.label(1:size(whitedat,1));
+      sR.whiteningMatrix   = A;
+      sR.dewhiteningMatrix = B;
+      
+      % recurse into ft_componentanalysis
+      tmpcfg = rmfield(cfg, 'icasso');
+      tmpcfg.method = cfg.icasso.method;
+
+      sR.W = cell(cfg.icasso.Niter, 1);
+      sR.A = cell(cfg.icasso.Niter, 1);
+      sR.index = zeros(0,2);
+      for k = 1:cfg.icasso.Niter
+        tmp = ft_componentanalysis(tmpcfg, tmpdata);
+        sR.W{k} = tmp.unmixing;
+        sR.A{k} = tmp.topo;
+        sR.index  = cat(1, sR.index, [ones(size(tmp.topo,2),1) (1:size(tmp.topo,2))']);
+      end
+      sR.signal = dat;
+      sR.mode   = cfg.icasso.mode;
+      sR.rdim   = size(tmp.topo,2);
+    end
+
+    sR     = icassoExp(sR);
+    [Iq, mixing, unmixing, dat] = icassoShow(sR);    
+
+    cfg.icasso.Iq = Iq;
+    cfg.icasso.sR = rmfield(sR, 'signal');
+
   case 'fastica'
     % check whether the required low-level toolboxes are installed
     ft_hastoolbox('fastica', 1);       % see http://www.cis.hut.fi/projects/ica/fastica
@@ -479,7 +539,7 @@ switch cfg.method
     % create the state
     state   = dss_create_state(dat, params);
     % increase the amount of information that is displayed on screen
-    state.verbose = 3;
+    %state.verbose = 3;
     % start the decomposition
     % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
     state   = denss(state);  % this is for the DSS toolbox version 1.0
@@ -511,7 +571,7 @@ switch cfg.method
     % create the state
     state   = dss_create_state(data.trial, params);
     % increase the amount of information that is displayed on screen
-    state.verbose = 3;
+    % state.verbose = 3;
     % start the decomposition
     % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
     state   = denss(state);  % this is for the DSS toolbox version 1.0

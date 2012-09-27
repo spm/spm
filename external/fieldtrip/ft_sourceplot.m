@@ -164,9 +164,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 6486 2012-09-19 21:48:45Z roboos $
+% $Id: ft_sourceplot.m 6522 2012-09-24 15:38:49Z roboos $
 
-revision = '$Id: ft_sourceplot.m 6486 2012-09-19 21:48:45Z roboos $';
+revision = '$Id: ft_sourceplot.m 6522 2012-09-24 15:38:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -777,8 +777,8 @@ if isequal(cfg.method,'ortho')
     
     % create only once
     if ~exist('h1','var')
-      % these will hold the anatomical data if present, along with labels
-      % etc.
+      clf
+      % these will hold the anatomical data if present, along with labels etc.
       h1 = axes('position',[0.07 0.07+ysize(2)+0.05 xsize(1) ysize(1)]);
       h2 = axes('position',[0.07+xsize(1)+0.05 0.07+ysize(2)+0.05 xsize(2) ysize(1)]);
       h3 = axes('position',[0.07 0.07 xsize(1) ysize(2)]);

@@ -59,6 +59,9 @@ function [hdr] = ft_read_header(filename, varargin)
 %   CED - Cambridge Electronic Design (*.smr)
 %   MPI - Max Planck Institute (*.dap)
 %
+% The following NIRS dataformats are supported
+%   BUCN (*.txt)
+%
 % See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT,
 % FT_CHANTYPE, FT_CHANUNIT
 
@@ -80,7 +83,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 6477 2012-09-19 14:04:54Z jansch $
+% $Id: ft_read_header.m 6558 2012-09-27 09:30:13Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -90,6 +93,9 @@ persistent db_blob            % for fcdc_mysql
 if isempty(db_blob)
   db_blob = false;
 end
+
+% optionally get the data from the URL and make a temporary local copy
+filename = fetch_url(filename);
 
 % test whether the file or directory exists
 if ~exist(filename, 'file') && ~strcmp(ft_filetype(filename), 'ctf_shm') && ~strcmp(ft_filetype(filename), 'fcdc_mysql') && ~strcmp(ft_filetype(filename), 'fcdc_buffer')

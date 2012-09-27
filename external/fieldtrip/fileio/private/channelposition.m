@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 5973 2012-06-07 19:19:36Z jansch $
+% $Id: channelposition.m 6559 2012-09-27 11:01:57Z vlalit $
 
 % FIXME varargin is not documented
 
@@ -277,6 +277,12 @@ if n>1 && size(lab, 1)>1 % this is to prevent confusion when lab happens to be a
   pnt = repmat(pnt, n, 1);
   ori = repmat(ori, n, 1);
 end
+
+% ensure that ther order is the same is in sens
+[sel1, sel2] = match_str(sens.label, lab);
+lab = lab(sel2);
+pnt = pnt(sel2, :);
+ori = ori(sel2, :);
 
 % ensure that it is a row vector
 lab = lab(:);

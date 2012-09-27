@@ -37,7 +37,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 6414 2012-09-02 10:17:36Z roboos $
+% $Id: ft_defaults.m 6511 2012-09-21 13:38:30Z jansch $
 
 % set the global defaults, the ft_checkconfig function will copy these into the local configurations
 global ft_default
@@ -84,6 +84,7 @@ checkMultipleToolbox('iso2mesh',            'iso2meshver.m');
 checkMultipleToolbox('bct',                 'degrees_und.m');
 checkMultipleToolbox('yokogawa_meg_reader', 'getYkgwHdrEvent.p');
 checkMultipleToolbox('biosig',              'sopen.m');
+checkMultipleToolbox('icasso',              'icassoEst.m');
 
 % check for different SPM versions, which also includes a general warning about addpath(genpath(...))
 list = which('spm', '-all');

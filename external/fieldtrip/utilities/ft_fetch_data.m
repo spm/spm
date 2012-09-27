@@ -27,7 +27,7 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 6373 2012-08-17 12:10:37Z roevdmei $
+% $Id: ft_fetch_data.m 6554 2012-09-27 08:30:42Z jorhor $
     
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
@@ -81,7 +81,7 @@ if trlnum>1,
   end
   
   % these are for bookkeeping
-  maxsample = max(trl(:,2)); 
+  maxsample = max([trl(:,2); endsample]); 
   count     = zeros(1, maxsample, 'int32');
   trialnum  = zeros(1, maxsample, 'int32');
   samplenum = zeros(1, maxsample, 'int32');
@@ -127,7 +127,7 @@ if trlnum>1,
 
       % check if all samples are present and are not present twice or more
       if any(count==0)
-        warning('not all requested samples are present in the data, filling with NaNs');
+%         warning('not all requested samples are present in the data, filling with NaNs');
         % prealloc with NaNs
         dat = NaN(numel(chanindx),endsample-begsample+1);
       elseif any(count>1)
@@ -174,14 +174,28 @@ else
   
   % check whether the requested samples are present in the input
   if endsample>trl(2) || begsample<trl(1)
-    error('some of the requested samples are outside the input data')
+    %         warning('not all requested samples are present in the data, filling with NaNs');
   end
   
   % get the indices
-  begindx = begsample - trl(1) + 1;
-  endindx = endsample - trl(1) + 1;
+  begindx  = begsample - trl(1) + 1;
+  endindx  = endsample - trl(1) + 1;
   
-  % fetch the data
-  dat = data.trial{1}(chanindx,begindx:endindx);  
+  tmptrl = trl - [trl(1) trl(1)]+1;
+  dat = nan(numel(chanindx), endsample-begsample+1);
+  
+  
+  datbegindx = max(1,                     trl(1)-begsample+1);
+  datendindx = min(endsample-begsample+1, trl(2)-begsample+1);
+  
+  if begsample >= trl(1) && begsample <= trl(2)
+    if endsample >= trl(1) && endsample <= trl(2)
+      dat(:,datbegindx:datendindx) = data.trial{1}(chanindx,begindx:endindx); 
+    else
+      dat(:, datbegindx:datendindx) = data.trial{1}(chanindx,begindx:tmptrl(2)); 
+    end
+  elseif endsample >= trl(1) && endsample <= trl(2)   
+      dat(:, datbegindx:datendindx) = data.trial{1}(chanindx,tmptrl(1):endindx); 
+  end  
 end
 

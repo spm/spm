@@ -29,6 +29,12 @@ function [lay, cfg] = ft_prepare_layout(cfg, data)
 %   cfg.montage     'no' or a montage structure (default = 'no')
 %   cfg.image       filename, use an image to construct a layout (e.g. usefull for ECoG grids)
 %   cfg.bw          if an image is used and bw = 1 transforms the image in black and white (default = 0, do not transform)
+%   cfg.overlap     string, how to deal with overlapping channels when
+%                   layout is constructed from a sensor configuration
+%                   structure (can be 'shift' (shift the positions in 2D
+%                   space to remove the overlap (default)), 'keep' (don't shift,
+%                   retain the overlap), 'no' (throw error when overlap is
+%                   present))
 %
 % Alternatively the layout can be constructed from either
 %   data.elec     structure with electrode positions
@@ -75,9 +81,9 @@ function [lay, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 6274 2012-07-19 13:39:37Z roevdmei $
+% $Id: ft_prepare_layout.m 6529 2012-09-25 07:42:40Z eelspa $
 
-revision = '$Id: ft_prepare_layout.m 6274 2012-07-19 13:39:37Z roevdmei $';
+revision = '$Id: ft_prepare_layout.m 6529 2012-09-25 07:42:40Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -113,6 +119,7 @@ if ~isfield(cfg, 'bw'),         cfg.bw = 0;                     end
 if ~isfield(cfg, 'channel'),    cfg.channel = 'all';            end 
 if ~isfield(cfg, 'skipscale'),  cfg.skipscale = 'no';           end 
 if ~isfield(cfg, 'skipcomnt'),  cfg.skipcomnt = 'no';           end 
+if ~isfield(cfg, 'overlap'),    cfg.overlap = 'shift';          end 
 
 cfg = ft_checkconfig(cfg);
 
@@ -262,31 +269,31 @@ elseif ischar(cfg.layout) && ft_filetype(cfg.layout, 'layout')
 elseif ischar(cfg.layout) && ~ft_filetype(cfg.layout, 'layout')
   % assume that cfg.layout is an electrode file
   fprintf('creating layout from electrode file %s\n', cfg.layout);
-  lay = sens2lay(ft_read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(ft_read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
-  lay = sens2lay(ft_read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(ft_read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif ~isempty(cfg.elec) && isstruct(cfg.elec) 
   fprintf('creating layout from cfg.elec\n');
-  lay = sens2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(cfg.elec, cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif isfield(data, 'elec') && isstruct(data.elec)  
   fprintf('creating layout from data.elec\n');
-  lay = sens2lay(data.elec, cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(data.elec, cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif ischar(cfg.gradfile)
   fprintf('creating layout from gradiometer file %s\n', cfg.gradfile);
-  lay = sens2lay(ft_read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(ft_read_sens(cfg.gradfile), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif ~isempty(cfg.grad) && isstruct(cfg.grad)
   fprintf('creating layout from cfg.grad\n');
-  lay = sens2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(cfg.grad, cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif isfield(data, 'grad') && isstruct(data.grad)
   fprintf('creating layout from data.grad\n');
-  lay = sens2lay(data.grad, cfg.rotate, cfg.projection, cfg.style);
+  lay = sens2lay(data.grad, cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
 
 elseif ~isempty(cfg.image) && isempty(cfg.layout)
   fprintf('reading background image from %s\n', cfg.image);
@@ -732,7 +739,7 @@ return % function readlay
 % SUBFUNCTION
 % convert 3D electrode positions into 2D layout
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function lay = sens2lay(sens, rz, method, style)
+function lay = sens2lay(sens, rz, method, style, overlap)
 
 % remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
 % this should not be necessary anymore, because the sensor description is
@@ -766,8 +773,31 @@ if strcmpi(style, '3d')
   lay.label = label;
 else
   prj = elproj(pnt, method);
-  d = dist(prj');
-  d(find(eye(size(d)))) = inf;
+  
+  % this copy will be used to determine the minimum distance between channels
+  % we need a copy because prj retains the original positions, and
+  % prjForDist might need to be changed if the user wants to keep
+  % overlapping channels
+  prjForDist = prj;
+  
+  % check whether many channels occupy identical positions, if so shift
+  % them around if requested
+  if size(unique(prj,'rows'),1) / size(prj,1) < 0.8
+    if strcmp(overlap, 'shift')
+      warning_once('the specified sensor configuration has many overlapping channels, creating a layout by shifting them around (use a template layout for better control over the positioning)');
+      prj = shiftxy(prj', 0.2)';
+      prjForDist = prj;
+    elseif strcmp(overlap, 'no')
+      error('the specified sensor configuration has many overlapping channels, you specified not to allow that');
+    elseif strcmp(overlap, 'keep')
+      prjForDist = unique(prj, 'rows');
+    else
+      error('unknown value for cfg.overlap = ''%s''', overlap);
+    end
+  end
+
+  d = dist(prjForDist');
+  d(logical(eye(size(d)))) = inf;
   
   % This is a fix for .sfp files, containing positions of 'fiducial
   % electrodes'. Their presence determines the minimum distance between 
@@ -797,4 +827,45 @@ else
   lay.height = Height;
   lay.label  = label;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+% shift 2D positions around so that the minimum distance between any pair
+% is mindist
+%
+% Credit for this code goes to Laurence Hunt at UCL.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function xy = shiftxy(xy,mindist)
+
+x = xy(1,:);
+y = xy(2,:);
+
+l=1;
+i=1; %filler
+mindist = mindist/0.999; % limits the number of loops
+while (~isempty(i) && l<50)
+    xdiff = repmat(x,length(x),1) - repmat(x',1,length(x));
+    ydiff = repmat(y,length(y),1) - repmat(y',1,length(y));
+    xydist= sqrt(xdiff.^2 + ydiff.^2); %euclidean distance between all sensor pairs
+
+    [i,j] = find(xydist<mindist*0.999);
+    rm=(i<=j); i(rm)=[]; j(rm)=[]; %only look at i>j
+
+    for m = 1:length(i);
+        if (xydist(i(m),j(m)) == 0)
+            diffvec = [mindist./sqrt(2) mindist./sqrt(2)];
+        else
+            xydiff = [xdiff(i(m),j(m)) ydiff(i(m),j(m))];
+            diffvec = xydiff.*mindist./xydist(i(m),j(m)) - xydiff;
+        end
+        x(i(m)) = x(i(m)) - diffvec(1)/2;
+        y(i(m)) = y(i(m)) - diffvec(2)/2;
+        x(j(m)) = x(j(m)) + diffvec(1)/2;
+        y(j(m)) = y(j(m)) + diffvec(2)/2;
+    end
+    l = l+1;
+end
+
+xy = [x; y];
 

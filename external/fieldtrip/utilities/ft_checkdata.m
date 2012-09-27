@@ -28,7 +28,8 @@ function [data] = ft_checkdata(data, varargin)
 %   hasdof             = yes, no
 %   cmbrepresentation  = sparse, full (applies to covariance and cross-spectral density)
 %   fsample            = sampling frequency to use to go from SPIKE to RAW representation
-%   segmentationstyle  = indexed, cumulative, exclusive
+%   segmentationstyle  = indexed, probabilistic
+%   hasbrainmask       = yes, no (only applies to segmentation data)
 %
 % For some options you can specify multiple values, e.g.
 %   [data] = ft_checkdata(data, 'senstype', {'ctf151', 'ctf275'}), e.g. in megrealign
@@ -52,7 +53,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 6460 2012-09-14 10:22:03Z marvin $
+% $Id: ft_checkdata.m 6527 2012-09-24 15:52:20Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -100,6 +101,7 @@ sourcedimord         = ft_getopt(varargin, 'sourcedimord');
 sourcerepresentation = ft_getopt(varargin, 'sourcerepresentation');
 fsample              = ft_getopt(varargin, 'fsample');
 segmentationstyle    = ft_getopt(varargin, 'segmentationstyle');
+hasbrainmask         = ft_getopt(varargin, 'hasbrainmask');
 
 % check whether people are using deprecated stuff
 depHastrialdef = ft_getopt(varargin, 'hastrialdef');
@@ -193,7 +195,7 @@ elseif isspike
 elseif isvolume
   data = ft_datatype_volume(data);
 elseif issegmentation
-  data = ft_datatype_segmentation(data, 'segmentationstyle', segmentationstyle);
+  data = ft_datatype_segmentation(data, 'segmentationstyle', segmentationstyle, 'hasbrainmask', hasbrainmask);
 elseif issource
   data = ft_datatype_source(data);
 elseif isdip
@@ -1827,7 +1829,8 @@ for iUnit = 1:nUnits
     trialInds            = [trialInds; ones(nSpikes,1)*iTrial];
     
     % get the begs and ends of trials
-    if iUnit==1, trialTimes(iTrial,:) = data.time{iTrial}([1 end]); end
+    hasNum = find(~isnan(data.time{iTrial}));
+    if iUnit==1, trialTimes(iTrial,:) = data.time{iTrial}([hasNum(1) hasNum(end)]); end
   end
   
   spike.label{iUnit}     = data.label{unitIndx};
@@ -1851,8 +1854,9 @@ for i=1:ntrial
   for j=1:nchans
     hasAllInts    = all(isnan(data.trial{i}(j,:)) | data.trial{i}(j,:) == round(data.trial{i}(j,:)));
     hasAllPosInts = all(isnan(data.trial{i}(j,:)) | data.trial{i}(j,:)>=0);
-    fr            = nansum(data.trial{i}(j,:)) ./ (data.time{i}(end)-data.time{i}(1));    
-    spikechan(j) = spikechan(j) + double(hasAllInts & hasAllPosInts & fr<=maxRate);
+    T = nansum(diff(data.time{i})); % total time
+    fr            = nansum(data.trial{i}(j,:)) ./ T;    
+    spikechan(j)  = spikechan(j) + double(hasAllInts & hasAllPosInts & fr<=maxRate);
   end
 end
 spikechan = (spikechan==ntrial);

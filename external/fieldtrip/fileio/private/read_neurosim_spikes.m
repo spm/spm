@@ -24,7 +24,7 @@ function [spike] = read_neurosim_spikes(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 5528 2012-03-26 07:48:38Z roboos $
+% $Id: read_neurosim_spikes.m 6535 2012-09-25 12:50:38Z roboos $
 
 if isdir(filename)
   filename = fullfile(filename, 'spikes');
@@ -83,9 +83,9 @@ fclose(fid);
 % spike.unit      = {numeric(:,2)'};
 
 % it is more convenient to represent each neuron in its own channel
-number = unique(numeric(:,2)');
-spike.label = cell(length(number), 1);
-spike.timestamp = cell(length(number), 1);
+number          = unique(numeric(:,2)');
+spike.label     = cell(1, length(number), 1);
+spike.timestamp = cell(1, length(number), 1);
 for i=1:length(number)
   sel = numeric(:,2)==number(i);
   spike.label{i}     = sprintf('%d', number(i));

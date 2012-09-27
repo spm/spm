@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 6081 2012-06-17 00:40:31Z josdie $
+% $Id: ft_read_event.m 6552 2012-09-26 20:28:03Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -104,6 +104,9 @@ if iscell(filename)
   end
   return
 end
+
+% optionally get the data from the URL and make a temporary local copy
+filename = fetch_url(filename);
 
 % get the options
 eventformat      = ft_getopt(varargin, 'eventformat');

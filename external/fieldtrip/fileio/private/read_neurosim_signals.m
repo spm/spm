@@ -23,7 +23,7 @@ function [hdr, dat] = read_neurosim_signals(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_signals.m 5531 2012-03-26 10:50:46Z roboos $
+% $Id: read_neurosim_signals.m 6535 2012-09-25 12:50:38Z roboos $
 
 if isdir(filename)
   filename = fullfile(filename, 'signals');
@@ -69,7 +69,7 @@ end
 fclose(fid);
 
 % get the time axis, this is needed to determine the sampling frequency
-time = dat(match_str(label, 'Time'), :);
+time    = dat(match_str(label, 'Time'), :)/1e3; % this is in ms, not in seconds
 fsample = median(1./diff(time));
 
 % convert the header into fieldtrip style
@@ -84,7 +84,11 @@ else
   hdr.nSamples    = inf; % the total duration of the file is not known
 end
 
-hdr.nSamplesPre = 0;
-hdr.nTrials     = 1;
+hdr.FirstTimeStamp     = min(time);
+hdr.TimeStampPerSample = 1e3/fsample; % how many timestamps (ms) are in one sample
+hdr.nSamplesPre        = 0;
+hdr.nTrials            = 1;
+
 % also store the original ascii header details
 hdr.orig        = orig(:);
+
