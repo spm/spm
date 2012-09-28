@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 4735 2012-05-10 12:08:48Z ged $
+% $Id: spm_cfg_factorial_design.m 4979 2012-09-28 14:49:15Z ged $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -192,6 +192,7 @@ generic.tag     = 'generic';
 generic.name    = 'Pairs';
 generic.help    = {''};
 generic.values  = {pair};
+generic.val     = {pair};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % pt Paired t-test
@@ -330,7 +331,8 @@ generic.help    = {
                    'Specify your design a factor at a time. '
                    ''
 }';
-generic.values  = {fact };
+generic.values  = {fact};
+generic.val     = {fact};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % levels Levels
@@ -382,7 +384,8 @@ generic1.help    = {
                     'Enter the scans a cell at a time'
                     ''
 }';
-generic1.values  = {icell };
+generic1.values  = {icell};
+generic1.val     = {icell};
 generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % generic Specify cells
@@ -394,7 +397,8 @@ generic2.help    = {
                     'Enter the scans a cell at a time'
                     ''
 }';
-generic2.values  = {scell };
+generic2.values  = {scell};
+generic2.val     = {scell};
 generic2.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % anova ANOVA 
@@ -455,7 +459,8 @@ generic.help    = {
                    'Specify your design a factor at a time.'
                    ''
 }';
-generic.values  = {fac };
+generic.values  = {fac};
+generic.val     = {fac};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % scans Scans
@@ -491,7 +496,8 @@ generic1         = cfg_repeat;
 generic1.tag     = 'generic';
 generic1.name    = 'Subjects';
 generic1.help    = {''};
-generic1.values  = {fsubject };
+generic1.values  = {fsubject};
+generic1.val     = {fsubject};
 generic1.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % scans Scans
@@ -576,8 +582,8 @@ maininters         = cfg_repeat;
 maininters.tag     = 'maininters';
 maininters.name    = 'Main effects & Interactions';
 maininters.help    = {''};
-maininters.values  = {fmain inter };
-maininters.num     = [1 Inf];
+maininters.values  = {fmain inter};
+maininters.num     = [0 Inf]; % 0 for factor-covariate interaction(s) only
 % ---------------------------------------------------------------------
 % anovaw ANOVA within subject
 % ---------------------------------------------------------------------

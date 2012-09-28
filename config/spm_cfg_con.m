@@ -3,9 +3,9 @@ function con = spm_cfg_con
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 3993 2010-07-13 11:59:32Z volkmar $
+% $Id: spm_cfg_con.m 4979 2012-09-28 14:49:15Z ged $
 
-rev = '$Rev: 3993 $';
+rev = '$Rev: 4979 $';
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
 % ---------------------------------------------------------------------
@@ -104,7 +104,8 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Contrast vectors';
 generic.help    = {'F contrasts are defined by a series of vectors.'};
-generic.values  = {convec };
+generic.values  = {convec};
+generic.val     = {convec};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % sessrep Replicate over sessions
@@ -298,7 +299,8 @@ generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'T contrast for conditions';
 generic.help    = {'Assemble your contrast column by column.'};
-generic.values  = {colconds };
+generic.values  = {colconds};
+generic.val     = {colconds};
 generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % colreg T contrast for extra regressors

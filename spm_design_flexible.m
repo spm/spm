@@ -13,7 +13,7 @@ function [H,Hnames,B,Bnames] = spm_design_flexible(fblock,I)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_design_flexible.m 4837 2012-08-13 18:10:04Z guillaume $
+% $Id: spm_design_flexible.m 4979 2012-09-28 14:49:15Z ged $
 
 %-Sort main effects and interactions
 %--------------------------------------------------------------------------
@@ -63,8 +63,4 @@ for i=1:length(inter)
     [Hf,Hfnames] = spm_DesMtx(Isub,'-',iname);
     H            = [H,Hf];
     Hnames       = [Hnames; Hfnames];
-end
-
-if isempty(H)
-    error('You have not specified any main effects or interactions');
 end
