@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 4898 2012-09-05 13:40:16Z volkmar $
+% $Id: harvest.m 4978 2012-09-28 12:23:30Z volkmar $
 
-rev = '$Rev: 4898 $'; %#ok
+rev = '$Rev: 4978 $'; %#ok
 
 [tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -116,6 +116,7 @@ else
         end;
     else
         ochange = true; % no outputs specified (may be they were before)
+        item.sout = [];
     end;
 
     if ochange && ~isempty(item.sdeps)
