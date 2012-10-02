@@ -269,10 +269,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 4943 2012-09-20 18:25:25Z guillaume $
+% $Id: spm_spm.m 4981 2012-10-02 16:12:36Z guillaume $
 
 
-SVNid = '$Rev: 4943 $';
+SVNid = '$Rev: 4981 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -357,7 +357,7 @@ files = {'^mask\..{3}$','^ResMS\..{3}$','^RPV\..{3}$',...
     '^ess_.{4}\..{3}$', '^spm\w{1}_.{4}\..{3}$'};
 
 for i = 1:numel(files)
-    j = cellstr(spm_select('List',SPM.swd,files{i})); % FPList
+    j = cellstr(spm_select('FPList',SPM.swd,files{i}));
     for k = 1:numel(j)
         spm_unlink(j{k});
     end
@@ -467,7 +467,7 @@ Vbeta(1:nBeta) = deal(struct(...
     'dt',      [spm_type('float32') spm_platform('bigend')],...
     'mat',     M,...
     'pinfo',   [1 0 0]',...
-    'descrip', ''));
+    'descrip', 'spm_spm:beta'));
 
 for i = 1:nBeta
     Vbeta(i).fname   = [sprintf('beta_%04d',i) file_ext];
@@ -658,7 +658,7 @@ end
     
 %-Delete the standardised residual files
 %--------------------------------------------------------------------------
-fres = cellstr(spm_select('List',SPM.swd,'^ResI_.{4}\..{3}$')); %FPList
+fres = cellstr(spm_select('FPList',SPM.swd,'^ResI_.{4}\..{3}$'));
 for i=1:numel(fres)
     spm_unlink(fres{i});
 end

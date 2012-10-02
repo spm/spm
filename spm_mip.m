@@ -29,14 +29,14 @@ function mip = spm_mip(Z,XYZ,M,units)
 % scaled to fit in the interval [1/9,1]*64 for display. Flat images
 % are scaled to 1*64.
 %
-% If M is not specified, it is assumed the XYZ locations are
+% If M is not specified, it is assumed the XYZ locations are 
 % in Talairach mm.
 %
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mip.m 4633 2012-02-01 18:44:02Z guillaume $
+% $Id: spm_mip.m 4981 2012-10-02 16:12:36Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -55,9 +55,9 @@ if size(M,1)   == 1, M   = speye(4,4)*M; end
 Z    = Z - min(Z);
 mx   = max(Z);
 Scal = 8;
-if isempty(mx),
+if isempty(mx)
     Z = [];
-elseif isfinite(mx) && (numel(Z) ~= 1),
+elseif isfinite(mx) && mx
     Z = (1 + Scal*Z/mx)/(Scal + 1);
 else
     Z = ones(1,length(Z));

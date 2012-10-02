@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4926 2012-09-14 11:58:16Z guillaume $
+% $Id: spm_image.m 4981 2012-10-02 16:12:36Z guillaume $
 
 
-SVNid = '$Rev: 4926 $';
+SVNid = '$Rev: 4981 $';
 
 global st
 
@@ -147,7 +147,7 @@ switch lower(action)
     case 'addblobs'
     % Add blobs to the image - in full colour
     %----------------------------------------------------------------------
-    [f, sts] = spm_select([1 6],{'image','mat'}); % {'image','^SPM\.mat$'}
+    [f, sts] = spm_select([1 6],{'image','^SPM\.mat$'});
     if ~sts, return; else f = cellstr(f); end
     spm_figure('Clear','Interactive');
     colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
