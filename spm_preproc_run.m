@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_preproc_run.m 4982 2012-10-03 12:28:30Z john $
 
 if nargin == 1, arg = 'run'; end
 
@@ -47,7 +47,8 @@ vout   = vout_job(job);
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
 tpm    = spm_load_priors8(tpm);
 
-nit = 1;
+if ~isfield(job,'iterations'), nit = 1; else nit   = job.iterations; end
+if ~isfield(job,'alpha'),    alpha = 1; else alpha = job.alpha;      end
 
 for iter=1:nit,
     if nit>1,
@@ -134,7 +135,6 @@ for iter=1:nit,
          % Treat the tissue probability maps as Dirichlet priors, and compute the 
          % MAP estimate of group tissue probability map using the sufficient
          % statistics.
-         alpha = 1.0;
          for k=1:K,
              SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*alpha + eps;
          end

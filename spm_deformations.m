@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4931 2012-09-17 15:42:46Z john $
+% $Id: spm_deformations.m 4982 2012-10-03 12:28:30Z john $
 
 [Def,mat] = get_comp(job.comp);
 out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
@@ -200,7 +200,7 @@ mat = Nii.mat;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function [Def,mat] = get_dartel(job)
+function [Def,mat] = get_dartel_old(job)
 % Integrate a DARTEL flow field
 Nii    = nifti(job.flowfield{1});
 y      = spm_dartel_integrate(Nii.dat,job.times,job.K);
@@ -213,6 +213,46 @@ else
 end
 Def = affine(y,M);
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function [Def,mat] = get_dartel(job)
+
+Nii    = nifti(job.flowfield{1});
+
+if ~isempty(job.template{1})
+    Nt            = nifti(job.template{1});
+    [pth,nam,ext] = fileparts(job.template{1});
+    if exist(fullfile(pth,[nam '_2mni.mat']))
+        load(fullfile(pth,[nam '_2mni.mat']),'mni');
+    else
+        % Affine registration of DARTEL Template with MNI space.
+        %--------------------------------------------------------------------------
+        fprintf('** Affine registering "%s" with MNI space **\n', nam);
+        tpm        = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii');
+        Mmni       = spm_get_space(tpm);
+        Nt         = nifti(job.template{1});
+        mni.affine = Mmni/spm_klaff(Nt,tpm);
+        mni.code   = 'MNI152';
+        save(fullfile(pth,[nam '_2mni.mat']),'mni', spm_get_defaults('mat.format'));
+    end
+    Mat    = mni.affine;
+    do_aff = true;
+else
+    Mat    = Nii.mat;
+    do_aff = false;
+end
+
+% Integrate a DARTEL flow field
+y0      = spm_dartel_integrate(Nii.dat,job.times,job.K);
+if all(job.times == [0 1]),
+    mat = Nii.mat0;
+    Def = affine(y0,single(Mat));
+else
+    mat = Mat;
+    Def = affine(y0,single(Nii.mat0));
+end
+%_______________________________________________________________________
+
 
 %_______________________________________________________________________
 function [Def,mat] = get_id(job)
