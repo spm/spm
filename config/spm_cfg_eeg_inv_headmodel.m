@@ -5,7 +5,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 4118 2010-11-10 14:48:16Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 4984 2012-10-04 14:08:07Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -41,10 +41,52 @@ mri.ufilter = '.*';
 mri.num     = [1 1];
 mri.help = {'Select the subject''s structural image'};
 
+cortex = cfg_files;
+cortex.tag = 'cortex';
+cortex.name = 'Custom cortical mesh';
+cortex.filter = 'mesh';
+cortex.ufilter = '.*';
+cortex.num     = [0 1];
+cortex.help = {'Select the subject''s cortical mesh. Leave empty for default'};
+cortex.val = {{''}};
+
+iskull = cfg_files;
+iskull.tag = 'iskull';
+iskull.name = 'Custom inner skull mesh';
+iskull.filter = 'mesh';
+iskull.ufilter = '.*';
+iskull.num     = [0 1];
+iskull.help = {'Select the subject''s inner skull mesh. Leave empty for default'};
+iskull.val = {{''}};
+
+oskull = cfg_files;
+oskull.tag = 'oskull';
+oskull.name = 'Custom outer skull mesh';
+oskull.filter = 'mesh';
+oskull.ufilter = '.*';
+oskull.num     = [0 1];
+oskull.help = {'Select the subject''s outer skull mesh. Leave empty for default'};
+oskull.val = {{''}};
+
+scalp = cfg_files;
+scalp.tag = 'scalp';
+scalp.name = 'Custom scalp mesh';
+scalp.filter = 'mesh';
+scalp.ufilter = '.*';
+scalp.num     = [0 1];
+scalp.help = {'Select the subject''s scalp mesh. Leave empty for default'};
+scalp.val = {{''}};
+
+custom = cfg_branch;
+custom.tag = 'custom';
+custom.name = 'Custom meshes';
+custom.help = {'Provide custom individual meshes as GIfTI files'};
+custom.val  = {mri, cortex, iskull, oskull, scalp};
+
 meshes = cfg_choice;
 meshes.tag = 'meshes';
 meshes.name = 'Mesh source';
-meshes.values = {template, mri};
+meshes.values = {template, mri, custom};
 meshes.val = {template};
 
 meshres = cfg_menu;
@@ -194,11 +236,40 @@ for i = 1:numel(job.D)
     
     if isfield(job.meshing.meshes, 'template')
         sMRI = 1;
+    elseif isfield(job.meshing.meshes, 'custom')
+        sMRI = job.meshing.meshes.custom.mri{1};
     else
         sMRI = job.meshing.meshes.mri{1};
     end
     
     D = spm_eeg_inv_mesh_ui(D, val, sMRI, job.meshing.meshres);
+    
+    if isfield(job.meshing.meshes, 'custom')
+        if ~isempty(job.meshing.meshes.custom.scalp{1})
+            D.inv{val}.mesh.tess_scalp = job.meshing.meshes.custom.scalp{1};
+        end
+        
+        if ~isempty(job.meshing.meshes.custom.oskull{1})
+            D.inv{val}.mesh.tess_oskull = job.meshing.meshes.custom.oskull{1};
+        end
+        
+        if ~isempty(job.meshing.meshes.custom.iskull{1})
+            D.inv{val}.mesh.tess_iskull = job.meshing.meshes.custom.iskull{1};
+        end
+        
+        if ~isempty(job.meshing.meshes.custom.cortex{1})
+            D.inv{val}.mesh.tess_ctx = job.meshing.meshes.custom.cortex{1};
+            
+            defs.comp{1}.inv.comp{1}.def = {D.inv{val}.mesh.def};
+            defs.comp{1}.inv.space = {D.inv{val}.mesh.sMRI};
+            defs.out{1}.surf.surface = {D.inv{val}.mesh.tess_ctx};
+            defs.out{1}.surf.savedir.savesrc = 1;
+            
+            out = spm_deformations(defs);
+            
+            D.inv{val}.mesh.tess_mni     = export(gifti(out.surf{1}), 'spm');
+        end
+    end
     
     %-Coregistration
     %--------------------------------------------------------------------------
@@ -238,7 +309,7 @@ for i = 1:numel(job.D)
             case 'MEG'
                 D.inv{D.val}.forward(j).voltype = job.forward.meg;
         end
-    end    
+    end
     
     D = spm_eeg_inv_forward(D);
     
