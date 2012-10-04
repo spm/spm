@@ -120,10 +120,10 @@ function varargout = spm_uw_apply(ds,flags)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_apply.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_uw_apply.m 4983 2012-10-04 10:39:35Z guillaume $
 
 
-SVNid = '$Rev: 4489 $';
+SVNid = '$Rev: 4983 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -175,8 +175,6 @@ for i=1:length(ds)
 end
 
 hold = [repmat(flags.interp,1,3) flags.wrap];
-
-linfun = inline('fprintf(''%-60s%s'', x,repmat(sprintf(''\b''),1,60))');
 
 %
 % Create empty sfield for all structs.
@@ -360,7 +358,7 @@ if flags.mean
     Integral   = Integral./Count;
     warning(sw);
     PO         = ds(1).P(1);
-    PO.fname   = spm_file(ds(1).P(1).fname,'prefix','mean');
+    PO.fname   = spm_file(ds(1).P(1).fname,'prefix',['mean' flags.prefix]);
     PO.pinfo   = [max(max(max(Integral)))/32767 0 0]';
     PO.descrip = 'spm - mean undeformed image';
     PO.dt      = [spm_type('int16') spm_platform('bigend')];
