@@ -4,7 +4,7 @@ function h = nifti(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: nifti.m 4959 2012-09-24 18:26:31Z guillaume $
+% $Id: nifti.m 4986 2012-10-05 17:35:09Z guillaume $
 
 
 switch nargin
@@ -14,7 +14,10 @@ case 0
     h   = class(h,'nifti');
 
 case 1
-    if ischar(varargin{1})
+    if isa(varargin{1},'nifti')
+        h = varargin{1};
+        
+    elseif ischar(varargin{1})
         if size(varargin{1},1)>1
             h = nifti(cellstr(varargin{1}));
             return;

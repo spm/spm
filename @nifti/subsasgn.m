@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: subsasgn.m 4986 2012-10-05 17:35:09Z guillaume $
 
 
 switch subs(1).type,
@@ -356,17 +356,22 @@ if isa(val,'file_array'),
         error(['Unknown datatype (' num2str(double(sval.datatype)) ').']);
     end;
 
-    [pth,nam,suf]    = fileparts(sval.fname);
-    if any(strcmp(suf,{'.img','.IMG'}))
-        val.offset = max(sval.offset,0);
-        obj.hdr.magic = ['ni1' char(0)];
-    elseif any(strcmp(suf,{'.nii','.NII'}))
-        val.offset = max(sval.offset,352);
-        obj.hdr.magic = ['n+1' char(0)];
-    else
-        error(['Unknown filename extension (' suf ').']);
-    end;
-    val.offset        = (ceil(val.offset/16))*16;
+    [pth,nam,suf] = fileparts(sval.fname);
+    switch suf
+        case {'.img','.IMG'}
+            val.offset    = max(sval.offset,0);
+            obj.hdr.magic = ['ni1' char(0)]; % or ni2
+        case {'.nii','.NII'}
+            val.offset    = max(sval.offset,352); % or 544
+            obj.hdr.magic = ['n+1' char(0)]; % or n+2
+        otherwise
+            error(['Unknown filename extension (' suf ').']);
+    end
+    if obj.hdr.sizeof_hdr ~= 348 % i.e. == 350
+        warning('Saving file as NIfTI-1.');
+        obj.hdr.sizeof_hdr = 348;
+    end
+    val.offset         = (ceil(val.offset/16))*16;
     obj.hdr.vox_offset = val.offset;
 
     obj.hdr.dim(2:(numel(sz)+1)) = sz;
@@ -382,7 +387,9 @@ else
     error('"raw" must be of class "file_array"');
 end;
 return;
+%=======================================================================
 
+%=======================================================================
 function ok = valid_fields(val,allowed)
 if isempty(val), ok = false; return; end;
 if ~isstruct(val),

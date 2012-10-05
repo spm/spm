@@ -6,10 +6,10 @@ function create(obj,varargin)
 % create(obj,wrt)
 % This also writes out an empty image volume if wrt==1
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: create.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: create.m 4986 2012-10-05 17:35:09Z guillaume $
 
 for i=1:numel(obj)
     create_each(obj(i),varargin{:});
@@ -29,14 +29,14 @@ if isempty(fname)
 end
 
 dt = obj.dat.dtype;
-ok = write_hdr_raw(fname,obj.hdr,dt(end-1)=='B');
-if ~ok
-    error(['Unable to write header for "' fname '".']);
+sts = write_hdr_raw(fname,obj.hdr,dt(end-1)=='B');
+if ~sts
+    error('Unable to write header for "%s".',fname);
 end
 
 write_extras(fname,obj.extras);
 
-if nargin>2 && any(wrt==1)
+if nargin>1 && any(wrt==1)
     % Create an empty image file if necessary
     d   = findindict(obj.hdr.datatype, 'dtype');
     dim = double(obj.hdr.dim(2:end));
@@ -44,7 +44,7 @@ if nargin>2 && any(wrt==1)
     nbytes = ceil(d.size*d.nelem*prod(dim(1:2)))*prod(dim(3:end))+double(obj.hdr.vox_offset);
     
     [pth,nam] = fileparts(obj.dat.fname);
-    if any(strcmp(deblank(obj.hdr.magic),{'n+1','nx1'}))
+    if any(strcmp(obj.hdr.magic(1:3),{'n+1','n+2'}))
         ext = '.nii';
     else
         ext = '.img';
