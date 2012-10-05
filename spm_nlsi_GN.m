@@ -1,4 +1,4 @@
-function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
+function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Bayesian inversion of a nonlinear model using a Gauss-Newton/EM algorithm
 % FORMAT [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %
@@ -30,7 +30,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % M.hE - prior expectation  - E{h}   of log-precision parameters
 % M.hC - prior covariance   - Cov{h} of log-precision parameters
 %
-% U.u  - inputs
+% U.u  - inputs (or just U)
 % U.dt - sampling interval
 %
 % Y.y  - outputs (samples x observations)
@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_nlsi_GN.m 4987 2012-10-05 19:21:44Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -204,10 +204,15 @@ nt    = length(Q{1});               % number of time bins
 nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
 
 
-% prior moments
+% prior moments (assume uninformative priors if not specifed)
 %--------------------------------------------------------------------------
-pE    = M.pE;
-pC    = M.pC;
+pE       = M.pE;
+try
+    pC   = M.pC;
+catch
+    np   = numel(spm_vec(M.pE));
+    pC   = speye(np,np)*exp(16);
+end
 
 % confounds (if specified)
 %--------------------------------------------------------------------------

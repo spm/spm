@@ -10,17 +10,21 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4862 2012-08-24 19:21:27Z karl $
+% $Id: spm_plot_ci.m 4987 2012-10-05 19:21:44Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
 if iscell(E),         E = spm_cat(E(:)); end
+if isstruct(E),       E = spm_vec(E);    end
+if isstruct(C),       C = spm_vec(C);    end
+
 if ~exist('x','var'), x = 1:size(E,2);   end
 if ~exist('j','var'), j = 1:size(E,1);   end
 if ~exist('s','var'), s = '';            end
 
 if isempty(x),        x = 1:size(E,2);   end
 if isempty(j),        j = 1:size(E,1);   end
+
 
 % order and length of sequence
 %--------------------------------------------------------------------------
@@ -30,6 +34,7 @@ E     = E(j,:);
 % unpack conditional covariances
 %--------------------------------------------------------------------------
 ci    = spm_invNcdf(1 - 0.05);
+
 if iscell(C)
     for i = 1:N
         c(:,i) = ci*sqrt(diag(C{i}(j,j)));

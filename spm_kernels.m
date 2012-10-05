@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kernels.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_kernels.m 4987 2012-10-05 19:21:44Z karl $
  
  
 % assign inputs
@@ -120,7 +120,8 @@ end
 q     = 0;
 for p = 1:m
     q = q | norm(M{N,p},'inf') > norm(M{1,p},'inf');
-    q = q | norm(M{1,p},'inf') > exp(16);
+    q = q | norm(M{N,p},'inf') > exp(16);
+    q = q | isnan(norm(M{N,p}));
 end
 if q
     M0    = spm_bilinear_condition(M0,N,dt);

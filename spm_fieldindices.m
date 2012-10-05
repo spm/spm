@@ -6,13 +6,27 @@ function [i] = spm_fieldindices(X,varargin)
 % X         - structure
 % field1,.. - fields
 %
-% i         - vector of indices
+% i         - vector of indices or feildname{s}
 %
 %__________________________________________________________________________
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_fieldindices.m 4987 2012-10-05 19:21:44Z karl $
+
+
+% if varargin is a vector simply return fieldnames
+%--------------------------------------------------------------------------
+if nargin == 2
+   if isnumeric(varargin{1})
+       if numel(varargin{1}) > 1
+           for j = 1:length(varargin{1})
+               i{j} = spm_fieldindices(X,varargin{1}(j));
+           end
+           return
+       end
+   end
+end
 
 
 % create structure of zeros
