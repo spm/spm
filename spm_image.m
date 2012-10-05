@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4981 2012-10-02 16:12:36Z guillaume $
+% $Id: spm_image.m 4985 2012-10-05 15:32:18Z ged $
 
 
-SVNid = '$Rev: 4981 $';
+SVNid = '$Rev: 4985 $';
 
 global st
 
@@ -186,8 +186,14 @@ switch lower(action)
     op = get(h,'Value');
     if op == 1
         spm_orthviews('Window',1); % automatic
-    else
+    elseif op == 2
         spm_orthviews('Window',1,spm_input('Range','+1','e','',2));
+    else
+        pc = spm_input('Percentiles', '+1', 'w', '3 97', 2, 100);
+        spm('Pointer', 'Watch');
+        wn = spm_summarise(st.vols{1}, 'all', @(X) spm_percentile(X, pc));
+        spm_orthviews('Window', 1, wn);
+        spm('Pointer', 'Arrow');
     end
     
     
@@ -514,7 +520,7 @@ uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5 25 125 20].*WS,...
     'String',char('World Space','Voxel Space'),...
     'Callback',c,'ToolTipString','Display in aquired/world orientation');
 uicontrol('Parent',u2,'Style','Popupmenu', 'Position',[5  5 125 20].*WS,...
-    'String',char('Auto Window','Manual Window'), 'Tag','spm_image:window',...
+    'String',char('Auto Window','Manual Window', 'Percentiles Window'), 'Tag','spm_image:window',...
     'Callback','spm_image(''window'');','ToolTipString','Range of voxel intensities displayed');
 uicontrol('Parent',u2,'Style','Pushbutton', 'Position',[140 45 125 20].*WS,...
     'String','Hide Crosshair', 'Tag','spm_image:xhairs', 'UserData', true,...

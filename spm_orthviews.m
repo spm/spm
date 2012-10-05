@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4955 2012-09-24 15:37:52Z ged $
+% $Id: spm_orthviews.m 4985 2012-10-05 15:32:18Z ged $
 
 
 % The basic fields of st are:
@@ -1644,6 +1644,7 @@ item6_1     = uimenu(item6,      'Label','Window');
 item6_1_1   = uimenu(item6_1,    'Label','local');
 item6_1_1_1 = uimenu(item6_1_1,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window'',2);');
 item6_1_1_2 = uimenu(item6_1_1,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window'',1);');
+item6_1_1_3 = uimenu(item6_1_1,  'Label','percentiles', 'Callback','spm_orthviews(''context_menu'',''window'',3);');
 item6_1_2   = uimenu(item6_1,    'Label','global');
 item6_1_2_1 = uimenu(item6_1_2,  'Label','auto', 'Callback','spm_orthviews(''context_menu'',''window_gl'',2);');
 item6_1_2_2 = uimenu(item6_1_2,  'Label','manual', 'Callback','spm_orthviews(''context_menu'',''window_gl'',1);');
@@ -1879,6 +1880,11 @@ switch lower(varargin{1})
         current_handle = get_current_handle;
         if varargin{2} == 2
             spm_orthviews('window',current_handle);
+        elseif varargin{2} == 3
+            pc = spm_input('Percentiles', '+1', 'w', '3 97', 2, 100);
+            wn = spm_summarise(st.vols{current_handle}, 'all', ...
+                @(X) spm_percentile(X, pc));
+            spm_orthviews('window',current_handle,wn);
         else
             if isnumeric(st.vols{current_handle}.window)
                 defstr = sprintf('%.2f %.2f', st.vols{current_handle}.window);
