@@ -1,4 +1,4 @@
-function spm_induced_optimise
+function spm_induced_optimise(Ep)
 % Demo routine that computes transfer functions for free parameters
 %==========================================================================
 %
@@ -13,7 +13,7 @@ function spm_induced_optimise
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 4936 2012-09-18 19:47:55Z karl $
+% $Id: spm_induced_optimise.m 4989 2012-10-05 19:25:07Z karl $
  
  
 % Model specification
@@ -38,10 +38,15 @@ M.dipfit.Ns    = Ns;
 P       = fieldnames(pE);
 [pE pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE pC] = spm_ssr_priors(pE,pC);
-[x,f]   = spm_dcm_x_neural(pE,options.model);
- 
+
+% use input argument if specified
+%--------------------------------------------------------------------------
+if nargin, pE = Ep; end
+
+
 % hidden neuronal states of interest
 %--------------------------------------------------------------------------
+[x,f]     = spm_dcm_x_neural(pE,options.model);
 pE.J(1:4) = [0 1 0 0];
  
  
