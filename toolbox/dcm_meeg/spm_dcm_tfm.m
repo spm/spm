@@ -49,7 +49,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 4866 2012-08-28 12:47:34Z karl $
+% $Id: spm_dcm_tfm.m 4988 2012-10-05 19:24:14Z karl $
  
  
 % check options
@@ -65,12 +65,10 @@ try, name  = DCM.name;            catch, DCM.name = name;     end
 try, Nm    = DCM.options.Nmodes;  catch, Nm       = 8;        end
 try, onset = DCM.options.onset;   catch, onset    = 60;       end
 try, dur   = DCM.options.dur;     catch, dur      = 16;       end
-try, Nmax  = DCM.options.Nmax;    catch, Nmax     = 64;       end
  
 % Design model and exogenous inputs
 %==========================================================================
 if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
- 
  
  
 % Spatial model
@@ -98,12 +96,8 @@ DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
  
 % get data-features (in reduced eigen-space)
 %--------------------------------------------------------------------------
+DCM.xY   = ERP.xY;
 DCM      = spm_dcm_tfm_data(DCM);
- 
-% scale lead field paramters to align induced and evoked DCMs
-%--------------------------------------------------------------------------
-scale    = DCM.xY.scale/ERP.xY.scale;
-ERP.Eg.L = ERP.Eg.L*scale;
  
  
 % Use posterior as the prior in a model of induced responses

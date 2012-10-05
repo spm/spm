@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_dcm_erp.m 4988 2012-10-05 19:24:14Z karl $
 
 % check options
 %==========================================================================
@@ -88,7 +88,7 @@ xY.X0  = X0;
 
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
-xY.Q   = {spm_Q(1/2,Ns,1)};
+xY.Q   = {spm_Q(1 - 1/4,Ns,1)};
 
 
 %-Inputs
@@ -141,18 +141,30 @@ if lock, pC = spm_dcm_lock(pC);      end
 if symm, gC = spm_dcm_symm(gC,gE);   end
 
 
+
+%-Feature selection using principal components (U) of lead-field
+%==========================================================================
+M.U      = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
+
+% scale data features
+%--------------------------------------------------------------------------
+scale    = sqrt(1/var(spm_vec(spm_fy_erp(xY.y,M))));
+xY.y     = spm_unvec(scale*spm_vec(xY.y),xY.y);
+xY.scale = xY.scale*scale;
+
+% hyperpriors (assuming 100:1 signal to noise)
+%--------------------------------------------------------------------------
+hE       = log(100);
+hC       = exp(-4);
+
+
+% likelihood model
+%==========================================================================
+
 % intial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f]  = spm_dcm_x_neural(pE,model);
 
-% hyperpriors (assuming about 99% signal to noise)
-%--------------------------------------------------------------------------
-hE     = 8 - log(var(spm_vec(xY.y)));
-hC     = exp(-4);
-
-
-% likelihood model
-%--------------------------------------------------------------------------
 M.IS   = 'spm_gen_erp';
 M.FS   = 'spm_fy_erp';
 M.G    = 'spm_lx_erp';
@@ -170,17 +182,10 @@ M.l    = Nc;
 M.ns   = Ns;
 M.Nmax = Nmax;
 
-% intialise states
+% re-intialise states
 %-------------------------------------------------------------------------
 M.x    = spm_dcm_neural_x(pE,M);
     
-%-Feature selection using principal components (U) of lead-field
-%==========================================================================
-
-% Spatial modes
-%--------------------------------------------------------------------------
-M.U    = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
-Nm     = size(M.U,2);
 
 % EM: inversion
 %==========================================================================
@@ -246,7 +251,7 @@ DCM.ID = ID;                   % data ID
 
 
 DCM.options.h      = h;
-DCM.options.Nmodes = Nm;
+DCM.options.Nmodes = size(M.U,2);
 DCM.options.onset  = onset;
 DCM.options.dur    = dur;
 DCM.options.model  = model;

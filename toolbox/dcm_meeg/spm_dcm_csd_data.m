@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_dcm_csd_data.m 4988 2012-10-05 19:24:14Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -180,7 +180,7 @@ try
     if size(DCM.xY.csd,2) == Ne;
         if size(DCM.xY.csd{1},1) == Nf;
             if size(DCM.xY.csd{1},2) == Nm;
-                DCM.xY.y  = spm_cond_units(DCM.xY.csd,'csd');
+                DCM.xY.y  = DCM.xY.csd;
                 return
             end
         end
@@ -222,7 +222,7 @@ end
  
 % place cross-spectral density in xY.y
 %==========================================================================
-DCM.xY.y    = spm_cond_units(DCM.xY.csd,'csd'); 
+DCM.xY.y    = DCM.xY.csd; 
 DCM.xY.U    = DCM.M.U;
 DCM.xY.code = condlabels(trial);
 

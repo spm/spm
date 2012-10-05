@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 4912 2012-09-07 19:52:41Z karl $
+% $Id: spm_dcm_erp_data.m 4988 2012-10-05 19:24:14Z karl $
  
  
 % Set defaults and Get D filename
@@ -124,15 +124,15 @@ DCM.xY.xy     = {};
 % options
 %==========================================================================
 try
-    DT   = DCM.options.D;
+    DT    = DCM.options.D;
 catch
     errordlg('Please specify down sampling');
     error('')
 end
 try
-    han  = DCM.options.han;
+    han   = DCM.options.han;
 catch
-    han  = 0;
+    han   = 0;
 end
 try
     trial = DCM.options.trials;
@@ -210,7 +210,6 @@ end
  
 % condition units of measurement
 %--------------------------------------------------------------------------
-[erp,scale]  = spm_cond_units(DCM.xY.xy,1);
-DCM.xY.y     = erp;
+DCM.xY.y     = DCM.xY.xy;
 DCM.xY.code  = cond(trial);
-DCM.xY.scale = scale;
+DCM.xY.scale = 1;

@@ -9,11 +9,10 @@ function E = DCM_ROBOT
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
-    cd('C:\Users\karl\Documents\SPM\DCM tests')
+    cd('C:\home\spm\DCM\DCM tests')
 catch
     cd('C:\Users\karl\Documents\SPM\DCM tests')
 end
-clear all
 close all
 delete(get(0,'Children'))
 if exist('DEMO.ps','file')

@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_dcm_csd.m 4988 2012-10-05 19:24:14Z karl $
  
  
 % check options
@@ -37,7 +37,6 @@ DCM.options.analysis  = 'CSD';
 try, DCM.name;                      catch, DCM.name = name;      end
 try, DCM.name;                      catch, DCM.name = 'DCM_SSR'; end
 try, model   = DCM.options.model;   catch, model    = 'NMM';     end
-try, spatial = DCM.options.spatial; catch, spatial  = 'LFP';     end
 try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
  
 % Spatial model
@@ -95,13 +94,12 @@ DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
 DCM.M.hE = 8;
-DCM.M.hC = exp(-8);
+DCM.M.hC = exp(-4);
 DCM.M.m  = Ns;
 
-% specify M.u - endogenous input (fluctuations)
+% specify M.u - endogenous input (fluctuations) and intial states
 %--------------------------------------------------------------------------
 DCM.M.u  = sparse(Ns,1);
-
 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
@@ -133,14 +131,11 @@ DCM.xY.Q  = Q;
 DCM.xY.X0 = sparse(Nf,0);
 
 
-% adjust gain to accommodate scaling differences among models and data
+% scale cross-spectral data features
 %==========================================================================
-
-% cross-spectral data
-%--------------------------------------------------------------------------
-y         = spm_vec(DCM.xY.y);
-scale     = mean(abs(y));
-DCM.xY.y  = spm_unvec(y/scale,DCM.xY.y);
+y         = spm_vec(spm_fs_csd(DCM.xY.y,DCM.M));
+scale     = 1/mean(abs(y));
+DCM.xY.y  = spm_unvec(scale*y,DCM.xY.y);
 
 % reduce extrinsic coupling if necessary
 %--------------------------------------------------------------------------
@@ -153,6 +148,9 @@ for i = 1:8
     scale = mean(abs(spm_vec(feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU))));
 
 end
+
+% and scale predictions (through spatial modes)
+%--------------------------------------------------------------------------
 DCM.M.U   = DCM.M.U/sqrt(scale);
 
 
@@ -165,12 +163,12 @@ DCM.M.U   = DCM.M.U/sqrt(scale);
 %--------------------------------------------------------------------------
 try
     try
-        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
+        ID = spm_data_id(feval(DCM.M.FS,DCM.xY.y,DCM.M));
     catch
-        ID  = spm_data_id(feval(DCM.M.FS,DCM.xY.y));
+        ID = spm_data_id(feval(DCM.M.FS,DCM.xY.y));
     end
 catch
-    ID  = spm_data_id(DCM.xY.y);
+    ID = spm_data_id(DCM.xY.y);
 end
  
  
@@ -192,22 +190,23 @@ Ec  = spm_unvec(spm_vec(DCM.xY.y) - spm_vec(Hc),Hc);     % prediction error
 %--------------------------------------------------------------------------
 M             = rmfield(DCM.M,'U'); 
 M.dipfit.type = 'LFP';
-M.U           = 1; 
-M.l       = Ns;
-qp        = Qp;
-qp.L      = ones(1,Ns);             % set virtual electrode gain to unity
-qp.b      = qp.b - 32;              % and suppress non-specific and
-qp.c      = qp.c - 32;              % specific channel noise
+
+M.U         = 1; 
+M.l         = Ns;
+qp          = Qp;
+qp.L        = ones(1,Ns);             % set virtual electrode gain to unity
+qp.b        = qp.b - 32;              % and suppress non-specific and
+qp.c        = qp.c - 32;              % specific channel noise
 
 [Hs Hz dtf] = spm_csd_mtf(qp,M,DCM.xU);
 [ccf pst]   = spm_csd2ccf(Hs,DCM.M.Hz);
 [coh fsd]   = spm_csd2coh(Hs,DCM.M.Hz);
-DCM.dtf  = dtf;
-DCM.ccf  = ccf;
-DCM.coh  = coh;
-DCM.fsd  = fsd;
-DCM.pst  = pst;
-DCM.Hz   = Hz;
+DCM.dtf     = dtf;
+DCM.ccf     = ccf;
+DCM.coh     = coh;
+DCM.fsd     = fsd;
+DCM.pst     = pst;
+DCM.Hz      = Hz;
 
  
 % store estimates in DCM

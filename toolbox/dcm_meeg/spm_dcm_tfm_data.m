@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_tfm_data.m 4988 2012-10-05 19:24:14Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -228,10 +228,14 @@ end
  
 % place cross-spectral density in xY.y
 %==========================================================================
-[erp,scale]  = spm_cond_units(erp,1);
-csd          = spm_unvec(spm_vec(csd)*(scale^2),csd);
-DCM.xY.erp   = erp;
-DCM.xY.csd   = csd;
+try
+    scale = DCM.xY.scale;
+catch
+    scale = 1;
+end
+
+DCM.xY.erp   = spm_unvec(spm_vec(erp)*(scale^1),erp);
+DCM.xY.csd   = spm_unvec(spm_vec(csd)*(scale^2),csd);
 DCM.xY.y     = csd;
 DCM.xY.U     = DCM.M.U;
 DCM.xY.scale = scale;
