@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_eeg_prep.m 4990 2012-10-07 12:24:11Z vladimir $
 
 if ~nargin
     spm_eeg_prep_ui;
@@ -118,9 +118,7 @@ switch lower(S.task)
                 D = chantype(D, setdiff(eegind, sel1), 'Other');
             end
             
-            if any(any(coor2D(D, sel1) - xy(:, sel2)))
-                D = coor2D(D, sel1, num2cell(xy(:, sel2)));
-            end
+            D = coor2D(D, sel1, num2cell(xy(:, sel2)));
         end
         
         %----------------------------------------------------------------------
