@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4985 2012-10-05 15:32:18Z ged $
+% $Id: spm_image.m 4994 2012-10-09 16:46:48Z ged $
 
 
-SVNid = '$Rev: 4985 $';
+SVNid = '$Rev: 4994 $';
 
 global st
 
@@ -202,12 +202,27 @@ switch lower(action)
     %----------------------------------------------------------------------
     h = findobj(st.fig,'Tag','spm_image:reorient'); if isempty(h), spm_image('Reset'); end
     B = get(h,'UserData');
-    mat = spm_matrix(B);
-    if det(mat)<=0
+    M = spm_matrix(B);
+    if det(M)<=0
         spm('alert!','This will flip the images',mfilename,0,1);
     end
-    [P, sts] = spm_select([1 Inf], 'image','Images to reorient');
+    [P, sts] = spm_select([0 Inf], 'image', 'Images to reorient');
     if ~sts, return; else P = cellstr(P); end
+    sv = questdlg('Do you want to save the reorientation matrix?', ...
+        'Save Matrix', 'Yes', 'No', 'Yes');
+    if strcmpi(sv, 'yes')
+        if ~isempty(P{1})
+            [p n]   = spm_fileparts(P{1});
+            fnm     = fullfile(p, [n '_reorient.mat']);
+        else
+            fnm     = 'reorient.mat';
+        end
+        [f,p] = uiputfile(fnm);
+        if ~isequal(f,0)
+            save(fullfile(p,f), 'M', spm_get_defaults('mat.format'));
+        end
+    end
+    if isempty(P{1}), return, end
     Mats = zeros(4,4,numel(P));
     spm_progress_bar('Init',numel(P),'Reading current orientations',...
         'Images Complete');
@@ -218,7 +233,7 @@ switch lower(action)
     spm_progress_bar('Init',numel(P),'Reorienting images',...
         'Images Complete');
     for i=1:numel(P)
-        spm_get_space(P{i},mat*Mats(:,:,i));
+        spm_get_space(P{i},M*Mats(:,:,i));
         spm_progress_bar('Set',i);
     end
     spm_progress_bar('Clear');

@@ -10,11 +10,14 @@ function out = spm_run_reorient(varargin)
 % Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_run_reorient.m 4649 2012-02-06 15:55:04Z guillaume $
+% $Id: spm_run_reorient.m 4994 2012-10-09 16:46:48Z ged $
 
 job = varargin{1};
 if isfield(job.transform,'transprm')
     job.transform.transM = spm_matrix(job.transform.transprm);
+elseif isfield(job.transform,'transF')
+    load(char(job.transform.transF), 'M');
+    job.transform.transM = M;
 end
 spm_progress_bar('Init', numel(job.srcfiles), 'Reorient', 'Images completed');
 if isempty(job.prefix)

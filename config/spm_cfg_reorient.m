@@ -4,9 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 4380 2011-07-05 11:27:12Z volkmar $
+% $Id: spm_cfg_reorient.m 4994 2012-10-09 16:46:48Z ged $
 
-rev = '$Rev: 4380 $';
+rev = '$Rev: 4994 $';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -17,6 +17,18 @@ srcfiles.help    = {'Select images to reorient.'};
 srcfiles.filter = 'image';
 srcfiles.ufilter = '.*';
 srcfiles.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% transF Reorientation File (e.g. as saved from spm_ov_reorient)
+% ---------------------------------------------------------------------
+transF         = cfg_files;
+transF.tag     = 'transF';
+transF.name    = 'Saved reorientation matrix';
+transF.help    = {['Select mat file containing saved reorientation ' ...
+    '(e.g. after using reorient from Display or Check Reg and saving ' ...
+    'when prompted).']};
+transF.filter = 'mat';
+transF.ufilter = 'reorient';
+transF.num     = [1 1];
 % ---------------------------------------------------------------------
 % transM Reorientation Matrix
 % ---------------------------------------------------------------------
@@ -67,9 +79,9 @@ transprm.num     = [1 12];
 transform         = cfg_choice;
 transform.tag     = 'transform';
 transform.name    = 'Reorient by';
-transform.val     = {transM };
-transform.help    = {'Specify reorientation parameters - either 12 parameters or a 4x4 transformation matrix. The resulting transformation will be left-multiplied to the voxel-to-world transformation of each image and the new transformation will be written to the image header.'};
-transform.values  = {transM transprm };
+transform.val     = {transF};
+transform.help    = {'Specify reorientation parameters - 12 parameters, a 4x4 transformation matrix or a saved mat file (containing the matrix). The resulting transformation will be left-multiplied to the voxel-to-world transformation of each image and the new transformation will be written to the image header.'};
+transform.values  = {transM transprm transF};
 % ---------------------------------------------------------------------
 % prefix Filename Prefix
 % ---------------------------------------------------------------------
