@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4994 2012-10-09 16:46:48Z ged $
+% $Id: spm_image.m 4995 2012-10-11 16:00:33Z guillaume $
 
 
-SVNid = '$Rev: 4994 $';
+SVNid = '$Rev: 4995 $';
 
 global st
 
@@ -98,8 +98,15 @@ switch lower(action)
     h = findobj(st.fig,'Tag','spm_image:reorient'); if isempty(h), spm_image('Reset'); end
     B = get(h,'UserData');
     trz = varargin{1};
-    try, B(trz) = eval(get(gco,'String')); end
-    set(gco,'String',B(trz));
+    if numel(varargin) == 2
+        try, B(trz) = varargin{2}; end
+        trzs = {'t1' 't2' 't3' 'r1' 'r2' 'r3' 'z1' 'z2' 'z3'};
+        ho = findobj(st.fig,'Tag',sprintf('spm_image:reorient:%s',trzs{trz}));
+        set(ho,'String',B(trz));
+    else
+        try, B(trz) = eval(get(gco,'String')); end
+        set(gco,'String',B(trz));
+    end
     st.vols{1}.premul = spm_matrix(B);
     set(h,'UserData',B);
     % spm_orthviews('MaxBB');
@@ -243,9 +250,22 @@ switch lower(action)
     end
 
     
+    case 'setorigin'
+    % Set origin to crosshair
+    %----------------------------------------------------------------------
+    pos = spm_orthviews('Pos');
+    h = findobj(st.fig,'Tag','spm_image:reorient'); if isempty(h), spm_image('Reset'); end
+    B = get(h,'UserData');
+    spm_image('Repos', 1, B(1)-pos(1));
+    spm_image('Repos', 2, B(2)-pos(2));
+    spm_image('Repos', 3, B(3)-pos(3));
+    spm_orthviews('Reposition',[0 0 0]');
+    
+    
     case 'resetorient'
     % Reset orientation of images
     %----------------------------------------------------------------------
+    warning('Action ''ResetOrient'' is deprecated.');
     [P,sts] = spm_select([1 Inf], 'image','Images to reset orientation of');
     if ~sts, return; else P = cellstr(P); end
     spm_progress_bar('Init',numel(P),'Resetting orientations',...
@@ -406,20 +426,20 @@ uicontrol('Parent',u2,'Style','Text', 'Position',[5  70 100 016].*WS,'String','r
 uicontrol('Parent',u2,'Style','Text', 'Position',[5  50 100 016].*WS,'String','resize  {y}');
 uicontrol('Parent',u2,'Style','Text', 'Position',[5  30 100 016].*WS,'String','resize  {z}');
 
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 190 065 020].*WS,'String','0','Callback','spm_image(''repos'',1)','ToolTipString','Translation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 170 065 020].*WS,'String','0','Callback','spm_image(''repos'',2)','ToolTipString','Translation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 150 065 020].*WS,'String','0','Callback','spm_image(''repos'',3)','ToolTipString','Translation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 130 065 020].*WS,'String','0','Callback','spm_image(''repos'',4)','ToolTipString','Rotation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105 110 065 020].*WS,'String','0','Callback','spm_image(''repos'',5)','ToolTipString','Rotation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  90 065 020].*WS,'String','0','Callback','spm_image(''repos'',6)','ToolTipString','Rotation');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  70 065 020].*WS,'String','1','Callback','spm_image(''repos'',7)','ToolTipString','Zoom');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  50 065 020].*WS,'String','1','Callback','spm_image(''repos'',8)','ToolTipString','Zoom');
-uicontrol('Parent',u2,'Style','Edit', 'Position',[105  30 065 020].*WS,'String','1','Callback','spm_image(''repos'',9)','ToolTipString','Zoom');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 190 065 020].*WS,'String','0','Callback','spm_image(''repos'',1)','ToolTipString','Translation','Tag','spm_image:reorient:t1');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 170 065 020].*WS,'String','0','Callback','spm_image(''repos'',2)','ToolTipString','Translation','Tag','spm_image:reorient:t2');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 150 065 020].*WS,'String','0','Callback','spm_image(''repos'',3)','ToolTipString','Translation','Tag','spm_image:reorient:t3');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 130 065 020].*WS,'String','0','Callback','spm_image(''repos'',4)','ToolTipString','Rotation','Tag','spm_image:reorient:r1');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105 110 065 020].*WS,'String','0','Callback','spm_image(''repos'',5)','ToolTipString','Rotation','Tag','spm_image:reorient:r2');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  90 065 020].*WS,'String','0','Callback','spm_image(''repos'',6)','ToolTipString','Rotation','Tag','spm_image:reorient:r3');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  70 065 020].*WS,'String','1','Callback','spm_image(''repos'',7)','ToolTipString','Zoom','Tag','spm_image:reorient:z1');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  50 065 020].*WS,'String','1','Callback','spm_image(''repos'',8)','ToolTipString','Zoom','Tag','spm_image:reorient:z2');
+uicontrol('Parent',u2,'Style','Edit', 'Position',[105  30 065 020].*WS,'String','1','Callback','spm_image(''repos'',9)','ToolTipString','Zoom','Tag','spm_image:reorient:z3');
 
-uicontrol('Parent',u2,'Style','Pushbutton','Position',[5 5 125 020].*WS,'String','Reorient images...',...
+uicontrol('Parent',u2,'Style','Pushbutton','Position',[5 5 90 020].*WS,'String','Set Origin',...
+    'Callback','spm_image(''setorigin'')','ToolTipString','Set origin to crosshair position');
+uicontrol('Parent',u2,'Style','Pushbutton','Position',[95 5 90 020].*WS,'String','Reorient...',...
     'Callback','spm_image(''reorient'')','ToolTipString','Modify position information of selected images');
-uicontrol('Parent',u2,'Style','Pushbutton','Position',[130 5 55 020].*WS,'String','Reset...',...
-    'Callback','spm_image(''resetorient'')','ToolTipString','Reset orientations of selected images');
 
 % Header information
 %--------------------------------------------------------------------------
