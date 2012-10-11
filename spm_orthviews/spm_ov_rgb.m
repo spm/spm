@@ -1,19 +1,19 @@
 function ret = spm_ov_rgb(varargin)
-% RGB overlays
+% RGB overlays - plugin for spm_orthviews
 % A shorthand to overlaying the absolute value of three different images
 % onto a displayed image in colours red, green and blue. The overlay images
 % are optionally masked and multiplied with a scaling image. The displayed
 % overlay images are the absolute value of the given overlays.
 %
-% This routine is a plugin to spm_orthviews for SPM8. For general help about
+% This routine is a plugin to spm_orthviews. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
-% at the matlab prompt.
+% at the MATLAB prompt.
 %__________________________________________________________________________
-%
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_rgb.m 3063 2009-04-17 14:43:23Z guillaume $
+% $Id: spm_ov_rgb.m 4996 2012-10-11 18:28:37Z guillaume $
 
 global st;
 if isempty(st)
@@ -29,8 +29,8 @@ volhandle = varargin{2};
 
 switch cmd
 
+    %-Context menu and callbacks
     %----------------------------------------------------------------------
-    % Context menu and callbacks
     case 'context_menu'
         item0 = uimenu(varargin{3}, 'Label', 'RGB overlays');
         item1 = uimenu(item0, 'Label', 'Add', 'Callback', ...
@@ -42,9 +42,9 @@ switch cmd
     case 'context_init'
         Finter = spm_figure('FindWin', 'Interactive');
         spm_input('!DeleteInputObj',Finter);
-        [Vqfnames sts] = spm_select(3, 'image',...
+        [Vqfnames,sts] = spm_select(3, 'image',...
             'RGB components images (such as eigenvectors)');
-        if ~sts, return; end;
+        if ~sts, return; end
         Vq = spm_vol(Vqfnames);
         Vfafname = spm_select([0 1],'image','Scaling image (FA) (optional)');
         Vfa = spm_vol(Vfafname);
@@ -53,7 +53,7 @@ switch cmd
         spm('pointer','watch');
         Vamq = rmfield(Vq,'private');
         for k=1:3
-            [p n e v] = spm_fileparts(Vq(k).fname);
+            [p,n,e,v] = spm_fileparts(Vq(k).fname);
             sel = 2*isempty(Vmask)+isempty(Vfa);
             switch(sel)
                 case 0, %both Vmask and Vfa set

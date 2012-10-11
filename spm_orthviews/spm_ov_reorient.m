@@ -9,29 +9,32 @@ function ret = spm_ov_reorient(varargin)
 % reorient images while comparing their position to reference images
 % simultaneously.
 %
-% This routine is a plugin to spm_orthviews for SPM8. For general help about
+% This routine is a plugin to spm_orthviews. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
-% at the matlab prompt.
-%_____________________________________________________________________________
-% $Id: spm_ov_reorient.m 4957 2012-09-24 15:53:31Z ged $
+% at the MATLAB prompt.
+%__________________________________________________________________________
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-rev = '$Revision: 4957 $';
+% Volkmar Glauche
+% $Id: spm_ov_reorient.m 4996 2012-10-11 18:28:37Z guillaume $
 
 global st;
 if isempty(st)
     error('reorient: This routine can only be called as a plugin for spm_orthviews!');
-end;
+end
 
 if nargin < 2
     error('reorient: Wrong number of arguments. Usage: spm_orthviews(''reorient'', cmd, volhandle, varargin)');
-end;
+end
 
 cmd = lower(varargin{1});
 volhandle = varargin{2};
+
 switch cmd
-    %-------------------------------------------------------------------------
-    % Context menu and callbacks
+    
+    %-Context menu and callbacks
+    %----------------------------------------------------------------------
     case 'context_menu'
         item0 = uimenu(varargin{3}, 'Label', 'Reorient image(s)',...
             'Tag', ['REORIENT_M_', num2str(volhandle)]);
@@ -165,7 +168,7 @@ switch cmd
         end
         sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
         if strcmpi(sv, 'yes')
-            [p n] = spm_fileparts(st.vols{volhandle}.fname);
+            [p,n] = spm_fileparts(st.vols{volhandle}.fname);
             [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
             if ~isequal(f,0)
                 save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
@@ -175,8 +178,8 @@ switch cmd
         spm_orthviews('reload_mats');
         spm_orthviews('Reposition', [0 0 0])
         
-        %-------------------------------------------------------------------------
-        % Interaction callbacks
+    % Interaction callbacks
+    %----------------------------------------------------------------------
         
     case 'apply'
         M = st.vols{volhandle(1)}.premul;
@@ -194,7 +197,7 @@ switch cmd
             end
             sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
             if strcmpi(sv, 'yes')
-                [p n] = spm_fileparts(st.vols{volhandle(1)}.fname);
+                [p,n] = spm_fileparts(st.vols{volhandle(1)}.fname);
                 [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
                 if ~isequal(f,0)
                     save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
@@ -241,7 +244,7 @@ switch cmd
                         if h ~= volhandle
                             axes(st.vols{h}.ax{d}.ax);
                             hold on;
-                            [C st.vols{volhandle}.reorient.lh{end+1}]=contour(CData,ncl,'r-');
+                            [C,st.vols{volhandle}.reorient.lh{end+1}]=contour(CData,ncl,'r-');
                         end;
                     end;
                 end;

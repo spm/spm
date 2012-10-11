@@ -34,9 +34,9 @@ function str = spm_file(str,varargin)
 % spm_file({'/home/karl/software/spm8/spm.m'},'path','/home/karl/spm12')
 % returns {'/home/karl/spm12/spm.m'}
 %
-% spm_file('/home/karl/software/spm8/spm.m','filename')
+% spm_file('/home/karl/software/spm12/spm.m','filename')
 % returns 'spm.m', and
-% spm_file('/home/karl/software/spm8/spm.m','basename')
+% spm_file('/home/karl/software/spm12/spm.m','basename')
 % returns 'spm'
 %
 % spm_file('SPM.mat','fpath')
@@ -49,10 +49,10 @@ function str = spm_file(str,varargin)
 %
 % See also: spm_fileparts, spm_select, spm_file_ext, spm_existfile
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 4788 2012-07-17 13:40:55Z ged $
+% $Id: spm_file.m 4996 2012-10-11 18:28:37Z guillaume $
 
 
 needchar = ischar(str);
@@ -132,7 +132,7 @@ while ~isempty(options)
             case 'number'
                 if isnumeric(options{2})
                     if any(round(options{2}) ~= options{2})
-                        error('Frame numbers must be whole')
+                        error('Frame numbers must be whole.')
                     end
                     options{2} = sprintf(',%d', options{2});
                 end
@@ -142,7 +142,7 @@ while ~isempty(options)
             case 'suffix'
                 nam = [nam options{2}];
             otherwise
-                warning('Unknown item ''%s'': ignored',lower(options{1}));
+                warning('Unknown item ''%s'': ignored.',lower(options{1}));
         end
         str{n} = fullfile(pth,[nam ext num]);
     end

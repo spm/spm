@@ -82,28 +82,30 @@ function ret = spm_ov_roi(varargin)
 %            mask).
 % Quit       Quit ROI tool
 %
-% This routine is a plugin to spm_orthviews for SPM8. For general help about
+% This routine is a plugin to spm_orthviews. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
-% at the matlab prompt.
-%_____________________________________________________________________________
-% $Id: spm_ov_roi.m 4739 2012-05-16 07:49:53Z volkmar $
+% at the MATLAB prompt.
+%__________________________________________________________________________
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+
+% Volkmar Glauche
+% $Id: spm_ov_roi.m 4996 2012-10-11 18:28:37Z guillaume $
 
 % Note: This plugin depends on the blobs set by spm_orthviews('addblobs',...) 
 % They should not be removed while ROI tool is active and no other blobs be
 % added. This restriction may be removed when using the 'alpha' property
 % to overlay blobs onto images. 
 
-rev = '$Revision: 4739 $';
 
 global st;
 if isempty(st)
     error('roi: This routine can only be called as a plugin for spm_orthviews!');
-end;
+end
 
 if nargin < 2
     error('roi: Wrong number of arguments. Usage: spm_orthviews(''roi'', cmd, volhandle, varargin)');
-end;
+end
 
 cmd = lower(varargin{1});
 volhandle = varargin{2};
@@ -121,7 +123,7 @@ switch cmd
         switch varargin{4} % loadasroi
             case 1,
                 roi = spm_read_vols(Vroi)>0;
-                [x y z] = ndgrid(1:Vroi.dim(1),1:Vroi.dim(2),1:Vroi.dim(3));
+                [x,y,z] = ndgrid(1:Vroi.dim(1),1:Vroi.dim(2),1:Vroi.dim(3));
                 xyz = [x(roi(:))'; y(roi(:))'; z(roi(:))'];
             case {0,2} % ROI space image or SPM mat
                 Vroi = rmfield(Vroi,'private');
@@ -142,12 +144,12 @@ switch cmd
         % draw a frame only if ROI volume different from underlying GM volume
         if any(Vroi.dim(1:3)-st.vols{volhandle}.dim(1:3))|| ...
                 any(Vroi.mat(:)-st.vols{volhandle}.mat(:))
-            [xx1 yx1 zx1] = ndgrid(1            , 1:Vroi.dim(2), 1:Vroi.dim(3));
-            [xx2 yx2 zx2] = ndgrid(Vroi.dim(1)  , 1:Vroi.dim(2), 1:Vroi.dim(3));
-            [xy1 yy1 zy1] = ndgrid(1:Vroi.dim(1), 1            , 1:Vroi.dim(3));
-            [xy2 yy2 zy2] = ndgrid(1:Vroi.dim(1), Vroi.dim(2)  , 1:Vroi.dim(3));
-            [xz1 yz1 zz1] = ndgrid(1:Vroi.dim(1), 1:Vroi.dim(2), 1);
-            [xz2 yz2 zz2] = ndgrid(1:Vroi.dim(1), 1:Vroi.dim(2), Vroi.dim(3));
+            [xx1,yx1,zx1] = ndgrid(1            , 1:Vroi.dim(2), 1:Vroi.dim(3));
+            [xx2,yx2,zx2] = ndgrid(Vroi.dim(1)  , 1:Vroi.dim(2), 1:Vroi.dim(3));
+            [xy1,yy1,zy1] = ndgrid(1:Vroi.dim(1), 1            , 1:Vroi.dim(3));
+            [xy2,yy2,zy2] = ndgrid(1:Vroi.dim(1), Vroi.dim(2)  , 1:Vroi.dim(3));
+            [xz1,yz1,zz1] = ndgrid(1:Vroi.dim(1), 1:Vroi.dim(2), 1);
+            [xz2,yz2,zz2] = ndgrid(1:Vroi.dim(1), 1:Vroi.dim(2), Vroi.dim(3));
             
             fxyz = [xx1(:)' xx2(:)' xy1(:)' xy2(:)' xz1(:)' xz2(:)'; ...
                     yx1(:)' yx2(:)' yy1(:)' yy2(:)' yz1(:)' yz2(:)'; ...
@@ -199,7 +201,7 @@ switch cmd
                 pos = round(st.vols{volhandle}.roi.Vroi.mat\ ...
                             [spm_orthviews('pos'); 1]); 
                 tmp = round((st.vols{volhandle}.roi.box-1)/2);
-                [sx sy sz] = meshgrid(-tmp(1):tmp(1), -tmp(2):tmp(2), -tmp(3):tmp(3));
+                [sx,sy,sz] = meshgrid(-tmp(1):tmp(1), -tmp(2):tmp(2), -tmp(3):tmp(3));
                 sel = [sx(:)';sy(:)';sz(:)']+repmat(pos(1:3), 1,prod(2*tmp+1));
                 tochange = sel(:, (all(sel>0) &...
                                    sel(1,:)<=st.vols{volhandle}.roi.Vroi.dim(1) & ...
@@ -336,7 +338,7 @@ switch cmd
                     polvx = st.vols{volhandle}.roi.Vroi.mat\(st.Space*(M0\...
                             [x(:)';y(:)'; zeros(size(x(:)')); ones(size(x(:)'))]));
                     % Bounding volume for polygon in ROI voxel space
-                    [xbox ybox zbox] = ndgrid(max(min(floor(polvx(1,:)-polyoff(1))),1):...
+                    [xbox,ybox,zbox] = ndgrid(max(min(floor(polvx(1,:)-polyoff(1))),1):...
                                               min(max(ceil(polvx(1,:)+polyoff(1))),...
                                                   st.vols{volhandle}.roi.Vroi.dim(1)),...
                                               max(min(floor(polvx(2,:)-polyoff(2))),1):...
@@ -364,7 +366,7 @@ switch cmd
     case 'thresh'
         spm('pointer','watch');
         rind = find(st.vols{volhandle}.roi.roi);
-        [x y z]=ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),rind);
+        [x,y,z]=ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),rind);
         tmp = round(st.vols{volhandle}.mat \ ...
                     st.vols{volhandle}.roi.Vroi.mat*[x'; y'; z'; ones(size(x'))]); 
         dat = spm_sample_vol(st.vols{volhandle}, ...
@@ -383,7 +385,7 @@ switch cmd
         spm('pointer','watch');
         V = zeros(size(st.vols{volhandle}.roi.roi));
         spm_smooth(double(st.vols{volhandle}.roi.roi), V, 2);
-        [ero(1,:) ero(2,:) ero(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),...
+        [ero(1,:),ero(2,:),ero(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),...
                                                find(V(:)>st.vols{volhandle}.roi.erothresh));
         if strcmp(st.vols{volhandle}.roi.mode,'set')
             toset   = ero;
@@ -395,7 +397,7 @@ switch cmd
         
     case {'connect', 'cleanup'}
         spm('pointer','watch');    
-        [V L] = spm_bwlabel(double(st.vols{volhandle}.roi.roi),6);
+        [V,L] = spm_bwlabel(double(st.vols{volhandle}.roi.roi),6);
         sel = [];
         switch cmd
             case 'connect'
@@ -419,7 +421,7 @@ switch cmd
             end;
             ind = cat(1,ind1{:});
             conn = zeros(3,numel(ind));
-            [conn(1,:) conn(2,:) conn(3,:)] = ...
+            [conn(1,:),conn(2,:),conn(3,:)] = ...
                 ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),ind);
             
             if strcmp(st.vols{volhandle}.roi.mode,'set')
@@ -449,7 +451,7 @@ switch cmd
         
     case 'addfile'
         V = spm_vol(spm_select([1 Inf],'image','Image(s) to add'));
-        [x y z] = ndgrid(1:st.vols{volhandle}.roi.Vroi.dim(1),...
+        [x,y,z] = ndgrid(1:st.vols{volhandle}.roi.Vroi.dim(1),...
                          1:st.vols{volhandle}.roi.Vroi.dim(2),...
                          1:st.vols{volhandle}.roi.Vroi.dim(3));
         xyzmm = st.vols{volhandle}.roi.Vroi.mat*[x(:)';y(:)';z(:)'; ...
@@ -461,7 +463,7 @@ switch cmd
             dat(~isfinite(dat)) = 0;
             msk = msk | logical(dat);
         end;
-        [tochange(1,:) tochange(2,:) tochange(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),find(msk));
+        [tochange(1,:),tochange(2,:),tochange(3,:)] = ind2sub(st.vols{volhandle}.roi.Vroi.dim(1:3),find(msk));
         clear xyzmm xyzvx msk
         update_roi = 1;
         
@@ -469,12 +471,12 @@ switch cmd
         if strcmp(cmd,'saveas') || ...
                 exist(st.vols{volhandle}.roi.Vroi.fname, 'dir')
             flt = {'*.nii','NIfTI (1 file)';'*.img','NIfTI (2 files)'};
-            [name pth idx] = uiputfile(flt, 'Output image');
+            [name,pth,idx] = uiputfile(flt, 'Output image');
             if ~ischar(pth)
                 warning('spm:spm_ov_roi','Save cancelled');
                 return;
             end;
-            [p n e v] = spm_fileparts(fullfile(pth,name));
+            [p,n,e,v] = spm_fileparts(fullfile(pth,name));
             if isempty(e)
                 e = flt{idx,1}(2:end);
             end;

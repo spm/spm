@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 4986 2012-10-05 17:35:09Z guillaume $
+% $Id: subsasgn.m 4996 2012-10-11 18:28:37Z guillaume $
 
 
 switch subs(1).type,
@@ -367,7 +367,7 @@ if isa(val,'file_array'),
         otherwise
             error(['Unknown filename extension (' suf ').']);
     end
-    if obj.hdr.sizeof_hdr ~= 348 % i.e. == 350
+    if obj.hdr.sizeof_hdr ~= 348 % i.e. == 540
         warning('Saving file as NIfTI-1.');
         obj.hdr.sizeof_hdr = 348;
     end

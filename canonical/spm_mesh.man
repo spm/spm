@@ -18,10 +18,10 @@
 % 
 % The meshes were subsequenlty warped using the deformation field created
 % by the new segmentaton algorithm, so that the reference space was defined
-% by spm8/toolbox/Seg/TPM.nii, to improve the accuracy of the alignment.
+% by spm12/tpm/TPM.nii, to improve the accuracy of the alignment.
 %
 % They are saved in the GIfTI file format, with GZipBase64Binary encoding.
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % References:
 %
@@ -45,8 +45,8 @@
 % Etard, O., Delcroix, N., et al, 2002. Automated anatomical labelling of 
 % activations in spm using a macroscopic anatomical parcellation of the MNI 
 % MRI single subject brain. Neuroimage 15, 273-289.
-%___________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson, Daniel Wakeman and John Ashburner
-% $Id: spm_mesh.man 3025 2009-04-01 09:56:30Z guillaume $
+% $Id: spm_mesh.man 4996 2012-10-11 18:28:37Z guillaume $

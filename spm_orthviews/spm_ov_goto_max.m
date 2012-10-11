@@ -6,28 +6,30 @@ function ret = spm_ov_goto_max(varargin)
 % time, it has to read the whole image data file. This might result in a
 % slow response depending on the image dimensions.
 %
-% This routine is a plugin to spm_orthviews for SPM8. For general help about
+% This routine is a plugin to spm_orthviews. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
-% at the matlab prompt.
-%_____________________________________________________________________________
-% $Id: spm_ov_goto_max.m 4802 2012-07-23 18:37:30Z john $
+% at the MATLAB prompt.
+%__________________________________________________________________________
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-rev = '$Revision: 4802 $';
+% Volkmar Glauche
+% $Id: spm_ov_goto_max.m 4996 2012-10-11 18:28:37Z guillaume $
 
 global st;
 if isempty(st)
     error('goto_max: This routine can only be called as a plugin for spm_orthviews!');
-end;
+end
 
 if nargin < 2
     error('goto_max: Wrong number of arguments. Usage: spm_orthviews(''goto_max'', cmd, volhandle, varargin)');
-end;
+end
 
 cmd = lower(varargin{1});
 volhandle = varargin{2};
+
 switch cmd
-    %-------------------------------------------------------------------------
+
     % Context menu and callbacks
     case 'context_menu'
         item0 = uimenu(varargin{3}, 'Label', 'Goto maximum');

@@ -1,6 +1,5 @@
 function varargout=FieldMap(varargin)
-%
-% FieldMap is an SPM8 Toolbox for creating field maps and unwarping EPI.
+% FieldMap is an SPM Toolbox for creating field maps and unwarping EPI.
 % A full description of the toolbox and a usage manual can be found in 
 % FieldMap.man. This can launched by the toolbox help button or using 
 % spm_help FieldMap.man.The theoretical and practical principles behind 
@@ -106,15 +105,10 @@ function varargout=FieldMap(varargin)
 % 
 % Wellcome Trust and IBIM Consortium
 %_______________________________________________________________________
-% UPDATE 02/07 
-% Updated version of FieldMap for SPM5. 
-%
-% UPDATE 27/01/05
-%_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 4932 2012-09-17 17:27:01Z guillaume $
+% $Id: FieldMap.m 4996 2012-10-11 18:28:37Z guillaume $
 %_______________________________________________________________________
 
 persistent PF FS WS PM   % GUI related constants

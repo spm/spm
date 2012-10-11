@@ -6,22 +6,22 @@ function spm_make_standalone(outdir)
 % outside MATLAB, and therefore does not use up a MATLAB licence.
 %
 % On Windows:
-%   spm8_wxx.exe <modality>
-%   spm8_wxx.exe run <batch.m(at)>
+%   spm12_wxx.exe <modality>
+%   spm12_wxx.exe run <batch.m(at)>
 %
 % On Linux/Mac:
-%   ./run_spm8.sh <MCRroot> <modality>
-%   ./run_spm8.sh <MCRroot> run <batch.m(at)>
+%   ./run_spm12.sh <MCRroot> <modality>
+%   ./run_spm12.sh <MCRroot> run <batch.m(at)>
 %
 % The first command starts SPM in interactive mode with GUI. The second
 % executes a batch file or starts the Batch Editor if empty.
 %
 % See spm_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_make_standalone.m 4741 2012-05-16 07:53:11Z volkmar $
+% $Id: spm_make_standalone.m 4996 2012-10-11 18:28:37Z guillaume $
 
 %-Care of startup.m
 %--------------------------------------------------------------------------

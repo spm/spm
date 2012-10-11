@@ -38,17 +38,17 @@ MathWorks, Inc.  Natick, MA, USA. http://www.mathworks.com/
 eMail:info@mathworks.com. SPM requires only core MATLAB to run (no
 special toolboxes are required).
  
-SPM8 is written for MATLAB version 7.1 onwards under Windows and UNIX.
-(SPM8 will not work with versions of MATLAB prior to 7.1 (R14SP3)).
+SPM12 is written for MATLAB version 7.4 onwards under Windows and UNIX.
+(SPM12 will not work with versions of MATLAB prior to 7.4 (R2007a)).
 Binaries of the external C-mex routines are provided for Windows, Linux 
 and Mac. Users of other UNIX platforms need an ANSI C compiler to 
 compile the supplied C source (Makefile provided). 
-See http://www.fil.ion.ucl.ac.uk/spm/software/spm8/ for details.
+See http://www.fil.ion.ucl.ac.uk/spm/software/spm12/ for details.
 
-Later versions of MATLAB (released after SPM8), will probably
+Later versions of MATLAB (released after SPM12), will probably
 need additional patches in order to run.  Once developed, these will 
 be made available from:
-     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm8_updates/ 
+     ftp://ftp.fil.ion.ucl.ac.uk/spm/spm12_updates/ 
 
 With the compiled c-mex files in place, simply prepend the SPM
 directory to your MATLAB path to complete the installation. (Type `help
@@ -109,4 +109,4 @@ ________________________________________________________________________
 SPM is developed by members and collaborators of the
                                   Wellcome Trust Centre for Neuroimaging
 
-$Id: README.txt 4882 2012-09-03 11:02:30Z guillaume $
+$Id: README.txt 4996 2012-10-11 18:28:37Z guillaume $

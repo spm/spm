@@ -1,8 +1,8 @@
 
-% Welcome to SPM8
+% Welcome to SPM12
 %_______________________________________________________________________
 %
-% Please refer to this version as "SPM8" in papers and communications.
+% Please refer to this version as "SPM12" in papers and communications.
 %
 %                           ----------------
 %
@@ -12,13 +12,13 @@
 %
 %                           ----------------
 %
-% Although SPM8 will read image files from previous versions of SPM,
+% Although SPM12 will read image files from previous versions of SPM,
 % there are differences in the algorithms, templates and models used.
 % Therefore, we recommend you use a single SPM version for any given
 % project.
 %
-% The SPM8 Release Notes can be found online: 
-%            http://www.fil.ion.ucl.ac.uk/spm/software/spm8/
+% The SPM12 Release Notes can be found online: 
+%            http://www.fil.ion.ucl.ac.uk/spm/software/spm2/
 %
 % Further information may be found at the SPMweb site:
 %            http://www.fil.ion.ucl.ac.uk/spm/
@@ -34,8 +34,8 @@
 % Foundation (either version 2, as given in file spm_LICENCE.man,
 % or at your option, any later version). Further details on "copyleft"
 % can be found at http://www.gnu.org/copyleft/.
-%_______________________________________________________________________
-% Copyright (C) 1991,1994-2011 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_motd.man 4288 2011-04-04 14:45:17Z guillaume $
+% $Id: spm_motd.man 4996 2012-10-11 18:28:37Z guillaume $

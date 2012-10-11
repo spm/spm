@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4995 2012-10-11 16:00:33Z guillaume $
+% $Id: spm_image.m 4996 2012-10-11 18:28:37Z guillaume $
 
 
-SVNid = '$Rev: 4995 $';
+SVNid = '$Rev: 4996 $';
 
 global st
 
@@ -386,7 +386,7 @@ st.callback = 'spm_image(''shopos'');';
 
 WS = spm('WinScale');
 
-u0 = uipanel(fg,'Units','Pixels','Title','','Position',[60 25 200 325].*WS,...
+u0 = uipanel(fg,'Units','Pixels','Title','','Position',[40 25 200 325].*WS,...
     'DeleteFcn','spm_image(''reset'');');
 
 % Crosshair position
@@ -443,7 +443,7 @@ uicontrol('Parent',u2,'Style','Pushbutton','Position',[95 5 90 020].*WS,'String'
 
 % Header information
 %--------------------------------------------------------------------------
-u0 = uipanel(fg,'Units','Pixels','Title','','Position',[305 25 280 325].*WS);
+u0 = uipanel(fg,'Units','Pixels','Title','','Position',[280 25 280 325].*WS);
 u1 = uipanel('Parent',u0,'Units','Pixels','Title','','Position',[5 80 269 239].*WS,...
     'BorderType','Line','HighlightColor',[0 0 0]);
 

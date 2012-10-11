@@ -11,29 +11,30 @@ function ret = spm_ov_movie(varargin)
 % will be created. Movie resolution is given by the displayed image size,
 % frame rate is MATLAB standard.
 %
-% This routine is a plugin to spm_orthviews for SPM8. For general help about
+% This routine is a plugin to spm_orthviews. For general help about
 % spm_orthviews and plugins type
 %             help spm_orthviews
-% at the matlab prompt.
-%_______________________________________________________________________
-%
-% @(#) $Id: spm_ov_movie.m 2536 2008-12-08 14:14:20Z volkmar $
+% at the MATLAB prompt.
+%__________________________________________________________________________
+% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+
+% Volkmar Glauche
+% $Id: spm_ov_movie.m 4996 2012-10-11 18:28:37Z guillaume $
 
 global st;
 if isempty(st)
     error('movie: This routine can only be called as a plugin for spm_orthviews!');
-end;
+end
 
 if nargin < 2
     error('movie: Wrong number of arguments. Usage: spm_orthviews(''movie'', cmd, volhandle, varargin)');
-end;
+end
 
 cmd = lower(varargin{1});
 volhandle = varargin{2};
 
 switch cmd
     
-    %-------------------------------------------------------------------------
     % Context menu and callbacks
     case 'context_menu'
         item0 = uimenu(varargin{3}, 'Label', 'Movie tool');

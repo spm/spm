@@ -9,9 +9,9 @@
 %
 % This Contents.m file holds the version ID for this release of SPM.
 %
-% SPM8 is written for MATLAB 7.1 (R14SP3) onwards under Windows and Unix.
+% SPM12 is written for MATLAB 7.4 (R2007a) onwards under Windows and Unix.
 % ( Compiled binaries of external C-MEX functions are provided for:       )
-% ( Windows (32 and 64 bit), Linux (32 and 64 bit) and Mac (32 and 64 bit))
+% ( Windows (32 and 64 bit), Linux (64 bit) and Mac (64 bit))
 %
 % See spm.man for details of this release.
 % See README.txt for information on installation and getting started.
@@ -40,9 +40,9 @@
 % You should  have received a copy of the  GNU General Public License along
 % with SPM, in spm_LICENCE.man. If not, see <http://www.gnu.org/licenses/>.
 %__________________________________________________________________________
-% Copyright (C) 1991,1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 4411 2011-08-01 14:43:21Z guillaume $
+% $Id: Contents.m 4996 2012-10-11 18:28:37Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:

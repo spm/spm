@@ -3,10 +3,10 @@ function V = spm_create_vol(V)
 % FORMAT V = spm_create_vol(V)
 % V        - image volume information (see spm_vol.m)
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 4491 2011-09-14 16:27:50Z guillaume $
+% $Id: spm_create_vol.m 4996 2012-10-11 18:28:37Z guillaume $
 
 
 for i=1:numel(V)
@@ -62,7 +62,7 @@ switch ext
 case {'img'}
     minoff = 0;
 case {'nii'}
-    minoff = 352;
+    minoff = 352; % or 544 for NIfTI-2
 otherwise
     error(['".' ext '" is not a recognised extension.']);
 end
