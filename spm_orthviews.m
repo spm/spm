@@ -148,10 +148,10 @@ function varargout = spm_orthviews(action,varargin)
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 4985 2012-10-05 15:32:18Z ged $
+% $Id: spm_orthviews.m 5002 2012-10-12 17:27:39Z guillaume $
 
 
 % The basic fields of st are:
@@ -1771,17 +1771,20 @@ switch lower(varargin{1})
             end
         end
         item4  = uimenu(varargin{2}, 'Label',str);
-        item5  = uimenu(varargin{2}, 'Label', 'Image dims', 'Separator','on');
+        item5  = uimenu(varargin{2}, 'Label', 'Image dimensions', 'Separator','on');
         item51 = uimenu(varargin{2}, 'Label',...
             sprintf('%dx%dx%d', st.vols{current_handle}.dim(1:3)));
+        
         prms   = spm_imatrix(st.vols{current_handle}.mat);
-        item6  = uimenu(varargin{2}, 'Label','Voxel size', 'Separator','on');
+        item6  = uimenu(varargin{2}, 'Label', 'Voxel size', 'Separator','on');
         item61 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', prms(7:9)));
-        item7  = uimenu(varargin{2}, 'Label','Origin', 'Separator','on');
-        item71 = uimenu(varargin{2}, 'Label',...
-            sprintf('%.2f %.2f %.2f', prms(1:3)));
+        
+        O      = st.vols{current_handle}.mat\[0 0 0 1]'; O=O(1:3)';
+        item7  = uimenu(varargin{2}, 'Label', 'Origin', 'Separator','on');
+        item71 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', O));
+        
         R      = spm_matrix([0 0 0 prms(4:6)]);
-        item8  = uimenu(varargin{2}, 'Label','Rotations', 'Separator','on');
+        item8  = uimenu(varargin{2}, 'Label', 'Rotations', 'Separator','on');
         item81 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(1,1:3)));
         item82 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(2,1:3)));
         item83 = uimenu(varargin{2}, 'Label', sprintf('%.2f %.2f %.2f', R(3,1:3)));
