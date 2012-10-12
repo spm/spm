@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 4771 2012-06-20 14:49:22Z volkmar $
+% $Id: spm_cfg_results.m 5001 2012-10-12 15:46:16Z guillaume $
 
 
 % ---------------------------------------------------------------------
@@ -26,6 +26,7 @@ titlestr.help    = {'Heading on results page - determined automatically if left 
 titlestr.val     = {''};
 titlestr.strtype = 's';
 titlestr.num     = [0 Inf];
+titlestr.hidden  = true;
 % ---------------------------------------------------------------------
 % contrasts Contrast(s)
 % ---------------------------------------------------------------------

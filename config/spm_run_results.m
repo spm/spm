@@ -7,9 +7,9 @@ function out = spm_run_results(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 4747 2012-05-24 11:11:10Z guillaume $
+% $Id: spm_run_results.m 5001 2012-10-12 15:46:16Z guillaume $
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
@@ -21,7 +21,7 @@ for k = 1:numel(cspec)
             cspec1(l).contrasts = l;
         end
         job1           = job;
-        job1.print     = 1;
+        %job1.print     = 1;
         job1.conspec   = cspec1;
         out = spm_run_results(job1);
     else
