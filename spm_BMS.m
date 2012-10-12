@@ -25,7 +25,7 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 3187 2009-06-07 18:01:43Z klaas $
+% $Id: spm_BMS.m 5000 2012-10-12 12:46:58Z vladimir $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -169,6 +169,7 @@ if sampling
             alpha_s                = [a(i),alpha_max-a(i)];
             [F_samp(i),F_bound(i)] = spm_BMS_F(alpha_s,lme,alpha0);
         end
+        if do_plot
         % graphical display
         %------------------------------------------------------------------
         fig2 = figure;
@@ -183,6 +184,7 @@ if sampling
         set(legend2,'Position',[0.15 0.8 0.2 0.1],'FontSize',14);
         xlabel('\alpha_1','FontSize',18);
         ylabel('F','FontSize',18);
+        end
     else
         fprintf('\n%s\n','Verification of alpha estimates by sampling not available.')
         fprintf('%s\n','This approach is currently only implemented for comparison of 2 models.');
