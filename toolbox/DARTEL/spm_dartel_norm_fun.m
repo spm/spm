@@ -35,11 +35,11 @@ function out = spm_dartel_norm_fun(job)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_norm_fun.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dartel_norm_fun.m 5003 2012-10-15 10:03:22Z guillaume $
 
 % Hard coded stuff, that should maybe be customisable
 K    = 6;
-tpm  = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii');
+tpm  = fullfile(spm('Dir'),'tpm','TPM.nii');
 Mmni = spm_get_space(tpm);
 
 % DARTEL template
@@ -59,7 +59,7 @@ Mt   = Nt.mat;
 dimt = size(Nt.dat);
 
 if any(isfinite(bb(:))) || any(isfinite(vox)),
-    [bb0 vox0] = spm_get_bbox(Nt, 'old');
+    [bb0,vox0] = spm_get_bbox(Nt, 'old');
     
     msk = ~isfinite(vox); vox(msk) = vox0(msk);
     msk = ~isfinite(bb);   bb(msk) =  bb0(msk);
@@ -89,7 +89,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
             load(fullfile(pth,[nam '_2mni.mat']),'mni');
         else
             % Affine registration of DARTEL Template with MNI space.
-            %--------------------------------------------------------------------------
+            %--------------------------------------------------------------
             fprintf('** Affine registering "%s" with MNI space **\n', nam);
             clear mni
             mni.affine = Mmni/spm_klaff(Nt,tpm);
@@ -107,7 +107,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
 
     if isfield(job.data,'subjs')
         % Re-order data
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         subjs = job.data.subjs;
         subj  = struct('flowfield',cell(numel(subjs.flowfields),1),...
                        'images',   cell(numel(subjs.flowfields),1));
@@ -123,7 +123,7 @@ if isfield(job.data,'subj') || isfield(job.data,'subjs'),
     end
 
     % Loop over subjects
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     out = cell(1,numel(subj));
     for i=1:numel(subj),
         % Spatially normalise data from this subject
