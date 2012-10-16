@@ -42,7 +42,7 @@ function [family,model] = spm_compare_families (lme,family)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 4832 2012-08-08 14:28:00Z will $
+% $Id: spm_compare_families.m 5006 2012-10-16 14:28:02Z will $
 
 try
     infer=family.infer;
@@ -117,7 +117,6 @@ if strcmp(infer,'FFX')
         end
     end
     sumlme=sum(lme,1);
-    max_val=max_val/N;
     slme=sign(sumlme).*min(max_val,abs(sumlme));
     
     % Model likelihoods
