@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 4476 2011-09-09 18:13:50Z guillaume $
+% $Id: spm_run_fmri_est.m 5008 2012-10-16 18:13:25Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -233,6 +233,9 @@ for c = 1:length(job.method.Bayesian.gcon)
     convec      = job.method.Bayesian.gcon(c).convec(:);
     if length(convec) == K
         DxCon.c = convec;
+    elseif length(convec) < K
+        fprintf('Zero padding.');                                       %-#
+        DxCon.c = [convec; zeros(K-length(convec),1)];
     else
         warning(['User-specified contrast nb %d has %d entries '...
             'but there are %d regressors - ignored.'], c,length(convec),K);

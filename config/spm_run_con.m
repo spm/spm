@@ -7,7 +7,7 @@ function out = spm_run_con(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_run_con.m 5008 2012-10-16 18:13:25Z guillaume $
 
 
 %-Change to the analysis directory
@@ -44,7 +44,7 @@ if job.delete && isfield(SPM,'xCon')
                 case 'img'
                     n = spm_file(f,'basename');
                     spm_unlink([n '.img'],[n '.hdr']);
-                case 'nii'
+                otherwise
                     spm_unlink(f);
             end
         end
@@ -54,7 +54,7 @@ if job.delete && isfield(SPM,'xCon')
                 case 'img'
                     n = spm_file(f,'basename');
                     spm_unlink([n '.img'],[n '.hdr']);
-                case 'nii'
+                otherwise
                     spm_unlink(f);
             end
         end
@@ -276,8 +276,8 @@ cd(cwd);
 out.spmmat = job.spmmat;
 %out.spmvar = SPM;
 if isfield(SPM, 'xCon') && ~isempty(SPM.xCon)
-    Vcon = cat(1,SPM.xCon.Vcon);
-    Vspm = cat(1,SPM.xCon.Vspm);
+    Vcon = [SPM.xCon.Vcon]; %cat(1,SPM.xCon.Vcon);
+    Vspm = [SPM.xCon.Vspm]; %cat(1,SPM.xCon.Vspm);
 elseif isfield(SPM, 'PPM') && ~isempty(SPM.PPM)
     Vcon = cat(1,SPM.PPM.xCon.Vcon);
     Vspm = cat(1,SPM.PPM.xCon.Vspm);
