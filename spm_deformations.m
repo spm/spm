@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 4982 2012-10-03 12:28:30Z john $
+% $Id: spm_deformations.m 5009 2012-10-19 11:21:02Z john $
 
 [Def,mat] = get_comp(job.comp);
 out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
@@ -268,9 +268,12 @@ Def = identity(d,mat);
 function [Def,mat] = get_idbbvox(job)
 % Get an identity transform based on bounding box and voxel size.
 % This will produce a transversal image.
-d   = floor(diff(job.bb)./job.vox);
-d(d == 0) = 1;
-mat = diag([-1 1 1 1])*spm_matrix([job.bb(1,:) 0 0 0 job.vox]);
+bb  = job.bb;
+bb  = sort(bb);
+vox = abs(job.vox);
+bb  = [round(bb(1,:)./vox).*vox; round(bb(2,:)./vox).*vox];
+d   = floor(diff(job.bb)./job.vox + 1);
+mat = diag([-1 1 1 1])*spm_matrix([bb(1,:)-vox 0 0 0 vox]);
 Def = identity(d,mat);
 %_______________________________________________________________________
 
@@ -508,6 +511,11 @@ else
     Mt   = mat;
     dimt = [size(Def,1),size(Def,2),size(Def,3)];
     if any(isfinite(bb(:))) || any(isfinite(vox)),
+
+        % This option does not work as expected because a good default
+        % bounding box is not defined.  The bb we want is that of the
+        % space we want to move points to, whereas the one we have is
+        % actually that of the image we want to push the voxels from.
         [bb0,vox0] = bbvox(Mt,dimt);
 
         msk = ~isfinite(vox); vox(msk) = vox0(msk);
