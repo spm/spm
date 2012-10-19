@@ -6,7 +6,7 @@ function spm_srender(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 2706 2009-02-06 16:16:31Z john $
+% $Id: spm_srender.m 5011 2012-10-19 13:11:12Z john $
 
 
 fg  = spm_figure('GetWin','Graphics');
@@ -16,6 +16,7 @@ set(fg,'Renderer','OpenGL');
 ax = axes('Parent',fg,'DeleteFcn',['rotate3d off; set(gcf,''Renderer'',''' ren ''');']);
 
 try
+    set(fg,'CurrentAxes',ax);
     cameramenu
     drawnow
 catch
@@ -45,8 +46,9 @@ for i=1:numel(job.Light),
         'Color',[obj.Color.Red,obj.Color.Green, obj.Color.Blue]);
 end
 
-set(0,'CurrentFigure',fg);
+%set(0,'CurrentFigure',fg);
 set(fg,'CurrentAxes',ax);
-axis image;
+axis image equal off;
+lighting phong;
 drawnow;
 
