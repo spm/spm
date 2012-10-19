@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 4915 2012-09-11 17:38:30Z ged $
+% $Id: spm_defaults.m 5010 2012-10-19 11:47:42Z john $
 
 
 global defaults
@@ -134,7 +134,7 @@ defaults.coreg.write.mask        = 0;
 % Spatial Normalisation defaults
 %==========================================================================
 defaults.normalise.write.preserve   = 0;
-defaults.normalise.write.bb         = [[-78 -112 -50];[78 76 85]];
+defaults.normalise.write.bb         = [[-78 -112 -70];[78 76 85]];
 defaults.normalise.write.vox        = [2 2 2];
 defaults.normalise.write.interp     = 4;
 

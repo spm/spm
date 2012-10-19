@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5009 2012-10-19 11:21:02Z john $
+% $Id: spm_cfg_deformations.m 5010 2012-10-19 11:47:42Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -327,7 +327,7 @@ fromimage.help   = {'Use the dimensions, orientation etc of some pre-existing im
 surfa        = cfg_files;
 surfa.name   = 'Surface';
 surfa.tag    = 'surface';
-surfa.filter = 'gifti';
+surfa.filter = 'mesh';
 surfa.num    = [1 Inf];
 surfa.help   = {'Select a GIFTI file to warp.'};
 % ---------------------------------------------------------------------
@@ -485,7 +485,7 @@ for i=1:numel(job.out)
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Surfaces';
         vo(end).src_output = substruct('.','surf');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','gifti'}}); % Doesn't work.
+        vo(end).tgt_spec   = cfg_findspec({{'filter','mesh'}});
     end
     if isfield(out,'savejac') && ~savejac,
         savejac = true;

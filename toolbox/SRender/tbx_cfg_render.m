@@ -4,7 +4,7 @@ function render = tbx_cfg_render
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_render.m 3802 2010-03-29 13:07:15Z john $
+% $Id: tbx_cfg_render.m 5010 2012-10-19 11:47:42Z john $
 
 % ---------------------------------------------------------------------
 % images Input Images
@@ -467,5 +467,6 @@ for k=1:numel(job.surface),
     dep(k).sname      = ['Surface File ' num2str(k)];
     dep(k).src_output = substruct('.','SurfaceFile','()',{k});
 %   dep(k).tgt_spec   = cfg_findspec({{'filter','.*\.gii$'}});
-    dep(k).tgt_spec   = cfg_findspec({{'filter','any'}});
+    dep(k).tgt_spec   = cfg_findspec({{'filter','mesh'}});
 end
+
