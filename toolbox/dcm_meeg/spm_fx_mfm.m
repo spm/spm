@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_fx_mfm.m 5013 2012-10-23 19:26:01Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -182,7 +182,6 @@ end
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------
 if isfield(P,'U')
-    
     B = exp(P.U)/8;
 else
     B = 0;

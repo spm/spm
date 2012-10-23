@@ -35,7 +35,7 @@ function spm_nested_oscillations_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nested_oscillations_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_nested_oscillations_demo.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % number of regions in coupled map lattice
@@ -82,6 +82,8 @@ p     = 3;                                               % pyramidal cells
 %----------------------------------------------------------------------
 MFM   = spm_int_B(pE,MF,U);
 NMM   = spm_int_B(pE,NM,U);
+
+spm_figure('GetWin','Nested Oscillations')
  
 subplot(2,1,1)
 plot(t,MFM(:,1:3),t,U.u,':')

@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_induced_demo.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % Model specification
@@ -150,6 +150,8 @@ spm_figure('GetWin','Predicted responses');
 xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
+
+return
 
 
 % Integrate system to simulate responses

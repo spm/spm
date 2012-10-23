@@ -5,7 +5,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
-% U - trial-specific effects
+% U - trial-specific effects (induces expansion around steady state)
 %
 % y - {y(N,nc,nc}} - cross-spectral density for nc channels {trials}
 %                  - for N frequencies in M.Hz [default 1:64Hz]
@@ -29,7 +29,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_csd_mtf.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % between-trial (experimental) inputs
@@ -53,20 +53,17 @@ end
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
-    dt = 1/(2*round(M.Hz(end)));
-    N  = 1/dt;
-    w  = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
+    w    = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
 catch
-    N  = 128;
-    dt = 1/N;
-    w  = 1:N/2;
+    w    = 1:64;
+    M.Hz = w;
 end
  
 % number of channels and exogenous (neuronal) inputs or sources
 %--------------------------------------------------------------------------
 nc   = M.l;
 ns   = length(M.u);
-nw   = length(w);
+nw   = length(M.Hz);
  
 % spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
@@ -105,37 +102,18 @@ for  c = 1:size(X,1)
         
     end
     
+
     % solve for steady-state - if exogenous inputs are specified
     %----------------------------------------------------------------------
     if nargin > 2
-        M.x   = spm_dcm_neural_x(Q,M);
+        M.x = spm_dcm_neural_x(Q,M);
     end
-    
-    
-    % delay operator - if not specified already
-    %----------------------------------------------------------------------
-    if ~isfield(M,'D') && nargout(M.f) == 3
-        [~,~,D] = feval(M.f,M.x,M.u,Q,M);
-        M.D     = D;
-    end
-    
-    
-    % augment and bi-linearise
-    %----------------------------------------------------------------------
-    [M0,M1,L] = spm_bireduce(M,Q);
-    M0        = spm_bilinear_condition(M0,N,dt);
-    
-    
-    % kernels
-    %----------------------------------------------------------------------
-    [~,K] = spm_kernels(M0,M1,L,N,dt);
-    
 
     % transfer functions (FFT of kernel)
     %----------------------------------------------------------------------
-    S     = fft(K);
-    S     = S(w + 1,:,:);
+    S     = spm_dcm_mtf(Q,M);
     
+   
     % [cross]-spectral density from neuronal innovations
     %----------------------------------------------------------------------
     G     = zeros(nw,nc,nc);

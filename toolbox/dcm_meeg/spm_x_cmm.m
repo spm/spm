@@ -24,7 +24,7 @@ function [x,M] = spm_x_cmm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_cmm.m 4912 2012-09-07 19:52:41Z karl $
+% $Id: spm_x_cmm.m 5013 2012-10-23 19:26:01Z karl $
  
 
 % dimensions
@@ -48,11 +48,9 @@ M.pE  = P;
 M.n   = length(spm_vec(x));
 M.u   = sparse(ns,1);
 
-% solve for fixed point 
+% solve for steady state
 %--------------------------------------------------------------------------
-U.u   = sparse(16,ns);
-U.dt  = 32/1000;
-x     = spm_int_ode(P,M,U);
-x     = spm_unvec(x(end,:),M.x);
-M.x   = x;
+x     = spm_dcm_neural_x(P,M);
+
+
 

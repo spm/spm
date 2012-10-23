@@ -33,7 +33,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_fx_fmri.m 5013 2012-10-23 19:26:01Z karl $
 
 
 % Neuronal motion
@@ -69,10 +69,20 @@ else
     %----------------------------------------------------------------------
     A      = exp(P.A)/8;             % enforce positivity
     IE     = diag(diag(A));          % inhibitory to excitatory
+    EI     = eye(length(A));         % excitatory to inhibitory
     EE     = A - IE;                 % excitatory to excitatory
-    EI     = 1;                      % excitatory to inhibitory
     SE     = 1;                      % self-inhibition (excitatory)
     SI     = 2;                      % self-inhibition (inhibitory)
+    
+    % switch excitatory to excitatory -> excitatory to inhibitory
+    %----------------------------------------------------------------------
+    in     = {};
+    
+    for i = 1:length(in)
+        EI(in{i}(1),in{i}(2)) = EE(in{i}(1),in{i}(2));
+        EE(in{i}(1),in{i}(2)) = 0;
+    end
+    
 
     % motion - excitatory and inhibitory: y = dx/dt
     %----------------------------------------------------------------------

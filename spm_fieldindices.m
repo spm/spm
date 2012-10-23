@@ -12,7 +12,7 @@ function [i] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 4987 2012-10-05 19:21:44Z karl $
+% $Id: spm_fieldindices.m 5013 2012-10-23 19:26:01Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -39,7 +39,7 @@ X0    = spm_unvec(X0,X);
 %--------------------------------------------------------------------------
 for i = 1:length(varargin)
     
-    if ischar(varargin{i})
+    if ischar(varargin{i}) && isfield(X0,varargin{i})
         
         x  = X0;
         f  = getfield(x,varargin{i});

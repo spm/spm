@@ -4,8 +4,8 @@ function E = DCM_ROBOT
 %   options.analysis     - 'ERP','CSD', 'IND' or 'TFM
 %   options.model        - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
 %   options.spatial      - 'ECD','LFP' or 'IMG'
- 
- 
+
+
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
 try
@@ -20,16 +20,16 @@ if exist('DEMO.ps','file')
 end
 clc
 E = {};
- 
- 
+
+
 % spatial models
 %==========================================================================
 load DCM_MMN
 DCM.options.analysis = 'ERP';
 DCM.options.model    = 'ERP';
 DCM.name             = 'DCM_MMN';
- 
- 
+
+
 model = {'ECD','IMG'};
 for i = 1:length(model)
     
@@ -41,7 +41,9 @@ for i = 1:length(model)
         % invert model
         %------------------------------------------------------------------
         DCM.options.spatial = model{i};
-        DCM  = rmfield(DCM,'M');
+        if isfield(DCM,'M')
+            DCM  = rmfield(DCM,'M');
+        end
         DCM  = spm_dcm_erp(DCM);
         
         spm_figure('GetWin',['ERP model: ' model{i} ' sources']);
@@ -62,15 +64,15 @@ for i = 1:length(model)
     fprintf('\n\n     --------***--------   \n\n')
     
 end
- 
- 
+
+
 % Tests of neuronal models: 'ERP', 'SEP', 'CMC', 'NMM' or 'MFM'
 %==========================================================================
 load DCM_MMN
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'ERP';
 DCM.name             = 'DCM_MMN';
- 
+
 % neural models
 %--------------------------------------------------------------------------
 model = {'ERP','SEP','LFP','CMC','CMM','NMM','MFM'};
@@ -85,7 +87,9 @@ for i = 1:length(model)
         % invert model
         %------------------------------------------------------------------
         DCM.options.model  = model{i};
-        DCM  = rmfield(DCM,'M');
+        if isfield(DCM,'M')
+            DCM  = rmfield(DCM,'M');
+        end
         DCM  = spm_dcm_erp(DCM);
         
         spm_figure('GetWin',['ERP model: ' model{i}]);
@@ -112,34 +116,34 @@ for i = 1:length(model)
     
     fprintf('\n\n     --------***--------   \n\n')
 end
- 
+
 % compare ERP models
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Model comparison ERP');
- 
+
 subplot(2,2,1)
 bar(F - min(F))
 ylabel('log-evidence','FontSize',16)
 set(gca,'XTickLabel',model)
 axis square
- 
+
 subplot(2,2,2)
 bar(R)
 ylabel('Residual SSQ','FontSize',16)
 set(gca,'XTickLabel',model)
 legend({'condition 1','condition 2'})
 axis square
- 
+
 spm_demo_print
- 
- 
+
+
 % test of steady state (CSD) models (and LFP spatial model)
 %==========================================================================
 load DCM_CSD
 DCM.options.spatial  = 'LFP';
 DCM.options.analysis = 'CSD';
 DCM.name             = 'DCM_CSD';
- 
+
 % neural models
 %--------------------------------------------------------------------------
 clear F R
@@ -155,8 +159,9 @@ for i = 1:length(model)
         % invert model
         %------------------------------------------------------------------
         DCM.options.model  = model{i};
-        
-        DCM  = rmfield(DCM,'M');
+        if isfield(DCM,'M')
+            DCM  = rmfield(DCM,'M');
+        end
         DCM  = spm_dcm_csd(DCM);
         spm_figure('GetWin',['CSD model: ' model{i}]);
         spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)
@@ -179,35 +184,37 @@ for i = 1:length(model)
     
 end
 fprintf('\n\n     --------***--------   \n\n')
- 
- 
+
+
 % compare CSD models
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Model comparison CSD');
- 
+
 subplot(2,2,1)
 bar(F - min(F))
 ylabel('log-evidence','FontSize',16)
 set(gca,'XTickLabel',model)
 axis square
- 
- 
+
+
 spm_demo_print
- 
+
 
 % test of induced response models
 %==========================================================================
 load DCM_FACES
- 
+
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'IND';
 DCM.name             = 'DCM_FACES';
- 
+
 fprintf('\nChecking spm_dcm_ind\n')
- 
+
 try
     
-    DCM  = rmfield(DCM,'M');
+    if isfield(DCM,'M')
+        DCM  = rmfield(DCM,'M');
+    end
     DCM  = spm_dcm_ind(DCM);
     spm_figure('GetWin','Induced responses - 2 conditions');
     spm_dcm_ind_results(DCM,'Time-modes',gcf);
@@ -223,19 +230,19 @@ catch
     E{end + 1} = lasterror;
     
 end
- 
+
 fprintf('\n\n     --------***--------   \n\n')
- 
+
 % test of time-frequency models
 %==========================================================================
 load DCM_TFM
- 
+
 DCM.options.spatial  = 'ECD';
 DCM.options.analysis = 'TFM';
 DCM.name             = 'DCM_TFM';
- 
+
 fprintf('\nChecking spm_dcm_tfm\n')
- 
+
 try
     
     DCM = rmfield(DCM,'M');
@@ -257,9 +264,9 @@ catch
     E{end + 1} = lasterror;
     
 end
- 
+
 fprintf('\n\n     --------***--------   \n\n')
- 
+
 % Show failed routines
 %--------------------------------------------------------------------------
 for i = 1:length(E)
@@ -270,19 +277,19 @@ for i = 1:length(E)
     end
     disp('------------------------------------------------')
 end
- 
- 
- 
+
+
+
 return
- 
+
 % Print sub-function
 %==========================================================================
 function spm_demo_print
- 
+
 % print graphics
 %--------------------------------------------------------------------------
 drawnow
- 
+
 H     = sort(get(0,'Children'));
 for j = 1:length(H);
     
@@ -295,5 +302,5 @@ for j = 1:length(H);
     
 end
 delete(H)
- 
+
 return

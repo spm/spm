@@ -37,7 +37,7 @@ function spm_ind_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 4866 2012-08-28 12:47:34Z karl $
+% $Id: spm_ind_demo.m 5013 2012-10-23 19:26:01Z karl $
 
 
 % number of regions in coupled map lattice
@@ -96,7 +96,7 @@ LFP   = spm_int_ode(pE,M,U);
  
 % display
 %==========================================================================
-spm_figure('GetWin','Figure 1')
+spm_figure('GetWin','Figure 1');
  
 % input - time
 %--------------------------------------------------------------------------

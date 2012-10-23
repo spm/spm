@@ -41,7 +41,7 @@ function spm_mtf_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_mtf_demo.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % empirical data - sort and decimate
@@ -123,7 +123,7 @@ Y.Q   = {spm_Q(1/2,length(f),1)};
  
 % invert
 %--------------------------------------------------------------------------
-[Ep,Cp,Eh,F] = spm_nlsi_GN(M,[],Y);
+Ep    = spm_nlsi_GN(M,[],Y);
  
 % plot spectral density 
 %--------------------------------------------------------------------------
@@ -136,3 +136,4 @@ xlabel('Power')
 legend({'predicted','observed'})
 axis square
 grid on
+

@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 4989 2012-10-05 19:25:07Z karl $
+% $Id: spm_induced_optimise.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % Model specification
@@ -38,12 +38,12 @@ M.dipfit.Ns    = Ns;
 P       = fieldnames(pE);
 [pE pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE pC] = spm_ssr_priors(pE,pC);
-
+ 
 % use input argument if specified
 %--------------------------------------------------------------------------
 if nargin, pE = Ep; end
-
-
+ 
+ 
 % hidden neuronal states of interest
 %--------------------------------------------------------------------------
 [x,f]     = spm_dcm_x_neural(pE,options.model);
@@ -52,7 +52,7 @@ pE.J(1:4) = [0 1 0 0];
  
 % orders and model
 %==========================================================================
-nx      = length(spm_vec(x ));
+nx      = length(spm_vec(x));
 nu      = size(pE.C,2);
 u       = sparse(1,nu);
  
@@ -94,13 +94,13 @@ for k = 1:length(P)
         for i = 1:size(Q,1)
             for j = 1:size(Q,2);
                 
-                % line search
+                % line search (with solution for steady state)
                 %----------------------------------------------------------
                 dQ    = linspace(Q(i,j) - D,Q(i,j) + D,32);
                 for q = 1:length(dQ)
                     qE      = pE;
                     qE      = setfield(qE,P{k},{i,j},dQ(q));
-                    [G w]   = spm_csd_mtf(qE,M);
+                    [G w]   = spm_csd_mtf(qE,M,[]);
                     GW(:,q) = G{1};
                 end
                 
@@ -120,7 +120,7 @@ for k = 1:length(P)
                 axis xy; drawnow
                 
                 % update graphics
-                %------------------------------------------------------
+                %----------------------------------------------------------
                 iplot     = iplot + 1;
                 if iplot > 4
                     iplot = 1;
@@ -135,13 +135,23 @@ end
  
 % Dependency on hidden states in terms of Modulation transfer functions
 %==========================================================================
-
+ 
 % new figure
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm_figure('GetWin',sprintf('Dependency on states %i',1));
 iplot = 1;
 ifig  = 1;
-D     = 16;
+D     = 4;
+M.Nm  = 3;
+ 
+% Steady state solution and number of eigenmodes
+%--------------------------------------------------------------------------
+M.Nm  = 3;
+x     = M.x;
+ 
+ 
+% MTF, expanding around perturbed states
+%==========================================================================
 for i = 1:size(x,1)
     for j = 1:size(x,2);
         for k = 1:size(x,3);
@@ -161,9 +171,10 @@ for i = 1:size(x,1)
                 [G w]     = spm_csd_mtf(pE,M);
                 GW(:,q)   = G{1};
                 
-                % spectral decompostion
+                % spectral decomposition
                 %----------------------------------------------------------
-                S        = spm_ssm2s(pE,M,[]);
+                S        = spm_ssm2s(pE,M);
+                S        = S(1:M.Nm);
                 W(:,q)   = abs(imag(S)/(2*pi));
                 A(:,q)   = min(4, (exp(real(S)) - 1)./(real(S)) );
                 
@@ -182,11 +193,11 @@ for i = 1:size(x,1)
             imagesc(x(i,j,k) + dQ,w,log(abs(GW)))
             title('Transfer functions','FontSize',16)
             ylabel('Frequency')
-            xlabel('(log) deviation')
+            xlabel('Deviation')
             axis xy; drawnow
             
             subplot(4,3,3*iplot - 0)
-            plot(W',log(A'),'o',W',log(A'),'k')
+            plot(W',log(A'),'.',W',log(A'),':','MarkerSize',16)
             title('Eigenmodes','FontSize',16)
             xlabel('Frequency')
             ylabel('log-power')
@@ -205,9 +216,3 @@ for i = 1:size(x,1)
         end
     end
 end
-
-
-
-
-
-

@@ -1,39 +1,50 @@
 function [x] = spm_dcm_neural_x(P,M)
-% Returns the the fixed point or steady-state of a neural mass DCM
-% FORMAT [x,f] = spm_dcm_x_neural(P,'model')
+% Returns the fixed point or steady-state of a neural mass DCM
+% FORMAT [x] = spm_dcm_neural_x(P,M)
 %
-%  P      - parameter structure
-% 'model'   - 'ERP','SEP','CMC','LFP','NNM' or 'MFM'
+% P   - parameter structure
+% M   - model structure
 %
-% x   - initial states
-% f   - state euquation
+% x   - steady state solution
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_dcm_neural_x.m 5013 2012-10-23 19:26:01Z karl $
  
  
-% solve for fixed point (with 64 ms burn in) - if no exogenous input
+% solve for fixed point
 %--------------------------------------------------------------------------
-model = M.f;
+model = M.f;                        % neural mass model
+ns    = size(P.A{1},1);             % number of sources (endogenous inputs)
+a     = 1/2;                        % regulariser
 switch lower(model)
     
     % conductance based models
     %----------------------------------------------------------------------
-    case lower({'spm_fx_mfm','spm_fx_nmm','spm_fx_cmm'})
+    case lower({'spm_fx_mfm','spm_fx_cmm'})
         
-        try, M = rmfield(M,{'g'}); end
-
-        U.u  = sparse(32,M.m);
-        U.dt = 8/1000;
-        x    = spm_int_L(P,M,U);
-        x    = spm_unvec(x(end,:),M.x);
+        M.u   = sparse(ns,1);
+        for i = 1:128
+            
+            % solve under locally linear assumptions
+            %--------------------------------------------------------------
+            [f,dfdx] = feval(M.f,M.x,M.u,P,M);
+            dx       = - dfdx\f;
+            M.x      = spm_unvec(spm_vec(M.x) + a*dx,M.x);
+            
+            % convergence
+            %--------------------------------------------------------------
+            if norm(dx,Inf) < 1e-12, break, end
+        end
         
         
     % convolution based models
     %----------------------------------------------------------------------
     otherwise
-        x    = M.x;
-        
+
 end
+
+% solution
+%--------------------------------------------------------------------------
+x    = M.x;

@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_csd_int.m 5013 2012-10-23 19:26:01Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -79,10 +79,6 @@ end
 %==========================================================================
 nu    = length(P.A{1});
 nx    = M.n;
-
-% accelerate bilinear reduction by assuming inputs enter linearly
-%--------------------------------------------------------------------------
-[dfdxu{1:nu}] = deal(sparse(nx,nx));
 
 
 % cycle over trials or conditions
@@ -166,39 +162,15 @@ for c = 1:size(X,1)
         % update state-dependent parameters (second order)
         %------------------------------------------------------------------
         % dQ = dQ + spm_csd_cch(Q,M); dQ
-        R   = spm_unvec(spm_vec(Q) + dQ,Q);
-        
-       
+        R       = spm_unvec(spm_vec(Q) + dQ,Q);
         
         % compute complex cross spectral density
         %==================================================================
         
-        % flow dx(t)/dt and Jacobian df/dx
-        %------------------------------------------------------------------
-        if nargout(f) == 3
-            [f0 dfdx D] = f(x(:,i),u(:,i),Q,M);
-            
-        elseif nargout(f) == 2
-            [f0 dfdx]   = f(x(:,i),u(:,i),Q,M);
-            D           = 1;
-            
-        else
-            [dfdx f0]   = spm_diff(f,x(:,i),u(:,i),Q,M,1);
-            D           = 1;
-        end
-        
-        % use current states and endogenous input
+        % use current states
         %------------------------------------------------------------------
         M.x     = spm_unvec(x(:,i),M.x);
-        M.u     = sparse(nu,1) + 0*exp(R.C)*u(:,i);
-        
-        % place in M to accelerate bilinear reduction
-        %------------------------------------------------------------------        
-        M.dfdxu = dfdxu;
-        M.dfdx  = dfdx;
-        M.dfdu  = spm_diff(f,M.x,M.u,R,M,2);
-        M.f0    = f0;
-        M.D     = D;
+        M.u     = sparse(nu,1);
         [g,w,s] = spm_csd_mtf(R,M);
         
         

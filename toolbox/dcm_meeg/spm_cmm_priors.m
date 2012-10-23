@@ -42,7 +42,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_cmm_priors.m 5013 2012-10-23 19:26:01Z karl $
  
  
 % disable log zero warning
@@ -57,12 +57,17 @@ p     = 4;                                        % number of populations
  
 % population variance
 %--------------------------------------------------------------------------
-pE.S  = 0;                 pC.S = 1/16;
+pE.S  = 0;                 pC.S = 1/64;
  
 % intrinic [excitatory] time constants (H mediates the effects of B)
 %--------------------------------------------------------------------------
-pE.T  = zeros(n,1);        pC.T =  ones(n,1)/16;
+pE.T  = zeros(n,1);        pC.T =  ones(n,1)/64;
 pE.H  = zeros(n,1);        pC.H = zeros(n,1)/16;
+
+% Capacitance and backround activity
+%--------------------------------------------------------------------------
+pE.CV = zeros(1,p);     pC.CV = ones(1,p)/16;
+pE.E  = 0;              pC.E  = 1/64;
 
 
 % extrinsic connectivity (n x n)
@@ -102,7 +107,7 @@ pC.C  = C/8;
 gC    = [1   1   1   0;
          1   1   0   0;
          1   0   1   1;
-         0   0   1   1]/8;
+         0   1   1   0]/32;
      
 pE.G  = repmat(zeros(p,p),[1 1 n]);
 pC.G  = repmat(gC        ,[1 1 n]);
@@ -114,14 +119,6 @@ pE.R  = zeros(u,2);     pC.R  = ones(u,1)*[1/16 1/16];
 % Delays (intrinsic and extrinsic)
 %--------------------------------------------------------------------------
 pE.D  = [0 0];          pC.D  = [1 1]/64;
-
-% Capacitance
-%--------------------------------------------------------------------------
-pE.CV = 0;              pC.CV = 1/16;
-pE.E  = 0;              pC.E  = 1/16;
-
-
- 
 
 
 warning('on','MATLAB:log:logOfZero');

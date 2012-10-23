@@ -49,7 +49,7 @@ function spm_csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_csd_demo.m 5013 2012-10-23 19:26:01Z karl $
  
 clear global
  
@@ -123,7 +123,6 @@ catch
     warndlg('please include spectral toolbax in Matlab path')
 end
 mar  = spm_mar_spectra(mar,M.Hz,1/U.dt);
-% CSD  = spm_cond_units(abs(mar.P));
 
 
 spm_figure('GetWin','Figure 1'); clf

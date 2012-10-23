@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 4928 2012-09-14 21:40:18Z karl $
+% $Id: spm_fx_cmm.m 5013 2012-10-23 19:26:01Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -78,9 +78,9 @@ end
 
 % condition specific effects
 %--------------------------------------------------------------------------
-P.G        = full(P.G);
-P.G(2,2,:) = squeeze(P.G(2,2,:)) + P.H;
-G          = exp(P.G);
+G        = full(P.G);
+G(2,2,:) = squeeze(G(2,2,:)) + P.H;
+G        = exp(G);
 
 % connectivity switches
 %==========================================================================
@@ -91,84 +91,80 @@ G          = exp(P.G);
 
 % extrinsic connections (F B) - from superficial and deep pyramidal cells
 %--------------------------------------------------------------------------
-SA   = [1   0   ;
-        0   0   ;
-        0   8  ;
-        0   0]/4;
+SA   = [2   0  ;
+        0   0  ;
+        0   16  ;
+        0   0];
  
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
-GE   = [0   0   0   0;  
-        32  0   0   0;
-        8   0   0   4;
-        0   0   0   0];
+GE   = [ 0     0     0     0
+        96     0     0     0
+         4     0     0   128
+         0     2     0     0];
  
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI   = [4   2   1   0;
-        0   32  0   0;
-        0   0   8   0;
-        0   0   8   4];
+GI   = [12     0     4     0
+         0  2048     0     0
+         0     0    64     0
+         0     2    96     2];
 
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = exp(-P.T)*[1/2 1/2 1/2 1/2]*1000; % excitatory time constants
-KI   = 1000/16;                          % inhibitory time constants
+KE   = [1/2 1/2 1/2 1/2]*1000*4;                % excitatory rate constants
+KI   = exp(-P.T)*[1/32 1/16 1/16 1/16]*1000;  % inhibitory rate constants
  
 % Voltages
 %--------------------------------------------------------------------------
-VL   = -70;                              % reversal  potential leak (K)
-VE   =  60;                              % reversal  potential excite (Na)
-VI   = -90;                              % reversal  potential inhib (Cl)
-VR   = -40;                              % threshold potential
+VL   = -70;                               % reversal  potential leak (K)
+VE   =  60;                               % reversal  potential excite (Na)
+VI   = -90;                               % reversal  potential inhib (Cl)
+VR   = -40;                               % threshold potential
  
-CV   = exp(P.CV)*8/1000;                 % membrane capacitance
-GL   = 1;                                % leak conductance
+CV   = exp(P.CV).*[24 60 42 10]/1000;     % membrane capacitance
+GL   = 1;                                 % leak conductance
  
 % mean-field effects:
 %==========================================================================
 
 % neural-mass approximation to covariance of states
 %----------------------------------------------------------------------
-Vx   = exp(P.S)*64;
+Vx   = exp(P.S)*16;
 
 % mean population firing and afferent extrinsic input
 %--------------------------------------------------------------------------
-m      = spm_Ncdf_jdw(x(:,:,1),VR,Vx);  
-a(:,1) = A{1}*m(:,2);                    % forward 
-a(:,2) = A{2}*m(:,4);                    % backward
+m      = spm_Ncdf_jdw(x(:,:,1),VR,Vx);    % mean firing rate  
+a(:,1) = A{1}*m(:,2);                     % forward afference
+a(:,2) = A{2}*m(:,4);                     % backward afference
 
- 
-% input
+% Averge background activity and exogenous input
 %==========================================================================
+BE     = exp(P.E)*0.21;
+
+% input
+%--------------------------------------------------------------------------
 if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)/64;
+    U = u(:)/16;
     
 else
     
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:);
+    U = C*u(:)/256;
     
 end
 
-% Averge background activity
-%==========================================================================
-BE    = exp(P.E)/12;
- 
-% flow and dispersion over every (ns x np) subpopulation
+% flow over every (ns x np) subpopulation
 %==========================================================================
 f     = x;
 for i = 1:ns
     for j = 1:np
  
-        % 1st moment - expected states
-        %==================================================================
-        
-        % intrinsic coupling - conductance
+        % intrinsic coupling
         %------------------------------------------------------------------
         E = (G(j,:,i).*GE(j,:))*m(i,:)';
         I = (G(j,:,i).*GI(j,:))*m(i,:)';
@@ -176,23 +172,21 @@ for i = 1:ns
         % extrinsic coupling (excitatory only) and background activity
         %------------------------------------------------------------------
         E = E + BE + SA(j,:)*a(i,:)';
- 
-        % Voltage
+
+        % and exogenous input(U)
         %------------------------------------------------------------------
+        if j == 1, E = E + U(i); end
+        
+        % Voltage
+        %==================================================================
         f(i,j,1) =         (GL*(VL - x(i,j,1)) + ...
                       x(i,j,2)*(VE - x(i,j,1)) + ...
-                      x(i,j,3)*(VI - x(i,j,1)) )/CV;
-                  
-        % Exogenous input (U)
-        %------------------------------------------------------------------
-        if j == 1
-            f(i,j,1) = f(i,j,1) + U(i)/CV;
-        end
- 
-        % Conductances
-        %------------------------------------------------------------------
-        f(i,j,2) = (E - x(i,j,2))*KE(i,j);
-        f(i,j,3) = (I - x(i,j,3))*KI;
+                      x(i,j,3)*(VI - x(i,j,1)) )/CV(j);
+        
+        % Conductance
+        %==================================================================
+        f(i,j,2) = (E - x(i,j,2))*KE(1,j);
+        f(i,j,3) = (I - x(i,j,3))*KI(i,j);
         
     end
 end
