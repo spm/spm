@@ -2,8 +2,6 @@
 %
 % FORMAT pm_defaults
 %
-% SPM5 UPDATE 16/12/06
-% UPDATE 27/01/05
 %__________________________________________________________________________
 %
 % This file is intended for site and/or scanner and/or
@@ -12,7 +10,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton and Jesper Andersson
-% $Id: pm_defaults.m 4178 2011-01-27 15:12:53Z guillaume $
+% $Id: pm_defaults.m 5014 2012-10-24 10:56:28Z guillaume $
 
 global pm_def
 
@@ -43,7 +41,7 @@ pm_def.WS = 1;                        % Weighted or normal smoothing.
 % Flags for brain extraction
 %==========================================================================
 % Default T1 template for segmentation
-pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'templates','T1.nii'); 
+pm_def.MFLAGS.TEMPLATE = fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii'); 
 pm_def.MFLAGS.FWHM = 5;     % {mm} used for smoothing to fill holes in brain mask
 pm_def.MFLAGS.NERODE = 2;   % {vox} used for erosion to remove scalp from brain mask
 pm_def.MFLAGS.NDILATE = 4;  % {vox} used for dilation to condition scalp removal

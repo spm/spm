@@ -28,10 +28,10 @@ function bmask = pm_brain_mask(P,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton
-% $Id: pm_brain_mask.m 4572 2011-11-23 17:35:10Z chloe $
+% $Id: pm_brain_mask.m 5014 2012-10-24 10:56:28Z guillaume $
 
 if nargin < 2 || isempty(flags)
-   flags.template=fullfile(spm('Dir'),'templates','T1.nii');
+   flags.template=fullfile(spm('Dir'),'toolbox','FieldMap','T1.nii');
    flags.fwhm=5;
    flags.nerode=2;
    flags.ndilate=4;
