@@ -3,8 +3,8 @@
 \section{Introduction}
 
 This chapter describes how to use the FieldMap toolbox version 2.1\footnote{
-FieldMap Version 2.0 can be downloaded as part SPM5:
-\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm5/}\\
+FieldMap Version 2.0 can be downloaded as part of SPM:
+\url{http://www.fil.ion.ucl.ac.uk/spm/software/}\\
 FieldMap Version 1.1 for SPM2 can be downloaded from
 \url{http://www.fil.ion.ucl.ac.uk/spm/toolbox/fieldmap/}}
  for creating unwrapped field maps that can be used to do geometric distortion correction of EPI images \cite{chloe_distortion,chloe_distortion2,ja_geometric}. The methods are based on earlier work by Jezzard et al.,\cite{jezzard95} and a phase-unwrapping algorithm by Jenkinson \cite{jenkinson03}. The toolbox can be used via the SPM batch editor or in an interactive mode so that the user can see the effect of applying different field maps and unwarping parameters to EPI images. A voxel displacement map (VDM) is created that can be used with Realign \& Unwarp for doing a combined static and dynamic distortion correction or with an Apply VDM function for doing a static distortion correction on a set of realigned images. Realign \& Unwarp is designed to work only with images acquired with the phase-encode direction aligned with the anterior-posterior axis. Images acquired with phase-encode directions aligned with other axes can be distortion corrected using the FieldMap toolbox and Apply VDM utility.
@@ -13,7 +13,7 @@ FieldMap Version 1.1 for SPM2 can be downloaded from
 \begin{center}
 \includegraphics[width=70mm]{FieldMap/fieldmap_taskmgr}
 \end{center}
-\caption{FieldMap using the SPM8 User Interface.\label{FM1}}
+\caption{FieldMap using the SPM User Interface.\label{FM1}}
 \end{figure}
 
 \section{Presubtracted Phase and Magnitude Data}
@@ -357,7 +357,7 @@ Calculate an unwrapped field map in Hz which is stored in memory. This represent
 \item{Smoothing and dilation of the processed fieldmap}
 \end{enumerate}
 
-The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM8 (see Section \ref{VDMuse}).
+The processed field map (in Hz) is displayed in the graphics window (top row, right Figure \ref{FM1}) and the field at different points can be explored. The field map in Hz is converted to a VDM (voxel displacement map) using the parameters shown in the FieldMap GUI and saved with the filename vdm5\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images. The VDM file is overwritten whenever the field map is recalculated or when any parameters are changed. The resulting VDM file can be used for unwarping the EPI using Realign \& Unwarp in SPM (see Section \ref{VDMuse}).
 
 \subsubsection{Write}
 Write out the processed field map (in Hz) as a Nifti format image. The image will be saved with the filename fpm\_NAME-OF-FIRST-INPUT-IMAGE.img in the same directory as the acquired field map images.

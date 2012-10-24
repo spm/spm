@@ -1,27 +1,19 @@
 \chapter{Developer's guide}
 \label{Chap:batch:devel}
 
-\section{SPM5 to Matlabbatch transition guide}
+\section{SPM and Matlabbatch code organisation}
 
-This is a short overview to describe code organisation and interfaces between
+This is a short overview describing code organisation and interfaces between
 SPM and the batch system.
 
-\subsection{Code Reorganisation}
+\subsection{Code organisation}
 
-The following paths have changed:
+Most features are implemented in:
 \begin{itemize}
 \item \verb|fullfile(spm('dir'),'matlabbatch')| Core batch system.
-\item \verb|fullfile(spm('dir'),'config')| New SPM config files.
-\item \verb|fullfile(spm('dir'),'oldconfig')| Old SPM config files (unused)
-\item \verb|spm_jobman.m| and \verb|spm_select.m| replaced with compatibility
-  code
-\item \verb|spm_Menu.fig| Callbacks adapted
+\item \verb|fullfile(spm('dir'),'config')| SPM config files.
+\item \verb|spm_jobman.m| and \verb|spm_select.m| Wrappers to Matlabbatch.
 \end{itemize}
-
-Configuration code has been generated automatically from the existing SPM
-configuration using \verb|cfg_struct2cfg| and \verb|gencode|. This sometimes
-results in redundant/duplicate code. Also, conditional constructs like
-\verb|if|, \verb|case| may not have been considered. 
 
 Some assignments to configuration items are guarded by validity
 checks. Usually, there will be a warning issued if a wrong value is
@@ -64,7 +56,7 @@ the top of the configuration file.
 
 \section{Configuration Code Details}
 
-Configuration code has been split into two files per configuration:
+Configuration code is split into two files per configuration:
 \begin{description}
 \item[spm\_cfg\_*.m] Configuration classes, \verb|.check|, \verb|.vout|
   subfunctions
@@ -134,13 +126,6 @@ precedence over the other defaults.
 
 In core SPM, these defaults refer to \verb|spm_get_defaults|, which accesses
 \verb|spm_defaults|. Toolboxes may use their own callback functions.
-
-\subsection{Toolbox Migration}
-
-In the \verb|fullfile(spm('dir'),'toolbox')| folder there exists a migration
-utility \verb|spm_tbx_config2cfg.m|. This utility will create a
-\verb|*_cfg_*.m| and a \verb|*_def_*.m| file based on the configuration tree
-given as input argument.
 
 Toolboxes should set their defaults using the \verb|.def| fields,
 using a mechanism similar to \verb|spm_get_defaults|. This allows for
