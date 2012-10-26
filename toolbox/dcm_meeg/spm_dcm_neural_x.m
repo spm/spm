@@ -10,14 +10,14 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_dcm_neural_x.m 5019 2012-10-26 19:32:57Z karl $
  
  
 % solve for fixed point
 %--------------------------------------------------------------------------
 model = M.f;                        % neural mass model
 ns    = size(P.A{1},1);             % number of sources (endogenous inputs)
-a     = 1/2;                        % regulariser
+a     = 2;                          % regulariser
 switch lower(model)
     
     % conductance based models
@@ -25,17 +25,26 @@ switch lower(model)
     case lower({'spm_fx_mfm','spm_fx_cmm'})
         
         M.u   = sparse(ns,1);
+        nx    = 0;
         for i = 1:128
             
             % solve under locally linear assumptions
             %--------------------------------------------------------------
             [f,dfdx] = feval(M.f,M.x,M.u,P,M);
-            dx       = - dfdx\f;
-            M.x      = spm_unvec(spm_vec(M.x) + a*dx,M.x);
-            
-            % convergence
+            dx       = - spm_pinv(dfdx)*f;
+
+            % regularise
             %--------------------------------------------------------------
-            if norm(dx,Inf) < 1e-12, break, end
+            ndx   = norm(dx,Inf);
+            if ndx < nx
+                a = a/2;
+            end
+            nx    = ndx;
+            
+            % update and convergence
+            %--------------------------------------------------------------
+            M.x    = spm_unvec(spm_vec(M.x) + exp(-a)*dx,M.x);
+            if nx < 1e-12, break, end
         end
         
         

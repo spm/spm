@@ -182,8 +182,10 @@ for i = 1:length(model)
         
     end
     
+    fprintf('\n\n     --------***--------   \n\n')
+    
 end
-fprintf('\n\n     --------***--------   \n\n')
+
 
 
 % compare CSD models
@@ -199,6 +201,7 @@ axis square
 
 spm_demo_print
 
+fprintf('\n\n     --------***--------   \n\n')
 
 % test of induced response models
 %==========================================================================

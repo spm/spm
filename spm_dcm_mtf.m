@@ -15,7 +15,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_dcm_mtf.m 5019 2012-10-26 19:32:57Z karl $
 
 
 % get local linear approximation
@@ -26,7 +26,6 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 if nargin > 2
     M.x   = spm_dcm_neural_x(P,M);
 end
-
 
 % delay operator - if not specified already
 %--------------------------------------------------------------------------
@@ -51,11 +50,6 @@ dfdu  = D*dfdu;
 [v,s] = eig(full(dfdx),'nobalance');
 s     = diag(s);
 
-% remove unstable eigenmodes
-%--------------------------------------------------------------------------
-% i     = find(real(s) < 0);
-% s     = s(i);
-% v     = v(:,i);
 
 % condition remove unstable eigenmodes
 %--------------------------------------------------------------------------
@@ -114,3 +108,4 @@ for j = 1:nu
         end
     end
 end
+ 

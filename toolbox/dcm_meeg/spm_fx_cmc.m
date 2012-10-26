@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_fx_cmc.m 5019 2012-10-26 19:32:57Z karl $
  
  
 % get dimensions and configure state variables
@@ -84,7 +84,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:);
+    U = u(:)*256;
     
 else
     % exogenous input

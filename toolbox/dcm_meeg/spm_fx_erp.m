@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_fx_erp.m 5019 2012-10-26 19:32:57Z karl $
 
 
 % get dimensions and configure state variables
@@ -89,8 +89,6 @@ Hi    = H(2)*exp(P.H(:,2));              % inhibitory receptor density
 %--------------------------------------------------------------------------
 R     = R.*exp(P.S);
 S     = 1./(1 + exp(-R(1)*(x - R(2)))) - 1./(1 + exp(R(1)*R(2)));
-dSdx  = 1./(1 + exp(-R(1)*(x - R(2)))).^2.*(R(1)*exp(-R(1)*(x - R(2))));
-
 
 % input
 %==========================================================================
@@ -98,7 +96,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:);
+    U = u(:)*128;
     
 else
     % exogenous input

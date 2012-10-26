@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_fx_mfm.m 5019 2012-10-26 19:32:57Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -171,7 +171,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:);
+    U = u(:)/128;
     
 else
     % exogenous input
@@ -214,7 +214,7 @@ for i = 1:ns
         % Exogenous input (U)
         %------------------------------------------------------------------
         if j == 1
-            f{1}(i,j,1) = f{1}(i,j,1) + U(i)/CV;
+            E = E + U(i);
         end
  
         % Conductances

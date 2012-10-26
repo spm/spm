@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_NMDA.m 4820 2012-08-01 12:20:00Z guillaume $
+% $Id: spm_fx_mfm_NMDA.m 5019 2012-10-26 19:32:57Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -173,10 +173,19 @@ for k = 1:nc
     a(:,k) = A{k}*m(:,end);
 end
  
-% Exogenous input (to first population x{:,1})
-%--------------------------------------------------------------------------
-U     = C*u(:)*exp(P.scale_u);
-
+% input
+%==========================================================================
+if isfield(M,'u')
+    
+    % endogenous input
+    %----------------------------------------------------------------------
+    U = u(:)/128;
+    
+else
+    % exogenous input
+    %----------------------------------------------------------------------
+    U = C*u(:)*exp(P.scale_u);
+end
 
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------
@@ -214,8 +223,7 @@ for i = 1:ns
         % Exogenous input (U)
         %------------------------------------------------------------------
         if j == 1
-            f{1}(i,j,1) = f{1}(i,j,1) + U(i)/CV;
-           
+            E = E + U(i);
         end
         
            if (j ==3 || j==2)  %% Pyamidal Cells & interneuron NMDA receptos

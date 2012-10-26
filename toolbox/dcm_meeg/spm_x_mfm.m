@@ -23,7 +23,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_x_mfm.m 5019 2012-10-26 19:32:57Z karl $
 
  
 % dimensions
@@ -33,7 +33,7 @@ np   = 3;                                        % number of populations
  
 % create (initialise voltage at -70mV)
 %--------------------------------------------------------------------------
-x{1}        = zeros(ns,np,3);
+x{1}        = zeros(ns,np,3) + 1/8;
 x{1}(:,:,1) = -70;
 x{2}        = zeros(3,3,ns,np);
 for i = 1:ns

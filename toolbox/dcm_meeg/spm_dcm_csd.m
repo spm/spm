@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 4988 2012-10-05 19:24:14Z karl $
+% $Id: spm_dcm_csd.m 5019 2012-10-26 19:32:57Z karl $
  
  
 % check options
@@ -136,22 +136,6 @@ DCM.xY.X0 = sparse(Nf,0);
 y         = spm_vec(spm_fs_csd(DCM.xY.y,DCM.M));
 scale     = 1/mean(abs(y));
 DCM.xY.y  = spm_unvec(scale*y,DCM.xY.y);
-
-% reduce extrinsic coupling if necessary
-%--------------------------------------------------------------------------
-scale     = mean(abs(spm_vec(feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU))));
-for i = 1:8
-    
-    if scale < 32, break, end
-    
-    DCM.M.pE.A = spm_unvec(spm_vec(DCM.M.pE.A) - 1/8,DCM.M.pE.A);
-    scale = mean(abs(spm_vec(feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU))));
-
-end
-
-% and scale predictions (through spatial modes)
-%--------------------------------------------------------------------------
-DCM.M.U   = DCM.M.U/sqrt(scale);
 
 
 % Variational Laplace: model inversion

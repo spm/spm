@@ -24,7 +24,7 @@ function [x,M] = spm_x_cmm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_cmm.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_x_cmm.m 5019 2012-10-26 19:32:57Z karl $
  
 
 % dimensions
@@ -32,9 +32,10 @@ function [x,M] = spm_x_cmm(P)
 ns   = size(P.A{1},1);                           % number of sources
 np   = 4;                                        % number of populations
  
-% create (initialise voltage at -70mV)
+% create (initialise voltage at -50mV)
 %--------------------------------------------------------------------------
-x    = zeros(ns,np,3);
+x        = zeros(ns,np,3) + 1/8;
+x(:,:,1) = -50;
 
 % steady-state solution 
 %==========================================================================

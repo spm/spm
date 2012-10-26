@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_fx_lfp.m 5019 2012-10-26 19:32:57Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -104,7 +104,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:);
+    U = u(:)*128;
     
 else
     % exogenous input
