@@ -40,7 +40,7 @@ function varargout = spm_eeg_inv_ecd_DrawDip(action,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips,
-% $Id: spm_eeg_inv_ecd_DrawDip.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_eeg_inv_ecd_DrawDip.m 5020 2012-10-29 12:11:24Z vladimir $
 
 global st
 
@@ -76,19 +76,12 @@ if ~isfield(sdip,'exitflag')
     sdip.exitflag = ones(1,sdip.n_seeds);
 end
 
-Pcanonical = fullfile(spm('dir'),'canonical','avg152T1.nii');
-
-if nargin<3
-    if ~isstruct(st)
-%         P = spm_select(1,'image','Image to display dipoles on');
-        P = Pcanonical;
-    elseif isempty(st.vols{1})
-%         P = spm_select(1,'image','Image to display dipoles on');
-        P = Pcanonical;
-    end
-else
+if numel(varargin)>1
     P = varargin{2};
+else
+    P = fullfile(spm('dir'),'canonical','avg152T1.nii');
 end
+
 if ischar(P), P = spm_vol(P); end;
 spm_orthviews('Reset');
 spm_orthviews('Image', P, [0.0 0.45 1 0.55]);
