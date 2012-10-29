@@ -9,10 +9,10 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Display the ind^th .inv{} cell element, if it is actually a VB-ECD 
 % solution.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 3951 2010-06-28 15:09:36Z gareth $
+% $Id: spm_eeg_inv_vbecd_disp.m 5021 2012-10-29 15:49:09Z guillaume $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
@@ -26,9 +26,9 @@ marker  = {'o','x','+','*','s','d','v','p','h'};  % 9 possible markers
 Ncolors = length(colors);
 Nmarker = length(marker);
 
-if nargin == 0, action = 'Init'; end;
+if nargin == 0, action = 'Init'; end
 
-switch lower(action),
+switch lower(action)
     
 %==========================================================================
 case 'init'
@@ -47,8 +47,7 @@ if nargin<3
     Ninv = length(D.inv);
     lind = [];
     for ii=1:Ninv
-        if isfield(D.inv{ii},'method') && ...
-                strcmp(D.inv{ii}.method,'vbecd')
+        if isfield(D.inv{ii},'method') && strcmp(D.inv{ii}.method,'vbecd')
             lind = [lind ii];
         end
     end
@@ -71,13 +70,11 @@ if ~isfield(sdip,'exitflag')
     sdip.exitflag = ones(1,sdip.n_seeds);
 end
 
-try
-    error('crap');
-    Pimg = spm_vol(D.inv{ind}.mesh.sMRI);
-    
-catch
+%try
+%    Pimg = spm_vol(D.inv{ind}.mesh.sMRI);
+%catch
     Pimg = spm_vol(fullfile(spm('dir'), 'canonical', 'single_subj_T1.nii'));
-end
+%end
 
 spm_orthviews('Reset');
 spm_orthviews('Image', Pimg, [0.0 0.45 1 0.55]);
