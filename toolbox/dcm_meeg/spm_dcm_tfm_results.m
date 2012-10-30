@@ -33,7 +33,7 @@ function [DCM] = spm_dcm_tfm_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_results.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_tfm_results.m 5023 2012-10-30 19:25:32Z karl $
  
  
 % get figure
@@ -293,7 +293,7 @@ switch(lower(Action))
         % plot data
         % -----------------------------------------------------------------
         pst   = DCM.pst - DCM.pst(1);
-        U     = spm_erp_u(pst,DCM.Ep,DCM.M)/8;
+        U     = spm_erp_u(pst,DCM.Ep,DCM.M);
         
         subplot(2,1,1)
         plot(DCM.xY.pst,U)

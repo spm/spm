@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_fx_mfm.m 5023 2012-10-30 19:25:32Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ if iscell(x)
     mfm = 1;                                    % mean-field model
 else
     mfm = 0;
-    x = {x};                                    % neural-mass model
+    x   = {x};                                  % neural-mass model
 end
 ns   = size(x{1},1);                            % number of sources
 np   = size(x{1},2);                            % number of populations
@@ -171,12 +171,12 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)/128;
+    U = u(:)/32;
     
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:);
+    U = C*u(:)/128;
 end
 
 % Exogenous input (to excitatory populations)

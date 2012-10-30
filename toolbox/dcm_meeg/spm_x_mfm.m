@@ -23,7 +23,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_x_mfm.m 5023 2012-10-30 19:25:32Z karl $
 
  
 % dimensions
@@ -38,7 +38,7 @@ x{1}(:,:,1) = -70;
 x{2}        = zeros(3,3,ns,np);
 for i = 1:ns
     for j = 1:np
-        x{2}(:,:,i,j) = eye(3,3)/128;
+        x{2}(:,:,i,j) = diag([32, 1/32, 1/32]);
     end
 end
  

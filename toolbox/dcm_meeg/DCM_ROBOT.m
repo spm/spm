@@ -248,7 +248,7 @@ fprintf('\nChecking spm_dcm_tfm\n')
 
 try
     
-    DCM = rmfield(DCM,'M');
+    DCM  = rmfield(DCM,'M');
     DCM  = spm_dcm_tfm(DCM);
     
     spm_figure('GetWin','induced and evoked responses');
