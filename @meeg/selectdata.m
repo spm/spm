@@ -4,7 +4,7 @@ function res = selectdata(this, varargin)
 %        res = selectdata(D, chanlabel, freqborders, timeborders, condition)
 %
 %  D - meeg object
-%  chanlabel - channel label, cell array of labels or [] (for all channels)
+%  chanlabel   - channel label, cell array of labels or [] (for all channels)
 %  timeborders - [start end] in sec or [] for all times
 %  freqborders - [start end] in Hz or [] for all frequencis (for TF datasets only)
 %  condition   - condition label, cell array of labels or [] (for all conditions)
@@ -12,7 +12,7 @@ function res = selectdata(this, varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectdata.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: selectdata.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if this.Nsamples == 0
     res = [];

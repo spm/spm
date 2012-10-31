@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp_dipfit.m 5025 2012-10-31 14:44:13Z vladimir $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -75,14 +75,10 @@ switch DCM.xY.modality
     %----------------------------------------------------------------------
     case{'EEG','MEG','MEGPLANAR'}
  
-        [ok, D] = check(D, 'sensfid');
+        [D, ok] = check(D, '3d');
         if ~ok
-            if check(D, 'basic')
-                errordlg(['File not ready for source reconstruction.'...
-                    'Use prep to specify sensors and fiducials.']);
-            else
-                errordlg('The meeg file is corrupt or incomplete');
-            end
+            errordlg(['File not ready for source reconstruction.'...
+                'Use prep to specify sensors and fiducials.']);
         end
  
         try

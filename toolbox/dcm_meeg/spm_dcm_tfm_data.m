@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 4988 2012-10-05 19:24:14Z karl $
+% $Id: spm_dcm_tfm_data.m 5025 2012-10-31 14:44:13Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -102,7 +102,7 @@ end
 % channel indices (excluding bad channels)
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'Ic')
-    DCM.xY.Ic  = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
+    DCM.xY.Ic  = D.indchantype({DCM.xY.modality, 'GOOD'});
 end
  
 Ic        = DCM.xY.Ic;
@@ -129,7 +129,7 @@ try
     
     % time window and bins for modelling
     %----------------------------------------------------------------------
-    DCM.xY.Time = 1000*D.time;               % Samples (ms)
+    DCM.xY.Time = time(D, [], 'ms');
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
     [~, T1]     = min(abs(DCM.xY.Time - T1));
@@ -177,7 +177,7 @@ for e = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
-    c = D.pickconditions(cond{trial(e)});
+     c = D.indtrial({cond{trial(e)}, 'GOOD'});
     
     % use only the first 512 trial
     %----------------------------------------------------------------------

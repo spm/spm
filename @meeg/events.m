@@ -3,9 +3,9 @@ function res = events(this, varargin)
 % FORMAT res = events(this, ind, event)
 %   ind = indices of trials
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: events.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: events.m 5025 2012-10-31 14:44:13Z vladimir $
 
 res = getset(this, 'trials', 'events', varargin{:});

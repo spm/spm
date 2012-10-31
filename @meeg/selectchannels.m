@@ -7,10 +7,10 @@ function chanind = selectchannels(this, channels)
 %
 % res        - vector of channel indices matching labels
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectchannels.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: selectchannels.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if ischar(channels)
     channels = {channels};
@@ -19,19 +19,11 @@ end
 chanind = [];
 
 for i = 1:numel(channels)
-    switch upper(channels{i})
-        case 'ALL'
-            chanind = [chanind 1:nchannels(this)];
-        case 'EOG'
-            chanind = [chanind eogchannels(this)];
-        case 'ECG'
-            chanind = [chanind ecgchannels(this)];
-        case 'EMG'
-            chanind = [chanind emgchannels(this)];
-        case {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'REF', 'REFMAG', 'REFGRAD', 'LFP'}
-            chanind = [chanind meegchannels(this, upper(channels{i}))];
-        otherwise
-            chanind = [chanind indchannel(this, channels{i})];
+    if ismember(upper(channels{i}), ...
+            {'ALL', 'EOG', 'ECG', 'EMG', 'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'REF', 'REFMAG', 'REFGRAD', 'LFP'})
+        chanind = [chanind indchantype(this, upper(channels{i}))];
+    else
+        chanind = [chanind indchannel(this, channels{i})];
     end
 end
 

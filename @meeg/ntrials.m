@@ -1,10 +1,10 @@
-function res = ntrials(obj)
+function res = ntrials(this)
 % Method for getting the number of trials in the file
-% FORMAT res = ntrials(obj)
+% FORMAT res = ntrials(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ntrials.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: ntrials.m 5025 2012-10-31 14:44:13Z vladimir $
 
-res = length(obj.trials);
+res = length(this.trials);

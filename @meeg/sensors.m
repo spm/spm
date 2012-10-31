@@ -4,10 +4,10 @@ function res = sensors(this, type, newsens)
 % FORMAT res = sensors(this, type, newsens)
 %   type - 'EEG' or 'MEG'
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensors.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: sensors.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');

@@ -2,10 +2,10 @@ function varargout=subsref(this,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
 % _________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: subsref.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if isempty(subs)
     return;
@@ -17,10 +17,11 @@ end;
 
 switch subs(1).type
     case '()'
-        if numel(subs)~= 1, error('Expression too complicated');end;
+        if ~islinked(this), error('The object is not linked to data file'); end
+        if numel(subs)~= 1, error('Expression too complicated');            end
 
         if this.montage.Mind==0
-            varargout = {double(subsref(this.data.y, subs))};
+            varargout = {double(subsref(this.data, subs))};
         else
             Mem_max = 200*2^20; % Limit memory usage to about 200Mb
             vect_fl = 0; dat3D = 0;
@@ -70,10 +71,10 @@ switch subs(1).type
                     for ii=1:numel(subs.subs{3})
                         subs_c.subs{3} = subs.subs{3}(ii);
                         varargout{1}(:,:,ii) = ...
-                            traidx(:,lchan_o)*double(subsref(this.data.y, subs_c));
+                            traidx(:,lchan_o)*double(subsref(this.data, subs_c));
                     end
                 else
-                    varargout = {traidx(:,lchan_o)*double(subsref(this.data.y, subs))};
+                    varargout = {traidx(:,lchan_o)*double(subsref(this.data, subs))};
                 end
             else % otherwise split data reading into chunks
                 Ntb_chunk = round(Mem_max/length(lchan_o)/8);
@@ -91,11 +92,11 @@ switch subs(1).type
                         for jj=1:numel(subs.subs{3})
                             subs_ch.subs{3} = subs.subs{3}(jj);
                             varargout{1}(:,ll,jj) = ...
-                                traidx(:,lchan_o)*double(subsref(this.data.y, subs_ch));
+                                traidx(:,lchan_o)*double(subsref(this.data, subs_ch));
                         end
                     else
                         varargout{1}(:,ll) = ...
-                            traidx(:,lchan_o)*double(subsref(this.data.y, subs_ch));
+                            traidx(:,lchan_o)*double(subsref(this.data, subs_ch));
                     end
                 end
             end

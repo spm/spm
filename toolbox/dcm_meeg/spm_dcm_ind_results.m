@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_dcm_ind_results.m 5025 2012-10-31 14:44:13Z vladimir $
  
  
 % set up
@@ -79,8 +79,8 @@ switch(lower(Action))
     for i = 1:nt
         for j = 1:nr
            
-            subplot(2*nt,nr,(i - 1)*nr + j)
-            imagesc(pst,Hz,TF{i,j}')
+            %subplot(2*nt,nr,(i - 1)*nr + j)
+            figure;imagesc(pst,Hz,TF{i,j}')
             axis xy
             xlabel('pst (ms)')
             ylabel('frequency')
@@ -96,7 +96,7 @@ switch(lower(Action))
                 V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
                 V.dim   = [length(Hz) length(pst)  1 ];
-                V.fname = [sprintf('%s_TFR%d%d',spm_file(DCM.name,'basename'),i,j) spm_file_ext];
+                V.fname =sprintf('%s_TFR%d%d.img',DCM.name(1:end-4),i,j);
                 spm_write_vol(V, TF{i,j}');
             end
         end
@@ -234,7 +234,7 @@ case{lower('Coupling (A - Hz)')}
                 V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
                 V.dim   = [length(Hz) length(Hz)  1 ];
-                V.fname = [sprintf('%s_A%d%d',spm_file(DCM.name,'basename'),i,j) spm_file_ext];
+                V.fname = sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
                 spm_write_vol(V,A);
             end
  
@@ -291,7 +291,7 @@ case{lower('Coupling (B - Hz)')}
                V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                V.pinfo = [1 0 0]';
                V.dim   = [length(Hz) length(Hz)  1 ];
-               V.fname = [sprintf('%s_B%d%d',spm_file(DCM.name,'basename'),i,j) spm_file_ext];
+               V.fname = sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
                spm_write_vol(V,B);
             end
                 

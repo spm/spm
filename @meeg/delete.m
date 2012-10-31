@@ -2,16 +2,18 @@ function res = delete(this)
 % Delete the files of M/EEG dataset from the disk
 % FORMAT res = delete(this)
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: delete.m 3378 2009-09-09 16:47:16Z guillaume $
+% $Id: delete.m 5025 2012-10-31 14:44:13Z vladimir $
 
 res = 1;
 
 try
-    delete(fullfile(path(this), fnamedat(this)));
-    delete(fullfile(path(this), fname(this)));
+    if islinked(this)
+        delete(fnamedat(this));
+    end
+    delete(fullfile(this));
 catch
     res = 0;
 end

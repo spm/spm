@@ -3,10 +3,10 @@ function res = condlist(this, newcondlist)
 % the trial order in the file
 % FORMAT res = condlist(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: condlist.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: condlist.m 5025 2012-10-31 14:44:13Z vladimir $
 
 res = getset(this, 'trials', 'label');
 if ~iscell(res)

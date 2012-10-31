@@ -10,8 +10,7 @@ function ind = emgchannels(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips & Stefan Kiebel
-% $Id: emgchannels.m 2884 2009-03-16 18:27:25Z guillaume $
+% $Id: emgchannels.m 5025 2012-10-31 14:44:13Z vladimir $
 
-type = chantype(this);
-ind = find(ismember(upper(type), {'EMG'}));
-ind = ind(:)'; % must be row to allow to use it as loop indices
+warning_flexible('emgchannels method is deprecated. Use indchantype(D, ''EMG'')');
+ind = indchantype(this, 'EMG');

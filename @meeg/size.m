@@ -2,24 +2,25 @@ function res = size(this, varargin)
 % returns the dimensions of the data matrix
 % FORMAT res = size(this, dim))
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: size.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: size.m 5025 2012-10-31 14:44:13Z vladimir $
 
-if this.montage.Mind==0
-    res = size(this.data.y, varargin{:});
+
+if islinked(this)
+    res = size(this.data, varargin{:});
+    if this.montage.Mind~=0
+        res(1) = size(this.montage.M(this.montage.Mind).tra,1);
+    end
 else
-    d_sz = size(this.data.y);
-    d_sz(1) = size(this.montage.M(this.montage.Mind).tra,1);
-    if isempty(varargin)
-        res = d_sz;
-    elseif varargin{:}<=length(d_sz)
-        res = d_sz(varargin{:});
-%     else
-%         res = 1;
+    if ~strncmpi(transformtype(this), 'TF', 2)
+        res = zeros(1, 3);
+    else
+        res = zeros(1, 4);
     end
 end
+
 
 if ntrials(this) == 1 && isempty(varargin)
     res = [res 1];

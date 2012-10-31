@@ -5,7 +5,7 @@ function res = frequencies(this, ind, f)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: frequencies.m 4015 2010-07-23 16:35:03Z vladimir $
+% $Id: frequencies.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if nargin < 3
     if strncmpi(transformtype(this), 'TF',2)
@@ -26,11 +26,16 @@ else
         error('Frequencies must be positive numbers');
     end
     
-    if isempty(ind) || isequal(ind, ':')
-        ind = 1:size(this.data.y, 2);
+    if isempty(ind)
+        ind = 'all';
+        warning_flexible('The use of empty matrix to instead of : is deprecated');
     end
     
-    if length(ind)~=length(f) || max(ind)>size(this.data.y, 2)
+    if ~isnumeric(ind)
+        ind = 1:size(this, 2);
+    end
+    
+    if length(ind)~=length(f) || max(ind)>size(this, 2)
           error('Wrong frequency axis or indices'); 
     end
 

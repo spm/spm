@@ -1,22 +1,15 @@
-function res = fname(this, name)
+function res = fname(this, newname)
 % Method for getting/setting file name
 % FORMAT res = fname(this, name)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: fname.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: fname.m 5025 2012-10-31 14:44:13Z vladimir $
 
-switch nargin
-    case 1
-        res = getfname(this);        
-    case 2
-        res = setfname(this, name);
-    otherwise
+if  nargin == 1
+    res = this.fname;
+else
+    this.fname = [spm_file(newname, 'basename') '.mat'];
+    res = this;
 end
-
-function res = getfname(this)
-res = this.fname;
-
-function this = setfname(this, name)
-this.fname = name;

@@ -5,23 +5,23 @@ function res = pickconditions(this, label, rejectbad)
 % the default is not to include rejected trials.
 % FORMAT res = pickconditions(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: pickconditions.m 3146 2009-05-26 09:54:23Z vladimir $
+% $Id: pickconditions.m 5025 2012-10-31 14:44:13Z vladimir $
+
+warning_flexible('pickconditions method is deprecated. Use ''indrial'' instead');
 
 if nargin<3
     rejectbad = 1;
 end
 
-c = conditions(this);
-
 if isa(label, 'char')
     label = {label};
 end
 
-res = find(ismember(c, label));
-
-if rejectbad && ~isempty(res)
-    res = res(~reject(this, res));
+if rejectbad
+    label{end+1} = 'GOOD';
 end
+
+res = indtrial(this, label);

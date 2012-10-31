@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_api_erp.m 5025 2012-10-31 14:44:13Z vladimir $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -357,24 +357,20 @@ handles = Xdefault(hObject,handles,m);
 %--------------------------------------------------------------------------
 [f,p] = uigetfile({'*.mat'}, 'please select data file');
 if f  == 0, return; end
- 
+
 handles.DCM.xY = [];
 handles.DCM.xY.Dfile = fullfile(p,f);
 D = spm_eeg_load(handles.DCM.xY.Dfile);
- 
-[ok, D] = check(D,'dcm');
- 
+
+[D, ok] = check(D, 'dcm');
+
 if ~ok
-    if check(D, 'basic')
-        warndlg(['The requested file is not ready for DCM.'...
-                 'Use prep to specify sensors and fiducials or LFP channels.']);
-    else
-        warndlg('The meeg file is corrupt or incomplete');
-    end
+    warndlg(['The requested file is not ready for DCM.'...
+        'Use prep to specify sensors and fiducials or LFP channels.']);
     
     handles.DCM.xY.Dfile = [];
     set(handles.data_ok, 'enable', 'off');
-    guidata(hObject,handles);    
+    guidata(hObject,handles);
     return
 end
 

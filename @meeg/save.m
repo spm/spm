@@ -1,27 +1,13 @@
-function res = save(this)
+function save(this)
 % Save an meeg object into a file
-% FORMAT res = save(this)
+% FORMAT save(this)
 %
 % Converts an meeg object to struct and saves it.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 4492 2011-09-16 12:11:09Z guillaume $
-
+% $Id: save.m 5025 2012-10-31 14:44:13Z vladimir $
 
 D = struct(this);
-D = rmfield(D, 'cache');
-
-res = 1;
-
-try
-    save(fullfile(D.path, D.fname), 'D');
-catch
-    [filename, pathname] = uiputfile('*.mat', 'Select a file to save');
-    try
-        save(fullfile(pathname, filename), 'D', '-V6');
-    catch
-        res = 0;
-    end
-end
+save(fullfile(this), 'D');

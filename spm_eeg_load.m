@@ -6,13 +6,13 @@ function D = spm_eeg_load(P)
 % D         - MEEG object 
 %__________________________________________________________________________
 % 
-% spm_eeg_load loads an M/EEG file using the SPM8 format. Importantly, the
+% spm_eeg_load loads an M/EEG file using the SPM MEEG format. Importantly, the
 % data array is memory-mapped and the struct is converted to MEEG object.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 3879 2010-05-07 20:03:34Z vladimir $
+% $Id: spm_eeg_load.m 5025 2012-10-31 14:44:13Z vladimir $
 
 % bypass if the input is already an MEEG object
 %--------------------------------------------------------------------------
@@ -23,16 +23,17 @@ end
 
 % get filename
 %--------------------------------------------------------------------------
-try
-    P = deblank(P);
-catch
+
+if nargin ==0 || ~exist(P, 'file')    
     [P, sts] = spm_select(1, 'mat', 'Select SPM M/EEG file');
     if ~sts, D = []; return; end
 end
 
-Ppath = fileparts(P);
-if isempty(Ppath)
-    Ppath = pwd;
+P = deblank(P);
+
+[p, f] = fileparts(P);
+if isempty(p)
+    p = pwd;
 end
 
 % load MAT file
@@ -59,15 +60,10 @@ if ~isa(D, 'struct')
     end
 end
 
-% save path in structure and make sure 'type' is set
+% save path and fname in structure
 %--------------------------------------------------------------------------
-D.path = Ppath;
-
-try
-    D.type;
-catch
-    D.type = 'other';
-end
+D.path = p;
+D.fname = [f '.mat'];
 
 % return an MEEG object
 %--------------------------------------------------------------------------

@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 4988 2012-10-05 19:24:14Z karl $
+% $Id: spm_dcm_erp_data.m 5025 2012-10-31 14:44:13Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -106,17 +106,16 @@ end
  
 % good channels
 %--------------------------------------------------------------------------
-channels  = D.chanlabels;
-Ic        = setdiff(D.meegchannels(DCM.xY.modality), D.badchannels);
+Ic        = D.indchantype({DCM.xY.modality, 'GOOD'});
 if isempty(Ic)
     warndlg('No good channels in these data');
     return
 end
  
 Nc            = length(Ic);               % number of channels
-DCM.xY.name   = channels(Ic);             % channel names
+DCM.xY.name   = D.chanlabels(Ic);         % channel names
 DCM.xY.Ic     = Ic;                       % channel indices
-DCM.xY.Time   = 1000*D.time;              % PST (ms)
+DCM.xY.Time   = time(D, [], 'ms');        % PST (ms)
 DCM.xY.dt     = 1/D.fsample;              % time bins
 DCM.xY.coor2D = D.coor2D(Ic);             % coordinates (topographic)
 DCM.xY.xy     = {};
@@ -169,7 +168,7 @@ for i = 1:length(trial)
  
     % trial indices
     %----------------------------------------------------------------------
-    c     = D.pickconditions(cond{trial(i)});
+    c     = D.indtrial({cond{trial(i)}, 'GOOD'});
     Nt    = length(c);
  
     % ERP

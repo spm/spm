@@ -2,11 +2,11 @@ function D = meeg(varargin)
 % Function for creating meeg objects.
 % FORMAT m = meeg(varargin)
 %
-% SPM8 format consists of a binary memory - mapped data file and a header 
-% mat file.
+% SPM MEEG format consists of a header object optionally linked to 
+% binary data file. The object is usually saved in the header mat file
 %
-% The header file will contain an object of class meeg called D. All 
-% information other than data is contained in this object and access to the
+% The header file will contain a struct called D. All 
+% information other than data is contained in this struct and access to the
 % data is via methods of the object. Also, arbitrary data can be stored 
 % inside the object if their field names do not conflict with existing 
 % methods' names.
@@ -16,13 +16,8 @@ function D = meeg(varargin)
 % Fields of meeg:
 % .type - type of data in the file: 'continuous', 'single', 'evoked'
 % .Fsample - sampling rate
-% .data - substruct containing the information related to the bimary data 
-% file and memory mapping.
 %
-%   Subfields of .data
-%       .y - reference to the data file_array
-%       .fnamedat - name of the .dat file
-%       .datatype - type of the data for file_array
+% .data - file_array object linking to the data or empty if unlinked
 %
 %
 % .Nsamples - length of the trial (whole data if the file is continuous).
@@ -80,8 +75,10 @@ function D = meeg(varargin)
 %       .fid.pnt - fiducial points
 %       .fid.label - fiducial labels
 %
-% .artifacts - structure array with fields .start and .stop expressed in 
-%              seconds in original file time.
+% .transform - additional information for transfomed (most commonly time-frequency) data
+%    Subfields of .transform 
+%        .ID - 'time', 'TF', or 'TFphase'
+%        .frequencies (optional)
 %
 % .history - structure array describing commands that modified the file.
 %
@@ -95,7 +92,10 @@ function D = meeg(varargin)
 %          object structure at the moment,
 %       for example:
 %       .inv - structure array corresponding to the forw/inv problem in MEEG.
-%       .ival - index of the 'inv' solution currently used.
+%       .val - index of the 'inv' solution currently used.
+%
+% .condlist - cell array of unique condition labels defining the proper
+%        condition order
 %
 % .montage - structure used to store info on on-line montage used
 %       .M contains transformation matrix of the montage and names of 
@@ -105,25 +105,17 @@ function D = meeg(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: meeg.m 5025 2012-10-31 14:44:13Z vladimir $
 
-if nargin == 1
-    if isstruct(varargin{1})
-        [OK, D] = checkmeeg(varargin{1}, 'basic');
-        if OK
-            D  = class(D, 'meeg');
-        else
-            error('Struct not fit for conversion to meeg');
-        end
-        return;
-    elseif isa(varargin{1},'meeg')
-        D = varargin{1};
-        return;
-    end
+if nargin == 0
+    D    = struct('Nsamples', 0); 
+else
+    D = varargin{1};
 end
-display('not basic')
 
-D          = [];
-D.Nsamples = 0;
-[res, D]   = checkmeeg(D);
-D          = class(D, 'meeg');
+if ~isa(D, 'meeg')
+    D = class(checkmeeg(D), 'meeg');
+end
+
+
+

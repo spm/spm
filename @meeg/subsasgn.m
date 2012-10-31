@@ -1,17 +1,13 @@
 function this = subsasgn(this,subs,dat)
 % Overloaded subsasgn function for meeg objects.
 % _________________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: subsasgn.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: subsasgn.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if isempty(subs)
     return;
-end;
-
-if this.Nsamples == 0
-    error('Attempt to assign to a field of an empty meeg object.');
 end;
 
 if strcmp(subs(1).type, '.')
@@ -26,11 +22,12 @@ if strcmp(subs(1).type, '.')
         end
     end
 elseif strcmp(subs(1).type, '()')
-    if numel(subs)~= 1, error('Expression too complicated');end;
+     if ~islinked(this), error('The object is not linked to data file'); end
+    if numel(subs)~= 1,  error('Expression too complicated');            end
     if this.montage.Mind>0
         error('Attempt to assign to a meeg object with online montage applied.');
     end;    
-    this.data.y = subsasgn(this.data.y, subs, dat);
+    this.data = subsasgn(this.data, subs, dat);
 else
     error('Unsupported assignment type for meeg.');
 end

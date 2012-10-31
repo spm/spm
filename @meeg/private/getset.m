@@ -2,14 +2,19 @@ function res = getset(this, parent, fieldname, ind, values)
 % Generic method for getting and setting multiple fields of meeg struct
 % FORMAT res = getset(this, parent, fieldname, ind, values)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 4431 2011-08-12 18:53:02Z vladimir $
+% $Id: getset.m 5025 2012-10-31 14:44:13Z vladimir $
 
 this = struct(this);
 
-if nargin == 3 || isempty(ind) || (ischar(ind) && isequal(ind, ':'))
+if nargin>3 && isempty(ind)
+    warning_flexible('The use of empty matrix to indicate ''all'' is deprecated in SPM12. Please change your code if necessary');
+    ind = '';
+end
+
+if nargin == 3 || ~isnumeric(ind)
     try
         ind = 1:numel(getfield(this, parent));
     catch
@@ -25,7 +30,7 @@ if nargin <= 4
         res{i} = getfield(this, parent, {ind(i)}, fieldname);
     end
 
-    if all(cellfun('isclass', res, 'double') & ~cellfun('isempty', res))
+    if ~isempty(res) && all(cellfun('isclass', res, 'double') & ~cellfun('isempty', res))
         res = [res{:}];
     end
 

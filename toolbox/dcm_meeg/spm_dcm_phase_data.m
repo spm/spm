@@ -32,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_phase_data.m 5025 2012-10-31 14:44:13Z vladimir $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -49,31 +49,25 @@ catch
     filter_order=5;
 end
 
-try
-    trial_step = DCM.options.Nmodes;
-catch
-    trial_step=1;
-end
-
 % load D
 %--------------------------------------------------------------------------
 D = spm_eeg_load(Dfile);
 
-pst=time(D);
+pst=time(D, [], 'ms');
 try
     Hdcm=DCM.options.Hdcm;
 catch
-    Hdcm(1)=1000*pst(1);
-    Hdcm(2)=1000*pst(end);
+    Hdcm(1)= pst(1);
+    Hdcm(2)= pst(end);
 end
 
 % Check time windows are valid
 Tdcm=DCM.options.Tdcm;
-if Tdcm(1) < 1000*pst(1) | Tdcm(2) > 1000*pst(end)
+if Tdcm(1) < pst(1) || Tdcm(2) > pst(end)
     disp('Error in spm_dcm_phase_data: DCM.options.Tdcm is outside data time window');
     return
 end
-if Hdcm(1) > Tdcm(1) | Hdcm(2) < Tdcm(2)
+if Hdcm(1) > Tdcm(1) || Hdcm(2) < Tdcm(2)
     disp('Error in spm_dcm_phase_data: DCM.options.Hdcm is narrower than DCM.options.Tdcm')
     return
 end
@@ -89,7 +83,7 @@ trials=[];
 X=[];
 for jj=1:length(chosen_conds)
     cname=cond_name{chosen_conds(jj)};
-    new_trials=pickconditions(D,cname);
+    new_trials= indtrial(D, {cname, 'GOOD'});
     
     new_trials = new_trials(1:trial_step:end);
     
@@ -110,17 +104,13 @@ if ~isfield(DCM.xY, 'modality')
 end
 
 modality = DCM.xY.modality;
-channels = D.chanlabels;
 
 if ~isfield(DCM.xY, 'Ic')
-    Ic = strmatch(modality, D.chantype);
-    Ic = setdiff(Ic, D.badchannels);
+    Ic = D.indchantype({modality, 'GOOD'});  
     DCM.xY.Ic       = Ic;
 end
 
 Ic = DCM.xY.Ic;
-
-Nc = length(DCM.xY.Ic);
 
 % Compute indices for time window
 DCM.xY.pst=time(D);

@@ -8,39 +8,37 @@ function new = clone(this, fnamedat, dim, reset)
 % it. Otherwise, its path is by definition that of the meeg object to be
 % cloned.
 % _________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 4782 2012-07-10 16:01:13Z vladimir $
+% $Id: clone.m 5025 2012-10-31 14:44:13Z vladimir $
 
 if nargin < 4
     reset = 0;
 end
 
 if nargin < 3
-   if ~strncmpi(transformtype(this), 'TF', 2) 
-        dim = [nchannels(this), nsamples(this), ntrials(this)];
-    else
-        dim = [nchannels(this), nfrequencies(this), nsamples(this), ntrials(this)];
-    end
+   dim = size(this);
 end
 
 % if number of channels is modified, throw away montages
 if dim(1) ~= nchannels(this)
     this = montage(this,'remove',1:montage(this,'getnumber'));
-    warning('Changing the number of channels, so throwing away online montages.');
+    warning('Changing the number of channels, so discarding online montages.');
 end
 
 new = this;
 
 % check file path first
-[pth,fname,ext] = fileparts(fnamedat);
+[pth, fname] = fileparts(fnamedat);
 if isempty(pth)
     pth = this.path;
 end
-newFileName = [fullfile(pth,fname),'.dat'];
+
+newFileName = [fullfile(pth, fname),'.dat'];
+
 % copy the file_array
-d = this.data.y; % 
+d = this.data; % 
 d.fname = newFileName;
 dim_o = d.dim;
 
@@ -75,10 +73,9 @@ else
 end
 
 % link into new meeg object
-new.data.y = d;
+new = link(new, d.fname, d.dtype, d.scl_slope, d.offset);
 
 % change filenames
-new.data.fnamedat = [fname,'.dat'];
 new.fname = [fname,'.mat'];
 new.path = pth;
 
@@ -97,3 +94,5 @@ end
 if (nsampl ~= nsamples(this))
     new.Nsamples = nsampl;
 end
+
+save(new);

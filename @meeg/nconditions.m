@@ -1,14 +1,10 @@
-function res = nconditions(obj)
+function res = nconditions(this)
 % Method for getting the number of unique conditions in the file
 % FORMAT res = nconditions(obj)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: nconditions.m 2978 2009-03-27 14:43:08Z guillaume $
+% $Id: nconditions.m 5025 2012-10-31 14:44:13Z vladimir $
 
-try
-    res = length(unique(conditions(obj)));
-catch
-    res = 0;
-end
+res = numel(condlist(this));

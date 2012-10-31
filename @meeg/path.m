@@ -1,28 +1,15 @@
-function res = path(this, name)
+function res = path(this, newpath)
 % Method for getting/setting path
-% FORMAT res = path(this, name)
+% FORMAT res = path(this, newpath)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: path.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: path.m 5025 2012-10-31 14:44:13Z vladimir $
 
-switch nargin
-    case 1
-        res = getpath(this);        
-    case 2
-        res = setpath(this, name);
-    otherwise
-end
-
-function res = getpath(this)
-try
+if nargin == 1
     res = this.path;
-catch
-    res = '';
+else
+    this.path = newpath;
 end
-
-function this = setpath(this, name)
-this.path = name;
-
 

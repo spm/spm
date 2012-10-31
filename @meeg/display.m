@@ -2,10 +2,10 @@ function str = display(this)
 % Method for displaying information about an meeg object
 % FORMAT display(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: display.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: display.m 5025 2012-10-31 14:44:13Z vladimir $
 
 str = ['SPM M/EEG data object\n'...
     'Type: ' type(this) '\n'...
@@ -35,15 +35,17 @@ if numel(this.montage.M)>0
             ' ,named: "',montage(this,'getname'),'"\n\n'];
     else
         str = [str '\n\n'];
-    end
-        
-
+    end        
 end
 
-if strncmpi(transformtype(this),'TF',2)
-    str = [str  'Use the syntax D(channels, frequencies, samples, trials) to access the data\n'];
+if islinked(this)
+    if strncmpi(transformtype(this),'TF',2)
+        str = [str  'Use the syntax D(channels, frequencies, samples, trials) to access the data\n'];
+    else
+        str = [str  'Use the syntax D(channels, samples, trials) to access the data\n'];
+    end
 else
-     str = [str  'Use the syntax D(channels, samples, trials) to access the data\n'];
+    str = [str, 'There is no data linked to this header object\n'];
 end
 
 str = [str  'Type "methods(''meeg'')" for the list of methods performing other operations with the object\n'...

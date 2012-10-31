@@ -10,8 +10,7 @@ function ind = eogchannels(this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: eogchannels.m 2884 2009-03-16 18:27:25Z guillaume $
+% $Id: eogchannels.m 5025 2012-10-31 14:44:13Z vladimir $
 
-type = chantype(this);
-ind = find(ismember(upper(type), {'EOG', 'HEOG', 'VEOG'}));
-ind = ind(:)'; % must be row to allow to use it as loop indices
+warning_flexible('eogchannels method is deprecated. Use indchantype(D, ''EOG'')');
+ind = indchantype(this, 'EOG');

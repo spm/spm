@@ -1,10 +1,10 @@
-function res = nsamples(obj)
+function res = nsamples(this)
 % Method for getting the number of samples per trial
-% FORMAT res = nsamples(obj)
+% FORMAT res = nsamples(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: nsamples.m 1373 2008-04-11 14:24:03Z spm $
+% $Id: nsamples.m 5025 2012-10-31 14:44:13Z vladimir $
 
-res = obj.Nsamples;
+res = this.Nsamples;

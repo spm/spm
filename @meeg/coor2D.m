@@ -2,14 +2,14 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % returns x and y coordinates of channels in 2D plane
 % FORMAT coor2D(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: coor2D.m 5025 2012-10-31 14:44:13Z vladimir $
 
 
-megind = strmatch('MEG', chantype(this));
-eegind = strmatch('EEG', chantype(this), 'exact');
+megind = indchantype(this, {'MEG', 'MEGPLANAR'});
+eegind = indchantype(this, {'EEG'});
 otherind = setdiff(1:nchannels(this), [megind; eegind]);
 
 if nargin==1 || isempty(ind)

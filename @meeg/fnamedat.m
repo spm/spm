@@ -1,23 +1,15 @@
-function res = fnamedat(this, name)
-% Method for getting/setting file name of data file
-% FORMAT res = fnamedat(this, name)
+function res = fnamedat(this)
+% Method for getting the name of the data file
+% FORMAT res = fnamedat(this)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
-% Stefan Kiebel
-% $Id: fnamedat.m 1373 2008-04-11 14:24:03Z spm $
+% Vladimir Litvak
+% $Id: fnamedat.m 5025 2012-10-31 14:44:13Z vladimir $
 
 
-switch nargin
-    case 1
-        res = getfnamedat(this);        
-    case 2
-        res = setfnamedat(this, name);
-    otherwise
+if islinked(this)
+    res = this.data.fname;
+else
+    res = [];
 end
-
-function res = getfnamedat(this)
-res = this.data.fnamedat;
-
-function this = setfnamedat(this, name)
-this.data.fnamedat = name;

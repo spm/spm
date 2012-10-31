@@ -2,16 +2,15 @@ function res = badtrials(this, varargin)
 % Method for getting/setting bad trials
 % FORMAT res = badtrials(this)
 % _______________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: badtrials.m 4465 2011-09-06 17:02:49Z guillaume $
-
+% $Id: badtrials.m 5025 2012-10-31 14:44:13Z vladimir $
 
 
 if length(varargin) == 2 && ~isempty(varargin{1})
     % make sure that the two inputs for set are the same length
-    if ~(length(varargin{2}) == 1 | (length(varargin{1}) == length(varargin{2})))
+    if ~(length(varargin{2}) == 1 || (length(varargin{1}) == length(varargin{2})))
         error('Use either same vector length or scalar for value');
     end
 end
@@ -24,7 +23,7 @@ end
 
 if numel(varargin) >= 2
     ubad = unique(varargin{2});
-    if isempty(ubad) | ~all(ismember(ubad, [0 1]))
+    if isempty(ubad) || ~all(ismember(ubad, [0 1]))
         error('Illegal bad flags (should be 0 or 1)');
     end
 end
@@ -32,10 +31,12 @@ end
 res = getset(this, 'trials', 'bad', varargin{:});
 
 
-if isempty(varargin)
+% Return trial indices if called without arguments and [0, 1] if called
+if numel(varargin) <= 1 % get
     if iscell(res)
         res = [res{:}];
     end
-    
-    res = find(res);
+    if isempty(varargin)
+        res = find(res);
+    end
 end

@@ -6,12 +6,12 @@ function res = indfrequency(this, f)
 %
 % res        - vector of sample indices matching indices
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: indfrequency.m 3254 2009-07-07 15:18:54Z vladimir $
+% $Id: indfrequency.m 5025 2012-10-31 14:44:13Z vladimir $
 
-if ~strncmpi(transformtype(this),'TF',2)
+if ~strncmpi(transformtype(this), 'TF',2)
     error('Only TF datasets are supported');
 end
 

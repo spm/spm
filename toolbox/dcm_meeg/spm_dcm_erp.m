@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 4988 2012-10-05 19:24:14Z karl $
+% $Id: spm_dcm_erp.m 5025 2012-10-31 14:44:13Z vladimir $
 
 % check options
 %==========================================================================
@@ -122,11 +122,23 @@ try, M = rmfield(M,'g'); end
 %--------------------------------------------------------------------------
 [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
+% check for previous priors
+%--------------------------------------------------------------------------
+try
+    if length(spm_vec(pE)) == length(spm_vec(M.pE))
+        pE  = M.pE;
+        pC  = M.pC;
+        fprintf('Using previous priors\n')
+    end
+end
+
+
 % check for initial parameters
 %--------------------------------------------------------------------------
 try
     if length(spm_vec(pE)) == length(spm_vec(M.P))
         fprintf('Using intial parameters\n')
+        fprintf('Using initial parameters\n')
     end
 end
 

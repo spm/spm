@@ -12,29 +12,11 @@ function ind = meegchannels(this, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: meegchannels.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: meegchannels.m 5025 2012-10-31 14:44:13Z vladimir $
 
-type = chantype(this);
-
-if nargin == 1
-    ind = find(ismember(upper(type), ...
-        {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR', 'REF', 'REFMAG', 'REFGRAD', 'LFP'}));
+warning_flexible('meegchannels method is deprecated. Use indchantype(D, modality)');
+if nargin >1
+    ind = indchantype(this, modality);
 else
-    switch modality
-        case 'EEG'
-            ind = find(ismember(upper(type), {'EEG'}));
-        case 'LFP'
-            ind = find(ismember(upper(type), {'LFP'}));
-        case 'MEG'
-            ind = find(ismember(upper(type), {'MEG', 'MEGMAG', 'MEGGRAD'}));
-        case 'MEGPLANAR'
-            ind = find(ismember(upper(type), {'MEGPLANAR'}));
-        case 'MEEG'
-            ind = find(ismember(upper(type), {'EEG', 'MEG', 'MEGMAG', 'MEGGRAD', 'MEGPLANAR'}));
-        otherwise
-            error('Unsupported modality.');
-    end
+    ind = indchantype(this, 'MEEG');
 end
-
-ind = ind(:)'; % must be row to allow to use it as loop indices
-
