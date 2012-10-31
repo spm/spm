@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5023 2012-10-30 19:25:32Z karl $
+% $Id: spm_fx_mfm.m 5027 2012-10-31 21:51:09Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -77,11 +77,11 @@ C    = exp(P.C);                              % subcortical
 % switches on extrinsic afferent connections (np x nc)
 %--------------------------------------------------------------------------
 try
-    SA   = P.SA;
+    SA = P.SA;
 catch
-    SA   = sparse([1 0 1;
-                   0 1 1;
-                   0 0 0]);
+    SA = sparse([1 0 1;
+                 0 1 1;
+                 0 0 0]);
 end
             
 % intrinsic connection strengths
@@ -98,15 +98,15 @@ catch
 
     % intrinsic connections (np x np) - excitatory
     %----------------------------------------------------------------------
-    GE   = [0   0   1/2;
-            0   0   1;
-            1/2 0   0  ];
+    GE = [0   0   1/2;
+          0   0   1;
+          1/2 0   0  ];
 
     % intrinsic connections (np x np) - inhibitory
     %----------------------------------------------------------------------
-    GI   = [0   1/4 0;
-            0   0   0;
-            0   1   0];
+    GI = [0   1/4 0;
+          0   0   0;
+          0   1   0];
 end
                 
  
@@ -171,17 +171,19 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)/32;
+    U = u(:);
     
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:)/128;
+    U = C*u(:);
+    
 end
 
 % Exogenous input (to excitatory populations)
 %--------------------------------------------------------------------------
 if isfield(P,'U')
+    
     B = exp(P.U)/8;
 else
     B = 0;
@@ -214,7 +216,7 @@ for i = 1:ns
         % Exogenous input (U)
         %------------------------------------------------------------------
         if j == 1
-            E = E + U(i);
+            f{1}(i,j,1) = f{1}(i,j,1) + U(i)/CV;
         end
  
         % Conductances

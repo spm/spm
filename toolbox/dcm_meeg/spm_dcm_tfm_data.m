@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_dcm_tfm_data.m 5027 2012-10-31 21:51:09Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -236,7 +236,7 @@ end
 
 DCM.xY.erp   = spm_unvec(spm_vec(erp)*(scale^1),erp);
 DCM.xY.csd   = spm_unvec(spm_vec(csd)*(scale^2),csd);
-DCM.xY.y     = csd;
+DCM.xY.y     = DCM.xY.csd;
 DCM.xY.U     = DCM.M.U;
 DCM.xY.scale = scale;
 DCM.xY.Hz    = Hz;

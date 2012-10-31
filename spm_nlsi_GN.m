@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 4987 2012-10-05 19:21:44Z karl $
+% $Id: spm_nlsi_GN.m 5027 2012-10-31 21:51:09Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ for k = 1:M.Nmax
     try
         
         [dfdp f] = spm_diff(IS,Ep,M,U,1,{V});
-        dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
+        dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
 
         
         % check for stability

@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_fx_cmm.m 5027 2012-10-31 21:51:09Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -78,9 +78,11 @@ end
 
 % condition specific effects
 %--------------------------------------------------------------------------
-G        = full(P.G);
-G(2,2,:) = squeeze(G(2,2,:)) + P.H;
-G        = exp(G);
+G    = full(P.G);
+if any(P.H)
+    G(2,2,:) = squeeze(G(2,2,:)) + P.H;
+end
+G    = exp(G);
 
 % connectivity switches
 %==========================================================================
@@ -105,14 +107,14 @@ GE   = [ 0     0     0     0
  
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI   = [12     0     4     0
-         0  2048     0     0
+GI   = [ 8     0     4     0
+         0   512     0     0
          0     0    64     0
          0     2    96     2];
 
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = [1/2 1/2 1/2 1/2]*1000*4;                % excitatory rate constants
+KE   = 2048;                                  % excitatory rate constants
 KI   = exp(-P.T)*[1/32 1/16 1/16 1/16]*1000;  % inhibitory rate constants
  
 % Voltages
@@ -122,7 +124,7 @@ VE   =  60;                               % reversal  potential excite (Na)
 VI   = -90;                               % reversal  potential inhib (Cl)
 VR   = -40;                               % threshold potential
  
-CV   = exp(P.CV).*[24 60 42 10]/1000;     % membrane capacitance
+CV   = exp(P.CV).*[24 64 48 8]/1000;      % membrane capacitance
 GL   = 1;                                 % leak conductance
  
 % mean-field effects:
@@ -162,33 +164,31 @@ end
 %==========================================================================
 f     = x;
 for i = 1:ns
-    for j = 1:np
- 
+   
         % intrinsic coupling
         %------------------------------------------------------------------
-        E = (G(j,:,i).*GE(j,:))*m(i,:)';
-        I = (G(j,:,i).*GI(j,:))*m(i,:)';
+        E = (G(:,:,i).*GE)*m(i,:)';
+        I = (G(:,:,i).*GI)*m(i,:)';
         
         % extrinsic coupling (excitatory only) and background activity
         %------------------------------------------------------------------
-        E = E + BE + SA(j,:)*a(i,:)';
+        E = E + BE + SA*a(i,:)';
 
         % and exogenous input(U)
         %------------------------------------------------------------------
-        if j == 1, E = E + U(i); end
+        E(1) = E(1) + U(i);
         
         % Voltage
         %==================================================================
-        f(i,j,1) =         (GL*(VL - x(i,j,1)) + ...
-                      x(i,j,2)*(VE - x(i,j,1)) + ...
-                      x(i,j,3)*(VI - x(i,j,1)) )/CV(j);
+        f(i,:,1) =          (GL*(VL - x(i,:,1)) + ...
+                      x(i,:,2).*(VE - x(i,:,1)) + ...
+                      x(i,:,3).*(VI - x(i,:,1)) )./CV;
         
         % Conductance
         %==================================================================
-        f(i,j,2) = (E - x(i,j,2))*KE(1,j);
-        f(i,j,3) = (I - x(i,j,3))*KI(i,j);
-        
-    end
+        f(i,:,2) = (E' - x(i,:,2)).*KE;
+        f(i,:,3) = (I' - x(i,:,3)).*KI(i,:);
+ 
 end
  
 % vectorise equations of motion

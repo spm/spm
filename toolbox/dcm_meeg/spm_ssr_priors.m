@@ -1,5 +1,5 @@
 function [pE,pC] = spm_ssr_priors(pE,pC)
-% augments prior moments of a neural mass model for ssr analyses
+% augments prior moments of a neural mass model for CSD analyses
 % FORMAT [pE,pC] = spm_ssr_priors(pE,pC)
 %
 % pE - prior expectation
@@ -11,7 +11,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 %    pE.a - neuronal innovations         - amplitude and exponent
 %    pE.b - channel noise (non-specific) - amplitude and exponent
 %    pE.c - channel noise (specific)     - amplitude and exponent
-%    pE.d - neuronal innovations         - basis set coeficients
+%    pE.d - neuronal innovations         - basis set coefficients
 %
 %--------------------------------------------------------------------------
 %
@@ -30,26 +30,32 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 5023 2012-10-30 19:25:32Z karl $
+% $Id: spm_ssr_priors.m 5027 2012-10-31 21:51:09Z karl $
  
 % catch
 %--------------------------------------------------------------------------
 try, pE.L; catch, pE.L = 1; end
-
+ 
 % number of LFP channels and sources (endogenous inputs)
 %--------------------------------------------------------------------------
 if size(pE.L,1) == 1, n = size(pE.L,2); else, n = 1; end
 if size(pE.C,1),      m = size(pE.C,1); else, m = 1; end
-
-% add prior on spectral density of innovations (pink and white coeficients)
+ 
+% add prior on spectral density of fluctuations (amplitude and exponent)
 %--------------------------------------------------------------------------
-pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/128; % neuronal innovations
+pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/128; % neuronal fluctuations
 pE.b = sparse(2,1); pC.b = sparse(2,1) + 1/128; % channel noise non-specific
 pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/128; % channel noise specific
-
-% neuronal innovations (coeficients for structured spectra)
+ 
+% relax priors on amplitude
 %--------------------------------------------------------------------------
-pE.d = sparse(4,m); pC.d = sparse(4,m) + 1/128; 
+pC.a(1,:) = pC.a(1,:) + 1/32;
+pC.b(1,:) = pC.b(1,:) + 1/32;
+pC.c(1,:) = pC.c(1,:) + 1/32;
+ 
+% neuronal innovations (DCT coefficients for structured spectra)
+%--------------------------------------------------------------------------
+pE.d = sparse(4,m); pC.d = sparse(4,m) + 1/32; 
 
 
 

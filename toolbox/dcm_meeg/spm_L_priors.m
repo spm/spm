@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 5023 2012-10-30 19:25:32Z karl $
+% $Id: spm_L_priors.m 5027 2012-10-31 21:51:09Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -62,19 +62,19 @@ switch type
     
     case{'ECD'} % mean           and variance
         %------------------------------------------------------------------
-        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;       % positions
-        pE.L    = zeros(3,n);    pC.L    = ones(3,n)*exp(8);  % orientations
+        pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;    % positions
+        pE.L    = zeros(3,n);    pC.L    = ones(3,n)*64;   % orientations
         
     case{'IMG'}
         %------------------------------------------------------------------
-        m       = dipfit.Nm;                                  % number modes
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);       % positions
-        pE.L    = zeros(m,n);    pC.L    = ones(m,n)*exp(8);  % modes
+        m       = dipfit.Nm;                               % number modes
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);    % positions
+        pE.L    = zeros(m,n);    pC.L    = ones(m,n)*64;   % modes
         
     case{'LFP'}
         %------------------------------------------------------------------
-        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);       % positions
-        pE.L    = ones(1,m);     pC.L    = ones(1,m)*64;      % gains
+        pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);    % positions
+        pE.L    = ones(1,m);     pC.L    = ones(1,m)*64;   % gains
         
     otherwise
         warndlg('Unknown spatial model')
@@ -87,37 +87,37 @@ switch upper(model)
     
     case{'ERP','SEP'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,9);       % 9 states
-        pC.J = pE.J/16;
+        pE.J = sparse(1,9,1,1,9);               % 9 states
+        pC.J = sparse(1,[1 7],1/32,1,9);
         
     case{'CMC'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1 3 7],[0.2 0.6 0.2],1,8);       % 8 states
-        pC.J = sparse(1,[1 7],1,1,8)/16;
+        pE.J = sparse(1,3,1,1,8);               % 8 states
+        pC.J = sparse(1,[1 7],1/32,1,8);
         
     case{'LFP'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1 7 9],[0.2 0.2 0.6],1,13);      % 13 states
-        pC.J = pE.J/16;
+        pE.J = sparse(1,9,1,1,13);              % 13 states
+        pC.J = sparse(1,[1 7],1/32,1,13);
         
     case{'NMM'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1,2,3],[0.1 0.1 0.8],1,9);         % 9 states
-        pC.J = sparse(1,[1,2],[1/32 1/128],1,9);
+        pE.J = sparse(1,3,1,1,9);               % 9 states
+        pC.J = sparse(1,[1,2],1/32,1,9);
         
     case{'CMM'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[2,3,4],[0.8 .1 0.1],1,12);        % 12 states
-        pC.J = sparse(1,[3,4],[1/64 1/128],1,12);
+        pE.J = sparse(1,2,1,1,12);              % 12 states
+        pC.J = sparse(1,[3,4],1/32,1,12);
         
     case{'MFM'}
         %------------------------------------------------------------------
-        pE.J = sparse(1,[1,2,3],[0.1 0.1 0.8],1,36);        % 36 states =
-        pC.J = sparse(1,[1,2],[1/64 1/128],1,36);         % 9 1st + 27 2nd
+        pE.J = sparse(1,3,1,1,36);              % 36 (9 + 27) states
+        pC.J = sparse(1,[1,2],1/32,1,36);
         
     case{'DEM','NFM'}
         %------------------------------------------------------------------
-        pE.J = [];                                        % null
+        pE.J = [];                              % null
         pC.J = [];
         
         

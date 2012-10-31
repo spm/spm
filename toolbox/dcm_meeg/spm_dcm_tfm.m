@@ -49,7 +49,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 4988 2012-10-05 19:24:14Z karl $
+% $Id: spm_dcm_tfm.m 5027 2012-10-31 21:51:09Z karl $
  
  
 % check options
@@ -87,7 +87,7 @@ ERP.options.analysis = 'ERP';
 [pth name] = fileparts(DCM.name);
 ERP.name   = fullfile(pth,[name '_erp']);
 ERP        = spm_dcm_erp(ERP);
- 
+clear spm_erp_L
  
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
@@ -167,8 +167,8 @@ DCM.M.Rft = DCM.xY.Rft;
  
 % precision of noise
 %--------------------------------------------------------------------------
-Qt        = spm_Q(1/4,Nb,1);
-Qf        = spm_Q(1/4,Nf,1);
+Qt        = spm_Q(1/2,Nb,1);
+Qf        = spm_Q(1/2,Nf,1);
 DCM.xY.Q  = kron(Qf,Qt);
 DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
 

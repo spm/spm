@@ -198,10 +198,8 @@ ylabel('log-evidence','FontSize',16)
 set(gca,'XTickLabel',model)
 axis square
 
-
 spm_demo_print
 
-fprintf('\n\n     --------***--------   \n\n')
 
 % test of induced response models
 %==========================================================================
