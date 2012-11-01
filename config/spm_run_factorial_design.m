@@ -5,10 +5,10 @@ function out = spm_run_factorial_design(job)
 % Output:
 % out    - struct variable containing the path of the saved SPM.mat
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 4837 2012-08-13 18:10:04Z guillaume $
+% $Id: spm_run_factorial_design.m 5028 2012-11-01 12:35:32Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -665,7 +665,7 @@ switch job.globalm.glonorm
 end
 if SPM.factor(1).levels > 1
     % Override if factor-specific ANCOVA has been specified
-    for i=1:length(SPM.factor),
+    for i=1:length(SPM.factor)
         if SPM.factor(i).ancova
             iGloNorm=i+2;
         end
@@ -691,15 +691,16 @@ switch char(fieldnames(job.masking.tm)),
         M_T = -Inf;
 end
 
-if (any(iGloNorm == [1:5]) || iGloNorm==8) && iGXcalc==1
+if iGXcalc==1 && (any(iGloNorm == [1:5 8]) || ...
+        (SPM.factor(1).levels > 1 && any([SPM.factor.gmsca])))
     % Over-ride omission of global calculation if we need it
     disp(' ');
-    disp(sprintf('For %s, SPM needs estimates of global activity.',sGloNorm{iGloNorm}));
+    disp('SPM needs estimates of global activity.');
     disp('But you have specified to omit this computation.');
     disp('SPM has overridden this omission and will automatically compute ');
-    disp('globals as the mean value of within brain voxels');
+    disp('globals as the mean value of within brain voxels.');
     disp(' ');
-    iGXcalc=3;
+    iGXcalc = 3;
 end
 sGXcalc = sGXcalc{iGXcalc};
 
