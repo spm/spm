@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5005 2012-10-16 13:41:23Z guillaume $
+% $Id: spm_check_installation.m 5030 2012-11-01 16:47:01Z guillaume $
 
 if isdeployed, return; end
 
@@ -59,7 +59,7 @@ end
 spm('Ver','',1);
 d = spm('Dir');
 
-%-Check the search path
+%-Check the MATLAB search path
 %--------------------------------------------------------------------------
 p = textscan(path,'%s','delimiter',pathsep); p = p{1};
 if ~ismember(lower(d),lower(p))
@@ -72,7 +72,19 @@ if ~ismember(lower(d),lower(p))
         'to set it up.\n'...
         '    addpath %s\n'...
         'For more information, try typing the following:\n'...
-        '    help path\n    help editpath'],d));
+        '    help path\n    help pathtool'],d));
+end
+if ismember(lower(fullfile(d,'src')),lower(p))
+    warning(sprintf([...
+        'You appear to have added all SPM subfolders to the MATLAB\n'...
+        'search path. This is not recommended.\n'...
+        'You only need to add SPM main directory; relevant subfolders '...
+        'will be\nautomatically added by SPM when needed.\n'...
+        'You can clear the MATLAB search path by typing the following:\n'...
+        '    spm_rmpath\n'...
+        '    addpath %s\n'...
+        'For more information, type the following:\n'...
+        '    help pathtool'],d));
 end
 
 %-Ensure that the original release - as well as the updates - was installed
@@ -232,7 +244,7 @@ fprintf('\n');
 fprintf('Platform: %s (maxsize=%d)\n', C, maxsize);
 if ispc
    platform = [system_dependent('getos'),' ',system_dependent('getwinsys')];
-elseif exist('ismac') && ismac
+elseif ismac
     [fail, input] = unix('sw_vers');
     if ~fail
     platform = strrep(input, 'ProductName:', '');
