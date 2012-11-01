@@ -1,0 +1,38 @@
+#!/usr/bin/env make -f
+# Engine Makefile called by {SPM}/external/Makefile
+#
+# Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+#
+# Guillaume Flandin
+# $Id$
+
+include ../src/Makefile.var
+
+ENGINE = engine/private/engine.$(SUF) \
+	engine/private/ft_getopt.$(SUF) # engine/private/memprofile.$(SUF)
+
+ifeq (win64,$(PLATFORM))
+    CFLAGS += -Iengine/private/pthread-win32 -DPLATFORM_WIN64 -D__CLEANUP_C -DWIN32 -DSYSLOG=2 -DLOG_NOTICE=0 -DLOG_CRIT=0 -DLOG_INFO=0 -DLOG_DEBUG=0 -DLOG_ERR=0 
+    LIBS += engine/private/src/pthread-win32/pthreadVC2_x64.lib -lws2_32 -lwininet
+endif
+
+all: $(ENGINE)
+
+clean:
+
+distclean: clean
+	$(DEL) $(ENGINE)
+
+install:
+
+tarball: all
+	$(TAR) -cf engine_mex.tar $(ENGINE)
+
+engine/private/%.$(SUF): engine/private/%.c
+	$(MEX) $< -outdir $(dir $<) $(MEXEND)
+
+engine/private/engine.$(SUF): engine/private/engine.c engine/private/platform.h
+	$(MEX) $< -outdir $(dir $<) -leng $(MEXEND)
+
+engine/private/memprofile.$(SUF): engine/private/memprofile.c engine/private/platform.h engine/private/platform_includes.h engine/private/getmem.c
+	$(MEX) $< -outdir $(dir $<) engine/private/getmem.c $(MEXEND)

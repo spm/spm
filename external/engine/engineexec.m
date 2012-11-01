@@ -28,10 +28,11 @@ try
   % the qsub, peer and engine toolboxes
   [argout, optout] = fexec(argin, optin);
   
-catch err
+catch
   % this is to avoid MATLAB from hanging in case fexec fails, since
   % after the job execution we want MATLAB to exit
-  disp(err);
+  err = lasterror;
+  disp(err.message);
   warning('an error was caught');
   
 end % try-catch

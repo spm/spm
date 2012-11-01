@@ -3,22 +3,22 @@
 #
 # Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4918 2012-09-12 15:28:50Z guillaume $
+# $Id: Makefile 5031 2012-11-01 18:03:02Z guillaume $
 
 include ../src/Makefile.var
 
-all: fieldtrip-all bemcp-all
+all: fieldtrip-all bemcp-all engine-all
 
-clean: fieldtrip-clean bemcp-clean
+clean: fieldtrip-clean bemcp-clean engine-clean
 
-distclean: clean fieldtrip-distclean bemcp-distclean
+distclean: clean fieldtrip-distclean bemcp-distclean engine-distclean
 
-install: fieldtrip-install bemcp-install
+install: fieldtrip-install bemcp-install engine-instal
 
-tarball: fieldtrip-tarball bemcp-tarball
+tarball: fieldtrip-tarball bemcp-tarball engine-tarball
 	$(TAR) Af spm_mex.tar fieldtrip_mex.tar
 	$(TAR) Af spm_mex.tar bemcp/spm_mex.tar
-	$(TAR) Af spm_mex.tar peer_mex.tar
+	$(TAR) Af spm_mex.tar engine_mex.tar
 
 ###############################################################################
 # FIELDTRIP
@@ -43,3 +43,15 @@ bemcp bemcp-%:
 	@ echo "_____________________________________________________________"
 	@ echo ""
 	@ $(MAKE) -C bemcp --no-print-directory $*;
+        
+###############################################################################
+# ENGINE
+###############################################################################
+.PHONY: engine
+engine engine-%:
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ echo "        In engine"
+	@ echo "_____________________________________________________________"
+	@ echo ""
+	@ $(MAKE) -f Makefile.engine --no-print-directory $*;

@@ -97,7 +97,7 @@ void *evalString(void *argin) {
 		engine[0].retval = retval;
 		engine[0].busy   = 0;
 #ifndef PLATFORM_WINDOWS
-		engine[0].tid    = NULL;
+		engine[0].tid    = (pthread_t)NULL;
 #endif
 		FREE(engine[0].cmd); 
 		pthread_mutex_unlock(&enginemutex);
@@ -167,7 +167,7 @@ void mexFunction (int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]) 
                         enginepool[i].ep     = engOpen(NULL); /* returns NULL on failure */
 #else
 						enginepool[i].ep     = engOpen(matlabcmd); /* returns NULL on failure */
-						enginepool[i].tid    = NULL;
+						enginepool[i].tid    = (pthread_t)NULL;
 #endif
 						enginepool[i].busy   = 0;
 						enginepool[i].retval = 0;
