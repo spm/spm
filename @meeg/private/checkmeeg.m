@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: checkmeeg.m 5034 2012-11-02 21:00:17Z karl $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -224,21 +224,11 @@ if Ntrials > 0
             label = num2str(label);
         end
         
-        if ismember(upper(label), {'GOOD', 'BAD'})
-            warning('SPM:checkmeeg', '''GOOD'' and ''BAD'' are reserved keywords and cannot be used as condition labels, adding ''_spm'' suffix');
-            label = [label '_spm'];
-        end
-        
         if isa(label, 'char')
             this.trials(i).label = label;
         else
             this.trials(i).label = 'Unknown';
             warning('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''');
-        end
-        
-        if  length(this.trials(i).bad)>1 || ~ismember(this.trials(i).bad, [0, 1])
-            warning('SPM:checkmeeg', ['Illegal value for bad flag in trial ' num2str(i) ', resetting to zero.']);
-            this.trials(i).bad = 0;
         end
         
         event = this.trials(i).events;

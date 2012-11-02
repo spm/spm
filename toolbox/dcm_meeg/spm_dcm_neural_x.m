@@ -10,7 +10,7 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 5023 2012-10-30 19:25:32Z karl $
+% $Id: spm_dcm_neural_x.m 5034 2012-11-02 21:00:17Z karl $
 
 
 % solve for fixed point
@@ -33,7 +33,7 @@ switch lower(model)
             % solve under locally linear assumptions
             %--------------------------------------------------------------
             [f,dfdx] = feval(M.f,M.x,M.u,P,M);
-            dx       = - inv(dfdx)*f;
+            dx       = - dfdx\f;
             
             % regularise
             %--------------------------------------------------------------
