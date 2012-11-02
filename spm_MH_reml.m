@@ -18,7 +18,7 @@ function [F,P] = spm_MH_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MH_reml.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_MH_reml.m 5033 2012-11-02 20:59:54Z karl $
 
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -59,7 +59,7 @@ M.N   = N;
 
 % initialise and specify hyperpriors
 %--------------------------------------------------------------------------
-[C,h,Ph,Fr] = spm_reml(YY,X,Q,N,OPT);
+[C,h,Ph,Fr] = spm_reml(YY,X,Q,N,0,4,OPT);
 if M.OPT
     M.hE  = h - 16;
     M.hP  = eye(m,m)/32;

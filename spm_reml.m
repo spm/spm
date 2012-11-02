@@ -1,13 +1,16 @@
-function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
+function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t,hE,hP)
 % ReML estimation of [improper] covariance components from y*y'
-% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t);
+% FORMAT [C,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t,hE,hP);
 %
 % YY  - (m x m) sample covariance matrix Y*Y'  {Y = (m x N) data matrix}
 % X   - (m x p) design matrix
 % Q   - {1 x q} covariance components
-% N   - number of samples
-% D   - Flag for positive-definite scheme
-% t   - regularisation (default 4)
+%
+% N   - number of samples                 (default 1)
+% D   - Flag for positive-definite scheme (default 0)
+% t   - regularisation                    (default 4)
+% hE  - hyperprior                        (default 0)
+% hP  - hyperprecision                    (default 1e-16)
 %
 % C   - (m x m) estimated errors = h(1)*Q{1} + h(2)*Q{2} + ...
 % h   - (q x 1) ReML hyperparameters h
@@ -35,15 +38,17 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_reml.m 5033 2012-11-02 20:59:54Z karl $
  
  
 % check defaults
 %--------------------------------------------------------------------------
-try, N; catch, N  = 1;  end       % assume a single sample if not specified
-try, K; catch, K  = 32; end       % default number of iterations
-try, D; catch, D  = 0;  end       % default checking
-try, t; catch, t  = 4;  end       % default regularisation
+try, N;  catch, N  = 1;     end       % assume a single sample if not specified
+try, K;  catch, K  = 32;    end       % default number of iterations
+try, D;  catch, D  = 0;     end       % default checking
+try, t;  catch, t  = 4;     end       % default regularisation
+try, hE; catch, hE = 0;     end       % default hyperprior
+try, hP; catch, hP = 1e-16; end       % default hyperprecision
  
 % catch NaNs
 %--------------------------------------------------------------------------
@@ -73,8 +78,8 @@ h   = zeros(m,1);
 for i = 1:m
     h(i,1) = any(diag(Q{i}));
 end
-hE  = sparse(m,1);
-hP  = speye(m,m)/exp(32);
+hE  = sparse(m,1) + hE;
+hP  = speye(m,m)*hP;
 dF  = Inf;
 D   = 8*(D > 0);
  
@@ -200,7 +205,7 @@ end
 %==========================================================================
 if ~D
     if min(eig(V)) < 0
-        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1,2);
+        [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1,2,hE(1),hP(1));
         return
     end
 end
