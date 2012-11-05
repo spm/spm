@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 6535 2012-09-25 12:50:38Z roboos $
+% $Id: ft_filetype.m 6720 2012-10-10 11:56:32Z dieloz $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -223,11 +223,11 @@ elseif isdir(filename) && ~isempty(dir(fullfile(filename, '*.res4'))) && ~isempt
   type = 'ctf_ds';
   manufacturer = 'CTF';
   content = 'MEG dataset';
-elseif filetype_check_extension(filename, '.res4') && (filetype_check_header(filename, 'MEG41RS') || filetype_check_header(filename, 'MEG42RS') || filetype_check_header(filename, 'MEG4RES'))
+elseif filetype_check_extension(filename, '.res4') && (filetype_check_header(filename, 'MEG41RS') || filetype_check_header(filename, 'MEG42RS') || filetype_check_header(filename, 'MEG4RES') || filetype_check_header(filename, 'MEG3RES')) %'MEG3RES' pertains to ctf64.ds
   type = 'ctf_res4';
   manufacturer = 'CTF';
   content = 'MEG/EEG header information';
-elseif filetype_check_extension(filename, '.meg4') && filetype_check_header(filename, 'MEG41CP')
+elseif filetype_check_extension(filename, '.meg4') && (filetype_check_header(filename, 'MEG41CP') || filetype_check_header(filename, 'MEG4CPT')) %'MEG4CPT' pertains to ctf64.ds
   type = 'ctf_meg4';
   manufacturer = 'CTF';
   content = 'MEG/EEG';
@@ -920,6 +920,11 @@ elseif filetype_check_extension(filename, '.curv') && filetype_check_header(file
   type = 'freesurfer_curv_new';
   manufacturer = 'FreeSurfer';
   content = 'surface description';
+elseif filetype_check_extension(filename, '.annot')
+  % Freesurfer annotation file
+  type = 'freesurfer_annot';
+  manufacturer = 'FreeSurfer';
+  content = 'parcellation annotation';
 elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'_nrs_')) == 1
   % This may be improved by looking into the file, rather than assuming the
   % filename has "_nrs_" somewhere. Also, distinction by the different file
@@ -1003,10 +1008,6 @@ elseif filetype_check_header(filename, 26)
   type = 'nimh_cortex';
   manufacturer = 'NIMH Laboratory of Neuropsychology, http://www.cortex.salk.edu';
   content = 'events and eye channels';
-elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filename, '<?xml')
-  type = 'gifti';
-  manufacturer = 'Neuroimaging Informatics Technology Initiative';
-  content = 'tesselated surface description';
 elseif filetype_check_extension(filename, '.foci') && filetype_check_header(filename, '<?xml')
   type = 'caret_foci';
   manufacturer = 'Caret and ConnectomeWB';
@@ -1016,6 +1017,28 @@ elseif filetype_check_extension(filename, '.border') && filetype_check_header(fi
 elseif filetype_check_extension(filename, '.spec') && filetype_check_header(filename, '<?xml')
   type = 'caret_spec';
   manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.coord.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_coord';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.topo.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_topo';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.surf.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_surf';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.label.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_label';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.func.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_func';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.shape.')) && filetype_check_header(filename, '<?xml')
+  type = 'caret_shape';
+  manufacturer = 'Caret and ConnectomeWB';
+elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filename, '<?xml')
+  type = 'gifti';
+  manufacturer = 'Neuroimaging Informatics Technology Initiative';
+  content = 'tesselated surface description';
 elseif filetype_check_extension(filename, '.v')
   type = 'vista'; 
   manufacturer = 'University of British Columbia, Canada, http://www.cs.ubc.ca/nest/lci/vista/vista.html';

@@ -1,34 +1,9 @@
 function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 
-% FT_PREPARE_BEMMODEL constructs triangulations of the boundaries between
-% multiple segmented tissue types in an anatomical MRI and subsequently
-% computes the BEM system matrix.
+% FT_PREPARE_BEMMODEL  is deprecated, please use FT_PREPARE_HEADMODEL and
+% FT_PREPARE_MESH
 %
-% Use as
-%   [vol] = ft_prepare_bemmodel(cfg, mri), or
-%   [vol] = ft_prepare_bemmodel(cfg, seg), or
-%   [vol] = ft_prepare_bemmodel(cfg, vol), or
-%   [vol] = ft_prepare_bemmodel(cfg)
-%
-% The configuration can contain
-%   cfg.tissue         = [1 2 3], segmentation value of each tissue type
-%   cfg.numvertices    = [Nskin_surface Nouter_skull_surface Ninner_skull_surface]
-%   cfg.conductivity   = [Cskin_surface Couter_skull_surface Cinner_skull_surface]
-%   cfg.hdmfile        = string, file containing the volume conduction model (can be empty)
-%   cfg.isolatedsource = compartment number, or 0
-%   cfg.method         = 'dipoli', 'openmeeg', 'brainstorm' or 'bemcp'
-%
-% Although the example configuration uses 3 compartments, you can use
-% an arbitrary number of compartments.
-%
-% This function implements
-%   Oostendorp TF, van Oosterom A.
-%   Source parameter estimation in inhomogeneous volume conductors of arbitrary shape
-%   IEEE Trans Biomed Eng. 1989 Mar;36(3):382-91.
-%
-% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_LOCALSPHERES,
-% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
-% FT_PREPARE_MESH_NEW
+% See also FT_PREPARE_HEADMODEL
 
 % Copyright (C) 2005-2009, Robert Oostenveld
 %
@@ -48,16 +23,16 @@ function [vol, cfg] = ft_prepare_bemmodel(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_bemmodel.m 6060 2012-06-13 15:05:49Z jorhor $
+% $Id: ft_prepare_bemmodel.m 6754 2012-10-14 19:13:49Z roboos $
 
-warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''dipoli/openmeeg/bem_cp ...'' instead.')
+warning('FT_PREPARE_BEMMODEL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''dipoli/openmeeg/bemcp'' instead.')
 
-revision = '$Id: ft_prepare_bemmodel.m 6060 2012-06-13 15:05:49Z jorhor $';
+revision = '$Id: ft_prepare_bemmodel.m 6754 2012-10-14 19:13:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 % set the defaults
@@ -65,7 +40,7 @@ if ~isfield(cfg, 'tissue'),         cfg.tissue = [8 12 14];                  end
 if ~isfield(cfg, 'numvertices'),    cfg.numvertices = [1 2 3] * 500;         end
 if ~isfield(cfg, 'hdmfile'),        cfg.hdmfile = [];                        end
 if ~isfield(cfg, 'isolatedsource'), cfg.isolatedsource = [];                 end
-if ~isfield(cfg, 'method'),         cfg.method = 'dipoli';                   end % dipoli, openmeeg, bemcp, brainstorm
+if ~isfield(cfg, 'method'),         cfg.method = 'dipoli';                   end % dipoli, openmeeg, bemcp
 
 % start with an empty volume conductor
 try
@@ -109,11 +84,13 @@ if ~isfield(vol,'cond')
   end
 end
 
-% construct the geometry of the BEM boundaries
-if nargin==1
-  vol.bnd = ft_prepare_mesh(cfg);
-else
-  vol.bnd = ft_prepare_mesh(cfg, mri);
+if ~isfield(vol, 'bnd')
+  % construct the geometry of the BEM boundaries
+  if nargin==1
+    vol.bnd = ft_prepare_mesh(cfg);
+  else
+    vol.bnd = ft_prepare_mesh(cfg, mri);
+  end
 end
 
 vol.source = find_innermost_boundary(vol.bnd);
@@ -136,8 +113,6 @@ elseif isempty(cfg.isolatedsource) && Ncompartment==1
 elseif ~islogical(isolatedsource)
   error('cfg.isolatedsource should be true or false');
 end
-
-
 
 if cfg.isolatedsource
   fprintf('using compartment %d for the isolated source approach\n', vol.source);
@@ -306,13 +281,6 @@ elseif strcmp(cfg.method, 'openmeeg')
     end
   end
   
-elseif strcmp(cfg.method, 'brainstorm')
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  % this uses an implementation from the BrainStorm toolbox
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  ft_hastoolbox('brainstorm', 1);
-  error('not yet implemented');
-  
 else
   error('unsupported method');
 end % which method
@@ -322,6 +290,6 @@ vol = ft_convert_units(vol);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble history vol
 

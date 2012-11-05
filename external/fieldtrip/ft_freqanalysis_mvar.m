@@ -54,14 +54,14 @@ function [freq] = ft_freqanalysis_mvar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mvar.m 4608 2011-10-27 12:23:22Z roboos $
+% $Id: ft_freqanalysis_mvar.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_freqanalysis_mvar.m 4608 2011-10-27 12:23:22Z roboos $';
+revision = '$Id: ft_freqanalysis_mvar.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -142,7 +142,7 @@ freq.dof       = data.dof;
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 ft_postamble history freq
 ft_postamble savevar freq

@@ -102,14 +102,14 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 6316 2012-08-03 13:57:13Z roevdmei $
+% $Id: ft_megrealign.m 6842 2012-10-31 17:04:18Z roboos $
 
-revision = '$Id: ft_megrealign.m 6316 2012-08-03 13:57:13Z roevdmei $';
+revision = '$Id: ft_megrealign.m 6842 2012-10-31 17:04:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -176,6 +176,11 @@ for i=1:Ntemplate
     template(i) = ft_read_sens(cfg.template{i});
   elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'coilpos') && isfield(cfg.template{i}, 'coilori') && isfield(cfg.template{i}, 'tra'),
     template(i) = cfg.template{i};
+  elseif isstruct(cfg.template{i}) && isfield(cfg.template{i}, 'pnt') && isfield(cfg.template{i}, 'ori') && isfield(cfg.template{i}, 'tra'),
+    % it seems to be a pre-2011v1 type gradiometer structure, update it
+    template(i) = ft_datatype_sens(cfg.template{i});
+  else
+    error('unrecognized template input');
   end
 end
 
@@ -404,7 +409,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 
 % rename the output variable to accomodate the savevar postamble

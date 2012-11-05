@@ -45,14 +45,14 @@ function cfg = ft_interactiverealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interactiverealign.m 6320 2012-08-03 15:59:39Z roevdmei $
+% $Id: ft_interactiverealign.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_interactiverealign.m 6320 2012-08-03 15:59:39Z roevdmei $';
+revision = '$Id: ft_interactiverealign.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 % check if the input cfg is valid for this function
@@ -115,7 +115,7 @@ cfg.m = norm.m;
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -15,6 +15,7 @@ function [obj] = ft_convert_units(obj, target)
 %   volume conductor definition
 %   dipole grid definition
 %   anatomical mri
+%   segmented mri
 %
 % Possible target units are 'm', 'dm', 'cm ' or 'mm'. If no target units
 % are specified, this function will only determine the native geometrical
@@ -40,7 +41,7 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 6557 2012-09-27 09:29:42Z roboos $
+% $Id: ft_convert_units.m 6869 2012-11-04 15:55:54Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -77,8 +78,8 @@ else
     unit = ft_estimate_units(siz);
   
   elseif ft_voltype(obj, 'infinite')
-    % there is nothing to do to convert the units
-    unit = target;
+    % this is an infinite medium volume conductor, which does not care about units
+    unit = 'm';
     
   elseif ft_voltype(obj,'singlesphere')
     siz = obj.r;
@@ -117,32 +118,11 @@ elseif strcmp(unit, target)
   return
 end
 
+% compue the scaling factor from the input units to the desired ones
+scale = scalingfactor(unit, target);
+
 % give some information about the conversion
 fprintf('converting units from ''%s'' to ''%s''\n', unit, target)
-
-if strcmp(unit, 'm')
-  unit2meter = 1;
-elseif strcmp(unit, 'dm')
-  unit2meter = 0.1;
-elseif strcmp(unit, 'cm')
-  unit2meter = 0.01;
-elseif strcmp(unit, 'mm')
-  unit2meter = 0.001;
-end
-
-% determine the unit-of-dimension of the output object
-if strcmp(target, 'm')
-  meter2target = 1;
-elseif strcmp(target, 'dm')
-  meter2target = 10;
-elseif strcmp(target, 'cm')
-  meter2target = 100;
-elseif strcmp(target, 'mm')
-  meter2target = 1000;
-end
-
-% combine the units into one scaling factor
-scale = unit2meter * meter2target;
 
 % volume conductor model
 if isfield(obj, 'r'), obj.r = scale * obj.r; end
@@ -159,6 +139,23 @@ if isfield(obj, 'pnt'),     obj.pnt     = scale * obj.pnt; end
 if isfield(obj, 'chanpos'), obj.chanpos = scale * obj.chanpos; end
 if isfield(obj, 'coilpos'), obj.coilpos = scale * obj.coilpos; end
 if isfield(obj, 'elecpos'), obj.elecpos = scale * obj.elecpos; end
+
+% gradiometer array that combines multiple coils in one channel
+if isfield(obj, 'tra') && isfield(obj, 'chanunit')
+  % find the gradiometer channels that are expressed as unit of field strength divided by unit of distance, e.g. T/cm
+  for i=1:length(obj.chanunit)
+    tok = tokenize(obj.chanunit{i}, '/');
+    if length(tok)==1
+      % assume that it is T or so
+    elseif length(tok)==2
+      % assume that it is T/cm or so
+      obj.tra(i,:)    = obj.tra(i,:) / scale;
+      obj.chanunit{i} = [tok{1} '/' target];
+    else
+      error('unexpected units %s', obj.chanunit{i});
+    end
+  end % for
+end % if
 
 % fiducials
 if isfield(obj, 'fid') && isfield(obj.fid, 'pnt'), obj.fid.pnt = scale * obj.fid.pnt; end

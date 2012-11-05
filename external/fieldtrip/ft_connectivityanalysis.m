@@ -107,14 +107,14 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 6474 2012-09-17 15:35:38Z jansch $
+% $Id: ft_connectivityanalysis.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 6474 2012-09-17 15:35:38Z jansch $';
+revision = '$Id: ft_connectivityanalysis.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -314,7 +314,11 @@ switch cfg.method
     data     = ft_checkdata(data, 'datatype', {'timelock' 'freq' 'source'});
     dtype    = ft_datatype(data);
     if strcmp(dtype, 'timelock')
-      inparam = 'trial';
+      if ~isfield(data, 'trial')
+        inparam = 'avg';
+      else
+        inparam = 'trial';
+      end
       hasrpt  = (isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'rpt')));
     elseif strcmp(dtype, 'freq')
       inparam = 'something';
@@ -570,7 +574,7 @@ switch cfg.method
   case 'granger'
     % granger causality
     
-    if sum(ft_datatype(data, {'freq' 'freqmvar'})),
+    if ft_datatype(data, 'freq') || ft_datatype(data, 'freqmvar'),
       
       if isfield(data, 'labelcmb') && isempty(cfg.granger.conditional),
         % multiple pairwise non-parametric transfer functions
@@ -625,7 +629,7 @@ switch cfg.method
   case 'instantaneous_causality'
     % instantaneous ft_connectivity between the series, requires the same elements as granger
     
-    if sum(ft_datatype(data, {'freq' 'freqmvar'})),
+    if ft_datatype(data, 'freq') || ft_datatype(data, 'freqmvar'),
       
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % linearly indexed channel pairs
@@ -661,7 +665,7 @@ switch cfg.method
     
   case 'total_interdependence'
     %total interdependence
-    if sum(ft_datatype(data, {'freq' 'freqmvar'})),
+    if ft_datatype(data, 'freq') || ft_datatype(data, 'freqmvar'),
       
       if isfield(data, 'labelcmb') && isempty(cfg.conditional),
         % multiple pairwise non-parametric transfer functions
@@ -905,7 +909,7 @@ if exist('dof',  'var'),  stat.dof  = dof;       end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 ft_postamble history stat
 ft_postamble savevar stat

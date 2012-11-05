@@ -83,7 +83,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 6558 2012-09-27 09:30:13Z roboos $
+% $Id: ft_read_header.m 6866 2012-11-04 15:48:23Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -98,7 +98,7 @@ end
 filename = fetch_url(filename);
 
 % test whether the file or directory exists
-if ~exist(filename, 'file') && ~strcmp(ft_filetype(filename), 'ctf_shm') && ~strcmp(ft_filetype(filename), 'fcdc_mysql') && ~strcmp(ft_filetype(filename), 'fcdc_buffer')
+if  ~strcmp(ft_filetype(filename), 'fcdc_buffer') && ~strcmp(ft_filetype(filename), 'ctf_shm') && ~strcmp(ft_filetype(filename), 'fcdc_mysql') && ~exist(filename, 'file')
   error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
 end
 
@@ -191,7 +191,11 @@ switch headerformat
     hdr.nTrials     = orig.header_data.TotalEpochs;
     %hdr.label       = {orig.channel_data(:).chan_label}';
     hdr.label       = orig.Channel;
-    hdr.grad        = bti2grad(orig);
+    [hdr.grad, elec] = bti2grad(orig);
+    if ~isempty(elec),
+      hdr.elec = elec;
+    end
+    
     % remember original header details
     hdr.orig        = orig;
     
@@ -203,7 +207,11 @@ switch headerformat
     hdr.nSamplesPre = round(orig.FirstLatency*orig.SampleFrequency);
     hdr.nTrials     = orig.TotalEpochs;
     hdr.label       = orig.ChannelOrder(:);
-    hdr.grad        = bti2grad(orig);
+    [hdr.grad, elec] = bti2grad(orig);
+    if ~isempty(elec),
+      hdr.elec = elec;
+    end
+    
     % remember original header details
     hdr.orig        = orig;
     
@@ -402,6 +410,11 @@ switch headerformat
     % check the presence of the required low-level toolbox
     ft_hastoolbox('ctf', 1);
     orig             = readCTFds(filename);
+    if isempty(orig)
+      % this is to deal with data from the 64 channel system and the error
+      % readCTFds: .meg4 file header=MEG4CPT   Valid header options:  MEG41CP  MEG42CP
+      error('could not read CTF with this implementation, please try again with the ''ctf_old'' file format');
+    end
     hdr.Fs           = orig.res4.sample_rate;
     hdr.nChans       = orig.res4.no_channels;
     hdr.nSamples     = orig.res4.no_samples;
@@ -512,7 +525,7 @@ switch headerformat
     % check that the required low-level toolbos ix available
     ft_hastoolbox('eegsf', 1);
     % read it using the CTF importer from the NIH and Daren Weber
-    orig = ctf_read_res4(filename, 0);
+    orig = ctf_read_res4(fileparts(headerfile), 0);
     % convert the header into a structure that FieldTrip understands
     hdr              = [];
     hdr.Fs           = orig.setup.sample_rate;
@@ -537,7 +550,6 @@ switch headerformat
     hdr.orig = orig;
     
   case 'ctf_shm'
-    % contact Robert Oostenveld if you are interested in real-time acquisition on the CTF system
     % read the header information from shared memory
     hdr = read_shm_header(filename);
     
@@ -755,7 +767,6 @@ switch headerformat
     nChans = zeros(length(orig.signal),1);
     nSamples = zeros(length(orig.signal),1);
     for iSig = 1:length(orig.signal)
-q
       Fs(iSig)      = orig.signal(iSig).blockhdr(1).fsample(1);
       nChans(iSig)  = orig.signal(iSig).blockhdr(1).nsignals;
       % the number of samples per block can be different
@@ -1257,15 +1268,15 @@ q
     for i = 1:hdr.nChans % make a cell array of units for each channel
       switch orig.chs(i).unit
         case 201 % defined as constants by MNE, see p. 217 of MNE manual
-          hdr.unit{i} = 'T/m';
+          hdr.chanunit{i} = 'T/m';
         case 112
-          hdr.unit{i} = 'T';
+          hdr.chanunit{i} = 'T';
         case 107
-          hdr.unit{i} = 'V';
+          hdr.chanunit{i} = 'V';
         case 202
-          hdr.unit{i} = 'Am';
+          hdr.chanunit{i} = 'Am';
         otherwise
-          hdr.unit{i} = 'unknown';
+          hdr.chanunit{i} = 'unknown';
       end
     end
     
@@ -1704,9 +1715,11 @@ if ~isfield(hdr, 'chanunit')
 end % for
 
 % ensure that the output grad/elec is according to the latest definition
+% allow both elec and sens to be present
 if isfield(hdr, 'grad')
   hdr.grad = ft_datatype_sens(hdr.grad);
-elseif isfield(hdr, 'elec')
+end
+if isfield(hdr, 'elec')
   hdr.elec = ft_datatype_sens(hdr.elec);
 end
 

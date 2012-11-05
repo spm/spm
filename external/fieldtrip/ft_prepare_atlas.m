@@ -35,14 +35,14 @@ function [atlas, cfg] = ft_prepare_atlas(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 4954 2011-12-07 20:41:18Z roboos $
+% $Id: ft_prepare_atlas.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_prepare_atlas.m 4954 2011-12-07 20:41:18Z roboos $';
+revision = '$Id: ft_prepare_atlas.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 
 if ischar(cfg)
   % prior to 7 December 2011, this function was called with the filename as input
@@ -566,7 +566,7 @@ if useafni
     };
   
 elseif usewfu
-  atlas = ft_read_mri(cfg.atlas); % /home/... works, ~/.... does not work
+  atlas = ft_read_mri(cfg.atlas);
   atlas.brick0 = atlas.anatomy(:,:,:);
   atlas = rmfield(atlas, 'anatomy');
   atlas.coord = 'mni';
@@ -630,5 +630,5 @@ elseif usewfu
 end
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble history atlas

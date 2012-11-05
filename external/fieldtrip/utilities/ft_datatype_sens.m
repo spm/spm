@@ -73,7 +73,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 5270 2012-02-10 09:36:36Z jansch $
+% $Id: ft_datatype_sens.m 6854 2012-11-02 10:21:44Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -86,12 +86,19 @@ if isempty(sens)
   return;
 end
 
-% there are many cases which deal with either eeg or meg
-isgrad = ft_senstype(sens, 'meg');
-
 switch version
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   case '2011v2'
+    
+    % This speeds up subsequent calls to ft_senstype and channelposition.
+    % However, if it is not more precise than MEG or EEG, don't keep it in
+    % the output (see further down).
+    if ~isfield(sens, 'type')
+      sens.type = ft_senstype(sens);
+    end
+    
+    % there are many cases which deal with either eeg or meg
+    isgrad = ft_senstype(sens, 'meg');
     
     if isfield(sens, 'pnt') || isfield(sens, 'ori')
       if isgrad
@@ -123,7 +130,7 @@ switch version
       end
     end
     
-    if ~isfield(sens, 'chantype')
+    if ~isfield(sens, 'chantype') || all(strcmp(sens.chantype, 'unknown'))
       if isgrad
         sens.chantype = ft_chantype(sens);
       else
@@ -131,29 +138,23 @@ switch version
       end
     end
     
-    if ~isfield(sens, 'chanunit') && ~ft_senstype(sens, 'unknown')
-      if ft_senstype(sens, 'ctf')
-        sens.chanunit = repmat({'T'}, size(sens.label));
-      elseif ft_senstype(sens, 'bti')
-        % FIXME
-        sens.chanunit = repmat({'unknown'}, size(sens.label));
-      elseif ft_senstype(sens, 'neuromag')
-        % FIXME
-        sens.chanunit = repmat({'unknown'}, size(sens.label));
-      elseif ft_senstype(sens, 'itab')
-        % FIXME
-        sens.chanunit = repmat({'unknown'}, size(sens.label));
-      elseif ft_senstype(sens, 'yokogawa')
-        % FIXME
-        sens.chanunit = repmat({'unknown'}, size(sens.label));
+    if ~isfield(sens, 'chanunit') || all(strcmp(sens.chanunit, 'unknown'))
+      if isgrad
+        sens.chanunit = ft_chanunit(sens);
       else
-        % FIXME for EEG or other MEG systems we have not yet figured out how to deal with this
+        % FIXME for EEG we have not yet figured out how to deal with this
       end
     end
     
-%     if ~isfield(sens, 'unit')
-%       sens = ft_convert_units(sens);
-%     end
+    if ~isfield(sens, 'unit')
+      sens = ft_convert_units(sens);
+    end
+    
+    if any(strcmp(sens.type, {'meg', 'eeg', 'magnetometer', 'electrode'}))
+      % this is not sufficiently informative, so better remove it
+      % see also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1806
+      sens = rmfield(sens, 'type');
+    end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   otherwise

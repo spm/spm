@@ -24,14 +24,14 @@ function [varargout] = ft_qualitycheck(cfg)
 %   cfg.dataset = a string (e.g. 'dataset.ds')
 %
 % The following parameters can be used:
-%   cfg.analyze   = 'yes' or 'no' to analyze the dataset (default = 'yes')
-%   cfg.savemat   = 'yes' or 'no' to save the analysis (default = 'yes')
-%   cfg.matfile   = a string (e.g. 'previousoutput.mat'), preferably in combination
+%   cfg.analyze   = string, 'yes' or 'no' to analyze the dataset (default = 'yes')
+%   cfg.savemat   = string, 'yes' or 'no' to save the analysis (default = 'yes')
+%   cfg.matfile   = string, filename (e.g. 'previousoutput.mat'), preferably in combination
 %                    with analyze = 'no'
-%   cfg.visualize = 'yes' or 'no' to visualize the analysis (default = 'yes')
-%   cfg.saveplot  = 'yes' or 'no' to save the visualization (default = 'yes')
+%   cfg.visualize = string, 'yes' or 'no' to visualize the analysis (default = 'yes')
+%   cfg.saveplot  = string, 'yes' or 'no' to save the visualization (default = 'yes')
 %   cfg.linefreq  = scalar, frequency of power line (default = 50)
-%   cfg.plotunit  = the length of time to be plotted in one panel (default = 3600)
+%   cfg.plotunit  = scalar, the length of time to be plotted in one panel (default = 3600)
 %
 % See also FT_PREPROCESSING, FT_READ_HEADER, FT_READ_DATA, FT_READ_EVENT
 
@@ -55,12 +55,12 @@ function [varargout] = ft_qualitycheck(cfg)
 %
 % $Id:%
 
-revision = '$Id: ft_qualitycheck.m 6060 2012-06-13 15:05:49Z jorhor $';
+revision = '$Id: ft_qualitycheck.m 6772 2012-10-19 14:17:19Z lilmag $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 % set the defaults
@@ -324,7 +324,7 @@ end % end of visualization
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble history timelock   % add the input cfg to multiple outputs
 ft_postamble history freq       % add the input cfg to multiple outputs
 ft_postamble history summary    % add the input cfg to multiple outputs

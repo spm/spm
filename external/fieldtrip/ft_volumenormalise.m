@@ -6,7 +6,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 % Use as
 %   [mri] = ft_volumenormalise(cfg, mri)
 % where the input mri should be a single anatomical volume that was for
-% example read with FT_READ_MRI. 
+% example read with FT_READ_MRI.
 %
 % Configuration options are:
 %   cfg.spmversion  = 'spm8' or 'spm2' (default = 'spm8')
@@ -63,14 +63,14 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 6103 2012-06-21 07:09:03Z jansch $
+% $Id: ft_volumenormalise.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_volumenormalise.m 6103 2012-06-21 07:09:03Z jansch $';
+revision = '$Id: ft_volumenormalise.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar interp
 
@@ -87,9 +87,9 @@ cfg = ft_checkconfig(cfg, 'renamed', {'coordinates', 'coordsys'});
 
 % set the defaults
 cfg.spmversion       = ft_getopt(cfg, 'spmversion',       'spm8');
-cfg.parameter        = ft_getopt(cfg, 'parameter',        'all'); 
-cfg.downsample       = ft_getopt(cfg, 'downsample',       1); 
-cfg.write            = ft_getopt(cfg, 'write',            'no'); 
+cfg.parameter        = ft_getopt(cfg, 'parameter',        'all');
+cfg.downsample       = ft_getopt(cfg, 'downsample',       1);
+cfg.write            = ft_getopt(cfg, 'write',            'no');
 cfg.keepinside       = ft_getopt(cfg, 'keepinside',       'yes');
 cfg.keepintermediate = ft_getopt(cfg, 'keepintermediate', 'no');
 cfg.coordsys         = ft_getopt(cfg, 'coordsys',         '');
@@ -98,6 +98,13 @@ cfg.nonlinear        = ft_getopt(cfg, 'nonlinear',        'yes');
 cfg.smooth           = ft_getopt(cfg, 'smooth',           'no');
 cfg.inputfile        = ft_getopt(cfg, 'inputfile',        []);
 cfg.outputfile       = ft_getopt(cfg, 'outputfile',       []);
+
+% check if the required spm is in your path:
+if strcmpi(cfg.spmversion, 'spm2'),
+  ft_hastoolbox('SPM2',1);
+elseif strcmpi(cfg.spmversion, 'spm8'),
+  ft_hastoolbox('SPM8',1);
+end
 
 % check whether the input has an anatomy
 if ~isfield(interp,'anatomy'),
@@ -114,15 +121,8 @@ orig    = interp.transform;
 interp  = ft_convert_coordsys(interp, 'spm');
 initial = interp.transform / orig;
 
-% check if the required spm is in your path:
-if strcmpi(cfg.spmversion, 'spm2'),
-  ft_hastoolbox('SPM2',1);
-elseif strcmpi(cfg.spmversion, 'spm8'),
-  ft_hastoolbox('SPM8',1);
-end
-
 if ~isfield(cfg, 'template'),
-  spmpath      = spm('dir');
+  spmpath = spm('dir');
   if strcmpi(cfg.spmversion, 'spm8'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.nii']; end
   if strcmpi(cfg.spmversion, 'spm2'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.mnc']; end
 end
@@ -197,9 +197,9 @@ end
 % read the template anatomical volume
 switch template_ftype
   case 'minc'
-    VG    = spm_vol_minc(cfg.template);
+    VG = spm_vol_minc(cfg.template);
   case {'analyze_img', 'analyze_hdr', 'nifti'},
-    VG    = spm_vol(cfg.template);
+    VG = spm_vol(cfg.template);
   otherwise
     error('Unknown template');
 end
@@ -295,7 +295,7 @@ ft_postamble trackconfig
 cfg.spmparams = params;
 cfg.final     = final;
 
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous interp
 ft_postamble history normalise
 ft_postamble savevar normalise

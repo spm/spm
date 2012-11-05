@@ -66,14 +66,14 @@ function [cfg, artifact] = ft_artifact_jump(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_jump.m 4669 2011-11-03 20:58:34Z roboos $
+% $Id: ft_artifact_jump.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_artifact_jump.m 4669 2011-11-03 20:58:34Z roboos $';
+revision = '$Id: ft_artifact_jump.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-% ft_preamble callinfo is not needed because just a call to ft_artifact_zvalue
+% ft_preamble provenance is not needed because just a call to ft_artifact_zvalue
 % ft_preamble loadvar data is not needed because ft_artifact_zvalue will do this
 
 % check if the input cfg is valid for this function

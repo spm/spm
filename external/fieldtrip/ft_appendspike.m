@@ -34,14 +34,14 @@ function [data] = ft_appendspike(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 6057 2012-06-13 14:11:09Z marvin $
+% $Id: ft_appendspike.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_appendspike.m 6057 2012-06-13 14:11:09Z marvin $';
+revision = '$Id: ft_appendspike.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 isspike = zeros(size(varargin));
@@ -137,7 +137,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin
 ft_postamble history data
 ft_postamble savevar data

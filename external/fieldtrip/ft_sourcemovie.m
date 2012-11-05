@@ -22,18 +22,18 @@ function [cfg, M] = ft_sourcemovie(cfg, source)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 5256 2012-02-07 15:05:44Z jansch $
+% $Id: ft_sourcemovie.m 6750 2012-10-13 15:07:32Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_sourcemovie.m 5256 2012-02-07 15:05:44Z jansch $';
+revision = '$Id: ft_sourcemovie.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar source
 
@@ -311,7 +311,7 @@ if nargout
   
   % do the general cleanup and bookkeeping at the end of the function
   ft_postamble trackconfig
-  ft_postamble callinfo
+  ft_postamble provenance
   ft_postamble previous source
 
 end % if nargout

@@ -35,7 +35,7 @@ function [warped] = warp_apply(M, input, method, tol)
 % If any other method is selected, it is assumed that it specifies
 % the name of an auxiliary function that will, when given the input
 % parameter vector M, return an 4x4 homogenous transformation
-% matrix. Supplied functions in teh warping toolbox are translate,
+% matrix. Supplied functions in the warping toolbox are translate,
 % rotate, scale, rigidbody, globalrescale, traditional, affine,
 % perspective.
 
@@ -57,7 +57,7 @@ function [warped] = warp_apply(M, input, method, tol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_apply.m 5668 2012-04-19 13:56:53Z jansch $
+% $Id: warp_apply.m 6600 2012-09-28 14:09:01Z johzum $
 
 if nargin<4
   tol = [];

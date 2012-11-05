@@ -19,7 +19,8 @@ function [inInterval] = matlabversion(min, max)
 %
 % See also VERSION, VER, VERLESSTHAN
 
-% Copyright (C) 2006, Robert Oostenveld; 2010, Eelke Spaak
+% Copyright (C) 2006, Robert Oostenveld
+% Copyright (C) 2010, Eelke Spaak
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -37,7 +38,7 @@ function [inInterval] = matlabversion(min, max)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: matlabversion.m 5048 2011-12-14 18:05:57Z johzum $
+% $Id: matlabversion.m 6747 2012-10-11 19:10:11Z roboos $
 
 % this does not change over subsequent calls, making it persistent speeds it up
 persistent curVer

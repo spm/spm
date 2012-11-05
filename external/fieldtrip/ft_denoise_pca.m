@@ -59,14 +59,14 @@ function data = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 5318 2012-02-26 13:47:58Z jansch $
+% $Id: ft_denoise_pca.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_denoise_pca.m 5318 2012-02-26 13:47:58Z jansch $';
+revision = '$Id: ft_denoise_pca.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 % check if the input data is valid for this function
@@ -289,7 +289,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin
 ft_postamble history data
 ft_postamble savevar data

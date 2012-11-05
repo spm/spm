@@ -96,14 +96,14 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 6475 2012-09-19 11:58:09Z jansch $
+% $Id: ft_sourceinterpolate.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_sourceinterpolate.m 6475 2012-09-19 11:58:09Z jansch $';
+revision = '$Id: ft_sourceinterpolate.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar functional anatomical
 
@@ -429,7 +429,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous functional anatomical
 ft_postamble history interp
 ft_postamble savevar interp

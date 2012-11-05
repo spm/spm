@@ -15,10 +15,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %
 % Use as
 %   vol = ft_prepare_headmodel(cfg)       or
-%   vol = ft_prepare_headmodel(cfg, bnd)  with the output of FT_PREPARE_MESH
+%   vol = ft_prepare_headmodel(cfg, bnd)  with the output of FT_PREPARE_MESH or FT_READ_HEADSHAPE
 %   vol = ft_prepare_headmodel(cfg, seg)  with the output of FT_VOLUMESEGMENT
 %   vol = ft_prepare_headmodel(cfg, elec) with the output of FT_READ_SENS
-%   vol = ft_prepare_headmodel(cfg, vol)  with the output of FT_READ_VOL
 %
 % In general the input to this function is a geometrical description of the
 % shape of the head and a description of the electrical conductivity. The
@@ -43,12 +42,11 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %   infinite           electric dipole in an infinite homogenous medium
 %   halfspace          infinite homogenous medium on one side, vacuum on the other
 %
-% and for MEG the following methods are available:
+% For MEG the following methods are available:
 %   singlesphere       analytical single sphere model
 %   localspheres       local spheres model for MEG, one sphere per channel
 %   singleshell        realisically shaped single shell approximation, based on the implementation from Guido Nolte
 %   infinite           magnetic dipole in an infinite vacuum
-%
 %
 % Additionally, each specific method has its specific configuration options
 % which are listed below.
@@ -82,8 +80,7 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 % low-level function which is called FT_HEADMODEL_XXX where XXX is the method 
 % of choise.
 %
-% See also FT_PREPARE_LEADFIELD, FT_PREPARE_SOURCEMODEL, FT_PREPARE_MESH,
-% FT_VOLUMESEGMENT, FT_VOLUMEREALIGN, FT_READ_VOL, FT_READ_SENS,
+% See also FT_PREPARE_SOURCEMODEL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
 % FT_HEADMODEL_BEMCP, FT_HEADMODEL_ASA, FT_HEADMODEL_DIPOLI,
 % FT_HEADMODEL_SIMBIO, FT_HEADMODEL_FNS, FT_HEADMODEL_HALFSPACE,
 % FT_HEADMODEL_INFINITE, FT_HEADMODEL_OPENMEEG, FT_HEADMODEL_SINGLESPHERE,
@@ -109,15 +106,15 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 6400 2012-08-23 10:18:40Z jansch $
+% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 6400 2012-08-23 10:18:40Z jansch $';
+revision = '$Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble trackconfig
-ft_preamble callinfo
+ft_preamble provenance
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', 'method');
@@ -236,7 +233,6 @@ switch cfg.method
   case 'halfspace'
     cfg.point     = ft_getopt(cfg, 'point',     []);
     cfg.submethod = ft_getopt(cfg, 'submethod', []);
-    cfg.conductivity = ft_getopt(cfg, 'conductivity',   []);
     vol = ft_headmodel_halfspace(geometry, cfg.point, 'conductivity',cfg.conductivity,'submethod',cfg.submethod);
     
   case 'infinite'
@@ -254,7 +250,6 @@ switch cfg.method
     vol = ft_headmodel_singleshell(geometry);
     
   case 'singlesphere'
-    cfg.conductivity   = ft_getopt(cfg, 'conductivity',   []);
     if isempty(geometry) && ~isempty(cfg.hdmfile)
       geometry = ft_read_headshape(cfg.hdmfile);
     elseif isempty(geometry)
@@ -302,7 +297,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 ft_postamble history vol
 
@@ -604,7 +599,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 6400 2012-08-23 10:18:40Z jansch $
+% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -797,7 +792,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 6400 2012-08-23 10:18:40Z jansch $
+% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

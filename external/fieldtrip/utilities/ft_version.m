@@ -65,13 +65,14 @@ function [v,ftpath] = ft_version(cmd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_version.m 6406 2012-08-23 14:15:47Z eelspa $
+% $Id: ft_version.m 6839 2012-10-31 08:31:15Z eelspa $
 
 if nargin<1
   cmd = 'info';
 end
 
 [ftpath, ~] = fileparts(mfilename('fullpath'));
+ftpath = ftpath(1:end-10); % strip away '/utilities'
 signaturefile = fullfile(ftpath, 'signature.md5');
 remotesignature = 'http://fieldtrip.fcdonders.nl/signature.md5';
 repository = 'http://fieldtrip.googlecode.com/svn/trunk/';

@@ -58,14 +58,14 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 6257 2012-07-10 13:43:19Z johzum $
+% $Id: ft_sourcestatistics.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_sourcestatistics.m 6257 2012-07-10 13:43:19Z johzum $';
+revision = '$Id: ft_sourcestatistics.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar varargin
 
@@ -428,7 +428,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin
 ft_postamble history stat
 ft_postamble savevar stat

@@ -81,18 +81,18 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_rejectartifact.m 6750 2012-10-13 15:07:32Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_rejectartifact.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -489,7 +489,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 if hasdata
   ft_postamble previous data
   ft_postamble history data

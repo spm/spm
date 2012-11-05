@@ -2,8 +2,24 @@ function str = printstruct(name, val)
 
 % PRINTSTRUCT converts a Matlab structure to text which can be
 % interpreted by Matlab, resulting in the original structure.
+%
+% Use as
+%   str = printstruct(val)
+% or 
+%   str = printstruct(name, val)
+% where "val" is any MATLAB variable, e.g. a scalar, vector, matrix,
+% structure, or cell-array. Optionally you can also pass the name of the
+% variable.
+%
+% Example
+%   a.field1 = 1;
+%   a.field2 = 2;
+%   s = printstruct(a)
+%
+%   b = rand(3);
+%   s = printstruct(b)
 
-% Copyright (C) 2006, Robert Oostenveld
+% Copyright (C) 2006-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -21,7 +37,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 5177 2012-01-25 15:04:34Z roboos $
+% $Id: printstruct.m 6623 2012-10-01 18:31:30Z roboos $
 
 if nargin==1
   val  = name;

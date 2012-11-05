@@ -25,7 +25,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 3328 2011-04-11 11:56:57Z jansch $
+% $Id: read_4d_hdr.m 6837 2012-10-31 08:11:27Z jansch $
 
 %read header
 if nargin ~= 2
@@ -360,26 +360,49 @@ for ub = 1:header.config_data.total_user_blocks
     xfm = zeros(4,4);
     for k = 1:size(tmp,1)
       xfm(k) = typecast(tmp(k,:), 'double');
-      if abs(xfm(k))<1e-10 | abs(xfm(k))>1e10, xfm(k) = typecast(fliplr(tmp(k,:)), 'double');end
+      if abs(xfm(k))<1e-10 || abs(xfm(k))>1e10, xfm(k) = typecast(fliplr(tmp(k,:)), 'double');end
     end
     fseek(fid, tmpfp, 'bof'); %FIXME try to find out why this looks so strange
   elseif strcmp(type(type>0), 'b_eeg_elec_locs'),
-    %this block contains the digitized coil positions
+    %this block contains the digitized coil and electrode positions
     tmpfp   = ftell(fid);
     Npoints = user_space_size./40;
     for k = 1:Npoints
       tmp      = fread(fid, 16, 'uchar');
-      tmplabel = char(tmp(tmp>0)');
-      if strmatch('Coil', tmplabel), 
-        label{k} = tmplabel(1:5);
-      elseif ismember(tmplabel(1), {'L' 'R' 'C' 'N' 'I'}),
-        label{k} = tmplabel(1);
-      else
-        label{k} = '';
-      end
+      tmplabel = char(tmp(tmp>47 & tmp<128)'); %stick to plain ASCII
+      %if strmatch('Coil', tmplabel), 
+      %  label{k} = tmplabel(1:5);
+      %elseif ismember(tmplabel(1), {'L' 'R' 'C' 'N' 'I'}),
+      %  label{k} = tmplabel(1);
+      %else
+      %  label{k} = '';
+      %end
+      label{k} = tmplabel;
       tmp      = fread(fid, 3, 'double');
       pnt(k,:) = tmp(:)';
     end
+
+    % post-processing of the labels
+    % it seems the following can happen
+    %  - a sequence of L R N C I, i.e. the coordinate system defining landmarks
+    for k = 1:numel(label)
+      firstletter(k) = label{k}(1);
+    end
+    sel = strfind(firstletter, 'LRNCI');
+    if ~isempty(sel)
+      label{sel}   = label{sel}(1);
+      label{sel+1} = label{sel+1}(1);
+      label{sel+2} = label{sel+2}(1);
+      label{sel+3} = label{sel+3}(1);
+      label{sel+4} = label{sel+4}(1);
+    end
+    %  - a sequence of coil1...coil5 i.e. the localization coils
+    for k = 1:numel(label)
+       if strncmpi(label{k},'coil',4)
+         label{k} = label{k}(1:5);
+       end
+    end
+    %  - something else: EEG electrodes?
     header.user_block_data{ub}.label = label(:);
     header.user_block_data{ub}.pnt   = pnt;
     fseek(fid, tmpfp, 'bof');

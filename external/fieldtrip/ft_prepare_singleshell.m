@@ -1,49 +1,14 @@
 function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 
-% FT_PREPARE_SINGLESHELL creates a simple and fast method for the MEG forward
-% calculation for one shell of arbitrary shape. This is based on a
-% correction of the lead field for a spherical volume conductor by a
-% superposition of basis functions, gradients of harmonic functions
-% constructed from spherical harmonics.
+% FT_PREPARE_SINGLESHELL is deprecated, please use FT_PREPARE_HEADMODEL and
+% FT_PREPARE_MESH
 %
-% Use as
-%   vol = ft_prepare_singleshell(cfg, seg), or
-%   vol = ft_prepare_singleshell(cfg, mri), or
-%   vol = ft_prepare_singleshell(cfg)
-%
-% If you do not use a segmented MRI, the configuration should contain
-%   cfg.headshape   = a filename containing headshape, a structure containing a
-%                     single triangulated boundary, or a Nx3 matrix with surface
-%                     points
-%   cfg.numvertices = number, to retriangulate the mesh with a sphere (default = 3000)
-%                     instead of specifying a number, you can specify 'same' to keep the
-%                     vertices of the mesh identical to the original headshape points
-%
-% The following options are relevant if you use a segmented MRI
-%   cfg.smooth      = 'no' or the FWHM of the gaussian kernel in voxels (default = 5)
-%   cfg.sourceunits = 'mm' or 'cm' (default is 'cm')
-%   cfg.threshold   = 0.5, relative to the maximum value in the segmentation
-%
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following option:
-%   cfg.inputfile   =  ...
-% If you specify this option the input data will be read from a *.mat
-% file on disk. This mat files should contain only a single variable named 'mri',
-% corresponding to the input structure.
-%
-% This function implements
-%   G. Nolte, "The magnetic lead field theorem in the quasi-static
-%   approximation and its use for magnetoencephalography forward calculation
-%   in realistic volume conductors", Phys Med Biol. 2003 Nov 21;48(22):3637-52.
-%
-% See also FT_PREPARE_CONCENTRICSPHERES, FT_PREPARE_LOCALSPHERES,
-% FT_PREPARE_BEMMODEL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
-% FT_PREPARE_MESH_NEW
+% See also FT_PREPARE_HEADMODEL
 
 % TODO the spheremesh option should be renamed consistently with other mesh generation cfgs
 % TODO shape should contain pnt as subfield and not be equal to pnt (for consistency with other use of shape)
 
-% Copyright (C) 2006-2007, Robert Oostenveld
+% Copyright (C) 2006-2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -61,14 +26,16 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 6344 2012-08-08 16:10:45Z roboos $
+% $Id: ft_prepare_singleshell.m 6754 2012-10-14 19:13:49Z roboos $
 
-revision = '$Id: ft_prepare_singleshell.m 6344 2012-08-08 16:10:45Z roboos $';
+warning('FT_PREPARE_SINGLESHELL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''singleshell'' instead.')
+
+revision = '$Id: ft_prepare_singleshell.m 6754 2012-10-14 19:13:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar mri
 
@@ -78,16 +45,11 @@ cfg = ft_checkconfig(cfg, 'deprecated', 'mriunits');
 
 % set the defaults
 if ~isfield(cfg, 'smooth');        cfg.smooth = 5;          end % in voxels
-if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];    end % approximate number of vertices in sphere
 
 % the data is specified as input variable or input file
 hasmri = exist('mri', 'var');
-
-if hasmri && isempty(cfg.numvertices)
-  cfg.numvertices = 3000;
-end
 
 if hasmri
   vol.bnd = ft_prepare_mesh(cfg, mri);
@@ -102,7 +64,7 @@ vol = ft_convert_units(vol);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 if hasmri
   ft_postamble previous mri
 end

@@ -26,19 +26,24 @@ function vol = ft_headmodel_concentricspheres(geometry, varargin)
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
 % get the optional input arguments
-conductivity = ft_getopt(varargin, 'conductivity');
+conductivity = ft_getopt(varargin, 'conductivity', [1 1/80 1]*0.33); % see below
 fitind       = ft_getopt(varargin, 'fitind', 'all');
-unit         = ft_getopt(varargin,'unit');
+unit         = ft_getopt(varargin, 'unit');
 
+% The condictivity default applies to a 3-sphere model. Providing defaults
+% for a 4-sphere model are not so easy because the user might have
+% specified the geometry scalp-skull-csf-brain or the other way around.
+ 
 % start with an empty volume conductor
 vol = [];
 
 if ~isempty(unit)
   % use the user-specified units for the output
-  vol.unit = geometry.unit;
+  vol.unit = unit;
 elseif isfield(geometry, 'unit')
   % copy the geometrical units into he volume conductor
-  vol.unit = geometry.unit;
+  % assume that in case of multiple meshes that they have the same units
+  vol.unit = geometry(1).unit; 
 end
 
 if isnumeric(geometry) && size(geometry,2)==3
@@ -56,27 +61,8 @@ end
 % determine the number of compartments
 numboundaries = numel(geometry);
 
-if isempty(conductivity)
-  warning('No conductivity is declared, Assuming standard values\n')
-  if numboundaries == 1
-    conductivity = 1;
-  elseif numboundaries == 3
-    % skin/skull/brain
-    conductivity = [1 1/80 1] * 0.33;
-  elseif numboundaries == 4
-    %FIXME: check for better default values here
-    % skin / outer skull / inner skull / brain
-    conductivity = [1 1/80 1 1] * 0.33;
-  else
-    error('Conductivity values are required!')
-  end
-end
-
 if numel(conductivity)~=numboundaries
   error('a conductivity value should be specified for each compartment');
-else
-  % assign the conductivity of each compartment
-  vol.cond = conductivity;
 end
 
 % concatenate the vertices of all surfaces

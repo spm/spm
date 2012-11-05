@@ -1,41 +1,9 @@
 function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 
-% FT_PREPARE_CONCENTRICSPHERES creates a EEG volume conductor model with
-% multiple concentric spheres.
+% FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL and
+% FT_PREPARE_MESH
 %
-% Use as
-%   vol = ft_prepare_concentricspheres(cfg)
-%
-% The input configuration should contain
-%   cfg.headshape     = a filename containing headshape, a Nx3 matrix with surface 
-%                       points, or a structure with a single or multiple boundaries
-%   cfg.conductivity  = conductivity values for the model (default = [0.3300 1 0.0042 0.3300])
-%   cfg.fitind        = indices of shapes to use for fitting the center (default = 'all')
-%   cfg.nonlinear     = 'yes' or 'no' (default = 'yes')
-%   cfg.feedback      = 'yes' or 'no' (default = 'yes')
-%
-% Example:
-%
-%   % first create 4 surfaces that represent the inner_skull_surface, csf, outer_skull_surface and skin_surface
-%   radius = [86 88 92 100];
-%   headshape = [];
-%   for i=1:4
-%     pnt = randn(100,3);
-%     for j=1:size(pnt,1)
-%       pnt(j,:) = pnt(j,:) ./ norm(pnt(j,:));
-%     end
-%     headshape(i).pnt = radius(i) .* pnt + 0.1*randn(size(pnt));
-%   end
-%
-%   % then construct a volume conduction model of the head by fitting 4 concentric spheres
-%   cfg = [];
-%   cfg.headshape    = headshape;
-%   cfg.conductivity = [0.3300 1 0.0042 0.3300]
-%   [vol, cfg] = prepare_concentricspheres(cfg)
-%
-% See also FT_PREPARE_BEMMODEL, FT_PREPARE_LOCALSPHERES,
-% FT_PREPARE_SINGLESHELL, FT_PREPARE_LEADFIELD, FT_PREPARE_MESH,
-% FT_PREPARE_MESH_NEW
+% See also FT_PREPARE_HEADMODEL
 
 % Copyright (C) 2009, Vladimir Litvak & Robert Oostenveld
 %
@@ -55,24 +23,26 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 6211 2012-07-03 13:33:09Z roboos $
+% $Id: ft_prepare_concentricspheres.m 6754 2012-10-14 19:13:49Z roboos $
 
-revision = '$Id: ft_prepare_concentricspheres.m 6211 2012-07-03 13:33:09Z roboos $';
+warning('FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''concentricspheres'' instead.')
+
+revision = '$Id: ft_prepare_concentricspheres.m 6754 2012-10-14 19:13:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble trackconfig
-ft_preamble callinfo
+ft_preamble provenance
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');
 
 % set the defaults
-if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';                            end
-if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';                          end
-if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [1 1/80 1] * 0.33;          end
-if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 'same';                      end
+if ~isfield(cfg, 'fitind'),        cfg.fitind = 'all';             end
+if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';           end
+if ~isfield(cfg, 'conductivity'),  cfg.conductivity = [];          end % this should be specified by the user
+if ~isfield(cfg, 'numvertices'),   cfg.numvertices = 'same';       end
 
 if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
@@ -82,8 +52,17 @@ end
 % get the surface describing the head shape
 headshape = prepare_mesh_headshape(cfg);
 
-if isempty(cfg.conductivity) || numel(cfg.conductivity)~=numel(headshape)
-  cfg.conductivity = ones(1,numel(headshape));
+if isempty(cfg.conductivity)
+  if numel(headshape)==1
+    warning('using default conductivity values');
+    cfg.conductivity = 1;
+  elseif numel(headshape)==3
+    warning('using default conductivity values');
+    cfg.conductivity = [1 1/80 1]*0.33;
+  else
+    % for a 2 or 4 sphere model the order of the compartments is potentially ambiguous, hence no default should be supplied
+    error('a conductivity value should be specified for each compartment');
+  end
 end
 
 if strcmp(cfg.fitind, 'all')
@@ -159,6 +138,6 @@ vol = ft_convert_units(vol);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble history vol
 

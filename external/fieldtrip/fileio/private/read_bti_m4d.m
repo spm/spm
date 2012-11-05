@@ -1,4 +1,4 @@
-function [msi] = read_bti_m4d(filename);
+function [msi] = read_bti_m4d(filename)
 
 % READ_BTI_M4D
 %
@@ -23,7 +23,7 @@ function [msi] = read_bti_m4d(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_m4d.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_bti_m4d.m 6799 2012-10-29 13:18:38Z roboos $
 
 [p, f, x] = fileparts(filename);
 if ~strcmp(x, '.m4d')
@@ -60,9 +60,10 @@ numlist = {};
 
 line = '';
 
-msi.grad.label = {};
-msi.grad.pnt   = zeros(0,3);
-msi.grad.ori   = zeros(0,3);
+msi.grad.label   = {};
+msi.grad.coilpos = zeros(0,3);
+msi.grad.coilori = zeros(0,3);
+
 while ischar(line)
   line = cleanline(fgetl(fid));
   if isempty(line) || (length(line)==1 && all(line==-1))
@@ -121,8 +122,8 @@ while ischar(line)
     if size(num,2)==6
       msi.grad.label = [msi.grad.label; lab(:)];
       % the numbers represent position and orientation of each magnetometer coil
-      msi.grad.pnt   = [msi.grad.pnt; num(:,1:3)];
-      msi.grad.ori   = [msi.grad.ori; num(:,4:6)];
+      msi.grad.coilpos   = [msi.grad.coilpos; num(:,1:3)];
+      msi.grad.coilori   = [msi.grad.coilori; num(:,4:6)];
     else
       error('unknown gradiometer design')
     end
@@ -155,6 +156,10 @@ while ischar(line)
   msi = setsubfield(msi, fieldname, val);
 
 end % while ischar(line)
+
+% each coil weighs with a value of 1 into each channel
+msi.grad.tra  = eye(size(msi.grad.coilpos,1));
+msi.grad.unit = 'm';
 
 fclose(fid);
 

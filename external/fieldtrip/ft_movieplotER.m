@@ -53,14 +53,14 @@ function [cfg] = ft_movieplotER(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 4941 2011-12-07 10:41:56Z roboos $
+% $Id: ft_movieplotER.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_movieplotER.m 4941 2011-12-07 10:41:56Z roboos $';
+revision = '$Id: ft_movieplotER.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'timelock');
@@ -73,6 +73,6 @@ cfg = ft_movieplotTFR(cfg, data);
 
 % do the general cleanup and bookkeeping at the end of the function
 % this will replace the ft_movieplotTFR callinfo with that of ft_movieplotER
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 

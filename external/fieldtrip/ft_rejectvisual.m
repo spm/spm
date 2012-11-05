@@ -135,18 +135,18 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 4794 2011-11-23 09:31:41Z jansch $
+% $Id: ft_rejectvisual.m 6750 2012-10-13 15:07:32Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 4794 2011-11-23 09:31:41Z jansch $';
+revision = '$Id: ft_rejectvisual.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -389,7 +389,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 ft_postamble history data
 ft_postamble savevar data

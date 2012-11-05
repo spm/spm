@@ -54,14 +54,14 @@ function [reslice] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 6498 2012-09-20 12:31:05Z arjsto $
+% $Id: ft_volumereslice.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_volumereslice.m 6498 2012-09-20 12:31:05Z arjsto $';
+revision = '$Id: ft_volumereslice.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar mri
 
@@ -163,7 +163,7 @@ reslice.anatomy(~isfinite(reslice.anatomy)) = 0;
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous mri
 ft_postamble history reslice
 ft_postamble savevar reslice

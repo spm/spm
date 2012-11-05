@@ -68,7 +68,7 @@ function volume = ft_datatype_volume(volume, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_volume.m 6393 2012-08-22 09:05:01Z jansch $
+% $Id: ft_datatype_volume.m 6604 2012-09-29 10:28:16Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -101,10 +101,11 @@ switch version
     if isfield(volume, 'anatomy')
       volume.anatomy(~isfinite(volume.anatomy)) = 0;
     end
+    
   case '2012'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % THIS ONE DOES NOT SEEM TO HAVE EVER BEEN USED. HOWEVER, KEEP IT FOR DOCUMENTATION
-    % PURPOSES
+    % THIS ONE DOES NOT SEEM TO HAVE EVER BEEN USED 
+    % HOWEVER, KEEP IT FOR DOCUMENTATION PURPOSES
    
     if isfield(volume, 'dimord')
       volume = rmfield(volume, 'dimord');

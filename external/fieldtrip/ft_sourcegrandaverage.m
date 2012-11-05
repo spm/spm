@@ -65,9 +65,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 6287 2012-07-25 13:16:41Z jorhor $
+% $Id: ft_sourcegrandaverage.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 6287 2012-07-25 13:16:41Z jorhor $';
+revision = '$Id: ft_sourcegrandaverage.m 6750 2012-10-13 15:07:32Z roboos $';
 
 if 1,
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,7 +77,7 @@ if 1,
   % do the general setup of the function
   ft_defaults
   ft_preamble help
-  ft_preamble callinfo
+  ft_preamble provenance
   ft_preamble trackconfig
   ft_preamble loadvar varargin
   
@@ -275,7 +275,7 @@ else
   % do the general setup of the function
   ft_defaults
   ft_preamble help
-  ft_preamble callinfo
+  ft_preamble provenance
   ft_preamble trackconfig
   ft_preamble loadvar varargin
   
@@ -320,7 +320,7 @@ end % if 1 or 0
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin
 ft_postamble history grandavg
 ft_postamble savevar grandavg

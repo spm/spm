@@ -57,14 +57,14 @@ function [cfg, artifact] = ft_artifact_ecg(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_ecg.m 5343 2012-02-29 16:15:32Z roevdmei $
+% $Id: ft_artifact_ecg.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_artifact_ecg.m 5343 2012-02-29 16:15:32Z roevdmei $';
+revision = '$Id: ft_artifact_ecg.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
@@ -310,6 +310,6 @@ cfg.artfctdef.ecg          = artfctdef;
 cfg.artfctdef.ecg.artifact = artifact;
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 

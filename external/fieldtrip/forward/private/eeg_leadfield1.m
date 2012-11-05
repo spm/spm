@@ -1,4 +1,4 @@
-function [lf, lforig] = eeg_leadfield1(R, elc, vol);
+function lf = eeg_leadfield1(R, elc, vol)
 
 % EEG_LEADFIELD1 electric leadfield for a dipole in a single sphere
 %
@@ -34,7 +34,7 @@ function [lf, lforig] = eeg_leadfield1(R, elc, vol);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfield1.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: eeg_leadfield1.m 6684 2012-10-04 19:45:34Z roboos $
 
 Nchans = size(elc, 1);
 lf = zeros(Nchans,3);

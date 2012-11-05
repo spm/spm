@@ -54,14 +54,14 @@ function [cfg, artifact] = ft_artifact_clip(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 5409 2012-03-07 14:34:12Z roevdmei $
+% $Id: ft_artifact_clip.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_artifact_clip.m 5409 2012-03-07 14:34:12Z roevdmei $';
+revision = '$Id: ft_artifact_clip.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
@@ -183,6 +183,6 @@ cfg.artfctdef.clip.trl      = trl;
 cfg.artfctdef.clip.artifact = artifact;
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 

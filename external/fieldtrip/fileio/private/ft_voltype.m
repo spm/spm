@@ -50,13 +50,10 @@ function [type] = ft_voltype(vol, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_voltype.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: ft_voltype.m 6819 2012-10-29 21:01:34Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
-
-% the following function call takes care of backward compatibility
-vol = ft_datatype_headmodel(vol);
 
 if iscell(vol) && numel(vol)<4
   % this might represent combined EEG, ECoG and/or MEG
@@ -102,10 +99,17 @@ elseif isfield(vol, 'r') && isfield(vol, 'o') && size(vol.r,1)==size(vol.o,1) &&
 elseif isfield(vol, 'r') && numel(vol.r)>=2 && ~isfield(vol, 'label')
   type = 'concentricspheres';
   
-elseif isfield(vol, 'bnd') && strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'})
-  type = any(strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'}));
+elseif isfield(vol, 'bnd') && isfield(vol, 'mat')
+  type = 'bem'; % it could be dipoli, asa, bemcp or openmeeg
   
-elseif isempty(vol)
+elseif isfield(vol, 'bnd') && isfield(vol, 'forwpar')
+  type = 'singleshell';
+  
+elseif isfield(vol, 'bnd') && numel(vol.bnd)==1
+  type = 'singleshell'; 
+  
+elseif isempty(vol) || isequal(fieldnames(vol), {'unit'})
+  % it is empty, or only contains a specification of geometrical units
   type = 'infinite';
   
 else
@@ -117,11 +121,11 @@ if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'bem'
-      type = any(strcmp(type, {'dipoli', 'asa', 'bemcp', 'openmeeg'}));
+      type = any(strcmp(type, {'bem', 'dipoli', 'asa', 'bemcp', 'openmeeg'}));
     otherwise
       type = any(strcmp(type, desired));
   end % switch desired
-end % detemine the correspondence to the desired type
+end % determine the correspondence to the desired type
 
 % remember the current input and output arguments, so that they can be
 % reused on a subsequent call in case the same input argument is given

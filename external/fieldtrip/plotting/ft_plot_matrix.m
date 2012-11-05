@@ -51,7 +51,7 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 4797 2011-11-23 09:57:01Z jorhor $
+% $Id: ft_plot_matrix.m 6784 2012-10-24 08:37:25Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -208,9 +208,10 @@ end
 if ~isempty(highlight)
   switch highlightstyle
     case 'opacity'
+      % get the same scaling for 'highlight' then what we will get for cdata
+      h = uimagesc(hdat, vdat, highlight);
+      highlight = get(h, 'CData');
       h = uimagesc(hdat, vdat, cdat, clim);
-      
-      set(h,'CData',cdat); % quick fix
       
       set(h,'tag',tag);
       set(h,'AlphaData',highlight);

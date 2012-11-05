@@ -33,6 +33,7 @@ function label = ft_senslabel(type)
 %   'neuromag122alt'
 %   'neuromag306'
 %   'neuromag306alt'
+%   'itab28'
 %   'itab153'
 %   'itab153_planar'
 %   'yokogawa9'
@@ -46,7 +47,7 @@ function label = ft_senslabel(type)
 %
 % See also FT_SENSTYPE, FT_CHANNELSELECTION
 
-% Copyright (C) 2007-2011, Robert Oostenveld
+% Copyright (C) 2007-2012, Robert Oostenveld
 % Copyright (C) 2008, Vladimir Litvak
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -65,7 +66,7 @@ function label = ft_senslabel(type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 5079 2011-12-22 17:04:06Z roboos $
+% $Id: ft_senslabel.m 6852 2012-11-02 09:47:14Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -2767,6 +2768,30 @@ switch type
       label{i} = sprintf('E%d', i);
     end
     
+  case 'itab28'
+    label = {
+      'MAG_1'
+      'MAG_2'
+      'MAG_3'
+      'MAG_5'
+      'MAG_7'
+      'MAG_8'
+      'MAG_9'
+      'MAG_11'
+      'MAG_12'
+      'MAG_13'
+      'MAG_15'
+      'MAG_17'
+      'MAG_18'
+      'MAG_21'
+      'MAG_22'
+      'MAG_23'
+      'MAG_25'
+      'MAG_26'
+      'MAG_27'
+      'MAG_28'
+      };
+
   case 'itab153'
     label        = cell(153,1);
     for i=1:153

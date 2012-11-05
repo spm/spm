@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 6512 2012-09-21 13:38:32Z jansch $
+% $Id: ft_hastoolbox.m 6803 2012-10-29 14:50:17Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -71,8 +71,8 @@ url = {
   'EEPROBE'    'see http://www.ant-neuro.com, or contact Maarten van der Velde'
   'YOKOGAWA'   'this is deprecated, please use YOKOGAWA_MEG_READER instead'
   'YOKOGAWA_MEG_READER' 'see http://www.yokogawa.com/me/me-login-en.htm'
-  'BEOWULF'    'see http://oostenveld.net, or contact Robert Oostenveld'
-  'MENTAT'     'see http://oostenveld.net, or contact Robert Oostenveld'
+  'BEOWULF'    'see http://robertoostenveld.nl, or contact Robert Oostenveld'
+  'MENTAT'     'see http://robertoostenveld.nl, or contact Robert Oostenveld'
   'SON2'       'see http://www.kcl.ac.uk/depsta/biomedical/cfnr/lidierth.html, or contact Malcolm Lidierth'
   '4D-VERSION' 'contact Christian Wienbruch'
   'SIGNAL'     'see http://www.mathworks.com/products/signal'
@@ -117,6 +117,8 @@ url = {
   'IBTB'       'see http://www.ibtb.org'
   'SPIKE'      'see http://www.ru.nl/neuroimaging/fieldtrip'
   'ICASSO'     'see http://www.cis.hut.fi/projects/ica/icasso'
+  'XUNIT'      'see http://www.mathworks.com/matlabcentral/fileexchange/22846-matlab-xunit-test-framework'
+  'PLEXON'     'available from http://www.plexon.com/assets/downloads/sdk/ReadingPLXandDDTfilesinMatlab-mexw.zip'
   };
 
 if nargin<2
@@ -284,10 +286,16 @@ switch toolbox
     status = exist('make_ibtb.m', 'file') && exist('binr.m', 'file');
   case 'ICASSO'
     status = exist('icassoEst.m', 'file');
+  case 'XUNIT'
+    status = exist('initTestSuite.m', 'file') && exist('runtests.m', 'file');
+  case 'PLEXON'
+    status = exist('plx_adchan_gains.m', 'file') && exist('mexPlex');
+
   case 'SPIKE'
     status = exist('ft_spiketriggeredaverage.m', 'file') && exist('ft_spiketriggeredspectrum.m', 'file');
-    % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
-    % these are added in ft_defaults and are specified with unix-style forward slashes
+
+  % the following are not proper toolboxes, but only subdirectories in the fieldtrip toolbox
+  % these are added in ft_defaults and are specified with unix-style forward slashes
   case 'COMPAT'
     status = ~isempty(regexp(unixpath(path), 'fieldtrip/compat',              'once'));
   case 'UTILITIES/COMPAT'
@@ -353,21 +361,21 @@ if autoadd>0 && ~status
     end
   end
   
-  % for linux computers in the F.C. Donders Centre
+  % for linux computers in the Donders Centre for Cognitive Neuroimaging
   prefix = '/home/common/matlab';
-  if ~status && (strcmp(computer, 'GLNX86') || strcmp(computer, 'GLNXA64'))
+  if ~status && isunix
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
   
-  % for windows computers in the F.C. Donders Centre
+  % for windows computers in the Donders Centre for Cognitive Neuroimaging
   prefix = 'h:\common\matlab';
-  if ~status && (strcmp(computer, 'PCWIN') || strcmp(computer, 'PCWIN64'))
+  if ~status && ispc
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
   
-  % use the matlab subdirectory in your homedirectory, this works on unix and mac
-  prefix = [getenv('HOME') '/matlab'];
-  if ~status
+  % use the matlab subdirectory in your homedirectory, this works on linux and mac
+  prefix = fullfile(getenv('HOME'), 'matlab');
+  if ~status && isdir(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
   

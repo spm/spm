@@ -29,7 +29,7 @@ function ft_preamble(cmd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble.m 6202 2012-07-03 06:43:40Z roboos $
+% $Id: ft_preamble.m 6750 2012-10-13 15:07:32Z roboos $
 
 % ideally this would be a script, because the local variables would then be
 % shared with the calling function. Instead, this is a function which then
@@ -41,7 +41,7 @@ function ft_preamble(cmd, varargin)
 %#function ft_preamble_help
 %#function ft_preamble_distribute
 %#function ft_preamble_trackconfig
-%#function ft_preamble_callinfo
+%#function ft_preamble_provenance
 %#function ft_preamble_loadvar
 %#function ft_preamble_randomseed
 

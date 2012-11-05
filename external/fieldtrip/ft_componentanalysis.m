@@ -147,14 +147,19 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 6547 2012-09-26 12:35:57Z jansch $
+% $Id: ft_componentanalysis.m 6842 2012-10-31 17:04:18Z roboos $
 
-revision = '$Id: ft_componentanalysis.m 6547 2012-09-26 12:35:57Z jansch $';
+% undocumented cfg options:
+%   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
+%     no concatenation across trials is needed. This is based on experimental
+%     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
+
+revision = '$Id: ft_componentanalysis.m 6842 2012-10-31 17:04:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble randomseed
 ft_preamble trackconfig
 ft_preamble loadvar data
@@ -177,6 +182,7 @@ cfg.numcomponent    = ft_getopt(cfg, 'numcomponent', 'all');
 cfg.inputfile       = ft_getopt(cfg, 'inputfile',    []);
 cfg.outputfile      = ft_getopt(cfg, 'outputfile',   []);
 cfg.normalisesphere = ft_getopt(cfg, 'normalisesphere', 'yes');
+cfg.cellmode        = ft_getopt(cfg, 'cellmode',     'no');
 
 % select channels, has to be done prior to handling of previous (un)mixing matrix
 cfg.channel = ft_channelselection(cfg.channel, data.label);
@@ -252,6 +258,10 @@ case 'bsscca'
   % additional options, see BSSCCA for details
   cfg.bsscca       = ft_getopt(cfg,        'bsscca', []);
   cfg.bsscca.delay = ft_getopt(cfg.bsscca, 'delay', 1);
+  if strcmp(cfg.cellmode, 'no')
+    fprintf('switching to cell-mode for method ''bsscca''\n');
+    cfg.cellmode = 'yes';
+  end
 otherwise
   % do nothing
 end
@@ -344,10 +354,9 @@ elseif strcmp(cfg.method, 'csp')
   fprintf('concatenated data matrix size for class 1 is %dx%d\n', size(dat1,1), size(dat1,2));
   fprintf('concatenated data matrix size for class 2 is %dx%d\n', size(dat2,1), size(dat2,2));
   
-elseif (~strcmp(cfg.method, 'predetermined unmixing matrix') && ~strcmp(cfg.method, 'bsscca')) && ~strcmp(cfg.method, 'dss2')
-  
+elseif ~strcmp(cfg.method, 'predetermined unmixing matrix') && strcmp(cfg.cellmode, 'no')
   % concatenate all the data into a 2D matrix unless we already have an
-  % unmixing matrix
+  % unmixing matrix or unless the user request it otherwise
   fprintf('concatenating data');
   
   dat = zeros(Nchans, sum(Nsamples));
@@ -360,6 +369,9 @@ elseif (~strcmp(cfg.method, 'predetermined unmixing matrix') && ~strcmp(cfg.meth
   fprintf('\n');
   fprintf('concatenated data matrix size %dx%d\n', size(dat,1), size(dat,2));
   
+else
+  fprintf('not concatenating data\n');
+  dat = data.trial;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -399,9 +411,9 @@ switch cfg.method
       sR.index = zeros(0,2);
       for k = 1:cfg.icasso.Niter
         tmp = ft_componentanalysis(tmpcfg, tmpdata);
-        sR.W{k} = tmp.unmixing;
-        sR.A{k} = tmp.topo;
-        sR.index  = cat(1, sR.index, [ones(size(tmp.topo,2),1) (1:size(tmp.topo,2))']);
+        sR.W{k}  = tmp.unmixing;
+        sR.A{k}  = tmp.topo;
+        sR.index = cat(1, sR.index, [ones(size(tmp.topo,2),1) (1:size(tmp.topo,2))']);
       end
       sR.signal = dat;
       sR.mode   = cfg.icasso.mode;
@@ -409,9 +421,15 @@ switch cfg.method
     end
 
     sR     = icassoExp(sR);
-    [Iq, mixing, unmixing, dat] = icassoShow(sR);    
-
-    cfg.icasso.Iq = Iq;
+    [Iq, mixing, unmixing, dat] = icassoShow(sR, 'estimate', 'off');%, 'L', cfg.numcomponent);    
+    
+    % sort the output according to Iq
+    [srt, ix] = sort(-Iq); % account for NaNs
+    mixing    = mixing(:, ix);
+    unmixing  = unmixing(ix, :);
+    
+    
+    cfg.icasso.Iq = Iq(ix);
     cfg.icasso.sR = rmfield(sR, 'signal');
 
   case 'fastica'
@@ -558,38 +576,6 @@ switch cfg.method
     cfg.dss.V         = state.V;
     cfg.numcomponent  = state.sdim;
     
-  case 'dss2'
-    % check whether the required low-level toolboxes are installed
-    % see http://www.cis.hut.fi/projects/dss
-    %ft_hastoolbox('dss2', 1);
-    
-    params         = struct(cfg.dss);
-    params.denf.h  = str2func(cfg.dss.denf.function);
-    if ~ischar(cfg.numcomponent)
-      params.sdim = cfg.numcomponent;
-    end
-    % create the state
-    state   = dss_create_state(data.trial, params);
-    % increase the amount of information that is displayed on screen
-    % state.verbose = 3;
-    % start the decomposition
-    % state   = dss(state);  % this is for the DSS toolbox version 0.6 beta
-    state   = denss(state);  % this is for the DSS toolbox version 1.0
-    %weights = state.W;
-    %sphere  = state.V;
-    
-    mixing   = state.A;
-    unmixing = state.B;
-    
-    % remember the updated configuration details
-    cfg.dss.denf      = state.denf;
-    cfg.dss.orthof    = state.orthof;
-    cfg.dss.preprocf  = state.preprocf;
-    cfg.dss.stopf     = state.stopf;
-    cfg.dss.W         = state.W;
-    cfg.dss.V         = state.V;
-    cfg.numcomponent  = state.sdim;
-    
   case 'sobi'
     % check whether the required low-level toolboxes are installed
     % see http://www.sccn.ucsd.edu/eeglab
@@ -664,7 +650,7 @@ switch cfg.method
     % trial boundaries
     
     
-    [unmixing, rho] = bsscca(data.trial,cfg.bsscca.delay);
+    [unmixing, rho] = bsscca(dat,cfg.bsscca.delay);
     mixing          = [];
     %unmixing        = diag(rho);
     
@@ -746,6 +732,12 @@ if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra'))
   montage.labelnew = comp.label;
   montage.tra      = unmixing;
   comp.(sensfield) = ft_apply_montage(data.(sensfield), montage, 'balancename', 'comp', 'keepunused', 'yes');
+  % The output sensor array cannot simply be interpreted as the input
+  % sensor array, hence the type should be removed to allow autodetection
+  % See also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1806
+  if isfield(comp.(sensfield), 'type')
+    comp.(sensfield) = rmfield(comp.(sensfield), 'type');
+  end
 end
 
 % copy the sampleinfo into the output
@@ -760,7 +752,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble randomseed
 ft_postamble previous data
 ft_postamble history comp

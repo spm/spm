@@ -38,12 +38,12 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 6093 2012-06-18 08:40:57Z jansch $';
+revision = '$Id: ft_connectivityplot.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 
 % check if the input data is valid for this function
@@ -153,5 +153,5 @@ set(gcf, 'color', [1 1 1]);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin

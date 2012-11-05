@@ -23,13 +23,13 @@ function ft_sourcewrite(cfg, source)
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
-% $Id: ft_sourcewrite.m 5024 2011-12-13 08:51:42Z jansch $
+% $Id: ft_sourcewrite.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 5024 2011-12-13 08:51:42Z jansch $';
+revision = '$Id: ft_sourcewrite.m 6750 2012-10-13 15:07:32Z roboos $';
 
 ft_defaults                 
 ft_preamble help           
-ft_preamble callinfo        
+ft_preamble provenance        
 ft_preamble trackconfig     
 ft_preamble loadvar source
 
@@ -74,4 +74,4 @@ else
 end
 
 ft_postamble trackconfig      
-ft_postamble callinfo        
+ft_postamble provenance        

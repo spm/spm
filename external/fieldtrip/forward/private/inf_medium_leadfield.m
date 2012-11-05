@@ -23,7 +23,7 @@ function [lf] = inf_medium_leadfield(rd, pnt, cond);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inf_medium_leadfield.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: inf_medium_leadfield.m 6862 2012-11-03 10:12:58Z roboos $
 
 siz = size(rd);
 if any(siz==1)
@@ -50,7 +50,7 @@ end
 for i=1:Ndipoles
   r = pnt - ones(Npnt,1) * rd((1:3) + 3*(i-1));
   R = (4*pi*cond) * (sum(r' .^2 ) .^ 1.5)';
-  if any(R)==0
+  if any(R==0)
     warning('dipole lies on boundary of volume model');
   end
   lf(:,(1:3) + 3*(i-1)) = r ./ [R R R];

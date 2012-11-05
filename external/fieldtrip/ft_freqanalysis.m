@@ -198,12 +198,12 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 6228 2012-07-04 13:12:27Z jorhor $';
+revision = '$Id: ft_freqanalysis.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -866,7 +866,7 @@ else
   
   % do the general cleanup and bookkeeping at the end of the function
   ft_postamble trackconfig
-  ft_postamble callinfo
+  ft_postamble provenance
   ft_postamble previous data
   ft_postamble history freq
   

@@ -67,14 +67,14 @@ function [lrp] = ft_lateralizedpotential(cfg, avgL, avgR)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_lateralizedpotential.m 4692 2011-11-07 21:31:14Z roboos $
+% $Id: ft_lateralizedpotential.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_lateralizedpotential.m 4692 2011-11-07 21:31:14Z roboos $';
+revision = '$Id: ft_lateralizedpotential.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar avgL avgR
 
@@ -127,7 +127,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous avgL avgR
 ft_postamble history lrp
 ft_postamble savevar lrp

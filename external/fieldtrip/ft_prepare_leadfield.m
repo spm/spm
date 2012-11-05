@@ -104,14 +104,14 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 6197 2012-07-02 20:47:53Z roboos $
+% $Id: ft_prepare_leadfield.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 6197 2012-07-02 20:47:53Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar data
 
@@ -131,7 +131,8 @@ if ~isfield(cfg, 'sel50p'),           cfg.sel50p     = 'no';          end
 if ~isfield(cfg, 'feedback'),         cfg.feedback   = 'text';        end
 if ~isfield(cfg, 'mollify'),          cfg.mollify    = 'no';          end
 if ~isfield(cfg, 'patchsvd'),         cfg.patchsvd   = 'no';          end
-% if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end  % the default for this depends on EEG/MEG and is set below
+% if ~isfield(cfg, 'reducerank'),     cfg.reducerank = 'no';          end % the default for this depends on EEG/MEG and is set below
+% if ~isfield(cfg, 'sourceunits'),     cfg.sourceunits = [];          end % the default for this is set inside prepare_headmodel
 
 % put the low-level options pertaining to the dipole grid in their own field
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
@@ -256,6 +257,6 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 ft_postamble history grid

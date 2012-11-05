@@ -48,7 +48,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 6554 2012-09-27 08:30:42Z jorhor $
+% $Id: ft_read_data.m 6824 2012-10-29 22:28:36Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -77,7 +77,7 @@ if isempty(dataformat)
 end
 
 % test whether the file or directory exists
-if ~exist(filename, 'file') && ~strcmp(dataformat, 'ctf_shm') && ~strcmp(dataformat, 'fcdc_mysql') && ~strcmp(dataformat, 'fcdc_buffer')
+if ~strcmp(dataformat, 'fcdc_buffer') && ~strcmp(dataformat, 'ctf_shm') && ~strcmp(dataformat, 'fcdc_mysql') && ~exist(filename, 'file')
   error('FILEIO:InvalidFileName', 'file or directory ''%s'' does not exist', filename);
 end
 
@@ -495,7 +495,7 @@ switch dataformat
     % check that the required low-level toolbox is available
     ft_hastoolbox('eegsf', 1);
     % read it using the CTF importer from the NIH and Darren Weber
-    tmp = ctf_read_meg4(filename, hdr.orig, chanindx, 'all', begtrial:endtrial);
+    tmp = ctf_read_meg4(fileparts(datafile), hdr.orig, chanindx, 'all', begtrial:endtrial);
     dat = cat(3, tmp.data{:});
     % the data is shaped in a 3-D array
     dimord = 'samples_chans_trials';

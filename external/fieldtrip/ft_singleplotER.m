@@ -104,12 +104,12 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 6388 2012-08-21 12:18:51Z jansch $';
+revision = '$Id: ft_singleplotER.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble loadvar varargin
 
@@ -592,7 +592,7 @@ end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous varargin
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

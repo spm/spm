@@ -8,7 +8,7 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 
 % Copyright (C) 2007-2011, Robert Oostenveld
 %
-% $Id: dataset2files.m 5750 2012-05-08 14:04:35Z borreu $
+% $Id: dataset2files.m 6824 2012-10-29 22:28:36Z roboos $
 
 if isempty(format)
   format = ft_filetype(filename);
@@ -45,24 +45,10 @@ switch format
     if length(path)>3 && strcmp(path(end-2:end), '.ds')
       filename = path; % this is the *.ds directory
     end
-  case 'ctf_meg4'
+  case {'ctf_meg4' 'ctf_res4' 'ctf_read_meg4' 'ctf_read_res4' 'read_ctf_meg4' 'read_ctf_res4'}
     [path, file, ext] = fileparts(filename);
     if strcmp(ext, '.ds')
-      % the directory name was specified instead of the meg4 file
-      path = filename;
-    end
-    if isempty(path)
-      path = pwd;
-    end
-    headerfile = fullfile(path, [file '.res4']);
-    datafile   = fullfile(path, [file '.meg4']);
-    if length(path)>3 && strcmp(path(end-2:end), '.ds')
-      filename = path; % this is the *.ds directory
-    end
-  case 'ctf_res4'
-    [path, file, ext] = fileparts(filename);
-    if strcmp(ext, '.ds')
-      % the directory name was specified instead of the meg4 file
+      % the directory name was specified instead of the meg4/res4 file
       path = filename;
     end
     if isempty(path)

@@ -10,7 +10,7 @@ function [data] = spm2fieldtrip(D)
 %
 % See also FT_PREPROCESSING, SPM_EEG_LOAD
 
-revision = '$Id: spm2fieldtrip.m 4659 2011-11-02 21:31:58Z roboos $';
+revision = '$Id: spm2fieldtrip.m 6782 2012-10-24 07:25:44Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -45,6 +45,10 @@ end
 %   data.sampleinfo(i,1) = D.indsample(i);
 %   data.sampleinfo(i,2) = D.indsample(i) + D.nsamples;
 % end
+
+% create empty cfg-structure in order for the ft_postamble to work. It is
+% of no further consequence
+cfg = [];
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble callinfo

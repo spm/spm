@@ -67,14 +67,14 @@ function [cfg, artifact] = ft_artifact_threshold(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 5447 2012-03-13 11:24:09Z roevdmei $
+% $Id: ft_artifact_threshold.m 6750 2012-10-13 15:07:32Z roboos $
 
-revision = '$Id: ft_artifact_threshold.m 5447 2012-03-13 11:24:09Z roevdmei $';
+revision = '$Id: ft_artifact_threshold.m 6750 2012-10-13 15:07:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble callinfo
+ft_preamble provenance
 ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
@@ -186,6 +186,6 @@ cfg.artfctdef.threshold.channel  = channel;         % exact channels used for de
 cfg.artfctdef.threshold.artifact = artifact;        % detected artifacts
 
 % do the general cleanup and bookkeeping at the end of the function
-ft_postamble callinfo
+ft_postamble provenance
 ft_postamble previous data
 

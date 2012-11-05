@@ -21,12 +21,13 @@ function elec = read_asa_elc(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_elc.m 1359 2010-07-06 08:36:08Z roboos $
+% $Id: read_asa_elc.m 6770 2012-10-18 06:55:57Z roboos $
 
 % the older *.elc files have an Nx3 matrix with positions and seperate labels
 % the newer *.elc files are formatted like this
 %    Fp1:    94.9    30.7    14.0
 % and also include Positions2D
+
 
 Npnt = read_asa(fn, 'NumberPositions=', '%d');
 Ndhk = read_asa(fn, 'NumberPolygons=', '%d');
@@ -35,6 +36,7 @@ pnt  = read_asa(fn, 'Positions', '%f', Npnt, ':');
 prj  = read_asa(fn, 'Positions2D', '%f', Npnt, ':');  % only in newer files
 dhk  = read_asa(fn, 'Polygons', '%d', Ndhk);
 lab  = read_asa(fn, 'Labels', '%s', Npnt);
+ref  = read_asa(fn, 'ReferenceChannel', '%s', 1); % only in newer files
 
 if strcmpi(Unit,'mm')
   pnt = 1*pnt;

@@ -43,7 +43,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: fixdimord.m 6605 2012-09-29 10:28:18Z roboos $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -76,7 +76,7 @@ if ~isfield(data, 'dimord')
     df = fn(sel);
     
     if isempty(df)
-      if ft_datatype(data, 'source')
+      if ft_datatype(data, 'source') || ft_datatype(data, 'parcellation')
         % it is old-style source data -> this is ok
         % ft_checkdata will convert it to new-style
         return
