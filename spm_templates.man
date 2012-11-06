@@ -1,6 +1,6 @@
-% 
+
 % SPM templates and other images...
-% _______________________________________________________________________
+% _________________________________________________________________________
 % /TPM/ DIRECTORY
 % Contains Tissue probability maps provided by the International
 % Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga.
@@ -13,14 +13,14 @@
 % space (by affine registration of the grey matter with the grey
 % matter image in the apriori directory: smosrc=8, smoref=0,
 % regtype=mni, cutoff=Inf).
-% _______________________________________________________________________
+% _________________________________________________________________________
 %
 % /TEMPLATES/ DIRECTORY
 % This directory contains images for use as templates for spatially
 % normalising  images to the same stereotactic space.  The space is
 % based upon the Talairach system, but does  not  make  assumptions
 % about  brain  symmetry,  and  also  includes the cerebellum.  The
-% stereotactic  space   is  based  on  152   brains  from  Montréal
+% stereotactic  space   is  based  on  152   brains  from  Montrï¿½al
 % Neurological  Institute,  and  will eventually be replaced in due
 % course by a 450-brain version for the entire ICBM consortium.
 %
@@ -45,7 +45,7 @@
 % contrasts   that   can   be  spatially  normalised  to  the  same
 % stereotaxic space (by registering  to  a  linear  combination  of
 % template images).
-% _______________________________________________________________________
+% _________________________________________________________________________
 % 
 % templates/T1.nii
 % ----------------
@@ -162,13 +162,13 @@
 % 0    0    1    1    0    1    1    0    1    0 ...
 % 1    1    0    1    1    1    1    1    1    1];
 %
-% _______________________________________________________________________
-% _______________________________________________________________________
+% _________________________________________________________________________
+% _________________________________________________________________________
 % /APRIORI/ DIRECTORY
 % Images in this directory represent the a priori probabilities of the
 % voxels in a spatially normalised (9-parameter affine) brain image
 % belonging to a particular tissue type.
-% _______________________________________________________________________
+% _________________________________________________________________________
 % 
 % apriori/grey.nii, apriori/white.nii & apriori/csf.nii
 % ----------------  -----------------   ---------------
@@ -195,12 +195,12 @@
 % normalisation so that the final solution  is  not  influenced  by
 % voxels outside the brain.
 % 
-% _______________________________________________________________________
-% _______________________________________________________________________
+% _________________________________________________________________________
+% _________________________________________________________________________
 % /CANONICAL/ DIRECTORY
 % Images in this  directory are intended for superimposing results
 % on to.
-% _______________________________________________________________________
+% _________________________________________________________________________
 % 
 % canonical/avg305T1.nii
 % ----------------------
@@ -243,7 +243,7 @@
 % Brain  Phantom"  IEEE  Transactions  on  Medical Imaging, vol.17,
 % No.3, p.463-468.
 % 
-% =======================================================================
+% =========================================================================
 % Note that the images are in neurological orientation, whereby the
 % left  side  of  the  image  refers to the left side of the brain.
 % This is contrary to the orientation that Analyze  expects  images
@@ -253,11 +253,11 @@
 % bounding  box of -90:90 -126:90 -72:108, and voxel sizes of 2x2x2
 % mm.
 %
-% =======================================================================
+% =========================================================================
 % The images were converted from the .img format of SPM99 to resolve
 % confusion about left- versus right-handedness of co-ordinate systems.
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% _________________________________________________________________________
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_templates.man 2025 2008-08-28 17:48:19Z john $
+% $Id: spm_templates.man 5039 2012-11-06 20:39:58Z guillaume $

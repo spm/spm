@@ -92,7 +92,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % used as input at a higher level when effecting a random effects
 % analysis. (Note that the ess_????.{img,hdr} and
 % SPM{T,F}_????.{img,hdr} images are not suitable input for a higher
-% level analysis.) See spm_RandFX.man for further details.
+% level analysis.)
 %
 %__________________________________________________________________________
 %
@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 4838 2012-08-14 11:35:41Z guillaume $
+% $Id: spm_getSPM.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
 %-GUI setup

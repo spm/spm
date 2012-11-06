@@ -1,6 +1,6 @@
 
 % SPM is copyright, distributed under the GNU General Public Licence.
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % SPM (being the collection of files given in the manifest in the
 % Contents.m file) is free but copyright software, distributed under
@@ -12,7 +12,7 @@
 %
 % SPM is supplied as is:
 % No formal support or maintenance is provided or implied.
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 %                   GNU GENERAL PUBLIC LICENSE
 %                      Version 2, June 1991
@@ -358,8 +358,8 @@
 % consider it more useful to permit linking proprietary applications with the
 % library.  If this is what you want to do, use the GNU Library General
 % Public License instead of this License.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % The FIL Methods Group
-% $Id: spm_LICENCE.man 1143 2008-02-07 19:33:33Z spm $
+% $Id: LICENCE.txt 5039 2012-11-06 20:39:58Z guillaume $

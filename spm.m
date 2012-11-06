@@ -19,8 +19,7 @@ function varargout=spm(varargin)
 % command line using the command `spm_help`.
 %
 % Details of this release are available via the "About SPM" help topic
-% (file spm.man), accessible from the SPM splash screen.  (Or type
-% `spm_help spm.man` in the MATLAB command window)
+% accessible from the SPM splash screen. See also README.txt.
 % 
 % This spm function initialises the default parameters, and displays a
 % splash screen with buttons leading to the PET, fMRI and M/EEG
@@ -46,24 +45,15 @@ function varargout=spm(varargin)
 % (managed by spm_select). See the help on spm_input.m and spm_select.m for
 % details on using these functions.
 %
-% If a "message of the day" file named spm_motd.man exists in the SPM
-% directory (alongside spm.m) then it is displayed in the Graphics
-% window on startup.
-%
 % Arguments to this routine (spm.m) lead to various setup facilities,
 % mainly of use to SPM power users and programmers. See programmers
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% SPM is developed by members and collaborators of the
-% Wellcome Trust Centre for Neuroimaging
-
-%-SVN ID and authorship of this program...
-%-----------------------------------------------------------------------
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5005 2012-10-16 13:41:23Z guillaume $
+% $Id: spm.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
 %=======================================================================
@@ -360,9 +350,9 @@ Fgraph = spm_figure('Create','Graphics','Graphics','off'); fprintf('.');
    
 spm_figure('WaterMark',Finter,spm('Ver'),'',45);
 
-Fmotd  = fullfile(spm('Dir'),'spm_motd.man');
-if exist(Fmotd,'file'), spm_help('!Disp',Fmotd,'',Fgraph,spm('Ver')); end
-                                                           fprintf('.');
+url = fullfile(spm('Dir'),'help','index.html');
+%url = fullfile(spm('Dir'),'README.txt');
+spm_help('!Disp',url,'',Fgraph);                           fprintf('.');
 
 %-Setup for current modality
 %-----------------------------------------------------------------------

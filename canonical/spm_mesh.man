@@ -1,6 +1,6 @@
-%
+
 % SPM canonical meshes
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % The cortical mesh surfaces here were created using Freesurfer version
 % 4.0.1 (Dale et al. 1999, Fischl et al. 2001, Fischl et al. 1999) from 
@@ -49,4 +49,4 @@
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson, Daniel Wakeman and John Ashburner
-% $Id: spm_mesh.man 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_mesh.man 5039 2012-11-06 20:39:58Z guillaume $

@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 4932 2012-09-17 17:27:01Z guillaume $
+% $Id: spm_input.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
 %=======================================================================
@@ -1736,8 +1736,6 @@ case '!inptconmen'
 if nargin<3, H=[]; else H=varargin{3}; end
 if nargin<2, varargout={[]}; else Finter=varargin{2}; end
 hM = uicontextmenu('Parent',Finter);
-uimenu(hM,'Label','help on spm_input',...
-    'CallBack','spm_help(''spm_input.m'')')
 if ConCrash
     uimenu(hM,'Label','crash out','Separator','on',...
         'CallBack','delete(get(gcbo,''UserData''))',...

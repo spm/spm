@@ -1,18 +1,19 @@
-function [] = spm_bms_display(BMS,action)
-% display results from BMS Maps
+function spm_bms_display(BMS,action)
+% Display results from BMS Maps
 % FORMAT spm_bms_display(BMS,action)
 %
 % Input:
-% BMS    - BMS containing details of excurtion set
+% BMS    - BMS containing details of excursion set
 % action - 'Init' (Initialise)
 %          'do_plot' (plot voxel results)
 %          'save' (save results as NIfTI image)
 %          'overlays' (options overlays menu)
 %__________________________________________________________________________
-% Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_bms_display.m 5039 2012-11-06 20:39:58Z guillaume $
+
 
 % Main options (action)
 % =========================================================================
@@ -236,11 +237,11 @@ switch action
             'Interruptible','on','Enable','on',...
             'Position',[325 055 035 020].*WS);
 
-    hHelp  = uicontrol(Finter,'Style','PushButton','String','?',...
-            'ToolTipString','results section help',...
+    hHelp  = uicontrol(Finter,'Style','PushButton','String','',...
+            'ToolTipString','',...
             'FontSize',FS(9),'ForegroundColor','g',...
-            'Callback','spm_help(''spm_results_ui'')',...
-            'Interruptible','on','Enable','on',...
+            'Callback','',...
+            'Interruptible','on','Enable','off',...
             'Position',[365 055 020 020].*WS);
         
     % Change options
@@ -553,6 +554,3 @@ uicontrol(Finter,'Style','Text',...
 end  % End switch  
 
 end  % End function
-
-
-        

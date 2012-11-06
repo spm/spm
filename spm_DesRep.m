@@ -124,10 +124,10 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %_______________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 4469 2011-09-08 10:58:07Z guillaume $
+% $Id: spm_DesRep.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
 
@@ -262,7 +262,7 @@ function varargout = spm_DesRep(varargin)
 %_______________________________________________________________________
 
 
-SVNid = '$Rev: 4469 $'; 
+SVNid = '$Rev: 5039 $'; 
 
 %-Format arguments
 %-----------------------------------------------------------------------
@@ -414,13 +414,13 @@ if ~isfield(SPM,'xVi') || (isfield(SPM.xVi,'iid') && SPM.xVi.iid) || ...
     set(hxvi,'Enable','off');
 end
 
-%-Clear, Quit, Help
+%-Clear, Quit
 %-----------------------------------------------------------------------
 uimenu(hC,'Label','Clear','Accelerator','L','Separator','on',...
     'CallBack','spm_results_ui(''Clear'')',...
     'HandleVisibility','off');
-uimenu(hC,'Label','Help','Separator','on',...
-    'CallBack','spm_help(''spm_DesRep'')',...
+uimenu(hC,'Label','Quit','Accelerator','Q','Separator','on',...
+    'CallBack','spm_results_ui(''Close'');',...
     'HandleVisibility','off');
 
 %-Pop open 'Interactive' window

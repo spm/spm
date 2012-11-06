@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 4854 2012-08-22 13:29:10Z ged $
+% $Id: spm_mip_ui.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
 %==========================================================================
@@ -324,10 +324,6 @@ switch lower(varargin{1}), case 'display'
         'get(get(gcbo,''Parent''),''UserData''),''nrchan'');'],...
             'Interruptible','off','BusyAction','Cancel','Enable',str);
     end
-
-    uimenu(h,'Separator','on','Label','help',...
-        'CallBack','spm_help(''spm_mip_ui'')',...
-        'Interruptible','off','BusyAction','Cancel','Enable',str);
 
     set(hMIPim,'UIContextMenu',h)
 

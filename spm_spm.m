@@ -129,7 +129,6 @@ function SPM = spm_spm(SPM)
 % re-entered into spm_spm to make an inference (SPM) at the next
 % level. At this higher hierarchical level the residual variance for the
 % model contains the appropriate variance components from lower levels.
-% See spm_RandFX.man for further details and below.
 %
 % Under the additional assumption that the standardised error fields
 % are non-stationary standard Gaussian random fields, results from
@@ -269,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 4981 2012-10-02 16:12:36Z guillaume $
+% $Id: spm_spm.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
-SVNid = '$Rev: 4981 $';
+SVNid = '$Rev: 5039 $';
 
 %-Say hello
 %--------------------------------------------------------------------------

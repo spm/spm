@@ -1,48 +1,26 @@
 function [current, previous] = spm_authors
 % Return list of SPM coauthors
 % FORMAT [current, previous] = spm_authors
-% current  - cell array of coauthors of the current SPM release
-% previous - cell array of former SPM coauthors
+% current  - cell array of SPM coauthors of the current release
+% previous - cell array of SPM coauthors of previous releases
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_authors.m 4025 2010-07-29 11:10:15Z guillaume $
+% $Id: spm_authors.m 5039 2012-11-06 20:39:58Z guillaume $
 
 
-current = {...
-'John Ashburner'
-'Gareth Barnes'
-'Chun-Chuan Chen'
-'Justin Chumbley'
-'Jean Daunizeau'
-'Guillaume Flandin'
-'Karl Friston'
-'Darren Gitelman'
-'Volkmar Glauche'
-'Lee Harrison'
-'Rik Henson'
-'Chloe Hutton'
-'Maria Joao Rosa'
-'Stefan Kiebel'
-'James Kilner'
-'Vladimir Litvak'
-'Rosalyn Moran'
-'Tom Nichols'
-'Robert Oostenveld'
-'Will Penny'
-'Christophe Phillips'
-'Ged Ridgway'
-'Klaas Enno Stephan'
-};
+fid = fopen(fullfile(spm('Dir'),'AUTHORS.txt'),'rt');
+if fid==-1, current = {}; previous = {}; return; end
+l = {};
+while 1
+    tline = fgetl(fid);
+    if ~ischar(tline), break, end
+    if ~isempty(tline), l{end+1} = strtrim(tline(2:end)); end
+end
+fclose(fid);
 
-previous = {...
-'Jesper Andersson'
-'Matthew Brett'
-'Christian Buechel'
-'Jon Heather'
-'Andrew Holmes'
-'Jeremie Mattout'
-'Jean-Baptiste Poline'
-'Keith Worsley'
-};
+e = find(cellfun(@isempty,l));
+if numel(e)~=2, l = {}; e = [0 0]; end
+current  = l(e(1)+1:e(2)-1)';
+previous = l(e(2)+1:end)';
