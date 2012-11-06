@@ -9,7 +9,7 @@ function [h] = spm_est_V(SPM,c)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_est_V.m 5035 2012-11-03 18:08:58Z karl $
+% $Id: spm_est_V.m 5038 2012-11-06 20:25:24Z karl $
  
 % get data and model
 %==========================================================================
@@ -49,7 +49,7 @@ C     = cov(Y(:,1:N)');
 %==========================================================================
 dt    = SPM.xY.RT;                          % TR (seconds)
 T     = (0:(m - 1))*dt;                     % time
-d     = 2.^(floor(log2(dt/4)):log2(64));    % time constants log2(seconds)
+d     = 2.^(floor(log2(dt/4)):log2(64));    % time constants (seconds)
 QQ    = {};                                 % dictionary of components
 for i = 1:length(d)
     for j = 0:1

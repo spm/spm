@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5027 2012-10-31 21:51:09Z karl $
+% $Id: spm_fx_cmm.m 5038 2012-11-06 20:25:24Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -93,9 +93,9 @@ G    = exp(G);
 
 % extrinsic connections (F B) - from superficial and deep pyramidal cells
 %--------------------------------------------------------------------------
-SA   = [2   0  ;
-        0   0  ;
-        0   16  ;
+SA   = [2   0 ;
+        0   0 ;
+        0   8;
         0   0];
  
 % intrinsic connections (np x np) - excitatory
@@ -108,13 +108,13 @@ GE   = [ 0     0     0     0
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
 GI   = [ 8     0     4     0
-         0   512     0     0
+         0  1024     0     0
          0     0    64     0
-         0     2    96     2];
+         0     2   128     2];
 
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = 2048;                                  % excitatory rate constants
+KE   = 1000/2;                                % excitatory rate constants
 KI   = exp(-P.T)*[1/32 1/16 1/16 1/16]*1000;  % inhibitory rate constants
  
 % Voltages
@@ -124,7 +124,7 @@ VE   =  60;                               % reversal  potential excite (Na)
 VI   = -90;                               % reversal  potential inhib (Cl)
 VR   = -40;                               % threshold potential
  
-CV   = exp(P.CV).*[24 64 48 8]/1000;      % membrane capacitance
+CV   = exp(P.CV).*[24 128 48 16]/1000;      % membrane capacitance
 GL   = 1;                                 % leak conductance
  
 % mean-field effects:
@@ -132,7 +132,7 @@ GL   = 1;                                 % leak conductance
 
 % neural-mass approximation to covariance of states
 %----------------------------------------------------------------------
-Vx   = exp(P.S)*16;
+Vx   = exp(P.S)*32;
 
 % mean population firing and afferent extrinsic input
 %--------------------------------------------------------------------------
@@ -142,7 +142,7 @@ a(:,2) = A{2}*m(:,4);                     % backward afference
 
 % Averge background activity and exogenous input
 %==========================================================================
-BE     = exp(P.E)*0.21;
+BE     = exp(P.E)*0.2;
 
 % input
 %--------------------------------------------------------------------------
@@ -150,13 +150,13 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)/32;
+    U = u(:)/16;
     
 else
     
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:)/256;
+    U = C*u(:)/1000;
     
 end
 

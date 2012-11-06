@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_induced_optimise_parameters.m 5038 2012-11-06 20:25:24Z karl $
  
  
 % Model specification
@@ -167,12 +167,12 @@ Ep = pE; return
  
 % weights (W): coupling between modes and hidden states (for 4 modes)
 %--------------------------------------------------------------------------
-W     = [1 0 1 1;
-         0 1 1 1];
+W     = [1 0 1/2 1;
+         1/2 1 1 1];
  
 % Target spectrum - gamma, beta and alpha
 %--------------------------------------------------------------------------
-S     = -[32 16 32 128]' + 1i*2*pi*[48 16 8 4]';
+S     = -[32 32 48 128]' + 1i*2*pi*[38 16 12 4]';
 S     = S(1:M.Nm);
 W     = W(:,1:M.Nm);
 W     = W/max(W(:));
