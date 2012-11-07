@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 20-Aug-2012 16:09:45
+% Last Modified by GUIDE v2.5 07-Nov-2012 19:38:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -354,8 +354,8 @@ run_demo_Callback(hObject, handles, 'DEM_demo_GF_and_KF')
 
 % --- Executes on button press in pushbutton121.
 function pushbutton121_Callback(hObject, eventdata, handles)
-handles.web = '';
-run_demo_Callback(hObject, handles, 'spm_MDP')
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
+run_demo_Callback(hObject, handles, 'spm_MDP_mountain_car')
 
 % --- Executes on button press in pushbutton122.
 function pushbutton122_Callback(hObject, eventdata, handles)
@@ -397,3 +397,13 @@ run_demo_Callback(hObject, handles, 'spm_meta_model')
 function pushbutton129_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'DEM_evidence_accumulation')
+
+
+% --- Executes on button press in pushbutton130.
+function pushbutton130_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
+run_demo_Callback(hObject, handles, 'spm_MDP_offer')
+
+
+
+
