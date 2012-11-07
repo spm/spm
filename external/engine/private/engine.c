@@ -73,7 +73,7 @@ void exitFun(void) {
 }
 
 /* this function will be started as a seperate thread */
-void *evalString(void *argin) {
+void evalString(void *argin) {
   engine_t *engine;
   Engine *ep;
   char cmd[STRLEN];
@@ -173,7 +173,7 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]) {
     status = 1;
     for (i=0; i<poolsize; i++) {
       #ifdef PLATFORM_WINDOWS
-      enginepool[i].ep     = engOpen(NULL); /* returns NULL on failure */
+      enginepool[i].ep     = engOpenSingleUse(NULL,NULL,&retval); /* returns NULL on failure */
       #else
       enginepool[i].ep     = engOpen(matlabcmd); /* returns NULL on failure */
       enginepool[i].tid    = (pthread_t)NULL;
@@ -337,7 +337,7 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]) {
     if (!block) {
       enginepool[num-1].cmd = malloc(STRLEN);
       strncpy(enginepool[num-1].cmd, matlabcmd, STRLEN-1);
-      retval = pthread_create(&(enginepool[num-1].tid), NULL, evalString, (void *)(enginepool+num-1));
+      retval = pthread_create(&(enginepool[num-1].tid), NULL, (void *) &evalString, (void *)(enginepool+num-1));
       /* wait for the thread to become busy */
       mexPrintf("Waiting for condition\n");
       pthread_cond_wait(&busycondition, &enginemutex);

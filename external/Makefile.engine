@@ -4,7 +4,7 @@
 # Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.engine 5037 2012-11-05 12:16:50Z guillaume $
+# $Id: Makefile.engine 5042 2012-11-07 18:12:51Z guillaume $
 
 include ../src/Makefile.var
 
@@ -13,8 +13,10 @@ ENGINE = engine/private/engine.$(SUF) \
 
 LDFLAGS += -leng
 ifeq (windows,$(PLATFORM))
-    CFLAGS += -Iengine/private/pthreads-win32 -DPLATFORM_WIN64 -D__CLEANUP_C -DWIN32 -DSYSLOG=2 -DLOG_NOTICE=0 -DLOG_CRIT=0 -DLOG_INFO=0 -DLOG_DEBUG=0 -DLOG_ERR=0 
+    CFLAGS += -Iengine/private/pthreads-win32
     LDFLAGS += -Lengine/private/pthreads-win32 -lpthreadVC2 -lws2_32 -lwininet
+else
+    LDFLAGS += -lpthread
 endif
 
 all: $(ENGINE)
