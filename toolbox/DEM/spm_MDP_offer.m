@@ -22,11 +22,11 @@ function spm_MDP_offer
 
 % initial and final states
 %==========================================================================
-T     = 8;                         % number of offers
+T     = 16;                         % number of offers
 Ns    = 5;                         % number of outcomes (hidden states)
 Nu    = 2;                         % number of actions (hidden controls)
-a     = 8/(2*T);                   % probability of a high offer
-b     = 1/(8*T);                       % probability of withdrawn offer
+a     = 4/(T);                   % probability of a high offer
+b     = 4/(T);                       % probability of withdrawn offer
 
 % iinitial state
 %--------------------------------------------------------------------------
@@ -42,11 +42,11 @@ D     = ones(Nu,1);
 
 % transition probabilities (P{1} - decline; P{2} - accept)
 %--------------------------------------------------------------------------
-P{1}  = [(1 - a - b) 0 0 0 0;
-          a          0 0 0 0;
-          b          1 1 0 0;
-          0          0 0 1 0;
-          0          0 0 0 1];
+P{1}  = [(1 - a - b) 0      0 0 0;
+          a         (1 - b) 0 0 0;
+          b          b      1 0 0;
+          0          0      0 1 0;
+          0          0      0 0 1];
       
 P{2}  = [ 0 0 0 0 0;
           0 0 0 0 0;

@@ -54,7 +54,7 @@ function DCM = spm_meta_model(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_meta_model.m 4865 2012-08-28 12:46:50Z karl $
+% $Id: spm_meta_model.m 5047 2012-11-09 20:48:20Z karl $
  
  
  
@@ -90,7 +90,7 @@ catch
     M(1).E.n = 4;                                 % order of
     M(1).E.d = 1;                                 % generalised motion
     
-    % angular frequency of target motion
+    % angular frequency of target motion (per time bin)
     %----------------------------------------------------------------------
     w  = 2*pi/32;
     
@@ -121,7 +121,7 @@ catch
     
     % level 2: With hidden (memory) states
     %----------------------------------------------------------------------
-    M(2).f  = '[x(2); -x(1)]*v/8';
+    M(2).f  = '[x(2); -x(1)]*v';
     M(2).g  = 'x(1)';
     M(2).x  = [0; 0];                             % hidden states
     M(2).V  = exp(4);                             % error precision
@@ -133,7 +133,7 @@ catch
     M(3).V = exp(4);
     
     
-    % generative model (G)
+    % generative model (G) (with no noise)
     %======================================================================
     
     % first level
@@ -180,7 +180,7 @@ catch
     
     % (EXAMPLE) prior beliefs about target frequency (w)
     %----------------------------------------------------------------------
-    U = zeros(1,N) + w*8;                   
+    U = zeros(1,N) + w;                   
 end
  
  
@@ -194,7 +194,7 @@ catch
     % Generate simulated data (EXAMPLE)
     %----------------------------------------------------------------------
     
-    % meta-model and true parameters
+    % meta-model and TRUE parameters
     %----------------------------------------------------------------------
     MM.M    = M;
     MM.G    = G;
@@ -297,9 +297,25 @@ DCM.Ey  = Ey;                   % conditional response
 DCM.F   = F;                    % log-evidence
  
  
-% and save
+% save
 %--------------------------------------------------------------------------
 save(sprintf('DCM_MM_%s',date),'DCM', spm_get_defaults('mat.format'));
+
+
+% and plot
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Parameter estimates');
+subplot(2,1,1)
+spm_plot_ci(Ep,Cp), hold on
+Pp       = spm_vec(P);
+pE       = spm_vec(pE);
+plot(Pp(1),Pp(2),'.' ,'MarkerSize',32), hold on
+plot(pE(1),pE(2),'.r','MarkerSize',32), hold off
+axis([0 4 0 6])
+xlabel('Gain','FontSize',12)
+ylabel('Precision','FontSize',12)
+title('Posterior (and true) estimates','FontSize',16)
+
  
 return
  

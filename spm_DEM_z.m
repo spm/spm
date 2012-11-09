@@ -14,7 +14,7 @@ function [z,w] = spm_DEM_z(M,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_z.m 4865 2012-08-28 12:46:50Z karl $
+% $Id: spm_DEM_z.m 5047 2012-11-09 20:48:20Z karl $
 
 % temporal convolution matrix (with unit variance)
 %--------------------------------------------------------------------------
@@ -42,10 +42,13 @@ for i = 1:length(M)
     
     % create causes: assume i.i.d. if precision is zero
     %----------------------------------------------------------------------
-    if norm(P,1) == 0;       P = 1;   end
-    if norm(P,1) >= exp(32); P = Inf; end
-    
-    z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
+    if norm(P,1) == 0;
+        z{i}  = randn(M(i).l,N)*K;
+    elseif norm(P,1) >= exp(16)
+        z{i}  = sparse(M(i).l,N);
+    else
+        z{i}  = spm_sqrtm(inv(P))*randn(M(i).l,N)*K;
+    end
     
     % precision of states
     %======================================================================
@@ -62,9 +65,13 @@ for i = 1:length(M)
     % create states: assume i.i.d. if precision (P) is zero
     %----------------------------------------------------------------------
     if ~isempty(P)
-        if norm(P,1) == 0;       P = 1;   end
-        if norm(P,1) >= exp(16); P = Inf; end
-        w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
+        if norm(P,1) == 0;
+            w{i} = randn(M(i).n,N)*K*dt; 
+        elseif norm(P,1) >= exp(16)
+            w{i} = sparse(M(i).n,N);
+        else
+            w{i} = spm_sqrtm(inv(P))*randn(M(i).n,N)*K*dt;
+        end
     else
         w{i} = sparse(0,0);
     end

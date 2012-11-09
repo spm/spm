@@ -52,7 +52,7 @@ function [Q,R,S,E] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP.m 5043 2012-11-07 21:57:56Z karl $
+% $Id: spm_MDP.m 5047 2012-11-09 20:48:20Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -66,12 +66,12 @@ if PLOT, spm_figure('GetWin','MDP'); clf,   end
 % generative model and initial states
 %--------------------------------------------------------------------------
 T     = MDP.T;            % process depth (the horizon)
-P     = MDP.P;            % transition probabilities (priors)
+B     = MDP.P;            % transition probabilities (priors)
 S     = spm_vec(MDP.S);   % initial state
 C     = spm_vec(MDP.C);   % terminal cost probabilities (priors)
 D     = spm_vec(MDP.D);   % control probabilities (priors)
 Ns    = length(S);        % number of hidden states
-Nu    = length(P);        % number of hidden controls
+Nu    = length(D);        % number of hidden controls
  
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
@@ -95,10 +95,9 @@ end
 A     = A*diag(1./sum(A));
 lnA   = log(A + eps);
 for i = 1:Nu
-    B{i}   = P{i}';
-    P{i}   = P{i}*diag(1./max(sum(P{i}),eps)); % Push-forward
-    B{i}   = B{i}*diag(1./max(sum(B{i}),eps)); % Pull-back
-    lnB{i} = log(B{i} + exp(-2));
+    B{i}   = B{i} + 1/8;
+    B{i}   = B{i}*diag(1./sum(B{i}));
+    lnB{i} = log(B{i} + eps);
 end
 C     = C/sum(C);
 D     = C/sum(D);
@@ -139,12 +138,12 @@ for k = 1:(T - 1)
             % and accumulate empirical priors
             %--------------------------------------------------------------
             for j = 1:Nu
-                at = at + b(j,t + 1) * lnB{j} *a(:,t + 1);
-                at = at + b(j,t    ) * lnB{j}'*a(:,t - 1);
+                at = at + b(j,t - 1) * lnB{j} *a(:,t - 1);
+                at = at + b(j,t    ) * lnB{j}'*a(:,t + 1);
             end
             for j = 1:Nu
                 bt(j,1) = lnD(j);
-                bt(j,1) = bt(j,1) + a(:,t - 1)'* lnB{j} *a(:,t);
+                bt(j,1) = bt(j,1) + a(:,t + 1)'* lnB{j} *a(:,t);
             end
             
             % update sufficient statistics of hidden states and control
@@ -159,11 +158,12 @@ for k = 1:(T - 1)
         % plot
         %------------------------------------------------------------------
         if PLOT
-            subplot(2,1,1)
-            imagesc(1 - a)
+            subplot(2,2,1)
+            imagesc(1 - a); axis square
             title('Expected hidden states','FontSize',16)
             xlabel('time','FontSize',12)
             ylabel('hidden state','FontSize',12)
+            ax = axis;
             
             subplot(2,2,3)
             imagesc(1 - b); axis square
@@ -178,7 +178,7 @@ for k = 1:(T - 1)
     % sampling of next state (outcome)
     %======================================================================
     for i = 1:Nu
-        F(i) = P{i}(:,find(S(:,k)))'*lnA*a(:,k + 1);
+        F(i) = B{i}(:,find(S(:,k)))'*lnA*a(:,k + 1);
     end
     
     % next action (the action and minimises expected free energy)
@@ -204,6 +204,13 @@ for k = 1:(T - 1)
     % plot actual action
     %----------------------------------------------------------------------
     if PLOT
+        subplot(2,2,2)
+        imagesc(1 - S); axis square
+        title('Sampled state','FontSize',16)
+        xlabel('time','FontSize',12)
+        ylabel('action','FontSize',12)
+        axis(ax);
+        
         subplot(2,2,4)
         imagesc(1 - E); axis square
         title('Selected action','FontSize',16)
