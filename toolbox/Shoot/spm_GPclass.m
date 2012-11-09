@@ -21,7 +21,7 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 4698 2012-03-21 14:00:44Z john $
+% $Id: spm_GPclass.m 5044 2012-11-09 13:40:35Z john $
 
 if nargin==3
     p = gp_pred_ep_binclass(XX,t,lab);
@@ -290,7 +290,7 @@ for it=1:128
        z     = y(i)*mum/sqrt(1+sigm);
 
       %NzZh  = Npdf(z)/Ncdf(z); would be unstable
-       NzZh  = sqrt(2/pi)./erfcore(-z/sqrt(2),2);
+       NzZh  = sqrt(2/pi)./erfcx(-z/sqrt(2));
        mom1  = y(i)*NzZh/sqrt(1+sigm);
        mom2  = NzZh*(z+NzZh)/(1+sigm);
 
@@ -317,7 +317,7 @@ if nargout>2
     mu   = Sig*nut;
     sig  = diag(Sig);
     z    = (nut.*sig-mu)./((sig.*taut - 1).*sqrt(1 - 1./(taut-1./sig)));
-    F    = sum(log(erfcore(-y.*z/sqrt(2),2)) - log(2)-y.^2.*z.^2/2)... % sum(log(Ncdf(y.*z))) 3rd term
+    F    = sum(log(erfcx(-y.*z/sqrt(2))) - log(2)-y.^2.*z.^2/2)... % sum(log(Ncdf(y.*z))) 3rd term
           +sum(log(1+taut./(1./sig-taut)))/2 -sum(log(diag(L)))... % 1st & 4th terms (eq 3.73)
           +(nut'*Sig*nut)/2 -sum((taut.*mu.^2 - 2*mu.*nut + sig.*nut.^2)./(sig.*taut - 1))/2; % 2nd & 5th
 end

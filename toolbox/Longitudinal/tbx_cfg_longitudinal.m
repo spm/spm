@@ -1,10 +1,10 @@
-function long = tbx_cfg_longitudinal
+function cfg = tbx_cfg_longitudinal
 % MATLABBATCH Configuration file for toolbox 'Longitudinal'
 %_______________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 4922 2012-09-13 12:45:46Z john $
+% $Id: tbx_cfg_longitudinal.m 5044 2012-11-09 13:40:35Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -30,6 +30,15 @@ vols2.filter = 'image';
 vols2.ufilter = '.*';
 vols2.num     = [1 Inf];
 
+vols         = cfg_files;
+vols.tag     = 'vols';
+vols.name    = 'Volumes';
+vols.help    = {'Select scans for this subject.'};
+vols.filter = 'image';
+vols.ufilter = '.*';
+vols.num     = [1 Inf];
+
+
 tdif         = cfg_entry;
 tdif.tag     = 'tdif';
 tdif.name    = 'Time difference';
@@ -37,6 +46,13 @@ tdif.help    = {'Specify the time difference between the scans in years.  This c
 tdif.strtype = 'e';
 tdif.num     = [1 Inf];
 tdif.val     = {1};
+
+tim         = cfg_entry;
+tim.tag     = 'times';
+tim.name    = 'Times';
+tim.help    = {'Specify the times of the scans in years.'};
+tim.strtype = 'e';
+tim.num     = [1 Inf];
 
 noise         = cfg_entry;
 noise.tag     = 'noise';
@@ -97,10 +113,21 @@ write_div.labels = {
 write_div.values = { 1 0 };
 write_div.val    = {1};
 
+write_jacd         = cfg_menu;
+write_jacd.tag     = 'write_jac';
+write_jacd.name    = 'Save Jacobian Differences';
+write_jacd.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_'''' and written out in the same directory of the first time point data.'};
+write_jacd.labels = {
+                'Save'
+                'Dont save'
+                }';
+write_jacd.values = { 1 0 };
+write_jacd.val    = {0};
+
 write_jac         = cfg_menu;
 write_jac.tag     = 'write_jac';
-write_jac.name    = 'Save Jacobian Differences';
-write_jac.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_'''' and written out in the same directory of the first time point data.'};
+write_jac.name    = 'Save Jacobians';
+write_jac.help    = {'Do you want to save a map of the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Each map of Jacobians encodes the relative volume (at each spatial location) between the scan and the median time-point average. Values less than one indicate contraction (over time), whereas values greater than one indicate expansion.  These files are prefixed by ``j_'''' and written out in the same directory of the first time point data.'};
 write_jac.labels = {
                 'Save'
                 'Dont save'
@@ -119,41 +146,37 @@ write_defs.labels = {
 write_defs.values = { 1 0 };
 write_defs.val    = {0};
 
-%write         = cfg_menu;
-%write.tag     = 'write';
-%write.name    = 'Deformation Fields';
-%write.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. For spatially normalising images to MNI space, you will need the forward deformation, whereas for spatially normalising (eg) GIFTI surface files, you''ll need the inverse. It is also possible to transform data in MNI space on to the individual subject, which also requires the inverse transform. Deformations are saved as .nii files, which contain three volumes to encode the x, y and z coordinates.'};
-%write.labels = {
-%                'None'
-%                'Time 2 -> Time 1'
-%                'Time 1 -> Time 2'
-%                'Both'
-%                }';
-%write.values = {
-%                [0 0]
-%                [1 0]
-%                [0 1]
-%                [1 1]
-%                }';
-%write.val    = {[0 0]};
-
 % ---------------------------------------------------------------------
 % longit2 Pairwise Longitudinal Registration
 % ---------------------------------------------------------------------
-long         = cfg_exbranch;
-long.tag     = 'longit2';
-long.name    = 'Pairwise Longitudinal Registration';
-long.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jac write_div write_defs};
-long.help    = {'This toolbox is for longitudinal registration of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
+long2         = cfg_exbranch;
+long2.tag     = 'pairwise';
+long2.name    = 'Pairwise Longitudinal Registration';
+long2.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jacd write_div write_defs};
+long2.help    = {'Longitudinal registration of pairs of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
 '',...
 'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.'};
-long.prog = @spm_pairwise;
-long.vout = @vout;
+long2.prog = @spm_pairwise;
+long2.vout = @vout_pairwise;
 %----------------------------------------------------------------------
+
+long         = cfg_exbranch;
+long.tag     = 'series';
+long.name    = 'Serial Longitudinal Registration';
+long.val     = {vols tim noise wparam bparam write_avg write_jac write_div write_defs};
+long.help    = {'Longitudinal registration of series of anatomical MRI scans for a single subject.  It is based on groupwise alignment among each of the subject''s scans, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
+'',...
+'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.'};
+long.prog = @spm_series_align;
+
+cfg        = cfg_repeat;
+cfg.tag    = 'longit';
+cfg.name   = 'Longitudinal Registration';
+cfg.values = {long2,long};
 
 
 %======================================================================
-function cdep = vout(job)
+function cdep = vout_pairwise(job)
 % This depends on job contents, which may not be present when virtual
 % outputs are calculated.
 

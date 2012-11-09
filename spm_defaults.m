@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 5010 2012-10-19 11:47:42Z john $
+% $Id: spm_defaults.m 5044 2012-11-09 13:40:35Z john $
 
 
 global defaults
@@ -148,7 +148,7 @@ defaults.old.normalise.estimate.cutoff  = 25;
 defaults.old.normalise.estimate.nits    = 16;
 defaults.old.normalise.estimate.reg     = 1;
 defaults.old.normalise.write.preserve   = 0;
-defaults.old.normalise.write.bb         = [[-78 -112 -50];[78 76 85]];
+defaults.old.normalise.write.bb         = [[-78 -112 -70];[78 76 85]];
 defaults.old.normalise.write.vox        = [2 2 2];
 defaults.old.normalise.write.interp     = 1;
 defaults.old.normalise.write.wrap       = [0 0 0];
