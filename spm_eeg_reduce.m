@@ -8,10 +8,12 @@ function D = spm_eeg_reduce(S)
 %   
 %   S.channels          - cell array of channel names. Can include generic
 %                         wildcards: 'All', 'EEG', 'MEG' etc
+%   S.conditions          - cell array of condition trial names. 
 %   S.method           - name for the spectral estimation to use. This
 %                        corresponds to the name of a plug-in function that comes
 %                        after 'spm_eeg_reduce_' prefix.
 %   S.settings         - plug-in specific settings
+%   S.woi              - time windows or interest
 %
 % Output:
 % D                     - M/EEG object 
@@ -19,9 +21,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 4911 2012-09-07 15:21:40Z vladimir $
+% $Id: spm_eeg_reduce.m 5046 2012-11-09 15:55:10Z vladimir $
 
-SVNrev = '$Rev: 4911 $';
+SVNrev = '$Rev: 5046 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -59,6 +61,24 @@ if isempty(chanind)
     error('No channels selected.');
 end
 
+%%%%%%%%%
+% MWW
+samples = {};
+for i = 1:size(S.woi, 1)
+    samples{i} = D.indsample(S.woi(i, 1)):D.indsample(S.woi(i, 2));
+end
+
+if isfield(S.conditions, 'all')
+    trials = 1:D.ntrials;
+else    
+    trials = D.pickconditions(S.conditions);
+    if isempty(trials)
+        error('No trials matched the selection, check the specified condition labels');
+    end
+end
+%%%%%%%%%%
+
+
 if ~isfield(S, 'method')
     S.method = 'pca';
     S.settings.ncomp = min(length(floor(chanind)/2), 100);
@@ -71,25 +91,27 @@ else
 end
 
 S1.D       = D;
-S1.chanind = chanind;
-
+S1.chanind = chanind; 
+S1.trials = trials; %MWW
+S1.samples = samples; %MWW
 montage = feval(['spm_eeg_reduce_' S.method], S1);
 
 % This is to discard bad channels but keep other channels (like non MEEG).
 
 if ~isempty(badind)
-    montage.labelorg = [montage.labelorg(:) D.chanlabels(badind)'];
+    montage.labelorg = [montage.labelorg(:); D.chanlabels(badind)']; % added semicolon - MWW
     montage.tra(end, end+length(badind)) = 0;
 end
-
 
 S1 = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 'yes';
+S1.keepothers = 'no'; %MWW changed to no
 S1.updatehistory  = 0;
 D = spm_eeg_montage(S1);
 
+% MWW:
+D = chantype(D, 1:length(montage.labelnew), montage.chantypenew);
 
 %-Save new M/EEG dataset(s)
 %--------------------------------------------------------------------------
