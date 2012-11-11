@@ -23,97 +23,57 @@ function spm_MDP_offer
 % initial and final states
 %==========================================================================
 T     = 16;                         % number of offers
-Ns    = 5;                         % number of outcomes (hidden states)
-Nu    = 2;                         % number of actions (hidden controls)
-a     = 4/(T);                   % probability of a high offer
-b     = 4/(T);                       % probability of withdrawn offer
+Ns    = 5;                          % number of outcomes (hidden states)
+Nu    = 2;                          % number of actions (hidden controls)
+Pa    = 1/2;                        % probability of a high offer
+Pb    = 1/16;                       % probability of withdrawn offer
+
+% transition probabilities (B{1} - decline; B{2} - accept)
+%--------------------------------------------------------------------------
+for i = 1:T
+    
+    a       = 1 - (1 - Pa)^(1/T);
+    b       = i*Pb/T;
+    B{i,1}  = [(1 - a - b) 0 0 0 0;
+                a          0 0 0 0;
+                b          1 1 0 0;
+                0          0 0 1 0;
+                0          0 0 0 1];
+    
+    B{i,2}  = [ 0 0 0 0 0;
+                0 0 0 0 0;
+                0 0 1 0 0;
+                1 0 0 1 0;
+                0 1 0 0 1];
+end
+      
 
 % iinitial state
 %--------------------------------------------------------------------------
-S     = sparse(1,1,1,Ns,1);
+S     = [1 0 0 0 0]';
  
 % priors over final state
 %--------------------------------------------------------------------------
-C     = [0 0 0 1 1]';
+C     = [0 0 0 1 4]';
 
 % (uniform) cost over control (d)
 %--------------------------------------------------------------------------
-D     = ones(Nu,1);
+D     = [1 1]';
 
-% transition probabilities (P{1} - decline; P{2} - accept)
-%--------------------------------------------------------------------------
-P{1}  = [(1 - a - b) 0      0 0 0;
-          a         (1 - b) 0 0 0;
-          b          b      1 0 0;
-          0          0      0 1 0;
-          0          0      0 0 1];
-      
-P{2}  = [ 0 0 0 0 0;
-          0 0 0 0 0;
-          0 0 1 0 0;
-          1 0 0 1 0;
-          0 1 0 0 1];
-      
 
 % solve
 %==========================================================================
 MDP.T = T;                         % process depth (the horizon)
 MDP.S = S;                         % initial state
-MDP.P = P;                         % transition probabilities (priors)
+MDP.B = B;                         % transition probabilities (priors)
 MDP.C = C;                         % terminal cost probabilities (priors)
 MDP.D = D;                         % control probabilities (priors)
+MDP.W = 4;                         % log-precision
 
 [Q,R,S,E] = spm_MDP(MDP);
 
 return
  
-% set up state space graphically
-%--------------------------------------------------------------------------
-subplot(2,1,1)
-for i = 1:length(x);
-    plot(x(i),v,'k','color',[1 1 1]/2), hold on
-    axis([-2 2 -2 2])
-end
- 
-% and plot expected and realised trajectories
-%==========================================================================
-Sx(1) = X(1);
-Sv(1) = V(1);
-for k = 1:(T - 1)
-    
-    for t = 1:T
-        
-        % conditional expectations
-        %--------------------------------------------------------------
-        q      = reshape(Q(:,k,t),Nx,Nx);
-        qx     = sum(q,2);
-        qv     = sum(q,1);
-        X(t)   = x*qx /sum(qx);
-        V(t)   = v*qv'/sum(qv);
-        
-    end
-    
-    % plot expectation at this at time k
-    %------------------------------------------------------------------
-    subplot(2,1,1)
-    plot(X,V,':r'), hold on
-    axis([-2 2 -2 2])
-    
-    % current position
-    %----------------------------------------------------------------------
-    [i j]     = find(reshape(S(:,k + 1),Nx,Nx));
-    Sx(k + 1) = x(i);
-    Sv(k + 1) = v(j);
-    
-end
- 
-subplot(2,1,1)
-plot(Sx,Sv,'ok','LineWidth',4)
-plot(Sx,Sv,'k','LineWidth',2)
-title('Expected and actual trajectory','FontSize',16)
-xlabel('position','FontSize',12)
-ylabel('velocity','FontSize',12)
-axis([-2 2 -2 2])
- 
+
 
 

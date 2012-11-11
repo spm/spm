@@ -165,7 +165,7 @@ D     = ones(Nu,1);
 %==========================================================================
 MDP.T = T;                         % process depth (the horizon)
 MDP.S = S;                         % initial state
-MDP.P = P;                         % transition probabilities (priors)
+MDP.B = P;                         % transition probabilities (priors)
 MDP.C = C;                         % terminal cost probabilities (priors)
 MDP.D = D;                         % control probabilities (priors)
 
