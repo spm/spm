@@ -21,7 +21,7 @@ function p = getcustompwd
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getcustompwd.m 5029 2012-11-01 14:36:06Z guillaume $
+% $Id: getcustompwd.m 6747 2012-10-11 19:10:11Z roboos $
 
 % these are for faster processing on subsequent calls
 persistent previous_pwd previous_argout
