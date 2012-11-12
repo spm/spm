@@ -22,7 +22,7 @@ function Y = spm_data_read(V,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 4940 2012-09-20 17:27:54Z guillaume $
+% $Id: spm_data_read.m 5050 2012-11-12 18:55:38Z guillaume $
 
 
 if ~isstruct(V)
@@ -47,10 +47,16 @@ switch class(V(1).private)
                     error('Unknown input option.');
             end
         else
-            n = get_ndata(V(1).dim,varargin{:});
+            indices = varargin;
+            n = get_ndata(V(1).dim,indices{:});
             Y = zeros(numel(V),prod(n));
             for i=1:numel(V)
-                Y(i,:) = reshape(V(i).private.dat(varargin{:}),1,[]);
+                if numel(indices) == 1
+                    ind = {indices{1} + (V(i).n(1)-1)*prod(V(i).dim)};
+                else
+                    ind = indices;
+                end
+                Y(i,:) = reshape(V(i).private.dat(ind{:}),1,[]);
             end
         end
         
