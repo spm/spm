@@ -1,4 +1,4 @@
-function [Q,R,S,E] = spm_MDP(MDP)
+function [Q,R,S,E,P] = spm_MDP(MDP)
 % solves the active inference problem for Markov decision processes
 % FROMAT [Q,R,S,E] = spm_MDP(MDP)
 %
@@ -19,14 +19,17 @@ function [Q,R,S,E] = spm_MDP(MDP)
 % MDP.G{T,M}(N,N) - transition probabilities for each time point
 %                   (default: MDP.B{T,M} = MDP.B{M})
 %
+% MDP.plot        -  swtich to suppress graphics
+%
 % produces:
 %
 % Q(N,K,T) - an array of conditional (posterior) expectations over N hidden
-%            states and time 1,...,T at time K
+%            states and time 1,...,T at time 1,...,K
 % R(M,K,T) - an array of conditional expectations over M control
-%            states and time 1,...,T at time K.
-% S(N,T)   - a sparse matrix of ones, encoding the state at time T
-% E(M,T)   - a sparse matrix of ones, encoding the action at time T
+%            states and time 1,...,T at time 1,...,K
+% S(N,T)   - a sparse matrix of ones, encoding the state at time 1,...,T
+% E(M,T)   - a sparse matrix of ones, encoding the action at time 1,...,T
+% P(M,T)   - probabaility of emitting action 1,...,M at time 1,...,T
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy)using a generative model based upon a Markov
@@ -58,17 +61,17 @@ function [Q,R,S,E] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5048 2012-11-11 22:14:10Z karl $
+% $Id: spm_MDP.m 5051 2012-11-13 20:28:48Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % plotting and precision defaults
 %--------------------------------------------------------------------------
-try MDP.nograph, PLOT = 0; catch, PLOT = 1; end
-try W = -MDP.W;            catch, W = -32;  end
+try PLOT = MDP.plot; catch, PLOT = 1;     end
+try W    = -MDP.W;   catch, W    = -32;   end
 
-if PLOT, spm_figure('GetWin','MDP'); clf,   end
+if PLOT, spm_figure('GetWin','MDP'); clf, end
 
 % generative model and initial states
 %--------------------------------------------------------------------------
@@ -77,6 +80,7 @@ B     = MDP.B;            % transition probabilities (priors)
 S     = spm_vec(MDP.S);   % initial state
 C     = spm_vec(MDP.C);   % terminal cost probabilities (priors)
 Ns    = size(S,1);        % number of hidden states
+Nb    = size(B,1);        % number of time-dependent probabilities
 Nu    = size(B,2);        % number of hidden controls
 
 
@@ -103,7 +107,7 @@ end
 A     = A*diag(1./sum(A));
 for i = 1:T
     for j = 1:Nu
-        if i == 1 || size(B,1) == T
+        if i == 1 || Nb == T
             B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
             lnB{i,j} = max(log(B{i,j}),W);
         else
@@ -120,9 +124,11 @@ lnD   = max(log(D),-32);
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
 try
+    G     = MDP.G;
+    Ng    = size(G,1);
     for i = 1:T
         for j = 1:Nu
-            if i == 1 || size(G,1) == T
+            if i == 1 || Ng == T
                 G{i,j}   = G{i,j}*diag(1./sum(G{i,j}));
             else
                 G{i,j}   = G{1,j};
@@ -156,7 +162,7 @@ for k = 1:(T - 1)
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:4
+    for i = 1:8
         for t = [(T - 1):-1:k k:(T - 1)]
             
             % get data likelihood if available at this time
@@ -198,17 +204,18 @@ for k = 1:(T - 1)
     %----------------------------------------------------------------------
     Pu       = exp(F(:) - max(F));
     Pu       = Pu/sum(Pu);
-    [~, i]   = max(Pu.*rand(Nu,1));
+    i        = find(rand < cumsum(Pu),1);
     
     % next state (assuming G mediates uncertainty modelled the likelihood)
     %----------------------------------------------------------------------
     Ps       = G{k,i}(:,s);
     Ps       = Ps/sum(Ps);
-    [~, s]   = max(Ps.*rand(Ns,1));
+    s        = find(rand < cumsum(Ps),1);
     
     
     % save action, state and posterior expectations (states Q, control R)
     %----------------------------------------------------------------------
+    P(:,k)     = Pu;
     Q(:,k,:)   = a;
     R(:,k,:)   = b;
     S(s,k + 1) = 1;
