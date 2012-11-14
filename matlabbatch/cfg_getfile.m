@@ -88,24 +88,22 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 4973 2012-09-27 14:22:14Z volkmar $
+% $Id: cfg_getfile.m 5055 2012-11-14 15:55:33Z volkmar $
 
 t = {};
 sts = false;
 if nargin > 0 && ischar(varargin{1})
     switch lower(varargin{1})
         case 'cpath'
-            try
-                narginchk(2,3);
-            catch
-                l = lasterror;
-                cfg_message(l);
-            end
-            if all(cellfun(@iscellstr,varargin(2:end)))
-                t = cpath(varargin{2:end});
-                sts = true;
+            if nargin >= 2 && nargin <= 3
+                if all(cellfun(@iscellstr,varargin(2:end)))
+                    t = cpath(varargin{2:end});
+                    sts = true;
+                else
+                    cfg_message('cfg_getfile:notcellstr','Inputs to %s(''%s'',...) must be cellstr.', mfilename, varargin{1});
+                end
             else
-                cfg_message('cfg_getfile:notcellstr','Inputs to %s(''%s'',...) must be cellstr.', mfilename, varargin{1});
+                cfg_message('cfg_getfile:nargin','%s(''%s'',...) Wrong number of inputs.', mfilename, varargin{1});
             end
         case 'filter'
             t = varargin{2};
