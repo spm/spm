@@ -12,11 +12,11 @@ function res = spm_eeg_reduce_pca_adapt(S)
 %
 %   If input is provided:
 %      montage struct implementing projection to PCA subspace
-%______________________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_reduce_pca_adapt.m 5046 2012-11-09 15:55:10Z vladimir $
+% $Id: spm_eeg_reduce_pca_adapt.m 5054 2012-11-14 15:26:46Z guillaume $
 
 
 if nargin == 0 
@@ -66,15 +66,15 @@ spm_progress_bar('Clear');
 
 C = YY/ns;
 
-[U,~] = svd(C);
+[U,dum] = svd(C);
 
 %%%%%%%
 % MWW 
 ncomp=S.ncomp;
 ncomp_adapt=spm_pca_order(C);
-if(ncomp==-1 || ncomp>ncomp_adapt),
+if(ncomp==-1 || ncomp>ncomp_adapt)
    ncomp = ncomp_adapt; 
-end;
+end
 %%%%%%%
 
 % Assuming projecting to columns
