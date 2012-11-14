@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 4938 2012-09-19 18:47:57Z guillaume $
+% $Id: spm_run_fmri_spec.m 5053 2012-11-14 14:42:46Z volkmar $
 
 
 %-Check presence of previous analysis
@@ -179,6 +179,10 @@ for i = 1:numel(job.sess)
                     rethrow(lasterror);
                 end
             end
+            
+            %-Mutiple Conditions: Orthogonalisation of Modulations
+            %--------------------------------------------------------------
+            cond.orth        = true;
             
             %-Append to singly-specified conditions
             %--------------------------------------------------------------
