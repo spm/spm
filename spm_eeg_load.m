@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_eeg_load.m 5058 2012-11-15 13:09:56Z guillaume $
 
 
 %-Bypass if the input is already an MEEG object
@@ -29,22 +29,14 @@ if ~nargin
     if ~sts, D = []; return; end
 end
 
-P      = spm_file(P, 'ext', '.mat');
-[p, f] = fileparts(P);
-if isempty(p)
-    p  = pwd;
-end
-
-if ~exist(P, 'file')
-    error('Cannot find file "%s".', P);
-end
+P = spm_file(spm_file(P, 'ext', '.mat'), 'cpath');
 
 %-Load MAT file
 %--------------------------------------------------------------------------
 try
     load(P);
 catch    
-    error('Trouble reading file "%s".', P);
+    error('Cannot load file "%s".', P);
 end
 
 %-Check whether there is a struct D
@@ -65,8 +57,8 @@ end
 
 %-Save path and fname in structure
 %--------------------------------------------------------------------------
-D.path  = p;
-D.fname = [f '.mat'];
+D.path  = spm_file(P, 'path');
+D.fname = spm_file(P, 'filename');
 
 %-And return an MEEG object
 %--------------------------------------------------------------------------
