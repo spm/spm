@@ -1,12 +1,13 @@
-function S = spm_cfg_eeg_filter
+function filter = spm_cfg_eeg_filter
 % configuration file for EEG Filtering
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 4212 2011-02-23 17:50:55Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 5060 2012-11-15 16:42:14Z vladimir $
 
-rev = '$Rev: 4212 $';
+rev = '$Rev: 5060 $';
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -14,32 +15,32 @@ D.filter = 'mat';
 D.num = [1 1];
 D.help = {'Select the EEG mat file.'};
 
-typ = cfg_menu;
-typ.tag = 'type';
-typ.name = 'Filter type';
-typ.labels = {'Butterworth', 'FIR'};
-typ.values = {'butterworth', 'fir'};
-typ.val = {'butterworth'};
-typ.help = {'Select the filter type.'};
+type = cfg_menu;
+type.tag = 'type';
+type.name = 'Type';
+type.labels = {'Butterworth', 'FIR'};
+type.values = {'butterworth', 'fir'};
+type.val = {'butterworth'};
+type.help = {'Select the filter typee.'};
 
 band = cfg_menu;
 band.tag = 'band';
-band.name = 'Filter band';
+band.name = 'Band';
 band.labels = {'Lowpass', 'Highpass', 'Bandpass', 'Stopband'};
 band.values = {'low' 'high' 'bandpass' 'stop'};
 band.val = {'low'};
 band.help = {'Select the filter band.'};
 
-PHz = cfg_entry;
-PHz.tag = 'PHz';
-PHz.name = 'Cutoff';
-PHz.strtype = 'r';
-PHz.num = [1 inf];
-PHz.help = {'Enter the filter cutoff'};
+freq = cfg_entry;
+freq.tag = 'freq';
+freq.name = 'Cutoff(s)';
+freq.strtype = 'r';
+freq.num = [1 inf];
+freq.help = {'Enter the filter cutoff'};
 
 dir = cfg_menu;
 dir.tag = 'dir';
-dir.name = 'Filter direction';
+dir.name = 'Direction';
 dir.labels = {'Zero phase', 'Forward', 'Backward'};
 dir.values = {'twopass', 'onepass', 'onepass-reverse'};
 dir.val = {'twopass'};
@@ -47,30 +48,33 @@ dir.help = {'Select the filter direction.'};
 
 order = cfg_entry;
 order.tag = 'order';
-order.name = 'Filter order';
+order.name = 'Order';
 order.val = {5};
 order.strtype = 'n';
 order.num = [1 1];
 order.help = {'Enter the filter order'};
 
-flt = cfg_branch;
-flt.tag = 'filter';
-flt.name = 'Filter';
-flt.val = {typ band PHz dir order};
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the filtered dataset. Default prefix is ''f''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'f'};
 
-S = cfg_exbranch;
-S.tag = 'filter';
-S.name = 'M/EEG Filter';
-S.val = {D flt};
-S.help = {'Low-pass filters EEG/MEG epoched data.'};
-S.prog = @eeg_filter;
-S.vout = @vout_eeg_filter;
-S.modality = {'EEG'};
+filter = cfg_exbranch;
+filter.tag = 'filter';
+filter.name = 'M/EEG Filter';
+filter.val = {D type band freq dir order, prefix};
+filter.help = {'Filters EEG/MEG data.'};
+filter.prog = @eeg_filter;
+filter.vout = @vout_eeg_filter;
+filter.modality = {'EEG'};
 
 function out = eeg_filter(job)
 % construct the S struct
-S.D = job.D{1};
-S.filter = job.filter;
+S = job;
+S.D = S.D{1};
 
 out.D = spm_eeg_filter(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};

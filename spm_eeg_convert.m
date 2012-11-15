@@ -47,7 +47,14 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_eeg_convert.m 5060 2012-11-15 16:42:14Z vladimir $
+
+SVNrev = '$Rev: 5060 $';
+
+%-Startup
+%--------------------------------------------------------------------------
+spm('FnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG convert'); spm('Pointer', 'Watch');
 
 if ischar(S)
     temp      = S;
@@ -536,6 +543,10 @@ if isequal(S.mode, 'header')
 end
 
 save(D);
+
+ %-Cleanup
+%--------------------------------------------------------------------------
+spm('FigName','M/EEG convert: done'); spm('Pointer', 'Arrow');
 
 %==========================================================================
 % select_events
