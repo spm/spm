@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5055 2012-11-14 15:55:33Z volkmar $
+% $Id: cfg_getfile.m 5056 2012-11-15 11:21:40Z volkmar $
 
 t = {};
 sts = false;
@@ -251,7 +251,7 @@ if nargin<5 || isempty(wd) || ~(iscellstr(wd) || ischar(wd))
         end
     end
 end
-wd = char(wd);
+wd = char(cpath(cellstr(wd)));
 
 [col1,col2,col3,lf,bf] = colours;
 
@@ -734,7 +734,7 @@ set(sib('pardirs'),'String',pardirs(dr),'Value',1);
 set(sib('previous'),'String',ls,'Value',mch);
 set(sib('edit'),'String',dr);
 
-if numel(dr)>1 && dr(2)==':',
+if ispc && numel(dr)>1 && dr(2)==':',
     str = char(get(sib('drive'),'String'));
     mch = find(lower(str(:,1))==lower(dr(1)));
     if ~isempty(mch),
@@ -997,7 +997,7 @@ function t = cpath(t,d)
 % single cell containing the base path of relative paths in t
 if ispc % valid absolute paths
     % Allow drive letter or UNC path
-    mch = '^([a-zA-Z]:\\)|(\\\\[^\\]*\\)';
+    mch = '^([a-zA-Z]:)|(\\\\[^\\]*)';
 else
     mch = '^/';
 end
@@ -1037,7 +1037,7 @@ end
 % Assemble paths
 if ispc
     t         = cellfun(@(pt1)fullfile(pt1{:}),pt,'UniformOutput',false);
-    uncsel    = cellfun(@isempty, regexp(t,'^[a-zA-Z]:\\','once'));
+    uncsel    = cellfun(@isempty, regexp(t,'^[a-zA-Z]:','once'));
     t(uncsel) = strcat([filesep filesep],t(uncsel));
 else
     t         = cellfun(@(pt1)fullfile(filesep,pt1{:}),pt,'UniformOutput',false);
