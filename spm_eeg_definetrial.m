@@ -3,13 +3,7 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % FORMAT[trl, conditionlabels, S]  = spm_eeg_definetrial(S)
 % S                - input structure (optional)
 % (optional) fields of S:
-%   S.event        - event struct  (optional)
-%   S.fsample      - sampling rate
-%   S.dataset      - raw dataset (events and fsample can be read from there if absent)
-%   S.inputformat  - data type (optional) to force the use of specific data reader
-%   S.timeonset    - time of the first sample in the data [default: 0]
-%   S.pretrig      - pre-trigger time in ms
-%   S.posttrig     - post-trigger time in ms
+%   S.timewin      - time window (in PST ms)
 %   S.trialdef     - structure array for trial definition with fields (optional)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype      - string
@@ -21,115 +15,61 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %   conditionlabels - Nx1 cell array of strings, label for each trial
 %   S              - modified configuration structure (for history)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 4757 2012-05-28 16:01:15Z vladimir $
+% $Id: spm_eeg_definetrial.m 5057 2012-11-15 13:03:35Z vladimir $
 
 
-SVNrev = '$Rev: 4757 $';
+SVNrev = '$Rev: 5057 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
-spm('FigName','M/EEG trial definition');
+spm_figure('GetWin','Interactive'); clf;
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
+try
+    D = S.D;
+catch
+    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
+    if ~sts, D = []; return; end
+    S.D = D;
+end
+
+D = spm_eeg_load(D);
 
 %-Get input parameters
 %--------------------------------------------------------------------------
-try
-    S.inputformat;
-catch
-    S.inputformat = [];
+if ~isequal(D.type, 'continuous')
+    error('Trial definition requires continuous dataset as input');
 end
 
-if ~isfield(S, 'event') || ~isfield(S, 'fsample')
-    if ~isfield(S, 'dataset')
-        S.dataset = spm_select(1, '\.*', 'Select M/EEG data file');
-    end
-    
-    hdr = ft_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
-    S.fsample = hdr.Fs;
-    
-    event = ft_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
-
-    if ~isempty(strmatch('UPPT001', hdr.label))
-        % This is s somewhat ugly fix to the specific problem with event
-        % coding in FIL CTF. It can also be useful for other CTF systems where the
-        % pulses in the event channel go downwards.
-        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
-        if ~isempty(fil_ctf_events)
-            [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
-            event = cat(1, event(:), fil_ctf_events(:));
-        end
-    end
-    
-    
-    if ~isempty(strmatch('UPPT002', hdr.label))
-        % This is s somewhat ugly fix to the specific problem with event
-        % coding in FIL CTF. It can also be useful for other CTF systems where the
-        % pulses in the event channel go downwards.
-        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
-        if ~isempty(fil_ctf_events)
-            [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
-            event = cat(1, event(:), fil_ctf_events(:));
-        end
-    end
-
-
-    % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
-        ind = strcmp('STATUS', {event(:).type});
-        val = [event(ind).value];
-        if any(val>255)
-            bytes  = dec2bin(val);
-            bytes  = bytes(:, end-7:end);
-            bytes  = flipdim(bytes, 2);
-            val    = num2cell(bin2dec(bytes));
-            [event(ind).value] = deal(val{:});
-        end
-    end
-
-else
-    event = S.event;
-end
-
-if ~isfield(S, 'timeonset')
-    S.timeonset = 0;
-end
-
-if ~isfield(event, 'time')
-    for i = 1:numel(event)
-        if S.timeonset == 0
-            event(i).time = event(i).sample./S.fsample;
-        else
-            event(i).time = (event(i).sample - 1)./S.fsample + S.timeonset;
-        end
-    end
-end
-
-if ~isfield(event, 'sample')
-    for i = 1:numel(event)
-        if S.timeonset == 0
-            event(i).sample = event(i).time*S.fsample;
-        else
-            event(i).sample = (event(i).time-S.timeonset)*S.fsample+1;
-        end
-        
-        event(i).sample = round(event(i).sample);
-    end
-end
+event     = D.events;
+timeonset = D.timeonset;
+fsample   = D.fsample;
 
 if isempty(event)
     error('No event information was found in the input');
 end
 
-if ~isfield(S, 'pretrig')
-    S.pretrig = spm_input('Start of trial in PST [ms]', '+1', 'r', '', 1);
+for i = 1:numel(event)
+    if timeonset == 0
+        event(i).sample = event(i).time*fsample;
+    else
+        event(i).sample = (event(i).time-timeonset)*fsample+1;
+    end
+    
+    event(i).sample = round(event(i).sample);
 end
 
-if ~isfield(S, 'posttrig')
-    S.posttrig = spm_input('End of trial in PST [ms]', '+1', 'r', '', 1);
+if ~isfield(S, 'timewin')
+    S.timewin = spm_input('Time window (ms)', '+1', 'r', [], 2);
 end
+
+pretrig  = S.timewin(1);
+posttrig = S.timewin(2);
 
 if ~isfield(S, 'trialdef')
     S.trialdef = [];
@@ -159,7 +99,7 @@ for i = 1:length(S.trialdef)
     if ~isfield(S.trialdef(i),'trlshift')
         trlshift(i) = 0;
     else
-        trlshift(i) = round(S.trialdef(i).trlshift * S.fsample/1000); % assume passed as ms
+        trlshift(i) = round(S.trialdef(i).trlshift * fsample/1000); % assume passed as ms
     end
 end
 
@@ -186,7 +126,7 @@ for i=1:numel(S.trialdef)
 
     for j=1:length(sel)
         % override the offset of the event
-        trloff = round(0.001*S.pretrig*S.fsample);        
+        trloff = round(0.001*pretrig*fsample);        
         % also shift the begin sample with the specified amount
         if ismember(event(sel(j)).type, {'trial', 'average'})
             % In case of trial events treat the 0 time point as time of the
@@ -195,7 +135,7 @@ for i=1:numel(S.trialdef)
         else
             trlbeg = event(sel(j)).sample + trloff;
         end
-        trldur = round(0.001*(-S.pretrig+S.posttrig)*S.fsample);
+        trldur = round(0.001*(-pretrig+posttrig)*fsample);
         trlend = trlbeg + trldur;
         
         % Added by Rik in case wish to shift triggers (e.g, due to a delay
@@ -222,10 +162,9 @@ if ~isfield(S, 'reviewtrials')
 end
 
 if S.reviewtrials
-
     eventstrings=cell(size(trl,1),1);
     for i=1:size(trl,1)
-        eventstrings{i}=[num2str(i) ' Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./S.fsample)];
+        eventstrings{i}=[num2str(i) ' Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./fsample)];
     end
 
     selected = find(trl(:,1)>0);
@@ -254,7 +193,7 @@ end
 
 %-Cleanup
 %--------------------------------------------------------------------------
-spm('FigName','M/EEG trial definition: done');
+spm_figure('GetWin','Interactive'); clf;
 
 %==========================================================================
 % select_event_ui

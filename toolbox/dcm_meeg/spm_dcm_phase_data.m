@@ -32,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_dcm_phase_data.m 5057 2012-11-15 13:03:35Z vladimir $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -83,7 +83,7 @@ trials=[];
 X=[];
 for jj=1:length(chosen_conds)
     cname=cond_name{chosen_conds(jj)};
-    new_trials= indtrial(D, {cname, 'GOOD'});
+    new_trials= indtrial(D, cname, 'GOOD');
     
     new_trials = new_trials(1:trial_step:end);
     

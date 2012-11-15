@@ -5,6 +5,8 @@ function warning_flexible(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: warning_flexible.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: warning_flexible.m 5057 2012-11-15 13:03:35Z vladimir $
 
+warning off backtrace
 warning(varargin{:});
+warning on backtrace

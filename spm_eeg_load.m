@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 5052 2012-11-14 14:31:08Z guillaume $
+% $Id: spm_eeg_load.m 5057 2012-11-15 13:03:35Z vladimir $
 
 
 %-Bypass if the input is already an MEEG object
@@ -24,9 +24,6 @@ end
 
 %-Get filename
 %--------------------------------------------------------------------------
-if ~exist(spm_file(P, 'ext', '.mat'), 'file')
-    error('Cannot find file "%s".',P);
-end
 if ~nargin
     [P, sts] = spm_select(1, 'mat', 'Select SPM M/EEG file');
     if ~sts, D = []; return; end
@@ -36,6 +33,10 @@ P      = spm_file(P, 'ext', '.mat');
 [p, f] = fileparts(P);
 if isempty(p)
     p  = pwd;
+end
+
+if ~exist(P, 'file')
+    error('Cannot find file "%s".', P);
 end
 
 %-Load MAT file

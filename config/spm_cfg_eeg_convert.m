@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_convert
+function convert = spm_cfg_eeg_convert
 % configuration file for data conversion
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 5057 2012-11-15 13:03:35Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -13,23 +13,23 @@ dataset.filter = 'any';
 dataset.num = [1 1];
 dataset.help = {'Select data set file.'};
 
-timewindow = cfg_entry;
-timewindow.tag = 'timing';
-timewindow.name = 'Timing';
-timewindow.strtype = 'r';
-timewindow.num = [1 2];
-timewindow.help = {'start and end of epoch [ms]'};
+timewin = cfg_entry;
+timewin.tag = 'timewin';
+timewin.name = 'Time window';
+timewin.strtype = 'r';
+timewin.num = [1 2];
+timewin.help = {'start and end of epoch'};
 
 readall = cfg_const;
 readall.tag = 'readall';
 readall.name = 'Read all';
 readall.val  = {1};
 
-read = cfg_choice;
-read.tag = 'read';
-read.name = 'Continuous';
-read.values = {timewindow, readall};
-read.val = {readall};
+continuous = cfg_choice;
+continuous.tag = 'continuous';
+continuous.name = 'Continuous';
+continuous.values = {timewin, readall};
+continuous.val = {readall};
 
 usetrials = cfg_const;
 usetrials.tag = 'usetrials';
@@ -65,51 +65,31 @@ trialdef.val = {conditionlabel, eventtype, eventvalue};
 define1 = cfg_repeat;
 define1.tag = 'unused';
 define1.name = 'Trial definitions';
+define1.num = [1 Inf];
 define1.values = {trialdef};
 
 define = cfg_branch;
 define.tag = 'define';
 define.name = 'Define trial';
-define.val = {timewindow define1};
+define.val = {timewin define1};
 
-trials = cfg_choice;
-trials.tag = 'trials';
-trials.name = 'Epoched';
-trials.values = {usetrials trlfile define};
+epoched = cfg_choice;
+epoched.tag = 'epoched';
+epoched.name = 'Epoched';
+epoched.values = {usetrials trlfile define};
 
-continuous = cfg_choice;
-continuous.tag = 'continuous';
-continuous.name = 'Reading mode';
-continuous.values = {read trials};
-continuous.val = {read};
-continuous.help = {'Select whether you want to convert to continuous or epoched data.'};
+header = cfg_const;
+header.tag = 'header';
+header.name = 'Read header only';
+header.val  = {1};
 
-chanall = cfg_const;
-chanall.tag = 'chanall';
-chanall.name = 'All';
-chanall.val = {1};
-
-chanmeg = cfg_const;
-chanmeg.tag = 'chanmeg';
-chanmeg.name = 'MEG';
-chanmeg.val = {1};
-
-chaneeg = cfg_const;
-chaneeg.tag = 'chaneeg';
-chaneeg.name = 'EEG';
-chaneeg.val = {1};
-
-chanfile = cfg_files;
-chanfile.tag = 'chanfile';
-chanfile.name = 'Channel file';
-chanfile.filter = 'mat';
-chanfile.num = [1 1];
-
-channels = cfg_choice;
-channels.tag = 'channels';
-channels.name = 'Channel selection';
-channels.values = {chanall,chanmeg,chaneeg,chanfile};
-channels.val = {chanall};
+mode = cfg_choice;
+mode.tag = 'mode';
+mode.name = 'Reading mode';
+mode.values = {continuous, epoched, header};
+mode.val = {continuous};
+mode.help = {'Select whether you want to convert to continuous or epoched data',...
+             'or just read the header'};
 
 outfile = cfg_entry;
 outfile.tag = 'outfile';
@@ -118,14 +98,6 @@ outfile.strtype = 's';
 outfile.num = [0 inf];
 outfile.val = {''};
 outfile.help = {'Choose filename. Leave empty to add ''spm8_'' to the input file name.'};
-
-datatype = cfg_menu;
-datatype.tag = 'datatype';
-datatype.name = 'Data type';
-datatype.labels = {'float32-le','float64-le'};
-datatype.val    = {'float32-le'};
-datatype.values = {'float32-le','float64-le'};
-datatype.help = {'Determine data type to save data in.'};
 
 eventpadding = cfg_entry;
 eventpadding.tag = 'eventpadding';
@@ -148,13 +120,20 @@ blocksize.help = {'size of blocks used internally to split large files default ~
 
 checkboundary = cfg_menu;
 checkboundary.tag = 'checkboundary';
-checkboundary.name = 'Check boundary';
-checkboundary.labels = {'Check boundaries', 'Don''t check boundaries'};
+checkboundary.name = 'Check trial boundaries';
+checkboundary.labels = {'Yes', 'No'};
 checkboundary.val = {1};
 checkboundary.values = {1,0};
-checkboundary.help = {'1 - check if there are breaks in the file and do not read',...
-    'across those breaks (default).',...
-    '0 - ignore breaks (not recommended)'};
+checkboundary.help = {'Check if there are breaks in the file and do not read',...
+    'across those breaks (recommended) or ignore them'};
+
+saveorigheader = cfg_menu;
+saveorigheader.tag = 'saveorigheader';
+saveorigheader.name = 'Save original header';
+saveorigheader.labels = {'Yes', 'No'};
+saveorigheader.val = {0};
+saveorigheader.values = {1,0};
+saveorigheader.help = {'Keep the original data header which might be useful for some later analyses'};
 
 inputformat = cfg_entry;
 inputformat.tag = 'inputformat';
@@ -164,74 +143,51 @@ inputformat.val = {'autodetect'};
 inputformat.num = [1 inf];
 inputformat.help = {'Force the reader to assume a particular data format (usually not necessary)'};
 
-S = cfg_exbranch;
-S.tag = 'convert';
-S.name = 'M/EEG Conversion';
-S.val = {dataset continuous channels outfile datatype eventpadding blocksize checkboundary inputformat};
-S.help = {'Converts EEG/MEG data.'};
-S.prog = @eeg_convert;
-S.vout = @vout_eeg_convert;
-S.modality = {'EEG'};
+convert = cfg_exbranch;
+convert.tag = 'convert';
+convert.name = 'M/EEG Conversion';
+convert.val = {dataset mode spm_cfg_eeg_channel_selector outfile...
+    eventpadding blocksize checkboundary saveorigheader inputformat};
+convert.help = {'Converts EEG/MEG data.'};
+convert.prog = @eeg_convert;
+convert.vout = @vout_eeg_convert;
+convert.modality = {'EEG'};
 
 function out = eeg_convert(job)
-% construct the S struct
+
+S = [];
 S.dataset = job.dataset{1};
-S.continuous = job.continuous;
-S.channels = job.channels;
+S.mode = job.mode;
+S.channels = spm_cfg_eeg_channel_selector(job.channels);
 if ~isempty(job.outfile)
     S.outfile = job.outfile;
 end
-S.datatype = job.datatype;
+
 S.eventpadding = job.eventpadding;
 S.blocksize = job.blocksize;
 S.checkboundary = job.checkboundary;
+S.saveorigheader = job.saveorigheader;
 
 if ~isequal(job.inputformat, 'autodetect')
     S.inputformat = job.inputformat;
 end
 
-if isfield(S.continuous, 'read')
-    S.continuous = 1;
-    if isfield(job.continuous.read, 'timing')
-        S.timewindow = job.continuous.read.timing;
-    end
-else
-    if isfield(S.continuous.trials, 'usetrials')
-        S.usetrials = S.continuous.trials.usetrials;
-    end
-    if isfield(S.continuous.trials, 'trlfile')
-        S.trlfile = char(S.continuous.trials.trlfile);
-        S.usetrials = 0;
-    end
-    
-    if isfield(S.continuous.trials, 'define')
-        S.trialdef = S.continuous.trials.define.trialdef;
-        S.pretrig = S.continuous.trials.define.timing(1);
-        S.posttrig = S.continuous.trials.define.timing(2);
-        S.reviewtrials = 0;
-        S.save = 0;
-        S.usetrials = 0;
-        [S.trl, S.conditionlabel] = spm_eeg_definetrial(S);
-    end
-    S.continuous = 0;
+S.mode = char((fieldnames(job.mode)));
+switch  S.mode
+    case 'continuous'
+        if isfield(job.mode.continuous, 'timewin')
+            S.timewin = job.mode.continuous.timewin;
+        end
+    case 'epoched'
+        if isfield(job.mode.epoched, 'trlfile')
+            S.trlfile = char(job.continuous.trials.trlfile);
+        end
+        
+        if isfield(job.mode.epoched, 'define')
+            S.trialdef =  job.mode.epoched.define.trialdef;
+            S.timewin  =  job.mode.epoched.define.timewin;          
+        end
 end
-
-if isfield(S.channels, 'chanmeg')
-    S.channels = 'MEG';
-elseif isfield(S.channels, 'chaneeg')
-    S.channels = 'EEG';
-elseif isfield(S.channels, 'chanall')
-    S.channels = 'all';
-elseif isfield(S.channels, 'chanfile')
-    S.chanfile = S.channels.chanfile{1};
-    S.channels = 'file';
-end
-S.save = 0;
-S.review = 0;
-
-S = spm_eeg_channelselection(S);
-S = rmfield(S, 'save');
-S = rmfield(S, 'review');
 
 out.D = spm_eeg_convert(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};

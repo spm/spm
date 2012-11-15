@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_dcm_erp_data.m 5057 2012-11-15 13:03:35Z vladimir $
  
  
 % Set defaults and Get D filename
@@ -168,7 +168,7 @@ for i = 1:length(trial)
  
     % trial indices
     %----------------------------------------------------------------------
-    c     = D.indtrial({cond{trial(i)}, 'GOOD'});
+    c     = D.indtrial(cond(trial(i)), 'GOOD');
     Nt    = length(c);
  
     % ERP

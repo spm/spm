@@ -7,7 +7,7 @@ function save(this)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: save.m 5057 2012-11-15 13:03:35Z vladimir $
 
 D = struct(this);
-save(fullfile(this), 'D');
+save(fullfile(this), 'D', spm_get_defaults('mat.format'));

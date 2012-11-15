@@ -1,31 +1,39 @@
 function D = spm_eeg_convert(S)
-% Convert various M/EEG formats to SPM8 format
+% Convert various M/EEG formats to SPM12 format
 % FORMAT D = spm_eeg_convert(S)
 % S                - string (filename) or struct (see below)
 %
 % If S is a struct it can have the optional following fields:
 % S.dataset        - file name
-% S.continuous     - 1 - convert data as continuous
-%                    0 - convert data as epoched (requires data that is
-%                        already epoched or a trial definition file).
-% S.timewindow     - [start end] in sec. Boundaries for a sub-segment of
-%                     continuous data [default: all]
-% S.outfile        - output file name (default 'spm8_' + input)
+% S.mode           - 'header'     - only convert the header without reading data
+%                    'continuous' - convert data as continuous
+%                    'epoched'    - convert data as epoched (requires data that is
+%                                   already epoched or a trial definition in S.trl).
+% S.timewin        - for continuous mode [start end] of data segment in sec (all if empty)
+%                  - for epoched mode time window in PST ms
+% S.outfile        - output file name (default 'spm12_' + input)
 % S.channels       - 'all' - convert all channels
 %                    or cell array of labels
-% S.usetrials      - 1 - take the trials as defined in the data [default]
-%                    0 - use trial definition file even though the data is
-%                        already epoched
-% S.trlfile        - name of the trial definition file
-% S.datatype       - data type for the data file one of
-%                    'float32-le' [default], 'float64-le'
-% S.inputformat    - data type (optional) to force the use of specific data 
+% For epoched mode:
+%
+% S.trl            - [N x 3] trl matrix or name of the trial definition file
+%                    containing 'trl' variable with such a matrix
+% S.conditionlabel - labels for the trials in the data [default: 'Undefined']
+%
+%   or
+%
+% S.trialdef       - structure array for trial definition with fields
+%     S.trialdef.conditionlabel - string label for the condition
+%     S.trialdef.eventtype      - string
+%     S.trialdef.eventvalue     - string, numeric or empty
+%
+%
+% S.inputformat    - data type (optional) to force the use of specific data
 %                    reader
 % S.eventpadding   - the additional time period around each trial for which
-%                    the events are saved with the trial (to let the user 
+%                    the events are saved with the trial (to let the user
 %                    keep and use for analysis events which are outside
 %                    trial borders), in seconds. [default: 0]
-% S.conditionlabel - labels for the trials in the data [default: 'Undefined']
 % S.blocksize      - size of blocks used internally to split large files
 %                    [default: ~100Mb]
 % S.checkboundary  - 1 - check if there are breaks in the file and do not
@@ -36,10 +44,10 @@ function D = spm_eeg_convert(S)
 %
 % % D              - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_eeg_convert.m 5057 2012-11-15 13:03:35Z vladimir $
 
 if ischar(S)
     temp      = S;
@@ -51,13 +59,11 @@ if ~isfield(S, 'dataset')
     error('Dataset must be specified.');
 end
 
-if ~isfield(S, 'outfile'),         S.outfile = ['spm8_' spm_file(S.dataset,'basename')]; end
+if ~isfield(S, 'outfile'),         S.outfile = ['spm12_' spm_file(S.dataset,'basename')]; end
 if ~isfield(S, 'channels'),        S.channels = 'all';                                   end
-if ~isfield(S, 'timewindow'),      S.timewindow = [];                                    end
+if ~isfield(S, 'timewin'),         S.timewin   = [];                                     end
 if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                end %100 Mb
 if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                  end
-if ~isfield(S, 'usetrials'),       S.usetrials = 1;                                      end
-if ~isfield(S, 'datatype'),        S.datatype = 'float32-le';                            end
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                   end
 if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                 end
 if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                      end
@@ -67,78 +73,97 @@ if ~iscell(S.conditionlabel)
     S.conditionlabel = {S.conditionlabel};
 end
 
-%--------- Read and check header
 
-hdr = ft_read_header(S.dataset, 'fallback', 'biosig', 'headerformat', S.inputformat);
-
-if isfield(hdr, 'label')
-    [unique_label junk ind]=unique(hdr.label);
-    if length(unique_label)~=length(hdr.label)
-        warning(['Data file contains several channels with ',...
-            'the same name. These channels cannot be processed and will be disregarded']);
-        % This finds the repeating labels and removes all their occurences
-        sortind=sort(ind);
-        [junk ind2]=setdiff(hdr.label, unique_label(sortind(find(diff(sortind)==0))));
-        hdr.label=hdr.label(ind2);
-        hdr.nChans=length(hdr.label);
+if ~isfield(S, 'mode') || ~isequal(S.mode, 'header')
+    % The header is read here in a recursive call and the above if avoids reading
+    % it twice which might be expensive for some formats
+    S1 = [];
+    S1.mode           = 'header';
+    S1.dataset        = S.dataset;
+    S1.outfile        = S.outfile;
+    S1.inputformat    = S.inputformat;
+    Dhdr              = spm_eeg_convert(S1);
+    hdr               = Dhdr.hdr;
+    event             = Dhdr.events;
+else
+    %--------- Read and check header
+    hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat);
+    
+    if isfield(hdr, 'label')
+        [unique_label junk ind]=unique(hdr.label);
+        if length(unique_label)~=length(hdr.label)
+            warning(['Data file contains several channels with ',...
+                'the same name. These channels cannot be processed and will be disregarded']);
+            % This finds the repeating labels and removes all their occurences
+            sortind=sort(ind);
+            [junk ind2]=setdiff(hdr.label, unique_label(sortind(diff(sortind)==0)));
+            hdr.label=hdr.label(ind2);
+            hdr.nChans=length(hdr.label);
+        end
+    end
+    
+    
+    %--------- Read and prepare events
+    
+    try
+        event = ft_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
+        
+        if ~isempty(strmatch('UPPT001', hdr.label))
+            % This is s somewhat ugly fix to the specific problem with event
+            % coding in FIL CTF. It can also be useful for other CTF systems where the
+            % pulses in the event channel go downwards.
+            fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
+            if ~isempty(fil_ctf_events)
+                [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
+                event = cat(1, event(:), fil_ctf_events(:));
+            end
+        end
+        
+        
+        if ~isempty(strmatch('UPPT002', hdr.label))
+            % This is s somewhat ugly fix to the specific problem with event
+            % coding in FIL CTF. It can also be useful for other CTF systems where the
+            % pulses in the event channel go downwards.
+            fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
+            if ~isempty(fil_ctf_events)
+                [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
+                event = cat(1, event(:), fil_ctf_events(:));
+            end
+        end
+        
+        
+        % This is another FIL-specific fix that will hopefully not affect other sites
+        if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
+            ind = strcmp('STATUS', {event(:).type});
+            val = [event(ind).value];
+            if any(val>255)
+                bytes  = dec2bin(val);
+                bytes  = bytes(:, end-7:end);
+                bytes  = flipdim(bytes, 2);
+                val    = num2cell(bin2dec(bytes));
+                [event(ind).value] = deal(val{:});
+            end
+        end
+        
+    catch
+        warning(['Could not read events from file ' S.dataset]);
+        event = [];
+    end
+    
+    % Replace samples with time
+    if numel(event)>0
+        for i = 1:numel(event)
+            event(i).time = event(i).sample./hdr.Fs;
+        end
     end
 end
 
-if ~isfield(S, 'continuous')
-    S.continuous = (hdr.nTrials == 1);
-end
 
-%--------- Read and prepare events
-
-try
-    event = ft_read_event(S.dataset, 'detectflank', 'both', 'eventformat', S.inputformat);
-
-    if ~isempty(strmatch('UPPT001', hdr.label))
-        % This is s somewhat ugly fix to the specific problem with event
-        % coding in FIL CTF. It can also be useful for other CTF systems where the
-        % pulses in the event channel go downwards.
-        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT001', 'trigshift', -1, 'eventformat', S.inputformat);
-        if ~isempty(fil_ctf_events)
-            [fil_ctf_events(:).type] = deal('FIL_UPPT001_down');
-            event = cat(1, event(:), fil_ctf_events(:));
-        end
-    end
-
-
-    if ~isempty(strmatch('UPPT002', hdr.label))
-        % This is s somewhat ugly fix to the specific problem with event
-        % coding in FIL CTF. It can also be useful for other CTF systems where the
-        % pulses in the event channel go downwards.
-        fil_ctf_events = ft_read_event(S.dataset, 'detectflank', 'down', 'type', 'UPPT002', 'trigshift', -1, 'eventformat', S.inputformat);
-        if ~isempty(fil_ctf_events)
-            [fil_ctf_events(:).type] = deal('FIL_UPPT002_down');
-            event = cat(1, event(:), fil_ctf_events(:));
-        end
-    end
-
-
-    % This is another FIL-specific fix that will hopefully not affect other sites
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'VERSION') && isequal(uint8(hdr.orig.VERSION),uint8([255 'BIOSEMI']))
-        ind = strcmp('STATUS', {event(:).type});
-        val = [event(ind).value];
-        if any(val>255)
-            bytes  = dec2bin(val);
-            bytes  = bytes(:, end-7:end);
-            bytes  = flipdim(bytes, 2);
-            val    = num2cell(bin2dec(bytes));
-            [event(ind).value] = deal(val{:});
-        end
-    end
-
-catch
-    warning(['Could not read events from file ' S.dataset]);
-    event = [];
-end
-
-% Replace samples with time
-if numel(event)>0
-    for i = 1:numel(event)
-        event(i).time = event(i).sample./hdr.Fs;
+if ~isfield(S, 'mode')
+    if (hdr.nTrials == 1)
+        S.mode = 'continuous';
+    else
+        S.mode = 'epoched';
     end
 end
 
@@ -149,8 +174,8 @@ D.Fsample = hdr.Fs;
 
 %--------- Select channels
 
-if ~strcmp(S.channels, 'all')
-    [junk, chansel] = spm_match_str(S.channels, hdr.label);
+if ~strcmp(S.channels, 'all') %Dhdr should be available in this case
+    chansel = selectchannels(Dhdr, S.channels);
 else
     if isfield(hdr, 'nChans')
         chansel = 1:hdr.nChans;
@@ -168,9 +193,9 @@ if isfield(hdr, 'label')
 end
 %--------- Preparations specific to reading mode (continuous/epoched)
 
-if S.continuous
-
-    if isempty(S.timewindow)
+if ismember(S.mode, {'continuous', 'header'})
+    
+    if isempty(S.timewin)
         if hdr.nTrials == 1
             segmentbounds = [1 hdr.nSamples];
         elseif ~S.checkboundary
@@ -178,49 +203,64 @@ if S.continuous
         else
             error('The data cannot be read without ignoring trial borders');
         end
-        S.timewindow = segmentbounds./D.Fsample;
+        timewindow = segmentbounds./D.Fsample;
     else
-        segmentbounds = round(S.timewindow.*D.Fsample);
+        timewindow = S.timewin;
+        segmentbounds = round(timewindow.*D.Fsample);
         segmentbounds(1) = max(segmentbounds(1), 1);
     end
-
-
+    
+    
     %--------- Sort events and put in the trial
-
+    
     if ~isempty(event)
-        event = rmfield(event, {'offset', 'sample'});
+        try
+            event = rmfield(event, {'offset', 'sample'});
+        end
         event = select_events(event, ...
-            [S.timewindow(1)-S.eventpadding S.timewindow(2)+S.eventpadding]);
+            [timewindow(1)-S.eventpadding timewindow(2)+S.eventpadding]);
     end
-
-    D.trials.label = S.conditionlabel{1};
+    
+    D.trials.label  = S.conditionlabel{1};
     D.trials.events = event;
-    D.trials.onset = S.timewindow(1);
-
+    D.trials.onset  = timewindow(1);
+    
     %--------- Break too long segments into blocks
-
+    
     nblocksamples = floor(S.blocksize/nchan);
     nsampl = diff(segmentbounds)+1;
-
-    trl = [segmentbounds(1):nblocksamples:segmentbounds(2)];
+    
+    trl = segmentbounds(1):nblocksamples:segmentbounds(2);
     if (trl(end)==segmentbounds(2))
         trl = trl(1:(end-1));
     end
-
+    
     trl = [trl(:) [trl(2:end)-1 segmentbounds(2)]'];
-
+    
     ntrial = size(trl, 1);
-
+    
     readbytrials = 0;
-
+    
     D.timeOnset = (trl(1,1)-1)./hdr.Fs;
     D.Nsamples = nsampl;
 else % Read by trials
-    if ~S.usetrials
-        if ~isfield(S, 'trl')
-            trl = getfield(load(S.trlfile, 'trl'), 'trl');
-        else
-            trl = S.trl;
+    if isfield(S, 'trl') || isfield(S, 'trialdef')
+        if isfield(S, 'trl')
+            if ischar(S, 'trl')
+                trl = getfield(load(S.trl, 'trl'), 'trl');
+                conditionlabels = getfield(load(S.trl, 'conditionlabels'), 'conditionlabels');
+            else
+                trl = S.trl;
+                conditionlabels = S.conditionlabel;
+            end
+        else            
+            S1          = [];
+            S1.D        = Dhdr;
+            S1.timewin  = S.timewin;
+            S1.trialdef = S.trialdef;
+            S1.reviewtrials = 0;
+            S1.save  = 0;
+            [trl, conditionlabels] = spm_eeg_definetrial(S1);
         end
         
         trl = double(trl);
@@ -231,17 +271,11 @@ else % Read by trials
         else
             D.timeOnset = 0;
         end
-
+        
         if length(D.timeOnset) > 1
             error('All trials should have identical baseline');
         end
         
-        try 
-            conditionlabels = getfield(load(S.trlfile, 'conditionlabels'), 'conditionlabels');
-        catch
-            conditionlabels = S.conditionlabel;           
-        end
-
         if ~iscell(conditionlabels)
             conditionlabels = {conditionlabels};
         end
@@ -249,7 +283,7 @@ else % Read by trials
         if numel(conditionlabels) == 1
             conditionlabels = repmat(conditionlabels, 1, size(trl, 1));
         end
-
+        
         readbytrials = 0;
     else
         try
@@ -258,12 +292,13 @@ else % Read by trials
             trl = [event(trialind).sample];
             trl = double(trl(:));
             trl = [trl  trl+double([event(trialind).duration]')-1];
-
+            
             try
                 offset = unique([event(trialind).offset]);
             catch
                 offset = [];
             end
+            
             if length(offset) == 1
                 D.timeOnset = offset/D.Fsample;
             else
@@ -309,24 +344,24 @@ else % Read by trials
         if length(nsampl) > 1
             error('All trials should have identical lengths');
         end
-
+        
         inbounds = (trl(:,1)>=1 & trl(:, 2)<=hdr.nSamples*hdr.nTrials)';
-
+        
         rejected = find(~inbounds);
-
+        
         if ~isempty(rejected)
             trl = trl(inbounds, :);
             conditionlabels = conditionlabels(inbounds);
             warning([S.dataset ': Trials ' num2str(rejected) ' not read - out of bounds']);
         end
-
+        
         ntrial = size(trl, 1);
         
         if ntrial == 0
-          warning([S.dataset ': No trials to read. Bailing out.']);  
-          D = [];
-          return;
-        end          
+            warning([S.dataset ': No trials to read. Bailing out.']);
+            D = [];
+            return;
+        end
     end
     D.Nsamples = nsampl;
     if isfield(event, 'sample')
@@ -341,58 +376,63 @@ if isempty(outfile), outfile = 'spm8'; end
 
 D.path = outpath;
 D.fname = [outfile '.mat'];
-D.data.fnamedat = [outfile '.dat'];
-D.data.datatype = S.datatype;
 
-if S.continuous
-    datafile = file_array(fullfile(D.path, D.data.fnamedat), [nchan nsampl], S.datatype);
+if ~isequal(S.mode, 'header')
+    
+    if isequal(S.mode, 'continuous')
+        D.data = file_array(fullfile(D.path, [outfile '.dat']), [nchan nsampl], 'float32-le');
+    else
+        D.data = file_array(fullfile(D.path, [outfile '.dat']), [nchan nsampl ntrial], 'float32-le');
+    end
+    
+    % physically initialise file
+    D.data(end,end) = 0;
+    
+    spm_progress_bar('Init', ntrial, 'reading and converting'); drawnow;
+    if ntrial > 100, Ibar = floor(linspace(1, ntrial,100));
+    else Ibar = 1:ntrial; end
+    
+    %--------- Read the data
+    
+    offset = 1;
+    for i = 1:ntrial
+        if readbytrials
+            dat = ft_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
+                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);
+        else
+            dat = ft_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
+                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);
+        end
+        
+        % Sometimes ft_read_data returns sparse output
+        dat = full(dat);
+        
+        switch S.mode
+            case 'continuouse'
+                nblocksamples = size(dat,2);
+                
+                D.data(:, offset:(offset+nblocksamples-1)) = dat;
+                
+                offset = offset+nblocksamples;
+            case 'epoched'
+                D.data(:, :, i) = dat;
+                D.trials(i).label = conditionlabels{i};
+                D.trials(i).onset = trl(i, 1)./D.Fsample;
+                D.trials(i).events = select_events(event, ...
+                    [ trl(i, 1)./D.Fsample-S.eventpadding  trl(i, 2)./D.Fsample+S.eventpadding]);
+        end
+        
+        if ismember(i, Ibar)
+            spm_progress_bar('Set', i);
+        end
+        
+    end
+    
+    spm_progress_bar('Clear');
+    
 else
-    datafile = file_array(fullfile(D.path, D.data.fnamedat), [nchan nsampl ntrial], S.datatype);
+    D.data = [];
 end
-
-% physically initialise file
-datafile(end,end) = 0;
-
-spm_progress_bar('Init', ntrial, 'reading and converting'); drawnow;
-if ntrial > 100, Ibar = floor(linspace(1, ntrial,100));
-else Ibar = [1:ntrial]; end
-
-%--------- Read the data
-
-offset = 1;
-for i = 1:ntrial
-    if readbytrials
-        dat = ft_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
-            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
-    else
-        dat = ft_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
-            'chanindx', chansel, 'checkboundary', S.checkboundary, 'fallback', 'biosig', 'dataformat', S.inputformat);
-    end
-
-    % Sometimes ft_read_data returns sparse output
-    dat = full(dat);
-
-    if S.continuous
-        nblocksamples = size(dat,2);
-
-        datafile(:, offset:(offset+nblocksamples-1)) = dat;
-
-        offset = offset+nblocksamples;
-    else
-        datafile(:, :, i) = dat;
-        D.trials(i).label = conditionlabels{i};
-        D.trials(i).onset = trl(i, 1)./D.Fsample;
-        D.trials(i).events = select_events(event, ...
-            [ trl(i, 1)./D.Fsample-S.eventpadding  trl(i, 2)./D.Fsample+S.eventpadding]);
-    end
-
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i);
-    end
-
-end
-
-spm_progress_bar('Clear');
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
@@ -430,8 +470,7 @@ if isfield(hdr, 'orig')
     end
     
     % Uses fileio function to get the information about channel types stored in
-    % the original header. This is now mainly useful for Neuromag support but might
-    % have other functions in the future.
+    % the original header.
     origchantypes = ft_chantype(hdr);
     [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
     origchantypes = origchantypes(sel2);
@@ -455,7 +494,7 @@ if ~isempty(strmatch('EEG', D.chantype, 'exact'))
         S1.task = 'defaulteegsens';
         S1.updatehistory = 0;
         S1.D = D;
-
+        
         D = spm_eeg_prep(S1);
     else
         S1 = [];
@@ -463,14 +502,14 @@ if ~isempty(strmatch('EEG', D.chantype, 'exact'))
         S1.modality = 'EEG';
         S1.updatehistory = 0;
         S1.D = D;
-
+        
         D = spm_eeg_prep(S1);
     end
 end
 
-% Create 2D positions for MEG 
+% Create 2D positions for MEG
 % by projecting the 3D positions to 2D
-if ~isempty(strmatch('MEG', D.chantype)) && ~isempty(D.sensors('MEG')) 
+if ~isempty(strmatch('MEG', D.chantype)) && ~isempty(D.sensors('MEG'))
     S1 = [];
     S1.task = 'project3D';
     S1.modality = 'MEG';
@@ -491,6 +530,11 @@ if isfield(S, 'trialdef')
     D = condlist(D, {S.trialdef(:).conditionlabel});
 end
 
+% This is for the recursive call to work properly
+if isequal(S.mode, 'header')
+    D.hdr = hdr;
+end
+
 save(D);
 
 %==========================================================================
@@ -502,8 +546,8 @@ function event = select_events(event, timeseg)
 
 if ~isempty(event)
     [time ind] = sort([event(:).time]);
-
+    
     selectind = ind(time>=timeseg(1) & time<=timeseg(2));
-
+    
     event = event(selectind);
 end

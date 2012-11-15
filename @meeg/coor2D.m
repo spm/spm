@@ -5,12 +5,12 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: coor2D.m 5057 2012-11-15 13:03:35Z vladimir $
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR'});
 eegind = indchantype(this, {'EEG'});
-otherind = setdiff(1:nchannels(this), [megind; eegind]);
+otherind = setdiff(1:nchannels(this), [megind eegind]);
 
 if nargin==1 || isempty(ind)
     if nargin<3 || (size(val, 2)<nchannels(this))

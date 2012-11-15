@@ -1,18 +1,18 @@
-function ind = indchantype(this, types)
+function ind = indchantype(this, types, flag)
 % Method for getting channel indices based on labels and/or types
 % FORMAT  ind = indchantype(this, types)
 % this       - MEEG object
 % channels   - string or cell array of strings may include
 %             ('ALL', 'EEG', 'MEG', 'ECG', 'EOG' etc.)
-%              If 'GOOD' or 'BAD' are included only good or bad channels
-%              are selected accordingly.
+% flag       - 'GOOD' or 'BAD' to include only good or bad channels
+%              respectively (all are selected by default)
 %              
 % ind        - vector of channel indices matching labels
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indchantype.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: indchantype.m 5057 2012-11-15 13:03:35Z vladimir $
 
 if ischar(types)    
     types = {types};
@@ -20,14 +20,6 @@ end
 
 types = upper(types);
 types = types(:)';
-
-if isequal(types, {'GOOD'})
-    types = {'ALL', 'GOOD'};
-end
-
-if isequal(types, {'BAD'})
-    types = {'ALL', 'BAD'};
-end
 
 if ismember('ALL', types)
     ind = 1:nchannels(this);
@@ -59,14 +51,14 @@ else
     ind = find(ismember(upper(chantype(this)), types));
 end
 
-if ismember('GOOD', types) && ~ismember('BAD', types)
+if nargin > 2
+    if strcmpi(flag, 'GOOD')
         ind = setdiff(ind, badchannels(this));
+    elseif strcmpi(flag, 'BAD')
+        ind = intersect(ind, badchannels(this));
+    end
 end
 
-if ismember('BAD', types) && ~ismember('GOOD', types)
-        ind = intersect(ind, badchannels(this));
-end
-    
 ind = sort(unique(ind));
 
 ind = ind(:)'; % must be row to allow to use it as loop indices
