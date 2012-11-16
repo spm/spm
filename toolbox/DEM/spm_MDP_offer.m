@@ -24,14 +24,14 @@ function spm_MDP_offer
 %==========================================================================
 T     = 16;                         % number of offers
 Pa    = 1/2;                        % probability of a high offer
-Pb    = 1/2;                        % probability of withdrawn offer
- 
+Pb    = 1/2;                          % probability of withdrawn offer
+   
 % transition probabilities (B{1} - decline; B{2} - accept)
 %--------------------------------------------------------------------------
 for i = 1:T
     
     a       = 1 - (1 - Pa)^(1/T);
-    b       = Pb/T;
+    b       = (i*Pb/T)*(1 - a);
     B{i,1}  = [(1 - a - b) 0 0 0 0;
                 a          0 0 0 0;
                 b          1 1 0 0;
@@ -40,9 +40,9 @@ for i = 1:T
     
     B{i,2}  = [ 0 0 0 0 0;
                 0 0 0 0 0;
-                0 0 1 0 0;
-                1 0 0 1 0;
-                0 1 0 0 1];
+                0 0 1 1 1;
+                1 0 0 0 0;
+                0 1 0 0 0];
 end
       
  
@@ -54,9 +54,13 @@ S     = [1 0 0 0 0]';
 %--------------------------------------------------------------------------
 C     = [0 0 0 1 2]';
  
-% (uniform) cost over control (d)
+% prior over control
 %--------------------------------------------------------------------------
 D     = [1 1]';
+
+% prior over states
+%--------------------------------------------------------------------------
+E     = [1 1 0 1 1]';
  
  
 % solve - an example trial
@@ -66,11 +70,16 @@ MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
 MDP.D = D;                          % control probabilities (priors)
+MDP.E = E;                          % state probabilities (priors)
 MDP.W = 4;                          % log-precision
- 
+
+
+MDP.plot = 1;                          % plot convergence
+
+
+
 spm_MDP(MDP);
- 
- 
+
 % Generate process (with continuous low offers)
 %==========================================================================
  
@@ -105,7 +114,7 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     for j = 1:T
         a                  = 1 - (1 - p(i))^(1/T);
-        b                  = j*Pb/T;
+        b                  = (j*Pb/T)*(1 - a);
         MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
     end
     
@@ -133,7 +142,7 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     for j = 1:T
         a                  = 1 - (1 - Pa)^(1/T);
-        b                  = j*p(i)/T;
+        b                  = (j*p(i)/T)*(1 - a);
         MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
     end
     
@@ -174,7 +183,7 @@ legend(str)
  
 % precision
 %--------------------------------------------------------------------------
-p     = linspace(3,5,4);
+p     = linspace(2,5,4);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     MDPP.W      = p(i);
@@ -193,94 +202,11 @@ axis square
 legend(str)
  
     
-% simulate multiple trials and record when an offer was accepted
-%==========================================================================
-for i = 1:32
-    [Q,R,S,E,P] = spm_MDP(MDP);
-    try
-        Y(i)    = find(E(2,:),1);
-    end
-    fprintf('trial %0.00f\n',i);
-end
- 
-% probability distribution over time to act
-%--------------------------------------------------------------------------
-Py    = PrY(P);
- 
- 
-% plot
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 2'); clf
- 
-subplot(2,2,1)
-hist(Y,1:T);
-xlabel('choice latency','FontSize',12)
-ylabel('sample frequnecy','FontSize',12)
-title('sample distribution of latencies','FontSize',16)
-axis square
- 
-subplot(2,2,2)
-bar(Py)
-xlabel('choice latency','FontSize',12)
-ylabel('probability','FontSize',12)
-title('predicted probability','FontSize',16)
-axis square
- 
- 
-% Infer prior beliefs from observed responses (meta-modelling)
-%==========================================================================
-p     = linspace(1/16,1 - 1/16,32);
-MDPP  = MDP;
-for i = 1:length(p);
-    
-    % transition probabilities
-    %----------------------------------------------------------------------
-    for j = 1:T
-        a                  = 1 - (1 - p(i))^(1/T);
-        b                  = j*Pb/T;
-        MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
-    end
-    
-    % get likelihood for this parameter
-    %----------------------------------------------------------------------
-    [Q,R,S,E,P] = spm_MDP(MDPP);
-    Py          = PrY(P);
-    L(i)        = sum(log(Py(Y)));
-    
-end
- 
-% approximate the MAP with the ML and use the Laplace assumption
-%--------------------------------------------------------------------------
-[l i] = max(L);
-dp    = p(2) - p(1);
-dLdpp = (L(i + 1) - L(i) - L(i) + L(i - 1))/(dp^2);
-Cp    = inv(-dLdpp);
-Ep    = p(i);
- 
- 
-% plot likelihood
-%--------------------------------------------------------------------------
-subplot(2,2,3)
-plot(p,L)
-xlabel('latency','FontSize',12)
-ylabel('probabaility','FontSize',12)
-title('log-likelihood','FontSize',16)
-axis square
-    
-% plot posterior
-%--------------------------------------------------------------------------
-subplot(2,2,4)
-plot(p,spm_Npdf(p,Ep,Cp)), hold on
-plot([Pa Pa],[0 8],':'),   hold off
-xlabel('latency','FontSize',12)
-ylabel('probability','FontSize',12)
-title('posterior probability','FontSize',16)
-axis square
- 
+
  
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
-spm_figure('GetWin','Figure 3'); clf
+spm_figure('GetWin','Figure 2'); clf
  
 [Q,R,S,E,P] = spm_MDP(MDP);
  
@@ -348,3 +274,92 @@ axis square
  
  
 return
+
+
+
+% simulate multiple trials and record when an offer was accepted
+%==========================================================================
+spm_figure('GetWin','Figure 3'); clf
+
+% trials
+%--------------------------------------------------------------------------
+for i = 1:32
+    [Q,R,S,E,P] = spm_MDP(MDP);
+    try
+        Y(i)    = find(E(2,:),1);
+    end
+    fprintf('trial %0.00f\n',i);
+end
+ 
+% probability distribution over time to act
+%--------------------------------------------------------------------------
+Py    = PrY(P);
+ 
+ 
+% plot
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+hist(Y,1:T);
+xlabel('choice latency','FontSize',12)
+ylabel('sample frequnecy','FontSize',12)
+title('sample distribution of latencies','FontSize',16)
+axis square
+ 
+subplot(2,2,2)
+bar(Py)
+xlabel('choice latency','FontSize',12)
+ylabel('probability','FontSize',12)
+title('predicted probability','FontSize',16)
+axis square
+ 
+ 
+% Infer prior beliefs from observed responses (meta-modelling)
+%==========================================================================
+p     = linspace(1/16,1 - 1/16,32);
+MDPP  = MDP;
+for i = 1:length(p);
+    
+    % transition probabilities
+    %----------------------------------------------------------------------
+    for j = 1:T
+        a                  = 1 - (1 - p(i))^(1/T);
+        b                  = (j*Pb/T)*(1 - a);
+        MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
+    end
+    
+    % get likelihood for this parameter
+    %----------------------------------------------------------------------
+    [Q,R,S,E,P] = spm_MDP(MDPP);
+    Py          = PrY(P);
+    L(i)        = sum(log(Py(Y)));
+    
+end
+ 
+% approximate the MAP with the ML and use the Laplace assumption
+%--------------------------------------------------------------------------
+[l i] = max(L);
+dp    = p(2) - p(1);
+dLdpp = (L(i + 1) - L(i) - L(i) + L(i - 1))/(dp^2);
+Cp    = inv(-dLdpp);
+Ep    = p(i);
+ 
+ 
+% plot likelihood
+%--------------------------------------------------------------------------
+subplot(2,2,3)
+plot(p,L)
+xlabel('latency','FontSize',12)
+ylabel('probabaility','FontSize',12)
+title('log-likelihood','FontSize',16)
+axis square
+    
+% plot posterior
+%--------------------------------------------------------------------------
+subplot(2,2,4)
+plot(p,spm_Npdf(p,Ep,Cp)), hold on
+plot([Pa Pa],[0 8],':'),   hold off
+xlabel('latency','FontSize',12)
+ylabel('probability','FontSize',12)
+title('posterior probability','FontSize',16)
+axis square
+ 

@@ -1,6 +1,6 @@
-function [Q,R,S,E,P] = spm_MDP(MDP)
+function [Q,R,S,U,P] = spm_MDP(MDP)
 % solves the active inference problem for Markov decision processes
-% FROMAT [Q,R,S,E] = spm_MDP(MDP)
+% FROMAT [Q,R,S,U,P] = spm_MDP(MDP)
 %
 % MDP.T           - process depth (the horizon)
 % MDP.S(N,1)      - initial state
@@ -28,7 +28,7 @@ function [Q,R,S,E,P] = spm_MDP(MDP)
 % R(M,K,T) - an array of conditional expectations over M control
 %            states and time 1,...,T at time 1,...,K
 % S(N,T)   - a sparse matrix of ones, encoding the state at time 1,...,T
-% E(M,T)   - a sparse matrix of ones, encoding the action at time 1,...,T
+% U(M,T)   - a sparse matrix of ones, encoding the action at time 1,...,T
 % P(M,T)   - probabaility of emitting action 1,...,M at time 1,...,T
 %
 % This routine provides solutions of active inference (minimisation of
@@ -61,7 +61,7 @@ function [Q,R,S,E,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5051 2012-11-13 20:28:48Z karl $
+% $Id: spm_MDP.m 5066 2012-11-16 21:34:00Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -100,6 +100,14 @@ catch
     D = ones(Nu,1);
 end
 
+% state probabilities (priors)
+%--------------------------------------------------------------------------
+try
+    E = spm_vec(MDP.E);
+catch
+    E = ones(Ns,1);
+end
+
 
 
 % get log-transforms and ensure normalization
@@ -118,8 +126,10 @@ for i = 1:T
 end
 C     = C/sum(C);
 D     = D/sum(D);
+E     = E/sum(E);
 lnA   = max(log(A),-32);
 lnD   = max(log(D),-32);
+lnE   = max(log(E),-32);
 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
@@ -142,18 +152,16 @@ end
 
 % effector action (e) and sufficient statistics of proposal density
 %--------------------------------------------------------------------------
-a      = ones(Ns,T);                           % state probability
-b      = ones(Nu,T);                           % control probability
-a(:,1) = S;                                    % first state
-a(:,T) = C;                                    % final state
-a      = a*diag(1./sum(a));
-b      = b*diag(1./sum(b));
+a        = zeros(Ns,T);                          % state probability
+b        = ones(Nu,T);                           % control probability
+a(:,T)   = C;                                    % final state
+b        = b*diag(1./sum(b));
 
 % posterior expectations (sates Q, control R) and action (E)
 %----------------------------------------------------------------------
 Q(:,1,:) = a;
 R(:,1,:) = b;
-E        = sparse(Nu,T);
+U        = sparse(Nu,T);
 s        = find(S);
 
 % solve
@@ -162,15 +170,15 @@ for k = 1:(T - 1)
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:8
+    for i = 1:16
         for t = [(T - 1):-1:k k:(T - 1)]
             
             % get data likelihood if available at this time
             %--------------------------------------------------------------
             if t > k
-                at = sparse(Ns,1);
+                at = sparse(Ns,1) + lnE;
             else
-                at = lnA'*S(:,t);
+                at = lnA'*S(:,t)  + lnE;
             end
             
             % and accumulate empirical priors
@@ -190,6 +198,38 @@ for k = 1:(T - 1)
             a(:,t) = at/sum(at);
             b(:,t) = bt/sum(bt);
             
+            % graphics to inspect update scheme
+            %==============================================================
+            if PLOT == 2
+                
+                % posterior beliefs about hidden states
+                %----------------------------------------------------------
+                subplot(2,2,1)
+                if Ns > 512
+                    spy(a > 1/8,16)
+                else
+                    imagesc(1 - a)
+                end
+                axis square
+                title('Expected hidden states','FontSize',16)
+                xlabel('time','FontSize',12)
+                ylabel('hidden state','FontSize',12)
+                ax = axis;
+                
+                % posterior beliefs about control states
+                %----------------------------------------------------------
+                subplot(2,2,3)
+                imagesc(1 - b); axis square
+                title('Expected control states','FontSize',16)
+                xlabel('time','FontSize',12)
+                ylabel('control state','FontSize',12)
+                drawnow
+                
+                pause
+                
+            end
+            
+            
         end
     end
     
@@ -202,7 +242,7 @@ for k = 1:(T - 1)
     
     % next action (the action and minimises expected free energy)
     %----------------------------------------------------------------------
-    Pu       = exp(F(:) - max(F));
+    Pu       = exp((F(:) - max(F))/16);
     Pu       = Pu/sum(Pu);
     i        = find(rand < cumsum(Pu),1);
     
@@ -219,7 +259,7 @@ for k = 1:(T - 1)
     Q(:,k,:)   = a;
     R(:,k,:)   = b;
     S(s,k + 1) = 1;
-    E(i,k)     = 1;
+    U(i,k)     = 1;
     
     
     % plot
@@ -266,7 +306,7 @@ for k = 1:(T - 1)
         % action sampled (selected)
         %------------------------------------------------------------------
         subplot(2,2,4)
-        imagesc(1 - E); axis square
+        imagesc(1 - U); axis square
         title('Selected action','FontSize',16)
         xlabel('time','FontSize',12)
         ylabel('action','FontSize',12)

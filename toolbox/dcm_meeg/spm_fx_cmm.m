@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5038 2012-11-06 20:25:24Z karl $
+% $Id: spm_fx_cmm.m 5066 2012-11-16 21:34:00Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -93,29 +93,29 @@ G    = exp(G);
 
 % extrinsic connections (F B) - from superficial and deep pyramidal cells
 %--------------------------------------------------------------------------
-SA   = [2   0 ;
-        0   0 ;
-        0   8;
+SA   = [4   0 ;
+        0   16 ;
+        0   256;
         0   0];
  
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
 GE   = [ 0     0     0     0
-        96     0     0     0
+        32     0     0     0
          4     0     0   128
-         0     2     0     0];
+         0     4     0     0]/8;
  
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI   = [ 8     0     4     0
+GI   = [ 16    0     4     0
          0  1024     0     0
-         0     0    64     0
-         0     2   128     2];
+         0     0    48     0
+         0     2    64     4]/8;
 
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = 1000/2;                                % excitatory rate constants
-KI   = exp(-P.T)*[1/32 1/16 1/16 1/16]*1000;  % inhibitory rate constants
+KE   = 1000;                                % excitatory rate constants
+KI   = exp(-P.T)*[1/24 1/12 1/6 1/6]*1000;  % inhibitory rate constants
  
 % Voltages
 %--------------------------------------------------------------------------
@@ -124,7 +124,7 @@ VE   =  60;                               % reversal  potential excite (Na)
 VI   = -90;                               % reversal  potential inhib (Cl)
 VR   = -40;                               % threshold potential
  
-CV   = exp(P.CV).*[24 128 48 16]/1000;      % membrane capacitance
+CV   = exp(P.CV).*[60 160 120 40]/1000;      % membrane capacitance
 GL   = 1;                                 % leak conductance
  
 % mean-field effects:
@@ -142,7 +142,7 @@ a(:,2) = A{2}*m(:,4);                     % backward afference
 
 % Averge background activity and exogenous input
 %==========================================================================
-BE     = exp(P.E)*0.2;
+BE     = exp(P.E)*0.8;
 
 % input
 %--------------------------------------------------------------------------
@@ -150,13 +150,13 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)/16;
+    U = u(:);
     
 else
     
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:)/1000;
+    U = C*u(:)/32;
     
 end
 
