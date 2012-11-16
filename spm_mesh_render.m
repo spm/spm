@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 4589 2011-12-14 12:22:26Z guillaume $
+% $Id: spm_mesh_render.m 5065 2012-11-16 20:00:21Z guillaume $
 
 
 %-Input parameters
@@ -70,6 +70,7 @@ switch lower(action)
         if isfield(O,'parent')
             H.axis   = O.parent;
             H.figure = ancestor(H.axis,'figure');
+            figure(H.figure); axes(H.axis);
         else
             H.figure = figure('Color',[1 1 1]);
             H.axis   = axes('Parent',H.figure);
@@ -411,7 +412,7 @@ switch lower(varargin{1})
     H  = varargin{2};
     xyz = varargin{3};
     hold(H.axis,'on');
-    hs = plot3(xyz(1),xyz(2),xyz(3),'Marker','+','MarkerSize',40,...
+    hs = plot3(xyz(1),xyz(2),xyz(3),'Marker','+','MarkerSize',60,...
         'parent',H.axis,'Color',[1 1 1],'Tag','CrossBar','ButtonDownFcn',{});
     varargout = {hs};
     
@@ -701,6 +702,7 @@ if ischar(v)
     end
 end
 if isa(v,'gifti'), v = v.cdata; end
+if isa(v,'file_array'), v = v(); end
 if isempty(v)
     v = zeros(size(curv))';
 elseif ischar(v) || iscellstr(v) || isstruct(v)

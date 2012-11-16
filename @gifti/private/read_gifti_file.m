@@ -7,7 +7,7 @@ function this = read_gifti_file(filename, this)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: read_gifti_file.m 4612 2012-01-08 11:54:26Z guillaume $
+% $Id: read_gifti_file.m 5065 2012-11-16 20:00:21Z guillaume $
 
 % Import XML-based GIfTI file
 %--------------------------------------------------------------------------
@@ -168,7 +168,7 @@ switch s.Encoding
         if isempty(p)
             s.ExternalFileName = fullfile(pwd,[f e]);
         end
-        if true
+        if false
             fid = fopen(s.ExternalFileName,'r');
             if fid == -1
                 error('[GIFTI] Unable to read binary file %s.',s.ExternalFileName);
@@ -178,7 +178,7 @@ switch s.Encoding
             fclose(fid);
         else
             d = file_array(s.ExternalFileName, s.Dim, tp.class, ...
-                str2double(s.ExternalFileOffset),1,0,'ro');
+                str2double(s.ExternalFileOffset),1,0,'rw');
         end
         
     otherwise

@@ -7,10 +7,10 @@ function [C, N] = spm_mesh_clusters(M,T)
 % C        - a [nx1] vector of cluster indices
 % N        - a [px1] size of connected components {in vertices}
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_clusters.m 4035 2010-08-05 18:54:32Z guillaume $
+% $Id: spm_mesh_clusters.m 5065 2012-11-16 20:00:21Z guillaume $
 
 
 %-Input parameters
@@ -19,15 +19,21 @@ if ~islogical(T)
     T   = ~isnan(T);
 end
 
-%-Compute a reduced mesh corresponding to the data
+%-Compute the (reduced) adjacency matrix
 %--------------------------------------------------------------------------
-F       = spm_mesh_split(M, T);
+A       = spm_mesh_adjacency(M);
+A       = A + speye(size(A));
+A(~T,:) = [];
+A(:,~T) = [];
 
-%-Label connected components
+%-And perform Dulmage-Mendelsohn decomposition to find connected components
 %--------------------------------------------------------------------------
-% will it find two connected vertices that do not form a triangle?
-% -> maybe use spm_mesh_neighbours
-[CC,N]  = spm_mesh_label(F, 'vertices');
+[p,q,r] = dmperm(A);
+N       = diff(r);
+CC      = zeros(size(A,1),1);
+for i=1:length(r)-1
+    CC(p(r(i):r(i+1)-1)) = i;
+end
 C       = NaN(numel(T),1);
 C(T)    = CC;
 

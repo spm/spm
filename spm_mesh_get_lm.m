@@ -10,7 +10,7 @@ function L = spm_mesh_get_lm(M,T)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_get_lm.m 3982 2010-07-09 13:36:53Z guillaume $
+% $Id: spm_mesh_get_lm.m 5065 2012-11-16 20:00:21Z guillaume $
 
 %-Obtain the adjacency matrix
 %--------------------------------------------------------------------------
@@ -30,6 +30,8 @@ A(:,out) = 0; % A(out,:) is not necessary for usage below
 L = [];
 
 for i=find(~out)
-    v = T(find(A(i,:)));
-    if all(v<T(i)), L = [L i]; end
+    v = T(logical(A(i,:)));
+    if ~any(v>T(i))
+        L = [L i];
+    end
 end
