@@ -1,12 +1,13 @@
-function S = spm_cfg_eeg_downsample
+function downsample = spm_cfg_eeg_downsample
 % configuration file for M/EEG downsampling
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_downsample.m 5061 2012-11-16 11:15:50Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 5061 $';
+
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -21,20 +22,28 @@ fsample_new.strtype = 'r';
 fsample_new.num = [1 1];
 fsample_new.help = {'Input the new sampling rate [Hz].'};
 
-S = cfg_exbranch;
-S.tag = 'downsample';
-S.name = 'M/EEG Downsampling';
-S.val = {D fsample_new};
-S.help = {'Downsample EEG/MEG data.'};
-S.prog = @eeg_downsample;
-S.vout = @vout_eeg_downsample;
-S.modality = {'EEG'};
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the filtered dataset. Default prefix is ''d''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'d'};
+
+downsample = cfg_exbranch;
+downsample.tag = 'downsample';
+downsample.name = 'M/EEG Downsampling';
+downsample.val = {D fsample_new, prefix};
+downsample.help = {'Downsample EEG/MEG data.'};
+downsample.prog = @eeg_downsample;
+downsample.vout = @vout_eeg_downsample;
+downsample.modality = {'EEG'};
 
 
 function out = eeg_downsample(job)
 % construct the S struct
-S.D = job.D{1};
-S.fsample_new = job.fsample_new;
+S = job;
+S.D = S.D{1};
 
 out.D = spm_eeg_downsample(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};

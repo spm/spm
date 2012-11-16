@@ -10,7 +10,7 @@ function this = link(this, fnamedat, dtype, slope, offset)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: link.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: link.m 5061 2012-11-16 11:15:50Z vladimir $
 
 if isempty(this)
    error('All header dimensions should be >0');
@@ -46,7 +46,15 @@ if ~exist(fnamedat, 'file')
     error('Data file not found');
 end
 
-this.data = file_array(fnamedat, size(this), dtype, offset, slope);
+% Size determination here should worked for unlinked objects and be insensitive
+% to online montages.
+if ~strncmpi(transformtype(this), 'TF', 2)
+    siz = [length(this.channels), nsamples(this), ntrials(this)];
+else
+    siz = [length(this.channels), nfrequencies(this), nsamples(this), ntrials(this)];
+end
+
+this.data = file_array(fnamedat, siz, dtype, offset, slope);
 
 try
     this.data(size(this));

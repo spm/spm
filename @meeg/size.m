@@ -5,23 +5,12 @@ function res = size(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: size.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: size.m 5061 2012-11-16 11:15:50Z vladimir $
 
 
-if islinked(this)
-    res = size(this.data, varargin{:});
-    if this.montage.Mind~=0
-        res(1) = size(this.montage.M(this.montage.Mind).tra,1);
-    end
+if ~strncmpi(transformtype(this), 'TF', 2)
+    res = [nchannels(this), nsamples(this), ntrials(this)];
 else
-    if ~strncmpi(transformtype(this), 'TF', 2)
-        res = zeros(1, 3);
-    else
-        res = zeros(1, 4);
-    end
+    res = [nchannels(this), nfrequencies(this), nsamples(this), ntrials(this)];
 end
 
-
-if ntrials(this) == 1 && isempty(varargin)
-    res = [res 1];
-end

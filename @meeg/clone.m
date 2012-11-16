@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: clone.m 5061 2012-11-16 11:15:50Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -27,7 +27,7 @@ if dim(1) ~= nchannels(this)
     warning('Changing the number of channels, so discarding online montages.');
 end
 
-new = this;
+new = unlink(this);
 
 % check file path first
 [pth, fname] = fileparts(fnamedat);
@@ -72,9 +72,6 @@ else
    error('Dimensions different from 3 or 4 are not supported.');
 end
 
-% link into new meeg object
-new = link(new, d.fname, d.dtype, d.scl_slope, d.offset);
-
 % change filenames
 new.fname = [fname,'.mat'];
 new.path = pth;
@@ -94,5 +91,8 @@ end
 if (nsampl ~= nsamples(this))
     new.Nsamples = nsampl;
 end
+
+% link into new meeg object
+new = link(new, d.fname, d.dtype, d.scl_slope, d.offset);
 
 save(new);
