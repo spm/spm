@@ -24,7 +24,7 @@ function spm_MDP_offer
 %==========================================================================
 T     = 16;                         % number of offers
 Pa    = 1/2;                        % probability of a high offer
-Pb    = 1/2;                          % probability of withdrawn offer
+Pb    = 1/2;                        % probability of withdrawn offer
    
 % transition probabilities (B{1} - decline; B{2} - accept)
 %--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ D     = [1 1]';
 E     = [1 1 0 1 1]';
  
  
-% solve - an example trial
+% MDP Structure
 %==========================================================================
 MDP.T = T;                          % process depth (the horizon)
 MDP.S = S;                          % initial state
@@ -71,14 +71,9 @@ MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
 MDP.D = D;                          % control probabilities (priors)
 MDP.E = E;                          % state probabilities (priors)
-MDP.W = 4;                          % log-precision
+MDP.W = 1/10;                        % log-precision
 
 
-MDP.plot = 1;                          % plot convergence
-
-
-
-spm_MDP(MDP);
 
 % Generate process (with continuous low offers)
 %==========================================================================
@@ -93,16 +88,27 @@ G{1,1}  = [1 1 0 0 0;
  
 G{1,2}   = G{1,1};
 MDP.G    = G;
-MDP.plot = 0;
+
+% solve - an example trial
+%==========================================================================
+MDP.plot   = 3;                     % plot convergence
+MDP.lambda = 1;                     % precision for action selection
+
+spm_MDP(MDP);
+
+
+
  
 % probability distribution over time to act
 %--------------------------------------------------------------------------
-PrY   = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
- 
+PrY        = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
+MDP.plot   = 0;                     % plot convergence
+MDP.lambda = 1;                     % precision for action selection
  
 % illustrate dependency on latency w.r.t. parameters
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
+
  
 % high offer
 %--------------------------------------------------------------------------

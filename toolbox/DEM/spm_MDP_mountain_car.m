@@ -24,7 +24,6 @@ function spm_MDP_mountain_car(X,V,T)
 %==========================================================================
 global eta
 eta  = 16;
-TOL  = 64;                                  % tolerance for log
 u    = [-2 -1 0 1 2];                       % levels of control
 Nu   = length(u);                           % number of control/actions
 Nx   = 32;                                  % number of cells per dimension
@@ -44,7 +43,7 @@ V(T)  = V(2);                               % final velocity
  
 % smoothing matrix to simulate noise
 %--------------------------------------------------------------------------
-K     = toeplitz(sparse(1,[1 2],[1 1/16],1,Nx));
+K     = toeplitz(sparse(1,[1 2],[1 1/2],1,Nx));
 K     = K + K';
 K     = K*diag(1./sum(K,1));
 
@@ -169,7 +168,9 @@ MDP.B = P;                         % transition probabilities (priors)
 MDP.C = C;                         % terminal cost probabilities (priors)
 MDP.D = D;                         % control probabilities (priors)
 
-[Q,R,S,E] = spm_MDP(MDP);
+MDP.lambda = 8;
+
+[Q,R,S,E]  = spm_MDP(MDP);
  
 % set up state space graphically
 %--------------------------------------------------------------------------

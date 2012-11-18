@@ -61,15 +61,16 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5066 2012-11-16 21:34:00Z karl $
+% $Id: spm_MDP.m 5067 2012-11-18 22:05:39Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % plotting and precision defaults
 %--------------------------------------------------------------------------
-try PLOT = MDP.plot; catch, PLOT = 1;     end
-try W    = -MDP.W;   catch, W    = -32;   end
+try PLOT   = MDP.plot;   catch, PLOT   = 1;     end
+try lambda = MDP.lambda; catch, lambda = 1;     end
+try W      = MDP.W;      catch, W      = 1;   end
 
 if PLOT, spm_figure('GetWin','MDP'); clf, end
 
@@ -117,7 +118,7 @@ for i = 1:T
     for j = 1:Nu
         if i == 1 || Nb == T
             B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
-            lnB{i,j} = max(log(B{i,j}),W);
+            lnB{i,j} = max(log(B{i,j}),-16)*W;
         else
             B{i,j}   = B{1,j};
             lnB{i,j} = lnB{1,j};
@@ -127,9 +128,9 @@ end
 C     = C/sum(C);
 D     = D/sum(D);
 E     = E/sum(E);
-lnA   = max(log(A),-32);
-lnD   = max(log(D),-32);
-lnE   = max(log(E),-32);
+lnA   = max(log(A),-16);
+lnD   = max(log(D),-16)*W;
+lnE   = max(log(E),-16)*W;
 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
@@ -158,11 +159,12 @@ a(:,T)   = C;                                    % final state
 b        = b*diag(1./sum(b));
 
 % posterior expectations (sates Q, control R) and action (E)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
+s        = find(S);
 Q(:,1,:) = a;
 R(:,1,:) = b;
+S        = sparse(s,1,1,Ns,T);
 U        = sparse(Nu,T);
-s        = find(S);
 
 % solve
 %==========================================================================
@@ -170,15 +172,15 @@ for k = 1:(T - 1)
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:16
+    for i = 1:4
         for t = [(T - 1):-1:k k:(T - 1)]
             
             % get data likelihood if available at this time
             %--------------------------------------------------------------
             if t > k
-                at = sparse(Ns,1) + lnE;
+                at = lnE;
             else
-                at = lnA'*S(:,t)  + lnE;
+                at = lnA'*S(:,t) + lnE;
             end
             
             % and accumulate empirical priors
@@ -200,35 +202,28 @@ for k = 1:(T - 1)
             
             % graphics to inspect update scheme
             %==============================================================
-            if PLOT == 2
+            if PLOT > 2
                 
                 % posterior beliefs about hidden states
                 %----------------------------------------------------------
-                subplot(2,2,1)
-                if Ns > 512
-                    spy(a > 1/8,16)
-                else
-                    imagesc(1 - a)
-                end
-                axis square
-                title('Expected hidden states','FontSize',16)
-                xlabel('time','FontSize',12)
-                ylabel('hidden state','FontSize',12)
-                ax = axis;
+                spm_plot_states(a,b)
                 
-                % posterior beliefs about control states
+                % pause if requested
                 %----------------------------------------------------------
-                subplot(2,2,3)
-                imagesc(1 - b); axis square
-                title('Expected control states','FontSize',16)
-                xlabel('time','FontSize',12)
-                ylabel('control state','FontSize',12)
-                drawnow
-                
-                pause
+                if PLOT > 3, pause, end
                 
             end
             
+            
+        end
+        
+        % graphics to inspect update scheme
+        %==================================================================
+        if PLOT > 1
+            
+            % posterior beliefs about hidden states
+            %--------------------------------------------------------------
+            spm_plot_states(a,b)
             
         end
     end
@@ -242,7 +237,7 @@ for k = 1:(T - 1)
     
     % next action (the action and minimises expected free energy)
     %----------------------------------------------------------------------
-    Pu       = exp((F(:) - max(F))/16);
+    Pu       = exp(lambda*(F(:) - max(F)));
     Pu       = Pu/sum(Pu);
     i        = find(rand < cumsum(Pu),1);
     
@@ -264,35 +259,16 @@ for k = 1:(T - 1)
     
     % plot
     %======================================================================
-    if PLOT
+    if PLOT > 0
         
         % posterior beliefs about hidden states
         %------------------------------------------------------------------
-        subplot(2,2,1)
-        if Ns > 512
-            spy(a > 1/8,16)
-        else
-            imagesc(1 - a)
-        end
-        axis square
-        title('Expected hidden states','FontSize',16)
-        xlabel('time','FontSize',12)
-        ylabel('hidden state','FontSize',12)
-        ax = axis;
-        
-        % posterior beliefs about control states
-        %------------------------------------------------------------------
-        subplot(2,2,3)
-        imagesc(1 - b); axis square
-        title('Expected control states','FontSize',16)
-        xlabel('time','FontSize',12)
-        ylabel('control state','FontSize',12)
-        
+        spm_plot_states(a,b)
         
         % states sampled (outcome)
         %------------------------------------------------------------------
-        subplot(2,2,2)
-        if Ns > 512
+        subplot(2,2,3)
+        if size(S,1) > 512
             spy(S,16)
         else
             imagesc(1 - S)
@@ -301,12 +277,16 @@ for k = 1:(T - 1)
         title('Sampled state','FontSize',16)
         xlabel('time','FontSize',12)
         ylabel('action','FontSize',12)
-        axis(ax);
         
         % action sampled (selected)
         %------------------------------------------------------------------
         subplot(2,2,4)
-        imagesc(1 - U); axis square
+        if size(U,1) > 512
+            spy(U,16)
+        else
+            imagesc(1 - U)
+        end
+        axis square
         title('Selected action','FontSize',16)
         xlabel('time','FontSize',12)
         ylabel('action','FontSize',12)
@@ -315,3 +295,35 @@ for k = 1:(T - 1)
     end
     
 end
+
+
+function spm_plot_states(a,b)
+
+% posterior beliefs about hidden states
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+if size(a,1) > 512
+    spy(a > 1/8,16)
+else
+    imagesc(1 - a)
+end
+axis square
+title('Expected hidden states','FontSize',16)
+xlabel('time','FontSize',12)
+ylabel('hidden state','FontSize',12)
+
+% posterior beliefs about control states
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+if size(b,1) > 512
+    spy(b > 1/8,16)
+else
+    imagesc(1 - b)
+end
+axis square
+title('Expected control states','FontSize',16)
+xlabel('time','FontSize',12)
+ylabel('control state','FontSize',12)
+drawnow
+
+
