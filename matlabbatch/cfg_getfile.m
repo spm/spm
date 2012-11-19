@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5056 2012-11-15 11:21:40Z volkmar $
+% $Id: cfg_getfile.m 5069 2012-11-19 15:52:52Z volkmar $
 
 t = {};
 sts = false;
@@ -499,7 +499,7 @@ c0 = uicontextmenu('Parent',fg);
 set(tmp,'uicontextmenu',c0);
 uimenu('Label','Select All', 'Parent',c0,'Callback',@select_all);
 
-updatedir_fun = @(ob,ev)(update(subsref(get(ob,'String'),substruct('{}',{get(ob,'Value')}))));
+updatedir_fun = @(ob,ev)(update(char(cpath(subsref(get(ob,'String'),substruct('()',{get(ob,'Value')}))))));
 
 % Drives
 if strcmpi(computer,'PCWIN') || strcmpi(computer,'PCWIN64'),
@@ -987,6 +987,15 @@ else
     fs = filesep;
 end
 pp = cellfun(@(p1)textscan(p1,'%s','delimiter',fs,'MultipleDelimsAsOne',1),p);
+if ispc
+    for k = 1:numel(pp)
+        if ~isempty(regexp(pp{k}{1}, '^[a-zA-Z]:$', 'once'))
+            pp{k}{1} = strcat(pp{k}{1}, filesep);
+        elseif ~isempty(regexp(p{k}, '^\\\\', 'once'))
+            pp{k}{1} = strcat(filesep, filesep, pp{k}{1});
+        end
+    end
+end
 %=======================================================================
 
 %=======================================================================
@@ -1037,8 +1046,6 @@ end
 % Assemble paths
 if ispc
     t         = cellfun(@(pt1)fullfile(pt1{:}),pt,'UniformOutput',false);
-    uncsel    = cellfun(@isempty, regexp(t,'^[a-zA-Z]:','once'));
-    t(uncsel) = strcat([filesep filesep],t(uncsel));
 else
     t         = cellfun(@(pt1)fullfile(filesep,pt1{:}),pt,'UniformOutput',false);
 end
