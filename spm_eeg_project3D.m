@@ -6,7 +6,7 @@ function [xy,label] = spm_eeg_project3D(sens, modality)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: spm_eeg_project3D.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_eeg_project3D.m 5068 2012-11-19 15:00:07Z vladimir $
 
 cfg = [];
 
@@ -23,6 +23,7 @@ switch modality
 end
 
 cfg.overlap = 'keep';
+cfg.feedback = 'no'; 
 
 lay = ft_prepare_layout(cfg);
 [sel1, sel2] = spm_match_str(sens.label, lay.label);

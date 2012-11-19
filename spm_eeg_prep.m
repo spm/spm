@@ -12,20 +12,18 @@ function D = spm_eeg_prep(S)
 %
 % D                 - MEEG object
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 4990 2012-10-07 12:24:11Z vladimir $
-
-if ~nargin
-    spm_eeg_prep_ui;
-    return;
-end
+% $Id: spm_eeg_prep.m 5068 2012-11-19 15:00:07Z vladimir $
 
 D = spm_eeg_load(S.D);
 
 switch lower(S.task)
-    
+        %----------------------------------------------------------------------
+    case 'setbadchan'
+        %----------------------------------------------------------------------
+        D = badchannels(D, D.selectchannels(S.channels), S.status);        
     %----------------------------------------------------------------------
     case 'settype'
         %----------------------------------------------------------------------
@@ -104,8 +102,8 @@ switch lower(S.task)
         
         if ~isempty(sel1)
             
-            megind = D.meegchannels('MEG');
-            eegind = D.meegchannels('EEG');
+            megind = D.indchantype('MEG');
+            eegind = D.indchantype('EEG');
             
             if ~isempty(intersect(megind, sel1)) && ~isempty(setdiff(megind, sel1))
                 error('2D locations not found for all MEG channels');
@@ -130,7 +128,7 @@ switch lower(S.task)
                 name    = fieldnames(senspos);
                 senspos = getfield(senspos,name{1});
                 
-                label = chanlabels(D, sort(strmatch('EEG', D.chantype, 'exact')));
+                label = chanlabels(D, D.indchantype('EEG'));
                 
                 if size(senspos, 1) ~= length(label)
                     error('To read sensor positions without labels the numbers of sensors and EEG channels should match.');
@@ -165,7 +163,7 @@ switch lower(S.task)
                     shape.pnt = [];
                 end
             case 'locfile'
-                label = chanlabels(D, D.meegchannels('EEG'));
+                label = chanlabels(D, D.indchantype('EEG'));
                 
                 elec = ft_read_sens(S.sensfile);
                 
@@ -221,7 +219,7 @@ switch lower(S.task)
         template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
         template_sfp = {template_sfp.name};
         
-        ind = strmatch([ft_senstype(D.chanlabels(D.meegchannels('EEG'))) '.sfp'], template_sfp, 'exact');
+        ind = strmatch([ft_senstype(D.chanlabels(D.indchantype('EEG'))) '.sfp'], template_sfp, 'exact');
         
         if ~isempty(ind)            
             fid = D.fiducials;
@@ -302,7 +300,8 @@ switch lower(S.task)
                     end
                 end
                 
-                if ~isempty(D.fiducials) && isfield(S, 'regfid') && ~isempty(S.regfid)
+                if strcmp(D.modality(1, 0), 'Multimodal') && ~isempty(D.fiducials)...
+                        && isfield(S, 'regfid') && ~isempty(S.regfid)
                     M1 = coreg(D.fiducials, fid, S.regfid);
                     D = sensors(D, 'EEG', ft_transform_sens(M1, D.sensors('EEG')));
                 else
@@ -312,29 +311,60 @@ switch lower(S.task)
         end
         
         %----------------------------------------------------------------------
-    case 'sens2chan'
+    case 'loadmegsens'
+        %----------------------------------------------------------------------        
+        hdr = ft_read_header(S.source);                
+        D = sensors(D, 'MEG', ft_convert_units(hdr.grad, 'mm'));
+        D = fiducials(D, ft_convert_units(ft_read_headshape(S.source), 'mm'));
+        
+        if ~isempty(D.indchantype('MEG')) && ~isempty(D.sensors('MEG'))
+            
+            S1 = [];
+            S1.task = 'project3D';
+            S1.modality = 'MEG';
+            S1.updatehistory = 0;
+            S1.D = D;
+            
+            D = spm_eeg_prep(S1);
+        end
+                
         %----------------------------------------------------------------------
-        montage = S.montage;
-        
-        eeglabel = D.chanlabels(strmatch('EEG',D.chantype));
-        meglabel = D.chanlabels(strmatch('MEG',D.chantype));
-        
-        if ~isempty(intersect(eeglabel, montage.labelnew))
+    case 'sens2chan'
+        %----------------------------------------------------------------------        
+        if isfield(S, 'montage')
+            montage = S.montage;
+            if ischar(montage)
+                montage = getfield(load(montage), 'montage');
+            end
+        elseif isfield(S, 'refelec');
             sens = sensors(D, 'EEG');
             if isempty(sens)
                 error('The montage cannod be applied - no EEG sensors specified');
             end
-            sens = ft_apply_montage(sens, montage, 'keepunused', 'no');
-            D = sensors(D, 'EEG', sens);
-        elseif ~isempty(intersect(meglabel, montage.labelnew))
-            sens = sensors(D, 'MEG');
-            if isempty(sens)
-                error('The montage cannod be applied - no MEG sensors specified');
+            if ismember('all', S.refelec)
+                refind = 1:numel(sens.label);
+            else
+                refind = spm_match_str(sens.label, S.refelec);
             end
-            sens = ft_apply_montage(sens, montage, 'keepunused', 'no');
-            D = sensors(D, 'MEG', sens);
+            
+            tra            = eye(numel(sens.label));
+            tra(:, refind) = tra(:, refind) - 1/length(refind);
+            
+            montage.tra = tra;
+            montage.labelorg = sens.label;
+            montage.labelnew = sens.label;
         else
-            error('The montage cannot be applied to the sensors');
+            error('Montage or list of reference sensors should be specified');
+        end
+                       
+        modalities = {'EEG', 'MEG'};
+        for m = 1:numel(modalities)
+            sens = sensors(D, modalities{m});
+            if ~isempty(sens) && ~isempty(intersect(sens.label, montage.labelorg))
+                sens = sensors(D, 'EEG');
+                sens = ft_apply_montage(sens, montage, 'keepunused', 'no');
+                D = sensors(D, modalities{m}, sens);
+            end
         end
         
         %----------------------------------------------------------------------
@@ -389,7 +419,7 @@ switch lower(S.task)
         %----------------------------------------------------------------------
     case 'coregister'
         %----------------------------------------------------------------------
-        [ok, D] = check(D, 'sensfid');
+        [D, ok] = check(D, '3d');
         
         if ~ok
             error('Coregistration cannot be performed due to missing data');

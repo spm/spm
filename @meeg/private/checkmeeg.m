@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: checkmeeg.m 5068 2012-11-19 15:00:07Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -108,7 +108,7 @@ if isa(this.data, 'file_array')
         this.data(1, 1, 1);
         is_linked = 1;
     catch
-        warning('SPM:checkmeeg', 'Failed to link to the data file. Unlinking');
+        warning_flexible('SPM:checkmeeg', 'Failed to link to the data file. Unlinking');
         this.data = [];
         is_linked = 0;
     end       
@@ -202,7 +202,7 @@ if Ntrials > 0
     if ~isfield(this.trials, 'label')       
         [this.trials.label] = deal('Undefined');
     elseif any(cellfun('isempty', {this.trials(:).label}))
-        warning('SPM:checkmeeg', 'Some trial labels empty, assigning default');
+        warning_flexible('SPM:checkmeeg', 'Some trial labels empty, assigning default');
         [this.trials(cellfun('isempty', {this.trials(:).label})).label] = deal('Undefined');
     end
     if ~isfield(this.trials, 'bad')
@@ -228,11 +228,11 @@ if Ntrials > 0
             this.trials(i).label = label;
         else
             this.trials(i).label = 'Unknown';
-            warning('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''');
+            warning_flexible('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''');
         end
         
         if  length(this.trials(i).bad)>1 || ~(this.trials(i).bad == 0 || this.trials(i).bad == 1)
-            warning('SPM:checkmeeg', ['Illegal value for bad flag in trial ' num2str(i) ', resetting to zero.']);
+            warning_flexible('SPM:checkmeeg', ['Illegal value for bad flag in trial ' num2str(i) ', resetting to zero.']);
             this.trials(i).bad = 0;
         end
         
@@ -291,7 +291,7 @@ end
 if ~isfield(this, 'type') ||...
         (strcmp(this.type, 'continuous') && Ntrials>1) ||...
         (strcmp(this.type, 'evoked') && (numel(unique({this.trials.label})) ~= Ntrials))
-    warning('SPM:checkmeeg', 'Data type is missing or incorrect, assigning default');
+    warning_flexible('SPM:checkmeeg', 'Data type is missing or incorrect, assigning default');
     % rule of thumb - 10 sec
     if Nsamples == 0
         this.type = 'continuous';

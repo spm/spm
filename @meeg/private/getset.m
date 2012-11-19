@@ -5,13 +5,12 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: getset.m 5068 2012-11-19 15:00:07Z vladimir $
 
 this = struct(this);
 
 if nargin>3 && isempty(ind)
     warning_flexible('The use of empty matrix to indicate ''all'' is deprecated in SPM12. Please change your code if necessary');
-    ind = '';
 end
 
 if nargin == 3 || ~isnumeric(ind)
@@ -30,7 +29,7 @@ if nargin <= 4
         res{i} = getfield(this, parent, {ind(i)}, fieldname);
     end
 
-    if ~isempty(res) && all(cellfun('isclass', res, 'double') & ~cellfun('isempty', res))
+    if isempty(res) || (all(cellfun('isclass', res, 'double') & ~cellfun('isempty', res)))
         res = [res{:}];
     end
 

@@ -4,11 +4,10 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 4342 2011-06-06 12:44:56Z vladimir $
+% $Id: spm_MEEGtools.m 5068 2012-11-19 15:00:07Z vladimir $
 
 
 funlist = {
-    'Copy MEG sensors', 'spm_eeg_copygrad';
     'Transform EEG cap', 'spm_eeg_transform_cap';
     'Re-reference EEG', 'spm_eeg_reref_eeg';
     'Split conditions into separate datasets', 'spm_eeg_split_conditions';

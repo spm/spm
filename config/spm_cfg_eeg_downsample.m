@@ -1,12 +1,12 @@
 function downsample = spm_cfg_eeg_downsample
 % configuration file for M/EEG downsampling
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 5061 2012-11-16 11:15:50Z vladimir $
+% $Id: spm_cfg_eeg_downsample.m 5068 2012-11-19 15:00:07Z vladimir $
 
-rev = '$Rev: 5061 $';
+rev = '$Rev: 5068 $';
 
 D = cfg_files;
 D.tag = 'D';

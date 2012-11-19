@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5018 2012-10-25 11:19:41Z gareth $
+% $Id: spm_cfg.m 5068 2012-11-19 15:00:07Z vladimir $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -39,7 +39,7 @@ meegprep        = cfg_choice;
 meegprep.tag    = 'preproc';
 meegprep.name   = 'M/EEG Preprocessing';
 meegprep.help   = {'M/EEG preprocessing.'};
-meegprep.values = { spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse spm_cfg_eeg_reduce}; 
+meegprep.values = {spm_cfg_eeg_prepare spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse spm_cfg_eeg_reduce}; 
 
 %--------------------------------------------------------------------------
 % M/EEG time-frequency

@@ -4,9 +4,9 @@ function channels = spm_cfg_eeg_channel_selector(jobtree)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 3798 2010-03-24 12:00:07Z vladimir $
+% $Id: spm_cfg_eeg_channel_selector.m 5068 2012-11-19 15:00:07Z vladimir $
 
-if nargin == 0
+if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;
     chanall.tag = 'all';
     chanall.name = 'All';
@@ -16,8 +16,8 @@ if nargin == 0
     type.tag = 'type';
     type.name = 'Select channels by type';
     type.help = {'Select channels by type'};
-    type.labels = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
-    type.values = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
+    type.labels = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
+    type.values = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
     
     chan = cfg_entry;
     chan.tag = 'chan';
@@ -35,7 +35,12 @@ if nargin == 0
     channels = cfg_repeat;
     channels.tag = 'channels';
     channels.name = 'Channel selection';
-    channels.values = {chanall, type, chan, chanfile};
+    % Sometimes it doesn't make sense to select by type
+    if nargin == 0
+        channels.values = {chanall, type, chan, chanfile};
+    else
+        channels.values = {chanall, chan, chanfile};
+    end
     channels.num = [1 Inf];
     channels.val = {chanall};
 else

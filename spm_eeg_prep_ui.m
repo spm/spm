@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_eeg_prep_ui.m 5068 2012-11-19 15:00:07Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -17,13 +17,13 @@ eval(callback);
 
 spm('Pointer','Arrow');
 
-
+end
 %==========================================================================
 % function CreateMenu
 %==========================================================================
 function CreateMenu
-    
-SVNrev = '$Rev: 4492 $';
+
+SVNrev = '$Rev: 5068 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -40,6 +40,14 @@ FileOpenMenu = uimenu(FileMenu, ...
     'HandleVisibility', 'on',...
     'Accelerator','O',...
     'Callback', 'spm_eeg_prep_ui(''FileOpenCB'')');
+
+FileHeaderMenu = uimenu(FileMenu, ...
+    'Label','Load header',...
+    'Separator','off',...
+    'Tag','EEGprepUI',...
+    'HandleVisibility', 'on',...
+    'Accelerator','H',...
+    'Callback', 'spm_eeg_prep_ui(''FileHeaderCB'')');
 
 FileSaveMenu = uimenu(FileMenu, ...
     'Label','Save',...
@@ -58,6 +66,25 @@ FileExitMenu = uimenu(FileMenu, ...
     'Accelerator','Q',...
     'Callback', 'spm_eeg_prep_ui(''FileExitCB'')');
 
+% ====== Batch inputs ======================================
+
+BatchInputsMenu = uimenu(Finter,'Label','Batch inputs',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on');
+
+BInputsChannelsMenu = uimenu(BatchInputsMenu, 'Label', 'Channel selection',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''ChannelsCB'')');
+
+BInputsTrialsMenu = uimenu(BatchInputsMenu, 'Label', 'Trial definition',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''TrialsCB'')');
+
 % ====== Channel types ===============================
 
 ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
@@ -65,7 +92,7 @@ ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
     'Enable', 'off', ...
     'HandleVisibility','on');
 
-chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'Other'};
+chanTypes = {'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other'};
 
 for i = 1:length(chanTypes)
     CTypesMenu(i) = uimenu(ChanTypeMenu, 'Label', chanTypes{i},...
@@ -102,9 +129,22 @@ Coor3DMenu = uimenu(Finter,'Label','Sensors',...
     'Enable', 'off', ...
     'HandleVisibility','on');
 
+LoadMEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG sensors',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''LoadMEGSensCB'')');
+
+HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG Fiducials/Headshape',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
+
 LoadEEGSensMenu = uimenu(Coor3DMenu, 'Label', 'Load EEG sensors',...
     'Tag','EEGprepUI',...
     'Enable', 'on', ...
+    'Separator', 'on', ...
     'HandleVisibility','on');
 
 LoadEEGSensTemplateMenu = uimenu(LoadEEGSensMenu, 'Label', 'Assign default',...
@@ -125,11 +165,22 @@ LoadEEGSensOtherMenu = uimenu(LoadEEGSensMenu, 'Label', 'Convert locations file'
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''LoadEEGSensCB'')');
 
-HeadshapeMenu = uimenu(Coor3DMenu, 'Label', 'Load MEG Fiducials/Headshape',...
+ReferenceMenu = uimenu(Coor3DMenu, 'Label', 'Define EEG referencing',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on');
+
+ReferenceSelectMenu = uimenu(ReferenceMenu, 'Label', 'Select reference sensors',...
     'Tag','EEGprepUI',...
     'Enable', 'on', ...
     'HandleVisibility','on',...
-    'Callback', 'spm_eeg_prep_ui(''HeadshapeCB'')');
+    'Callback', 'spm_eeg_prep_ui(''ReferenceCB'')');
+
+ReferenceMontageMenu = uimenu(ReferenceMenu, 'Label', 'Specify montage matrix',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''ReferenceCB'')');
 
 CoregisterMenu = uimenu(Coor3DMenu, 'Label', 'Coregister',...
     'Tag','EEGprepUI',...
@@ -214,7 +265,7 @@ Clear2DMenu = uimenu(Coor2DMenu, 'Label', 'Clear',...
     'Enable', 'on', ...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''Clear2DCB'')');
-
+end
 
 %==========================================================================
 % function FileOpenCB
@@ -226,6 +277,23 @@ setD(D);
 
 update_menu;
 
+end
+
+%==========================================================================
+% function FileHeaderCB
+%==========================================================================
+function FileHeaderCB
+
+S = [];
+S.mode = 'header';
+[S.dataset, sts] = spm_select(1, '.*', 'Select M/EEG data file');
+if ~sts, return; end
+D = spm_eeg_convert(S);
+setD(D);
+
+update_menu;
+
+end
 
 %==========================================================================
 % function FileSaveCB
@@ -239,6 +307,7 @@ end
 
 update_menu;
 
+end
 
 %==========================================================================
 % function FileExitCB
@@ -248,7 +317,46 @@ function FileExitCB
 spm_figure('Clear','Interactive');
 spm('FigName','M/EEG prepare: done');
 
+end
 
+%==========================================================================
+% function ChannelsCB
+%==========================================================================
+function ChannelsCB
+
+D = getD;
+
+[selection, ok]= listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
+if ~ok, return; end
+
+[chanfilename, chanpathname] = uiputfile( ...
+    {'*.mat', 'MATLAB File (*.mat)'}, 'Save channel selection as');
+
+label = D.chanlabels(selection);
+
+save(fullfile(chanpathname, chanfilename), 'label');
+
+end
+
+%==========================================================================
+% function ChannelsCB
+%==========================================================================
+function TrialsCB
+
+D = getD;
+
+S = [];
+S.D = D;
+S.save = 1;
+spm_eeg_definetrial(S);
+
+CreateMenu;
+
+setD(D);
+
+update_menu;
+
+end
 %==========================================================================
 % function ChanTypeCB
 %==========================================================================
@@ -266,20 +374,20 @@ if ~isempty(D)
         else
             chanlist{i} = [num2str(i) '    Label:    ' D.chanlabels(i) '    Type:    ' D.chantype(i)];
         end
-
+        
         chanlist{i} = [chanlist{i}{:}];
     end
-
+    
     if strcmpi(type, 'review')
         listdlg('ListString', chanlist, 'SelectionMode', 'single', 'Name', 'Review channels', 'ListSize', [400 300]);
         return
     else
-
+        
         [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
-
+        
         selection(strmatch('MEG', chantype(D, selection))) = [];
-
+        
         if ok && ~isempty(selection)
             S.task = 'settype';
             S.D = D;
@@ -293,7 +401,7 @@ end
 
 update_menu;
 
-
+end
 %==========================================================================
 % function MEGChanTypeCB
 %==========================================================================
@@ -308,10 +416,10 @@ switch get(gcbo, 'Label')
         dictionary = {
             'REFMAG',   'MEGMAG';
             'REFGRAD',  'MEGGRAD';
-            };               
-                
+            };
+        
         ind = spm_match_str(S.D.chantype, dictionary(:,1));
-
+        
         grad = S.D.sensors('meg');
         if ~isempty(grad)
             % Under some montages only subset of the reference sensors are
@@ -319,20 +427,20 @@ switch get(gcbo, 'Label')
             [junk, sel] = intersect(S.D.chanlabels(ind), grad.label);
             ind = ind(sel);
         end
-            
+        
         S.ind = ind;
         
         [sel1, sel2] = spm_match_str(S.D.chantype(S.ind), dictionary(:, 1));
-
+        
         S.type = dictionary(sel2, 2);
-
+        
         D = spm_eeg_prep(S);
 end
 
 setD(D);
 update_menu;
 
-
+end
 %==========================================================================
 % function ChanTypeDefaultCB
 %==========================================================================
@@ -345,7 +453,7 @@ D      = spm_eeg_prep(S);
 setD(D);
 update_menu;
 
-
+end
 %==========================================================================
 % function LoadEEGSensTemplateCB
 %==========================================================================
@@ -358,7 +466,7 @@ if strcmp(S.D.modality(1, 0), 'Multimodal')
     fid = fiducials(S.D);
     if ~isempty(fid)
         lblfid = fid.fid.label;
-
+        
         S.regfid = match_fiducials({'nas'; 'lpa'; 'rpa'}, lblfid);
         S.regfid(:, 2) = {'spmnas'; 'spmlpa'; 'spmrpa'};
     else
@@ -371,7 +479,27 @@ D = spm_eeg_prep(S);
 setD(D);
 update_menu;
 
+end
+%==========================================================================
+% function LoadEEGSensCB
+%==========================================================================
+function LoadMEGSensCB
 
+D = getD;
+
+S = [];
+S.task = 'loadmegsens';
+S.D = D;
+[S.source sts] = spm_select(1, '\.*', 'Select a raw MEG data file');
+if ~sts, return; end
+
+D = spm_eeg_prep(S);
+
+setD(D);
+
+update_menu;
+
+end
 %==========================================================================
 % function LoadEEGSensCB
 %==========================================================================
@@ -393,7 +521,7 @@ switch get(gcbo, 'Label')
         S.source = 'locfile';
 end
 
-if strcmp(D.modality(1, 0), 'Multimodal')   
+if strcmp(D.modality(1, 0), 'Multimodal')
     if ~isempty(D.fiducials)
         S.regfid = {};
         if strcmp(S.source, 'mat')
@@ -411,10 +539,10 @@ if strcmp(D.modality(1, 0), 'Multimodal')
             shape = ft_read_headshape(S.sensfile);
             lblshape = shape.fid.label;
         end
-
+        
         fid = fiducials(D);
         lblfid = fid.fid.label;
-
+        
         S.regfid = match_fiducials(lblshape, lblfid);
     else
         warndlg(strvcat('Could not match EEG fiducials for multimodal dataset.', ...
@@ -426,32 +554,11 @@ S.D    = D;
 S.task = 'loadeegsens';
 D      = spm_eeg_prep(S);
 
-% ====== This is for the future ==================================
-% sens = D.sensors('EEG');
-% label = D.chanlabels(strmatch('EEG',D.chantype));
-%
-% [sel1, sel2] = spm_match_str(label, sens.label);
-%
-% montage = [];
-% montage.labelorg = sens.label;
-% montage.labelnew = label;
-% montage.tra = sparse(zeros(numel(label), numel(sens.label)));
-% montage.tra(sub2ind(size(montage.tra), sel1, sel2)) = 1;
-%
-% montage = spm_eeg_montage_ui(montage);
-%
-% S = [];
-% S.D = D;
-% S.task = 'sens2chan';
-% S.montage = montage;
-%
-% D = spm_eeg_prep(S);
-
 setD(D);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function HeadshapeCB
 %==========================================================================
@@ -481,7 +588,50 @@ setD(D);
 
 update_menu;
 
+end
+%==========================================================================
+% function CoregisterCB
+%==========================================================================
+function ReferenceCB
 
+D = getD;
+
+S = [];
+S.D = D;
+S.task = 'sens2chan';
+switch get(gcbo, 'Label')
+    case 'Select reference sensors'
+        elec = D.sensors('EEG');
+        
+        [refind, ok]= listdlg('ListString', elec.label, 'SelectionMode', 'multiple' ,'Name', 'Select reference electrodes' , 'ListSize', [400 300]);
+        if ~ok
+            return;
+        end
+        
+        S.refelec = elec.label(refind);
+    case 'Specify montage matrix'
+        
+        sens  = D.sensors('EEG');
+        label = D.chanlabels(D.indchantype('EEG'));
+        
+        [sel1, sel2] = spm_match_str(label, sens.label);
+        
+        montage = [];
+        montage.labelorg = sens.label;
+        montage.labelnew = label;
+        montage.tra = zeros(numel(label), numel(sens.label));
+        montage.tra(sub2ind(size(montage.tra), sel1, sel2)) = 1;
+        
+        S.montage = spm_eeg_montage_ui(montage);
+end
+
+D = spm_eeg_prep(S);
+
+setD(D);
+
+update_menu;
+
+end
 %==========================================================================
 % function CoregisterCB
 %==========================================================================
@@ -500,7 +650,7 @@ setD(D);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function EditExistingCoor2DCB
 %==========================================================================
@@ -521,7 +671,7 @@ plot_sensors2D(xy, label);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function LoadTemplateCB
 %==========================================================================
@@ -539,7 +689,7 @@ end
 
 update_menu;
 
-
+end
 %==========================================================================
 % function SaveTemplateCB
 %==========================================================================
@@ -556,7 +706,7 @@ Nchannels = length(Cnames);
 
 save(fullfile(pathname, filename), 'Cnames', 'Cpos', 'Rxy', 'Nchannels', spm_get_defaults('mat.format'));
 
-
+end
 %==========================================================================
 % function Project3DCB
 %==========================================================================
@@ -589,7 +739,7 @@ plot_sensors2D(xy, label);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function AddCoor2DCB
 %==========================================================================
@@ -622,7 +772,7 @@ plot_sensors2D([handles.xy coord(:)], ...
 
 update_menu;
 
-
+end
 %==========================================================================
 % function ApplyCoor2DCB
 %==========================================================================
@@ -643,7 +793,7 @@ setD(D);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function update_menu
 %==========================================================================
@@ -654,9 +804,11 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 
 IsEEG = 'off';
 IsMEG = 'off';
-IsNeuromag = 'off';
-HasSensors = 'off';
+IsEpochable = 'off';
+IsNeuromag  = 'off';
+HasSensors  = 'off';
 HasSensorsEEG = 'off';
+ReferenceSelectable = 'off';
 HasSensorsMEG = 'off';
 HasChannelsMEGREF = 'off';
 HasFiducials = 'off';
@@ -664,54 +816,63 @@ HasDefaultLocs = 'off';
 HasHistory = 'off';
 if isa(get(Finter, 'UserData'), 'meeg')
     Dloaded = 'on';
-
+    
     D = getD;
-
-    if ~isempty(strmatch('EEG', D.chantype, 'exact'))
+    
+    if ~isempty(D.indchantype('EEG'))
         IsEEG = 'on';
     end
-
-    if ~isempty(strmatch('MEG', D.chantype));
+    
+    if ~isempty(D.indchantype('MEG'));
         IsMEG = 'on';
     end
-
+    
+    if isequal(D.type, 'continuous') && ~isempty(D.events);
+        IsEpochable = 'on';
+    end
+    
     if ft_senstype(D.chanlabels, 'neuromag') &&...
             isfield(D, 'origchantypes')
         IsNeuromag = 'on';
     end
-
-    if ~isempty(strmatch('REF', D.chantype));
+    
+    if ~isempty(D.indchantype('REF'));
         HasChannelsMEGREF = 'on';
     end
-
+    
     if ~isempty(D.sensors('EEG')) || ~isempty(D.sensors('MEG'))
         HasSensors = 'on';
     end
-
+    
     if ~isempty(D.sensors('EEG'))
         HasSensorsEEG = 'on';
+        
+        elec = D.sensors('EEG');
+        if ~isfield(elec, 'tra') &&  (size(elec.elecpos, 1) == numel(elec.label))
+            ReferenceSelectable = 'on';
+        end
     end
-
+    
     if  ~isempty(D.sensors('MEG'))
         HasSensorsMEG = 'on';
     end
-
+    
     if  ~isempty(D.fiducials)
         HasFiducials = 'on';
     end
-
+    
     template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
     template_sfp = {template_sfp.name};
     ind = strmatch([ft_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
-
+    
     if ~isempty(ind)
         HasDefaultLocs = 'on';
     end
-
+    
     if  ~isempty(D.history)
         HasHistory = 'on';
     end
-
+    
 else
     Dloaded = 'off';
 end
@@ -725,17 +886,20 @@ if ~isempty(handles)
     if isfield(handles, 'xy') && size(handles.xy, 1)>0
         IsTemplate = 'on';
     end
-
+    
     if isfield(handles, 'labelSelected') && ~isempty(handles.labelSelected)
         IsSelected = 'on';
     end
-
+    
     if isfield(handles, 'lastMoved')
         isMoved = 'on';
     end
 end
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Save'), 'Enable', 'on');
+
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Batch inputs'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Trial definition'), 'Enable', IsEpochable);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);
@@ -745,9 +909,12 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'MEGREF=>MEG'), 'Enable', HasChan
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Assign default'), 'Enable', HasDefaultLocs);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load EEG sensors'), 'Enable', IsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG sensors'), 'Enable', IsMEG);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Load MEG Fiducials/Headshape'), 'Enable', HasSensorsMEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Headshape'), 'Enable', HasSensorsMEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Define EEG referencing'), 'Enable', HasSensorsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Select reference sensors'), 'Enable', ReferenceSelectable);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Coregister'), 'Enable', HasSensors);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Edit existing EEG'), 'Enable', IsEEG);
@@ -783,7 +950,7 @@ end
 
 figure(Finter);
 
-
+end
 %==========================================================================
 % function getD
 %==========================================================================
@@ -795,7 +962,7 @@ if ~isa(D, 'meeg')
     D = [];
 end
 
-
+end
 %==========================================================================
 % function setD
 %==========================================================================
@@ -803,7 +970,7 @@ function setD(D)
 Finter = spm_figure('GetWin','Interactive');
 set(Finter, 'UserData', D);
 
-
+end
 %==========================================================================
 % function getHandles
 %==========================================================================
@@ -811,7 +978,7 @@ function handles = getHandles
 Fgraph = spm_figure('GetWin','Graphics');
 handles = get(Fgraph, 'UserData');
 
-
+end
 %==========================================================================
 % function setHandles
 %==========================================================================
@@ -819,7 +986,7 @@ function setHandles(handles)
 Fgraph = spm_figure('GetWin','Graphics');
 set(Fgraph, 'UserData', handles);
 
-
+end
 %==========================================================================
 % function plot_sensors2D
 %==========================================================================
@@ -835,33 +1002,33 @@ if ~isempty(xy)
     if size(xy, 1) ~= 2
         xy = xy';
     end
-
-
+    
+    
     xy(xy < 0.05) = 0.05;
     xy(xy > 0.95) = 0.95;
-
-
+    
+    
     handles.h_lbl=text(xy(1,:), xy(2, :),strvcat(label),...
         'FontSize', 9,...
         'Color','r',...
         'FontWeight','bold');
-
+    
     set(handles.h_lbl, 'ButtonDownFcn', 'spm_eeg_prep_ui(''LabelClickCB'')');
-
+    
     hold on
-
+    
     handles.h_el =[];
     for i=1:size(xy, 2)
         handles.h_el(i) = plot(xy(1,i), xy(2,i), 'or');
     end
-
+    
     set(handles.h_el,'MarkerFaceColor','r','MarkerSize', 2,'MarkerEdgeColor','k');
-
+    
     handles.TemplateFrame = ...
-    plot([0.05 0.05 0.95 0.95 0.05], [0.05 0.95 0.95 0.05 0.05], 'k-');
+        plot([0.05 0.05 0.95 0.95 0.05], [0.05 0.95 0.95 0.05 0.05], 'k-');
     
     axis off;
-
+    
 end
 
 handles.xy = xy;
@@ -871,7 +1038,7 @@ setHandles(handles);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function DeleteCoor2DCB
 %==========================================================================
@@ -882,19 +1049,19 @@ graph = spm_figure('GetWin','Graphics');
 
 if isfield(handles, 'labelSelected') && ~isempty(handles.labelSelected)
     set(graph, 'WindowButtonDownFcn', '');
-
+    
     label=get(handles.labelSelected, 'String');
     ind=strmatch(label, handles.label, 'exact');
-
+    
     delete([handles.labelSelected handles.pointSelected]);
-
+    
     handles.xy(:, ind)=[];
     handles.label(ind) = [];
-
+    
     plot_sensors2D(handles.xy, handles.label)
 end
 
-
+end
 %==========================================================================
 % function UndoMoveCoor2DCB
 %==========================================================================
@@ -906,22 +1073,22 @@ if isfield(handles, 'lastMoved')
     label = get(handles.lastMoved(end).label, 'String');
     ind = strmatch(label, handles.label, 'exact');
     handles.xy(:, ind) = handles.lastMoved(end).coords(:);
-
+    
     set(handles.lastMoved(end).point, 'XData', handles.lastMoved(end).coords(1));
     set(handles.lastMoved(end).point, 'YData', handles.lastMoved(end).coords(2));
     set(handles.lastMoved(end).label, 'Position', handles.lastMoved(end).coords);
-
+    
     if length(handles.lastMoved)>1
         handles.lastMoved = handles.lastMoved(1:(end-1));
     else
         handles = rmfield(handles, 'lastMoved');
     end
-
+    
     setHandles(handles);
     update_menu;
 end
 
-
+end
 %==========================================================================
 % function LabelClickCB
 %==========================================================================
@@ -941,13 +1108,13 @@ if isfield(handles, 'labelSelected') && ~isempty(handles.labelSelected)
     end
 else
     set(Fgraph, 'WindowButtonDownFcn', 'spm_eeg_prep_ui(''LabelMoveCB'')');
-
+    
     coords = get(gcbo, 'Position');
-
+    
     handles.labelSelected=gcbo;
     handles.pointSelected=findobj(gca, 'Type', 'line',...
         'XData', coords(1), 'YData', coords(2));
-
+    
     set(handles.labelSelected, 'Color', 'g');
     set(handles.pointSelected,'MarkerFaceColor', 'g');
 end
@@ -956,7 +1123,7 @@ setHandles(handles);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function LabelMoveCB
 %==========================================================================
@@ -999,7 +1166,7 @@ setHandles(handles);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function CancelMoveCB
 %==========================================================================
@@ -1016,7 +1183,7 @@ setHandles(handles);
 
 update_menu;
 
-
+end
 %==========================================================================
 % function Clear2DCB
 %==========================================================================
@@ -1026,7 +1193,7 @@ plot_sensors2D([], {});
 
 update_menu;
 
-
+end
 %==========================================================================
 % function match_fiducials
 %==========================================================================
@@ -1042,14 +1209,14 @@ if numel(intersect(upper(lblshape), upper(lblfid))) < 3
             [selection ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
                 'InitialValue', strmatch(upper(lblfid{i}), upper(lblshape)), ...
                 'Name', ['Select matching fiducial for ' lblfid{i}], 'ListSize', [400 300]);
-
+            
             if ~ok
                 continue
             end
-
+            
             regfid = [regfid; [lblfid(i) lblshape(selection)]];
         end
-
+        
         if size(regfid, 1) < 3
             warndlg('3 fiducials are required to load headshape');
             return;
@@ -1060,4 +1227,5 @@ else
     lblfid = lblfid(sel1);
     lblshape = lblshape(sel2);
     regfid = [lblfid(:) lblshape(:)];
+end
 end

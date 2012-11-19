@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5060 2012-11-15 16:42:14Z vladimir $
+% $Id: spm_eeg_convert.m 5068 2012-11-19 15:00:07Z vladimir $
 
-SVNrev = '$Rev: 5060 $';
+SVNrev = '$Rev: 5068 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -542,7 +542,9 @@ if isequal(S.mode, 'header')
     D.hdr = hdr;
 end
 
-save(D);
+if ~isequal(S.mode, 'header')
+    save(D);
+end
 
  %-Cleanup
 %--------------------------------------------------------------------------
