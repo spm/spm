@@ -4,7 +4,7 @@ function hdr = mayo2nifti1(ohdr,mat)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: mayo2nifti1.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: mayo2nifti1.m 5070 2012-11-19 16:00:40Z john $
 
 
 if isfield(ohdr,'magic'),
@@ -13,6 +13,10 @@ if isfield(ohdr,'magic'),
 end;
 hdr            = empty_hdr;
 hdr.dim        = ohdr.dim;
+if hdr.dim(1)<1,
+    tmp        = [find(~hdr.dim(2:end))-1, 7];
+    hdr.dim(1) = tmp(1);
+end
 hdr.datatype   = ohdr.datatype;
 hdr.bitpix     = ohdr.bitpix;
 hdr.pixdim     = ohdr.pixdim;
