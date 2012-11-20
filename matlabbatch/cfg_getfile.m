@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5069 2012-11-19 15:52:52Z volkmar $
+% $Id: cfg_getfile.m 5071 2012-11-20 12:21:35Z volkmar $
 
 t = {};
 sts = false;
@@ -737,7 +737,14 @@ set(sib('edit'),'String',dr);
 if ispc && numel(dr)>1 && dr(2)==':',
     str = char(get(sib('drive'),'String'));
     mch = find(lower(str(:,1))==lower(dr(1)));
-    if ~isempty(mch),
+    if isempty(mch),
+        str = listdrives(true);
+        cstr = char(str);
+        mch = find(lower(cstr(:,1))==lower(dr(1)));
+        if ~isempty(mch)
+            set(sib('drive'),'String',str, 'Value',mch);
+        end
+    else
         set(sib('drive'),'Value',mch);
     end
 end
