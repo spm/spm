@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5061 2012-11-16 11:15:50Z vladimir $
+% $Id: clone.m 5072 2012-11-20 19:06:11Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -24,7 +24,7 @@ end
 % if number of channels is modified, throw away montages
 if dim(1) ~= nchannels(this)
     this = montage(this,'remove',1:montage(this,'getnumber'));
-    warning('Changing the number of channels, so discarding online montages.');
+    disp('Changing the number of channels, so discarding online montages.');
 end
 
 new = unlink(this);

@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5072 2012-11-20 19:06:11Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5068 $';
+SVNrev = '$Rev: 5072 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -85,6 +85,11 @@ BInputsTrialsMenu = uimenu(BatchInputsMenu, 'Label', 'Trial definition',...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''TrialsCB'')');
 
+BInputsMontageMenu = uimenu(BatchInputsMenu, 'Label', 'Montage',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''MontageCB'')');
 % ====== Channel types ===============================
 
 ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
@@ -339,7 +344,7 @@ save(fullfile(chanpathname, chanfilename), 'label');
 end
 
 %==========================================================================
-% function ChannelsCB
+% function TrialsCB
 %==========================================================================
 function TrialsCB
 
@@ -355,6 +360,24 @@ CreateMenu;
 setD(D);
 
 update_menu;
+
+end
+
+%==========================================================================
+% function MontageCB
+%==========================================================================
+function MontageCB
+
+D = getD;
+
+label = D.chanlabels(D.indchantype('EEG'));
+
+montage = [];
+montage.labelorg = label;
+montage.labelnew = label;
+montage.tra = eye(numel(label));
+
+spm_eeg_montage_ui(montage);
 
 end
 %==========================================================================
@@ -900,6 +923,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Save'), 'Enable', 'on');
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Batch inputs'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Trial definition'), 'Enable', IsEpochable);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Montage'), 'Enable', IsEEG);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);

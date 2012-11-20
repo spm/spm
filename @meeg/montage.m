@@ -25,7 +25,7 @@ function [res] = montage(this,action,varargin)
 
 % Remy Lehembre & Christophe Phillips
 % Cyclotron Research Centre, University of Liège, Belgium
-% $Id: montage.m 4465 2011-09-06 17:02:49Z guillaume $
+% $Id: montage.m 5072 2012-11-20 19:06:11Z vladimir $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
@@ -82,7 +82,7 @@ switch lower(action)
         end
         
         % write montage info to fields M and Mind of montage
-        if isfield(mont,'name') & ~isempty(mont.name)
+        if isfield(mont,'name') && ~isempty(mont.name)
             this.montage.M(ind).name = mont.name;
         else
             this.montage.M(ind).name = ['montage #',num2str(ind)];
@@ -111,6 +111,12 @@ switch lower(action)
         else
             idx = varargin{1};
         end
+        
+        if ischar(idx) && ~isempty(this.montage.M)
+            idx = strmatch(idx, {this.montage.M.name});
+            if isempty(idx), idx = -1; end                
+        end
+        
         if idx>numel(this.montage.M) || idx<0
             error('Specified montage index is erroneous.')
         else
@@ -118,25 +124,31 @@ switch lower(action)
         end
         res = meeg(this);
         
-    case 'remove'
-        % removing one or more montages
-        if nargin==2
-            idx = this.montage.Mind; % by default, removing current montage.
+    case {'remove', 'clear'} 
+        if strcmpi(action, 'clear')
+            idx = 1:numel(this.montage.M);
         else
-            idx = varargin{1};
+            % removing one or more montages
+            if nargin==2
+                idx = this.montage.Mind; % by default, removing current montage.
+            else
+                idx = varargin{1};
+            end
         end
         
-        if idx>numel(this.montage.M) | idx<0
-            error('Specified montage index is erroneous.')
-        else
-            this.montage.M(abs(idx)) = [];
-            if any(idx==this.montage.Mind)
-                % removing current montage -> no montage applied
-                this.montage.Mind = 0;
-            elseif any(idx < this.montage.Mind)
-                % removing another montage, keep current (adjusted) index
-                this.montage.Mind = this.montage.Mind - ...
-                                            sum(idx < this.montage.Mind) ;
+        if ~isempty(idx)
+            if any(idx>numel(this.montage.M) | idx<0)
+                error('Specified montage index is erroneous.')
+            else
+                this.montage.M(idx) = [];
+                if any(idx==this.montage.Mind)
+                    % removing current montage -> no montage applied
+                    this.montage.Mind = 0;
+                elseif any(idx < this.montage.Mind)
+                    % removing another montage, keep current (adjusted) index
+                    this.montage.Mind = this.montage.Mind - ...
+                        sum(idx < this.montage.Mind) ;
+                end
             end
         end
         res = meeg(this);
@@ -156,12 +168,20 @@ switch lower(action)
         else
             idx = varargin{1};
         end
+        
+        if ~isnumeric(idx)
+            idx = 1:numel(this.montage.M);
+        end
+        
         if any(idx>numel(this.montage.M)) || any(idx<0)
             error('Specified montage index is erroneous.')
-        elseif idx==0
+        elseif isequal(idx, 0) || isempty(this.montage.M)
             res = 'none';
         else
-            res = char(this.montage.M(idx).name);
+            res = {this.montage.M(idx).name};
+            if numel(res) == 1
+                res = char(res);
+            end
         end
         
     case 'getmontage'
@@ -178,7 +198,6 @@ switch lower(action)
         else
             res = this.montage.M(idx);
         end
-        
     otherwise
         % nothing planned for this case...
         error('Wrong use of the ''montage'' method.')
@@ -203,7 +222,7 @@ end
 res = [S.channels.bad];
 res = find(res);
 
-newbads = find(any(mont.tra(:,res),2));
+newbads = find(any(mont.tra(:, res),2));
 for ii=1:length(newbads)
     S.montage.M(idx).channels(ii).bad = 1;
 end
