@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: checkmeeg.m 5073 2012-11-22 16:08:51Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -291,7 +291,7 @@ end
 if ~isfield(this, 'type') ||...
         (strcmp(this.type, 'continuous') && Ntrials>1) ||...
         (strcmp(this.type, 'evoked') && (numel(unique({this.trials.label})) ~= Ntrials))
-    warning_flexible('SPM:checkmeeg', 'Data type is missing or incorrect, assigning default');
+    disp('Data type is missing or incorrect, assigning default');
     % rule of thumb - 10 sec
     if Nsamples == 0
         this.type = 'continuous';

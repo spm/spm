@@ -3,23 +3,26 @@ function D = spm_eeg_bc(S)
 % FORMAT D = spm_eeg_bc(S)
 %
 % S        - optional input struct
-% (optional) fields of S:
-%   S.D    - MEEG object or filename of M/EEG mat-file with epoched data
-%   S.time - 2-element vector with start and end of baseline period [ms]
-%   S.save - save the baseline corrected data in a separate file [default: true]
+%      fields of S:
+%   S.D       - MEEG object or filename of M/EEG mat-file with epoched data
+%   S.timewin - 2-element vector with start and end of baseline period [ms]
+%               default: the negative times if present or the whole trial
+%               otherwise.
+%   S.save    - save the baseline corrected data in a separate file [default: true]
 %   S.updatehistory - update history information [default: true]
+%   S.prefix     - prefix for the output file (default - 'b')
 %
 % D        - MEEG object (also saved on disk if requested)
 %__________________________________________________________________________
 %
 % Subtract average baseline from all M/EEG and EOG channels
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 3262 2009-07-09 12:10:53Z vladimir $
+% $Id: spm_eeg_bc.m 5073 2012-11-22 16:08:51Z vladimir $
 
-SVNrev = '$Rev: 3262 $';
+SVNrev = '$Rev: 5073 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -28,56 +31,40 @@ spm('FigName','M/EEG baseline correction'); spm('Pointer','Watch');
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
-
-D = spm_eeg_load(D);
-
-
-%-Redirect to Time-Frequency baseline correction if necessary
-%--------------------------------------------------------------------------
-if strncmpi(D.transformtype,'TF',2) % TF and TFphase
-    D = spm_eeg_tf_rescale(S);
-    return;
-end
+D = spm_eeg_load(S.D);
 
 %-Get input parameters
 %--------------------------------------------------------------------------
-try
-    time   = S.time;
-catch
-    time   = spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
-    S.time = time;
+if ~isfield(S, 'prefix'),          S.prefix = 'b';           end
+if ~isfield(S, 'save'),            S.save = 1;               end
+if ~isfield(S, 'updatehistory'),   S.updatehistory = 1;      end
+if ~isfield(S, 'timewin')
+    if D.time(1)<0
+        timewin = [D.time(1) 0];
+    else
+        timewin = [D.time(1) D.time(end)];
+    end
+else
+    timewin = 1e-3*S.timewin;
 end
 
-
-%-Converting to sec
-%--------------------------------------------------------------------------
-time = time/1000;
+if strncmpi(D.transformtype,'TF',2) % TF and TFphase
+    error('Use spm_eeg_tf_rescale for TF data.')
+end
 
 %-Baseline Correction
 %--------------------------------------------------------------------------
-t(1) = D.indsample(time(1));
-t(2) = D.indsample(time(2));
+t(1) = D.indsample(timewin(1));
+t(2) = D.indsample(timewin(2));
 
 if any(isnan(t))
     error('The baseline was not defined correctly.');
 end
 
-indchannels = [D.meegchannels D.eogchannels];
+indchannels = D.indchantype('Filtered');
 
-
-if ~isfield(S, 'save') || S.save
-    S1         = [];
-    S1.D       = D;
-    S1.newname = ['b' D.fname];
-    S1.updatehistory = 0;
-    D          = spm_eeg_copy(S1);
+if S.save
+    D = D.copy([S.prefix D.fname]);
 end
 
 spm_progress_bar('Init', D.ntrials, 'trials baseline-corrected');

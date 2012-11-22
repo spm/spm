@@ -18,7 +18,7 @@ function D = spm_eeg_convert(S)
 %
 % S.trl            - [N x 3] trl matrix or name of the trial definition file
 %                    containing 'trl' variable with such a matrix
-% S.conditionlabel - labels for the trials in the data [default: 'Undefined']
+% S.conditionlabels- labels for the trials in the data [default: 'Undefined']
 %
 %   or
 %
@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_eeg_convert.m 5073 2012-11-22 16:08:51Z vladimir $
 
-SVNrev = '$Rev: 5068 $';
+SVNrev = '$Rev: 5073 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -258,7 +258,7 @@ else % Read by trials
                 conditionlabels = getfield(load(S.trl, 'conditionlabels'), 'conditionlabels');
             else
                 trl = S.trl;
-                conditionlabels = S.conditionlabel;
+                conditionlabels = S.conditionlabels;
             end
         else            
             S1          = [];
@@ -314,7 +314,7 @@ else % Read by trials
             conditionlabels = {};
             for i = 1:length(trialind)
                 if isempty(event(trialind(i)).value)
-                    conditionlabels{i} = S.conditionlabel{1};
+                    conditionlabels{i} = S.conditionlabels{1};
                 else
                     if all(ischar(event(trialind(i)).value))
                         conditionlabels{i} = event(trialind(i)).value;
@@ -344,7 +344,7 @@ else % Read by trials
         ntrial = hdr.nTrials;
         trl = zeros(ntrial, 2);
         if exist('conditionlabels', 'var') ~= 1 || length(conditionlabels) ~= ntrial
-            conditionlabels = repmat(S.conditionlabel, 1, ntrial);
+            conditionlabels = repmat(S.conditionlabels, 1, ntrial);
         end
     else
         nsampl = unique(diff(trl, [], 2))+1;

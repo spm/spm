@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_bc
+function bc = spm_cfg_eeg_bc
 % configuration file for baseline correction
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_bc.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_bc.m 5073 2012-11-22 16:08:51Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -17,32 +17,43 @@ D.num    = [1 1];
 D.help   = {'Select the M/EEG mat file.'};
 
 %--------------------------------------------------------------------------
-% time
+% timewin
 %--------------------------------------------------------------------------
-time         = cfg_entry;
-time.tag     = 'time';
-time.name    = 'Baseline';
-time.help    = {'Start and stop of baseline [ms].'};
-time.strtype = 'e';
-time.num     = [1 2];
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Baseline';
+timewin.help    = {'Start and stop of baseline [ms].'};
+timewin.strtype = 'e';
+timewin.num     = [1 2];
 
 %--------------------------------------------------------------------------
-% S
+% prefix
 %--------------------------------------------------------------------------
-S          = cfg_exbranch;
-S.tag      = 'bc';
-S.name     = 'M/EEG Baseline correction';
-S.val      = {D, time};
-S.help     = {'Baseline correction of M/EEG time data'}';
-S.prog     = @eeg_bc;
-S.vout     = @vout_eeg_bc;
-S.modality = {'EEG'};
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the filtered dataset. Default prefix is ''b''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'b'};
+
+%--------------------------------------------------------------------------
+% bc
+%--------------------------------------------------------------------------
+bc          = cfg_exbranch;
+bc.tag      = 'bc';
+bc.name     = 'M/EEG Baseline correction';
+bc.val      = {D, timewin, prefix};
+bc.help     = {'Baseline correction of M/EEG time data'}';
+bc.prog     = @eeg_bc;
+bc.vout     = @vout_eeg_bc;
+bc.modality = {'EEG'};
 
 %==========================================================================
 function out = eeg_bc(job)
 % construct the S struct
-S.D            = job.D{1};
-S.time         = job.time;
+S = job;
+S.D = S.D{1};
 
 out.D          = spm_eeg_bc(S);
 out.Dfname     = {fullfile(out.D.path,out.D.fname)};

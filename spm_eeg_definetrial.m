@@ -18,10 +18,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_eeg_definetrial.m 5073 2012-11-22 16:08:51Z vladimir $
 
 
-SVNrev = '$Rev: 5068 $';
+SVNrev = '$Rev: 5073 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -190,10 +190,12 @@ if S.save
 
     trialdef = S.trialdef;
     
+    timewin = [pretrig posttrig];
+    
     source   = D.fname;
     
     save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels', ...
-        'trialdef', 'source', spm_get_defaults('mat.format'));
+        'trialdef', 'source', 'timewin', spm_get_defaults('mat.format'));
 end
 
 %-Cleanup

@@ -2,150 +2,110 @@ function D = spm_eeg_epochs(S)
 % Epoching continuous M/EEG data
 % FORMAT D = spm_eeg_epochs(S)
 %
-% S                     - input structure (optional)
-% (optional) fields of S:
-%   S.D                 - MEEG object or filename of M/EEG mat-file with
+% S                   - input structure 
+%  fields of S:
+%   S.D               - MEEG object or filename of M/EEG mat-file with
 %                         continuous data
-%   S.bc                - baseline-correct the data (1 - yes, 0 - no).
+%   S.bc              - baseline-correct the data (1 - yes, 0 - no).
 %
 % Either (to use a ready-made trial definition):
-%   S.epochinfo.trl             - Nx2 or Nx3 matrix (N - number of trials)
-%                                 [start end offset]
-%   S.epochinfo.conditionlabels - one label or cell array of N labels
-%   S.epochinfo.padding         - the additional time period around each
-%                                 trial for which the events are saved with
-%                                 the trial (to let the user keep and use
-%                                 for analysis events which are outside) [in ms]
+%     S.trl            - [N x 3] trl matrix or name of the trial definition file
+%                      containing 'trl' variable with such a matrix
+%     S.conditionlabels - labels for the trials in the data [default: 'Undefined']
 %
-% Or (to define trials using (spm_eeg_definetrial)):
-%   S.pretrig           - pre-trigger time [in ms]
-%   S.posttrig          - post-trigger time [in ms]
-%   S.trialdef          - structure array for trial definition with fields
-%     S.trialdef.conditionlabel - string label for the condition
-%     S.trialdef.eventtype      - string
-%     S.trialdef.eventvalue     - string, numeric or empty
+%  or
 %
-%   S.reviewtrials      - review individual trials after selection
-%   S.save              - save trial definition
+%     S.timewin         -  time window in PST ms
+%     S.trialdef       - structure array for trial definition with fields
+%       S.trialdef.conditionlabel - string label for the condition
+%       S.trialdef.eventtype      - string
+%       S.trialdef.eventvalue     - string, numeric or empty
+%
+%
+%    S.eventpadding  -  (optional) the additional time period around each
+%                                     trial for which the events are saved with
+%                                     the trial (to let the user keep and use
+%                                     for analysis events which are outside) [in ms]
+%
+%    S.prefix     - prefix for the output file (default - 'e')
+%
 %
 % Output:
 % D                     - MEEG object (also written on disk)
 %__________________________________________________________________________
-%
-% spm_eeg_epochs extracts single trials from continuous EEG/MEG data. The
-% length of an epoch is determined by the samples before and after stimulus
-% presentation. One can limit the extracted trials to specific trial types.
-%__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 4431 2011-08-12 18:53:02Z vladimir $
+% $Id: spm_eeg_epochs.m 5073 2012-11-22 16:08:51Z vladimir $
 
-SVNrev = '$Rev: 4431 $';
+SVNrev = '$Rev: 5073 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG epoching'); spm('Pointer','Watch');
 
+if ~isfield(S, 'prefix'),       S.prefix = 'e';           end
+if ~isfield(S, 'bc'),           S.bc = 1;                 end
+if ~isfield(S, 'eventpadding'), S.eventpadding = 0;       end
+
 %-Get MEEG object
 %--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+D = spm_eeg_load(S.D);
 
-D   = spm_eeg_load(D);
-S.D = fullfile(D.path, D.fname);
 
 %-Check that the input file contains continuous data
 %--------------------------------------------------------------------------
-if ~strncmpi(D.type, 'cont', 4)
+if ~isequal(D.type, 'continuous')
     error('The file must contain continuous data.');
 end
 
 
-if ~isfield(S, 'bc')
-    S.bc = 1;
-    % S.bc = spm_input('Subtract baseline?','+1','yes|no',[1 0], 1);
-end
-
-%-First case: deftrials (default for GUI call)
-%--------------------------------------------------------------------------
-if isfield(S, 'trialdef') || nargin == 0
-
-    if isfield(S, 'pretrig')
-        S_definetrial.pretrig = S.pretrig;
-    end
-
-    if isfield(S, 'posttrig')
-        S_definetrial.posttrig = S.posttrig;
-    end
-
-    if isfield(S, 'trialdef')
-        S_definetrial.trialdef = S.trialdef;
-    end
-
-    if isfield(S, 'reviewtrials')
-        S_definetrial.reviewtrials = S.reviewtrials;
-    end
-
-    if isfield(S, 'save')
-        S_definetrial.save = S.save;
-    end
-
-    S_definetrial.D     = S.D;
+if all(isfield(S, {'trialdef', 'timewin'}))
+    S1 = [];
+    S1.D = D;
+    S1.reviewtrials = 0;
+    S1.save = 0;
     
-    S_definetrial.event = D.events;
+    if ischar(S.trialdef)
+        S1.trialdef = getfield(load(S.trialdef), 'trialdef');
+    else
+        S1.trialdef = S.trialdef;
+    end
+    
+    S1.timewin = S.timewin;
+    
+    [trl, conditionlabels] = spm_eeg_definetrial(S1);
 
-    S_definetrial.fsample = D.fsample;
-
-    S_definetrial.timeonset = D.timeonset;
-
-    S_definetrial.bc = S.bc;
-
-    [epochinfo.trl, epochinfo.conditionlabels, S] = spm_eeg_definetrial(S_definetrial);
-
-    %-Second case: epochinfo (trlfile and trl)
-    %--------------------------------------------------------------------------
-else
-    try
-        epochinfo.trl = S.epochinfo.trl;
-        epochinfo.conditionlabels = S.epochinfo.conditionlabels;
-    catch
-        try
-            epochinfo.trlfile = S.epochinfo.trlfile;
-        catch
-            epochinfo.trlfile = spm_select(1, 'mat', 'Select a trial definition file');
+elseif isfield(S, 'trl')
+    if ischar(S.trl)
+        trlfile = load(S.trl);
+        trl = getfield(trlfile, 'trl');
+        
+        if isfield(trlfile, 'conditionlabels')
+            conditionlabels = getfield(trlfile, 'conditionlabels');
+        else
+            conditionlabels = 'Undefined';
         end
-        try
-            epochinfo.trl = getfield(load(S.epochinfo.trlfile, 'trl'), 'trl');
-            epochinfo.conditionlabels = getfield(load(epochinfo.trlfile, 'conditionlabels'), 'conditionlabels');
-        catch
-            error('Trouble reading trl file.');
+    else
+        trl = S.trl;
+        if isfield(S, 'conditionlabels')
+            conditionlabels = S.conditionlabels;
+        else
+            conditionlabels = 'Undefined';
         end
     end
-
+else
+    error('Invalid trial definition');
 end
-
-trl = epochinfo.trl;
-conditionlabels = epochinfo.conditionlabels;
+   
+if ischar(conditionlabels)
+    conditionlabels = {conditionlabels};
+end
 
 if numel(conditionlabels) == 1
    conditionlabels = repmat(conditionlabels, 1, size(trl, 1));
 end
-
-try
-    epochinfo.padding = S.epochinfo.padding;
-catch
-    epochinfo.padding = 0;
-    % for history
-    S.epochinfo.padding = epochinfo.padding;
-end
-
 
 % checks on input
 if size(trl, 2) >= 3
@@ -179,7 +139,7 @@ ntrial = size(trl, 1);
 
 %-Generate new MEEG object with new filenames
 %--------------------------------------------------------------------------
-Dnew = clone(D, ['e' fnamedat(D)], [D.nchannels nsampl, ntrial]);
+Dnew = clone(D, [S.prefix fname(D)], [D.nchannels nsampl, ntrial]);
 
 %-Epoch data
 %--------------------------------------------------------------------------
@@ -194,19 +154,19 @@ for i = 1:ntrial
     Dnew(:, :, i) = d;
 
     Dnew = events(Dnew, i, select_events(D.events, ...
-        [trl(i, 1)/D.fsample-epochinfo.padding  trl(i, 2)/D.fsample+epochinfo.padding]));
+        [trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
 
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end
 
-Dnew = conditions(Dnew, [], conditionlabels);
+Dnew = conditions(Dnew, ':', conditionlabels);
 
 % The conditions will later be sorted in the original order they were defined.
 if isfield(S, 'trialdef')
     Dnew = condlist(Dnew, {S.trialdef(:).conditionlabel});
 end
 
-Dnew = trialonset(Dnew, [], trl(:, 1)./D.fsample+D.trialonset);
+Dnew = trialonset(Dnew, ':', trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
 
@@ -216,7 +176,7 @@ if S.bc
     if time(Dnew, 1) < 0
         S1               = [];
         S1.D             = Dnew;
-        S1.time          = [time(Dnew, 1, 'ms') 0];
+        S1.timewin       = [time(Dnew, 1, 'ms') 0];
         S1.save          = false;
         S1.updatehistory = false;
         Dnew             = spm_eeg_bc(S1);
