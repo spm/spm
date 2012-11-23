@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_eeg_convert.m 5077 2012-11-23 16:10:36Z vladimir $
 
-SVNrev = '$Rev: 5073 $';
+SVNrev = '$Rev: 5077 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -66,15 +66,15 @@ if ~isfield(S, 'dataset')
     error('Dataset must be specified.');
 end
 
-if ~isfield(S, 'outfile'),         S.outfile = ['spm12_' spm_file(S.dataset,'basename')]; end
-if ~isfield(S, 'channels'),        S.channels = 'all';                                   end
-if ~isfield(S, 'timewin'),         S.timewin   = [];                                     end
-if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                end %100 Mb
-if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                  end
-if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                   end
-if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                 end
-if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                      end
-if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                  end
+if ~isfield(S, 'outfile'),         S.outfile = ['spmeeg_' spm_file(S.dataset,'basename')]; end
+if ~isfield(S, 'channels'),        S.channels = 'all';                                     end
+if ~isfield(S, 'timewin'),         S.timewin   = [];                                       end
+if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                                  end %100 Mb
+if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                    end
+if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                     end
+if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                   end
+if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                        end
+if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                    end
 
 if ~iscell(S.conditionlabel)
     S.conditionlabel = {S.conditionlabel};
@@ -415,7 +415,7 @@ if ~isequal(S.mode, 'header')
         dat = full(dat);
         
         switch S.mode
-            case 'continuouse'
+            case 'continuous'
                 nblocksamples = size(dat,2);
                 
                 D.data(:, offset:(offset+nblocksamples-1)) = dat;

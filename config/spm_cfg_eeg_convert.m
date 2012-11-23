@@ -4,7 +4,7 @@ function convert = spm_cfg_eeg_convert
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 5077 2012-11-23 16:10:36Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -97,7 +97,7 @@ outfile.name = 'Output filename';
 outfile.strtype = 's';
 outfile.num = [0 inf];
 outfile.val = {''};
-outfile.help = {'Choose filename. Leave empty to add ''spm8_'' to the input file name.'};
+outfile.help = {'Choose filename. Leave empty to add ''spmeeg_'' to the input file name.'};
 
 eventpadding = cfg_entry;
 eventpadding.tag = 'eventpadding';
