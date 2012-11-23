@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_artefact
+function artefact = spm_cfg_eeg_artefact
 % Configuration file for M/EEG artefact detection
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_cfg_eeg_artefact.m 5076 2012-11-23 16:05:21Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -58,16 +58,27 @@ methodsrep.values = {methods};
 methodsrep.num    = [1 Inf];
 
 %--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset. Default prefix is ''a''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'a'};
+
+%--------------------------------------------------------------------------
 % M/EEG Artefact detection
 %--------------------------------------------------------------------------
-S          = cfg_exbranch;
-S.tag      = 'artefact';
-S.name     = 'M/EEG Artefact detection';
-S.val      = {D, badchanthresh, methodsrep};
-S.help     = {'Detect artefacts in epoched M/EEG data.'};
-S.prog     = @eeg_artefact;
-S.vout     = @vout_eeg_artefact;
-S.modality = {'EEG'};
+artefact          = cfg_exbranch;
+artefact.tag      = 'artefact';
+artefact.name     = 'M/EEG Artefact detection';
+artefact.val      = {D, badchanthresh, methodsrep, prefix};
+artefact.help     = {'Detect artefacts in epoched M/EEG data.'};
+artefact.prog     = @eeg_artefact;
+artefact.vout     = @vout_eeg_artefact;
+artefact.modality = {'EEG'};
 
 %==========================================================================
 % function out = eeg_artefact(job)

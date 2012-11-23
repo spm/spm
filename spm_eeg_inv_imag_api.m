@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 4260 2011-03-23 13:42:21Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 5076 2012-11-23 16:05:21Z vladimir $
 
 spm('Clear');
 
@@ -121,7 +121,7 @@ function Load_Callback(hObject, eventdata, handles)
 if ~sts, return; end
 D = spm_eeg_load(S);
 
-[ok, D] = check(D, 'sensfid');
+[D, ok] = check(D, 'sensfid');
 
 if ~ok
     if check(D, 'basic')

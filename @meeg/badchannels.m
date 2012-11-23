@@ -5,7 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: badchannels.m 5076 2012-11-23 16:05:21Z vladimir $
 
 if length(varargin) == 2 && ~isempty(varargin{1})
     % make sure that the two inputs for set are the same length
@@ -20,7 +20,7 @@ if numel(varargin) >= 1  && ~isempty(varargin{1})
     end
 end
 
-if numel(varargin) >= 2
+if numel(varargin) >= 2 && ~isempty(varargin{1})
     ubad = unique(varargin{2});
     if isempty(ubad) || ~all(ismember(ubad, [0 1]))
         error('Illegal bad flags (should be 0 or 1)');
