@@ -1,12 +1,12 @@
-function S = spm_cfg_eeg_average
+function average = spm_cfg_eeg_average
 % configuration file for M/EEG epoching
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_average.m 5075 2012-11-23 15:24:02Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 5075 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -34,7 +34,7 @@ bycondition.name = 'Compute weights by condition';
 bycondition.help = {'Compute weights for each condition separately or for all conditions together.'};
 bycondition.labels = {'Yes', 'No'};
 bycondition.values = {true, false};
-bycondition.val = {true};
+bycondition.val = {false};
 
 savew = cfg_menu;
 savew.tag = 'savew';
@@ -42,7 +42,7 @@ savew.name = 'Save weights';
 savew.help = {'Save weights in a separate dataset for quality control.'};
 savew.labels = {'Yes', 'No'};
 savew.values = {true, false};
-savew.val = {true};
+savew.val = {false};
 
 robust = cfg_branch;
 robust.tag = 'robust';
@@ -65,14 +65,22 @@ plv.labels = {'Yes', 'No'};
 plv.values = {true, false};
 plv.val = {false};
 
-S = cfg_exbranch;
-S.tag = 'average';
-S.name = 'M/EEG Averaging';
-S.val = {D, userobust, plv};
-S.help = {'Average epoched EEG/MEG data.'};
-S.prog = @eeg_average;
-S.vout = @vout_eeg_average;
-S.modality = {'EEG'};
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the averaged dataset. Default prefix is ''m''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'m'};
+
+average = cfg_exbranch;
+average.tag = 'average';
+average.name = 'M/EEG Averaging';
+average.val = {D, userobust, plv, prefix};
+average.help = {'Average epoched EEG/MEG data.'};
+average.prog = @eeg_average;
+average.vout = @vout_eeg_average;
+average.modality = {'EEG'};
 
 function out = eeg_average(job)
 % construct the S struct
@@ -82,9 +90,9 @@ if isfield(job.userobust, 'robust')
 else
     S.robust = false;
 end
-S.review = false;
 
 S.circularise = job.plv;
+S.prefix = job.prefix;
 
 out.D = spm_eeg_average(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};

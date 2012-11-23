@@ -3,7 +3,7 @@ function D = spm_eeg_average_TF(S)
 % FORMAT D = spm_eeg_average_TF(S)
 %
 % S         - optional input struct
-% (optional) fields of S:
+%    fields of S:
 % S.D           - MEEG object or filename of M/EEG mat-file with epoched TF data
 % S.circularise - flag that indicates whether average is straight (0) or
 %                 vector (1) of phase angles.
@@ -14,102 +14,67 @@ function D = spm_eeg_average_TF(S)
 %                 .ks     - offset of the weighting function (default: 3)
 %
 % Output:
-% D         - MEEG object (also written to disk)
+% D         - MEEG object (also written to disk).
 %__________________________________________________________________________
-%
-% This function averages single trial time-frequency data within trial type.
-%__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 3616 2009-12-08 15:16:39Z vladimir $
+% $Id: spm_eeg_average_TF.m 5075 2012-11-23 15:24:02Z vladimir $
 
-SVNrev = '$Rev: 3616 $';
+SVNrev = '$Rev: 5075 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG TF averaging'); spm('Pointer','Watch');
 
-%-Get MEEG object
+
+if ~isfield(S, 'circularise'),       S.circularise = 0;          end
+
+%-Configure robust averaging
 %--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
+if isstruct(S.robust)
+    if ~isfield(S.robust, 'savew'),        S.robust.savew =  0;        end
+    if ~isfield(S.robust, 'bycondition'),  S.robust.bycondition = 0;   end
+    if ~isfield(S.robust, 'ks'),           S.robust.ks =  3;           end
+    
+    robust      = 1;
+    savew       = S.robust.savew;
+    bycondition = S.robust.bycondition;
+    ks          = S.robust.ks;
+else
+    robust = 0;
 end
 
-D = spm_eeg_load(D);
+
+%-Get MEEG object
+%--------------------------------------------------------------------------
+D = spm_eeg_load(S.D);
 
 %-Check data type
 %--------------------------------------------------------------------------
 if ~strcmp(D.type, 'single')
     error('This function can only be applied to single trial data');
-elseif ~strncmp(D.transformtype, 'TF', 2) % TF and TFphase
+end
+
+if ~strncmp(D.transformtype, 'TF', 2) % TF and TFphase
     error('This function can only be applied to time-frequency data.');
 end
 
-%-Get other parameters
-%--------------------------------------------------------------------------
-try
-    plv = S.circularise;
-catch
-    plv = 0;
-    if strcmp(D.transformtype, 'TFphase')
-        plv = spm_input('Average of phase angles?','+1', ...
-            'angle|abs(PLV)',[0 1], 1);
-    end
-    S.circularise = plv;
-end
-
-
-%-Configure robust averaging
-%--------------------------------------------------------------------------
-
 if strcmp(D.transformtype, 'TFphase')
-    S.robust = 0;
-end
-
-if ~isfield(S, 'robust')
-    robust = spm_input('Use robust averaging?','+1','yes|no',[1 0]);
-    if robust
-        S.robust = [];
-    else
-        S.robust = false;
+    if ~isequal(S.robust, 0)
+        warning('Robust averaging is not applicable to phase data and will not be used.');
+        S.robust = 0;
     end
-else
-    robust = isa(S.robust, 'struct');
-end
-
-
-if robust
-    if ~isfield(S.robust, 'savew')
-        S.robust.savew =  spm_input('Save weights?','+1','yes|no',[1 0]);
-    end
-    savew = S.robust.savew;
-    
-    if ~isfield(S.robust, 'bycondition')
-        S.robust.bycondition = spm_input('Compute weights by condition?','+1','yes|no',[1 0]);
-    end
-    
-    bycondition = S.robust.bycondition;
-    
-    if ~isfield(S.robust, 'ks')
-        S.robust.ks =  spm_input('Offset of the weighting function', '+1', 'r', '3', 1);
-    end
-    
-    ks          = S.robust.ks;
-    
+    plv = S.circularise;
 end
 
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
-Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
+Dnew = clone(D, [S.prefix fname(D)], [D.nchannels D.nfrequencies D.nsamples D.nconditions]);
 
 if robust && savew
-    Dw = clone(D, ['W' fnamedat(D)], size(D));
+    Dw = clone(D, ['W' fname(D)]);
 end
 
 cl   = D.condlist;
@@ -118,14 +83,14 @@ spm_progress_bar('Init', D.nchannels, 'Channels completed');
 
 ni = zeros(1,D.nconditions);
 for i = 1:D.nconditions
-    w = pickconditions(D, deblank(cl{i}), 1)';
+    w = indtrial(D, deblank(cl{i}), 'GOOD');
     ni(i) = length(w);
     if ni(i) == 0
-        warning('%s: No trials for trial type %d', D.fname, cl{i});
+        warning('%s: No trials for trial type %s', D.fname, cl{i});
     end
 end
 
-goodtrials  =  pickconditions(D, cl, 1);
+goodtrials  =  indtrial(D, cl, 'GOOD');
 
 for j = 1:D.nchannels
     if robust && ~bycondition
@@ -138,7 +103,7 @@ for j = 1:D.nchannels
     end
     for i = 1:D.nconditions
         
-        w = pickconditions(D, deblank(cl{i}), 1)';
+        w = indtrial(D, deblank(cl{i}), 'GOOD');
         
         if isempty(w)
             continue;
@@ -185,30 +150,31 @@ Dnew = type(Dnew, 'evoked');
 
 %-Update some header information
 %--------------------------------------------------------------------------
-Dnew = conditions(Dnew, [], cl);
-Dnew = repl(Dnew, [], ni);
+Dnew = conditions(Dnew, ':', cl);
+Dnew = repl(Dnew, ':', ni);
 
 %-Display averaging statistics
 %--------------------------------------------------------------------------
-disp(sprintf('%s: Number of replications per contrast:', Dnew.fname));  %-#
+fprintf('%s: Number of replications per contrast:', Dnew.fname);  %-#
+
 s = [];
 for i = 1:D.nconditions
     s = [s sprintf('average %s: %d trials', cl{i}, ni(i))];
     if i < D.nconditions
-        s = [s sprintf(', ')];
+        s = [s ', '];
     else
         s = [s '\n'];
     end
 end
-disp(sprintf(s));                                                       %-#
+fprintf(s);                                                       %-#
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
-Dnew = Dnew.history(mfilename, S);
+Dnew = Dnew.history('spm_eeg_average', S);
 save(Dnew);
 
 if robust && savew
-    Dw = Dw.history(mfilename, S);
+    Dw = Dw.history('spm_eeg_average', S);
     save(Dw);
 end
 

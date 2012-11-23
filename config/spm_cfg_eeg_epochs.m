@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 5075 2012-11-23 15:24:02Z vladimir $
 
 
 D = cfg_files;
@@ -89,7 +89,7 @@ trlchoice.values = {trlfile define};
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
 prefix.name    = 'Filename Prefix';
-prefix.help    = {'Specify the string to be prepended to the filenames of the filtered dataset. Default prefix is ''e''.'};
+prefix.help    = {'Specify the string to be prepended to the filenames of the epoched dataset. Default prefix is ''e''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'e'};

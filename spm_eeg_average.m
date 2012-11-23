@@ -3,48 +3,57 @@ function D = spm_eeg_average(S)
 % FORMAT D = spm_eeg_average(S)
 %
 % S        - optional input struct
-% (optional) fields of S:
+%    fields of S:
 % D        - MEEG object or filename of M/EEG mat-file with epoched data
 % S.robust      - (optional) - use robust averaging
 %                 .savew  - save the weights in an additional dataset
 %                 .bycondition - compute the weights by condition (1,
 %                                default) or from all trials (0)
 %                 .ks     - offset of the weighting function (default: 3)
-% review   - review data after averaging [default: true]
+% S.prefix     - prefix for the output file (default - 'm')
 %
 % Output:
 % D        - MEEG object (also written on disk)
 %__________________________________________________________________________
-%
-% spm_eeg_average averages single trial data within trial type.
-%__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 4455 2011-09-05 11:56:45Z vladimir $
+% $Id: spm_eeg_average.m 5075 2012-11-23 15:24:02Z vladimir $
 
-SVNrev = '$Rev: 4455 $';
+SVNrev = '$Rev: 5075 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG averaging'); spm('Pointer','Watch');
 
-%-Get MEEG object
+%-Get input parameters
 %--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
+if ~isfield(S, 'prefix'),       S.prefix = 'm';           end
+if ~isfield(S, 'robust'),       S.robust = 0;             end
+
+%-Configure robust averaging
+%--------------------------------------------------------------------------
+if isstruct(S.robust)
+    if ~isfield(S.robust, 'savew'),        S.robust.savew =  0;        end
+    if ~isfield(S.robust, 'bycondition'),  S.robust.bycondition = 0;   end
+    if ~isfield(S.robust, 'ks'),           S.robust.ks =  3;           end
+    
+    robust      = 1;
+    savew       = S.robust.savew;
+    bycondition = S.robust.bycondition;
+    ks          = S.robust.ks;
+else
+    robust = 0;
 end
 
-D = spm_eeg_load(D);
+%-Get MEEG object
+%--------------------------------------------------------------------------
+D = spm_eeg_load(S.D);
 
 %-Check that there is any good data available
 %--------------------------------------------------------------------------
-if ntrials(D)==0 || all(reject(D))
+if ntrials(D)==0 || isempty(indtrial(D, D.condlist, 'GOOD'))
     warning('No good trials for averaging were found. Nothing to do.');
     return;
 end
@@ -56,47 +65,13 @@ if strncmpi(D.transformtype,'TF',2) % TF and TFphase
     return
 end
 
-%-Configure robust averaging
-%--------------------------------------------------------------------------
-if ~isfield(S, 'robust')
-    robust = spm_input('Use robust averaging?','+1','yes|no',[1 0]);
-    if robust
-        S.robust = [];
-    else
-        S.robust = false;
-    end
-else
-    robust = isa(S.robust, 'struct');
-end
-
-
-if robust
-    if ~isfield(S.robust, 'savew')
-        S.robust.savew =  spm_input('Save weights?','+1','yes|no',[1 0]);
-    end
-    savew = S.robust.savew;
-
-    if ~isfield(S.robust, 'bycondition')
-        S.robust.bycondition = spm_input('Compute weights by condition?','+1','yes|no',[1 0]);
-    end
-
-    bycondition = S.robust.bycondition;
-
-    if ~isfield(S.robust, 'ks')
-        S.robust.ks =  spm_input('Offset of the weighting function', '+1', 'r', '3', 1);
-    end
-
-    ks          = S.robust.ks;
-
-end
-
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
-Dnew = clone(D, ['m' fnamedat(D)], [D.nchannels D.nsamples D.nconditions]);
+Dnew = clone(D, [S.prefix fname(D)], [D.nchannels D.nsamples D.nconditions]);
 Dnew = type(Dnew, 'evoked');
 
 if robust && savew
-    Dw = clone(D, ['W' fnamedat(D)], size(D));
+    Dw = clone(D, ['W' fname(D)]);
 end
 
 %-Do the averaging
@@ -105,15 +80,15 @@ cl   = D.condlist;
 
 ni = zeros(1, D.nconditions);
 for i = 1:D.nconditions
-    w = pickconditions(D, deblank(cl{i}), 1)';
+    w = indtrial(D, deblank(cl{i}), 'GOOD');
     ni(i) = length(w);
     if ni(i) == 0
         warning('%s: No trials for trial type %d', D.fname, cl{i});
     end
 end
 
-goodtrials  = pickconditions(D, cl, 1);
-chanind     = meegchannels(D);
+goodtrials  = indtrial(D, cl, 'GOOD');
+chanind     = D.indchantype({'MEEG', 'LFP'});
 
 if prod(size(D))*8 < spm('memory')
 
@@ -121,7 +96,7 @@ if prod(size(D))*8 < spm('memory')
     %======================================================================
     spm_progress_bar('Init', D.nconditions, 'Averages done');
     if D.nconditions > 100, Ibar = floor(linspace(1, D.nconditions, 100));
-    else Ibar = [1:D.nconditions]; end
+    else Ibar = 1:D.nconditions; end
 
     if robust && ~bycondition
         W1      = ones(D.nchannels, D.nsamples, length(goodtrials));
@@ -136,7 +111,7 @@ if prod(size(D))*8 < spm('memory')
 
     for i = 1:D.nconditions
 
-        w = pickconditions(D, deblank(cl{i}), true)';
+        w = indtrial(D, deblank(cl{i}), 'GOOD');
 
         if isempty(w)
             continue;
@@ -190,7 +165,7 @@ else
 
         for i = 1:D.nconditions
 
-            w = pickconditions(D, deblank(cl{i}), true)';
+            w = indtrial(D, deblank(cl{i}), 'GOOD');
 
             if isempty(w)
                 continue;
@@ -222,8 +197,8 @@ spm_progress_bar('Clear');
 
 %-Update some header information
 %--------------------------------------------------------------------------
-Dnew = conditions(Dnew, [], cl);
-Dnew = repl(Dnew, [], ni);
+Dnew = conditions(Dnew, ':', cl);
+Dnew = repl(Dnew, ':', ni);
 
 %-Display averaging statistics
 %--------------------------------------------------------------------------
@@ -254,12 +229,6 @@ if robust && savew
 end
 
 D = Dnew;
-
-%-Eventually display it
-%--------------------------------------------------------------------------
-if ~isfield(S, 'review') || S.review
-    spm_eeg_review(D);
-end
 
 %-Cleanup
 %--------------------------------------------------------------------------
