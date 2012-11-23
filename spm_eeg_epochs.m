@@ -36,9 +36,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_eeg_epochs.m 5074 2012-11-23 12:18:26Z vladimir $
 
-SVNrev = '$Rev: 5073 $';
+SVNrev = '$Rev: 5074 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -141,6 +141,18 @@ ntrial = size(trl, 1);
 %--------------------------------------------------------------------------
 Dnew = clone(D, [S.prefix fname(D)], [D.nchannels nsampl, ntrial]);
 
+%-Baseline correction
+%--------------------------------------------------------------------------
+if S.bc
+    if time(Dnew, 1) < 0
+        bc = Dnew.indsample(0);
+        chanbc = D.indchantype('Filtered');
+    else
+       bc = 0;
+       warning('There was no baseline specified. The data is not baseline-corrected');
+    end
+end
+
 %-Epoch data
 %--------------------------------------------------------------------------
 spm_progress_bar('Init', ntrial, 'Events read');
@@ -150,6 +162,11 @@ else Ibar = [1:ntrial]; end
 for i = 1:ntrial
 
     d = D(:, trl(i, 1):trl(i, 2), 1);
+    
+    if bc
+        mbaseline = mean(d(chanbc, 1:bc), 2);
+        d(chanbc, :) = d(chanbc, :) - repmat(mbaseline, 1, size(d, 2));
+    end
 
     Dnew(:, :, i) = d;
 
@@ -169,21 +186,6 @@ end
 Dnew = trialonset(Dnew, ':', trl(:, 1)./D.fsample+D.trialonset);
 Dnew = timeonset(Dnew, timeOnset);
 Dnew = type(Dnew, 'single');
-
-%-Perform baseline correction if there are negative time points
-%--------------------------------------------------------------------------
-if S.bc
-    if time(Dnew, 1) < 0
-        S1               = [];
-        S1.D             = Dnew;
-        S1.timewin       = [time(Dnew, 1, 'ms') 0];
-        S1.save          = false;
-        S1.updatehistory = false;
-        Dnew             = spm_eeg_bc(S1);
-    else
-        warning('There was no baseline specified. The data is not baseline-corrected');
-    end
-end
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
