@@ -1,13 +1,13 @@
-function save(this)
+function this = save(this)
 % Save an meeg object into a file
-% FORMAT save(this)
+% FORMAT this = save(this)
 %
 % Converts an meeg object to struct and saves it.
 %__________________________________________________________________________
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: save.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: save.m 5078 2012-11-25 15:08:05Z vladimir $
 
 D = struct(this);
 save(fullfile(this), 'D', spm_get_defaults('mat.format'));

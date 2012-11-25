@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: spm_eeg_review.m 5078 2012-11-25 15:08:05Z vladimir $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -157,7 +157,7 @@ switch D.type
         D.PSD.type = 'epoched';
         nTrials = D.ntrials;
         D.PSD.trials.TrLabels = cell(nTrials,1);
-        bTrials = find(reject(D));
+        bTrials = badtrials(D);
         for i = 1:nTrials
             if any(i==bTrials)
                 str = ' (bad)';
@@ -186,9 +186,9 @@ end
 
 %-- Initialize channel info --%
 nc = D.nchannels;
-D.PSD.EEG.I  = meegchannels(D,'EEG');
-D.PSD.MEG.I  = sort(meegchannels(D,'MEG'));
-D.PSD.MEGPLANAR.I  = meegchannels(D,'MEGPLANAR');
+D.PSD.EEG.I  = indchantype(D,'EEG');
+D.PSD.MEG.I  = sort(indchantype(D,'MEG'));
+D.PSD.MEGPLANAR.I  = indchantype(D,'MEGPLANAR');
 D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
 %-- Get basic display variables (data range, offset,...)
 if ~isempty(D.PSD.EEG.I)

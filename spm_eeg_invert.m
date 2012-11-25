@@ -120,7 +120,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_invert.m 4733 2012-05-05 12:19:58Z vladimir $
+% $Id: spm_eeg_invert.m 5078 2012-11-25 15:08:05Z vladimir $
 
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -185,7 +185,7 @@ for i = 1:Nl
         
         % Check gain or lead-field matrices
         %------------------------------------------------------------------
-        Ic{i,m}  = setdiff(meegchannels(D{i}, modalities{m}), badchannels(D{i}));
+        Ic{i,m}  = indchantype(D{i}, modalities{m}, 'GOOD');
         Nd(i)    = size(L,2);
         Nc(i,m)  = length(Ic{i,m});
         
@@ -448,7 +448,7 @@ for i = 1:Nl
         YY    = 0;
         MY{m} = 0;
         for j = 1:Nt(i)                            % pool over conditions
-            c     = D{i}.pickconditions(trial{j}); % and trials
+            c     = D{i}.indtrial(trial{j}); % and trials
             Nk    = length(c);
             for k = 1:Nk
                 Y     = A{i,m}*D{i}(Ic{i,m},It{i},c(k));
@@ -497,7 +497,7 @@ for i = 1:Nl
     for j = 1:Nt(i)
         
         UY{i,j} = sparse(0);
-        c       = D{i}.pickconditions(trial{j});
+        c       = D{i}.indtrial(trial{j});
         Nk      = length(c);
         
         % loop over epochs

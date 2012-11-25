@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_uis(D,objects)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_uis.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: spm_eeg_review_uis.m 5078 2012-11-25 15:08:05Z vladimir $
 
 % POS = get(D.PSD.handles.hfig,'position');
 
@@ -280,7 +280,7 @@ switch objects.type
         
         if ismember(13,objects.list)  % switch 'bad' event status
             trN = D.PSD.trials.current;
-            status = any(intersect(trN,find(reject(D))));
+            status = any(intersect(trN,badtrials(D)));
             if status
                 str = 'declare as not bad';
                 val = 0;

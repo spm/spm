@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 3497 2009-10-21 21:54:28Z vladimir $
+% $Id: spm_eeg_history.m 5078 2012-11-25 15:08:05Z vladimir $
 
 try
     h = S.history;
@@ -159,17 +159,31 @@ for i=1:numel(h)
         case 'spm_eeg_epochs'
             hh{i} = 'Epoch';
         case 'spm_eeg_filter'
-            if length(h(i).args.filter.PHz) == 2
-                hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
-                    ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
+            if isfield(h(i).args, 'filter')
+                if length(h(i).args.filter.PHz) == 2
+                    hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
+                        ' filter ' num2str(h(i).args.filter.PHz(:)', '%g %g') ' Hz'];
+                else
+                    hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
+                        ' filter ' num2str(h(i).args.filter.PHz, '%g') ' Hz'];
+                end
             else
-                hh{i} = [upper(h(i).args.filter.band(1)) h(i).args.filter.band(2:end)...
-                    ' filter ' num2str(h(i).args.filter.PHz, '%g') ' Hz'];
+                if length(h(i).args.freq) == 2
+                    hh{i} = [upper(h(i).args.band(1)) h(i).args.filter.band(2:end)...
+                        ' filter ' num2str(h(i).args.freq(:)', '%g %g') ' Hz'];
+                else
+                    hh{i} = [upper(h(i).args.band(1)) h(i).args.band(2:end)...
+                        ' filter ' num2str(h(i).args.freq, '%g') ' Hz'];
+                end
             end
         case 'spm_eeg_downsample'
             hh{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
         case 'spm_eeg_bc'
-            hh{i} = ['Baseline correction ' mat2str(h(i).args.time(:)') ' ms'];
+            if isfield(mat2str(h(i).args, 'time'))
+                hh{i} = ['Baseline correction ' mat2str(h(i).args.time(:)') ' ms'];
+            elseif isfield(mat2str(h(i).args, 'timewin'))
+                hh{i} = ['Baseline correction ' mat2str(h(i).args.timewin(:)') ' ms'];
+            end
         case 'spm_eeg_copy'   
             hh{i} = 'Copy dataset';
         case 'spm_eeg_montage'

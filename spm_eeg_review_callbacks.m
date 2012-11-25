@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: spm_eeg_review_callbacks.m 5078 2012-11-25 15:08:05Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -700,7 +700,7 @@ switch varargin{1}
                     try cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
-                status = reject(D,trN);
+                status = badchannels(D,trN);
                 try
                     if status
                         str = 'declare as not bad';
@@ -1630,7 +1630,7 @@ str{3} = ['Number of time samples: ',num2str(D.nsamples),' (',num2str(delta_t),'
 str{4} = ['Time sampling frequency: ',num2str(D.fsample),' Hz'];
 nb = length(find(badchannels(D)));
 str{5} = ['Number of channels: ',num2str(D.nchannels),' (',num2str(nb),' bad channels)'];
-nb = sum(reject(D));
+nb = length(badchannels(D));
 if strcmp(D.type,'continuous')
     Events = events(D,1);
     if ~isempty(Events)
@@ -1706,9 +1706,9 @@ if length(cn) == 5  % channel info
             end
         end
         % Find indices of channel types (these might have been changed)
-        D.PSD.EEG.I  = meegchannels(D,'EEG');
-        D.PSD.MEG.I  = sort(meegchannels(D,'MEG'));
-        D.PSD.MEGPLANAR.I  = meegchannels(D,'MEGPLANAR');
+        D.PSD.EEG.I  = indchantype(D,'EEG');
+        D.PSD.MEG.I  = sort(indchantype(D,'MEG'));
+        D.PSD.MEGPLANAR.I  = indchantype(D,'MEGPLANAR');
         D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
         if ~isempty(D.PSD.EEG.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);

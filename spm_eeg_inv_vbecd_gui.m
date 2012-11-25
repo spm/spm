@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 4534 2011-10-24 18:35:52Z guillaume $
+% $Id: spm_eeg_inv_vbecd_gui.m 5078 2012-11-25 15:08:05Z vladimir $
 
 %%
 % Load data, if necessary
@@ -88,7 +88,7 @@ if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
             end
             P.forward.sens = D.inv{val}.datareg(m).sensors;
             % Channels to use
-            P.Ic = setdiff(meegchannels(D, P.modality), badchannels(D));
+            P.Ic = indchantype(D, P.modality, 'GOOD');
             
             
             M1 = D.inv{val}.datareg.toMNI;
@@ -117,10 +117,8 @@ end
 [P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 
-if ~isfield(P.forward.sens,'prj')
-    P.forward.sens.prj = D.coor2D(P.Ic);
-end
 
+P.forward.sens.prj = D.coor2D(P.Ic);
 
 %% 
 % Deal with data
@@ -171,8 +169,8 @@ if strcmp(upper(P.modality),'EEG'),
     allunits=strvcat('uV','mV','V');   
     allscales=[1e-6, 1e-3, 1]; %% 
     EEGscale=0;
-    eegunits = unique(D.units(D.meegchannels('EEG')));
-    Neegchans=numel(D.units(D.meegchannels('EEG')));
+    eegunits = unique(D.units(D.indchantype('EEG')));
+    Neegchans=numel(D.units(D.indchantype('EEG')));
     for j=1:length(allunits),
         if strcmp(deblank(allunits(j,:)),deblank(eegunits));
             EEGscale=allscales(j);
