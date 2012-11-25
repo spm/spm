@@ -3,43 +3,40 @@ function D = spm_eeg_fuse(S)
 % FORMAT D = spm_eeg_fuse(S)
 %
 % S           - input structure (optional)
-% (optional) fields of S:
+%  fields of S:
 %   S.D       - character array containing filenames of M/EEG mat-files
+%   S.prefix     - prefix for the output file (default - 'u')
 %
 % D        - MEEG object (also written to disk, with a 'u' prefix)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Vladimir Litvak
-% $Id: spm_eeg_fuse.m 3937 2010-06-18 14:41:43Z vladimir $
+% $Id: spm_eeg_fuse.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 3937 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG fuse'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'prefix'),       S.prefix = 'u';           end
 
 %-Load MEEG data
 %--------------------------------------------------------------------------
-F = cell(1,size(D,1));
-try
-    for i = 1:size(D, 1)
-        F{i} = spm_eeg_load(deblank(D(i, :)));
+D = S.D;
+
+if ischar(D)
+    F = cell(1,size(D,1));
+    try
+        for i = 1:size(D, 1)
+            F{i} = spm_eeg_load(deblank(D(i, :)));
+        end
+        D = F;
+    catch
+        error('Trouble reading files');
     end
-    D = F;
-catch
-    error('Trouble reading files');
 end
 
 Nfiles = numel(D);
@@ -116,9 +113,9 @@ Dout = D{1};
 [p, f, x] = fileparts(fnamedat(Dout));
 
 if ~isTF
-    Dout = clone(Dout, fullfile(pwd, ['u' f x]), [Nchannels Dout.nsamples Dout.ntrials]);
+    Dout = clone(Dout, fullfile(pwd, [S.prefix f x]), [Nchannels Dout.nsamples Dout.ntrials]);
 else
-    Dout = clone(Dout, fullfile(pwd, ['u' f x]), [Nchannels Dout.nfrequencies Dout.nsamples Dout.ntrials]);
+    Dout = clone(Dout, fullfile(pwd, [S.prefix f x]), [Nchannels Dout.nfrequencies Dout.nsamples Dout.ntrials]);
 end
 
 
@@ -146,9 +143,9 @@ spm_progress_bar('Clear');
 
 % Update the header data separately to only do it once
 k = 1;
-rejected = Dout.reject;
+rejected = Dout.badtrials;
 for i = 1:Nfiles
-    rejected = rejected | D{i}.reject;
+    rejected = [rejected D{i}.badtrials];
     
     Dout = chanlabels(Dout, k:(k+D{i}.nchannels-1), chanlabels(D{i}));
     Dout = chantype(Dout, k:(k+D{i}.nchannels-1), chantype(D{i}));
@@ -161,9 +158,8 @@ for i = 1:Nfiles
     k = k + D{i}.nchannels;
 end
 
-if any(rejected)
-    Dout = reject(Dout, [], rejected);
-end
+Dout = badtrials(Dout, rejected, 1);
+
 
 %-Set sensor locations
 %--------------------------------------------------------------------------

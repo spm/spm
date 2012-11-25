@@ -15,8 +15,8 @@ function res = spm_eeg_reduce_pca_adapt(S)
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak 
-% $Id: spm_eeg_reduce_pca_adapt.m 5054 2012-11-14 15:26:46Z guillaume $
+% Mark Woolrich
+% $Id: spm_eeg_reduce_pca_adapt.m 5079 2012-11-25 18:38:18Z vladimir $
 
 
 if nargin == 0 
@@ -30,7 +30,7 @@ if nargin == 0
     
     pca_adapt = cfg_branch;
     pca_adapt.tag = 'pca_adapt';
-    pca_adapt.name = 'PCA data reduction';
+    pca_adapt.name = 'Adaptive PCA';
     pca_adapt.val = {ncomp};
     
     res = pca_adapt;

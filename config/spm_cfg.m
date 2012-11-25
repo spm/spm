@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_cfg.m 5079 2012-11-25 18:38:18Z vladimir $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -39,7 +39,9 @@ meegprep        = cfg_choice;
 meegprep.tag    = 'preproc';
 meegprep.name   = 'M/EEG Preprocessing';
 meegprep.help   = {'M/EEG preprocessing.'};
-meegprep.values = {spm_cfg_eeg_prepare spm_cfg_eeg_montage spm_cfg_eeg_filter spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge spm_cfg_eeg_fuse spm_cfg_eeg_reduce}; 
+meegprep.values = {spm_cfg_eeg_prepare spm_cfg_eeg_montage spm_cfg_eeg_filter...
+    spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge...
+    spm_cfg_eeg_fuse spm_cfg_eeg_reduce spm_cfg_eeg_crop spm_cfg_eeg_remove_bad_trials}; 
 
 %--------------------------------------------------------------------------
 % M/EEG time-frequency
@@ -66,7 +68,7 @@ meeg         = cfg_choice;
 meeg.tag     = 'meeg';
 meeg.name    = 'M/EEG';
 meeg.help    = {'M/EEG functions.'};
-meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_epochs meegprep spm_cfg_eeg_average spm_cfg_eeg_review spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_convert2images meegtf source };
+meeg.values  = { spm_cfg_eeg_convert spm_cfg_eeg_epochs meegprep spm_cfg_eeg_average spm_cfg_eeg_review spm_cfg_eeg_contrast spm_cfg_eeg_grandmean spm_cfg_eeg_convert2images spm_cfg_eeg_copy meegtf source };
 
 %--------------------------------------------------------------------------
 % Util

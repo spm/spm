@@ -11,7 +11,7 @@ function D = spm_eeg_convert(S)
 %                                   already epoched or a trial definition in S.trl).
 % S.timewin        - for continuous mode [start end] of data segment in sec (all if empty)
 %                  - for epoched mode time window in PST ms
-% S.outfile        - output file name (default 'spm12_' + input)
+% S.outfile        - output file name (default 'spmeeg_' + input)
 % S.channels       - 'all' - convert all channels
 %                    or cell array of labels
 % For epoched mode:
@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5077 2012-11-23 16:10:36Z vladimir $
+% $Id: spm_eeg_convert.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 5077 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------

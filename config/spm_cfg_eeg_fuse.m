@@ -1,12 +1,12 @@
-function S = spm_cfg_eeg_fuse
+function fuse = spm_cfg_eeg_fuse
 % configuration file for fusing M/EEG files
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_fuse.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_fuse.m 5079 2012-11-25 18:38:18Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 5079 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -14,19 +14,27 @@ D.filter = 'mat';
 D.num = [2 Inf];
 D.help = {'Select the M/EEG mat files.'};
 
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the fused dataset. Default prefix is ''u''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'u'};
 
-S = cfg_exbranch;
-S.tag = 'fuse';
-S.name = 'M/EEG Fusion';
-S.val = {D};
-S.help = {'Fuse EEG/MEG data.'};
-S.prog = @eeg_fuse;
-S.vout = @vout_eeg_fuse;
-S.modality = {'EEG'};
+fuse = cfg_exbranch;
+fuse.tag = 'fuse';
+fuse.name = 'M/EEG Fusion';
+fuse.val = {D, prefix};
+fuse.help = {'Fuse EEG/MEG data.'};
+fuse.prog = @eeg_fuse;
+fuse.vout = @vout_eeg_fuse;
+fuse.modality = {'EEG'};
 
 function out = eeg_fuse(job)
 % construct the S struct
-S.D = strvcat(job.D{:});
+S = job;
+S.D = char(S.D);
 
 out.D = spm_eeg_fuse(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};

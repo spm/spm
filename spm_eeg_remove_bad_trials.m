@@ -3,8 +3,9 @@ function D = spm_eeg_remove_bad_trials(S)
 % FORMAT D = spm_eeg_remove_bad_trials(S)
 %
 % S        - optional input struct
-% (optional) fields of S:
+%  fields of S:
 % D        - MEEG object or filename of M/EEG mat-file with epoched data
+% prefix   - prefix for the output file (default - 'r')
 %
 % Output:
 % D        - MEEG object (also written on disk)
@@ -13,50 +14,42 @@ function D = spm_eeg_remove_bad_trials(S)
 % condlist.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_remove_bad_trials.m 3378 2009-09-09 16:47:16Z guillaume $
+% $Id: spm_eeg_remove_bad_trials.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 3378 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Remove bad trials'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'prefix'),       S.prefix = 'r';              end
 
-D = spm_eeg_load(D);
+D = spm_eeg_load(S.D);
 
 %-Check that there is any good data available
 %--------------------------------------------------------------------------
-if ntrials(D)==0 || all(reject(D))
+if ntrials(D)==0 || isempty(indtrial(D, D.condlist, 'GOOD'))
     warning('No good trials were found. Nothing to do.');
     return;
-end
-
-%-Generate new MEEG object with new files
-%--------------------------------------------------------------------------
-if strncmpi(D.transformtype,'TF',2) % TF and TFphase
-    Dnew = clone(D, ['r' fnamedat(D)], [D.nchannels D.nfrequencies D.nsamples sum(~D.reject)]);
-else
-    Dnew = clone(D, ['r' fnamedat(D)], [D.nchannels D.nsamples sum(~D.reject)]);
 end
 
 cl   = D.condlist;
 
 goodtrials = [];
 for i = 1:numel(cl)
-    goodtrials  = [goodtrials pickconditions(D, cl{i}, 1)];
+    goodtrials  = [goodtrials indtrial(D, cl{i}, 'GOOD')];
+end
+
+%-Generate new MEEG object with new files
+%--------------------------------------------------------------------------
+if strncmpi(D.transformtype,'TF',2) % TF and TFphase
+    Dnew = clone(D, [S.prefix fname(D)], [D.nchannels D.nfrequencies D.nsamples length(goodtrials)]);
+else
+    Dnew = clone(D, [S.prefix fname(D)], [D.nchannels D.nsamples length(goodtrials)]);
 end
 
 %-Copy data
@@ -80,10 +73,10 @@ spm_progress_bar('Clear');
 
 %-Copy trial-specific data.
 %--------------------------------------------------------------------------
-Dnew = conditions(Dnew, [], conditions(D, goodtrials));
-Dnew = repl(Dnew, [], repl(D, goodtrials));
-Dnew = events(Dnew, [], events(D, goodtrials));
-Dnew = trialonset(Dnew, [], trialonset(D, goodtrials));
+Dnew = conditions(Dnew, ':', conditions(D, goodtrials));
+Dnew = repl(Dnew, ':', repl(D, goodtrials));
+Dnew = events(Dnew, ':', events(D, goodtrials));
+Dnew = trialonset(Dnew, ':', trialonset(D, goodtrials));
 
 %-Save the new M/EEG dataset
 %--------------------------------------------------------------------------

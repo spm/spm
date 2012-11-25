@@ -3,8 +3,9 @@ function Dout = spm_eeg_merge(S)
 % FORMAT D = spm_eeg_merge(S)
 %
 % S           - input structure (optional)
-% (optional) fields of S:
+%  fields of S:
 %   S.D       - character array containing filename of M/EEG mat-files
+%               or cell array of D's
 %   S.recode  - this field specifies how the condition labels will be
 %               translated from the original files to the merged file.
 %               Several options are possible:
@@ -42,9 +43,10 @@ function Dout = spm_eeg_merge(S)
 %                          S.recode(1).labelorg = '.*';
 %                          S.recode(1).labelnew = '#labelorg# #file#';
 %                       has the same effect as the 'addfilename' option.
+%   S.prefix     - prefix for the output file (default - 'c')
 %
 % 
-% Dout        - MEEG object (also written to disk, with a 'c' prefix)
+% Dout        - MEEG object (also written to disk)
 %__________________________________________________________________________
 %
 % This function can be used to merge M/EEG files to one file. This is
@@ -53,38 +55,35 @@ function Dout = spm_eeg_merge(S)
 % data (SPM displays data from only one file at a time), or merging
 % information that has been measured in multiple sessions.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_eeg_merge.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 4447 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG Merge'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
-    if ~sts, Dout = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'prefix'),       S.prefix = 'c';           end
+if ~isfield(S, 'recode'),       S.recode = 'same';        end
 
 %-Load MEEG data
 %--------------------------------------------------------------------------
-F = cell(1,size(D,1));
-try
-    for i = 1:size(D, 1)
-        F{i} = spm_eeg_load(deblank(D(i, :)));
+D = S.D;
+
+if ischar(D)
+    F = cell(1,size(D,1));
+    try
+        for i = 1:size(D, 1)
+            F{i} = spm_eeg_load(deblank(D(i, :)));
+        end
+        D = F;
+    catch
+        error('Trouble reading files');
     end
-    D = F;
-catch
-    error('Trouble reading files');
 end
 
 Nfiles = length(D);
@@ -232,21 +231,21 @@ Dout = D{1};
 [p, f, x] = fileparts(fnamedat(Dout));
 
 if ~isTF
-    Dout = clone(Dout, fullfile(pwd, ['c' f x]), [Dout.nchannels Dout.nsamples sum(Ntrials)]);
+    Dout = clone(Dout, fullfile(pwd, [S.prefix f x]), [Dout.nchannels Dout.nsamples sum(Ntrials)]);
 else
-    Dout = clone(Dout, fullfile(pwd, ['c' f x]), [Dout.nchannels Dout.nfrequencies Dout.nsamples sum(Ntrials)]);
+    Dout = clone(Dout, fullfile(pwd, [S.prefix f x]), [Dout.nchannels Dout.nfrequencies Dout.nsamples sum(Ntrials)]);
 end
 
 
 %-Perform condition labels recoding
 %--------------------------------------------------------------------------
 if isequal(S.recode, 'same')
-    Dout = conditions(Dout, [], clb);
+    Dout = conditions(Dout, ':', clb);
 elseif isequal(S.recode, 'addfilename')
     for i = 1:numel(clb)
         clb{i} = [clb{i} ' ' spm_file(F{Find(i)}, 'basename')];
     end
-    Dout = conditions(Dout, [], clb);
+    Dout = conditions(Dout, ':', clb);
 elseif iscell(S.recode)
     for i = 1:Nfiles
         ind = find(Find == i);        
@@ -255,9 +254,9 @@ elseif iscell(S.recode)
             clb(ind(strmatch(D{i}.condlist{j}, clb(ind), 'exact'))) = S.recode{i}(j);
         end
     end
-    Dout = conditions(Dout, [], clb);
+    Dout = conditions(Dout, ':', clb);
 elseif isstruct(S.recode)
-    Dout = conditions(Dout, [], clb);
+    Dout = conditions(Dout, ':', clb);
     
     for i = 1:numel(S.recode)
         if isnumeric(S.recode(i).file)
@@ -340,7 +339,7 @@ for i = 1:Nfiles
         else
             Dout(1:Dout.nchannels, 1:Dout.nfrequencies, 1:Dout.nsamples, k) =  D{i}(:,:,:,j);
         end
-        Dout = reject(Dout, k, reject(D{i}, j));
+        Dout = badtrials(Dout, k, badtrials(D{i}, j));
     end
     
     % Propagate some useful information from the original files to the

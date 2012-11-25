@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_reduce
+function reduce = spm_cfg_eeg_reduce
 % Configuration file for M/EEG time-frequency analysis
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 4911 2012-09-07 15:21:40Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 5079 2012-11-25 18:38:18Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -31,17 +31,26 @@ for i = 1:numel(specest_funs)
     method.values{i} = feval(spm_file(specest_funs{i},'basename'));
 end
 
+
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset. Default prefix is ''R''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'R'};
+
 %--------------------------------------------------------------------------
 % M/EEG Time-Frequency Analysis
 %--------------------------------------------------------------------------
-S = cfg_exbranch;
-S.tag = 'analysis';
-S.name = 'M/EEG Data reduction';
-S.val = {D, spm_cfg_eeg_channel_selector, method};
-S.help = {'Perform data reduction.'};
-S.prog = @eeg_reduce;
-S.vout = @vout_eeg_reduce;
-S.modality = {'EEG'};
+reduce = cfg_exbranch;
+reduce.tag = 'reduce';
+reduce.name = 'M/EEG Data reduction';
+reduce.val = {D, spm_cfg_eeg_channel_selector, method};
+reduce.help = {'Perform data reduction.'};
+reduce.prog = @eeg_reduce;
+reduce.vout = @vout_eeg_reduce;
+reduce.modality = {'EEG'};
 
 %==========================================================================
 % function out = eeg_reduce(job)
@@ -51,6 +60,7 @@ function out = eeg_reduce(job)
 S   = [];
 S.D = job.D{1};
 
+S.prefix = job.prefix;
 S.channels = spm_cfg_eeg_channel_selector(job.channels);
 
 S.method = cell2mat(fieldnames(job.method));

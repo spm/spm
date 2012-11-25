@@ -13,7 +13,8 @@ function D = spm_eeg_reduce(S)
 %                        corresponds to the name of a plug-in function that comes
 %                        after 'spm_eeg_reduce_' prefix.
 %   S.settings         - plug-in specific settings
-%   S.woi              - time windows or interest
+%   S.timewin          - time windows or interest
+%   S.prefix           - prefix for the output file (default - 'R')
 %
 % Output:
 % D                     - M/EEG object 
@@ -21,37 +22,24 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 5046 2012-11-09 15:55:10Z vladimir $
+% $Id: spm_eeg_reduce.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 5046 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG reduce'); spm('Pointer','Watch');
 
-if nargin == 0
-    S = [];
-end
-
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
-
-D = spm_eeg_load(D);
-
 
 %-Configure the analysis
 %--------------------------------------------------------------------------
-if ~isfield(S, 'channels')
-    S.channels = 'all';
-end
+if ~isfield(S, 'channels'),   S.channels = 'all';             end
+if ~isfield(S, 'timewin'),    S.timewin  = [-Inf Inf];        end
+if ~isfield(S, 'prefix'),     S.prefix   = 'R';               end
+
+
+D = spm_eeg_load(S.D);
 
 badind = D.badchannels;
 
@@ -64,14 +52,14 @@ end
 %%%%%%%%%
 % MWW
 samples = {};
-for i = 1:size(S.woi, 1)
-    samples{i} = D.indsample(S.woi(i, 1)):D.indsample(S.woi(i, 2));
+for i = 1:size(S.timewin, 1)
+    samples{i} = D.indsample(S.timewin(i, 1)):D.indsample(S.timewin(i, 2));
 end
 
 if isfield(S.conditions, 'all')
     trials = 1:D.ntrials;
 else    
-    trials = D.pickconditions(S.conditions);
+    trials = D.indtrial(S.conditions, 'GOOD');
     if isempty(trials)
         error('No trials matched the selection, check the specified condition labels');
     end
@@ -92,8 +80,8 @@ end
 
 S1.D       = D;
 S1.chanind = chanind; 
-S1.trials = trials; %MWW
-S1.samples = samples; %MWW
+S1.trials = trials; 
+S1.samples = samples; 
 montage = feval(['spm_eeg_reduce_' S.method], S1);
 
 % This is to discard bad channels but keep other channels (like non MEEG).
@@ -106,11 +94,11 @@ end
 S1 = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 'no'; %MWW changed to no
+S1.keepothers = 'no'; 
+S1.prefix = S.prefix;
 S1.updatehistory  = 0;
 D = spm_eeg_montage(S1);
 
-% MWW:
 D = chantype(D, 1:length(montage.labelnew), montage.chantypenew);
 
 %-Save new M/EEG dataset(s)

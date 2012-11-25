@@ -3,49 +3,38 @@ function D = spm_eeg_crop(S)
 % FORMAT D = spm_eeg_crop(S)
 %
 % S        - optional input struct
-% (optional) fields of S:
-% D        - MEEG object or filename of M/EEG mat-file with epoched data
-% timewin  - time window to retain (in PST ms)
-% freqwin  - frequency window to retain
-% channels - cell array of channel labels or 'all'.
+%  fields of S:
+%   D        - MEEG object or filename of M/EEG mat-file with epoched data
+%   timewin  - time window to retain (in PST ms)
+%   freqwin  - frequency window to retain
+%   channels - cell array of channel labels or 'all'.
+%   prefix   - prefix for the output file (default - 'p')
+%
 %
 % Output:
 % D        - MEEG object (also written on disk)
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_crop.m 4296 2011-04-07 12:51:48Z vladimir $
+% $Id: spm_eeg_crop.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 4296 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Crop M/EEG data'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'prefix'),       S.prefix   = 'p';           end
+if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
+if ~isfield(S, 'freqwin'),      S.freqwin  = [-Inf Inf];    end
+if ~isfield(S, 'channels'),     S.channels = 'all';         end
 
-D = spm_eeg_load(D);
+D = spm_eeg_load(S.D);
 
 isTF = strncmpi(D.transformtype,'TF',2);
-
-if ~isfield(S, 'timewin')
-    S.timewin = spm_input('Time window (ms)', '+1', 'r', num2str(1000*[D.time(1) D.time(end)]), 2);
-end
-
-if  isTF && ~isfield(S, 'freqwin')
-    S.freqwin = spm_input('Frequency window (Hz)', '+1', 'r', num2str([D.frequencies(1) D.frequencies(end)]), 2);
-end
 
 timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
 if isempty(timeind) || any(isnan(timeind))
@@ -59,42 +48,24 @@ if isTF
     end
 end
 
-if D.nchannels > 1
-    if ~isfield(S, 'channels')
-        [selection, ok]= listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);
-        if ~ok
-            return;
-        end
-        
-        S.channels = D.chanlabels(selection);
-    end
-    
-    if isequal(S.channels, 'all')
-        chanind = 1:D.nchannels;
-    else
-        chanind = spm_match_str(D.chanlabels, S.channels);
-    end
-else
-    chanind = 1;
-end
-
+chanind = D.selectchannels(S.channels);
 
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
 if isTF
-    Dnew = clone(D, ['p' fnamedat(D)], [length(chanind) length(freqind) length(timeind) D.ntrials]);
-    Dnew = frequencies(Dnew, [], D.frequencies(freqind));
+    Dnew = clone(D, [S.prefix fname(D)], [length(chanind) length(freqind) length(timeind) D.ntrials]);
+    Dnew = frequencies(Dnew, ':', D.frequencies(freqind));
 else
-    Dnew = clone(D, ['p' fnamedat(D)], [length(chanind) length(timeind) D.ntrials]);
+    Dnew = clone(D, [S.prefix fname(D)], [length(chanind) length(timeind) D.ntrials]);
 end
 
 Dnew = timeonset(Dnew, D.time(timeind(1)));
 
-Dnew = chanlabels(Dnew, [], D.chanlabels(chanind));
-Dnew = badchannels(Dnew, [], badchannels(D, chanind));
-Dnew = chantype(Dnew, [], chantype(D, chanind));
-Dnew = units(Dnew, [], units(D, chanind));
-Dnew = coor2D(Dnew, [], coor2D(D, chanind));
+Dnew = chanlabels(Dnew, ':', D.chanlabels(chanind));
+Dnew = badchannels(Dnew, ':', badchannels(D, chanind));
+Dnew = chantype(Dnew, ':', chantype(D, chanind));
+Dnew = units(Dnew, ':', units(D, chanind));
+Dnew = coor2D(Dnew, ':', coor2D(D, chanind));
 
 if isequal(Dnew.type, 'continuous')
    ev = Dnew.events;

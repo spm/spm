@@ -26,7 +26,7 @@ function M = spm_eeg_morlet(Rtf, ST, f, ff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_morlet.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_morlet.m 5079 2012-11-25 18:38:18Z vladimir $
 
 
 M = {};
@@ -49,4 +49,5 @@ for f0 = f
     t = [-t(end:-1:2) t];
     M{end+1} = exp(-t.^2/(2*sigma_t^2)) .* exp(2 * 1i * pi * f0 *t);    
     M{end}   = M{end}./(sqrt(0.5*sum(real(M{end}).^2 + imag(M{end}).^2)));
+    M{end}   = M{end} - mean(M{end});
 end

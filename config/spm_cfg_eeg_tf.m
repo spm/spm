@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_tf
+function tf = spm_cfg_eeg_tf
 % Configuration file for M/EEG time-frequency analysis
 %__________________________________________________________________________
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_cfg_eeg_tf.m 5079 2012-11-25 18:38:18Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -64,16 +64,27 @@ for i = 1:numel(specest_funs)
 end
 
 %--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset.'};
+prefix.strtype = 's';
+prefix.num     = [0 Inf];
+prefix.val     = {''};
+
+%--------------------------------------------------------------------------
 % M/EEG Time-Frequency Analysis
 %--------------------------------------------------------------------------
-S = cfg_exbranch;
-S.tag = 'analysis';
-S.name = 'M/EEG Time-Frequency Analysis';
-S.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase};
-S.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
-S.prog = @eeg_tf;
-S.vout = @vout_eeg_tf;
-S.modality = {'EEG'};
+tf = cfg_exbranch;
+tf.tag = 'tf';
+tf.name = 'M/EEG Time-Frequency Analysis';
+tf.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase, prefix};
+tf.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
+tf.prog = @eeg_tf;
+tf.vout = @vout_eeg_tf;
+tf.modality = {'EEG'};
 
 %==========================================================================
 % function out = eeg_tf(job)
@@ -91,6 +102,8 @@ S.phase = job.phase;
 
 S.method = cell2mat(fieldnames(job.method));
 S.settings = getfield(job.method, S.method);
+
+S.prefix = job.prefix;
 
 [Dtf, Dtph] = spm_eeg_tf(S);
 

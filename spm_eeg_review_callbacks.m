@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5078 2012-11-25 15:08:05Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 5079 2012-11-25 18:38:18Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -700,7 +700,7 @@ switch varargin{1}
                     try cla(D.PSD.handles.axes2,'reset');end
                 end
                 D.PSD.trials.current = trN;
-                status = badchannels(D,trN);
+                status = badtrials(D,trN);
                 try
                     if status
                         str = 'declare as not bad';
@@ -1630,7 +1630,7 @@ str{3} = ['Number of time samples: ',num2str(D.nsamples),' (',num2str(delta_t),'
 str{4} = ['Time sampling frequency: ',num2str(D.fsample),' Hz'];
 nb = length(find(badchannels(D)));
 str{5} = ['Number of channels: ',num2str(D.nchannels),' (',num2str(nb),' bad channels)'];
-nb = length(badchannels(D));
+nb = length(badtrials(D));
 if strcmp(D.type,'continuous')
     Events = events(D,1);
     if ~isempty(Events)

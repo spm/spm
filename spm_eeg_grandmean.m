@@ -3,12 +3,12 @@ function Do = spm_eeg_grandmean(S)
 % FORMAT Do = spm_eeg_grandmean(S)
 %
 % S         - struct (optional)
-% (optional) fields of S:
-% D         - filenames (char matrix) of EEG mat-file containing epoched
-%             data
-% Dout      - filename (with or without path) of output file
-% weighted  - average weighted by number of replications in inputs (1)
-%             or not (0).
+%  fields of S:
+%   D         - filenames (char matrix) of EEG mat-file containing epoched
+%               data
+%   weighted  - average weighted by number of replications in inputs (1)
+%               or not (0).
+%   outfile   - name of the output file (default - 'grand_mean')
 %
 % Output:
 % Do        - EEG data struct, result files are saved in the same
@@ -23,50 +23,38 @@ function Do = spm_eeg_grandmean(S)
 % the same name as the first selected input file, but prefixed with a 'g'.
 % The output file is written to the current working directory.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 4648 2012-02-04 13:29:12Z vladimir $
+% $Id: spm_eeg_grandmean.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 4648 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG Grand Mean'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    S.D;
-catch
-    [S.D, sts] = spm_select([2 Inf], 'mat', 'Select M/EEG mat file');
-    if ~sts, Do = []; return; end
-end
+if ~isfield(S, 'weighted'),     S.weighted = 0;            end
+if ~isfield(S, 'outfile'),      S.outfile = 'grand_mean';  end
 
-%-Get parameters
-%--------------------------------------------------------------------------
-try
-    S.Dout;
-catch
-    [filename, pathname] = uiputfile('*.mat', 'Select output file');
-    S.Dout = fullfile(pathname, filename);
-end
-
-if ~isfield(S, 'weighted')
-    S.weighted = spm_input('Weighted average?','+1','yes|no',[1 0], 1);
-end
 
 %-Load MEEG data
 %--------------------------------------------------------------------------
-D = cell(1, size(S.D, 1));
-for i = 1:size(S.D, 1)
+D = S.D;
+
+if ischar(D)
+    F = cell(1,size(D,1));
     try
-        D{i} = spm_eeg_load(deblank(S.D(i, :)));
+        for i = 1:size(D, 1)
+            F{i} = spm_eeg_load(deblank(D(i, :)));
+        end
+        D = F;
     catch
-        error('Trouble reading files %s', deblank(S.D(i, :)));
+        error('Trouble reading files');
     end
 end
+
 Nfiles = length(D);
 
 %-Check dimension of the data files
@@ -103,6 +91,10 @@ for i = 1:Nfiles
     ne(i) = D{i}.nconditions;
     if strncmp(D{1}.transformtype, 'TF',2)
         nf(i) = D{i}.nfrequencies;
+    end
+    
+    if ~isempty(D{i}.sensors('MEG')) || ~isempty(D{i}.sensors('EEG'))
+        D{i} = check(D{i}, '3d');
     end
     
     if ~isempty(D{i}.sensors('MEG'))
@@ -214,14 +206,6 @@ end
 %--------------------------------------------------------------------------
 Do = D{1};
 
-try
-    [f1, f2, f3] = fileparts(S.Dout);
-    Do.path = f1;
-    fnamedat = [f2 '.dat'];
-catch
-    fnamedat = ['g' D{1}.fnamedat];
-end
-
 % how many different trial types and bad channels
 types = {};
 for i = 1:Nfiles
@@ -249,13 +233,11 @@ if ~S.weighted
     nrepl = ones(Nfiles, Ntypes);
 end
 
-
-
 % generate new meeg object with new filenames
 if strncmp(D{1}.transformtype, 'TF',2)
-    Do = clone(Do, spm_file(S.Dout, 'ext','.dat'), [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
+    Do = clone(Do, S.outfile, [Do.nchannels Do.nfrequencies Do.nsamples Ntypes]);
 else
-    Do = clone(Do, spm_file(S.Dout, 'ext','.dat'), [Do.nchannels Do.nsamples Ntypes]);
+    Do = clone(Do, S.outfile, [Do.nchannels Do.nsamples Ntypes]);
 end
 
 % for determining bad channels of the grandmean
@@ -276,7 +258,7 @@ if strncmp(D{1}.transformtype, 'TF',2)
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.badchannels)
-                    ind = D{k}.pickconditions(types{i});
+                    ind = D{k}.indtrial(types{i}, 'GOOD');
                     if ~isempty(ind)
                         d(j, :, :) = d(j, :, :) + nrepl(k, i)*D{k}(j, :, :, ind);
                         w(j, i) = w(j, i) + nrepl(k, i);
@@ -304,7 +286,7 @@ else
 
             for k = 1:Nfiles
                 if ~ismember(j, D{k}.badchannels)
-                    ind = D{k}.pickconditions(types{i});
+                    ind = D{k}.indtrial(types{i}, 'GOOD');
                     if ~isempty(ind)
                         d(j, :) = d(j, :) + nrepl(k, i)*D{k}(j, :, ind);
                         w(j, i) = w(j, i) + nrepl(k, i);
@@ -366,19 +348,13 @@ end
 
 nrepl = sum(nrepl, 1);
 
-Do = conditions(Do, [], types);
-Do = repl(Do, [], nrepl);
-Do = reject(Do, [], 0);
-Do = trialonset(Do, [], []);
+Do = conditions(Do, ':', types);
+Do = repl(Do, ':', nrepl);
+Do = badtrials(Do, ':', 0);
+Do = trialonset(Do, ':', []);
 Do = Do.history('spm_eeg_grandmean', S, 'reset');
 
 save(Do);
-
-%-Display Grand Mean
-%--------------------------------------------------------------------------
-if ~isfield(S, 'review') || S.review
-    spm_eeg_review(Do);
-end
 
 %-Cleanup
 %--------------------------------------------------------------------------

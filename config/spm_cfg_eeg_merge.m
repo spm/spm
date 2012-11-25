@@ -1,12 +1,12 @@
-function S = spm_cfg_eeg_merge
+function merge = spm_cfg_eeg_merge
 % configuration file for merging of M/EEG files
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_merge.m 5079 2012-11-25 18:38:18Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 5079 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -54,22 +54,30 @@ rules.help = {['Specify the rules for translating condition labels from ' ...
     'the original files to the merged file. Multiple rules can be specified. The later ' ...
     'rules have precedence. Trials not matched by any of the rules will keep their original labels.']};
 
-S = cfg_exbranch;
-S.tag = 'merge';
-S.name = 'M/EEG Merging';
-S.val = {D, rules};
-S.help = {'Merge EEG/MEG data.'};
-S.prog = @eeg_merge;
-S.vout = @vout_eeg_merge;
-S.modality = {'EEG'};
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the merged dataset. Default prefix is ''m''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'m'};
+
+merge = cfg_exbranch;
+merge.tag = 'merge';
+merge.name = 'M/EEG Merging';
+merge.val = {D, rules, prefix};
+merge.help = {'Merge EEG/MEG data.'};
+merge.prog = @eeg_merge;
+merge.vout = @vout_eeg_merge;
+merge.modality = {'EEG'};
 
 function out = eeg_merge(job)
 % construct the S struct
-S.D = strvcat(job.D{:});
-S.recode = job.rule;
+S = job;
+S.D = char(S.D);
 
 out.D = spm_eeg_merge(S);
-out.Dfname = {fullfile(out.D.path, out.D.fname)};
+out.Dfname = {fullfile(out.D)};
 
 function dep = vout_eeg_merge(job)
 % Output is always in field "D", no matter how job is structured

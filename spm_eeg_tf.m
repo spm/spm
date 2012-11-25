@@ -22,6 +22,8 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 %   S.phase            - also save phase dataset (1) or not (0)
 %                        phase dataset cannot be computed for some
 %                        spectral estimation methods
+%   S.prefix           - prefix added before the standard prefix (tf_ or tph_)
+%
 % Output:
 % Dtf                   - M/EEG object with power (also written on disk)
 % Dtph                  - M/EEG object with phase (also written on disk)
@@ -42,43 +44,33 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 4021 2010-07-28 12:43:16Z vladimir $
+% $Id: spm_eeg_tf.m 5079 2012-11-25 18:38:18Z vladimir $
 
-SVNrev = '$Rev: 4021 $';
+SVNrev = '$Rev: 5079 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG Time-Frequency'); spm('Pointer','Watch');
 
-if nargin == 0
-    S = [];
+%-Configure the analysis
+%--------------------------------------------------------------------------
+if ~isfield(S, 'channels'),   S.channels = 'all';                 end
+if ~isfield(S, 'timewin'),    S.timewin  = [-Inf Inf];            end
+if ~isfield(S, 'phase'),      S.phase    = 0;                     end
+if ~isfield(S, 'prefix'),     S.prefix   = '';                    end
+if ~isfield(S, 'frequencies') || isempty(S.frequencies)
+    S.frequencies = 1:48;
+end
+if ~isfield(S, 'method')
+    S.method = 'morlet';
+    S.settings = [];
 end
 
-%-Ensure backward compatibility
-%--------------------------------------------------------------------------
-S = spm_eeg_compatibility(S, mfilename);
-
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
-
-D = spm_eeg_load(D);
+D = spm_eeg_load(S.D);
 
 if isequal(D.type, 'continuous')
     error('Time-frequency analysis can only be applied to epoched data');
-end
-
-%-Configure the analysis
-%--------------------------------------------------------------------------
-if ~isfield(S, 'channels')
-    S.channels = 'all';
 end
 
 chanind = D.selectchannels(S.channels);
@@ -87,24 +79,7 @@ if isempty(chanind)
     error('No channels selected.');
 end
 
-if ~isfield(S, 'frequencies') || isempty(S.frequencies)
-    S.frequencies = 1:48;
-end
-
-if ~isfield(S, 'timewin')
-    S.timewin = 1e3*[D.time(1) D.time(end)];
-end
-
 timeind = D.indsample(1e-3*min(S.timewin)):D.indsample(1e-3*max(S.timewin));
-
-if ~isfield(S, 'method')
-    S.method = 'morlet';
-    S.settings = [];
-end
-
-if ~isfield(S, 'phase')
-    S.phase = 0;
-end
 
 if isfield(S, 'settings')
     S1 = S.settings;
@@ -137,8 +112,8 @@ for k = 1:D.ntrials
         
         %-Generate output datasets
         %--------------------------------------------------------------------------
-        Dtf = clone(D, ['tf_' D.fnamedat], [Nchannels Nfrequencies Nsamples D.ntrials]);
-        Dtf = Dtf.frequencies(:, trial.freq);
+        Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples D.ntrials]);
+        Dtf = Dtf.frequencies(':', trial.freq);
         Dtf = timeonset(Dtf, trial.time(1));
         Dtf = fsample(Dtf, 1/diff(trial.time(1:2)));
         Dtf = transformtype(Dtf, 'TF');
@@ -149,7 +124,7 @@ for k = 1:D.ntrials
         Dtf = coor2D(Dtf, 1:Nchannels, coor2D(D,chanind));
         
         if S.phase && isfield(trial, 'fourier')
-            Dtph = clone(Dtf, ['tph_' D.fnamedat]);
+            Dtph = clone(Dtf, [S.prefix 'tph_' D.fname]);
             Dtph = transformtype(Dtph, 'TFphase');
         else
             if ~isfield(trial, 'fourier')

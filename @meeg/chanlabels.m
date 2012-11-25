@@ -5,7 +5,7 @@ function res = chanlabels(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chanlabels.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: chanlabels.m 5079 2012-11-25 18:38:18Z vladimir $
 
 if this.montage.Mind == 0
     if nargin == 3
@@ -13,7 +13,7 @@ if this.montage.Mind == 0
         label = varargin{2};
 
         if iscell(label) && length(label)>1
-            if ~isempty(ind) && length(ind)~=length(label)
+            if isnumeric(ind) && length(ind)~=length(label)
                 error('Indices and values do not match');
             end
 
@@ -38,7 +38,7 @@ else
         label = varargin{2};
 
         if iscell(label) && length(label)>1
-            if ~isempty(ind) && length(ind)~=length(label)
+            if isnumeric(ind) && length(ind)~=length(label)
                 error('Indices and values do not match');
             end
 
