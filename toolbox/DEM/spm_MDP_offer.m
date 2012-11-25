@@ -2,15 +2,26 @@ function spm_MDP_offer
 % Demo for active inference with limited offer game
 %__________________________________________________________________________
 %
-% This routine uses a Markov decisions process formulation of the mountain
-% car problem to illustrate prospective free energy minimization under a
-% variational Bayesian learning scheme. The key notion here is that the
-% agent represents future states and action (in a pullback sense), where it
-% has strong prior beliefs about future states. The intervening states and
-% actions are optimized with respect to current sensory data to provide
-% predictions about the next sensory state, which action fulfils. The
-% result is a planned trajectory through state space that realizes prior
-% beliefs in a prospective sense.
+% This demonstration routine uses variational Bayes to minimise the free
+% energy to model decision-making. The particular focus here is on
+% decisions that are time-sensitive, requiring an explicit representation
+% of future states. The example considered here represents a limited offer
+% game, where a low offer can be converted to a high offer, which may or
+% may not occur. Furthermore, offers may be withdrawn. The objective is
+% to understand model choices about accepting or declining the current
+% offer in terms of active inference, under prior beliefs about future
+% states. The model is specified in a fairly general way in terms of
+% probability transition matrices and beliefs about future states. The
+% particular inversion scheme used here is spm_MDP_select, which uses a
+% mean-field approximation between hidden control and hidden states. It is
+% assumed that the agent believes that it will select a particular action
+% (accept or decline) at a particular time.
+%
+% We run an exemplar game, examine the distribution of time to acceptance
+% as a function of different beliefs (encoded by parameters of the
+% underlying Markov process) and demonstrate how the model can be used to
+% produce trial-specific changes in uncertainty – or how one can use
+% behaviour to identify the parameters used by a subject.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
@@ -19,26 +30,25 @@ function spm_MDP_offer
  
 % set up and preliminaries
 %==========================================================================
- 
-% initial and final states
-%==========================================================================
-T     = 16;                         % number of offers
-Pa    = 1/2;                        % probability of a high offer
-Pb    = 1/2;                        % probability of withdrawn offer
+T     = 16;                           % number of offers
+Pa    = 1/2;                          % probability of a high offer
+Pb    = 1/2;                          % probability of withdrawn offer
+Plos  = @(t,Pb)(1 - (1 - Pb).^t);
+Pwin  = @(T,Pa)(1 - (1 - Pa)^(1/T));
    
 % transition probabilities (B{1} - decline; B{2} - accept)
 %--------------------------------------------------------------------------
-for i = 1:T
+for t = 1:T
     
-    a       = 1 - (1 - Pa)^(1/T);
-    b       = (i*Pb/T)*(1 - a);
-    B{i,1}  = [(1 - a - b) 0 0 0 0;
+    a       = Pwin(T,Pa);
+    b       = Plos(t,Pb)*(1 - a);
+    B{t,1}  = [(1 - a - b) 0 0 0 0;
                 a          0 0 0 0;
                 b          1 1 0 0;
                 0          0 0 1 0;
                 0          0 0 0 1];
     
-    B{i,2}  = [ 0 0 0 0 0;
+    B{t,2}  = [ 0 0 0 0 0;
                 0 0 0 0 0;
                 0 0 1 1 1;
                 1 0 0 0 0;
@@ -52,16 +62,7 @@ S     = [1 0 0 0 0]';
  
 % priors over final state
 %--------------------------------------------------------------------------
-C     = [0 0 0 1 2]';
- 
-% prior over control
-%--------------------------------------------------------------------------
-D     = [1 1]';
-
-% prior over states
-%--------------------------------------------------------------------------
-E     = [1 1 0 1 1]';
- 
+C     = [0 0 0 2 1]';
  
 % MDP Structure
 %==========================================================================
@@ -69,12 +70,7 @@ MDP.T = T;                          % process depth (the horizon)
 MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
-MDP.D = D;                          % control probabilities (priors)
-MDP.E = E;                          % state probabilities (priors)
-MDP.W = 1/10;                        % log-precision
-
-
-
+ 
 % Generate process (with continuous low offers)
 %==========================================================================
  
@@ -88,43 +84,41 @@ G{1,1}  = [1 1 0 0 0;
  
 G{1,2}   = G{1,1};
 MDP.G    = G;
-
-% solve - an example trial
+ 
+% solve - an example game
 %==========================================================================
 MDP.plot   = 3;                     % plot convergence
-MDP.lambda = 1;                     % precision for action selection
-
-spm_MDP(MDP);
-
-
-
+spm_MDP_select(MDP);
  
-% probability distribution over time to act
+ 
+% probability distribution over time to act: P(1,:) is no action
 %--------------------------------------------------------------------------
 PrY        = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
 MDP.plot   = 0;                     % plot convergence
-MDP.lambda = 1;                     % precision for action selection
+MDP.lambda = 1/4;                   % precision for action selection
+ 
+ 
  
 % illustrate dependency on latency w.r.t. parameters
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
-
+ 
  
 % high offer
 %--------------------------------------------------------------------------
-p     = linspace(1/16,1 - 1/16,4);
+p     = [0 1/4 1/2 3/4 1];
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     
     % transition probabilities
     %----------------------------------------------------------------------
-    for j = 1:T
-        a                  = 1 - (1 - p(i))^(1/T);
-        b                  = (j*Pb/T)*(1 - a);
-        MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
+    for t = 1:T
+        a       = Pwin(T,p(i));
+        b       = Plos(t,Pb)*(1 - a);
+        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
     end
     
-    [Q,R,S,E,P] = spm_MDP(MDPP);
+    [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
 end
@@ -140,19 +134,19 @@ legend(str)
  
 % offer withdrawal
 %--------------------------------------------------------------------------
-p     = linspace(1/16,1,4);
+p     = [1/64 1/32 1/16 1/8 1/4 1/2];
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     
     % transition probabilities
     %----------------------------------------------------------------------
-    for j = 1:T
-        a                  = 1 - (1 - Pa)^(1/T);
-        b                  = (j*p(i)/T)*(1 - a);
-        MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
+    for t = 1:T
+        a       = Pwin(T,Pa);
+        b       = Plos(t,p(i))*(1 - a);
+        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
     end
     
-    [Q,R,S,E,P] = spm_MDP(MDPP);
+    [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
 end
@@ -166,14 +160,13 @@ title('offer withdrawal','FontSize',16)
 axis square
  
  
- 
-% cost bias C(5)
+% beliefs about final state
 %--------------------------------------------------------------------------
-p     = linspace(1/2,2,4); 
+p     = [1/2 1 2 3 4]; 
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
-    MDPP.C(5)   = p(i);
-    [Q,R,S,E,P] = spm_MDP(MDPP);
+    MDPP.C(4)   = p(i);
+    [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
 end
@@ -189,11 +182,11 @@ legend(str)
  
 % precision
 %--------------------------------------------------------------------------
-p     = linspace(2,5,4);
+p     = [1/16 1/8 1/4 1/2 1];
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     MDPP.W      = p(i);
-    [Q,R,S,E,P] = spm_MDP(MDPP);
+    [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
 end
@@ -207,19 +200,17 @@ title('Behaviour and precicion','FontSize',16)
 axis square
 legend(str)
  
-    
-
  
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
  
-[Q,R,S,E,P] = spm_MDP(MDP);
+[Q,R,S,E,P] = spm_MDP_select(MDP);
  
  
 % uncertainty about current action
 %--------------------------------------------------------------------------
-H   = sum(-P.*log(P));
+H   = sum(-P.*log(P),1);
  
 subplot(2,2,1)
 plot(1:length(H),H,'.','MarkerSize',16), hold on
@@ -230,31 +221,12 @@ title('current action','FontSize',16)
 axis square
  
  
-% uncertainty about future action
-%--------------------------------------------------------------------------
-for i = 1:(T - 1)
-    j    = (i + 1):(T - 1);
-    p    = squeeze(R(:,i,j));
-    H(i) = mean(sum(-p.*log(p)));  
-end
- 
-subplot(2,2,2)
-plot(1:length(H),H,'.','MarkerSize',16), hold on
-plot(1:length(H),H,':'), hold off
-xlabel('latency','FontSize',12)
-ylabel('Entropy','FontSize',12)
-title('future action','FontSize',16)
-axis square
- 
 % uncertainty about future states
 %--------------------------------------------------------------------------
-for i = 1:(T - 1)
-    j    = (i + 1):(T - 1);
-    p    = squeeze(Q(:,i,j));
-    H(i) = mean(sum(-p.*log(p)));  
-end
+j   = 1:(T - 1);
+H   = sum(-Q(:,j).*log(Q(:,j)));  
  
-subplot(2,2,3)
+subplot(2,2,2)
 plot(1:length(H),H,'.','MarkerSize',16), hold on
 plot(1:length(H),H,':'), hold off
 xlabel('latency','FontSize',12)
@@ -262,35 +234,19 @@ ylabel('Entropy','FontSize',12)
 title('future states','FontSize',16)
 axis square
  
-% uncertainty about future states
-%--------------------------------------------------------------------------
-for i = 1:(T - 1)
-    for j = 1:(T - 1)
-        p      = squeeze(Q(:,i,j));
-        H(i,j) = sum(-p.*log(p)); 
-    end
-end
- 
-subplot(2,2,4)
-imagesc(H)
-xlabel('future state','FontSize',12)
-ylabel('current trial','FontSize',12)
-title('Over the future','FontSize',16)
-axis square
- 
  
 return
-
-
-
+ 
+ 
+ 
 % simulate multiple trials and record when an offer was accepted
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf
-
+ 
 % trials
 %--------------------------------------------------------------------------
 for i = 1:32
-    [Q,R,S,E,P] = spm_MDP(MDP);
+    [Q,R,S,E,P] = spm_MDP_select(MDP);
     try
         Y(i)    = find(E(2,:),1);
     end
@@ -321,21 +277,21 @@ axis square
  
 % Infer prior beliefs from observed responses (meta-modelling)
 %==========================================================================
-p     = linspace(1/16,1 - 1/16,32);
+p     = linspace(1/32,1/2,32);
 MDPP  = MDP;
 for i = 1:length(p);
     
     % transition probabilities
     %----------------------------------------------------------------------
-    for j = 1:T
-        a                  = 1 - (1 - p(i))^(1/T);
-        b                  = (j*Pb/T)*(1 - a);
-        MDPP.B{j,1}(1:3,1) = [(1 - a - b); a; b];        
+    for t = 1:T
+        a       = Pwin(T,Pa);
+        b       = Plos(t,p(i))*(1 - a);
+        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
     end
     
     % get likelihood for this parameter
     %----------------------------------------------------------------------
-    [Q,R,S,E,P] = spm_MDP(MDPP);
+    [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py          = PrY(P);
     L(i)        = sum(log(Py(Y)));
     
@@ -363,9 +319,8 @@ axis square
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 plot(p,spm_Npdf(p,Ep,Cp)), hold on
-plot([Pa Pa],[0 8],':'),   hold off
+plot([Pb Pb],[0 8],':'),   hold off
 xlabel('latency','FontSize',12)
 ylabel('probability','FontSize',12)
 title('posterior probability','FontSize',16)
 axis square
- 
