@@ -25,7 +25,7 @@ function [res] = montage(this,action,varargin)
 
 % Remy Lehembre & Christophe Phillips
 % Cyclotron Research Centre, University of Liège, Belgium
-% $Id: montage.m 5072 2012-11-20 19:06:11Z vladimir $
+% $Id: montage.m 5081 2012-11-28 14:22:07Z christophe $
 
 % Montage definition in the object structure by simply adding a 'montage'
 % field in the object structure:
@@ -45,6 +45,10 @@ function [res] = montage(this,action,varargin)
 %      * x_plot2D
 %      * y_plot2D
 %      * units
+%
+% Note: If no channels information is passed, then we'll try to guess what
+% to put in. It's easy for simple channel selection and re-referencing but
+% not possible for more general cases.
 
 switch lower(action)
     
@@ -203,7 +207,7 @@ switch lower(action)
         error('Wrong use of the ''montage'' method.')
 end
 
-return
+end
 
 %% Subfunction(s)
 
@@ -252,52 +256,25 @@ for ii=1:length(S.montage.M(idx).channels)
 end
 
 % Deal with "new" channel positions:
-% For EEG channels: either channel selection, re-referencing or bipolar montages
-%   - when channel selection -> keep original channel location
-%   - when re-reference -> keep original channel location
-%   - when bipolar montage -> use average channel location
-% For MEG/MEGPLANAR/LFP, assume only subsample of channels -> keep original location
-% For ECG/EOG/EMG, assume bipolar montage -> use loc of (+) electrode
-
-if l_EEG
-    tra_EEG = mont.tra(l_EEG,:);
-    Nch_or = sum(~~tra_EEG,2); % #orig channels used for each new channel
-    l_2ch = find(Nch_or==2); % lines with 2 channels involved
-    [kk,ref_2ch] = find(tra_EEG(l_2ch,:)<1);
-    if length(unique(ref_2ch))>1
-        bipolarM = 1;
-    else
-        bipolarM = 0;
-    end
-end
+% - when there is one channel with weight >0, assume it's a simple channel
+%   selection or re-referencing
+%   => use the info from channel with weight>0
+% - otherwise reset channel position to []
 
 for ii=1:length(S.montage.M(idx).channels)
-    l_chan_org = find(mont.tra(ii,:));
+    tra_ii = mont.tra(ii,:);
     
-    if intersect(ii,l_EEG)
-        if bipolarM
-            % bipolar -> use mean of electrode location
-            if length(l_chan_org)>2, error('This shouldn''t happen.'), end
-            S.montage.M(idx).channels(ii).X_plot2D = ...
-                mean([S.channels(l_chan_org).X_plot2D]);
-            S.montage.M(idx).channels(ii).Y_plot2D = ...
-                mean([S.channels(l_chan_org).Y_plot2D]);
-        else
-            % re-ref -> keep coord from (+) channel
-            S.montage.M(idx).channels(ii).X_plot2D = ...
-                S.channels(mont.tra(ii,:)>0).X_plot2D;
-            S.montage.M(idx).channels(ii).Y_plot2D = ...
-                S.channels(mont.tra(ii,:)>0).Y_plot2D;
-        end
-    elseif sum(mont.tra(ii,:)>0)==1
-        % 1 channel extracted or re-ref -> keep coord from (+) channel
+    if sum(tra_ii>0)==1
+        % 1 channel extracted or re-ref -> keep coord of (+) channel
         S.montage.M(idx).channels(ii).X_plot2D = ...
-            S.channels(mont.tra(ii,:)>0).X_plot2D;
+            S.channels(tra_ii>0).X_plot2D;
         S.montage.M(idx).channels(ii).Y_plot2D = ...
-            S.channels(mont.tra(ii,:)>0).Y_plot2D;
-    else % Don't know what to do...
-        S.montage.M(idx).channels(ii).X_plot2D = Nan;
-        S.montage.M(idx).channels(ii).Y_plot2D = Nan;
+            S.channels(tra_ii>0).Y_plot2D;
+    else
+        % more than 1 channel with >0 weight, don't know what to do...
+        S.montage.M(idx).channels(ii).X_plot2D = [];
+        S.montage.M(idx).channels(ii).Y_plot2D = [];
     end
+end    
+    
 end
-
