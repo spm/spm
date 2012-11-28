@@ -61,42 +61,70 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5067 2012-11-18 22:05:39Z karl $
+% $Id: spm_MDP.m 5083 2012-11-28 20:26:03Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % plotting and precision defaults
 %--------------------------------------------------------------------------
-try PLOT   = MDP.plot;   catch, PLOT   = 1;     end
-try lambda = MDP.lambda; catch, lambda = 1;     end
-try W      = MDP.W;      catch, W      = 1;   end
+try PLOT   = MDP.plot;   catch, PLOT   = 1; end
+try lambda = MDP.lambda; catch, lambda = 1; end
+try W      = MDP.W;      catch, W      = 1; end
 
-if PLOT, spm_figure('GetWin','MDP'); clf, end
+% get figure
+%--------------------------------------------------------------------------
+if PLOT, spm_figure('GetWin','MDP'); clf,   end
 
 % generative model and initial states
 %--------------------------------------------------------------------------
-T     = MDP.T;            % process depth (the horizon)
-B     = MDP.B;            % transition probabilities (priors)
-S     = spm_vec(MDP.S);   % initial state
-C     = spm_vec(MDP.C);   % terminal cost probabilities (priors)
-Ns    = size(S,1);        % number of hidden states
-Nb    = size(B,1);        % number of time-dependent probabilities
-Nu    = size(B,2);        % number of hidden controls
+P0    = exp(-4);              % smallest probability
+T     = MDP.T;                % process depth (the horizon)
+Ns    = size(MDP.B{1},1);     % number of hidden states
+Nb    = size(MDP.B,1);        % number of time-dependent probabilities
+Nu    = size(MDP.B,2);        % number of hidden controls
 
 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
 try
-    A = MDP.A;
+    A = MDP.A + P0;
 catch
-    A = speye(Ns,Ns);
+    A = speye(Ns,Ns) + P0;
+end
+A     = A*diag(1./sum(A));
+
+% transition probabilities (priors)
+%--------------------------------------------------------------------------
+for i = 1:T
+    for j = 1:Nu
+        if i == 1 || Nb == T
+            B{i,j}   = MDP.B{i,j} + P0;
+            H{i,j}   = B{i,j}';
+            B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
+            H{i,j}   = H{i,j}*diag(1./sum(H{i,j}));
+            lnB{i,j} = log(B{i,j})*W;
+            lnH{i,j} = log(H{i,j})*W;
+        else
+            B{i,j}   = B{1,j};
+            lnB{i,j} = lnB{1,j};
+            lnH{i,j} = lnH{1,j};
+        end
+    end
+end
+
+% terminal cost probabilities (priors)
+%--------------------------------------------------------------------------
+try
+    C = spm_vec(MDP.C) + P0;
+catch
+    C = ones(Ns,1);
 end
 
 % control probabilities (priors)
 %--------------------------------------------------------------------------
 try
-    D = spm_vec(MDP.D);
+    D = spm_vec(MDP.D) + P0;
 catch
     D = ones(Nu,1);
 end
@@ -104,50 +132,34 @@ end
 % state probabilities (priors)
 %--------------------------------------------------------------------------
 try
-    E = spm_vec(MDP.E);
+    E = spm_vec(MDP.E) + P0;
 catch
     E = ones(Ns,1);
 end
 
-
-
-% get log-transforms and ensure normalization
-%--------------------------------------------------------------------------
-A     = A*diag(1./sum(A));
-for i = 1:T
-    for j = 1:Nu
-        if i == 1 || Nb == T
-            B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
-            lnB{i,j} = max(log(B{i,j}),-16)*W;
-        else
-            B{i,j}   = B{1,j};
-            lnB{i,j} = lnB{1,j};
-        end
-    end
-end
 C     = C/sum(C);
 D     = D/sum(D);
 E     = E/sum(E);
-lnA   = max(log(A),-16);
-lnD   = max(log(D),-16)*W;
-lnE   = max(log(E),-16)*W;
+lnA   = log(A);
+lnD   = log(D)*W;
+lnE   = log(E)*W;
 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
 try
-    G     = MDP.G;
-    Ng    = size(G,1);
-    for i = 1:T
-        for j = 1:Nu
-            if i == 1 || Ng == T
-                G{i,j}   = G{i,j}*diag(1./sum(G{i,j}));
-            else
-                G{i,j}   = G{1,j};
-            end
+    G = MDP.G;
+catch
+    G = MDP.B;
+end
+Ng    = size(G,1);
+for i = 1:T
+    for j = 1:Nu
+        if i == 1 || Ng == T
+            G{i,j}   = G{i,j}*diag(1./sum(G{i,j}));
+        else
+            G{i,j}   = G{1,j};
         end
     end
-catch
-    G = B;
 end
 
 
@@ -158,13 +170,16 @@ b        = ones(Nu,T);                           % control probability
 a(:,T)   = C;                                    % final state
 b        = b*diag(1./sum(b));
 
-% posterior expectations (sates Q, control R) and action (E)
+% posterior expectations (states Q, control R)
 %--------------------------------------------------------------------------
-s        = find(S);
 Q(:,1,:) = a;
 R(:,1,:) = b;
-S        = sparse(s,1,1,Ns,T);
-U        = sparse(Nu,T);
+
+%  initial state and posterior (states Q, control R) and action (E)
+%--------------------------------------------------------------------------
+s     = find(spm_vec(MDP.S));
+S     = sparse(s,1,1,Ns,T);
+U     = sparse(Nu,T);
 
 % solve
 %==========================================================================
@@ -172,8 +187,8 @@ for k = 1:(T - 1)
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:4
-        for t = [(T - 1):-1:k k:(T - 1)]
+    for i = 1:8
+        for t = [(T - 1):-1:k]
             
             % get data likelihood if available at this time
             %--------------------------------------------------------------
@@ -187,7 +202,7 @@ for k = 1:(T - 1)
             %--------------------------------------------------------------
             for j = 1:Nu
                 if t > 1
-                    at  = at     + b(j,t - 1) *lnB{t,j} *a(:,t - 1);
+                    at  = at     + b(j,t - 1) *lnH{t,j}'*a(:,t - 1);
                 end
                 at      = at     + b(j,t    ) *lnB{t,j}'*a(:,t + 1);
                 bt(j,1) = lnD(j) + a(:,t    )'*lnB{t,j}'*a(:,t + 1);
@@ -243,7 +258,7 @@ for k = 1:(T - 1)
     
     % next state (assuming G mediates uncertainty modelled the likelihood)
     %----------------------------------------------------------------------
-    Ps       = G{k,i}(:,s);
+    Ps       = (G{k,i}(:,s)).^lambda;
     Ps       = Ps/sum(Ps);
     s        = find(rand < cumsum(Ps),1);
     

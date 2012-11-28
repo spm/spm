@@ -90,7 +90,6 @@ for k = 1:Nu
             
             % place in P
             %--------------------------------------------------------------
-            px     = K*px;
             pv     = K*pv;
             p      = px*pv';
             P{k}(:,(j - 1)*Nx + i) = p(:);
@@ -168,7 +167,8 @@ MDP.B = P;                         % transition probabilities (priors)
 MDP.C = C;                         % terminal cost probabilities (priors)
 MDP.D = D;                         % control probabilities (priors)
 
-MDP.lambda = 8;
+MDP.lambda = 16;
+MDP.plot   = 1;
 
 [Q,R,S,E]  = spm_MDP(MDP);
  

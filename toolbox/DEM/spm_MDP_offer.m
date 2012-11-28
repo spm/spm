@@ -32,7 +32,7 @@ function spm_MDP_offer
 %==========================================================================
 T     = 16;                           % number of offers
 Pa    = 1/2;                          % probability of a high offer
-Pb    = 1/2;                          % probability of withdrawn offer
+Pb    = 1/8;                         % probability of withdrawn offer
 Plos  = @(t,Pb)(1 - (1 - Pb).^t);
 Pwin  = @(T,Pa)(1 - (1 - Pa)^(1/T));
    
@@ -41,12 +41,12 @@ Pwin  = @(T,Pa)(1 - (1 - Pa)^(1/T));
 for t = 1:T
     
     a       = Pwin(T,Pa);
-    b       = Plos(t,Pb)*(1 - a);
-    B{t,1}  = [(1 - a - b) 0 0 0 0;
-                a          0 0 0 0;
-                b          1 1 0 0;
-                0          0 0 1 0;
-                0          0 0 0 1];
+    b       = Plos(t,Pb);
+    B{t,1}  = [(1 - a + a*b - b) 0 0 0 0;
+                a*(1 - b)        0 0 0 0;
+                b                1 1 0 0;
+                0                0 0 1 0;
+                0                0 0 0 1];
     
     B{t,2}  = [ 0 0 0 0 0;
                 0 0 0 0 0;
@@ -62,7 +62,7 @@ S     = [1 0 0 0 0]';
  
 % priors over final state
 %--------------------------------------------------------------------------
-C     = [0 0 0 2 1]';
+C     = [0 0 0 1 1/8]';
  
 % MDP Structure
 %==========================================================================
@@ -87,15 +87,15 @@ MDP.G    = G;
  
 % solve - an example game
 %==========================================================================
-MDP.plot   = 3;                     % plot convergence
+MDP.plot    = 2;                     % plot convergence
 spm_MDP_select(MDP);
  
  
 % probability distribution over time to act: P(1,:) is no action
 %--------------------------------------------------------------------------
-PrY        = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
-MDP.plot   = 0;                     % plot convergence
-MDP.lambda = 1/4;                   % precision for action selection
+PrY         = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
+MDP.plot    = 0;                     % plot convergence
+MDP.lambda  = 1;                     % precision for action selection
  
  
  
@@ -106,7 +106,7 @@ spm_figure('GetWin','Figure 1'); clf
  
 % high offer
 %--------------------------------------------------------------------------
-p     = [0 1/4 1/2 3/4 1];
+p     = linspace(0,1/2,32);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     
@@ -114,8 +114,8 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     for t = 1:T
         a       = Pwin(T,p(i));
-        b       = Plos(t,Pb)*(1 - a);
-        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
+        b       = Plos(t,Pb);
+        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
     end
     
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
@@ -124,17 +124,16 @@ for i = 1:length(p)
 end
  
 subplot(2,2,1)
-plot(1:length(P),Py,'.','MarkerSize',16),legend(str), hold on
-plot(1:length(P),Py,':'), hold off
+imagesc(Py)
+imagesc(1:(T - 1),p,(1 - Py))
 xlabel('latency (offers)','FontSize',12)
-ylabel('acceptance probability ','FontSize',12)
+ylabel('P(high offer)','FontSize',12)
 title('high offer probability ','FontSize',16)
 axis square
-legend(str)
  
 % offer withdrawal
 %--------------------------------------------------------------------------
-p     = [1/64 1/32 1/16 1/8 1/4 1/2];
+p     = linspace(1/16,1,32);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     
@@ -142,8 +141,8 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     for t = 1:T
         a       = Pwin(T,Pa);
-        b       = Plos(t,p(i))*(1 - a);
-        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
+        b       = Plos(t,p(i));
+        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
     end
     
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
@@ -152,37 +151,37 @@ for i = 1:length(p)
 end
  
 subplot(2,2,2)
-plot(1:length(P),Py,'.','MarkerSize',16),legend(str), hold on
-plot(1:length(P),Py,':'), hold off
+imagesc(Py)
+imagesc(1:(T - 1),p,(1 - Py))
 xlabel('latency (offers)','FontSize',12)
-ylabel('acceptance probability','FontSize',12)
+ylabel('P(withdrawal)','FontSize',12)
 title('offer withdrawal','FontSize',16)
 axis square
  
  
 % beliefs about final state
 %--------------------------------------------------------------------------
-p     = [1/2 1 2 3 4]; 
+p     = linspace(0,1/2,32);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
-    MDPP.C(4)   = p(i);
+    MDPP.C(5)   = p(i);
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
 end
  
 subplot(2,2,3)
-plot(1:length(P),Py,'.','MarkerSize',16),legend(str), hold on
-plot(1:length(P),Py,':'), hold off
+imagesc(Py)
+imagesc(1:(T - 1),p,(1 - Py))
 xlabel('latency (offers)','FontSize',12)
-ylabel('acceptance probability','FontSize',12)
+ylabel('Belief in high offer','FontSize',12)
 title('Behaviour and terminal cost','FontSize',16)
 axis square
-legend(str)
+
  
 % precision
 %--------------------------------------------------------------------------
-p     = [1/16 1/8 1/4 1/2 1];
+p     = linspace(1/32,1/8,32);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
     MDPP.W      = p(i);
@@ -192,14 +191,15 @@ for i = 1:length(p)
 end
  
 subplot(2,2,4)
-plot(1:length(P),Py,'.','MarkerSize',16),legend(str), hold on
-plot(1:length(P),Py,':'), hold off
+imagesc(Py)
+imagesc(1:(T - 1),p,(1 - Py))
 xlabel('latency (offers)','FontSize',12)
 ylabel('acceptance probability','FontSize',12)
 title('Behaviour and precicion','FontSize',16)
 axis square
-legend(str)
- 
+
+
+return
  
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
@@ -285,8 +285,8 @@ for i = 1:length(p);
     %----------------------------------------------------------------------
     for t = 1:T
         a       = Pwin(T,Pa);
-        b       = Plos(t,p(i))*(1 - a);
-        MDPP.B{t,1}(1:3,1) = [(1 - a - b); a; b];        
+        b       = Plos(t,p(i));
+        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
     end
     
     % get likelihood for this parameter

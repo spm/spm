@@ -181,14 +181,14 @@ for t = 1:(T - 1)
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:3
+    for i = 1:8
         
         % current state a(:,1)
         %------------------------------------------------------------------
         a(:,1) = lnA'*S(:,t);
         a(:,1) = spm_softmax(a(:,1));
                         
-        % policy b
+        % policy (b)
         %------------------------------------------------------------------
         for j = 2:Nu
             for k  = t:(T - 1)
@@ -204,6 +204,19 @@ for t = 1:(T - 1)
         k      = t:(T - 1);
         b(j,k) = spm_unvec(spm_softmax(spm_vec(b(j,k))),b(j,k));
         b(1,:) = 1 - sum(b(j,:),1);
+        
+        
+        % expected utility policy (p)
+        %------------------------------------------------------------------
+        for k = t:(T - 1)
+            for j = 2:Nu
+                p(j,k) = a(:,3)'*exp(lnH{k,j})*a(:,1);
+            end
+        end
+        j      = 2:Nu;
+        k      = t:(T - 1);
+        p(j,k) = spm_unvec(spm_softmax(spm_vec(p(j,k)),32),p(j,k));
+        p(1,:) = 1 - sum(p(j,:),1);
         
         % next state a(:,2)
         %------------------------------------------------------------------
@@ -246,6 +259,7 @@ for t = 1:(T - 1)
     for i = 1:Nu
         F(i) = B{t,i}(:,s)'*lnA*a(:,2);
     end
+    %F        = log(p(:,t));
     
     % next action (the action and minimises expected free energy)
     %----------------------------------------------------------------------
