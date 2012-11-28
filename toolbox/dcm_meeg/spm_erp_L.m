@@ -25,7 +25,7 @@ function [L] = spm_erp_L(P,dipfit)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_L.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_erp_L.m 5082 2012-11-28 20:25:37Z karl $
 
 % Create a persient variable that rembers the last locations
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ persistent LastLpos LastL
 
 % type of spatial model and modality
 %==========================================================================
-if isfield(dipfit,'type'),   type   = dipfit.type; else, type = 'LFP'; end
+if isfield(dipfit,'type'), type = dipfit.type; else, type = 'LFP'; end
 
 switch type
 
@@ -103,7 +103,7 @@ switch type
         catch
             n = m;
         end
-       L     = sparse(1:m,1:m,P.L,m,n);
+        L     = sparse(1:m,1:m,P.L,m,n);
 
     otherwise
         warndlg('unknown spatial model')

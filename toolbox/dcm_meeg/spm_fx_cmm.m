@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5066 2012-11-16 21:34:00Z karl $
+% $Id: spm_fx_cmm.m 5082 2012-11-28 20:25:37Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -82,7 +82,10 @@ G    = full(P.G);
 if any(P.H)
     G(2,2,:) = squeeze(G(2,2,:)) + P.H;
 end
+G(2,2,:) = 0;
 G    = exp(G);
+
+
 
 % connectivity switches
 %==========================================================================
@@ -101,21 +104,21 @@ SA   = [4   0 ;
 % intrinsic connections (np x np) - excitatory
 %--------------------------------------------------------------------------
 GE   = [ 0     0     0     0
-        32     0     0     0
-         4     0     0   128
-         0     4     0     0]/8;
+         6     0     0     0
+         1     0     0    42
+         0     4     0     0];
  
 % intrinsic connections (np x np) - inhibitory
 %--------------------------------------------------------------------------
-GI   = [ 16    0     4     0
-         0  1024     0     0
-         0     0    48     0
-         0     2    64     4]/8;
+GI   = [ 8    0      4     0
+         0  256     0     0
+         0     0    64     0
+         0     2    72     4];
 
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = 1000;                                % excitatory rate constants
-KI   = exp(-P.T)*[1/24 1/12 1/6 1/6]*1000;  % inhibitory rate constants
+KE   = 1000/2;                                % excitatory rate constants
+KI   = exp(-P.T)*[1/32 1/16 1/8 1/8]*1000;  % inhibitory rate constants
  
 % Voltages
 %--------------------------------------------------------------------------
@@ -124,7 +127,7 @@ VE   =  60;                               % reversal  potential excite (Na)
 VI   = -90;                               % reversal  potential inhib (Cl)
 VR   = -40;                               % threshold potential
  
-CV   = exp(P.CV).*[60 160 120 40]/1000;      % membrane capacitance
+CV   = exp(P.CV).*[128 128 256 32]/1000;      % membrane capacitance
 GL   = 1;                                 % leak conductance
  
 % mean-field effects:

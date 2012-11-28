@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5038 2012-11-06 20:25:24Z karl $
+% $Id: spm_induced_optimise_parameters.m 5082 2012-11-28 20:25:37Z karl $
  
  
 % Model specification
@@ -160,19 +160,19 @@ ylabel('Mode')
 set(get(gca,'Children'),'ButtonDownFcn','spm_opt_bfun')
  
  
-Ep = pE; return
+% Ep = pE; return
  
 % Optimisation: Target (Y)
 %==========================================================================
  
 % weights (W): coupling between modes and hidden states (for 4 modes)
 %--------------------------------------------------------------------------
-W     = [1 0 1/2 1;
-         1/2 1 1 1];
+W     = [1 0 1/4 1;
+         1/8 1 1 1];
  
 % Target spectrum - gamma, beta and alpha
 %--------------------------------------------------------------------------
-S     = -[32 32 48 128]' + 1i*2*pi*[38 16 12 4]';
+S     = -[32 32 32 128]' + 1i*2*pi*[40 20 10 5]';
 S     = S(1:M.Nm);
 W     = W(:,1:M.Nm);
 W     = W/max(W(:));
@@ -184,16 +184,16 @@ Y.y   = [S; spm_vec(W)*32];
  
 % create generative model of the eigenspectrum (M) and invert
 %--------------------------------------------------------------------------
-M.IS   = 'spm_ssm2s';
-M.Nmax = 16;
-pC     = V*diag(spm_vec(pC))*V;
-M.pC   = pC;
-for  i = 1:1
-    [Ep Cp] = spm_nlsi_GN(M,[],Y);
-    M.pE    = Ep;
-    M.pC    = pC/2;
-    M.x     = spm_dcm_neural_x(Ep,M);
-end
+M.IS    = 'spm_ssm2s';
+M.Nmax  = 12;
+pC      = V*diag(spm_vec(pC))*V;
+M.pC    = pC;
+
+[Ep Cp] = spm_nlsi_GN(M,[],Y);
+M.pE    = Ep;
+M.pC    = pC/2;
+M.x     = spm_dcm_neural_x(Ep,M);
+
  
  
 % Show results with optimised parameters

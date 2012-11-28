@@ -32,7 +32,7 @@ function DCM = spm_dcm_phase_data(DCM)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_phase_data.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_dcm_phase_data.m 5082 2012-11-28 20:25:37Z karl $
 
 % Get data filename
 %-------------------------------------------------------------------------
@@ -106,8 +106,8 @@ end
 modality = DCM.xY.modality;
 
 if ~isfield(DCM.xY, 'Ic')
-    Ic = D.indchantype({modality, 'GOOD'});  
-    DCM.xY.Ic       = Ic;
+    Ic        = D.indchantype(modality,'GOOD');  
+    DCM.xY.Ic = Ic;
 end
 
 Ic = DCM.xY.Ic;

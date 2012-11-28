@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_dcm_erp_data.m 5082 2012-11-28 20:25:37Z karl $
  
  
 % Set defaults and Get D filename
@@ -106,7 +106,7 @@ end
  
 % good channels
 %--------------------------------------------------------------------------
-Ic        = D.indchantype({DCM.xY.modality, 'GOOD'});
+Ic        = D.indchantype(DCM.xY.modality,'GOOD');
 if isempty(Ic)
     warndlg('No good channels in these data');
     return

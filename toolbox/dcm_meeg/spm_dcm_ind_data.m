@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: spm_dcm_ind_data.m 5082 2012-11-28 20:25:37Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -86,7 +86,7 @@ end
 TFinput = isequal(D.transformtype, 'TF');
  
 if  ~isfield(DCM.xY,'Ic')
-    Ic        = D.indchantype({DCM.xY.modality, 'GOOD'});
+    Ic        = D.indchantype(DCM.xY.modality, 'GOOD');
     DCM.xY.Ic = Ic;
 end
 Ic   = DCM.xY.Ic;
