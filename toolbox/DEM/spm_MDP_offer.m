@@ -42,27 +42,25 @@ for t = 1:T
     
     a       = Pwin(T,Pa);
     b       = Plos(t,Pb);
-    B{t,1}  = [(1 - a + a*b - b) 0 0 0 0;
-                a*(1 - b)        0 0 0 0;
-                b                1 1 0 0;
-                0                0 0 1 0;
-                0                0 0 0 1];
+    B{t,1}  = [(1 - a + a*b - b) 0 0 0;
+                b                1 0 0;
+                0                0 1 0;
+                a*(1 - b)        0 0 1];
     
-    B{t,2}  = [ 0 0 0 0 0;
-                0 0 0 0 0;
-                0 0 1 1 1;
-                1 0 0 0 0;
-                0 1 0 0 0];
+    B{t,2}  = [ 0 0 0 0;
+                0 1 0 0;
+                1 0 1 0;
+                0 0 0 1];
 end
       
  
 % initial state
 %--------------------------------------------------------------------------
-S     = [1 0 0 0 0]';
+S     = [1 0 0 0]';
  
 % priors over final state
 %--------------------------------------------------------------------------
-C     = [0 0 0 1 1/8]';
+C     = [0 0 1 8]';
  
 % MDP Structure
 %==========================================================================
@@ -76,11 +74,10 @@ MDP.C = C;                          % terminal cost probabilities (priors)
  
 % True transition probabilities (retaining low offer for all trials)
 %--------------------------------------------------------------------------
-G{1,1}  = [1 1 0 0 0;
-           0 0 0 0 0;
-           0 0 1 0 0;
-           0 0 0 1 0;
-           0 0 0 0 1];
+G{1,1}  = [1 0 0 0;
+           0 1 0 0;
+           0 0 1 0;
+           0 0 0 1];
  
 G{1,2}   = G{1,1};
 MDP.G    = G;
@@ -115,7 +112,7 @@ for i = 1:length(p)
     for t = 1:T
         a       = Pwin(T,p(i));
         b       = Plos(t,Pb);
-        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
+        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];        
     end
     
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
@@ -142,7 +139,7 @@ for i = 1:length(p)
     for t = 1:T
         a       = Pwin(T,Pa);
         b       = Plos(t,p(i));
-        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
+        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];      
     end
     
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
@@ -161,10 +158,10 @@ axis square
  
 % beliefs about final state
 %--------------------------------------------------------------------------
-p     = linspace(0,1/2,32);
+p     = linspace(0,16,32);
 MDPP  = MDP; clear Py str
 for i = 1:length(p)
-    MDPP.C(5)   = p(i);
+    MDPP.C(4)   = p(i);
     [Q,R,S,E,P] = spm_MDP_select(MDPP);
     Py(i,:)     = PrY(P);
     str{i}      = num2str(p(i));
@@ -286,7 +283,7 @@ for i = 1:length(p);
     for t = 1:T
         a       = Pwin(T,Pa);
         b       = Plos(t,p(i));
-        MDPP.B{t,1}(1:3,1) = [1 - a + a*b - b; a*(1 - b); b];        
+        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];       
     end
     
     % get likelihood for this parameter

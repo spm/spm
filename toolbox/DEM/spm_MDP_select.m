@@ -210,7 +210,8 @@ for t = 1:(T - 1)
         %------------------------------------------------------------------
         for k = t:(T - 1)
             for j = 2:Nu
-                p(j,k) = a(:,3)'*exp(lnH{k,j})*a(:,1);
+                K(:,k,j - 1) =   exp(lnH{k,j})*a(:,1);
+                p(j,k) = log(a(:,3))'*exp(lnH{k,j})*a(:,1);
             end
         end
         j      = 2:Nu;
@@ -259,7 +260,7 @@ for t = 1:(T - 1)
     for i = 1:Nu
         F(i) = B{t,i}(:,s)'*lnA*a(:,2);
     end
-    %F        = log(p(:,t));
+    % F        = log(p(:,t));
     
     % next action (the action and minimises expected free energy)
     %----------------------------------------------------------------------
