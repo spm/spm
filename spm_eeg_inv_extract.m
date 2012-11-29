@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 4639 2012-02-02 13:56:02Z vladimir $
+% $Id: spm_eeg_inv_extract.m 5088 2012-11-29 21:43:01Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -170,26 +170,30 @@ end
  
 % compute regional response in terms of first eigenvariate
 %==========================================================================
-iS    = [1 cumsum(cellfun('length', svert))];
+iS    = [0 cumsum(cellfun('length', svert))];
 Y     = zeros(Ns, size(MY, 2));
  
 spm_progress_bar('Init', Ns, 'extracting eigenvariates', 'sources');
  
 for i = 1:Ns    
-    y     = MY(iS(i):iS(i+1),:);
+    y     = MY((iS(i)+1):iS(i+1),:);
     [m n] = size(y);
     if m > n && n > 1
         [v s v] = svd(y'*y);
-        Y(i, :) = v(:,1);
+        v       = v(:,1);
+        u       = y*v;
+        Y(i, :) = sign(sum(u))*v;
     elseif m>1
         [u s u] = svd(y*y');
         u       = u(:,1);
-        Y(i, :) = y'*u;
+        Y(i, :) =  sign(sum(u))*y'*u;
     else
         Y(i, :) = y;
     end
+    
     spm_progress_bar('Set',i);
 end
+
 spm_progress_bar('Clear')
  
 % create source dataset
