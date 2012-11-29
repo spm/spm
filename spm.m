@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm.m 5087 2012-11-29 16:59:04Z guillaume $
 
 
 %=======================================================================
@@ -746,9 +746,9 @@ if nargin<4, CmdLine=spm('CmdLine'); else CmdLine=varargin{4}; end
 if nargin<3, F='Interactive'; else F=varargin{3}; end
 if nargin<2, Iname=''; else Iname=varargin{2}; end
 
-%if ~isempty(Iname), fprintf('\t%s\n',Iname), end
 if CmdLine, varargout={[]}; return, end
 F = spm_figure('FindWin',F);
+if isempty(Iname), Iname = get(F,'Tag'); end
 if ~isempty(F) && ~isempty(Iname)
     set(F,'Name',sprintf('%s: %s',spm('Version'),Iname))
 end
@@ -1008,14 +1008,16 @@ varargout = { CmdLine | ...
 %=======================================================================
 case 'popupcb'               %-Callback handling utility for PopUp menus
 %=======================================================================
-% spm('PopUpCB',h)
+% spm('PopUpCB',h,hdr)
 %-----------------------------------------------------------------------
-if nargin<2, h=gcbo; else h=varargin{2}; end
+if nargin<2, h=[]; else h=varargin{2}; end
+if nargin<3, hdr=1; else hdr=varargin{3}; end
+if isempty(h), h=gcbo; end
 v   = get(h,'Value');
-if v==1, return, end
+if v==hdr, return, end
 set(h,'Value',1)
 CBs = get(h,'UserData');
-CB  = CBs{v-1};
+CB  = CBs{v-hdr};
 if ischar(CB)
     evalin('base',CB)
 elseif isa(CB,'function_handle')
