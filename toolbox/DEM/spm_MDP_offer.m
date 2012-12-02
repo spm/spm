@@ -58,9 +58,9 @@ end
 %--------------------------------------------------------------------------
 S     = [1 0 0 0]';
  
-% priors over final state
+% priors over final state (exp(utility))
 %--------------------------------------------------------------------------
-C     = [0 0 1 8]';
+C     = [1 1 2 3]';
  
 % MDP Structure
 %==========================================================================
@@ -79,45 +79,124 @@ G{1,1}  = [1 0 0 0;
            0 0 1 0;
            0 0 0 1];
  
-G{1,2}   = G{1,1};
-MDP.G    = G;
- 
+G{1,2}  = G{1,1};
+MDP.G   = G;
+
+
 % solve - an example game
 %==========================================================================
-MDP.plot    = 2;                     % plot convergence
-spm_MDP_select(MDP);
+MDP.plot   = 3;                     % plot convergence
+% spm_MDP_select(MDP);
  
  
 % probability distribution over time to act: P(1,:) is no action
 %--------------------------------------------------------------------------
-PrY         = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
-MDP.plot    = 0;                     % plot convergence
-MDP.lambda  = 1;                     % precision for action selection
- 
- 
- 
+PrT        = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
+PrA        = @(P)P(2,:);
+MDP.plot   = 0;                        % plot convergence
+MDP.lambda = 1/16;                     % action sensitivity (free energy)
+beta       = 1;                        % action sensitivity (utilitiy)
+
+
 % illustrate dependency on latency w.r.t. parameters
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
+
+% Precision of beliefs about final state
+%--------------------------------------------------------------------------
+DP    = MDP;
+C     = [1 1 2 4]';
+p     = linspace(0,12,16);
+
+for i = 1:length(p)
+    
+    % probability of action
+    %----------------------------------------------------------------------
+    DP.C      = C*p(i);
+    PF(:,:,i) = spm_MDP_select(DP);
+    PE(:,:,i) = spm_MDP_select(DP,beta);
+    
+    % expected utility
+    %----------------------------------------------------------------------
+    UF(i,:)   = PrU(PrT(PF(:,:,i)),DP.B,DP.C);
+    UE(i,:)   = PrU(PrT(PE(:,:,i)),DP.B,DP.C);
+
+end
+ 
+subplot(2,2,1)
+imagesc(1:(T - 1),p,(1 - PF))
+xlabel('latency (offers)','FontSize',12)
+ylabel('Precision of beliefs','FontSize',12)
+title('Precision (FE)','FontSize',16)
+axis square
+
+
+% compare with expected utility
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+imagesc(PE)
+imagesc(1:(T - 1),p,(1 - PE))
+xlabel('latency (offers)','FontSize',12)
+ylabel('Precision of beliefs','FontSize',12)
+title('Precision (EU)','FontSize',16)
+axis square
+
+
+% beliefs about final state
+%--------------------------------------------------------------------------
+DP    = MDP;
+C     = [1 1 2 4]';
+p     = linspace(0,8,16);
+
+for i = 1:length(p)
+    DP.C      = C;
+    DP.C(3)   = p(i);
+    PF(i,:)   = PrY(spm_MDP_select(DP));
+    PE(i,:)   = PrY(spm_MDP_select(DP,beta));
+end
+ 
+subplot(2,2,3)
+imagesc(1:(T - 1),p,(1 - PF))
+xlabel('latency (offers)','FontSize',12)
+ylabel('Utility of high offer','FontSize',12)
+title('Terminal utility (FE)','FontSize',16)
+axis square
+
+
+% compare with expected utility
+%--------------------------------------------------------------------------
+subplot(2,2,4)
+imagesc(PE)
+imagesc(1:(T - 1),p,(1 - PE))
+xlabel('latency (offers)','FontSize',12)
+ylabel('Utility of high offer','FontSize',12)
+title('Terminal utility (EU)','FontSize',16)
+axis square
+
+
+
+
+
+return
  
 % high offer
 %--------------------------------------------------------------------------
 p     = linspace(0,1/2,32);
-MDPP  = MDP; clear Py str
+DP  = MDP; clear Py str
 for i = 1:length(p)
     
     % transition probabilities
     %----------------------------------------------------------------------
     for t = 1:T
-        a       = Pwin(T,p(i));
-        b       = Plos(t,Pb);
-        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];        
+        a   = Pwin(T,p(i));
+        b   = Plos(t,Pb);
+        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];        
     end
     
-    [Q,R,S,E,P] = spm_MDP_select(MDPP);
-    Py(i,:)     = PrY(P);
-    str{i}      = num2str(p(i));
+    P       = spm_MDP_select(DP);
+    Py(i,:) = PrY(P);
+    str{i}  = num2str(p(i));
 end
  
 subplot(2,2,1)
@@ -131,20 +210,20 @@ axis square
 % offer withdrawal
 %--------------------------------------------------------------------------
 p     = linspace(1/16,1,32);
-MDPP  = MDP; clear Py str
+DP  = MDP; clear Py str
 for i = 1:length(p)
     
     % transition probabilities
     %----------------------------------------------------------------------
     for t = 1:T
-        a       = Pwin(T,Pa);
-        b       = Plos(t,p(i));
-        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];      
+        a   = Pwin(T,Pa);
+        b   = Plos(t,p(i));
+        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];      
     end
     
-    [Q,R,S,E,P] = spm_MDP_select(MDPP);
-    Py(i,:)     = PrY(P);
-    str{i}      = num2str(p(i));
+    P       = spm_MDP_select(DP);
+    Py(i,:) = PrY(P);
+    str{i}  = num2str(p(i));
 end
  
 subplot(2,2,2)
@@ -159,12 +238,12 @@ axis square
 % beliefs about final state
 %--------------------------------------------------------------------------
 p     = linspace(0,16,32);
-MDPP  = MDP; clear Py str
+DP  = MDP; clear Py str
 for i = 1:length(p)
-    MDPP.C(4)   = p(i);
-    [Q,R,S,E,P] = spm_MDP_select(MDPP);
-    Py(i,:)     = PrY(P);
-    str{i}      = num2str(p(i));
+    DP.C(4) = p(i);
+    P         = spm_MDP_select(DP);
+    Py(i,:)   = PrY(P);
+    str{i}    = num2str(p(i));
 end
  
 subplot(2,2,3)
@@ -176,38 +255,18 @@ title('Behaviour and terminal cost','FontSize',16)
 axis square
 
  
-% precision
-%--------------------------------------------------------------------------
-p     = linspace(1/32,1/8,32);
-MDPP  = MDP; clear Py str
-for i = 1:length(p)
-    MDPP.W      = p(i);
-    [Q,R,S,E,P] = spm_MDP_select(MDPP);
-    Py(i,:)     = PrY(P);
-    str{i}      = num2str(p(i));
-end
- 
-subplot(2,2,4)
-imagesc(Py)
-imagesc(1:(T - 1),p,(1 - Py))
-xlabel('latency (offers)','FontSize',12)
-ylabel('acceptance probability','FontSize',12)
-title('Behaviour and precicion','FontSize',16)
-axis square
-
-
 return
  
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
  
-[Q,R,S,E,P] = spm_MDP_select(MDP);
+P  = spm_MDP_select(MDP);
  
  
 % uncertainty about current action
 %--------------------------------------------------------------------------
-H   = sum(-P.*log(P),1);
+H  = sum(-P.*log(P),1);
  
 subplot(2,2,1)
 plot(1:length(H),H,'.','MarkerSize',16), hold on
@@ -220,8 +279,8 @@ axis square
  
 % uncertainty about future states
 %--------------------------------------------------------------------------
-j   = 1:(T - 1);
-H   = sum(-Q(:,j).*log(Q(:,j)));  
+j  = 1:(T - 1);
+H  = sum(-Q(:,j).*log(Q(:,j)));  
  
 subplot(2,2,2)
 plot(1:length(H),H,'.','MarkerSize',16), hold on
@@ -243,9 +302,9 @@ spm_figure('GetWin','Figure 3'); clf
 % trials
 %--------------------------------------------------------------------------
 for i = 1:32
-    [Q,R,S,E,P] = spm_MDP_select(MDP);
+    [P,Q,R,S,U] = spm_MDP_select(MDP);
     try
-        Y(i)    = find(E(2,:),1);
+        Y(i) = find(U(2,:),1);
     end
     fprintf('trial %0.00f\n',i);
 end
@@ -275,22 +334,22 @@ axis square
 % Infer prior beliefs from observed responses (meta-modelling)
 %==========================================================================
 p     = linspace(1/32,1/2,32);
-MDPP  = MDP;
+DP  = MDP;
 for i = 1:length(p);
     
     % transition probabilities
     %----------------------------------------------------------------------
     for t = 1:T
-        a       = Pwin(T,Pa);
-        b       = Plos(t,p(i));
-        MDPP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];       
+        a = Pwin(T,Pa);
+        b = Plos(t,p(i));
+        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];       
     end
     
     % get likelihood for this parameter
     %----------------------------------------------------------------------
-    [Q,R,S,E,P] = spm_MDP_select(MDPP);
-    Py          = PrY(P);
-    L(i)        = sum(log(Py(Y)));
+    P     = spm_MDP_select(DP);
+    Py    = PrY(P);
+    L(i)  = sum(log(Py(Y)));
     
 end
  
@@ -321,3 +380,38 @@ xlabel('latency','FontSize',12)
 ylabel('probability','FontSize',12)
 title('posterior probability','FontSize',16)
 axis square
+
+
+return
+
+
+% expected utility
+%--------------------------------------------------------------------------
+function EC = PrU(P,B,C)
+
+Ns    = size(C,1);
+Nt    = size(P,2);
+Na    = size(P,1);
+PT    = 0;
+for j = 1:Na
+    for t = 1:Nt
+        H = sparse(1,1,1,Ns,1);
+        for k = 1:Nt
+            if k == t
+                H = B{k,1 + j}*H;
+            else
+                H = B{k,1}*H;
+            end
+            
+        end
+        PT = PT + P(j,t)*H;
+    end
+end
+EC = PT'*C;
+
+
+
+
+
+
+

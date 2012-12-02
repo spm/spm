@@ -1,7 +1,7 @@
-function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
-% aaction selection using active inference
-% FORMAT [P,Q,R,S,U] = spm_MDP_select(MDP)
-% FORMAT [P] = spm_MDP_select(MDP,beta)
+function [P,Q,R,S,U] = spm_MDP_delay(MDP,sensitivity)
+% solves the active inference problem for action selection
+% FORMAT [P,Q,R,S,U] = spm_MDP_delay(MDP)
+% FORMAT [P] = spm_MDP_select(MDP,sensitivity)
 %
 % MDP.T           - process depth (the horizon)
 % MDP.S(N,1)      - initial state
@@ -44,7 +44,7 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % and hidden controls are isomorphic. If the dynamics of transition
 % probabilities of the true process are not provided, this routine will use
 % the equivalent probabilities from the generative model.
-
+ 
 % This particular scheme is designed for situations in which a particular
 % action is to be selected at a particular time. The first control state
 % is considered the baseline or default behaviour. Subsequent control
@@ -53,7 +53,7 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % the generative model, allowing a fairly exhaustive model of potential
 % outcomes – eschewing a mean field approximation over successive
 % control states. In brief, the agent simply represents the current state
-% and states in the immediate and distant future.
+% and states in the immediate and distant future. 
 %
 % The transition probabilities are a cell array of probability transition
 % matrices corresponding to each (discrete) the level of the control state.
@@ -74,31 +74,32 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % at all times (as in control problems).
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
 % $Id: spm_MDP.m 5067 2012-11-18 22:05:39Z karl $
-
+ 
 % set up and preliminaries
 %==========================================================================
-
+ 
 % plotting and precision defaults
 %--------------------------------------------------------------------------
 try PLOT   = MDP.plot;   catch, PLOT   = 0;   end
 try lambda = MDP.lambda; catch, lambda = 1;   end
 try W      = MDP.W;      catch, W      = 1;   end
-
+ 
 if PLOT, spm_figure('GetWin','MDP'); clf, end
-
+ 
 % generative model and initial states
 %--------------------------------------------------------------------------
 T     = MDP.T;            % process depth (the horizon)
 Ns    = size(MDP.B{1},1); % number of hidden states
 Nb    = size(MDP.B,1);    % number of time-dependent probabilities
 Nu    = size(MDP.B,2);    % number of hidden controls
-p0    = eps;         % smallest probability
-
+ 
+ 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
+p0    = exp(-16);
 try
     A = MDP.A + p0;
 catch
@@ -106,10 +107,11 @@ catch
 end
 A     = A*diag(1./sum(A));
 lnA   = log(A);
-
-
+ 
+ 
 % transition probabilities (priors)
 %--------------------------------------------------------------------------
+p0    = exp(-16);
 for i = 1:T
     for j = 1:Nu
         if i == 1 || Nb == T
@@ -122,13 +124,15 @@ for i = 1:T
         end
     end
 end
-
+ 
 % terminal cost probabilities (priors)
 %--------------------------------------------------------------------------
-C     = spm_vec(MDP.C);
-C     = C - max(C);
-
-
+p0    = exp(-16);
+C     = spm_vec(MDP.C) + p0;
+C     = C/sum(C);
+lnC   = log(C);
+ 
+ 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
 try
@@ -146,10 +150,10 @@ for i = 1:T
         end
     end
 end
-
+ 
 % initial states and outcomes
 %--------------------------------------------------------------------------
-S        = spm_vec(MDP.S);
+S        = spm_vec(MDP.S); 
 s        = find(S);
 S        = sparse(s,1,1,Ns,T);
 U        = sparse(Nu,T);
@@ -164,27 +168,27 @@ if nargin == 2
         % transition probabilities from current to final state
         %------------------------------------------------------------------
         for j = 2:Nu
-            for k = t:T
-                h = 1;
-                for i = t:(T - 1)
-                    if i == k
-                        h = B{i,j}*h;
+            for k = t:(T - 1)
+                H = 1;
+                for f = t:(T - 1)
+                    if f == k
+                        H = B{f,j}*H;
                     else
-                        h = B{i,1}*h;
+                        H = B{f,1}*H;
                     end
                 end
-                H{k,j} = h;
+                K{k,j}  = H;
             end
         end
         
         for k = t:(T - 1)
             for j = 2:Nu
-                p(j,k) = C'*H{k,j}*S(:,1);
+                p(j,k) = log(C)'*K{k,j}*S(:,1);
             end
         end
         j      = 2:Nu;
         k      = t:(T - 1);
-        p(j,k) = spm_unvec(spm_softmax(spm_vec(p(j,k)),beta),p(j,k));
+        p(j,k) = spm_unvec(spm_softmax(spm_vec(p(j,k)),sensitivity),p(j,k));
         p(1,:) = 1 - sum(p(j,:),1);
         
         % next action (the action that maximises expected utility)
@@ -212,7 +216,7 @@ if nargin == 2
     
 end
 
-
+ 
 % solve
 %==========================================================================
 
@@ -220,7 +224,8 @@ end
 %----------------------------------------------------------------------
 a      = zeros(Ns,3);
 b      = zeros(Nu,T);
-a(:,3) = spm_softmax(C);
+a(:,3) = C;
+b(2,1) = 1/T;
 
 
 for t  = 1:(T - 1)
@@ -228,24 +233,26 @@ for t  = 1:(T - 1)
     % transition probabilities from current to final state
     %----------------------------------------------------------------------
     for j = 2:Nu
-        for k = t:T
-            h = 1;
-            for i = t:T
-                if i == k
-                    h = B{i,j}*h;
+        for k = (t + 1):(T - 1)
+            H = 1;
+            for f = (t + 1):(T - 1)
+                if f == k
+                    H = B{f,j}*H;
                 else
-                    h = B{i,1}*h;
+                    H = B{f,1}*H;
                 end
             end
-            H{k,j}    = h;
-            lnH{k,j}  = log(h);
+            H         = H';
+            H         = H*diag(1./sum(H));
+            lnH{k,j}  = log(H)';
+            % lnH{k,j}  = log(H);
         end
     end
     
     
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
-    for i = 1:2
+    for i = 1:32
         
         % current state a(:,1)
         %------------------------------------------------------------------
@@ -253,41 +260,55 @@ for t  = 1:(T - 1)
         for j  = 1:Nu
             a(:,1) = a(:,1) + b(j,t)*lnB{t,j}'*a(:,2);
         end
-        for j  = 2:Nu
-            for k  = t:(T - 1)
-                a(:,1) = a(:,1) + b(j,k)*(H{k,j}'*C - diag(lnH{k,j}'*H{k,j}));
-            end
-        end
         a(:,1) = spm_softmax(a(:,1));
-        
-        
-        % policy (b)
-        %------------------------------------------------------------------
-        b     = zeros(Nu,T);
-        for j = 2:Nu
-            for k  = t:(T - 1)
-%                 if k == t
-%                     b(j,k) = a(:,2)'*lnB{t,j}*a(:,1);
-%                 else
-%                     b(j,k) = a(:,2)'*lnB{t,1}*a(:,1);
-%                 end
-                b(j,k) = b(j,k) + (C' - a(:,1)'*lnH{k,j})*H{k,j}*a(:,1);
-            end
-        end
-        j      = 2:Nu;
-        k      = t:(T - 1);
-        b(j,k) = spm_unvec(spm_softmax(spm_vec(b(j,k))),b(j,k));
-        b(1,:) = 1 - sum(b(j,:),1);
         
         
         % next state a(:,2)
         %------------------------------------------------------------------
         a(:,2) = zeros(Ns,1);
         for j  = 1:Nu
-            a(:,2) = a(:,2) + b(j,t)*lnB{t,j}*a(:,1);
+            a(:,2) = a(:,2) +     b(j,t)*lnB{t,j}*a(:,1);
+        end
+        for j  = 2:Nu
+            for k  = (t + 1):(T - 1)
+                a(:,2) = a(:,2) + b(j,k)*lnH{k,j}'*a(:,3);
+            end
         end
         a(:,2) = spm_softmax(a(:,2));
         
+        
+        % policy (b)
+        %------------------------------------------------------------------
+        for j = 1:Nu
+            b(j,t) = a(:,2)'*lnB{t,j}*a(:,1);
+        end
+        for j = 2:Nu
+            for k  = (t + 1):(T - 1)
+                K(:,k) = lnH{k,j}*a(:,2);
+                b(j,k) = a(:,3)'*lnH{k,j}*a(:,2);
+            end
+        end
+        j      = 2:Nu;
+        k      = (t + 1):(T - 1);
+        b(:,t) = spm_softmax(b(:,t));
+        b(j,k) = spm_unvec(spm_softmax(spm_vec(b(j,k))),b(j,k));
+        b(j,k) = b(j,k)*(1 - sum(b(j,t)));
+        b(1,:) = 1 - sum(b(j,:),1);
+        
+        
+        % last state a(:,3)
+        %------------------------------------------------------------------
+        a(:,3) = lnC;
+        for j  = 2:Nu
+            for k  = (t + 1):(T - 1)
+                a(:,3) = a(:,3) +  b(j,k)*lnH{k,j}*a(:,2);
+            end
+        end
+        a(:,3) = spm_softmax(a(:,3));
+        
+        
+        
+
         
         % graphics to inspect update scheme
         %==================================================================
@@ -304,7 +325,7 @@ for t  = 1:(T - 1)
         end
         
     end
-    
+        
     
     % graphics to inspect update scheme
     %======================================================================
@@ -380,10 +401,10 @@ for t  = 1:(T - 1)
     end
     
 end
-
-
+ 
+ 
 function spm_plot_states(a,b)
-
+ 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
 subplot(2,2,1)
@@ -393,7 +414,7 @@ title('Expected states','FontSize',16)
 xlabel('time','FontSize',12)
 ylabel('hidden state','FontSize',12)
 legend({'now','next','last'})
-
+ 
 % posterior beliefs about control states
 %--------------------------------------------------------------------------
 subplot(2,2,2)
