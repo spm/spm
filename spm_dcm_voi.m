@@ -1,4 +1,4 @@
-function spm_dcm_voi (DCM_filename,voi_filenames)
+function spm_dcm_voi(DCM_filename,voi_filenames)
 % Insert new regions into a DCM model
 % FORMAT spm_dcm_voi (DCM_filename,voi_filenames)
 %
@@ -12,10 +12,10 @@ function spm_dcm_voi (DCM_filename,voi_filenames)
 % subject Y's. The model can then be re-estimated without having to go 
 % through model specification again.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_voi.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_voi.m 5092 2012-12-03 16:35:00Z guillaume $
 
 
 load(DCM_filename);
@@ -30,7 +30,7 @@ end
 % Replace relevant fields in DCM with xY
 %--------------------------------------------------------------------------
 DCM               = rmfield(DCM,'xY');
-DCM.Y.y           = zeros(DCM.v,n);
+DCM.Y.y           = [];
 for i=1:n
     load(voi_filenames{i});
     
