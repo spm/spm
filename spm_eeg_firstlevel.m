@@ -4,25 +4,23 @@ function spm_eeg_firstlevel(S)
 %
 % S         - input structure (optional)
 % (optional) fields of S:
-%    images         - list of file names containing M/EEG data in voxel-space
-%    window         - start and end of a window in peri-stimulus time [ms]
-%    Pout           - output directory
+%    images       - list of file names containing M/EEG data in voxel-space
+%    window       - start and end of a window in peri-stimulus time [ms]
+%    Pout         - output directory
 %__________________________________________________________________________
-% Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_eeg_firstlevel.m 5093 2012-12-04 18:06:36Z guillaume $
 
-SVNrev = '$Rev: 4489 $';
+SVNrev = '$Rev: 5093 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FnUIsetup','M/EEG 1st level contrast setup',0);
 
-if nargin == 0
-    S = [];
-end
+if ~nargin, S = []; end
 
 %-Backward compatibility
 %--------------------------------------------------------------------------
@@ -41,7 +39,8 @@ if ~isfield(S, 'window')
 end
 
 if ~isfield(S, 'images')
-    S.images = spm_select(Inf, 'image', 'Select M/EEG images (in voxel-space)');
+    [S.images, sts] = spm_select(Inf, 'image', 'Select M/EEG images (in voxel-space)');
+    if ~sts, return; end
 end
 
 if ~isfield(S, 'Pout')
