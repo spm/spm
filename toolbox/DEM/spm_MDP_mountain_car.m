@@ -18,7 +18,7 @@ function spm_MDP_mountain_car(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_MDP_mountain_car.m 5100 2012-12-06 18:06:36Z guillaume $
  
 % set up and preliminaries
 %==========================================================================

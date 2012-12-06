@@ -76,7 +76,7 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5067 2012-11-18 22:05:39Z karl $
+% $Id: spm_MDP_select.m 5100 2012-12-06 18:06:36Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
