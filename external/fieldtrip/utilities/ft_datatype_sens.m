@@ -73,7 +73,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 6854 2012-11-02 10:21:44Z roboos $
+% $Id: ft_datatype_sens.m 7064 2012-11-30 15:41:34Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -154,6 +154,14 @@ switch version
       % this is not sufficiently informative, so better remove it
       % see also http://bugzilla.fcdonders.nl/show_bug.cgi?id=1806
       sens = rmfield(sens, 'type');
+    end
+    
+    if size(sens.chanpos,1)~=length(sens.label) || ...
+       isfield(sens, 'tra') && size(sens.tra,1)~=length(sens.label) || ...
+       isfield(sens, 'tra') && isfield(sens, 'elecpos') && size(sens.tra,2)~=size(sens.elecpos,1) || ...
+       isfield(sens, 'tra') && isfield(sens, 'coilpos') && size(sens.tra,2)~=size(sens.coilpos,1) || ...
+       isfield(sens, 'tra') && isfield(sens, 'coilori') && size(sens.tra,2)~=size(sens.coilori,1)
+     error('inconsistent number of channels in sensor description');
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -20,6 +20,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %   'plexon_nex'
 %   'plexon_plx'
 %   'neuroshare'
+%   'neurosim'
 %
 % The output spike structure usually contains
 %   spike.label     = 1xNchans cell-array, with channel labels
@@ -49,7 +50,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 6552 2012-09-26 20:28:03Z roboos $
+% $Id: ft_read_spike.m 7120 2012-12-06 10:14:49Z bargip $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -58,7 +59,7 @@ filename = fetch_url(filename);
 spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));
 
 switch spikeformat
-  case 'neurosim'
+  case {'neurosim spikes' 'neurosim dir'}
     spike = read_neurosim_spikes(filename);
 
   case {'neuralynx_ncs' 'plexon_ddt'}

@@ -27,14 +27,15 @@ function ft_write_headshape(filename, bnd, varargin)
 %   'vista'
 %   'tetgen'
 %   'gifti'
-%   'stl'       STereoLithography file format (often supported by
-%               CAD/generic 3D mesh editing programs)
+%   'stl'       STereoLithography file format, for use with CAD and generic 3D mesh editing programs
+%   'vtk'       Visualization ToolKit file format, for use with Paraview
+%   'ply'       Stanford Polygon file format, for use with Paraview or Meshlab
 %
 % See also FT_READ_HEADSHAPE
 
 % Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
 %
-% $Rev: 6431 $
+% $Rev: 6975 $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 data       = ft_getopt(varargin,'data',  []); % can be stored in a gifti file
@@ -44,10 +45,10 @@ if ~isstruct(bnd)
   bnd.pnt = bnd;
 end
 
-fid = fopen(filename, 'wt');
 
 switch fileformat
   case 'mne_pos'
+    fid = fopen(filename, 'wt');
     % convert to milimeter
     bnd = ft_convert_units(bnd, 'mm');
     n=size(bnd.pnt,1);
@@ -59,8 +60,10 @@ switch fileformat
       num = bnd.pnt(line,3);
       fprintf(fid, '%-1.0f\n',num);
     end
+    fclose(fid);
     
   case 'mne_tri'
+    fid = fopen(filename, 'wt');
     % convert to milimeter
     bnd = ft_convert_units(bnd, 'mm');
     n=size(bnd.pnt,1);
@@ -83,6 +86,7 @@ switch fileformat
       num = bnd.tri(line,3);
       fprintf(fid, '%-1.0f\n',num);
     end
+    fclose(fid);
     
   case 'off'
     write_off(filename,bnd.pnt,bnd.tri);
@@ -106,6 +110,28 @@ switch fileformat
     % (triangle) is supported
     surf_to_tetgen(filename, bnd.pnt, bnd.tri, 302*ones(size(bnd.tri,1),1),[],[]);
   
+  case 'vtk'
+    [p, f, x] = fileparts(filename);
+    filename = fullfile(p, [f, '.vtk']); % ensure it has the right extension
+    if isfield(bnd, 'tri')
+      write_vtk(filename, bnd.pnt, bnd.tri);
+    elseif isfield(bnd, 'tet')
+      write_vtk(filename, bnd.pnt, bnd.tet);
+    elseif isfield(bnd, 'hex')
+      write_vtk(filename, bnd.pnt, bnd.hex);
+    end
+
+  case 'ply'
+    [p, f, x] = fileparts(filename);
+    filename = fullfile(p, [f, '.ply']); % ensure it has the right extension
+    if isfield(bnd, 'tri')
+      write_ply(filename, bnd.pnt, bnd.tri);
+    elseif isfield(bnd, 'tet')
+      write_ply(filename, bnd.pnt, bnd.tet);
+    elseif isfield(bnd, 'hex')
+      write_ply(filename, bnd.pnt, bnd.hex);
+    end
+
   case 'stl'
     nrm = normals(bnd.pnt, bnd.tri, 'triangle');
     write_stl(filename, bnd.pnt, bnd.tri, nrm);
@@ -125,7 +151,7 @@ switch fileformat
     error('you must specify the output format');
     
   otherwise
-    error('unsupported output format "%s"');
+    error('unsupported output format "%s"', fileformat);
 end
 
-fclose(fid);
+

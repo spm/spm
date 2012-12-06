@@ -24,20 +24,20 @@ function [shape] = ft_read_headshape(filename, varargin)
 %   'spmeeg_mat'
 %   'matlab'
 %   'freesurfer_*'
-%   'stl'          STereoLithography file format (often supported by
-%                  CAD/generic 3D mesh editing programs)
 %   'off'
+%   'stl'          STereoLithography file format, for use with CAD and generic 3D mesh editing programs
+%   'vtk'          Visualization ToolKit file format, for use with paraview
 %   'mne_*'        MNE surface description in ascii format ('mne_tri')
 %                  or MNE source grid in ascii format, described as 3D
 %                  points ('mne_pos')
 %   'netmeg'
 %   'vista'
 %   'tet'
-%   'tetgen'
+%   'tetgen_ele'
 %
 % See also FT_READ_VOL, FT_READ_SENS, FT_WRITE_HEADSHAPE
 
-% Copyright (C) 2008-2010 Robert Oostenveld
+% Copyright (C) 2008-2012 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -55,7 +55,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 6762 2012-10-16 12:43:05Z jansch $
+% $Id: ft_read_headshape.m 6974 2012-11-23 05:42:04Z roboos $
 
 % Check the input, if filename is a cell-array, call ft_read_headshape recursively and combine the outputs.
 % This is used to read the left and right hemisphere of a Freesurfer cortical segmentation.
@@ -127,8 +127,7 @@ if ~isempty(annotationfile) && ~strcmp(fileformat, 'mne_source')
 end
 
 % test whether the file exists
-% FIXME why is this check not done for tetgen?
-if ~strcmp(fileformat, 'tetgen') && ~exist(filename)
+if ~exist(filename)
   error('file ''%s'' does not exist', filename);
 end
 
@@ -509,6 +508,11 @@ switch fileformat
     shape.pnt = pnt;
     shape.tri = tri;
     
+  case 'stl'
+    [pnt, tri] = read_vtk(filename);
+    shape.pnt = pnt;
+    shape.tri = tri;
+
   case 'off'
     [pnt, plc] = read_off(filename);
     shape.pnt  = pnt;
@@ -541,8 +545,16 @@ switch fileformat
     else
       error('unknown elements format')
     end
-    shape.index = labels;
-    
+    % representation of data is compatible with ft_datatype_parcellation
+    shape.tissue = zeros(size(labels));
+    numlabels = size(unique(labels),1);
+    shape.tissuelabel = {};
+    for i = 1:numlabels
+        ulabel = unique(labels);
+        shape.tissue(labels == ulabel(i)) = i;
+        shape.tissuelabel{i} = num2str(ulabel(i));
+    end
+            
   case 'tet'
     % the toolbox from Gabriel Peyre has a function for this
     ft_hastoolbox('toolbox_graph', 1);
@@ -552,15 +564,30 @@ switch fileformat
     shape.pnt = vertex';
     shape.tet = face';
     
-  case 'tetgen'
+  case 'tetgen_ele'
     % reads in the tetgen format and rearranges according to FT conventions
-    % tetgen files also return a 'faces' field (not used here)
-    shape = rmfield(shape,'fid');
-    IMPORT = importdata([filename '.1.ele'],' ',1);
+    % tetgen files also return a 'faces' field, which is not used here
+    [p, f, x] = fileparts(filename);
+    filename = fullfile(p, f); % without the extension
+    IMPORT = importdata([filename '.ele'],' ',1);
     shape.tet = IMPORT.data(:,2:5);
-    IMPORT = importdata([filename '.1.node'],' ',1);
+    if size(IMPORT.data,2)==6
+      labels = IMPORT.data(:,6);
+      % representation of tissue type is compatible with ft_datatype_parcellation
+      numlabels = size(unique(labels),1);
+      ulabel    = unique(labels);
+      shape.tissue      = zeros(size(labels));
+      shape.tissuelabel = {};
+      for i = 1:numlabels
+        shape.tissue(labels == ulabel(i)) = i;
+        shape.tissuelabel{i} = num2str(ulabel(i));
+      end
+    end
+    IMPORT = importdata([filename '.node'],' ',1);
     shape.pnt = IMPORT.data(:,2:4);
-    
+    % the fiducials don't apply to this format
+    shape = rmfield(shape,'fid');
+
   otherwise
     % try reading it from an electrode of volume conduction model file
     success = false;

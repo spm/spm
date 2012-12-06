@@ -29,7 +29,7 @@ function [select] = parameterselection(param, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: parameterselection.m 5481 2012-03-19 11:54:26Z jansch $
+% $Id: parameterselection.m 7104 2012-12-05 14:45:53Z jansch $
 
 if ischar(param)
   param = {param};   % it should be a cell-array
@@ -85,7 +85,9 @@ for i=1:length(param)
     if isfield(data, 'dim') && isequal(dim(:), data.dim(:))
       select{end+1} = param{i}; 
     elseif isfield(data, 'dim') && prod(dim)==prod(data.dim)
-      select{end+1} = param{i}; 
+      select{end+1} = param{i};
+    elseif isfield(data, 'dim') && numel(dim)==3 && isequal(dim(1:3)', data.dim(:))
+      select{end+1} = param{i};
     elseif isfield(data, 'pos') && (prod(dim)==size(data.pos, 1) || dim(1)==size(data.pos,1))
       select{end+1} = param{i}; 
     elseif isfield(data, 'dimord') && (isfield(data, 'pos') || isfield(data, 'transform')),

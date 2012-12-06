@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_topoplotTFR.m 6991 2012-11-26 14:33:49Z jorhor $
 
-revision = '$Id: ft_topoplotTFR.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_topoplotTFR.m 6991 2012-11-26 14:33:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -403,6 +403,10 @@ switch dtype
       cfg.xlim   = [1 1];
       xparam = '';
     end
+end
+
+if isfield(cfg, 'parameter') && ~isfield(data, cfg.parameter)
+  error('cfg.parameter=%s is not present in data structure', cfg.parameter);
 end
 
 % user specified own fields, but no yparam (which is not asked in help)

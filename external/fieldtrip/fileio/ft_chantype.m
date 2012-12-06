@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 6868 2012-11-04 15:52:11Z roboos $
+% $Id: ft_chantype.m 7088 2012-12-05 09:47:11Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -67,11 +67,18 @@ grad  = input;
 label = input;
 
 if isheader
+  label  = hdr.label;
   numchan = length(hdr.label);
   if isfield(hdr, 'grad')
-    grad  = hdr.grad;
+      grad         = hdr.grad;
+      % ensure that the grad.label order matches the hdr.label order
+      [i1, i2]     = match_str(label, grad.label);
+      grad.label   = grad.label(i2);                        % reorder the channel labels
+      tmptra       = zeros(numel(label), size(grad.tra,2)); % FIXME why not size(grad.tra)?
+      tmptra(i1,:) = grad.tra(i2,:);                        % reorder the rows from the tra matrix
+      grad.tra     = tmptra;
   end
-  label = hdr.label;
+  
 elseif isgrad
   label   = grad.label;
   numchan = length(label);
@@ -100,7 +107,7 @@ elseif ft_senstype(input, 'neuromag') && isheader
     for sel=find(hdr.orig.channames.KI(:)==3)'
       type{sel} = 'digital trigger';
     end
-    % determinge the MEG channel subtype
+    % determine the MEG channel subtype
     selmeg=find(hdr.orig.channames.KI(:)==1)';
     for i=1:length(selmeg)
       if hdr.orig.chaninfo.TY(i)==0
@@ -210,7 +217,9 @@ elseif ft_senstype(input, 'ctf') && isheader
   %                  sam: 15
   %     virtual_channels: 16
   %             sclk_ref: 17
-  
+
+  % start with an empty one
+  origSensType = [];
   if isfield(hdr, 'orig')
     if isfield(hdr.orig, 'sensType') && isfield(hdr.orig, 'Chan')
       % the header was read using the open-source matlab code that originates from CTF and that was modified by the FCDC
@@ -222,9 +231,10 @@ elseif ft_senstype(input, 'ctf') && isheader
       % the header was read using the CTF importer from the NIH and Daren Weber
       origSensType = [hdr.orig.sensor.info.index];
     end
-  else
+  end
+  
+  if isempty(origSensType)
     warning('could not determine channel type from the CTF header');
-    origSensType = [];
   end
   
   for sel=find(origSensType(:)==5)'
@@ -289,7 +299,7 @@ elseif ft_senstype(input, 'bti')
   type(strncmp('G', label, 1)) = {'refgrad'};
   
   if isfield(grad, 'tra')
-    selchan = find(strcmp('mag', type));
+    selchan = find(strcmp('meg', type));
     for k = 1:length(selchan)
       ncoils = length(find(grad.tra(selchan(k),:)==1));
       if ncoils==1,
@@ -298,6 +308,7 @@ elseif ft_senstype(input, 'bti')
         type{selchan(k)} = 'meggrad';
       end
     end
+    
   end
   
   % This is to allow setting additional channel types based on the names

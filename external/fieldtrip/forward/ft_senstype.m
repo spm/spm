@@ -87,7 +87,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 6854 2012-11-02 10:21:44Z roboos $
+% $Id: ft_senstype.m 7094 2012-12-05 11:23:12Z lilmag $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -196,10 +196,19 @@ else
   sens = [];
 end
 
-if isfield(input, 'type')
+if exist('sens')
+  if isfield(sens,'type')
+    istypefield = 1;
+  else
+    istypefield = 0;
+  end
+else
+  istypefield = 0;
+end
+
+if istypefield
   % preferably the structure specifies its own type
-  type = input.type;
-  
+  type = sens.type;
 elseif isfield(input, 'nChans') && input.nChans==1 && isfield(input, 'label') && ~isempty(regexp(input.label{1}, '^csc', 'once'))
   % this is a single channel header that was read from a Neuralynx file, might be fcdc_matbin or neuralynx_nsc
   type = 'neuralynx';
@@ -235,7 +244,9 @@ else
   % start with unknown, then try to determine the proper type by looking at the labels
   type = 'unknown';
   
-  if isgrad
+  if isgrad && isfield(sens, 'type')
+    type = sens.type;
+  elseif isgrad
     % probably this is MEG, determine the type of magnetometer/gradiometer system
     % note that the order here is important: first check whether it matches a 275 channel system, then a 151 channel system, since the 151 channels are a subset of the 275
     if     (mean(ismember(ft_senslabel('ctf275'),        sens.label)) > 0.8)
@@ -460,9 +471,7 @@ end % detemine the correspondence to the desired type
 % remember the current input and output arguments, so that they can be
 % reused on a subsequent call in case the same input argument is given
 current_argout = {type};
-if isempty(previous_argin)
-  previous_argin  = current_argin;
-  previous_argout = current_argout;
-end
+previous_argin  = current_argin;
+previous_argout = current_argout;
 
 return % ft_senstype main()

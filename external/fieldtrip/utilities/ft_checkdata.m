@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 6663 2012-10-03 19:59:15Z roboos $
+% $Id: ft_checkdata.m 7029 2012-11-28 14:30:54Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -605,7 +605,7 @@ if issource || isvolume,
   
   % these fields should not be reshaped
   exclude = {'cfg' 'fwhm' 'leadfield' 'q' 'rough' 'pos'};
-  if ~strcmp(inside, 'logical')
+  if ~isempty(inside) && ~strcmp(inside, 'logical')
     % also exclude the inside/outside from being reshaped
     exclude = cat(2, exclude, {'inside' 'outside'});
   end

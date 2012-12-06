@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 6661 2012-10-03 19:54:51Z roboos $
+% $Id: ft_datatype.m 7012 2012-11-28 09:21:54Z roboos $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip, segmentation, parcellation
 israw          =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
@@ -57,6 +57,10 @@ spk_hastimestamp  = isfield(data,'label') && isfield(data, 'timestamp') && isa(d
 spk_hastrials     = isfield(data,'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && isfield(data, 'trialtime') && isa(data.trialtime, 'numeric');
 spk_hasorig       = isfield(data,'origtrial') && isfield(data,'origtime'); % for compatibility
 isspike           = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials || spk_hasorig);
+
+% check if it is a sensor array
+isgrad = isfield(data, 'label') && isfield(data, 'coilpos') && isfield(data, 'chanpos') && isfield(data, 'coilori');
+iselec = isfield(data, 'label') && isfield(data, 'elecpos') && isfield(data, 'chanpos');
 
 if iscomp
   % comp should conditionally go before raw, otherwise the returned ft_datatype will be raw
@@ -92,6 +96,10 @@ elseif issource
 elseif ischan
   % this results from avgovertime/avgoverfreq after timelockstatistics or freqstatistics
   type = 'chan';
+elseif iselec
+  type = 'elec';
+elseif isgrad
+  type = 'grad';
 else
   type = 'unknown';
 end
@@ -105,6 +113,8 @@ if nargin>1
       type = any(strcmp(type, {'volume', 'segmentation'}));
     case 'source'
       type = any(strcmp(type, {'source', 'parcellation'}));
+    case 'sens'
+      type = any(strcmp(type, {'elec', 'grad'}));
     otherwise
       type = strcmp(type, desired);
   end % switch
@@ -168,6 +178,33 @@ end
 if sum(fb)>1
   % the presence of multiple logical arrays suggests it is a parcellation
   res = true;
+end
+
+if res == false      % check if source has more D elements
+  check = 0;
+  for i = 1: length(fn)
+    fname = fn{i};
+    switch fname
+      case 'tri'
+        npos = size(source.tri,1);
+        check = 1;
+      case 'hex'
+        npos = size(source.hex,1);
+        check = 1;
+      case 'tet'
+        npos = size(source.tet,1);
+        check = 1;
+    end
+  end
+  if check == 1   % check if elements are labelled
+    for i=1:numel(fn)
+      tmp = source.(fn{i});
+      fb(i) = numel(tmp)==npos && islogical(tmp);
+    end
+    if sum(fb)>1
+      res = true;
+    end
+  end
 end
 
 fn = fieldnames(source);

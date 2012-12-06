@@ -37,7 +37,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 6623 2012-10-01 18:31:30Z roboos $
+% $Id: printstruct.m 6907 2012-11-12 12:03:57Z dieloz $
 
 if nargin==1
   val  = name;
@@ -76,6 +76,9 @@ if isstruct(val)
         case 'struct'
           line = printstruct([name '.' fn{i}], fv);
           str  = [str line];
+        case 'function_handle'
+          printstr([name '.' fn{i}], func2str(fv));
+          str  = [str line];    
         otherwise
           error('unsupported');
       end

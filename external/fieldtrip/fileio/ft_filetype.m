@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 6720 2012-10-10 11:56:32Z dieloz $
+% $Id: ft_filetype.m 7122 2012-12-06 15:38:42Z bargip $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -89,6 +89,12 @@ if isequal(current_argin, previous_argin) && isequal(current_pwd, previous_pwd)
   type = previous_argout{1};
   return
 end
+
+% check whether nowarning has been flagged.
+% this is flagged used below: any(ft_filetype({ls.name}, 'neuralynx_ds','nowarning',true))
+% without this flag, ft_filetype would give a warning for every file in the
+% directory it cannot determine the filetype of.
+nowarning = ft_getopt(varargin,'nowarning',0);
 
 if isa(filename, 'memmapfile')
   filename = filename.Filename;
@@ -117,9 +123,9 @@ if iscell(filename)
       continue
     else
       if iscell(type)
-        type{i} = ft_filetype(filename{i}, desired);
+        type{i} = ft_filetype(filename{i}, desired,'nowarning',nowarning);
       else
-        type(i) = ft_filetype(filename{i}, desired);
+        type(i) = ft_filetype(filename{i}, desired,'nowarning',nowarning);
       end
     end
   end
@@ -171,8 +177,8 @@ if filetype_check_extension(filename, 'zip')...
   type         = 'compressed';
   manufacturer = 'undefined';
   content      = 'unknown, extract first';
-
-% these are some streams for asynchronous BCI
+  
+  % these are some streams for asynchronous BCI
 elseif filetype_check_uri(filename, 'fifo')
   type        = 'fcdc_fifo';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
@@ -323,17 +329,25 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'-FL
 elseif filetype_check_extension(filename, '.hsp')
   type = 'yokogawa_hsp';
   manufacturer = 'Yokogawa';
-
-  % this has to go before the 4D detection
+  
+  % Neurosim files; this has to go before the 4D detection
+elseif ~isdir(filename) && (strcmp(f,'spikes') || filetype_check_header(filename,'#  Spike information'))
+    type = 'neurosim spikes';
+    manufacturer = 'Jan van der Eerden (DCCN)';
+    content = 'simulated spikes';
+elseif ~isdir(filename) && (strcmp(f,'evolution') || filetype_check_header(filename,'#  Voltages'))
+    type = 'neurosim evolution';
+    manufacturer = 'Jan van der Eerden (DCCN)';
+    content = 'simulated membrane voltages and currents';
+elseif ~isdir(filename) && (strcmp(f,'signals') || filetype_check_header(filename,'#  Internal',2))
+    type = 'neurosim signals';
+    manufacturer = 'Jan van der Eerden (DCCN)';
+    content = 'simulated network signals';
 elseif isdir(filename) && exist(fullfile(filename, 'signals'), 'file') && exist(fullfile(filename, 'spikes'), 'file')
-   type = 'neurosim';
-   manufacturer = 'Jan van der Eerden (DCCN)';
-   content = 'simulated spikes and continuous signals';
-elseif isempty(x) && (strcmp(filename,'signals') || strcmp(filename,'spikes')) % file does not have an extension and is called signals or spikes
-   type = 'neurosim';
-   manufacturer = 'Jan van der Eerden (DCCN)';
-   content = 'simulated spikes and continuous signals'; 
-
+    type = 'neurosim dir';
+    manufacturer = 'Jan van der Eerden (DCCN)';
+    content = 'simulated spikes and continuous signals';
+  
   % known 4D/BTI file types
 elseif filetype_check_extension(filename, '.pdf') && filetype_check_header(filename, 'E|lk') % I am not sure whether this header always applies
   type = '4d_pdf';
@@ -384,13 +398,13 @@ elseif filetype_check_extension(filename, '.rej')
   type = 'eep_rej';
   manufacturer = 'EEProbe';
   content = 'rejection marks';
-
+  
   % the yokogawa_mri has to be checked prior to asa_mri, because this one is more strict
 elseif filetype_check_extension(filename, '.mri') && filetype_check_header(filename, char(0)) % FIXME, this detection should possibly be improved
   type = 'yokogawa_mri';
   manufacturer = 'Yokogawa';
   content = 'anatomical MRI';
-
+  
   % known ASA file types
 elseif filetype_check_extension(filename, '.elc')
   type = 'asa_elc';
@@ -619,7 +633,7 @@ elseif ~isdir(filename) && isdir(p) && exist(fullfile(p, 'info.xml'), 'file') &&
   content = 'raw EEG data';
   
   % these are formally not Neuralynx file formats, but at the FCDC we use them together with Neuralynx
-elseif isdir(filename) && any(ft_filetype({ls.name}, 'neuralynx_ds'))
+elseif isdir(filename) && any(ft_filetype({ls.name}, 'neuralynx_ds','nowarning',true))
   % a downsampled Neuralynx DMA file can be split into three seperate lfp/mua/spike directories
   % treat them as one combined dataset
   type = 'neuralynx_cds';
@@ -773,7 +787,7 @@ elseif filetype_check_extension(filename, '.raw.mhd')
   type = 'itab_mhd';
   manufacturer = 'Chieti ITAB';
   content = 'MEG header data, including sensor positions';
-elseif filetype_check_extension(filename, '.asc')
+elseif filetype_check_extension(filename, '.asc') && ~filetype_check_header(filename, '**')
   type = 'itab_asc';
   manufacturer = 'Chieti ITAB';
   content = 'headshape digitization file';
@@ -932,7 +946,45 @@ elseif filetype_check_extension(filename, '.txt') && numel(strfind(filename,'_nr
   type = 'bucn_nirs';
   manufacturer = 'BUCN';
   content = 'ascii formatted nirs data';
- 
+
+  % known TETGEN file types, see http://tetgen.berlios.de/fformats.html
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.poly']), 'file')
+  type = 'tetgen_poly';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with piecewise linear complex';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.smesh']), 'file')
+  type = 'tetgensmesh';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with simple piecewise linear complex';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.ele']), 'file')
+  type = 'tetgen_ele';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with tetrahedra';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.face']), 'file')
+  type = 'tetgen_face';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with triangular faces';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.edge']), 'file')
+  type = 'tetgen_edge';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with boundary edges';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.vol']), 'file')
+  type = 'tetgen_vol';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with maximum volumes';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.var']), 'file')
+  type = 'tetgen_var';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with variant constraints for facets/segments';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100) && exist(fullfile(p, [f '.neigh']), 'file')
+  type = 'tetgen_neigh';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with neighbors';
+elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '.face' '.edge' '.vol' '.var' '.neigh'})) && exist(fullfile(p, [f '.node']), 'file') && filetype_check_ascii(fullfile(p, [f '.node']), 100)
+  type = 'tetgen_node';
+  manufacturer = 'TetGen, see http://tetgen.berlios.de';
+  content = 'geometrical data desribed with only nodes';
+
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
@@ -1040,24 +1092,24 @@ elseif filetype_check_extension(filename, '.gii') && filetype_check_header(filen
   manufacturer = 'Neuroimaging Informatics Technology Initiative';
   content = 'tesselated surface description';
 elseif filetype_check_extension(filename, '.v')
-  type = 'vista'; 
+  type = 'vista';
   manufacturer = 'University of British Columbia, Canada, http://www.cs.ubc.ca/nest/lci/vista/vista.html';
-  content = 'A format for computer vision research, contains meshes or volumes';  
+  content = 'A format for computer vision research, contains meshes or volumes';
 elseif filetype_check_extension(filename, '.tet')
-  type = 'tet'; 
+  type = 'tet';
   manufacturer = 'a.o. INRIA, see http://shapes.aimatshape.net/';
-  content = 'tetraedral mesh';  
+  content = 'tetraedral mesh';
 elseif filetype_check_extension(filename, '.nc')
-  type = 'netmeg'; 
+  type = 'netmeg';
   manufacturer = 'Center for Biomedical Research Excellence (COBRE), see http://cobre.mrn.org/megsim/tools/netMEG/netMEG.html';
-  content = 'MEG data';  
+  content = 'MEG data';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % finished determining the filetype
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if strcmp(type, 'unknown')
+if strcmp(type, 'unknown') && ~nowarning
   warning_once(sprintf('could not determine filetype of %s', filename));
 end
 
@@ -1159,12 +1211,27 @@ res = length(intersect({'log', 'names'}, {var.name}))==2;
 % SUBFUNCTION that checks the presence of a specified file in a directory
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function res = filetype_check_dir(p, filename)
-
 if ~isempty(p)
   d = dir(p);
 else
   d = dir;
 end
-
 res = ~isempty(strmatch(filename,{d.name},'exact'));
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION that checks whether the file contains only ascii characters
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function res = filetype_check_ascii(filename, len)
+% See http://en.wikipedia.org/wiki/ASCII
+if exist(filename, 'file')
+  fid = fopen(filename, 'rt');
+  bin = fread(fid, len, 'uint8=>uint8');
+  fclose(fid);
+  printable = bin>31 & bin<127;  % the printable characters, represent letters, digits, punctuation marks, and a few miscellaneous symbols
+  special   = bin==10 | bin==13 | bin==11; % line feed, form feed, tab
+  res = all(printable | special);
+else
+  % always return true if the file does not (yet) exist, this is important
+  % for determining the format to which data should be written
+  res = 1;
+end

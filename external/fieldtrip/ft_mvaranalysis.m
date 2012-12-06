@@ -90,9 +90,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_mvaranalysis.m 6916 2012-11-13 09:35:11Z jansch $
 
-revision = '$Id: ft_mvaranalysis.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 6916 2012-11-13 09:35:11Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -418,9 +418,9 @@ elseif ~dobvar && keeprpt,
 elseif ~dobvar
   mvardata.dimord = 'chan_chan_lag';
   mvardata.label  = label;
-  siz    = size(coeffs);
+  siz    = [size(coeffs) 1];
   coeffs = reshape(coeffs, siz(2:end));
-  siz    = size(noisecov);
+  siz    = [size(noisecov) 1];
   noisecov = reshape(noisecov, siz(2:end));
 elseif dobvar
   mvardata.dimord = 'chancmb_lag';

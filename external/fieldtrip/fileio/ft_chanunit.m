@@ -42,7 +42,7 @@ function chanunit = ft_chanunit(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 6868 2012-11-04 15:52:11Z roboos $
+% $Id: ft_chanunit.m 7007 2012-11-27 22:08:27Z roboos $
 
 
 % determine the type of input, this is handled similarly as in FT_CHANTYPE
@@ -57,7 +57,7 @@ grad  = input;
 label = input;
 
 if isheader
-  numchan = length(hdr.label);
+  numchan = hdr.nChans;
   if isfield(hdr, 'grad')
     grad  = hdr.grad;
   end
@@ -78,7 +78,7 @@ if ft_senstype(input, 'unknown')
   % don't bother doing all subsequent checks to determine the type of sensor array
   
 elseif ft_senstype(input, 'neuromag') && isheader && issubfield(input, 'orig.chs')
-  for i = 1:hdr.nChans % make a cell array of units for each channel
+  for i = 1:numchan % make a cell array of units for each channel
     switch hdr.orig.chs(i).unit
       case 201 % defined as constants by MNE, see p. 217 of MNE manual
         input.chanunit{i} = 'T/m';

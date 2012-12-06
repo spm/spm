@@ -32,7 +32,7 @@ function [dipout] = beamformer_sam(dip, sens, vol, dat, all_cov, varargin)
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
-% $Id: beamformer_sam.m 6215 2012-07-04 07:11:19Z roboos $
+% $Id: beamformer_sam.m 6909 2012-11-12 16:56:04Z johzum $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -92,9 +92,6 @@ dip.inside  = 1:size(dip.pos,1);
 dip.outside = [];
 
 isrankdeficient = (rank(all_cov)<size(all_cov,1));
-if isrankdeficient && ~isfield(dip, 'filter')
-  warning('covariance matrix is rank deficient')
-end
 
 % estimate the noise power, which is further assumed to be equal and uncorrelated over channels
 if isrankdeficient

@@ -19,8 +19,8 @@ function [V] = ft_write_mri(filename, dat, varargin)
 % The supported dataformats are
 %   analyze
 %   nifti
-%   mgz (freesurfer)
 %   vista
+%   mgz   (freesurfer)
 %
 % See also FT_READ_MRI, FT_WRITE_DATA, FT_WRITE_HEADSHAPE
 
@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 5733 2012-05-03 20:48:45Z roboos $
+% $Id: ft_write_mri.m 7005 2012-11-27 22:06:52Z roboos $
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));
@@ -66,7 +66,7 @@ end
 switch dataformat
   
   case {'analyze_img' 'analyze_hdr' 'analyze' 'nifti_spm'}
-    %analyze data, using SPM
+    % analyze data, using SPM
     V = volumewrite_spm(filename, dat, transform, spmversion);
     
   case {'freesurfer_mgz' 'mgz' 'mgh'}
@@ -79,8 +79,8 @@ switch dataformat
     save_mgh(dat, filename, transform);
     
   case {'nifti'}
-    %%nifti data, using SPM
-    %V = volumewrite_spm(filename, dat, transform, spmversion);
+    %% nifti data, using SPM
+    % V = volumewrite_spm(filename, dat, transform, spmversion);
     
     % nifti data, using Freesurfer
     ft_hastoolbox('freesurfer', 1);
@@ -105,11 +105,11 @@ switch dataformat
     
     ndims = numel(size(dat));
     if ndims==3
-      dat = ipermute(dat, [2 1 3]); %FIXME although this is probably correct
-      %see the help of MRIread, anecdotally columns and rows seem to need a swap
-      %in order to match the transform matrix (alternatively a row switch of the
-      %latter can be done)
-      %to keep the writing consistent with the reading
+      dat = ipermute(dat, [2 1 3]); 
+      % FIXME although this is probably correct
+      % see the help of MRIread, anecdotally columns and rows seem to need a swap in
+      % order to match the transform matrix (alternatively a row switch of the latter
+      % can be done) to keep the writing consistent with the reading
     elseif ndims==4
       dat = ipermute(dat, [2 1 3 4]);
     end

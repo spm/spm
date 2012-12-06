@@ -16,6 +16,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 % Optional arguments should be specified in key-value pairs and can include:
 %   taper     = 'dpss', 'hanning' or many others, see WINDOW (default = 'dpss')
 %   pad       = number, indicating time-length of data to be padded out to in seconds
+%   padtype   = string, indicating type of padding to be used (see ft_preproc_padding, default: zero)
 %   timeoi    = vector, containing time points of interest (in seconds)
 %   timwin    = vector, containing length of time windows (in seconds)
 %   freqoi    = vector, containing frequencies (in Hz)
@@ -31,7 +32,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmconvol.m 6450 2012-09-12 10:20:32Z roevdmei $
+% $Id: ft_specest_mtmconvol.m 6982 2012-11-23 09:38:17Z jorhor $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm
@@ -41,6 +42,7 @@ persistent previous_argin previous_wltspctrm
 % get the optional input arguments
 taper     = ft_getopt(varargin, 'taper', 'dpss');
 pad       = ft_getopt(varargin, 'pad');
+padtype   = ft_getopt(varargin, 'padtype', 'zero');
 timeoi    = ft_getopt(varargin, 'timeoi', 'all');
 timwin    = ft_getopt(varargin, 'timwin');
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');
@@ -86,7 +88,7 @@ end
 if isempty(pad) % if no padding is specified padding is equal to current data length
   pad = dattime;
 end
-postpad = zeros(1,round((pad - dattime) * fsample));
+postpad    = round((pad - dattime) * fsample);
 endnsample = round(pad * fsample);  % total number of samples of padded data
 endtime    = pad;            % total time in seconds of padded data
 
@@ -236,7 +238,7 @@ switch dimord
         
   case 'tap_chan_freq_time' % default
     % compute fft, major speed increases are possible here, depending on which matlab is being used whether or not it helps, which mainly focuses on orientation of the to be fft'd matrix
-    datspectrum = transpose(fft(transpose([dat repmat(postpad,[nchan, 1])]))); % double explicit transpose to speedup fft
+    datspectrum = transpose(fft(transpose(ft_preproc_padding(dat, padtype, 0, postpad)))); % double explicit transpose to speedup fft
     spectrum = cell(max(ntaper), nfreqoi);
     for ifreqoi = 1:nfreqoi
       str = sprintf('frequency %d (%.2f Hz), %d tapers', ifreqoi,freqoi(ifreqoi),ntaper(ifreqoi));
@@ -279,7 +281,7 @@ switch dimord
     end
     
     % start fft'ing
-    datspectrum = transpose(fft(transpose([dat repmat(postpad,[nchan, 1])]))); % double explicit transpose to speedup fft
+    datspectrum = transpose(fft(transpose(ft_preproc_padding(dat, padtype, 0, postpad)))); % double explicit transpose to speedup fft
     spectrum = complex(zeros([nchan ntimeboi sum(ntaper)]));
     for ifreqoi = 1:nfreqoi
       str = sprintf('frequency %d (%.2f Hz), %d tapers', ifreqoi,freqoi(ifreqoi),ntaper(ifreqoi));

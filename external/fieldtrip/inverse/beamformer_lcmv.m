@@ -128,9 +128,6 @@ dip.inside  = 1:size(dip.pos,1);
 dip.outside = [];
 
 isrankdeficient = (rank(Cy)<size(Cy,1));
-if isrankdeficient && ~isfield(dip, 'filter')
-  warning('covariance matrix is rank deficient')
-end
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
@@ -356,7 +353,7 @@ s = s(1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 3515 $  $Date: 2009/03/23 21:14:42 $
+%   $Revision: 6909 $  $Date: 2009/03/23 21:14:42 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

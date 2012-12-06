@@ -26,7 +26,7 @@ function [hdr] = ft_fetch_header(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_header.m 3766 2011-07-04 10:44:39Z eelspa $
+% $Id: ft_fetch_header.m 6883 2012-11-07 09:27:42Z roboos $
 
 % check whether input is data
 data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
@@ -59,9 +59,15 @@ hdr.nSamples    = max(trl(:,2));
 hdr.nSamplesPre = 0;
 hdr.nTrials     = 1;
 
-% fill in hdr.grad or hdr.elec
+% retrieve the gradiometer and/or electrode information
 if isfield(data, 'grad')
-  hdr.grad=data.grad;
-elseif isfield(data, 'elec')
-  hdr.elec=data.elec;
+  hdr.grad = data.grad;  
+elseif isfield(data, 'hdr') && isfield(data.hdr, 'grad')
+  hdr.grad = data.hdr.grad;  
 end
+if isfield(data, 'elec')
+  hdr.elec = data.elec;
+elseif isfield(data, 'hdr') && isfield(data.hdr, 'elec')
+  hdr.elec = data.hdr.elec;  
+end
+    

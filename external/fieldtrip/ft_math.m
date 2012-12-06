@@ -27,13 +27,13 @@ function data = ft_math(cfg, varargin)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% $Id: ft_math.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_math.m 7054 2012-11-29 08:46:25Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_math.m 7054 2012-11-29 08:46:25Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble help              % this will show the function help if nargin==0 and return an error
@@ -164,6 +164,7 @@ end % one or multiple input data structures
 
 % store the result of the operation in the output structure
 data.(cfg.parameter) = tmp;
+data.dimord = dimord;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % deal with the output

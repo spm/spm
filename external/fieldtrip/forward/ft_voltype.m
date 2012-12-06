@@ -18,19 +18,21 @@ function [type] = ft_voltype(vol, desired)
 %   asa                boundary element method, based on the (commercial) ASA software
 %   simbio             finite element method, based on the SimBio software
 %   fns                finite difference method, based on the FNS software
+%   interpolate        interpolate the potential based on pre-computed leadfields
 %
 % and for MEG the following volume conduction models are recognized
 %   singlesphere       analytical single sphere model
 %   localspheres       local spheres model for MEG, one sphere per channel
 %   singleshell        realisically shaped single shell approximation, based on the implementation from Guido Nolte
 %   infinite           magnetic dipole in an infinite vacuum
+%   interpolate        interpolate the potential based on pre-computed leadfields
 %
 % See also FT_COMPUTE_LEADFIELD, FT_READ_VOL, FT_HEADMODEL_BEMCP,
 % FT_HEADMODEL_ASA, FT_HEADMODEL_DIPOLI, FT_HEADMODEL_SIMBIO,
 % FT_HEADMODEL_FNS, FT_HEADMODEL_HALFSPACE, FT_HEADMODEL_INFINITE,
 % FT_HEADMODEL_OPENMEEG, FT_HEADMODEL_SINGLESPHERE,
 % FT_HEADMODEL_CONCENTRICSPHERES, FT_HEADMODEL_LOCALSPHERES,
-% FT_HEADMODEL_SINGLESHELL
+% FT_HEADMODEL_SINGLESHELL, FT_HEADMODEL_INTERPOLATE
 
 % Copyright (C) 2007-2012, Robert Oostenveld
 %
@@ -50,7 +52,7 @@ function [type] = ft_voltype(vol, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_voltype.m 6818 2012-10-29 21:01:31Z roboos $
+% $Id: ft_voltype.m 7000 2012-11-27 15:54:35Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

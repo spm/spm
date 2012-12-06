@@ -110,9 +110,9 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_sensorrealign.m 6913 2012-11-13 08:06:35Z jansch $
 
-revision = '$Id: ft_sensorrealign.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_sensorrealign.m 6913 2012-11-13 08:06:35Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -535,8 +535,8 @@ switch cfg.method
       elec_realigned = ft_transform_sens(feval(cfg.warp, norm.m), elec_original);
     catch
       % the previous section will fail for nonlinear transformations
-      elec_realigned.label = elec_original.label;
-      elec_realigned.pnt   = warp_apply(norm.m, elec_original.pnt, cfg.warp);
+      elec_realigned.label   = elec_original.label;
+      elec_realigned.chanpos = warp_apply(norm.m, elec_original.chanpos, cfg.warp);
     end
     % remember the transformation
     elec_realigned.(cfg.warp) = norm.m;

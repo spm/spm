@@ -101,9 +101,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 6804 2012-10-29 14:50:48Z jansch $
+% $Id: ft_artifact_zvalue.m 6923 2012-11-14 08:36:09Z jansch $
 
-revision = '$Id: ft_artifact_zvalue.m 6804 2012-10-29 14:50:48Z jansch $';
+revision = '$Id: ft_artifact_zvalue.m 6923 2012-11-14 08:36:09Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -146,8 +146,12 @@ end
 % the detection is compromised (although the data quality is questionable
 % when there is a lot of movement to begin with).
 pertrial = strcmp(cfg.artfctdef.zvalue.method, 'trial');
-if pertrial && isnumeric(cfg.artfctdef.zvalue.method)
-  pertrial = cfg.artfctdef.zvalue.method;
+if pertrial
+  if isfield(cfg.artfctdef.zvalue, 'ntrial') && cfg.artfctdef.zvalue.ntrial>0
+    pertrial = cfg.artfctdef.zvalue.ntrial;
+  else
+    error('you should specify cfg.artfctdef.zvalue.ntrial, and it should be > 0');
+  end
 end
 
 if nargin > 1

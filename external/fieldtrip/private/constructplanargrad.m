@@ -1,11 +1,11 @@
 function [planar] = constructplanargrad(cfg, grad)
 
-% AXIAL2PLANAR constructs a planar gradiometer array from an axial gradiometer
-% definition. This can be used to compute the planar field gradient for a 
-% known (estimated) source configuration.
+% CONSTRUCTPLANARGRAD constructs a planar gradiometer array from an axial gradiometer
+% definition. This can be used to compute the planar field gradient for a known
+% (estimated) source configuration.
 % 
 % Use as
-%   [planar_grad] = constructplanargrad(cfg, grad)
+%   [grad_planar] = constructplanargrad(cfg, grad_axial)
 %
 % Where cfg contains the following configuration details
 %   cfg.baseline_axial   = number (default is 5)
@@ -46,7 +46,7 @@ function [planar] = constructplanargrad(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: constructplanargrad.m 4292 2011-09-23 13:30:22Z jansch $
+% $Id: constructplanargrad.m 7111 2012-12-05 20:32:24Z roboos $
 
 if ~isfield(cfg, 'planaraxial'),     cfg.planaraxial = 'yes';   end
 if ~isfield(cfg, 'baseline_axial'),  cfg.baseline_axial  = 5;   end
@@ -91,6 +91,9 @@ for chan=1:Nchan
   hi_posy(chan,:) = lo_posy(chan,:) + cfg.baseline_axial * this_z;
   hi_negy(chan,:) = lo_negy(chan,:) + cfg.baseline_axial * this_z;
 end
+
+% start with an empty planar gradiometer definition
+planar = [];
 
 if strcmp(cfg.planaraxial, 'yes')
   % combine all the 8 coils into a single sensor
@@ -161,8 +164,8 @@ end
 
 planar.label = planar.label(:);
 planar.tra   = planar.tra / cfg.baseline_planar;
-planar.chanpos = grad.chanpos;
-planar.chanori = grad.chanori;
+planar.chanpos = [grad.chanpos; grad.chanpos];
+planar.chanori = [grad.chanori; grad.chanori];
 
 try
   planar.unit  = grad.unit;
@@ -170,7 +173,7 @@ end
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: constructplanargrad.m 4292 2011-09-23 13:30:22Z jansch $';
+cfg.version.id   = '$Id: constructplanargrad.m 7111 2012-12-05 20:32:24Z roboos $';
 
 % rememember the exact configuration details in the output
 planar.cfg = cfg;

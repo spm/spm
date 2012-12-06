@@ -51,9 +51,9 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_combineplanar.m 7114 2012-12-05 21:03:24Z roboos $
 
-revision = '$Id: ft_combineplanar.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_combineplanar.m 7114 2012-12-05 21:03:24Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -261,7 +261,6 @@ if isfield(data, 'grad')
   
   % find the other channels that are present in the data
   sel_other = setdiff(1:length(data.grad.label), [sel_dH(:)' sel_dV(:)']);
-%   
   lab_other = data.grad.label(sel_other);
   lab_comb  = planar(sel_comb,3);
  

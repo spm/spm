@@ -101,9 +101,6 @@ Nchan    = size(Cf,1);            % should equal Nmegchan + Nrefchan + Nsupchan
 Cmeg     = Cf(megchan,megchan);   %  the filter uses the csd between all MEG channels
 
 isrankdeficient = (rank(Cmeg)<size(Cmeg,1));
-if isrankdeficient && ~isfield(dip, 'filter')
-  warning('cross-spectral density matrix is rank deficient')
-end
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
@@ -260,7 +257,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high. 
 %   Copyright 1984-2004 The MathWorks, Inc. 
-%   $Revision: 4517 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 6909 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -79,7 +79,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 6834 2012-10-30 22:41:44Z roboos $
+% $Id: ft_compute_leadfield.m 7078 2012-12-04 13:17:21Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -297,9 +297,6 @@ elseif ismeg
         lf = sens.tra * lf;
       end
       
-    case 'simbio'
-      error('Not yet implemented for MEG');
-      
     otherwise
       error('unsupported volume conductor model for MEG');
   end % switch voltype for MEG
@@ -451,30 +448,41 @@ elseif iseeg
       lf = eeg_slab_monopole(pos, sens.elecpos, vol);
       
     case 'simbio'
-      lf = leadfield_simbio(pos, sens, vol);
+      ft_hastoolbox('simbio', 1);
+      % note that the electrode information is contained in the vol structure (thanks to ft_prepare_vol_sens)
+      lf = leadfield_simbio(pos, vol);
       
     case 'fns'
+      % note that the electrode information is contained in the vol structure
       % tolerance = 1e-8;
       lf = leadfield_fns(pos, vol);
+
+    case 'interpolate'
+      % note that the electrode information is contained within the vol structure
+      lf = leadfield_interpolate(pos, vol);
+      % the leadfield is already correctly referenced, i.e. it represents the
+      % channel values rather than the electrode values. Prevent that the
+      % referencing is done once more.
+      sens.tra = speye(length(vol.filename));
+      
     otherwise
       error('unsupported volume conductor model for EEG');
+      
   end % switch voltype for EEG
   
-  for i=1:Ndipoles
-    if isfield(sens, 'tra')
-      tmplf{i} = lf(:, (3*i - 2) : (3 * i));
-      % apply the correct montage to the leadfield
-      tmplf{i} = sens.tra*tmplf{i};
-    else
-      tmplf = lf(:, (3*i - 2) : (3 * i));
-      % compute average reference for EEG leadfield
-      avg = mean(tmplf, 1);
-      lf(:, (3*i - 2) : (3 * i)) = tmplf - repmat(avg, size(tmplf, 1), 1);
+  % the forward model potential is computed on the electrodes relative to
+  % an unknown reference, not on the channels. Therefore the data has to be
+  % explicitly referenced here.
+  if isfield(sens, 'tra')
+    % apply the correct montage to the leadfield
+    lf = sens.tra*lf;
+  else
+    % compute average reference for EEG leadfield
+    for i=1:size(lf,2)
+      lf(:,i) = lf(:,i) - mean(lf(:,i));
     end
   end
-  if isfield(sens, 'tra')
-    lf = cat(2, tmplf{:});
-  end
+  
 end % iseeg or ismeg
 
 % optionally apply leadfield rank reduction

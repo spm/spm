@@ -20,10 +20,10 @@ function [condNumbers,condLabels] = read_ctf_cls(fname)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_cls.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_ctf_cls.m 7047 2012-11-28 16:50:59Z jorhor $
 
 condNumbers = [];
-% condLabels = [];
+condLabels = {};
 
 fid = fopen(fname,'r');
 

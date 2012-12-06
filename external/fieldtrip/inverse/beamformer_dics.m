@@ -156,9 +156,6 @@ else
 end
 
 isrankdeficient = (rank(Cf)<size(Cf,1));
-if isrankdeficient && ~isfield(dip, 'filter')
-  warning('cross-spectral density matrix is rank deficient')
-end
 
 % it is difficult to give a quantitative estimate of lambda, therefore also
 % support relative (percentage) measure that can be specified as string (e.g. '10%')
@@ -557,7 +554,7 @@ ori = u(:,1);
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 3515 $  $Date: 2009/06/17 13:40:37 $
+%   $Revision: 6909 $  $Date: 2009/06/17 13:40:37 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

@@ -48,7 +48,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_old.m 6543 2012-09-26 08:42:43Z johzum $
+% $Id: ft_selectdata_old.m 7079 2012-12-04 14:29:07Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -614,7 +614,7 @@ elseif istlck,
   if selectchan, data = seloverdim(data, 'chan', selchan, fb); end
   if selectfoi,  data = seloverdim(data, 'freq', selfoi,  fb); end
   if selecttoi,  data = seloverdim(data, 'time', seltoi,  fb); end
-  if isfield(data,'trial') && size(data.trial,3)~=size(data.avg,2)
+  if isfield(data,'trial') && isfield(data,'avg') && size(data.trial,3)~=size(data.avg,2)
     warning('Warning: .avg, .var, .dof and .cov not updated. Please use ft_selectdata_new for this to work correctly on .trial timelock data.');
   end
   % average over dimensions

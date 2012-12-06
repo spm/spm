@@ -83,7 +83,7 @@ function [c, v, outcnt] = ft_connectivity_corr(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_corr.m 6063 2012-06-13 15:23:22Z jansch $
+% $Id: ft_connectivity_corr.m 7014 2012-11-28 13:00:25Z jansch $
 
 % FiXME: If output is angle, then jack-knifing should be done
 % differently since it is a circular variable
@@ -228,5 +228,5 @@ switch str
   case '-logabs' 
     c = -log(1 - abs(c).^2);
   otherwise
-    error('complex = ''%s'' not supported', cmplx);
+    error('complex = ''%s'' not supported', str);
 end

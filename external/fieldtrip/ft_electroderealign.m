@@ -102,9 +102,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_electroderealign.m 6884 2012-11-07 09:29:29Z lilmag $
 
-revision = '$Id: ft_electroderealign.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_electroderealign.m 6884 2012-11-07 09:29:29Z lilmag $';
 
 % do the general setup of the function
 ft_defaults
@@ -171,9 +171,9 @@ if usetemplate
   clear tmp
   for i=1:Ntemplate
     tmp(i) = ft_convert_units(template(i), elec.unit); % ensure that the units are consistent with the electrodes
-    tmp(i) = ft_datatype_sens(tmp(i)); % ensure up-to-date sensor descriptions (Oct 2011)
+    tmp2(i) = ft_datatype_sens(tmp(i)); % ensure up-to-date sensor descriptions (Oct 2011)
   end
-  template = tmp;
+  template = tmp2;
 end
 
 if useheadshape

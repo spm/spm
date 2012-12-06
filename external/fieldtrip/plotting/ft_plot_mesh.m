@@ -50,7 +50,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 6502 2012-09-20 19:50:17Z roboos $
+% $Id: ft_plot_mesh.m 7110 2012-12-05 20:28:10Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -85,10 +85,11 @@ tag         = ft_getopt(varargin, 'tag',         '');
 
 haspnt = isfield(bnd, 'pnt'); % vertices
 hastri = isfield(bnd, 'tri'); % triangles   as a Mx3 matrix with vertex indices
-hastet = isfield(bnd, 'tet'); % tetraeders  as a Mx4 matrix with vertex indices
+hastet = isfield(bnd, 'tet'); % tetraheders as a Mx4 matrix with vertex indices
+hashex = isfield(bnd, 'hex'); % hexaheders  as a Mx8 matrix with vertex indices
 
 if isempty(vertexcolor)
-  if haspnt && hastri
+  if haspnt && (hastri || hastet || hashex)
     vertexcolor='none';
   else
     vertexcolor='k';
@@ -124,17 +125,43 @@ if ~holdflag
   hold on
 end
 
-pnt = bnd.pnt;
+if isfield(bnd, 'pnt')
+  % this is assumed to reflect 3-D vertices
+  pnt = bnd.pnt;
+elseif isfield(bnd, 'prj')
+  % this happens sometimes if the 3-D vertices are projected to a 2-D plane
+  pnt = bnd.prj;
+else
+  error('no vertices found');
+end
+  
+if hastri+hastet+hashex>1
+  error('cannot deal with simultaneous triangles, tetraheders and/or hexaheders')
+end
 
-if hastet && hastri
-  error('cannot deal with simultaneous triangles and tetraeders')
-elseif hastri
+if hastri
   tri = bnd.tri;
 elseif hastet
-  % represent the tetraeders as teh four triangles
-  tri = [bnd.tet(:,[1 2 3]); bnd.tet(:,[2 3 4]); bnd.tet(:,[3 4 1]); bnd.tet(:,[4 1 2])];
+  % represent the tetraeders as the four triangles
+  tri = [
+    bnd.tet(:,[1 2 3]);
+    bnd.tet(:,[2 3 4]);
+    bnd.tet(:,[3 4 1]);
+    bnd.tet(:,[4 1 2])];
   % or according to SimBio:  (1 2 3), (2 4 3), (4 1 3), (1 4 2)
-  % there are shared triangles betwene neighbouring tetraeders, remove these
+  % there are shared triangles between neighbouring tetraeders, remove these
+  tri = unique(tri, 'rows');
+elseif hashex
+  % represent the hexaheders as a collection of 6 patches
+  tri = [
+    bnd.hex(:,[1 2 3 4]);
+    bnd.hex(:,[5 6 7 8]);
+    bnd.hex(:,[1 2 6 5]);
+    bnd.hex(:,[2 3 7 6]);
+    bnd.hex(:,[3 4 8 7]);
+    bnd.hex(:,[4 1 5 8]);
+    ];
+  % there are shared faces between neighbouring hexaheders, remove these
   tri = unique(tri, 'rows');
 else
   tri = [];
@@ -147,8 +174,12 @@ if haspnt && ~isempty(pnt)
   set(hs, 'tag', tag);
 end
 
-% if vertexcolor is an array with number of elements equal to the number of vertices
-if size(pnt,1)==numel(vertexcolor) || size(pnt,1)==size(vertexcolor,1)
+% the vertexcolor can be specified either as a color for each point that will be drawn, or as a value at each vertex
+% if there are triangles, the vertexcolor is used for linear interpolation over the patches
+vertexpotential = ~isempty(tri) && ~ischar(vertexcolor) && (size(pnt,1)==numel(vertexcolor) || size(pnt,1)==size(vertexcolor,1));
+
+if vertexpotential
+  % vertexcolor is an array with number of elements equal to the number of vertices
   set(hs, 'FaceVertexCData', vertexcolor, 'FaceColor', 'interp');
 end
 
@@ -178,30 +209,81 @@ if faceindex
   end
 end
 
-if ~isequal(vertexcolor, 'none') && ~(size(pnt,1)==numel(vertexcolor)) && ~(size(pnt,1)==size(vertexcolor,1))
-  if size(pnt, 2)==2
-    hs = plot(pnt(:,1), pnt(:,2), 'k.');
-  else
-    hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'k.');
-  end
-  if ~isempty(vertexcolor)
-    try
-      set(hs, 'Marker','.','MarkerEdgeColor', vertexcolor,'MarkerSize', vertexsize);
-    catch
-      error('Unknown color')
+if ~isequal(vertexcolor, 'none') && ~vertexpotential
+  % plot the vertices as points
+  
+  if isempty(vertexcolor)
+    % use black for all points
+    if size(pnt,2)==2
+      hs = plot(pnt(:,1), pnt(:,2), 'k.');
+    else
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), 'k.');
     end
-  end
-  if vertexindex
-    % plot the vertex indices (numbers) at each node
-    for node_indx=1:size(pnt,1)
-      str = sprintf('%d', node_indx);
-      if size(pnt, 2)==2
-        h   = text(pnt(node_indx, 1), pnt(node_indx, 2), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
-      else
-        h   = text(pnt(node_indx, 1), pnt(node_indx, 2), pnt(node_indx, 3), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
+    set(hs, 'MarkerSize', vertexsize);
+    
+  elseif ischar(vertexcolor) && numel(vertexcolor)==1
+    % one color for all points
+    if size(pnt,2)==2
+      hs = plot(pnt(:,1), pnt(:,2), [vertexcolor '.']);
+    else
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), [vertexcolor '.']);
+    end
+    set(hs, 'MarkerSize', vertexsize);
+    
+  elseif ischar(vertexcolor) && numel(vertexcolor)==size(pnt,1)
+    % one color for each point
+    if size(pnt,2)==2
+      for i=1:size(pnt,1)
+        hs = plot(pnt(i,1), pnt(i,2), [vertexcolor(i) '.']);
+        set(hs, 'MarkerSize', vertexsize);
       end
-      hs  = [hs; h];
+    else
+      for i=1:size(pnt,1)
+        hs = plot3(pnt(i,1), pnt(i,2), pnt(i,3), [vertexcolor(i) '.']);
+        set(hs, 'MarkerSize', vertexsize);
+      end
     end
+    
+  elseif ~ischar(vertexcolor) && size(vertexcolor,1)==1
+    % one RGB color for all points
+    if size(pnt,2)==2
+      hs = plot(pnt(:,1), pnt(:,2), '.');
+      set(hs, 'MarkerSize', vertexsize, 'MarkerEdgeColor', vertexcolor);
+    else
+      hs = plot3(pnt(:,1), pnt(:,2), pnt(:,3), '.');
+      set(hs, 'MarkerSize', vertexsize, 'MarkerEdgeColor', vertexcolor);
+    end
+    
+  elseif ~ischar(vertexcolor) && size(vertexcolor,1)==size(pnt,1)
+    % one RGB color for each point
+    if size(pnt,2)==2
+      for i=1:size(pnt,1)
+        hs = plot(pnt(i,1), pnt(i,2), '.');
+        set(hs, 'MarkerSize', vertexsize, 'MarkerEdgeColor', vertexcolor(i,:));
+      end
+    else
+      for i=1:size(pnt,1)
+        hs = plot3(pnt(i,1), pnt(i,2), pnt(i,3), '.');
+        set(hs, 'MarkerSize', vertexsize, 'MarkerEdgeColor', vertexcolor(i,:));
+      end
+    end
+    
+  else
+    error('Unknown color specification for the vertices');
+  end
+  
+end % plotting the vertices as points
+
+if vertexindex
+  % plot the vertex indices (numbers) at each node
+  for node_indx=1:size(pnt,1)
+    str = sprintf('%d', node_indx);
+    if size(pnt, 2)==2
+      h = text(pnt(node_indx, 1), pnt(node_indx, 2), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
+    else
+      h = text(pnt(node_indx, 1), pnt(node_indx, 2), pnt(node_indx, 3), str, 'HorizontalAlignment', 'center', 'VerticalAlignment', 'middle');
+    end
+    hs = [hs; h];
   end
 end
 
@@ -216,4 +298,4 @@ if ~holdflag
   hold off
 end
 
-warning(ws); %revert to original state
+warning(ws); % revert to original state

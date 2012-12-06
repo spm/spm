@@ -101,7 +101,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 6549 2012-09-26 12:51:08Z arjsto $
+% $Id: preproc.m 6989 2012-11-26 13:34:11Z jorhor $
 
 % compute fsample
 fsample = 1./mean(diff(time));
@@ -247,7 +247,7 @@ end
 
 if any(any(isnan(dat)))
   % filtering is not possible for at least a selection of the data
-  warning('data contains NaNs, no filtering applied');
+  warning_once('data contains NaNs, no filtering applied');
   return;
 end
 
@@ -398,9 +398,9 @@ end
 % remove the filter padding and do the preprocessing on the remaining trial data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if begpadding~=0 || endpadding~=0
-  dat = dat(:, (1+begpadding):(end-endpadding));
+  dat = ft_preproc_padding(dat, 'remove', begpadding, endpadding);
   if strcmp(cfg.demean, 'yes') || nargout>2
-    time = time((1+begpadding):(end-endpadding));
+    time = ft_preproc_padding(time, 'remove', begpadding, endpadding);
   end
 end
 

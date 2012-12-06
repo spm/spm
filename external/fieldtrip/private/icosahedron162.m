@@ -1,4 +1,4 @@
-function [pnt, dhk] = icosahedron();
+function [pnt, dhk] = icosahedron162()
 
 % ICOSAHEDRON162 creates a 2-fold refined icosahedron
 
@@ -20,7 +20,7 @@ function [pnt, dhk] = icosahedron();
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron162.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: icosahedron162.m 7020 2012-11-28 13:36:27Z lilmag $
 
 [pnt, dhk] = icosahedron;
 [pnt, dhk] = refine(pnt, dhk);

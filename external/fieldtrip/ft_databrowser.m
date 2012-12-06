@@ -105,7 +105,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_databrowser.m 6877 2012-11-06 14:53:26Z dieloz $
 
 % Undocumented options
 % 
@@ -116,7 +116,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_databrowser.m 6877 2012-11-06 14:53:26Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -1492,7 +1492,8 @@ if ~isempty(cfg.emgscale)
   dat(chansel,:) = dat(chansel,:) .* cfg.emgscale;
 end
 if ~isempty(cfg.megscale)
-  chansel = match_str(lab, ft_channelselection('MEG', lab));
+  type = opt.hdr.grad.type;
+  chansel = match_str(lab, ft_channelselection('MEG', lab, type));
   dat(chansel,:) = dat(chansel,:) .* cfg.megscale;
 end
 if ~isempty(cfg.magscale)

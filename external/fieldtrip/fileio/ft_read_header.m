@@ -10,6 +10,7 @@ function [hdr] = ft_read_header(filename, varargin)
 % Additional options should be specified in key-value pairs and can be
 %   'headerformat'   string
 %   'fallback'       can be empty or 'biosig' (default = [])
+%   'coordsys'       string, 'head' or 'dewar' (default = 'head')
 %
 % This returns a header structure with the following elements
 %   hdr.Fs                  sampling frequency
@@ -25,7 +26,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %
 % For some data formats that are recorded on animal electrophysiology
 % systems (e.g. Neuralynx, Plexon), the following optional fields are
-% returned, which allows for relating the timinng of spike and LFP data
+% returned, which allows for relating the timing of spike and LFP data
 %   hdr.FirstTimeStamp      number, 32 bit or 64 bit unsigned integer
 %   hdr.TimeStampPerSample  double
 %
@@ -83,11 +84,12 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 6866 2012-11-04 15:48:23Z roboos $
+% $Id: ft_read_header.m 7119 2012-12-06 10:03:05Z bargip $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
-persistent cacheheader        % for caching
+persistent cacheheader        % for caching the full header
+persistent cachechunk         % for caching the res4 chunk when doing realtime analysis on the CTF scanner
 persistent db_blob            % for fcdc_mysql
 
 if isempty(db_blob)
@@ -105,6 +107,7 @@ end
 % get the options
 retry        = ft_getopt(varargin, 'retry', false); % the default is not to retry reading the header
 headerformat = ft_getopt(varargin, 'headerformat');
+coordsys     = ft_getopt(varargin, 'coordsys', 'head'); % this is used for CTF, it can be head or dewar
 
 if isempty(headerformat)
   % only do the autodetection if the format was not specified
@@ -126,7 +129,6 @@ if strcmp(headerformat, 'fcdc_buffer')
   % the cache and fallback option should always be false for realtime processing
   cache    = false;
   fallback = false;
-  
   
 else
   checkUniqueLabels = true;
@@ -178,6 +180,11 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
   end % if the details correspond
 end % if cache
 
+% the support for head/dewar coordinates is still limited
+if strcmp(coordsys, 'dewar') && ~any(strcmp(headerformat, {'fcdc_buffer', 'ctf_ds', 'ctf_meg4', 'ctf_res4'}))
+  error('dewar coordinates are sofar only supported for CTF data');
+end
+  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % read the data with the low-level reading function
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -479,7 +486,7 @@ switch headerformat
     end
     % add a gradiometer structure for forward and inverse modelling
     try
-      hdr.grad = ctf2grad(orig);
+      hdr.grad = ctf2grad(orig, strcmp(coordsys, 'dewar'));
     catch
       % this fails if the res4 file is not correctly closed, e.g. during realtime processing
       tmp = lasterror;
@@ -934,54 +941,31 @@ switch headerformat
     hdr.Fs          = orig.fsample;
     hdr.nChans      = orig.nchans;
     hdr.nSamples    = orig.nsamples;
-    hdr.nSamplesPre = 0; % since continuous
-    hdr.nTrials     = 1; % since continuous
-    hdr.orig        = []; % add chunks if present
+    hdr.nSamplesPre = 0;  % since continuous
+    hdr.nTrials     = 1;  % since continuous
+    hdr.orig        = []; % this will contain the chunks (if present)
     
-    % add the contents of attached .res4 file to the .orig field similar to offline data
+    % add the contents of attached RES4 chunk after decoding to Matlab structure
     if isfield(orig, 'ctf_res4')
-      if 0
-        % using  READ_CTF_RES4 -- this does not produce a proper .grad structure
-        % TODO: remove this code, and possibly read_ctf_res4 as well
-        tmp_name = tempname;
-        F = fopen(tmp_name, 'wb');
-        fwrite(F, orig.ctf_res4, 'uint8');
-        fclose(F);
-        R4F = read_ctf_res4(tmp_name);
-        delete(tmp_name);
-      else
-        % using FT_READ_HEADER recursively, and then readCTFds in the second call
-        % this will also call ctf2grad and yield correct gradiometer information
-        tmp_name = tempname;
-        [dirname, fname] = fileparts(tmp_name);
-        res4fn = [tmp_name '.ds/' fname '.res4'];
-        meg4fn = [tmp_name '.ds/' fname '.meg4'];
-        dsname = [tmp_name '.ds'];
-        
-        mkdir(dsname);
-        
-        F = fopen(res4fn, 'wb');
-        fwrite(F, orig.ctf_res4, 'uint8');
-        fclose(F);
-        
-        F = fopen(meg4fn, 'wb');
-        fwrite(F, 'MEG42CP');
-        fclose(F);
-        
-        %R4F = read_ctf_res4(tmp_name);
-        R4F = ft_read_header(dsname);
-        
-        delete(res4fn);
-        delete(meg4fn);
-        rmdir(dsname);
+      if isempty(cachechunk)
+        % this only needs to be decoded once
+        cachechunk = decode_res4(orig.ctf_res4);
       end
-      
-      % copy over the labels
-      hdr.label = R4F.label;
-      % copy over the 'original' header
-      hdr.orig = R4F;
-      if isfield(R4F,'grad')
-        hdr.grad = R4F.grad;
+      % copy the gradiometer details
+      hdr.grad = cachechunk.grad;
+      hdr.orig = cachechunk.orig;
+      if isfield(orig, 'channel_names')
+          % get the same selection of channels from the two chunks
+          [selbuf, selres4] = match_str(orig.channel_names, cachechunk.label);
+          if length(selres4)<length(orig.channel_names)
+              error('the res4 chunk did not contain all channels')
+          end
+          % copy some of the channel details
+          hdr.label     = cachechunk.label(selres4);
+          hdr.chantype  = cachechunk.chantype(selres4);
+          hdr.chanunit  = cachechunk.chanunit(selres4);
+          % add the channel names chunk as well
+          hdr.orig.channel_names = orig.channel_names;
       end
       % add the raw chunk as well
       hdr.orig.ctf_res4 = orig.ctf_res4;
@@ -1021,12 +1005,6 @@ switch headerformat
     
     hdr.orig.bufsize = orig.bufsize;
     
-    % As of November 2011 the header should also contain the channel type
-    % (e.g. meg, eeg, trigger) and the channel units (e.g. uV, fT).
-    % For the FieldTrip buffer these have not been implemented yet,
-    % therefore we have to return 'unknown' for both.
-    hdr.chantype = repmat('unknown', size(hdr.label));
-    hdr.chanunit = repmat('unknown', size(hdr.label));
     
   case 'fcdc_buffer_offline'
     [hdr, nameFlag] = read_buffer_offline_header(headerfile);
@@ -1263,21 +1241,6 @@ switch headerformat
       end
     catch
       disp(lasterr);
-    end
-    
-    for i = 1:hdr.nChans % make a cell array of units for each channel
-      switch orig.chs(i).unit
-        case 201 % defined as constants by MNE, see p. 217 of MNE manual
-          hdr.chanunit{i} = 'T/m';
-        case 112
-          hdr.chanunit{i} = 'T';
-        case 107
-          hdr.chanunit{i} = 'V';
-        case 202
-          hdr.chanunit{i} = 'Am';
-        otherwise
-          hdr.chanunit{i} = 'unknown';
-      end
     end
     
     iscontinuous  = 0;
@@ -1657,7 +1620,14 @@ switch headerformat
     hdr  = rmfield(orig, 'time');
     hdr.orig = orig;
     
-  case 'neurosim'
+  case 'neurosim spikes'
+    headerOnly=1;
+    hdr = read_neurosim_spikes(filename,headerOnly);
+    
+  case 'neurosim evolution'
+    hdr = read_neurosim_evolution(filename);
+    
+  case 'neurosim signals'
     hdr = read_neurosim_signals(filename);
     
   otherwise
