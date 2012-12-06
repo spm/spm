@@ -22,7 +22,7 @@ function Y = spm_data_read(V,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 5050 2012-11-12 18:55:38Z guillaume $
+% $Id: spm_data_read.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 if ~isstruct(V)
@@ -64,6 +64,8 @@ switch class(V(1).private)
         indices = varargin;
         if isempty(indices)
             indices = repmat({':'},1,ndims(V));
+        elseif strcmpi(indices{1},'xyz')
+            indices = {indices{2}(1,:)};
         end
         n = get_ndata(V(1).dim,indices{:});
         Y = zeros(numel(V),prod(n));

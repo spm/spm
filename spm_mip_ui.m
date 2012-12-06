@@ -49,7 +49,7 @@ function varargout = spm_mip_ui(varargin)
 % In addition a ContextMenu is provided, giving the option to jump the
 % cursors to the nearest suprathreshold voxel, the nearest local
 % maxima, or to the global maxima. (Right click on the MIP to bring up
-% the ContextMenu.) A message in the MatLab command window describes the
+% the ContextMenu.) A message in the MATLAB command window describes the
 % jump.
 %
 %                           ----------------
@@ -66,10 +66,10 @@ function varargout = spm_mip_ui(varargin)
 % main body of the function.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_mip_ui.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 %==========================================================================
@@ -104,12 +104,10 @@ function varargout = spm_mip_ui(varargin)
 % xyz     - (Output) {3 x 1} vector of voxel centre nearest desired xyz co-ords
 % d       - Euclidian distance from desired co-ords & nearest voxel
 %
-% FORMAT spm_mip_ui('PosnMarkerPoints',xyz,h,r)
+% FORMAT spm_mip_ui('PosnMarkerPoints',xyz,h)
 % Utility routine: Positions cursor markers
 % xyz     - {3 x 1} vector of Talairach coordinates for cursor
 % h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
-% r       - 'r' to move visible red cursors, 'g' to move invisible green cursors
-%
 %
 % FORMAT [xyz,d] = spm_mip_ui('Jump',h,loc)
 % Utility routine (CallBack of UIcontextMenu) to jump cursor
@@ -359,7 +357,7 @@ switch lower(varargin{1}), case 'display'
         % [xyz,d] = spm_mip_ui('SetCoords',xyz,h,hC)
         if nargin<4, hC=0; else hC=varargin{4}; end
         if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
-        if nargin<2, error('Set co-ords to what!'), else xyz=varargin{2}; end
+        if nargin<2, error('Set coords to what?'), else xyz=varargin{2}; end
 
         MD  = get(h,'UserData');
 
@@ -377,7 +375,7 @@ switch lower(varargin{1}), case 'display'
 
         %-Move marker points, update internal cache in hMIPxyz
         %------------------------------------------------------------------
-        spm_mip_ui('PosnMarkerPoints',MD.Md(1:3,:)*[xyz;1],h,'r');
+        spm_mip_ui('PosnMarkerPoints',MD.Md(1:3,:)*[xyz;1],h);
         set(MD.hMIPxyz,'UserData',reshape(xyz(1:3),3,1))
         set(MD.hMIPxyz,'String',{'{\bfSPM}{\itmip}',sprintf('[%g, %g, %g]',xyz(1:3))})
 
@@ -394,16 +392,14 @@ switch lower(varargin{1}), case 'display'
     %======================================================================
     case 'posnmarkerpoints'
     %======================================================================
-        % spm_mip_ui('PosnMarkerPoints',xyz,h,r)
-        if nargin<4, r='r'; else r=varargin{4}; end
-        if ~any(strcmp(r,{'r','g'})), error('Invalid pointer colour spec'), end
+        % spm_mip_ui('PosnMarkerPoints',xyz,h)
         if nargin<3, h=spm_mip_ui('FindMIPax'); else h=varargin{3}; end
         if nargin<2, xyz = spm_mip_ui('GetCoords',h); else xyz = varargin{2}; end
         MD = get(h,'UserData');
         
-        %-Get handles of marker points of appropriate colour from UserData of hMIPax
+        %-Get handles of marker points from UserData of hMIPax
         %------------------------------------------------------------------
-        hX = MD.(['hX',r]);
+        hX = MD.hXr;
 
         %-Set marker points
         %------------------------------------------------------------------

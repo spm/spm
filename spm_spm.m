@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_spm.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
-SVNid = '$Rev: 5039 $';
+SVNid = '$Rev: 5097 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -311,15 +311,13 @@ end
 
 for i = 1:numel(VY)
     if ~spm_existfile(VY(i).fname)
-        %fname = spm_file(VY(i).fname, 'filename');
-        %if ~spm_existfile(fname)
-            error('File not found: %s',VY(i).fname);
-        %end
-        %VY(i).fname = fname;
-        %VY(i).private.dat.fname = fname;
+        error('File not found: %s',VY(i).fname);
     end
-    VY(i).private.dat.scl_slope = VY(i).pinfo(1); % see spm_fmri_spm_ui.m
-    VY(i).private.dat.scl_inter = VY(i).pinfo(2); % see spm_fmri_spm_ui.m
+    if ~spm_mesh_detect(VY)
+        % Backward compatibility: propagate scaling (see spm_fmri_spm_ui.m)
+        VY(i).private.dat.scl_slope = VY(i).pinfo(1);
+        VY(i).private.dat.scl_inter = VY(i).pinfo(2);
+    end
 end
 
 spm_check_orientations(VY);
@@ -327,7 +325,7 @@ spm_check_orientations(VY);
 M       = VY(1).mat;
 DIM     = VY(1).dim;
 YNaNrep = spm_type(VY(1).dt(1),'nanrep');
-if strcmp(spm_file(VY(1).fname,'ext'),'gii')
+if spm_mesh_detect(VY)
     file_ext = '.gii';
 else
     file_ext = spm_file_ext;
@@ -633,7 +631,7 @@ end
 %-              S M O O T H N E S S   E S T I M A T I O N
 %==========================================================================
 
-if ~strcmp(file_ext,'.gii')
+if ~spm_mesh_detect(VY)
     [FWHM,VRpv,R] = spm_est_smoothness(VResI,VM,[nScan erdf]);
 else
     VRpv = struct(...
@@ -649,10 +647,11 @@ else
         ResI(:,i) = spm_data_read(VResI(i));
     end
     g = gifti(VY(1).fname);
-    [R, RPV] = spm_mesh_resels(gifti(g.private.metadata(1).value),mask',ResI);
+    g = g.private.metadata(1).value;
+    [R, RPV] = spm_mesh_resels(gifti(g),mask,ResI);
     RPV(~mask) = NaN;
     VRpv = spm_data_write(VRpv,RPV);
-    FWHM = NaN(size(R));
+    FWHM = [1 1 1] * (1/mean(RPV(mask))).^(1/3);
 end
     
 %-Delete the standardised residual files
@@ -686,6 +685,9 @@ SPM.xVol.FWHM  = FWHM;              %-Smoothness data
 SPM.xVol.R     = R;                 %-Resel counts
 SPM.xVol.S     = nnz(mask);         %-Volume (voxels)
 SPM.xVol.VRpv  = VRpv;              %-Filehandle - Resels per voxel
+if spm_mesh_detect(VY)
+    SPM.xVol.G = g;                 %-Mesh topology
+end
 
 SPM.Vbeta      = Vbeta;             %-Filehandle - Beta
 SPM.VResMS     = VResMS;            %-Filehandle - Hyperparameter

@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 4915 2012-09-11 17:38:30Z ged $
+% $Id: spm_cfg_fmri_spec.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the fMRI scans for this session.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 
@@ -618,7 +618,7 @@ mask.help    = {'Specify an image for explicitly masking the analysis. '
     ['A sensible option here is to use a segmention of structural images to specify a within-brain mask. ',...
     'If you select that image as an explicit mask then only those voxels in the brain will be analysed. ',...
     'This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels.']};
-mask.filter  = 'image';
+mask.filter  = {'image','mesh'};
 mask.ufilter = '.*';
 mask.num     = [0 1];
 

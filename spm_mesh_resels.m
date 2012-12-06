@@ -17,10 +17,10 @@ function [R, RPV] = spm_mesh_resels(M,T,S)
 %
 % [2] SurfStat: http://www.math.mcgill.ca/keith/surfstat/, K.J. Worsley.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_resels.m 4139 2010-12-15 18:31:49Z guillaume $
+% $Id: spm_mesh_resels.m 5097 2012-12-06 16:08:16Z guillaume $
 
 %-Parse input arguments
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ E      = spm_mesh_edges(M);
 %--------------------------------------------------------------------------
 SSR    = S(E',:);
 SSR    = reshape(SSR',size(SSR,2),2,[]);
-SSR    = sum(squeeze((SSR(:,1,:) - SSR(:,2,:)).^2),1)';
+SSR    = mean(squeeze((SSR(:,1,:) - SSR(:,2,:)).^2),1)';
 SSR    = sqrt(SSR);
 
 %-Lipschitz-Killing Curvature (LKC)

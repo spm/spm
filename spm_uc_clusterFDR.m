@@ -1,6 +1,6 @@
-function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
+function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui,G)
 % Cluster False Discovery critical extent threshold
-% FORMAT [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui)
+% FORMAT [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,ui[,G])
 %
 % q     - prespecified upper bound on False Discovery Rate
 % df    - [df{interest} df{residuals}]
@@ -18,6 +18,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 %         or mapped mask image
 % V2R   - voxel to resel
 % ui    - feature-inducing threshold
+% G     - patch structure (for surface-based inference)
 %
 % u     - critical extent threshold
 % Ps    - sorted p-values
@@ -36,7 +37,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 4644 2012-02-03 17:44:57Z guillaume $
+% $Id: spm_uc_clusterFDR.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 % Read statistical value from disk if needed
@@ -67,7 +68,14 @@ XYZ      = XYZ(:,Z >= ui);
 
 % Extract size of excursion sets 
 %--------------------------------------------------------------------------
-N        = spm_clusters(XYZ);
+if nargin == 9
+    N    = spm_clusters(XYZ);
+else
+    tmp  = false(size(G.vertices,1),1);
+    tmp(XYZ(1,:)) = true;
+    N    = spm_mesh_clusters(G,tmp);
+    N    = N(XYZ(1,:));
+end
 if ~isempty(N)
     N    = histc(N,(0:max(N))+0.5);
 end

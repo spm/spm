@@ -72,10 +72,10 @@ function Vo = spm_resss(Vi,Vo,R,flags)
 % or to combine the global scaling factors in the residual forming
 % matrix.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes & John Ashburner
-% $Id: spm_resss.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_resss.m 5097 2012-12-06 16:08:16Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -95,8 +95,6 @@ spm_check_orientations([Vi Vo]);
 %==========================================================================
 % - C O M P U T A T I O N
 %==========================================================================
-fprintf('%-14s%16s',['(',mfilename,')'],'...initialising');             %-#
-
 Y  = zeros([Vo.dim(1:2),ni]);                       %-PlaneStack data
 
 im = false(ni,1);
@@ -106,8 +104,6 @@ end
 
 %-Loop over planes computing ResSS
 for p=1:Vo.dim(3)
-    fprintf('%s%16s',repmat(sprintf('\b'),1,16),...
-        sprintf('...plane %3d/%-3d',p,Vo.dim(3)))                       %-#
 
     M = spm_matrix([0 0 p]);                        %-Sampling matrix
 
@@ -121,9 +117,3 @@ for p=1:Vo.dim(3)
     ss = reshape(sum(e.^2,1),Vi(1).dim(1:2));       %-ResSS plane
     Vo = spm_write_plane(Vo,ss,p);                  %-Write plane
 end
-
-
-%-End
-%--------------------------------------------------------------------------
-fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),...
-    sprintf('...written %s',spm_file(Vo.fname,'filename')))             %-#

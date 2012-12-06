@@ -1,10 +1,11 @@
 function factorial_design = spm_cfg_factorial_design
 % SPM Configuration file for 2nd-level models
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 4979 2012-09-28 14:49:15Z ged $
+% $Id: spm_cfg_factorial_design.m 5097 2012-12-06 16:08:16Z guillaume $
+
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -13,7 +14,7 @@ dir         = cfg_files;
 dir.tag     = 'dir';
 dir.name    = 'Directory';
 dir.help    = {'Select a directory where the SPM.mat file containing the specified design matrix will be written.'};
-dir.filter = 'dir';
+dir.filter  = 'dir';
 dir.ufilter = '.*';
 dir.num     = [1 1];
 
@@ -24,7 +25,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the images.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -33,7 +34,7 @@ scans.num     = [1 Inf];
 t1         = cfg_branch;
 t1.tag     = 't1';
 t1.name    = 'One-sample t-test';
-t1.val     = {scans };
+t1.val     = {scans};
 t1.help    = {''};
 
 % ---------------------------------------------------------------------
@@ -43,7 +44,7 @@ scans1         = cfg_files;
 scans1.tag     = 'scans1';
 scans1.name    = 'Group 1 scans';
 scans1.help    = {'Select the images from sample 1.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans1.filter = 'image';
+scans1.filter  = {'image','mesh'};
 scans1.ufilter = '.*';
 scans1.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -53,7 +54,7 @@ scans2         = cfg_files;
 scans2.tag     = 'scans2';
 scans2.name    = 'Group 2 scans';
 scans2.help    = {'Select the images from sample 2.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans2.filter = 'image';
+scans2.filter  = {'image','mesh'};
 scans2.ufilter = '.*';
 scans2.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -173,7 +174,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans [1,2]';
 scans.help    = {'Select the pair of images. '};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [2 2];
 % ---------------------------------------------------------------------
@@ -210,7 +211,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the images.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -355,7 +356,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the images for this cell.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -469,7 +470,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the images to be analysed.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -506,7 +507,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the images to be analysed.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -835,7 +836,7 @@ em.help    = {
               'Explicit mask images can have any orientation and voxel/image size. Nearest neighbour interpolation of a mask image is used if the voxel centers of the input images do not coincide with that of the mask image.'
               ''
 }';
-em.filter = 'image';
+em.filter = {'image','mesh'};
 em.ufilter = '.*';
 em.num     = [0 1];
 % ---------------------------------------------------------------------
@@ -1014,9 +1015,10 @@ factorial_design.help    = {
 }';
 factorial_design.prog = @spm_run_factorial_design;
 factorial_design.vout = @vout_stats;
-%-------------------------------------------------------------------------
 
-%-------------------------------------------------------------------------
+%==========================================================================
+% function dep = vout_stats(job)
+%==========================================================================
 function dep = vout_stats(job)
 dep(1)            = cfg_dep;
 dep(1).sname      = 'SPM.mat File';

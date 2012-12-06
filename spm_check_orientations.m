@@ -12,14 +12,14 @@ function [sts, str] = spm_check_orientations(V, verbose)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_orientations.m 4418 2011-08-03 12:00:13Z guillaume $
+% $Id: spm_check_orientations.m 5097 2012-12-06 16:08:16Z guillaume $
 
 sts = true;
 str = '';
 
 if nargin < 2, verbose = true; end
 
-if numel(V) <= 1 || isa(V,'gifti'), return; end
+if numel(V) <= 1 || spm_mesh_detect(V), return; end
 
 dims = cat(1,V.dim);
 if any(any(diff(dims,1,1),1))

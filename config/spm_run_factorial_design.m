@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5028 2012-11-01 12:35:32Z guillaume $
+% $Id: spm_run_factorial_design.m 5097 2012-12-06 16:08:16Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -634,7 +634,7 @@ clear c tI tConst tFnames
 % dimensions and orientation / voxel size
 %==========================================================================
 fprintf('%-40s: ','Mapping files')                                      %-#
-VY = spm_vol(char(P));
+VY = spm_data_hdr_read(char(P));
 
 %-Check compatibility of images
 %--------------------------------------------------------------------------
@@ -718,7 +718,7 @@ switch iGXcalc,
         for i = 1:nScan
             str = sprintf('%3d/%-3d',i,nScan);
             fprintf('%s%30s',repmat(sprintf('\b'),1,30),str)            %-#
-            g(i) = spm_global(VY(i));
+            g(i) = spm_global(VY(i)); % FIXME % for meshes
         end
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')        %-#
     otherwise
@@ -815,7 +815,7 @@ end
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %--------------------------------------------------------------------------
 for i = 1:nScan
-    VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i);
+    VY(i).pinfo(1:2,:) = VY(i).pinfo(1:2,:)*gSF(i); % FIXME % for meshes
 end
 
 %-Global centering (for AnCova GloNorm)                                (GC)
@@ -933,10 +933,9 @@ end
 %-Implicit masking: Ignore zero voxels in low data-types?
 %--------------------------------------------------------------------------
 % (Implicit mask is NaN in higher data-types.)
-type = getfield(spm_vol(P{1,1}),'dt')*[1,0]';
-if ~spm_type(type,'nanrep')
+if ~spm_type(VY(1).dt(1),'nanrep')
     M_I = job.masking.im;  % Implicit mask ?
-    if M_I,
+    if M_I
         xsM.Implicit_masking = 'Yes: zero''s treated as missing';
     else
         xsM.Implicit_masking = 'No';
@@ -952,7 +951,7 @@ if isempty(job.masking.em{:})
     VM = [];
     xsM.Explicit_masking = 'No';
 else
-    VM = spm_vol(char(job.masking.em));
+    VM = spm_data_hdr_read(char(job.masking.em));
     xsM.Explicit_masking = 'Yes';
 end
 

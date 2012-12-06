@@ -111,10 +111,10 @@ function varargout = spm_list(varargin)
 % extract the table data to the MATLAB workspace.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 4680 2012-03-09 16:10:25Z guillaume $
+% $Id: spm_list.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 %==========================================================================
@@ -180,6 +180,7 @@ case 'table'                                                        %-Table
     DIM       = xSPM.DIM;
     M         = xSPM.M;
     XYZ       = xSPM.XYZ;
+    XYZmm     = xSPM.XYZmm;
     Z         = xSPM.Z;
     VRpv      = xSPM.VRpv;
     n         = xSPM.n;
@@ -192,10 +193,6 @@ case 'table'                                                        %-Table
     try, QPp  = xSPM.Pp; end
     try, QPc  = xSPM.Pc; end
         
-    if STAT~='P'
-        R     = full(xSPM.R);
-        FWHM  = full(xSPM.FWHM);
-    end
     try
         units = xSPM.units;
     catch
@@ -204,19 +201,24 @@ case 'table'                                                        %-Table
     units{1}  = [units{1} ' '];
     units{2}  = [units{2} ' '];
     
-    DIM       = DIM > 1;              % non-empty dimensions
-    D         = sum(DIM);             % highest dimension
-    VOX       = VOX(DIM);             % scaling
+    if ~spm_mesh_detect(xSPM.Vspm)
+        DIM   = DIM > 1;                  % non-empty dimensions
+    else
+        DIM   = true(1,3);
+    end
+    VOX       = VOX(DIM);                 % scaling
     
     if STAT ~= 'P'
-        FWHM  = FWHM(DIM);            % Full width at half max
-        FWmm  = FWHM.*VOX;            % FWHM {units}
-        V2R   = 1/prod(FWHM);         % voxels to resels
-        k     = k*V2R;                % extent threshold in resels
-        R     = R(1:(D + 1));         % eliminate null resel counts
-        try, QPs = sort(QPs(:)); end  % Needed for voxel   FDR
-        try, QPp = sort(QPp(:)); end  % Needed for peak    FDR
-        try, QPc = sort(QPc(:)); end  % Needed for cluster FDR
+        R     = full(xSPM.R);             % Resel counts
+        FWHM  = full(xSPM.FWHM);          % Full width at half max
+        FWHM  = FWHM(DIM);
+        FWmm  = FWHM.*VOX;                % FWHM {units}
+        V2R   = 1/prod(FWHM);             % voxels to resels
+        k     = k*V2R;                    % extent threshold in resels
+        R     = R(1:find(R~=0,1,'last')); % eliminate null resel counts
+        try, QPs = sort(QPs(:)); end      % Needed for voxel   FDR
+        try, QPp = sort(QPp(:)); end      % Needed for peak    FDR
+        try, QPc = sort(QPc(:)); end      % Needed for cluster FDR
     end
 
     % Choose between voxel-wise and topological FDR
@@ -247,15 +249,15 @@ case 'table'                                                        %-Table
         
     %-Coordinate Precisions
     %----------------------------------------------------------------------
-    if isempty(xSPM.XYZmm) % empty results
+    if isempty(XYZmm) % empty results
         xyzfmt = '%3.0f %3.0f %3.0f';
         voxfmt = repmat('%0.1f ',1,nnz(DIM));
     elseif ~any(strcmp(units{3},{'mm',''})) % 2D data
         xyzfmt = '%3.0f %3.0f %3.0f';
         voxfmt = repmat('%0.1f ',1,nnz(DIM));
     else % 3D data, work out best precision based on voxel sizes and FOV
-        xyzsgn = min(xSPM.XYZmm(DIM,:),[],2) < 0;
-        xyzexp = max(floor(log10(max(abs(xSPM.XYZmm(DIM,:)),[],2)))+(max(abs(xSPM.XYZmm(DIM,:)),[],2) >= 1),0);
+        xyzsgn = min(XYZmm(DIM,:),[],2) < 0;
+        xyzexp = max(floor(log10(max(abs(XYZmm(DIM,:)),[],2)))+(max(abs(XYZmm(DIM,:)),[],2) >= 1),0);
         voxexp = floor(log10(abs(VOX')))+(abs(VOX') >= 1);
         xyzdec = max(-voxexp,0);
         voxdec = max(-voxexp,1);
@@ -291,17 +293,19 @@ case 'table'                                                        %-Table
     if STAT ~= 'P'
         Pz              = spm_P(1,0,u,df,STAT,1,n,S);
         Pu              = spm_P(1,0,u,df,STAT,R,n,S);
-        [P Pn Ec Ek]    = spm_P(1,k,u,df,STAT,R,n,S);
+        [P,Pn,Ec,Ek]    = spm_P(1,k,u,df,STAT,R,n,S);
         
+        if spm_mesh_detect(xSPM.Vspm), vx = 'vertices'; 
+        else vx = 'voxels'; end
         TabDat.ftr      = cell(9,2);
         TabDat.ftr{1,1} = ...
             ['Height threshold: ' STAT ' = %0.2f, p = %0.3f (%0.3f)'];
         TabDat.ftr{1,2} = [u,Pz,Pu];
         TabDat.ftr{2,1} = ...
-            'Extent threshold: k = %0.0f voxels, p = %0.3f (%0.3f)';
+            ['Extent threshold: k = %0.0f ' vx ', p = %0.3f (%0.3f)'];
         TabDat.ftr{2,2} = [k/V2R,Pn,P];
         TabDat.ftr{3,1} = ...
-            'Expected voxels per cluster, <k> = %0.3f';
+            ['Expected ' vx ' per cluster, <k> = %0.3f'];
         TabDat.ftr{3,2} = Ek/V2R;
         TabDat.ftr{4,1} = ...
             'Expected number of clusters, <c> = %0.2f';
@@ -316,15 +320,25 @@ case 'table'                                                        %-Table
         end
         TabDat.ftr{6,1} = 'Degrees of freedom = [%0.1f, %0.1f]';
         TabDat.ftr{6,2} = df;
-        TabDat.ftr{7,1} = ...
-            ['FWHM = ' voxfmt units{:} '; ' voxfmt '{voxels}'];
-        TabDat.ftr{7,2} = [FWmm FWHM];
-        TabDat.ftr{8,1} = ...
-            'Volume: %0.0f = %0.0f voxels = %0.1f resels';
-        TabDat.ftr{8,2} = [S*prod(VOX),S,R(end)];
-        TabDat.ftr{9,1} = ...
-            ['Voxel size: ' voxfmt units{:} '; (resel = %0.2f voxels)'];
-        TabDat.ftr{9,2} = [VOX,prod(FWHM)];
+        if spm_mesh_detect(xSPM.Vspm)
+            TabDat.ftr{7,1} = ...
+                ['FWHM = ' voxfmt '{' vx '}'];
+            TabDat.ftr{7,2} = FWHM;
+            TabDat.ftr{8,1} = ['Volume: %0.0f ' vx ' = %0.1f resels'];
+            TabDat.ftr{8,2} = [S,R(end)];
+            TabDat.ftr{9,1} = ['(resel = %0.2f ' vx ')'];
+            TabDat.ftr{9,2} = prod(FWHM);
+        else
+            TabDat.ftr{7,1} = ...
+                ['FWHM = ' voxfmt units{:} '; ' voxfmt '{' vx '}'];
+            TabDat.ftr{7,2} = [FWmm FWHM];
+            TabDat.ftr{8,1} = ...
+                ['Volume: %0.0f = %0.0f ' vx ' = %0.1f resels'];
+            TabDat.ftr{8,2} = [S*prod(VOX),S,R(end)];
+            TabDat.ftr{9,1} = ...
+                ['Voxel size: ' voxfmt units{:} '; (resel = %0.2f ' vx ')'];
+            TabDat.ftr{9,2} = [VOX,prod(FWHM)];
+        end
      else
         TabDat.ftr = {};
     end 
@@ -342,7 +356,11 @@ case 'table'                                                        %-Table
     %----------------------------------------------------------------------
     minz           = abs(min(min(Z)));
     Z              = 1 + minz + Z;
-    [N Z XYZ A L]  = spm_max(Z,XYZ);
+    if ~spm_mesh_detect(xSPM.Vspm)
+        [N,Z,XYZ,A,L]  = spm_max(Z,XYZ);
+    else
+        [N,Z,XYZ,A,L]  = spm_mesh_max(Z,XYZ,xSPM.G);
+    end
     Z              = Z - minz - 1;
     
     %-Convert cluster sizes from voxels (N) to resels (K)
@@ -357,7 +375,7 @@ case 'table'                                                        %-Table
                 
                 %-Get LKC for voxels in i-th region
                 %----------------------------------------------------------
-                LKC = spm_get_data(VRpv,L{i});
+                LKC = spm_data_read(VRpv,'xyz',L{i});
                 
                 %-Compute average of valid LKC measures for i-th region
                 %----------------------------------------------------------
@@ -370,7 +388,7 @@ case 'table'                                                        %-Table
                 
                 %-Intrinsic volume (with surface correction)
                 %----------------------------------------------------------
-                IV   = spm_resels([1 1 1],L{i},'V');
+                IV   = spm_resels([1 1 1],L{i},'V'); % only for volumes
                 IV   = IV*[1/2 2/3 2/3 1]';
                 K(i) = IV*LKC;
                 
@@ -383,9 +401,13 @@ case 'table'                                                        %-Table
     
     %-Convert maxima locations from voxels to mm
     %----------------------------------------------------------------------
-    XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+    if spm_mesh_detect(xSPM.Vspm)
+        XYZmm = xSPM.G.vertices(XYZ(1,:),:)';
+    else
+        XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
+    end
     
-    %-Set-level p values {c} - do not display if reporting a single cluster
+    %-Set-level p-values {c} - do not display if reporting a single cluster
     %----------------------------------------------------------------------
     if STAT ~= 'P'
         Pc     = spm_P(c,k,u,df,STAT,R,n,S);            %-Set-level p-value
@@ -406,7 +428,7 @@ case 'table'                                                        %-Table
         j      = find(A == A(i));   %-maxima in cluster
 
 
-        %-Compute cluster {k} and peak-level {u} p values for this cluster
+        %-Compute cluster {k} and peak-level {u} p-values for this cluster
         %------------------------------------------------------------------
         if STAT ~= 'P'
             
@@ -414,7 +436,7 @@ case 'table'                                                        %-Table
             %--------------------------------------------------------------
             Pz      = spm_P(1,0,   U,df,STAT,1,n,S);  % uncorrected p value
             Pu      = spm_P(1,0,   U,df,STAT,R,n,S);  % FWE-corrected {based on Z}
-            [Pk Pn] = spm_P(1,K(i),u,df,STAT,R,n,S);  % [un]corrected {based on K}
+            [Pk,Pn] = spm_P(1,K(i),u,df,STAT,R,n,S);  % [un]corrected {based on K}
             
             % q-values (FDR)
             %--------------------------------------------------------------
@@ -539,7 +561,8 @@ case 'table'                                                        %-Table
     
     %-Table axes & Title
     %----------------------------------------------------------------------
-    hAx   = axes('Position',[0.025 bot 0.9 ht],...
+    hAx   = axes('Parent',Fgraph,...
+                 'Position',[0.025 bot 0.9 ht],...
                  'DefaultTextFontSize',FS(8),...
                  'DefaultTextInterpreter','Tex',...
                  'DefaultTextVerticalAlignment','Baseline',...
@@ -554,10 +577,10 @@ case 'table'                                                        %-Table
     text(0,y,['Statistics:  \it\fontsize{',num2str(FS(9)),'}',TabDat.tit],...
               'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
     line([0 1],[y y],'LineWidth',3,'Color','r'),        y = y - 9*dy/8;
-
+    
     %-Display table header
     %----------------------------------------------------------------------
-    set(gca,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
+    set(hAx,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
     Hs = []; Hc = []; Hp = [];
     h  = text(0.01,y, [TabDat.hdr{1,1} '-level'],'FontSize',FS(9));
@@ -596,7 +619,7 @@ case 'table'                                                        %-Table
 
     %-Footnote with SPM parameters (if classical inference)
     %----------------------------------------------------------------------
-    line([0 1],[0 0],'LineWidth',1,'Color','r')
+    line([0 1],[0.01 0.01],'LineWidth',1,'Color','r')
     if ~isempty(TabDat.ftr)
         set(gca,'DefaultTextFontName',PF.helvetica,...
             'DefaultTextInterpreter','None','DefaultTextFontSize',FS(8))
@@ -677,23 +700,26 @@ case 'table'                                                        %-Table
         if  ~isempty(TabDat.dat{i,5}), fw = 'Bold'; else fw = 'Normal'; end
         
         for k=3:11
-            h     = text(tCol(k),y,sprintf(TabDat.fmt{k},TabDat.dat{i,k}),...
-                        'FontWeight',fw,...
-                        'UserData',TabDat.dat{i,k},...
-                        'ButtonDownFcn','get(gcbo,''UserData'')');
+            h = text(tCol(k),y,sprintf(TabDat.fmt{k},TabDat.dat{i,k}),...
+                     'FontWeight',fw,...
+                     'UserData',TabDat.dat{i,k},...
+                     'ButtonDownFcn','get(gcbo,''UserData'')');
             hPage = [hPage, h];
         end
         
         % Specifically changed so it properly finds hMIPax
         %------------------------------------------------------------------
         tXYZmm = TabDat.dat{i,12};
-        h      = text(tCol(12),y,sprintf(TabDat.fmt{12},tXYZmm),...
+        BDFcn  = [...
+            'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),',...
+                'findobj(''tag'',''hMIPax''));'];
+        BDFcn = 'spm_XYZreg(''SetCoords'',get(gcbo,''UserData''),hReg,1);';
+        h = text(tCol(12),y,sprintf(TabDat.fmt{12},tXYZmm),...
             'FontWeight',fw,...
             'Tag','ListXYZ',...
-            'ButtonDownFcn',[...
-            'hMIPax = findobj(''tag'',''hMIPax'');',...
-            'spm_mip_ui(''SetCoords'',get(gcbo,''UserData''),hMIPax);'],...
-            'Interruptible','off','BusyAction','Cancel',...
+            'ButtonDownFcn',BDFcn,...
+            'Interruptible','off',...
+            'BusyAction','Cancel',...
             'UserData',tXYZmm);
 
         HlistXYZ = [HlistXYZ, h];
@@ -716,8 +742,9 @@ case 'table'                                                        %-Table
     %-End: Store TabDat in UserData of context menu
     %======================================================================
     h = uicontextmenu('Tag','TabDat','UserData',TabDat);
-    set(gca,'UIContextMenu',h,...
-        'Visible','on',...
+    set(hAx,'UIContextMenu',h,...
+    	'Visible','on',...
+        'XTick',[],'YTick',[],...
         'XColor','w','YColor','w')
     uimenu(h,'Label','Print text table',...
         'CallBack',...

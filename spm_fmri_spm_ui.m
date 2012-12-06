@@ -66,8 +66,9 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % or fixed-effect level) in the results section, or they can be re-entered
 % into a second (random-effect) level analysis by treating the session or
 % subject-specific [contrasts of] parameter estimates as new summary data.
-% Inferences at any level obtain by specifying appropriate T or F contrasts
-% in the results section to produce SPMs and tables of p values and statistics.
+% Inferences at any level are obtained by specifying appropriate T or F
+% contrasts in the results section to produce SPMs and tables of p values
+% and statistics.
 %
 % spm_fmri_spm calls spm_fMRI_design which allows you to configure a design
 % matrix in terms of events or epochs.
@@ -171,10 +172,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 4940 2012-09-20 17:27:54Z guillaume $
+% $Id: spm_fmri_spm_ui.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
-SVNid = '$Rev: 4940 $';
+SVNid = '$Rev: 5097 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -286,7 +287,7 @@ q     = length(VY);
 g     = zeros(q,1);
 fprintf('%-40s: ','Calculating globals')                                %-#
 spm_progress_bar('Init',q,'Calculating globals');
-if strcmpi(spm_file(VY(1).fname,'ext'),'gii')
+if spm_mesh_detect(VY)
     for i = 1:q
         dat = spm_data_read(VY(i));
         g(i) = mean(dat(~isnan(dat)));
@@ -314,7 +315,7 @@ end
 %--------------------------------------------------------------------------
 for i = 1:q
     SPM.xY.VY(i).pinfo(1:2,:) = SPM.xY.VY(i).pinfo(1:2,:) * gSF(i);
-    if strcmpi(spm_file(VY(1).fname,'ext'),'gii')
+    if spm_mesh_detect(VY)
         SPM.xY.VY(i).private.private.data{1}.data.scl_slope = ...
             SPM.xY.VY(i).private.private.data{1}.data.scl_slope * gSF(i);
         SPM.xY.VY(i).private.private.data{1}.data.scl_inter = ...

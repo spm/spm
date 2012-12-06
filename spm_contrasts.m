@@ -1,27 +1,27 @@
-function [SPM] = spm_contrasts(SPM,Ic)
-% Fills in SPM.xCon and writes con_????, ess_???? and SPM?_???? images
-% FORMAT [SPM] = spm_contrasts(SPM,Ic)
+function SPM = spm_contrasts(SPM,Ic)
+% Compute and store contrast parameters and inference SPM{.}
+% FORMAT SPM = spm_contrasts(SPM,Ic)
 %
-% SPM - SPM data structure
-% Ic  - indices of xCon to compute
+% SPM  - SPM data structure
+% Ic   - indices of xCon to compute
+%
+% This function fills in SPM.xCon and writes con_????, ess_???? and
+% spm?_???? images.
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
-% Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_contrasts.m 4742 2012-05-16 09:51:15Z volkmar $
+% Karl Friston, Will Penny & Guillaume Flandin
+% $Id: spm_contrasts.m 5097 2012-12-06 16:08:16Z guillaume $
 
-% Temporary SPM variable to check for any changes to SPM. We want to avoid
-% always having to save SPM.mat unless it has changed, because this is
-% slow. A side benefit is one can look at results with just read
-% privileges.
+
+% Temporary copy of the SPM variable, to avoid saving it in SPM.mat unless
+% it has changed (faster, read-only access)
 %--------------------------------------------------------------------------
 tmpSPM = SPM;
 
-%-Get and change to results directory
+%-Change to results directory
 %--------------------------------------------------------------------------
-try
-    cd(SPM.swd);
-end
+try, cd(SPM.swd); end
 
 %-Get contrast definitions (if available)
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ Ic(Ic == 0) = [];
 %--------------------------------------------------------------------------
 if ~isempty(xCon) && xCon(Ic(1)).STAT == 'P'
     
-    %-Conditional estimators and error variance hyperparameters
+    %-Conditional estimators
     %----------------------------------------------------------------------
     Vbeta = SPM.VCbeta;
 else
@@ -53,11 +53,14 @@ else
     VHp   = SPM.VResMS;
 end
 
+if spm_mesh_detect(Vbeta), file_ext = '.gii';
+else file_ext = spm_file_ext; end
 
 %-Compute & store contrast parameters, contrast/ESS images, & SPM images
 %==========================================================================
 spm('Pointer','Watch')
-XYZ   = SPM.xVol.XYZ;
+XYZ  = SPM.xVol.XYZ;
+iXYZ = cumprod([1,SPM.xVol.DIM(1:2)'])*XYZ - sum(cumprod(SPM.xVol.DIM(1:2)'));
 for i = 1:length(Ic)
     
     
@@ -75,7 +78,7 @@ for i = 1:length(Ic)
     %======================================================================
     if isempty(xCon(ic).Vcon)
         
-        switch(xCon(ic).STAT)
+        switch xCon(ic).STAT
             
             case {'T','P'}
                 
@@ -95,65 +98,81 @@ for i = 1:length(Ic)
                         xCon = spm_bayes2_logbf(SPM,XYZ,xCon,ic);
                     end
                 else
-                    %-Implement contrast as sum of scaled beta images
+                    %-Implement contrast as linear combination of beta images
                     %------------------------------------------------------
-                    fprintf('\t%-32s: %-10s%20s',sprintf('contrast image %2d',ic),...
-                        '(spm_add)','...initialising');                 %-#
-                    
-                    Q     = find(abs(xCon(ic).c) > 0);
-                    V     = Vbeta(Q);
-                    for j = 1:length(Q)
-                        V(j).pinfo(1:2,:) = V(j).pinfo(1:2,:)*xCon(ic).c(Q(j));
-                    end
+                    fprintf('\t%-32s: %30s',sprintf('contrast image %2d',ic),...
+                        '...computing');                                %-#
                     
                     %-Prepare handle for contrast image
                     %------------------------------------------------------
                     xCon(ic).Vcon = struct(...
-                        'fname',  [sprintf('con_%04d',ic) spm_file_ext],...
+                        'fname',  [sprintf('con_%04d',ic) file_ext],...
                         'dim',    SPM.xVol.DIM',...
-                        'dt',     [16 spm_platform('bigend')],...
+                        'dt',     [spm_type('float32'), spm_platform('bigend')],...
                         'mat',    SPM.xVol.M,...
                         'pinfo',  [1,0,0]',...
-                        'descrip',sprintf('SPM contrast - %d: %s',ic,xCon(ic).name));
+                        'descrip',sprintf('Contrast %d: %s',ic,xCon(ic).name));
                     
-                    %-Write image
+                    xCon(ic).Vcon = spm_data_hdr_write(xCon(ic).Vcon);
+                    
+                    %-Compute contrast
                     %------------------------------------------------------
-                    fprintf('%s%20s',repmat(sprintf('\b'),1,20),'...computing')%-#
-                    xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
-                    xCon(ic).Vcon.pinfo(1,1) = spm_add(V,xCon(ic).Vcon);
-                    xCon(ic).Vcon            = spm_create_vol(xCon(ic).Vcon);
+                    Q      = find(abs(xCon(ic).c) > 0);
+                    V      = Vbeta(Q);
                     
+                    cB     = zeros(1,size(XYZ,2));
+                    for j=1:numel(V)
+                        cB = cB + xCon(ic).c(Q(j)) * spm_data_read(V(j),'xyz',XYZ);
+                    end
+                    
+                    %-Write contrast image
+                    %------------------------------------------------------
+                    tmp = NaN(SPM.xVol.DIM');
+                    tmp(iXYZ) = cB;
+                    xCon(ic).Vcon = spm_data_write(xCon(ic).Vcon,tmp);
+                    
+                    clear tmp cB
                     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
                         '...written %s',spm_file(xCon(ic).Vcon.fname,'filename')))%-#
                     
                 end
                 
-            case 'F'  %-Implement ESS as sum of squared weighted beta images
+            case 'F' %-Implement ESS as sum of squared weighted beta images
                 %----------------------------------------------------------
                 fprintf('\t%-32s: %30s',sprintf('ESS image %2d',ic),...
                     '...computing');                                    %-#
-                
-                %-Residual (in parameter space) forming mtx
-                %----------------------------------------------------------
-                h       = spm_FcUtil('Hsqr',xCon(ic),SPM.xX.xKXs);
-                
+                                
                 %-Prepare handle for ESS image
                 %----------------------------------------------------------
                 xCon(ic).Vcon = struct(...
-                    'fname',  [sprintf('ess_%04d',ic) spm_file_ext],...
+                    'fname',  [sprintf('ess_%04d',ic) file_ext],...
                     'dim',    SPM.xVol.DIM',...
-                    'dt',     [16, spm_platform('bigend')],...
+                    'dt',     [spm_type('float32'), spm_platform('bigend')],...
                     'mat',    SPM.xVol.M,...
                     'pinfo',  [1,0,0]',...
-                    'descrip',sprintf('SPM ESS -contrast %d: %s',ic,xCon(ic).name));
+                    'descrip',sprintf('ESS contrast %d: %s',ic,xCon(ic).name));
                 
-                %-Write image
+                xCon(ic).Vcon = spm_data_hdr_write(xCon(ic).Vcon);
+                
+                %-Compute ESS
                 %----------------------------------------------------------
-                fprintf('%s',repmat(sprintf('\b'),1,30))                %-#
-                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
-                xCon(ic).Vcon = spm_resss(Vbeta,xCon(ic).Vcon,h);
-                xCon(ic).Vcon = spm_create_vol(xCon(ic).Vcon);
+                % Residual (in parameter space) forming matrix
+                h  = spm_FcUtil('Hsqr',xCon(ic),SPM.xX.xKXs);
+                ss = zeros(numel(Vbeta),size(XYZ,2));
+                for j=1:numel(Vbeta)
+                    ss(j,:) = spm_data_read(Vbeta(j),'xyz',XYZ);
+                end
+                ss = sum((h*ss).^2,1);
                 
+                %-Write ESS image
+                %----------------------------------------------------------
+                tmp = NaN(SPM.xVol.DIM');
+                tmp(iXYZ) = ss;
+                xCon(ic).Vcon = spm_data_write(xCon(ic).Vcon,tmp);
+                
+                clear tmp ss
+                fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...
+                        '...written %s',spm_file(xCon(ic).Vcon.fname,'filename')))%-#
                 
             otherwise
                 %----------------------------------------------------------
@@ -167,9 +186,8 @@ for i = 1:length(Ic)
     %-Write inference SPM/PPM
     %======================================================================
     if isempty(xCon(ic).Vspm) || xCon(ic).STAT == 'P'
-        
-        % Always update PPM as size threshold, gamma, may have changed
-        %------------------------------------------------------------------
+        % (always update PPM as size threshold, gamma, may have changed)
+
         fprintf('\t%-32s: %30s',sprintf('spm{%c} image %2d',xCon(ic).STAT,ic),...
             '...computing');                                            %-#
         
@@ -177,12 +195,12 @@ for i = 1:length(Ic)
             
             case 'T'                                 %-Compute SPM{t} image
                 %----------------------------------------------------------
-                cB    = spm_get_data(xCon(ic).Vcon,XYZ);
-                l     = spm_get_data(VHp,XYZ);       % get hyperparamters
-                Vc    = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
-                SE    = sqrt(l*Vc);                  % and standard error
-                Z     = cB./SE;
-                str   = sprintf('[%.1f]',SPM.xX.erdf);
+                cB  = spm_data_read(xCon(ic).Vcon,'xyz',XYZ);
+                l   = spm_data_read(VHp,'xyz',XYZ);    % get hyperparamters
+                Vc  = xCon(ic).c'*SPM.xX.Bcov*xCon(ic).c;
+                SE  = sqrt(l*Vc);                      % and standard error
+                Z   = cB./SE;
+                str = sprintf('[%.1f]',SPM.xX.erdf);
                 
                 
             case 'P'                                 %-Compute PPM{P} image
@@ -221,7 +239,7 @@ for i = 1:length(Ic)
                     Z              = 1 - spm_Ncdf(Gamma,cB,VcB);
                     
                     % Convert probability to Log Odds Ratio
-                    Z = log (Z./(1-Z+eps)); 
+                    Z              = log( Z ./ (1 - Z+eps) ); 
                     str            = sprintf('[%.2f]',Gamma);
                     %xCon(ic).name = [xCon(ic).name ' ' str];
                 else
@@ -236,8 +254,8 @@ for i = 1:length(Ic)
                 
             case 'F'                                 %-Compute SPM{F} image
                 %----------------------------------------------------------
-                MVM = spm_get_data(xCon(ic).Vcon,XYZ)/trMV;
-                RVR = spm_get_data(VHp,XYZ);
+                MVM = spm_data_read(xCon(ic).Vcon,'xyz',XYZ)/trMV;
+                RVR = spm_data_read(VHp,'xyz',XYZ);
                 Z   = MVM./RVR;
                 str = sprintf('[%.1f,%.1f]',xCon(ic).eidf,SPM.xX.erdf);
                 
@@ -250,22 +268,20 @@ for i = 1:length(Ic)
         
         %-Write SPM - statistic image
         %------------------------------------------------------------------
-        fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...writing');      %-#
-        
         xCon(ic).Vspm = struct(...
-            'fname',  [sprintf('spm%c_%04d',xCon(ic).STAT,ic) spm_file_ext],...
+            'fname',  [sprintf('spm%c_%04d',xCon(ic).STAT,ic) file_ext],...
             'dim',    SPM.xVol.DIM',...
-            'dt',     [16, spm_platform('bigend')],...
+            'dt',     [spm_type('float32'), spm_platform('bigend')],...
             'mat',    SPM.xVol.M,...
             'pinfo',  [1,0,0]',...
             'descrip',sprintf('SPM{%c_%s} - contrast %d: %s',...
-            xCon(ic).STAT,str,ic,xCon(ic).name));
+                xCon(ic).STAT,str,ic,xCon(ic).name));
+        
+        xCon(ic).Vspm = spm_data_hdr_write(xCon(ic).Vspm);
         
         tmp           = zeros(SPM.xVol.DIM');
-        Q             = cumprod([1,SPM.xVol.DIM(1:2)'])*XYZ - ...
-            sum(cumprod(SPM.xVol.DIM(1:2)'));
-        tmp(Q)        = Z;
-        xCon(ic).Vspm = spm_write_vol(xCon(ic).Vspm,tmp);
+        tmp(iXYZ)     = Z;
+        xCon(ic).Vspm = spm_data_write(xCon(ic).Vspm,tmp);
         
         clear tmp Z
         fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),sprintf(...

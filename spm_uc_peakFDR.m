@@ -1,6 +1,6 @@
-function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
+function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui,G)
 % Peak False Discovery critical height threshold
-% FORMAT [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
+% FORMAT [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui[,G])
 %
 % q     - prespecified upper bound on False Discovery Rate
 % df    - [df{interest} df{residuals}]
@@ -17,6 +17,7 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 %         or vector of indices of elements within mask
 %         or mapped mask image
 % ui    - feature-inducing threshold
+% G     - patch structure (for surface-based inference)
 %
 % u     - critical height threshold
 % Ps    - sorted p-values
@@ -34,10 +35,10 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 4696 2012-03-19 12:44:40Z guillaume $
+% $Id: spm_uc_peakFDR.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
-ws       = warning('off','SPM:outOfRangePoisson');
+ws = warning('off','SPM:outOfRangePoisson');
 
 % Read statistical value from disk if needed
 %--------------------------------------------------------------------------
@@ -66,7 +67,11 @@ end
 I        = find(Z >= ui);
 Z        = Z(I);
 XYZ      = XYZ(:,I);
-[N, Z]   = spm_max(Z, XYZ);
+if nargin == 8
+    [N,Z] = spm_max(Z, XYZ);
+else
+    [N,Z] = spm_mesh_max(Z, XYZ, G);
+end
 
 % Expected Euler characteristic for level ui
 %--------------------------------------------------------------------------

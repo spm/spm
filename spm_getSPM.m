@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_getSPM.m 5097 2012-12-06 16:08:16Z guillaume $
 
 
 %-GUI setup
@@ -582,7 +582,7 @@ fprintf('\t%-32s: %30s','SPM computation','...initialising')            %-#
 %--------------------------------------------------------------------------
 Z     = Inf;
 for i = Ic
-    Z = min(Z,spm_get_data(xCon(i).Vspm,XYZ));
+    Z = min(Z,spm_data_read(xCon(i).Vspm,'xyz',XYZ));
 end
 
 
@@ -597,7 +597,7 @@ for i = 1:numel(Im)
     
     fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...masking')           %-#
     if isnumeric(Im)
-        Mask = spm_get_data(xCon(Im(i)).Vspm,XYZ);
+        Mask = spm_data_read(xCon(Im(i)).Vspm,'xyz',XYZ);
         um   = spm_u(pm,[xCon(Im(i)).eidf,xX.erdf],xCon(Im(i)).STAT);
         if Ex
             Q = Mask <= um;
@@ -605,8 +605,8 @@ for i = 1:numel(Im)
             Q = Mask >  um;
         end
     else
-        v = spm_vol(Im{i});
-        Mask = spm_get_data(v,v.mat\SPM.xVol.M*[XYZ; ones(1,size(XYZ,2))]);
+        v = spm_data_hdr_read(Im{i});
+        Mask = spm_data_read(v,'xyz',v.mat\SPM.xVol.M*[XYZ; ones(1,size(XYZ,2))]);
         Q = Mask ~= 0 & ~isnan(Mask);
         if Ex, Q = ~Q; end
     end
@@ -635,6 +635,10 @@ try
     topoFDR = spm_get_defaults('stats.topoFDR');
 catch
     topoFDR = true;
+end
+
+if  spm_mesh_detect(xCon(Ic).Vspm)
+    G = export(gifti(SPM.xVol.G),'patch');
 end
 
 %-Height threshold - classical inference
@@ -723,13 +727,22 @@ if STAT ~= 'P'
     
     %-Peak FDR
     %----------------------------------------------------------------------
-    [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
+    if ~spm_mesh_detect(xCon(Ic).Vspm)
+        [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
+    else
+        [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u,G);
+    end
     
     %-Cluster FDR
     %----------------------------------------------------------------------
-    if STAT == 'T' && n == 1
-        V2R        = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM > 1));
-        [uc,Pc,ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
+    if n == 1 %% && STAT == 'T'
+        if ~spm_mesh_detect(xCon(Ic).Vspm)
+            V2R        = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM > 1));
+            [uc,Pc,ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
+        else
+            V2R        = 1/prod(SPM.xVol.FWHM);
+            [uc,Pc,ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u,G);
+        end
     else
         uc  = NaN;
         ue  = NaN;
@@ -793,7 +806,14 @@ if ~isempty(XYZ)
     
     %-Calculate extent threshold filtering
     %----------------------------------------------------------------------
-    A     = spm_clusters(XYZ);
+    if  ~spm_mesh_detect(xCon(Ic).Vspm)
+        A = spm_clusters(XYZ);
+    else
+        T = false(SPM.xVol.DIM');
+        T(XYZ(1,:)) = true;
+        A = spm_mesh_clusters(G,T)';
+        A = A(XYZ(1,:));
+    end
     Q     = [];
     for i = 1:max(A)
         j = find(A == i);
@@ -860,12 +880,19 @@ catch
     try, xSPM.units = varargin{1}.units; end
 end
 
+%-Topology for surface-based inference
+%--------------------------------------------------------------------------
+if spm_mesh_detect(xCon(Ic).Vspm)
+    xSPM.G     = G;
+    xSPM.XYZmm = xSPM.G.vertices(xSPM.XYZ(1,:),:)';
+end
+
 %-p-values for topological and voxel-wise FDR
 %--------------------------------------------------------------------------
-try, xSPM.Ps    = Ps;             end  % voxel   FDR
-try, xSPM.Pp    = Pp;             end  % peak    FDR
-try, xSPM.Pc    = Pc;             end  % cluster FDR
+try, xSPM.Ps   = Ps;             end  % voxel   FDR
+try, xSPM.Pp   = Pp;             end  % peak    FDR
+try, xSPM.Pc   = Pc;             end  % cluster FDR
 
 %-0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
 %--------------------------------------------------------------------------
-try, xSPM.uc    = [uu up ue uc];  end
+try, xSPM.uc   = [uu up ue uc];  end
