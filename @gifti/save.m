@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: save.m 5101 2012-12-07 18:23:20Z guillaume $
 
 
 % Check filename and file format
@@ -270,7 +270,7 @@ fprintf(fid,'</GIFTI>\n');
 %==========================================================================
 function fid = save_dae(fid,this)
 
-o = inline('blanks(x*3)');
+o = @(x) blanks(x*3);
 
 % Split the mesh into connected components
 %--------------------------------------------------------------------------

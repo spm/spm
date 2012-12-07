@@ -53,9 +53,9 @@ function varargout = spm_surf(P,mode,thresh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_surf.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_surf.m 5101 2012-12-07 18:23:20Z guillaume $
 
-SVNrev = '$Rev: 4492 $';
+SVNrev = '$Rev: 5101 $';
 
 spm('FnBanner',mfilename,SVNrev);
 spm('FigName','Surface');
@@ -65,7 +65,7 @@ spm('FigName','Surface');
 try
     if isstruct(P)
         job    = P;
-        P      = strvcat(job.data);
+        P      = char(job.data);
         mode   = job.mode;
         thresh = job.thresh;
     end
@@ -97,7 +97,7 @@ end
 %--------------------------------------------------------------------------
 spm('FigName','Surface: working');
 spm('Pointer','Watch');
-out = do_it(P,mode,thresh);
+out = surfext(P,mode,thresh);
 spm('Pointer','Arrow');
 spm('FigName','Surface: done');
 
@@ -105,10 +105,11 @@ if nargout > 0
     varargout{1} = out;
 end
 
-return;
 
 %==========================================================================
-function out = do_it(P,mode,thresh)
+% function out = surfext(P,mode,thresh)
+%==========================================================================
+function out = surfext(P,mode,thresh)
 
 V  = spm_vol(P);
 br = zeros(V(1).dim(1:3));
@@ -131,7 +132,7 @@ sm=sum(kron(kron(kz,ky),kx))^(1/3);
 kx=kx/sm; ky=ky/sm; kz=kz/sm;
 spm_conv_vol(br,br,kx,ky,kz,-[1 1 1]);
 
-[pth,nam,ext] = fileparts(V(1).fname);
+[pth,nam] = spm_fileparts(V(1).fname);
 
 if any(mode==[1 3])
     % Produce rendering
@@ -148,7 +149,7 @@ if any(mode==[2 3])
         [faces,vertices] = isosurface(br,thresh(k));
 
         % Swap around x and y because isosurface does for some
-        % wierd and wonderful reason.
+        % weird and wonderful reason.
         Mat      = V(1).mat(1:3,:)*[0 1 0 0;1 0 0 0;0 0 1 0; 0 0 0 1];
         vertices = (Mat*[vertices' ; ones(1,size(vertices,1))])';
         if numel(thresh)==1
@@ -160,8 +161,10 @@ if any(mode==[2 3])
         save(gifti(struct('faces',faces,'vertices',vertices)),out.surffile{k});
     end
 end
-return;
 
+
+%==========================================================================
+% function renviews(V,oname)
 %==========================================================================
 function renviews(V,oname)
 % Produce images for rendering activations to
@@ -183,32 +186,37 @@ function renviews(V,oname)
 % distinguish brain from non-brain.
 %__________________________________________________________________________
 
-linfun = inline('fprintf([''%-30s%s''],x,[repmat(sprintf(''\b''),1,30)])','x');
-linfun('Rendering: ');
+fprintf('%-40s: ','Rendering...');                                      %-#
+                                
+rend{1} = make_struct(V,[pi 0 pi/2]);    % Transverse 1
+rend{2} = make_struct(V,[0 0 pi/2]);     % Transverse 2
+rend{3} = make_struct(V,[0 pi/2 pi]);    % Sagittal 1
+rend{4} = make_struct(V,[0 pi/2 0]);     % Sagittal 2
+rend{5} = make_struct(V,[pi/2 pi/2 0]);  % Coronal 1
+rend{6} = make_struct(V,[pi/2 pi/2 pi]); % Coronal 2
 
-linfun('Rendering: Transverse 1..'); rend{1} = make_struct(V,[pi 0 pi/2]);
-linfun('Rendering: Transverse 2..'); rend{2} = make_struct(V,[0 0 pi/2]);
-linfun('Rendering: Sagittal 1..');   rend{3} = make_struct(V,[0 pi/2 pi]);
-linfun('Rendering: Sagittal 2..');   rend{4} = make_struct(V,[0 pi/2 0]);
-linfun('Rendering: Coronal 1..');    rend{5} = make_struct(V,[pi/2 pi/2 0]);
-linfun('Rendering: Coronal 2..');    rend{6} = make_struct(V,[pi/2 pi/2 pi]);
+fprintf('%30s\n','...done');                                            %-#
 
-linfun('Rendering: Save..');
+fprintf('Writing Render file in:\n  %s\n',spm_file(oname,'cpath'));     %-#
 save(oname,'rend', spm_get_defaults('mat.format'));
-linfun('                 ');
+
 if ~spm('CmdLine')
     disp_renderings(rend);
     spm_print;
 end
-return;
 
+
+%==========================================================================
+% function str = make_struct(V,thetas)
 %==========================================================================
 function str = make_struct(V,thetas)
 [D,M]     = matdim(V.dim(1:3),V.mat,thetas);
 [ren,dep] = make_pic(V,M*V.mat,D);
 str       = struct('M',M,'ren',ren,'dep',dep);
-return;
 
+
+%==========================================================================
+% function [ren,zbuf] = make_pic(V,M,D)
 %==========================================================================
 function [ren,zbuf] = make_pic(V,M,D)
 % A bit of a hack to try and make spm_render_vol produce some slightly
@@ -245,31 +253,35 @@ ren(msk)  = ren(msk)-0.2;
 ren       = ren*0.8+0.2;
 mx        = max(ren(:));
 ren       = ren/mx;
-return;
 
+
+%==========================================================================
+% function disp_renderings(rend)
 %==========================================================================
 function disp_renderings(rend)
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 hght = 0.95;
 nrow = ceil(length(rend)/2);
-ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
+ax   = axes('Parent',Fgraph,'units','normalized',...
+    'Position',[0, 0, 1, hght],'Visible','off');
 image(0,'Parent',ax);
 set(ax,'YTick',[],'XTick',[]);
 
-for i=1:length(rend),
+for i=1:length(rend)
     ren = rend{i}.ren;
-    ax=axes('Parent',Fgraph,'units','normalized',...
-        'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
-        'Visible','off');
+    ax  = axes('Parent',Fgraph,'units','normalized',...
+            'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+            'Visible','off');
     image(ren*64,'Parent',ax);
     set(ax,'DataAspectRatio',[1 1 1], ...
         'PlotBoxAspectRatioMode','auto',...
         'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
 end
-drawnow;
-return;
 
+
+%==========================================================================
+% function [d,M] = matdim(dim,mat,thetas)
 %==========================================================================
 function [d,M] = matdim(dim,mat,thetas)
 R = spm_matrix([0 0 0 thetas]);
@@ -288,4 +300,3 @@ mx = max(tc);
 mn = min(tc);
 M  = spm_matrix(-mn(1:2))*diag([2 2 1 1])*R;
 d  = ceil(abs(mx(1:2)-mn(1:2)))+1;
-return;
