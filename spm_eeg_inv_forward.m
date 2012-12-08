@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5103 2012-12-08 06:44:58Z vladimir $
 
 
 %-Initialisation
@@ -128,7 +128,7 @@ for i = 1:numel(D.inv{val}.forward)
         case  'Single Shell'
             vol              = [];
             vol.bnd          = export(gifti(mesh.tess_iskull), 'ft');
-            vol.type         = 'nolte';
+            vol.type         = 'singleshell';
             vol              = ft_convert_units(vol, 'mm');
             modality         = 'MEG';
             
