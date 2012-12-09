@@ -1,17 +1,20 @@
-function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
+function [P,Q,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % aaction selection using active inference
-% FORMAT [P,Q,R,S,U] = spm_MDP_select(MDP)
-% FORMAT [P] = spm_MDP_select(MDP,beta)
+% FORMAT [P,Q,S,U,W] = spm_MDP_select(MDP)
 %
 % MDP.T           - process depth (the horizon)
+% MDP.K           - memory  depth (default 1)
+% MDP.N           - number of variational iterations (default 4)
 % MDP.S(N,1)      - initial state
 % MDP.B{M}(N,N)   - transition probabilities among hidden states (priors)
 % MDP.C(N,1)      - terminal probabilities (prior N over hidden states)
 %
 % optional:
+% MDP.s(1 x T)    -  vector of true states  - for deterministic solutions
+% MDP.o(1 x T)    -  vector of observations - for deterministic solutions
+% MDP.a(1 x T)    -  vector of action       - for deterministic solutions
+% MDP.w(1 x T)    -  vector of precisions   - for deterministic solutions
 %
-% MDP.W           - log-precision of beliefs about transitions (default: 16)
-% MDP.lambda      - senstivity for expected utility (default: 1)
 % MDP.G{M}(N,N)   - transition probabilities used to generate outcomes
 %                   (default: the prior transition probabilities)
 % MDP.A(N,N)      - Likelihood of outcomes given hidden states
@@ -27,10 +30,9 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % P(M,T)   - probability of emitting action 1,...,M at time 1,...,T
 % Q(N,T)   - an array of conditional (posterior) expectations over N hidden
 %            states and time 1,...,T
-% R(M,T)   - an array of conditional expectations over M control
-%            states and time 1,...,T
-% S(N,T)   - a sparse matrix of ones, encoding the state at time 1,...,T
+% S(N,T)   - a sparse matrix of ones, encoding the states at time 1,...,T
 % U(M,T)   - a sparse matrix of ones, encoding the action at time 1,...,T
+% W(1,T)   - posterior expectations of precision
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy)using a generative model based upon a Markov
@@ -44,7 +46,7 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % and hidden controls are isomorphic. If the dynamics of transition
 % probabilities of the true process are not provided, this routine will use
 % the equivalent probabilities from the generative model.
-
+ 
 % This particular scheme is designed for situations in which a particular
 % action is to be selected at a particular time. The first control state
 % is considered the baseline or default behaviour. Subsequent control
@@ -74,29 +76,36 @@ function [P,Q,R,S,U] = spm_MDP_select(MDP,beta)
 % at all times (as in control problems).
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
-
+ 
 % Karl Friston
-% $Id: spm_MDP_select.m 5100 2012-12-06 18:06:36Z guillaume $
-
+% $Id: spm_MDP_select.m 5104 2012-12-09 21:47:51Z karl $
+ 
 % set up and preliminaries
 %==========================================================================
-
-% plotting and precision defaults
+ 
+% options and precision defaults
 %--------------------------------------------------------------------------
-try PLOT   = MDP.plot;   catch, PLOT   = 0;   end
-try lambda = MDP.lambda; catch, lambda = 1;   end
-try W      = MDP.W;      catch, W      = 1;   end
-
-if PLOT, spm_figure('GetWin','MDP'); clf, end
-
+try, PLOT = MDP.plot; catch, PLOT = 0; end
+try, K    = MDP.K;    catch, K = 1;    end
+try, N    = MDP.N;    catch, N = 4;    end
+ 
+if PLOT
+    try
+        figure(PLOT); clf
+        PLOT = 2;
+    catch
+        spm_figure('GetWin','MDP'); clf
+    end
+end
+ 
 % generative model and initial states
 %--------------------------------------------------------------------------
 T     = MDP.T;            % process depth (the horizon)
 Ns    = size(MDP.B{1},1); % number of hidden states
 Nb    = size(MDP.B,1);    % number of time-dependent probabilities
 Nu    = size(MDP.B,2);    % number of hidden controls
-p0    = eps;         % smallest probability
-
+p0    = eps;              % smallest probability
+ 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
 try
@@ -106,8 +115,8 @@ catch
 end
 A     = A*diag(1./sum(A));
 lnA   = log(A);
-
-
+ 
+ 
 % transition probabilities (priors)
 %--------------------------------------------------------------------------
 for i = 1:T
@@ -122,13 +131,13 @@ for i = 1:T
         end
     end
 end
-
+ 
 % terminal cost probabilities (priors)
 %--------------------------------------------------------------------------
-C     = spm_vec(MDP.C);
-C     = C - max(C);
-
-
+C     = spm_vec(MDP.C) + p0;
+C     = C/sum(C);
+lnC   = log(C);
+ 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
 try
@@ -140,270 +149,276 @@ Ng    = size(G,1);
 for i = 1:T
     for j = 1:Nu
         if i == 1 || Ng == T
-            G{i,j}   = G{i,j}*diag(1./sum(G{i,j}));
+            G{i,j} = G{i,j} + p0;
+            G{i,j} = G{i,j}*diag(1./sum(G{i,j}));
         else
-            G{i,j}   = G{1,j};
+            G{i,j} = G{1,j};
         end
     end
 end
-
+ 
 % initial states and outcomes
 %--------------------------------------------------------------------------
-S        = spm_vec(MDP.S);
-s        = find(S);
-S        = sparse(s,1,1,Ns,T);
-U        = sparse(Nu,T);
-
-% if nargin = 2 return the actions that mizimise expected utility
-%==========================================================================
-if nargin == 2
-    
-    
-    for t = 1:(T - 1)
-        
-        % transition probabilities from current to final state
-        %------------------------------------------------------------------
-        for j = 2:Nu
-            for k = t:T
-                h = 1;
-                for i = t:(T - 1)
-                    if i == k
-                        h = B{i,j}*h;
-                    else
-                        h = B{i,1}*h;
-                    end
-                end
-                H{k,j} = h;
-            end
-        end
-        
-        for k = t:(T - 1)
-            for j = 2:Nu
-                p(j,k) = C'*H{k,j}*S(:,1);
-            end
-        end
-        j      = 2:Nu;
-        k      = t:(T - 1);
-        p(j,k) = spm_unvec(spm_softmax(spm_vec(p(j,k)),beta),p(j,k));
-        p(1,:) = 1 - sum(p(j,:),1);
-        
-        % next action (the action that maximises expected utility)
-        %------------------------------------------------------------------
-        P(:,t) = p(:,t);
-        
-    end
-    
-    % graphics
-    %======================================================================
-    if PLOT
-        
-        % action that maximises expected utility deom initial state
-        %------------------------------------------------------------------
-        subplot(2,1,1)
-        plot(1:(T - 1),P)
-        axis square
-        title('expected utility action','FontSize',16)
-        xlabel('time','FontSize',12)
-        ylabel('action','FontSize',12)
-        
-    end
-    
-    return
-    
-end
-
-
+P      = sparse(Nu,T - 1);          % posterior beliefs about action
+Q      = sparse(Ns,T);              % posterior beliefs about states
+s      = find(MDP.S(:,1));          % initial state
+a      = 1;                         % initial action
+o      = s;                         % initial observation
+S      = sparse(s,1,1,Ns,T);        % states sampled
+O      = sparse(s,1,1,Ns,T);        % states observed
+U      = sparse(a,1,1,Nu,T - 1);    % action selected
+ 
+% hyperpriors
+%--------------------------------------------------------------------------
+alpha  = 8;
+beta   = alpha/8;
+W      = alpha/beta;
+ 
+ 
 % solve
 %==========================================================================
-
-% sufficient statistics of hidden states
-%----------------------------------------------------------------------
-a      = zeros(Ns,3);
-b      = zeros(Nu,T);
-a(:,3) = spm_softmax(C);
-
-
+ 
+% sufficient statistics of hidden states (past, current and last)
+%--------------------------------------------------------------------------
+x      = zeros(Ns,T);
+u      = zeros(Nu,T);
+x(:,T) = C;
+Q(:,T) = C;
+da     = [];
 for t  = 1:(T - 1)
     
-    % transition probabilities from current to final state
+    % conditional KL divergence (from C) under available action
     %----------------------------------------------------------------------
     for j = 2:Nu
-        for k = t:T
-            h = 1;
-            for i = t:T
-                if i == k
-                    h = B{i,j}*h;
-                else
-                    h = B{i,1}*h;
+        for k = 1:T
+            
+            % if k < t, there is not subsequent action
+            %--------------------------------------------------------------
+            p = 1;
+            if k < t
+                for i = t:T
+                    p = B{i,1}*p;
+                end
+            else
+                for i = t:T
+                    if i == k
+                        p = B{i,j}*p;
+                    else
+                        p = B{i,1}*p;
+                    end
                 end
             end
-            H{k,j}    = h;
-            lnH{k,j}  = log(h);
+            
+            % divergence
+            %--------------------------------------------------------------
+            if nargin > 1
+                D{j}(k,:) = -lnC'*p;
+            else
+                D{j}(k,:) = sum(p.*log(p)) - lnC'*p;
+            end
+            
         end
     end
     
     
-    % forward and backward passes at this time point
+    % Variational iterations (assuming precise inference about past action)
     %----------------------------------------------------------------------
-    for i = 1:2
+    for i  = 1:N
         
-        % current state a(:,1)
+        % past states
         %------------------------------------------------------------------
-        a(:,1) = lnA'*S(:,t);
-        for j  = 1:Nu
-            a(:,1) = a(:,1) + b(j,t)*lnB{t,j}'*a(:,2);
+        for k = max(t - K,1):(t - 1)
+            p = max(k - 1,1);
+            v = lnA'*O(:,k);
+            for j = 1:Nu
+                v = v + u(j,k)*lnB{k,j}'*x(:,k + 1);
+                v = v + u(j,p)*lnB{p,j} *x(:,p    );
+            end
+            x(:,k) = spm_softmax(v);
         end
-        for j  = 2:Nu
-            for k  = t:(T - 1)
-                a(:,1) = a(:,1) + b(j,k)*(H{k,j}'*C - diag(lnH{k,j}'*H{k,j}));
+        
+        
+        % present state
+        %------------------------------------------------------------------
+        p = max(t - 1,1);
+        v = lnA'*O(:,t);
+        if K > 0
+            for j = 1:Nu
+                v = v + u(j,p)*lnB{p,j}*x(:,p);
             end
         end
-        a(:,1) = spm_softmax(a(:,1));
-        
-        
-        % policy (b)
-        %------------------------------------------------------------------
-        b     = zeros(Nu,T);
         for j = 2:Nu
-            for k  = t:(T - 1)
-%                 if k == t
-%                     b(j,k) = a(:,2)'*lnB{t,j}*a(:,1);
-%                 else
-%                     b(j,k) = a(:,2)'*lnB{t,1}*a(:,1);
-%                 end
-                b(j,k) = b(j,k) + (C' - a(:,1)'*lnH{k,j})*H{k,j}*a(:,1);
+            v = v - W(t)*D{j}'*u(j,:)';
+        end
+        x(:,t) = spm_softmax(v);
+        
+        
+        % precision (W)
+        %------------------------------------------------------------------
+        if isfield(MDP,'w')
+            W(t)  = MDP.w(t);
+        else
+            v     = beta;
+            for j = 2:Nu
+                v = v + u(j,:)*D{j}*x(:,t);
             end
+            W(t)  = alpha/v;
+        end
+        da(end + 1) = W(t);
+        
+        
+        % policy (u)
+        %------------------------------------------------------------------
+        for j = 2:Nu
+            w(j,:) = -W(t)*D{j}*x(:,t);
         end
         j      = 2:Nu;
-        k      = t:(T - 1);
-        b(j,k) = spm_unvec(spm_softmax(spm_vec(b(j,k))),b(j,k));
-        b(1,:) = 1 - sum(b(j,:),1);
+        k      = t:T;
+        u(j,k) = spm_unvec(spm_softmax(spm_vec(w(j,k))),w(j,k));
+        u(j,k) = u(j,k)*(1 - sum(U(j,1:p)));
+        u(1,:) = 1 - sum(u(j,:),1);
         
-        
-        % next state a(:,2)
-        %------------------------------------------------------------------
-        a(:,2) = zeros(Ns,1);
-        for j  = 1:Nu
-            a(:,2) = a(:,2) + b(j,t)*lnB{t,j}*a(:,1);
-        end
-        a(:,2) = spm_softmax(a(:,2));
         
         
         % graphics to inspect update scheme
         %==================================================================
         if PLOT > 2
-            
-            % posterior beliefs about hidden states
-            %--------------------------------------------------------------
-            spm_plot_states(a,b)
-            
-            % pause if requested
-            %--------------------------------------------------------------
-            if PLOT > 3, pause, end
-            
+            spm_plot_states(x,u)
         end
         
     end
     
     
-    % graphics to inspect update scheme
+    % graphics to inspect posterior beliefs about hidden states
     %======================================================================
     if PLOT > 1
-        
-        % posterior beliefs about hidden states
-        %------------------------------------------------------------------
-        spm_plot_states(a,b)
-        
+        spm_plot_states(x,u)
     end
+    
+    % save posterior expectations (control and states)
+    %----------------------------------------------------------------------
+    P(:,t) = u(:,t);
+    Q(:,t) = x(:,t);
+    
     
     % sampling of next state (outcome)
     %======================================================================
-    for i = 1:Nu
-        F(i) = B{t,i}(:,s)'*lnA*a(:,2);
-    end
     
     % next action (the action that minimises expected free energy)
     %----------------------------------------------------------------------
-    Pu       = spm_softmax(F(:),lambda);
-    i        = find(rand < cumsum(Pu),1);
+    try
+        a = MDP.a(t);
+    catch
+        a = find(rand < cumsum(u(:,t)),1);
+    end
     
-    % next state (assuming G mediates uncertainty modelled the likelihood)
+    % next sampled state
     %----------------------------------------------------------------------
-    Ps       = G{t,i}(:,s);
-    s        = find(rand < cumsum(Ps),1);
+    try
+        s = MDP.s(t);
+    catch
+        s = find(rand < cumsum(G{t,a}(:,s)),1);
+    end
     
-    
-    % save action, state and posterior expectations (states Q, control R)
+    % next obsverved state
     %----------------------------------------------------------------------
-    P(:,t)     = Pu;
-    Q(:,t)     = full(a(:,2));
-    R(:,t)     = full(b(:,t));
+    try
+        o = MDP.o(t);
+    catch
+        o = find(rand < cumsum(A(:,s)),1);
+    end
+    
+    
+    % save action and state sampled
+    %----------------------------------------------------------------------
+    W(1,t + 1) = W(t);
+    O(o,t + 1) = 1;
     S(s,t + 1) = 1;
-    U(i,t)     = 1;
+    U(a,t)     = 1;
+    u(:,t)     = U(:,t);
     
     
     % plot
     %======================================================================
     if PLOT > 0
         
-        % posterior beliefs about hidden states
+        % true state (outcome)
         %------------------------------------------------------------------
-        spm_plot_states(a,b)
-        
-        % states sampled (outcome)
-        %------------------------------------------------------------------
-        subplot(2,2,3)
+        subplot(4,2,5)
         if size(S,1) > 512
             spy(S,16)
         else
             imagesc(1 - S)
         end
-        axis square
-        title('Sampled state','FontSize',16)
-        xlabel('time','FontSize',12)
-        ylabel('action','FontSize',12)
+        title('True states','FontSize',16)
+        ylabel('State','FontSize',12)
+        
+        % sample (observation)
+        %------------------------------------------------------------------
+        subplot(4,2,7)
+        if size(O,1) > 512
+            spy(O,16)
+        else
+            imagesc(1 - O)
+        end
+        title('Observed states','FontSize',16)
+        xlabel('Time','FontSize',12)
+        ylabel('State','FontSize',12)
+        
         
         % action sampled (selected)
         %------------------------------------------------------------------
-        subplot(2,2,4)
+        subplot(4,2,6)
         if size(U,1) > 512
             spy(U,16)
         else
             imagesc(1 - U)
         end
-        axis square
         title('Selected action','FontSize',16)
-        xlabel('time','FontSize',12)
-        ylabel('action','FontSize',12)
+        ylabel('Action','FontSize',12)
+        
+        % expected action
+        %------------------------------------------------------------------
+        subplot(4,2,8)
+        plot((1:length(da))/N,da)
+        title('Expected precision','FontSize',16)
+        xlabel('Time','FontSize',12)
+        ylabel('Precision','FontSize',12)
+        spm_axis tight
         drawnow
+        
         
     end
     
 end
-
-
-function spm_plot_states(a,b)
-
+ 
+ 
+function spm_plot_states(x,u)
+ 
 % posterior beliefs about hidden states
 %--------------------------------------------------------------------------
 subplot(2,2,1)
-bar(a)
+imagesc(1 - x)
 axis square
-title('Expected states','FontSize',16)
-xlabel('time','FontSize',12)
-ylabel('hidden state','FontSize',12)
-legend({'now','next','last'})
-
+title('Inferred states','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('Hidden state','FontSize',12)
+ 
+ 
 % posterior beliefs about control states
+%==========================================================================
+subplot(2,2,2), hold on
+ 
+% make previous plots dotted lines
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-if size(b,1) > 512
-    spy(b > 1/8,16)
-else
-    imagesc(1 - b)
+h     = get(gca,'Children');
+for i = 1:length(h)
+    set(h(i),'LineStyle',':');
 end
-axis square
-title('Expected control states','FontSize',16)
-xlabel('time','FontSize',12)
-ylabel('control state','FontSize',12)
+plot(u')
+title('Inferred policy','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('Control state','FontSize',12)
+spm_axis tight square
+legend({'Stay','Shift'}), hold off
 drawnow

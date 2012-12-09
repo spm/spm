@@ -16,6 +16,7 @@ function spm_MDP_offer
 % mean-field approximation between hidden control and hidden states. It is
 % assumed that the agent believes that it will select a particular action
 % (accept or decline) at a particular time.
+% (accept or decline) at a particular time.
 %
 % We run an exemplar game, examine the distribution of time to acceptance
 % as a function of different beliefs (encoded by parameters of the
@@ -26,41 +27,45 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5100 2012-12-06 18:06:36Z guillaume $
+% $Id: spm_MDP_offer.m 5104 2012-12-09 21:47:51Z karl $
  
 % set up and preliminaries
 %==========================================================================
 T     = 16;                           % number of offers
 Pa    = 1/2;                          % probability of a high offer
-Pb    = 1/8;                         % probability of withdrawn offer
+Pb    = 1/16;                         % probability of withdrawn offer
 Plos  = @(t,Pb)(1 - (1 - Pb).^t);
 Pwin  = @(T,Pa)(1 - (1 - Pa)^(1/T));
-   
+ 
+ 
 % transition probabilities (B{1} - decline; B{2} - accept)
 %--------------------------------------------------------------------------
 for t = 1:T
     
     a       = Pwin(T,Pa);
     b       = Plos(t,Pb);
-    B{t,1}  = [(1 - a + a*b - b) 0 0 0;
-                b                1 0 0;
-                0                0 1 0;
-                a*(1 - b)        0 0 1];
+    B{t,1}  = [(1 - a + a*b - b) 0 0 0 0;
+                a*(1 - b)        0 0 0 0;
+                b                1 1 0 0;
+                0                0 0 1 0;
+                0                0 0 0 1];
     
-    B{t,2}  = [ 0 0 0 0;
-                0 1 0 0;
-                1 0 1 0;
-                0 0 0 1];
+    B{t,2}  = [ 0 0 0 0 0;
+                0 0 0 0 0;
+                0 0 1 1 1;
+                1 0 0 0 0;
+                0 1 0 0 0];
 end
       
  
 % initial state
 %--------------------------------------------------------------------------
-S     = [1 0 0 0]';
+S     = [1 0 0 0 0]';
  
 % priors over final state (exp(utility))
 %--------------------------------------------------------------------------
-C     = [1 1 2 3]';
+C     = spm_softmax([1 1 1 2 4]');
+ 
  
 % MDP Structure
 %==========================================================================
@@ -69,272 +74,283 @@ MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
  
-% Generate process (with continuous low offers)
-%==========================================================================
- 
-% True transition probabilities (retaining low offer for all trials)
-%--------------------------------------------------------------------------
-G{1,1}  = [1 0 0 0;
-           0 1 0 0;
-           0 0 1 0;
-           0 0 0 1];
- 
-G{1,2}  = G{1,1};
-MDP.G   = G;
-
-
-% solve - an example game
-%==========================================================================
-MDP.plot   = 3;                     % plot convergence
-% spm_MDP_select(MDP);
- 
- 
-% probability distribution over time to act: P(1,:) is no action
-%--------------------------------------------------------------------------
-PrT        = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
-PrA        = @(P)P(2,:);
-MDP.plot   = 0;                        % plot convergence
-MDP.lambda = 1/16;                     % action sensitivity (free energy)
-beta       = 1;                        % action sensitivity (utilitiy)
-
-
-% illustrate dependency on latency w.r.t. parameters
+% solve - an example game (with high offer at t = 10)
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
-
-% Precision of beliefs about final state
-%--------------------------------------------------------------------------
-DP    = MDP;
-C     = [1 1 2 4]';
-p     = linspace(0,12,16);
-
-for i = 1:length(p)
-    
-    % probability of action
-    %----------------------------------------------------------------------
-    DP.C      = C*p(i);
-    PF(:,:,i) = spm_MDP_select(DP);
-    PE(:,:,i) = spm_MDP_select(DP,beta);
-    
-    % expected utility
-    %----------------------------------------------------------------------
-    UF(i,:)   = PrU(PrT(PF(:,:,i)),DP.B,DP.C);
-    UE(i,:)   = PrU(PrT(PE(:,:,i)),DP.B,DP.C);
-
-end
+MDP.s    = [1 1 1 1 1 1 1 1 1 2];
+MDP.a    = [1 1 1 1 1 1 1 1 1 1];
+MDP.plot = gcf;
+MDP.N    = 8;
  
-subplot(2,2,1)
-imagesc(1:(T - 1),p,(1 - PF))
+[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+ 
+% plot convergence and precision
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+spm_axis tight
+subplot(2,2,3)
+plot(W)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Precision of beliefs','FontSize',12)
+title('Expected precision','FontSize',16)
+spm_axis tight
+axis square
+ 
+subplot(2,2,4)
+plot(da,'b'),   hold on
+plot(diff(da),'r'), hold off
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Precision of beliefs','FontSize',12)
+title('Precision dynamics','FontSize',16)
+spm_axis tight
+axis square
+ 
+% solve - an example game (with low offer at t = 5)
+%==========================================================================
+spm_figure('GetWin','Figure 2'); clf
+ 
+MDP.s    = [1 1 1 1 3];
+MDP.a    = ones(1,T);
+MDP.plot = gcf;
+ 
+[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+ 
+% plot convergence and precision
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+spm_axis tight
+subplot(2,2,3)
+plot(W)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Precision of beliefs','FontSize',12)
+title('Expected precision','FontSize',16)
+spm_axis tight
+axis square
+ 
+subplot(2,2,4)
+plot(da,'b'),   hold on
+plot(diff(da),'r'), hold off
 xlabel('latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
-title('Precision (FE)','FontSize',16)
+title('Precision dynamics','FontSize',16)
+spm_axis tight
 axis square
-
-
+ 
+ 
+% illustrate dependency on latency w.r.t. parameters
+%==========================================================================
+spm_figure('GetWin','Figure 3'); clf
+ 
+% probability distribution over time to act: P(1,:) is no action
+%--------------------------------------------------------------------------
+PrT      = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
+MDP.plot = 0;                        % plot convergence
+MDP.N    = 4;                        % number of variational iterations
+MDP.s    = ones(1,T);                % suppress withdrawal of low offer
+MDP.a    = ones(1,T);                % and action
+ 
+% beliefs about final state
+%--------------------------------------------------------------------------
+DP    = MDP;
+p     = linspace(0,8,16);
+for i = 1:length(p)
+    DP.C     = spm_softmax([1 1 1 p(i) 4]');
+    BF       = spm_MDP_select(DP);
+    BE       = spm_MDP_select(DP,'EU');  
+    PF(i,:)  = BF(2,:);
+    PE(i,:)  = BE(2,:);
+    DF(i,:)  = PrT([BF [0;1]]);
+    DE(i,:)  = PrT([BE [0;1]]);
+end
+ 
+% probability of accepting
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+imagesc(1:(T - 1),p,1 - PF)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Utility of low offer','FontSize',12)
+title('Conditional divergence','FontSize',16)
+axis square
+ 
 % compare with expected utility
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 imagesc(PE)
-imagesc(1:(T - 1),p,(1 - PE))
-xlabel('latency (offers)','FontSize',12)
-ylabel('Precision of beliefs','FontSize',12)
-title('Precision (EU)','FontSize',16)
+imagesc(1:(T - 1),p,1 - PE)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Utility of low offer','FontSize',12)
+title('Expected utility','FontSize',16)
 axis square
-
-
-% beliefs about final state
-%--------------------------------------------------------------------------
-DP    = MDP;
-C     = [1 1 2 4]';
-p     = linspace(0,8,16);
-
-for i = 1:length(p)
-    DP.C      = C;
-    DP.C(3)   = p(i);
-    PF(i,:)   = PrY(spm_MDP_select(DP));
-    PE(i,:)   = PrY(spm_MDP_select(DP,beta));
-end
  
+% distribution of acceptance latencies
+%--------------------------------------------------------------------------
 subplot(2,2,3)
-imagesc(1:(T - 1),p,(1 - PF))
-xlabel('latency (offers)','FontSize',12)
-ylabel('Utility of high offer','FontSize',12)
-title('Terminal utility (FE)','FontSize',16)
+imagesc(1:(T - 1),p,1 - DF)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Utility of low offer','FontSize',12)
+title('Latency of accepting','FontSize',16)
 axis square
-
-
+ 
 % compare with expected utility
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 imagesc(PE)
-imagesc(1:(T - 1),p,(1 - PE))
-xlabel('latency (offers)','FontSize',12)
-ylabel('Utility of high offer','FontSize',12)
-title('Terminal utility (EU)','FontSize',16)
+imagesc(1:(T - 1),p,1 - DE)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Utility of low offer','FontSize',12)
+title('Latency of accepting','FontSize',16)
 axis square
-
-
-
-
-
-return
  
-% high offer
+ 
+% the effect of sensory precision and its interaction with memory
+%==========================================================================
+spm_figure('GetWin','Figure 4'); clf
+ 
+MDP.s    = [1 1 1 1 1 1 2];
+MDP.a    = [1 1 1 1 1 1 1];
+MDP.o    = [1 1 1 4 1 1 2];
+MDP.plot = gcf;
+ 
+MDP.N    = 8;
+MDP.K    = 1;
+ 
+[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+ 
+% plot true and inferred states
 %--------------------------------------------------------------------------
-p     = linspace(0,1/2,32);
-DP  = MDP; clear Py str
-for i = 1:length(p)
-    
-    % transition probabilities
-    %----------------------------------------------------------------------
-    for t = 1:T
-        a   = Pwin(T,p(i));
-        b   = Plos(t,Pb);
-        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];        
-    end
-    
-    P       = spm_MDP_select(DP);
-    Py(i,:) = PrY(P);
-    str{i}  = num2str(p(i));
-end
+subplot(4,2,6)
+imagesc(1 - Q)
+title('Inferred states (K > 0)','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('State','FontSize',12)
  
-subplot(2,2,1)
-imagesc(Py)
-imagesc(1:(T - 1),p,(1 - Py))
-xlabel('latency (offers)','FontSize',12)
-ylabel('P(high offer)','FontSize',12)
-title('high offer probability ','FontSize',16)
-axis square
- 
-% offer withdrawal
+% precisions
 %--------------------------------------------------------------------------
-p     = linspace(1/16,1,32);
-DP  = MDP; clear Py str
-for i = 1:length(p)
-    
-    % transition probabilities
-    %----------------------------------------------------------------------
-    for t = 1:T
-        a   = Pwin(T,Pa);
-        b   = Plos(t,p(i));
-        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];      
-    end
-    
-    P       = spm_MDP_select(DP);
-    Py(i,:) = PrY(P);
-    str{i}  = num2str(p(i));
-end
- 
-subplot(2,2,2)
-imagesc(Py)
-imagesc(1:(T - 1),p,(1 - Py))
-xlabel('latency (offers)','FontSize',12)
-ylabel('P(withdrawal)','FontSize',12)
-title('offer withdrawal','FontSize',16)
+subplot(3,1,1)
+plot((1:length(da))/MDP.N,da,'r')
+title('Expected decision','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('Precision','FontSize',12)
 axis square
  
- 
-% beliefs about final state
+% now repeat but with no memory
 %--------------------------------------------------------------------------
-p     = linspace(0,16,32);
-DP  = MDP; clear Py str
-for i = 1:length(p)
-    DP.C(4) = p(i);
-    P         = spm_MDP_select(DP);
-    Py(i,:)   = PrY(P);
-    str{i}    = num2str(p(i));
-end
+MDP.plot = 0;
+MDP.K    = 0;
  
-subplot(2,2,3)
-imagesc(Py)
-imagesc(1:(T - 1),p,(1 - Py))
-xlabel('latency (offers)','FontSize',12)
-ylabel('Belief in high offer','FontSize',12)
-title('Behaviour and terminal cost','FontSize',16)
-axis square
-
+[P,Q,S,U,W,da] = spm_MDP_select(MDP);
  
-return
+% plot true and inferred states
+%--------------------------------------------------------------------------
+spm_figure('GetWin','Figure 4');
+ 
+subplot(4,2,8)
+imagesc(1 - Q)
+title('Inferred states (K = 0)','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('State','FontSize',12)
+ 
+% precisions
+%--------------------------------------------------------------------------
+subplot(3,1,1), hold on
+plot((1:length(da))/MDP.N,da,'k'), hold off
+axis([1 8 1 4])
+ 
  
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
-spm_figure('GetWin','Figure 2'); clf
- 
-P  = spm_MDP_select(MDP);
- 
+spm_figure('GetWin','Figure 5'); clf
  
 % uncertainty about current action
 %--------------------------------------------------------------------------
-H  = sum(-P.*log(P),1);
+MDP.s = ones(1,T);
+MDP.a = ones(1,T);
+MDP.o = ones(1,T);
  
-subplot(2,2,1)
-plot(1:length(H),H,'.','MarkerSize',16), hold on
-plot(1:length(H),H,':'), hold off
-xlabel('latency','FontSize',12)
-ylabel('Entropy','FontSize',12)
-title('current action','FontSize',16)
-axis square
+MDP.plot = 0;
+MDP.K    = 1;
+MDP.N    = 4;
  
+MDP.C       = spm_softmax([1 1 1 3 4]');
+[P,Q,S,U,W] = spm_MDP_select(MDP);
+H           = sum(-P.*log(P),1);
  
-% uncertainty about future states
+% action entropy
 %--------------------------------------------------------------------------
-j  = 1:(T - 1);
-H  = sum(-Q(:,j).*log(Q(:,j)));  
- 
-subplot(2,2,2)
-plot(1:length(H),H,'.','MarkerSize',16), hold on
-plot(1:length(H),H,':'), hold off
-xlabel('latency','FontSize',12)
-ylabel('Entropy','FontSize',12)
-title('future states','FontSize',16)
+subplot(2,2,1)
+plot(1:length(P),P,'-.'), hold on
+plot(1:length(H),H,'.r','MarkerSize',16), hold on
+plot(1:length(H),H,':r'), hold off
+xlabel('Offer','FontSize',12)
+ylabel('Probability and entropy (nats)','FontSize',12)
+title('Uncertainty about action','FontSize',16)
 axis square
  
- 
-return
- 
+% precision
+%--------------------------------------------------------------------------
+subplot(2,2,2)
+plot(1:length(W),W,'.','MarkerSize',16), hold on
+plot(1:length(W),W,':'), hold off
+xlabel('Offer','FontSize',12)
+ylabel('Precision','FontSize',12)
+title('Precision','FontSize',16)
+axis square
  
  
 % simulate multiple trials and record when an offer was accepted
 %==========================================================================
-spm_figure('GetWin','Figure 3'); clf
+spm_figure('GetWin','Figure 6'); clf
+
+% trials with no higher offer
+%--------------------------------------------------------------------------
+MDP.s = ones(1,T);
+MDP.a = [];
+MDP.o = [];
  
+MDP.plot = 0;
+MDP.K    = 1;
+MDP.N    = 4;
+
 % trials
 %--------------------------------------------------------------------------
-for i = 1:32
-    [P,Q,R,S,U] = spm_MDP_select(MDP);
+for i = 1:256
+    [P,Q,S,U] = spm_MDP_select(MDP);
     try
-        Y(i) = find(U(2,:),1);
+        Y(i)  = find(U(2,:),1);
     end
     fprintf('trial %0.00f\n',i);
 end
  
 % probability distribution over time to act
 %--------------------------------------------------------------------------
-Py    = PrY(P);
- 
+MDP.s = ones(1,T);
+MDP.a = ones(1,T);
+
+[P,Q,S,U] = spm_MDP_select(MDP);
+Py        = PrT(P);
  
 % plot
 %--------------------------------------------------------------------------
 subplot(2,2,1)
 hist(Y,1:T);
-xlabel('choice latency','FontSize',12)
-ylabel('sample frequnecy','FontSize',12)
-title('sample distribution of latencies','FontSize',16)
+xlabel('Acceptance latency','FontSize',12)
+ylabel('Sample frequency','FontSize',12)
+title('Sample distribution of latencies','FontSize',16)
 axis square
  
 subplot(2,2,2)
 bar(Py)
-xlabel('choice latency','FontSize',12)
-ylabel('probability','FontSize',12)
-title('predicted probability','FontSize',16)
+xlabel('Acceptance latency','FontSize',12)
+ylabel('Probability','FontSize',12)
+title('Predicted probability','FontSize',16)
 axis square
  
  
 % Infer prior beliefs from observed responses (meta-modelling)
 %==========================================================================
-p     = linspace(1/32,1/2,32);
-DP  = MDP;
+p     = linspace(1/32,1/4,32);
+DP    = MDP;
 for i = 1:length(p);
     
     % transition probabilities
@@ -342,13 +358,13 @@ for i = 1:length(p);
     for t = 1:T
         a = Pwin(T,Pa);
         b = Plos(t,p(i));
-        DP.B{t,1}([1 2 4],1) = [1 - a + a*b - b; b; a*(1 - b)];       
+        DP.B{t,1}(:,1) = [1 - a + a*b - b; a*(1 - b); b; 0; 0];       
     end
     
     % get likelihood for this parameter
     %----------------------------------------------------------------------
     P     = spm_MDP_select(DP);
-    Py    = PrY(P);
+    Py    = PrT(P);
     L(i)  = sum(log(Py(Y)));
     
 end
@@ -366,52 +382,40 @@ Ep    = p(i);
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 plot(p,L)
-xlabel('latency','FontSize',12)
-ylabel('probabaility','FontSize',12)
-title('log-likelihood','FontSize',16)
+xlabel('Latency','FontSize',12)
+ylabel('Probabaility','FontSize',12)
+title('Log-likelihood','FontSize',16)
 axis square
     
 % plot posterior
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-plot(p,spm_Npdf(p,Ep,Cp)), hold on
-plot([Pb Pb],[0 8],':'),   hold off
+pp    = spm_Npdf(p,Ep,Cp);
+plot(p,pp), hold on
+plot([Pb Pb],[0 1.2*max(pp)],':'),   hold off
 xlabel('latency','FontSize',12)
-ylabel('probability','FontSize',12)
-title('posterior probability','FontSize',16)
+ylabel('Probability','FontSize',12)
+title('Posterior probability','FontSize',16)
 axis square
-
-
+ 
+ 
 return
-
-
+ 
+ 
 % expected utility
+%==========================================================================
+function [EC,PT] = PrE(MDP)
+ 
+% numerical solution
 %--------------------------------------------------------------------------
-function EC = PrU(P,B,C)
-
-Ns    = size(C,1);
-Nt    = size(P,2);
-Na    = size(P,1);
-PT    = 0;
-for j = 1:Na
-    for t = 1:Nt
-        H = sparse(1,1,1,Ns,1);
-        for k = 1:Nt
-            if k == t
-                H = B{k,1 + j}*H;
-            else
-                H = B{k,1}*H;
-            end
-            
-        end
-        PT = PT + P(j,t)*H;
-    end
+MDP.plot = 0;
+ 
+ST    = 0;
+for i = 1:256
+    [P,Q,S] = spm_MDP_select(MDP,1);
+    ST = ST + S(:,end);
 end
-EC = PT'*C;
-
-
-
-
-
-
-
+PT    = ST/sum(ST);
+EC    = PT'*log(MDP.C/sum(MDP.C));
+ 
+return
