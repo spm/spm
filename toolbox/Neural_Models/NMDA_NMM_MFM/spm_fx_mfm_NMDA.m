@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm_NMDA(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm_NMDA.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_fx_mfm_NMDA.m 5106 2012-12-10 17:13:34Z rosalyn $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -123,7 +123,7 @@ VL   = -70;                                  % reversal  potential leak (K)
 VE   =  60;                                  % reversal  potential excite (Na)
 VI   = -90;                                  % reversal  potential inhib (Cl)
 VR   = -40;                                  % reversal Ca(NMDA)      
-VN  = 60; 
+VN   = 60; 
 
 CV   = 8/1000;                               % membrane capacitance
 GL   = 1;                                    % leak conductance
