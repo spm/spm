@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_convert.m 5110 2012-12-12 06:12:53Z vladimir $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 5110 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -205,7 +205,7 @@ if ismember(S.mode, {'continuous', 'header'})
     if isempty(S.timewin)
         if hdr.nTrials == 1
             segmentbounds = [1 hdr.nSamples];
-        elseif ~S.checkboundary
+        elseif ~S.checkboundary || isequal(S.mode, 'header')
             segmentbounds = [1 hdr.nSamples*hdr.nTrials];
         else
             error('The data cannot be read without ignoring trial borders');
