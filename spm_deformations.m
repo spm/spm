@@ -7,11 +7,12 @@ function out = spm_deformations(job)
 %       .warped - file names of warped images
 %
 % See spm_cfg_deformations.m for more information.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5009 2012-10-19 11:21:02Z john $
+% $Id: spm_deformations.m 5114 2012-12-12 18:30:26Z guillaume $
+
 
 [Def,mat] = get_comp(job.comp);
 out = struct('def',{{}},'warped',{{}},'surf',{{}},'jac',{{}});
@@ -28,22 +29,24 @@ for i=1:numel(job.out)
     case 'surf'
         out.surf   = [out.surf,   surf_def(Def,mat,job.out{i}.(fn))];
     case 'savejac'
-        out.jac    = [out.jac,     jac_def(Def,mat,job.out{i}.(fn))];
+        out.jac    = [out.jac,    jac_def(Def,mat,job.out{i}.(fn))];
     otherwise
         error('Unknown option');
     end
 end
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_comp(job)
+%==========================================================================
 function [Def,mat] = get_comp(job)
 % Return the composition of a number of deformation fields.
 
-if isempty(job),
+if isempty(job)
     error('Empty list of jobs in composition');
-end;
+end
 [Def,mat] = get_job(job{1});
-for i=2:numel(job),
+for i=2:numel(job)
     Def1         = Def;
     mat1         = mat;
     [Def,mat]    = get_job(job{i});
@@ -56,10 +59,12 @@ for i=2:numel(job),
     Def(:,:,:,2) = single(spm_diffeo('bsplins',Def1(:,:,:,2),tmp,[1,1,1,0,0,0]));
     Def(:,:,:,3) = single(spm_diffeo('bsplins',Def1(:,:,:,3),tmp,[1,1,1,0,0,0]));
     clear tmp
-end;
-%_______________________________________________________________________
+end
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_job(job)
+%==========================================================================
 function [Def,mat] = get_job(job)
 % Determine what is required, and pass the relevant bit of the
 % job out to the appropriate function.
@@ -67,26 +72,28 @@ function [Def,mat] = get_job(job)
 fn = fieldnames(job);
 fn = fn{1};
 switch fn
-case {'comp'}
-    [Def,mat] = get_comp(job.(fn));
-case {'def'}
-    [Def,mat] = get_def(job.(fn));
-case {'dartel'}
-    [Def,mat] = get_dartel(job.(fn));    
-case {'sn2def'}
-    [Def,mat] = get_sn2def(job.(fn));
-case {'inv'}
-    [Def,mat] = get_inv(job.(fn));
-case {'id'}
-    [Def,mat] = get_id(job.(fn));
-case {'idbbvox'}
-    [Def,mat] = get_idbbvox(job.(fn));
-otherwise
-    error('Unrecognised job type');
-end;
-%_______________________________________________________________________
+    case {'comp'}
+        [Def,mat] = get_comp(job.(fn));
+    case {'def'}
+        [Def,mat] = get_def(job.(fn));
+    case {'dartel'}
+        [Def,mat] = get_dartel(job.(fn));
+    case {'sn2def'}
+        [Def,mat] = get_sn2def(job.(fn));
+    case {'inv'}
+        [Def,mat] = get_inv(job.(fn));
+    case {'id'}
+        [Def,mat] = get_id(job.(fn));
+    case {'idbbvox'}
+        [Def,mat] = get_idbbvox(job.(fn));
+    otherwise
+        error('Unrecognised job type');
+end
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_sn2def(job)
+%==========================================================================
 function [Def,mat] = get_sn2def(job)
 % Convert a SPM _sn.mat file into a deformation field, and return it.
 
@@ -94,11 +101,11 @@ vox = job.vox;
 bb  = job.bb;
 sn  = load(job.matname{1});
 
-if any(isfinite(bb(:))) || any(isfinite(vox)),
+if any(isfinite(bb(:))) || any(isfinite(vox))
     [bb0,vox0] = bbvox_from_V(sn.VG(1));
 
-    if any(~isfinite(vox)), vox = vox0; end;
-    if any(~isfinite(bb)),  bb  = bb0;  end;
+    if any(~isfinite(vox)), vox = vox0; end
+    if any(~isfinite(bb)),  bb  = bb0;  end
     bb  = sort(bb);
     vox = abs(vox);
 
@@ -135,7 +142,7 @@ end
 
 st = size(sn.Tr);
 
-if (prod(st) == 0),
+if (prod(st) == 0)
     affine_only = true;
     basX = 0;
     basY = 0;
@@ -145,7 +152,7 @@ else
     basX = spm_dctmtx(sn.VG(1).dim(1),st(1),x-1);
     basY = spm_dctmtx(sn.VG(1).dim(2),st(2),y-1);
     basZ = spm_dctmtx(sn.VG(1).dim(3),st(3),z-1);
-end,
+end
 
 Def = zeros([numel(x),numel(y),numel(z),3],'single');
 
@@ -174,10 +181,12 @@ for j=1:length(z)
     Def(:,:,j,1) = single(X2);
     Def(:,:,j,2) = single(Y2);
     Def(:,:,j,3) = single(Z2);
-end;
-%_______________________________________________________________________
+end
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [bb,vx] = bbvox_from_V(V)
+%==========================================================================
 function [bb,vx] = bbvox_from_V(V)
 % Return the default bounding box for an image volume
 
@@ -185,10 +194,11 @@ vx = sqrt(sum(V.mat(1:3,1:3).^2));
 o  = V.mat\[0 0 0 1]';
 o  = o(1:3)';
 bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_def(job)
+%==========================================================================
 function [Def,mat] = get_def(job)
 % Load a deformation field saved as an image
 Nii = nifti(job{1});
@@ -197,24 +207,28 @@ d   = size(Def);
 if d(4)~=1 || d(5)~=3, error('Deformation field is wrong!'); end
 Def = reshape(Def,[d(1:3) d(5)]);
 mat = Nii.mat;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_dartel_old(job)
+%==========================================================================
 function [Def,mat] = get_dartel_old(job)
 % Integrate a DARTEL flow field
-Nii    = nifti(job.flowfield{1});
-y      = spm_dartel_integrate(Nii.dat,job.times,job.K);
+Nii     = nifti(job.flowfield{1});
+y       = spm_dartel_integrate(Nii.dat,job.times,job.K);
 if all(job.times == [0 1]),
-    M      = single(Nii.mat);
-    mat    = Nii.mat0;
+    M   = single(Nii.mat);
+    mat = Nii.mat0;
 else
-    M      = single(Nii.mat0);
-    mat    = Nii.mat;
+    M   = single(Nii.mat0);
+    mat = Nii.mat;
 end
-Def = affine(y,M);
-%_______________________________________________________________________
+Def     = affine(y,M);
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_dartel(job)
+%==========================================================================
 function [Def,mat] = get_dartel(job)
 
 Nii    = nifti(job.flowfield{1});
@@ -226,9 +240,9 @@ if ~isempty(job.template{1})
         load(fullfile(pth,[nam '_2mni.mat']),'mni');
     else
         % Affine registration of DARTEL Template with MNI space.
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         fprintf('** Affine registering "%s" with MNI space **\n', nam);
-        tpm        = fullfile(spm('Dir'),'toolbox','Seg','TPM.nii');
+        tpm        = fullfile(spm('Dir'),'TPM','TPM.nii');
         Mmni       = spm_get_space(tpm);
         Nt         = nifti(job.template{1});
         mni.affine = Mmni/spm_klaff(Nt,tpm);
@@ -251,20 +265,23 @@ else
     mat = Mat;
     Def = affine(y0,single(Nii.mat0));
 end
-%_______________________________________________________________________
 
 
-%_______________________________________________________________________
+%==========================================================================
+% function [Def,mat] = get_id(job)
+%==========================================================================
 function [Def,mat] = get_id(job)
-% Get an identity transform based on an image volume.
+% Get an identity transform based on an image volume
 Nii = nifti(job.space{1});
 d   = [size(Nii.dat),1];
 d   = d(1:3);
 mat = Nii.mat;
 Def = identity(d,mat);
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_idbbvox(job)
+%==========================================================================
 function [Def,mat] = get_idbbvox(job)
 % Get an identity transform based on bounding box and voxel size.
 % This will produce a transversal image.
@@ -275,23 +292,27 @@ bb  = [round(bb(1,:)./vox).*vox; round(bb(2,:)./vox).*vox];
 d   = floor(diff(job.bb)./job.vox + 1);
 mat = diag([-1 1 1 1])*spm_matrix([bb(1,:)-vox 0 0 0 vox]);
 Def = identity(d,mat);
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [Def,mat] = get_inv(job)
+%==========================================================================
 function [Def,mat] = get_inv(job)
 % Invert a deformation field (derived from a composition of deformations)
 
 NT          = nifti(job.space{:});
 [Def0,mat0] = get_comp(job.comp);
-M0      = mat0;
-M1      = inv(NT.mat);
-M0(4,:) = [0 0 0 1];
-M1(4,:) = [0 0 0 1];
-Def     = spm_diffeo('invdef',Def0,NT.dat.dim(1:3),M1,M0);
-mat     = NT.mat;
-%_______________________________________________________________________
+M0          = mat0;
+M1          = inv(NT.mat);
+M0(4,:)     = [0 0 0 1];
+M1(4,:)     = [0 0 0 1];
+Def         = spm_diffeo('invdef',Def0,NT.dat.dim(1:3),M1,M0);
+mat         = NT.mat;
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function fname = save_def(Def,mat,job)
+%==========================================================================
 function fname = save_def(Def,mat,job)
 % Save a deformation field as an image
 
@@ -328,10 +349,11 @@ create(N);
 N.dat(:,:,:,1,1) = Def(:,:,:,1);
 N.dat(:,:,:,1,2) = Def(:,:,:,2);
 N.dat(:,:,:,1,3) = Def(:,:,:,3);
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function fname = jac_def(Def,mat,job)
+%==========================================================================
 function fname = jac_def(Def,mat,job)
 % Save Jacobian determinants of deformation field 
 
@@ -368,10 +390,11 @@ N.intent.name = 'Mapping';
 N.descrip     = 'Jacobian Determinants';
 create(N);
 N.dat(:,:,:,1,1) = Dets;
-return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function out = pull_def(Def,mat,job)
+%==========================================================================
 function out = pull_def(Def,mat,job)
 
 PI      = job.fnames;
@@ -386,21 +409,21 @@ if job.mask
     odm = zeros(1,3);
     dim = size(Def);
     msk = true(dim);
-    for m=1:numel(PI),
-        [pth,nam,ext] = fileparts(PI{m});
+    for m=1:numel(PI)
+        [pth,nam,ext] = spm_fileparts(PI{m});
         NI = nifti(fullfile(pth,[nam ext]));
         dm = NI.dat.dim(1:3);
-        for j=1:size(NI.dat,4),
+        for j=1:size(NI.dat,4)
 
             M0 = NI.mat;
-            if isfield(NI,'extras') && isfield(NI.extras,'mat'),
+            if isfield(NI,'extras') && isfield(NI.extras,'mat')
                 M1 = NI.extras.mat;
-                if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0,
+                if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                     M0 = M1(:,:,j);
                 end
             end
             M   = inv(M0);
-            if ~all(M(:)==oM(:)) || ~all(dm==odm),
+            if ~all(M(:)==oM(:)) || ~all(dm==odm)
                 tmp = affine(Def,M);
                 msk = tmp(:,:,:,1)>=1 & tmp(:,:,:,1)<=size(NI.dat,1) ...
                     & tmp(:,:,:,2)>=1 & tmp(:,:,:,2)<=size(NI.dat,2) ...
@@ -413,11 +436,11 @@ if job.mask
 end
 
 oM = zeros(4,4);
-for m=1:numel(PI),
+for m=1:numel(PI)
 
     % Generate headers etc for output images
     %----------------------------------------------------------------------
-    [pth,nam,ext] = fileparts(PI{m});
+    [pth,nam,ext] = spm_fileparts(PI{m});
     NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
     if isfield(job.savedir,'savepwd')
@@ -430,12 +453,12 @@ for m=1:numel(PI),
         wd = pwd;
     end
 
-    if sum(job.fwhm.^2)==0,
-        NO.dat.fname   = fullfile(wd,['w' nam ext]);
-        NO.descrip     = sprintf('Warped');
+    if sum(job.fwhm.^2)==0
+        NO.dat.fname = fullfile(wd,['w' nam ext]);
+        NO.descrip   = sprintf('Warped');
     else
-        NO.dat.fname   = fullfile(wd,['sw' nam ext]);
-        NO.descrip     = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
+        NO.dat.fname = fullfile(wd,['sw' nam ext]);
+        NO.descrip   = sprintf('Smoothed (%gx%gx%g subopt) warped',job.fwhm);
     end
     dim            = size(Def);
     dim            = dim(1:3);
@@ -454,44 +477,46 @@ for m=1:numel(PI),
 
     % Loop over volumes within the file
     %----------------------------------------------------------------------
-    fprintf('%s',nam); drawnow;
-    for j=1:size(NI.dat,4),
+    fprintf('%s',nam);
+    for j=1:size(NI.dat,4)
 
         M0 = NI.mat;
-        if isfield(NI,'extras') && isfield(NI.extras,'mat'),
+        if isfield(NI,'extras') && isfield(NI.extras,'mat')
             M1 = NI.extras.mat;
-            if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0,
+            if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                 M0 = M1(:,:,j);
             end
         end
         M   = inv(M0);
-        if ~all(M(:)==oM(:)),
+        if ~all(M(:)==oM(:))
             % Generate new deformation (if needed)
             Y     = affine(Def,M);
         end
         oM  = M;
-        % Write the warped data for this time point.
+        % Write the warped data for this time point
         %------------------------------------------------------------------
-        for k=1:size(NI.dat,5),
-            for l=1:size(NI.dat,6),
+        for k=1:size(NI.dat,5)
+            for l=1:size(NI.dat,6)
                 C   = spm_diffeo('bsplinc',single(NI.dat(:,:,:,j,k,l)),intrp);
                 dat = spm_diffeo('bsplins',C,Y,intrp);
-                if job.mask,
+                if job.mask
                     dat(~msk) = NaN;
                 end
-                if sum(job.fwhm.^2)~=0,
+                if sum(job.fwhm.^2)~=0
                     spm_smooth(dat,dat,krn); % Side effects
                 end
                 NO.dat(:,:,:,j,k,l) = dat;
-                fprintf('\t%d,%d,%d', j,k,l); drawnow;
+                fprintf('\t%d,%d,%d', j,k,l);
             end
         end
     end
-    fprintf('\n'); drawnow;
+    fprintf('\n');
 end
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function out = push_def(Def,mat,job)
+%==========================================================================
 function out = push_def(Def,mat,job)
 % Generate deformation, which is the inverse of the usual one (it is for "pushing"
 % rather than the usual "pulling"). This deformation is affine transformed to
@@ -510,7 +535,7 @@ else
     vox  = job.fov.bbvox.vox;
     Mt   = mat;
     dimt = [size(Def,1),size(Def,2),size(Def,3)];
-    if any(isfinite(bb(:))) || any(isfinite(vox)),
+    if any(isfinite(bb(:))) || any(isfinite(vox))
 
         % This option does not work as expected because a good default
         % bounding box is not defined.  The bb we want is that of the
@@ -543,7 +568,7 @@ end
 M   = inv(mat0);
 y0  = affine(Def,M);
 
-if isfield(job,'weight') && ~isempty(job.weight) && ~isempty(job.weight{1}),
+if isfield(job,'weight') && ~isempty(job.weight) && ~isempty(job.weight{1})
     wfile = job.weight{1};
     Nw    = nifti(wfile);
     Mw    = Nw.mat;
@@ -556,7 +581,7 @@ odm = zeros(1,3);
 oM  = zeros(4,4);
 PI  = job.fnames;
 out = cell(1,numel(PI));
-for m=1:numel(PI),
+for m=1:numel(PI)
 
     % Generate headers etc for output images
     %----------------------------------------------------------------------
@@ -573,7 +598,7 @@ for m=1:numel(PI),
         wd = pwd;
     end
 
-    if job.preserve,
+    if job.preserve
         NO.dat.scl_slope = 1.0;
         NO.dat.scl_inter = 0.0;
         NO.dat.dtype     = 'float32-le';
@@ -610,26 +635,26 @@ for m=1:numel(PI),
     % Loop over volumes within the file
     %----------------------------------------------------------------------
     fprintf('%s',nam); drawnow;
-    for j=1:size(NI.dat,4),
+    for j=1:size(NI.dat,4)
 
         % Need to resample the mapping by an affine transform
         % so that it maps from voxels in the native space image
         % to voxels in the spatially normalised image.
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         M0 = NI.mat;
-        if isfield(NI,'extras') && isfield(NI.extras,'mat'),
+        if isfield(NI,'extras') && isfield(NI.extras,'mat')
             M1 = NI.extras.mat;
-            if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0,
+            if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                 M0 = M1(:,:,j);
             end
         end
 
         M   = mat\M0;
         dm  = [size(NI.dat),1,1,1,1];
-        if ~all(dm(1:3)==odm) || ~all(M(:)==oM(:)),
+        if ~all(dm(1:3)==odm) || ~all(M(:)==oM(:))
             % Generate new deformation (if needed)
             y   = zeros([dm(1:3),3],'single');
-            for d=1:3,
+            for d=1:3
                 yd = y0(:,:,:,d);
                 for x3=1:size(y,3),
                     y(:,:,x3,d) = single(spm_slice_vol(yd,M*spm_matrix([0 0 x3]),dm(1:2),[1 NaN]));
@@ -641,11 +666,11 @@ for m=1:numel(PI),
         oM  = M;
         % Write the warped data for this time point.
         %------------------------------------------------------------------
-        for k=1:size(NI.dat,5),
-            for l=1:size(NI.dat,6),
+        for k=1:size(NI.dat,5)
+            for l=1:size(NI.dat,6)
                 f  = single(NI.dat(:,:,:,j,k,l));
                 if isempty(wt)
-                    if ~job.preserve,
+                    if ~job.preserve
                         % Unmodulated - note the slightly novel procedure
                         [f,c] = spm_diffeo('push',f,y,dim);
                         spm_smooth(f,f,krn); % Side effects
@@ -658,7 +683,7 @@ for m=1:numel(PI),
                         spm_smooth(f,f,krn); % Side effects
                     end
                 else
-                    if isequal(size(wt),size(f)) && sum((Mw(:)-M0(:)).^2)<1e-6,
+                    if isequal(size(wt),size(f)) && sum((Mw(:)-M0(:)).^2)<1e-6
                         wtw = single(wt);
                         f   = single(f.*wt);
                     else
@@ -668,7 +693,7 @@ for m=1:numel(PI),
                             wtw(:,:,z) = single(spm_slice_vol(wt,Mz,[size(f,1),size(f,2)],1));
                         end
                     end
-                    if ~job.preserve,
+                    if ~job.preserve
                         % Unmodulated - note the slightly novel procedure
                         f = spm_diffeo('push',f.*wtw,y,dim);
                         c = spm_diffeo('push',wtw,y,dim);
@@ -690,13 +715,15 @@ for m=1:numel(PI),
     end
     fprintf('\n'); drawnow;
 end
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function out = surf_def(Def,mat,job)
+%==========================================================================
 function out = surf_def(Def,mat,job)
 filenames = job.surface;
 out       = cell(numel(filenames),1);
-for i=1:numel(filenames),
+for i=1:numel(filenames)
     fname     = deblank(job.surface{i});
     [pth,nam] = fileparts(fname);
     fprintf('%s\n', nam);
@@ -716,23 +743,26 @@ for i=1:numel(filenames),
     save(gifti(Tmesh), filename);
     out{i}   = filename;
 end
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function Def = affine(y,M)
+%==========================================================================
 function Def = affine(y,M)
 Def          = zeros(size(y),'single');
 Def(:,:,:,1) = y(:,:,:,1)*M(1,1) + y(:,:,:,2)*M(1,2) + y(:,:,:,3)*M(1,3) + M(1,4);
 Def(:,:,:,2) = y(:,:,:,1)*M(2,1) + y(:,:,:,2)*M(2,2) + y(:,:,:,3)*M(2,3) + M(2,4);
 Def(:,:,:,3) = y(:,:,:,1)*M(3,1) + y(:,:,:,2)*M(3,2) + y(:,:,:,3)*M(3,3) + M(3,4);
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function Def = identity(d,M)
+%==========================================================================
 function Def = identity(d,M)
 [y1,y2]   = ndgrid(single(1:d(1)),single(1:d(2)));
 Def       = zeros([d 3],'single');
-for y3=1:d(3),
+for y3=1:d(3)
     Def(:,:,y3,1) = y1*M(1,1) + y2*M(1,2) + (y3*M(1,3) + M(1,4));
     Def(:,:,y3,2) = y1*M(2,1) + y2*M(2,2) + (y3*M(2,3) + M(2,4));
     Def(:,:,y3,3) = y1*M(3,1) + y2*M(3,2) + (y3*M(3,3) + M(3,4));
 end
-
