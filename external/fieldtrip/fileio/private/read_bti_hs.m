@@ -23,7 +23,7 @@ function [output, firstIndexPoint] = read_hs_file( filename, outfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_hs.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_bti_hs.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin == 1
     outfile = [];

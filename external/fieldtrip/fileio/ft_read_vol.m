@@ -33,7 +33,7 @@ function [vol] = ft_read_vol(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_vol.m 6552 2012-09-26 20:28:03Z roboos $
+% $Id: ft_read_vol.m 7132 2012-12-10 18:04:53Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -82,5 +82,6 @@ switch fileformat
     error('unknown fileformat for volume conductor model');
 end
 
-% this will add the units to the volume conductor model
-vol = ft_convert_units(vol);
+% this will ensure that the structure is up to date, e.g. that the type is correct and that it has units
+vol = ft_datatype_headmodel(vol);
+

@@ -41,7 +41,7 @@ function [filt] = lowpassfilter(dat,Fs,Flp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: lowpassfilter.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: lowpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the default filter order later
 if nargin<4

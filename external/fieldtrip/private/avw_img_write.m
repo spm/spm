@@ -52,7 +52,7 @@ function avw_img_write(avw, fileprefix, IMGorient, machine, verbose)
 %           avw_read, avw_hdr_read, avw_img_read, avw_view
 % 
 
-% $Revision: 5734 $ $Date: 2009/01/14 09:24:45 $
+% $Revision: 7123 $ $Date: 2009/01/14 09:24:45 $
 
 % Licence:  GNU GPL, no express or implied warranties
 % History:  05/2002, Darren.Weber@flinders.edu.au
@@ -116,7 +116,7 @@ if isempty(verbose), verbose = 1; end
 %------------------------------------------------------------------------
 % MAIN
 if verbose,
-    version = '[$Revision: 5734 $]';
+    version = '[$Revision: 7123 $]';
     fprintf('\nAVW_IMG_WRITE [v%s]\n',version(12:16));  tic;
 end
 
@@ -165,7 +165,7 @@ function avw_hdr_write(avw, fileprefix, machine, verbose)
 %           AVW_IMG_READ AVW_IMG_WRITE
 %
 
-% $Revision: 5734 $ $Date: 2009/01/14 09:24:45 $
+% $Revision: 7123 $ $Date: 2009/01/14 09:24:45 $
 
 % Licence:  GNU GPL, no express or implied warranties
 % History:  05/2002, Darren.Weber@flinders.edu.au
@@ -182,7 +182,7 @@ if ~exist('verbose','var'), verbose = 1; end
 if ~exist('machine','var'), machine = 'ieee-le'; end
 
 if verbose,
-    version = '[$Revision: 5734 $]';
+    version = '[$Revision: 7123 $]';
     fprintf('AVW_HDR_WRITE [v%s]\n',version(12:16));  tic;
 end
 

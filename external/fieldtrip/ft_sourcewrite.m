@@ -23,9 +23,9 @@ function ft_sourcewrite(cfg, source)
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
-% $Id: ft_sourcewrite.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_sourcewrite.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_sourcewrite.m 7123 2012-12-06 21:21:38Z roboos $';
 
 ft_defaults                 
 ft_preamble help           

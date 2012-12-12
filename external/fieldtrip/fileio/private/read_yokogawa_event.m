@@ -28,7 +28,7 @@ function [event] = read_yokogawa_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_event.m 4550 2011-10-21 10:51:30Z tilsan $
+% $Id: read_yokogawa_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 event   = [];
 handles = definehandles;

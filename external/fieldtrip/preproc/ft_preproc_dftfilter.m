@@ -43,7 +43,7 @@ function [filt] = ft_preproc_dftfilter(dat, Fs, Fl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_dftfilter.m 5593 2012-04-04 15:17:51Z roboos $
+% $Id: ft_preproc_dftfilter.m 7123 2012-12-06 21:21:38Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

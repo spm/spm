@@ -36,7 +36,7 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_headmodel.m 6678 2012-10-04 18:14:53Z roboos $
+% $Id: prepare_headmodel.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = 'all';   end

@@ -23,7 +23,7 @@ function [pnt, dhk] = cylinder(Naz, Nel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: cylinder.m 950 2010-04-21 18:12:58Z roboos $
+% $Id: cylinder.m 7123 2012-12-06 21:21:38Z roboos $
 
 az = (2*pi*(0:(Naz-1))/Naz)';
 el = (linspace(-1,1,Nel))';

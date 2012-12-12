@@ -104,7 +104,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_singleplotER.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

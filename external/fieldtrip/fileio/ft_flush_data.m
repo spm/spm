@@ -25,7 +25,7 @@ function ft_flush_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_flush_data.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: ft_flush_data.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults
 dataformat = ft_getopt(varargin, 'dataformat', ft_filetype(filename));

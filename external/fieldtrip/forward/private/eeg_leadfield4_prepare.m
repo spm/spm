@@ -36,7 +36,7 @@ function [lut_t, cuf_t] = eeg_leadfield4_prepare(vol, Nmax);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfield4_prepare.m 946 2010-04-21 17:51:16Z roboos $
+% $Id: eeg_leadfield4_prepare.m 7123 2012-12-06 21:21:38Z roboos $
 
 % sort the spheres from the smallest to the largest
 [vol.r, indx] = sort(vol.r);

@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 6036 2012-06-12 09:30:19Z eelspa $
+% $Id: ft_progress.m 7123 2012-12-06 21:21:38Z roboos $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done

@@ -37,7 +37,7 @@ function unit = ft_estimate_units(size)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_estimate_units.m 4972 2011-12-09 15:33:10Z roboos $
+% $Id: ft_estimate_units.m 7123 2012-12-06 21:21:38Z roboos $
 
 % do some magic based on the size
 unit = {'m', 'dm', 'cm', 'mm'};

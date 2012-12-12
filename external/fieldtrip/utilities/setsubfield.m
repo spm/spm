@@ -33,7 +33,7 @@ function [s] = setsubfield(s, f, v);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: setsubfield.m 6287 2012-07-25 13:16:41Z jorhor $
+% $Id: setsubfield.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');

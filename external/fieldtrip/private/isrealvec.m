@@ -25,7 +25,7 @@ function status = isrealvec(x)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: isrealvec.m 5886 2012-06-05 11:01:28Z roboos $
+% $Id: isrealvec.m 7123 2012-12-06 21:21:38Z roboos $
 
 % This is a drop-in replacement for MATLAB/toolbox/ident/idutils/isrealvec.m
 % which requires the Ident toolbox. The following can be used instead to

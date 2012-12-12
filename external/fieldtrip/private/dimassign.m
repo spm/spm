@@ -32,7 +32,7 @@ function M=dimassign(A,dim,idx,B);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dimassign.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: dimassign.m 7123 2012-12-06 21:21:38Z roboos $
 
 if(~iscell(idx))
     if(~any(size(dim)==1)||~any(size(idx)==1)||ndims(dim)>2||ndims(idx)>2||...

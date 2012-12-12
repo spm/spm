@@ -24,7 +24,7 @@ function vol = read_asa_vol(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_vol.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_asa_vol.m 7123 2012-12-06 21:21:38Z roboos $
 
 Nbnd  = read_asa(fn, 'NumberBoundaries=', '%d');
 UnitC = read_asa(fn, 'UnitConduct', '%s');

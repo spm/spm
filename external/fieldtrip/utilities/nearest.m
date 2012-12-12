@@ -41,7 +41,7 @@ function [indx] = nearest(array, val, insideflag, toleranceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nearest.m 6239 2012-07-05 14:04:05Z johzum $
+% $Id: nearest.m 7123 2012-12-06 21:21:38Z roboos $
 
 mbreal(array);
 mbreal(val);

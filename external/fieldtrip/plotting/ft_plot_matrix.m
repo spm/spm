@@ -51,7 +51,7 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 6784 2012-10-24 08:37:25Z jorhor $
+% $Id: ft_plot_matrix.m 7123 2012-12-06 21:21:38Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

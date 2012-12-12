@@ -20,7 +20,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_distribute.m 5917 2012-06-06 13:10:28Z roboos $
+% $Id: ft_preamble_distribute.m 7123 2012-12-06 21:21:38Z roboos $
 
 % FIXME this fails if the calling function (e.g. ft_preprocessing)
 % is called with only a cfg and not with a second data argument, see

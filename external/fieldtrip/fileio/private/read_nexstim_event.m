@@ -24,7 +24,7 @@ function [event] = read_nexstim_event(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nexstim_event.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_nexstim_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 % trigLine - either 1(GATE), 2(TRIG1) or 3(TRIG2)
 % trigEdge - either 'rising' or 'falling'

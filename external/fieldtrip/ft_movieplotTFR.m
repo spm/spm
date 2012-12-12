@@ -61,7 +61,7 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 %
 % $id: ft_movieploter.m 4354 2011-10-05 15:06:02z crimic $
 
-revision = '$Id: ft_movieplotTFR.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_movieplotTFR.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

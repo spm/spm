@@ -64,7 +64,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 6470 2012-09-17 12:18:24Z lilmag $
+% $Id: ft_datatype_comp.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

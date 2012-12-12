@@ -22,7 +22,7 @@ function [vol] = read_ctf_hdm(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_hdm.m 3805 2011-07-08 08:34:52Z roboos $
+% $Id: read_ctf_hdm.m 7123 2012-12-06 21:21:38Z roboos $
 
 vol   = [];
 ascii = read_ctf_ascii(filename);

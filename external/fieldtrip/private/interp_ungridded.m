@@ -42,7 +42,7 @@ function varargout = interp_ungridded(pntin, pntout, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_ungridded.m 6433 2012-09-06 08:14:18Z giopia $
+% $Id: interp_ungridded.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<3
   error('Not enough input arguments.');

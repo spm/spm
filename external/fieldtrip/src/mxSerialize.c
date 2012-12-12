@@ -22,7 +22,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  *
- * $Id: mxSerialize.c 4702 2011-11-10 09:23:27Z borreu $
+ * $Id: mxSerialize.c 7123 2012-12-06 21:21:38Z roboos $
  */
 
 #include "mex.h"

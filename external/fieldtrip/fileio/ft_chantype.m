@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 7088 2012-12-05 09:47:11Z roboos $
+% $Id: ft_chantype.m 7123 2012-12-06 21:21:38Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion

@@ -31,7 +31,7 @@ function vol = ft_headmodel_openmeeg(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-%$Id: ft_headmodel_openmeeg.m 6211 2012-07-03 13:33:09Z roboos $
+%$Id: ft_headmodel_openmeeg.m 7123 2012-12-06 21:21:38Z roboos $
 
 ft_hastoolbox('openmeeg', 1);
 

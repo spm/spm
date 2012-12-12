@@ -35,7 +35,7 @@ function [lap, edge] = lapcal(pnt, tri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: lapcal.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: lapcal.m 7123 2012-12-06 21:21:38Z roboos $
 
 npnt = size(pnt,1);
 ntri = size(tri,1);

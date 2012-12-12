@@ -36,7 +36,7 @@ function stat = ft_statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_crossvalidate.m 5650 2012-04-18 14:00:33Z roevdmei $
+% $Id: ft_statistics_crossvalidate.m 7123 2012-12-06 21:21:38Z roboos $
 
 % specify classification procedure
   

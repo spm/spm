@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 7068 2012-11-30 15:44:30Z roboos $
+% $Id: channelposition.m 7123 2012-12-06 21:21:38Z roboos $
 
 % FIXME varargin is not documented
 

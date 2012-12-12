@@ -21,7 +21,7 @@ function [event] = read_shm_event(filename, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_shm_event.m 4437 2011-10-12 10:04:45Z roboos $
+% $Id: read_shm_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments
 hdr       = ft_getopt(varargin, 'header');

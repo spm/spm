@@ -27,7 +27,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample, chani
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_eeg.m 6293 2012-07-26 11:45:18Z jansch $
+% $Id: read_brainvision_eeg.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<5
   % read all channels

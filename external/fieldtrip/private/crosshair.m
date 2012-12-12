@@ -36,7 +36,7 @@ function [h] = crosshair(pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: crosshair.m 5671 2012-04-20 09:15:26Z jansch $
+% $Id: crosshair.m 7123 2012-12-06 21:21:38Z roboos $
 
 parent = ft_getopt(varargin, 'parent');
 h      = ft_getopt(varargin, 'handle');

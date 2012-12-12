@@ -25,7 +25,7 @@ function [dat] = read_nex_data(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nex_data.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: read_nex_data.m 7123 2012-12-06 21:21:38Z roboos $
 
 try,
   % work with the original header, not the FieldTrip one

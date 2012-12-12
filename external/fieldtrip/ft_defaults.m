@@ -37,15 +37,25 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7011 2012-11-28 09:21:08Z roboos $
+% $Id: ft_defaults.m 7151 2012-12-12 09:13:57Z eelspa $
 
 % set the defaults in a global variable, ft_checkconfig will copy these over into the local configuration
 % note that ft_getopt might not be available on the path at this moment
-global ft_default
+global ft_default ft_defaultinit
+
+% track whether we have executed ft_defaults already
+% note that we should not use ft_default itself directly, because the user
+% might have set stuff in that struct already before ft_defaults() is
+% called for the first time
+if ft_defaultinit
+  return;
+end
+
 if ~isfield(ft_default, 'trackconfig'),    ft_default.trackconfig    = 'off';    end % cleanup, report, off
 if ~isfield(ft_default, 'checkconfig'),    ft_default.checkconfig    = 'loose';  end % pedantic, loose, silent
 if ~isfield(ft_default, 'checksize'),      ft_default.checksize      = 1e5;      end % number in bytes, can be inf
-if ~isfield(ft_default, 'showcallinfo'),   ft_default.showcallinfo   = 'yes';    end % yes or no, this is used in ft_postamble_provenance
+if ~isfield(ft_default, 'showcallinfo'),   ft_default.showcallinfo   = 'yes';    end % yes or no, this is used in ft_pre/postamble_provenance
+if ~isfield(ft_default, 'debug'),          ft_default.debug          = 'no';     end % yes or no, this is used in ft_pre/postamble_debug
 
 % these options allow to disable parts of the provenance
 if ~isfield(ft_default, 'trackcallinfo'),  ft_default.trackcallinfo  = 'yes';    end % yes or no
@@ -182,6 +192,8 @@ if ~isdeployed
   end
   
 end
+
+ft_defaultinit = 1;
 
 end % function ft_default
 

@@ -42,9 +42,9 @@ function [data] = besa2fieldtrip(input)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: besa2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $
+% $Id: besa2fieldtrip.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: besa2fieldtrip.m 5608 2012-04-12 11:33:27Z roevdmei $';
+revision = '$Id: besa2fieldtrip.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

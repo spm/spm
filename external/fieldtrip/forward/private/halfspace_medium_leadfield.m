@@ -25,7 +25,7 @@ function [lf] = halfspace_medium_leadfield(rd, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: halfspace_medium_leadfield.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: halfspace_medium_leadfield.m 7123 2012-12-06 21:21:38Z roboos $
 
 siz = size(rd);
 if any(siz==1)

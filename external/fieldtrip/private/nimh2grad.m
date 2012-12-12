@@ -29,7 +29,7 @@ function [grad] = nimh2grad(hdr);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nimh2grad.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: nimh2grad.m 7123 2012-12-06 21:21:38Z roboos $
 
 % only work on the MEG channels
 if isfield(hdr.sensor.index, 'meg')

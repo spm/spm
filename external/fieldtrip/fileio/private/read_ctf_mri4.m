@@ -24,7 +24,7 @@ function [mri, hdr, cpersist] = read_ctf_mri4(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri4.m 1443 2010-07-22 07:03:17Z jansch $
+% $Id: read_ctf_mri4.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(filename,'rb', 'ieee-be');
 

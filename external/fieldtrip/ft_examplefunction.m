@@ -30,13 +30,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_examplefunction.m 7123 2012-12-06 21:21:38Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_examplefunction.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 

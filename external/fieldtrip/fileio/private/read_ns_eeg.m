@@ -37,7 +37,7 @@ function [eeg] = read_ns_eeg(filename, epoch)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ns_eeg.m 3346 2011-04-15 07:45:17Z roboos $
+% $Id: read_ns_eeg.m 7123 2012-12-06 21:21:38Z roboos $
 
 % read the neuroscan header 
 eeg = read_ns_hdr(filename);

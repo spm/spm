@@ -29,7 +29,7 @@ function ft_create_buffer(port)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_create_buffer.m 944 2010-04-21 16:08:12Z roboos $
+% $Id: ft_create_buffer.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<1
   port = 1972;

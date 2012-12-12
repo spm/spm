@@ -34,7 +34,7 @@ function [dat, w] = ft_preproc_denoise(dat, refdat, hilbertflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_denoise.m 4796 2011-11-23 09:49:58Z eelspa $
+% $Id: ft_preproc_denoise.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<3,
   hilbertflag = 0;

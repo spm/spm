@@ -39,7 +39,7 @@ function [grad, elec] = bti2grad(hdr, balanceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bti2grad.m 7044 2012-11-28 16:13:45Z jansch $
+% $Id: bti2grad.m 7123 2012-12-06 21:21:38Z roboos $
 
 % for backward compatibility issues FIXME check whether anyone actually uses this code
 if isfield(hdr, 'Meg_pos'),

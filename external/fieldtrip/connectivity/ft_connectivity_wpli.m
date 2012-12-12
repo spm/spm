@@ -52,7 +52,7 @@ function [wpli, v, n] = ft_connectivity_wpli(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_wpli.m 6408 2012-08-27 13:24:12Z marvin $
+% $Id: ft_connectivity_wpli.m 7123 2012-12-06 21:21:38Z roboos $
 
 feedback    = ft_getopt(varargin, 'feedback', 'none');
 debias      = ft_getopt(varargin, 'debias');

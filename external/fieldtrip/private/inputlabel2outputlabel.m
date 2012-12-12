@@ -26,7 +26,7 @@ function [outputlabel, outputindex] = inputlabel2outputlabel(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inputlabel2outputlabel.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: inputlabel2outputlabel.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~isfield(cfg, 'combinechan'), cfg.combinechan = 'no'; end;
 

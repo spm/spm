@@ -46,7 +46,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 7035 2012-11-28 14:53:04Z jansch $
+% $Id: ft_convert_coordsys.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   % determine the coordinate system of the input object

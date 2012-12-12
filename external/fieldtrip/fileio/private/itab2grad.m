@@ -26,7 +26,7 @@ function grad = itab2grad(header_info)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: itab2grad.m 6799 2012-10-29 13:18:38Z roboos $
+% $Id: itab2grad.m 7123 2012-12-06 21:21:38Z roboos $
 
 grad = struct;
 

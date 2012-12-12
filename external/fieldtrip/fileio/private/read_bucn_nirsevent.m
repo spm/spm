@@ -29,7 +29,7 @@ function [event] = read_bucn_nirsevent(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id:$
+% $Id: read_bucn_nirsevent.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(filename, 'r');
 

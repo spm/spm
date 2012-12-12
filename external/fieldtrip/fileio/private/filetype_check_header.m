@@ -22,7 +22,7 @@ function [val] = filetype_check_header(filename, head, offset)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filetype_check_header.m 5653 2012-04-18 14:18:42Z eelspa $
+% $Id: filetype_check_header.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

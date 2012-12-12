@@ -12,7 +12,7 @@ function opt = ft_setopt(opt, key, val)
 
 % Copyright (C) 2011-2012, Robert Oostenveld
 %
-% $Id: ft_setopt.m 5609 2012-04-12 11:55:04Z roboos $
+% $Id: ft_setopt.m 7123 2012-12-06 21:21:38Z roboos $
 
 if isa(opt, 'struct') || isa(opt, 'config')
   

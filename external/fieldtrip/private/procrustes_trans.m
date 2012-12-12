@@ -33,7 +33,7 @@ function [h] = procrustes_trans(input,target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: procrustes_trans.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: procrustes_trans.m 7123 2012-12-06 21:21:38Z roboos $
 
 ninp = size(input,1);
 ntarg = size(target,1);

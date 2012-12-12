@@ -28,7 +28,7 @@ function [lf] = eeg_slab_monopole(rd, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_slab_monopole.m 5287 2012-02-15 14:02:06Z crimic $
+% $Id: eeg_slab_monopole.m 7123 2012-12-06 21:21:38Z roboos $
 
 siz = size(rd);
 if any(siz==1)

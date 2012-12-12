@@ -29,7 +29,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert_new(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: ft_specest_hilbert.m 6977 2012-11-23 07:10:34Z jorhor $
+% $Id: ft_specest_hilbert.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');

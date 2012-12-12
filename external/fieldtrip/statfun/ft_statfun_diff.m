@@ -31,7 +31,7 @@ function [s] = ft_statfun_diff(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff.m 6329 2012-08-06 13:58:46Z eelspa $
+% $Id: ft_statfun_diff.m 7123 2012-12-06 21:21:38Z roboos $
 
 selA = find(design(cfg.ivar,:)==1); % selecton condition 1 or A
 selB = find(design(cfg.ivar,:)==2); % selecton condition 2 or B

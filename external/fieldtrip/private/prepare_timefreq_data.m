@@ -50,7 +50,7 @@ function [cfg, data] = prepare_timefreq_data(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_timefreq_data.m 2097 2010-11-10 09:20:18Z roboos $
+% $Id: prepare_timefreq_data.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),              cfg.channel = 'all';                     end
@@ -438,7 +438,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: prepare_timefreq_data.m 2097 2010-11-10 09:20:18Z roboos $';
+cfg.version.id = '$Id: prepare_timefreq_data.m 7123 2012-12-06 21:21:38Z roboos $';
 
 cfg.previous = [];
 % remember the configuration details from the input data

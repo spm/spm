@@ -87,7 +87,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 7095 2012-12-05 11:23:14Z lilmag $
+% $Id: ft_senstype.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

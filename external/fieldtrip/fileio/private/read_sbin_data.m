@@ -34,7 +34,7 @@ function [trialData] = read_sbin_data(filename, hdr, begtrial, endtrial, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_data.m 2365 2010-12-09 02:53:22Z josdie $
+% $Id: read_sbin_data.m 7123 2012-12-06 21:21:38Z roboos $
 
 fh=fopen([filename],'r');
 if fh==-1

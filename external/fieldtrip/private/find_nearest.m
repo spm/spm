@@ -25,7 +25,7 @@ function [nearest, distance] = find_nearest(pnt1, pnt2, npart, gridflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_nearest.m 5835 2012-06-01 07:12:19Z roboos $
+% $Id: find_nearest.m 7123 2012-12-06 21:21:38Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;

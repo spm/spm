@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 6177 2012-07-02 12:03:19Z roboos $
+% $Id: ft_compile_mex.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<1
   force=false;

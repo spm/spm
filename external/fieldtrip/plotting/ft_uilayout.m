@@ -21,7 +21,7 @@ function ft_uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_uilayout.m 4384 2011-10-08 12:00:17Z roboos $
+% $Id: ft_uilayout.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are used to make a selection of uicontrol elements
 tag    = ft_getopt(varargin, 'tag');

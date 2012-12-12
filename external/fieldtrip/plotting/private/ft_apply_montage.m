@@ -54,7 +54,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 7117 2012-12-06 08:04:43Z roboos $
+% $Id: ft_apply_montage.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get optional input arguments
 keepunused = ft_getopt(varargin, 'keepunused',  'no');

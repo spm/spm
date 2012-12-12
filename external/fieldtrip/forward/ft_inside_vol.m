@@ -34,7 +34,7 @@ function [inside] = ft_inside_vol(pos, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_inside_vol.m 6344 2012-08-08 16:10:45Z roboos $
+% $Id: ft_inside_vol.m 7123 2012-12-06 21:21:38Z roboos $
 
 % determine the type of volume conduction model
 switch ft_voltype(vol)

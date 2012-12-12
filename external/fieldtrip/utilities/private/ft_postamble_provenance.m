@@ -27,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_provenance.m 6755 2012-10-15 09:31:52Z roboos $
+% $Id: ft_postamble_provenance.m 7123 2012-12-06 21:21:38Z roboos $
 
 if isfield(cfg, 'trackcallinfo') && ~istrue(cfg.trackcallinfo)
   % do not track the call information

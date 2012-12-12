@@ -46,7 +46,7 @@ function [planar] = constructplanargrad(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: constructplanargrad.m 7111 2012-12-05 20:32:24Z roboos $
+% $Id: constructplanargrad.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~isfield(cfg, 'planaraxial'),     cfg.planaraxial = 'yes';   end
 if ~isfield(cfg, 'baseline_axial'),  cfg.baseline_axial  = 5;   end
@@ -173,7 +173,7 @@ end
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id   = '$Id: constructplanargrad.m 7111 2012-12-05 20:32:24Z roboos $';
+cfg.version.id   = '$Id: constructplanargrad.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % rememember the exact configuration details in the output
 planar.cfg = cfg;

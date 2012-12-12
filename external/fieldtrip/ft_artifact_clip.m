@@ -56,9 +56,9 @@ function [cfg, artifact] = ft_artifact_clip(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_clip.m 7105 2012-12-05 15:48:38Z dieloz $
+% $Id: ft_artifact_clip.m 7130 2012-12-10 15:21:55Z roboos $
 
-revision = '$Id: ft_artifact_clip.m 7105 2012-12-05 15:48:38Z dieloz $';
+revision = '$Id: ft_artifact_clip.m 7130 2012-12-10 15:21:55Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -68,6 +68,7 @@ ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'artfctdef.clip.thresh', 'artfctdef.clip.timethreshold'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'continuous', 'continuous', 'yes'});
 
 % set default rejection parameters for clip artifacts if necessary.

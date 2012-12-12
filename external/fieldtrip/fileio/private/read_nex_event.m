@@ -31,7 +31,7 @@ function [event] = read_nex_event(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_nex_event.m 5875 2012-06-04 20:41:03Z marvin $
+% $Id: read_nex_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 hdr = read_nex_header(filename);
 adindx = find(cell2mat({hdr.varheader.typ})==5);

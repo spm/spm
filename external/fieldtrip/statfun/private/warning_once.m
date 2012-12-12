@@ -44,7 +44,7 @@ function [ws warned] = warning_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warning_once.m 6888 2012-11-07 14:15:42Z eelspa $
+% $Id: warning_once.m 7123 2012-12-06 21:21:38Z roboos $
 
 persistent stopwatch previous
 

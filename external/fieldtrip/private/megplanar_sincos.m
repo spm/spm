@@ -21,7 +21,7 @@ function montage = megplanar_sincos(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: megplanar_sincos.m 6490 2012-09-20 08:58:59Z jorhor $
+% $Id: megplanar_sincos.m 7123 2012-12-06 21:21:38Z roboos $
 
 lab   = grad.label;
 % ensure correct order

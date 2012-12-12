@@ -28,6 +28,6 @@ function val = bigendian;
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bigendian.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: bigendian.m 7123 2012-12-06 21:21:38Z roboos $
 
 val = (typecast(uint8([0 1]), 'uint16')==1);

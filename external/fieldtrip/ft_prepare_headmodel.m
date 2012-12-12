@@ -106,9 +106,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
+% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -123,6 +123,7 @@ cfg = ft_checkconfig(cfg, 'renamed', {'geom','headshape'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_openmeeg','openmeeg'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_dipoli','dipoli'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'method','bem_cp','bemcp'});
+cfg = ft_checkconfig(cfg, 'renamedval', {'method','nolte','singleshell'});
 
 % set the general defaults
 cfg.hdmfile        = ft_getopt(cfg, 'hdmfile');
@@ -599,7 +600,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
+% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -792,7 +793,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 6754 2012-10-14 19:13:49Z roboos $
+% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

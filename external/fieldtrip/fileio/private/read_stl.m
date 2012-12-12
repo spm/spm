@@ -29,7 +29,7 @@ function [pnt, tri, nrm] = read_stl(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_stl.m 5025 2011-12-13 08:57:26Z roboos $
+% $Id: read_stl.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(filename, 'rt');
 

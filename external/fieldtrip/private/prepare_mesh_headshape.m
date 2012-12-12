@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 6319 2012-08-03 15:10:19Z roevdmei $
+% $Id: prepare_mesh_headshape.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -210,7 +210,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: prepare_mesh_headshape.m 6319 2012-08-03 15:10:19Z roevdmei $
+% $Id: prepare_mesh_headshape.m 7123 2012-12-06 21:21:38Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

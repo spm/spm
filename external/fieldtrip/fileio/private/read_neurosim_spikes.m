@@ -37,7 +37,7 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 7119 2012-12-06 10:03:05Z bargip $
+% $Id: read_neurosim_spikes.m 7123 2012-12-06 21:21:38Z roboos $
 
 if isdir(filename)
     filename = fullfile(filename, 'spikes');

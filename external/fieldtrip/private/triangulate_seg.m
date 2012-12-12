@@ -45,7 +45,7 @@ function [pnt, tri] = triangulate_seg(seg, npnt, origin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: triangulate_seg.m 6525 2012-09-24 15:40:28Z roboos $
+% $Id: triangulate_seg.m 7123 2012-12-06 21:21:38Z roboos $
 
 % impose it to be boolean
 seg = (seg~=0);

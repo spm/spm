@@ -21,7 +21,7 @@ function montage = megplanar_orig(cfg, grad)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: megplanar_orig.m 4287 2011-09-23 12:17:38Z jansch $
+% $Id: megplanar_orig.m 7123 2012-12-06 21:21:38Z roboos $
 
 neighbsel = cfg.neighbsel;
 distance  = cfg.distance;

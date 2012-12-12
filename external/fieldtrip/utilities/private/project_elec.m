@@ -29,7 +29,7 @@ function [el, prj] = project_elec(elc, pnt, tri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: project_elec.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: project_elec.m 7123 2012-12-06 21:21:38Z roboos $
 
 Nelc = size(elc,1);
 Npnt = size(pnt,1);

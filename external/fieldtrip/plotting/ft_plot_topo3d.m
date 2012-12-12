@@ -34,7 +34,7 @@ function ft_plot_topo3d(pnt, val, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo3d.m 5209 2012-02-01 13:45:57Z crimic $
+% $Id: ft_plot_topo3d.m 7123 2012-12-06 21:21:38Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

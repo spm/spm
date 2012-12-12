@@ -26,11 +26,11 @@ function [vol, cfg] = ft_prepare_singleshell(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_singleshell.m 6754 2012-10-14 19:13:49Z roboos $
+% $Id: ft_prepare_singleshell.m 7123 2012-12-06 21:21:38Z roboos $
 
 warning('FT_PREPARE_SINGLESHELL is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''singleshell'' instead.')
 
-revision = '$Id: ft_prepare_singleshell.m 6754 2012-10-14 19:13:49Z roboos $';
+revision = '$Id: ft_prepare_singleshell.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -68,7 +68,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 6604 2012-09-29 10:28:16Z roboos $
+% $Id: ft_datatype_source.m 7123 2012-12-06 21:21:38Z roboos $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields 
 % was really in 2007

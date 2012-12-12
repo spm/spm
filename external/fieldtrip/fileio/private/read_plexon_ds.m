@@ -28,7 +28,7 @@ function [dat] = read_plexon_ds(dirname, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_plexon_ds.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_plexon_ds.m 7123 2012-12-06 21:21:38Z roboos $
 
 needhdr = (nargin==1);
 needdat = (nargin>=2);

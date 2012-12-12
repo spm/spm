@@ -34,7 +34,7 @@ function lf = eeg_leadfield1(R, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfield1.m 6684 2012-10-04 19:45:34Z roboos $
+% $Id: eeg_leadfield1.m 7123 2012-12-06 21:21:38Z roboos $
 
 Nchans = size(elc, 1);
 lf = zeros(Nchans,3);

@@ -36,7 +36,7 @@ function write_plexon_nex(filename, nex)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_plexon_nex.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: write_plexon_nex.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional arguments, these are all required
 % FirstTimeStamp = ft_getopt(varargin, 'FirstTimeStamp');
@@ -137,7 +137,7 @@ return
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   function write_NexFileHeader
     % prepare the two char buffers
-    buf1 = padstr('$Id: write_plexon_nex.m 4624 2011-10-29 10:10:49Z roboos $', 256);
+    buf1 = padstr('$Id: write_plexon_nex.m 7123 2012-12-06 21:21:38Z roboos $', 256);
     buf2 = char(zeros(1, 256));
     % write the stuff to the file
     fwrite(fid, 'NEX1' , 'char');           % NexFileHeader  = string NEX1

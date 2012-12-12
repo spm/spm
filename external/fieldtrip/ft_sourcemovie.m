@@ -22,13 +22,13 @@ function [cfg, M] = ft_sourcemovie(cfg, source, source2)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 6903 2012-11-09 19:45:07Z jansch $
+% $Id: ft_sourcemovie.m 7123 2012-12-06 21:21:38Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_sourcemovie.m 6903 2012-11-09 19:45:07Z jansch $';
+revision = '$Id: ft_sourcemovie.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

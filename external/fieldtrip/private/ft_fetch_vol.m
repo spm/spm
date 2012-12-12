@@ -5,8 +5,7 @@ function [vol] = ft_fetch_vol(cfg, data)
 %
 % Use as
 %   [vol] = ft_fetch_vol(cfg, data)
-%
-% Either of the two input arguments may be empty.
+% where either of the two input arguments may be empty.
 %
 % The volume conductor definitions are specified in the configuration or
 % data. The sensor configuration can be passed into this function in three ways:
@@ -40,7 +39,7 @@ function [vol] = ft_fetch_vol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id$
+% $Id: ft_fetch_vol.m 7123 2012-12-06 21:21:38Z roboos $
 
 % check input arguments
 if nargin > 1 && ~isempty(data)

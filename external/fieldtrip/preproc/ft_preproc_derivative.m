@@ -29,7 +29,7 @@ function [dat] = ft_preproc_derivative(dat, order)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_derivative.m 6548 2012-09-26 12:50:23Z arjsto $
+% $Id: ft_preproc_derivative.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults if options are not specified
 if nargin<2 || isempty(order)

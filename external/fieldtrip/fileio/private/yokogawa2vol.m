@@ -22,7 +22,7 @@ function [vol] = yokogawa2vol(hdr);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2vol.m 4547 2011-10-21 10:27:33Z tilsan $
+% $Id: yokogawa2vol.m 7123 2012-12-06 21:21:38Z roboos $
 
 % hdr = read_yokogawa_header(filename);
 hdr = hdr.orig; % use the original Yokogawa header, not the FieldTrip header

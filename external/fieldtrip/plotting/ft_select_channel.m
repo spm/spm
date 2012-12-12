@@ -57,7 +57,7 @@ function ft_select_channel(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_channel.m 6377 2012-08-17 13:47:50Z roevdmei $
+% $Id: ft_select_channel.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get optional input arguments
 multiple = ft_getopt(varargin, 'multiple', false);

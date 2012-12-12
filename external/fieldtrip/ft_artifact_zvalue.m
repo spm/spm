@@ -101,9 +101,9 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 6923 2012-11-14 08:36:09Z jansch $
+% $Id: ft_artifact_zvalue.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_artifact_zvalue.m 6923 2012-11-14 08:36:09Z jansch $';
+revision = '$Id: ft_artifact_zvalue.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

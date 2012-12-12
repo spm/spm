@@ -31,7 +31,7 @@ function [mri, seg, hdr] = read_asa_mri(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_mri.m 3474 2011-05-09 14:13:50Z roboos $
+% $Id: read_asa_mri.m 7123 2012-12-06 21:21:38Z roboos $
 
 hdr.Nrows     = read_asa(fn, 'NumberRows=', '%d');
 hdr.Ncolumns  = read_asa(fn, 'NumberColumns=', '%d');

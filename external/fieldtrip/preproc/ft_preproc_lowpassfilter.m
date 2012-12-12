@@ -46,7 +46,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 6160 2012-06-27 14:17:12Z jorhor $
+% $Id: ft_preproc_lowpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

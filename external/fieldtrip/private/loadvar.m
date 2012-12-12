@@ -4,7 +4,7 @@ function value = loadvar(filename, varname)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: loadvar.m 4516 2011-10-19 09:25:55Z roboos $
+% $Id: loadvar.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<2
   fprintf('reading variable from file ''%s''\n', filename);

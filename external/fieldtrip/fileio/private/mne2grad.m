@@ -35,7 +35,7 @@ function [grad, elec] = mne2grad(hdr)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 6867 2012-11-04 15:49:07Z roboos $
+% $Id: mne2grad.m 7123 2012-12-06 21:21:38Z roboos $
 
 grad = [];
 

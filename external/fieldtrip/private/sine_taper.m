@@ -22,7 +22,7 @@ function d = sine_taper(n, k)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sine_taper.m 5886 2012-06-05 11:01:28Z roboos $
+% $Id: sine_taper.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin < 2
   error('usage: sine_taper(n, k)');

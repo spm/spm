@@ -44,7 +44,7 @@ function [varargout] = ft_plot_box(position, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_box.m 5725 2012-05-02 08:21:49Z jorhor $
+% $Id: ft_plot_box.m 7123 2012-12-06 21:21:38Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

@@ -42,7 +42,7 @@ function val = ft_getopt(opt, key, default, emptymeaningful)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_getopt.m 6747 2012-10-11 19:10:11Z roboos $
+% $Id: ft_getopt.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<3
   default = [];

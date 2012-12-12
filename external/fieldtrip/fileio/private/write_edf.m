@@ -28,7 +28,7 @@ function write_edf(filename, hdr, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_edf.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: write_edf.m 7123 2012-12-06 21:21:38Z roboos $
 
 [nChans,N] = size(data);
 if hdr.nChans ~= nChans

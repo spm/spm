@@ -49,7 +49,7 @@ function [tap] = alpha_taper(n, f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: alpha_taper.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: alpha_taper.m 7123 2012-12-06 21:21:38Z roboos $
 
 % time axis expressed in cycles of the desired wavelet frequency
 t   = ((-n+1):0) * f;

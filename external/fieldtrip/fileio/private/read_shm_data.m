@@ -21,7 +21,7 @@ function [dat, dimord] = read_shm_data(hdr, chanindx, begtrial, endtrial)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_shm_data.m 5035 2011-12-14 10:47:49Z roboos $
+% $Id: read_shm_data.m 7123 2012-12-06 21:21:38Z roboos $
 
 % this persistent variable is used for caching the 600 packets
 % which inproves the throughput when reading overlapping data segments

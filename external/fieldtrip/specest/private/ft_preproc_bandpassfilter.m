@@ -43,7 +43,7 @@ function [filt] = ft_preproc_bandpassfilter(dat, Fs, Fbp, N, type, dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 2781 2011-02-03 10:48:53Z roboos $
+% $Id: ft_preproc_bandpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the default filter order later
 if nargin<4 || isempty(N)

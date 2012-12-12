@@ -28,7 +28,7 @@ function [el, lab] = read_elec(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_elec.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_elec.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(fn, 'rt');
 if fid~=-1

@@ -42,7 +42,7 @@ function event = ft_filter_event(event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filter_event.m 3641 2011-06-07 12:47:23Z roboos $
+% $Id: ft_filter_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments
 type         = ft_getopt(varargin, 'type');

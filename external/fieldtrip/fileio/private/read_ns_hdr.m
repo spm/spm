@@ -32,7 +32,7 @@ function [hdr] = read_ns_hdr(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ns_hdr.m 2528 2011-01-05 14:12:08Z eelspa $
+% $Id: read_ns_hdr.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(filename,'r','ieee-le');
 

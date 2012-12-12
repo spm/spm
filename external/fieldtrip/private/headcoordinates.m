@@ -85,7 +85,7 @@ function [h, flag] = headcoordinates(nas, lpa, rpa, extrapoint, flag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headcoordinates.m 6448 2012-09-12 05:48:21Z roboos $
+% $Id: headcoordinates.m 7123 2012-12-06 21:21:38Z roboos $
 
 % check whether function call is old or new style
 if nargin<4

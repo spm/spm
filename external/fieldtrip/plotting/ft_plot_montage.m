@@ -43,7 +43,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 6507 2012-09-20 20:43:30Z roboos $
+% $Id: ft_plot_montage.m 7139 2012-12-11 12:25:35Z jansch $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');
@@ -140,12 +140,14 @@ for k = 1:nslice
   offset(2) = ix*(slicesize(2)-1); 
   
   % update the specification of the corners of the montage plot
-  c1 = offset(1) + min(xtmp(:));
-  c2 = offset(1) + max(xtmp(:));
-  c3 = offset(2) + min(ytmp(:));
-  c4 = offset(2) + max(ytmp(:));
-  c5 = min(ztmp(:));
-  c6 = max(ztmp(:));
+  if ~isempty(xtmp)
+    c1 = offset(1) + min(xtmp(:));
+    c2 = offset(1) + max(xtmp(:));
+    c3 = offset(2) + min(ytmp(:));
+    c4 = offset(2) + max(ytmp(:));
+    c5 = min(ztmp(:));
+    c6 = max(ztmp(:));
+  end
   corners = [min(corners(1),c1) max(corners(2),c2) min(corners(3),c3) max(corners(4),c4) min(corners(5),c5) max(corners(6),c6)];
   
   % update the positions

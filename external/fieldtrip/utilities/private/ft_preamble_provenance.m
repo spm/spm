@@ -27,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_preamble_provenance.m 7123 2012-12-06 21:21:38Z roboos $
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the

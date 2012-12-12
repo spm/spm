@@ -43,7 +43,7 @@ function [cluster, num] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 3000 2011-02-28 21:42:59Z roboos $
+% $Id: findcluster.m 7123 2012-12-06 21:21:38Z roboos $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);

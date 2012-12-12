@@ -4,7 +4,7 @@ function savevar(filename, varname, value)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: savevar.m 4516 2011-10-19 09:25:55Z roboos $
+% $Id: savevar.m 7123 2012-12-06 21:21:38Z roboos $
 
 fprintf('writing ''%s'' to file ''%s''\n', varname, filename);
 

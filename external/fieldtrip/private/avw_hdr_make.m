@@ -13,7 +13,7 @@ function [ avw ] = avw_hdr_make
 %           AVW_IMG_READ AVW_IMG_WRITE
 %
 
-% $Revision: 4624 $ $Date: 2009/01/14 09:24:45 $
+% $Revision: 7123 $ $Date: 2009/01/14 09:24:45 $
 
 % Licence:  GNU GPL, no express or implied warranties
 % History:  06/2002, Darren.Weber@flinders.edu.au
@@ -26,7 +26,7 @@ function [ avw ] = avw_hdr_make
 %                    Biomedical Imaging Resource, Mayo Foundation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-version = '[$Revision: 4624 $]';
+version = '[$Revision: 7123 $]';
 fprintf('\nAVW_HDR_MAKE [v%s]\n',version(12:16));  tic;
 
 

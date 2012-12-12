@@ -28,7 +28,7 @@ function s = spearman_binned(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spearman_binned.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: spearman_binned.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~isfield(cfg, 'factor') & prod(size(design)) ~= max(size(design)),
   error('cannot determine the labeling of the trials');

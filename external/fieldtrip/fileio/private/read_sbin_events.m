@@ -32,7 +32,7 @@ function [EventCodes, segHdr, eventData] = read_sbin_events(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_events.m 5807 2012-05-25 04:07:18Z josdie $
+% $Id: read_sbin_events.m 7123 2012-12-06 21:21:38Z roboos $
 
 EventCodes = [];
 segHdr = [];

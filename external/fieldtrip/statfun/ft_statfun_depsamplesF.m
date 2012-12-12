@@ -66,7 +66,7 @@ function [s,cfg] = ft_statfun_depsamplesF(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_depsamplesF.m 6329 2012-08-06 13:58:46Z eelspa $
+% $Id: ft_statfun_depsamplesF.m 7123 2012-12-06 21:21:38Z roboos $
 
 
 % set defaults

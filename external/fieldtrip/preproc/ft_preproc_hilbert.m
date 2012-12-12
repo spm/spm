@@ -41,7 +41,7 @@ function [dat] = ft_preproc_hilbert(dat, option)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_hilbert.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_hilbert.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults if option is not specified
 if nargin<2 || isempty(option)

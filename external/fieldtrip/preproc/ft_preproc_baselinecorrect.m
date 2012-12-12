@@ -33,7 +33,7 @@ function [dat,baseline] = ft_preproc_baselinecorrect(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_baselinecorrect.m 5591 2012-04-04 14:51:18Z roboos $
+% $Id: ft_preproc_baselinecorrect.m 7123 2012-12-06 21:21:38Z roboos $
 
 % the beta returned by polyremoval should exactly be equal to the mean,
 % since we assume that polyremoval uses ones as its constant regressor

@@ -28,7 +28,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_wavelet(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_wavelet.m 6977 2012-11-23 07:10:34Z jorhor $
+% $Id: ft_specest_wavelet.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');

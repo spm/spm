@@ -32,7 +32,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmconvol.m 6982 2012-11-23 09:38:17Z jorhor $
+% $Id: ft_specest_mtmconvol.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm

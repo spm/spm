@@ -23,7 +23,7 @@ function [h] = fwer(p, q);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fwer.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: fwer.m 7123 2012-12-06 21:21:38Z roboos $
 
 % count the number of voxels
 V = length(p);

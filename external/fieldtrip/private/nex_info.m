@@ -31,7 +31,7 @@ function [nvar, names, types] = nex_info(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nex_info.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: nex_info.m 7123 2012-12-06 21:21:38Z roboos $
 
 if(nargin ~= 1)
    disp('1 input arguments are required')

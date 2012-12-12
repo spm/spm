@@ -62,7 +62,7 @@ function [granger, v, n] = ft_connectivity_granger(H, Z, S, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_granger.m 4570 2011-10-24 12:48:04Z jansch $
+% $Id: ft_connectivity_granger.m 7123 2012-12-06 21:21:38Z roboos $
 
 method  = ft_getopt(varargin, 'method',  'granger');
 hasjack = ft_getopt(varargin, 'hasjack', 0);

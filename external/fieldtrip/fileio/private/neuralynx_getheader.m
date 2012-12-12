@@ -22,7 +22,7 @@ function [hdr] = neuralynx_getheader(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: neuralynx_getheader.m 6030 2012-06-11 20:37:31Z marvin $
+% $Id: neuralynx_getheader.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid     = fopen(filename, 'rb', 'ieee-le');
 buf     = fread(fid, 16*1024, 'uint8=>char');

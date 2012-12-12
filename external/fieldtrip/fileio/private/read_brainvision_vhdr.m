@@ -26,7 +26,7 @@ function [hdr] = read_brainvision_vhdr(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_vhdr.m 6402 2012-08-23 10:47:04Z borreu $
+% $Id: read_brainvision_vhdr.m 7123 2012-12-06 21:21:38Z roboos $
 
 hdr.DataFile         = read_asa(filename, 'DataFile=', '%s');
 hdr.MarkerFile       = read_asa(filename, 'MarkerFile=', '%s');

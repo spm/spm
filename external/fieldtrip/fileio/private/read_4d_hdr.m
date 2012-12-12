@@ -25,7 +25,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 6837 2012-10-31 08:11:27Z jansch $
+% $Id: read_4d_hdr.m 7123 2012-12-06 21:21:38Z roboos $
 
 %read header
 if nargin ~= 2

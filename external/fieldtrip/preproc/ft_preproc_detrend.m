@@ -33,7 +33,7 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_detrend.m 5591 2012-04-04 14:51:18Z roboos $
+% $Id: ft_preproc_detrend.m 7123 2012-12-06 21:21:38Z roboos $
 
 % take the whole segment if begsample and endsample are not specified
 if nargin<2

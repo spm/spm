@@ -64,7 +64,7 @@ function [resample] = resampledesign(cfg, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: resampledesign.m 4236 2011-09-16 11:01:54Z roboos $
+% $Id: resampledesign.m 7123 2012-12-06 21:21:38Z roboos $
 
 ft_checkopt(cfg, 'ivar', {'numericscalar', 'numericvector', 'empty'});
 ft_checkopt(cfg, 'uvar', {'numericscalar', 'numericvector', 'empty'});

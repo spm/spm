@@ -38,7 +38,7 @@ function ft_write_spike(filename, spike, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_spike.m 5799 2012-05-23 07:19:09Z roboos $
+% $Id: ft_write_spike.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the options
 dataformat          = ft_getopt(varargin, 'dataformat');

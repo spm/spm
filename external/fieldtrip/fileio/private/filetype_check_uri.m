@@ -42,7 +42,7 @@ function varargout = filetype_check_uri(filename, ftyp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filetype_check_uri.m 6552 2012-09-26 20:28:03Z roboos $
+% $Id: filetype_check_uri.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

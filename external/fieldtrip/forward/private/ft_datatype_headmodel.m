@@ -7,7 +7,7 @@ function vol = ft_datatype_headmodel(vol, varargin)
 % how the secondary (or impressed) currents flow and how these contribute to
 % the model potential or field.
 %
-% There is a large number of forward solutions for the EEG and MEG supported
+% A large number of forward solutions for the EEG and MEG are supported
 % in FieldTrip, each with its own specification of the MATLAB structure that
 % describes the volume conduction model of th ehead. It would be difficult to
 % list all the possibilities here. One common feature is that the volume
@@ -62,7 +62,7 @@ function vol = ft_datatype_headmodel(vol, varargin)
 
 % Copyright (C) 2011-2012, Cristiano Micheli, Robert Oostenveld
 %
-% $Id$
+% $Id: ft_datatype_headmodel.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

@@ -27,7 +27,7 @@ function [sel1, sel2] = match_str(a, b)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: match_str.m 6874 2012-11-06 08:43:53Z roboos $
+% $Id: match_str.m 7123 2012-12-06 21:21:38Z roboos $
 
 % ensure that both are cell-arrays
 if isempty(a)

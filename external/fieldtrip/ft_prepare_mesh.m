@@ -67,9 +67,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 7083 2012-12-04 17:39:17Z lilmag $
+% $Id: ft_prepare_mesh.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 7083 2012-12-04 17:39:17Z lilmag $';
+revision = '$Id: ft_prepare_mesh.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

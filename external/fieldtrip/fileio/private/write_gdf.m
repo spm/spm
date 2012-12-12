@@ -23,7 +23,7 @@ function write_gdf(filename, hdr, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_gdf.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: write_gdf.m 7123 2012-12-06 21:21:38Z roboos $
 
 [nChans,N] = size(data);
 if hdr.nChans ~= nChans

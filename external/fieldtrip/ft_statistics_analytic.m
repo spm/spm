@@ -56,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 6420 2012-09-03 13:45:02Z lilmag $
+% $Id: ft_statistics_analytic.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'correctm'), cfg.correctm = 'no'; end

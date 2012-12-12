@@ -26,7 +26,7 @@ function [spectrum, freqoi, timeoi] = ft_specest_tfr(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_tfr.m 5780 2012-05-16 08:37:40Z roevdmei $
+% $Id: ft_specest_tfr.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');

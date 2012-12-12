@@ -30,7 +30,7 @@ function dat = ft_preproc_medianfilter(dat, order);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 5593 2012-04-04 15:17:51Z roboos $
+% $Id: ft_preproc_medianfilter.m 7123 2012-12-06 21:21:38Z roboos $
 
 % set the default filter order
 if nargin<2 || isempty(order)

@@ -37,13 +37,13 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 6788 2012-10-25 07:44:35Z roboos $
+% $Id: ft_removetmsartifact.m 7123 2012-12-06 21:21:38Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 6788 2012-10-25 07:44:35Z roboos $';
+revision = '$Id: ft_removetmsartifact.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 

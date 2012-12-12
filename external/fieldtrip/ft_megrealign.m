@@ -102,9 +102,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 6842 2012-10-31 17:04:18Z roboos $
+% $Id: ft_megrealign.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_megrealign.m 6842 2012-10-31 17:04:18Z roboos $';
+revision = '$Id: ft_megrealign.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

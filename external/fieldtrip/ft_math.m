@@ -27,13 +27,13 @@ function data = ft_math(cfg, varargin)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% $Id: ft_math.m 7054 2012-11-29 08:46:25Z roboos $
+% $Id: ft_math.m 7123 2012-12-06 21:21:38Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 7054 2012-11-29 08:46:25Z roboos $';
+revision = '$Id: ft_math.m 7123 2012-12-06 21:21:38Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble help              % this will show the function help if nargin==0 and return an error

@@ -26,7 +26,7 @@ function tsq = read_tdt_tsq(filename, begblock, endblock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_tdt_tsq.m 2212 2010-11-27 11:55:07Z roboos $
+% $Id: read_tdt_tsq.m 7123 2012-12-06 21:21:38Z roboos $
 
 % Here are the possible values of the data format long:
 % DFORM_FLOAT     0

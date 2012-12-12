@@ -36,7 +36,7 @@ function [file] = read_ctf_ascii(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_ascii.m 1362 2010-07-06 09:04:24Z roboos $
+% $Id: read_ctf_ascii.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid = fopen(filename, 'r');
 if fid==-1

@@ -35,7 +35,7 @@ function [x] = ft_struct2double(x, maxdepth);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_struct2double.m 3213 2011-03-24 22:37:01Z jansch $
+% $Id: ft_struct2double.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<2
   maxdepth = inf;

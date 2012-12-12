@@ -36,7 +36,7 @@ function varargout = interp_gridded(transform, val, pnt, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_gridded.m 5602 2012-04-10 12:44:05Z jansch $
+% $Id: interp_gridded.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<3
   error('Not enough input arguments.');

@@ -21,7 +21,7 @@ function [x,mx,sx] = standardise(x,dim,lim)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: standardise.m 7027 2012-11-28 14:15:22Z jorhor $
+% $Id: standardise.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin == 1, 
   dim = find(size(x)>1,1,'first');

@@ -84,7 +84,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7119 2012-12-06 10:03:05Z bargip $
+% $Id: ft_read_header.m 7123 2012-12-06 21:21:38Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 

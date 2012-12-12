@@ -9,7 +9,7 @@ function lf = leadfield_interpolate(pos, vol)
 
 % Copyright (C) 2012, whoever works on this
 %
-% $Id: leadfield_interpolate.m 7078 2012-12-04 13:17:21Z roboos $
+% $Id: leadfield_interpolate.m 7123 2012-12-06 21:21:38Z roboos $
 
 % FIXME this still needs to be implemented
 

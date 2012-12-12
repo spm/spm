@@ -55,7 +55,7 @@ function [varargout] = ft_qualitycheck(cfg)
 %
 % $Id:%
 
-revision = '$Id: ft_qualitycheck.m 6772 2012-10-19 14:17:19Z lilmag $';
+revision = '$Id: ft_qualitycheck.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -47,7 +47,7 @@ function [H] = rigidbody(f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rigidbody.m 3486 2011-05-10 09:29:30Z roboos $
+% $Id: rigidbody.m 7123 2012-12-06 21:21:38Z roboos $
 
 if numel(f)~=6
   error('incorrect input vector');

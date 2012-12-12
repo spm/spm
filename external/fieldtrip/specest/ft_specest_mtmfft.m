@@ -29,7 +29,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 6980 2012-11-23 07:22:37Z jorhor $
+% $Id: ft_specest_mtmfft.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap

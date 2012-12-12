@@ -21,7 +21,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_help.m 5113 2012-01-11 07:57:16Z roboos $
+% $Id: ft_preamble_help.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin==0
   stack = dbstack('-completenames');

@@ -159,9 +159,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 6991 2012-11-26 14:33:49Z jorhor $
+% $Id: ft_topoplotTFR.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_topoplotTFR.m 6991 2012-11-26 14:33:49Z jorhor $';
+revision = '$Id: ft_topoplotTFR.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -35,7 +35,7 @@ function [x] = ft_struct2single(x, maxdepth);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_struct2single.m 3772 2011-07-04 15:19:01Z jansch $
+% $Id: ft_struct2single.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<2
   maxdepth = inf;

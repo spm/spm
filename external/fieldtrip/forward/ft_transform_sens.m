@@ -28,6 +28,6 @@ function [sens] = ft_transform_sens(transform, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_transform_sens.m 3884 2011-07-20 13:37:03Z jansch $
+% $Id: ft_transform_sens.m 7123 2012-12-06 21:21:38Z roboos $
 
 sens = ft_transform_geometry(transform, sens);

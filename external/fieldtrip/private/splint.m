@@ -43,7 +43,7 @@ function [V2, L2, L1] = splint(elc1, V1, elc2)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: splint.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: splint.m 7123 2012-12-06 21:21:38Z roboos $
 
 N = size(elc1,1);   % number of known electrodes
 M = size(elc2,1);   % number of unknown electrodes

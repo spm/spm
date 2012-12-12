@@ -37,7 +37,7 @@ function [spectrum] = specest_nanfft(dat, time, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: specest_nanfft.m 6082 2012-06-17 10:24:54Z marvin $
+% $Id: specest_nanfft.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the optional arguments
 basis     = ft_getopt(varargin, 'basis');

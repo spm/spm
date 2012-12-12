@@ -34,9 +34,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $
+% $Id: loreta2fieldtrip.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: loreta2fieldtrip.m 6060 2012-06-13 15:05:49Z jorhor $';
+revision = '$Id: loreta2fieldtrip.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -43,7 +43,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 6677 2012-10-04 18:13:27Z roboos $
+% $Id: ft_read_mri.m 7123 2012-12-06 21:21:38Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);

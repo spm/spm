@@ -53,7 +53,7 @@ function [s] = statfun_pooledT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_pooledT.m 6328 2012-08-06 13:40:30Z eelspa $
+% $Id: ft_statfun_pooledT.m 7123 2012-12-06 21:21:38Z roboos $
 
 
 selA = find(design(cfg.ivar,:)==1);

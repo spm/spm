@@ -37,7 +37,7 @@ function [lf] = eeg_leadfieldb(pos, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_leadfieldb.m 5353 2012-02-29 23:44:21Z crimic $
+% $Id: eeg_leadfieldb.m 7123 2012-12-06 21:21:38Z roboos $
 
 
 % do some sanity checks

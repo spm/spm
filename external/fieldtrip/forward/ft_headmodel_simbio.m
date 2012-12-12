@@ -26,7 +26,7 @@ function vol = ft_headmodel_simbio(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_simbio.m 6929 2012-11-15 08:18:54Z roboos $
+% $Id: ft_headmodel_simbio.m 7123 2012-12-06 21:21:38Z roboos $
 
 ft_hastoolbox('simbio', 1);
 

@@ -29,7 +29,7 @@ function [s] = getsubfield(s, f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 6288 2012-07-25 13:16:43Z jorhor $
+% $Id: getsubfield.m 7123 2012-12-06 21:21:38Z roboos $
 if iscell(f)
   f = f{1};
 end

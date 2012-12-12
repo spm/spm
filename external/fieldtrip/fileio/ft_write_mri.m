@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 7005 2012-11-27 22:06:52Z roboos $
+% $Id: ft_write_mri.m 7123 2012-12-06 21:21:38Z roboos $
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));

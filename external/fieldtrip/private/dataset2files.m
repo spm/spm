@@ -27,7 +27,7 @@ function cfg = dataset2files(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 2298 2010-12-06 20:47:12Z roboos $
+% $Id: dataset2files.m 7123 2012-12-06 21:21:38Z roboos $
 
 % start with empty fields if thery are not present
 if ~isfield(cfg, 'dataset')

@@ -61,7 +61,7 @@ function [cfg] = prepare_design(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_design.m 3939 2011-08-13 12:27:59Z jansch $
+% $Id: prepare_design.m 7123 2012-12-06 21:21:38Z roboos $
 
 % determine whether a beween or a within-units design is requested.
 if any(strcmp(cfg.statistic,{'indepsamplesT','indepsamplesregrT','indepsamplesZcoh','indepsamplesF'}))
@@ -143,5 +143,5 @@ end;
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: prepare_design.m 3939 2011-08-13 12:27:59Z jansch $';
+cfg.version.id = '$Id: prepare_design.m 7123 2012-12-06 21:21:38Z roboos $';
 

@@ -33,7 +33,7 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_dma.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: read_neuralynx_dma.m 7123 2012-12-06 21:21:38Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The data is simply a stream of constant size records,  the size of the

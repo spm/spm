@@ -45,7 +45,7 @@ function hdr = read_yokogawa_header(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_yokogawa_header.m 2617 2011-01-20 15:19:35Z jorhor $
+% $Id: read_yokogawa_header.m 7123 2012-12-06 21:21:38Z roboos $
 
 % FIXED
 %  txt -> m

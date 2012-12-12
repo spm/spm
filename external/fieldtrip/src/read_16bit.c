@@ -22,7 +22,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  *
- * $Id: read_16bit.c 5037 2011-12-14 11:01:21Z roboos $
+ * $Id: read_16bit.c 7123 2012-12-06 21:21:38Z roboos $
  */
 
 void

@@ -135,13 +135,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_rejectvisual.m 7123 2012-12-06 21:21:38Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_rejectvisual.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

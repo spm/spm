@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel, type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 6877 2012-11-06 14:53:26Z dieloz $
+% $Id: ft_channelselection.m 7128 2012-12-10 14:43:24Z dieloz $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -250,7 +250,7 @@ switch casetype
     labelmzo  = datachannel(strncmp('MZO', datachannel, length('MZO')));
     labelmzp  = datachannel(strncmp('MZP', datachannel, length('MZP')));
 
-  case {'bti', 'bti248', 'bti148', 'bti248_planar', 'bti148_planar'}
+  case {'bti', 'bti248', 'bti248grad', 'bti148', 'bti248_planar', 'bti148_planar'}
     % all 4D-BTi MEG channels start with "A"
     % all 4D-BTi reference channels start with M or G
     labelmeg = datachannel(strncmp('A'  , datachannel, 1));

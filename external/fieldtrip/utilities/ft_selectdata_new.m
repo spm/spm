@@ -25,7 +25,7 @@ function [varargout] = ft_selectdata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 6637 2012-10-02 16:16:03Z roboos $
+% $Id: ft_selectdata_new.m 7123 2012-12-06 21:21:38Z roboos $
 
 ft_defaults
 ft_preamble help

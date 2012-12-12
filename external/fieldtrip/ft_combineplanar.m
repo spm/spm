@@ -51,9 +51,9 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 7114 2012-12-05 21:03:24Z roboos $
+% $Id: ft_combineplanar.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_combineplanar.m 7114 2012-12-05 21:03:24Z roboos $';
+revision = '$Id: ft_combineplanar.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -24,7 +24,7 @@ function [nrm] = normals(pnt, dhk, opt);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: normals.m 6899 2012-11-09 19:21:35Z jansch $
+% $Id: normals.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<3
   opt='vertex';

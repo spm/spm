@@ -38,7 +38,7 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_connectivityplot.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

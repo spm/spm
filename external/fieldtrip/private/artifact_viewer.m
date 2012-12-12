@@ -22,7 +22,7 @@ function artifact_viewer(cfg, artcfg, zval, artval, zindx, inputdata);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: artifact_viewer.m 3323 2011-04-09 14:36:20Z crimic $
+% $Id: artifact_viewer.m 7123 2012-12-06 21:21:38Z roboos $
 
 dat.cfg     = cfg;
 dat.artcfg  = artcfg;

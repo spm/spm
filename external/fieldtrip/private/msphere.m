@@ -32,7 +32,7 @@ function [pnt, tri] = msphere(N)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: msphere.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: msphere.m 7123 2012-12-06 21:21:38Z roboos $
 
 % From: rusin@washington.math.niu.edu (Dave Rusin)
 % Newsgroups: sci.math

@@ -50,7 +50,7 @@ function ft_write_event(filename, event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_event.m 5260 2012-02-08 13:19:05Z roboos $
+% $Id: ft_write_event.m 7123 2012-12-06 21:21:38Z roboos $
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql

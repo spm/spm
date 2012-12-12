@@ -25,7 +25,7 @@ function grad = yokogawa2grad(hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: yokogawa2grad.m 6799 2012-10-29 13:18:38Z roboos $
+% $Id: yokogawa2grad.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~ft_hastoolbox('yokogawa')
     error('cannot determine whether Yokogawa toolbox is present');

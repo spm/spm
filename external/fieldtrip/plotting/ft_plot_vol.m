@@ -38,9 +38,12 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 6344 2012-08-08 16:10:45Z roboos $
+% $Id: ft_plot_vol.m 7135 2012-12-11 08:24:41Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
+
+% ensure that the volume conduction model description is up-to-date (Dec 2012)
+vol = ft_datatype_headmodel(vol);
 
 % get the optional input arguments
 faceindex   = ft_getopt(varargin, 'faceindex',   'none');

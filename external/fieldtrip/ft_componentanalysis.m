@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 6842 2012-10-31 17:04:18Z roboos $
+% $Id: ft_componentanalysis.m 7123 2012-12-06 21:21:38Z roboos $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
 
-revision = '$Id: ft_componentanalysis.m 6842 2012-10-31 17:04:18Z roboos $';
+revision = '$Id: ft_componentanalysis.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

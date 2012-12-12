@@ -25,7 +25,7 @@ function [lf] = eeg_halfspace_medium_leadfield(rd, elc, vol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: eeg_halfspace_medium_leadfield.m 3895 2011-07-24 15:16:53Z crimic $
+% $Id: eeg_halfspace_medium_leadfield.m 7123 2012-12-06 21:21:38Z roboos $
 
 siz = size(rd);
 if any(siz==1)

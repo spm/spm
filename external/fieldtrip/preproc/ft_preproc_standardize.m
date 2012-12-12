@@ -34,7 +34,7 @@ function [x, state] = ft_preproc_standardize(x, begsample, endsample, state)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_standardize.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_standardize.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<2 || isempty(begsample)
   begsample = 1;

@@ -49,7 +49,7 @@ function [B] = expand_orthogonal(A,flg,method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: expand_orthogonal.m 2666 2011-01-26 15:02:31Z arjsto $
+% $Id: expand_orthogonal.m 7123 2012-12-06 21:21:38Z roboos $
 
 
 % References:

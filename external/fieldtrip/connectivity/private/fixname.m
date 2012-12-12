@@ -27,7 +27,7 @@ function str = fixname(str)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixname.m 6524 2012-09-24 15:39:29Z roboos $
+% $Id: fixname.m 7123 2012-12-06 21:21:38Z roboos $
 
 str = lower(str);
 str(regexp(str,'\W')) = '_';

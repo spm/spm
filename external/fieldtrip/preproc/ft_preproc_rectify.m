@@ -28,7 +28,7 @@ function [dat] = ft_preproc_rectify(dat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_rectify.m 947 2010-04-21 17:56:46Z roboos $
+% $Id: ft_preproc_rectify.m 7123 2012-12-06 21:21:38Z roboos $
 
 dat = abs(dat);
 

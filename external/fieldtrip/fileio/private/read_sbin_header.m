@@ -37,7 +37,7 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_header.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_sbin_header.m 7123 2012-12-06 21:21:38Z roboos $
 
 fid=fopen([filename],'r');
 if fid==-1

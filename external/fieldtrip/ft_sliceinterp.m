@@ -101,9 +101,9 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sliceinterp.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_sliceinterp.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_sliceinterp.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_sliceinterp.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

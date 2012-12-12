@@ -40,7 +40,7 @@ function [dat] = volplot(x, y, z, dat, sel, cscale)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: volplot.m 6314 2012-08-03 12:24:16Z jansch $
+% $Id: volplot.m 7123 2012-12-06 21:21:38Z roboos $
 
 if nargin<2
   dat = x;

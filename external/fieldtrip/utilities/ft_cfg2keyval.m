@@ -24,7 +24,7 @@ function [optarg] = ft_cfg2keyval(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_cfg2keyval.m 2865 2011-02-12 19:24:57Z roboos $
+% $Id: ft_cfg2keyval.m 7123 2012-12-06 21:21:38Z roboos $
 
 if ~isempty(cfg)
   optarg = [fieldnames(cfg) struct2cell(cfg)]';

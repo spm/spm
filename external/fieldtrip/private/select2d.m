@@ -27,7 +27,7 @@ function [x, y] = select2d;
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select2d.m 952 2010-04-21 18:29:51Z roboos $
+% $Id: select2d.m 7123 2012-12-06 21:21:38Z roboos $
 
 k = waitforbuttonpress;
 point1 = get(gca,'CurrentPoint');    % button down detected

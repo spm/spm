@@ -50,7 +50,7 @@ function [hx, hy, hz] = ft_plot_ortho(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_ortho.m 6507 2012-09-20 20:43:30Z roboos $
+% $Id: ft_plot_ortho.m 7123 2012-12-06 21:21:38Z roboos $
 
 % parse first input argument(s). it is either
 % (dat, varargin)

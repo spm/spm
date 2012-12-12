@@ -75,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 6750 2012-10-13 15:07:32Z roboos $
+% $Id: ft_analysisprotocol.m 7123 2012-12-06 21:21:38Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 6750 2012-10-13 15:07:32Z roboos $';
+revision = '$Id: ft_analysisprotocol.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting

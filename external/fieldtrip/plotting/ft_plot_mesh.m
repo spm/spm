@@ -50,7 +50,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 7110 2012-12-05 20:28:10Z roboos $
+% $Id: ft_plot_mesh.m 7123 2012-12-06 21:21:38Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

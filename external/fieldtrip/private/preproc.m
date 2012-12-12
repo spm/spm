@@ -101,7 +101,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 6989 2012-11-26 13:34:11Z jorhor $
+% $Id: preproc.m 7123 2012-12-06 21:21:38Z roboos $
 
 % compute fsample
 fsample = 1./mean(diff(time));

@@ -42,7 +42,7 @@ function [nsout] = read_neuroshare(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuroshare.m 4929 2011-12-03 23:01:57Z sashae $
+% $Id: read_neuroshare.m 7123 2012-12-06 21:21:38Z roboos $
 
 % check the availability of the required neuroshare toolbox
 ft_hastoolbox('neuroshare', 1);

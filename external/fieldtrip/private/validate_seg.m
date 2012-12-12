@@ -36,7 +36,7 @@ function [tissue1, tissue2, tissue3] = validate_seg(tissue1, tissue2, tissue3)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: validate_seg.m 6471 2012-09-17 13:15:49Z lilmag $
+% $Id: validate_seg.m 7123 2012-12-06 21:21:38Z roboos $
 
 % the boundaries for surface extraction should be at
 % t = sort(unique(brain+skull+2*scalp))

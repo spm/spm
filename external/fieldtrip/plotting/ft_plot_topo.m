@@ -45,7 +45,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 6446 2012-09-11 11:56:12Z eelspa $
+% $Id: ft_plot_topo.m 7123 2012-12-06 21:21:38Z roboos $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage

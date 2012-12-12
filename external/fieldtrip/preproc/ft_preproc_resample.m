@@ -35,7 +35,7 @@ function [datout, tim] = ft_preproc_resample(dat, Fold, Fnew, method)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_resample.m 5601 2012-04-09 13:16:02Z roboos $
+% $Id: ft_preproc_resample.m 7123 2012-12-06 21:21:38Z roboos $
 
 [nchans, nsamples] = size(dat);
 

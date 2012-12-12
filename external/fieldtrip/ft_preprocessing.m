@@ -179,9 +179,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 6987 2012-11-26 11:56:08Z jorhor $
+% $Id: ft_preprocessing.m 7123 2012-12-06 21:21:38Z roboos $
 
-revision = '$Id: ft_preprocessing.m 6987 2012-11-26 11:56:08Z jorhor $';
+revision = '$Id: ft_preprocessing.m 7123 2012-12-06 21:21:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults

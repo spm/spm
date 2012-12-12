@@ -24,7 +24,7 @@ function [pnt, tri, srf] = read_bv_srf(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bv_srf.m 945 2010-04-21 17:41:20Z roboos $
+% $Id: read_bv_srf.m 7123 2012-12-06 21:21:38Z roboos $
 
 % This documentation originates from
 %   http://www.brainvoyager.com/BV2000OnlineHelp/BrainVoyagerWebHelp/mergedProjects/FileFormats/BrainVoyager_File_Formats.htm

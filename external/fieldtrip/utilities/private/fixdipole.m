@@ -21,7 +21,7 @@ function dip = fixdipole(dip)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdipole.m 4624 2011-10-29 10:10:49Z roboos $
+% $Id: fixdipole.m 7123 2012-12-06 21:21:38Z roboos $
 
 [m, n] = size(dip.pos);
 

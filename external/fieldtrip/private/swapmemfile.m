@@ -36,7 +36,7 @@ function [data] = swapmemfile(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: swapmemfile.m 2298 2010-12-06 20:47:12Z roboos $
+% $Id: swapmemfile.m 7123 2012-12-06 21:21:38Z roboos $
 
 % this variable will be empty at the first call
 persistent file

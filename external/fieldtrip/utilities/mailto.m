@@ -12,7 +12,7 @@ function mailto(address, subject, varargin)
 
 % Copyright (C) 2006, Ingrid Nieuwenhuis
 %
-% $Id: mailto.m 5063 2011-12-21 13:56:54Z roboos $
+% $Id: mailto.m 7123 2012-12-06 21:21:38Z roboos $
 
 ft_defaults
 
