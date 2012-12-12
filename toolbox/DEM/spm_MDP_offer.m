@@ -16,7 +16,6 @@ function spm_MDP_offer
 % mean-field approximation between hidden control and hidden states. It is
 % assumed that the agent believes that it will select a particular action
 % (accept or decline) at a particular time.
-% (accept or decline) at a particular time.
 %
 % We run an exemplar game, examine the distribution of time to acceptance
 % as a function of different beliefs (encoded by parameters of the
@@ -27,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5107 2012-12-10 19:04:13Z karl $
+% $Id: spm_MDP_offer.m 5115 2012-12-12 19:15:24Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -74,7 +73,7 @@ MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
  
-% solve - an example game (with high offer at t = 10)
+% Solve - an example game (with high offer at t = 10)
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
@@ -105,9 +104,10 @@ ylabel('Precision of beliefs','FontSize',12)
 title('Precision dynamics','FontSize',16)
 spm_axis tight
 axis square
+
  
-% solve - an example game (with low offer at t = 5)
-%==========================================================================
+% Solve - an example game (with low offer at t = 5)
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
  
 MDP.s    = [1 1 1 1 3];
@@ -131,21 +131,21 @@ axis square
 subplot(2,2,4)
 plot(da,'b'),   hold on
 plot(diff(da),'r'), hold off
-xlabel('latency (offers)','FontSize',12)
+xlabel('Latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Precision dynamics','FontSize',16)
 spm_axis tight
 axis square
-
-
-
-% illustrate dependency parameters
+ 
+ 
+ 
+% Illustrate dependency parameters
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf
  
 % probability distribution over time: P(1,:) is no action
 %--------------------------------------------------------------------------
-PrT      = @(P)[1 cumprod(P(1,1:end - 1))].*P(2,:);
+PrT      = @(P)[1 cumprod(P(1,:))].*[P(2,:) 1];
 MDP.plot = 0;                        % plot convergence
 MDP.N    = 4;                        % number of variational iterations
 MDP.s    = ones(1,T);                % suppress withdrawal of low offer
@@ -203,7 +203,7 @@ ylabel('Utility of low offer','FontSize',12)
 title('Latency of accepting','FontSize',16)
 axis square
  
-
+ 
 % Changes in uncertainty (Entropy) over successive choices
 %==========================================================================
 spm_figure('GetWin','Figure 4'); clf
@@ -218,7 +218,7 @@ MDP.plot = 0;
 MDP.K    = 1;
 MDP.N    = 4;
  
-MDP.C       = spm_softmax([1 1 1 3 8]');
+MDP.C       = spm_softmax([1 1 1 2 4]');
 [P,Q,S,U,W] = spm_MDP_select(MDP);
 H           = sum(-P.*log(P),1);
  
@@ -245,13 +245,13 @@ title('Precision','FontSize',16)
 spm_axis tight
 axis square
  
-% expected utility and entropy (compenents of expected diveregnce)
+% expected utility and entropy (components of expected divergence)
 %--------------------------------------------------------------------------
 beta = 1;
 D    = 1./W - beta;
 [P,Q,S,U,W] = spm_MDP_select(MDP,'EU');
 V    = 1./W - beta;
-
+ 
 subplot(2,2,3)
 plot(1:length(D),V - D,'.r','MarkerSize',16), hold on
 plot(1:length(V),-V,   '.b','MarkerSize',16), hold off
@@ -261,14 +261,15 @@ title('Expected utility','FontSize',16)
 legend({'Entropy','Expected utility'})
 spm_axis tight
 axis square
-
-
-% the effect of memory and its interaction with precision
+ 
+ 
+ 
+% The effect of memory and its interaction with precision
 %==========================================================================
-spm_figure('GetWin','Figure 4'); clf
-
+spm_figure('GetWin','Figure 5'); clf
+ 
 MDP.C    = spm_softmax([1 1 1 2 4]');
-
+ 
 MDP.s    = [1 1 1 1 1 1 2];
 MDP.a    = [1 1 1 1 1 1 1];
 MDP.o    = [1 1 1 4 1 1 2];
@@ -318,24 +319,70 @@ ylabel('State','FontSize',12)
 subplot(3,1,1), hold on
 plot((1:length(da))/MDP.N,da,'k'), hold off
 axis([1 8 1 4])
-
-
-
-% fixed and adaptive precision (sensitivity)
+ 
+ 
+ 
+% Subjective utility (the effect of optimising precision or sensitivity)
 %==========================================================================
 spm_figure('GetWin','Figure 6'); clf
-
-
-
-
-
  
-% simulate multiple trials and record when an offer was accepted
+% how does precision depend on beliefs about high offer?
+%--------------------------------------------------------------------------
+MDP.s = ones(1,T);
+MDP.a = ones(1,T);
+MDP.o = ones(1,T);
+MDP.N = 4;
+MDP.K = 1;
+ 
+DP    = MDP;
+p     = linspace(2,8,16);
+for i = 1:length(p)
+ 
+    % high offer utility (with an EU agent)
+    %----------------------------------------------------------------------
+    DP.C        = spm_softmax([1 1 1 2 p(i)]');
+    UP(i,:)     = log(DP.C);
+    [P,Q,S,U,W] = spm_MDP_select(DP,'EU');
+    DW(i,:)     = W;
+    
+end
+ 
+subplot(2,2,1)
+imagesc(1:T,p,DW)
+title('Precision','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('Utility of high offer','FontSize',12)
+axis square
+ 
+subplot(2,2,2)
+plot(1:T,DW','r')
+title('Precision','FontSize',16)
+xlabel('Time','FontSize',12)
+ylabel('Precision','FontSize',12)
+spm_axis tight
+axis square
+ 
+% subjective utility
+%--------------------------------------------------------------------------
+subplot(2,1,2)
+UP    = UP(:,[4 5]);
+for i = 1:T
+    SU = diag(DW(:,i))*UP ;
+    plot(UP,SU), hold on
+end
+hold off, title('Subjective utility','FontSize',16)
+xlabel('utility of low and high offers','FontSize',12)
+ylabel('Subjective (behavioural) utility','FontSize',12)
+spm_axis tight
+ 
+ 
+% Simulate multiple trials and record when an offer was accepted
 %==========================================================================
 spm_figure('GetWin','Figure 7'); clf
-
+ 
 % trials with no higher offer
 %--------------------------------------------------------------------------
+MDP.C = spm_softmax([1 1 1 2 4]');
 MDP.s = ones(1,T);
 MDP.a = [];
 MDP.o = [];
@@ -343,22 +390,23 @@ MDP.o = [];
 MDP.plot = 0;
 MDP.K    = 1;
 MDP.N    = 4;
-
+ 
 % trials
 %--------------------------------------------------------------------------
 for i = 1:256
     [P,Q,S,U] = spm_MDP_select(MDP);
     try
         Y(i)  = find(U(2,:),1);
+    catch
+        Y(i)  = T;
     end
     fprintf('trial %0.00f\n',i);
 end
  
 % probability distribution over time to act
 %--------------------------------------------------------------------------
-MDP.s = ones(1,T);
-MDP.a = ones(1,T);
-
+MDP.s     = ones(1,T);
+MDP.a     = ones(1,T);
 [P,Q,S,U] = spm_MDP_select(MDP);
 Py        = PrT(P);
  
@@ -381,23 +429,19 @@ axis square
  
 % Infer prior beliefs from observed responses (meta-modelling)
 %==========================================================================
-p     = linspace(1/32,1/4,32);
+p     = linspace(0,6,32);
 DP    = MDP;
 for i = 1:length(p);
     
     % transition probabilities
     %----------------------------------------------------------------------
-    for t = 1:T
-        a = Pwin(T,Pa);
-        b = Plos(t,p(i));
-        DP.B{t,1}(:,1) = [1 - a + a*b - b; a*(1 - b); b; 0; 0];       
-    end
+    DP.C  = spm_softmax([1 1 1 2 p(i)]');
     
     % get likelihood for this parameter
     %----------------------------------------------------------------------
     P     = spm_MDP_select(DP);
     Py    = PrT(P);
-    L(i)  = sum(log(Py(Y)));
+    L(i)  = sum(log(Py(Y) + eps));
     
 end
  
@@ -413,9 +457,9 @@ Ep    = p(i);
 % plot likelihood
 %--------------------------------------------------------------------------
 subplot(2,2,3)
-plot(p,L)
+plot(p,L - min(L))
 xlabel('Latency','FontSize',12)
-ylabel('Probabaility','FontSize',12)
+ylabel('Probability','FontSize',12)
 title('Log-likelihood','FontSize',16)
 axis square
     
@@ -424,8 +468,8 @@ axis square
 subplot(2,2,4)
 pp    = spm_Npdf(p,Ep,Cp);
 plot(p,pp), hold on
-plot([Pb Pb],[0 1.2*max(pp)],':'),   hold off
-xlabel('latency','FontSize',12)
+plot([4 4],[0 1.2*max(pp)],':'),   hold off
+xlabel('Latency','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Posterior probability','FontSize',16)
 axis square
@@ -434,20 +478,23 @@ axis square
 return
  
  
+ 
 % expected utility
 %==========================================================================
-function [EC,PT] = PrE(MDP)
+function [ED,EU,PT] = PrEU(MDP)
  
 % numerical solution
 %--------------------------------------------------------------------------
 MDP.plot = 0;
  
 ST    = 0;
-for i = 1:256
-    [P,Q,S] = spm_MDP_select(MDP,1);
+for i = 1:64
+    [P,Q,S] = spm_MDP_select(MDP);
     ST = ST + S(:,end);
 end
 PT    = ST/sum(ST);
-EC    = PT'*log(MDP.C/sum(MDP.C));
+i     = find(PT);
+EU    = PT'*log(MDP.C/sum(MDP.C));
+ED    = EU - PT(i)'*log(PT(i));
  
 return

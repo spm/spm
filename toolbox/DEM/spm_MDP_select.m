@@ -78,7 +78,7 @@ function [P,Q,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_select.m 5104 2012-12-09 21:47:51Z karl $
+% $Id: spm_MDP_select.m 5115 2012-12-12 19:15:24Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -255,9 +255,9 @@ for t  = 1:(T - 1)
         
         % precision (W)
         %------------------------------------------------------------------
-        if isfield(MDP,'w')
+        try
             W(t)  = MDP.w(t);
-        else
+        catch
             v     = beta;
             for j = 2:Nu
                 v = v + u(j,:)*D{j}*x(:,t);
@@ -270,8 +270,9 @@ for t  = 1:(T - 1)
         % policy (u)
         %------------------------------------------------------------------
         for j = 2:Nu
-            w(j,:) = -W(t)*D{j}*x(:,t);
-        end
+            w(j,:) = -W(t)*D{j}*x(:,t);                   % emprical prior
+        end                                               % and
+        w(2,t) = w(2,t) + 1;                              % full prior
         j      = 2:Nu;
         k      = t:T;
         u(j,k) = spm_unvec(spm_softmax(spm_vec(w(j,k))),w(j,k));
