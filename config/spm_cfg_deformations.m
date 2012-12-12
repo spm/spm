@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5010 2012-10-19 11:47:42Z john $
+% $Id: spm_cfg_deformations.m 5111 2012-12-12 16:05:50Z guillaume $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -112,7 +112,7 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-img          = files('Image to base Id on','space','nifti',[1 1]);
+img          = files('Image to base Id on','space','image',[1 1]);
 img.help     = himg;
 
 id           = branch('Identity (Reference Image)','id',{img});
@@ -124,7 +124,7 @@ bbid         = entry('Bounding box','bb','e',[2 3]);
 idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
 id.help      = hid;
 
-ffield = files('Flow field','flowfield','nifti',[1 1]);
+ffield = files('Flow field','flowfield','image',[1 1]);
 ffield.ufilter = '^u_.*';
 ffield.help = {...
     ['The flow field stores the deformation information. '...
@@ -155,7 +155,7 @@ K.help = {...
 template        = cfg_files;
 template.tag    = 'template';
 template.name   = 'Dartel Template';
-template.filter = 'nifti';
+template.filter = 'image';
 template.num    = [0 1];
 template.val    = {''};
 template.help   = {...
@@ -170,7 +170,7 @@ drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
 other = {drtl,def,id,idbbvox,sn2def};
 
-img          = files('Image to base inverse on','space','nifti',[1 1]);
+img          = files('Image to base inverse on','space','image',[1 1]);
 img.help     = himg;
 
 comp0        = repeat('Composition','comp',other);
@@ -205,7 +205,7 @@ savedas       = entry('Save as','ofname','s',[0 Inf]);
 savedas.val   = {''};
 savedas.help  = hdetw;
 
-applyto      = files('Apply to','fnames','nifti',[0 Inf]);
+applyto      = files('Apply to','fnames','image',[0 Inf]);
 applyto.val  = {''};
 applyto.help = happly;
 
@@ -318,7 +318,7 @@ preserve.val    = {0};
 fromimage       = cfg_files;
 fromimage.name   = 'Image Defined';
 fromimage.tag    = 'file';
-fromimage.filter = 'nifti';
+fromimage.filter = 'image';
 fromimage.num    = [1 1];
 fromimage.help   = {'Use the dimensions, orientation etc of some pre-existing image.'};
 % ---------------------------------------------------------------------
@@ -400,7 +400,7 @@ pullback.help = {[...
 weight        = cfg_files;
 weight.name   = 'Weight Image';
 weight.tag    = 'weight';
-weight.filter = 'nifti';
+weight.filter = 'image';
 weight.num    = [0 1];
 weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
 weight.val    = {''};
@@ -471,14 +471,14 @@ for i=1:numel(job.out)
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Deformation';
         vo(end).src_output = substruct('.','def');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+        vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
     if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage,
         saveimage = true;
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Warped Images';
         vo(end).src_output = substruct('.','warped');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+        vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
     if isfield(out,'surf') && ~savesurf,
         savesurf = true;
@@ -492,7 +492,7 @@ for i=1:numel(job.out)
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Jacobian';
         vo(end).src_output = substruct('.','jac');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
+        vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
     end
 end
 return;

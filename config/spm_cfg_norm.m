@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: spm_cfg_norm.m 5111 2012-12-12 16:05:50Z guillaume $
 
 
 % ---------------------------------------------------------------------
@@ -107,7 +107,7 @@ tpm.name    = 'Tissue probability map';
 tpm.help    = {
                'Select the tissue probability atlas. These should contain probability maps of all the various tissues found in the image data (such that probabilities are greater than or equal to zero, and they sum to one at each voxel. A nonlinear deformation field is estimated that best overlays the atlas on the individual subjects'' image.'
                }';
-tpm.filter = 'nifti';
+tpm.filter = 'image';
 tpm.ufilter = '.*';
 tpm.num     = [1 1];
 tpm.val     = {{fullfile(spm('dir'),'tpm','TPM.nii')}};
@@ -337,7 +337,7 @@ def.help    = {[...
 'by three-volume images.  In SPM, deformation fields are saved in ',...
 'NIfTI format, with dimensions xdim x ydim x zdim x 1 x 3. ',...
 'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
-def.filter  = 'nifti';
+def.filter  = 'image';
 def.ufilter = 'y_.*\.nii$';
 def.num     = [1 1];
 
@@ -348,7 +348,7 @@ resample         = cfg_files;
 resample.tag     = 'resample';
 resample.name    = 'Images to Write';
 resample.help    = {'These are the images for warping according to the estimated parameters. They can be any images that are in register with the image used to generate the deformation.'};
-resample.filter  = 'nifti';
+resample.filter  = 'image';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
 
@@ -495,7 +495,3 @@ function dep = vout_estwrite(job)
 depe = vout_est(job);
 depw = vout_write(job);
 dep = [depe depw];
-
-function dep = vout(job)
-dep = [];
-
