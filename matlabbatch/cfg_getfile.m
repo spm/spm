@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5071 2012-11-20 12:21:35Z volkmar $
+% $Id: cfg_getfile.m 5116 2012-12-13 14:35:15Z volkmar $
 
 t = {};
 sts = false;
@@ -789,7 +789,7 @@ elseif lim(2) == inf
 else
     msg('Selected %d/[%d-%d] file%s. (%s)',nsel,lim,s,selmsg);
 end
-if ~isfinite(lim(2)) || (nsel>=lim(1) && nsel<=lim(2))
+if nsel>=lim(1) && (~isfinite(lim(2)) || nsel<=lim(2))
     set(sib('D'),'Enable','on');
 else
     set(sib('D'),'Enable','off');
