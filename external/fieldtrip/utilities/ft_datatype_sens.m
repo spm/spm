@@ -73,7 +73,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 7144 2012-12-12 08:36:48Z roboos $
+% $Id: ft_datatype_sens.m 7177 2012-12-13 14:14:13Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -115,7 +115,7 @@ switch version
       if isgrad
         % sensor description is a MEG sensor-array, containing oriented coils
         [chanpos, chanori, lab] = channelposition(sens, 'channel', 'all');
-        if isequal(sens.label, lab)
+        if isequal(sens.label(:), lab(:))
           sens.chanpos = chanpos;
           sens.chanori = chanori;
         else
@@ -127,7 +127,7 @@ switch version
         % sensor description is something else, EEG/ECoG etc
         % note that chanori will be all NaNs
         [chanpos, chanori, lab] = channelposition(sens, 'channel', 'all');
-        if isequal(sens.label, lab)
+        if isequal(sens.label(:), lab(:))
           sens.chanpos = chanpos;
         else
           warning('cannot determine channel positions');

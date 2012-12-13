@@ -20,7 +20,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %   'plexon_nex'
 %   'plexon_plx'
 %   'neuroshare'
-%   'neurosim'
+%   'neurosim_spikes'
 %
 % The output spike structure usually contains
 %   spike.label     = 1xNchans cell-array, with channel labels
@@ -50,7 +50,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 7127 2012-12-10 13:12:46Z bargip $
+% $Id: ft_read_spike.m 7161 2012-12-13 09:54:48Z bargip $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -63,7 +63,7 @@ end
 spikeformat = ft_getopt(varargin, 'spikeformat', ft_filetype(filename));
 
 switch spikeformat
-  case {'neurosim spikes' 'neurosim dir'}
+  case {'neurosim_spikes' 'neurosim_ds'}
     spike = read_neurosim_spikes(filename);
 
   case {'neuralynx_ncs' 'plexon_ddt'}
@@ -219,7 +219,7 @@ switch spikeformat
     end
 
   otherwise
-    error('unsupported data format');
+    error(['unsupported data format (' spikeformat ')']);
 end
 
 % add the waveform 

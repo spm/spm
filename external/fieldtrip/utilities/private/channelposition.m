@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: channelposition.m 7177 2012-12-13 14:14:13Z roboos $
 
 % FIXME varargin is not documented
 
@@ -275,12 +275,18 @@ switch ft_senstype(sens)
       end
       lab = sens.label;
       
-    else
-      % there is one sensor per channel, which means that the channel position
-      % is identical to the sensor position
+    elseif isfield(sens, 'coilpos')
+      % there is one sensor per channel, which means that the channel position is identical to the sensor position
       pnt = sens.coilpos;
       ori = sens.coilori;
       lab = sens.label;
+    
+    elseif isfield(sens, 'elecpos')
+      % there is one sensor per channel, which means that the channel position is identical to the sensor position
+      pnt = sens.elecpos;
+      ori = nan(size(sens.elecpos));
+      lab = sens.label;
+
     end
     
 end % switch senstype

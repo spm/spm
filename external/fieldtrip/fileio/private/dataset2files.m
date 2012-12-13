@@ -8,7 +8,7 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 
 % Copyright (C) 2007-2011, Robert Oostenveld
 %
-% $Id: dataset2files.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: dataset2files.m 7161 2012-12-13 09:54:48Z bargip $
 
 if isempty(format)
   format = ft_filetype(filename);
@@ -106,6 +106,11 @@ switch format
       headerfile = filename;
       datafile   = filename;
     end
+  case 'neurosim_ds'
+    % this is the directory
+    filename = fullfile(filename, 'signals'); % this is the only one we care about for the continuous signals
+    headerfile = filename;
+    datafile   = filename;
   otherwise
     % convert filename into filenames, assume that the header and data are the same
     datafile   = filename;

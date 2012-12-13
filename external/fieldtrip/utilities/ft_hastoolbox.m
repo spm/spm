@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_hastoolbox.m 7171 2012-12-13 11:50:47Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -247,11 +247,7 @@ switch toolbox
   case 'SIMBIO'
     status  = exist('calc_stiff_matrix_val', 'file') && exist('sb_transfer', 'file');
   case 'VGRID'
-    if ~ft_hastoolbox('simbio', 1)
-      error('you need to install simbio too!')
-    end
-    prefix = fileparts(which('sb_write_dip.m'));
-    status = exist([prefix '/vgrid1.3.1/program/vgrid'], 'file');
+    status  = exist('vgrid.m', 'file');
   case 'GIFTI'
     status  = exist('gifti', 'file');
   case 'XML4MAT'

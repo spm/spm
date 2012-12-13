@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_read_data.m 7161 2012-12-13 09:54:48Z bargip $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1026,11 +1026,11 @@ switch dataformat
   case 'bucn_nirs'
     dat = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanindx);
     
-  case 'neurosim signals'
+  case {'neurosim_ds' 'neurosim_signals'}
     [hdr, dat] = read_neurosim_signals(filename);
     dat = dat(chanindx,begsample:endsample);
     
-  case 'neurosim evolution'  
+  case 'neurosim_evolution'  
      [hdr, dat] = read_neurosim_evolution(filename);
      dat = dat(chanindx,begsample:endsample);
      

@@ -84,7 +84,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_read_header.m 7161 2012-12-13 09:54:48Z bargip $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1620,14 +1620,10 @@ switch headerformat
     hdr  = rmfield(orig, 'time');
     hdr.orig = orig;
     
-  case 'neurosim spikes'
-    headerOnly=1;
-    hdr = read_neurosim_spikes(filename,headerOnly);
-    
-  case 'neurosim evolution'
+  case 'neurosim_evolution'
     hdr = read_neurosim_evolution(filename);
     
-  case 'neurosim signals'
+  case {'neurosim_ds' 'neurosim_signals'}
     hdr = read_neurosim_signals(filename);
     
   otherwise

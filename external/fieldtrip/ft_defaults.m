@@ -37,19 +37,12 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7151 2012-12-12 09:13:57Z eelspa $
+% $Id: ft_defaults.m 7167 2012-12-13 11:29:05Z roboos $
 
 % set the defaults in a global variable, ft_checkconfig will copy these over into the local configuration
 % note that ft_getopt might not be available on the path at this moment
-global ft_default ft_defaultinit
-
-% track whether we have executed ft_defaults already
-% note that we should not use ft_default itself directly, because the user
-% might have set stuff in that struct already before ft_defaults() is
-% called for the first time
-if ft_defaultinit
-  return;
-end
+global ft_default 
+persistent initialized
 
 if ~isfield(ft_default, 'trackconfig'),    ft_default.trackconfig    = 'off';    end % cleanup, report, off
 if ~isfield(ft_default, 'checkconfig'),    ft_default.checkconfig    = 'loose';  end % pedantic, loose, silent
@@ -61,6 +54,13 @@ if ~isfield(ft_default, 'debug'),          ft_default.debug          = 'no';    
 if ~isfield(ft_default, 'trackcallinfo'),  ft_default.trackcallinfo  = 'yes';    end % yes or no
 if ~isfield(ft_default, 'trackdatainfo'),  ft_default.trackdatainfo  = 'no';     end % yes or no, this is still under development
 if ~isfield(ft_default, 'trackparaminfo'), ft_default.trackparaminfo = 'no';     end % yes or no, this is still under development
+
+% track whether we have executed ft_defaults already. Note that we should
+% not use ft_default itself directly, because the user might have set stuff
+% in that struct already before ft_defaults is called for the first time.
+if initialized
+  return;
+end
 
 % Ensure that the path containing ft_defaults is on the path.
 % This allows people to do "cd path_to_fieldtrip; ft_defaults"
@@ -193,7 +193,8 @@ if ~isdeployed
   
 end
 
-ft_defaultinit = 1;
+% remember that the function has executed in a persistent variable
+initialized = true;
 
 end % function ft_default
 

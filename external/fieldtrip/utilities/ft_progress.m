@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_progress.m 7174 2012-12-13 11:56:43Z eelspa $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -58,6 +58,7 @@ persistent h        % the handle of the dialog (in case of type=gui)
 persistent a        % the angle in degrees, for dial or textbar
 persistent s        % the string containing the title
 persistent strlen   % the length of the previously printed string, used to remove it by \b
+persistent tprev    % the time of previous invocation, used to restrict number of updates
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
@@ -66,6 +67,8 @@ if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
   h = 0;
   c = 0;
   strlen = 0;
+  tprev = tic();
+  
   % determine the type of feedback
   t = varargin{2};
   if strcmp(t,'textcr') || strcmp(t,'textnl')
@@ -111,10 +114,19 @@ elseif nargin==1 && ischar(varargin{1}) && strcmp(varargin{1}, 'close')
   t0 = [];
   p0 = [];
   strlen = 0;
+  tprev = [];
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
+  
+  % make sure we don't update more than once every 100ms, significant
+  % performance hit otherwise in certain conditions
+  if toc(tprev) < 0.1
+    return;
+  end
+  tprev = tic();
+  
   if strcmp(t, 'dial')
     % display should always be updated for the dial
     % continue;

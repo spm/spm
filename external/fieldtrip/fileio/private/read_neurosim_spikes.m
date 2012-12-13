@@ -37,17 +37,14 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_neurosim_spikes.m 7161 2012-12-13 09:54:48Z bargip $
 
 if isdir(filename)
     filename = fullfile(filename, 'spikes');
 end
 
-% check if only the header was requested (used by FT_READ_HEADER)
-if exist('headerOnly','var')
-    headerOnly=logical(headerOnly);
-else
-    headerOnly=false;
+if nargin<2
+  headerOnly = false;
 end
 
 fid = fopen(filename, 'rb');
