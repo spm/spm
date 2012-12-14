@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5111 2012-12-12 16:05:50Z guillaume $
+% $Id: spm_cfg_norm.m 5119 2012-12-14 12:44:48Z guillaume $
 
 
 % ---------------------------------------------------------------------
@@ -107,7 +107,7 @@ tpm.name    = 'Tissue probability map';
 tpm.help    = {
                'Select the tissue probability atlas. These should contain probability maps of all the various tissues found in the image data (such that probabilities are greater than or equal to zero, and they sum to one at each voxel. A nonlinear deformation field is estimated that best overlays the atlas on the individual subjects'' image.'
                }';
-tpm.filter = 'image';
+tpm.filter = 'nifti';
 tpm.ufilter = '.*';
 tpm.num     = [1 1];
 tpm.val     = {{fullfile(spm('dir'),'tpm','TPM.nii')}};
@@ -337,7 +337,7 @@ def.help    = {[...
 'by three-volume images.  In SPM, deformation fields are saved in ',...
 'NIfTI format, with dimensions xdim x ydim x zdim x 1 x 3. ',...
 'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
-def.filter  = 'image';
+def.filter  = 'nifti';
 def.ufilter = 'y_.*\.nii$';
 def.num     = [1 1];
 

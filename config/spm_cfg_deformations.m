@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5111 2012-12-12 16:05:50Z guillaume $
+% $Id: spm_cfg_deformations.m 5119 2012-12-14 12:44:48Z guillaume $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -124,7 +124,7 @@ bbid         = entry('Bounding box','bb','e',[2 3]);
 idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
 id.help      = hid;
 
-ffield = files('Flow field','flowfield','image',[1 1]);
+ffield = files('Flow field','flowfield','nifti',[1 1]);
 ffield.ufilter = '^u_.*';
 ffield.help = {...
     ['The flow field stores the deformation information. '...
@@ -155,7 +155,7 @@ K.help = {...
 template        = cfg_files;
 template.tag    = 'template';
 template.name   = 'Dartel Template';
-template.filter = 'image';
+template.filter = 'nifti';
 template.num    = [0 1];
 template.val    = {''};
 template.help   = {...
@@ -471,7 +471,7 @@ for i=1:numel(job.out)
         if isempty(vo), vo = cfg_dep; else vo(end+1) = cfg_dep; end
         vo(end).sname      = 'Deformation';
         vo(end).src_output = substruct('.','def');
-        vo(end).tgt_spec   = cfg_findspec({{'filter','image'}});
+        vo(end).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
     if (isfield(out,'pull') || isfield(out,'push')) && ~saveimage,
         saveimage = true;
