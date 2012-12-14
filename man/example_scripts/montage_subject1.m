@@ -1,4 +1,4 @@
-D = spm_eeg_load('spm8_subject1.mat');
+D = spm_eeg_load('spmeeg_subject1.mat');
 
 montage.labelorg = D.chanlabels;
 

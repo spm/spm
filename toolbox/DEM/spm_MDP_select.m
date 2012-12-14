@@ -78,7 +78,7 @@ function [P,Q,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_select.m 5115 2012-12-12 19:15:24Z karl $
+% $Id: spm_MDP_select.m 5121 2012-12-14 18:58:05Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -100,11 +100,11 @@ end
  
 % generative model and initial states
 %--------------------------------------------------------------------------
-T     = MDP.T;            % process depth (the horizon)
-Ns    = size(MDP.B{1},1); % number of hidden states
-Nb    = size(MDP.B,1);    % number of time-dependent probabilities
-Nu    = size(MDP.B,2);    % number of hidden controls
-p0    = eps;              % smallest probability
+T     = MDP.T;                     % process depth (the horizon)
+Ns    = size(MDP.B{1},1);          % number of hidden states
+Nb    = size(MDP.B,1);             % number of time-dependent probabilities
+Nu    = size(MDP.B,2);             % number of hidden controls
+p0    = eps;                       % smallest probability
  
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
@@ -159,14 +159,14 @@ end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
-P      = sparse(Nu,T - 1);          % posterior beliefs about action
-Q      = sparse(Ns,T);              % posterior beliefs about states
-s      = find(MDP.S(:,1));          % initial state
-a      = 1;                         % initial action
-o      = s;                         % initial observation
-S      = sparse(s,1,1,Ns,T);        % states sampled
-O      = sparse(s,1,1,Ns,T);        % states observed
-U      = sparse(a,1,1,Nu,T - 1);    % action selected
+P      = sparse(Nu,T - 1);         % posterior beliefs about action
+Q      = sparse(Ns,T);             % posterior beliefs about states
+s      = find(MDP.S(:,1));         % initial state
+a      = 1;                        % initial action
+o      = s;                        % initial observation
+S      = sparse(s,1,1,Ns,T);       % states sampled
+O      = sparse(s,1,1,Ns,T);       % states observed
+U      = sparse(a,1,1,Nu,T - 1);   % action selected
  
 % hyperpriors
 %--------------------------------------------------------------------------
@@ -270,9 +270,9 @@ for t  = 1:(T - 1)
         % policy (u)
         %------------------------------------------------------------------
         for j = 2:Nu
-            w(j,:) = -W(t)*D{j}*x(:,t);                   % emprical prior
-        end                                               % and
-        w(2,t) = w(2,t) + 1;                              % full prior
+            w(j,:) = -W(t)*D{j}*x(:,t);                 % emprical prior
+        end                                             % and
+        w      = w + 0;                                 % full prior (flat)
         j      = 2:Nu;
         k      = t:T;
         u(j,k) = spm_unvec(spm_softmax(spm_vec(w(j,k))),w(j,k));

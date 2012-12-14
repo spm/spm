@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5115 2012-12-12 19:15:24Z karl $
+% $Id: spm_MDP_offer.m 5121 2012-12-14 18:58:05Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -161,8 +161,8 @@ for i = 1:length(p)
     BE       = spm_MDP_select(DP,'EU');  
     PF(i,:)  = BF(2,:);
     PE(i,:)  = BE(2,:);
-    DF(i,:)  = PrT([BF [0;1]]);
-    DE(i,:)  = PrT([BE [0;1]]);
+    DF(i,:)  = PrT(BF);
+    DE(i,:)  = PrT(BE);
 end
  
 % probability of accepting
@@ -172,7 +172,7 @@ imagesc(1:(T - 1),p,1 - PF)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Utility of low offer','FontSize',12)
 title('Conditional divergence','FontSize',16)
-axis square
+axis square xy
  
 % compare with expected utility
 %--------------------------------------------------------------------------
@@ -182,26 +182,25 @@ imagesc(1:(T - 1),p,1 - PE)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Utility of low offer','FontSize',12)
 title('Expected utility','FontSize',16)
-axis square
+axis square xy
  
 % distribution of acceptance latencies
 %--------------------------------------------------------------------------
 subplot(2,2,3)
-imagesc(1:(T - 1),p,1 - DF)
+imagesc(1:T,p,1 - DF)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Utility of low offer','FontSize',12)
 title('Latency of accepting','FontSize',16)
-axis square
+axis square xy
  
 % compare with expected utility
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-imagesc(PE)
-imagesc(1:(T - 1),p,1 - DE)
+imagesc(1:T,p,1 - DE)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Utility of low offer','FontSize',12)
 title('Latency of accepting','FontSize',16)
-axis square
+axis square xy
  
  
 % Changes in uncertainty (Entropy) over successive choices
@@ -218,7 +217,7 @@ MDP.plot = 0;
 MDP.K    = 1;
 MDP.N    = 4;
  
-MDP.C       = spm_softmax([1 1 1 2 4]');
+MDP.C       = spm_softmax([1 1 1 3 8]');
 [P,Q,S,U,W] = spm_MDP_select(MDP);
 H           = sum(-P.*log(P),1);
  
@@ -322,7 +321,7 @@ axis([1 8 1 4])
  
  
  
-% Subjective utility (the effect of optimising precision or sensitivity)
+% Effective utility (the effect of optimising precision or sensitivity)
 %==========================================================================
 spm_figure('GetWin','Figure 6'); clf
  
@@ -352,7 +351,7 @@ imagesc(1:T,p,DW)
 title('Precision','FontSize',16)
 xlabel('Time','FontSize',12)
 ylabel('Utility of high offer','FontSize',12)
-axis square
+axis square xy
  
 subplot(2,2,2)
 plot(1:T,DW','r')
@@ -364,7 +363,7 @@ axis square
  
 % subjective utility
 %--------------------------------------------------------------------------
-subplot(2,1,2)
+subplot(2,2,3)
 UP    = UP(:,[4 5]);
 for i = 1:T
     SU = diag(DW(:,i))*UP ;
@@ -374,7 +373,26 @@ hold off, title('Subjective utility','FontSize',16)
 xlabel('utility of low and high offers','FontSize',12)
 ylabel('Subjective (behavioural) utility','FontSize',12)
 spm_axis tight
- 
+axis square
+
+% the efect of decreasing (fixed) precision
+%--------------------------------------------------------------------------
+DP    = MDP;
+DP.C  = spm_softmax([1 1 1 4 4]');
+p     = linspace(0,4,16);
+for i = 1:length(p)
+    DP.w    = zeros(1,T) + p(i);
+    P       = spm_MDP_select(DP,'EU');
+    DT(i,:) = PrT(P);
+end
+
+subplot(2,2,4)
+imagesc(1:T,p,1 - DT)
+xlabel('Latency (offers)','FontSize',12)
+ylabel('Fixed precision','FontSize',12)
+title('Latency of accepting','FontSize',16)
+axis square xy
+
  
 % Simulate multiple trials and record when an offer was accepted
 %==========================================================================
@@ -382,7 +400,7 @@ spm_figure('GetWin','Figure 7'); clf
  
 % trials with no higher offer
 %--------------------------------------------------------------------------
-MDP.C = spm_softmax([1 1 1 2 4]');
+MDP.C = spm_softmax([1 1 1 2 3]');
 MDP.s = ones(1,T);
 MDP.a = [];
 MDP.o = [];
@@ -427,7 +445,7 @@ title('Predicted probability','FontSize',16)
 axis square
  
  
-% Infer prior beliefs from observed responses (meta-modelling)
+% Infer utility from observed responses (meta-modelling)
 %==========================================================================
 p     = linspace(0,6,32);
 DP    = MDP;
@@ -436,7 +454,7 @@ for i = 1:length(p);
     % transition probabilities
     %----------------------------------------------------------------------
     DP.C  = spm_softmax([1 1 1 2 p(i)]');
-    
+        
     % get likelihood for this parameter
     %----------------------------------------------------------------------
     P     = spm_MDP_select(DP);
@@ -458,7 +476,7 @@ Ep    = p(i);
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 plot(p,L - min(L))
-xlabel('Latency','FontSize',12)
+xlabel('Utility','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Log-likelihood','FontSize',16)
 axis square
@@ -466,10 +484,12 @@ axis square
 % plot posterior
 %--------------------------------------------------------------------------
 subplot(2,2,4)
-pp    = spm_Npdf(p,Ep,Cp);
+pp  = spm_Npdf(p,Ep,Cp);                   % posterior probability
+tp  = log(MDP.C);                          % true utilities
+tp  = 1 + tp(end) - tp(1);
 plot(p,pp), hold on
-plot([4 4],[0 1.2*max(pp)],':'),   hold off
-xlabel('Latency','FontSize',12)
+plot([tp tp],[0 1.2*max(pp)],':'),   hold off
+xlabel('Utility','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Posterior probability','FontSize',16)
 axis square
