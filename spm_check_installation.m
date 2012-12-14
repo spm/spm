@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5030 2012-11-01 16:47:01Z guillaume $
+% $Id: spm_check_installation.m 5120 2012-12-14 14:20:20Z ged $
 
 if isdeployed, return; end
 
@@ -68,7 +68,7 @@ if ~ismember(lower(d),lower(p))
         'to include your SPM12 distribution. This means that you\n'...
         'can start SPM in this directory, but if your change to\n'...
         'another directory then MATLAB will be unable to find the\n'...
-        'SPM functions. You can use the editpath command in MATLAB\n'...
+        'SPM functions. You can use the pathtool command in MATLAB\n'...
         'to set it up.\n'...
         '    addpath %s\n'...
         'For more information, try typing the following:\n'...
@@ -173,7 +173,7 @@ elseif numel(SPMdir) > 1
     for i=1:numel(SPMdir)
         fprintf('  * %s\n',SPMdir{i});
     end
-    fprintf('Remove all but one with ''editpath'' or ''spm_rmpath''.\n');
+    fprintf('Remove all but one with ''pathtool'' or ''spm_rmpath''.\n');
     return;
 else
     fprintf('SPM is installed in: %s\n',fileparts(SPMdir{1}));

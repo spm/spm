@@ -10,7 +10,7 @@ function out = spm_run_reorient(varargin)
 % Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_run_reorient.m 4994 2012-10-09 16:46:48Z ged $
+% $Id: spm_run_reorient.m 5120 2012-12-14 14:20:20Z ged $
 
 job = varargin{1};
 if isfield(job.transform,'transprm')
@@ -19,17 +19,22 @@ elseif isfield(job.transform,'transF')
     load(char(job.transform.transF), 'M');
     job.transform.transM = M;
 end
-spm_progress_bar('Init', numel(job.srcfiles), 'Reorient', 'Images completed');
+K = numel(job.srcfiles);
+spm_progress_bar('Init', K, 'Reorient', 'Images completed');
 if isempty(job.prefix)
-    for k = 1:numel(job.srcfiles)
-        M = spm_get_space(job.srcfiles{k});
-        spm_get_space(job.srcfiles{k},job.transform.transM*M);
+    % read and write separately, so duplicates get harmlessly overwritten
+    MM = zeros(4, 4, K);
+    for k = 1:K
+        MM(:, :, k) = spm_get_space(job.srcfiles{k});
+    end
+    for k = 1:K
+        spm_get_space(job.srcfiles{k}, job.transform.transM * MM(:, :, k));
         spm_progress_bar('Set',k);
     end
     out.files = job.srcfiles;
 else
     out.files = cell(size(job.srcfiles));
-    for k = 1:numel(job.srcfiles)
+    for k = 1:K
         V       = spm_vol(job.srcfiles{k});
         X       = spm_read_vols(V);
         V.mat   = job.transform.transM * V.mat;

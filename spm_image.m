@@ -50,10 +50,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_image.m 5120 2012-12-14 14:20:20Z ged $
 
 
-SVNid = '$Rev: 4996 $';
+SVNid = '$Rev: 5120 $';
 
 global st
 
@@ -213,8 +213,14 @@ switch lower(action)
     if det(M)<=0
         spm('alert!','This will flip the images',mfilename,0,1);
     end
-    [P, sts] = spm_select([0 Inf], 'image', 'Images to reorient');
-    if ~sts, return; else P = cellstr(P); end
+    P = {spm_file(st.vols{1}.fname, 'number', st.vols{1}.n)};
+    p = spm_fileparts(st.vols{1}.fname);
+    [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
+    if ~ok
+        disp('Reorientation cancelled.');
+        return
+    end
+    P = cellstr(P);
     sv = questdlg('Do you want to save the reorientation matrix?', ...
         'Save Matrix', 'Yes', 'No', 'Yes');
     if strcmpi(sv, 'yes')

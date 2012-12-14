@@ -17,7 +17,7 @@ function ret = spm_ov_reorient(varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_reorient.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_ov_reorient.m 5120 2012-12-14 14:20:20Z ged $
 
 global st;
 if isempty(st)
@@ -161,12 +161,13 @@ switch cmd
         M = spm_matrix(-pos');
         P = {spm_file(st.vols{volhandle}.fname, 'number', st.vols{volhandle}.n)};
         p = spm_fileparts(st.vols{volhandle}.fname);
-        P = cfg_getfile(Inf, 'image', {'Image(s) to reorient'}, P, p);
-        if isempty(P) || isempty(P{1})
+        [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
+        if ~ok
             disp('''Set origin to Xhairs'' cancelled.');
             return;
         end
-        sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
+        sv = questdlg('Save reorientation matrix for future reference?',...
+            'Save Matrix','Yes','No','Yes');
         if strcmpi(sv, 'yes')
             [p,n] = spm_fileparts(st.vols{volhandle}.fname);
             [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
@@ -174,9 +175,11 @@ switch cmd
                 save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
             end
         end
-        spm_jobman('serial', '', 'spm.util.reorient', P, M);
-        spm_orthviews('reload_mats');
-        spm_orthviews('Reposition', [0 0 0])
+        if ~isempty(P)
+            spm_jobman('serial', '', 'spm.util.reorient', cellstr(P), M);
+            spm_orthviews('reload_mats');
+            spm_orthviews('Reposition', [0 0 0])
+        end
         
     % Interaction callbacks
     %----------------------------------------------------------------------
@@ -189,22 +192,27 @@ switch cmd
             P{i} = spm_file(st.vols{volhandle(i)}.fname, ...
                 'number', st.vols{volhandle(i)}.n);
         end
-        P = cfg_getfile(Inf, 'image', {'Image(s) to reorient'}, P);
-        if ~isempty(P) && ~isempty(P{1})
-            spm_jobman('serial', '', 'spm.util.reorient', P, M);
-            for i = 1:N
-                st.vols{volhandle(i)}.reorient.oldpremul = eye(4);
+        [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P);
+        if ~ok
+            disp('Reorientation cancelled.');
+            spm_orthviews('reorient', 'context_quit', volhandle);
+            return;
+        end
+        sv = questdlg('Save reorientation matrix for future reference?', ...
+            'Save Matrix','Yes','No','Yes');
+        if strcmpi(sv, 'yes')
+            [p,n] = spm_fileparts(st.vols{volhandle(1)}.fname);
+            [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
+            if ~isequal(f,0)
+                save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
             end
-            sv = questdlg('Do you want to save the reorientation matrix for future reference?','Save Matrix','Yes','No','Yes');
-            if strcmpi(sv, 'yes')
-                [p,n] = spm_fileparts(st.vols{volhandle(1)}.fname);
-                [f,p] = uiputfile(fullfile(p, [n '_reorient.mat']));
-                if ~isequal(f,0)
-                    save(fullfile(p,f),'M', spm_get_defaults('mat.format'));
-                end
-            end
-            spm_orthviews('reload_mats');
-        end;
+        end        
+        if isempty(P), return, end
+        spm_jobman('serial', '', 'spm.util.reorient', cellstr(P), M);
+        for i = 1:N
+            st.vols{volhandle(i)}.reorient.oldpremul = eye(4);
+        end
+        spm_orthviews('reload_mats');
         spm_orthviews('reorient', 'context_quit', volhandle);
         
     case 'reorient'

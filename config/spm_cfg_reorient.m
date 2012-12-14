@@ -4,9 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 4994 2012-10-09 16:46:48Z ged $
+% $Id: spm_cfg_reorient.m 5120 2012-12-14 14:20:20Z ged $
 
-rev = '$Rev: 4994 $';
+rev = '$Rev: 5120 $';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -79,7 +79,7 @@ transprm.num     = [1 12];
 transform         = cfg_choice;
 transform.tag     = 'transform';
 transform.name    = 'Reorient by';
-transform.val     = {transF};
+transform.val     = {transM};
 transform.help    = {'Specify reorientation parameters - 12 parameters, a 4x4 transformation matrix or a saved mat file (containing the matrix). The resulting transformation will be left-multiplied to the voxel-to-world transformation of each image and the new transformation will be written to the image header.'};
 transform.values  = {transM transprm transF};
 % ---------------------------------------------------------------------

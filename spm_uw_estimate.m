@@ -21,7 +21,7 @@ function ds = spm_uw_estimate(P,par)
 %                series. If using the FieldMap toolbox, realignment
 %                should (if necessary) have been performed as part of
 %                the process of creating the VDM. Note also that the
-%                VDM mut be in undistorted space, i.e. if it is
+%                VDM must be in undistorted space, i.e. if it is
 %                calculated from an EPI based field-map sequence
 %                it should have been inverted before passing it to
 %                spm_uw_estimate. Again, the FieldMap toolbox will
@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_uw_estimate.m 5120 2012-12-14 14:20:20Z ged $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -166,7 +166,7 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 4753 $';
+SVNid = '$Rev: 5120 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
