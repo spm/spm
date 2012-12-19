@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_api_erp.m 5127 2012-12-19 12:20:42Z guillaume $
  
 if nargin == 0 || nargin == 1  % LAUNCH GUI
  
@@ -53,12 +53,13 @@ end
 function load_Callback(hObject, eventdata, handles, varargin)
 try
     DCM         = varargin{1};
-    [~,f]       = fileparts(DCM.name);
+    f           = spm_file(DCM.name,'filename');
 catch
-    [f,p]       = uigetfile('*.mat','please select DCM file'); 
-    cd(p)
-    name        = fullfile(p,f);
-    DCM         = load(name,'-mat');
+    [name, sts] = spm_select(1,'mat','please select DCM file');
+    if ~sts, return; end
+    cd(spm_file(name,'fpath'));
+    f           = spm_file(name,'filename');
+    DCM         = load(f,'-mat');
     DCM         = DCM.DCM;
     DCM.name    = name;
     handles.DCM = DCM;
@@ -246,16 +247,16 @@ function handles = save_Callback(hObject, eventdata, handles)
  
 handles = reset_Callback(hObject, eventdata, handles);
 try
-   [~,file]  = fileparts(handles.DCM.name);
+   file      = spm_file(handles.DCM.name,'filename');
 catch
     try
-        [~,file] = fileparts(handles.DCM.xY.Dfile);
-        file     = ['DCM_' file];
+        file = spm_file(handles.DCM.xY.Dfile,'filename');
+        file = ['DCM_' file];
     catch
-        file     = ['DCM' date];
+        file = ['DCM' date];
     end
 end
-[file,fpath]     = uiputfile(['DCM*.mat'],'DCM file to save',file);
+[file,fpath] = uiputfile('DCM*.mat','DCM file to save',file);
  
 if fpath
     handles.DCM.name = fullfile(fpath,file);
@@ -274,7 +275,7 @@ guidata(hObject,handles);
  
 % store selections in DCM
 % -------------------------------------------------------------------------
-function handles = reset_Callback(hObject, ~, handles)
+function handles = reset_Callback(hObject, eventdata, handles)
  
 % analysis type
 %--------------------------------------------------------------------------
@@ -673,7 +674,7 @@ guidata(hObject,handles);
  
 % --- Executes on button press in pos.
 %--------------------------------------------------------------------------
-function pos_Callback(~, ~, handles)
+function pos_Callback(hObject, eventdata, handles)
 [f,p]     = uigetfile('*.mat','source (n x 3) location file');
 Slocation = load(fullfile(p,f));
 name      = fieldnames(Slocation);
@@ -712,7 +713,7 @@ ERP_Callback(hObject, eventdata, handles);
  
 % --- Executes on button press in plot_dipoles.
 %--------------------------------------------------------------------------
-function plot_dipoles_Callback(~, ~, handles)
+function plot_dipoles_Callback(hObject, eventdata, handles)
  
 % read location coordinates
 %--------------------------------------------------------------------------
@@ -968,7 +969,7 @@ guidata(hObject,handles)
  
 % --- Executes on button press in connectivity_back.
 %--------------------------------------------------------------------------
-function connectivity_back_Callback(~, ~, handles)
+function connectivity_back_Callback(hObject, eventdata, handles)
  
 set(handles.con_reset,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
@@ -1109,7 +1110,7 @@ guidata(hObject, handles);
  
 % --- Executes on button press in results.
 % -------------------------------------------------------------------------
-function varargout = results_Callback(~, ~, handles, varargin)
+function varargout = results_Callback(hObject, eventdata, handles, varargin)
 Action  = get(handles.results, 'String');
 Action  = Action{get(handles.results, 'Value')};
  
@@ -1148,7 +1149,7 @@ end
  
 % --- Executes on button press in initialise.
 % -------------------------------------------------------------------------
-function initialise_Callback(hObject, ~, handles)
+function initialise_Callback(hObject, eventdata, handles)
  
 [f,p]           = uigetfile('DCM*.mat','please select estimated DCM');
 DCM             = load(fullfile(p,f), '-mat');
@@ -1158,14 +1159,14 @@ guidata(hObject, handles);
 
 % --- Executes on button press in Imaging.
 % -------------------------------------------------------------------------
-function Imaging_Callback(~, ~, handles)
+function Imaging_Callback(hObject, eventdata, handles)
  
 spm_eeg_inv_imag_api(handles.DCM.xY.Dfile)
  
  
 % default design matrix
 %==========================================================================
-function handles = Xdefault(~,handles,m)
+function handles = Xdefault(hObject,handles,m)
 % m - number of trials
  
 X       = eye(m);
@@ -1183,7 +1184,7 @@ return
  
 % --- Executes on button press in BMC.
 %--------------------------------------------------------------------------
-function BMS_Callback(~, ~, ~)
+function BMS_Callback(hObject, eventdata, handles)
 %spm_api_bmc
 spm_jobman('Interactive','','spm.stats.bms.bms_dcm')
  
@@ -1199,18 +1200,18 @@ switch handles.DCM.options.analysis
  
     % conventional neural-mass and mean-field models
     %----------------------------------------------------------------------
-    case{'ERP'}
+    case {'ERP'}
         Action = {
-            'ERPs (mode)',
-            'ERPs (sources)',
-            'coupling (A)',
-            'coupling (B)',
-            'coupling (C)',
-            'trial-specific effects',
-            'Input',
-            'Response',
-            'Response (image)',
-            'Scalp maps',
+            'ERPs (mode)',...
+            'ERPs (sources)',...
+            'coupling (A)',...
+            'coupling (B)',...
+            'coupling (C)',...
+            'trial-specific effects',...
+            'Input',...
+            'Response',...
+            'Response (image)',...
+            'Scalp maps',...
             'Dipoles'};
         try
             set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
@@ -1227,7 +1228,7 @@ switch handles.DCM.options.analysis
         
     % Cross-spectral density model (complex)
     %----------------------------------------------------------------------
-    case{'CSD'}
+    case {'CSD'}
         Action = {
               'spectral data',...
               'Coupling (A)',...
