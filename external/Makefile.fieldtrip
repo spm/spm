@@ -4,7 +4,7 @@
 # Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 5122 2012-12-17 17:54:27Z guillaume $
+# $Id: Makefile.fieldtrip 5129 2012-12-19 15:16:19Z guillaume $
 
 include ../src/Makefile.var
 
@@ -69,11 +69,14 @@ endif
 	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/private/
 
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/utilities/private/
+	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/utilities/private/
 
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/connectivity/private/
 	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/connectivity/private/
