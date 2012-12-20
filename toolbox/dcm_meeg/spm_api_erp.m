@@ -3,12 +3,15 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5127 2012-12-19 12:20:42Z guillaume $
+% $Id: spm_api_erp.m 5130 2012-12-20 11:36:41Z guillaume $
  
-if nargin == 0 || nargin == 1  % LAUNCH GUI
+
+%-Launch GUI
+%--------------------------------------------------------------------------
+if nargin == 0 || nargin == 1
  
     fig     = openfig(mfilename,'reuse');
     S0      = spm('WinSize','0',1);
@@ -30,14 +33,15 @@ if nargin == 0 || nargin == 1  % LAUNCH GUI
     if nargout > 0
         varargout{1} = fig;
     end
- 
-elseif ischar(varargin{1}) % INVOKE NAMED SUBFUNCTION OR CALLBACK
- 
+
+%-Invoke named subfunction or callback
+%--------------------------------------------------------------------------
+elseif ischar(varargin{1})
     try
-        if (nargout)
-            [varargout{1:nargout}] = feval(varargin{:}); % FEVAL switchyard
+        if nargout
+            [varargout{1:nargout}] = feval(varargin{:});
         else
-            feval(varargin{:}); % FEVAL switchyard
+            feval(varargin{:});
         end
     catch
         disp(lasterr);
@@ -60,7 +64,11 @@ catch
     cd(spm_file(name,'fpath'));
     f           = spm_file(name,'filename');
     DCM         = load(f,'-mat');
-    DCM         = DCM.DCM;
+    try
+        DCM     = DCM.DCM;
+    catch
+        error('File "%s" does not contain a DCM structure.',f);
+    end
     DCM.name    = name;
     handles.DCM = DCM;
     guidata(hObject,handles);
