@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5031 2012-11-01 18:03:02Z guillaume $
+# $Id: Makefile 5134 2012-12-20 12:35:16Z spm $
 
 include ../src/Makefile.var
 
@@ -13,7 +13,7 @@ clean: fieldtrip-clean bemcp-clean engine-clean
 
 distclean: clean fieldtrip-distclean bemcp-distclean engine-distclean
 
-install: fieldtrip-install bemcp-install engine-instal
+install: fieldtrip-install bemcp-install engine-install
 
 tarball: fieldtrip-tarball bemcp-tarball engine-tarball
 	$(TAR) Af spm_mex.tar fieldtrip_mex.tar
