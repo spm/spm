@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5103 2012-12-08 06:44:58Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5139 2012-12-20 13:08:19Z vladimir $
 
 
 %-Initialisation
@@ -36,6 +36,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg              = [];
             cfg.feedback     = graph;
             cfg.showcallinfo           = 'no';
+            cfg.sourceunits            = 'mm';
             cfg.headshape(1) = export(gifti(mesh.tess_scalp),  'ft');
             cfg.headshape(2) = export(gifti(mesh.tess_oskull), 'ft');
             cfg.headshape(3) = export(gifti(mesh.tess_iskull), 'ft');
@@ -76,6 +77,7 @@ for i = 1:numel(D.inv{val}.forward)
                 cfg        = [];
                 cfg.method = 'bemcp';
                 cfg.showcallinfo = 'no';
+                cfg.sourceunits  = 'mm';
                 vol = ft_prepare_headmodel(cfg, vol);
 
                 spm_progress_bar('Set', 1); drawnow;
@@ -103,6 +105,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg        = [];
             cfg.method = 'openmeeg';
             cfg.showcallinfo = 'no';
+            cfg.sourceunits  = 'mm';
             vol = ft_prepare_headmodel(cfg, vol);
             modality = 'EEG';
         case 'Single Sphere'
@@ -112,6 +115,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg.grad                   = D.inv{val}.datareg(i).sensors;
             cfg.headshape              = export(gifti(mesh.tess_scalp), 'ft');
             cfg.method                 = 'singlesphere';
+            cfg.sourceunits            = 'mm';
             vol                        = ft_prepare_headmodel(cfg);
             modality                   = 'MEG';
         case 'MEG Local Spheres'
@@ -123,6 +127,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg.radius                 = 85;
             cfg.maxradius              = 200;
             cfg.method                 = 'localspheres';
+            cfg.sourceunits            = 'mm';
             vol  = ft_prepare_headmodel(cfg);
             modality = 'MEG';
         case  'Single Shell'
