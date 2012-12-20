@@ -67,5 +67,5 @@ function MD5 = CalcMD5(Data, InClass, OutClass)  %#ok<STOUT,INUSD>
 
 % If the current Matlab path is the parent folder of this script, the
 % MEX function is not found - change the current directory!
-error(['JSim:', mfilename, ':NoMex'], 'Cannot find MEX script.');
-
+%error(['JSim:', mfilename, ':NoMex'], 'Cannot find MEX script.');
+MD5 = NaN;
