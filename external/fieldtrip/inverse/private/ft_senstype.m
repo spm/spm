@@ -87,7 +87,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_senstype.m 7186 2012-12-13 16:39:32Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -117,8 +117,7 @@ end
 
 current_argin = {input, desired};
 if isequal(current_argin, previous_argin)
-  % don't do the type detection again, but return the previous values from
-  % cache
+  % don't do the type detection again, but return the previous output from cache 
   type = previous_argout{1};
   return
 end

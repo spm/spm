@@ -126,15 +126,16 @@ function [realign, h] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 7155 2012-12-12 15:24:08Z jansch $
+% $Id: ft_volumerealign.m 7221 2012-12-18 08:42:32Z jansch $
 
-revision = '$Id: ft_volumerealign.m 7155 2012-12-12 15:24:08Z jansch $';
+revision = '$Id: ft_volumerealign.m 7221 2012-12-18 08:42:32Z jansch $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar mri
 
 % check if the input data is valid for this function
@@ -548,6 +549,9 @@ switch cfg.method
     tmpcfg        = [];
     tmpcfg.output = 'scalp';
     tmpcfg.smooth = 2;
+    if isfield(cfg, 'template')
+     tmpcfg.template = cfg.template;
+    end
     seg           = ft_volumesegment(tmpcfg, mri);
     
     cfg             = [];
@@ -723,6 +727,7 @@ if exist('pnt', 'var') && ~isempty(pnt)
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous mri

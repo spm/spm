@@ -84,15 +84,16 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_singleplotTFR.m 7188 2012-12-13 21:26:34Z roboos $
 
-revision = '$Id: ft_singleplotTFR.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 7188 2012-12-13 21:26:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', 'freq');
@@ -522,6 +523,7 @@ if ~isempty(cfg.renderer)
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data

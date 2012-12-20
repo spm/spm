@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 7174 2012-12-13 11:56:43Z eelspa $
+% $Id: ft_progress.m 7195 2012-12-15 10:26:28Z eelspa $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -122,7 +122,7 @@ else
   
   % make sure we don't update more than once every 100ms, significant
   % performance hit otherwise in certain conditions
-  if toc(tprev) < 0.1
+  if ~isempty(tprev) && toc(tprev) < 0.1
     return;
   end
   tprev = tic();

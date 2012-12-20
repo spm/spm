@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7161 2012-12-13 09:54:48Z bargip $
+% $Id: ft_read_data.m 7209 2012-12-17 10:04:40Z bargip $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1034,6 +1034,23 @@ switch dataformat
      [hdr, dat] = read_neurosim_evolution(filename);
      dat = dat(chanindx,begsample:endsample);
      
+  case 'neurosim_spikes'
+    warning('Reading Neurosim spikes as continuous data, for better memory efficiency use spike structure provided by ft_read_spike instead.');
+    spike = ft_read_spike(filename);
+    cfg          = [];
+    cfg.trialdef.triallength = inf;
+    cfg.trialfun = 'ft_trialfun_general';
+    cfg.trlunit='samples'; %ft_trialfun_general gives us samples, not timestamps
+    
+    cfg.datafile=filename;
+    cfg.hdr = ft_read_header(cfg.datafile);
+    warning('off','FieldTrip:ft_read_event:unsupported_event_format')
+    cfg = ft_definetrial(cfg);
+    warning('on','FieldTrip:ft_read_event:unsupported_event_format')
+    spiketrl = ft_spike_maketrials(cfg,spike);
+    
+    dat=ft_checkdata(spiketrl,'datatype', 'raw', 'fsample', spiketrl.hdr.Fs);
+    dat=dat.trial{1};
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);

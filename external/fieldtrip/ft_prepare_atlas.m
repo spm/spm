@@ -35,20 +35,21 @@ function [atlas, cfg] = ft_prepare_atlas(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_prepare_atlas.m 7204 2012-12-15 16:18:35Z roboos $
 
-revision = '$Id: ft_prepare_atlas.m 7123 2012-12-06 21:21:38Z roboos $';
-
-% do the general setup of the function
-ft_defaults
-ft_preamble help
-ft_preamble provenance
+revision = '$Id: ft_prepare_atlas.m 7204 2012-12-15 16:18:35Z roboos $';
 
 if ischar(cfg)
   % prior to 7 December 2011, this function was called with the filename as input
   % for consistency with other fieldtrip functions, it is now in a cfg field
   cfg.atlas = cfg;
 end
+
+% do the general setup of the function
+ft_defaults
+ft_preamble help
+ft_preamble debug
+ft_preamble provenance
 
 useafni = 0;
 usewfu  = 0;
@@ -630,5 +631,6 @@ elseif usewfu
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble provenance
 ft_postamble history atlas

@@ -59,7 +59,9 @@ function [data] = ft_megrealign(cfg, data)
 %
 % This implements the method described by T.R. Knosche, Transformation
 % of whole-head MEG recordings between different sensor positions.
-% Biomed Tech (Berl). 2002 Mar;47(3):59-62.
+% Biomed Tech (Berl). 2002 Mar;47(3):59-62. For more information and
+% related methods, see Stolk et al., Online and offline tools for head 
+% movement compensation in MEG. NeuroImage, 2012.
 %
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
@@ -102,15 +104,16 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_megrealign.m 7194 2012-12-14 15:04:05Z arjsto $
 
-revision = '$Id: ft_megrealign.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_megrealign.m 7194 2012-12-14 15:04:05Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar data
 
 % check if the input cfg is valid for this function
@@ -408,6 +411,7 @@ switch dtype
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data

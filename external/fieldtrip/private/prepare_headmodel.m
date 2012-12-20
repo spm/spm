@@ -36,7 +36,7 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_headmodel.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_headmodel.m 7223 2012-12-18 09:41:37Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = 'all';   end
@@ -53,14 +53,20 @@ vol = ft_fetch_vol(cfg, data);
 % get the gradiometer or electrode definition
 sens = ft_fetch_sens(cfg, data);
 
-% ensure that the units are the same, if not, use cm as the default
-if ~strcmp(vol.unit, sens.unit) || ~strcmp(vol.unit, cfg.sourceunits)
-  if isempty(cfg.sourceunits)
+% ensure that the units are the same
+if isempty(cfg.sourceunits)
+  if ~strcmp(vol.unit, sens.unit)
     cfg.sourceunits = 'cm';
+    vol  = ft_convert_units(vol, cfg.sourceunits);
+    sens = ft_convert_units(sens, cfg.sourceunits);
+  else
+    % they are the same, nothing to change
   end
+else
+  % change them to the desired units
   vol  = ft_convert_units(vol, cfg.sourceunits);
   sens = ft_convert_units(sens, cfg.sourceunits);
-end 
+end
 
 if isfield(data, 'topolabel')
   % the data reflects a componentanalysis, where the topographic and the

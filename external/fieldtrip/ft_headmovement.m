@@ -11,6 +11,9 @@ function [grad] = ft_headmovement(cfg)
 %   cfg.trl          = Nx3 matrix with the trial definition, see FT_DEFINETRIAL
 %   cfg.numclusters  = number of segments with constant headposition in which to split the data (default = 12)
 %
+% This method and related methods are described by Stolk et al., Online and 
+% offline tools for head movement compensation in MEG. NeuroImage, 2012.
+%
 % See also FT_REGRESSCONFOUND FT_REALTIME_HEADLOCALIZER
 
 % Copyright (C) 2008-2010, Jan-Mathijs Schoffelen
@@ -31,15 +34,16 @@ function [grad] = ft_headmovement(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmovement.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmovement.m 7194 2012-12-14 15:04:05Z arjsto $
 
-revision = '$Id: ft_headmovement.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_headmovement.m 7194 2012-12-14 15:04:05Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'dataset2files', {'yes'});
@@ -176,5 +180,6 @@ end
 grad = gradnew;
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance

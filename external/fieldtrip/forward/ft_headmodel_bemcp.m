@@ -32,7 +32,7 @@ function vol = ft_headmodel_bemcp(geom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_bemcp.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmodel_bemcp.m 7227 2012-12-18 11:22:07Z johzum $
 
 ft_hastoolbox('bemcp', 1);
 
@@ -59,33 +59,12 @@ vol.bnd = geom;
 % determine the number of compartments
 numboundaries = length(vol.bnd);
 
-if isempty(conductivity)
-  warning('No conductivity is declared, Assuming standard values\n')
-  if numboundaries == 1
-    conductivity = 1;
-  elseif numboundaries == 3
-    % skin/skull/brain
-    conductivity = [1 1/80 1] * 0.33;
-  elseif numboundaries == 4
-    %FIXME: check for better default values here
-    % skin / outer skull / inner skull / brain    
-    conductivity = [1 1/80 1 1] * 0.33;    
-  else
-    error('Conductivity values are required!')
-  end
+if numboundaries~=3
+  error('this only works for three surfaces');
 end
 
 % impose the 'outsidefirst' nesting of the compartments
 order = surface_nesting(vol.bnd, 'outsidefirst');
-
-if ~isfield(vol, 'cond')
-  if numel(conductivity)~=numboundaries
-    error('a conductivity value should be specified for each compartment');
-  else
-    % assign the conductivity of each compartment
-    vol.cond = conductivity;
-  end
-end
 
 % rearrange boundaries and conductivities
 if numel(vol.bnd)>1
@@ -94,21 +73,30 @@ if numel(vol.bnd)>1
   fprintf('\n');
   % update the order of the compartments
   vol.bnd    = vol.bnd(order);
-  vol.cond   = vol.cond(order);
 end
+
+if isempty(conductivity)
+  warning('No conductivity is declared, Assuming standard values\n')
+  % brain/skull/skin
+  conductivity = [1 1/80 1] * 0.33;
+  vol.cond = conductivity;
+else
+  if numel(conductivity)~=numboundaries
+    error('a conductivity value should be specified for each compartment');
+  end
+  vol.cond = conductivity(order);
+end
+
 vol.skin_surface   = numboundaries;
 vol.source = 1;  
 
 % do some sanity checks
-if length(vol.bnd)~=3
-  error('this only works for three surfaces');
-end
 if vol.skin_surface~=3
   error('the third surface should be the skin');
 end
-if vol.source~=1
-  error('the first surface should be the inside of the skull');
-end
+% if vol.source~=1
+%   error('the first surface should be the inside of the skull');
+% end
 
 % Build Triangle 4th point
 vol = triangle4pt(vol);

@@ -12,6 +12,7 @@ funname = Ce9dei2ZOo_funname;
 for i=1:length(Ce9dei2ZOo_argin)
   eval(sprintf('%s = Ce9dei2ZOo_argin(%d).value;', Ce9dei2ZOo_argin(i).name, i));
 end
+
 last_err     = lasterr;
 last_error   = lasterror;
 last_warning = lastwarn;
@@ -19,21 +20,42 @@ last_warning = lastwarn;
 switch Ce9dei2ZOo_debug
   
   case {'saveonerror' 'save'}
+    if strcmp(Ce9dei2ZOo_debug, 'saveonerror')
+      fprintf('-----------------------------------------------------------------------\n');
+      fprintf('An error was detected while executing %s\n', Ce9dei2ZOo_funname);
+    end
     filename = fullfile(tempdir, [funname '_' datestr(now, 30) '.mat']);
     variables = cat(2, {'funname', 'last_err', 'last_error', 'last_warning'}, {Ce9dei2ZOo_argin.name});
     try
+      fprintf('Saving debug information to %s\n', filename);
       save(filename, variables{:})
-      fprintf('saving debug information to %s\n', filename);
     catch
       % it might fail because the disk is full
       fprintf('error while saving debug information to %s\n', filename);
     end
+    if strcmp(Ce9dei2ZOo_debug, 'saveonerror')
+      fprintf('-----------------------------------------------------------------------\n');
+    end
     
   case {'displayonerror' 'display'}
+    if strcmp(Ce9dei2ZOo_debug, 'displayonerror')
+      fprintf('-----------------------------------------------------------------------\n');
+      fprintf('An error was detected while executing %s with\n', Ce9dei2ZOo_funname);
+    end
     fprintf('\n');
     for i=1:length(Ce9dei2ZOo_argin)
       fprintf('%s =\n', Ce9dei2ZOo_argin(i).name);
-      disp(Ce9dei2ZOo_argin(i).value);
+      switch class(Ce9dei2ZOo_argin(i).value)
+        case 'config'
+          disp(struct(Ce9dei2ZOo_argin(i).value));
+        case 'char'
+          fprintf('%s\n\n', Ce9dei2ZOo_argin(i).value); % with an extra newline
+        otherwise
+          disp(Ce9dei2ZOo_argin(i).value);
+      end % switch class
+    end
+    if strcmp(Ce9dei2ZOo_debug, 'displayonerror')
+      fprintf('-----------------------------------------------------------------------\n');
     end
     
   otherwise

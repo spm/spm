@@ -26,7 +26,7 @@ function vol = ft_headmodel_simbio(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_simbio.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmodel_simbio.m 7225 2012-12-18 11:10:53Z johzum $
 
 ft_hastoolbox('simbio', 1);
 
@@ -67,16 +67,16 @@ else
 end
 
 if ~isfield(geom,'tissuelabel')
-        numlabels = size(unique(geom.tissue),1);
-    vol.tissuelabel = {};
-            ulabel = unique(labels);
-    for i = 1:numlabels
-        shape.tissuelabel{i} = num2str(ulabel(i));
-    end
+  numlabels = size(unique(geom.tissue),1);
+  vol.tissuelabel = {};
+  ulabel = unique(labels);
+  for i = 1:numlabels
+    vol.tissuelabel{i} = num2str(ulabel(i));
+  end
 else
-    vol.tissuelabel = geom.tissuelabel;
+  vol.tissuelabel = geom.tissuelabel;
 end
-    
+
 vol.stiff = sb_calc_stiff(vol);
 vol.type = 'simbio';
 

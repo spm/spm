@@ -164,15 +164,16 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_sourceplot.m 7192 2012-12-13 22:32:56Z roboos $
 
-revision = '$Id: ft_sourceplot.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_sourceplot.m 7192 2012-12-13 22:32:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar data
 
 % this is not supported any more as of 26/10/2011
@@ -689,6 +690,7 @@ if isequal(cfg.method,'ortho')
   interactive_flag = 1; % it happens at least once
   feedbackmessage  = true;
   maketransparent  = true;
+  
   while(interactive_flag)
     interactive_flag = strcmp(cfg.interactive, 'yes');
 
@@ -1302,6 +1304,7 @@ elseif isequal(cfg.method,'slice')
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data
@@ -1379,7 +1382,6 @@ if hasana; ana = vols2D{1}'; end;
 if hasfun && ~doimage; fun = vols2D{2}'; end;
 if hasfun && doimage;  fun = permute(vols2D{2},[2 1 3]); end;
 if hasmsk; msk = vols2D{3}'; end;
-
 
 if hasana
   % scale anatomy between 0 and 1

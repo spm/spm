@@ -27,7 +27,10 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_provenance.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_postamble_provenance.m 7199 2012-12-15 15:53:28Z roboos $
+
+% the name of the variables are passed in the preamble field
+global ft_default
 
 if isfield(cfg, 'trackcallinfo') && ~istrue(cfg.trackcallinfo)
   % do not track the call information
@@ -40,48 +43,40 @@ stack = dbstack('-completenames');
 % stack(3) is the main FieldTrip function that we are interested in
 stack = stack(3);
 
-% add information about the FieldTrip and MATLAB version used to the configuration
-try
-  cfg.callinfo.fieldtrip = ft_version();
-catch
-  cfg.callinfo.fieldtrip = 'unknown';
-end
-cfg.callinfo.matlab    = version();
-
 % the proctime, procmem and calltime rely on three cryptical variables that were
 % created and added to the function workspace by the ft_preamble_callinfo script.
 cfg.callinfo.proctime = toc(ftohDiW7th_FuncTimer);
 cfg.callinfo.procmem  = memtoc(ftohDiW7th_FuncMem);
-cfg.callinfo.calltime = ftohDiW7th_FuncClock;
-
-% add information about the execution environment to the configuration
-cfg.callinfo.user     = getusername();
-cfg.callinfo.hostname = gethostname();
-cfg.callinfo.pwd      = pwd;
-
-% add information about the function filename and revision to the configuration
-cfg.version.name = stack.file;
-% the revision number is maintained by SVN in the revision variable in the calling function
-if ~exist('revision', 'var')
-  cfg.version.id   = 'unknown';
-else
-  cfg.version.id   = revision;
-end
 
 if istrue(ft_getopt(cfg, 'showcallinfo', 'yes'))
   % print some feedback on screen, this is meant to educate the user about
   % the requirements of certain computations and to use that knowledge in
   % distributed computing
+  
+  stack = dbstack('-completenames');
+  % stack(1) is this script
+  % stack(2) is the calling ft_postamble function
+  % stack(3) is the main FieldTrip function that we are interested in
+  stack = stack(3);
+  
   if ispc()
     % don't print memory usage info under Windows; this does not work (yet)
     fprintf('the call to "%s" took %d seconds\n', stack.name, round(cfg.callinfo.proctime));
   else
     fprintf('the call to "%s" took %d seconds and required the additional allocation of an estimated %d MB\n', stack.name, round(cfg.callinfo.proctime), round(cfg.callinfo.procmem/(1024*1024)));
   end
+  
+  clear stack
+end
+
+% compute the MD5 hash of each of the output arguments
+if isequal(ft_default.postamble, {'varargout'})
+  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, varargout, 'UniformOutput', false), 'UniformOutput', false);
+else
+  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, cellfun(@eval, ft_default.postamble, 'UniformOutput', false), 'UniformOutput', false), 'UniformOutput', false);
 end
 
 clear ftohDiW7th_FuncTimer
 clear ftohDiW7th_FuncMem
-clear ftohDiW7th_FuncClock
 clear stack
 

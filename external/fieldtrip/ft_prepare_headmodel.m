@@ -106,14 +106,15 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
+% $Id: ft_prepare_headmodel.m 7188 2012-12-13 21:26:34Z roboos $
 
-revision = '$Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 7188 2012-12-13 21:26:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble provenance
 
 % check if the input cfg is valid for this function
@@ -297,6 +298,7 @@ if ~ft_voltype(vol, 'infinite'),
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data
@@ -600,7 +602,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
+% $Id: ft_prepare_headmodel.m 7188 2012-12-13 21:26:34Z roboos $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -793,7 +795,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: ft_prepare_headmodel.m 7137 2012-12-11 08:34:25Z roboos $
+% $Id: ft_prepare_headmodel.m 7188 2012-12-13 21:26:34Z roboos $
 
 ts = [];
 ts.XYZmm = pnt';

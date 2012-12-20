@@ -108,15 +108,16 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 7158 2012-12-12 16:27:36Z roboos $
+% $Id: ft_connectivityanalysis.m 7188 2012-12-13 21:26:34Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 7158 2012-12-12 16:27:36Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 7188 2012-12-13 21:26:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar data
 
 % FIXME it should be checked carefully whether the following works
@@ -871,6 +872,7 @@ if isfield(data, 'elec'), stat.elec = data.elec; end
 if exist('dof', 'var'), stat.dof = dof; end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data

@@ -63,15 +63,16 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_volumenormalise.m 7220 2012-12-18 08:40:18Z jansch $
 
-revision = '$Id: ft_volumenormalise.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_volumenormalise.m 7220 2012-12-18 08:40:18Z jansch $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar interp
 
 % this is not supported any more as of 26/10/2011
@@ -118,13 +119,22 @@ if ~isfield(interp, 'unit'),     interp.unit     = cfg.units;    end
 if ~isfield(interp, 'coordsys'), interp.coordsys = cfg.coordsys; end
 interp  = ft_convert_units(interp,    'mm');
 orig    = interp.transform;
-interp  = ft_convert_coordsys(interp, 'spm');
+if isdeployed
+  interp = ft_convert_coordsys(interp, 'spm', 2, cfg.template); 
+else
+  interp = ft_convert_coordsys(interp, 'spm');
+end
 initial = interp.transform / orig;
 
-if ~isfield(cfg, 'template'),
-  spmpath = spm('dir');
-  if strcmpi(cfg.spmversion, 'spm8'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.nii']; end
-  if strcmpi(cfg.spmversion, 'spm2'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.mnc']; end
+if isdeployed
+  % in deployed mode, fieldtrip cannot use the template in the release version, because these are not compiled
+  cfg = ft_checkconfig(cfg, 'required', 'template');
+else
+  if ~isfield(cfg, 'template'),
+    spmpath = spm('dir');
+    if strcmpi(cfg.spmversion, 'spm8'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.nii']; end
+    if strcmpi(cfg.spmversion, 'spm2'), cfg.template = [spmpath,filesep,'templates',filesep,'T1.mnc']; end
+  end
 end
 
 if strcmp(cfg.keepinside, 'yes')
@@ -287,6 +297,7 @@ if strcmp(cfg.keepintermediate,'no')
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 
 % remember the normalisation parameters in the configuration

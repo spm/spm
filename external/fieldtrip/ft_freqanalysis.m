@@ -198,13 +198,14 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_freqanalysis.m 7233 2012-12-18 16:23:02Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar data
 
 % defaults for optional input/ouputfile and feedback
@@ -416,11 +417,9 @@ else
   nchan      = size(chanind,1);
   if csdflg
     % determine the corresponding indices of all channel combinations
-    chancmbind = zeros(size(cfg.channelcmb));
-    for k=1:size(cfg.channelcmb,1)
-      chancmbind(k,1) = strmatch(cfg.channelcmb(k,1), data.label, 'exact');
-      chancmbind(k,2) = strmatch(cfg.channelcmb(k,2), data.label, 'exact');
-    end
+    [dummy,chancmbind(:,1)] = match_str(cfg.channelcmb(:,1), data.label);
+    [dummy,chancmbind(:,2)] = match_str(cfg.channelcmb(:,2), data.label);
+
     nchancmb   = size(chancmbind,1);
     chanind    = unique([chanind(:); chancmbind(:)]);
     nchan      = length(chanind);
@@ -865,6 +864,7 @@ else
   end   % remember the electrode array
   
   % do the general cleanup and bookkeeping at the end of the function
+  ft_postamble debug
   ft_postamble trackconfig
   ft_postamble provenance
   ft_postamble previous data

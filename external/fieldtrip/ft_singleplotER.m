@@ -104,13 +104,14 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_singleplotER.m 7188 2012-12-13 21:26:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar varargin
 
 % check if the input cfg is valid for this function
@@ -591,6 +592,7 @@ if ~isempty(cfg.renderer)
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous varargin

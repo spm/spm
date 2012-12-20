@@ -36,7 +36,7 @@ function vol = ft_headmodel_singlesphere(geometry, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_singlesphere.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmodel_singlesphere.m 7235 2012-12-19 20:49:46Z roboos $
 
 % get the optional arguments
 conductivity = ft_getopt(varargin, 'conductivity', 1);
@@ -50,11 +50,10 @@ end
 vol = [];
 
 if ~isempty(unit)
-  % use the user-specified units for the output
-  vol.unit = geometry.unit;
+  vol.unit = unit;                       % use the user-specified units for the output
 elseif isfield(geometry, 'unit')
-  % copy the geometrical units into he volume conductor
-  vol.unit = geometry.unit;
+  geometry = ft_convert_units(geometry); % ensure that it has units, estimate them if needed
+  vol.unit = geometry.unit;              % copy the geometrical units into the volume conductor
 end
 
 if isnumeric(geometry) && size(geometry,2)==3

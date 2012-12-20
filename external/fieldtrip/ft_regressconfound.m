@@ -31,6 +31,9 @@ function [data] = ft_regressconfound(cfg, datain)
 %                     (e.g. {'1 2'; '3 4'; '5'} where iteratively the added value of
 %                     regressors 1 and 2, and then 3 and 4, etc., are tested)
 %
+% This method is described by Stolk et al., Online and offline tools for head 
+% movement compensation in MEG. NeuroImage, 2012.
+%
 % To facilitate data-handling and distributed computing with the peer-to-peer
 % module, this function has the following options:
 %   cfg.inputfile   =  ...
@@ -42,7 +45,7 @@ function [data] = ft_regressconfound(cfg, datain)
 %
 % See also FT_REJECTCOMPONENT, FT_REJECTARTIFACT
 
-% Copyrights (C) 2011, Arjen Stolk, Robert Oostenveld, Lennart Verhagen
+% Copyright (C) 2011, Arjen Stolk, Robert Oostenveld, Lennart Verhagen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -60,15 +63,16 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_regressconfound.m 7194 2012-12-14 15:04:05Z arjsto $
 
-revision = '$Id: ft_regressconfound.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_regressconfound.m 7194 2012-12-14 15:04:05Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar datain
 
 % check if the input data is valid for this function
@@ -465,6 +469,7 @@ if isfield(dataout, 'grad')
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous datain

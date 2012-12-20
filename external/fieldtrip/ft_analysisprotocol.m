@@ -75,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_analysisprotocol.m 7203 2012-12-15 16:12:16Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_analysisprotocol.m 7203 2012-12-15 16:12:16Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -93,6 +93,7 @@ ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 
 % set the defaults
 if ~isfield(cfg, 'filename'),    cfg.filename    = [];                end
@@ -132,6 +133,7 @@ if strcmp(cfg.showinfo, 'all')
     'revision'
     'matlabversion'
     'computername'
+    'architecture'
     'username'
     'calltime'
     'timeused'
@@ -406,6 +408,7 @@ else
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 
@@ -418,12 +421,8 @@ if isempty(element.name)
   return
 end
 
-%  cfg.showinfo   = string or cell array of strings, information to display
-%                   in the gui boxes, can be any combination of
-%                   'functionname', 'revision', 'matlabversion',
-%                   'computername', 'username', 'calltime', 'timeused',
-%                   'memused', 'workingdir', 'scriptdir' (default =
-%                   'functionname', only display function name)
+% cfg.showinfo is a string or a cell-array of strings that instructs which information
+% to display in the gui boxes
 
 % create the text information to display
 label = {};
@@ -456,6 +455,13 @@ for k = 1:numel(cfg.showinfo)
         label{end+1} = ['Computer name: ' element.cfg.callinfo.hostname];
       else
         label{end+1} = '<hostname unknown>';
+      end
+      
+    case 'architecture'
+      if isfield(element.cfg, 'callinfo') && isfield(element.cfg.callinfo, 'hostname')
+        label{end+1} = ['Architecture: ' element.cfg.callinfo.computer];
+      else
+        label{end+1} = '<architecture unknown>';
       end
       
     case 'username'
@@ -505,7 +511,6 @@ end
 % dublicate backslashes to escape tex interpreter (in case of windows filenames)
 label = strrep(label, '\', '\\');
 label = strrep(label, '{\\bf', '{\bf'); % undo for bold formatting
-
 
 % escape underscores
 label = strrep(label, '_', '\_');

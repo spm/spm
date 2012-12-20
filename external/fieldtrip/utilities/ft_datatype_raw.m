@@ -69,14 +69,50 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_raw.m 7216 2012-12-17 19:45:33Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');
-hassampleinfo = ft_getopt(varargin, 'hassampleinfo', true);
+hassampleinfo = ft_getopt(varargin, 'hassampleinfo', 'ifmakessense'); % can be yes/no/ifmakessense
+hastrialinfo  = ft_getopt(varargin, 'hastrialinfo',  'ifmakessense'); % can be yes/no/ifmakessense
 
-% convert from yes/no into true/false
+if isequal(hassampleinfo, 'ifmakessense')
+  hassampleinfo = 'yes';
+  if isfield(data, 'sampleinfo') && size(data.sampleinfo,1)~=numel(data.trial)
+    % it does not make sense, so don't keep it
+    hassampleinfo = 'no';
+  end
+  if isfield(data, 'sampleinfo')
+    numsmp = data.sampleinfo(:,2)-data.sampleinfo(:,1)+1;
+    for i=1:length(data.trial)
+      if size(data.trial{i},2)~=numsmp(i);
+        % it does not make sense, so don't keep it
+        hassampleinfo = 'no';
+        break;
+      end
+    end
+  end
+  if strcmp(hassampleinfo, 'no')
+    % the actual removal will be done further down
+    warning('removing inconsistent sampleinfo');
+  end
+end
+
+if isequal(hastrialinfo, 'ifmakessense')
+  hastrialinfo = 'yes';
+  if isfield(data, 'trialinfo') && size(data.trialinfo,1)~=numel(data.trial)
+    % it does not make sense, so don't keep it
+    hastrialinfo = 'no';
+  end
+  if strcmp(hastrialinfo, 'no')
+    % the actual removal will be done further down
+    warning('removing inconsistent sampleinfo');
+  end
+end
+
+% convert it into true/false
 hassampleinfo = istrue(hassampleinfo);
+hastrialinfo  = istrue(hastrialinfo);
 
 if strcmp(version, 'latest')
   version = '2011';
@@ -111,15 +147,23 @@ switch version
       data = rmfield(data, 'offset');
     end
     
-    if hassampleinfo && (~isfield(data, 'sampleinfo') || ~isfield(data, 'trialinfo'))
-      % reconstruct it on the fly
-      data = fixsampleinfo(data);
-    end
-    
     % the trialdef field should be renamed into sampleinfo
     if isfield(data, 'trialdef')
       data.sampleinfo = data.trialdef;
       data = rmfield(data, 'trialdef');
+    end
+    
+    if (hassampleinfo && ~isfield(data, 'sampleinfo')) || (hastrialinfo && ~isfield(data, 'trialinfo'))
+      % try to reconstruct the sampleinfo and trialinfo
+      data = fixsampleinfo(data);
+    end
+    
+    if ~hassampleinfo && isfield(data, 'sampleinfo')
+      data = rmfield(data, 'sampleinfo');
+    end
+    
+    if ~hastrialinfo && isfield(data, 'trialinfo')
+      data = rmfield(data, 'trialinfo');
     end
     
   case '2010v2'
@@ -132,15 +176,23 @@ switch version
       data = rmfield(data, 'offset');
     end
     
-    if hassampleinfo && (~isfield(data, 'sampleinfo') || ~isfield(data, 'trialinfo'))
-      % reconstruct it on the fly
-      data = fixsampleinfo(data);
-    end
-    
     % the trialdef field should be renamed into sampleinfo
     if isfield(data, 'trialdef')
       data.sampleinfo = data.trialdef;
       data = rmfield(data, 'trialdef');
+    end
+    
+    if (hassampleinfo && ~isfield(data, 'sampleinfo')) || (hastrialinfo && ~isfield(data, 'trialinfo'))
+      % try to reconstruct the sampleinfo and trialinfo
+      data = fixsampleinfo(data);
+    end
+    
+    if ~hassampleinfo && isfield(data, 'sampleinfo')
+      data = rmfield(data, 'sampleinfo');
+    end
+    
+    if ~hastrialinfo && isfield(data, 'trialinfo')
+      data = rmfield(data, 'trialinfo');
     end
     
   case {'2010v1' '2010'}

@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_checkdata.m 7217 2012-12-17 19:45:35Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -91,7 +91,7 @@ ismeg                = ft_getopt(varargin, 'ismeg');
 inside               = ft_getopt(varargin, 'inside'); % can be 'logical' or 'index'
 hastrials            = ft_getopt(varargin, 'hastrials');
 hasunits             = ft_getopt(varargin, 'hasunits');
-hassampleinfo        = ft_getopt(varargin, 'hassampleinfo', 'no');
+hassampleinfo        = ft_getopt(varargin, 'hassampleinfo', 'ifmakessense');
 hasdimord            = ft_getopt(varargin, 'hasdimord', 'no');
 hasdim               = ft_getopt(varargin, 'hasdim');
 hascumtapcnt         = ft_getopt(varargin, 'hascumtapcnt');

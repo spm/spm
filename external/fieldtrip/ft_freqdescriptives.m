@@ -65,13 +65,14 @@ function [freq] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqdescriptives.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_freqdescriptives.m 7188 2012-12-13 21:26:34Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
 ft_preamble provenance
 ft_preamble trackconfig
+ft_preamble debug
 ft_preamble loadvar freq
 
 % check if the input cfg is valid for this function
@@ -198,6 +199,7 @@ if strcmp(cfg.keeptrials, 'yes') && isfield(freq, 'trialinfo')
 end
 
 % do the general cleanup and bookkeeping at the end of the function
+ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous freq
