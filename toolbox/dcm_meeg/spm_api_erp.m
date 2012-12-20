@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5130 2012-12-20 11:36:41Z guillaume $
+% $Id: spm_api_erp.m 5145 2012-12-20 16:50:50Z guillaume $
  
 
 %-Launch GUI
@@ -408,7 +408,7 @@ else
 end
 
 if isequal(handles.DCM.xY.modality, 'LFP')
-    set(handles.Spatial, 'Value', strcmp('LFP', get(handles.Spatial, 'String')));
+    set(handles.Spatial, 'Value', find(strcmp('LFP', get(handles.Spatial, 'String'))));
 end   
 
 % Assemble and display data
