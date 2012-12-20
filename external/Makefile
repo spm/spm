@@ -3,22 +3,22 @@
 #
 # Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5134 2012-12-20 12:35:16Z spm $
+# $Id: Makefile 5148 2012-12-20 18:42:30Z guillaume $
 
 include ../src/Makefile.var
 
-all: fieldtrip-all bemcp-all engine-all
+all: fieldtrip-all bemcp-all #engine-all
 
-clean: fieldtrip-clean bemcp-clean engine-clean
+clean: fieldtrip-clean bemcp-clean #engine-clean
 
-distclean: clean fieldtrip-distclean bemcp-distclean engine-distclean
+distclean: clean fieldtrip-distclean bemcp-distclean #engine-distclean
 
-install: fieldtrip-install bemcp-install engine-install
+install: fieldtrip-install bemcp-install #engine-install
 
-tarball: fieldtrip-tarball bemcp-tarball engine-tarball
+tarball: fieldtrip-tarball bemcp-tarball #engine-tarball
 	$(TAR) Af spm_mex.tar fieldtrip_mex.tar
 	$(TAR) Af spm_mex.tar bemcp/spm_mex.tar
-	$(TAR) Af spm_mex.tar engine_mex.tar
+#	$(TAR) Af spm_mex.tar engine_mex.tar
 
 ###############################################################################
 # FIELDTRIP
