@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 4038 2010-08-10 10:39:00Z vladimir $
+% $Id: spm_eeg_ft2spm.m 5158 2012-12-21 14:41:43Z vladimir $
 
 isTF = 0;
 
@@ -176,7 +176,7 @@ if  isfield(ftdata, 'hdr') && isfield(ftdata.hdr, 'grad')
     D = spm_eeg_prep(S);
 end
 
-[ok D] = check(D);
+D = check(D);
 
 save(D);
 
