@@ -10,9 +10,9 @@ function varargout = cfg_onscreen(fg)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_onscreen.m 4033 2010-08-04 15:53:35Z volkmar $
+% $Id: cfg_onscreen.m 5155 2012-12-21 12:55:22Z volkmar $
 
-rev = '$Rev: 4033 $'; 
+rev = '$Rev: 5155 $'; 
 
 % save figure units - use pixels here
 units = get(fg,'Units');
@@ -27,10 +27,13 @@ if size(S0,1) > 1 % Multiple Monitors
     if numel(w)~=1, w = 1; end
     S0 = S0(w,:);
 end
-Rect(1) = S0(1) + (S0(3) - Rect(3))/2;
-Rect(2) = S0(2) + (S0(4) - Rect(4))/2;
+if ~(Rect(1)>=S0(1) && Rect(1)+Rect(3)<=S0(3) && Rect(2)>=S0(2) && Rect(2)+Rect(4)<=S0(4))
+    Rect(1) = S0(1) + (S0(3) - Rect(3))/2;
+    Rect(2) = S0(2) + (S0(4) - Rect(4))/2;
+end
 if nargout == 0
     set(fg, 'Position',Rect);
+    figure(fg);
 else
     varargout{1} = Rect;
 end
