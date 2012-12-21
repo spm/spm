@@ -36,7 +36,7 @@ Both the imported and native tissue class image sets can be specified via the Na
 Segmentation can require quite a lot of memory, so if you have large images (typically greater than about $256\times256\times150$) and trying to run it on a 32 bit computer or have relatively little memory installed, then it may throw up an out of memory error.
  
 \subsection{Using DARTEL Tools$\rightarrow$Run DARTEL (create Template)}
-The output of the previous step(s) are a series of rigidly aligned tissue class images (grey matter is typically encoded by rc1*.nii and white matter by rc2*.nii -- see Fig \ref{Fig:imported}).
+The output of the previous step(s) are a series of rigidly aligned tissue class images (grey matter is typically encoded by rc1*.nii and white matter by rc2*.nii -- see Fig \ref{Fig:VBM}).
 The headers of these files encode two affine transform matrices, so the DARTEL tools are still able to relate their orientations to those of the original T1-weighted images.
 The next step is to estimate the nonlinear deformations that best align them all together.
 This is achieved by alternating between building a template, and registering the tissue class images with the template, and the whole procedure is very time consuming.
