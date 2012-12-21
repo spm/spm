@@ -1,9 +1,17 @@
 /*
- * $Id: spm_existfile.c 4901 2012-09-05 15:10:48Z guillaume $
+ * $Id: spm_existfile.c 5160 2012-12-21 16:58:38Z guillaume $
  * Guillaume Flandin
  */
- 
+
+#ifndef MATLAB_MEX_FILE
+#undef  _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE
+#include <sys/stat.h>
+#define structStat struct stat64
+#define getFileStat stat64
+#else
 #include "io64.h"
+#endif
 #include "mex.h"
 
 #ifndef S_ISREG
@@ -30,7 +38,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         if ((getFileStat(filename, &stbuf) == 0) && (S_ISREG(stbuf.st_mode)))
         {
-        	status = 1;
+            status = 1;
         }
 
         mxFree(filename);

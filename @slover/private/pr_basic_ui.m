@@ -14,7 +14,8 @@ if nargin < 1
   imgs = '';
 end
 if isempty(imgs)
-  imgs = spm_select(Inf, 'image', 'Image(s) to display');
+  [imgs, sts] = spm_select([1 Inf], 'image', 'Image(s) to display');
+  if ~sts, obj=[]; return; end
 end
 if ischar(imgs)
   imgs = cellstr(imgs);

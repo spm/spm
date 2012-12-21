@@ -1,19 +1,19 @@
 function [Y] = spm_get_data(V,XYZ,check)
-% gets data from image files at specified locations
-% FORMAT [Y] = spm_get_data(V,XYZ);
+% Get data from image files at specified locations
+% FORMAT [Y] = spm_get_data(V,XYZ,check)
 %
 % V     - [1 x n] struct array of file handles (or filename matrix)
-% XYZ   - [4 x m] or [3 x m] location matrix (voxel)
+% XYZ   - [3 x m] or [4 x m] location matrix (voxel)
 % check - check validity of input parameters [default: true]
 %
 % Y     - (n x m) double values
 %
-% see spm_sample_vol
+% See also spm_sample_vol
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_get_data.m 3950 2010-06-28 10:44:02Z guillaume $
+% $Id: spm_get_data.m 5160 2012-12-21 16:58:38Z guillaume $
 
 if nargin < 3, check = true; end
 

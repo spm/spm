@@ -76,7 +76,7 @@ if ~params.refreshf
 end
 if params.refreshf
   % clear figure, axis store
-  if params.clf, clf; end
+  if params.clf, spm_clf(figno); end
 
   % prevent print inversion problems
   set(figno,'InvertHardCopy','off');

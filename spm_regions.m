@@ -47,7 +47,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 4824 2012-08-03 16:42:24Z karl $
+% $Id: spm_regions.m 5160 2012-12-21 16:58:38Z guillaume $
  
 if nargin < 4, xY = []; end
  
@@ -195,14 +195,14 @@ xY.X0     = xY.X0(:,any(xY.X0));
  
 %-Compute regional response in terms of first eigenvariate
 %--------------------------------------------------------------------------
-[m n]   = size(y);
+[m,n]   = size(y);
 if m > n
-    [v s v] = svd(y'*y);
+    [v,s,v] = svd(y'*y);
     s       = diag(s);
     v       = v(:,1);
     u       = y*v/sqrt(s(1));
 else
-    [u s u] = svd(y*y');
+    [u,s,u] = svd(y*y');
     s       = diag(s);
     u       = u(:,1);
     v       = y'*u/sqrt(s(1));

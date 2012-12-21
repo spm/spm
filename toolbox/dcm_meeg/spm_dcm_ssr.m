@@ -24,7 +24,7 @@ function DCM = spm_dcm_ssr(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ssr.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_ssr.m 5160 2012-12-21 16:58:38Z guillaume $
 
 
 % check options
@@ -114,7 +114,7 @@ DCM.xY.X0 = sparse(Nf,0);
 % adjust priors on gain to accomodate scaling differences among models
 %--------------------------------------------------------------------------
 Hc        = feval(DCM.M.IS,DCM.M.pE,DCM.M,DCM.xU);
-DCM.M.U   = U*sqrt(norm(spm_vec(DCM.xY.y),'inf')/norm(spm_vec(Hc,'inf')));
+DCM.M.U   = U*sqrt(norm(spm_vec(DCM.xY.y),Inf)/norm(spm_vec(Hc),Inf));
 
 
 % EM: inversion

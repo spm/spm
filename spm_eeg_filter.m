@@ -2,32 +2,32 @@ function D = spm_eeg_filter(S)
 % Filter M/EEG data
 % FORMAT D = spm_eeg_filter(S)
 %
-% S           - input structure (optional)
-%  fields of S:
+% S           - input structure
+%  Fields of S:
 %   S.D       - MEEG object or filename of M/EEG mat-file
 %
-%   S.band       - filterband [low|high|bandpass|stop]
-%   S.freq       - cutoff frequency(-ies) [Hz]
+%   S.band    - filterband [low|high|bandpass|stop]
+%   S.freq    - cutoff frequency(-ies) [Hz]
 %
-%  optional fields:
-%   S.type       - optional filter type, can be
-%                 'but' Butterworth IIR filter (default)
-%                 'fir' FIR filter using Matlab fir1 function
-%   S.order      - filter order (default - 5 for Butterworth)
-%   S.dir        - optional filter direction, can be
+%  Optional fields:
+%   S.type    - filter type [default: 'butterworth']
+%                 'butterworth': Butterworth IIR filter
+%                 'fir':         FIR filter (using MATLAB fir1 function)
+%   S.order   - filter order [default: 5 for Butterworth]
+%   S.dir     - filter direction [default: 'twopass']
 %                 'onepass'         forward filter only
 %                 'onepass-reverse' reverse filter only, i.e. backward in time
 %                 'twopass'         zero-phase forward and reverse filter
-%   S.prefix     - prefix for the output file (default - 'f')
+%   S.prefix  - prefix for the output file [default: 'f']
 %
 % D           - MEEG object (also written to disk)
 %__________________________________________________________________________
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5060 2012-11-15 16:42:14Z vladimir $
+% $Id: spm_eeg_filter.m 5160 2012-12-21 16:58:38Z guillaume $
 
-SVNrev = '$Rev: 5060 $';
+SVNrev = '$Rev: 5160 $';
 
 
 %-Startup
@@ -38,7 +38,6 @@ spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
 if ~isfield(S, 'type'),         S.type   = 'butterworth'; end
 if ~isfield(S, 'dir'),          S.dir    = 'twopass';     end
 if ~isfield(S, 'prefix'),       S.prefix = 'f';           end
-if ~isfield(S, 'dir'),          S.dir    = 'twopass';     end
 if ~isfield(S, 'order')
     if strcmp(S.type, 'butterworth')
         S.order = 5;
@@ -54,6 +53,7 @@ D = spm_eeg_load(S.D);
 %-Check band
 %--------------------------------------------------------------------------
 switch lower(S.band)
+    
     case {'low','high'}
         if numel(S.freq)~=1
             error('Cutoff frequency should be a single number');
@@ -62,29 +62,31 @@ switch lower(S.band)
         if S.freq < 0 || S.freq > D.fsample/2
             error('Cutoff must be > 0 & < half sample rate');
         end
-    case {'bandpass','stop'}
         
+    case {'bandpass','stop'}
         if S.freq(1) < 0 || S.freq(2) > D.fsample/2 || S.freq(1) > S.freq(2)
             error('Incorrect frequency band specification');
         end
+        
     otherwise
         error('Incorrect filter band.')
 end
 
+%-Filter
+%==========================================================================
 
-%--------------------------------------------------------------------------
-
-% generate new meeg object with new filenames
+%-Generate new meeg object with new filenames
 Dnew = clone(D, [S.prefix fname(D)]);
 
-% determine channels for filtering
+%-Determine channels for filtering
 Fchannels = D.indchantype('Filtered');
 
 Fs = D.fsample;
 
 if strcmp(D.type, 'continuous')
-    % continuous data
-    spm_progress_bar('Init', nchannels(D), 'Channels filtered'); drawnow;
+    %-Continuous data
+    %----------------------------------------------------------------------
+    spm_progress_bar('Init', nchannels(D), 'Channels filtered');
     if nchannels(D) > 100, Ibar = floor(linspace(1, nchannels(D),100));
     else Ibar = [1:nchannels(D)]; end
     
@@ -112,28 +114,29 @@ if strcmp(D.type, 'continuous')
                 Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs);
             end
             
-            if ismember(j, Ibar), spm_progress_bar('Set', blkchan(j)); end
+            if any(Ibar == j), spm_progress_bar('Set', blkchan(j)); end
             
         end
         
         % write Dtemp to Dnew
         Dnew(blkchan,:,1)=Dtemp;
         clear Dtemp;
-    end;
+    end
     
 else
-    % single trial or epoched
-    spm_progress_bar('Init', D.ntrials, 'Trials filtered'); drawnow;
+    %-Single trial or epoched
+    %----------------------------------------------------------------------
+    spm_progress_bar('Init', D.ntrials, 'Trials filtered');
     if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
     else Ibar = 1:D.ntrials; end
     
-    for i = 1:D.ntrials
+    for i=1:D.ntrials
         Dtemp = D(Fchannels, :, i);
         Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs);
         Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
         
-        if ismember(i, Ibar), spm_progress_bar('Set', i); end
-    end;
+        if any(Ibar == i), spm_progress_bar('Set', i); end
+    end
 end
 
 spm_progress_bar('Clear');
@@ -146,9 +149,11 @@ save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
-spm('FigName','M/EEG filter: done'); spm('Pointer', 'Arrow');
+spm('FigName',''); spm('Pointer', 'Arrow');
 
 
+%==========================================================================
+% function dat = spm_eeg_preproc_filter(S, dat, Fs)
 %==========================================================================
 function dat = spm_eeg_preproc_filter(S, dat, Fs)
 

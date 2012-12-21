@@ -8,7 +8,7 @@ function s = export(this,target)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: export.m 3578 2009-11-18 16:19:45Z guillaume $
+% $Id: export.m 5160 2012-12-21 16:58:38Z guillaume $
 
 if numel(this) > 1, warning('Only handle scalar objects yet.'); end
 
@@ -45,7 +45,7 @@ switch lower(target)
             s.vert = double(subsref(this, substruct('.', 'vertices')));
         end
         if isfield(this,'faces')
-            s.face = uint16(subsref(this, substruct('.', 'faces')));
+            s.face = uint32(subsref(this, substruct('.', 'faces')));
         end
         
     otherwise

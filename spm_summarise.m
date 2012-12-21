@@ -16,14 +16,14 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 %__________________________________________________________________________
 %
 % Example:
-% spm_summarise('spmT_0001.img',...
+% spm_summarise('beta_0001.nii',...
 %               struct('def','sphere', 'spec',8, 'xyz',[10 20 30]'),...
 %               @mean)
 %__________________________________________________________________________
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 4633 2012-02-01 18:44:02Z guillaume $
+% $Id: spm_summarise.m 5160 2012-12-21 16:58:38Z guillaume $
 
 %-Argument checks
 %--------------------------------------------------------------------------

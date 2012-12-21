@@ -5,16 +5,13 @@
 %
 % John Ashburner
 % Gareth Barnes
-% Jean Daunizeau
 % Guillaume Flandin
 % Karl Friston
 % Darren Gitelman
 % Volkmar Glauche
-% Rik Henson
 % Chloe Hutton
 % Vladimir Litvak
 % Rosalyn Moran
-% Tom Nichols
 % Robert Oostenveld
 % Will Penny
 % Christophe Phillips
@@ -26,12 +23,15 @@
 % Christian Buechel
 % Chun-Chuan Chen
 % Justin Chumbley
+% Jean Daunizeau
 % Lee Harrison
 % Jon Heather
+% Rik Henson
 % Andrew Holmes
 % Maria Joao Rosa
 % Stefan Kiebel
 % James Kilner
 % Jeremie Mattout
+% Tom Nichols
 % Jean-Baptiste Poline
 % Keith Worsley

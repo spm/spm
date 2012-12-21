@@ -12,22 +12,20 @@ function spm_image(action,varargin)
 % at that point in the image (sampled using the current interpolation
 % scheme) is also given. The position of the crosshairs can also be moved
 % by specifying the coordinates in millimeters to which they should be
-% moved.  Clicking on 'Origin' button will move the cursor back to the
+% moved.  Clicking on the 'Origin' button will move the cursor back to the
 % origin  (analogous to setting the crosshair position (in mm) to [0 0 0]).
 %
 % The images can be re-oriented by entering appropriate translations,
 % rotations and zooms into the panel on the left.  The transformations can
-% then be saved by hitting the "Reorient images..." button.  The
-% transformations that were applied to the image are saved to the header
-% information of the selected images.  The transformations are considered
-% to be relative to any existing transformations that may be stored. Note
-% that the order that the transformations are applied in is the same as in
-% spm_matrix.m.
-%
-% The ``Reset...'' button next to it is for setting the orientation of
-% images back to transverse.  It retains the current voxel sizes, but sets
-% the origin of the images to be the centre of the volumes and all
-% rotations back to zero.
+% then be saved by hitting the 'Reorient...' button.  The transformations
+% that were applied to the image are saved to the header information of the
+% selected images.  The transformations are considered to be relative to
+% any existing transformations that may be stored. Note that the order that
+% the transformations are applied in is the same as in spm_matrix.m.
+% Clicking on the 'Set Origin' button will apply the appropriate
+% translation to the image such that the origin ([0 0 0] (in mm)) will be
+% set to the current location of the crosshair.  To save the transformation
+% you need to click the 'Reorient...' button. 
 %
 % The right panel shows miscellaneous information about the image.
 % This includes:
@@ -50,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_image.m 5160 2012-12-21 16:58:38Z guillaume $
 
 
-SVNid = '$Rev: 5120 $';
+SVNid = '$Rev: 5160 $';
 
 global st
 

@@ -67,7 +67,7 @@ function varargout = spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 4750 2012-05-24 14:05:41Z guillaume $
+% $Id: spm_dcm_ui.m 5160 2012-12-21 16:58:38Z guillaume $
 
 
 DCMversion = 'DCM12';
@@ -82,7 +82,7 @@ end
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
 spm_clf(Finter);
-set(Finter,'Name','Dynamic Causal Modelling');
+set(Finter,'Name',sprintf('Dynamic Causal Modelling (%s)',DCMversion));
 spm('Pointer','Arrow');
 
 % Temporary welcome message
