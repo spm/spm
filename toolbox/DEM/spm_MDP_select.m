@@ -1,4 +1,4 @@
-function [P,Q,S,U,W,da] = spm_MDP_select(MDP,varargin)
+function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % aaction selection using active inference
 % FORMAT [P,Q,S,U,W] = spm_MDP_select(MDP)
 %
@@ -78,7 +78,7 @@ function [P,Q,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_select.m 5121 2012-12-14 18:58:05Z karl $
+% $Id: spm_MDP_select.m 5163 2012-12-21 20:08:22Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -159,14 +159,13 @@ end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
-P      = sparse(Nu,T - 1);         % posterior beliefs about action
-Q      = sparse(Ns,T);             % posterior beliefs about states
 s      = find(MDP.S(:,1));         % initial state
-a      = 1;                        % initial action
-o      = s;                        % initial observation
+P      = sparse(Nu,T - 1);         % posterior beliefs about control
+a      = sparse(1,1,1,1,T);        % action
+o      = sparse(s,1,1,1,T);        % observations
 S      = sparse(s,1,1,Ns,T);       % states sampled
 O      = sparse(s,1,1,Ns,T);       % states observed
-U      = sparse(a,1,1,Nu,T - 1);   % action selected
+U      = sparse(1,1,1,Nu,T - 1);   % action selected
  
 % hyperpriors
 %--------------------------------------------------------------------------
@@ -180,41 +179,35 @@ W      = alpha/beta;
  
 % sufficient statistics of hidden states (past, current and last)
 %--------------------------------------------------------------------------
-x      = zeros(Ns,T);
-u      = zeros(Nu,T);
+x      = zeros(Ns,    T);
+u      = zeros(Nu - 1,T);
 x(:,T) = C;
-Q(:,T) = C;
 da     = [];
 for t  = 1:(T - 1)
     
+    
     % conditional KL divergence (from C) under available action
     %----------------------------------------------------------------------
-    for j = 2:Nu
-        for k = 1:T
+    for j = 1:(Nu - 1)
+        for k = t:T
             
-            % if k < t, there is not subsequent action
+            % composoiton of future states
             %--------------------------------------------------------------
             p = 1;
-            if k < t
-                for i = t:T
+            for i = t:T
+                if i == k
+                    p = B{i,j + 1}*p;
+                else
                     p = B{i,1}*p;
-                end
-            else
-                for i = t:T
-                    if i == k
-                        p = B{i,j}*p;
-                    else
-                        p = B{i,1}*p;
-                    end
                 end
             end
             
             % divergence
             %--------------------------------------------------------------
             if nargin > 1
-                D{j}(k,:) = -lnC'*p;
+                D(j,k,:) = -lnC'*p;
             else
-                D{j}(k,:) = sum(p.*log(p)) - lnC'*p;
+                D(j,k,:) = sum(p.*log(p)) - lnC'*p;
             end
             
         end
@@ -229,26 +222,23 @@ for t  = 1:(T - 1)
         %------------------------------------------------------------------
         for k = max(t - K,1):(t - 1)
             p = max(k - 1,1);
-            v = lnA'*O(:,k);
-            for j = 1:Nu
-                v = v + u(j,k)*lnB{k,j}'*x(:,k + 1);
-                v = v + u(j,p)*lnB{p,j} *x(:,p    );
-            end
+            v = lnA(o(k),:)';
+            v = v + lnB{k,a(k)}'*x(:,k + 1);
+            v = v + lnB{p,a(p)} *x(:,p    );
             x(:,k) = spm_softmax(v);
         end
         
         
         % present state
         %------------------------------------------------------------------
+        k = t:T;
         p = max(t - 1,1);
-        v = lnA'*O(:,t);
+        v = lnA(o(t),:)';
         if K > 0
-            for j = 1:Nu
-                v = v + u(j,p)*lnB{p,j}*x(:,p);
-            end
+            v = v + lnB{p,a(p)}*x(:,p);
         end
-        for j = 2:Nu
-            v = v - W(t)*D{j}'*u(j,:)';
+        for j = 1:(Nu - 1)
+            v = v - W(t)*(u(j,k)*squeeze(D(j,k,:)))';
         end
         x(:,t) = spm_softmax(v);
         
@@ -259,8 +249,8 @@ for t  = 1:(T - 1)
             W(t)  = MDP.w(t);
         catch
             v     = beta;
-            for j = 2:Nu
-                v = v + u(j,:)*D{j}*x(:,t);
+            for j = 1:(Nu - 1)
+                v = v + u(j,k)*squeeze(D(j,k,:))*x(:,t);
             end
             W(t)  = alpha/v;
         end
@@ -269,22 +259,22 @@ for t  = 1:(T - 1)
         
         % policy (u)
         %------------------------------------------------------------------
-        for j = 2:Nu
-            w(j,:) = -W(t)*D{j}*x(:,t);                 % emprical prior
-        end                                             % and
-        w      = w + 0;                                 % full prior (flat)
-        j      = 2:Nu;
-        k      = t:T;
-        u(j,k) = spm_unvec(spm_softmax(spm_vec(w(j,k))),w(j,k));
-        u(j,k) = u(j,k)*(1 - sum(U(j,1:p)));
-        u(1,:) = 1 - sum(u(j,:),1);
-        
-        
+        v     = 0;
+        for j = 1:Ns
+            v = v - W(t)*squeeze(D(:,k,j))*x(j,t);
+        end
+        u(:,k) = spm_unvec(spm_softmax(spm_vec(v)),v);
+        u(:,k) = u(:,k)*(1 - any(a > 1));
+ 
         
         % graphics to inspect update scheme
         %==================================================================
+        
+        % save posterior expectations (control)
+        %------------------------------------------------------------------
+        P  = [1 - sum(u,1); u];
         if PLOT > 2
-            spm_plot_states(x,u)
+            spm_plot_states(x,P)
         end
         
     end
@@ -293,13 +283,8 @@ for t  = 1:(T - 1)
     % graphics to inspect posterior beliefs about hidden states
     %======================================================================
     if PLOT > 1
-        spm_plot_states(x,u)
+        spm_plot_states(x,P)
     end
-    
-    % save posterior expectations (control and states)
-    %----------------------------------------------------------------------
-    P(:,t) = u(:,t);
-    Q(:,t) = x(:,t);
     
     
     % sampling of next state (outcome)
@@ -308,36 +293,36 @@ for t  = 1:(T - 1)
     % next action (the action that minimises expected free energy)
     %----------------------------------------------------------------------
     try
-        a = MDP.a(t);
+        a(t) = MDP.a(t);
     catch
-        a = find(rand < cumsum(u(:,t)),1);
+        a(t) = find(rand < cumsum(P(:,t)),1);
     end
     
     % next sampled state
     %----------------------------------------------------------------------
     try
-        s = MDP.s(t);
+        s(t + 1) = MDP.s(t);
     catch
-        s = find(rand < cumsum(G{t,a}(:,s)),1);
+        s(t + 1) = find(rand < cumsum(G{t,a(t)}(:,s(t))),1);
     end
     
     % next obsverved state
     %----------------------------------------------------------------------
     try
-        o = MDP.o(t);
+        o(t + 1) = MDP.o(t);
     catch
-        o = find(rand < cumsum(A(:,s)),1);
+        o(t + 1) = find(rand < cumsum(A(:,s(t + 1))),1);
     end
     
     
     % save action and state sampled
     %----------------------------------------------------------------------
-    W(1,t + 1) = W(t);
-    O(o,t + 1) = 1;
-    S(s,t + 1) = 1;
-    U(a,t)     = 1;
-    u(:,t)     = U(:,t);
-    
+    W(1,t + 1)        = W(t);
+    U(a(t)    ,t)     = 1;
+    O(o(t + 1),t + 1) = 1;
+    S(s(t + 1),t + 1) = 1;
+
+   
     
     % plot
     %======================================================================
@@ -392,6 +377,11 @@ for t  = 1:(T - 1)
     end
     
 end
+
+
+% remove last posterior
+%--------------------------------------------------------------------------
+P = P(:,1:(T - 1));
  
  
 function spm_plot_states(x,u)

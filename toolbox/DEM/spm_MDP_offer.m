@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5121 2012-12-14 18:58:05Z karl $
+% $Id: spm_MDP_offer.m 5163 2012-12-21 20:08:22Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -97,12 +97,11 @@ spm_axis tight
 axis square
  
 subplot(2,2,4)
-plot(da,'b'),   hold on
-plot(diff(da),'r'), hold off
+plot(da,'b')
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Precision dynamics','FontSize',16)
-spm_axis tight
+axis([1 length(da) 2 4])
 axis square
 
  
@@ -129,12 +128,11 @@ spm_axis tight
 axis square
  
 subplot(2,2,4)
-plot(da,'b'),   hold on
-plot(diff(da),'r'), hold off
+plot(da,'b')
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Precision dynamics','FontSize',16)
-spm_axis tight
+axis([1 length(da) 1 4])
 axis square
  
  
@@ -400,7 +398,7 @@ spm_figure('GetWin','Figure 7'); clf
  
 % trials with no higher offer
 %--------------------------------------------------------------------------
-MDP.C = spm_softmax([1 1 1 2 3]');
+MDP.C = spm_softmax([1 1 1 2 4]');
 MDP.s = ones(1,T);
 MDP.a = [];
 MDP.o = [];
@@ -447,7 +445,7 @@ axis square
  
 % Infer utility from observed responses (meta-modelling)
 %==========================================================================
-p     = linspace(0,6,32);
+p     = linspace(1,6,32);
 DP    = MDP;
 for i = 1:length(p);
     
@@ -506,6 +504,9 @@ function [ED,EU,PT] = PrEU(MDP)
 % numerical solution
 %--------------------------------------------------------------------------
 MDP.plot = 0;
+MDP.s = [];
+MDP.a = [];
+MDP.o = [];
  
 ST    = 0;
 for i = 1:64
