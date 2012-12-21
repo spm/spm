@@ -26,6 +26,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    sens.type     = string with the MEG or EEG acquisition system, see FT_SENSTYPE
 %    sens.chantype = Mx1 cell-array with the type of the channel, see FT_CHANTYPE
 %    sens.chanunit = Mx1 cell-array with the units of the channel signal, e.g. 'T', 'fT' or 'fT/cm'
+%    sens.fid      = structure with fiducial information
 %
 % Revision history:
 %
@@ -73,7 +74,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 7182 2012-12-13 16:34:18Z roboos $
+% $Id: ft_datatype_sens.m 7247 2012-12-21 11:37:09Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -124,23 +125,27 @@ switch version
       if ismeg
         % sensor description is a MEG sensor-array, containing oriented coils
         [chanpos, chanori, lab] = channelposition(sens, 'channel', 'all');
-        if isequal(sens.label(:), lab(:))
-          sens.chanpos = chanpos;
-          sens.chanori = chanori;
-        else
-          warning('cannot determine channel positions and orientations');
-          sens.chanpos = nan(length(sens.label), 3);
-          sens.chanori = nan(length(sens.label), 3);
+        % the channel order can be different in the two representations
+        [selsens, selpos] = match_str(sens.label, lab);
+        sens.chanpos = nan(length(sens.label), 3);
+        sens.chanori = nan(length(sens.label), 3);
+        % insert the determined position/orientation on the appropriate rows
+        sens.chanpos(selsens,:) = chanpos(selpos,:);
+        sens.chanori(selsens,:) = chanori(selpos,:);
+        if length(selsens)~=length(sens.label)
+          warning('cannot determine the position and orientation for all channels');
         end
       else
         % sensor description is something else, EEG/ECoG etc
         % note that chanori will be all NaNs
         [chanpos, chanori, lab] = channelposition(sens, 'channel', 'all');
-        if isequal(sens.label(:), lab(:))
-          sens.chanpos = chanpos;
-        else
-          warning('cannot determine channel positions');
-          sens.chanpos = nan(length(sens.label), 3);
+        % the channel order can be different in the two representations
+        [selsens, selpos] = match_str(sens.label, lab);
+        sens.chanpos = nan(length(sens.label), 3);
+        % insert the determined position/orientation on the appropriate rows
+        sens.chanpos(selsens,:) = chanpos(selpos,:);
+        if length(selsens)~=length(sens.label)
+          warning('cannot determine the position and orientation for all channels');
         end
       end
     end

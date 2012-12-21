@@ -72,7 +72,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 7161 2012-12-13 09:54:48Z bargip $
+% $Id: ft_filetype.m 7240 2012-12-21 08:21:55Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -367,6 +367,10 @@ elseif length(filename)>=4 && ~isempty(strfind(filename,',rf'))
   type = '4d';
   manufacturer = '4D/BTi';
   content = '';
+elseif filetype_check_extension(filename, '.el.ascii') && filetype_check_ascii(filename, 20) % assume that there are at least 20 bytes in the file, the example one has 4277 bytes
+  type = '4d_el_ascii';
+  manufacturer = '4D/BTi';
+  content = 'electrode positions';
 elseif length(f)<=4 && filetype_check_dir(p, 'config')%&& ~isempty(p) && exist(fullfile(p,'config'), 'file') %&& exist(fullfile(p,'hs_file'), 'file')
   % this could be a 4D file with non-standard/processed name
   % it will be detected as a 4D file when there is a config file in the
