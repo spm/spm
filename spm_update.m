@@ -12,10 +12,11 @@ function spm_update(update)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 4857 2012-08-23 17:17:30Z guillaume $
+% $Id: spm_update.m 5161 2012-12-21 18:30:26Z guillaume $
 
-url  = 'ftp://ftp.fil.ion.ucl.ac.uk/spm/spm12_updates/';
-vspm = 'SPM12';
+
+vspm = 'SPM12b';
+url  = ['ftp://ftp.fil.ion.ucl.ac.uk/spm/' lower(vspm) '_updates/'];
 
 if ~nargin
     update = false;
@@ -39,7 +40,7 @@ catch
     error('SPM cannot be found in MATLAB path.');
 end
 if ~strcmp(v,vspm), error('Your SPM version is %s and not %s',v,vspm); end
-rs = [];
+rs = [NaN];
 if isnan(r), r = rs(1); end 
 if floor(r) == str2double(vspm(4:end))
     try
