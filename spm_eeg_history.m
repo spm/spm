@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 5078 2012-11-25 15:08:05Z vladimir $
+% $Id: spm_eeg_history.m 5164 2012-12-28 16:40:06Z vladimir $
 
 try
     h = S.history;
@@ -179,9 +179,9 @@ for i=1:numel(h)
         case 'spm_eeg_downsample'
             hh{i}  = ['Downsample to ' num2str(h(i).args.fsample_new) ' Hz'];
         case 'spm_eeg_bc'
-            if isfield(mat2str(h(i).args, 'time'))
+            if isfield(h(i).args, 'time')
                 hh{i} = ['Baseline correction ' mat2str(h(i).args.time(:)') ' ms'];
-            elseif isfield(mat2str(h(i).args, 'timewin'))
+            elseif isfield(h(i).args, 'timewin')
                 hh{i} = ['Baseline correction ' mat2str(h(i).args.timewin(:)') ' ms'];
             end
         case 'spm_eeg_copy'   

@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5110 2012-12-12 06:12:53Z vladimir $
+% $Id: spm_eeg_convert.m 5164 2012-12-28 16:40:06Z vladimir $
 
-SVNrev = '$Rev: 5110 $';
+SVNrev = '$Rev: 5164 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -73,11 +73,11 @@ if ~isfield(S, 'blocksize'),       S.blocksize = 3276800;                       
 if ~isfield(S, 'checkboundary'),   S.checkboundary = 1;                                    end
 if ~isfield(S, 'eventpadding'),    S.eventpadding = 0;                                     end
 if ~isfield(S, 'saveorigheader'),  S.saveorigheader = 0;                                   end
-if ~isfield(S, 'conditionlabel'),  S.conditionlabel = 'Undefined' ;                        end
+if ~isfield(S, 'conditionlabels'), S.conditionlabels = 'Undefined' ;                       end
 if ~isfield(S, 'inputformat'),     S.inputformat = [] ;                                    end
 
-if ~iscell(S.conditionlabel)
-    S.conditionlabel = {S.conditionlabel};
+if ~iscell(S.conditionlabels)
+    S.conditionlabels = {S.conditionlabels};
 end
 
 
@@ -228,7 +228,7 @@ if ismember(S.mode, {'continuous', 'header'})
             [timewindow(1)-S.eventpadding timewindow(2)+S.eventpadding]);
     end
     
-    D.trials.label  = S.conditionlabel{1};
+    D.trials.label  = S.conditionlabels{1};
     D.trials.events = event;
     D.trials.onset  = timewindow(1);
     
@@ -386,6 +386,12 @@ D.fname = [outfile '.mat'];
 
 if ~isequal(S.mode, 'header')
     
+    % These are the units used for channel data in SPM
+    chanunit  = units(Dhdr, chansel);
+    chanunit(strcmp('T',   chanunit)) = {'fT'};
+    chanunit(strcmp('T/m', chanunit)) = {'fT/mm'};
+    chanunit(strcmp('V',   chanunit)) = {'uV'};
+    
     if isequal(S.mode, 'continuous')
         D.data = file_array(fullfile(D.path, [outfile '.dat']), [nchan nsampl], 'float32-le');
     else
@@ -405,10 +411,10 @@ if ~isequal(S.mode, 'header')
     for i = 1:ntrial
         if readbytrials
             dat = ft_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
-                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);
+                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);%'chanunit', chanunit,
         else
             dat = ft_read_data(S.dataset,'header',  hdr, 'begsample', trl(i, 1), 'endsample', trl(i, 2),...
-                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);
+                'chanindx', chansel, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat); %'chanunit', chanunit,
         end
         
         % Sometimes ft_read_data returns sparse output
@@ -527,9 +533,9 @@ if ~isempty(strmatch('MEG', D.chantype)) && ~isempty(D.sensors('MEG'))
 end
 
 % If channel units are available, store them.
-if isfield(hdr, 'unit')
+if isfield(hdr, 'chanunit')
     [sel1, sel2] = spm_match_str(D.chanlabels, hdr.label);
-    D = units(D, sel1, hdr.unit(sel2));
+    D = units(D, sel1, hdr.chanunit(sel2));
 end
 
 % The conditions will later be sorted in the original order they were defined.
@@ -556,6 +562,9 @@ spm('FigName','M/EEG convert: done'); spm('Pointer', 'Arrow');
 function event = select_events(event, timeseg)
 % Utility function to select events according to time segment
 % FORMAT event = select_events(event, timeseg)
+if iscell(event)
+    event = event{1};
+end
 
 if ~isempty(event)
     [time ind] = sort([event(:).time]);
