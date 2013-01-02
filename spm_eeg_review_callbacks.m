@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 5166 2013-01-02 13:48:17Z christophe $
 
 spm('pointer','watch');
 drawnow expose
@@ -863,8 +863,8 @@ drawnow expose
 function [] = updateDisp(D,flags,in)
 % This function updates the display of the data and events.
 
-if ~exist('flag','var')
-    flag = 0;
+if ~exist('flags','var')
+    flags = 0;
 end
 if ~exist('in','var')
     in = [];
@@ -915,9 +915,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 options.hp = handles.hfig;
                 options.Fsample = D.fsample;
                 options.timeOnset = D.timeonset;
-                if strcmp(D.PSD.VIZU.modality,'eeg') % R.L added if -- montage not defined for other modalities
+%                 if strcmp(D.PSD.VIZU.modality,'eeg') % R.L added if -- montage not defined for other modalities
                 options.M = VIZU.visu_scale*full(VIZU.montage.M);
-                end
+%                 end
                 options.bad = [badchannels(D,VIZU.visuSensors(:))];
                 Events = events(D);
                 if strcmp(D.PSD.type,'continuous') && ~isempty(Events)
