@@ -69,12 +69,19 @@ function factor = scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scalingfactor.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: scalingfactor.m 7272 2012-12-31 10:04:52Z roboos $
 
 persistent previous_old previous_new previous_factor
 
-if isequal(old, previous_old) && isequal(new, previous_new)
-  factor = previous_factor;
+if isempty(previous_old)
+  previous_old = {};
+  previous_new = {};
+  previous_factor = [];
+end
+
+cachehit = strcmp(old, previous_old) & strcmp(new, previous_new);
+if any(cachehit)
+  factor = previous_factor(cachehit);
   return
 end
 
@@ -216,6 +223,6 @@ eval(sprintf('new2si = %s;', new));
 factor = old2si/new2si;
 
 % remember the input args and the result, this will speed up the next call if the input is the same
-previous_old    = old;
-previous_new    = new;
-previous_factor = factor;
+previous_old{end+1}    = old;
+previous_new{end+1}    = new;
+previous_factor(end+1) = factor;
