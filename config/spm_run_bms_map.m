@@ -30,8 +30,10 @@ function out = spm_run_bms_map (job)
 %     BMS.fname
 %     BMS.map.ffx(rfx).data
 %     BMS.map.ffx(rfx).ppm 
-%     BMS.map.ffx(rfx).xppm     - only for RFX
-%     BMS.map.ffx(rfx).epm      - only for RFX (optional)
+%     BMS.map.ffx(rfx).xppm     - only for RFX (this is the expected posterior
+%                                 probability map ie. posterior mean)
+%     BMS.map.ffx(rfx).epm      - only for RFX (optional) - this is the 
+%                                 exceedance probability map 
 %     BMS.map.ffx(rfx).alpha    - only for RFX
 %
 % [1] Rosa et al., 2009, Bayesian Model Selection Maps for Group Studies,
@@ -43,7 +45,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 4737 2012-05-11 13:26:01Z will $
+% $Id: spm_run_bms_map.m 5165 2013-01-02 11:14:29Z will $
 
 % Input
 % -------------------------------------------------------------------------
