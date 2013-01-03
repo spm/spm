@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5072 2012-11-20 19:06:11Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5171 2013-01-03 15:52:31Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5072 $';
+SVNrev = '$Rev: 5171 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -88,8 +88,32 @@ BInputsTrialsMenu = uimenu(BatchInputsMenu, 'Label', 'Trial definition',...
 BInputsMontageMenu = uimenu(BatchInputsMenu, 'Label', 'Montage',...
     'Tag','EEGprepUI',...
     'Enable', 'off', ...
+    'HandleVisibility','on');
+
+MontageCustomMenu = uimenu(BInputsMontageMenu, 'Label', 'Custom Montage',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''MontageCB'')');
+
+MontageRereferenceMenu = uimenu(BInputsMontageMenu, 'Label', 'Re-reference',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''RereferenceCB'')');
+
+MontageROIMenu = uimenu(BInputsMontageMenu, 'Label', 'ROI',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''roiCB'')');
+
+MontageCombinePlanarMenu = uimenu(BInputsMontageMenu, 'Label', 'Combine planar',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''CombinePlanarCB'')');
+
 % ====== Channel types ===============================
 
 ChanTypeMenu = uimenu(Finter,'Label','Channel types',...
@@ -380,6 +404,129 @@ montage.tra = eye(numel(label));
 spm_eeg_montage_ui(montage);
 
 end
+
+%==========================================================================
+% function RereferenceCB
+%==========================================================================
+function RereferenceCB
+
+D = getD;
+
+% Get indices for just EEG channels and remove any bad channels
+%--------------------------------------------------------------------------
+eegchan  = D.indchantype('EEG');
+goodind = D.indchantype('EEG', 'GOOD');
+
+if isempty(goodind)
+    error('No good EEG channels.')
+end
+
+%-Get reference channel indices
+%--------------------------------------------------------------------------
+[selection, ok]= listdlg('ListString', D.chanlabels(goodind), 'SelectionMode', 'multiple' ,...
+    'Name', 'Select reference channels' , 'ListSize', [400 300]);
+if ~ok
+    return;
+end
+
+refind  = goodind(selection);
+badind  = D.indchantype('EEG', 'BAD');
+
+tra                 = eye(length(eegchan));
+tra(goodind,refind) = tra(goodind,refind) - 1/length(refind);
+tra(badind, refind) = tra(badind,refind)  - 1/length(refind);
+
+montage          = [];
+montage.labelorg = D.chanlabels(eegchan);
+montage.labelnew = D.chanlabels(eegchan);
+montage.tra      = tra;
+
+[filename, pathname] = uiputfile('*.mat', 'Save montage as');
+
+if ~isequal(filename, 0)
+    save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+end
+
+end
+
+%==========================================================================
+% function roiCB
+%==========================================================================
+function roiCB
+
+D = getD;
+
+[modality, chanind]  = spm_eeg_modality_ui(D, 0, 1);
+
+chanind = setdiff(chanind, D.badchannels);
+
+if isempty(chanind)
+    error(['No good ' modality ' channels.']);
+end
+
+montage = [];
+montage.labelorg = D.chanlabels(chanind)';
+montage.labelnew = {};
+montage.tra      = [];
+while 1
+    roilabel = spm_input('ROI Label:', '+1', 's');
+    
+    [selection, ok]= listdlg('ListString', D.chanlabels(chanind), 'SelectionMode', 'multiple' ,...
+        'Name', 'Select reference channels' , 'ListSize', [400 300]);
+    if ok
+       montage.labelnew{end+1, 1} = roilabel;
+       tra = zeros(1, length(chanind));
+       tra(selection) = 1;
+       tra = tra./sum(tra);
+       montage.tra = [montage.tra; tra];        
+    end
+    
+    if spm_input('Add another?','+1','yes|no',[0, 1], 0);
+        break;
+    end
+end
+    
+[filename, pathname] = uiputfile('*.mat', 'Save montage as');
+
+if ~isequal(filename, 0)
+    save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+end
+
+update_menu;
+
+end
+
+%==========================================================================
+% function CombinePlanarCB
+%==========================================================================
+function CombinePlanarCB
+
+D = getD;
+
+planar = spm_eeg_planarchannelset(D.chanlabels);
+
+montage = [];
+montage.labelorg = D.chanlabels(D.indchantype('MEGPLANAR', 'GOOD'))';
+montage.labelnew = {};
+montage.tra      = [];
+
+for i = 1:size(planar, 1)
+    tra = zeros(1, length(montage.labelorg));
+    tra(ismember(montage.labelorg, planar(i, 1:2))) = 1;
+    if sum(tra) == 2
+        montage.labelnew(i, 1) = planar(i, 3);
+        montage.tra = [montage.tra; tra];
+    end
+end
+
+[filename, pathname] = uiputfile('*.mat', 'Save montage as');
+
+if ~isequal(filename, 0)
+    save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+end
+
+end
+
 %==========================================================================
 % function ChanTypeCB
 %==========================================================================
@@ -828,7 +975,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 IsEEG = 'off';
 IsMEG = 'off';
 IsEpochable = 'off';
-IsNeuromag  = 'off';
+HasPlanar   = 'off';
 HasSensors  = 'off';
 HasSensorsEEG = 'off';
 ReferenceSelectable = 'off';
@@ -854,9 +1001,9 @@ if isa(get(Finter, 'UserData'), 'meeg')
         IsEpochable = 'on';
     end
     
-    if ft_senstype(D.chanlabels, 'neuromag') &&...
-            isfield(D, 'origchantypes')
-        IsNeuromag = 'on';
+    [res, list] = modality(D, 1, 1);
+    if ismember('MEGPLANAR', list);
+        HasPlanar = 'on';
     end
     
     if ~isempty(D.indchantype('REF'));
@@ -923,7 +1070,10 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Save'), 'Enable', 'on');
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Batch inputs'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Trial definition'), 'Enable', IsEpochable);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Montage'), 'Enable', IsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Montage'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Re-reference'), 'Enable', IsEEG);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'ROI'), 'Enable', Dloaded);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Combine planar'), 'Enable', HasPlanar);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);

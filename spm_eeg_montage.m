@@ -51,9 +51,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5072 2012-11-20 19:06:11Z vladimir $
+% $Id: spm_eeg_montage.m 5171 2013-01-03 15:52:31Z vladimir $
 
-SVNrev = '$Rev: 5072 $';
+SVNrev = '$Rev: 5171 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -75,11 +75,7 @@ if ~isfield(S, 'prefix'),        S.prefix = 'M';                    end
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
 
-if strncmp(D.transformtype, 'TF', 2)
-    error('Montage cannot be applied to time-frequency data');
-end
-
-D = D.montage('switch',0);
+D = D.montage('switch', 0);
 
 %-Get montage
 %--------------------------------------------------------------------------
@@ -88,7 +84,7 @@ if ischar(S.montage)
     if isempty(montage)
         montage = load(S.montage);
     else
-            error('Could not read montage file %s.', S.montage);
+        error('Could not read montage file %s.', S.montage);
     end
     if ismember('montage', fieldnames(montage))
         montage = montage.montage;
@@ -104,7 +100,7 @@ if isequal(S.mode, 'write') && isnumeric(montage)
         warning('The settings require applying the current montage. Nothing done');
         return;
     end
-    montage = D.montage('getmontage', montage);        
+    montage = D.montage('getmontage', montage);
 end
 
 if ~isnumeric(montage)
@@ -156,14 +152,24 @@ if ~isnumeric(montage)
     montage.labelorg   = montage.labelorg(selmont);
 end
 
+isTF = strncmp(D.transformtype, 'TF', 2);
+
+if isTF && ~isequal(S.mode, 'write')
+    error('Online montages are not supported for TF data');
+end
+
 switch S.mode
     case 'write'
         %%
         %-Generate new MEEG object with new filenames
         %----------------------------------------------------------------------
-        Dnew = clone(D, ['M' fname(D)], [m D.nsamples D.ntrials], 1);
-        
-        nblocksamples = floor(S.blocksize/max(D.nchannels, m));
+        if ~isTF
+            Dnew = clone(D, [S.prefix fname(D)], [m D.nsamples D.ntrials], 1);
+            nblocksamples = floor(S.blocksize/max(D.nchannels, m));
+        else
+            Dnew = clone(D, [S.prefix fname(D)], [m D.nfrequencies D.nsamples D.ntrials], 1);
+            nblocksamples = max(1, floor(S.blocksize/(D.nfrequencies*max(D.nchannels, m))));
+        end
         
         if D.nsamples <= nblocksamples
             nblocks = 1;
@@ -177,12 +183,18 @@ switch S.mode
         else Ibar = [1:D.ntrials]; end
         
         spm_progress_bar('Init', Ibar(end), 'applying montage');
-        
+                
         for i = 1:D.ntrials
             for j = 1:nblocks
-                
-                Dnew(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = ...
-                    montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
+                if isTF
+                    for f = 1:D.nfrequencies
+                        temp = montage.tra * spm_squeeze(D(:, f, ((j-1)*nblocksamples +1) : (j*nblocksamples), i), [2, 4]);
+                        Dnew(:, f, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = permute(shiftdim(temp, -1), [2, 1, 3]);
+                    end
+                else                    
+                    Dnew(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = ...
+                        montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
+                end
                 
                 if D.ntrials == 1 && ismember(j, Ibar)
                     spm_progress_bar('Set', j);
@@ -190,8 +202,15 @@ switch S.mode
             end
             
             if mod(D.nsamples, nblocksamples) ~= 0
-                Dnew(:, (nblocks*nblocksamples +1) : D.nsamples, i) = ...
-                    montage.tra * squeeze(D(:, (nblocks*nblocksamples +1) : D.nsamples, i));
+                if isTF
+                    for f = 1:D.nfrequencies
+                        temp = montage.tra * spm_squeeze(D(:, f, (nblocks*nblocksamples +1) : D.nsamples, i), [2, 4]);
+                        Dnew(:, f, (nblocks*nblocksamples +1) : D.nsamples, i) = permute(shiftdim(temp, -1), [2, 1, 3]);
+                    end
+                else
+                    Dnew(:, (nblocks*nblocksamples +1) : D.nsamples, i) = ...
+                        montage.tra * squeeze(D(:, (nblocks*nblocksamples +1) : D.nsamples, i));
+                end
             end
             
             if D.ntrials>1 && ismember(i, Ibar)

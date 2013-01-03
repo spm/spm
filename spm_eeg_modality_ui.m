@@ -11,10 +11,10 @@ function [mod, chanind]  = spm_eeg_modality_ui(D, scalp, planar)
 % modality   - the chosen modality
 % chanind    - indices of the corresponding channels
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_modality_ui.m 2813 2009-03-02 18:56:35Z guillaume $
+% $Id: spm_eeg_modality_ui.m 5171 2013-01-03 15:52:31Z vladimir $
 
 if nargin == 1
     scalp = false;
@@ -35,8 +35,8 @@ if strcmpi(mod, 'Multimodal')
     mod = list{spm_input('Which modality?','+1', 'm', qstr)};
 end
 
-if strcmpi(mod, 'MEG') && planar
-    chanind = setdiff(strmatch('MEG', D.chantype) , strmatch('MEGPLANAR', D.chantype));
+if strcmpi(mod, 'MEG') && ~planar
+    chanind = D.indchantype({'MEG', 'MEGPLANAR'});
 else
-    chanind = strmatch(mod, D.chantype);
+    chanind = D.indchantype(mod);
 end
