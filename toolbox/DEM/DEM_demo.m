@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 07-Nov-2012 19:38:18
+% Last Modified by GUIDE v2.5 03-Jan-2013 14:32:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -85,13 +85,15 @@ set(handles.help,'String',str);
 handles.file = file;
 guidata(hObject, handles);
 
+% --- Executes during object creation, after setting all properties.
+function axes5_CreateFcn(hObject, eventdata, handles)
+imagesc(imread('PDF.jpg')), axis off
 
-% --- Executes on mouse press over axes background.
-function pdf_ButtonDownFcn(hObject, eventdata, handles)
-% hObject    handle to pdf (see GCBO)
-try
-    web(handles.web,'-browser');
-end
+
+% --- Executes on button press in pushbutton131.
+function pushbutton131_Callback(hObject, eventdata, handles)
+try, web(handles.web,'-browser'); end
+
 
 % --- Executes on button press in pushbutton51.
 function pushbutton51_Callback(hObject, eventdata, handles)
@@ -329,7 +331,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_Cornsweet')
 
 % --- Executes on button press in pushbutton105.
 function pushbutton105_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Smooth%20Pursuit%20and%20Visual%20Occlusion.pdf';
 run_demo_Callback(hObject, handles, 'ADEM_pursuit')
 
 % --- Executes on button press in pushbutton117.
@@ -369,12 +371,12 @@ run_demo_Callback(hObject, handles, 'DEM_demo_SOC')
 
 % --- Executes on button press in pushbutton124.
 function pushbutton124_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Smooth%20Pursuit%20and%20Visual%20Occlusion.pdf';
 run_demo_Callback(hObject, handles, 'ADEM_occulomotor_delays')
 
 % --- Executes on button press in pushbutton125.
 function pushbutton125_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Smooth%20Pursuit%20and%20Visual%20Occlusion.pdf';
 run_demo_Callback(hObject, handles, 'ADEM_occlusion')
 
 % --- Executes on button press in pushbutton126.
@@ -392,18 +394,13 @@ function pushbutton128_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Observing%20the%20Observer%20I.pdf';
 run_demo_Callback(hObject, handles, 'spm_meta_model')
 
-
 % --- Executes on button press in pushbutton129.
 function pushbutton129_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'DEM_evidence_accumulation')
 
-
 % --- Executes on button press in pushbutton130.
 function pushbutton130_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
 run_demo_Callback(hObject, handles, 'spm_MDP_offer')
-
-
-
 

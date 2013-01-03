@@ -18,7 +18,7 @@ function spm_MDP_mountain_car(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_mountain_car.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: spm_MDP_mountain_car.m 5174 2013-01-03 20:13:12Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -170,7 +170,7 @@ MDP.D = D;                         % control probabilities (priors)
 MDP.lambda = 64;
 MDP.plot   = 1;
 
-[Q,R,S,E]  = spm_MDP(MDP);
+[Q,R,S]  = spm_MDP(MDP);
  
 % set up state space graphically
 %--------------------------------------------------------------------------

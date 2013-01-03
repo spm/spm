@@ -10,7 +10,7 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 %
 % optional:
 %
-% MDP.W           - log-precision of beliefs about transitions (default: 16)
+% MDP.W           - log-precision of beliefs about transitions (default: 1)
 % MDP.G{M}(N,N)   - transition probabilities used to generate outcomes
 %                   (default: the prior transition probabilities)
 % MDP.A(N,N)      - Likelihood of outcomes given hidden states
@@ -61,7 +61,7 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: spm_MDP.m 5174 2013-01-03 20:13:12Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -78,7 +78,7 @@ if PLOT, spm_figure('GetWin','MDP'); clf,   end
 
 % generative model and initial states
 %--------------------------------------------------------------------------
-P0    = exp(-4);              % smallest probability
+P0    = exp(-32);             % smallest probability
 T     = MDP.T;                % process depth (the horizon)
 Ns    = size(MDP.B{1},1);     % number of hidden states
 Nb    = size(MDP.B,1);        % number of time-dependent probabilities

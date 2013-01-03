@@ -43,16 +43,32 @@ try
     for i = 1:length(Q)
         
         s = strfind(Q{i},'spm_');
-        if ~isempty(s)
+        for k = 1:length(s)
+            
+            % calls: spm_???(
+            %--------------------------------------------------------------
             j = strfind(Q{i},'(');
-            j = j(j > s);
+            j = j(find(j > s(k),1));
             if ~isempty(j)
-                q = [Q{i}(s:(j(1) - 1)) '.m'];
+                q = [Q{i}(s(k):(j - 1)) '.m'];
                 if ~strcmp(P,q)
                     spm_extract_files(q,cwd);
                 end
             end
+            
+            % functions: 'spm_???'
+            %--------------------------------------------------------------
+            j = strfind(Q{i},'''');
+            j = j(find(j > s(k),1));
+            if ~isempty(j)
+                q = [Q{i}(s(k):(j - 1)) '.m'];
+                if ~strcmp(P,q)
+                    spm_extract_files(q,cwd);
+                end
+            end
+            
         end
     end
 end
+
 
