@@ -42,7 +42,7 @@ function chanunit = ft_chanunit(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 7208 2012-12-17 09:20:56Z roboos $
+% $Id: ft_chanunit.m 7268 2012-12-28 16:38:31Z vlalit $
 
 
 % determine the type of input, this is handled similarly as in FT_CHANTYPE

@@ -39,7 +39,7 @@ function [varargout] = ft_plot_text(X, Y, str, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_text.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_plot_text.m 7267 2012-12-27 13:08:34Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -109,6 +109,10 @@ else
   Y = Y + vpos;
   
 end % shortcut
+
+% it fails on single inputs
+X = double(X);
+Y = double(Y);
 
 h = text(X, Y, str);
 set(h, 'HorizontalAlignment', HorizontalAlignment);

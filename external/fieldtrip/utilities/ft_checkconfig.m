@@ -61,7 +61,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 7142 2012-12-12 07:41:18Z eelspa $
+% $Id: ft_checkconfig.m 7261 2012-12-23 10:51:34Z roboos $
 
 global ft_default
 
@@ -557,7 +557,7 @@ if ~isempty(trackconfig)
           key = fieldnames(cfg);
           key = key(:)';
           
-          ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous'}; % these fields should never be removed!
+          ignorefields = {'checksize', 'trl', 'trlold', 'event', 'artifact', 'artfctdef', 'previous', 'debug'}; % these fields should never be removed!
           skipsel      = match_str(key, ignorefields);
           key(skipsel) = [];
           

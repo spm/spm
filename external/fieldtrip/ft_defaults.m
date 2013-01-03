@@ -1,7 +1,8 @@
 function ft_defaults
 
-% FT_DEFAULTS contains some general settings and takes care of the required path
-% settings. This function is called at the begin of all FieldTrip functions.
+% FT_DEFAULTS (ending with "s") sets some general settings in the global variable
+% ft_default (without the "s") and takes care of the required path settings. This
+% function is called at the begin of all FieldTrip functions.
 %
 % The configuration defaults are stored in the global "ft_default" structure.
 % The ft_checkconfig function that is called by many FieldTrip functions will
@@ -13,6 +14,8 @@ function ft_defaults
 %   ft_default.checkconfig    string, can be pedantic, loose, silent (default = 'loose')
 %   ft_default.checksize      number in bytes, can be inf (default = 1e5)
 %   ft_default.showcallinfo   string, can be yes or no (default = 'yes')
+%   ft_default.debug          string, can be 'display', 'displayonerror', 'displayonsuccess', 
+%                             'save', 'saveonerror', saveonsuccess' or 'no' (default = 'no')
 %
 % See also FT_HASTOOLBOX, FT_CHECKCONFIG
 
@@ -37,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7187 2012-12-13 21:02:55Z roboos $
+% $Id: ft_defaults.m 7261 2012-12-23 10:51:34Z roboos $
 
 global ft_default 
 persistent initialized

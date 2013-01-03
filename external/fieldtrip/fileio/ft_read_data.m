@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7209 2012-12-17 10:04:40Z bargip $
+% $Id: ft_read_data.m 7268 2012-12-28 16:38:31Z vlalit $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql

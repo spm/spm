@@ -43,7 +43,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_read_mri.m 7274 2013-01-03 08:14:28Z jansch $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -201,9 +201,18 @@ elseif strcmp(mriformat, 'neuromag_fif') && ft_hastoolbox('mne')
     if (hdr.voxel_trans.from == 2001) && (hdr.voxel_trans.to == 5)
       % matlab_shift compensates for the different index conventions
       % between C and matlab
-      matlab_shift = [ 0 0 0 0.001; 0 0 0 -0.001; 0 0 0 0.001; 0 0 0 0];
+      
+      % the lines below is old code (prior to Jan 3, 2013) and only works with
+      % 1 mm resolution MRIs
+      %matlab_shift = [ 0 0 0 0.001; 0 0 0 -0.001; 0 0 0 0.001; 0 0 0 0];
       % transform transforms from 2001 to 5 and further to 4
-      transform = transform\(hdr.voxel_trans.trans+matlab_shift);
+      %transform = transform\(hdr.voxel_trans.trans+matlab_shift);
+      
+      % the lines below should work with arbitrary resolution
+      matlab_shift = eye(4);
+      matlab_shift(1:3,4) = [-1,-1,-1];
+      transform = transform\(hdr.voxel_trans.trans * matlab_shift);
+
       coordsys  = 'neuromag';
       mri.unit  = 'm';
     else

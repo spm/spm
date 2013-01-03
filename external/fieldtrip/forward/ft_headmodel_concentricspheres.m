@@ -43,31 +43,32 @@ function vol = ft_headmodel_concentricspheres(geometry, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_concentricspheres.m 7235 2012-12-19 20:49:46Z roboos $
+% $Id: ft_headmodel_concentricspheres.m 7263 2012-12-27 10:53:27Z roboos $
 
 % get the optional input arguments
 conductivity = ft_getopt(varargin, 'conductivity'); % default is determined below
 fitind       = ft_getopt(varargin, 'fitind', 'all');
 unit         = ft_getopt(varargin, 'unit');
 
+if isnumeric(geometry) && size(geometry,2)==3
+  % assume that it is a Nx3 array with vertices
+  % convert it to a structure, this is needed to determine the units further down
+  geometry = struct('pnt', geometry);
+elseif isstruct(geometry) && isfield(geometry,'bnd')
+  % take the triangulated surfaces from the input structure
+  geometry = geometry.bnd;
+elseif ~(isstruct(geometry) && isfield(geometry,'pnt'))
+  error('the input geometry should be a set of points or a single triangulated surface')
+end
+
 % start with an empty volume conductor
 vol = [];
 
 if ~isempty(unit)
-  % use the user-specified units for the output
-  vol.unit = unit;
-elseif isfield(geometry, 'unit')
-  % copy the geometrical units into he volume conductor
-  % assume that in case of multiple meshes that they have the same units
-  vol.unit = geometry(1).unit;
-end
-
-if isnumeric(geometry) && size(geometry,2)==3
-  % assume that it is a Nx3 array with vertices
-  geometry.pnt = geometry;
-elseif isstruct(geometry) && isfield(geometry,'bnd')
-  % take the triangulated surface
-  geometry = geometry.bnd;
+  vol.unit = unit;                       % use the user-specified units for the output
+else
+  geometry = ft_convert_units(geometry); % ensure that it has units, estimate them if needed
+  vol.unit = geometry(1).unit;           % copy the geometrical units into the volume conductor
 end
 
 if isequal(fitind, 'all')
@@ -129,4 +130,3 @@ end
 for i=1:numel(geometry)
   fprintf('concentric sphere %d: radius = %.1f, conductivity = %f\n', i, vol.r(i), vol.c(i));
 end
-

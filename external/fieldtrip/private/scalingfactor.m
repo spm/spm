@@ -69,7 +69,7 @@ function factor = scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scalingfactor.m 7272 2012-12-31 10:04:52Z roboos $
+% $Id: scalingfactor.m 7271 2012-12-31 10:04:49Z roboos $
 
 persistent previous_old previous_new previous_factor
 

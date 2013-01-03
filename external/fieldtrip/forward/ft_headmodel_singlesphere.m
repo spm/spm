@@ -36,7 +36,7 @@ function vol = ft_headmodel_singlesphere(geometry, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_singlesphere.m 7235 2012-12-19 20:49:46Z roboos $
+% $Id: ft_headmodel_singlesphere.m 7263 2012-12-27 10:53:27Z roboos $
 
 % get the optional arguments
 conductivity = ft_getopt(varargin, 'conductivity', 1);
@@ -46,24 +46,29 @@ if length(conductivity)~=1
   error('the conductivity should be a single number')
 end
 
+if isnumeric(geometry) && size(geometry,2)==3
+  % assume that it is a Nx3 array with vertices
+  % convert it to a structure, this is needed to determine the units further down
+  geometry = struct('pnt', geometry);
+elseif isstruct(geometry) && isfield(geometry,'bnd')
+  % take the triangulated surfaces from the input structure
+  geometry = geometry.bnd;
+elseif ~(isstruct(geometry) && isfield(geometry,'pnt'))
+  error('the input geometry should be a set of points or a single triangulated surface')
+end
+
 % start with an empty volume conductor
 vol = [];
 
 if ~isempty(unit)
   vol.unit = unit;                       % use the user-specified units for the output
-elseif isfield(geometry, 'unit')
+else
   geometry = ft_convert_units(geometry); % ensure that it has units, estimate them if needed
   vol.unit = geometry.unit;              % copy the geometrical units into the volume conductor
 end
 
-if isnumeric(geometry) && size(geometry,2)==3
-  % assume that it is a Nx3 array with vertices
-elseif isstruct(geometry) && isfield(geometry,'pnt') && numel(geometry)==1
-  % get the points from the triangulated surface
-  geometry = geometry.pnt;
-else
-  error('the input geometry should be a set of points or a single triangulated surface')
-end
+% get the points from the triangulated surface
+geometry = geometry.pnt;
 
 % fit a single sphere to all headshape points
 [single_o, single_r] = fitsphere(geometry);

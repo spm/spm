@@ -41,12 +41,25 @@ function [obj] = ft_convert_units(obj, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_convert_units.m 7259 2012-12-22 22:40:20Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
 %   2) determine the requested scaling factor to obtain the output units
 %   3) try to apply the scaling to the known geometrical elements in the input object
+
+if isstruct(obj) && numel(obj)>1
+  % deal with a structure array
+  for i=1:numel(obj)
+    if nargin>1
+      tmp(i) = ft_convert_units(obj(i), target);
+    else
+      tmp(i) = ft_convert_units(obj(i));
+    end
+  end
+  obj = tmp;
+  return
+end
 
 % determine the unit-of-dimension of the input object
 if isfield(obj, 'unit') && ~isempty(obj.unit)
