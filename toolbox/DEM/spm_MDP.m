@@ -61,7 +61,7 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5083 2012-11-28 20:26:03Z karl $
+% $Id: spm_MDP.m 5168 2013-01-03 11:02:15Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -318,7 +318,7 @@ function spm_plot_states(a,b)
 %--------------------------------------------------------------------------
 subplot(2,2,1)
 if size(a,1) > 512
-    spy(a > 1/8,16)
+    spy(a > 1/32,16)
 else
     imagesc(1 - a)
 end

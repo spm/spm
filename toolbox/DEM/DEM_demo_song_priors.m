@@ -9,7 +9,7 @@ function DEM_demo_song_priors
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_song_priors.m 5168 2013-01-03 11:02:15Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)
@@ -116,7 +116,7 @@ clf, colormap('pink')
 
 subplot(3,2,1)
 spm_DEM_play_song(DEMc.qU ,N*dt);
-title('percept','Fontsize',16)
+title('percept (right click on image)','Fontsize',16)
  
 subplot(3,2,3)
 spm_DEM_play_song(DEMa.qU,N*dt);

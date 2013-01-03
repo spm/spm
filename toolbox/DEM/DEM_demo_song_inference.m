@@ -16,16 +16,19 @@ function DEM_demo_song_inference
 % perceptual categorisation under generalised predictive coding: Here, 
 % recognition corresponds to mapping from a continuously changing and 
 % chaotic sensory input to a fixed point in perceptual space.
+%
+% The various bird songs can be played by right clicking on the sonogram
+% images, after the routine has completed.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_inference.m 4851 2012-08-20 15:03:48Z karl $
+% $Id: DEM_demo_song_inference.m 5168 2013-01-03 11:02:15Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
 %==========================================================================
- 
+
 % timing
 %--------------------------------------------------------------------------
 N        = 64;                       % length of stimulus (bins)

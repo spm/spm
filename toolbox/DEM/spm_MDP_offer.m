@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5163 2012-12-21 20:08:22Z karl $
+% $Id: spm_MDP_offer.m 5168 2013-01-03 11:02:15Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -519,3 +519,20 @@ EU    = PT'*log(MDP.C/sum(MDP.C));
 ED    = EU - PT(i)'*log(PT(i));
  
 return
+
+
+% notes for precision - action value figure 
+%==========================================================================
+clf; subplot(2,1,1)
+Q  = -8:1/32:0;
+W  = 8./(1 - Q);
+plot(Q,W)
+xlabel('Expected action value','FontSize',12)
+ylabel('Expected precision','FontSize',12)
+title('Precision and action value','FontSize',16)
+grid on
+axis square
+
+
+
+

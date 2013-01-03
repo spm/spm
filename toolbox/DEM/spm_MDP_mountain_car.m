@@ -18,7 +18,7 @@ function spm_MDP_mountain_car(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_mountain_car.m 5100 2012-12-06 18:06:36Z guillaume $
+% $Id: spm_MDP_mountain_car.m 5168 2013-01-03 11:02:15Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -167,7 +167,7 @@ MDP.B = P;                         % transition probabilities (priors)
 MDP.C = C;                         % terminal cost probabilities (priors)
 MDP.D = D;                         % control probabilities (priors)
 
-MDP.lambda = 16;
+MDP.lambda = 64;
 MDP.plot   = 1;
 
 [Q,R,S,E]  = spm_MDP(MDP);
