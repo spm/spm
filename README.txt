@@ -140,6 +140,6 @@
 % as is.  No formal support or maintenance is provided or implied.
 % 
 %__________________________________________________________________________
-% % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
+% % Copyright (C) 1991,1994-2013 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: README.txt 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: README.txt 5176 2013-01-04 15:31:37Z guillaume $
