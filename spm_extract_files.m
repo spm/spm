@@ -1,12 +1,12 @@
 function spm_extract_files(P,cwd)
-% FORMAT spm_extract_files(R,cwd)
+% FORMAT spm_extract_files(P,cwd)
 % forints files (and their subroutines) and expect them to the current
 % directory
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_svd.m 4604 2011-12-20 18:21:03Z guillaume $
+% $Id: spm_extract_files.m 5175 2013-01-04 12:50:44Z guillaume $
 
 
 if nargin == 1; cwd = pwd; end
@@ -70,5 +70,3 @@ try
         end
     end
 end
-
-
