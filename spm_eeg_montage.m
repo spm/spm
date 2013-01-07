@@ -51,9 +51,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5171 2013-01-03 15:52:31Z vladimir $
+% $Id: spm_eeg_montage.m 5180 2013-01-07 12:38:50Z christophe $
 
-SVNrev = '$Rev: 5171 $';
+SVNrev = '$Rev: 5180 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -335,7 +335,6 @@ switch S.mode
         end
     case 'add'
         Dnew = D.montage('add', montage);
-        Dnew = Dnew.montage('switch', D.montage('getindex'));
     case 'clear'
         Dnew = D.montage('clear');
 end
