@@ -9,7 +9,7 @@ function res = indfrequency(this, f)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: indfrequency.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: indfrequency.m 5177 2013-01-07 11:36:08Z vladimir $
 
 if ~strncmpi(transformtype(this), 'TF',2)
     error('Only TF datasets are supported');
@@ -20,10 +20,16 @@ fdiff = mean(diff(frequencies(this)));
 if nsamples(this) > 0
     F = frequencies(this);
     for i = 1:length(f)
-        [m, res(i)] = min(abs(F-f(i)));
-        if m > fdiff
-            warning('Could not find an index matching the requested frequency %d Hz', f(i));
-            res(i) = NaN;
+        if f(i) == -Inf
+            res(i) = F(1);
+        elseif f(i) == Inf
+            res(i) = F(end);
+        else
+            [m, res(i)] = min(abs(F-f(i)));
+            if m > fdiff
+                warning('Could not find an index matching the requested frequency %d Hz', f(i));
+                res(i) = NaN;
+            end
         end
     end
 end

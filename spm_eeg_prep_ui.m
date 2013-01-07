@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5171 2013-01-03 15:52:31Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5177 2013-01-07 11:36:08Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5171 $';
+SVNrev = '$Rev: 5177 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -512,8 +512,8 @@ montage.tra      = [];
 
 for i = 1:size(planar, 1)
     tra = zeros(1, length(montage.labelorg));
-    tra(ismember(montage.labelorg, planar(i, 1:2))) = 1;
-    if sum(tra) == 2
+    tra(ismember(montage.labelorg, planar(i, 1:2))) = 1/2;
+    if sum(tra) == 1
         montage.labelnew(i, 1) = planar(i, 3);
         montage.tra = [montage.tra; tra];
     end

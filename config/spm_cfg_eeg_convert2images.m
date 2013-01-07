@@ -1,62 +1,123 @@
-function S = spm_cfg_eeg_convert2images
+function convert2images = spm_cfg_eeg_convert2images
 % configuration file for writing voxel-based images from SPM M/EEG format,
 % as a time-series of 2Dimages
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 3818 2010-04-13 14:36:31Z vladimir $
+% $Id: spm_cfg_eeg_convert2images.m 5177 2013-01-07 11:36:08Z vladimir $
 
-Fname = cfg_files;
-Fname.tag = 'Fname';
-Fname.name = 'File Names';
-Fname.filter = 'mat';
-Fname.num = [1 inf];
-Fname.help = {'Select the M/EEG mat file.'};
+%--------------------------------------------------------------------------
+% D
+%--------------------------------------------------------------------------
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Name';
+D.filter = 'mat';
+D.num    = [1 1];
+D.help   = {'Select the M/EEG mat file.'};
 
-n = cfg_entry;
-n.tag = 'n';
-n.name = 'Output dimension';
-n.strtype = 'r';
-n.num = [1 1];
-n.val = {64};
-n.help = {'Enter the Output image dimension'};
+%--------------------------------------------------------------------------
+% mode
+%--------------------------------------------------------------------------
+mode = cfg_menu;
+mode.tag = 'mode';
+mode.name = 'Mode';
+mode.labels = {
+    'scalp x time'
+    'scalp x frequency' 
+    'scalp' 
+    'time x frequency' 
+    'time' 
+    'frequency'
+    'average'}';
+mode.values = mode.labels;
+mode.help = {'Select the mode for conversion to images'};
 
-yes = cfg_const;
-yes.tag = 'yes';
-yes.name = 'Interpolate bad channels';
-yes.val = {1};
+%--------------------------------------------------------------------------
+% timewin
+%--------------------------------------------------------------------------
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Time window';
+timewin.help    = {'Start and stop of the time window [ms].'};
+timewin.strtype = 'e';
+timewin.num     = [1 2];
+timewin.val     = {[-Inf Inf]};
 
-no = cfg_const;
-no.tag = 'no';
-no.name = 'Mask out bad channels';
-no.val = {1};
+%--------------------------------------------------------------------------
+% freqwin
+%--------------------------------------------------------------------------
+freqwin         = cfg_entry;
+freqwin.tag     = 'freqwin';
+freqwin.name    = 'Frequency window';
+freqwin.help    = {'Start and stop of the frequency window (Hz).'};
+freqwin.strtype = 'e';
+freqwin.num     = [1 2];
+freqwin.val     = {[-Inf Inf]};
 
-Interpolate = cfg_choice;
-Interpolate.tag = 'interpolate_bad';
-Interpolate.name = 'Interpolate';
-Interpolate.values = {yes,no};
-Interpolate.val = {yes};
-Interpolate.help = {'Interpolate bad channels'};
+%--------------------------------------------------------------------------
+% conditions
+%--------------------------------------------------------------------------
+condlabel = cfg_entry;
+condlabel.tag = 'conditions';
+condlabel.name = 'Condition label';
+condlabel.strtype = 's';
 
-S = cfg_exbranch;
-S.tag = 'convert2images';
-S.name = 'M/EEG Convert2Images';
-S.val = {Fname n Interpolate};
-S.help = {'Convert SPM M/EEG data to voxel-based images, as a time-series of 2D images'};
-S.prog = @eeg_convert2images;
-S.modality = {'EEG'};
+conditions = cfg_repeat;
+conditions.tag = 'condrepeat';
+conditions.name = 'Conditions';
+conditions.help = {'Specify the labels of the conditions to be converted.'};
+conditions.num  = [0 Inf];
+conditions.values  = {condlabel};
+conditions.val = {};
+
+%--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the output directory name'};
+prefix.strtype = 's';
+prefix.num     = [0 Inf];
+prefix.val     = {''};
+
+%--------------------------------------------------------------------------
+% virtual
+%--------------------------------------------------------------------------
+virtual        = cfg_menu;
+virtual.tag    = 'virtual';
+virtual.name   = 'Use virtual files';
+virtual.labels = {'Yes', 'No'};
+virtual.values = {1, 0};
+virtual.val    = {0};
+virtual.help = {'Select the mode for conversion to images'};
+
+convert2images = cfg_exbranch;
+convert2images.tag = 'convert2images';
+convert2images.name = 'M/EEG Convert2Images';
+convert2images.val = {D, mode, conditions, spm_cfg_eeg_channel_selector, timewin, freqwin, prefix, virtual};
+convert2images.help = {'Convert SPM M/EEG data to voxel-based images'};
+convert2images.prog = @run_convert2images;
+convert2images.vout = @vout_convert2images;
+convert2images.modality = {'EEG'};
 
 
-function out = eeg_convert2images(job)
-% construct the S struct
-S = job;
-S.Fname = strvcat(job.Fname);
-if isfield(S.interpolate_bad, 'yes')
-    S.interpolate_bad = 1;
-else
-    S.interpolate_bad = 0;
-end
+function out = run_convert2images(job)
 
-spm_eeg_convert2scalp(S);
+S           = job;
+S.D         = S.D{1};
+S.channels  = spm_cfg_eeg_channel_selector(job.channels);
+
+out.files = spm_eeg_convert2images(S);
+
+
+%------------------------------------------------------------------------
+function dep = vout_convert2images(varargin)
+% Output file names will be saved in a struct with field .files
+dep(1)            = cfg_dep;
+dep(1).sname      = 'M/EEG exported images';
+dep(1).src_output = substruct('.','files');
+dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 
