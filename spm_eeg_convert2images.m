@@ -33,9 +33,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5177 2013-01-07 11:36:08Z vladimir $
+% $Id: spm_eeg_convert2images.m 5179 2013-01-07 12:22:05Z vladimir $
 
-SVNrev = '$Rev: 5177 $';
+SVNrev = '$Rev: 5179 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -293,7 +293,7 @@ end
 
 
 if ~virtual
-    images = char(images);
+    images = images(:);
 end
 
 %-Cleanup
