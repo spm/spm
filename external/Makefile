@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # Makefile called by {SPM}/src/Makefile to compile SPM external's
 #
-# Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5148 2012-12-20 18:42:30Z guillaume $
+# $Id: Makefile 5182 2013-01-09 12:00:59Z guillaume $
 
 include ../src/Makefile.var
 
@@ -24,34 +24,33 @@ tarball: fieldtrip-tarball bemcp-tarball #engine-tarball
 # FIELDTRIP
 ###############################################################################
 .PHONY: fieldtrip
-fieldtrip fieldtrip-%:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In fieldtrip"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ $(MAKE) -f Makefile.fieldtrip --no-print-directory $*;
+fieldtrip fieldtrip-all fieldtrip-clean fieldtrip-distclean fieldtrip-install fieldtrip-tarball:
+	@ $(call verb,fieldtrip)
+	@ $(MAKE) -f Makefile.fieldtrip --no-print-directory $(subst fieldtrip,,$(subst -,,$@))
 
 ###############################################################################
 # BEMCP
 ###############################################################################
 .PHONY: bemcp
-bemcp bemcp-%:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In bemcp"
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ $(MAKE) -C bemcp --no-print-directory $*;
+bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
+	@ $(call verb,bemcp)
+	@ $(MAKE) -C bemcp --no-print-directory $(subst bemcp,,$(subst -,,$@))
         
 ###############################################################################
 # ENGINE
 ###############################################################################
 .PHONY: engine
-engine engine-%:
+engine engine-all engine-clean engine-distclean engine-install engine-tarball:
+	@ $(call verb,engine)
+	@ $(MAKE) -f Makefile.engine --no-print-directory $(subst engine,,$(subst -,,$@))
+
+###############################################################################
+# MESSAGE
+###############################################################################
+define verb
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ echo "        In engine"
+	@ echo "        In " $1
 	@ echo "_____________________________________________________________"
 	@ echo ""
-	@ $(MAKE) -f Makefile.engine --no-print-directory $*;
+endef
