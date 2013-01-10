@@ -166,10 +166,10 @@ function [SPM] = spm_fMRI_design(SPM,save_SPM)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fMRI_design.m 4915 2012-09-11 17:38:30Z ged $
+% $Id: spm_fMRI_design.m 5183 2013-01-10 15:30:20Z ged $
 
 
-SVNid = '$Rev: 4915 $';
+SVNid = '$Rev: 5183 $';
 
 %-Say Hello
 %--------------------------------------------------------------------------
@@ -226,7 +226,9 @@ for s = 1:length(SPM.nscan)
     
     %-Resample regressors at acquisition times (32 bin offset)
     %----------------------------------------------------------------------
-    X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
+    if ~isempty(X)
+        X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
+    end
     
     %-Orthogonalise (within trial type)
     %----------------------------------------------------------------------

@@ -19,7 +19,7 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 4376 2011-06-23 15:03:16Z will $
+% $Id: spm_BMS_gibbs.m 5183 2013-01-10 15:30:20Z ged $
 
 if nargin < 3 || isempty(Nsamp)
     Nsamp = 1e4;
@@ -31,7 +31,7 @@ Nk      = size(lme,2);  % number of models
 
 % prior observations
 %--------------------------------------------------------------------------
-if nargin < 3 || isempty(alpha0)
+if nargin < 2 || isempty(alpha0)
     alpha0  = ones(1,Nk);    
 end
 alpha0   = alpha0(:)';
