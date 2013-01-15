@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_getSPM.m 5184 2013-01-15 18:34:55Z guillaume $
 
 
 %-GUI setup
@@ -637,7 +637,7 @@ catch
     topoFDR = true;
 end
 
-if  spm_mesh_detect(xCon(Ic).Vspm)
+if  spm_mesh_detect(xCon(Ic(1)).Vspm)
     G = export(gifti(SPM.xVol.G),'patch');
 end
 
@@ -727,7 +727,7 @@ if STAT ~= 'P'
     
     %-Peak FDR
     %----------------------------------------------------------------------
-    if ~spm_mesh_detect(xCon(Ic).Vspm)
+    if ~spm_mesh_detect(xCon(Ic(1)).Vspm)
         [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u);
     else
         [up,Pp] = spm_uc_peakFDR(0.05,df,STAT,R,n,Zum,XYZum,u,G);
@@ -736,7 +736,7 @@ if STAT ~= 'P'
     %-Cluster FDR
     %----------------------------------------------------------------------
     if n == 1 %% && STAT == 'T'
-        if ~spm_mesh_detect(xCon(Ic).Vspm)
+        if ~spm_mesh_detect(xCon(Ic(1)).Vspm)
             V2R        = 1/prod(SPM.xVol.FWHM(SPM.xVol.DIM > 1));
             [uc,Pc,ue] = spm_uc_clusterFDR(0.05,df,STAT,R,n,Zum,XYZum,V2R,u);
         else
@@ -806,7 +806,7 @@ if ~isempty(XYZ)
     
     %-Calculate extent threshold filtering
     %----------------------------------------------------------------------
-    if  ~spm_mesh_detect(xCon(Ic).Vspm)
+    if  ~spm_mesh_detect(xCon(Ic(1)).Vspm)
         A = spm_clusters(XYZ);
     else
         T = false(SPM.xVol.DIM');
@@ -882,7 +882,7 @@ end
 
 %-Topology for surface-based inference
 %--------------------------------------------------------------------------
-if spm_mesh_detect(xCon(Ic).Vspm)
+if spm_mesh_detect(xCon(Ic(1)).Vspm)
     xSPM.G     = G;
     xSPM.XYZmm = xSPM.G.vertices(xSPM.XYZ(1,:),:)';
 end
