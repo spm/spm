@@ -34,10 +34,10 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui,G)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". NeuroImage, 49(4):3057–3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_uc_clusterFDR.m 5185 2013-01-15 18:56:15Z guillaume $
 
 
 % Read statistical value from disk if needed
@@ -47,7 +47,7 @@ if isstruct(Z)
     Vm         = XYZ;
     [Z, XYZmm] = spm_read_vols(Vs(1),true);
     for i=2:numel(Vs)
-        Z      = min(Z, spm_read_vols(Vs(i)),true);
+        Z      = min(Z, spm_read_vols(Vs(i),true));
     end
     Z          = Z(:)';
     XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
