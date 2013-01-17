@@ -8,7 +8,7 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 
 % Copyright (C) 2007-2011, Robert Oostenveld
 %
-% $Id: dataset2files.m 7162 2012-12-13 09:54:51Z bargip $
+% $Id: dataset2files.m 7307 2013-01-14 13:42:16Z roboos $
 
 if isempty(format)
   format = ft_filetype(filename);
@@ -105,6 +105,16 @@ switch format
     else
       headerfile = filename;
       datafile   = filename;
+    end
+  case {'deymed_dat' 'deymed_ini'}
+    [p, f, x] = fileparts(filename);
+    headerfile = fullfile(p, [f '.ini']);
+    if ~exist(headerfile, 'file')
+      headerfile = fullfile(p, [f '.Ini']);
+    end
+    datafile = fullfile(p, [f '.dat']);
+    if ~exist(datafile, 'file')
+      datafile = fullfile(p, [f '.Dat']);
     end
   case 'neurosim_ds'
     % this is the directory

@@ -23,11 +23,11 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_prepare_localspheres.m 7286 2013-01-09 09:57:57Z roboos $
 
-warning('FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''localspheres'' instead.')
+warning('FT_PREPARE_LOCALSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''localspheres'' instead.')
 
-revision = '$Id: ft_prepare_localspheres.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_prepare_localspheres.m 7286 2013-01-09 09:57:57Z roboos $';
 
 % do the general setup of the function
 ft_defaults

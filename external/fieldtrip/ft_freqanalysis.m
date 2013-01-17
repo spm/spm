@@ -59,6 +59,8 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                      AND the number of samples turns out to have a large
 %                      prime factor sum. This is because the FFTs will then
 %                      be computed very inefficiently.
+%   cfg.pad        = string, type of padding (default 'zero', see
+%                      ft_preproc_padding)
 %   cfg.polyremoval = number (default = 0), specifying the order of the
 %                      polynome which is fitted and subtracted from the
 %                      time domain data prior to the spectral analysis. For example, a
@@ -198,7 +200,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 7233 2012-12-18 16:23:02Z eelspa $';
+revision = '$Id: ft_freqanalysis.m 7276 2013-01-07 14:47:10Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -322,6 +324,7 @@ else
   
   % set all the defaults
   cfg.pad       = ft_getopt(cfg, 'pad',       'maxperlen');
+  cfg.padtype   = ft_getopt(cfg, 'padtype',   'zero');
   cfg.output    = ft_getopt(cfg, 'output',    'pow');
   cfg.calcdof   = ft_getopt(cfg, 'calcdof',   'no');
   cfg.channel   = ft_getopt(cfg, 'channel',   'all');
@@ -476,9 +479,9 @@ else
   
   % options that don't change over trials
   if isfield(cfg,'tapsmofrq')
-    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq, 'polyorder', cfg.polyremoval};
+    options = {'pad', cfg.pad, 'padtype', cfg.padtype, 'freqoi', cfg.foi, 'tapsmofrq', cfg.tapsmofrq, 'polyorder', cfg.polyremoval};
   else
-    options = {'pad', cfg.pad, 'freqoi', cfg.foi, 'polyorder', cfg.polyremoval};
+    options = {'pad', cfg.pad, 'padtype', cfg.padtype, 'freqoi', cfg.foi, 'polyorder', cfg.polyremoval};
   end
   
   

@@ -22,7 +22,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %   - label, dimord, time
 %
 % Optional fields:
-%   - var, dof, grad, elec, cfg
+%   - var, dof, cov, trial, grad, elec, cfg
 %
 % Deprecated fields:
 %   - <none>
@@ -61,7 +61,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_timelock.m 7291 2013-01-09 17:04:50Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

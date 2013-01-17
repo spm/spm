@@ -30,11 +30,19 @@ function dat = ft_preproc_medianfilter(dat, order);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_medianfilter.m 7288 2013-01-09 16:36:57Z jansch $
 
 % set the default filter order
 if nargin<2 || isempty(order)
   error('the order of the median filter is not specified');
 end
 
+% deal with padding
+pad = ceil(order/2);
+dat = ft_preproc_padding(dat, 'localmean', pad);
+
+% filter
 dat = medfilt1(dat, order, [], 2);
+
+% cut the eges
+dat = ft_preproc_padding(dat, 'remove', pad);

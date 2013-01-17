@@ -108,9 +108,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_connectivityanalysis.m 7289 2013-01-09 17:04:27Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 7289 2013-01-09 17:04:27Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -251,8 +251,17 @@ switch cfg.method
     inparam = 'crsspctrm';
     outparam = 'plvspctrm';
     normrpt = 1;
-  case {'corr' 'xcorr'}
-    data = ft_checkdata(data, 'datatype', 'raw');
+  case {'corr'}
+    data = ft_checkdata(data, 'datatype', {'raw' 'timelock'});
+    if isfield(data, 'cov')
+      % it looks like a timelock with a cov, which is perfectly valid as input
+      data = ft_checkdata(data, 'datatype', 'timelock');
+    else
+      % it does not have a cov, the covariance will be computed on the fly further down
+      data = ft_checkdata(data, 'datatype', 'raw');
+    end
+    inparam = 'cov';
+    outparam = cfg.method;
   case {'amplcorr' 'powcorr'}
     data = ft_checkdata(data, 'datatype', {'freqmvar' 'freq' 'source'});
     dtype = ft_datatype(data);
@@ -329,6 +338,7 @@ switch cfg.method
   otherwise
     error('unknown method % s', cfg.method);
 end
+
 dtype = ft_datatype(data);
 
 % ensure that source data is in 'new' representation
@@ -393,6 +403,7 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
           inparam = {'transfer' 'noisecov' 'crsspctrm'};
         end
       end
+      
     case 'source'
       if strcmp(inparam, 'crsspctrm')
         [data, powindx, hasrpt] = univariate2bivariate(data, 'mom', 'crsspctrm', dtype, 'cmb', cfg.refindx, 'keeprpt', 0);
@@ -401,7 +412,10 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         data = ft_checkdata(data, 'sourcerepresentation', 'new', 'haspow', 'yes');
         [data, powindx, hasrpt] = univariate2bivariate(data, 'pow', 'powcov', dtype, 'demeanflag', strcmp(cfg.removemean, 'yes'), 'cmb', cfg.refindx, 'sqrtflag', strcmp(cfg.method, 'amplcorr'), 'keeprpt', 0);
       end
-    otherwise
+      
+    case 'raw'
+      [data, powindx, hasrpt] = univariate2bivariate(data, 'trial', 'cov', dtype, 'demeanflag', strcmp(cfg.removemean, 'yes'), 'cmb', cfg.channelcmb, 'sqrtflag', false, 'keeprpt', 1);
+      
   end % switch dtype
   
 elseif (isfield(data, 'crsspctrm') && (ischar(inparam) && strcmp(inparam, 'crsspctrm')))
@@ -409,7 +423,7 @@ elseif (isfield(data, 'crsspctrm') && (ischar(inparam) && strcmp(inparam, 'crssp
   
 else
   powindx = [];
-end
+end % ensure that the bivariate measure exists
 
 % do some additional work if single trial normalisation is required
 % for example when plv needs to be computed

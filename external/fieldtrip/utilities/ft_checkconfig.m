@@ -61,7 +61,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 7261 2012-12-23 10:51:34Z roboos $
+% $Id: ft_checkconfig.m 7329 2013-01-16 08:55:43Z roboos $
 
 global ft_default
 
@@ -77,7 +77,7 @@ forbidden       = ft_getopt(varargin, 'forbidden');
 renamedval      = ft_getopt(varargin, 'renamedval');
 allowedval      = ft_getopt(varargin, 'allowedval');
 createsubcfg    = ft_getopt(varargin, 'createsubcfg');
-ckeckfilenames  = ft_getopt(varargin, 'dataset2files');
+checkfilenames  = ft_getopt(varargin, 'dataset2files');
 checksize       = ft_getopt(varargin, 'checksize', 'off');
 trackconfig     = ft_getopt(varargin, 'trackconfig');
 
@@ -461,11 +461,11 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% ckeckfilenames, i.e. dataset2files
+% checkfilenames, i.e. dataset2files
 %
 % Converts cfg.dataset into cfg.headerfile and cfg.datafile if neccessary.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(ckeckfilenames) && strcmp(ckeckfilenames, 'yes')
+if ~isempty(checkfilenames) && strcmp(checkfilenames, 'yes')
   
   % start with empty fields if they are not present
   if ~isfield(cfg, 'dataset')

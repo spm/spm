@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7268 2012-12-28 16:38:31Z vlalit $
+% $Id: ft_read_data.m 7340 2013-01-17 09:21:33Z bargip $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -416,6 +416,13 @@ switch dataformat
       'endsample',endsample,...
       'channels',chanindx);
     dat = cell2mat(tmp.data');
+    
+  case {'deymed_ini' 'deymed_dat'}
+    % the data is stored in a binary *.dat file
+    if isempty(hdr)
+      hdr.orig = [];
+    end
+    dat = read_deymed_dat(datafile, hdr.orig, begsample, endsample);
     
   case 'gtec_mat'
     if isfield(hdr, 'orig')
@@ -1028,10 +1035,18 @@ switch dataformat
     
   case {'neurosim_ds' 'neurosim_signals'}
     [hdr, dat] = read_neurosim_signals(filename);
+    if endsample>size(dat,2)
+      warning('Simulation was not completed, reading in part of the data')
+      endsample=size(dat,2);
+    end
     dat = dat(chanindx,begsample:endsample);
     
   case 'neurosim_evolution'  
      [hdr, dat] = read_neurosim_evolution(filename);
+     if endsample>size(dat,2)
+      warning('Simulation was not completed, reading in part of the data')
+      endsample=size(dat,2);
+    end
      dat = dat(chanindx,begsample:endsample);
      
   case 'neurosim_spikes'

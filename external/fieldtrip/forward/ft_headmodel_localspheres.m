@@ -41,7 +41,7 @@ function vol = ft_headmodel_localspheres(geometry, grad, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_localspheres.m 7263 2012-12-27 10:53:27Z roboos $
+% $Id: ft_headmodel_localspheres.m 7316 2013-01-15 13:21:29Z johzum $
 
 % get the additional inputs and set the defaults
 unit          = ft_getopt(varargin, 'unit');
@@ -63,6 +63,10 @@ elseif ~(isstruct(geometry) && isfield(geometry,'pnt'))
   error('the input geometry should be a set of points or a single triangulated surface')
 end
 
+if isstruct(geometry) && numel(geometry)>1
+  error('There must be only 1 geometry given as input');
+end
+
 % start with an empty volume conductor
 vol = [];
 
@@ -72,6 +76,7 @@ else
   geometry = ft_convert_units(geometry); % ensure that it has units, estimate them if needed
   vol.unit = geometry.unit;              % copy the geometrical units into the volume conductor
 end
+grad = ft_convert_units(grad, vol.unit);
 
 % ensure that all defaults have the same user-defined units
 radius    = ft_getopt(varargin, 'radius',    scalingfactor('cm', vol.unit) * 8.5);

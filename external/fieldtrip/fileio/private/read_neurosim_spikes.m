@@ -37,7 +37,7 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 7161 2012-12-13 09:54:48Z bargip $
+% $Id: read_neurosim_spikes.m 7340 2013-01-17 09:21:33Z bargip $
 
 if isdir(filename)
     filename = fullfile(filename, 'spikes');
@@ -122,7 +122,7 @@ spike.timestamp=cell(1,length(number));
 
 for n=1:length(number)
     % write labels ([number]: [neuron type] in [network])
-    spike.label{n}=strrep(label{n},'neuron ','');
+    spike.label{n}=strrep(label{number(n)},'neuron ','');
     % select spike times belonging to the neuron
     sel=idx==n;
     spike.timestamp{n}=dat{1}(sel)';

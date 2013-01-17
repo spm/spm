@@ -64,10 +64,12 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_comp.m 7294 2013-01-11 10:15:00Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
-version = ft_getopt(varargin, 'version', 'latest');
+version       = ft_getopt(varargin, 'version', 'latest');
+hassampleinfo = ft_getopt(varargin, 'hassampleinfo', []); % the default is determined in ft_datatype_raw
+hastrialinfo  = ft_getopt(varargin, 'hastrialinfo', []);  % the default is determined in ft_datatype_raw
 
 if strcmp(version, 'latest')
   compversion = '2011';
@@ -113,7 +115,7 @@ end
 rawdata = comp;
 rawdata = rmfield(rawdata, 'topo');
 rawdata = rmfield(rawdata, 'topolabel');
-rawdata = ft_datatype_raw(rawdata, 'version', rawversion);
+rawdata = ft_datatype_raw(rawdata, 'version', rawversion, 'hassampleinfo', hassampleinfo, 'hastrialinfo', hastrialinfo);
 
 % add the component specific fields again
 rawdata.unmixing  = comp.unmixing;

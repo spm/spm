@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 7216 2012-12-17 19:45:33Z roboos $
+% $Id: ft_checkdata.m 7299 2013-01-11 14:37:40Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -135,23 +135,24 @@ ischan          = ft_datatype(data, 'chan');
 % FIXME use the istrue function on ismeg and hasxxx options
 
 if ~isequal(feedback, 'no')
-  if israw
+  if iscomp
+    % it can be comp and raw at the same time, therefore this has to go first
+    ncomp = length(data.label);
+    nchan = length(data.topolabel);
+    fprintf('the input is component data with %d components and %d original channels\n', ncomp, nchan);
+  elseif israw
     nchan = length(data.label);
     ntrial = length(data.trial);
     fprintf('the input is raw data with %d channels and %d trials\n', nchan, ntrial);
+  elseif istimelock
+    nchan = length(data.label);
+    ntime = length(data.time);
+    fprintf('the input is timelock data with %d channels and %d timebins\n', nchan, ntime);
   elseif isfreq
     nchan = length(data.label);
     nfreq = length(data.freq);
     if isfield(data, 'time'), ntime = num2str(length(data.time)); else ntime = 'no'; end
     fprintf('the input is freq data with %d channels, %d frequencybins and %s timebins\n', nchan, nfreq, ntime);
-  elseif istimelock
-    nchan = length(data.label);
-    ntime = length(data.time);
-    fprintf('the input is timelock data with %d channels and %d timebins\n', nchan, ntime);
-  elseif iscomp
-    ncomp = length(data.label);
-    nchan = length(data.topolabel);
-    fprintf('the input is component data with %d components and %d original channels\n', ncomp, nchan);
   elseif isspike
     nchan  = length(data.label);
     fprintf('the input is spike data with %d channels\n', nchan);
@@ -207,7 +208,7 @@ elseif istimelock
 elseif isspike
   data = ft_datatype_spike(data);
 elseif iscomp % this should go before israw
-  data = ft_datatype_comp(data);
+  data = ft_datatype_comp(data, 'hassampleinfo', hassampleinfo);
 elseif israw
   data = ft_datatype_raw(data, 'hassampleinfo', hassampleinfo);
 elseif issegmentation % this should go before isvolume
@@ -289,6 +290,14 @@ if ~isempty(dtype)
         istimelock = 0;
         israw = 1;
         okflag = 1;
+      elseif isequal(dtype(iCell), {'timelock'}) && iscomp % this should go before israw
+        data = comp2raw(data);
+        data = raw2timelock(data);
+        data = ft_datatype_timelock(data);
+        iscomp = 0;
+        israw = 0;
+        istimelock = 1;
+        okflag = 1;
       elseif isequal(dtype(iCell), {'timelock'}) && israw
         data = raw2timelock(data);
         data = ft_datatype_timelock(data);
@@ -302,17 +311,11 @@ if ~isempty(dtype)
         israw = 1;
         okflag = 1;
       elseif isequal(dtype(iCell), {'raw'}) && iscomp
+        % this is never executed, because when iscomp==true, then also israw==true
         data = comp2raw(data);
         data = ft_datatype_raw(data, 'hassampleinfo', hassampleinfo);
         iscomp = 0;
         israw = 1;
-        okflag = 1;
-      elseif isequal(dtype(iCell), {'timelock'}) && iscomp
-        data = comp2raw(data);
-        data = raw2timelock(data);
-        data = ft_datatype_timelock(data);
-        iscomp = 0;
-        istimelock = 1;
         okflag = 1;
       elseif isequal(dtype(iCell), {'timelock'}) && ischan
         data = chan2timelock(data);
@@ -1570,9 +1573,10 @@ end
 % convert between datatypes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = comp2raw(data)
-% just remove the component topographies
-data = rmfield(data, 'topo');
-data = rmfield(data, 'topolabel');
+% remove the fields that are specific to the comp representation
+fn = fieldnames(data);
+fn = intersect(fn, {'topo' 'topolabel' 'unmixing'});
+data = rmfield(data, fn);  
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
@@ -1678,6 +1682,7 @@ nsmp = cellfun('size',data.time,2);
 seln = find(nsmp>1,1, 'first');
 
 if isfield(freq, 'trialinfo'), data.trialinfo = freq.trialinfo; end;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes

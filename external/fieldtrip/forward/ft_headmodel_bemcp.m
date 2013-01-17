@@ -32,7 +32,7 @@ function vol = ft_headmodel_bemcp(geom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_bemcp.m 7227 2012-12-18 11:22:07Z johzum $
+% $Id: ft_headmodel_bemcp.m 7310 2013-01-14 15:44:07Z roboos $
 
 ft_hastoolbox('bemcp', 1);
 
@@ -63,8 +63,8 @@ if numboundaries~=3
   error('this only works for three surfaces');
 end
 
-% impose the 'outsidefirst' nesting of the compartments
-order = surface_nesting(vol.bnd, 'outsidefirst');
+% determine the desired nesting of the compartments
+order = surface_nesting(vol.bnd, 'insidefirst');
 
 % rearrange boundaries and conductivities
 if numel(vol.bnd)>1

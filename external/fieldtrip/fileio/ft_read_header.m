@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7193 2012-12-14 09:47:01Z bargip $
+% $Id: ft_read_header.m 7306 2013-01-14 13:42:13Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -580,6 +580,19 @@ switch headerformat
     
     % add the original header details
     hdr.orig  = orig;
+
+  case {'deymed_ini' 'deymed_dat'}
+    % the header is stored in a *.ini file
+    orig            = read_deymed_ini(headerfile);
+    hdr             = [];
+    hdr.Fs          = orig.Fs;
+    hdr.nChans      = orig.nChans;
+    hdr.nSamples    = orig.nSamples;
+    hdr.nSamplesPre = 0;
+    hdr.nTrials     = 1;
+    hdr.label       = orig.label(:);
+    hdr.orig        = orig; % remember the original details
+
   case 'edf'
     % this reader is largely similar to the bdf reader
     hdr = read_edf(filename);
