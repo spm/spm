@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg.m 5190 2013-01-17 15:32:45Z vladimir $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -50,7 +50,7 @@ meegtf        = cfg_choice;
 meegtf.tag    = 'tf';
 meegtf.name   = 'M/EEG Time-frequency';
 meegtf.help   = {'M/EEG time-frequency.'};
-meegtf.values = { spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale }; 
+meegtf.values = { spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale spm_cfg_eeg_avgfreq spm_cfg_eeg_avgtime}; 
 
 %--------------------------------------------------------------------------
 % M/EEG source reconstruction

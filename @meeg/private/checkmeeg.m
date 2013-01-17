@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: checkmeeg.m 5190 2013-01-17 15:32:45Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -37,6 +37,7 @@ if isTF
     end
     Nfrequencies = length(this.transform.frequencies);
 else
+    this.transform = struct('ID', 'time');
     Nfrequencies = 0;
 end
 

@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: clone.m 5190 2013-01-17 15:32:45Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -60,6 +60,7 @@ if length(dim) == 3
     d(end, end, end) = 0;
     nsampl = dim(2);
     ntrial = dim(3);
+    new = transformtype(new, 'time');
 elseif length(dim) == 4
     d(end, end, end, end) = 0;
     nsampl = dim(3);

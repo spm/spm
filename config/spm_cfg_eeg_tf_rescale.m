@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 4558 2011-11-10 14:38:28Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 5190 2013-01-17 15:32:45Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -124,7 +124,7 @@ method.values = {method_logr method_diff method_rel method_zscore method_log met
 %--------------------------------------------------------------------------
 S          = cfg_exbranch;
 S.tag      = 'rescale';
-S.name     = 'M/EEG Time-Frequency Rescale';
+S.name     = 'M/EEG Time-frequency rescale';
 S.val      = {D, method};
 S.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
               'For ''Log'' and ''Sqrt'', these functions are applied to spectrogram.'
