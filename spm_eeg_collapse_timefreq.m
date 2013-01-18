@@ -1,67 +1,51 @@
-function spm_eeg_firstlevel(S)
-% Compute within-peristimulus time averages (contrasts) of M/EEG data in voxel-space
-% FORMAT spm_eeg_firstlevel(S)
+function images = spm_eeg_collapse_timefreq(S)
+% Compute within-peristimulus time (or frequency) averages (contrasts) of M/EEG data in voxel-space
+% FORMAT images = spm_eeg_collapse_timefreq(S)
 %
-% S         - input structure (optional)
-% (optional) fields of S:
-%    images       - list of file names containing M/EEG data in voxel-space
-%    window       - start and end of a window in peri-stimulus time [ms]
-%    Pout         - output directory
-%__________________________________________________________________________
-% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
+% S         - input structure 
+% fields of S:
+%    images  - list of file names containing M/EEG data in voxel-space
+%    timewin - C x 2 matrix of start(s) and end(s) of a window in peri-stimulus 
+%              time [ms] (or frequency (Hz))
+%    prefix  - prefix for the averaged images
+%_____________________________________________________________________________________________
+% Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_firstlevel.m 5093 2012-12-04 18:06:36Z guillaume $
+% $Id: spm_eeg_collapse_timefreq.m 5194 2013-01-18 15:04:19Z vladimir $
 
-SVNrev = '$Rev: 5093 $';
+SVNrev = '$Rev: 5194 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FnUIsetup','M/EEG 1st level contrast setup',0);
+spm('FnUIsetup','M/EEG Collapse time',0);
 
-if ~nargin, S = []; end
-
-%-Backward compatibility
-%--------------------------------------------------------------------------
-if isfield(S, 'contrast1st')
-    S = S.contrast1st;
-end
-
-if isfield(S, 'fnames')
-    S.images = S.fnames;
-end
-
-%-Input parameters
-%--------------------------------------------------------------------------
-if ~isfield(S, 'window')
-    S.window = spm_input('start(s) and end(s) of window(s) [ms]', '+1', 'r', '', [Inf 2]);
-end
-
-if ~isfield(S, 'images')
-    [S.images, sts] = spm_select(Inf, 'image', 'Select M/EEG images (in voxel-space)');
-    if ~sts, return; end
-end
-
-if ~isfield(S, 'Pout')
-    S.Pout = spm_select(1, 'dir', 'Select output directory');
-end
+if ~isfield(S, 'prefix'),       S.prefix   = 'l';           end
+if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
 
 spm('Pointer', 'Watch');
-
-%-Change to target directory
-%--------------------------------------------------------------------------
-swd = pwd;
-cd(S.Pout);
 
 %-Compute contrasts
 %--------------------------------------------------------------------------
 Nf = size(S.images, 1);
-Nc = size(S.window, 1);
+Nc = size(S.timewin, 1);
 
-fnames = cellstr(S.images);
+if ischar(S.images)
+    fnames = cellstr(S.images);
+else
+    fnames = S.images;
+end
 
-spm_progress_bar('Init', Nf, 'First level contrasts');
+ind1   = find(S.timewin(:, 1) == -Inf);
+S.timewin(ind1, 1)   = 0;
+
+indend = find(S.timewin(:, 2) ==  Inf);
+S.timewin(indend, 2) = 0;
+
+images = {};
+
+spm_progress_bar('Init', Nf, 'Averaging in images');
 if Nf > 100, Ibar = floor(linspace(1, Nf, 100));
 else Ibar = 1:Nf; end
 
@@ -71,11 +55,13 @@ for j = 1:Nf % over files
 
     Nt = size(Vbeta.dat, 3); % Number of time frames
 
-    begsample = inv(Vbeta.mat)*[zeros(2, Nc); S.window(:, 1)'; ones(1, Nc)];
+    begsample = Vbeta.mat\[zeros(2, Nc); S.timewin(:, 1)'; ones(1, Nc)];
     begsample = begsample(3, :);
+    begsample(ind1) = 1;
 
-    endsample = inv(Vbeta.mat)*[zeros(2, Nc); S.window(:, 2)'; ones(1, Nc)];
+    endsample = Vbeta.mat\[zeros(2, Nc); S.timewin(:, 2)'; ones(1, Nc)];
     endsample = endsample(3, :);
+    endsample(indend) = Nt;
 
     if any([begsample endsample] < 0) || ...
             any([begsample endsample] > Nt)
@@ -100,15 +86,17 @@ for j = 1:Nf % over files
         Vcon               = Vbeta;
         Vcon.mat(3,3:4)    = [1.0 0.0];
         Vcon.mat0          = Vcon.mat;
-        Vcon.dat.fname     = [sprintf('%s_con_%04d', spm_file(fnames{j},'basename'), i) spm_file_ext];
+        Vcon.dat.fname     = spm_file(fnames{j}, 'basename', sprintf('%s%s_con_%04d', S.prefix, spm_file(fnames{j},'basename'), i), 'ext', spm_file_ext);
         Vcon.dat.scl_slope = 1.0;
         Vcon.dat.scl_inter = 0.0;
         Vcon.dat.dtype     = 'float32-le';
         Vcon.dat.offset    = 0;
         Vcon.dat.dim       = Vbeta.dat.dim(1:2);
         Vcon.descrip       = sprintf('SPM contrast - average from %d to %d ms',...
-            S.window(i, 1), S.window(i, 2));
+            S.timewin(i, 1), S.timewin(i, 2));
         create(Vcon);
+        
+        images{end+1}      = Vcon.dat.fname;
 
         %-Compute contrast
         %------------------------------------------------------------------
@@ -133,9 +121,7 @@ for j = 1:Nf % over files
 
 end
 
-cd(swd);
-
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
-spm('FigName','M/EEG 1st level contrast: done'); spm('Pointer','Arrow');
+spm('FigName','M/EEG Collapse time: done'); spm('Pointer','Arrow');

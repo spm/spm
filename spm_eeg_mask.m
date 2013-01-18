@@ -6,15 +6,15 @@ function spm_eeg_mask(S)
 % (optional) fields of S:
 %    image          - file name of an image containing an unsmoothed 
 %                     M/EEG data in voxel-space
-%    window         - start and end of a window in peri-stimulus time [ms]
+%    timewin        - start and end of a window in peri-stimulus time [ms]
 %    outfile        - output file name
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_eeg_mask.m 5194 2013-01-18 15:04:19Z vladimir $
 
-SVNrev = '$Rev: 4489 $';
+SVNrev = '$Rev: 5194 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -32,13 +32,13 @@ if ~isfield(S, 'image')
     if ~sts, return; end
 end
 
-if ~isfield(S, 'window')
-    S.window = spm_input('start and end of window [ms or Hz]', '+1', 'r', '', 2);
+if ~isfield(S, 'timewin')
+    S.timewin = spm_input('start and end of window [ms or Hz]', '+1', 'r', '', 2);
 end
 
 if ~isfield(S, 'outfile')
     [filename, pathname] = uiputfile({'*.img;*.nii'}, 'Select the mask file');
-    [p,n,e] = fileparts(filename);
+    [p, n, e] = fileparts(filename);
     if isempty(e), filename = [filename spm_file_ext]; end
     S.outfile = fullfile(pathname, filename);
 end
@@ -49,10 +49,10 @@ Y = ~isnan(Y) & (Y~=0);
 
 Nt = size(Y, 3);
 
-begsample = inv(V.mat)*[0 0 S.window(1) 1]';
+begsample =V.mat\[0 0 S.timewin(1) 1]';
 begsample = begsample(3);
 
-endsample = inv(V.mat)*[0 0 S.window(2) 1]';
+endsample = V.mat\[0 0 S.timewin(2) 1]';
 endsample = endsample(3);
 
 if any([begsample endsample] < 0) || ...
