@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 5165 2013-01-02 11:14:29Z will $
+% $Id: spm_cfg_bms.m 5193 2013-01-18 14:16:04Z vladimir $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -374,7 +374,7 @@ verify_id.values  = {
                   1
                   0
 }'; 
-verify_id.val     = {0};
+verify_id.val     = {1};
 
 % ---------------------------------------------------------------------
 % out_file Output files
