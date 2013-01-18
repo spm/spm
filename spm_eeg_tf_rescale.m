@@ -1,134 +1,129 @@
-function [D] = spm_eeg_tf_rescale(S)
+function D = spm_eeg_tf_rescale(S)
 % Rescale (avg) spectrogram with nonlinear and/or difference operator
 % FORMAT [D] = spm_eeg_tf_rescale(S)
 %
 % S                    - input structure (optional)
-% (optional) fields of S:
+% fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.tf               - structure with (optional) fields:
-%     S.tf.method      - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt'
-%     S.tf.Sbaseline   - 2-element vector: start and stop of baseline 
+%   S.method           - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt'
+%   S.timewin          - 2-element vector: start and stop of baseline (ms)
 %                        (need to specify this for LogR and Diff)
-%     S.tf.Db          - MEEG object or filename of M/EEG mat-file to use
+%   S.Db               - MEEG object or filename of M/EEG mat-file to use
 %                        for the baseline (if different from the input dataset).
-% 
-% D                    - MEEG object with rescaled power data (also
+%   prefix             - prefix for the output file (default - 'r')
+%
+% Output:
+%   D                  - MEEG object with rescaled power data (also
 %                        written to disk with prefix r)
 %
-% For 'Log' and 'Sqrt', these functions are applied to spectrogram 
+% For 'Log' and 'Sqrt', these functions are applied to spectrogram
 % For 'LogR', 'Rel' and 'Diff' this function computes power in the baseline
-% p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(p-p_b)/p_b for 'Rel' 
+% p_b and outputs (i) p-p_b for 'Diff' (ii) 100*(p-p_b)/p_b for 'Rel'
 %                 (iii) log (p/p_b) for 'LogR'
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 4558 2011-11-10 14:38:28Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 5192 2013-01-18 12:14:00Z vladimir $
 
-SVNrev = '$Rev: 4558 $';
+SVNrev = '$Rev: 5192 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
-spm('FigName','M/EEG Time-Frequency Rescale'); spm('Pointer','Watch');
+spm('FigName','M/EEG Time-frequency rescale'); spm('Pointer','Watch');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'prefix'),       S.prefix   = 'r';           end
+if ~isfield(S, 'timewin'),      S.timewin  = [-Inf 0];      end
 
-try
-    S.tf.method;
-catch
-    str  = {'LogR','Diff', 'Rel', 'Log', 'Logeps', 'Sqrt', 'Zscore'};
-    S.tf.method = spm_input('Rescale method','+1','m',str,char(str),1);
-end
+D = spm_eeg_load(S.D);
 
-Din  = spm_eeg_load(D);
-tims = time(Din);
+Dnew  = clone(D, [S.prefix fname(D)]);
 
-Nf   = length(frequencies(Din));
-D    = clone(Din, ['r' Din.fnamedat], [Din.nchannels Nf Din.nsamples Din.ntrials]);
+needbaseline = ismember(lower(S.method), {'logr','diff', 'rel', 'zscore'});
 
-switch lower(S.tf.method)
+if needbaseline
+    timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
+    if isempty(timeind) || any(isnan(timeind))
+        error('Selected baseline time window is invalid.');
+    end
     
-    case {'logr','diff', 'rel', 'zscore'}
-        try
-            S.tf.Sbaseline;
-        catch            
-            if spm_input('Baseline dataset','+1','b',{'Same|Different'},[0 1],0)
-                [Db, sts] = spm_select(1, 'mat', 'Select baseline M/EEG mat file');
-                if ~sts, return; end
-                S.tf.Db = Db;
-            else
-                S.tf.Db = [];
-            end
-            
-            tmp_base = spm_input('Start and stop of baseline [ms]', '+1', 'i', '', 2);
-            S.tf.Sbaseline = tmp_base/1000;
-        end
-        
-        if isfield(S.tf, 'Db') && ~isempty(S.tf.Db)
-            Db = spm_eeg_load(S.tf.Db);
-        else
-            Db = Din;
-        end
-        
-        if any(abs(Din.frequencies-Db.frequencies)>0.1) || ~isequal(Db.chanlabels, Din.chanlabels) ||...
-                (Db.ntrials>1 && (Db.ntrials~=Din.ntrials))
-            error('The input dataset and the baseline dataset should have the same frequencies, channels and trial numbers');
-        end        
-       
-        for c=1:D.ntrials
-            inds=find(tims>=S.tf.Sbaseline(1) & tims<=S.tf.Sbaseline(2));
-            x=spm_squeeze(Din(:,:,:,c), 4);
-            if Db.ntrials > 1
-                xbase=spm_squeeze(Db(:,:,:,c), 4);
-            else
-                xbase=spm_squeeze(Db(:,:,:,1), 4);
-            end            
-            switch lower(S.tf.method)
-                case 'logr'
-                    xbase=mean(log10(xbase(:,:,inds)),3);
-                    D(:,:,:,c)= 10*(log10(x) - repmat(xbase,[1 1 D.nsamples 1]));
-                    D = units(D, [], 'dB');
-                case 'diff'
-                    xbase=mean(xbase(:,:,inds),3);
-                    D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]));
-                case 'zscore'
-                    stdev = std(xbase(:,:,inds), [], 3);
-                    xbase= mean(xbase(:,:,inds),3);                    
-                    D(:,:,:,c)= (x - repmat(xbase,[1 1 D.nsamples 1]))./repmat(stdev,[1 1 D.nsamples 1]);
-                case 'rel'
-                    xbase=mean(xbase(:,:,inds),3);
-                    D(:,:,:,c)= 100*((x./repmat(xbase,[1 1 D.nsamples 1]) - 1));
-                    D = units(D, [], '%');
-            end
-        end
-        
-    case 'log'
-        for c=1:D.ntrials
-            D(:,:,:,c) = log(Din(:,:,:,c));
-        end
-        
-    case 'logeps'
-        for c=1:D.ntrials
-            D(:,:,:,c) = log(Din(:,:,:,c)+(1/64)*mean(spm_vec(Din(:,:,:,c))));
-        end
-        
-    case 'sqrt'
-        for c=1:D.ntrials
-            D(:,:,:,c) = sqrt(Din(:,:,:,c));
-        end
-        
-    otherwise
-        error('Unknown rescaling method.');
+    if isfield(S, 'Db') && ~isempty(S.Db)
+        Db = spm_eeg_load(S.Db);
+    else
+        Db = D;
+    end
+    
+    if any(abs(D.frequencies - Db.frequencies) > 0.1) || ~isequal(Db.chanlabels, D.chanlabels) ||...
+            (Db.ntrials > 1 && (Db.ntrials ~= D.ntrials))
+        error('The input dataset and the baseline dataset should have the same frequencies, channels and trial numbers');
+    end
 end
+
+
+spm_progress_bar('Init', D.ntrials, 'Trials processed');
+if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
+else Ibar = 1:D.ntrials; end
+
+for i = 1:D.ntrials
+    
+    if needbaseline
+        x = spm_squeeze(D(:,:,:,i), 4);
+        if Db.ntrials > 1
+            xbase = spm_squeeze(Db(:,:,:,i), 4);
+        else
+            xbase = spm_squeeze(Db(:,:,:,1), 4);
+        end
+    end
+    
+    switch lower(S.method)
+        
+        case 'logr'
+            xbase         = mean(log10(xbase(:,:,timeind)),3);
+            Dnew(:,:,:,i) = 10*(log10(x) - repmat(xbase,[1 1 Dnew.nsamples 1]));
+            
+        case 'diff'
+            xbase         = mean(xbase(:, :, timeind),3);
+            Dnew(:,:,:,i) =  (x - repmat(xbase,[1 1 Dnew.nsamples 1]));
+            
+        case 'zscore'
+            stdev            =  std(xbase(:, :, timeind), [], 3);
+            xbase            =  mean(xbase(:,:, timeind),3);            
+            Dnew(:, :, :, i) = (x - repmat(xbase,[1 1 Dnew.nsamples 1]))./repmat(stdev,[1 1 Dnew.nsamples 1]);
+            
+        case 'rel'
+            xbase            = mean(xbase(:, :, timeind), 3);
+            Dnew(:, :, :, i) = 100*((x./repmat(xbase,[1 1 Dnew.nsamples 1]) - 1));
+            
+        case 'log'
+            Dnew(:, :, :, i) = log(D(:, :, :, i));
+            
+        case 'logeps'
+            Dnew(:, :, : ,i) = log(D(:, :, :, i)+(1/64)*mean(spm_vec(D(:, :, :, i))));
+            
+        case 'sqrt'
+            Dnew(:, :, :, i) = sqrt(D(:, :, :, i));
+            
+        otherwise
+            error('Unknown rescaling method');
+            
+    end
+        
+    if ismember(i, Ibar), spm_progress_bar('Set', i); end
+end
+
+spm_progress_bar('Clear');
+
+switch lower(S.method)
+    
+    case 'logr'
+        Dnew         = units(Dnew, ':', 'dB');
+        
+    case 'rel'
+        Dnew         = units(Dnew, ':', '%');
+end
+
+D = Dnew;
 
 % Save
 D = D.history(mfilename, S);
@@ -136,5 +131,5 @@ save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------
-spm('FigName','M/EEG Time Frequency Rescale: done'); 
+spm('FigName','M/EEG Time Frequency Rescale: done');
 spm('Pointer','Arrow');

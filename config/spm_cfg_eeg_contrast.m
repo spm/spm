@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_contrast.m 5192 2013-01-18 12:14:00Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -38,19 +38,26 @@ contrasts.help = {'Each contrast defines a new condition in the output file.'};
 contrasts.values  = {contrast};
 contrasts.num     = [1 Inf];
 
-weight = cfg_menu;
-weight.tag = 'weight';
-weight.name = 'Weight average by repetition numbers';
-weight.labels = {'yes', 'no'};
-weight.values = {1 , 0};
-weight.val = {1};
-weight.help = {'This option will weight averages by the number of their occurences in the data set. This is only important when there are multiple occurences of a trial type, e.g. in single trial data.'};
+weighted = cfg_menu;
+weighted.tag = 'weighted';
+weighted.name = 'Weight by replications';
+weighted.labels = {'Yes', 'No'};
+weighted.values = {1 , 0};
+weighted.val = {1};
+weighted.help = {'Weight the contrast by the numner of replications from which the average was computed.'};
 
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset. Default prefix is ''w''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'w'};
 
 S = cfg_exbranch;
 S.tag = 'contrast';
 S.name = 'M/EEG Contrast over epochs';
-S.val = {D contrasts weight};
+S.val = {D contrasts weighted prefix};
 S.help = {'Computes contrasts over EEG/MEG epochs.'};
 S.prog = @eeg_contrast;
 S.vout = @vout_eeg_contrast;
@@ -62,10 +69,12 @@ S.D = job.D{1};
 S.c = cat(1, job.contrast(:).c);
 S.label = {job.contrast.label};
 
-S.WeightAve = job.weight;
+S.weighted = job.weighted;
+S.prefix   = job.prefix;
 
-out.D = spm_eeg_weight_epochs(S);
-out.Dfname = {fullfile(out.D.path, out.D.fname)};
+out.D = spm_eeg_contrast(S);
+
+out.Dfname = {fullfile(out.D)};
 
 function dep = vout_eeg_contrast(job)
 % Output is always in field "D", no matter how job is structured

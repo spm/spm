@@ -1,10 +1,10 @@
-function S = spm_cfg_eeg_tf_rescale
+function rescale = spm_cfg_eeg_tf_rescale
 % configuration file for rescaling spectrograms
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 5192 2013-01-18 12:14:00Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -28,14 +28,15 @@ Db.val    = {[]};
 Db.help   = {'Select the baseline M/EEG mat file. Leave empty to use the input dataset'};
 
 %--------------------------------------------------------------------------
-% Sbaseline
+% timewin
 %--------------------------------------------------------------------------
-Sbaseline         = cfg_entry;
-Sbaseline.tag     = 'Sbaseline';
-Sbaseline.name    = 'Baseline';
-Sbaseline.help    = {'Start and stop of baseline [ms].'};
-Sbaseline.strtype = 'e';
-Sbaseline.num     = [1 2];
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Baseline time window';
+timewin.help    = {'Start and stop of the baseline time window [ms].'};
+timewin.strtype = 'e';
+timewin.num     = [1 2];
+timewin.val     = {[-Inf 0]};
 
 %--------------------------------------------------------------------------
 % baseline
@@ -44,7 +45,7 @@ baseline         = cfg_branch;
 baseline.tag     = 'baseline';
 baseline.name    = 'Baseline';
 baseline.help    = {'Baseline parameters.'};
-baseline.val     = {Sbaseline, Db};
+baseline.val     = {timewin, Db};
 
 %--------------------------------------------------------------------------
 % method_logr
@@ -120,40 +121,38 @@ method.help   = {'Select the rescale method.'};
 method.values = {method_logr method_diff method_rel method_zscore method_log method_logeps method_sqrt};
 
 %--------------------------------------------------------------------------
-% S
+% rescale
 %--------------------------------------------------------------------------
-S          = cfg_exbranch;
-S.tag      = 'rescale';
-S.name     = 'M/EEG Time-frequency rescale';
-S.val      = {D, method};
-S.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
+rescale          = cfg_exbranch;
+rescale.tag      = 'rescale';
+rescale.name     = 'M/EEG Time-frequency rescale';
+rescale.val      = {D, method};
+rescale.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
               'For ''Log'' and ''Sqrt'', these functions are applied to spectrogram.'
               'For ''LogR'', ''Rel'' and ''Diff'' this function computes power in the baseline.'
               'p_b and outputs:'
               '(i) p-p_b for ''Diff'''
               '(ii) 100*(p-p_b)/p_b for ''Rel'''
               '(iii) log (p/p_b) for ''LogR'''}';
-S.prog     = @eeg_tf_rescale;
-S.vout     = @vout_eeg_tf_rescale;
-S.modality = {'EEG'};
+rescale.prog     = @eeg_tf_rescale;
+rescale.vout     = @vout_eeg_tf_rescale;
+rescale.modality = {'EEG'};
 
 %==========================================================================
 function out = eeg_tf_rescale(job)
 % construct the S struct
-S.D            = job.D{1};
-S.tf.method    = fieldnames(job.method);
-S.tf.method    = S.tf.method{1};
-switch lower(S.tf.method)
-    case {'logr','diff', 'rel', 'zscore'}
-        S.tf.Sbaseline = 1e-3*job.method.(S.tf.method).baseline.Sbaseline;
-        if ~(isempty(job.method.(S.tf.method).baseline.Db) || isequal(job.method.(S.tf.method).baseline.Db, {''}))
-            S.tf.Db = job.method.(S.tf.method).baseline.Db{1};
-        end
-    case {'log', 'sqrt'}
+S.D         = job.D{1};
+S.method    = char(fieldnames(job.method));
+
+if ismember(lower(S.method), {'logr','diff', 'rel', 'zscore'})
+    S.timewin = job.method.(S.method).baseline.timewin;
+    if ~(isempty(job.method.(S.method).baseline.Db) || isequal(job.method.(S.method).baseline.Db, {''}))
+        S.Db = job.method.(S.method).baseline.Db{1};
+    end
 end
 
 out.D          = spm_eeg_tf_rescale(S);
-out.Dfname     = {fullfile(out.D.path,out.D.fname)};
+out.Dfname     = {fullfile(out.D)};
 
 %==========================================================================
 function dep = vout_eeg_tf_rescale(job)
