@@ -6,13 +6,13 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 %
 % fields of S:
 %   S.D                 - MEEG object or filename of M/EEG mat-file with
-%   
+%
 %   S.channels          - cell array of channel names. Can include generic
 %                         wildcards: 'All', 'EEG', 'MEG' etc.
 %
 %   S.frequencies      - vector of frequencies of interest
 %
-%   S.timewin          - time window of interest in PST in ms. 
+%   S.timewin          - time window of interest in PST in ms.
 %
 %   S.method           - name for the spectral estimation to use. This
 %                        corresponds to the name of a plug-in function that comes
@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_tf.m 5196 2013-01-21 14:16:42Z vladimir $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 5196 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -69,17 +69,11 @@ end
 
 D = spm_eeg_load(S.D);
 
-if isequal(D.type, 'continuous')
-    error('Time-frequency analysis can only be applied to epoched data');
-end
-
 chanind = D.selectchannels(S.channels);
 
 if isempty(chanind)
     error('No channels selected.');
 end
-
-timeind = D.indsample(1e-3*min(S.timewin)):D.indsample(1e-3*max(S.timewin));
 
 if isfield(S, 'settings')
     S1 = S.settings;
@@ -87,72 +81,145 @@ else
     S1 = [];
 end
 
+timeind = D.indsample(1e-3*min(S.timewin)):D.indsample(1e-3*max(S.timewin));
+
 S1.frequencies = S.frequencies;
 
-%-Run the analysis on all trials
-%--------------------------------------------------------------------------
-spm_progress_bar('Init', D.ntrials, 'trials done');
-if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
-else Ibar = 1:D.ntrials; end
-
-for k = 1:D.ntrials
-    trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind, timeind, k), D.time(timeind));
+if ~isequal(D.type, 'continuous')
     
-    if k == 1
+    %-Run the analysis on all trials
+    %--------------------------------------------------------------------------
+    spm_progress_bar('Init', D.ntrials, 'trials done');
+    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials, 100));
+    else Ibar = 1:D.ntrials; end
+    
+    for k = 1:D.ntrials
+        trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind, timeind, k), D.time(timeind));
         
-        if isfield(trial, 'fourier')
-            outdata = trial.fourier;
-        else
-            outdata = trial.pow;
-        end
-        
-        Nchannels = size(outdata, 1);        
-        Nfrequencies = size(outdata, 2);
-        Nsamples = size(outdata, 3);
-        
-        %-Generate output datasets
-        %--------------------------------------------------------------------------
-        Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples D.ntrials]);
-        Dtf = Dtf.frequencies(':', trial.freq);
-        Dtf = timeonset(Dtf, trial.time(1));
-        Dtf = fsample(Dtf, 1/diff(trial.time(1:2)));
-        Dtf = transformtype(Dtf, 'TF');
-        
-        Dtf = chanlabels(Dtf, 1:Nchannels, D.chanlabels(chanind));
-        Dtf = badchannels(Dtf, 1:Nchannels, D.badchannels(chanind));
-        Dtf = chantype(Dtf, 1:Nchannels, D.chantype(chanind));
-        Dtf = coor2D(Dtf, 1:Nchannels, coor2D(D,chanind));
-        
-        if S.phase && isfield(trial, 'fourier')
-            Dtph = clone(Dtf, [S.prefix 'tph_' D.fname]);
-            Dtph = transformtype(Dtph, 'TFphase');
-        else
-            if ~isfield(trial, 'fourier')
-                warning('Phase cannot be estimated with the requested method. Estimating power only.');
+        if k == 1
+            
+            if isfield(trial, 'fourier')
+                outdata = trial.fourier;
+            else
+                outdata = trial.pow;
             end
             
-            Dtph = [];
+            Nchannels = size(outdata, 1);
+            Nfrequencies = size(outdata, 2);
+            Nsamples = size(outdata, 3);
+            
+            %-Generate output datasets
+            %--------------------------------------------------------------------------
+            Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples D.ntrials]);
+            Dtf = Dtf.frequencies(':', trial.freq);
+            Dtf = timeonset(Dtf, trial.time(1));
+            Dtf = fsample(Dtf, 1/diff(trial.time(1:2)));
+            Dtf = transformtype(Dtf, 'TF');
+            
+            Dtf = chanlabels(Dtf, 1:Nchannels, D.chanlabels(chanind));
+            Dtf = badchannels(Dtf, 1:Nchannels, D.badchannels(chanind));
+            Dtf = chantype(Dtf, 1:Nchannels, D.chantype(chanind));
+            Dtf = coor2D(Dtf, 1:Nchannels, coor2D(D,chanind));
+            
+            if S.phase && isfield(trial, 'fourier')
+                Dtph = clone(Dtf, [S.prefix 'tph_' D.fname]);
+                Dtph = transformtype(Dtph, 'TFphase');
+            else
+                if ~isfield(trial, 'fourier')
+                    warning('Phase cannot be estimated with the requested method. Estimating power only.');
+                end
+                
+                Dtph = [];
+            end
+            
         end
         
+        if isfield(trial, 'fourier')
+            Dtf(:, :, :, k) = trial.fourier.*conj(trial.fourier);
+            
+            if S.phase
+                Dtph(:, :, :, k) = angle(trial.fourier);
+            end
+        elseif isfield(trial, 'pow')
+            Dtf(:, :, :, k) = trial.pow;
+        else
+            error('The plug-in returned unexpected output');
+        end
+        
+        if ismember(k, Ibar), spm_progress_bar('Set', k); end
     end
     
-    if isfield(trial, 'fourier')
-        Dtf(:, :, :, k) = trial.fourier.*conj(trial.fourier);
+    spm_progress_bar('Clear');
+    
+else % by channel for continuous data       
+    Nchannels = length(chanind);
+    
+
+    spm_progress_bar('Init', Nchannels , 'channels done');
+    if Nchannels > 100, Ibar = floor(linspace(1, Nchannels, 100));
+    else Ibar = 1:Nchannels; end
+    
+    for k = 1:Nchannels 
+        trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind(k), timeind), D.time(timeind));
         
-        if S.phase
-            Dtph(:, :, :, k) = angle(trial.fourier);
+        if k == 1
+            
+            if isfield(trial, 'fourier')
+                outdata = trial.fourier;
+            else
+                outdata = trial.pow;
+            end
+            
+            Nfrequencies = size(outdata, 2);
+            Nsamples = size(outdata, 3);
+            
+            %-Generate output datasets
+            %--------------------------------------------------------------------------
+            Dtf = clone(D, [S.prefix 'tf_' D.fname], [Nchannels Nfrequencies Nsamples 1]);
+            Dtf = Dtf.frequencies(':', trial.freq);
+            Dtf = timeonset(Dtf, trial.time(1));
+            Dtf = fsample(Dtf, 1/diff(trial.time(1:2)));
+            Dtf = transformtype(Dtf, 'TF');
+            
+            Dtf = chanlabels(Dtf, 1:Nchannels, D.chanlabels(chanind));
+            Dtf = badchannels(Dtf, 1:Nchannels, D.badchannels(chanind));
+            Dtf = chantype(Dtf, 1:Nchannels, D.chantype(chanind));
+            Dtf = coor2D(Dtf, 1:Nchannels, coor2D(D,chanind));
+            
+            ev  = Dtf.events;
+            ev  = ev([ev.time]>=Dtf.time(1) & [ev.time]<=Dtf.time(end));
+            Dtf = events(Dtf, 1, ev);
+            
+            if S.phase && isfield(trial, 'fourier')
+                Dtph = clone(Dtf, [S.prefix 'tph_' D.fname]);
+                Dtph = transformtype(Dtph, 'TFphase');
+            else
+                if ~isfield(trial, 'fourier')
+                    warning('Phase cannot be estimated with the requested method. Estimating power only.');
+                end
+                
+                Dtph = [];
+            end            
         end
-    elseif isfield(trial, 'pow')
-        Dtf(:, :, :, k) = trial.pow;
-    else
-        error('The plug-in returned unexpected output');
-    end
         
-    if ismember(k, Ibar), spm_progress_bar('Set', k); end
+        if isfield(trial, 'fourier')
+            Dtf(k, :, :, 1) = trial.fourier.*conj(trial.fourier);
+            
+            if S.phase
+                Dtph(k, :, :, 1) = angle(trial.fourier);
+            end
+        elseif isfield(trial, 'pow')
+            Dtf(k, :, :, 1) = trial.pow;
+        else
+            error('The plug-in returned unexpected output');
+        end
+        
+        if ismember(k, Ibar), spm_progress_bar('Set', k); end
+    end
+    
+    spm_progress_bar('Clear');    
+    
 end
-
-spm_progress_bar('Clear');
-
 %-Save new M/EEG dataset(s)
 %--------------------------------------------------------------------------
 Dtf = Dtf.history('spm_eeg_tf', S);
