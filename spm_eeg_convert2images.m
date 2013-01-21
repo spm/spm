@@ -33,9 +33,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5179 2013-01-07 12:22:05Z vladimir $
+% $Id: spm_eeg_convert2images.m 5195 2013-01-21 14:15:29Z vladimir $
 
-SVNrev = '$Rev: 5179 $';
+SVNrev = '$Rev: 5195 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -101,7 +101,7 @@ N.mat_intent = 'Aligned';
 
 C     = [68  100];  % origin
 n     = 32;         % dimension (make the default from SPM8 constant here)
-V     = C/n;        % voxel size
+V     = [136 172]/n;        % voxel size
 
 switch S.mode
     case 'scalp x time'

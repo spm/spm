@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 5195 2013-01-21 14:15:29Z vladimir $
 
-rev = '$Rev: 5068 $';
+rev = '$Rev: 5195 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -252,6 +252,7 @@ for i = 1:numel(job.task)
             S.task = 'loadeegsens';
             S.source = 'locfile';
             
+            S.sensfile = char(job.task{i}.loadeegsens.eegsens);
             if isfield(job.task{i}.loadeegsens.megmatch, 'fiducials')
                 for j = 1:numel(job.task{i}.loadeegsens.megmatch.matching)
                     S.regfid{j, 1} = job.task{i}.loadeegsens.megmatch.matching(j).hsname;
