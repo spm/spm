@@ -4,7 +4,7 @@ function delete = spm_cfg_eeg_delete
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_delete.m 5198 2013-01-21 15:59:48Z vladimir $
+% $Id: spm_cfg_eeg_delete.m 5200 2013-01-22 10:08:01Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -31,7 +31,7 @@ delete.modality = {'EEG'};
 function eeg_delete(job)
 
 for i = 1:numel(job.D)
-    delete(job.D{i});
+    delete(spm_eeg_load(job.D{i}));
 end
 
 %==========================================================================

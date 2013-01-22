@@ -6,12 +6,12 @@ function this = delete(this)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: delete.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: delete.m 5200 2013-01-22 10:08:01Z vladimir $
 
 
 if islinked(this)
-    delete(fnamedat(this));
+    spm_unlink(fnamedat(this));
 end
 this = unlink(this);
-delete(fullfile(this));
+spm_unlink(fullfile(this));
 
