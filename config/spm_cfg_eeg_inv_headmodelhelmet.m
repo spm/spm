@@ -6,7 +6,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5017 2012-10-25 11:19:14Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5202 2013-01-23 16:05:05Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -175,6 +175,14 @@ coregdefault.num     = [0 1];
 coregdefault.help = {'Select the subject''s helmet to MEG dewar transform'};
 coregdefault.val = {{'NOT DEFINED'}};
 
+coregerror = cfg_entry;
+coregerror.tag = 'coregerror';
+coregerror.name = 'Coregistration ERROR to add in mm';
+coregerror.strtype = 'r';
+coregerror.val = {0};
+coregerror.help = {'random coreg error to add to fiducuals-LEAVE AT ZERO UNLESS YOU ARE SURE ABOUT THIS'};
+
+
 
 coregistration = cfg_choice;
 coregistration.tag = 'coregistration';
@@ -206,7 +214,7 @@ forward.val = {eeg, meg};
 headmodelhelmet = cfg_exbranch;
 headmodelhelmet.tag = 'headmodelhelmet';
 headmodelhelmet.name = 'MEG helmet head model specification';
-headmodelhelmet.val = {D, val, comment, meshing, coregistration, forward};
+headmodelhelmet.val = {D, val, comment, meshing, coregistration, coregerror, forward};
 headmodelhelmet.help = {'Specify MEG head model for forward computation using helmet'};
 headmodelhelmet.prog = @specify_headmodel;
 headmodelhelmet.vout = @vout_specify_headmodel;
@@ -294,22 +302,22 @@ for i = 1:numel(job.D)
     
     if isfield(job.coregistration, 'coregdefault')
         %% register using the Troebinger helmet system
-         H1=load(job.coregistration.coregdefault{1}); %% 
-         %% a number of coordinate systems to reconcile here:
-         %% the helmet coregistration was made in dewar space (a ctf dewar based coordinate system)
-         %% the transformation from dewar space to the native MRI is given by dewDEFAULT2NATIVE
-         %% when not using fiducial coils one also has a default ctf head based coordinate system
-         %% to get from the default head centered coordinate system to dewar space use H1.defaultHead2MEGdewar
-         %%  to get from the default head centered coordinate system to the current (coil defined) head centered 
-         %% coordinate system use defaultHead2currentHead
-         
-        dewDEFAULT2NATIVE=H1.MEGdewar2MRI'; % H1.MEG2MRI transforms from MEG default dewar space to native MRI   
+        H1=load(job.coregistration.coregdefault{1}); %%
+        %% a number of coordinate systems to reconcile here:
+        %% the helmet coregistration was made in dewar space (a ctf dewar based coordinate system)
+        %% the transformation from dewar space to the native MRI is given by dewDEFAULT2NATIVE
+        %% when not using fiducial coils one also has a default ctf head based coordinate system
+        %% to get from the default head centered coordinate system to dewar space use H1.defaultHead2MEGdewar
+        %%  to get from the default head centered coordinate system to the current (coil defined) head centered
+        %% coordinate system use defaultHead2currentHead
+        
+        dewDEFAULT2NATIVE=H1.MEGdewar2MRI'; % H1.MEG2MRI transforms from MEG default dewar space to native MRI
         defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',H1.Dnocoils.sensors('MEG').coilpos');
         
         meegfid = D.fiducials;
         
         mrifid = [];
-       
+        
         mrifid = D.inv{val}.mesh.fid; %% fiducials in the native MRI space (obtained from inverse transform from standard space)
         
         megpts=meegfid.fid.pnt; %% fiducials in head (dewar/sensor) space
@@ -317,7 +325,7 @@ for i = 1:numel(job.D)
         megpts_defaulthead=pinv(defaultHead2currentHead)*[megpts';ones(1,size(megpts,2))];
         %% now convert these default-head centred points to dewar space
         megpts_dewar=H1.defaultHead2MEGdewar*megpts_defaulthead;
-        %% now from dewar points to native 
+        %% now from dewar points to native
         megpts_native=dewDEFAULT2NATIVE*megpts_dewar;
         
         %% put all transforms into one big one: current head centred coordinates to native space
@@ -328,8 +336,21 @@ for i = 1:numel(job.D)
         mrifid.fid.pnt=nativepts(1:3,:)';
         mrifid.fid.label=mrilbl;
         
-        
         D.inv{val}.mesh.fid=mrifid; %% set mri fid to be transformed MEG fid
+        if isfield(job,'coregerror');  %%
+            if job.coregerror>0,
+                disp('ADDING COREG ERROR');
+            end;
+            meegfid.fid.pnt
+             rng('shuffle') 
+            meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
+            meegfid.fid.pnt
+            
+            
+        else
+            coregerror=0;
+        end;
+        
         
         D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
         
