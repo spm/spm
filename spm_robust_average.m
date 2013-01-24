@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 4639 2012-02-02 13:56:02Z vladimir $
+% $Id: spm_robust_average.m 5205 2013-01-24 11:28:54Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -25,6 +25,13 @@ end
 origsize       = size(X);
 morigsize      = origsize;
 morigsize(dim) = 1;
+
+if length(origsize)<dim || origsize(dim) == 1
+    warning('There is only one replication in the data. Robust averaging cannot be done.');
+    Y = X;
+    W = ones(size(X));
+    return;
+end
 
 %-Convert the data to repetitions x points matrix
 %--------------------------------------------------------------------------
