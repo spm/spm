@@ -49,7 +49,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 5027 2012-10-31 21:51:09Z karl $
+% $Id: spm_dcm_tfm.m 5210 2013-01-25 15:31:46Z guillaume $
  
  
 % check options
@@ -176,7 +176,7 @@ DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
 % Inspect stability
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 if 0
-    [csd,~,~,~,~,~,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
+    [csd,d0,d0,d0,d0,d0,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
     xY.erp = erp;
     xY.csd = csd;
     spm_figure('GetWin','predicted (a priori)')
@@ -239,7 +239,7 @@ Qp.L    = ones(1,Ns);           % set virtual electrode gain to unity
 Qp.b    = Qp.b - 32;            % and suppress non-specific and
 Qp.c    = Qp.c - 32;            % specific channel noise
  
-[csd,~,~,~,tfm,dtf,erp] = spm_csd_int(Qp,M,DCM.xU);
+[csd,w,t,x,tfm,dtf,erp] = spm_csd_int(Qp,M,DCM.xU);
  
 % source space
 %--------------------------------------------------------------------------
@@ -254,5 +254,3 @@ DCM.ERP = erp;                  % conditional evoked responses
 DCM.options.Nmodes = Nm;
  
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
-
-

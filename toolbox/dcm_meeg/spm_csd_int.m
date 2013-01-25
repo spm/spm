@@ -9,7 +9,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Y - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
 %                    - for w frequencies over time t in M.Hz
 % w - frequencies
-% t – peristimulus time
+% t ï¿½ peristimulus time
 % x - expectation of hidden (neuronal) states (for last trial)
 % G - {G(t,w,nc,nc}} - cross spectrum density before dispersion
 % S - {S(t,w,nc,nu}} - transfer functions
@@ -17,7 +17,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 %__________________________________________________________________________
 %
 % This integration routine evaluates the responses of a neural mass model
-% to exogenous input – in terms of neuronal states. These are then used as
+% to exogenous input ï¿½ in terms of neuronal states. These are then used as
 % expansion point to generate complex cross spectral responses due to
 % random neuronal fluctuations. The ensuing spectral (induced) response is
 % then convolved (in time) with a window that corresponds to the window of
@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_csd_int.m 5210 2013-01-25 15:31:46Z guillaume $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -123,10 +123,10 @@ for c = 1:size(X,1)
     % get local linear operator LL and delay operator D
     %==================================================================
     if nargout(f) == 3
-        [~, dfdx D] = f(x(:,1),u(:,1),Q,M);
+        [f0,dfdx,D] = f(x(:,1),u(:,1),Q,M);
         
     elseif nargout(f) == 2
-        [~, dfdx]   = f(x(:,1),u(:,1),Q,M);
+        [f0,dfdx]   = f(x(:,1),u(:,1),Q,M);
         D           = 1;
         
     else
@@ -141,7 +141,7 @@ for c = 1:size(X,1)
     LL    = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
     
     
-    % cycle over time – expanding around expected states and input
+    % cycle over time ï¿½ expanding around expected states and input
     %======================================================================
     for i = 1:length(t)
         

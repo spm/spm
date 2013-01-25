@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_dcm_ind_data.m 5210 2013-01-25 15:31:46Z guillaume $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -133,8 +133,8 @@ ms          = DCM.options.Tdcm(1) - DCM.xY.Time(1);
 ms          = max(min(ms,512),64);
 T1          = DCM.options.Tdcm(1) - ms;
 T2          = DCM.options.Tdcm(2) + ms;
-[~, T1]     = min(abs(DCM.xY.Time - T1));
-[~, T2]     = min(abs(DCM.xY.Time - T2));
+[dummy, T1] = min(abs(DCM.xY.Time - T1));
+[dummy, T2] = min(abs(DCM.xY.Time - T2));
 B1          = T1 + fix(ms*D.fsample/1000);
 B2          = T2 - fix(ms*D.fsample/1000);
 

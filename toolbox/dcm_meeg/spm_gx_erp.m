@@ -1,4 +1,4 @@
-function [y] = spm_gx_erp(x,~,P,M)
+function [y] = spm_gx_erp(x,u,P,M)
 % observer for a neural mass model of event related potentials
 % FORMAT [y] = spm_gx_erp(x,u,P,M)
 % x      - state vector
@@ -11,7 +11,7 @@ function [y] = spm_gx_erp(x,~,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_erp.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_gx_erp.m 5210 2013-01-25 15:31:46Z guillaume $
 
 % parameterised lead field times [perturbations] of states
 %--------------------------------------------------------------------------
@@ -26,4 +26,3 @@ end
 % sensor-space response
 %--------------------------------------------------------------------------
 y  = L*(spm_vec(x) - spm_vec(M.x));
-

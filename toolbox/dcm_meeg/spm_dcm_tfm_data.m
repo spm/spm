@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_dcm_tfm_data.m 5210 2013-01-25 15:31:46Z guillaume $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -54,7 +54,7 @@ try
     D = spm_eeg_load(Dfile);
 catch
     try
-        [~,f]        = fileparts(Dfile);
+        [dummy,f]    = fileparts(Dfile);
         D            = spm_eeg_load(f);
         DCM.xY.Dfile = fullfile(pwd,f);
     catch
@@ -132,8 +132,8 @@ try
     DCM.xY.Time = time(D, [], 'ms');
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
-    [~, T1]     = min(abs(DCM.xY.Time - T1));
-    [~, T2]     = min(abs(DCM.xY.Time - T2));
+    [dummy, T1] = min(abs(DCM.xY.Time - T1));
+    [dummy, T2] = min(abs(DCM.xY.Time - T2));
     
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------

@@ -11,7 +11,7 @@ function [G] = spm_dcm_csd_source_plot(model,s,P,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_csd_source_plot.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_csd_source_plot.m 5210 2013-01-25 15:31:46Z guillaume $
 
 
 % Create model
@@ -54,14 +54,14 @@ Gu   =  f.^(-1/4);
 
 % get delay operator, augment and bi-linearise (with delays)
 %--------------------------------------------------------------------------
-[~,~,D]   = feval(M.f,M.x,M.u,P,M);
+[M0,M1,D] = feval(M.f,M.x,M.u,P,M);
 M.D       = D;
 [M0,M1,L] = spm_bireduce(M,P);
 
 % compute modulation transfer function using FFT of the kernels
 %--------------------------------------------------------------------------
-[~,K1]    = spm_kernels(M0,M1,L,N,dt);
-[N,~,nu]  = size(K1);
+[K0,K1]   = spm_kernels(M0,M1,L,N,dt);
+[N,nc,nu] = size(K1);
 
 
 % [cross]-spectral density
@@ -87,11 +87,5 @@ for i = 1:ns
         
     end
 end
+
 drawnow
-
-
-
-
-
-
-

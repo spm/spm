@@ -45,7 +45,7 @@ end
 
 
 % --- Executes just before spm_dcm_erp_viewspatial is made visible.
-function spm_dcm_erp_viewspatial_OpeningFcn(hObject, ~, handles, varargin)
+function spm_dcm_erp_viewspatial_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -88,8 +88,8 @@ handles.Nt = size(handles.y_proj, 1);
 
 % data and model fit
 %--------------------------------------------------------------------------
-handles.yd    = NaN*ones(handles.Nt, Nchannels);
-handles.ym    = NaN*ones(handles.Nt, Nchannels);
+handles.yd    = NaN(handles.Nt, Nchannels);
+handles.ym    = NaN(handles.Nt, Nchannels);
 handles.yd(:, DCM.M.dipfit.Ic) = handles.y_proj*DCM.M.U'; % data (back-projected to channel space)
 handles.ym(:, DCM.M.dipfit.Ic) = cat(1,DCM.H{:})*DCM.M.U'; % model fit
 
@@ -120,7 +120,7 @@ guidata(hObject, handles);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = spm_dcm_erp_viewspatial_OutputFcn(~, ~, handles) 
+function varargout = spm_dcm_erp_viewspatial_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 %--------------------------------------------------------------------------
 % Get default command line output from handles structure
@@ -128,7 +128,7 @@ varargout{1} = handles.output;
 
 
 % --- Executes on slider movement.
-function slider1_Callback(hObject, ~, handles)
+function slider1_Callback(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
@@ -140,7 +140,7 @@ plot_modes(hObject, handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
-function slider1_CreateFcn(hObject, ~, ~)
+function slider1_CreateFcn(hObject, eventdata, handles)
 %--------------------------------------------------------------------------
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
@@ -178,7 +178,7 @@ guidata(hObject, handles);
 drawnow
 
 
-function plot_modes(~, handles)
+function plot_modes(hObject, handles)
 %--------------------------------------------------------------------------
 % plot temporal expression of modes
 
@@ -202,7 +202,7 @@ title('Temporal expressions of modes', 'FontSize', 16);
 grid on
 
 
-function plot_dipoles(~, handles)
+function plot_dipoles(hObject, handles)
 %--------------------------------------------------------------------------
 DCM = handles.DCM;
 Nsources = length(DCM.M.pE.A{1});
@@ -255,7 +255,7 @@ rotate3d(handles.axes5);
 axis equal
 
 
-function plot_components_space(~, handles)
+function plot_components_space(hObject, handles)
 %--------------------------------------------------------------------------
 % plots spatial expression of each dipole
 DCM      = handles.DCM;
@@ -298,7 +298,7 @@ end
 
 drawnow
 
-function plot_components_time(~, handles)
+function plot_components_time(hObject, handles)
 %--------------------------------------------------------------------------
 DCM  = handles.DCM;
 Lmom = sqrt(sum(spm_cat(DCM.Eg.L)).^2);
