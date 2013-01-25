@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_volumewrite.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_volumewrite.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_volumewrite.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -105,7 +105,6 @@ cfg.downsample   = ft_getopt(cfg, 'downsample',   1);
 cfg.markorigin   = ft_getopt(cfg, 'markorigin',   'no');
 cfg.markfiducial = ft_getopt(cfg, 'markfiducial', 'no');
 cfg.markcorner   = ft_getopt(cfg, 'markcorner',   'no');
-cfg.inputfile    = ft_getopt(cfg, 'inputfile',    []);
 cfg.scaling      = ft_getopt(cfg, 'scaling',      'no');
 
 if any(strmatch(cfg.datatype, {'int8', 'int16', 'int32'}))

@@ -34,9 +34,9 @@ function [cfg] = ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_multiplotCC.m 7400 2013-01-23 16:05:54Z roboos $
 
-revision = '$Id: ft_multiplotCC.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_multiplotCC.m 7400 2013-01-23 16:05:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -52,7 +52,7 @@ data = ft_checkdata(data);
 cfg = ft_checkconfig(cfg, 'renamed',	 {'zparam', 'parameter'});
 cfg = ft_checkconfig(cfg, 'deprecated',  {'xparam'});
 
-% if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151s.lay';        end;
+% if ~isfield(cfg, 'layout'),    cfg.layout = 'CTF151.lay';        end;
 if ~isfield(cfg, 'xparam'),      cfg.xparam = 'foi';                end;
 if ~isfield(cfg, 'xlim'),        cfg.xlim   = 'all';                end;
 if ~isfield(cfg, 'parameter'),   cfg.parameter = 'avg.icohspctrm';  end;

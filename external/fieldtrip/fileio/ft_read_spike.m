@@ -50,7 +50,7 @@ function [spike] = ft_read_spike(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_spike.m 7161 2012-12-13 09:54:48Z bargip $
+% $Id: ft_read_spike.m 7393 2013-01-23 14:33:27Z jorhor $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -159,7 +159,7 @@ switch spikeformat
         chan = chan + 1;
         spike.label{chan}     = deblank(hdr.VarHeader(i).Name);
         spike.waveform{chan}  = zeros(0, nspike);
-        spike.unit{chan}      = nan*ones(1,nspike);
+        spike.unit{chan}      = nan(1,nspike);
         spike.timestamp{chan} = nex.ts;
       elseif typ(i)==3
         % neurons, timestamps and waveforms
@@ -168,7 +168,7 @@ switch spikeformat
         nspike = length(nex.ts);
         spike.label{chan}     = deblank(hdr.VarHeader(i).Name);
         spike.waveform{chan}  = permute(nex.dat,[3 1 2]);
-        spike.unit{chan}      = nan*ones(1,nspike);
+        spike.unit{chan}      = nan(1,nspike);
         spike.timestamp{chan} = nex.ts;
       end
     end

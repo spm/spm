@@ -82,9 +82,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_scalpcurrentdensity.m 7380 2013-01-23 13:03:14Z eelspa $
 
-revision = '$Id: ft_scalpcurrentdensity.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_scalpcurrentdensity.m 7380 2013-01-23 13:03:14Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -124,7 +124,9 @@ elec = ft_fetch_sens(cfg, data);
 tmp  = elec;
 elec = [];
 elec.chanpos = tmp.chanpos;
-elec.elecpos = tmp.elecpos;
+if isfield(tmp, 'elecpos')
+  elec.elecpos = tmp.elecpos;
+end
 elec.label   = tmp.label;
 
 % find matching electrode positions and channels in the data

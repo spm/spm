@@ -51,9 +51,9 @@ function [data] = ft_combineplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_combineplanar.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_combineplanar.m 7393 2013-01-23 14:33:27Z jorhor $
 
-revision = '$Id: ft_combineplanar.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_combineplanar.m 7393 2013-01-23 14:33:27Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -164,7 +164,7 @@ if isfreq
         Nfrq   = length(fbin);
         Ntim   = size(data.fourierspctrm,4);
         %fourier= complex(zeros(Nrpt,Nsgn,Nfrq,Ntim),zeros(Nrpt,Nsgn,Nfrq,Ntim));
-        fourier= zeros(Nrpt,Nsgn,Nfrq,Ntim)+nan;
+        fourier= nan(Nrpt,Nsgn,Nfrq,Ntim);
         ft_progress('init', cfg.feedback, 'computing the svd');
         for j = 1:Nsgn
           ft_progress(j/Nsgn, 'computing the svd of signal %d/%d\n', j, Nsgn);

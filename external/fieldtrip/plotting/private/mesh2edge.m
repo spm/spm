@@ -24,7 +24,7 @@ function [newbnd] = mesh2edge(bnd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mesh2edge.m 7342 2013-01-17 13:46:01Z roboos $
+% $Id: mesh2edge.m 7372 2013-01-23 09:15:52Z roboos $
 
 if isfield(bnd, 'tri')
   % make a list of all edges
@@ -44,36 +44,59 @@ elseif isfield(bnd, 'tet')
 elseif isfield(bnd, 'hex')
   % make a list of all "squares" that form the cube/hexaheder
   % FIXME should be checked, this is impossible without a drawing
-  square1 = bnd.tet(:, [1 2 3 4]);
-  square2 = bnd.tet(:, [5 6 7 8]);
-  square3 = bnd.tet(:, [1 2 6 5]);
-  square4 = bnd.tet(:, [2 3 7 6]);
-  square5 = bnd.tet(:, [3 4 8 7]);
-  square6 = bnd.tet(:, [4 1 5 8]);
+  square1 = bnd.hex(:, [1 2 3 4]);
+  square2 = bnd.hex(:, [5 6 7 8]);
+  square3 = bnd.hex(:, [1 2 6 5]);
+  square4 = bnd.hex(:, [2 3 7 6]);
+  square5 = bnd.hex(:, [3 4 8 7]);
+  square6 = bnd.hex(:, [4 1 5 8]);
   edge = cat(1, square1, square2, square3, square4, square5, square6);
   
 end % isfield(bnd)
 
-% make them all point in the same direction
+% soort all polygons in the same direction
 % keep the original as "edge" and the sorted one as "sedge"
 sedge = sort(edge, 2);
 
-% find the edges that only occur once
-[c, ia, ic] = unique(sedge, 'rows');
-sel = false(size(ic));
-for k=1:length(ic)
-  sel(k) = sum(ic==k)==1;
-end
-% make the selection in the original, not the sorted version of the edges
-% otherwise the orientation of the edges might get flipped
-edge = edge(sel,:);
+% % find the edges that are not shared -> count the number of occurences
+% n = size(sedge,1);
+% occurences = ones(n,1);
+% for i=1:n
+%   for j=(i+1):n
+%     if all(sedge(i,:)==sedge(j,:))
+%       occurences(i) = occurences(i)+1;
+%       occurences(j) = occurences(j)+1;
+%     end
+%   end
+% end
+%
+% % make the selection in the original, not the sorted version of the edges
+% % otherwise the orientation of the edges might get flipped
+% edge = edge(occurences==1,:);
+
+% find the edges that are not shared
+indx = findsingleoccurringrows(sedge);
+edge = edge(indx, :);
 
 % the naming of the output edges depends on what they represent
 newbnd.pnt  = bnd.pnt;
 if isfield(bnd, 'tri')
-  newbnd.edge = edge;
+  newbnd.line = edge;
 elseif isfield(bnd, 'tet')
   newbnd.tri = edge;
 elseif isfield(bnd, 'hex')
   newbnd.poly = edge;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1833#c12
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function indx = findsingleoccurringrows(X)
+[X, indx] = sortrows(X);
+sel  = any(diff([X(1,:)-1; X],1),2) & any(diff([X; X(end,:)+1],1),2);
+indx = indx(sel);
+
+function indx = finduniquerows(X)
+[X, indx] = sortrows(X);
+sel  = any(diff([X(1,:)-1; X],1),2);
+indx = indx(sel);

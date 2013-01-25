@@ -50,9 +50,9 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_freqgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_freqgrandaverage.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_freqgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -68,8 +68,6 @@ for i=1:length(varargin)
 end
 
 % set the defaults
-cfg.inputfile      = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile     = ft_getopt(cfg, 'outputfile', []);
 cfg.keepindividual = ft_getopt(cfg, 'keepindividual', 'no');
 cfg.channel        = ft_getopt(cfg, 'channel',    'all');
 cfg.foilim         = ft_getopt(cfg, 'foilim',     'all');

@@ -56,9 +56,9 @@ function [varargout] = ft_stratify(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_stratify.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_stratify.m 7393 2013-01-23 14:33:27Z jorhor $
 
-revision = '$Id: ft_stratify.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_stratify.m 7393 2013-01-23 14:33:27Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -159,10 +159,10 @@ if strcmp(cfg.method, 'histogram'),
       
       for binlop = 1:length(numok)
         if numok(binlop)>0,
-          tmpmatmin    = zeros(ncond,nummax(binlop))+nan;
-          tmpmatmax    = zeros(ncond,nummax(binlop))+nan;
-          tmpmatminind = zeros(ncond,nummax(binlop))+nan;
-          tmpmatmaxind = zeros(ncond,nummax(binlop))+nan;
+          tmpmatmin    = nan(ncond,nummax(binlop));
+          tmpmatmax    = nan(ncond,nummax(binlop));
+          tmpmatminind = nan(ncond,nummax(binlop));
+          tmpmatmaxind = nan(ncond,nummax(binlop));
           for cndlop = 1:ncond
             tmpsel          = find(b{cndlop}==binlop);
             tmpdat          = input{cndlop}(tmpsel);
@@ -240,7 +240,7 @@ if strcmp(cfg.method, 'histogram'),
               %tmpmat  = [ones(nrow,numok(binlop)-1) eye(nrow)];
               %tmpmat  = tmpmat(:,randperm(size(tmpmat,2)));
               if cndlop~=minind{binlop}(refind),
-                m      = nan+zeros(1,100);
+                m      = nan(1,100);
                 for rndlop = 1:100
                   if rndlop<=12 || sum(diff(m(rndlop-11:rndlop-1))==0)<10,
                     dif = abs(sum(pntmat.*tmpmat,2)./numok(binlop));

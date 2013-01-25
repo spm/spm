@@ -63,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_prepare_neighbours.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_prepare_neighbours.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_prepare_neighbours.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -115,7 +115,9 @@ if strcmp(cfg.method, 'template')
     cfg.template = [strtok(cfg.layout, '.') '_neighb.mat'];
   end
   % adjust filename
-  cfg.template = lower(cfg.template);  
+  if ~exist(cfg.template, 'file')
+    cfg.template = lower(cfg.template);  
+  end
   % add necessary extensions
   if numel(cfg.template) < 4 || ~isequal(cfg.template(end-3:end), '.mat')
     if numel(cfg.template) < 7 || ~isequal(cfg.template(end-6:end), '_neighb')

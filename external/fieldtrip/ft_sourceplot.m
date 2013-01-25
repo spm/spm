@@ -164,9 +164,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 7192 2012-12-13 22:32:56Z roboos $
+% $Id: ft_sourceplot.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_sourceplot.m 7192 2012-12-13 22:32:56Z roboos $';
+revision = '$Id: ft_sourceplot.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -512,6 +512,20 @@ else
 end
 % handle mask
 if hasmsk
+  % reshape to match fun
+  if isfield(data, 'time') && isfield(data, 'freq'),
+    %data contains timefrequency representation
+    msk     = reshape(msk, [dim numel(data.freq) numel(data.time)]);
+  elseif isfield(data, 'time')
+    %data contains evoked field
+    msk     = reshape(msk, [dim numel(data.time)]);
+  elseif isfield(data, 'freq')
+    %data contains frequency spectra
+    msk     = reshape(msk, [dim numel(data.freq)]);
+  else
+    msk     = reshape(msk, dim);
+  end
+    
   % determine scaling and opacitymap
   mskmin = min(msk(:));
   mskmax = max(msk(:));
@@ -653,13 +667,13 @@ if isequal(cfg.method,'ortho')
     if isempty(cfg.funparameter)
       error('cfg.location is min, but no functional parameter specified');
     end
-    [~, minindx] = min(fun(:));
+    [dummy, minindx] = min(fun(:));
     [xi, yi, zi] = ind2sub(dim, minindx);
   elseif ischar(loc) && strcmp(loc, 'max')
     if isempty(cfg.funparameter)
       error('cfg.location is max, but no functional parameter specified');
     end
-    [~, maxindx] = max(fun(:));
+    [dummy, maxindx] = max(fun(:));
     [xi, yi, zi] = ind2sub(dim, maxindx);
   elseif ischar(loc) && strcmp(loc, 'center')
     xi = round(dim(1)/2);

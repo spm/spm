@@ -90,9 +90,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_mvaranalysis.m 7393 2013-01-23 14:33:27Z jorhor $
 
-revision = '$Id: ft_mvaranalysis.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 7393 2013-01-23 14:33:27Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -457,7 +457,7 @@ nsmp  = size(datacells{1}, 2);
 nrpt  = numel(trials);
 
 %---initialize
-datamatrix = zeros(nchan, nsmp*nrpt + nnans*(nrpt-1)) + nan;
+datamatrix = nan(nchan, nsmp*nrpt + nnans*(nrpt-1));
 
 %---fill the matrix
 for k = 1:nrpt

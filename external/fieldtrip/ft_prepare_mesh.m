@@ -67,9 +67,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_prepare_mesh.m 7385 2013-01-23 13:21:45Z johzum $
 
-revision = '$Id: ft_prepare_mesh.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 7385 2013-01-23 13:21:45Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -235,7 +235,9 @@ end
 if ~isfield(bnd, 'unit') && hasdata
   for i=1:numel(bnd)
     bnd(i).unit = mri.unit;
-  end
+  end  
+elseif ~isfield(bnd, 'unit')
+  bnd = ft_convert_units(bnd);
 end
 
 % do the general cleanup and bookkeeping at the end of the function

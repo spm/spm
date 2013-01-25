@@ -34,7 +34,8 @@ function [stat] = ft_networkanalysis(cfg, data)
 %
 % To facilitate data-handling and distributed computing with the
 % peer-to-peer module, this function has the following options:
-%   cfg.inputfile   =  ... cfg.outputfile  =  ...
+%   cfg.inputfile   =  ... 
+% 	cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a
 % *.mat file on disk and/or the output data will be written to a *.mat
 % file. These mat files should contain only a single variable,
@@ -60,9 +61,9 @@ function [stat] = ft_networkanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_networkanalysis.m 7277 2013-01-07 19:38:06Z jansch $
+% $Id: ft_networkanalysis.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_networkanalysis.m 7277 2013-01-07 19:38:06Z jansch $';
+revision = '$Id: ft_networkanalysis.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -73,10 +74,6 @@ ft_preamble debug
 ft_preamble loadvar data
 
 cfg = ft_checkconfig(cfg, 'required', {'method' 'parameter'});
-
-% set the defaults
-cfg.inputfile   = ft_getopt(cfg, 'inputfile',   []);
-cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
 
 % ensure that the bct-toolbox is on the path
 ft_hastoolbox('BCT', 1);

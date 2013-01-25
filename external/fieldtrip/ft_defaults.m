@@ -40,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7261 2012-12-23 10:51:34Z roboos $
+% $Id: ft_defaults.m 7378 2013-01-23 12:36:49Z jorhor $
 
 global ft_default 
 persistent initialized
@@ -186,8 +186,10 @@ if ~isdeployed
   
   try
     % this contains specific code and examples for realtime processing
-    ft_hastoolbox('realtime', 3, 1);                    % not required
-    ft_hastoolbox('realtime/acquisition/matlab', 3, 1); % not required
+    ft_hastoolbox('realtime/example', 3, 1);    % not required
+    ft_hastoolbox('realtime/online_mri', 3, 1); % not required
+    ft_hastoolbox('realtime/online_meg', 3, 1); % not required
+    ft_hastoolbox('realtime/online_eeg', 3, 1); % not required
   end
   
   try

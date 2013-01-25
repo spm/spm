@@ -63,9 +63,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 7220 2012-12-18 08:40:18Z jansch $
+% $Id: ft_volumenormalise.m 7404 2013-01-23 16:39:24Z roevdmei $
 
-revision = '$Id: ft_volumenormalise.m 7220 2012-12-18 08:40:18Z jansch $';
+revision = '$Id: ft_volumenormalise.m 7404 2013-01-23 16:39:24Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -97,8 +97,6 @@ cfg.coordsys         = ft_getopt(cfg, 'coordsys',         '');
 cfg.units            = ft_getopt(cfg, 'units',            'mm');
 cfg.nonlinear        = ft_getopt(cfg, 'nonlinear',        'yes');
 cfg.smooth           = ft_getopt(cfg, 'smooth',           'no');
-cfg.inputfile        = ft_getopt(cfg, 'inputfile',        []);
-cfg.outputfile       = ft_getopt(cfg, 'outputfile',       []);
 
 % check if the required spm is in your path:
 if strcmpi(cfg.spmversion, 'spm2'),
@@ -184,7 +182,6 @@ tmpcfg            = [];
 tmpcfg.downsample = cfg.downsample;
 tmpcfg.parameter  = cfg.parameter;
 tmpcfg.smooth     = cfg.smooth;
-tmpcfg.outputfile = cfg.outputfile;
 interp = ft_volumedownsample(tmpcfg, interp);
 
 ws = warning('off');

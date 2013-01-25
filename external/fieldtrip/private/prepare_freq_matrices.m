@@ -26,7 +26,7 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_freq_matrices.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_freq_matrices.m 7393 2013-01-23 14:33:27Z jorhor $
 
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end
@@ -110,7 +110,7 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
   % this complex rearrangement of channel indices transforms the CSDs into a square matrix
   if strcmp(freq.dimord, 'chan_freq')
     % FIXME this fails in case dimord=rpt_chan_freq and only 1 trial
-    Cf = complex(nan*zeros(Nchans,Nchans));
+    Cf = complex(nan(Nchans,Nchans));
     % first use the complex conjugate for all reversed signal combinations
     Cf(find(crsspctrmindx)) = freq.crsspctrm(crsspctrmindx(find(crsspctrmindx)), fbin);
     Cf = ctranspose(Cf);
@@ -119,8 +119,8 @@ if isfield(freq, 'powspctrm') && isfield(freq, 'crsspctrm')
     % put the power on the diagonal
     Cf(find(eye(Nchans))) = freq.powspctrm(powspctrmindx, fbin);
   else
-    Cf  = complex(nan*zeros(Ntrials,Nchans,Nchans));
-    tmp = complex(nan*zeros(Nchans,Nchans));
+    Cf  = complex(nan(Ntrials,Nchans,Nchans));
+    tmp = complex(nan(Nchans,Nchans));
     for trial=1:Ntrials
       % first use the complex conjugate for all signal combinations reversed
       tmp(find(crsspctrmindx)) = freq.crsspctrm(trial, crsspctrmindx(find(crsspctrmindx)), fbin);

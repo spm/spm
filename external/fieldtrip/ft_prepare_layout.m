@@ -52,7 +52,6 @@ function [lay, cfg] = ft_prepare_layout(cfg, data)
 %   lay.pos     = Nx2 matrix with channel positions
 %   lay.width   = Nx1 vector with the width of each box for multiplotting
 %   lay.height  = Nx1 matrix with the height of each box for multiplotting
-%   lay.height  = Nx1 matrix with the height of each box for multiplotting
 %   lay.mask    = optional cell-array with line segments that determine the area for topographic interpolation
 %   lay.outline = optional cell-array with line segments that represent the head, nose, ears, sulci or other anatomical features
 %
@@ -81,9 +80,9 @@ function [lay, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 7154 2012-12-12 09:57:52Z eelspa $
+% $Id: ft_prepare_layout.m 7387 2013-01-23 13:36:54Z eelspa $
 
-revision = '$Id: ft_prepare_layout.m 7154 2012-12-12 09:57:52Z eelspa $';
+revision = '$Id: ft_prepare_layout.m 7387 2013-01-23 13:36:54Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -250,30 +249,46 @@ elseif isequal(cfg.layout, 'ordered')
   lay.pos(end+1,:) = [x y];
 
   % try to generate layout from other configuration options
-elseif ischar(cfg.layout) && ft_filetype(cfg.layout, 'matlab')
-  fprintf('reading layout from file %s\n', cfg.layout);
+elseif ischar(cfg.layout)
   
-  if ~exist(cfg.layout, 'file')
-    error('the specified layout file %s was not found', cfg.layout);
-  end
-  load(cfg.layout, 'lay');
-
-elseif ischar(cfg.layout) && ft_filetype(cfg.layout, 'layout')
+  % layout file name specified
   
-  if exist(cfg.layout, 'file')
+  if isempty(strfind(cfg.layout, '.'))
+    
+    cfg.layout = [cfg.layout '.mat'];
+    if exist(cfg.layout, 'file')
+      fprintf('layout file without .mat (or .lay) extension specified, appending .mat\n');
+      lay = ft_prepare_layout(cfg);
+    else
+      cfg.layout = [cfg.layout(1:end-3) 'lay'];
+      lay = ft_prepare_layout(cfg);
+    end
+    
+  elseif ft_filetype(cfg.layout, 'matlab')
+    
     fprintf('reading layout from file %s\n', cfg.layout);
-    lay = readlay(cfg.layout);
-  else
-    warning_once(sprintf('layout file %s was not found on your path, attempting to use a similarly named .mat file instead',cfg.layout));
-    cfg.layout = [cfg.layout(1:end-3) 'mat'];
-    lay = ft_prepare_layout(cfg);
+    if ~exist(cfg.layout, 'file')
+      error('the specified layout file %s was not found', cfg.layout);
+    end
+    load(cfg.layout, 'lay');
+
+  elseif ft_filetype(cfg.layout, 'layout')
+
+    if exist(cfg.layout, 'file')
+      fprintf('reading layout from file %s\n', cfg.layout);
+      lay = readlay(cfg.layout);
+    else
+      warning_once(sprintf('layout file %s was not found on your path, attempting to use a similarly named .mat file instead',cfg.layout));
+      cfg.layout = [cfg.layout(1:end-3) 'mat'];
+      lay = ft_prepare_layout(cfg);
+    end
+
+  elseif ~ft_filetype(cfg.layout, 'layout')
+    % assume that cfg.layout is an electrode file
+    fprintf('creating layout from electrode file %s\n', cfg.layout);
+    lay = sens2lay(ft_read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
   end
-
-elseif ischar(cfg.layout) && ~ft_filetype(cfg.layout, 'layout')
-  % assume that cfg.layout is an electrode file
-  fprintf('creating layout from electrode file %s\n', cfg.layout);
-  lay = sens2lay(ft_read_sens(cfg.layout), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
-
+  
 elseif ischar(cfg.elecfile)
   fprintf('creating layout from electrode file %s\n', cfg.elecfile);
   lay = sens2lay(ft_read_sens(cfg.elecfile), cfg.rotate, cfg.projection, cfg.style, cfg.overlap);
@@ -708,6 +723,10 @@ elseif ~isempty(cfg.output) && strcmpi(cfg.style, '3d')
   % a 3D layout the width and height are currently set to NaN
   error('writing a 3D layout to an output file is not supported');
 end
+
+% ensure proper format of some of label (see bug 1909 -roevdmei)
+lay.label  = lay.label(:);
+
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble provenance

@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 7241 2012-12-21 08:39:00Z roboos $
+% $Id: ft_read_sens.m 7369 2013-01-21 14:14:11Z vlalit $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);

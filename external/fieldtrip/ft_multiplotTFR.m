@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_multiplotTFR.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_multiplotTFR.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -441,10 +441,10 @@ if ~isempty(cfg.maskparameter)
     mask = nanmean(nanmean(nanmean(mask, meandir), 4), 3);
   elseif haslabelcmb && cfg.maskalpha == 1
     mask = mask(sellab, ymin:ymax, xmin:xmax);
-    mask = nanmean(nanmean(mask, 3), 2);
+    %mask = nanmean(nanmean(mask, 3), 2);
   elseif cfg.maskalpha == 1
     mask = mask(sellab, ymin:ymax, xmin:xmax);
-    mask = nanmean(nanmean(mask, 3), 2);
+    %mask = nanmean(nanmean(mask, 3), 2);
   elseif isfull && cfg.maskalpha ~= 1
     maskl = mask(sel1, sel2, ymin:ymax, xmin:xmax); %% check this for full representation
     mask = zeros(size(maskl));

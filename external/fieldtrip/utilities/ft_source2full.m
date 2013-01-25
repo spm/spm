@@ -29,7 +29,7 @@ function [source] = ft_source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_source2full.m 7393 2013-01-23 14:33:27Z jorhor $
 
 ft_defaults
 
@@ -160,7 +160,7 @@ if strcmp(stype, 'old'),
       tmp(inside)  = dat;
       %tmp(outside) = nan;
     else
-      tmp         = zeros(1,Nfull) + nan;
+      tmp         = nan(1,Nfull);
       tmp(inside) = dat;   
     end
     source = setsubfield(source, param{j}, tmp);
@@ -182,7 +182,7 @@ if strcmp(stype, 'old'),
           tmp(inside)  = dat;
           %tmp(outside) = nan;
         else
-          tmp         = zeros(1,Nfull) + nan;
+          tmp         = nan(1,Nfull);
           tmp(inside) = dat;   
         end
         tmpsource = setsubfield(tmpsource, tmpparam{k}, tmp);
@@ -205,7 +205,7 @@ if strcmp(stype, 'old'),
           tmp(inside)  = dat;
           %tmp(outside) = nan;
         else
-          tmp         = zeros(1,Nfull) + nan;
+          tmp         = nan(1,Nfull);
           tmp(inside) = dat;   
         end
         tmpsource = setsubfield(tmpsource, tmpparam{k}, tmp);
@@ -228,7 +228,7 @@ if strcmp(stype, 'old'),
           tmp(inside)  = dat;
           %tmp(outside) = nan;
         else
-          tmp         = zeros(1,Nfull) + nan;
+          tmp         = nan(1,Nfull);
           tmp(inside) = dat;   
         end
         tmpsource = setsubfield(tmpsource, tmpparam{k}, tmp);
@@ -245,7 +245,7 @@ if strcmp(stype, 'old'),
     m = size(d, 1);
     n = size(d, 2);
     if m==Nsparse && n==Nsparse
-      tmp = nan*zeros(Nfull,Nfull);
+      tmp = nan(Nfull,Nfull);
       tmp(inside,inside) = d;
       source = setfield(source, fn{i}, tmp);
     end
@@ -278,16 +278,16 @@ elseif strcmp(stype, 'new')
         indx = find(size(source.(fn{i}))==Nsparse);
         if all(indx==1),
           tmpsiz = [size(source.(fn{i})) 1];
-          tmp    = zeros([Nfull tmpsiz(2:end)]) + nan;
+          tmp    = nan([Nfull tmpsiz(2:end)]);
           tmp(inside,:,:,:,:) = source.(fn{i});
         elseif all(indx==2),
           tmpsiz = [size(source.(fn{i})) 1];
-          tmp    = zeros([tmpsiz(1) Nfull tmpsiz(3:end)]) + nan;
+          tmp    = nan([tmpsiz(1) Nfull tmpsiz(3:end)]);
           tmp(:,inside,:,:,:) = source.(fn{i});
         elseif all(indx==[1 2]),
           % bivariate matrix
           tmpsiz = [size(source.(fn{i})) 1];
-          tmp    = zeros([Nfull Nfull tmpsiz(3:end)]) + nan;
+          tmp    = nan([Nfull Nfull tmpsiz(3:end)]);
           tmp(inside,inside,:,:,:) = source.(fn{i});
         else
           warning('sparse to full conversion failed for field %s\n', fn{i});
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 7123 2012-12-06 21:21:38Z roboos $';
+cfg.version.id = '$Id: ft_source2full.m 7393 2013-01-23 14:33:27Z jorhor $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

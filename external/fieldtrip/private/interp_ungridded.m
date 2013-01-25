@@ -42,7 +42,7 @@ function varargout = interp_ungridded(pntin, pntout, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_ungridded.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: interp_ungridded.m 7393 2013-01-23 14:33:27Z jorhor $
 
 if nargin<3
   error('Not enough input arguments.');
@@ -83,9 +83,9 @@ if isempty(distmat)
       maxnpnt = double(npntout*ceil(4/3*pi*(sphereradius/max(dimres))^3)); % initial estimate of nonzero entries
       maxnpnt = min(maxnpnt, npntout*npntin);
       %ft_progress('init', 'none', 'computing distance matrix');
-      val = nan+zeros(maxnpnt, 1);
-      indx1 = nan+zeros(maxnpnt, 1);
-      indx2 = nan+zeros(maxnpnt, 1);
+      val = nan(maxnpnt, 1);
+      indx1 = nan(maxnpnt, 1);
+      indx2 = nan(maxnpnt, 1);
       cnt = 1;
       for j = 1:npntout
         %ft_progress(j/npntout);

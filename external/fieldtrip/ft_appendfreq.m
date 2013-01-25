@@ -49,9 +49,9 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_appendfreq.m 7405 2013-01-23 16:48:06Z roboos $
 
-revision = '$Id: ft_appendfreq.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_appendfreq.m 7405 2013-01-23 16:48:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -70,8 +70,6 @@ end
 cfg = ft_checkconfig(cfg, 'required', 'parameter');
 
 % set the defaults
-cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 cfg.appenddim  = ft_getopt(cfg, 'appenddim',  'auto');
 cfg.tolerance  = ft_getopt(cfg, 'tolerance',  1e-5);
 
@@ -136,7 +134,6 @@ switch cfg.appenddim
         end
       end
       
-      if ~isempty(tmpcfg.inputfile), tmpcfg = rmfield(tmpcfg, 'inputfile'); end;
       freq = ft_appendfreq(tmpcfg, varargin{:});
       return;
     end % determining the dimension for appending
@@ -165,7 +162,6 @@ switch cfg.appenddim
         tmpcfg.appenddim = 'freq';
       end
     end
-    if ~isempty(tmpcfg.inputfile), tmpcfg = rmfield(tmpcfg, 'inputfile'); end;
     freq = ft_appendfreq(tmpcfg, varargin{:});
     return;
     

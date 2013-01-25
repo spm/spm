@@ -200,7 +200,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 7276 2013-01-07 14:47:10Z jorhor $';
+revision = '$Id: ft_freqanalysis.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -211,8 +211,6 @@ ft_preamble debug
 ft_preamble loadvar data
 
 % defaults for optional input/ouputfile and feedback
-cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
 cfg.inputlock  = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing peercellfun or another distributed computation
 cfg.outputlock = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing peercellfun or another distributed computation
@@ -601,9 +599,9 @@ else
         if fftflg, fourierspctrm = complex(zeros(nchan,nfoi,ntoi,cfg.precision));    end
         dimord    = 'chan_freq_time';
       elseif keeprpt == 2 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'no'
-        if powflg, powspctrm     = nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision);                                                                 end
-        if csdflg, crsspctrm     = complex(nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchancmb,nfoi,ntoi,cfg.precision)); end
-        if fftflg, fourierspctrm = complex(nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision),nan+zeros(ntrials,nchan,nfoi,ntoi,cfg.precision));       end
+        if powflg, powspctrm     = nan(ntrials,nchan,nfoi,ntoi,cfg.precision);                                                                 end
+        if csdflg, crsspctrm     = complex(nan(ntrials,nchancmb,nfoi,ntoi,cfg.precision),nan(ntrials,nchancmb,nfoi,ntoi,cfg.precision)); end
+        if fftflg, fourierspctrm = complex(nan(ntrials,nchan,nfoi,ntoi,cfg.precision),nan(ntrials,nchan,nfoi,ntoi,cfg.precision));       end
         dimord    = 'rpt_chan_freq_time';
       elseif keeprpt == 4 % cfg.keeptrials,'yes' &&  cfg.keeptapers,'yes'
         if powflg, powspctrm     = zeros(ntaptrl,nchan,nfoi,ntoi,cfg.precision);        end %

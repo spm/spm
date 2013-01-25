@@ -111,9 +111,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 7317 2013-01-15 16:31:43Z lilmag $
+% $Id: ft_prepare_headmodel.m 7384 2013-01-23 13:19:33Z johzum $
 
-revision = '$Id: ft_prepare_headmodel.m 7317 2013-01-15 16:31:43Z lilmag $';
+revision = '$Id: ft_prepare_headmodel.m 7384 2013-01-23 13:19:33Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -322,6 +322,11 @@ switch cfg.method
         end
         vol = ft_headmodel_localspheres(geometry,cfg.grad,'feedback',cfg.feedback,'radius',cfg.radius,'maxradius',cfg.maxradius,'baseline',cfg.baseline,'singlesphere',cfg.singlesphere);
       case 'singleshell'
+        if ~isfield(geometry, 'tri')
+          tmpcfg             = []; 
+          tmpcfg.headshape   = geometry;
+          geometry=ft_prepare_mesh(tmpcfg);
+        end
         vol = ft_headmodel_singleshell(geometry);
       case 'singlesphere'
         vol = ft_headmodel_singlesphere(geometry,'conductivity',cfg.conductivity,'unit',cfg.unit);

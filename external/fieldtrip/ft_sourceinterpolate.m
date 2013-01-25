@@ -96,9 +96,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 7239 2012-12-21 08:18:46Z jansch $
+% $Id: ft_sourceinterpolate.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_sourceinterpolate.m 7239 2012-12-21 08:18:46Z jansch $';
+revision = '$Id: ft_sourceinterpolate.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -124,8 +124,6 @@ cfg = ft_checkconfig(cfg, 'required',   'parameter');
 cfg.downsample = ft_getopt(cfg, 'downsample', 1);
 cfg.voxelcoord = ft_getopt(cfg, 'voxelcoord', 'yes');
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
-cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 % cfg.interpmethod depends on how the interpolation should be done and will
 % be specified below
 

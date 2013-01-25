@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7340 2013-01-17 09:21:33Z bargip $
+% $Id: ft_read_data.m 7352 2013-01-18 05:12:10Z josdie $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -522,6 +522,10 @@ switch dataformat
     dat = read_eeglabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
     dimord = 'chans_samples_trials';
     
+  case 'eeglab_erp'
+    dat = read_erplabdata(filename, 'header', hdr, 'begtrial', begtrial, 'endtrial', endtrial, 'chanindx', chanindx);
+    dimord = 'chans_samples_trials';
+    
   case 'spmeeg_mat'
     dat = read_spmeeg_data(filename, 'header', hdr, 'begsample', begsample, 'endsample', endsample, 'chanindx', chanindx);
     
@@ -842,7 +846,7 @@ switch dataformat
     dat       = dat(:,chanindx,:);      % select channels
     dimord    = 'trials_chans_samples'; % selection using begsample and endsample will be done later
     
-  case {'neuromag_fif' 'neuromag_mne'}
+  case {'neuromag_fif' 'neuromag_mne' 'babysquid_fif'}
     % check that the required low-level toolbox is available
     ft_hastoolbox('mne', 1);
     if (hdr.orig.iscontinuous)

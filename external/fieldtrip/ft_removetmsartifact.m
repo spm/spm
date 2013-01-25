@@ -37,13 +37,13 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_removetmsartifact.m 7396 2013-01-23 15:18:20Z jimher $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_removetmsartifact.m 7396 2013-01-23 15:18:20Z jimher $';
 
 % do the general setup of the function
 
@@ -105,7 +105,7 @@ switch cfg.method
   
   case 'twopassfilter'
     for i=1:numtrl
-      tmssample = nearest(data.time{i}, cfg.pulseonset(i));
+      tmssample = nearest(data.time{i}, cfg.pulseonset{i});
       
       % get the part of the data that is left and right of the TMS pulse artifact
       dat1 = data.trial{i}(:,1:tmssample);

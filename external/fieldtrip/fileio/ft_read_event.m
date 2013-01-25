@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 7209 2012-12-17 10:04:40Z bargip $
+% $Id: ft_read_event.m 7350 2013-01-18 05:03:58Z josdie $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -571,6 +571,12 @@ switch eventformat
     end
     event = read_eeglabevent(filename, 'header', hdr);
     
+  case 'eeglab_erp'
+    if isempty(hdr)
+      hdr = ft_read_header(filename);
+    end
+    event = read_erplabevent(filename, 'header', hdr);
+
   case 'spmeeg_mat'
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -1076,6 +1082,25 @@ switch eventformat
       event(i).value    = trg(i);                 % number or string
       event(i).offset   = 0;                      % expressed in samples
       event(i).duration = hdr.nSamples;           % expressed in samples
+    end
+
+  case {'babysquid_fif' 'babysquid_eve'}
+    if strcmp(eventformat, 'babysquid_fif')
+      % ensure that we are reading the *.eve file
+      [p, f, x] = fileparts(filename);
+      filename = fullfile(p, [f '.eve']);
+    end
+    % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1914 for details
+    [smp, tim, val, typ] = read_babysquid_eve(filename);
+    if ~isempty(smp)
+      smp     = num2cell(smp);
+      val     = num2cell(val);
+      typ     = cellfun(@num2str, num2cell(typ), 'UniformOutput', false);
+      offset  = num2cell(zeros(size(smp)));
+      % convert to a structure array
+      event = struct('type', typ, 'value', val, 'sample', smp, 'offset', offset);
+    else
+      event = [];
     end
     
   case {'neuromag_fif' 'neuromag_mne' 'neuromag_mex'}

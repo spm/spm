@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 7300 2013-01-11 14:37:42Z roboos $
+% $Id: ft_checkdata.m 7394 2013-01-23 14:33:30Z jorhor $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1427,7 +1427,7 @@ elseif strcmp(current, 'old') && strcmp(type, 'new'),
   
   if isfield(output, 'ori')
     % convert cell-array ori into matrix
-    ori = zeros(3,npos) + nan;
+    ori = nan(3,npos);
     try,
       ori(:,output.inside) = cat(2, output.ori{output.inside});
     catch
@@ -1738,7 +1738,7 @@ else
   time(nearest(time, max(endtime))+1:end) = [];
   
   % concatenate all trials
-  tmptrial = zeros(ntrial, nchan, length(time)) + nan;
+  tmptrial = nan(ntrial, nchan, length(time));
   
   for i=1:ntrial
     begsmp(i) = nearest(time, data.time{i}(1));

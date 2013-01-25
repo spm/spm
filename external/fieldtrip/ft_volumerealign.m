@@ -126,9 +126,9 @@ function [realign, h] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 7305 2013-01-14 13:27:18Z jansch $
+% $Id: ft_volumerealign.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_volumerealign.m 7305 2013-01-14 13:27:18Z jansch $';
+revision = '$Id: ft_volumerealign.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -151,8 +151,6 @@ cfg.fiducial   = ft_getopt(cfg, 'fiducial',  []);
 cfg.landmark   = ft_getopt(cfg, 'landmark',  []);
 cfg.parameter  = ft_getopt(cfg, 'parameter', 'anatomy');
 cfg.clim       = ft_getopt(cfg, 'clim',      []);
-cfg.inputfile  = ft_getopt(cfg, 'inputfile', '');
-cfg.outputfile = ft_getopt(cfg, 'outputfile', '');
 cfg.snapshot   = ft_getopt(cfg, 'snapshot',  false);
 
 if strcmp(cfg.method, '')

@@ -94,9 +94,9 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_topoplotIC.m 7362 2013-01-18 14:27:55Z johzum $
 
-revision = '$Id: ft_topoplotIC.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_topoplotIC.m 7362 2013-01-18 14:27:55Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -132,8 +132,8 @@ cfg.layout = ft_prepare_layout(cfg, varargin{:});
 cfg.showcallinfo = 'no';
 
 % allow multiplotting
-  nplots = numel(selcomp);
-  if nplots>1
+nplots = numel(selcomp);
+if nplots>1
   nyplot = ceil(sqrt(nplots));
   nxplot = ceil(nplots./nyplot);
   for i = 1:length(selcomp)
@@ -142,11 +142,11 @@ cfg.showcallinfo = 'no';
     ft_topoplotTFR(cfg, varargin{:});
     title(['component ' num2str(selcomp(i))]);
   end
-  else
-    cfg.component = selcomp;
-    ft_topoplotTFR(cfg, varargin{:});
-    title(['component ' num2str(selcomp)]);
-  end
+else
+  cfg.component = selcomp;
+  ft_topoplotTFR(cfg, varargin{:});
+  title(['component ' num2str(selcomp)]);
+end
 
 % show the callinfo for all components together
 cfg.showcallinfo = 'yes';

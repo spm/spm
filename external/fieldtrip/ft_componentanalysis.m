@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_componentanalysis.m 7398 2013-01-23 15:50:59Z jorhor $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
 
-revision = '$Id: ft_componentanalysis.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_componentanalysis.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -180,8 +180,6 @@ cfg.demean          = ft_getopt(cfg, 'demean',       'yes');
 cfg.trials          = ft_getopt(cfg, 'trials',       'all');
 cfg.channel         = ft_getopt(cfg, 'channel',      'all');
 cfg.numcomponent    = ft_getopt(cfg, 'numcomponent', 'all');
-cfg.inputfile       = ft_getopt(cfg, 'inputfile',    []);
-cfg.outputfile      = ft_getopt(cfg, 'outputfile',   []);
 cfg.normalisesphere = ft_getopt(cfg, 'normalisesphere', 'yes');
 cfg.cellmode        = ft_getopt(cfg, 'cellmode',     'no');
 

@@ -62,9 +62,9 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 7335 2013-01-16 14:37:52Z jansch $
+% $Id: ft_timelockgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_timelockgrandaverage.m 7335 2013-01-16 14:37:52Z jansch $';
+revision = '$Id: ft_timelockgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -85,8 +85,6 @@ for i=1:length(varargin)
 end
 
 % set the defaults
-cfg.inputfile      = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile     = ft_getopt(cfg, 'outputfile', []);
 cfg.keepindividual = ft_getopt(cfg, 'keepindividual', 'no');
 cfg.channel        = ft_getopt(cfg, 'channel',    'all');
 cfg.latency        = ft_getopt(cfg, 'latency',    'all');

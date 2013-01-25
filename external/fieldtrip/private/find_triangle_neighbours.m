@@ -24,14 +24,14 @@ function [nb] = find_triangle_neighbours(pnt, dhk)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_triangle_neighbours.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: find_triangle_neighbours.m 7393 2013-01-23 14:33:27Z jorhor $
 
 npnt = size(pnt,1);
 ndhk = size(dhk,1);
 
 % each triangle has maximally three neighbours, assuming that the 
 % surface mesh is not degenerate
-nb = nan * ones(size(dhk));
+nb = nan(size(dhk));
 
 % for i=1:ndhk
 %   for j=setdiff(1:ndhk, i)

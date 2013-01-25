@@ -65,7 +65,7 @@ function [freq] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqdescriptives.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_freqdescriptives.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -98,8 +98,6 @@ cfg.channel    = ft_getopt(cfg, 'channel',   'all');
 cfg.foilim     = ft_getopt(cfg, 'foilim',    'all');
 cfg.toilim     = ft_getopt(cfg, 'toilim',    'all');
 cfg.keeptrials = ft_getopt(cfg, 'keeptrials', 'no');
-cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 
 % check if the input data is valid for this function
 freq = ft_checkdata(freq, 'datatype', {'freq', 'freqmvar'}, 'feedback', 'yes');

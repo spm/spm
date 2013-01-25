@@ -65,7 +65,7 @@ function [v,ftpath] = ft_version(cmd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_version.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_version.m 7383 2013-01-23 13:19:28Z eelspa $
 
 if nargin<1
   cmd = 'info';
@@ -502,7 +502,7 @@ function [remoteDeleted, remoteNew, remoteChanges,...
 
   % only remote additions have not yet been determined, do so now
   remoteNew = false(size(remFiles));
-  [~,inds] = setdiff(remFiles, locFiles);
+  [dummy,inds] = setdiff(remFiles, locFiles);
   remoteNew(inds) = 1;
       
 end

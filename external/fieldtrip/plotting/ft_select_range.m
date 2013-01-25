@@ -20,7 +20,7 @@ function ft_select_range(handle, eventdata, varargin)
 %   multiple    = boolean, allowing multiple selection boxes or not
 %   xrange      = boolean, xrange variable or not
 %   yrange      = boolean, yrange variable or not
-%   clear       =
+%   clear       = boolean
 %
 %
 % Example use:
@@ -61,7 +61,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_select_range.m 7366 2013-01-21 13:22:17Z roboos $
 
 % get the optional arguments
 event       = ft_getopt(varargin, 'event');
@@ -120,7 +120,7 @@ end
 % setup contextmenu
 if ~isempty(contextmenu)
   if isempty(get(handle,'uicontextmenu'))
-    hcmenu = uicontextmenu;
+    hcmenu    = uicontextmenu;
     hcmenuopt = nan(1,numel(contextmenu));
     for icmenu = 1:numel(contextmenu)
       hcmenuopt(icmenu) = uimenu(hcmenu, 'label', contextmenu{icmenu}, 'callback', {@evalcontextcallback, callback{:}, []}); % empty matrix is placeholder, will be updated to userdata.range

@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7306 2013-01-14 13:42:13Z roboos $
+% $Id: ft_read_header.m 7353 2013-01-18 05:14:26Z josdie $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -613,6 +613,9 @@ switch headerformat
     
   case 'eeglab_set'
     hdr = read_eeglabheader(filename);
+    
+  case 'eeglab_erp'
+    hdr = read_erplabheader(filename);
     
   case 'eyelink_asc'
     asc = read_eyelink_asc(filename);
@@ -1239,7 +1242,7 @@ switch headerformat
   case 'nexstim_nxe'
     hdr = read_nexstim_nxe(filename);
     
-  case {'neuromag_fif' 'neuromag_mne'}
+  case {'neuromag_fif' 'neuromag_mne' 'babysquid_fif'}
     % check that the required low-level toolbox is available
     ft_hastoolbox('mne', 1);
     

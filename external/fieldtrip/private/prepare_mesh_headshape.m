@@ -22,7 +22,7 @@ function bnd = prepare_mesh_headshape(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_headshape.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_mesh_headshape.m 7381 2013-01-23 13:08:59Z johzum $
 
 % get the surface describing the head shape
 if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
@@ -210,7 +210,7 @@ function [pnt1, tri1] = fairsurface(pnt, tri, N)
 %                    Christophe Phillips & Jeremie Mattout
 % spm_eeg_inv_ElastM.m 1437 2008-04-17 10:34:39Z christophe
 %
-% $Id: prepare_mesh_headshape.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_mesh_headshape.m 7381 2013-01-23 13:08:59Z johzum $
 
 ts = [];
 ts.XYZmm = pnt';
@@ -238,7 +238,11 @@ for j=1:N
   for i=1:ts.nr(1)
     ln = find(M_con(:,i));
     d_i = sqrt(sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).^2));
-    w_i = d_i/sum(d_i);
+    if sum(d_i)==0
+      w_i = zeros(size(d_i));
+    else
+      w_i = d_i/sum(d_i);
+    end
     XYZmm_o(:,i) = XYZmm(:,i) + ...
       lam * sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).*(ones(3,1)*w_i),2);
   end
@@ -246,7 +250,11 @@ for j=1:N
   for i=1:ts.nr(1)
     ln = find(M_con(:,i));
     d_i = sqrt(sum((XYZmm(:,ln)-XYZmm(:,i)*ones(1,length(ln))).^2));
-    w_i = d_i/sum(d_i);
+    if sum(d_i)==0
+      w_i = zeros(size(d_i));
+    else
+      w_i = d_i/sum(d_i);
+    end
     XYZmm_o2(:,i) = XYZmm_o(:,i) + ...
       mu * sum((XYZmm_o(:,ln)-XYZmm_o(:,i)*ones(1,length(ln))).*(ones(3,1)*w_i),2);
   end

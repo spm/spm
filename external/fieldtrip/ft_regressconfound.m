@@ -63,9 +63,9 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 7194 2012-12-14 15:04:05Z arjsto $
+% $Id: ft_regressconfound.m 7398 2013-01-23 15:50:59Z jorhor $
 
-revision = '$Id: ft_regressconfound.m 7194 2012-12-14 15:04:05Z arjsto $';
+revision = '$Id: ft_regressconfound.m 7398 2013-01-23 15:50:59Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -80,10 +80,6 @@ datain = ft_checkdata(datain, 'datatype', {'timelock', 'freq', 'source'}, 'feedb
 
 % ensure that the required options are present
 cfg = ft_checkconfig(cfg, 'required', {'confound'}, 'renamed', {'Ftest','ftest'});
-
-% set the defaults
-cfg.inputfile  = ft_getopt(cfg, 'inputfile',  []);
-cfg.outputfile = ft_getopt(cfg, 'outputfile', []);
 
 % confound specification
 regr      = ft_getopt(cfg, 'confound');  % there is no default value

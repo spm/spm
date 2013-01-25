@@ -52,7 +52,7 @@ function [type] = ft_voltype(vol, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_voltype.m 7263 2012-12-27 10:53:27Z roboos $
+% $Id: ft_voltype.m 7401 2013-01-23 16:23:40Z roevdmei $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -81,7 +81,12 @@ if isequal(current_argin, previous_argin)
   return
 end
 
-if isfield(vol, 'type')
+% check whether input is a grad or elec array, also containing types
+% Note: currently, ft_datatype cannot detect several volumes, and cannot be used here for checking volumness
+issens = ft_datatype(vol,'grad') || ft_datatype(vol,'sens');
+
+
+if isfield(vol, 'type') && ~issens
   % preferably the structure specifies its own type
   type = vol.type;
   

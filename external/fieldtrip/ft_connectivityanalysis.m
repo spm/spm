@@ -108,9 +108,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 7289 2013-01-09 17:04:27Z roboos $
+% $Id: ft_connectivityanalysis.m 7406 2013-01-25 11:43:01Z jansch $
 
-revision = '$Id: ft_connectivityanalysis.m 7289 2013-01-09 17:04:27Z roboos $';
+revision = '$Id: ft_connectivityanalysis.m 7406 2013-01-25 11:43:01Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -393,8 +393,8 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
         % check whether multiple pairwise decomposition is required (this
         % can most conveniently be handled at this level
         % tmpcfg.npsf = rmfield(tmpcfg.npsf, 'channelcmb');
-        try, tmpcfg.npsf = rmfield(tmpcfg.granger, 'block'); end
-        try, tmpcfg.npsf = rmfield(tmpcfg.granger, 'blockindx'); end
+        try, tmpcfg.granger = rmfield(tmpcfg.granger, 'block'); end
+        try, tmpcfg.granger = rmfield(tmpcfg.granger, 'blockindx'); end
         % end
         optarg = ft_cfg2keyval(tmpcfg.granger);
         data = ft_connectivity_csd2transfer(data, optarg{:});

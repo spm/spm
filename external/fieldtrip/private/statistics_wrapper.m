@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: statistics_wrapper.m 7393 2013-01-23 14:33:27Z jorhor $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -505,7 +505,7 @@ dim     = [varargin{1}.dim Ntime];
 dat     = zeros(Ninside*Ntime, Nsource);
 for i=1:Nsource
   % collect the 4D data of this input argument
-  tmp = nan*zeros(Ninside, Ntime);
+  tmp = nan(Ninside, Ntime);
   for j=1:Ninside
     k = varargin{1}.inside(j);
     tmp(j,:) = reshape(varargin{i}.avg.mom{k}, 1, dim(4));

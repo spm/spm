@@ -58,9 +58,9 @@ function [stat] = ft_sourcestatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcestatistics.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_sourcestatistics.m 7393 2013-01-23 14:33:27Z jorhor $
 
-revision = '$Id: ft_sourcestatistics.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_sourcestatistics.m 7393 2013-01-23 14:33:27Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -409,10 +409,10 @@ elseif strcmp(cfg.implementation, 'new')
         end
       else
         if hasfreq,
-          tmp2 = zeros(prod(varargin{1}.dim),nfreq,ntime)+nan;
+          tmp2 = nan(prod(varargin{1}.dim),nfreq,ntime);
           tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/(nfreq*ntime) nfreq ntime]);
         else
-          tmp2 = zeros(prod(varargin{1}.dim),nfreq,ntime)+nan;
+          tmp2 = nan(prod(varargin{1}.dim),nfreq,ntime);
           tmp2(varargin{1}.inside,  1:nfreq, 1:ntime) = reshape(tmp, [ntmp/ntime ntime]);
         end
       end
