@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5206 2013-01-25 11:55:15Z guillaume $
+% $Id: spm_cfg_preproc8.m 5207 2013-01-25 11:56:52Z guillaume $
 
 
 % ---------------------------------------------------------------------
@@ -250,7 +250,7 @@ for k=1:numel(ngaus),
     tissues.val{k}       = tissue;
 end
 
-tissues.help = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using toolbox/Seg/TPM.nii).'};
+tissues.help = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using tpm/TPM.nii).'};
 
 % ---------------------------------------------------------------------
 % mrf MRF Parameter
