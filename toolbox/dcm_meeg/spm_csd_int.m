@@ -9,7 +9,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Y - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
 %                    - for w frequencies over time t in M.Hz
 % w - frequencies
-% t � peristimulus time
+% t - peristimulus time
 % x - expectation of hidden (neuronal) states (for last trial)
 % G - {G(t,w,nc,nc}} - cross spectrum density before dispersion
 % S - {S(t,w,nc,nu}} - transfer functions
@@ -17,7 +17,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 %__________________________________________________________________________
 %
 % This integration routine evaluates the responses of a neural mass model
-% to exogenous input � in terms of neuronal states. These are then used as
+% to exogenous input - in terms of neuronal states. These are then used as
 % expansion point to generate complex cross spectral responses due to
 % random neuronal fluctuations. The ensuing spectral (induced) response is
 % then convolved (in time) with a window that corresponds to the window of
@@ -25,10 +25,10 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % predictions of data features based upon a wavelet transform
 % characterisation of induced responses.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_csd_int.m 5211 2013-01-25 15:41:31Z guillaume $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -141,7 +141,7 @@ for c = 1:size(X,1)
     LL    = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
     
     
-    % cycle over time � expanding around expected states and input
+    % cycle over time - expanding around expected states and input
     %======================================================================
     for i = 1:length(t)
         
@@ -183,7 +183,7 @@ for c = 1:size(X,1)
         % update dx = (expm(dt*J) - I)*inv(J)*f(x,u) = LL*f(x,u)
         %==================================================================
         
-        % reset to exmpsnaion point (hidden states and exoogenous input)
+        % reset to expansion point (hidden states and exogenous input)
         %------------------------------------------------------------------
         M     = rmfield(M,'u');
         M.x   = spm_unvec(x(:,1),M.x); 
