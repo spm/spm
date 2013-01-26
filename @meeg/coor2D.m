@@ -5,10 +5,10 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: coor2D.m 5212 2013-01-26 13:16:36Z vladimir $
 
 
-megind = indchantype(this, {'MEG', 'MEGPLANAR'});
+megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});
 eegind = indchantype(this, {'EEG'});
 otherind = setdiff(1:nchannels(this), [megind eegind]);
 

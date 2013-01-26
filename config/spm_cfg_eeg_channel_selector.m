@@ -4,7 +4,7 @@ function channels = spm_cfg_eeg_channel_selector(jobtree)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_cfg_eeg_channel_selector.m 5212 2013-01-26 13:16:36Z vladimir $
 
 if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;
@@ -16,8 +16,8 @@ if nargin == 0 || ischar(jobtree)
     type.tag = 'type';
     type.name = 'Select channels by type';
     type.help = {'Select channels by type'};
-    type.labels = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
-    type.values = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
+    type.labels = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'MEGCOMB','EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
+    type.values = {'MEG', 'MEGPLANAR', 'MEGMAG', 'MEGGRAD', 'MEGCOMB','EEG', 'EOG', 'ECG', 'EMG', 'LFP', 'PHYS', 'Other', 'REF', 'REFMAG', 'REFGRAD'};
     
     chan = cfg_entry;
     chan.tag = 'chan';

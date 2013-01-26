@@ -20,9 +20,9 @@ function D = spm_eeg_bc(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_bc.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_eeg_bc.m 5212 2013-01-26 13:16:36Z vladimir $
 
-SVNrev = '$Rev: 5073 $';
+SVNrev = '$Rev: 5212 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ if any(isnan(t))
     error('The baseline was not defined correctly.');
 end
 
-indchannels = D.indchantype('Filtered');
+indchannels = [D.indchantype('Filtered') D.indchantype('MEGCOMB')];
 
 if S.save
     D = D.copy([S.prefix D.fname]);

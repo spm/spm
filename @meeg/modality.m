@@ -12,7 +12,7 @@ function [res, list] = modality(this, scalp, planar)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: modality.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: modality.m 5212 2013-01-26 13:16:36Z vladimir $
 
 if nargin == 1
     scalp = 1;
@@ -23,13 +23,16 @@ end
 
 list = {};
 
-if ~isempty(indchantype(this, {'MEG', 'MEGPLANAR'}))
+if ~isempty(indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'}))
     if planar
         if ~isempty(indchantype(this, 'MEGPLANAR'))
             list = [list {'MEGPLANAR'}];
         end
         if ~isempty(indchantype(this, 'MEG'))
             list = [list {'MEG'}];
+        end
+        if ~isempty(indchantype(this, 'MEGCOMB'))
+            list = [list {'MEGCOMB'}];
         end
     else
         list = [list {'MEG'}];

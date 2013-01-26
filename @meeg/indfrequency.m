@@ -9,7 +9,7 @@ function res = indfrequency(this, f)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: indfrequency.m 5177 2013-01-07 11:36:08Z vladimir $
+% $Id: indfrequency.m 5212 2013-01-26 13:16:36Z vladimir $
 
 if ~strncmpi(transformtype(this), 'TF',2)
     error('Only TF datasets are supported');
@@ -21,9 +21,9 @@ if nsamples(this) > 0
     F = frequencies(this);
     for i = 1:length(f)
         if f(i) == -Inf
-            res(i) = F(1);
+            res(i) = 1;
         elseif f(i) == Inf
-            res(i) = F(end);
+            res(i) = length(F);
         else
             [m, res(i)] = min(abs(F-f(i)));
             if m > fdiff

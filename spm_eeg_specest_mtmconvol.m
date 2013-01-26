@@ -23,10 +23,9 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %      res.time    - time axis
 %      res.freq    - frequency axis
 %______________________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
-% Vladimir Litvak based on the code contributed by Krish Singh
-% $Id: spm_eeg_specest_mtmconvol.m 4463 2011-09-06 10:53:01Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 5212 2013-01-26 13:16:36Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
