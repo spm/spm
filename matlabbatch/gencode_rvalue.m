@@ -1,4 +1,4 @@
-function [str, sts] = gencode_rvalue(item)
+function [str, sts] = gencode_rvalue(item, cflag)
 
 % GENCODE_RVALUE  Code for right hand side of MATLAB assignment
 % Generate the right hand side for a valid MATLAB variable
@@ -8,9 +8,12 @@ function [str, sts] = gencode_rvalue(item)
 % * scalar or 1D cell arrays, where each item can be one of the supported
 %   array types (i.e. nested cells are allowed)
 %
-% function [str, sts] = gencode_rvalue(item)
+% function [str, sts] = gencode_rvalue(item, cflag)
 % Input argument:
-%  item - value to generate code for
+%  item  - value to generate code for
+%  cflag - (optional) if true, try to generate 1-line code also for 2D
+%          arrays. This may reduce readability of the generated code.
+%          Defaults to false.
 % Output arguments:
 %  str - cellstr with generated code, line per line
 %  sts - true, if successful, false if code could not be generated
@@ -25,27 +28,42 @@ function [str, sts] = gencode_rvalue(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 4864 2012-08-27 13:57:31Z volkmar $
+% $Id: gencode_rvalue.m 5213 2013-01-28 13:08:24Z guillaume $
 
-rev = '$Rev: 4864 $'; %#ok
+rev = '$Rev: 5213 $'; %#ok
+
+if nargin < 2
+    cflag = false;
+end
 
 str = {};
 sts = true;
 switch class(item)
     case 'char'
         if ndims(item) == 2 %#ok<ISMAT>
-            cstr = {''};
-            % Create cell string, keep white space padding
-            for k = 1:size(item,1)
-                cstr{k} = item(k,:);
+            if isempty(item)
+                if all(size(item)==0)
+                    str1 = {''''''};
+                else
+                    str1 = {sprintf('char(zeros%s)', char(gencode_substruct(substruct('()', num2cell(size(item))))));};
+                end
+            else
+                % Create cell string, keep white space padding
+                for k = 1:size(item,1)
+                    cstr{k} = item(k,:);
+                end
+                str1 = genstrarray(cstr);
             end
-            str1 = genstrarray(cstr);
             if numel(str1) == 1
                 % One string, do not print brackets
                 str = str1;
             else
                 % String array, print brackets and concatenate str1
-                str = [ {'['} str1(:)' {']'} ];
+                if cflag
+                    str = {['[' sprintf('%s;', str1{:}) ']']};
+                else
+                    str = [ {'['} str1(:)' {']'} ];
+                end
             end
         else
             % not an rvalue
@@ -53,11 +71,15 @@ switch class(item)
         end
     case 'cell'
         if isempty(item)
-            str = {'{}'};
+            if all(size(item)==0)
+                str = {'{}'};
+            else
+                str = {sprintf('cell%s', char(gencode_substruct(substruct('()', num2cell(size(item))))))};
+            end
         elseif ndims(item) == 2 && any(size(item) == 1) %#ok<ISMAT>
             str1 = {};
             for k = 1:numel(item)
-                [str2 sts] = gencode_rvalue(item{k});
+                [str2 sts] = gencode_rvalue(item{k}, cflag);
                 if ~sts
                     break;
                 end
@@ -70,11 +92,15 @@ switch class(item)
                 else
                     % Cell vector, print braces and concatenate str1
                     if size(item,1) == 1
-                        endstr = {'}'''};
+                        endstr = '}''';
                     else
-                        endstr = {'}'};
+                        endstr = '}';
                     end
-                    str = [{'{'} str1(:)' endstr];
+                    if cflag
+                        str = {['{' sprintf('%s;', str1{:}) endstr]};
+                    else
+                        str = [{'{'} str1(:)' {endstr}];
+                    end
                 end
             end
         else
@@ -97,10 +123,15 @@ switch class(item)
             % classifier code for double
             clsitem = class(item);
             if isempty(item)
-                if strcmp(clsitem, 'double') %#ok<STISA>
-                    str{1} = '[]';
+                if all(size(item)==0)
+                    tmpstr = '[]';
                 else
-                    str{1} = sprintf('%s([])', clsitem);
+                    tmpstr = sprintf('zeros%s', char(gencode_substruct(substruct('()', num2cell(size(item))))));
+                end
+                if strcmp(clsitem, 'double') %#ok<STISA>
+                    str{1} = tmpstr;
+                else
+                    str{1} = sprintf('%s(%s)', clsitem, tmpstr);
                 end
             else
                 % Use mat2str with standard precision 15
@@ -109,12 +140,16 @@ switch class(item)
                 else
                     sitem = mat2str(item,'class');
                 end
-                bsz   = max(numel(sitem)+2,100); % bsz needs to be > 100 and larger than string length
-                str1 = textscan(sitem, '%s', 'delimiter',';', 'bufsize',bsz); 
-                if numel(str1{1}) > 1
-                    str = str1{1};
+                if cflag
+                    str = {sitem};
                 else
-                    str{1} = str1{1}{1};
+                    bsz   = max(numel(sitem)+2,100); % bsz needs to be > 100 and larger than string length
+                    str1 = textscan(sitem, '%s', 'delimiter',';', 'bufsize',bsz);
+                    if numel(str1{1}) > 1
+                        str = str1{1};
+                    else
+                        str{1} = str1{1}{1};
+                    end
                 end
             end
         end
