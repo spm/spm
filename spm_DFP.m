@@ -77,11 +77,12 @@ function [DEM] = spm_DFP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DFP.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_DFP.m 5219 2013-01-29 17:07:07Z spm $
+
 
 % Check model, data, priros and confounds and unpack
 %--------------------------------------------------------------------------
-[M Y U X] = spm_DEM_set(DEM);
+[M,Y,U,X] = spm_DEM_set(DEM);
 
 % find or create a DEM figure
 %--------------------------------------------------------------------------
@@ -130,7 +131,7 @@ te    = 2;                             % integration time for E-Step
 
 %  Precision (R) and covariance of generalised errors
 %--------------------------------------------------------------------------
-[iV V] = spm_DEM_R(n,s);
+[iV,V] = spm_DEM_R(n,s);
 
 % precision components Q{} requiring [Re]ML estimators (M-Step)
 %==========================================================================
@@ -604,7 +605,7 @@ for iN = 1:nN
         
         % convergence (M-Step)
         %------------------------------------------------------------------
-        if (dFdh'*dh < 1e-2) | (norm(dh,1) < TOL), break, end
+        if (dFdh'*dh < 1e-2) || (norm(dh,1) < TOL), break, end
         
     end % M-Step
 

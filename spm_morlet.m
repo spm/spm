@@ -1,6 +1,6 @@
 function [C] = spm_morlet(s,k,wnum)
 % Morlet wavelet transform (time-frequency analysis)
-% FORMAT [C] = spm_morlet(s,k,n)
+% FORMAT [C] = spm_morlet(s,k,wnum)
 %
 % s      - (t X n) time-series
 % k      - Frequencies (cycles per time bin)
@@ -9,13 +9,13 @@ function [C] = spm_morlet(s,k,wnum)
 % C      - coefficents (complex)
 %__________________________________________________________________________
 %
-% This routine returns a Morlet-like wavelet transform but uses a hanning
+% This routine returns a Morlet-like wavelet transform but uses a Hanning
 % window, as opposed to a Gaussian window.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_morlet.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % setup and defaults
@@ -25,7 +25,7 @@ if size(s,1) < size(s,2); s = s'; end
 
 % window function (Hanning)
 %--------------------------------------------------------------------------
-[N M] = size(s);
+[N,M] = size(s);
 C     = zeros(N,length(k),M);
 
 % spectral density

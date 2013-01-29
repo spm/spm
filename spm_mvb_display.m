@@ -6,7 +6,7 @@ function spm_mvb_display(MVB)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_display.m 3139 2009-05-21 18:37:29Z karl $
+% $Id: spm_mvb_display.m 5219 2013-01-29 17:07:07Z spm $
  
 if nargin<1
     load(spm_select(1,'^MVB.*\.mat','Select MVB to display'))
@@ -64,7 +64,7 @@ str{3,1} = 'p(|w| > 0)    location (x,y,z)  weight (w)';
 str{4,1} = '________________________________';
 while length(str) < 16  && any(P)
     
-    [p i]  = max(P);
+    [p,i]  = max(P);
     str{end + 1,1} = sprintf('p = %.3f   %2.1f,%2.1f,%2.1fmm   q = %.4f;',...
                  p,XYZ(1,i),XYZ(2,i),XYZ(3,i),M.qE(i));
     P      = P.*(((XYZ(1,:) - XYZ(1,i)).^2 + ...

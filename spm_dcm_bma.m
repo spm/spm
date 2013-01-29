@@ -61,7 +61,7 @@ function bma = spm_dcm_bma(post,post_indx,subj,Nsamp,oddsr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_dcm_bma.m 4732 2012-05-04 13:28:45Z will $
+% $Id: spm_dcm_bma.m 5219 2013-01-29 17:07:07Z spm $
 
 if nargin < 4 || isempty(Nsamp)
     Nsamp = 1e3;
@@ -88,7 +88,7 @@ firstsub  = 1;
 firstmod  = 1;
 
 Ep  = [];
-[Ni M] = size(post);
+[Ni,M] = size(post);
 
 if Ni > 1
     rfx = 1;

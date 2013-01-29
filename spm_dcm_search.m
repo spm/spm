@@ -33,7 +33,7 @@ function spm_dcm_search(P)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_search.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_search.m 5219 2013-01-29 17:07:07Z spm $
  
 % get filenames
 %--------------------------------------------------------------------------
@@ -119,8 +119,8 @@ for j = 1:N
     
     % Get model (priors) and evaluate (reduced) free-energy and posteriors
     % ---------------------------------------------------------------------
-    [rE rC]   = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
-    [F Ep Cp] = spm_log_evidence(qE,qC,pE,pC,rE,rC);
+    [rE,rC]   = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
+    [F,Ep,Cp] = spm_log_evidence(qE,qC,pE,pC,rE,rC);
     
     % Put reduced conditional estimates in DCM
     % =====================================================================
@@ -175,7 +175,7 @@ p     = p/sum(p);
  
 % Get selected model
 %--------------------------------------------------------------------------
-[q j] = max(p);
+[q,j] = max(p);
 load(P{j});
  
 i   = spm_fieldindices(DCM.Ep,'A','B','C','D');
@@ -190,7 +190,7 @@ F   = DCM.F;
 spm_figure('Getwin','Graphics'); clf
  
 subplot(2,2,1)
-if length(P) > 32, plot(G,'k'), else, bar(G,'c'), end
+if length(P) > 32, plot(G,'k'), else bar(G,'c'), end
 title('log-posterior','FontSize',16)
 xlabel('model','FontSize',12)
 ylabel('log-probability','FontSize',12)

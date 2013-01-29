@@ -8,10 +8,10 @@ function [F,X] = spm_fp_display_density(M,x)
 % F   - flow
 % X   - evaluation points
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_display_density.m 4517 2011-10-07 19:19:59Z karl $
+% $Id: spm_fp_display_density.m 5219 2013-01-29 17:07:07Z spm $
  
 % evaluation points and equilibria
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ if n == 3
     q     = q0;
     q     = squeeze(sum(q,1));
     q     = squeeze(sum(q,1));
-    [m j] = max(q);
+    [m,j] = max(q);
     q0    = squeeze(sum(q0,3));
     k     = find(X(:,3) == x{3}(j));
     X     = X(k,[1 2]);

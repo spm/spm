@@ -16,7 +16,7 @@ function [p,pc,R2] = spm_mvb_cvk(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_mvb_cvk.m 5219 2013-01-29 17:07:07Z spm $
  
  
 %-partition order
@@ -112,7 +112,7 @@ end
  
 % test correlation
 %--------------------------------------------------------------------------
-[T df] = spm_ancova(X,V,qX,1);
+[T,df] = spm_ancova(X,V,qX,1);
 p      = 1 - spm_Tcdf(T,df(2));
  
 % percent correct (after projection)

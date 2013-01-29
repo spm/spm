@@ -16,7 +16,7 @@ function U = spm_mvb_U(Y,priors,X0,xyz,vox)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_U.m 3751 2010-03-04 20:21:08Z karl $
+% $Id: spm_mvb_U.m 5219 2013-01-29 17:07:07Z spm $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ switch priors
             u(j)   = u(j) + (xyz(j,3) - xyz(i,3)).^2;
             j      = j((u(j) < dlim));
             if length(j)>nlim
-                [q k]  = sort(u(j));
+                [q,k]  = sort(u(j));
                 k      = k(1:nlim);
                 j      = j(k);
             end
@@ -83,7 +83,7 @@ switch priors
         % get kernel (singular vectors)
         %------------------------------------------------------------------
         Y       = Y - X0*(pinv(X0)*Y);         % remove confounds
-        [u s v] = spm_svd(Y,1/4);              % c.f., Kaiser criterion
+        [u,s,v] = spm_svd(Y,1/4);              % c.f., Kaiser criterion
         U       = v/s;
  
     case 'support'
@@ -112,12 +112,12 @@ switch priors
             
             % find maximum variance voxel
             %--------------------------------------------------------------
-            [v j] = max(C);
+            [v,j] = max(C);
             d     = 0;
             for k = 1:size(xyz,1)
                d  = d + (xyz(k,:) - xyz(k,j)).^2;
             end
-            [d j] = sort(d);
+            [d,j] = sort(d);
             try
                 j = j(1:nc);
             end

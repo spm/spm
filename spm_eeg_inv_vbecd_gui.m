@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 5078 2012-11-25 15:08:05Z vladimir $
+% $Id: spm_eeg_inv_vbecd_gui.m 5219 2013-01-29 17:07:07Z spm $
 
 %%
 % Load data, if necessary
@@ -64,7 +64,7 @@ if ~isfield(D.inv{val}, 'date')
     else
         clck = [num2str(clck(4)) ':' num2str(clck(5))];
     end
-    D.inv{val}.date = strvcat(date,clck); %#ok<VCAT>
+    D.inv{val}.date = strvcat(date,clck);
 end
 
 if ~isfield(D.inv{val}, 'comment'), 
@@ -165,38 +165,38 @@ end
 EEGscale=1;
 
 %% SORT OUT EEG UNITS AND CONVERT VALUES TO VOLTS
-if strcmp(upper(P.modality),'EEG'),
-    allunits=strvcat('uV','mV','V');   
-    allscales=[1e-6, 1e-3, 1]; %% 
-    EEGscale=0;
-    eegunits = unique(D.units(D.indchantype('EEG')));
-    Neegchans=numel(D.units(D.indchantype('EEG')));
-    for j=1:length(allunits),
-        if strcmp(deblank(allunits(j,:)),deblank(eegunits));
+if strcmpi(P.modality,'EEG')
+    allunits  = strvcat('uV','mV','V');   
+    allscales = [1e-6, 1e-3, 1]; %% 
+    EEGscale  = 0;
+    eegunits  = unique(D.units(D.indchantype('EEG')));
+    Neegchans = numel(D.units(D.indchantype('EEG')));
+    for j=1:length(allunits)
+        if strcmp(deblank(allunits(j,:)),deblank(eegunits))
             EEGscale=allscales(j);
-        end; % if
-    end; % for j
+        end % if
+    end % for j
     
-if EEGscale==0,
-    warning('units unspecified');
-    if mean(std(D(P.Ic,ltb,ltr)))>1e-2,
-        guess_ind=[1 2 3];
+    if EEGscale==0
+        warning('units unspecified');
+        if mean(std(D(P.Ic,ltb,ltr)))>1e-2
+            guess_ind=[1 2 3];
         else
-        guess_ind=[3 2 1];
-        end;
-     msg_str=sprintf('Units of EEG are %s ? (rms=%3.2e)',allunits(guess_ind(1),:),mean(std(D(P.Ic,ltb,ltr))));
-     dip_ch = sprintf('%s|%s|%s',allunits(guess_ind(1),:),allunits(guess_ind(2),:),allunits(guess_ind(3),:));
-    dip_val = [1,2,3];
-     def_opt=1;
-    unitind= spm_input(msg_str,2,'b',dip_ch,dip_val,def_opt);
-    %ans=spm_input(msg_str,1,'s','yes');   
-     allunits(guess_ind(unitind),:)
-     D = units(D, 1:Neegchans, allunits(guess_ind(unitind),:));
-     EEGscale=allscales(guess_ind(unitind));
-     D.save; %% Save the new units
-    end; %if EEGscale==0
-   
-end; % if eeg data
+            guess_ind=[3 2 1];
+        end
+        msg_str = sprintf('Units of EEG are %s ? (rms=%3.2e)',allunits(guess_ind(1),:),mean(std(D(P.Ic,ltb,ltr))));
+        dip_ch  = sprintf('%s|%s|%s',allunits(guess_ind(1),:),allunits(guess_ind(2),:),allunits(guess_ind(3),:));
+        dip_val = [1,2,3];
+        def_opt = 1;
+        unitind = spm_input(msg_str,2,'b',dip_ch,dip_val,def_opt);
+        %ans=spm_input(msg_str,1,'s','yes');
+        allunits(guess_ind(unitind),:)
+        D = units(D, 1:Neegchans, allunits(guess_ind(unitind),:));
+        EEGscale = allscales(guess_ind(unitind));
+        D.save; %% Save the new units
+    end %if EEGscale==0
+    
+end % if eeg data
 
 
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));

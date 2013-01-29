@@ -11,7 +11,7 @@ function [D,C,K] = spm_dcm_KL(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_KL.m 2804 2009-03-02 12:03:00Z karl $
+% $Id: spm_dcm_KL.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % Volterra kernels
@@ -57,7 +57,7 @@ for i = 1:m
     
     % get derivative of kernels w.r.t. parameters
     %----------------------------------------------------------------------
-    [dkdp k] = spm_diff('spm_kernel',M{i},P,N,dt,2,{[],V});
+    [dkdp,k] = spm_diff('spm_kernel',M{i},P,N,dt,2,{[],V});
     
     % prior mean and covariance of kernels
     %----------------------------------------------------------------------

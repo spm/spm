@@ -8,7 +8,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_dcm_graph.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % defaults
@@ -81,7 +81,7 @@ if length(A) < 3, return, end
 %--------------------------------------------------------------------------
 D      = diag(sum(W));
 G      = D - W;
-[U V]  = eig(full(spm_pinv(G)));
+[U,V]  = eig(full(spm_pinv(G)));
 U      = U*sqrt(V);
 [~,i]  = sort(-diag(V));
 U      = U(:,i(1:3))';

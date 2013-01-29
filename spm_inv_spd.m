@@ -1,5 +1,5 @@
 function X = spm_inv_spd(A, TOL)
-% inverse for symmetric positive (semi)definite matrices
+% Inverse for symmetric positive (semi)definite matrices
 % FORMAT X = spm_inv_spd(A,TOL)
 %
 % A   - symmetric positive definite matrix (e.g. covariance or precision)
@@ -10,7 +10,7 @@ function X = spm_inv_spd(A, TOL)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_inv_spd.m 4360 2011-06-14 16:46:37Z ged $
+% $Id: spm_inv_spd.m 5219 2013-01-29 17:07:07Z spm $
 
 % if ~all(isfinite(A(:))), error('Matrix has non-finite elements!'); end
 
@@ -18,7 +18,7 @@ if nargin < 2
     TOL  = exp(-32);
 end
 
-[i j] = find(A);
+[i,j] = find(A);
 if isempty(i)
     % Special cases:  empty or all-zero matrix, return identity/TOL
     %----------------------------------------------------------------------
@@ -37,8 +37,8 @@ elseif all(i == j)
 elseif norm(A - A', 1) < TOL
     % symmetric, try LDL factorisation (but with L->X to save memory)
     %----------------------------------------------------------------------
-    [X D P] = ldl(full(A)); % P'*A*P = L*D*L', A = P*L*D*L'*P'
-    [i j d] = find(D);
+    [X,D,P] = ldl(full(A)); % P'*A*P = L*D*L', A = P*L*D*L'*P'
+    [i,j,d] = find(D);
     % non-diagonal values indicate not positive semi-definite
     if all(i == j)
         d = invtol(d, TOL);

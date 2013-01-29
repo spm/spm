@@ -1,12 +1,12 @@
 function [y] = spm_cell_swap(x)
-% swaps columns for cells in matrix arrays
+% Swap columns for cells in matrix arrays
 % FORMAT [y] = spm_cell_swap(x)
 % y{:,i}(:,j) = x{:,j}(:,i);
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cell_swap.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_cell_swap.m 5219 2013-01-29 17:07:07Z spm $
 
 % return if empty
 %--------------------------------------------------------------------------
@@ -17,8 +17,8 @@ end
 
 % swap columns for cells
 %--------------------------------------------------------------------------
-[m n]  = size(x{1});
-[k l]  = size(x);
+[m,n]  = size(x{1});
+[k,l]  = size(x);
 y      = cell(k,n);
 [y{:}] = deal(zeros(m,l));
 for  r = 1:k
@@ -28,6 +28,3 @@ for  r = 1:k
         end
     end
 end
-
-
-

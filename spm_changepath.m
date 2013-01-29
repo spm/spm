@@ -15,10 +15,10 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % If MAT filenames are specified, they will be overwritten with the new
 % version. A backup of the initial version is made with a ".old" suffix.
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_changepath.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Input arguments
@@ -50,7 +50,7 @@ if ischar(Sf)
         try
             S = load(f);
         catch
-            error(sprintf('Cannot load %s.',f));
+            error('Cannot load "%s".',f);
         end
         tmp = changepath(S,oldp,newp);
         if ~isequalwithequalnans(tmp,S)
@@ -107,5 +107,5 @@ switch class(S)
         S.fname = changepath(S.fname,oldp,newp);
         
     otherwise
-        warning(sprintf('Unknown class %s.',class(S)));
+        warning('Unknown class "%s".',class(S));
 end

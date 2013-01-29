@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_bireduce.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % set up
@@ -74,8 +74,8 @@ if all(isfield(M,{'dfdxu','dfdx','dfdu','f0'}))
     dfdu  = M.dfdu;
     f0    = M.f0;
 else
-    [dfdxu dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
-    [dfdu  f0]   = spm_diff(funx,x,u,P,M,2);
+    [dfdxu,dfdx] = spm_diff(funx,x,u,P,M,[1 2]);
+    [dfdu, f0]   = spm_diff(funx,x,u,P,M,2);
 end
 f0        = spm_vec(f0);
 m         = length(dfdxu);          % m inputs
@@ -127,7 +127,7 @@ end
 
 % g(x(0),0)
 %--------------------------------------------------------------------------
-[dgdx g0] = spm_diff(fung,x,u,P,M,1);
+[dgdx,g0] = spm_diff(fung,x,u,P,M,1);
 g0        = spm_vec(g0);
 l         = length(g0);
 

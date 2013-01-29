@@ -4,7 +4,7 @@ function tf = spm_cfg_eeg_tf
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %--------------------------------------------------------------------------
@@ -101,7 +101,7 @@ S.timewin = job.timewin;
 S.phase = job.phase;
 
 S.method = cell2mat(fieldnames(job.method));
-S.settings = getfield(job.method, S.method);
+S.settings = job.method.(S.method);
 
 S.prefix = job.prefix;
 

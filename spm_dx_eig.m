@@ -48,7 +48,7 @@ function [dx] = spm_dx_eig(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx_eig.m 1277 2008-03-28 18:36:49Z karl $
+% $Id: spm_dx_eig.m 5219 2013-01-29 17:07:07Z spm $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -56,7 +56,7 @@ if nargin < 3, t = Inf; end
 
 % eigensytem (i.e., natural coordinates)
 %--------------------------------------------------------------------------
-[V S] = eig(full(dfdx));
+[V,S] = eig(full(dfdx));
 S     = diag(S) + 1e-8;
 
 % if t is a regulariser
@@ -69,4 +69,3 @@ end
 %--------------------------------------------------------------------------
 dx    = V*diag( (exp(t.*S) - 1)./S )/V*spm_vec(f);
 dx    = spm_unvec(real(dx),f);
-

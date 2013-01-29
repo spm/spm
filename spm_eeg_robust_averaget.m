@@ -1,4 +1,4 @@
-function [B,Wf] = spm_eeg_robust_averaget(data,ks,FS)
+function [B,Wf] = spm_eeg_robust_averaget(data,ks)
 % Apply robust averaging routine to data sets 
 % FORMAT [B,Wf] = spm_eeg_robust_averaget(data,ks)
 % data   - data matrix to be averaged
@@ -9,25 +9,25 @@ function [B,Wf] = spm_eeg_robust_averaget(data,ks,FS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_eeg_robust_averaget.m 2696 2009-02-05 20:29:48Z guillaume $
+% $Id: spm_eeg_robust_averaget.m 5219 2013-01-29 17:07:07Z spm $
 
 if nargin==1
-    ks=3;
+    ks = 3;
 end
 
 %Wf=ones(size(data));
 try
-    Xs=sparse(repmat(speye(size(data,2)),[size(data,1),1]));
-    h=1./((1-(diag(Xs*(Xs'*Xs)^-1*Xs'))).^0.5);
-    h=h(1);
+    Xs = sparse(repmat(speye(size(data,2)),[size(data,1),1]));
+    h = 1./((1-(diag(Xs*(Xs'*Xs)^-1*Xs'))).^0.5);
+    h = h(1);
 catch
-    h=1;
-    warning(sprintf('File too large assuming h=1 '));
+    h = 1;
+    warning('File too large: assuming h=1.');
 end
-ores=1;
-nres=10;
-n=0;
-B=zeros(1,size(data,1));
+ores = 1;
+nres = 10;
+n    = 0;
+B    = zeros(1,size(data,1));
 while abs(ores-nres)>sqrt(1E-8)
     abs(ores-nres);
     ores=nres;
@@ -55,18 +55,15 @@ while abs(ores-nres)>sqrt(1E-8)
     if n>100
         break
     end
-    res=data-repmat(B',[1,size(data,2)]);
+    res  = data-repmat(B',[1,size(data,2)]);
     
-
-    mad=median(abs(res-repmat(median(res')',1,size(res,2)))')'; 
-    res=(res)./repmat(mad,1,size(res,2));
-    res=res.*h; 
-    res=abs(res)-ks;
-    res(res<0)=0;   
-    nres=(sum(res(:).^2));
-    Wf=(((abs(res)<1) .* (1 - res.^2).^2));
+    mad  = median(abs(res-repmat(median(res')',1,size(res,2)))')'; 
+    res  = (res)./repmat(mad,1,size(res,2));
+    res  = res.*h; 
+    res  = abs(res)-ks;
+    res(res<0) = 0;   
+    nres = (sum(res(:).^2));
+    Wf   = (((abs(res)<1) .* (1 - res.^2).^2));
     clear res;
 
 end
-
-

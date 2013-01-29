@@ -5,7 +5,7 @@ function extract = spm_cfg_eeg_inv_extract
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_extract.m 4257 2011-03-18 15:28:29Z vladimir $
+% $Id: spm_cfg_eeg_inv_extract.m 5219 2013-01-29 17:07:07Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -100,7 +100,7 @@ for i = 1:numel(job.D)
     D.val = job.val;      
             
     if ~isfield(D.inv{D.val}, 'inverse') || ~isfield(D.inv{D.val}.inverse, 'J')
-        error(sprintf('Imaging source reconstruction is missing for subject %d', i));
+        error('Imaging source reconstruction is missing for subject %d.', i);
     end       
     
     D.inv{D.val}.source = source;

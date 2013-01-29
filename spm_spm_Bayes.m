@@ -68,7 +68,7 @@ function [SPM] = spm_spm_Bayes(SPM)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spm_Bayes.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_spm_Bayes.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Say hello
@@ -109,7 +109,7 @@ fprintf('%-40s: %30s','Output images','...initialising')             %-#
 %-Initialise conditional estimate image files
 %-----------------------------------------------------------------------
 xX             = SPM.xX;
-[nScan nBeta]  = size(xX.X);
+[nScan,nBeta]  = size(xX.X);
 Vbeta(1:nBeta) = deal(struct(...
             'fname',    [],...
             'dim',      DIM',...
@@ -285,7 +285,7 @@ for i = 1:s
     fprintf('%-30s\n',sprintf('  ReML Session %i',i));           %-#
     X     = xX.X(u{i}, v{i});
     X0    = xX.X(u{i},v0{i});
-    [m n] = size(X);
+    [m,n] = size(X);
 
     % add confound in 'filter'
     %---------------------------------------------------------------
@@ -309,7 +309,7 @@ for i = 1:s
 
     % ReML covariance component estimation
     %---------------------------------------------------------------
-    [C h]   = spm_reml(SPM.xVi.CY,X0,Q);
+    [C,h]   = spm_reml(SPM.xVi.CY,X0,Q);
 
     % check for negative variance components
     %---------------------------------------------------------------
@@ -375,7 +375,7 @@ for  z = 1:zdim
         u     = sP(j).u;
         v     = sP(j).v;
         for i = 1:nVox
-            [C P]      = spm_PEB(Y(u,i),P);
+            [C,P]      = spm_PEB(Y(u,i),P);
             beta(v,i)  = C{2}.E(1:length(v));
             Hp(j,i)    = C{1}.h;
         end

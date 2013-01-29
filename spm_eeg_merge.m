@@ -58,9 +58,9 @@ function Dout = spm_eeg_merge(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 %
 % Stefan Kiebel, Vladimir Litvak, Doris Eckstein, Rik Henson
-% $Id: spm_eeg_merge.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_merge.m 5219 2013-01-29 17:07:07Z spm $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -303,13 +303,13 @@ if ~isempty(megsens)
         h = axes;
     end
     
-    [amegsens afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    [amegsens,afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Dout = sensors(Dout, 'MEG', amegsens);
     Dout = fiducials(Dout, afid);
 elseif ~isempty(eegsens)
     spm_figure('GetWin','Graphics');clf;
     h = axes;
-    [aeegsens afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    [aeegsens,afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Dout = sensors(Dout, 'EEG', aeegsens);
     Dout = fiducials(Dout, afid);
 end

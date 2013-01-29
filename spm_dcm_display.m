@@ -10,7 +10,7 @@ function spm_dcm_display(varargin)
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_display.m 4517 2011-10-07 19:19:59Z karl $
+% $Id: spm_dcm_display.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % input arguments
@@ -58,7 +58,7 @@ for i = 1:3
     u{i}(:,i) = [];
     s(i)      = det(u{i}'*M1*L*L'*M'*u{i});
 end
-[i j]   = max(s);
+[i,j]   = max(s);
 u       = u{j};
  
 % compute projection matrix for 'principal' plane

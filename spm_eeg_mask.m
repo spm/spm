@@ -12,9 +12,9 @@ function spm_eeg_mask(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask.m 5194 2013-01-18 15:04:19Z vladimir $
+% $Id: spm_eeg_mask.m 5219 2013-01-29 17:07:07Z spm $
 
-SVNrev = '$Rev: 5194 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,8 +60,8 @@ if any([begsample endsample] < 0) || ...
     error('The window is out of limits for the image.');
 end
 
-[junk begsample] = min(abs(begsample-[1:Nt]));
-[junk endsample] = min(abs(endsample-[1:Nt]));
+[junk,begsample] = min(abs(begsample-[1:Nt]));
+[junk,endsample] = min(abs(endsample-[1:Nt]));
 
 if begsample > 1
     Y(: , :, 1:(begsample-1))   = 0;

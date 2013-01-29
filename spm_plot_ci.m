@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 4987 2012-10-05 19:21:44Z karl $
+% $Id: spm_plot_ci.m 5219 2013-01-29 17:07:07Z spm $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ if isempty(j),        j = 1:size(E,1);   end
 % order and length of sequence
 %--------------------------------------------------------------------------
 E     = E(j,:);
-[n N] = size(E);
+[n,N] = size(E);
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ elseif n == 2
     
     % plot in state-space
     %======================================================================    try,  C = C{1};  end
-    [x y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
+    [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
     fill(x(16,:)',y(16,:)',[1 1 1]*.9,'EdgeColor',[1 1 1]*.8),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)
     

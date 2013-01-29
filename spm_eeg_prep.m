@@ -15,7 +15,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_eeg_prep.m 5219 2013-01-29 17:07:07Z spm $
 
 D = spm_eeg_load(S.D);
 
@@ -148,7 +148,7 @@ switch lower(S.task)
                 fidnum = 0;
                 while ~all(isspace(S.fidlabel))
                     fidnum = fidnum+1;
-                    [shape.fid.label{fidnum} S.fidlabel] = strtok(S.fidlabel);
+                    [shape.fid.label{fidnum},S.fidlabel] = strtok(S.fidlabel);
                 end
                 
                 if (fidnum < 3)  || (size(headshape, 1) < fidnum)
@@ -381,7 +381,7 @@ switch lower(S.task)
                 fidnum = 0;
                 while ~all(isspace(S.fidlabel))
                     fidnum = fidnum+1;
-                    [shape.fid.label{fidnum} S.fidlabel] = strtok(S.fidlabel);
+                    [shape.fid.label{fidnum},S.fidlabel] = strtok(S.fidlabel);
                 end
                 
                 if (fidnum < 3)  || (size(headshape, 1) < fidnum)

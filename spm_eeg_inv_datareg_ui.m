@@ -16,7 +16,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 4116 2010-11-10 14:23:54Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 5219 2013-01-29 17:07:07Z spm $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ else
     meeglbl = meegfid.fid.label;
     
     if numel(meeglbl)> 3
-        [selection ok]= listdlg('ListString', meeglbl, 'SelectionMode', 'multiple',...
+        [selection,ok]= listdlg('ListString', meeglbl, 'SelectionMode', 'multiple',...
             'InitialValue', spm_match_str(upper(meeglbl), upper(mrilbl)), ...
             'Name', 'Select at least 3 fiducials', 'ListSize', [400 300]);
         
@@ -89,7 +89,7 @@ else
     for i = 1:length(meeglbl)
         switch spm_input(['How to specify ' meeglbl{i} ' position?'] , 1, 'select|type|click|skip')
             case 'select'
-                [selection ok]= listdlg('ListString', mrilbl, 'SelectionMode', 'single',...
+                [selection,ok]= listdlg('ListString', mrilbl, 'SelectionMode', 'single',...
                     'InitialValue', strmatch(upper(meeglbl{i}), upper(mrilbl)), ...
                     'Name', ['Select matching MRI fiducial for ' meeglbl{i}], 'ListSize', [400 300]);
                 if ~ok

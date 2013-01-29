@@ -75,14 +75,14 @@ function [block] = spm_vb_glmar (Y,block)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_glmar.m 4457 2011-09-05 14:04:22Z guillaume $
+% $Id: spm_vb_glmar.m 5219 2013-01-29 17:07:07Z spm $
 
 
 t0 = clock;
 
 %-Set defaults
 %--------------------------------------------------------------------------
-[T N]   = size(Y);
+[T,N]   = size(Y);
 block.T = T;
 block.N = N;
 
@@ -92,7 +92,7 @@ catch
     error('Mandatory field X missing.');
 end
 
-[tmp k] = size(X);
+[tmp,k] = size(X);
 if tmp ~= T
     error('X is not of compatible size to Y.');
 end

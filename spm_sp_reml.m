@@ -34,7 +34,7 @@ function [C,h,Ph,F,Fa,Fc] = spm_sp_reml(YY,X,Q,N,hE);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sp_reml.m 3588 2009-11-20 14:06:08Z guillaume $
+% $Id: spm_sp_reml.m 5219 2013-01-29 17:07:07Z spm $
  
 % assume a single sample if not specified
 %--------------------------------------------------------------------------
@@ -92,7 +92,7 @@ for i = 1:m
             return
         end
     else
-        [q v] = spm_svd(Q{i},exp(-16));
+        [q,v] = spm_svd(Q{i},exp(-16));
         C.q   = q;
         C.v   = diag(v);
         Q{i}  = C;

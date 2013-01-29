@@ -5,7 +5,7 @@ function spm_eeg_inv_results_display(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_eeg_inv_results_display.m 5219 2013-01-29 17:07:07Z spm $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
@@ -66,7 +66,7 @@ vert   = model.mesh.tess_mni.vert;
 % display
 %--------------------------------------------------------------------------
 subplot(2,1,1)
-[i j]  = sort(-G);
+[i,j]  = sort(-G);
 j      = j(1:Ndip);
 spm_mip(G(j),vert(j,:)',6);
 axis image

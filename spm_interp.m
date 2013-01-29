@@ -7,11 +7,11 @@ function [x] = spm_interp(x,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_interp.m 3733 2010-02-18 17:43:18Z karl $
+% $Id: spm_interp.m 5219 2013-01-29 17:07:07Z spm $
 
 % interpolate
-%---------------------------------------------------------------------------
-[n m] = size(x);
+%--------------------------------------------------------------------------
+[n,m] = size(x);
 
 if n > 1 && m > 1  % matrix
     
@@ -36,7 +36,7 @@ end
 % -------------------------------------------------------------------------
 function [u] = interpolate(y,r)
 
-if r == 1;
+if r == 1
     u    = y;
 else
     y    = y(:);

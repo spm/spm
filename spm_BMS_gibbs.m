@@ -10,31 +10,31 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Nsamp    - number of samples (default: 1e6)
 % 
 % OUTPUT:
-% exp_r   - [1 x  Nk] expectation of the posterior p(r|y)
-% xp      - exceedance probabilities
-% r_samp  - [Nsamp x Nk] matrix of samples from posterior
-% g_post  - [Ni x Nk] matrix of posterior probabilities with 
-%           g_post(i,k) being post prob that subj i used model k
+% exp_r    - [1 x  Nk] expectation of the posterior p(r|y)
+% xp       - exceedance probabilities
+% r_samp   - [Nsamp x Nk] matrix of samples from posterior
+% g_post   - [Ni x Nk] matrix of posterior probabilities with 
+%            g_post(i,k) being post prob that subj i used model k
 %__________________________________________________________________________
-% Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 5183 2013-01-10 15:30:20Z ged $
+% $Id: spm_BMS_gibbs.m 5219 2013-01-29 17:07:07Z spm $
+
 
 if nargin < 3 || isempty(Nsamp)
     Nsamp = 1e4;
 end
 
-
-Ni      = size(lme,1);  % number of subjects
-Nk      = size(lme,2);  % number of models
+Ni = size(lme,1);  % number of subjects
+Nk = size(lme,2);  % number of models
 
 % prior observations
 %--------------------------------------------------------------------------
 if nargin < 2 || isempty(alpha0)
-    alpha0  = ones(1,Nk);    
+    alpha0 = ones(1,Nk);    
 end
-alpha0   = alpha0(:)';
+alpha0     = alpha0(:)';
 
 % Initialise; sample r from prior
 r  = zeros(1,Nk);
@@ -47,12 +47,12 @@ for k = 1:Nk
 end
 
 % Subtract subject means
-lme=lme-mean(lme,2)*ones(1,Nk);
+lme = lme - mean(lme,2)*ones(1,Nk);
 
 % Ensure all log model evidence differences are now within machine range
 max_val = log(realmax('double'));
-for i=1:Ni,
-    for k = 1:Nk,
+for i = 1:Ni
+    for k = 1:Nk
         lme(i,k) = sign(lme(i,k)) * min(max_val,abs(lme(i,k)));
     end
 end
@@ -61,51 +61,48 @@ end
 r_samp = zeros(Nsamp,Nk);
 g_post = zeros(Ni,Nk);
 
-for samp=1:2*Nsamp
+for samp = 1:2*Nsamp
     
-    mod_vec=sparse(Ni,Nk);
+    mod_vec = sparse(Ni,Nk);
     % Sample m's given y, r
-    for i=1:Ni
+    for i = 1:Ni
         % Pick a model for this subject
-        u=exp(lme(i,:)+log(r))+eps;
-        g=u/sum(u);
-        gmat(i,:)=g;
-        modnum=spm_multrnd(g,1);
-        mod_vec(i,modnum)=1;
+        u         = exp(lme(i,:) + log(r)) + eps;
+        g         = u / sum(u);
+        gmat(i,:) = g;
+        modnum    = spm_multrnd(g,1);
+        mod_vec(i,modnum) = 1;
     end
     
     % Sample r's given y, m
-    beta=sum(mod_vec,1);
-    alpha=alpha0+beta;
+    beta          = sum(mod_vec,1);
+    alpha         = alpha0+beta;
     for k = 1:Nk
-        r(:,k) = spm_gamrnd(alpha(k),1);
+        r(:,k)    = spm_gamrnd(alpha(k),1);
     end
     sr = sum(r,2);
     for k = 1:Nk
-        r(:,k) = r(:,k)./sr;
+        r(:,k)    = r(:,k) ./ sr;
     end
 
     % Only keep last Nsamp samples
     if samp > Nsamp
-        r_samp(samp-Nsamp,:)=r;
-        g_post=g_post+gmat;
+        r_samp(samp-Nsamp,:) = r;
+        g_post    = g_post+gmat;
     end
     
     if mod(samp,1e4)==0
-        disp(sprintf('%d samples out of %d',samp,2*Nsamp));
+        fprintf('%d samples out of %d\n',samp,2*Nsamp);
     end
     
 end
-g_post=g_post/Nsamp;
+g_post = g_post/Nsamp;
 
 % Posterior mean
 exp_r = mean(r_samp,1);
 
 % Exceedence probs
-xp = zeros(1,Nk);
-[y,j]=max(r_samp,[],2);
-tmp=histc(j,1:Nk)';
-xp=tmp/Nsamp;
-
-
-    
+xp    = zeros(1,Nk);
+[y,j] = max(r_samp,[],2);
+tmp   = histc(j,1:Nk)';
+xp    = tmp / Nsamp;

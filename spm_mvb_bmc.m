@@ -10,7 +10,7 @@ function [F,P,MVB] = spm_mvb_bmc(mvb)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mvb_bmc.m 2011 2008-08-20 12:29:00Z christophe $
+% $Id: spm_mvb_bmc.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Get figure handles and set title
@@ -64,7 +64,7 @@ if size(mvb,1) > 1
     
     % load best (non-null) model
     %----------------------------------------------------------------------
-    [p i] = max(P(1:end - 1));
+    [p,i] = max(P(1:end - 1));
     MVB   = load(deblank(mvb(I(i),:)));
     MVB   = MVB.MVB;
     spm_mvb_display(MVB)

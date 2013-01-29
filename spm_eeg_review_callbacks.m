@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5166 2013-01-02 13:48:17Z christophe $
+% $Id: spm_eeg_review_callbacks.m 5219 2013-01-29 17:07:07Z spm $
 
 spm('pointer','watch');
 drawnow expose
@@ -1360,7 +1360,7 @@ else  % source space
                 %                 try
                 %                     ve = D.PSD.source.VIZU.ve;
                 %                 catch
-                [mj ve] = max(max(abs(D.PSD.source.VIZU.J),[],2));
+                [mj,ve] = max(max(abs(D.PSD.source.VIZU.J),[],2));
                 D.PSD.source.VIZU.ve =ve;
                 %                 end
                 Jve = D.PSD.source.VIZU.J(D.PSD.source.VIZU.ve,:);

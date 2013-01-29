@@ -107,7 +107,7 @@ function [DEM] = spm_GDEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_GDEM.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm_GDEM.m 5219 2013-01-29 17:07:07Z spm $
  
 % check model, data, priors and confounds and unpack
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ if ~np && ~nh, nN = 1; end
  
 % create innovations (and add causes)
 %--------------------------------------------------------------------------
-[z w]  = spm_DEM_z(G,nY);
+[z,w]  = spm_DEM_z(G,nY);
 z{end} = C + z{end};
 Z      = spm_cat(z(:));
 W      = spm_cat(w(:));
@@ -350,7 +350,7 @@ for iN = 1:nN
  
         % evaluate generative model
         %------------------------------------------------------------------
-        [pu dgdv dgdx dfdv dfdx] = spm_DEM_diff(G,pu);
+        [pu,dgdv,dgdx,dfdv,dfdx] = spm_DEM_diff(G,pu);
 
         % tensor products for Jabobian
         %------------------------------------------------------------------

@@ -19,7 +19,7 @@ function [C] = spm_Ce(v,a)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Ce.m 3527 2009-11-02 20:27:13Z karl $
+% $Id: spm_Ce.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % defaults
@@ -36,7 +36,7 @@ if l > 1
     for i = 1:l
         dCda  = spm_Ce(v(i),a);
         for j = 1:length(dCda)
-            [x y q]    = find(dCda{j});
+            [x,y,q]    = find(dCda{j});
             x          = x    + k;
             y          = y    + k;
             C{end + 1} = sparse(x,y,q,n,n);

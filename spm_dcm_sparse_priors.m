@@ -12,7 +12,7 @@ function [A,K,k] = spm_dcm_sparse_priors(n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_sparse_priors.m 4146 2010-12-23 21:01:39Z karl $
+% $Id: spm_dcm_sparse_priors.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ end
 
 % get permutations of K connections (in A{:})
 %==========================================================================
-[I J] = find(triu(ones(n,n),1));
+[I,J] = find(triu(ones(n,n),1));
 K     = cell(N + 1,1);
 A     = {};
 for i = 1:2^N

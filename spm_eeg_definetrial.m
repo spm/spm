@@ -18,10 +18,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_eeg_definetrial.m 5219 2013-01-29 17:07:07Z spm $
 
 
-SVNrev = '$Rev: 5073 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -169,10 +169,10 @@ if S.reviewtrials
 
     selected = find(trl(:,1)>0);
 
-    [indx OK] = listdlg('ListString', eventstrings, 'SelectionMode', 'multiple', 'InitialValue', ...
+    [indx,ok] = listdlg('ListString', eventstrings, 'SelectionMode', 'multiple', 'InitialValue', ...
         selected, 'Name', 'Select events', 'ListSize', [300 300]);
 
-    if OK
+    if ok
         trl=trl(indx, :);
         conditionlabels = conditionlabels(indx);
     end
@@ -263,7 +263,7 @@ for i=1:Neventtype
     end
 end
 
-[selection ok]= listdlg('ListString',strsettings, 'SelectionMode', 'multiple', 'Name', 'Select event', 'ListSize', [400 300]);
+[selection,ok]= listdlg('ListString',strsettings, 'SelectionMode', 'multiple', 'Name', 'Select event', 'ListSize', [400 300]);
 
 if ok
     selected=settings(selection, :);

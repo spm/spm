@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5167 2013-01-02 15:24:52Z vladimir $
+% $Id: spm_eeg_convert.m 5219 2013-01-29 17:07:07Z spm $
 
-SVNrev = '$Rev: 5167 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -97,15 +97,15 @@ else
     hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat);
     
     if isfield(hdr, 'label')
-        [unique_label junk ind]=unique(hdr.label);
-        if length(unique_label)~=length(hdr.label)
+        [unique_label,junk,ind] = unique(hdr.label);
+        if length(unique_label) ~= length(hdr.label)
             warning(['Data file contains several channels with ',...
                 'the same name. These channels cannot be processed and will be disregarded']);
             % This finds the repeating labels and removes all their occurences
-            sortind=sort(ind);
-            [junk ind2]=setdiff(hdr.label, unique_label(sortind(diff(sortind)==0)));
-            hdr.label=hdr.label(ind2);
-            hdr.nChans=length(hdr.label);
+            sortind     = sort(ind);
+            [junk,ind2] = setdiff(hdr.label, unique_label(sortind(diff(sortind)==0)));
+            hdr.label   = hdr.label(ind2);
+            hdr.nChans  = length(hdr.label);
         end
     end
     
@@ -554,9 +554,10 @@ if ~isequal(S.mode, 'header')
     save(D);
 end
 
- %-Cleanup
+%-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName','M/EEG convert: done'); spm('Pointer', 'Arrow');
+
 
 %==========================================================================
 % select_events
@@ -569,9 +570,9 @@ if iscell(event)
 end
 
 if ~isempty(event)
-    [time ind] = sort([event(:).time]);
+    [time,ind] = sort([event(:).time]);
     
-    selectind = ind(time>=timeseg(1) & time<=timeseg(2));
+    selectind  = ind(time>=timeseg(1) & time<=timeseg(2));
     
-    event = event(selectind);
+    event      = event(selectind);
 end

@@ -179,7 +179,7 @@ function varargout = spm_sp(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_sp.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_sp.m 5219 2013-01-29 17:07:07Z spm $
 
 
 if nargin==0
@@ -212,7 +212,7 @@ case 'set'          %-Set singular values, space basis, rank & tolerance
 %=======================================================================
 % x = spm_sp('Set',X)
 
-if nargin==1 error('No design matrix : can''t do much!'), 
+if nargin==1, error('No design matrix : can''t do much!'), 
 else X = varargin{2}; end
 if isempty(X), varargout = {sf_create}; return, end
 
@@ -1353,10 +1353,10 @@ function n = sf_n(sX)
 % 
 %
 r = sX.rk;
-[q p]= size(sX.X);
+[q,p]= size(sX.X);
 if r > 0
     if q >= p  %- the null space is entirely in v
-        if r == p, n = zeros(p,1); else, n = sX.v(:,r+1:p); end
+        if r == p, n = zeros(p,1); else n = sX.v(:,r+1:p); end
     else %- only part of n is in v: same as computing the null sp of sX'
 
         n = null(sX.X); 
@@ -1394,7 +1394,7 @@ function Y = sf_rY(sX,Y)
 %- I - u*(u'*Y) or n*(n'*Y) as in 'nop'
 
 r = sX.rk;
-[q p]= size(sX.X);
+[q,p]= size(sX.X);
 
 if r > 0 %- else returns the input;
     

@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 5121 2012-12-14 18:58:05Z karl $
+% $Id: spm_eeg_invert.m 5219 2013-01-29 17:07:07Z spm $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -183,7 +183,7 @@ Nmax  = Nr;                                 % max number of temporal modes
 for i = 1:Nl
     
     fprintf('Checking lead fields for subject %i\n',i)
-    [L D{i}] = spm_eeg_lgainmat(D{i});
+    [L,D{i}] = spm_eeg_lgainmat(D{i});
     
     for m = 1:Nmod
         

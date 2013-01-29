@@ -7,13 +7,11 @@ function out = spm_run_voi(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 4640 2012-02-02 18:08:42Z guillaume $
+% $Id: spm_run_voi.m 5219 2013-01-29 17:07:07Z spm $
 
-fprintf('## Note: this VOI facility is in a beta version.      ##\n');
-fprintf('## Interface and features might change in the future. ##\n');
 
 %-Load SPM.mat
 %--------------------------------------------------------------------------
@@ -231,7 +229,7 @@ switch mv
         nc    = spm_XYZreg('NearestXYZ',c,XYZmm);
         str   = sprintf(['centre moved from ' str ' to ' str],c,nc);
     otherwise
-        error(sprintf('Unknown option: ''%s''.',mv));
+        error('Unknown option: ''%s''.',mv);
 end
 c             = nc;
 fprintf(['   ' upper(t(1)) t(2:end) ' ' str '\n']);                     %-#

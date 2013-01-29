@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 5088 2012-11-29 21:43:01Z vladimir $
+% $Id: spm_eeg_inv_extract.m 5219 2013-01-29 17:07:07Z spm $
  
 % SPM data structure
 %==========================================================================
@@ -66,7 +66,7 @@ for i = 1:Ns
     if rad > 0
         svert{i} = find(dist < rad);
     else
-        [junk svert{i}] = min(dist);
+        [junk,svert{i}] = min(dist);
         XYZ(i, :) = vert(svert{i}, :);
     end
 end
@@ -177,14 +177,14 @@ spm_progress_bar('Init', Ns, 'extracting eigenvariates', 'sources');
  
 for i = 1:Ns    
     y     = MY((iS(i)+1):iS(i+1),:);
-    [m n] = size(y);
+    [m,n] = size(y);
     if m > n && n > 1
-        [v s v] = svd(y'*y);
+        [v,s,v] = svd(y'*y);
         v       = v(:,1);
         u       = y*v;
         Y(i, :) = sign(sum(u))*v;
     elseif m>1
-        [u s u] = svd(y*y');
+        [u,s,u] = svd(y*y');
         u       = u(:,1);
         Y(i, :) =  sign(sum(u))*y'*u;
     else

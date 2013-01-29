@@ -12,12 +12,12 @@ function spm_eeg_invert_display(D,PST,Ndip)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert_display.m 4169 2011-01-24 18:34:20Z karl $
+% $Id: spm_eeg_invert_display.m 5219 2013-01-29 17:07:07Z spm $
  
 % Number of dipoles to display
 %==========================================================================
 try, PST;  catch, PST  = [];  end
-try, Ndip, catch, Ndip = 512; end
+try, Ndip; catch, Ndip = 512; end
  
 % get condition
 %--------------------------------------------------------------------------
@@ -76,12 +76,12 @@ if length(PST) == 2
     % get significant voxels
     %----------------------------------------------------------------------
     Nb     = 170;
-    [i j1] = min(abs(pst - PST(1)));
-    [i j2] = min(abs(pst - PST(2)));
+    [i,j1] = min(abs(pst - PST(1)));
+    [i,j2] = min(abs(pst - PST(2)));
     jt     = fix(linspace(j1,j2,Nb));
     J      = abs(J(:,jt));
     Z      = max(J,[],2);
-    [T j]  = sort(-Z);
+    [T,j]  = sort(-Z);
     js     = j(1:Ndip);
     
     J      = J(js,:);
@@ -109,22 +109,22 @@ end
 % maximum response at XYZ
 %--------------------------------------------------------------------------
 if length(PST) == 3
-    [i js] = min(sum([vert(Is,1) - PST(1), ...
+    [i,js] = min(sum([vert(Is,1) - PST(1), ...
                       vert(Is,2) - PST(2), ...
                       vert(Is,3) - PST(3)].^2,2));
-    [i jt] = max(abs(J(js,:)));
+    [i,jt] = max(abs(J(js,:)));
     
 % maximum response at PST
 %--------------------------------------------------------------------------
 elseif length(PST) == 1
-    [i jt] = min(abs(pst - PST));
-    [i js] = max(abs(J(:,jt)));
+    [i,jt] = min(abs(pst - PST));
+    [i,js] = max(abs(J(:,jt)));
     
 % maximum response in space and time
 %--------------------------------------------------------------------------
 else
-    [i js] = max(max(abs(J),[],2));
-    [i jt] = max(abs(J(js,:)));
+    [i,js] = max(max(abs(J),[],2));
+    [i,jt] = max(abs(J(js,:)));
 end
 Jt    = J(js,:);                     % over time
 Js    = J(:,jt);                     % over sources
@@ -172,7 +172,7 @@ hold off
 % Mean square responses over space
 %==========================================================================
 subplot(2,1,2)
-[T i]  = sort(-abs(Js));
+[T,i]  = sort(-abs(Js));
 i      = i(1:Ndip);
 spm_mip(Jmax(Is(i)),vert(Is(i),:)',6);
 axis image

@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5002 2012-10-12 17:27:39Z guillaume $
+% $Id: spm_orthviews.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % The basic fields of st are:
@@ -1894,10 +1894,10 @@ switch lower(varargin{1})
             else
                 defstr = '';
             end
-            [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
+            [w,yp] = spm_input('Range','+1','e',defstr,[1 inf]);
             while numel(w) < 1 || numel(w) > 2
                 uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
-                [w yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
+                [w,yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
             end
             if numel(w) == 1
                 w(2) = w(1)+eps;
@@ -1917,10 +1917,10 @@ switch lower(varargin{1})
             else
                 defstr = '';
             end
-            [w yp] = spm_input('Range','+1','e',defstr,[1 inf]);
+            [w,yp] = spm_input('Range','+1','e',defstr,[1 inf]);
             while numel(w) < 1 || numel(w) > 2
                 uiwait(warndlg('Window must be one or two numbers','Wrong input size','modal'));
-                [w yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
+                [w,yp] = spm_input('Range',yp,'e',defstr,[1 inf]);
             end
             if numel(w) == 1
                 w(2) = w(1)+eps;

@@ -1,11 +1,10 @@
 function invert = spm_cfg_eeg_inv_invertiter
-% configuration file for configuring imaging source inversion
-% reconstruction
-%_______________________________________________________________________
+% Configuration file for configuring imaging source inversion reconstruction
+%__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5089 2012-11-30 13:17:35Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5219 2013-01-29 17:07:07Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -279,13 +278,13 @@ for i = 1:numel(job.D)
     D{i}.con = 1;
     
     if ~isfield(D{i}, 'inv')
-        error(sprintf('Forward model is missing for subject %d', i));
+        error('Forward model is missing for subject %d.', i);
     elseif  numel(D{i}.inv)<D{i}.val || ~isfield(D{i}.inv{D{i}.val}, 'forward')
         if D{i}.val>1 && isfield(D{i}.inv{D{i}.val-1}, 'forward')
             D{i}.inv{D{i}.val} = D{i}.inv{D{i}.val-1};
-            warning(sprintf('Duplicating the last forward model for subject %d', i));
+            warning('Duplicating the last forward model for subject %d.', i);
         else
-            error(sprintf('Forward model is missing for subject %d', i));
+            error('Forward model is missing for subject %d.', i);
         end
     end
     

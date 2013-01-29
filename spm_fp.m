@@ -25,7 +25,7 @@ function [M0,q0,X,x,f,M1,L] = spm_fp(M,x,u)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp.m 2521 2008-12-02 19:49:39Z karl $
+% $Id: spm_fp.m 5219 2013-01-29 17:07:07Z spm $
  
 % default: first level of hierarchical model
 %--------------------------------------------------------------------------
@@ -54,7 +54,7 @@ else
     
     % use x
     %----------------------------------------------------------------------
-    [X x] = spm_ndgrid(x);
+    [X,x] = spm_ndgrid(x);
 end
 
 % f(x,0)

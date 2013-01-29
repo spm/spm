@@ -34,7 +34,7 @@ function varargout=spm_XYZreg_Ex2(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_XYZreg_Ex2.m 4854 2012-08-22 13:29:10Z ged $
+% $Id: spm_XYZreg_Ex2.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %=======================================================================
@@ -75,10 +75,10 @@ varargout = {hMe};
 case 'setcoords'    % Set co-ordinates
 %=======================================================================
 % [xyz,d] = spm_XYZreg_Ex2('SetCoords',xyz,hMe,hC)
-if nargin<4, hC=0; else, hC=varargin{4}; end
-if nargin<3, error('Insufficient arguments'), else, hMe=varargin{3}; end
+if nargin<4, hC=0; else hC=varargin{4}; end
+if nargin<3, error('Insufficient arguments'), else hMe=varargin{3}; end
 %-Or possibly some clever code to guess the handle
-if nargin<2, error('Set co-ords to what!'), else, xyz=varargin{2}; end
+if nargin<2, error('Set co-ords to what!'), else xyz=varargin{2}; end
 
 UD = get(hMe,'UserData');
 
@@ -86,7 +86,7 @@ UD = get(hMe,'UserData');
 %-----------------------------------------------------------------------
 if hC<=0
     [xyz,d] = spm_XYZreg('RoundCoords',xyz,UD.M,UD.D);
-    if d>0 & nargout<2, warning(sprintf(...
+    if d>0 && nargout<2, warning(sprintf(...
         '%s: Co-ords rounded to nearest voxel center: Discrepancy %.2f',...
         mfilename,d)), end
 else
@@ -101,7 +101,7 @@ set(hMe,'String',sprintf('[%.3f, %.3f, %.3f]',xyz))
 
 %-Tell the registry, if we've not been called by the registry...
 %-----------------------------------------------------------------------
-if (~isempty(UD.hReg) & UD.hReg~=hC)
+if (~isempty(UD.hReg) && UD.hReg~=hC)
     spm_XYZreg('SetCoords',xyz,UD.hReg,hMe);
 end
 

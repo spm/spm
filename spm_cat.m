@@ -1,6 +1,6 @@
 function [x] = spm_cat(x,d)
-% converts a cell array into a matrix
-% FORMAT [x] = spm_cat(x,d);
+% Convert a cell array into a matrix
+% FORMAT [x] = spm_cat(x,d)
 % x - cell array
 % d - dimension over which to concatenate [default - both]
 %__________________________________________________________________________
@@ -22,15 +22,16 @@ function [x] = spm_cat(x,d)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 3333 2009-08-25 16:12:44Z karl $
+% $Id: spm_cat.m 5219 2013-01-29 17:07:07Z spm $
  
+
 % check x is not already a matrix
 %--------------------------------------------------------------------------
 if ~iscell(x), return, end
  
 % if concatenation over a specific dimension
 %--------------------------------------------------------------------------
-[n m] = size(x);
+[n,m] = size(x);
 if nargin > 1
  
     % concatenate over first dimension
@@ -67,7 +68,7 @@ for j = 1:m
     if iscell(x{i,j})
         x{i,j} = spm_cat(x{i,j});
     end
-    [u v]  = size(x{i,j});
+    [u,v]  = size(x{i,j});
     I(i,j) = u;
     J(i,j) = v;
 end
@@ -77,7 +78,7 @@ J     = max(J,[],1);
  
 % sparse and empty partitions
 %--------------------------------------------------------------------------
-[n m] = size(x);
+[n,m] = size(x);
 for i = 1:n
 for j = 1:m
     if isempty(x{i,j})

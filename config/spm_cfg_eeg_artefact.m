@@ -4,7 +4,7 @@ function artefact = spm_cfg_eeg_artefact
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 5076 2012-11-23 16:05:21Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ for i = 1:numel(job.methods)
     fun = fun{1};
     
     S.methods(i).fun = fun;
-    S.methods(i).settings = getfield(job.methods(i).fun, fun);
+    S.methods(i).settings = job.methods(i).fun.(fun);
 end
     
 out.D = spm_eeg_artefact(S);

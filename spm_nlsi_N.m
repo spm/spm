@@ -83,7 +83,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_nlsi_N.m 5219 2013-01-29 17:07:07Z spm $
  
 % options
 %--------------------------------------------------------------------------
@@ -302,7 +302,7 @@ for ip = 1:M.Nmax
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
-    [dxdp x] = spm_diff(IS,Ep,M,U,1,{Vp});
+    [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp});
  
     
     % check for dissipative dynamics
@@ -320,7 +320,7 @@ for ip = 1:M.Nmax
         
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
-        [dGdg G] = spm_diff(M.G,Eg,M,1,{Vg});
+        [dGdg,G] = spm_diff(M.G,Eg,M,1,{Vg});
         yp       = FS((x - x0)*G',M);
         
         % prediction errors - states

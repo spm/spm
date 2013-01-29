@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_grandmean.m 5219 2013-01-29 17:07:07Z spm $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -324,13 +324,13 @@ if ~isempty(megsens)
         h = axes;
     end
     
-    [amegsens afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    [amegsens,afid] = ft_average_sens(megsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Do = sensors(Do, 'MEG', amegsens);
     Do = fiducials(Do, afid);
 elseif ~isempty(eegsens)
     spm_figure('GetWin','Graphics');clf;
     h = axes;
-    [aeegsens afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
+    [aeegsens,afid] = ft_average_sens(eegsens, 'fiducials', fid, 'weights', Ntrials, 'feedback', h);
     Do = sensors(Do, 'EEG', aeegsens);
     Do = fiducials(Do, afid);
 end

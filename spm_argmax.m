@@ -1,6 +1,6 @@
-function [p f] = spm_argmax(fun,varargin)
+function [p,f] = spm_argmax(fun,varargin)
 % function minimisation using Gauss-Newton
-% FORMAT [P f] = spm_argmax('fun',varargin,i)
+% FORMAT [P,f] = spm_argmax('fun',varargin,i)
 %
 % fun      - inline function f - fun(P,varargin)
 % varargin - function arguments
@@ -16,7 +16,7 @@ function [p f] = spm_argmax(fun,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_argmax.m 4297 2011-04-07 18:12:29Z karl $
+% $Id: spm_argmax.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % arguments
@@ -25,7 +25,7 @@ x     = varargin(1:end - 1);
 i     = varargin{end};
 
 % Gauss-Newton scheme
-%======================================================================
+%==========================================================================
 v     = -8;
 for j = 1:64
     
@@ -35,7 +35,7 @@ for j = 1:64
     
     % get derivatives of function w.r.t. argument
     %----------------------------------------------------------------------
-    [dfdpp dfdp f] = spm_diff(fun,x{:},[i i]);
+    [dfdpp,dfdp,f] = spm_diff(fun,x{:},[i i]);
     dfdp           = spm_vec(dfdp);
     dfdpp          = spm_cat(dfdpp');
     dfdpp          = -spm_sqrtm(dfdpp'*dfdpp);
@@ -93,5 +93,5 @@ for j = 1:64
 end
 
 % output
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 p = x{i};

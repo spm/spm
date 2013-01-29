@@ -12,11 +12,11 @@ function [M1] = spm_eeg_inv_rigidreg(data1, data2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_rigidreg.m 4082 2010-10-07 16:11:48Z guillaume $
+% $Id: spm_eeg_inv_rigidreg.m 5219 2013-01-29 17:07:07Z spm $
  
 M       = spm_detrend(data1');
 S       = spm_detrend(data2');
-[U A V] = svd(S'*M);
+[U,A,V] = svd(S'*M);
 R1      = V*U';
 if det(R1) < 0
     B      = eye(3);

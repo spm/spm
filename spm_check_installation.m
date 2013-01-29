@@ -10,13 +10,13 @@ function varargout = spm_check_installation(action)
 % Return a lower bound of SPM SVN Revision number.
 % 
 % FORMAT spm_check_installation('build')
-% Build signature of SPM distribution as used by previous option.
+% Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_check_installation.m 5219 2013-01-29 17:07:07Z spm $
 
 if isdeployed, return; end
 

@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_image.m 5219 2013-01-29 17:07:07Z spm $
 
 
-SVNid = '$Rev: 5160 $';
+SVNid = '$Rev: 5219 $';
 
 global st
 
@@ -223,7 +223,7 @@ switch lower(action)
         'Save Matrix', 'Yes', 'No', 'Yes');
     if strcmpi(sv, 'yes')
         if ~isempty(P{1})
-            [p n]   = spm_fileparts(P{1});
+            [p,n]   = spm_fileparts(P{1});
             fnm     = fullfile(p, [n '_reorient.mat']);
         else
             fnm     = 'reorient.mat';

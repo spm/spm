@@ -1,6 +1,6 @@
 function [a] = spm_uncat(x,a)
 % converts a matrix into an array
-% FORMAT [a] = spm_uncat(x,a);
+% FORMAT [a] = spm_uncat(x,a)
 % x - matrix
 % a - cell array
 %
@@ -11,15 +11,15 @@ function [a] = spm_uncat(x,a)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_uncat.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_uncat.m 5219 2013-01-29 17:07:07Z spm $
 
 % fill in varargout
 %--------------------------------------------------------------------------
-[p q] = size(a);
+[p,q] = size(a);
 for i = 1:p
     for j = 1:q
-          m(i,j)  = size(a{i,j},1);
-          n(i,j)  = size(a{i,j},2);
+          m(i,j) = size(a{i,j},1);
+          n(i,j) = size(a{i,j},2);
     end
 end
 m     = max(m',[],1);

@@ -17,7 +17,7 @@ function [p,pc,R2] = spm_mvb_cvk2(MVB,k)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb_cvk2.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_mvb_cvk2.m 5219 2013-01-29 17:07:07Z spm $
  
  
 %-partition order
@@ -69,7 +69,7 @@ qE    = zeros(size(MVB.Y,2),k);
 % k-fold cross-validation
 %==========================================================================
 for i = 1:k
-    [px qx qe] = mvb_cv(MVB,i,k);
+    [px,qx,qe] = mvb_cv(MVB,i,k);
     pX         = pX + px;
     qX         = qX + qx;
     qE(:,i)    = qe;
@@ -81,7 +81,7 @@ end
  
 % test correlation
 %--------------------------------------------------------------------------
-[T df] = spm_ancova(X,V,qX,1);
+[T,df] = spm_ancova(X,V,qX,1);
 p      = 1 - spm_Tcdf(T,df(2));
  
 % percent correct (after projection)

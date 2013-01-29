@@ -5,7 +5,7 @@ function results = spm_cfg_eeg_inv_results
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_results.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_cfg_eeg_inv_results.m 5219 2013-01-29 17:07:07Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -85,7 +85,7 @@ for i = 1:numel(job.D)
     D.val = job.val;      
             
     if ~isfield(D.inv{D.val}, 'inverse') || ~isfield(D.inv{D.val}.inverse, 'J')
-        error(sprintf('Imaging source reconstruction is missing for subject %d', i));
+        error('Imaging source reconstruction is missing for subject %d.', i);
     end
     
     contrast.woi = fix(sort(job.woi,2));

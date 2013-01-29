@@ -203,7 +203,7 @@ function [X,Pnames,Index,idx,jdx,kdx]=spm_DesMtx(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesMtx.m 4439 2011-08-25 17:47:07Z guillaume $
+% $Id: spm_DesMtx.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Parse arguments for recursive construction of design matrices
@@ -347,7 +347,7 @@ if Constraint(1)=='~'
 end
 
 %-Build design matrix based on unique factor combinations
-[X,null,sIndex,idx,jdx,kdx]=spm_DesMtx(rIndex,[Constraint,'(1)']);
+[X,Pnames,sIndex,idx,jdx,kdx]=spm_DesMtx(rIndex,[Constraint,'(1)']);
 
 %-Sort out Index matrix
 Index = I(kdx(idx),:)';

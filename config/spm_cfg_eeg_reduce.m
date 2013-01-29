@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ S.prefix = job.prefix;
 S.channels = spm_cfg_eeg_channel_selector(job.channels);
 
 S.method = cell2mat(fieldnames(job.method));
-S.settings = getfield(job.method, S.method);
+S.settings = job.method.(S.method);
 
 D = spm_eeg_reduce(S);
 

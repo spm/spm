@@ -3,14 +3,14 @@ function out = spm_run_exp_frames(cmd, job)
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_exp_frames.m 3589 2009-11-20 17:17:41Z guillaume $
+% $Id: spm_run_exp_frames.m 5219 2013-01-29 17:07:07Z spm $
 
 switch lower(cmd)
     case 'run'
         out.files = {};
         for k = 1:numel(job.files)
             % Strip existing frame spec, if any
-            [p n e v] = spm_fileparts(job.files{k});
+            [p,n,e,v] = spm_fileparts(job.files{k});
             V = spm_vol(fullfile(p, [n e]));
             if all(isfinite(job.frames))
                 Vframes = job.frames(job.frames <= numel(V));

@@ -88,7 +88,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_LAP.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % find or create a DEM figure
@@ -105,7 +105,7 @@ end
  
 % check model, data and priors
 %==========================================================================
-[M Y U] = spm_DEM_set(DEM);
+[M,Y,U] = spm_DEM_set(DEM);
 
 
 % set regularisation
@@ -365,8 +365,8 @@ for iN = 1:nN
             
             % prediction errors (E) and precision vectors (p)
             %--------------------------------------------------------------
-            [E dE] = spm_DEM_eval(M,qu,qp);
-            [p dp] = spm_LAP_eval(M,qu,qh);
+            [E,dE] = spm_DEM_eval(M,qu,qp);
+            [p,dp] = spm_LAP_eval(M,qu,qh);
             
  
             % gradients of log(det(iS)) dDd...

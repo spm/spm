@@ -36,9 +36,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5217 2013-01-29 16:10:28Z vladimir $
+% $Id: spm_eeg_epochs.m 5219 2013-01-29 17:07:07Z spm $
 
-SVNrev = '$Rev: 5217 $';
+SVNrev = '$Rev: 5219 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -87,15 +87,15 @@ if all(isfield(S, {'trialdef', 'timewin'}))
 elseif isfield(S, 'trl')
     if ischar(S.trl)
         trlfile = load(S.trl);
-        trl = getfield(trlfile, 'trl');
+        trl     = trlfile.trl;
         
         if isfield(trlfile, 'conditionlabels')
-            conditionlabels = getfield(trlfile, 'conditionlabels');
+            conditionlabels = trlfile.conditionlabels;
         else
             conditionlabels = 'Undefined';
         end
     else
-        trl = S.trl;
+        trl     = S.trl;
         if isfield(S, 'conditionlabels')
             conditionlabels = S.conditionlabels;
         else
@@ -221,9 +221,9 @@ function event = select_events(event, timeseg)
 % Utility function to select events according to time segment
 
 if ~isempty(event)
-    [time ind] = sort([event(:).time]);
+    [time,ind] = sort([event(:).time]);
 
-    selectind = ind(time >= timeseg(1) & time <= timeseg(2));
+    selectind  = ind(time >= timeseg(1) & time <= timeseg(2));
 
-    event = event(selectind);
+    event      = event(selectind);
 end

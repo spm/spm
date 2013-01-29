@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 4641 2012-02-03 12:40:29Z guillaume $
+% $Id: spm_spm_vb.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Get SPM.mat if necessary
@@ -253,7 +253,7 @@ xdim   = DIM(1); ydim = DIM(2); zdim = DIM(3);
 %-Get design matrix
 %-----------------------------------------------------------------------
 xX     = SPM.xX;
-[nScan nBeta] = size(xX.X);
+[nScan,nBeta] = size(xX.X);
 nPsd   = nBeta;
 
 %-Find number of pre-specified contrasts
@@ -586,7 +586,7 @@ for z = 1:zdim
 
         %-Get data & construct analysis mask
         %---------------------------------------------------------------
-        Cm    = logical(ones(1,nVox));               %-current mask
+        Cm    = true(1,nVox);                        %-current mask
 
         %-Compute explicit mask
         % (note that these may not have same orientations)
@@ -626,7 +626,7 @@ for z = 1:zdim
             Y(i,Cm)  = spm_get_data(VY(i),xyz(:,Cm));
 
             Cm(Cm)   = Y(i,Cm) > xM.TH(i);      %-Threshold (& NaN) mask
-            if xM.I & xM.TH(i) < 0  %-Use implicit mask
+            if xM.I && xM.TH(i) < 0             %-Use implicit mask
                 Cm(Cm) = abs(Y(i,Cm)) > eps;
             end
         end
@@ -811,7 +811,7 @@ for z = 1:nLb
             end
             % convert probabilities to discrete values
             SPM.PPM.priors.gamma=zeros(nVox,SPM.PPM.priors.S);
-            [yy ii]=max(gamma');
+            [yy,ii]=max(gamma');
             for j=1:SPM.PPM.priors.S
                 SPM.PPM.priors.gamma(find(ii==j),j)=1;
             end

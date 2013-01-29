@@ -1,6 +1,6 @@
-function [BB vx] = spm_get_bbox(V, thr, premul)
+function [BB,vx] = spm_get_bbox(V, thr, premul)
 % Compute volume's bounding box, for full field of view or object bounds
-% FORMAT [BB vx] = spm_get_bbox(V, thr)
+% FORMAT [BB,vx] = spm_get_bbox(V, thr)
 % V   - mapped image volume(s) (from spm_vol) or filename (empty for GUI)
 % thr - threshold, such that BB contains voxels with intensities > thr
 %       or strings 'nz', 'nn', fv', for non-zero, non-NaN, or field of view
@@ -10,10 +10,10 @@ function [BB vx] = spm_get_bbox(V, thr, premul)
 %       i.e. BB = [minX minY minZ; maxX maxY maxZ].
 % vx  - a [1 x 3] vector of voxel dimensions {mm}.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_bbox.m 4205 2011-02-21 15:39:08Z guillaume $
+% $Id: spm_get_bbox.m 5219 2013-01-29 17:07:07Z spm $
 
 % Undocumented expert options:
 % V           - can be a 4D @nifti object (but not 5D), image-based BBs
@@ -71,7 +71,7 @@ elseif strcmpi(thr, 'old')
     end
 else
     % image-based bounding box using voxel intensities
-    [img XYZ] = spm_read_vols(V);
+    [img,XYZ] = spm_read_vols(V);
     if ischar(thr)
         switch lower(thr)
             case 'nn'  % non-NaN, though include +/- Inf in computation

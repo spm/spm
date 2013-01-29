@@ -67,7 +67,7 @@ function [DEM] = spm_LAPS(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAPS.m 3878 2010-05-07 19:53:54Z karl $
+% $Id: spm_LAPS.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % find or create a DEM figure
@@ -84,7 +84,7 @@ end
 
 % check model, data and priors
 %==========================================================================
-[M Y U] = spm_DEM_set(DEM);
+[M,Y,U] = spm_DEM_set(DEM);
 
 
 % number of iterations
@@ -328,8 +328,8 @@ for iN = 1:nN
             
             % prediction errors (E) and precision vectors (p)
             %--------------------------------------------------------------
-            [E dE]  = spm_DEM_eval(M,qu,qp);
-            [p dp]  = spm_LAP_eval(M,qu,qh);
+            [E,dE]  = spm_DEM_eval(M,qu,qp);
+            [p,dp]  = spm_LAP_eval(M,qu,qh);
             
  
             % gradients of log(det(iS)) dDd...
@@ -337,8 +337,8 @@ for iN = 1:nN
             
             % get precision matrices
             %--------------------------------------------------------------
-            [Rh Vh] = spm_DEM_R(n,exp(qh.sh));
-            [Rg Vg] = spm_DEM_R(n,exp(qh.sg));
+            [Rh,Vh] = spm_DEM_R(n,exp(qh.sh));
+            [Rg,Vg] = spm_DEM_R(n,exp(qh.sg));
             iSh     = diag(exp(p.h));
             iSg     = diag(exp(p.g));
             iS      = blkdiag(kron(Rh,iSh),kron(Rg,iSg));

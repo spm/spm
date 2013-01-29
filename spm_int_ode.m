@@ -60,7 +60,7 @@ function [y] = spm_int_ode(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_ode.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_int_ode.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % convert U to U.u if necessary
@@ -108,13 +108,13 @@ ode   = inline('spm_vec(f(spm_unvec(x,M.x),U.u(ceil(t/U.dt),:),P,M))',...
            
 
 OPTIONS = odeset;
-[t x]   = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
+[t,x]   = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
 
 % Give the integrator something to work with for 'flat' inputs:
 %--------------------------------------------------------------------------
 if norm(x,1) < exp(-16)
    U.u   = spm_conv(U.u,8,0); 
-   [t x] = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
+   [t,x] = ode113(ode,tspan,spm_vec(M.x),OPTIONS,P,M,U,f);
 end
  
  

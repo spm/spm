@@ -42,7 +42,7 @@ function [def,jac] = spm_get_image_def(P,ds,defa,ddefa)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_get_image_def.m 4310 2011-04-18 16:07:35Z guillaume $
+% $Id: spm_get_image_def.m 5219 2013-01-29 17:07:07Z spm $
 
 
 
@@ -75,7 +75,7 @@ if isreal(P)
    T = inv(ds.P(P).mat) * ds.P(1).mat;
    q = ds.q(P,:);
 else
-   if ~isfield(P,'mat') P = spm_vol(P); end
+   if ~isfield(P,'mat'), P = spm_vol(P); end
    T = inv(P.mat) * ds.P(1).mat;
    p = [1 1 1 180/pi 180/pi 180/pi zeros(1,6)] .* spm_imatrix(T);
    q = zeros(1,prod(size(ds.fot))+size(ds.sot,1));

@@ -30,11 +30,11 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % out - a struct with a single field .files. out.files contains a
 %       cellstring with filenames of created files. If no files are
 %       created, a cell with an empty string {''} is returned.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 4698 2012-03-21 14:00:44Z john $
+% $Id: spm_dicom_convert.m 5219 2013-01-29 17:07:07Z spm $
 
 
 if nargin<2, opts     = 'all'; end

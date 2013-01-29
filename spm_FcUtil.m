@@ -127,7 +127,7 @@ function varargout = spm_FcUtil(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean-Baptiste Poline
-% $Id: spm_FcUtil.m 4137 2010-12-15 17:18:32Z guillaume $
+% $Id: spm_FcUtil.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Format arguments
@@ -192,7 +192,7 @@ if Fc.STAT=='T' &&  ~(any(strcmp(set_action,{'c+','c'})))
    warning('enter T stat with contrast - here no check rank == 1');
 end
 
-[sC sL] = spm_sp('size',sX);
+[sC,sL] = spm_sp('size',sX);
 
 %- allow to define the contrast the old (version 1) way ?
 %- NO. v1 = strcmp(action,'v1set');
@@ -202,7 +202,7 @@ switch set_action,
         Fc.iX0  = set_action;
         c = spm_sp(':', sX, varargin{5});
         if isempty(c)
-            [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,[]);
+            [Fc.X1o.ukX1o,Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,[]);
             %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,[]);
             Fc.c    = c;
         elseif size(c,1) ~= sL,
@@ -216,7 +216,7 @@ switch set_action,
                 error('trying to define a t that looks like an F');
             end
             Fc.c   = c;
-            [Fc.X1o.ukX1o Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,c);
+            [Fc.X1o.ukX1o,Fc.X0.ukX0] = spm_SpUtil('+c->Tsp',sX,c);
             %- v1 [Fc.X1o Fc.X0] = spm_SpUtil('c->Tsp',sX,c);
         end
 
@@ -508,7 +508,7 @@ if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
 
 %-create an F-contrast for all the Fc2
 %--------------------------------------------------------------------------
-str  = Fc2(1).name; for i=2:L2 str = [str ' ' Fc2(i).name]; end;
+str  = Fc2(1).name; for i=2:L2, str = [str ' ' Fc2(i).name]; end;
 Fc2  = spm_FcUtil('Set',str,'F','c+',cat(2,Fc2(:).c),sX);
 
 if sf_isempty_X1o(Fc2) || sf_isnull(Fc2,sX)
@@ -577,7 +577,7 @@ end
 if ~spm_sp('isspc',sX), sX = spm_sp('set',sX);  end;
 
 
-[idxFc2 idxFc1] =  sf_in(Fc1, sX, Fc2);
+[idxFc2,idxFc1] =  sf_in(Fc1, sX, Fc2);
 if isempty(idxFc2), idxFc2 = 0; end
 if isempty(idxFc1), idxFc1 = 0; end
 

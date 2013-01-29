@@ -4,7 +4,7 @@ function ppis = spm_cfg_ppi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_ppi.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: spm_cfg_ppi.m 5219 2013-01-29 17:07:07Z spm $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -140,7 +140,7 @@ switch char(fieldnames(job.type))
     otherwise
         error('Unknown type of analysis.');
 end
-[p n] = fileparts(job.name);
+n = spm_file(job.name,'basename');
 out.ppimat = cellstr(fullfile(fileparts(job.spmmat{1}),['PPI_' n '.mat']));
 
 %-------------------------------------------------------------------------

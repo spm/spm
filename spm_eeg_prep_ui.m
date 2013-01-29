@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5177 2013-01-07 11:36:08Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5219 2013-01-29 17:07:07Z spm $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5177 $';
+SVNrev = '$Rev: 5219 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -553,7 +553,7 @@ if ~isempty(D)
         return
     else
         
-        [selection ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
+        [selection,ok]= listdlg('ListString', chanlist, 'SelectionMode', 'multiple',...
             'InitialValue', strmatch(type, D.chantype) ,'Name', ['Set type to ' type], 'ListSize', [400 300]);
         
         selection(strmatch('MEG', chantype(D, selection))) = [];
@@ -660,7 +660,7 @@ D = getD;
 S = [];
 S.task = 'loadmegsens';
 S.D = D;
-[S.source sts] = spm_select(1, '\.*', 'Select a raw MEG data file');
+[S.source,sts] = spm_select(1, '\.*', 'Select a raw MEG data file');
 if ~sts, return; end
 
 D = spm_eeg_prep(S);
@@ -700,7 +700,7 @@ if strcmp(D.modality(1, 0), 'Multimodal')
             fidnum = 0;
             while ~all(isspace(fidlabel))
                 fidnum = fidnum+1;
-                [lblshape{fidnum} fidlabel] = strtok(fidlabel);
+                [lblshape{fidnum},fidlabel] = strtok(fidlabel);
             end
             if (fidnum < 3)
                 error('At least 3 labeled fiducials are necessary');
@@ -1380,7 +1380,7 @@ if numel(intersect(upper(lblshape), upper(lblfid))) < 3
     else
         regfid = {};
         for i = 1:length(lblfid)
-            [selection ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
+            [selection,ok]= listdlg('ListString',lblshape, 'SelectionMode', 'single',...
                 'InitialValue', strmatch(upper(lblfid{i}), upper(lblshape)), ...
                 'Name', ['Select matching fiducial for ' lblfid{i}], 'ListSize', [400 300]);
             

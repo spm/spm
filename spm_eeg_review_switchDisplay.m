@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 5078 2012-11-25 15:08:05Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 5219 2013-01-29 17:07:07Z spm $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -323,7 +323,7 @@ if ~~D.PSD.source.VIZU.current
             try
                 ve = D.PSD.source.VIZU.ve;
             catch
-                [mj ve] = max(max(abs(J),[],2));
+                [mj,ve] = max(max(abs(J),[],2));
                 D.PSD.source.VIZU.ve =ve;
             end
             Jve = J(D.PSD.source.VIZU.ve,:);

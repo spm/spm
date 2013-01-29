@@ -33,7 +33,7 @@ function [M0,M1,M2,L1,L2] = spm_soreduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_soreduce.m 3696 2010-01-22 14:22:31Z karl $
+% $Id: spm_soreduce.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % set up
@@ -75,8 +75,8 @@ end
 
 % f(x(0),0) and derivatives
 %--------------------------------------------------------------------------
-[dfdxx dfdx f0] = spm_diff(funx,x,u,P,M,[1 1]);
-[dfdxu dfdx f0] = spm_diff(funx,x,u,P,M,[1 2]);
+[dfdxx,dfdx,f0] = spm_diff(funx,x,u,P,M,[1 1]);
+[dfdxu,dfdx,f0] = spm_diff(funx,x,u,P,M,[1 2]);
 dfdu  = spm_diff(funx,x,u,P,M,2);
 m     = length(dfdxu);          % m inputs
 n     = length(f0);             % n states
@@ -113,7 +113,7 @@ if nargout < 4, return, end
 
 % l(x(0),0)
 %--------------------------------------------------------------------------
-[dgdx g0] = spm_diff(fung,x,u,P,M,1);
+[dgdx,g0] = spm_diff(fung,x,u,P,M,1);
 L1    = spm_cat({(g0 - dgdx*spm_vec(x)), dgdx});
 l     = length(g0);
 

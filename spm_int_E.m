@@ -58,7 +58,7 @@ function [y] = spm_int_E(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_E.m 2707 2009-02-06 19:51:34Z karl $
+% $Id: spm_int_E.m 5219 2013-01-29 17:07:07Z spm $
 
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
@@ -107,19 +107,19 @@ end
 % check for delay operator
 %--------------------------------------------------------------------------
 try
-    [fx dfdx D] = f(x,u,P,M);
+    [fx,dfdx D] = f(x,u,P,M);
 catch
     D = 1;
 end
 
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
-[dJdx J] = spm_diff(f,x,u,P,M,[1 1]);
-[dJdu J] = spm_diff(f,x,u,P,M,[1 2]);
+[dJdx,J] = spm_diff(f,x,u,P,M,[1 1]);
+[dJdu,J] = spm_diff(f,x,u,P,M,[1 2]);
 
 % eigensytem
 %--------------------------------------------------------------------------
-[V S] = eig(full(D*J));
+[V,S] = eig(full(D*J));
 i     = find(diag(abs(real(S))) > exp(-16));
 V     = V(:,i);
 S     = S(i,i);

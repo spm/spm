@@ -5,7 +5,7 @@ function c = spm_nCr(n,r)
 % n - Number of objects
 % r - Number of objects to choose
 % c - n choose r
-%_______________________________________________________________________
+%__________________________________________________________________________
 %
 % spm_nCr returns the number of ways of choosing r objects from a pool
 % of n objects, without replacement, order unimportant. Equivalently:
@@ -21,7 +21,7 @@ function c = spm_nCr(n,r)
 % dimensons.
 %
 % Algorithm:
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % For vary small n, nCr can be computed naively as the ratio of
 % factorials, using gamma(x+1) to return x!. For moderately sized n, n!
 % (& r! &/or (n-r)!) become very large, and naive computation isn't
@@ -43,7 +43,7 @@ function c = spm_nCr(n,r)
 % of n & r. See Press et al., Sec6.1 for further details.
 %
 % References
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Evans M, Hastings N, Peacock B (1993)
 %   "Statistical Distributions"
 %    2nd Ed. Wiley, New York
@@ -56,26 +56,25 @@ function c = spm_nCr(n,r)
 %   "Numerical Recipes in C"
 %    Cambridge
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_nCr.m 1143 2008-02-07 19:33:33Z spm $
-
+% $Id: spm_nCr.m 5219 2013-01-29 17:07:07Z spm $
 
 
 %-Format arguments, note & check sizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 ad = [ndims(n);ndims(r)];
 dc = max(ad);
 as = [  [size(n),ones(1,dc-ad(1))];...
     [size(r),ones(1,dc-ad(2))]     ];
 sc = max(as);
 xa = prod(as,2)>1;
-if (sum(xa)==2 & any(diff(as))), error('non-scalar args must match in size'), end
+if sum(xa)==2 && any(diff(as)), error('non-scalar args must match in size'), end
 
 %-Computation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 %-Initialise result to zeros
 c = zeros(sc);
 
@@ -89,13 +88,13 @@ if xa(2), Qr=Q; else Qr=1; end
 c(Q) = round(exp(gammaln(n(Qn)+1) -gammaln(r(Qr)+1) - gammaln(n(Qn)-r(Qr)+1)));
 
 %-Return
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 return
 
 
-%=======================================================================
+%==========================================================================
 %-Direct computation method: (For interest)
-%=======================================================================
+%==========================================================================
 % The following cunning direct computation is faster than using log
 % gammas, but is rather difficult to vectorise.
 %if r<n/2

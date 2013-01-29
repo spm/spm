@@ -1,5 +1,5 @@
 function [y] = spm_int_B(P,M,U)
-% integrates a MIMO nonlinear system using a bilinear Jacobian
+% Integrate a MIMO nonlinear system using a bilinear Jacobian
 % FORMAT [y] = spm_int_B(P,M,U)
 % P   - model parameters
 % M   - model structure
@@ -59,7 +59,7 @@ function [y] = spm_int_B(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_B.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int_B.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % convert U to U.u if necessary
@@ -96,15 +96,15 @@ end
 % check for delay operator
 %--------------------------------------------------------------------------
 try
-    [fx dfdx D] = f(x,u,P,M);
+    [fx,dfdx,D] = f(x,u,P,M);
 catch
     D = 1;
 end
  
 % get Jacobian and its derivatives
 %--------------------------------------------------------------------------
-[dJdx J]  = spm_diff(f,x,u,P,M,[1 1]);
-[dJdu J]  = spm_diff(f,x,u,P,M,[1 2]);
+[dJdx,J]  = spm_diff(f,x,u,P,M,[1 1]);
+[dJdu,J]  = spm_diff(f,x,u,P,M,[1 2]);
  
 % integrate
 %==========================================================================

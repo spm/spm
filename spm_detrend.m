@@ -13,12 +13,12 @@ function y = spm_detrend(x,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_detrend.m 4697 2012-03-20 20:14:10Z karl $
+% $Id: spm_detrend.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % defaults
 %--------------------------------------------------------------------------
-[m n] = size(x);
+[m,n] = size(x);
 if ~m || ~n
     y = [];
     return

@@ -15,7 +15,7 @@ function D = spm_mldivide(A, B)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Ged Ridgway
-% $Id: spm_mldivide.m 4360 2011-06-14 16:46:37Z ged $
+% $Id: spm_mldivide.m 5219 2013-01-29 17:07:07Z spm $
 
 % A problem with this (and with original spm_inv) is that negative definite
 % matrices (or those with mixed positive and negative eigenvalues) will not
@@ -32,7 +32,7 @@ D = A \ B;
 if ~isempty(lastwarn)
     % Warning would have occurred, but was turned off, try regularising,
     % starting with low TOL and increasing if required...
-    [m n] = size(A);
+    [m,n] = size(A);
     TOL = max(eps(norm(A, 'inf')) * max(m, n), exp(-32));
     while ~isempty(lastwarn)
         lastwarn('');

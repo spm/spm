@@ -9,10 +9,10 @@ function [i] = spm_fieldindices(X,varargin)
 % i         - vector of indices or feildname{s}
 %
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_fieldindices.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % if varargin is a vector simply return fieldnames
@@ -42,9 +42,9 @@ for i = 1:length(varargin)
     if ischar(varargin{i}) && isfield(X0,varargin{i})
         
         x  = X0;
-        f  = getfield(x,varargin{i});
+        f  = x.(varargin{i});
         f  = spm_unvec(spm_vec(f) + 1,f);
-        x  = setfield(x,varargin{i},f);
+        x.(varargin{i}) = f;
         ix = ix + spm_vec(x);
         
     else

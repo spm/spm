@@ -10,7 +10,7 @@ function [xCon,SPM]= spm_vb_logbf (SPM,XYZ,xCon,ic)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_logbf.m 4835 2012-08-09 17:12:18Z guillaume $
+% $Id: spm_vb_logbf.m 5219 2013-01-29 17:07:07Z spm $
 
 % Get approximate posterior covariance for ic
 % using Taylor-series approximation
@@ -57,7 +57,7 @@ end
 %-Loop over voxels
 %=======================================================================
 Nvoxels = size(XYZ,2);
-D       = repmat(NaN,reshape(SPM.xVol.DIM(1:3),1,[]));
+D       = NaN(reshape(SPM.xVol.DIM(1:3),1,[]));
 
 spm_progress_bar('Init',100,'Estimating Bayes factor','');
 

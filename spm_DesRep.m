@@ -1,24 +1,20 @@
 function varargout = spm_DesRep(varargin)
 % Design reporting utilities
 % FORMAT varargout = spm_DesRep(action,varargin)
-%       - An embedded callback, multi-function function
-%       - For detailed programmers comments, see format specifications
-%         in main body of code
-%_______________________________________________________________________
 %
-% spm_DesRep (design reporting) is a multi-function function providing
-% a suite of utility functions for various graphical reports on a given
-% experimental design, embodied in the design matrix structure and
-% other associated data structures.
+% spm_DesRep (design reporting) is a suite of utility functions for various
+% graphical reports on a given experimental design, embodied in the design
+% matrix structure and other associated data structures.
+% For detailed programmers comments, see format specifications in main body
+% of code.
 %
 %                           ----------------
 %
-% By default, spm_DesRep prompts for selection of a SPM.mat file
+% By default, spm_DesRep prompts for selection of a SPM.mat file.
 %
 % Given details of a design spm_DesRep sets up a "Design" menu in the
 % SPM 'Interactive' window.  The menu options launch various graphical
-% summaries of the current SPM design in the SPM 'Graphics' window, and
-% has an option to go ahead and estimate the design.
+% summaries of the current SPM design in the SPM 'Graphics' window.
 %
 % * Design Matrix  - Displays graphical summary of the design matrix
 %
@@ -32,14 +28,14 @@ function varargout = spm_DesRep(varargin)
 %     design matrix ('normal' click - "left" mouse button usually), the
 %     image filename ('extend' mouse click - "middle" mouse), or parameter
 %     name ('alt' click - "right" mouse). Double clicking the design matrix
-%     image extracts the design matrix into the base MatLab workspace.
+%     image extracts the design matrix into the base MATLAB workspace.
 %
 %     Under the design matrix the parameter estimability is displayed as a
 %     1xp matrix of grey and white squares. Parameters that are not
 %     uniquely specified by the model are shown with a grey patch. Surfing
 %     the estimability image reports the parameter names and their
 %     estimability. Double clicking extracts the estimability vector into
-%     the base MatLab workspace.
+%     the base MATLAB workspace.
 %
 % * Design orthogonality - Displays orthogonality matrix for this design
 %
@@ -69,9 +65,8 @@ function varargout = spm_DesRep(varargin)
 %     holding or dragging) the cursor around the design orthogonality
 %     image reports the orthogonality of the correponding pair of
 %     columns. Double clicking on the orthogonality matrix extracts
-%     the contrast orthogonality matrix into the base MatLab
+%     the contrast orthogonality matrix into the base MATLAB
 %     workspace.
-%
 %
 % * Explore design - Sub-menu's for detailed design exploration.
 %
@@ -99,10 +94,6 @@ function varargout = spm_DesRep(varargin)
 %     array are displayed. The corresponding design matrix column(s)
 %     is(are) highlighted.
 %
-% * Estimate - if the design hasn't been estimated (and all necessary
-%              parameters are available), then this option starts
-%              parameter estimation using spm_spm.m.
-%
 % * Clear    - clears Graphics window, re-instating Results section MIP
 %              & design matrix graphics (if in the results section).
 % * Help     - displays this text!
@@ -116,24 +107,23 @@ function varargout = spm_DesRep(varargin)
 % reports the contrast weight depicted under the cursor. The format of
 % the report string is:
 %   #{T/F}: <name> (ij) = <weight>
-% ...where # is the contrast number, T/F indicates the type of
-% contrast, <name> the name given to the contrast, ij the index into
-% the contrast vector/matrix weight under the cursor, and <weight> the
-% corresponding contrast weight.
+% ...where # is the contrast number, T/F indicates the type of contrast,
+% <name> the name given to the contrast, ij the index into the contrast
+% vector/matrix weight under the cursor, and <weight> the corresponding
+% contrast weight.
 %
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
-%_______________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_DesRep.m 5219 2013-01-29 17:07:07Z spm $
 
 
-
-%=======================================================================
+%==========================================================================
 % - FORMAT specifications for embedded functions
-%=======================================================================
+%==========================================================================
 %( This is a multi function function, the first argument is an action  )
 %( string, specifying the particular action function to take.          )
 %
@@ -142,16 +132,16 @@ function varargout = spm_DesRep(varargin)
 % SPM    - structure containing design details. Required fields are:
 %
 % .xX    - design matrix structure
-%          (See spm_{fmri_}spm_ui.m & spm_spm.m for formats)
+%          (See spm_fmri_spm_ui.m & spm_spm.m for formats)
 % .xY.P  - (char or cellstr) array of filenames
-% .xY.VY - array of mmap file handles (from spm_{fmri_}spm_ui.m)
+% .xY.VY - array of file handles (from spm_fmri_spm_ui.m)
 % .xM    - Masking structure
 % .xC    - Covariate definition structure (not fMRI)
 %          (see spm_spm_ui.m for format)
 % .Sess  - fMRI session structure (not needed if not fMRI)
 %          (see spm_fmri_spm_ui.m for format)
 % .xsDes - Design description structure
-%          (see spm_{fmri_}spm_ui.m for details)
+%          (see spm_fmri_spm_ui.m for details)
 % .swd   - SPM working directory - directory where configuration file resides
 %          [defaults to empty]
 % .SPMid - (recommended) ID string of creator program.
@@ -178,7 +168,7 @@ function varargout = spm_DesRep(varargin)
 %         - the first of {xX.nX, xX.xKXs.X, xX.X} is used for display
 % .nX     - Desgin matrix already scaled for display
 % .xKXs.X - temporally filtered design matrix (within space structure)
-% .X      - "raw" design matrix (as setup by spm{,_fmri}_ui routines)
+% .X      - "raw" design matrix (as setup by spm_fmri_spm_ui)
 % .name   - [optional] px1 CellStr of parameter names
 % fnames  - [optional] nxv CellStr of filenames (i.e. reshape(cellstr(SPM.xY.P),size(V)))
 % xs      - [optional] structure of extra strings containing descriptive
@@ -187,8 +177,8 @@ function varargout = spm_DesRep(varargin)
 %           (which must be strings or CellStr) printed alongside.
 %
 % FORMAT spm_DesRep('fMRIDesMtx',SPM,s,i)
-% Interactive review of fMRI design matrix
-% Sess(s).U(i)  -  see spm_fMRI_design for session s, trial i.
+% Interactive review of fMRI design matrix.
+% Sess(s).U(i)  -  see spm_fMRI_design for session s, trial i
 %
 % FORMAT spm_DesRep('Covs',xC,X,Xnames)
 % Plots the covariates and describes how they are included into the model.
@@ -197,7 +187,7 @@ function varargout = spm_DesRep(varargin)
 % X      - nxp Design matrix
 % Xnames - px1 CellStr of parameter names
 %
-% ======================================================================
+% =========================================================================
 % Utility functions and CallBack handlers:
 %
 % FORMAT s = spm_DesRep('ScanTick',nScan,lim)
@@ -255,17 +245,16 @@ function varargout = spm_DesRep(varargin)
 % 'ButtonUpFcn' CallBack for ending surfing of contrast depictions
 %
 % The contrast number, handle of text object to use for reporting and
-% contrast structure (for this contrast) should be saved in the
-% UserData of the image object as a structure with fields 'i', 'h' &
-% 'xCon' respectively.
-%
-%_______________________________________________________________________
+% contrast structure (for this contrast) should be saved in the UserData
+% of the image object as a structure with fields 'i', 'h' & 'xCon'
+% respectively.
+%__________________________________________________________________________
 
 
-SVNid = '$Rev: 5039 $'; 
+SVNid = '$Rev: 5219 $'; 
 
 %-Format arguments
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin==0
     SPMid = spm('FnBanner',mfilename,SVNid);
     hC = spm_DesRep('DesRepUI'); 
@@ -279,14 +268,14 @@ end
 
 switch lower(varargin{1})
 
-%=======================================================================
-case 'desrepui'                                    %-Design reporting UI
-%=======================================================================
+%==========================================================================
+case 'desrepui'                                       %-Design reporting UI
+%==========================================================================
 % h = spm_DesRep('DesRepUI')
 % h = spm_DesRep('DesRepUI',SPM)
 
 %-Load design data from file if not passed as argument
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if nargin < 2
     [spmmatfile, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
     if ~sts, varargout = {[]}; return; end
@@ -302,8 +291,8 @@ else
 end
 
 %-Canonicalise data
-%=======================================================================
-%-Work out where design configuration has come from!
+%--------------------------------------------------------------------------
+%-Work out where design configuration has come from
 if ~isfield(SPM,'cfg')
     if     isfield(SPM.xX,'V'),  cfg = 'SPMest';
     elseif isfield(SPM.xY,'VY'), cfg = 'SPMdata';
@@ -313,8 +302,8 @@ if ~isfield(SPM,'cfg')
     SPM.cfg = cfg;
 end
 
-%-Work out what modality this is!
-%-----------------------------------------------------------------------
+%-Work out what modality this is
+%--------------------------------------------------------------------------
 try
     SPM.Sess(1);
     SPM.modality = 'fMRI';
@@ -327,24 +316,23 @@ catch
     SPM.modality = 'PET';
 end
 
-
 %-Add a scaled design matrix to the design data structure
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(SPM.xX,'nKX')
     SPM.xX.nKX = spm_DesMtx('Sca',SPM.xX.X,SPM.xX.name);
 end
 
 
 %-Draw menu
-%=======================================================================
+%==========================================================================
 
 %-Get Interactive window and delete any previous DesRepUI menu
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
 delete(findobj(get(Finter,'Children'),'flat','Tag','DesRepUI'))
 
 %-Draw top level menu
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hC      = uimenu(Finter,'Label','Design',...
         'Separator','on',...
         'Tag','DesRepUI',...
@@ -352,11 +340,11 @@ hC      = uimenu(Finter,'Label','Design',...
         'HandleVisibility','on');
 
 %-Generic CallBack code
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cb      = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
 
 %-DesMtx
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
         'CallBack',[cb,...
         'spm_DesRep(''DesMtx'',tmp.xX,',...
@@ -367,7 +355,7 @@ hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
 if strcmp(SPM.cfg,'SPMcfg'), set(hDesMtx,'Enable','off'), end
 
 %-Design matrix orthogonality
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
         'CallBack',[cb,...
         'spm_DesRep(''DesOrth'',tmp.xX)'],...
@@ -375,7 +363,7 @@ h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
         'HandleVisibility','off');
 
 %-Explore design
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hExplore = uimenu(hC,'Label','Explore','HandleVisibility','off');
 
 switch SPM.modality
@@ -408,14 +396,15 @@ case 'fMRI'
 end
 
 hxvi = uimenu(hExplore, 'Label','Covariance structure', ...
-    'Callback',[cb, 'spm_DesRep(''xVi'', tmp.xVi);'], 'UserData',hC, 'HandleVisibility','off');
+        'Callback',[cb, 'spm_DesRep(''xVi'', tmp.xVi);'], ...
+        'UserData',hC, 'HandleVisibility','off');
 if ~isfield(SPM,'xVi') || (isfield(SPM.xVi,'iid') && SPM.xVi.iid) || ...
     ~(isfield(SPM.xVi,'V') || isfield(SPM.xVi,'Vi'))
     set(hxvi,'Enable','off');
 end
 
 %-Clear, Quit
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 uimenu(hC,'Label','Clear','Accelerator','L','Separator','on',...
     'CallBack','spm_results_ui(''Clear'')',...
     'HandleVisibility','off');
@@ -424,17 +413,17 @@ uimenu(hC,'Label','Quit','Accelerator','Q','Separator','on',...
     'HandleVisibility','off');
 
 %-Pop open 'Interactive' window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 figure(Finter)
 
 %-Return handle of menu
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 varargout = {hC};
 
 
-%=======================================================================
-case 'files&factors'                         %-Summarise files & factors
-%=======================================================================
+%==========================================================================
+case 'files&factors'                            %-Summarise files & factors
+%==========================================================================
 % spm_DesRep('Files&Factors',fnames,I,xC,sF,xs)
 if nargin<4, error('insufficient arguments'), end
 fnames  = varargin{2};
@@ -453,7 +442,7 @@ spm_results_ui('Clear',Fgraph,0)
 FS     = spm('FontSizes');
 
 %-Display header information
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hTax = axes('Position',[0.03,0.85,0.94,0.1],...
     'DefaultTextFontSize',FS(9),...
     'XLim',[0,1],'YLim',[0,1],...
@@ -461,7 +450,7 @@ hTax = axes('Position',[0.03,0.85,0.94,0.1],...
 
 text(0.5,1,'Statistical analysis: Image files & covariates...',...
     'Fontsize',FS(14),'Fontweight','Bold',...
-    'HorizontalAlignment','center')
+    'HorizontalAlignment','center');
 
 dx1 = 0.05;
 dx2 = 0.08;
@@ -477,19 +466,19 @@ for j = 1:length(xC)
     if n>1, tmp=xC(j).cname; else tmp={xC(j).rcname}; end
     for k=1:n
         x=x+dx2;
-        text(x,.1,tmp{k},'Rotation',90,'Interpreter','TeX')
+        text(x,.1,tmp{k},'Rotation',90,'Interpreter','TeX');
     end
 end
 
-x=x+dx2;
-text(x,0.65,'Base directory:','FontWeight','Bold')
-text(x,0.5,CPath,'FontSize',FS(8))
-text(x,0.2,'filename tails...')
+x = x + dx2;
+text(x,0.65,'Base directory:','FontWeight','Bold');
+text(x,0.5,CPath,'FontSize',FS(8));
+text(x,0.2,'filename tails...');
 
-line('XData',[0 1],'YData',[0 0],'LineWidth',3,'Color','r')
+line('XData',[0 1],'YData',[0 0],'LineWidth',3,'Color','r');
 
 %-Tabulate file & covariate information
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hAx = axes('Position',[0.03,0.05,0.94,0.8],...
     'DefaultTextFontSize',FS(8),...
     'Units','points',...
@@ -537,20 +526,19 @@ end
 line('XData',[0 1],'YData',[y y],'LineWidth',3,'Color','r')
 
 
-%-Display description strings
-% (At bottom of current page - hope there's enough room!)
-%-----------------------------------------------------------------------
+%-Display description strings at bottom of current page
+%--------------------------------------------------------------------------
 if ~isempty(xs)
     y = y - 2*dy;
     for sf = fieldnames(xs)'
         text(0.3,y,[strrep(sf{1},'_',' '),' :'],...
             'HorizontalAlignment','Right','FontWeight','Bold',...
-            'FontSize',FS(9))
+            'FontSize',FS(9));
         s = xs.(sf{1});
         if ~iscellstr(s), s={s}; end
         for i=1:numel(s)
-            text(0.31,y,s{i},'FontSize',FS(9))
-            y=y-dy;
+            text(0.31,y,s{i},'FontSize',FS(9));
+            y = y - dy;
         end
     end
 end
@@ -558,47 +546,48 @@ end
 %-Register last page if paginated
 if spm_figure('#page')>1
     text(0.5,0,sprintf('Page %d/%d',spm_figure('#page')*[1,1]),...
-        'FontSize',FS(8),'FontAngle','italic')
-    spm_figure('NewPage',[hAx;get(hAx,'Children')])
+        'FontSize',FS(8),'FontAngle','italic');
+    spm_figure('NewPage',[hAx;get(hAx,'Children')]);
 end
 
 %-Pop up the Graphics window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 figure(Fgraph)
 
-%=======================================================================
+
+%==========================================================================
 case 'xvi'
-%=======================================================================
+%==========================================================================
 % spm_DesRep('xVi',xVi)
 if nargin<2, error('insufficient arguments'), end
 if ~isstruct(varargin{2}), error('covariance matrix structure required'), end
 
 %-Display
-%=======================================================================
+%==========================================================================
 
 %-Get graphics window & FontSizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
-FS = spm('FontSizes');
+FS     = spm('FontSizes');
 
 %-Title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
       'DefaultTextFontSize',FS(9),...
       'XLim',[0,1],'YLim',[0,1],...
       'Visible','off');
 
-str='Statistical analysis: Covariance structure';
+str  = 'Statistical analysis: Covariance structure';
 text(0.5,0.95,str,'Fontsize',FS(14),'Fontweight','Bold',...
-      'HorizontalAlignment','center')
+      'HorizontalAlignment','center');
 
 line('Parent',hTax,...
-      'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
+      'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r');
 
 
 %-Display covariance matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hCovMtx(1) = axes('Position',[.07 .4 .6 .4]);
 hCovMtxSc  = [];
 if isfield(varargin{2},'V')
@@ -607,7 +596,7 @@ if isfield(varargin{2},'V')
   hCovMtxSc = colorbar('vert');
   set(hCovMtxSc,'Ylim',[0 clim(2)]); % cut colorbar at 0
   %-Setup callbacks to allow interrogation of covariance matrix
-  %-----------------------------------------------------------------------
+  %------------------------------------------------------------------------
   set(hCovMtxIm(1),'UserData',...
       varargin{2})
   set(hCovMtxIm(1),'ButtonDownFcn','spm_DesRep(''SurfxVi_CB'')')
@@ -618,7 +607,7 @@ if isfield(varargin{2},'V')
   end
   if isfield(varargin{2},'var') && isfield(varargin{2},'dep') && ...
      isfield(varargin{2},'sF') && isfield(varargin{2},'I')
-    r     = find((max(varargin{2}.I) > 1) & ~varargin{2}.var & ~varargin{2}.dep);
+    r = find((max(varargin{2}.I) > 1) & ~varargin{2}.var & ~varargin{2}.dep);
     if any(varargin{2}.dep)
       cmstr = 'yes';
     else
@@ -638,7 +627,8 @@ if isfield(varargin{2},'h')
       'DefaultTextInterpreter','TeX');
   hParEstIm   = imagesc(varargin{2}.h',clim);
   set(hPEstAx,...
-      'XLim',[0,length(varargin{2}.h)]+.5,'XTick',[1:length(varargin{2}.h)-1]+.5,'XTickLabel','',...
+      'XLim',[0,length(varargin{2}.h)]+.5,'XTick',[1:length(varargin{2}.h)-1]+.5,...
+      'XTickLabel','',...
       'YLim',[0,1]+.5,'YDir','reverse','YTick',[],...
       'Box','on','TickDir','in','XGrid','on','GridLineStyle','-');
   xlabel('hyperparameter estimates')
@@ -646,15 +636,15 @@ if isfield(varargin{2},'h')
   set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfHPEstIm_CB'')')
 else
   hPEstAx = [];
-end;
+end
 spm_figure('NewPage',[hCovMtx;get(hCovMtx,'Children');hPEstAx;get(hPEstAx,'Children');hCovMtxSc])
  
 %-Show components of covariance matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isfield(varargin{2},'Vi')
     for k = 1:length(varargin{2}.Vi)
         %-Display covariance component xVi.Vi{k}
-        %-----------------------------------------------------------------------
+        %------------------------------------------------------------------
         hCovMtx(k+1) = axes('Position',[.07 .4 .6 .4]);
         hCovMtxIm(k+1) = imagesc(varargin{2}.Vi{k});
         xlabel(sprintf('Covariance component Vi{%d}', k));
@@ -667,9 +657,10 @@ if isfield(varargin{2},'Vi')
     end
 end
 
-%=======================================================================
-case {'desmtx','desorth'} %-Display design matrix / design orthogonality
-%=======================================================================
+
+%==========================================================================
+case {'desmtx','desorth'}    %-Display design matrix / design orthogonality
+%==========================================================================
 % spm_DesRep('DesMtx',xX,fnames,xs)
 % spm_DesRep('DesOrth',xX)
 if nargin<2, error('insufficient arguments'), end
@@ -679,9 +670,8 @@ if nargin<4, xs=[]; else xs=varargin{4}; end
 
 desmtx = strcmpi(varargin{1},'desmtx');
 
-
 %-Locate DesMtx (X), scaled DesMtx (nX) & get parameter names (Xnames)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isfield(varargin{2},'xKXs') && ...
         ~isempty(varargin{2}.xKXs) && isstruct(varargin{2}.xKXs)
     iX = 1;
@@ -701,36 +691,33 @@ if isfield(varargin{2},'name') && ~isempty(varargin{2}.name)
 
 
 %-Compute design orthogonality matrix if DesOrth
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~desmtx
-    sw = warning('off','MATLAB:divideByZero');
     if iX
-        tmp  = sqrt(sum(varargin{2}.xKXs.X.^2));
-        O    = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
-        tmp  = sum(varargin{2}.xKXs.X);
+        tmp = sqrt(sum(varargin{2}.xKXs.X.^2));
+        O   = varargin{2}.xKXs.X'*varargin{2}.xKXs.X./kron(tmp',tmp);
+        tmp = sum(varargin{2}.xKXs.X);
     else
-        tmp  = sqrt(sum(varargin{2}.X.^2));
-        O    = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
-        tmp  = sum(varargin{2}.X);
+        tmp = sqrt(sum(varargin{2}.X.^2));
+        O   = varargin{2}.X'*varargin{2}.X./kron(tmp',tmp);
+        tmp = sum(varargin{2}.X);
     end
-    warning(sw);
-    tmp = abs(tmp)<eps*1e5;
-    bC  = kron(tmp',tmp);
+    tmp     = abs(tmp)<eps*1e5;
+    bC      = kron(tmp',tmp);
 end
 
 
 %-Display
-%=======================================================================
+%==========================================================================
 
 %-Get graphics window & FontSizes
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
 FS = spm('FontSizes');
 
-
 %-Title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
     'DefaultTextFontSize',FS(9),...
     'XLim',[0,1],'YLim',[0,1],...
@@ -738,14 +725,14 @@ hTax = axes('Position',[0.03,0,0.94,1],...
 
 str='Statistical analysis: Design'; if ~desmtx, str=[str,' orthogonality']; end
 text(0.5,0.95,str,'Fontsize',FS(14),'Fontweight','Bold',...
-    'HorizontalAlignment','center')
+    'HorizontalAlignment','center');
 
 line('Parent',hTax,...
-    'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r')
+    'XData',[0.3 0.7],'YData',[0.92 0.92],'LineWidth',3,'Color','r');
 
 
 %-Display design matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hDesMtx = axes('Position',[.07 .4 .6 .4]);
 if inX      %-Got a scaled DesMtx
     hDesMtxIm = image((varargin{2}.nKX + 1)*32);
@@ -796,7 +783,7 @@ if desmtx && ~isempty(fnames)
 end
 
 %-Setup callbacks to allow interrogation of design matrix
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if iX,  set(hDesMtxIm,'UserData',...
     struct('X',varargin{2}.xKXs.X,'Xnames',{Xnames},'fnames',{fnames}))
 else   set(hDesMtxIm,'UserData',...
@@ -804,11 +791,10 @@ else   set(hDesMtxIm,'UserData',...
 end
 set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')')
 
-
 if desmtx
     %-Parameter estimability/uniqueness
-    %---------------------------------------------------------------
-    hPEstAx   = axes('Position',[.07 .315 .6 .025],...
+    %----------------------------------------------------------------------
+    hPEstAx     = axes('Position',[.07 .315 .6 .025],...
             'DefaultTextInterpreter','TeX');
     if iX,  est = spm_SpUtil('IsCon',varargin{2}.xKXs);
     else    est = spm_SpUtil('IsCon',varargin{2}.X); end
@@ -825,7 +811,7 @@ if desmtx
     set(hParEstIm,'ButtonDownFcn','spm_DesRep(''SurfEstIm_CB'')')
 else
     %-Design orthogonality
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     hDesO   = axes('Position',[.07 .18 .6 .2]);
     tmp = 1-abs(O); tmp(logical(tril(ones(nPar),-1))) = 1;
     hDesOIm = image(tmp*64);
@@ -858,7 +844,7 @@ else
 end
 
 %-Design descriptions
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if desmtx
     str = 'Design description...';
     line('Parent',hTax,...
@@ -875,7 +861,6 @@ else
                     'white - orthogonal (cos=0)';...
                     'gray  - not orthogonal or colinear'}});
 end
-
 
 if ~isempty(xs)
     set(hAx,'Units','points');
@@ -903,13 +888,13 @@ if ~isempty(xs)
 end
 
 %-Pop up the Graphics window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 figure(Fgraph)
 
 
-%=======================================================================
-case 'fmridesmtx'             %-Interactive review of fMRI design matrix
-%=======================================================================
+%==========================================================================
+case 'fmridesmtx'                %-Interactive review of fMRI design matrix
+%==========================================================================
 %spm_DesRep('fMRIDesMtx',SPM,s,i)
 SPM  = varargin{2};
 Sess = SPM.Sess;
@@ -917,13 +902,13 @@ if nargin < 4, i = 1; else i = varargin{4}; end
 if nargin < 3, s = 1; else s = varargin{3}; end
 
 %-Get Graphics window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
 
 
-% Trial-specific regressors - time domain
-%-----------------------------------------------------------------------
+%-Trial-specific regressors - time domain
+%--------------------------------------------------------------------------
 sX    = SPM.xX.X(Sess(s).row,Sess(s).col);
 rX    = sX(:,Sess(s).Fc(i).i);
 subplot(2,2,1)
@@ -934,8 +919,8 @@ title({'Time domain',['regressors for ' Sess(s).Fc(i).name]})
 grid on
 axis tight
 
-% Trial-specific regressors - frequency domain
-%-----------------------------------------------------------------------
+%-Trial-specific regressors - frequency domain
+%--------------------------------------------------------------------------
 subplot(2,2,2)
 gX    = abs(fft(rX)).^2;
 gX    = gX*diag(1./sum(gX));
@@ -943,7 +928,7 @@ q     = size(gX,1);
 Hz    = [0:(q - 1)]/(q*SPM.xY.RT);
 q     = 2:fix(q/2);
 plot(Hz(q),gX(q,:))
-HPF = SPM.xX.K(s).HParam;
+HPF   = SPM.xX.K(s).HParam;
 patch([0 1 1 0]/HPF,[0 0 1 1]*max(max(gX)),[1 1 1]*.9,'facealpha',.5);
 xlabel('Frequency (Hz)')
 ylabel('relative spectral density')
@@ -953,11 +938,11 @@ grid on
 axis tight
 
 % if trial (as opposed to trial x trial interaction)
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if length(Sess(s).U) >= i
 
     % Basis set and peristimulus sampling
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     subplot(2,2,3)
     dt   = Sess(s).U(i).dt;
     RT   = SPM.xY.RT;
@@ -971,13 +956,13 @@ if length(Sess(s).U) >= i
     grid on
 
     % if a paramteric variate is specified
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     for p = 1:length(Sess(s).U(i).P)
 
         if Sess(s).U(i).P(p).h
 
         % onsets and parametric modulation
-        %-------------------------------------------------------
+        %------------------------------------------------------------------
         subplot(2,2,4)
         ons = Sess(s).U(i).ons;
         plot(ons,Sess(s).U(i).P(p).P,'.','MarkerSize',8)
@@ -991,13 +976,13 @@ if length(Sess(s).U) >= i
 end
 
 %-Pop up Graphics figure window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 figure(Fgraph);
 
 
-%=======================================================================
-case 'covs'                %-Plot and describe covariates (one per page)
-%=======================================================================
+%==========================================================================
+case 'covs'                   %-Plot and describe covariates (one per page)
+%==========================================================================
 % spm_DesRep('Covs',xX,xC)
 if nargin<3, error('insufficient arguments'), end
 xC     = varargin{3};   %-Struct array of covariate information
@@ -1008,10 +993,10 @@ if isempty(xC), spm('alert!','No covariates!',mfilename), return, end
 %-Get graphics window & window scaling
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph,0)
-FS = spm('FontSizes');
+FS     = spm('FontSizes');
 
 %-Title
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 hTax = axes('Position',[0.03,0,0.94,1],...
     'DefaultTextFontSize',FS(9),...
     'XLim',[0,1],'YLim',[0,1],...
@@ -1029,7 +1014,7 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 
 
 %-Design matrix (as underlay for plots) and parameter names
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 [nScan,nPar]   = size(varargin{2}.X);
 if isfield(varargin{2},'name') && ~isempty(varargin{2}.name)
     Xnames = varargin{2}.name; else Xnames = {}; end
@@ -1054,18 +1039,18 @@ for i = 1:nPar, hPNames(i) = text(.05,i,Xnames{i}); end
 
 
 %-Covariates - one page each
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:length(xC)
 
     %-Title
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     hSTitle = text(0.5,0.87,sprintf('%d : %s',i,xC(i).rcname),...
             'Parent',hTax,...
             'HorizontalAlignment','center',...
             'FontSize',FS(13),'FontWeight','Bold');
 
     %-Plot
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     hAx = axes('Position',[.1 .5 .7 .3],...
             'TickDir','out','Box','off','Color','none',...
             'NextPlot','add',...
@@ -1077,7 +1062,7 @@ for i = 1:length(xC)
 
 
     %-Descriptions
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     hDAx = axes('Position',[0.03,0.1,0.94,0.30],'Visible','off');
     
     set(hDAx,'Units','points');
@@ -1099,7 +1084,7 @@ for i = 1:length(xC)
     y=y-dy;
 
     %-Key (if block of covariates entered)
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     if size(xC(i).rc,2)>1
         ColorOrder = get(hAx,'ColorOrder');
         text(0.3,y,'Key :',...
@@ -1127,7 +1112,7 @@ for i = 1:length(xC)
 
 
     %-Associated parameters
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     text(0.3,y,'Design matrix columns :',...
         'HorizontalAlignment','Right',...
         'FontWeight','Bold','FontSize',FS(9))
@@ -1144,13 +1129,13 @@ for i = 1:length(xC)
 
 
     %-Highlight parameter names
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     hCurPNames = hPNames(xC(i).cols);
     set(hCurPNames,'Color','r','FontWeight','Bold','FontSize',FS(8))
 
 
     %-Paginate (if more than one covariate)
-    %---------------------------------------------------------------
+    %----------------------------------------------------------------------
     if length(xC)>1
         spm_figure('NewPage',[hSTitle; hAx; get(hAx,'Children');...
             hCurPNames; hDAx; get(hDAx,'Children')]);
@@ -1159,16 +1144,16 @@ for i = 1:length(xC)
 end
 
 %-Pop up the Graphics window
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 figure(Fgraph)
 
 
-%=======================================================================
+%==========================================================================
 case 'scantick'
-%=======================================================================
+%==========================================================================
 % spm_DesRep('ScanTick',nScan,lim)
 % ( Show at most 32, showing every 2nd/3rd/4th/... as necessary to pair )
-% ( down to <32 items. Always show last item so #images is indicated.    )     
+% ( down to <32 items. Always show last item so #images is indicated.   )     
 if nargin<3, lim=32; else lim=varargin{3}; end
 if nargin<2, error('insufficient arguments'), end
 nScan = varargin{2};
@@ -1179,14 +1164,14 @@ s = 1:p:nScan; s(end)=nScan;
 varargout = {s,lim};
 
 
-%=======================================================================
-case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'} %-Surf DesMtx
-%=======================================================================
+%==========================================================================
+case {'surfdesmtx_cb','surfdesmtxmo_cb','surfdesmtxup_cb'}    %-Surf DesMtx
+%==========================================================================
 % spm_DesRep('SurfDesMtx_CB')
 % spm_DesRep('SurfDesMtxMo_CB')
 % spm_DesRep('SurfDesMtxUp_CB')
 
-h    = get(gca,'Xlabel');
+h = get(gca,'Xlabel');
 
 if strcmpi(varargin{1},'surfdesmtxup_cb')
     UD = get(h,'UserData');
@@ -1195,7 +1180,6 @@ if strcmpi(varargin{1},'surfdesmtxup_cb')
     set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
     return
 end
-
 
 if strcmpi(varargin{1},'surfdesmtx_cb')
     UD = struct('String',      get(h,'String'),...
@@ -1242,14 +1226,14 @@ end
 set(h,'String',str,'Interpreter',istr)
 
 
-%=======================================================================
-case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}  %-Surf ParEstIm
-%=======================================================================
+%==========================================================================
+case {'surfestim_cb','surfestimmo_cb','surfestimup_cb'}     %-Surf ParEstIm
+%==========================================================================
 % spm_DesRep('SurfEstIm_CB')
 % spm_DesRep('SurfEstImMo_CB')
 % spm_DesRep('SurfEstImUp_CB')
 
-h    = get(gca,'Xlabel');
+h = get(gca,'Xlabel');
 
 if strcmpi(varargin{1},'surfestimup_cb')
     UD = get(h,'UserData');
@@ -1287,7 +1271,7 @@ case 'normal'
 case {'extend','alt'}
     return
 case 'open'
-    try,    UD = get(gco,'UserData');
+    try,  UD = get(gco,'UserData');
         assignin('base','ans',...
             subsref(get(gco,'UserData'),...
                 struct('type',{'.'},'subs',{'est'})))
@@ -1297,18 +1281,17 @@ case 'open'
     return
 end
 
-set(h,'String',str,'Interpreter',istr)
+set(h,'String',str,'Interpreter',istr);
 
 
-
-%=======================================================================
-case {'surfdeso_cb','surfdesomo_cb','surfdesoup_cb'}    %-Surf DesOrthIm
-%=======================================================================
+%==========================================================================
+case {'surfdeso_cb','surfdesomo_cb','surfdesoup_cb'}       %-Surf DesOrthIm
+%==========================================================================
 % spm_DesRep('SurfDesO_CB')
 % spm_DesRep('SurfDesOMo_CB')
 % spm_DesRep('SurfDesOUp_CB')
 
-h    = get(gca,'Xlabel');
+h = get(gca,'Xlabel');
 
 if strcmpi(varargin{1},'surfdesoup_cb')
     UD = get(h,'UserData');
@@ -1369,9 +1352,9 @@ end
 set(h,'String',str,'Interpreter',istr)
 
 
-%=======================================================================
-case {'surfcon_cb','surfconmo_cb','surfconup_cb'}        %-Surf Contrast
-%=======================================================================
+%==========================================================================
+case {'surfcon_cb','surfconmo_cb','surfconup_cb'}           %-Surf Contrast
+%==========================================================================
 % spm_DesRep('SurfCon_CB')
 % spm_DesRep('SurfConOMo_CB')
 % spm_DesRep('SurfConOUp_CB')
@@ -1431,21 +1414,22 @@ case 'open'
     return
 end
 
-set(h,'String',str,'Interpreter',istr)
+set(h,'String',str,'Interpreter',istr);
 
-%=======================================================================
-case {'surfxvi_cb','surfxvimo_cb','surfxviup_cb'} %-Surf Xvi
-%=======================================================================
+
+%==========================================================================
+case {'surfxvi_cb','surfxvimo_cb','surfxviup_cb'}                %-Surf Xvi
+%==========================================================================
 % spm_DesRep('SurfxVi_CB')
 % spm_DesRep('SurfxViMo_CB')
 % spm_DesRep('SurfxViUp_CB')
 
-h    = get(gca,'Xlabel');
+h = get(gca,'Xlabel');
 
 if strcmpi(varargin{1},'surfxviup_cb')
       UD = get(h,'UserData');
       set(h,'String',UD.String,'Interpreter',UD.Interpreter,...
-              'UserData',UD.UserData)
+            'UserData',UD.UserData)
       set(gcbf,'WindowButtonMotionFcn','','WindowButtonUpFcn','')
       return
 end
@@ -1506,14 +1490,15 @@ end
 
 set(h,'String',str,'Interpreter',istr)
 
-%=======================================================================
+
+%==========================================================================
 case {'surfhpestim_cb','surfhpestimmo_cb','surfhpestimup_cb'}  %-Surf ParHpestim
-%=======================================================================
+%==========================================================================
 % spm_DesRep('SurfHPEstim_CB')
 % spm_DesRep('SurfHPEstimMo_CB')
 % spm_DesRep('SurfHPEstimUp_CB')
 
-h    = get(gca,'Xlabel');
+h = get(gca,'Xlabel');
 
 if strcmpi(varargin{1},'surfhpestimup_cb')
       UD = get(h,'UserData');
@@ -1558,14 +1543,14 @@ case 'open'
       return
 end
 
-set(h,'String',str,'Interpreter',istr)
+set(h,'String',str,'Interpreter',istr);
 
-%=======================================================================
-otherwise                                        %-Unknown action string
-%=======================================================================
+
+%==========================================================================
+otherwise                                           %-Unknown action string
+%==========================================================================
 error(['Unknown action string: ',varargin{1}])
 
 
-
-%=======================================================================
+%==========================================================================
 end

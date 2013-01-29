@@ -1,5 +1,5 @@
 function H = spm_logdet(C)
-% returns the log of the determinant of positive (semi-)definite matrix C
+% Compute the log of the determinant of positive (semi-)definite matrix C
 % FORMAT H = spm_logdet(C)
 % H = log(det(C))
 %
@@ -7,10 +7,10 @@ function H = spm_logdet(C)
 % full or sparse matrices. For non-positive definite cases, the determinant
 % is considered to be the product of the positive singular values.
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston and Ged Ridgway
-% $Id: spm_logdet.m 4690 2012-03-15 20:10:40Z karl $
+% $Id: spm_logdet.m 5219 2013-01-29 17:07:07Z spm $
 
 % Note that whether sparse or full, rank deficient cases are handled in the
 % same way as in spm_logdet revision 4068, using svd on a full version of C
@@ -20,13 +20,13 @@ function H = spm_logdet(C)
 %--------------------------------------------------------------------------
 i       = find(diag(C));
 C       = C(i,i);
-[i j s] = find(C);
+[i,j,s] = find(C);
 if any(isnan(s)), H = nan; return; end
 if any(i ~= j)
     if issparse(C)
         % non-diagonal sparse matrix
         %------------------------------------------------------------------
-        [L nondef p] = chol(C, 'lower', 'vector');
+        [L,nondef,p] = chol(C, 'lower', 'vector');
         % Note permutation p is unused but requesting it can make L sparser
         if ~nondef
             % pos. def. with Cholesky decomp L, and det(C) = det(L)^2

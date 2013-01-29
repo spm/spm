@@ -1,6 +1,6 @@
 function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
-% user interface for hemodynamic model estimation
-% FORMAT [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg);
+% User interface for hemodynamic model estimation
+% FORMAT [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg
 %
 % xSPM   - structure containing specific SPM details
 % SPM    - structure containing generic  SPM details
@@ -11,24 +11,24 @@ function [Ep,Cp,K1,K2] = spm_hdm_ui(xSPM,SPM,hReg)
 % K1     - 1st order kernels
 % K2     - 2nd order kernels
 %          (see main body of routine for details of model specification)
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_hdm_ui.m 4048 2010-08-26 16:29:36Z guillaume $
+% $Id: spm_hdm_ui.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % get figure handles
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
 set(Finter,'Name','Hemodynamic modelling')
 
 % inputs
-%===========================================================================
+%==========================================================================
 
 % which session?
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 s    = length(SPM.Sess);
 if s > 1
     s = spm_input('which session',1,'n1',s,s);
@@ -36,7 +36,7 @@ end
 Sess = SPM.Sess(s);
 
 % 'causes' or imputs U
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 spm_input('Input specification:...  ',1,'d');
 U.dt = Sess.U(1).dt;
 u    = length(Sess.U);
@@ -74,34 +74,34 @@ end
 
     
 %-System outputs
-%===========================================================================
+%==========================================================================
 
 % enforce adjustment w.r.t. all effects
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xY     = struct(    'Ic'        ,0,...  
                     'name'      ,'HDM',...
                     'Sess'      ,s);
 
 % get region stucture
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 xY     = struct('name', 'HDM', 'Sess', s);
-[y xY] = spm_regions(xSPM,SPM,hReg,xY);
+[y,xY] = spm_regions(xSPM,SPM,hReg,xY);
 
 % place response and confounds in response structure
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 y      = xY.u;
 Y.y    = y;
 Y.dt   = SPM.xY.RT;
 Y.X0   = xY.X0;
 
 %-Estimate
-%===========================================================================
+%==========================================================================
 spm('Pointer','Watch')
 spm('FigName','Estimation in progress');
 
 
 % Model specification: m input; 4 states; 1 outout; m + 6 parameters
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % u(m) - mth stimulus function     (u)
 %
 % x(1) - vascular signal           log(s)
@@ -158,7 +158,7 @@ set(Fhdm,'name','Hemodynamic Modeling')
 subplot(2,2,1)
 P     = Ep(7:end);
 C     = diag(Cp(7:end,7:end));
-[i j] = max(abs(P));
+[i,j] = max(abs(P));
 spm_barh(P,C)
 axis square
 title({'stimulus efficacy'; 'with 90% confidence intervals'},'FontSize',10)
@@ -174,7 +174,7 @@ xlabel('relative efficacy per event/sec')
 
 
 % display hemodynamic parameters
-%---------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 subplot(2,2,3)
 P     = Ep(1:6);
 pE    = pE(1:6);

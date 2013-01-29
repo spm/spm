@@ -1,6 +1,6 @@
 function [C] = spm_wft(s,k,n)
 % Windowed fourier wavelet transform (time-frequency analysis)
-% FORMAT [C] = spm_wft(s,k,n);
+% FORMAT [C] = spm_wft(s,k,n)
 % s      - (t X n) time-series
 % k      - Frequencies (cycles per window)
 % n      - window length
@@ -9,7 +9,7 @@ function [C] = spm_wft(s,k,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_wft.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_wft.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % transpose so that time runs down columns
@@ -18,7 +18,7 @@ if size(s,1) < size(s,2); s = s'; end
 
 % window function (Hanning)
 %--------------------------------------------------------------------------
-[N M] = size(s);
+[N,M] = size(s);
 h     = 0.5*(1 - cos(2*pi*(1:n)/(n + 1)));
 h     = h'/sum(h);
 C     = zeros(length(k),N,M);

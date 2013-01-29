@@ -1,11 +1,11 @@
 function headmodel = spm_cfg_eeg_inv_headmodel
 % configuration file for specifying the head model for source
 % reconstruction
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 5098 2012-12-06 16:26:08Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodel.m 5219 2013-01-29 17:07:07Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -220,13 +220,13 @@ for i = 1:numel(job.D)
     end
     
     if  val ~= job.val
-        error(sprintf('Cannot use the user-specified inversion index %d for dataset ', job.val, i));
+        error('Cannot use the user-specified inversion index %d for dataset %d.', job.val, i);
     end
     
     D.val = val;
     
     %-Meshes
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if ~isfield(D,'inv')
         D.inv = {struct('mesh', [])};
     end

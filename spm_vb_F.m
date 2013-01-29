@@ -15,7 +15,7 @@ function [F,Lav,KL] = spm_vb_F (Y,block)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_F.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_F.m 5219 2013-01-29 17:07:07Z spm $
 
 if block.verbose
     disp('Updating F');
@@ -98,13 +98,13 @@ if p > 0
             end
         end
     else
-    log_det_betas=0;
-    for j = 1:p,
-        KL_beta=KL_beta+spm_kl_gamma(block.b_beta(j),block.c_beta(j),block.b_beta_prior(j),block.c_beta_prior(j));
-        log_det_betas=log_det_betas+log(block.mean_beta(j));
+        log_det_betas=0;
+        for j = 1:p,
+            KL_beta=KL_beta+spm_kl_gamma(block.b_beta(j),block.c_beta(j),block.b_beta_prior(j),block.c_beta_prior(j));
+            log_det_betas=log_det_betas+log(block.mean_beta(j));
+        end
+        beta_term1=-0.5*N*log_det_betas;
     end
-    beta_term1=-0.5*N*log_det_betas;
-end
 end
 
 % Get KL-w

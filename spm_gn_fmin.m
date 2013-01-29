@@ -1,6 +1,6 @@
-function [P f] = spm_gn_fmin(fun,Q,C,varargin)
+function [P,f] = spm_gn_fmin(fun,Q,C,varargin)
 % objective function minimisation using Gauss-Newton line searches
-% FORMAT [P F] = spm_gn_fmin(fun,Q,C,varargin)
+% FORMAT [P,F] = spm_gn_fmin(fun,Q,C,varargin)
 %
 % fun - function or inline function f - fun(P,varargin)
 % P   - free parameters (prior mean)
@@ -16,7 +16,7 @@ function [P f] = spm_gn_fmin(fun,Q,C,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gn_fmin.m 2031 2008-09-02 18:29:53Z karl $
+% $Id: spm_gn_fmin.m 5219 2013-01-29 17:07:07Z spm $
  
  
 % stochastic search
@@ -56,7 +56,7 @@ for k = 1:8
     % gradiants and curvatures
     %----------------------------------------------------------------------
     Q            = spm_unvec(pmin,Q);
-    [dfdpp dfdp] = spm_diff(fun,Q,varargin{:},[1 1]);
+    [dfdpp,dfdp] = spm_diff(fun,Q,varargin{:},[1 1]);
     dfdpp        = spm_cat(dfdpp')';
  
     % line search down steepest gradient
@@ -66,7 +66,7 @@ for k = 1:8
         p(:,i) = pmin + dp;
         F(i,1) = feval(fun,spm_unvec(p(:,i),Q),varargin{:});
     end
-    [f i]    = min(F);
+    [f,i]    = min(F);
     pmin     = p(:,i);
     M(k)     = f;
     P(:,k)   = pmin;
@@ -107,6 +107,5 @@ for k = 1:8
 end
  
 % minimiser
-%---------------------------------=----------------------------------------
+%--------------------------------------------------------------------------
 P     = spm_unvec(pmin,Q);
-

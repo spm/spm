@@ -67,7 +67,7 @@ function [DEM] = spm_NAP(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_NAP.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm_NAP.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % find or create a DEM figure
@@ -76,7 +76,7 @@ Fdem = spm_figure('GetWin','DEM');
 
 % check model, data and priors
 %==========================================================================
-[M Y U] = spm_DEM_set(DEM);
+[M,Y,U] = spm_DEM_set(DEM);
 
 
 % number of iterations
@@ -298,8 +298,8 @@ for iN = 1:nN
             
             % prediction errors (E) and precision (p)
             %--------------------------------------------------------------
-            [E dE]  = spm_DEM_eval(M,qu,qp);
-            [p dp]  = spm_LAP_eval(M,qu,qh);
+            [E,dE]  = spm_DEM_eval(M,qu,qp);
+            [p,dp]  = spm_LAP_eval(M,qu,qh);
             
  
             % gradients of log(det(iS)) dDd...
@@ -307,8 +307,8 @@ for iN = 1:nN
             
             % get precision matrices
             %--------------------------------------------------------------
-            [Rh Vh] = spm_DEM_R(n,exp(qh.sh));
-            [Rg Vg] = spm_DEM_R(n,exp(qh.sg));
+            [Rh,Vh] = spm_DEM_R(n,exp(qh.sh));
+            [Rg,Vg] = spm_DEM_R(n,exp(qh.sg));
             iSh     = diag(exp(p.h));
             iSg     = diag(exp(p.g));
             iS      = blkdiag(kron(Rh,iSh),kron(Rg,iSg));
@@ -327,8 +327,8 @@ for iN = 1:nN
 
             % gradients w.r.t. hyperparameters
             %--------------------------------------------------------------
-            [dRdhh dRdh] = spm_diff('spm_DEM_R',n,exp(qh.sh),[2 2]);
-            [dRdgg dRdg] = spm_diff('spm_DEM_R',n,exp(qh.sg),[2 2]);
+            [dRdhh,dRdh] = spm_diff('spm_DEM_R',n,exp(qh.sh),[2 2]);
+            [dRdgg,dRdg] = spm_diff('spm_DEM_R',n,exp(qh.sg),[2 2]);
             dRdh    = dRdh{1}*exp(qh.sh);
             dRdg    = dRdg{1}*exp(qh.sg);
             dRdhh   = dRdhh{1}{1}*exp(qh.sh) + dRdh;

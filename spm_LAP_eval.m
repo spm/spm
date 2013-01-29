@@ -1,5 +1,5 @@
-function [p dp] = spm_LAP_eval(M,qu,qh)
-% evaluates precisions for a LAP model
+function [p,dp] = spm_LAP_eval(M,qu,qh)
+% Evaluate precisions for a LAP model
 % FORMAT [p dp] = spm_LAP_eval(M,qu,qh)
 %
 % p.h     - vector of precisions for causal states (v)
@@ -16,7 +16,7 @@ function [p dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 4824 2012-08-03 16:42:24Z karl $
+% $Id: spm_LAP_eval.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})

@@ -86,7 +86,7 @@ function [Ep,qC,qh,F] = spm_nlsi_LS(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_LS.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_nlsi_LS.m 5219 2013-01-29 17:07:07Z spm $
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -275,7 +275,7 @@ for k = 1:64
         
         % conditional mode
         %----------------------------------------------------------------------
-        [maxG j] = max(G);
+        [maxG,j] = max(G);
         if maxG  > Gmax
             qE   = P(:,j);
             f    = R(:,j);

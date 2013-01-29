@@ -45,7 +45,7 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 5165 2013-01-02 11:14:29Z will $
+% $Id: spm_run_bms_map.m 5219 2013-01-29 17:07:07Z spm $
 
 % Input
 % -------------------------------------------------------------------------
@@ -108,7 +108,7 @@ zdim            = DIM(3);
 xords           = xords(:)';  
 yords           = yords(:)';
 I               = 1:xdim*ydim;
-zords_init      = repmat(1,1,xdim*ydim);
+zords_init      = ones(1,xdim*ydim);
 
 % Setup images
 % -------------------------------------------------------------------------

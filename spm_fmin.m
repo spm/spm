@@ -1,6 +1,6 @@
-function [P F] = spm_fmin(fun,Q,C,varargin)
-% objective function minimisation
-% FORMAT [P F] = spm_fmin('fun',P,C,varargin)
+function [P,F] = spm_fmin(fun,Q,C,varargin)
+% Objective function minimisation
+% FORMAT [P,F] = spm_fmin('fun',P,C,varargin)
 %
 % fun - function or inline function f - fun(P,varargin)
 % P   - free parameters (prior mean)
@@ -21,10 +21,10 @@ function [P F] = spm_fmin(fun,Q,C,varargin)
 % where the temperature; T is the sample standard deviation of the sampled
 % objective function.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmin.m 2031 2008-09-02 18:29:53Z karl $
+% $Id: spm_fmin.m 5219 2013-01-29 17:07:07Z spm $
 
 
 % stochastic search
@@ -74,12 +74,12 @@ for k = 1:8
     for i = 1:N
         F(i) = feval(fun,spm_unvec(p(:,i),Q),varargin{:});
     end
-    [m i] = min(F);
+    [m,i] = min(F);
     pmin  = p(:,i);
 
     % supplement with line search along principal eigenvector
     %----------------------------------------------------------------------
-    [U S] = spm_svd(C);
+    [U,S] = spm_svd(C);
     U     = U(:,1);
     S     = S(1);
     x     = linspace(-3*sqrt(S),3*sqrt(S),16 + 1);
@@ -87,7 +87,7 @@ for k = 1:8
         p(:,end + 1) = pmin + U*x(i);
         F(end + 1,1) = feval(fun,spm_unvec(p(:,end),Q),varargin{:});
     end
-    [m i]  = min(F);
+    [m,i]  = min(F);
     pmin   = p(:,i);
     M(k)   = m;
     R(:,k) = pmin;
@@ -164,5 +164,5 @@ for k = 1:8
 end
 
 % minimiser
-%---------------------------------=----------------------------------------
+%--------------------------------------------------------------------------
 P     = spm_unvec(pmin,Q);

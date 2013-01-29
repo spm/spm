@@ -13,7 +13,7 @@ function spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_run_bms_vis.m 5219 2013-01-29 17:07:07Z spm $
 
 % Input
 % -------------------------------------------------------------------------
@@ -91,7 +91,7 @@ xdim          = DIM(1); ydim  = DIM(2); zdim  = DIM(3);
 [xords,yords] = ndgrid(1:xdim,1:ydim);
 xords         = xords(:)';  yords = yords(:)';
 I             = 1:xdim*ydim;
-zords_init    = repmat(1,1,xdim*ydim);
+zords_init    = ones(1,xdim*ydim);
 svol          = xdim*ydim*zdim;
 
 % Legend of results being plotted

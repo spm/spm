@@ -10,7 +10,7 @@ function [con] = spm_dcm_contrasts(DCM_filename,D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: spm_dcm_contrasts.m 3705 2010-02-01 20:51:28Z karl $
+% $Id: spm_dcm_contrasts.m 5219 2013-01-29 17:07:07Z spm $
  
 % Set-up
 %--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ b       = zeros(n,n,m);
  
 % prompt for contrast if necessary
 %--------------------------------------------------------------------------
-if (nargin < 2) | isempty(D)
+if (nargin < 2) || isempty(D)
     str = 'contrast for';
     D   = spm_input(str,1,'b',{'A','B','C'});
 end

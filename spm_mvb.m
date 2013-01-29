@@ -69,7 +69,7 @@ function model = spm_mvb(X,Y,X0,U,V,nG,sG)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mvb.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_mvb.m 5219 2013-01-29 17:07:07Z spm $
  
 % defaults (use splits +/- one standard deviation by default)
 %--------------------------------------------------------------------------
@@ -146,7 +146,7 @@ for  i = 1:nG
     %----------------------------------------------------------------------
     g            = find(G(:,end));
     ng           = ceil(length(g)*sG);
-    [q j]        = sort(-sum(M.qE(g,:).^2,2));
+    [q,j]        = sort(-sum(M.qE(g,:).^2,2));
     q            = g(j(1:ng));
     G(q,end + 1) = 1;
     
@@ -163,7 +163,7 @@ end
 %--------------------------------------------------------------------------
 clear M X Y
 qE       = sum(model.qE.^2,2);
-[i j]    = sort(-qE);
+[i,j]    = sort(-qE);
 try
     i    = j(1:2^11);
 catch
@@ -199,4 +199,3 @@ model.qE = qE;                              % conditional expectation
 model.Cp = Cp;                              % prior covariance (ordered)
 model.cp = cp;                              % prior covariance (original)
 model.qC = max(qC,exp(-16));                % conditional variance
-

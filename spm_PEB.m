@@ -55,7 +55,7 @@ function [C,P,F] = spm_PEB(y,P,OPT)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_PEB.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_PEB.m 5219 2013-01-29 17:07:07Z spm $
 
 % set default
 %--------------------------------------------------------------------------
@@ -74,7 +74,7 @@ p     = length(P);
 %--------------------------------------------------------------------------
 for i = 1:p
     if ~isfield(P{i},'C')
-        [n m] = size(P{i}.X);
+        [n,m] = size(P{i}.X);
         if i == 1
             P{i}.C  = {speye(n,n)};
         else
@@ -106,7 +106,7 @@ for i = 1:p
 
     % indices for ith level parameters
     %----------------------------------------------------------------------
-    [n m] = size(P{i}.X);
+    [n,m] = size(P{i}.X);
     I{i}  = (1:n) + I{end}(end);
     J{i}  = (1:m) + J{end}(end);
 
@@ -152,7 +152,7 @@ if ~isfield(P{1},'Q')
         if iscell(P{i}.C)
             m     = length(P{i}.C);
             for j = 1:m
-                [u v s]    = find(P{i}.C{j});
+                [u,v,s]    = find(P{i}.C{j});
                 u          = u + I{i}(1) - 1;
                 v          = v + I{i}(1) - 1;
                 Q{end + 1} = sparse(u,v,s,q,q);
@@ -170,7 +170,7 @@ if ~isfield(P{1},'Q')
 
             % unless they are known - augment Cb
             %--------------------------------------------------------------
-            [u v s] = find(P{i}.C + speye(length(P{i}.C))*1e-6);
+            [u,v,s] = find(P{i}.C + speye(length(P{i}.C))*1e-6);
             u       = u + I{i}(1) - 1;
             v       = v + I{i}(1) - 1;
             Cb      = Cb + sparse(u,v,s,q,q);

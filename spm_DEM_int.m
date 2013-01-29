@@ -17,7 +17,7 @@ function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_int.m 3715 2010-02-08 13:57:26Z karl $
+% $Id: spm_DEM_int.m 5219 2013-01-29 17:07:07Z spm $
 
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -129,7 +129,7 @@ for t  = 1:nt
 
         % evaluate functions
         %------------------------------------------------------------------
-        [u dg df] = spm_DEM_diff(M,u);
+        [u,dg,df] = spm_DEM_diff(M,u);
 
         % tensor products for Jacobian
         %------------------------------------------------------------------

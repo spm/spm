@@ -5,7 +5,7 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_preproc_write8.m 5219 2013-01-29 17:07:07Z spm $
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -15,7 +15,7 @@ end
 d1        = size(tpm.dat{1});
 d1        = d1(1:3);
 M1        = tpm.M;
-[bb1 vx1] = spm_get_bbox(tpm.V(1), 'old');
+[bb1,vx1] = spm_get_bbox(tpm.V(1), 'old');
 
 if isfield(res,'mg'),
     lkp = res.lkp;

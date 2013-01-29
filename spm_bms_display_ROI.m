@@ -10,7 +10,7 @@ function spm_bms_display_ROI (BMS,mask,method)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display_ROI.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_bms_display_ROI.m 5219 2013-01-29 17:07:07Z spm $
 
 % Find graphics window
 % -------------------------------------------------------------------------
@@ -63,7 +63,7 @@ zdim            = DIM(3);
 xords           = xords(:)';  
 yords           = yords(:)';
 I               = 1:xdim*ydim;
-zords_init      = repmat(1,1,xdim*ydim);
+zords_init      = ones(1,xdim*ydim);
 
 % Loop through data
 % -------------------------------------------------------------------------
@@ -82,7 +82,7 @@ nvox_total = 0;
 % -------------------------------------------------------------------------
 for z = 1:zdim,
     
-    j = repmat(NaN,xdim,ydim);                  % Init. image values
+    j = NaN(xdim,ydim);                         % Init. image values
  
     zords   = z*zords_init;                     % Slice z
     xyz     = [xords(I); yords(I); zords(I)];   % Slice coordinates
