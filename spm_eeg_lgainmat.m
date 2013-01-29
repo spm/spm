@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 4733 2012-05-05 12:19:58Z vladimir $
+% $Id: spm_eeg_lgainmat.m 5215 2013-01-29 15:21:42Z vladimir $
 
 
 % get gain or lead-field matrix
@@ -83,7 +83,7 @@ catch
         Gxyz = zeros(length(forward(ind).channels), 3*nvert);
         for i = 1:nvert
 
-            Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
+            Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol, 'unit', 'si');
 
             if ismember(i, Ibar)
                 spm_progress_bar('Set', i); drawnow;
@@ -107,14 +107,15 @@ catch
 
         % condition the scaling of the lead-field
         %--------------------------------------------------------------------------
-        G{ind} = spm_cond_units(G{ind}, 1);
+        [G{ind}, scale] = spm_cond_units(G{ind}, 1);
         
         spm_progress_bar('Clear');
 
         spm('Pointer', 'Arrow');drawnow;
-        
-        
+                
         label = [label; forward(ind).channels(:)];
+        
+        forward(ind).scale = scale;
     end
     
     if numel(G)>1
