@@ -25,7 +25,7 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %______________________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmconvol.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 5217 2013-01-29 16:10:28Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -98,6 +98,7 @@ timestep = 1e-3*S.timestep;
 
 dt = time(end) - time(1);
 
+
 if ~isfield(S, 'frequencies') || isempty(S.frequencies)
     S.frequencies = (1/dt):max(1/dt, floor(dt)/dt):48;
 end
@@ -117,6 +118,11 @@ end
 %-Data dimensions
 %--------------------------------------------------------------------------
 fsample = 1./diff(time(1:2));
+
+% Correct the time step to the closest multiple of the sampling interval to
+% keep the time axis uniform
+timestep = 1./(fsample./mod(fsample,1/timestep));
+
 timeoi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
 
 [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(data, time, 'taper', S.taper, 'timeoi', timeoi, 'freqoi', S.frequencies,...

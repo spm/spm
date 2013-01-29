@@ -36,9 +36,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5074 2012-11-23 12:18:26Z vladimir $
+% $Id: spm_eeg_epochs.m 5217 2013-01-29 16:10:28Z vladimir $
 
-SVNrev = '$Rev: 5074 $';
+SVNrev = '$Rev: 5217 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -46,13 +46,20 @@ spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG epoching'); spm('Pointer','Watch');
 
 if ~isfield(S, 'prefix'),       S.prefix = 'e';           end
-if ~isfield(S, 'bc'),           S.bc = 1;                 end
 if ~isfield(S, 'eventpadding'), S.eventpadding = 0;       end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
 
+isTF = strncmpi(D.transformtype,'TF',2);
+
+if isTF && isfield(S, 'bc') && S.bc
+    warning('Automatic baseline correction is not done for TF data. Use TF rescaling');
+    S.bc = 0;
+end
+    
+if ~isfield(S, 'bc'),           S.bc = ~isTF;             end
 
 %-Check that the input file contains continuous data
 %--------------------------------------------------------------------------
@@ -139,7 +146,11 @@ ntrial = size(trl, 1);
 
 %-Generate new MEEG object with new filenames
 %--------------------------------------------------------------------------
-Dnew = clone(D, [S.prefix fname(D)], [D.nchannels nsampl, ntrial]);
+if isTF
+    Dnew = clone(D, [S.prefix fname(D)], [D.nchannels, D.nfrequencies, nsampl, ntrial]);
+else
+    Dnew = clone(D, [S.prefix fname(D)], [D.nchannels, nsampl, ntrial]);
+end
 
 %-Baseline correction
 %--------------------------------------------------------------------------
@@ -160,19 +171,23 @@ if ntrial > 100, Ibar = floor(linspace(1, ntrial, 100));
 else Ibar = [1:ntrial]; end
 
 for i = 1:ntrial
-
-    d = D(:, trl(i, 1):trl(i, 2), 1);
-    
-    if bc
-        mbaseline = mean(d(chanbc, 1:bc), 2);
-        d(chanbc, :) = d(chanbc, :) - repmat(mbaseline, 1, size(d, 2));
+    if isTF
+        d = D(:, :, trl(i, 1):trl(i, 2), 1);
+        Dnew(:, :, :, i) = d;
+    else
+        d = D(:, trl(i, 1):trl(i, 2), 1);
+        
+        if S.bc
+            mbaseline = mean(d(chanbc, 1:bc), 2);
+            d(chanbc, :) = d(chanbc, :) - repmat(mbaseline, 1, size(d, 2));
+        end
+        
+        Dnew(:, :, i) = d;
     end
-
-    Dnew(:, :, i) = d;
-
+    
     Dnew = events(Dnew, i, select_events(D.events, ...
         [trl(i, 1)/D.fsample-S.eventpadding  trl(i, 2)/D.fsample+S.eventpadding]));
-
+    
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end
 
