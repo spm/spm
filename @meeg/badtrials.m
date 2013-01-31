@@ -5,19 +5,13 @@ function res = badtrials(this, varargin)
 % Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: badtrials.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: badtrials.m 5220 2013-01-31 11:10:13Z vladimir $
 
 
 if length(varargin) == 2 && ~isempty(varargin{1})
     % make sure that the two inputs for set are the same length
     if ~(length(varargin{2}) == 1 || (length(varargin{1}) == length(varargin{2})))
         error('Use either same vector length or scalar for value');
-    end
-end
-
-if numel(varargin) >= 1  && ~isempty(varargin{1})  
-    if ~(all(varargin{1} >= 1) && all(varargin{1} <= ntrials(this)))
-        error('Trial number out of range.');
     end
 end
 
