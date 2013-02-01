@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5184 2013-01-15 18:34:55Z guillaume $
+% $Id: spm_getSPM.m 5224 2013-02-01 12:19:17Z guillaume $
 
 
 %-GUI setup
@@ -722,7 +722,6 @@ if STAT ~= 'P'
             case 'F'
                 Ps = (1 - spm_Fcdf(Zum,df)).^n;
         end
-        Ps = sort(Ps);
     end
     
     %-Peak FDR

@@ -32,10 +32,10 @@ function [u, Ps] = spm_uc_peakFDR(q,df,STAT,R,n,Z,XYZ,ui,G)
 % J.R. Chumbley, K.J. Worsley, G. Flandin and K.J. Friston, "Topological
 % FDR for NeuroImaging". NeuroImage, 49(4):3057-3064, 2010.
 %__________________________________________________________________________
-% Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_peakFDR.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_uc_peakFDR.m 5224 2013-02-01 12:19:17Z guillaume $
 
 
 ws = warning('off','SPM:outOfRangePoisson');
@@ -50,14 +50,19 @@ if isstruct(Z)
         Z      = min(Z, spm_read_vols(Vs(i),true));
     end
     Z          = Z(:)';
-    XYZ        = Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))];
-    I          = ~isnan(Z) & Z~=0;
+    XYZ        = round(Vs(1).mat \ [XYZmm; ones(1, size(XYZmm, 2))]);
+    try
+        M      = spm_vol(spm_file(Vs(1).fname,'basename','mask'));
+        I      = spm_get_data(M,XYZ,false) > 0;
+    catch
+        I      = ~isnan(Z) & Z~=0;
+    end
     XYZ        = XYZ(1:3,I);
     Z          = Z(I);
     if isstruct(Vm)
-        Vm     = logical(spm_read_vols(Vm));
-        Vm     = Vm(I);
+        Vm     = spm_get_data(Vm,XYZ,false) > 0;
     end
+
     XYZ        = XYZ(:,Vm);
     Z          = Z(:,Vm);
 end
