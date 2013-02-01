@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_dicom_convert.m 5226 2013-02-01 15:07:37Z guillaume $
 
 
 if nargin<2, opts     = 'all'; end
@@ -487,6 +487,33 @@ fname = getfilelocation(hdr{1}, root_dir,'s',format);
 nc = hdr{1}.Columns;
 nr = hdr{1}.Rows;
 
+if length(hdr) == 1 && isfield(hdr{1},'NumberofFrames') && hdr{1}.NumberofFrames > 1
+    if isfield(hdr{1},'ImagePositionPatient') &&...
+       isfield(hdr{1},'ImageOrientationPatient') &&...
+       isfield(hdr{1},'SliceThickness') &&...
+       isfield(hdr{1},'StartOfPixelData') &&...
+       isfield(hdr{1},'SizeOfPixelData')
+
+       orient           = reshape(hdr{1}.ImageOrientationPatient,[3 2]);
+       orient(:,3)      = null(orient');
+       if det(orient)<0, orient(:,3) = -orient(:,3); end
+       slicevec         = orient(:,3);
+   
+       hdr_temp = cell(1,hdr{1}.NumberofFrames); % alternative: NumberofSlices
+       hdr_temp{1} = hdr{1};
+       hdr_temp{1}.SizeOfPixelData           = hdr{1}.SizeOfPixelData / hdr{1}.NumberofFrames;
+       for sn = 2 : hdr{1}.NumberofFrames
+           hdr_temp{sn}                      = hdr{1};
+           hdr_temp{sn}.ImagePositionPatient = hdr{1}.ImagePositionPatient + (sn-1) * hdr{1}.SliceThickness * slicevec;
+           hdr_temp{sn}.SizeOfPixelData      = hdr_temp{1}.SizeOfPixelData;
+           hdr_temp{sn}.StartOfPixelData     = hdr{1}.StartOfPixelData + (sn-1) * hdr_temp{1}.SizeOfPixelData;
+       end
+       hdr = hdr_temp;
+   else
+       error('spm_dicom_convert:write_volume','TAGS missing in DICOM file.');
+   end
+end
+
 dim    = [nc nr length(hdr)];
 dt     = determine_datatype(hdr{1});
 
@@ -592,7 +619,7 @@ for i=1:length(hdr),
     if ~true, plane = flipud(plane); end; % LEFT-HANDED STORAGE
     volume(:,:,i) = plane;
     spm_progress_bar('Set',i);
-end;
+end
 
 if ~any(any(diff(pinfos,1))),
     % Same slopes and intercepts for all slices
@@ -602,9 +629,9 @@ else
     mx = max(volume(:));
     mn = min(volume(:));
 
-    %%  Slope and Intercept
-    %%  32767*pinfo(1) + pinfo(2) = mx
-    %% -32768*pinfo(1) + pinfo(2) = mn
+    %  Slope and Intercept
+    %  32767*pinfo(1) + pinfo(2) = mx
+    % -32768*pinfo(1) + pinfo(2) = mn
     % pinfo = ([32767 1; -32768 1]\[mx; mn])';
 
     % Slope only
@@ -801,9 +828,9 @@ images = {};
 guff   = {};
 for i=1:length(hdr),
     if ~checkfields(hdr{i},'Modality') || ~(strcmp(hdr{i}.Modality,'MR') ||...
-            strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'CT'))
+            strcmp(hdr{i}.Modality,'PT') || strcmp(hdr{i}.Modality,'NM') || strcmp(hdr{i}.Modality,'CT'))
         if checkfields(hdr{i},'Modality'),
-            fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT or PET.\n', hdr{i}.Filename, hdr{i}.Modality);
+            fprintf('File "%s" can not be converted because it is of type "%s", which is not MRI, CT, NM or PET.\n', hdr{i}.Filename, hdr{i}.Modality);
         else
             fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
         end
