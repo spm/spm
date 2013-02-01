@@ -38,7 +38,7 @@ function [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,D,t,hE,hP)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Karl Friston
-% $Id: spm_reml.m 5033 2012-11-02 20:59:54Z karl $
+% $Id: spm_reml.m 5223 2013-02-01 11:56:05Z ged $
  
  
 % check defaults
@@ -177,7 +177,7 @@ for k = 1:K
     
     % revert to SPD checking, if near phase-transition
     %----------------------------------------------------------------------
-    if abs(pF) > 1e6
+    if ~isfinite(pF) || abs(pF) > 1e6
         [V,h,Ph,F,Fa,Fc] = spm_reml(YY,X,Q,N,1,t - 2);
         return
     else
