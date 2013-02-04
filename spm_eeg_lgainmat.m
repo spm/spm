@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 5216 2013-01-29 15:23:36Z vladimir $
+% $Id: spm_eeg_lgainmat.m 5238 2013-02-04 19:01:13Z vladimir $
 
 
 % get gain or lead-field matrix
@@ -23,9 +23,8 @@ for ind = 1:numel(forward)
     
     % channels
     %----------------------------------------------------------------------
-    chanind = strmatch(modality, D.chantype);
-    chanind = setdiff(chanind, D.badchannels);
-
+    chanind = D.indchantype(modality, 'GOOD');  
+    
     if ~isempty(chanind)
         forward(ind).channels = D.chanlabels(chanind);
     else

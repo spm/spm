@@ -4,7 +4,7 @@ function convert = spm_cfg_eeg_convert
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 5077 2012-11-23 16:10:36Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 5238 2013-02-04 19:01:13Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -180,7 +180,7 @@ switch  S.mode
         end
     case 'epoched'
         if isfield(job.mode.epoched, 'trlfile')
-            S.trlfile = char(job.continuous.trials.trlfile);
+            S.trl = char(job.mode.epoched.trlfile);
         end
         
         if isfield(job.mode.epoched, 'define')

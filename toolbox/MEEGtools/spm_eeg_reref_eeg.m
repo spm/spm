@@ -19,9 +19,9 @@ function [D, S] = spm_eeg_reref_eeg(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rik Henson (updated so that bad channels included in tra but not used)
-% $Id: spm_eeg_reref_eeg.m 4119 2010-11-11 12:12:00Z vladimir $
+% $Id: spm_eeg_reref_eeg.m 5238 2013-02-04 19:01:13Z vladimir $
 
-SVNrev = '$Rev: 4119 $';
+SVNrev = '$Rev: 5238 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ D = spm_eeg_load(D);
 
 % Get indices for just EEG channels and remove any bad channels
 %--------------------------------------------------------------------------
-eegchan  = D.meegchannels('EEG');
+eegchan  = D.indchantype('EEG');
 goodchan = setdiff(eegchan, D.badchannels);
 
 if isempty(goodchan)
@@ -89,7 +89,7 @@ S1.D = D;
 S1.montage.labelorg = D.chanlabels(eegchan);
 S1.montage.labelnew = D.chanlabels(eegchan);
 S1.montage.tra = tra;
-S1.keepothers = 'yes';
+S1.keepothers = 1;
 S1.updatehistory = 0;
 D = spm_eeg_montage(S1);
 

@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 5164 2012-12-28 16:40:06Z vladimir $
+% $Id: spm_eeg_history.m 5238 2013-02-04 19:01:13Z vladimir $
 
 try
     h = S.history;
@@ -95,7 +95,7 @@ function H = hist2cell(h)
 nf = length(h);
 H = cell(nf,4);
 for i=1:nf
-    H{i,1} = convert2humanreadable(h(i));
+    H{i,1} = char(convert2humanreadable(h(i)));
     H{i,2} = h(i).fun;
     args = h(i).args;
     try,args = args{1};end
@@ -227,4 +227,3 @@ for i=1:numel(h)
             hh{i} = h(i).fun;
     end
 end
-if numel(h) == 1, hh = hh{1}; end

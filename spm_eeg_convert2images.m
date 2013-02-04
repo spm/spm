@@ -33,9 +33,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5195 2013-01-21 14:15:29Z vladimir $
+% $Id: spm_eeg_convert2images.m 5238 2013-02-04 19:01:13Z vladimir $
 
-SVNrev = '$Rev: 5195 $';
+SVNrev = '$Rev: 5238 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -46,6 +46,7 @@ if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
 if ~isfield(S, 'freqwin'),      S.freqwin  = [-Inf Inf];    end
 if ~isfield(S, 'channels'),     S.channels = 'all';         end
 if ~isfield(S, 'virtual'),      S.virtual = 0;              end
+if ~isfield(S, 'prefix'),       S.prefix = '';              end
 
 D = spm_eeg_load(S.D);
 
@@ -235,7 +236,12 @@ for c = 1:numel(S.conditions)
     if ~virtual
         %-Make subdirectory for each condition
         %--------------------------------------------------------------------------
-        outdir = ['condition_' S.conditions{c}];
+        condlabel = S.conditions{c};
+        condlabel = condlabel(isstrprop(condlabel, 'alphanum') | ismember(condlabel, '_-'));
+        if isempty(condlabel)
+            condlabel = sprintf('condition%04d', c);
+        end
+        outdir = ['condition_' condlabel];
         [sts, msg] = mkdir(outroot, outdir);
         if ~sts, error(msg); end
         outdir = fullfile(outroot, outdir);

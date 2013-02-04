@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: checkmeeg.m 5238 2013-02-04 19:01:13Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -283,9 +283,17 @@ end
 
 %-Check frequency axis
 %-----------------------------------------------------------------------
-if is_linked && isTF && (length(this.transform.frequencies) ~= actual_size(2))
-    error('Frequency axis does not match the data');
-end   
+if isTF
+    if is_linked && (length(this.transform.frequencies) ~= actual_size(2))
+        error('Frequency axis does not match the data');
+    end
+    
+    df = diff(this.transform.frequencies);
+    if length(unique(df)) > 1 && (max(diff(df))/mean(df))<0.1
+        this.transform.frequencies = (0:(Nfrequencies-1))*mean(df) + this.transform.frequencies(1);
+    end
+end
+
 
 %-Check data type
 %-----------------------------------------------------------------------
