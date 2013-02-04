@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_figure.m 5237 2013-02-04 17:27:58Z guillaume $
 
 
 %==========================================================================
@@ -981,8 +981,9 @@ function myclosefig(obj,evt)
 hMenu = spm_figure('FindWin','Menu');
 hInt  = spm_figure('FindWin','Interactive');
 hGra  = spm_figure('FindWin','Graphics');
+hBat  = spm_figure('FindWin','cfg_ui');
 h     = setdiff(findobj(get(0,'children'),'flat','visible','on'), ...
-    [hMenu; hInt; hGra; gcf]);
+    [hMenu; hInt; hGra; hBat; gcf]);
 close(h,'force');
 
 %==========================================================================
