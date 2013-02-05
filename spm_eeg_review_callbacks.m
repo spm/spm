@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_review_callbacks.m 5240 2013-02-05 11:08:33Z christophe $
 
 spm('pointer','watch');
 drawnow expose
@@ -1782,6 +1782,7 @@ elseif length(cn) == 7
                     D = conditions(D,i,table(i,1));
                 end
                 Events = events(D,i);
+                Events = [Events{:}];
                 ne = length(Events);
                 if ne<2
                     if ~isempty(table(i,2))
