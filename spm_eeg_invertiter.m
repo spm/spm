@@ -1,7 +1,18 @@
 function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Np,Npatchiter,Nm,Nt)
 
+%  Function to perform several MSP type inversions with different
+%  pseudo-randomly selected priors- in this case single cortical patches
+% Np :number of patches to be used per iteration
+% Npatchiter: number of iterations
+% Nm: number of spatial modes 
+% Nt: number of temporal modes
+%__________________________________________________________________________
+% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% 
+% Gareth Barnes
+% $Id: spm_eeg_invertiter.m 5244 2013-02-05 17:05:47Z gareth $
 
-val=1;
+
 disp('running iterative inversion');
 if nargin<4,
     disp('estimating spatial modes from lead fields');
@@ -14,12 +25,17 @@ if nargin<5,
 end;
 
 
+if ~isfield(Dtest{1},'val'),
+    val=1;
+end;
+    
+
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
 twindow=Dtest{1}.inv{val}.inverse.woi./1000; %% in sec
 fband=[Dtest{1}.inv{val}.inverse.hpf Dtest{1}.inv{1}.inverse.lpf];
 allF=zeros(Npatchiter,1);
 disp('Reseting random number seed !');
-rng(0); 
+rand('state',0); 
 for patchiter=1:Npatchiter, %% change patches
     
     randind=randperm(Nvert);
@@ -28,7 +44,7 @@ for patchiter=1:Npatchiter, %% change patches
     
     
     
-    Dtest{1}	= spm_eeg_invert_demo_grb(Dtest{1},Ip,fband,Nm,Nt,[],twindow);			% Source reconstruction
+    Dtest{1}	= spm_eeg_invert_noscale(Dtest{1},Ip,fband,Nm,Nt,[],twindow);			% Source reconstruction
     Dtest{1}.inv{val}.inverse.Ip=Ip;
     if isempty(Nm),
         allNt=max([size(Dtest{1}.inv{val}.inverse.T,2),1]);
