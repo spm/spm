@@ -23,9 +23,9 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %      res.time    - time axis
 %      res.freq    - frequency axis
 %______________________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmconvol.m 5217 2013-01-29 16:10:28Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 5241 2013-02-05 12:20:57Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -119,14 +119,21 @@ end
 %--------------------------------------------------------------------------
 fsample = 1./diff(time(1:2));
 
+df = unique(diff(S.frequencies));
+if length(df) == 1  
+    pad = ceil(dt*df)/df;
+else
+    pad = [];
+end
+
 % Correct the time step to the closest multiple of the sampling interval to
 % keep the time axis uniform
-timestep = 1./(fsample./mod(fsample,1/timestep));
+timestep = 1/(fsample/mod(fsample,1/timestep));
 
 timeoi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
 
 [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(data, time, 'taper', S.taper, 'timeoi', timeoi, 'freqoi', S.frequencies,...
-    'timwin', repmat(timeres, 1, length(S.frequencies)), 'tapsmofrq', freqres, 'verbose', 0);
+    'timwin', repmat(timeres, 1, length(S.frequencies)), 'tapsmofrq', freqres, 'pad', pad, 'verbose', 0);
 
 res = [];
 res.freq = freqoi;
