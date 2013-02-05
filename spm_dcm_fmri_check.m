@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_fmri_check(P)
 % Copyright (C) 20012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 4690 2012-03-15 20:10:40Z karl $
+% $Id: spm_dcm_fmri_check.m 5242 2013-02-05 16:06:09Z karl $
  
  
 %-Load DCM structure
@@ -85,6 +85,7 @@ spm_figure('GetWin','DCM diagnostics'); clf
 %--------------------------------------------------------------------------
 subplot(2,1,1);
 t   = (1:DCM.v)*DCM.Y.dt;
+D   = full(D);
  
 plot(t,DCM.y,t,DCM.y + DCM.R,':');
 str = sprintf('variance explained %0.0f%%', D(1));
