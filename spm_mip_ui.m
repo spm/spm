@@ -66,10 +66,10 @@ function varargout = spm_mip_ui(varargin)
 % main body of the function.
 %
 %__________________________________________________________________________
-% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_mip_ui.m 5245 2013-02-06 17:28:06Z guillaume $
 
 
 %==========================================================================
@@ -296,6 +296,10 @@ switch lower(varargin{1}), case 'display'
     %-----------------------------------------------------------------------
     h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
     uimenu(h,'Label','MIP')
+    uimenu(h,'Separator','on','Label','save as...',...
+        'CallBack',['spm_mip_ui(''Save'', ',...
+        'get(get(gcbo,''Parent''),''UserData''));'],...
+        'Interruptible','off','BusyAction','Cancel');
     if isempty(XYZ), str='off'; else str='on'; end
     uimenu(h,'Separator','on','Label','goto nearest suprathreshold voxel',...
         'CallBack',['spm_mip_ui(''Jump'',',...
@@ -328,7 +332,8 @@ switch lower(varargin{1}), case 'display'
     %-Save handles and data
     %----------------------------------------------------------------------
     set(hMIPax,'Tag','hMIPax','UserData',...
-        struct( 'hReg',     [],...
+        struct(...
+        'hReg',     [],...
         'hMIPxyz',  hMIPxyz,...
         'XYZ',      XYZ,...
         'Z',        Z,...
@@ -336,6 +341,7 @@ switch lower(varargin{1}), case 'display'
         'Md',       Md,...
         'Ms',       Ms,...
         'DIM',      DIM,...
+        'units',    {units},...
         'hXr',      hXr))
 
     varargout = {hMIPax};
@@ -714,6 +720,27 @@ switch lower(varargin{1}), case 'display'
 
         end
 
+        
+    %======================================================================
+    case 'save'
+    %======================================================================
+        % spm_mip_ui('Save',h) 
+        if nargin<2, h=spm_mip_ui('FindMIPax'); else h=varargin{2}; end
+        %MD  = get(h,'UserData');
+        %pXYZ = MD.Ms*MD.Md*[MD.XYZ;ones(1,size(MD.XYZ,2))];
+        %mip  = spm_mip(MD.Z,pXYZ(1:3,:),MD.Ms*MD.Md*MD.M,MD.units);
+        mip = get(findobj(h,'Type','image'),'CData');
+        [f, p] = uiputfile('*.png', 'Save as', 'mip.png');
+        if ~isequal(f,0) && ~isequal(p,0)
+            if ndims(mip) == 3
+                imwrite(mip,fullfile(p,f),'png');
+            else
+                imwrite(mip,gray(64),fullfile(p,f),'png');
+            end
+            fprintf('Saving SPM MIP in %s\n',fullfile(p,f));
+        end
+    
+    
     %======================================================================
     otherwise
     %======================================================================

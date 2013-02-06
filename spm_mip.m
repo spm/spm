@@ -5,8 +5,9 @@ function mip = spm_mip(Z,XYZ,M,units)
 % XYZ     - matrix of coordinates of points (mip coordinates)
 % M       - voxels - > mip matrix or size of voxels (mm)
 % units   - defining space     [default {'mm' 'mm' 'mm'}]
+%
 % mip     - maximum intensity projection
-%           if no output, the mip is displayed in current figure
+%           if no output, the mip is displayed in current figure.
 %__________________________________________________________________________
 %
 % If the data are 2 dimensional [DIM(3) = 1] the projection is simply an
@@ -31,12 +32,11 @@ function mip = spm_mip(Z,XYZ,M,units)
 %
 % If M is not specified, it is assumed the XYZ locations are 
 % in Talairach mm.
-%
 %__________________________________________________________________________
-% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mip.m 4981 2012-10-02 16:12:36Z guillaume $
+% $Id: spm_mip.m 5245 2013-02-06 17:28:06Z guillaume $
 
 %-Get units and grid scaling
 %--------------------------------------------------------------------------
@@ -108,8 +108,18 @@ c    = [0 0 0 ;
 c    = c*M(1:3,1:3);
 dim  = [(max(c) - min(c)) size(mip)];
 d    = spm_project(Z,round(XYZ),dim,DXYZ,CXYZ);
-mip  = max(d,Grid*mip);
-mip  = rot90((1 - mip)*64);
+%if true
+    mip  = max(d,Grid*mip);
+    mip  = rot90((1 - mip)*64);
+%else
+%    mip  = rot90((1 - mip)*64);
+%    d    = rot90((1 - d)*64);
+%    i    = repmat(any(d~=64,3),[1 1 3]);
+%    mip  = ind2rgb(ceil(mip),gray(64));
+%    c    = hot(128);
+%    d    = ind2rgb(ceil(d),c(end:-1:65,:));
+%    mip(i) = d(i);
+%end
 
 %-And display it
 %--------------------------------------------------------------------------
