@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: checkmeeg.m 5246 2013-02-07 15:35:54Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -334,6 +334,12 @@ else
             this.sensors = rmfield(this.sensors, 'eeg');
         else
             this.sensors.eeg = ft_datatype_sens(this.sensors.eeg);
+            
+            if isfield(this.sensors.eeg, 'chanunit')
+                chanunit = this.sensors.eeg.chanunit;
+                chanunit(strcmp('V',   chanunit)) = {'uV'};
+                this.sensors.eeg.chanunit = chanunit;
+            end
         end
     end
     if isfield(this.sensors, 'meg')
@@ -341,6 +347,12 @@ else
             this.sensors = rmfield(this.sensors, 'meg');
         else
             this.sensors.meg = ft_datatype_sens(this.sensors.meg);
+            if isfield(this.sensors.meg, 'chanunit')
+                chanunit = this.sensors.meg.chanunit;
+                chanunit(strcmp('T',   chanunit)) = {'fT'};
+                chanunit(strcmp('T/mm', chanunit)) = {'fT/mm'};
+                this.sensors.meg.chanunit = chanunit;
+            end
         end
     end
 end
