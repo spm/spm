@@ -1,4 +1,4 @@
-function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
+function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 
 % FT_PLOT_TOPO interpolates and plots the 2-D spatial topography of the
 % potential or field distribution over the head
@@ -13,7 +13,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %   outline       =
 %   isolines      =
 %   interplim     =
-%   interpmethod  =
+%   interpmethod  = string, 'nearest', 'linear', 'natural', 'cubic', 'v4' (default = 'v4')
 %   style         = can be 'surf', 'iso', 'isofill', 'surfiso'
 %   datmask       =
 %   tag           =
@@ -27,7 +27,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %   hlim        = horizontal scaling limits within the local axes
 %   vlim        = vertical scaling limits within the local axes
 
-% Copyrights (C) 2009-2011, Giovanni Piantoni, Robert Oostenveld
+% Copyrights (C) 2009-2013, Giovanni Piantoni, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -45,7 +45,7 @@ function [Zi, h, handles] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_plot_topo.m 7455 2013-02-07 21:27:33Z ingnie $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -69,10 +69,15 @@ mask          = ft_getopt(varargin, 'mask');
 outline       = ft_getopt(varargin, 'outline');
 parent        = ft_getopt(varargin, 'parent', []);
 
-% check for nans in the data, these should be dealt with by the caller
+% check for nans in the data, they can be still left incase people want to
+% mask non channels. 
 if any(isnan(dat))
-  warning('the data passed to ft_plot_topo contains NaNs, the interpolation will have unexpected results. NaNs should be dealt with by the caller function.');
+  warning('the data passed to ft_plot_topo contains NaNs, these channels will be removed from the data to prevent interpolation errors, but will remain in the mask');
+  flagNaN = true;
+else
+  flagNaN = false;
 end
+NaNind = isnan(dat);
 
 % everything is added to the current figure
 holdflag = ishold;
@@ -186,7 +191,7 @@ end
 if ~isempty(datmask)
   xi           = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
   yi           = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
-  maskimagetmp = griddata(chanX', chanY, datmask, xi', yi, interpmethod); % interpolate the mask data
+  maskimagetmp = griddata(chanX', chanY, datmask, xi', yi, 'nearest'); % interpolate the mask data
   if isempty(maskimage)
     maskimage = maskimagetmp;
   else
@@ -195,6 +200,14 @@ if ~isempty(datmask)
   end
 end
 
+% take out NaN channels if interpmethod does not work with NaNs
+if flagNaN && strcmp(interpmethod,'v4')
+  dat(NaNind) = [];
+  chanX(NaNind) = [];
+  chanY(NaNind) = [];
+end
+
+%interpolate data
 xi         = linspace(hlim(1), hlim(2), gridscale);       % x-axis for interpolation (row vector)
 yi         = linspace(vlim(1), vlim(2), gridscale);       % y-axis for interpolation (row vector)
 [Xi,Yi,Zi] = griddata(chanX', chanY, dat, xi', yi, interpmethod); % interpolate the topographic data

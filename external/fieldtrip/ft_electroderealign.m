@@ -102,9 +102,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_electroderealign.m 7442 2013-02-06 10:55:37Z lilmag $
 
-revision = '$Id: ft_electroderealign.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_electroderealign.m 7442 2013-02-06 10:55:37Z lilmag $';
 
 % do the general setup of the function
 ft_defaults
@@ -178,25 +178,35 @@ if usetemplate
 end
 
 if useheadshape
-  % get the surface describing the head shape
-  if isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
-    % use the headshape surface specified in the configuration
-    headshape = cfg.headshape;
-  elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
-    % use the headshape points specified in the configuration
-    headshape.pnt = cfg.headshape;
-  elseif ischar(cfg.headshape)
-    % read the headshape from file
-    headshape = ft_read_headshape(cfg.headshape);
-  else
-    error('cfg.headshape is not specified correctly')
-  end
-  if ~isfield(headshape, 'tri')
-    % generate a closed triangulation from the surface points
-    headshape.pnt = unique(headshape.pnt, 'rows');
-    headshape.tri = projecttri(headshape.pnt);
-  end
-  headshape = ft_convert_units(headshape, elec.unit); % ensure that the units are consistent with the electrodes
+    % get the surface describing the head shape
+    if isstruct(cfg.headshape) && isfield(cfg.headshape, 'hex')
+        if isfield(cfg.headshape,'pos') && ~isfield(cfg.headshape,'pnt')
+            cfg.headshape.pnt = cfg.headshape.pos;
+        end
+        headshape = mesh2edge(cfg.headshape);
+    elseif isstruct(cfg.headshape) && isfield(cfg.headshape, 'tet')
+        if isfield(cfg.headshape,'pos') && ~isfield(cfg.headshape,'pnt')
+            cfg.headshape.pnt = cfg.headshape.pos;
+        end
+        headshape = mesh2edge(cfg.headshape);
+    elseif isstruct(cfg.headshape) && isfield(cfg.headshape, 'pnt')
+        % use the headshape surface specified in the configuration
+        headshape = cfg.headshape;
+    elseif isnumeric(cfg.headshape) && size(cfg.headshape,2)==3
+        % use the headshape points specified in the configuration
+        headshape.pnt = cfg.headshape;
+    elseif ischar(cfg.headshape)
+        % read the headshape from file
+        headshape = ft_read_headshape(cfg.headshape);
+    else
+        error('cfg.headshape is not specified correctly')
+    end
+    if ~isfield(headshape, 'tri') && ~isfield(headshape,'poly')
+        % generate a closed triangulation from the surface points
+        headshape.pnt = unique(headshape.pnt, 'rows');
+        headshape.tri = projecttri(headshape.pnt);
+    end
+    headshape = ft_convert_units(headshape, elec.unit); % ensure that the units are consistent with the electrodes
 end
 
 % remember the original electrode locations and labels
@@ -632,7 +642,11 @@ function cb_redraw(hObject, eventdata, handles);
 fig = get(hObject, 'parent');
 headshape = getappdata(fig, 'headshape');
 bnd.pnt = headshape.pnt; %ft_plot_mesh wants headshape in bnd fields
+if isfield(headshape,'tri')
 bnd.tri = headshape.tri;
+elseif isfield(headshape, 'poly')
+bnd.poly = headshape.poly;
+end
 elec = getappdata(fig, 'elec');
 template = getappdata(fig, 'template');
 % get the transformation details

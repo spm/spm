@@ -26,7 +26,7 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_freq_matrices.m 7393 2013-01-23 14:33:27Z jorhor $
+% $Id: prepare_freq_matrices.m 7451 2013-02-07 12:05:28Z jansch $
 
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end
@@ -77,9 +77,9 @@ end
 if strcmp(freq.dimord, 'chan_freq')
   Ntrials = 1;
 elseif strcmp(freq.dimord, 'rpt_chan_freq')
-  Ntrials = length(freq.cumtapcnt);
+  Ntrials = size(freq.cumtapcnt,1);
 elseif strcmp(freq.dimord, 'rpttap_chan_freq')
-  Ntrials = length(freq.cumtapcnt);
+  Ntrials = size(freq.cumtapcnt,1);
 else
   error('unrecognized dimord for frequency data');
 end

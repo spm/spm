@@ -18,7 +18,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.maskstyle        = style used to masking, 'opacity' or 'saturation' (default = 'opacity')
 %                          use 'saturation' when saving to vector-format (like *.eps) to avoid all 
 %                          sorts of image-problems (currently only possible with a white backgroud)
-%   cfg.maskalpha        = alpha value used for masking areas dictated by cfg.maskparameter (0 - 1, default = 1)
+%   cfg.maskalpha        = alpha value between 0 (transparant) and 1 (opaque) used for masking areas dictated by cfg.maskparameter (default = 1)
 %   cfg.masknans         = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim             = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim             = 'maxmin' or [ymin ymax] (default = 'maxmin')
@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_multiplotTFR.m 7449 2013-02-07 09:20:19Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_multiplotTFR.m 7449 2013-02-07 09:20:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults

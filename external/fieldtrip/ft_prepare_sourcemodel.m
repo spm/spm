@@ -5,7 +5,7 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 % beamformer scanning, linear estimation and MEG interpolation.
 %
 % Use as
-%   grid = prepare_prepare_sourcemodel(cfg)
+%   grid = ft_prepare_sourcemodel(cfg)
 %
 % where the configuration structure contains the details on how the source
 % model should be constructed.
@@ -120,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 7266 2012-12-27 11:23:28Z roboos $
+% $Id: ft_prepare_sourcemodel.m 7413 2013-01-28 11:13:25Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 7266 2012-12-27 11:23:28Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 7413 2013-01-28 11:13:25Z roboos $';
 
 % do the general setup of the function
 ft_defaults

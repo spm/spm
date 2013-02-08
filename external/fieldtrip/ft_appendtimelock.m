@@ -29,17 +29,17 @@ function [timelock] = ft_appendtimelock(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendtimelock.m 7201 2012-12-15 15:57:29Z roboos $
+% $Id: ft_appendtimelock.m 7445 2013-02-06 15:02:12Z eelspa $
 
-revision = '$Id: ft_appendtimelock.m 7201 2012-12-15 15:57:29Z roboos $';
+revision = '$Id: ft_appendtimelock.m 7445 2013-02-06 15:02:12Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble help
-ft_preamble trackconfig
-ft_preamble debug
 ft_preamble loadvar    varargin
 ft_preamble provenance varargin
+ft_preamble trackconfig
+ft_preamble debug
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

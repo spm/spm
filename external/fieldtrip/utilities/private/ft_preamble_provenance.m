@@ -27,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 7199 2012-12-15 15:53:28Z roboos $
+% $Id: ft_preamble_provenance.m 7445 2013-02-06 15:02:12Z eelspa $
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the
@@ -41,6 +41,10 @@ if isfield(cfg, 'trackcallinfo') && ~istrue(cfg.trackcallinfo)
   % do not track the call information
   return
 end
+
+% add the user-specified cfg (before any defaults handling etc.) to the
+% callinfo
+cfg.callinfo.usercfg = cfg;
 
 % compute the MD5 hash of each of the input arguments
 if isequal(ft_default.preamble, {'varargin'})

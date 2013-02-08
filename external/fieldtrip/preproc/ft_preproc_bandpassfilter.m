@@ -47,7 +47,7 @@ function [filt] = ft_preproc_bandpassfilter(dat, Fs, Fbp, N, type, dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_bandpassfilter.m 7421 2013-01-29 11:36:40Z eelspa $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -115,10 +115,7 @@ switch type
     error('unsupported filter type "%s"', type);
 end
 
-meandat = mean(dat,2);
-for i=1:nsamples
-  % demean the data
-  dat(:,i) = dat(:,i) - meandat;
-end
+% demean the data before filtering
+dat = bsxfun(@minus, dat, mean(dat, 2));
 
 filt = filter_with_correction(B,A,dat,dir);

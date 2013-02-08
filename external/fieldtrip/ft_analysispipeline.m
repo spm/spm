@@ -55,7 +55,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-revision = '$Id: ft_analysispipeline.m 7367 2013-01-21 13:25:44Z roboos $';
+revision = '$Id: ft_analysispipeline.m 7426 2013-01-30 16:50:36Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -198,7 +198,7 @@ this = getnode(cfg);
 if isfield(cfg, 'previous') && ~isempty(cfg.previous) && iscell(cfg.previous)
   previous = cellfun(@walktree, cfg.previous, 'UniformOutput', false);
   if iscell(previous{1})
-    previous = cat(1, previous{:});
+    previous = cat(2, previous{:});
   end
 elseif isfield(cfg, 'previous') && ~isempty(cfg.previous) && isstruct(cfg.previous)
   previous = walktree(cfg.previous);

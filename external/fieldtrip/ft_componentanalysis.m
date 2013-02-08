@@ -147,14 +147,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_componentanalysis.m 7410 2013-01-25 14:28:54Z dieloz $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
 
-revision = '$Id: ft_componentanalysis.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_componentanalysis.m 7410 2013-01-25 14:28:54Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -218,7 +218,6 @@ if isfield(cfg, 'unmixing') && isfield(cfg, 'topolabel')
   tmpcfg.channel      = cfg.channel;     % the Mx1 labels of the data that is presented now to this function
   tmpcfg.numcomponent = 'all';
   tmpcfg.method       = 'predetermined unmixing matrix';
-  tmpcfg.outputfile   = cfg.outputfile;
   cfg                 = tmpcfg;
 end
 

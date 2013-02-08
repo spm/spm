@@ -122,9 +122,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 7363 2013-01-18 14:35:47Z lilmag $
+% $Id: ft_volumesegment.m 7428 2013-01-31 10:31:31Z jorhor $
 
-revision = '$Id: ft_volumesegment.m 7363 2013-01-18 14:35:47Z lilmag $';
+revision = '$Id: ft_volumesegment.m 7428 2013-01-31 10:31:31Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -153,8 +153,6 @@ cfg.write            = ft_getopt(cfg, 'write',            'no');
 cfg.keepintermediate = ft_getopt(cfg, 'keepintermediate', 'no');
 cfg.coordsys         = ft_getopt(cfg, 'coordsys',         '');
 cfg.units            = ft_getopt(cfg, 'units',            '');
-cfg.inputfile        = ft_getopt(cfg, 'inputfile',        []);
-cfg.outputfile       = ft_getopt(cfg, 'outputfile',       []);
 
 % set default for smooth and threshold
 cfg.brainsmooth      = ft_getopt(cfg, 'brainsmooth',      ''); % see also below

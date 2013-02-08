@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7353 2013-01-18 05:14:26Z josdie $
+% $Id: ft_read_header.m 7435 2013-02-04 12:53:45Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1251,11 +1251,15 @@ switch headerformat
     hdr.label       = orig.ch_names(:);
     hdr.nChans      = orig.nchan;
     hdr.Fs          = orig.sfreq;
+
     % add a gradiometer structure for forward and inverse modelling
     try
-      [hdr.grad, elec] = mne2grad(orig);
+      [grad, elec] = mne2grad(orig);
+      if ~isempty(grad)
+        hdr.grad = grad;
+      end
       if ~isempty(elec)
-        hdr.elec     = elec;
+        hdr.elec = elec;
       end
     catch
       disp(lasterr);

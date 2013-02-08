@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 7369 2013-01-21 14:14:11Z vlalit $
+% $Id: ft_read_sens.m 7435 2013-02-04 12:53:45Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -161,7 +161,7 @@ switch fileformat
     hdr = ft_read_header(filename,'headerformat','neuromag_mne');
     sens = hdr.elec;
     
-  case 'neuromag_mne'
+  case {'neuromag_mne' 'babysquid_fif'}
     % the file can contain both, try to be smart in determining what to return
     hdr = ft_read_header(filename,'headerformat','neuromag_mne');
     if isfield(hdr, 'elec') && isfield(hdr, 'grad')

@@ -46,7 +46,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_lowpassfilter.m 7421 2013-01-29 11:36:40Z eelspa $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -109,15 +109,11 @@ switch type
     error('unsupported filter type "%s"', type);
 end
 
+% demean the data before filtering
 meandat = mean(dat,2);
-for i=1:nsamples
-  % demean the data
-  dat(:,i) = dat(:,i) - meandat;
-end
+dat = bsxfun(@minus, dat, meandat);
 
 filt = filter_with_correction(B,A,dat,dir);
 
-for i=1:nsamples
-  % add the mean back to the filtered data
-  filt(:,i) = filt(:,i) + meandat;
-end
+% add the mean back to the filtered data
+filt = bsxfun(@plus, filt, meandat);

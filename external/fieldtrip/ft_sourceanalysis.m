@@ -192,9 +192,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 7393 2013-01-23 14:33:27Z jorhor $
+% $Id: ft_sourceanalysis.m 7450 2013-02-07 11:26:09Z johzum $
 
-revision = '$Id: ft_sourceanalysis.m 7393 2013-01-23 14:33:27Z jorhor $';
+revision = '$Id: ft_sourceanalysis.m 7450 2013-02-07 11:26:09Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -876,10 +876,15 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   elseif strcmp(cfg.method, 'mne')
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
-      if hascovariance 
-        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
+      if size(avg,3)==1
+        squeeze_avg = avg(i,:)';
       else
-        dip(i) = minimumnormestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:});
+        squeeze_avg = squeeze(avg(i,:,:));
+      end
+      if hascovariance 
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze_avg, optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
+      else
+        dip(i) = minimumnormestimate(grid, sens, vol, squeeze_avg, optarg{:});
       end
     end
   elseif strcmp(cfg.method, 'loreta')

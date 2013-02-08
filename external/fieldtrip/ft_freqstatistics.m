@@ -70,9 +70,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_freqstatistics.m 7428 2013-01-31 10:31:31Z jorhor $
 
-revision = '$Id: ft_freqstatistics.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_freqstatistics.m 7428 2013-01-31 10:31:31Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -88,7 +88,6 @@ cfg = ft_checkconfig(cfg, 'required',    {'method'});
 cfg = ft_checkconfig(cfg, 'forbidden',   {'transform'});
 
 % set the defaults
-cfg.outputfile  = ft_getopt(cfg, 'outputfile',  []);
 cfg.parameter   = ft_getopt(cfg, 'parameter',   []); % the default is assigned further down
 cfg.channel     = ft_getopt(cfg, 'channel',     'all');
 cfg.latency     = ft_getopt(cfg, 'latency',     'all');

@@ -17,6 +17,8 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 % The configuration can have the following parameters:
 %   cfg.parameter          = field that contains the data to be plotted as color 
 %                           'avg', 'powspctrm' or 'cohspctrm' (default depends on data.dimord)
+%   cfg.maskparameter      = field in the data to be used for masking of
+%                            data. Values between 0 and 1, 0 = transparent
 %   cfg.xlim               = selection boundaries over first dimension in data (e.g., time)
 %                            'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim               = selection boundaries over second dimension in data (e.g., freq)
@@ -137,9 +139,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_topoplotER.m 7455 2013-02-07 21:27:33Z ingnie $
 
-revision = '$Id: ft_topoplotER.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_topoplotER.m 7455 2013-02-07 21:27:33Z ingnie $';
 
 % do the general setup of the function
 ft_defaults

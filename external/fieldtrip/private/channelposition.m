@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 7178 2012-12-13 14:14:16Z roboos $
+% $Id: channelposition.m 7436 2013-02-04 12:53:47Z roboos $
 
 % FIXME varargin is not documented
 
@@ -56,14 +56,14 @@ elseif ~isfield(sens, 'coilori') && isfield(sens, 'elecpos')
 end
 
 switch ft_senstype(sens)
-  case {'ctf64', 'ctf151', 'ctf275' 'bti148', 'bti248', 'bti248grad', 'itab28', 'itab153', 'yokogawa64', 'yokogawa160'}
+  case {'ctf64', 'ctf151', 'ctf275' 'bti148', 'bti248', 'bti248grad', 'itab28', 'itab153', 'yokogawa64', 'yokogawa160', 'babysquid74'}
     % the following code applies to systems with only axial gradiometers or magnetometers
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     % do the MEG sensors first
     %%%%%%%%%%%%%%%%%%%%%%%%%%
     sensorig   = sens;
-    sel = ft_chantype(sens, 'meg');
+    sel        = ft_chantype(sens, 'meg');
     sens.label = sens.label(sel);
     sens.tra   = sens.tra(sel,:);
     
@@ -280,13 +280,13 @@ switch ft_senstype(sens)
       pnt = sens.coilpos;
       ori = sens.coilori;
       lab = sens.label;
-    
+      
     elseif isfield(sens, 'elecpos')
       % there is one sensor per channel, which means that the channel position is identical to the sensor position
       pnt = sens.elecpos;
       ori = nan(size(sens.elecpos));
       lab = sens.label;
-
+      
     end
     
 end % switch senstype

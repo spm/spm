@@ -2,8 +2,8 @@ function [data] = ft_channelrepair(cfg, data)
 
 % FT_CHANNELREPAIR repairs bad or missing channels in MEG or EEG data by
 % replacing them with the average of its neighbours (nearest-neighbour
-% approach), by interpolation based on
-% a surface Laplacian or by spherical spline interpolating (see Perrin et al., 1989). 
+% approach), by interpolation based on a surface Laplacian or by spherical 
+% spline interpolating (see Perrin et al., 1989). 
 % The nearest neighbour approach cannot be used reliably to repair multiple 
 % bad channels that lie next to each other.
 %
@@ -16,8 +16,8 @@ function [data] = ft_channelrepair(cfg, data)
 %   cfg.missingchannel = cell-array, see FT_CHANNELSELECTION for details
 %   cfg.neighbours     = neighbourhoodstructure, see also FT_PREPARE_NEIGHBOURS
 %   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
-%   cfg.lambda         = regularisation parameter for smoothing (only 'sphere' and 'slap', default = 1e-5)
-%   cfg.order          = order of the polynomial interpolation (only 'sphere' and 'slap', default = 4)
+%   cfg.lambda         = regularisation parameter (default = 1e-5, not for method 'distance')
+%   cfg.order          = order of the polynomial interpolation (default = 4, not for method 'distance')
 %
 % For reconstructing channels that are absent in your data using the 
 % 'nearest' method, please define your neighbours by setting 
@@ -47,7 +47,7 @@ function [data] = ft_channelrepair(cfg, data)
 % See also FT_MEGREALIGN, FT_MEGPLANAR, FT_NEIGHBOURSELECTION
 
 % Copyright (C) 2004-2009, Robert Oostenveld
-% Copyright (C) 2012,      J?rn M. Horschig, Jason Farquhar
+% Copyright (C) 2012-2013, J?rn M. Horschig, Jason Farquhar
 
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -65,9 +65,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_channelrepair.m 7439 2013-02-05 09:09:03Z jorhor $
 
-revision = '$Id: ft_channelrepair.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_channelrepair.m 7439 2013-02-05 09:09:03Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -117,6 +117,14 @@ end
 % component data are backprojected to the sensor level
 if any(isnan(sens.chanpos(:)))
   error('The channel positions contain NaNs; this prohibits correct behavior of the function. Please replace the input channel definition with one that contains valid channel positions');
+end
+
+if ft_senstype(sens, 'eeg')
+ % ok on EEG data
+elseif ft_senstype(sens, 'meg') && any(strcmp(ft_senstype(sens), {'ctf151', 'ctf275','bti148', 'bti248'})) 
+ % ok on MEG ctf151, 275 and bti148 and 248 systems
+else
+  warning('be careful when using %s - mixing of sensor types (e.g. magnetometers and gradiometers) can lead to wrong data. Check your neighbour-structure thoroughly', ft_senstype(sens));
 end
 
 channels = ft_channelselection(cfg.badchannel, data.label);
@@ -276,15 +284,15 @@ elseif strcmp(cfg.method, 'spline') || strcmp(cfg.method, 'slap')
   % subselect only those sensors that are in the data or in badchannel or missingchannel
   badchannels   = union(cfg.badchannel, cfg.missingchannel);
   sensidx       = ismember(sens.label, union(data.label, badchannels));  
-  sens.label    = sens.label(sensidx);
-  sens.chanpos  = sens.chanpos(sensidx, :);
-  try, sens.chanori   = sens.chanori(sensidx, :); end
-  try, sens.chantype  = sens.chantype(sensidx, :); end
-  try, sens.chanunit  = sens.chanunit(sensidx, :); end
+  label    = sens.label(sensidx);
+  chanpos  = sens.chanpos(sensidx, :);
+  try, chanori   = sens.chanori(sensidx, :); end
+  try, chantype  = sens.chantype(sensidx, :); end
+  try, chanunit  = sens.chanunit(sensidx, :); end
   
   fprintf('Checking spherical fit... ');  
-  [c, r] = fitsphere(sens.chanpos);  
-  d = sens.chanpos - repmat(c, numel(find(sensidx)), 1);    
+  [c, r] = fitsphere(chanpos);  
+  d = chanpos - repmat(c, numel(find(sensidx)), 1);    
   d = sqrt(sum(d.^2, 2));
   d = mean(abs(d) / r);   
   if abs(d-1) > 0.1
@@ -299,35 +307,35 @@ elseif strcmp(cfg.method, 'spline') || strcmp(cfg.method, 'slap')
     warning('''slap'' method is not fully supported - be careful in interpreting your results');
   end
   % move missing channels to the end
-  missidx = find(ismember(sens.label, cfg.missingchannel));  
-  sens.label(end+1:end+numel(missidx))      = sens.label(missidx);
-  sens.label(missidx)                       = [];
-  sens.chanpos(end+1:end+numel(missidx), :) = sens.chanpos(missidx, :);
-  sens.chanpos(missidx, :)                  = [];
+  missidx = find(ismember(label, cfg.missingchannel));  
+  label(end+1:end+numel(missidx))      = label(missidx);
+  label(missidx)                       = [];
+  chanpos(end+1:end+numel(missidx), :) = chanpos(missidx, :);
+  chanpos(missidx, :)                  = [];
   
   % select good channels only for interpolation
-  [goodchanlabels,goodchanindcs] = setdiff(sens.label,badchannels);
+  [goodchanlabels,goodchanindcs] = setdiff(label,badchannels);
   allchans = false;
   if isempty(goodchanindcs)
-    goodchanindcs = 1:numel(sens.label);
+    goodchanindcs = 1:numel(label);
     allchans = true;
     warning('No good channels found - interpolating based on all channels');
   end
   % undo automatical sorting by setdiff
   goodchanindcs      = sort(goodchanindcs); 
   % only take good channels that are in data (and remember how they are sorted)
-  [dataidx, sensidx] = match_str(data.label, sens.label(goodchanindcs)); 
+  [dataidx, sensidx] = match_str(data.label, label(goodchanindcs)); 
 
   % interpolate
   fprintf('computing weight matrix...');
-  repair = sphericalSplineInterpolate(sens.chanpos(goodchanindcs(sensidx),:)',sens.chanpos', cfg.lambda, cfg.order, cfg.method);
+  repair = sphericalSplineInterpolate(chanpos(goodchanindcs(sensidx),:)',chanpos', cfg.lambda, cfg.order, cfg.method);
   fprintf(' done!\n');
   
   if ~allchans
     % only use the rows corresponding to the channels that actually need interpolation
     repair(goodchanindcs(sensidx),:) = 0;
     for k = 1:numel(sensidx)
-      i = strcmp(sens.label(goodchanindcs(sensidx(k))), sens.label(goodchanindcs(sensidx)));
+      i = strcmp(label(goodchanindcs(sensidx(k))), label(goodchanindcs(sensidx)));
       repair(goodchanindcs(sensidx(k)), i) = 1;
     end
   end % else all rows need to be interpolated
@@ -335,7 +343,7 @@ elseif strcmp(cfg.method, 'spline') || strcmp(cfg.method, 'slap')
   % store the realigned data in a new structure
   interp.fsample = data.fsample;
   interp.time    = data.time;
-  interp.label   = sens.label;
+  interp.label   = label;
   if iseeg
     interp.elec  = sens;
   else

@@ -79,7 +79,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_compute_leadfield.m 7456 2013-02-08 15:27:30Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -96,7 +96,7 @@ reducerank      = ft_getopt(varargin, 'reducerank', 'no');
 normalize       = ft_getopt(varargin, 'normalize' , 'no');
 normalizeparam  = ft_getopt(varargin, 'normalizeparam', 0.5);
 weight          = ft_getopt(varargin, 'weight');
-unit            = ft_getopt(varargin, 'unit', 'arbitrary'); % arbitrary or si
+units           = ft_getopt(varargin, 'units', 'arbitrary'); % arbitrary or si
 
 if ~isstruct(sens) && size(sens, 2)==3
   % definition of electrode positions only, restructure it
@@ -121,8 +121,8 @@ if isfield(vol, 'unit') && isfield(sens, 'unit') && ~strcmp(vol.unit, sens.unit)
   error('inconsistency in the units of the volume conductor and the sensor array');
 end
 
-if strcmp(unit, 'si')
-  % convert the input objects into standard international units, the alternative is arbitrary
+if strcmp(units, 'si')
+  % convert the input objects into standard international units, the default is arbitrary
   grid.pos  = pos;
   grid.unit = sens.unit; % assume the same units for the dipole position as for the vol and sens
   grid = ft_convert_units(grid, 'm');
