@@ -1,6 +1,6 @@
 function [M,h] = spm_maff8(varargin)
 % Affine registration to MNI space using mutual information
-% FORMAT M = spm_maff8(P,samp,ff,x,tpm,M,regtyp,bg)
+% FORMAT M = spm_maff8(P,samp,fwhm,x,tpm,M,regtyp,bg)
 % P       - filename or structure handle of image
 % x       - cell array of {x1,x2,x3}, where x1 and x2 are
 %           co-ordinates (from ndgrid), and x3 is a list of
@@ -16,12 +16,12 @@ function [M,h] = spm_maff8(varargin)
 %           'rigid' - rigid(ish)-body registration
 %           'subj'  - inter-subject registration
 %           'none'  - no regularisation
-% ff      - a fudge factor (derived from the one above)
+% fwhm    - smoothness estimate for computing a fudge factor 
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_maff8.m 5248 2013-02-13 20:21:04Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -29,17 +29,21 @@ function [M,h] = spm_maff8(varargin)
 return;
 %_______________________________________________________________________
 %_______________________________________________________________________
-function [buf,MG,x,ff] = loadbuf(V,samp,ff)
+function [buf,MG,x,ff] = loadbuf(V,samp,fwhm)
 if ischar(V), V = spm_vol(V); end;
 d       = V(1).dim(1:3);
-vx      = sqrt(sum(V(1).mat(1:3,1:3).^2));
+vx      = sqrt(sum(V(1).mat(1:3,1:3).^2));  % Voxel sizes
 sk      = max([1 1 1],round(samp*[1 1 1]./vx));
 [x1,x2] = ndgrid(1:sk(1):d(1),1:sk(2):d(2));
 x3      = 1:sk(3):d(3);
 
 % Fudge Factor - to (approximately) account for
 % non-independence of voxels
-ff     = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
+s    = fwhm/sqrt(8*log(2));                 % Standard deviation
+ff   = prod(4*pi*(s./vx./sk).^2 + 1)^(1/2);
+
+%% Old version of fudge factor
+%ff  = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
 
 % Load the image
 V         = spm_vol(V);

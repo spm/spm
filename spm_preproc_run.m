@@ -1,6 +1,6 @@
 function varargout = spm_preproc_run(job,arg)
 % Segment a bunch of images
-% FORMAT spm_preproc(job)
+% FORMAT spm_preproc_run(job)
 % job.channel(n).vols{m}
 % job.channel(n).biasreg
 % job.channel(n).biasfwhm
@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 4982 2012-10-03 12:28:30Z john $
+% $Id: spm_preproc_run.m 5248 2013-02-13 20:21:04Z john $
 
 if nargin == 1, arg = 'run'; end
 
@@ -47,8 +47,9 @@ vout   = vout_job(job);
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
 tpm    = spm_load_priors8(tpm);
 
-if ~isfield(job,'iterations'), nit = 1; else nit   = job.iterations; end
-if ~isfield(job,'alpha'),    alpha = 1; else alpha = job.alpha;      end
+if ~isfield(job,'iterations'), nit           =  1; else nit   = job.iterations; end
+if ~isfield(job,'alpha'),      alpha         = 12; else alpha = job.alpha;      end
+if ~isfield(job.warp,'fwhm'),  job.warp.fwhm =  1; end
 
 for iter=1:nit,
     if nit>1,
@@ -64,7 +65,7 @@ for iter=1:nit,
         obj.image    = spm_vol(images);
         spm_check_orientations(obj.image);
 
-        obj.fudge    = 5;
+        obj.fwhm    = job.warp.fwhm;
         obj.biasreg  = cat(1,job.channel(:).biasreg);
         obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
         obj.tpm      = tpm;
@@ -84,8 +85,8 @@ for iter=1:nit,
                 if isfield(job.warp,'Affine'),
                     Affine = job.warp.Affine;
                 end
-                Affine = spm_maff8(obj.image(1),job.warp.samp,obj.fudge*8,tpm,Affine,job.warp.affreg); % Close to rigid
-                Affine = spm_maff8(obj.image(1),job.warp.samp,obj.fudge,  tpm,Affine,job.warp.affreg);
+                Affine = spm_maff8(obj.image(1),job.warp.samp,(obj.fwhm+1)*8,tpm,Affine,job.warp.affreg); % Close to rigid
+                Affine = spm_maff8(obj.image(1),job.warp.samp, obj.fwhm,     tpm,Affine,job.warp.affreg);
             end;
             obj.Affine = Affine;
         else

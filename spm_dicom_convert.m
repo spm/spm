@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5226 2013-02-01 15:07:37Z guillaume $
+% $Id: spm_dicom_convert.m 5248 2013-02-13 20:21:04Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -835,7 +835,7 @@ for i=1:length(hdr),
             fprintf('File "%s" can not be converted because it does not encode an image.\n', hdr{i}.Filename);
         end
         guff = [guff(:)',hdr(i)];
-    elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesperPixel',...
+    elseif ~checkfields(hdr{i},'StartOfPixelData','SamplesPerPixel',...
             'Rows','Columns','BitsAllocated','BitsStored','HighBit','PixelRepresentation'),
         disp(['Cant find "Image Pixel" information for "' hdr{i}.Filename '".']);
         guff = [guff(:)',hdr(i)];
@@ -940,8 +940,8 @@ return;
 function img = read_image_data(hdr)
 img = [];
 
-if hdr.SamplesperPixel ~= 1,
-    warning([hdr.Filename ': SamplesperPixel = ' num2str(hdr.SamplesperPixel) ' - cant be an MRI']);
+if hdr.SamplesPerPixel ~= 1,
+    warning([hdr.Filename ': SamplesPerPixel = ' num2str(hdr.SamplesPerPixel) ' - cant be an MRI']);
     return;
 end;
 

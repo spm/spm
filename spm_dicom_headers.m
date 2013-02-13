@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 4334 2011-05-31 16:39:53Z john $
+% $Id: spm_dicom_headers.m 5248 2013-02-13 20:21:04Z john $
 
 if nargin<2, essentials = false; end
 
@@ -299,8 +299,17 @@ else
     % in the dictionary.  With a reduced dictionary, this could
     % speed things up considerably.
     % tag.name = '';
-    tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
-    tag.vr   = 'UN';
+    if tag.element~=0,
+        if rem(tag.group,2),
+            tag.name = sprintf('Private_%.4x_%.4x',tag.group,tag.element);
+        else
+            tag.name = sprintf('Tag_%.4x_%.4x',tag.group,tag.element);
+        end
+        tag.vr   = 'UN';
+    else
+        tag.name = '';
+        tag.vr   = 'UN';
+    end
 end;
 
 if flg(2) == 'b',
@@ -385,53 +394,6 @@ catch
     fprintf('\nUnable to load the file "%s".\n', P);
     rethrow(lasterror);
 end;
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function dict = readdict_txt
-fid  = fopen('spm_dicom_dict.txt','rt');
-file = textscan(fid,'%s','delimiter','\n','whitespace',''); file = file{1};
-fclose(fid);
-clear values
-i = 0;
-for i0=1:length(file),
-    words = textscan(file{i0},'%s','delimiter','\t'); words = words{1};
-    if length(words)>=5 && ~strcmp(words{1}(3:4),'xx'),
-        grp = sscanf(words{1},'%x');
-        ele = sscanf(words{2},'%x');
-        if ~isempty(grp) && ~isempty(ele),
-            i          = i + 1;
-            group(i)   = grp;
-            element(i) = ele;
-            vr         = {};
-            for j=1:length(words{4})/2,
-                vr{j}  = words{4}(2*(j-1)+1:2*(j-1)+2);
-            end;
-            name       = words{3};
-            msk        = ~(name>='a' & name<='z') & ~(name>='A' & name<='Z') &...
-                ~(name>='0' & name<='9') & ~(name=='_');
-            name(msk)  = '';
-            values(i)  = struct('name',name,'vr',{vr},'vm',words{5});
-        end;
-    end;
-end;
-
-tags = sparse(group+1,element+1,1:length(group));
-dict = struct('values',values,'tags',tags);
-dict = desparsify(dict);
-return;
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-function dict = desparsify(dict)
-[group,element] = find(dict.tags);
-offs            = zeros(size(group));
-for k=1:length(group),
-    offs(k) = dict.tags(group(k),element(k));
-end;
-dict.group(offs)   = group-1;
-dict.element(offs) = element-1;
 return;
 %_______________________________________________________________________
 

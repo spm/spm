@@ -9,7 +9,7 @@ function out = spm_run_norm(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 4875 2012-08-30 20:04:30Z john $
+% $Id: spm_run_norm.m 5248 2013-02-13 20:21:04Z john $
 
 for i=1:numel(job.subj)
 
@@ -61,6 +61,7 @@ end
 preproc8.warp.mrf    = 0;
 preproc8.warp.reg    = job.eoptions.reg;
 preproc8.warp.affreg = job.eoptions.affreg;
+preproc8.warp.fwhm   = job.eoptions.fwhm;
 preproc8.warp.samp   = job.eoptions.samp;
 preproc8.warp.write  = [0 1];
 preproc8.savemat     = 0;
@@ -91,6 +92,18 @@ for i=1:numel(job.subj),
     else
         defs.comp{1}.def  = job.subj(i).def;
     end
+
+    Nii = nifti(defs.comp{1}.def);
+    vx = sqrt(sum(Nii.mat(1:3,1:3).^2));
+    o  = Nii.mat\[0 0 0 1]';
+    o  = o(1:3)';
+    dm = size(Nii.dat);
+    bb = [-vx.*(o-1) ; vx.*(dm(1:3)-o)];
+
+    defs.comp{2}.idbbvox.vox = job.woptions.vox;
+    defs.comp{2}.idbbvox.bb  = job.woptions.bb;
+    defs.comp{2}.idbbvox.vox(~isfinite(defs.comp{2}.idbbvox.vox)) = vx(~isfinite(defs.comp{2}.idbbvox.vox));
+    defs.comp{2}.idbbvox.bb(~isfinite(defs.comp{2}.idbbvox.bb)) = bb(~isfinite(defs.comp{2}.idbbvox.bb));
     spm_deformations(defs);
 end
 

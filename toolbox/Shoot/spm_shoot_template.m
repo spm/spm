@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot_template.m 5248 2013-02-13 20:21:04Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -276,7 +276,7 @@ for it=1:nits,
     fprintf('\n');
     spm_progress_bar('Clear');
 
-    % Make symmetric (if necessary)
+    % Make left-right symmetric (if necessary)
     if issym, t = t + t(end:-1:1,:,:,:); end
 
     %%%%%%%%%%%%%%%

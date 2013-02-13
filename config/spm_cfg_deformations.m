@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5119 2012-12-14 12:44:48Z guillaume $
+% $Id: spm_cfg_deformations.m 5248 2013-02-13 20:21:04Z john $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -112,7 +112,7 @@ bb.help      = hbb;
 sn2def       = branch('Imported _sn.mat','sn2def',{matname,vox,bb});
 sn2def.help  = hsn;
 
-img          = files('Image to base Id on','space','image',[1 1]);
+img          = files('Image to base Id on','space','nifti',[1 1]);
 img.help     = himg;
 
 id           = branch('Identity (Reference Image)','id',{img});
@@ -170,7 +170,7 @@ drtl.help = {'Imported DARTEL flow field.'};
 %------------------------------------------------------------------------
 other = {drtl,def,id,idbbvox,sn2def};
 
-img          = files('Image to base inverse on','space','image',[1 1]);
+img          = files('Image to base inverse on','space','nifti',[1 1]);
 img.help     = himg;
 
 comp0        = repeat('Composition','comp',other);
@@ -205,7 +205,7 @@ savedas       = entry('Save as','ofname','s',[0 Inf]);
 savedas.val   = {''};
 savedas.help  = hdetw;
 
-applyto      = files('Apply to','fnames','image',[0 Inf]);
+applyto      = files('Apply to','fnames','nifti',[0 Inf]);
 applyto.val  = {''};
 applyto.help = happly;
 
@@ -318,7 +318,7 @@ preserve.val    = {0};
 fromimage       = cfg_files;
 fromimage.name   = 'Image Defined';
 fromimage.tag    = 'file';
-fromimage.filter = 'image';
+fromimage.filter = 'nifti';
 fromimage.num    = [1 1];
 fromimage.help   = {'Use the dimensions, orientation etc of some pre-existing image.'};
 % ---------------------------------------------------------------------
@@ -400,7 +400,7 @@ pullback.help = {[...
 weight        = cfg_files;
 weight.name   = 'Weight Image';
 weight.tag    = 'weight';
-weight.filter = 'image';
+weight.filter = 'nifti';
 weight.num    = [0 1];
 weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
 weight.val    = {''};

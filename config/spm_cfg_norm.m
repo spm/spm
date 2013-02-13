@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5119 2012-12-14 12:44:48Z guillaume $
+% $Id: spm_cfg_norm.m 5248 2013-02-13 20:21:04Z john $
 
 
 % ---------------------------------------------------------------------
@@ -121,7 +121,7 @@ reg.name    = 'Warping Regularisation';
 reg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 reg.strtype = 'e';
 reg.num     = [1  5];
-reg.val     = {[0 0.03 0.6 0.07 0.3]};
+reg.val     = {[0 0.001 0.5 0.025 0.1]};
 
 % ---------------------------------------------------------------------
 % affreg Affine Regularisation
@@ -162,6 +162,17 @@ samp.num     = [1  1];
 samp.val     = {3};
 
 % ---------------------------------------------------------------------
+% smo Smoothness
+% ---------------------------------------------------------------------
+smo         = cfg_entry;
+smo.tag     = 'fwhm';
+smo.name    = 'Smoothness';
+smo.help    = {'For PET or SPECT, set this value to about 5 mm, or more if the images have smoother noise.  For MRI, you can usually use a value of 0 mm.  This is used to derive a fudge factor to account for correlations between neighbouring voxels.  Smoother data have more spatial correlations, rendering the assumptions of the model inaccurate.'};
+smo.strtype = 'e';
+smo.num     = [1  1];
+smo.val     = {0};
+
+% ---------------------------------------------------------------------
 % write Deformation Fields
 % ---------------------------------------------------------------------
 write         = cfg_menu;
@@ -188,7 +199,7 @@ write.val    = {[0 0]};
 eoptions      = cfg_branch;
 eoptions.tag  = 'eoptions';
 eoptions.name = 'Estimation Options';
-eoptions.val  = {biasreg biasfwhm tpm affreg reg samp};
+eoptions.val  = {biasreg biasfwhm tpm affreg reg smo samp};
 eoptions.help = {'Various settings for estimating deformations.'};
 
 
@@ -348,7 +359,7 @@ resample         = cfg_files;
 resample.tag     = 'resample';
 resample.name    = 'Images to Write';
 resample.help    = {'These are the images for warping according to the estimated parameters. They can be any images that are in register with the image used to generate the deformation.'};
-resample.filter  = 'image';
+resample.filter  = 'nifti';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
 

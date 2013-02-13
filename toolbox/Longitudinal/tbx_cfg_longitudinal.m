@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 5044 2012-11-09 13:40:35Z john $
+% $Id: tbx_cfg_longitudinal.m 5248 2013-02-13 20:21:04Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -59,9 +59,9 @@ noise.tag     = 'noise';
 noise.name    = 'Noise Estimate';
 noise.help    = {'.'};
 noise.strtype = 'e';
-noise.num     = [1 1];
+noise.num     = [Inf Inf];
 noise.val     = {NaN};
-noise.help    = {'Specify the standard deviation of the noise in the images.  If this value is not finite, the algorithm will try to estimate a reasonable value based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images. This works reasonably well for simple MRI scans, but less well for derived images (such as averages).  The assumption is that the residuals. after fitting the registration model, are i.i.d. Gaussian.'
+noise.help    = {'Specify the standard deviation of the noise in the images.  If a scalar is entered, all images will be assumed to have the same level of noise.  For any non-finite values, the algorithm will try to estimate reasonable noise estimates based on fitting a mixture of two Rician distributions to the intensity histogram of each of the images. This works reasonably well for simple MRI scans, but less well for derived images (such as averages).  The assumption is that the residuals, after fitting the registration model, are i.i.d. Gaussian.'
 };
 
 bparam         = cfg_entry;

@@ -5,7 +5,17 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_preproc_write8.m 5248 2013-02-13 20:21:04Z john $
+
+% Prior adjustment factor.
+% This is a fudge factor to weaken the effects of the tissue priors.  The
+% idea here is that the bias from the tissue priors probably needs to be
+% reduced because of the spatial smoothing typically used in VBM studies.
+% Having the optimal bias/variance tradeoff for each voxel is not the same
+% as having the optimal tradeoff for weighted averages over several voxels.
+if nargout, prior_adjust = 1.0; else prior_adjust = 0.5; end
+
+prior_adjust = 1.0; %%%%%%%%%%%%%%%
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -45,6 +55,7 @@ for n=1:N,
     chan(n).B1 = spm_dctmtx(d(1),d3(1),x1(:,1));
     chan(n).T  = res.Tbias{n};
 
+    % Need to fix writing of bias fields or bias corrected images, when the data used are 4D.
     [pth1,nam1,ext1] = fileparts(res.image(n).fname);
     chan(n).ind      = res.image(n).n;
 
@@ -170,11 +181,13 @@ for z=1:length(x3),
                 q1  = likelihoods(cr,[],res.mg,res.mn,res.vr);
                 q1  = reshape(q1,[d(1:2),numel(res.mg)]);
                 b   = spm_sample_priors8(tpm,t1,t2,t3);
+                b   = adjust_priors(b,prior_adjust);
                 for k1=1:Kb,
                     q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
                 end
             else
                 q   = spm_sample_priors8(tpm,t1,t2,t3);
+                q   = adjust_priors(q,prior_adjust);
                 q   = cat(3,q{:});
                 for n=1:N,
                     tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
@@ -387,6 +400,20 @@ if df(2),
 end
 
 return;
+%=======================================================================
+
+%=======================================================================
+function b = adjust_priors(b,fac)
+% An ad hoc fix.
+s=zeros(size(b{1}));
+for i=1:numel(b),
+    b{i} = b{i}.^fac;
+    s    = s + b{i};
+end
+for i=1:numel(b),
+    b{i} = b{i}./s;
+end
+
 %=======================================================================
 
 %=======================================================================

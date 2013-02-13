@@ -29,9 +29,8 @@ function results = spm_preproc8(obj)
 %               used for the parameter estimation.  Better segmentation
 %               would be expected if all were used, but this would be
 %               extremely slow.
-%    fudge    - A fudge factor to try to account for the lack of
-%               spatial correlations imposed by the model.  The need for
-%               this indicates that the model could be improved (MRFs??).
+%    fwhm     - A smoothness estimate for computing a fudge factor that
+%               tries to account for spatial covariance in the noise.
 %
 % obj also has some optional fields...
 %    mg       - a 1xK vector (where K is the lengrh of obj.lkp). This
@@ -72,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_preproc8.m 5248 2013-02-13 20:21:04Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -106,16 +105,28 @@ kron = inline('spm_krutil(a,b)','a','b');
 randn('state',0);
 rand('state',0);
 
-% Fudge Factor - to (approximately) account for
-% non-independence of voxels
-ff     = obj.fudge;
-ff     = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
+% Fudge Factor - to (approximately) account for non-independence of voxels.
+% Note that variances add, and that Var[a*x + b*y] = a^2*Var[x] + b^2*Var[y]
+% Therefore the variance of i.i.d. noise after Gaussian smoothing is equal
+% to the sum of the Gaussian function squared times the original variance.
+% A Gaussian is given by g=sqrt(2*pi*s^2)^(-1/2)*exp(-0.5*x.^2/s^2);
+% After squaring, this is (2*pi*s^2)^(-1)*exp(-x.^2/s^2), which is a scaled
+% Gaussian. Letting s2 = 2/sqrt(2), this is equal to
+% (4*pi*s^2)^(-1/2)*(2*pi*s2^2)^(-1/2)*exp(-0.5*x.^2/s2^2), from which
+% the (4*pi*s^2)^(-1/2) factor comes from.
+fwhm = obj.fwhm;                            % FWHM of image smoothness
+fwhm = fwhm+mean(sqrt(sum(V(1).mat(1:3,1:3).^2))); 
+s    = fwhm/sqrt(8*log(2));                 % Standard deviation
+vx   = sqrt(sum(V(1).mat(1:3,1:3).^2));     % Voxel size
+ff   = prod(4*pi*(s./vx./sk).^2 + 1)^(1/2); 
+
+
 spm_diffeo('boundary',1);
 
 % Initialise Deformation
 %-----------------------------------------------------------------------
 param  = [sk.*vx ff*obj.reg];
-lam    = [0 0 0  1e-4 0.01 0 0 0];
+lam    = [0 0 0  1e-4 0.01 0.01 0.01 0.01];
 scal   = sk;
 d      = [size(x0) length(z0)];
 if isfield(obj,'Twarp'),
