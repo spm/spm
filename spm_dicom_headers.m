@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_dicom_headers.m 5249 2013-02-14 20:02:39Z john $
 
 if nargin<2, essentials = false; end
 
@@ -85,8 +85,10 @@ if nargin<4, lim=Inf; end;
 %if lim==2^32-1, lim=Inf; end;
 len = 0;
 ret = [];
+if lim==0, return; end
+
 tag = read_tag(fp,flg,dict);
-while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % && tag.length==0),
+while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % FFFE,E00D Item Delimitation Item
     %fprintf('%.4x/%.4x %d\n', tag.group, tag.element, tag.length);
     if tag.length>0,
         switch tag.name,
@@ -218,13 +220,6 @@ end;
 
 if ~isempty(tag),
     len = len + tag.le;
-
-    % I can't find this bit in the DICOM standard, but it seems to
-    % be needed for Philips Integra
-    if tag.group==65534 && tag.element==57357 && tag.length~=0,
-        fseek(fp,-4,'cof');
-        len = len-4;
-    end;
 end;
 return;
 %_______________________________________________________________________
@@ -238,23 +233,24 @@ while len<lim,
     tag.group   = fread(fp,1,'ushort');
     tag.element = fread(fp,1,'ushort');
     tag.length  = fread(fp,1,'uint');
-    if isempty(tag.length), return; end;
+    if isempty(tag.length), return; end; % End of file
 
+    %fprintf('SQ(%.4x,%.4x) %d\n', tag.group,tag.element,tag.length);
+    
     %if tag.length == 2^32-1, % FFFFFFFF
     %tag.length = Inf;
     %end;
-    if tag.length==13, tag.length=10; end;
+    %if tag.length==13, tag.length=10; end;
 
     len         = len + 8;
-    if (tag.group == 65534) && (tag.element == 57344), % FFFE/E000
+    if (tag.group == 65534) && (tag.element == 57344),   % FFFE/E000 Item
         [Item,len1] = read_dicom(fp, flg, dict, tag.length);
         len    = len + len1;
         if ~isempty(Item)
             n      = n + 1;
             ret{n} = Item;
-        else
         end
-    elseif (tag.group == 65279) && (tag.element == 224), % FEFF/00E0
+    elseif (tag.group == 65279) && (tag.element == 224), % FEFF/00E0 Item (Byte-swapped)
         % Byte-swapped
         [fname,perm,fmt] = fopen(fp);
         flg1 = flg;
@@ -271,13 +267,13 @@ while len<lim,
         fclose(fp);
         fp     = fopen(fname,perm,fmt);
         fseek(fp,pos,'bof');
-    elseif (tag.group == 65534) && (tag.element == 57565), % FFFE/E0DD
+    elseif (tag.group == 65534) && (tag.element == 57565), % FFFE/E0DD SequenceDelimitationItem
         break;
-    elseif (tag.group == 65279) && (tag.element == 56800), % FEFF/DDE0
+    elseif (tag.group == 65279) && (tag.element == 56800), % FEFF/DDE0 SequenceDelimitationItem (Byte-swapped)
         % Byte-swapped
         break;
     else
-        warning([num2str(tag.group) '/' num2str(tag.element) ' unexpected.']);
+        warning(sprintf('(%.4x,%.4x) unexpected.', tag.group, tag.element));
     end;
 end;
 return;
@@ -336,19 +332,18 @@ if flg(1) =='e',
             tag.length = double(fread(fp,1,'ushort'));
             tag.le     = tag.le + 2;
         case char([0 0])
-            if (tag.group == 65534) && (tag.element == 57357)
+            if (tag.group == 65534) && (tag.element == 57357)    % ItemDeliminationItem
                 % at least on GE, ItemDeliminationItem does not have a
                 % VR, but 4 bytes zeroes as length
-                tag.vr    = 'UN';
-                tag.le    = 8;
-                tag.length = 0;
-                tmp = fread(fp,1,'ushort');
-            elseif (tag.group == 65534) && (tag.element == 57565)
-                % SequenceDelimitationItem - NOT ENTIRELY HAPPY WITH THIS
-                double(fread(fp,1,'uint'));
                 tag.vr     = 'UN';
+                tag.le     = 8;
                 tag.length = 0;
-                tag.le     = tag.le + 6;
+                tmp = fread(fp,1,'ushort'); % Should be zero
+            elseif (tag.group == 65534) && (tag.element == 57565) % SequenceDelimitationItem
+                tag.vr     = 'UN';
+                tag.le     = 8;
+                tag.length = 0;
+                tmp = fread(fp,1,'ushort'); % Should be zero
             else
                 warning('Don''t know how to handle VR of ''\0\0''');
             end;
@@ -362,6 +357,8 @@ else
     tag.length = double(fread(fp,1,'uint'));
 end;
 
+%fprintf('%.4x,%.4x %s %s %d %d\n', tag.group,tag.element,tag.vr,tag.name,tag.length,tag.le);
+
 if isempty(tag.vr) || isempty(tag.length),
     tag = [];
     return;
@@ -369,16 +366,10 @@ end;
 
 
 if rem(tag.length,2),
-    if tag.length==4294967295,
-        tag.length = Inf;
+    if tag.length==4294967295, % FFFFFFFF
         return;
-    elseif tag.length==13,
-        % disp(['Whichever manufacturer created "' fopen(fp) '" is taking the p***!']);
-        % For some bizarre reason, known only to themselves, they confuse lengths of
-        % 13 with lengths of 10.
-        tag.length = 10;
     else
-        warning(['Unknown odd numbered Value Length (' sprintf('%x',tag.length) ') in "' fopen(fp) '".']);
+        warning(['Odd numbered Value Length (' sprintf('%x',tag.length) ') in "' fopen(fp) '".']);
         tag = [];
     end;
 end;
