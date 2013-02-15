@@ -15,7 +15,7 @@ function hdr = spm_dicom_headers(P, essentials)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dicom_headers.m 5249 2013-02-14 20:02:39Z john $
+% $Id: spm_dicom_headers.m 5250 2013-02-15 21:04:36Z john $
 
 if nargin<2, essentials = false; end
 
@@ -41,7 +41,7 @@ function ret = readdicomfile(P,dict)
 ret = [];
 P   = deblank(P);
 fp  = fopen(P,'r','ieee-le');
-if fp==-1, warning(['Cant open "' P '".']); return; end;
+if fp==-1, warning('spm:dicom','%s: Cant open file.',P); return; end;
 
 fseek(fp,128,'bof');
 dcm = char(fread(fp,4,'uint8')');
@@ -52,7 +52,7 @@ if ~strcmp(dcm,'DICM'),
     tag.element = fread(fp,1,'ushort');
     if isempty(tag.group) || isempty(tag.element),
         fclose(fp);
-        warning('Truncated file "%s"',P);
+        warning('spm:dicom','%s: Truncated file.',P);
         return;
     end;
     %t          = dict.tags(tag.group+1,tag.element+1);
@@ -61,7 +61,7 @@ if ~strcmp(dcm,'DICM'),
         % that starts with with an 8/0 tag that I can't find any
         % documentation for.
         fclose(fp);
-        warning(['"' P '" is not a DICOM file.']);
+        warning('spm:dicom','%s: Not a DICOM file.', P);
         return;
     else
         fseek(fp,0,'bof');
@@ -70,10 +70,8 @@ end;
 try
     ret = read_dicom(fp, 'il',dict);
     ret.Filename = fopen(fp);
-catch
-    fprintf('Trouble reading DICOM file %s, skipping.\n', fopen(fp));
-    l = lasterror;
-    disp(l.message);
+catch problem
+    fprintf('%s: Trouble reading DICOM file (%s), skipping.\n', fopen(fp), problem.message);
 end
 fclose(fp);
 return;
@@ -81,15 +79,19 @@ return;
 
 %_______________________________________________________________________
 function [ret,len] = read_dicom(fp, flg, dict,lim)
-if nargin<4, lim=Inf; end;
-%if lim==2^32-1, lim=Inf; end;
+if nargin<4, lim=4294967295; end; % FFFFFFFF
 len = 0;
 ret = [];
-if lim==0, return; end
+while len<lim,
+    tag = read_tag(fp,flg,dict);
+    if isempty(tag), break; end
 
-tag = read_tag(fp,flg,dict);
-while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % FFFE,E00D Item Delimitation Item
-    %fprintf('%.4x/%.4x %d\n', tag.group, tag.element, tag.length);
+    %fprintf('(%.4X,%.4X) "%s" %d %d %s\n', tag.group, tag.element, tag.vr, tag.length, tag.le, tag.name);
+
+    if tag.group==65534 && tag.element==57357, % FFFE,E00D ItemDelimitationItem
+        break;
+    end
+ 
     if tag.length>0,
         switch tag.name,
             case {'GroupLength'},
@@ -117,19 +119,19 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % FFFE,E00D It
                     case {'1.2.840.10008.1.2.1'},    % Explicit VR Little Endian
                         flg = 'el';
                     case {'1.2.840.10008.1.2.1.99'}, % Deflated Explicit VR Little Endian
-                        warning(['Cant read Deflated Explicit VR Little Endian file "' fopen(fp) '".']);
+                        warning('spm:dicom','%s: Cant read Deflated Explicit VR Little Endian file.', fopen(fp));
                         flg = 'dl';
                         return;
                     case {'1.2.840.10008.1.2.2'},    % Explicit VR Big Endian
-                        %warning(['Cant read Explicit VR Big Endian file "' fopen(fp) '".']);
+                        %warning('spm:dicom','%s: Cant read Explicit VR Big Endian file',fopen(fp));
                         flg = 'eb'; % Unused
                     case {'1.2.840.10008.1.2.4.50','1.2.840.10008.1.2.4.51','1.2.840.10008.1.2.4.70',...
                           '1.2.840.10008.1.2.4.80','1.2.840.10008.1.2.4.90','1.2.840.10008.1.2.4.91'}, % JPEG Explicit VR
                         flg = 'el';
-                        %warning(['Cant read JPEG Encoded file "' fopen(fp) '".']);
+                        %warning('spm:dicom',['Cant read JPEG Encoded file "' fopen(fp) '".']);
                     otherwise,
                         flg = 'el';
-                        warning(['Unknown Transfer Syntax UID for "' fopen(fp) '".']);
+                        warning('spm:dicom','%s: Unknown Transfer Syntax UID (%s).',fopen(fp), dat);
                         return;
                 end;
             otherwise,
@@ -203,8 +205,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % FFFE,E00D It
                         dat = '';
                         if tag.length
                             fseek(fp,tag.length,'cof');
-                            warning(['Unknown VR [' num2str(tag.vr+0) '] in "'...
-                                fopen(fp) '" (offset=' num2str(ftell(fp)) ').']);
+                            warning('spm:dicom','%s: Unknown VR [%X%X] (offset=%d).', fopen(fp), tag.vr+0, ftell(fp));
                         end
                 end;
                 if ~isempty(tag.name),
@@ -213,15 +214,7 @@ while ~isempty(tag) && ~(tag.group==65534 && tag.element==57357), % FFFE,E00D It
         end;
     end;
     len = len + tag.le + tag.length;
-    if len>=lim, return; end;
-    tag = read_tag(fp,flg,dict);
 end;
-
-
-if ~isempty(tag),
-    len = len + tag.le;
-end;
-return;
 %_______________________________________________________________________
 
 %_______________________________________________________________________
@@ -235,11 +228,7 @@ while len<lim,
     tag.length  = fread(fp,1,'uint');
     if isempty(tag.length), return; end; % End of file
 
-    %fprintf('SQ(%.4x,%.4x) %d\n', tag.group,tag.element,tag.length);
-    
-    %if tag.length == 2^32-1, % FFFFFFFF
-    %tag.length = Inf;
-    %end;
+    %fprintf('(%.4X,%.4X) %d\n', tag.group,tag.element,tag.length);
     %if tag.length==13, tag.length=10; end;
 
     len         = len + 8;
@@ -273,7 +262,7 @@ while len<lim,
         % Byte-swapped
         break;
     else
-        warning(sprintf('(%.4x,%.4x) unexpected.', tag.group, tag.element));
+        warning('spm:dicom','%s: Tag (%.4X,%.4X) is unexpected in sequence.', fopen(fp), tag.group, tag.element);
     end;
 end;
 return;
@@ -285,7 +274,7 @@ tag.group   = fread(fp,1,'ushort');
 tag.element = fread(fp,1,'ushort');
 if isempty(tag.element), tag=[]; return; end;
 if tag.group == 2, flg = 'el'; end;
-%t          = dict.tags(tag.group+1,tag.element+1);
+%t          = dict.tags(tag.group+1,tag.element+1); % Sparse matrix representation
 t           = find(dict.group==tag.group & dict.element==tag.element);
 if t>0,
     tag.name = dict.values(t).name;
@@ -324,13 +313,16 @@ if flg(1) =='e',
     switch tag.vr,
         case {'OB','OW','SQ','UN','UT'}
             if ~strcmp(tag.vr,'UN') || tag.group~=65534,
-                fseek(fp,2,0);
+                unused = fread(fp,1,'ushort');
+                tag.le = 12;
+            else
+                warning('spm:dicom','%s: Possible problem with %s tag (VR="%s").', fopen(fp), tag.name, tag.vr);
+                tag.le = 10;
             end;
             tag.length = double(fread(fp,1,'uint'));
-            tag.le     = tag.le + 6;
         case {'AE','AS','AT','CS','DA','DS','DT','FD','FL','IS','LO','LT','PN','SH','SL','SS','ST','TM','UI','UL','US'},
             tag.length = double(fread(fp,1,'ushort'));
-            tag.le     = tag.le + 2;
+            tag.le     = 8;
         case char([0 0])
             if (tag.group == 65534) && (tag.element == 57357)    % ItemDeliminationItem
                 % at least on GE, ItemDeliminationItem does not have a
@@ -338,26 +330,25 @@ if flg(1) =='e',
                 tag.vr     = 'UN';
                 tag.le     = 8;
                 tag.length = 0;
-                tmp = fread(fp,1,'ushort'); % Should be zero
+                unused     = fread(fp,1,'ushort'); % Should be zero
             elseif (tag.group == 65534) && (tag.element == 57565) % SequenceDelimitationItem
                 tag.vr     = 'UN';
                 tag.le     = 8;
                 tag.length = 0;
-                tmp = fread(fp,1,'ushort'); % Should be zero
+                unused     = fread(fp,1,'ushort'); % Should be zero
             else
-                warning('Don''t know how to handle VR of ''\0\0''');
+                warning('spm:dicom','%s: Don''t know how to handle VR of "\0\0" in %s.',fopen(fp),tag.name);
             end;
         otherwise,
-            fseek(fp,2,0);
+            warning('spm:dicom','%s: Possible problem with %s tag (VR="%s")\n', fopen(fp), tag.name, tag.vr);
+            unused = fread(fp,1,'ushort');
             tag.length = double(fread(fp,1,'uint'));
-            tag.le     = tag.le + 6;
+            tag.le     = 12;
     end;
 else
-    tag.le =  8;
+    tag.le     =  8;
     tag.length = double(fread(fp,1,'uint'));
 end;
-
-%fprintf('%.4x,%.4x %s %s %d %d\n', tag.group,tag.element,tag.vr,tag.name,tag.length,tag.le);
 
 if isempty(tag.vr) || isempty(tag.length),
     tag = [];
@@ -369,7 +360,7 @@ if rem(tag.length,2),
     if tag.length==4294967295, % FFFFFFFF
         return;
     else
-        warning(['Odd numbered Value Length (' sprintf('%x',tag.length) ') in "' fopen(fp) '".']);
+        warning('spm:dicom','%s: Odd numbered Value Length in %s tag (%X).', fopen(fp), tag.name, tag.length);
         tag = [];
     end;
 end;
@@ -381,9 +372,9 @@ function dict = readdict(P)
 if nargin<1, P = 'spm_dicom_dict.mat'; end;
 try
     dict = load(P);
-catch
+catch problem
     fprintf('\nUnable to load the file "%s".\n', P);
-    rethrow(lasterror);
+    rethrow(problem);
 end;
 return;
 %_______________________________________________________________________
@@ -495,7 +486,7 @@ for i=1:n,
             len = lim-pos;
             t(i).item(j).val = char(fread(fp,len,'uint8')');
             fread(fp,rem(4-rem(len,4),4),'uint8');
-            warning('Problem reading Siemens CSA field');
+            warning('spm:dicom','%s: Problem reading Siemens CSA field.', fopen(fp));
             return;
         end
         t(i).item(j).val = char(fread(fp,len,'uint8')');

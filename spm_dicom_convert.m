@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_dicom_convert.m 5250 2013-02-15 21:04:36Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -87,7 +87,7 @@ for i=1:length(hdr),
     np       = [nc nr]/ceil(sqrt(dim(3)));
     dim(1:2) = np;
     if ~all(np==floor(np)),
-        warning('%s: dimension problem [Num Images=%d, Num Cols=%d, Num Rows=%d].',...
+        warning('spm:dicom','%s: dimension problem [Num Images=%d, Num Cols=%d, Num Rows=%d].',...
             hdr{i}.Filename,dim(3), nc,nr);
         continue;
     end;
@@ -95,7 +95,7 @@ for i=1:length(hdr),
     % Apparently, this is not the right way of doing it.
     %np = read_AcquisitionMatrixText(hdr{i});
     %if rem(nc, np(1)) || rem(nr, np(2)),
-    %   warning('%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
+    %   warning('spm:dicom','%s: %dx%d wont fit into %dx%d.',hdr{i}.Filename,...
     %       np(1), np(2), nc,nr);
     %   return;
     %end;
@@ -941,7 +941,7 @@ function img = read_image_data(hdr)
 img = [];
 
 if hdr.SamplesPerPixel ~= 1,
-    warning([hdr.Filename ': SamplesPerPixel = ' num2str(hdr.SamplesPerPixel) ' - cant be an MRI']);
+    warning('spm:dicom','%s: SamplesPerPixel = %d - cant be an MRI.', hdr.Filename, hdr.SamplesPerPixel);
     return;
 end;
 
@@ -953,7 +953,7 @@ else
     fp = fopen(hdr.Filename,'r','ieee-le');
 end;
 if fp==-1,
-    warning([hdr.Filename ': cant open file']);
+    warning('spm:dicom','%s: Cant open file.', hdr.Filename);
     return;
 end;
 
@@ -988,9 +988,9 @@ if isfield(hdr,'TransferSyntaxUID')
         delete(tfile);
     case {'1.2.840.10008.1.2.4.94' ,'1.2.840.10008.1.2.4.95' ,... % JPIP References & JPIP Referenced Deflate Transfer
           '1.2.840.10008.1.2.4.100','1.2.840.10008.1.2.4.101',... % MPEG2 MP@ML & MPEG2 MP@HL
-          '1.2.840.10008.1.2.4.102','1.2.840.10008.1.2.4.102' ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
+          '1.2.840.10008.1.2.4.102',                          ... % MPEG-4 AVC/H.264 High Profile and BD-compatible
          }
-         warning([hdr.Filename ': cant deal with JPIP/MPEG data (' hdr.TransferSyntaxUID ')']);
+         warning('spm:dicom',[hdr.Filename ': cant deal with JPIP/MPEG data (' hdr.TransferSyntaxUID ')']);
     otherwise
         fseek(fp,hdr.StartOfPixelData,'bof');
         img = fread(fp,hdr.Rows*hdr.Columns,prec);
@@ -1032,7 +1032,7 @@ ntp = get_numaris4_numval(privdat,'DataPointRows')*get_numaris4_numval(privdat,'
 % Data is stored as complex float32 values, timepoint by timepoint, voxel
 % by voxel. Reshaping is done in write_spectroscopy_volume.
 if ntp*2*4 ~= hdr.SizeOfCSAData
-    warning([hdr.Filename,': Data size mismatch.']);
+    warning('spm:dicom', [hdr.Filename,': Data size mismatch.']);
 end
 fp = fopen(hdr.Filename,'r','ieee-le');
 fseek(fp,hdr.StartOfCSAData,'bof');
