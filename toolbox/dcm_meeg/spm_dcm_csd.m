@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_dcm_csd.m 5252 2013-02-17 14:24:35Z karl $
  
  
 % check options
@@ -94,7 +94,7 @@ DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
 DCM.M.hE = 8;
-DCM.M.hC = exp(-4);
+DCM.M.hC = exp(-8);
 DCM.M.m  = Ns;
 
 % specify M.u - endogenous input (fluctuations) and intial states
@@ -106,36 +106,36 @@ DCM.M.u  = sparse(Ns,1);
  
 % Spatial modes
 %--------------------------------------------------------------------------
-DCM.M.U   = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
+DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
  
 % get data-features (in reduced eigenspace)
+%==========================================================================
+DCM      = spm_dcm_csd_data(DCM);
+ 
+% scale data features (to a variance of about 8)
 %--------------------------------------------------------------------------
-DCM       = spm_dcm_csd_data(DCM);
- 
- 
+ccf      = spm_csd2ccf(DCM.xY.y,DCM.xY.Hz);
+scale    = max(spm_vec(ccf));
+DCM.xY.y = spm_unvec(8*spm_vec(DCM.xY.y)/scale,DCM.xY.y);
+
+
 % complete model specification and invert
 %==========================================================================
-Nm        = size(DCM.M.U,2);                    % number of spatial modes
-Nf        = size(DCM.xY.y{1},1);                % number of frequency bins
-DCM.M.l   = Nm;
-DCM.M.Hz  = DCM.xY.Hz;
+Nm       = size(DCM.M.U,2);                    % number of spatial modes
+DCM.M.l  = Nm;
+DCM.M.Hz = DCM.xY.Hz;
  
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------
-q         = spm_Q(1/2,Nf,1)*diag(DCM.M.Hz)*spm_Q(1/2,Nf,1);
-d         = speye(Nm,Nm);                       % autospectra
-Q{1}      = kron(diag(d(:)),q);
-d         = 1 - speye(Nm,Nm);                   % crossspectra
-Q{2}      = kron(diag(d(:)),q);
-DCM.xY.Q  = Q;
-DCM.xY.X0 = sparse(Nf,0);
-
-
-% scale cross-spectral data features
-%==========================================================================
-y         = spm_vec(spm_fs_csd(DCM.xY.y,DCM.M));
-scale     = 1/mean(abs(y));
-DCM.xY.y  = spm_unvec(scale*y,DCM.xY.y);
+y     = spm_fs_csd(DCM.xY.y,DCM.M);
+for i = 1:length(y)
+    n      = size(y{i},1);
+    m      = size(y{i},2)*size(y{i},3);
+    q      = spm_Q(1/2,n,1);
+    Q{i,i} = kron(speye(m,m),q);
+end
+DCM.xY.Q  = spm_cat(Q);
+DCM.xY.X0 = sparse(size(Q,1),0);
 
 
 % Variational Laplace: model inversion

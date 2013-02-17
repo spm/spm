@@ -42,7 +42,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_cmm_priors.m 5252 2013-02-17 14:24:35Z karl $
  
  
 % disable log zero warning
@@ -107,7 +107,7 @@ pC.C  = C/8;
 gC    = [1   1   1   0;
          1   1   0   0;
          1   0   1   1;
-         0   1   1   0]/32;
+         0   1   1   1]/32;
      
 pE.G  = repmat(zeros(p,p),[1 1 n]);
 pC.G  = repmat(gC        ,[1 1 n]);

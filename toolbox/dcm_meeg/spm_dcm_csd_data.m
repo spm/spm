@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_dcm_csd_data.m 5252 2013-02-17 14:24:35Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -172,7 +172,7 @@ end
 %--------------------------------------------------------------------------
 DCM.xY.Hz  = fix(Hz1:Hz2);             % Frequencies
 Nf         = length(DCM.xY.Hz);        % number of frequencies
-Ne         = length(trial);            % number of ERPs
+Ne         = length(trial);            % number of trial types
  
 % get induced responses (use previous CSD results if possible) 
 %==========================================================================
@@ -181,44 +181,61 @@ try
         if size(DCM.xY.csd{1},1) == Nf;
             if size(DCM.xY.csd{1},2) == Nm;
                 DCM.xY.y  = DCM.xY.csd;
-                return
+                % return
             end
         end
     end
 end
- 
+
+
 % Cross spectral density for each trial type
 %==========================================================================
-condlabels = D.condlist;
+condlabels = D.condlist;               % condition or trial type labels
+DCM.xY.csd = cell(1,Ne);               % CSD for each condition
+
+w     = min(fix(2/DCM.xY.dt),Nb);      % window length (bins)
+m     = 1;                             % retain primcipal mode
 for i = 1:Ne;
    
     % trial indices
     %----------------------------------------------------------------------
     c = D.indtrial(condlabels(trial(i)), 'GOOD');
+    fprintf('\nevaluating CSD for condition %i\n',i)
+    
     
     % use only the first 512 trial
     %----------------------------------------------------------------------
     try c = c(1:512); end
     Nt    = length(c);
-
     
     % Get data
     %----------------------------------------------------------------------
-    P     = zeros(Nf,Nm,Nm);
-    for j = 1:Nt
+    Nw    = max(8*(fix(Nb/w) - 1),1);
+    K     = zeros(Nw,Nf*Nm*Nm);
+    for k = 1:Nw
+        P     = zeros(Nf,Nm,Nm);
+        for j = 1:Nt
+            
+            Iw  = It((1:w) + fix((k - 1)*w/8));
+            Y   = full(double(D(Ic,Iw,c(j))'*DCM.M.U));
+            mar = spm_mar(Y,8);
+            mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
+            P   = P + mar.P;
+        end
         
-        fprintf('\nevaluating condition %i (trial %i)',i,j)
-        Y   = full(double(D(Ic,It,c(j))'*DCM.M.U));
-        mar = spm_mar(Y,8);
-        mar = spm_mar_spectra(mar,DCM.xY.Hz,1/DCM.xY.dt);
-        P   = P + mar.P;
+        % store
+        %------------------------------------------------------------------
+        K(k,:) = spm_vec(P/Nt)';
     end
-  
-    % store
+    
+    % retain principal eigenmode
     %----------------------------------------------------------------------
-    DCM.xY.csd{i} = P/Nt;
+    [u s v]       = spm_svd(K,1);
+    P             = mean(u(:,m))*s(m,m)*conj(v(:,m)');
+    DCM.xY.csd{i} = spm_unvec(P,mar.P);
    
 end
+
  
 % place cross-spectral density in xY.y
 %==========================================================================

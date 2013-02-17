@@ -13,18 +13,12 @@ function [y] = spm_fs_csd(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fs_csd.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_fs_csd.m 5252 2013-02-17 14:24:35Z karl $
 
 
-% just return auto-spectra at present
+% return (scaled) cross-spectra and covariance functions
 %--------------------------------------------------------------------------
-return
-
-% log-transform (real) auto-spectra
-%--------------------------------------------------------------------------
-for i = 1:length(y);
-    for j = 1:size(y{i},2)
-        y{i}(:,j,j) = log(y{i}(:,j,j));
-    end
+c     = spm_csd2ccf(y,M.Hz);
+for i = 1:length(c);
+    y{i} = [y{i}*8; c{i}(1:8:end,:,:)];
 end
-

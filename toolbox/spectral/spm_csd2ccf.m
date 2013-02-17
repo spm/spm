@@ -11,7 +11,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_csd2ccf.m 5252 2013-02-17 14:24:35Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ if iscell(csd)
     return
 end
  
-% unpack time bins (for time-frequnecy resposnes)
+% unpack time bins (for time-frequency responses)
 %--------------------------------------------------------------------------
 if ndims(csd) == 4
     for i = 1:size(csd,1)
@@ -46,7 +46,7 @@ for i = 1:size(csd,2)
     for j = 1:size(csd,3)
         g(Hz)      = csd(:,i,j);
         f          = ifft([0; g; flipud(conj(g))]);
-        ccf(:,i,j) = real(fftshift(f));
+        ccf(:,i,j) = real(fftshift(f))*N;
     end
 end
  

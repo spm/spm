@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_induced_optimise_parameters.m 5252 2013-02-17 14:24:35Z karl $
  
  
 % Model specification
@@ -232,13 +232,22 @@ hold off
  
  
 % Show old and new priors
+%==========================================================================
+
+% change in parameters (and conditional confidence)
 %--------------------------------------------------------------------------
-subplot(4,1,3)
 E    = spm_vec(Ep) - spm_vec(pE);
 C    = diag(Cp);
-j    = find(abs(E) > exp(-8) & C > 0);
-spm_plot_ci(E(j,:),C(j,:))
- 
+
+
+
+% eliminate an interesting parameters and sought on basis of contribution
+%--------------------------------------------------------------------------
+[c,j] = sort(C,'ascend');
+j     = j(find(abs(E(j)) > exp(-8) & C(j) > 0));
+
+subplot(4,1,3)
+spm_plot_ci(E(j),C(j))
 title('Posterior updates','FontSize',16)
 xlabel('Free parameters')
 ylabel('Value')
@@ -246,10 +255,8 @@ set(gca,'XTick',1:length(j))
 set(gca,'XTickLabel',spm_fieldindices(pE,j))
  
 subplot(4,1,4)
-dSdp = spm_diff('spm_ssm2s',Ep,M,[],1);
-dSdp = diag(dSdp'*dSdp);
-bar(log(dSdp(j,:)))
-title('Overall contribution','FontSize',16)
+bar(-log(C(j,:)))
+title('Contribution (log precision)','FontSize',16)
 xlabel('Free parameters')
 ylabel('log precision')
 set(gca,'XTick',1:length(j))

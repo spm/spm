@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_fx_lfp.m 5252 2013-02-17 14:24:35Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -50,7 +50,6 @@ try, P.G; catch, P.G = 0; end
 u    = spm_vec(u);             % input
 n    = size(x,1);              % number of sources
 s    = size(x,2);              % number of states
-m    = size(P.C,2);            % number of exogenous inputs
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
@@ -96,7 +95,7 @@ x      = x';
 X      = x;
 X(1,:) = X(1,:) - X(13,:);
 S      = 1./(1 + exp(-R(1)*(X - R(2)))) - 1./(1 + exp(R(1)*R(2)));
-dSdx   = (R(1)*exp(-R(1)*(X - R(2)))./(1 + exp(-R(1)*(X - R(2)))).^2);
+dSdx   = R(1)*exp(-R(1)*(max(X,-128) - R(2)))./(1 + exp(-R(1)*(X - R(2)))).^2;
  
 % input
 %==========================================================================
@@ -104,7 +103,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)*128;
+    U = u(:)*32;
     
 else
     % exogenous input
@@ -209,7 +208,7 @@ end
 % construct motion and Jacobian
 %--------------------------------------------------------------------------
 for i = 1:n
-    k      = [1:n:s*n] + (i - 1);
+    k      = (1:n:s*n) + (i - 1);
     f(k,1) = F{i};
     for j  = 1:n
         l         = [1:n:s*n] + (j - 1);
@@ -230,7 +229,7 @@ D  = Di + De;
  
 % Implement: dx(t)/dt = f(x(t + d)) = inv(1 - D.*dfdx)*f(x(t))
 %--------------------------------------------------------------------------
-D  = inv(speye(n*s,n*s) - D.*dfdx);
+D  = spm_inv(speye(n*s,n*s) - D.*dfdx);
 f  = D*f;
 J  = D*dfdx;
  

@@ -159,15 +159,14 @@ for i = 1:length(model)
         % invert model
         %------------------------------------------------------------------
         DCM.options.model  = model{i};
-        if isfield(DCM,'M')
-            DCM  = rmfield(DCM,'M');
-        end
-        DCM  = spm_dcm_csd(DCM);
+        M.Nmax = 128;
+        DCM.M  = M;
+        DCM    = spm_dcm_csd(DCM);
         spm_figure('GetWin',['CSD model: ' model{i}]);
         spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)
         
         % print graphics
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         spm_demo_print
         
         % evidence and cod
@@ -177,7 +176,7 @@ for i = 1:length(model)
     catch
         
         % errors
-        %----------------------------------------------------------------------
+        %------------------------------------------------------------------
         E{end + 1} = lasterror;
         
     end

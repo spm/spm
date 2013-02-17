@@ -1,6 +1,6 @@
-function [y] = spm_gen_erp(P,M,U)
+function [y,pst] = spm_gen_erp(P,M,U)
 % Generates a prediction of trial-specific source activity
-% FORMAT [y] = spm_gen_erp(P,M,U)
+% FORMAT [y,pst] = spm_gen_erp(P,M,U)
 %
 % P - parameters
 % M - neural-mass model structure
@@ -8,34 +8,50 @@ function [y] = spm_gen_erp(P,M,U)
 %   U.X  - between-trial effects (encodes the number of trials)
 %   U.dt - time bins for within-trial effects
 %
-% y - {[ns,nx];...} - predictions for nx states {trials}
-%                   - for ns samples
+% y   - {[ns,nx];...} - predictions for nx states {trials}
+%                     - for ns samples
+% pst - peristimulus time (seconds)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_gen_erp.m 5252 2013-02-17 14:24:35Z karl $
 
-% default inputs - one trial (no between-tria effects)
+% default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
 if nargin < 3, U.X = sparse(1,0); end
+
+% check input u = f(t,P,M)
+%--------------------------------------------------------------------------
+try, M.fu; catch, M.fu  = 'spm_erp_u'; end
+try, M.ns; catch, M.ns  = 128;         end
+try, U.dt; catch, U.dt  = 0.004;       end
+
+% peristimulus time
+%--------------------------------------------------------------------------
+if nargout > 1
+    pst = (1:M.ns)*U.dt - M.ons/1000;
+end
 
 % within-trial (exogenous) inputs
 %==========================================================================
 if ~isfield(U,'u')
     
-    % check input u = f(t,P,M)
-    %----------------------------------------------------------------------
-    try, fu  = M.fu; catch,  fu  = 'spm_erp_u'; end
-    try, ns  = M.ns; catch,  ns  = 128;         end
-    try, dt  = U.dt; catch,  dt  = 0.004;       end
-    
     % peri-stimulus time inputs
-    %----------------------------------------------------------------------
-    U.u = feval(fu,(1:ns)*U.dt,P,M);
+    %-----------------------------------------------------------but-----------
+    U.u = feval(M.fu,(1:M.ns)*U.dt,P,M);
     
 end
+
+if isfield(M,'u')
+    
+    % remove M.u to preclude endogenous input
+    %----------------------------------------------------------------------
+    M = rmfield(M,'u');
+    
+end
+
 
 % between-trial (experimental) inputs
 %==========================================================================

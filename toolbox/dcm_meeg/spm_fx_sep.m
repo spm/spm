@@ -37,7 +37,7 @@ function [f,J,Q] = spm_fx_sep(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_sep.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_fx_sep.m 5252 2013-02-17 14:24:35Z karl $
  
  
 % get dimensions and configure state variables
@@ -107,7 +107,7 @@ if isfield(M,'u')
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:);
+    U = C*u(:)*4;
 end
 
  

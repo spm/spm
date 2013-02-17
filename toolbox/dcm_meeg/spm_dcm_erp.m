@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_dcm_erp.m 5252 2013-02-17 14:24:35Z karl $
 
 % check options
 %==========================================================================
@@ -88,7 +88,7 @@ xY.X0  = X0;
 
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
-xY.Q   = {spm_Q(1 - 1/4,Ns,1)};
+xY.Q   = {spm_Q(1/2,Ns,1)};
 
 
 %-Inputs
@@ -160,14 +160,14 @@ M.U      = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
 
 % scale data features
 %--------------------------------------------------------------------------
-scale    = sqrt(1/var(spm_vec(spm_fy_erp(xY.y,M))));
-xY.y     = spm_unvec(scale*spm_vec(xY.y),xY.y);
-xY.scale = xY.scale*scale;
+scale    = max(spm_vec(spm_fy_erp(xY.y,M)));
+xY.y     = spm_unvec(spm_vec(xY.y)/scale,xY.y);
+xY.scale = xY.scale/scale;
 
-% hyperpriors (assuming 100:1 signal to noise)
+% hyperpriors (assuming a high signal to noise)
 %--------------------------------------------------------------------------
-hE       = log(100);
-hC       = exp(-4);
+hE       = 8;
+hC       = exp(-8);
 
 
 % likelihood model

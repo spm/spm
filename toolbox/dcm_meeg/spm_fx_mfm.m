@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5027 2012-10-31 21:51:09Z karl $
+% $Id: spm_fx_mfm.m 5252 2013-02-17 14:24:35Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -170,13 +170,17 @@ end
 if isfield(M,'u')
     
     % endogenous input
-    %----------------------------------------------------------------------
-    U = u(:);
+    %----------------------------------------------------------------------   
+    if mfm
+        U = u(:)*8;
+    else
+        U = u(:)*2;
+    end
     
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:);
+    U = C*u(:)/2;
     
 end
 

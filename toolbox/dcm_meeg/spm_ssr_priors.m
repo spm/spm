@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 5027 2012-10-31 21:51:09Z karl $
+% $Id: spm_ssr_priors.m 5252 2013-02-17 14:24:35Z karl $
  
 % catch
 %--------------------------------------------------------------------------
@@ -55,7 +55,8 @@ pC.c(1,:) = pC.c(1,:) + 1/32;
  
 % neuronal innovations (DCT coefficients for structured spectra)
 %--------------------------------------------------------------------------
-pE.d = sparse(4,m); pC.d = sparse(4,m) + 1/32; 
+d    = 8;
+pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/32; 
 
 
 
