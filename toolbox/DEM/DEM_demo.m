@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 03-Jan-2013 14:32:23
+% Last Modified by GUIDE v2.5 12-Feb-2013 15:43:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,11 +58,16 @@ handles.output = hObject;
 % default paper
 handles.web    = 'http://www.fil.ion.ucl.ac.uk/~karl/The%20free-energy%20principle%20A%20unified%20brain%20theory.pdf';
 
+% Display PDF image
+axes5_CreateFcn(hObject, eventdata, handles);
+
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes DEM_demo wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
+
+% --- Executes during object creation, after setting all properties.
+function axes5_CreateFcn(hObject, eventdata, handles)
+imagesc(imread('PDF.jpg')), axis off
 
 
 % --- Outputs from this function are returned to the command line.
@@ -84,10 +89,6 @@ str{4} = h;
 set(handles.help,'String',str);
 handles.file = file;
 guidata(hObject, handles);
-
-% --- Executes during object creation, after setting all properties.
-function axes5_CreateFcn(hObject, eventdata, handles)
-imagesc(imread('PDF.jpg')), axis off
 
 
 % --- Executes on button press in pushbutton131.
@@ -403,4 +404,11 @@ run_demo_Callback(hObject, handles, 'DEM_evidence_accumulation')
 function pushbutton130_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
 run_demo_Callback(hObject, handles, 'spm_MDP_offer')
+
+% --- Executes on button press in pushbutton132.
+function pushbutton132_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'FEP_Manifold')
+
+
 

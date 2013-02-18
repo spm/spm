@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_dcm_csd_data.m 5253 2013-02-18 14:31:49Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -242,4 +242,3 @@ end
 DCM.xY.y    = DCM.xY.csd; 
 DCM.xY.U    = DCM.M.U;
 DCM.xY.code = condlabels(trial);
-
