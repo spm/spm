@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5245 2013-02-06 17:28:06Z guillaume $
+% $Id: spm_mip_ui.m 5254 2013-02-18 18:54:51Z guillaume $
 
 
 %==========================================================================
@@ -295,10 +295,17 @@ switch lower(varargin{1}), case 'display'
     %-Create UIContextMenu for marker jumping
     %-----------------------------------------------------------------------
     h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
-    uimenu(h,'Label','MIP')
-    uimenu(h,'Separator','on','Label','save as...',...
+    uimenu(h,'Label','MIP');
+    uimenu(h,'Separator','on','Label','save MIP as...',...
         'CallBack',['spm_mip_ui(''Save'', ',...
         'get(get(gcbo,''Parent''),''UserData''));'],...
+        'Interruptible','off','BusyAction','Cancel');
+    h1 = uimenu(h,'Separator','on','Label','Extract betas...');
+    uimenu(h1,'Label','This voxel',...
+        'CallBack','beta=spm_mip_ui(''Extract'', ''voxel'')',...
+        'Interruptible','off','BusyAction','Cancel');
+    uimenu(h1,'Label','This cluster',...
+        'CallBack','beta=spm_mip_ui(''Extract'', ''cluster'')',...
         'Interruptible','off','BusyAction','Cancel');
     if isempty(XYZ), str='off'; else str='on'; end
     uimenu(h,'Separator','on','Label','goto nearest suprathreshold voxel',...
@@ -741,6 +748,38 @@ switch lower(varargin{1}), case 'display'
         end
     
     
+    %======================================================================
+    case 'extract'
+    %======================================================================
+        % beta = spm_mip_ui('Extract',action)
+        if nargin<2, action='voxel'; else action=varargin{2}; end
+        xSPM = evalin('base','xSPM');
+        SPM  = evalin('base','SPM');
+        
+        XYZmm = spm_results_ui('GetCoords');
+        [XYZmm,i] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
+        spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
+        
+        switch lower(action)
+            case 'voxel'
+                % current voxel
+                XYZ = SPM.xVol.iM(1:3,:)*[XYZmm;1];
+                
+            case 'cluster'
+                % current cluster
+                A   = spm_clusters(xSPM.XYZ);
+                j   = find(A == A(i));
+                XYZ = xSPM.XYZ(:,j);
+                
+            otherwise
+                error('Unknown action.');
+        end
+        
+        beta = spm_get_data(SPM.Vbeta,XYZ);
+        
+        varargout = {beta};
+        
+        
     %======================================================================
     otherwise
     %======================================================================
