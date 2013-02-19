@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 4882 2012-09-03 11:02:30Z guillaume $
+% $Id: tbx_cfg_shoot.m 5260 2013-02-19 16:23:33Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -34,6 +34,7 @@ warp.name    = 'Run Shooting (create Templates)';
 warp.val     = {images };
 warp.help    = {'Run the geodesic shooting nonlinear image registration procedure. This involves iteratively matching all the selected images to a template generated from their own mean. A series of Template*.nii files are generated, which become increasingly crisp as the registration proceeds.'};
 warp.prog = @spm_shoot_template;
+warp.vout = @vout_shoot_template;
 % ---------------------------------------------------------------------
 % images Images
 % ---------------------------------------------------------------------
@@ -180,7 +181,6 @@ jacdet.name    = 'Jacobian determinants';
 jacdet.val     = {velocities};
 jacdet.help    = {'Create Jacobian determinant fields from velocities.'};
 %jacdet.prog = @spm_shoot_jacobian;
-%jacdet.vout = @vout_jacdet;
 % ---------------------------------------------------------------------
 % velocities Velocity fields
 % ---------------------------------------------------------------------
@@ -240,7 +240,7 @@ crt_iwarped.help    = {'Create inverse normalised versions of some image(s). The
 % ---------------------------------------------------------------------
 velocityfield         = cfg_files;
 velocityfield.tag     =  'velocityfield';
-velocityfield.name    = 'Flow Field';
+velocityfield.name    = 'Velocity Field';
 velocityfield.filter  = 'nifti';
 velocityfield.ufilter = '^v_.*\.nii$';
 velocityfield.num     = [1 1];
@@ -398,22 +398,32 @@ images.help    = {'Multiple sets of images are used here. For example, the first
 images.values  = {images1 };
 images.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% velocities Velocity fields
+% deformations Deformation fields
 % ---------------------------------------------------------------------
-velocities         = cfg_files;
-velocities.tag     = 'velocities';
-velocities.name    = 'Velocity fields';
-velocities.help    = {'Select the velocity fields for each subject.'};
-velocities.filter = 'nifti';
-velocities.ufilter = '^v_.*';
-velocities.num     = [1 Inf];
+deformations         = cfg_files;
+deformations.tag     = 'deformations';
+deformations.name    = 'Deformation fields';
+deformations.help    = {'Select the deformation fields for each subject.'};
+deformations.filter = 'nifti';
+deformations.ufilter = '^y_.*';
+deformations.num     = [1 Inf];
+% ---------------------------------------------------------------------
+% jacobians Jacobian determinant fields
+% ---------------------------------------------------------------------
+jacobians         = cfg_files;
+jacobians.tag     = 'jacobians';
+jacobians.name    = 'Jacobian determinant fields';
+jacobians.help    = {'Select the Jacobian determinant fields for each subject.  Residual differences are computed between the warped images and template. These are then scaled by the Jacobian determinants at each point, and spatially smoothed.'};
+jacobians.filter = 'nifti';
+jacobians.ufilter = '^j_.*';
+jacobians.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % template Template
 % ---------------------------------------------------------------------
 template         = cfg_files;
 template.tag     = 'template';
 template.name    = 'Template';
-template.help    = {'Residual differences are computed between the warped images and template.'};
+template.help    = {'Residual differences are computed between the warped images and template. These are then scaled by the Jacobian determinants at each point, and spatially smoothed.'};
 template.filter = 'nifti';
 template.ufilter = '^Template.*';
 template.num     = [0 1];
@@ -424,7 +434,7 @@ fwhm         = cfg_menu;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Smoothing';
 fwhm.val     = {4};
-fwhm.help    = {'The residuals can be smoothed with a Gaussian to reduce dimensionality. More smoothing is recommended if there are fewer training images.'};
+fwhm.help    = {'The scalar momenta can be smoothed with a Gaussian to reduce dimensionality. More smoothing is recommended if there are fewer training images or if more channels of data were used for driving the registration. From preliminary experimants, a value of about 10mm seems to work reasonably well.'};
 fwhm.labels  = {
                'None'
                ' 2mm'
@@ -437,17 +447,18 @@ fwhm.labels  = {
                '16mm'
 }';
 fwhm.values  = {0 2 4 6 8 10 12 14 16};
+fwhm.val     = {10};
 % ---------------------------------------------------------------------
-% resids Generate Residuals
+% scalmom Generate Scalar Momenta
 % ---------------------------------------------------------------------
-resids         = cfg_exbranch;
-resids.tag     = 'resids';
-resids.name    = 'Generate Residuals';
-resids.val     = {images velocities template fwhm };
-resids.check   = @check_resids;
-resids.help    = {'Generate residual images in a form suitable for computing a Fisher kernel. In principle, a Gaussian Process model can be used to determine the optimal (positive) linear combination of kernel matrices.  The idea would be to combine the kernel from the residuals, with a kernel derived from the velocity-fields. Such a combined kernel should then encode more relevant information than the individual kernels alone.'};
-%resids.prog = @spm_shoot_resids;
-%resids.vout = @vout_resids;
+scalmom         = cfg_exbranch;
+scalmom.tag     = 'scalmom';
+scalmom.name    = 'Generate Scalar Momenta';
+scalmom.val     = {template images deformations jacobians fwhm };
+scalmom.check   = @check_scalmom;
+scalmom.help    = {'Generate spatially smoothed ``scalar momenta'''' /* cite{singh2010multivariate,singh2012genetic} */ in a form suitable for using with pattern recognition. In principle, a Gaussian Process model can be used to determine the optimal (positive) linear combination of kernel matrices.  The idea would be to combine a kernel matrix derived from these, with a kernel derived from the velocity-fields. Such a combined kernel should then encode more relevant information than the individual kernels alone.  The scalar momentum fields that are generated contain a number of volumes equal to the number of sets of ``rc*'''' images used (equal to the number of volumes in the template - 1).  /* See Figures 10 and 11 of \cite{ashburner2011multivariate} for examples of scalar momenta (Jacobian scaled residuals) for simulated data. */'};
+scalmom.prog = @spm_shoot_scalmom;
+scalmom.vout = @vout_scalmom;
 % ---------------------------------------------------------------------
 % images Data
 % ---------------------------------------------------------------------
@@ -485,8 +496,9 @@ reskern         = cfg_exbranch;
 reskern.tag     = 'reskern';
 reskern.name    = 'Kernel from Images';
 reskern.val     = {images weight dotprod };
-reskern.help    = {'Generate a kernel matrix from images. In principle, this same function could be used for generating kernels from any image data (e.g. ``modulated'''' grey matter). If there is prior knowledge about some region providing more predictive information (e.g. the hippocampi for AD), then it is possible to weight the generation of the kernel accordingly. The matrix of dot-products is saved in a variable ``Phi'''', which can be loaded from the dp_*.mat file. The ``kernel trick'''' can be used to convert these dot-products into distance measures for e.g. radial basis-function approaches.'};
-%reskern.prog = @spm_shoot_dotprods;
+reskern.help    = {'Generate a kernel matrix from images. In principle, this same function could be used for generating kernels from any image data (e.g. ``modulated'''' grey matter). If there is prior knowledge about some region providing more predictive information (e.g. the hippocampi for AD), then it is possible to weight the generation of the kernel accordingly. The matrix of dot-products is saved in a variable ``K'''', which can be loaded from the dp_*.mat file. The ``kernel trick'''' can be used to convert these dot-products into distance measures for e.g. radial basis-function approaches.'};
+reskern.prog = @spm_dotprods2;
+reskern.vout = @vout_dotprod;
 % ---------------------------------------------------------------------
 % velocities Velocity fields
 % ---------------------------------------------------------------------
@@ -507,14 +519,15 @@ dotprod.help    = {'Enter a filename for results (it will be prefixed by ``dp_''
 dotprod.strtype = 's';
 dotprod.num     = [1 Inf];
 % ---------------------------------------------------------------------
-% velkern Kernel from Flows
+% velkern Kernel from Velocities
 % ---------------------------------------------------------------------
 velkern         = cfg_exbranch;
 velkern.tag     = 'velkern';
 velkern.name    = 'Kernel from velocities';
 velkern.val     = {velocities dotprod};
-velkern.help    = {'Generate a kernel from velocity fields. The dot-products are saved in a variable ``Phi'''' in the resulting dp_*.mat file.'};
+velkern.help    = {'Generate a kernel from velocity fields. The dot-products are saved in a variable ``K'''' in the resulting dp_*.mat file.'};
 velkern.prog = @spm_shoot_kernel;
+velkern.vout = @vout_kernel;
 % ---------------------------------------------------------------------
 % kernfun Kernel Utilities
 % ---------------------------------------------------------------------
@@ -524,9 +537,9 @@ kernfun.name    = 'Kernel Utilities';
 kernfun.help    = {
                    'Shoot can be used for generating matrices of dot-products for various kernel pattern-recognition procedures.'
                    'The idea of applying pattern-recognition procedures is to obtain a multi-variate characterisation of the anatomical differences among groups of subjects. These characterisations can then be used to separate (eg) healthy individuals from particular patient populations. There is still a great deal of methodological work to be done, so the types of kernel that can be generated here are unlikely to be the definitive ways of proceeding.  They are only just a few ideas that may be worth trying out. The idea is simply to attempt a vaguely principled way to combine generative models with discriminative models (see the ``Pattern Recognition and Machine Learning'''' book by Chris Bishop for more ideas). Better ways (higher predictive accuracy) will eventually emerge.'
-                   'Various pattern recognition algorithms are available freely over the Internet. Possible approaches include Support-Vector Machines, Relevance-Vector machines and Gaussian Process Models. Gaussian Process Models probably give the most accurate probabilistic predictions, and allow kernels generated from different pieces of data to be most easily combined.'
+                   'Various pattern recognition algorithms are available freely over the Internet. Possible approaches include Support-Vector Machines and Gaussian Process Models. Gaussian Process Models probably give the most accurate probabilistic predictions, and allow kernels generated from different pieces of data to be most easily combined.'
 }';
-kernfun.values  = {velkern};
+kernfun.values  = {velkern scalmom reskern};
 % ---------------------------------------------------------------------
 % shoot Shoot Tools
 % ---------------------------------------------------------------------
@@ -543,28 +556,6 @@ shoot.values  = {warp kernfun};
 
 %_______________________________________________________________________
 %
-%_______________________________________________________________________
-
-function dep = vout_initial_import(job)
-cls = {'GM', 'WM', 'CSF'};
-kk = 1;
-for k=1:3,
-    if isnumeric(job.(cls{k})) && job.(cls{k})
-        dep(kk)            = cfg_dep;
-        dep(kk).sname      = sprintf('Imported Tissue (%s)', cls{k});
-        dep(kk).src_output = substruct('.','cfiles','()',{':',k});
-        dep(kk).tgt_spec   = cfg_findspec({{'filter','nifti'}});
-        kk = kk + 1;
-    end
-end
-if isnumeric(job.image) && job.image
-    dep(kk)            = cfg_dep;
-    dep(kk).sname      = sprintf('Resliced Original Images');
-    dep(kk).src_output = substruct('.','files');
-    dep(kk).tgt_spec   = cfg_findspec({{'filter','nifti'}});
-end
-%_______________________________________________________________________
-
 %_______________________________________________________________________
 function chk = check_shoot_template(job)
 n1 = numel(job.images);
@@ -593,17 +584,28 @@ else
     tdep = cfg_dep;
     tdep = tdep(false);
 end
-fdep            = cfg_dep;
-fdep.sname      = 'Flow Fields';
-fdep.src_output = substruct('.','files','()',{':'});
-fdep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
-dep = [tdep fdep];
+vdep            = cfg_dep;
+vdep.sname      = 'Velocity Fields';
+vdep.src_output = substruct('.','vel','()',{':'});
+vdep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+
+ydep            = cfg_dep;
+ydep.sname      = 'Deformation Fields';
+ydep.src_output = substruct('.','def','()',{':'});
+ydep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+
+jdep            = cfg_dep;
+jdep.sname      = 'Jacobian Fields';
+jdep.src_output = substruct('.','jac','()',{':'});
+jdep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
+
+dep = [tdep vdep ydep jdep];
 %_______________________________________________________________________
 
 %_______________________________________________________________________
 function dep = vout_shoot_warp(job)
 dep            = cfg_dep;
-dep.sname      = 'Flow Fields';
+dep.sname      = 'Velocity Fields';
 dep.src_output = substruct('.','files','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
@@ -683,14 +685,6 @@ end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function dep = vout_jacdet(job)
-dep            = cfg_dep;
-dep.sname      = 'Jacobian Determinant Fields';
-dep.src_output = substruct('.','files','()',{':'});
-dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
-%_______________________________________________________________________
-
-%_______________________________________________________________________
 function dep = vout_norm_fun(job)
 if job.preserve,
     sname = 'MNI Smo. Warped - Amount';
@@ -720,11 +714,11 @@ end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function chk = check_resids(job)
+function chk = check_scalmom(job)
 chk = '';
-PU = job.velocities;
+PY = job.deformations;
 PI = job.images;
-n1 = numel(PU);
+n1 = numel(PY);
 for i=1:numel(PI),
     if numel(PI{i}) ~= n1,
         chk = 'Incompatible number of images';
@@ -734,9 +728,26 @@ end
 %_______________________________________________________________________
 
 %_______________________________________________________________________
-function dep = vout_resids(job)
-dep = cfg_dep;
-dep.sname      = 'Residual Files';
-dep.src_output = substruct('.','files','()',{':'});
+function dep = vout_scalmom(job)
+dep            = cfg_dep;
+dep.sname      = 'Scalar Momentum Fields';
+dep.src_output = substruct('.','scalmom','()',{':'});
 dep.tgt_spec   = cfg_findspec({{'filter','nifti'}});
 %_______________________________________________________________________
+
+%_______________________________________________________________________
+function dep = vout_kernel(job)
+dep            = cfg_dep;
+dep.sname      = 'Velocity Kernel';
+dep.src_output = substruct('.','fname','()',{':'});
+dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
+%_______________________________________________________________________
+
+%_______________________________________________________________________
+function dep = vout_dotprod(job)
+dep            = cfg_dep;
+dep.sname      = 'Image Kernel';
+dep.src_output = substruct('.','fname','()',{':'});
+dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
+%_______________________________________________________________________
+

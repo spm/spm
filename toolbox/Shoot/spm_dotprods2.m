@@ -7,7 +7,7 @@ function out = spm_dotprods2(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dotprods2.m 4931 2012-09-17 15:42:46Z john $
+% $Id: spm_dotprods2.m 5260 2013-02-19 16:23:33Z john $
 
 P      = strvcat(job.images);
 
@@ -95,10 +95,10 @@ spm_progress_bar('Clear');
 if isfield(job,'dotprod')
     [pth,nam,ext] = fileparts(job.dotprod);
     ofname = fullfile(pwd,['dp_' nam '.mat']);
-    input = job;
-    typ   = 'images';
+    input  = job;
+    typ    = 'images';
     save(ofname,'K','input','typ');
-    out = {ofname};
+    out.fname = {ofname};
 else
     out = K;
 end

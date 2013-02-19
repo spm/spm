@@ -21,7 +21,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_preproc_run.m 5260 2013-02-19 16:23:33Z john $
 
 if nargin == 1, arg = 'run'; end
 
@@ -44,7 +44,7 @@ return
 function vout = run_job(job)
 
 vout   = vout_job(job);
-tpm    = strvcat(cat(1,job.tissue(:).tpm));
+tpm    = strvcat(job.tissue(:).tpm);
 tpm    = spm_load_priors8(tpm);
 
 if ~isfield(job,'iterations'), nit           =  1; else nit   = job.iterations; end
