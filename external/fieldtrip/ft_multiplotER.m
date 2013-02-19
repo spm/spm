@@ -129,9 +129,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 7445 2013-02-06 15:02:12Z eelspa $
+% $Id: ft_multiplotER.m 7487 2013-02-18 11:52:54Z roboos $
 
-revision = '$Id: ft_multiplotER.m 7445 2013-02-06 15:02:12Z eelspa $';
+revision = '$Id: ft_multiplotER.m 7487 2013-02-18 11:52:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -288,6 +288,10 @@ end
 hasrpt = sum(ismember(dimtok, {'rpt' 'subj'}));
 if strcmp(dtype, 'timelock') && hasrpt,
   tmpcfg        = [];
+  
+  % disable hashing of input data (speeds up things)
+  tmpcfg.trackcallinfo = 'no';
+  
   tmpcfg.trials = cfg.trials;
   for i=1:Ndata
     % save mask (timelockanalysis will remove it)
@@ -708,6 +712,11 @@ ft_postamble provenance
 ft_postamble debug
 ft_postamble previous varargin
 
+% add a menu to the figure
+% ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
+ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

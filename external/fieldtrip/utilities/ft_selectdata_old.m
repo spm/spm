@@ -48,7 +48,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_old.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_selectdata_old.m 7472 2013-02-14 13:17:56Z jorhor $
 
 % FIXME ROI selection is not yet implemented
 
@@ -349,7 +349,7 @@ if length(data)>1 && ~israw,
   else
     % no such field as {'label','time','freq','pos'} has to be concatenated
     sortflag  = 0;
-    tryfields = {'cumsumcnt','cumtapcnt','trialinfo'};
+    tryfields = {'cumsumcnt','cumtapcnt','trialinfo','sampleinfo'};
   end
   % add additional descriptive fields
   if isfield(data{1}, 'label'), datacat.label = data{1}.label; end
@@ -358,6 +358,7 @@ if length(data)>1 && ~israw,
   if isfield(data{1}, 'cumtapcnt'), datacat.cumtapcnt = data{1}.cumtapcnt; end
   if isfield(data{1}, 'cumsumcnt'), datacat.cumsumcnt = data{1}.cumsumcnt; end
   if isfield(data{1}, 'trialinfo'), datacat.trialinfo = data{1}.trialinfo; end
+  if isfield(data{1}, 'sampleinfo'), datacat.sampleinfo = data{1}.sampleinfo; end
   if isfield(data{1}, 'labelcmb'),  datacat.labelcmb  = data{1}.labelcmb; end
   
   

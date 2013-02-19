@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 7435 2013-02-04 12:53:45Z roboos $
+% $Id: ft_chantype.m 7477 2013-02-15 14:54:30Z jansch $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -304,12 +304,15 @@ elseif ft_senstype(input, 'ctf') && islabel
   type(sel) = {'refgrad'};            % reference gradiometers
   
 elseif ft_senstype(input, 'bti')
-  % all 4D-BTi MEG channels start with "A"
+  % all 4D-BTi MEG channels start with "A" followed by a number
   % all 4D-BTi reference channels start with M or G
   % all 4D-BTi EEG channels start with E
-  type(strncmp('A', label, 1)) = {'meg'};
-  type(strncmp('M', label, 1)) = {'refmag'};
-  type(strncmp('G', label, 1)) = {'refgrad'};
+  sel = myregexp('^A[0-9]+$', label);
+  type(sel) = {'meg'};
+  sel = myregexp('^M[CLR][xyz][aA]*$', label);
+  type(sel) = {'refmag'};
+  sel = myregexp('^G[xyz][xyz]A$', label);
+  type(sel) = {'refgrad'};
   
   if isgrad && isfield(grad, 'tra')
     gradtype = repmat({'unknown'}, size(grad.label));

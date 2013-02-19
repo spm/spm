@@ -59,7 +59,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                      AND the number of samples turns out to have a large
 %                      prime factor sum. This is because the FFTs will then
 %                      be computed very inefficiently.
-%   cfg.pad        = string, type of padding (default 'zero', see
+%   cfg.padtype     = string, type of padding (default 'zero', see
 %                      ft_preproc_padding)
 %   cfg.polyremoval = number (default = 0), specifying the order of the
 %                      polynome which is fitted and subtracted from the
@@ -200,7 +200,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_freqanalysis.m 7462 2013-02-12 11:31:21Z eelspa $';
 
 % do the general setup of the function
 ft_defaults

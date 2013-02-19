@@ -40,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7378 2013-01-23 12:36:49Z jorhor $
+% $Id: ft_defaults.m 7485 2013-02-17 12:21:02Z roboos $
 
 global ft_default 
 persistent initialized
@@ -113,6 +113,11 @@ if ~isdeployed
     % the fieldtrip/utilities directory contains the ft_hastoolbox function
     % which is required for the remainder of this script
     addpath(fullfile(fileparts(which('ft_defaults')), 'utilities'));
+  end
+  
+  try
+    % this directory contains various functions that were obtained from elsewere, e.g. Matlab file exchange
+    ft_hastoolbox('misc', 3, 1); % not required
   end
   
   try

@@ -74,7 +74,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 7247 2012-12-21 11:37:09Z roboos $
+% $Id: ft_datatype_sens.m 7499 2013-02-19 09:41:29Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -184,6 +184,13 @@ switch version
         isfield(sens, 'chanpos') && size(sens.chanpos,1)~=length(sens.label) || ...
         isfield(sens, 'chanori') && size(sens.chanori,1)~=length(sens.label) 
       error('inconsistent number of channels in sensor description');
+    end
+
+    if ismeg
+      % ensure that the magnetometer/gradiometer balancing is specified
+      if ~isfield(sens, 'balance') || ~isfield(sens.balance, 'current')
+        sens.balance.current = 'none';
+      end
     end
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

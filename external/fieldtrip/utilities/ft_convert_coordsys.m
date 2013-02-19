@@ -14,7 +14,8 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 % to determine and convert the coordinate system.
 %
 % The optional input argument opt determines the behavior when converting
-% to the spm coordinate system. 
+% to the spm coordinate system, and pertains to the functional behaviour of
+% the private functions: align_ctf2spm and align_itab2spm.
 %
 % The following input objects are supported
 %   anatomical mri, see FT_READ_MRI
@@ -31,9 +32,9 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 % individual anatomies/differences in conventions where to put the
 % fiducials.
 %
-% See also FT_DETERMINE_COORDSYS
+% See also FT_DETERMINE_COORDSYS, ALIGN_CTF2SPM, ALIGN_ITAB2SPM
 
-% Copyright (C) 2005-2011, Robert Oostenveld
+% Copyright (C) 2005-2011, Robert Oostenveld & Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -51,7 +52,7 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 7220 2012-12-18 08:40:18Z jansch $
+% $Id: ft_convert_coordsys.m 7474 2013-02-15 08:24:08Z jansch $
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   % determine the coordinate system of the input object

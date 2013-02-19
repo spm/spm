@@ -61,7 +61,7 @@ function timelock = ft_datatype_timelock(timelock, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_timelock.m 7290 2013-01-09 17:04:48Z roboos $
+% $Id: ft_datatype_timelock.m 7497 2013-02-19 09:38:12Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -86,16 +86,12 @@ switch version
   case '2011v2'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if isfield(timelock, 'grad')
-      % ensure that the gradiometer balancing is specified
-      if ~isfield(timelock.grad, 'balance') || ~isfield(timelock.grad.balance, 'current')
-        timelock.grad.balance.current = 'none';
-      end
-      
-      % ensure the new style sensor description
+      % ensure that the gradiometer structure is up to date
       timelock.grad = ft_datatype_sens(timelock.grad);
     end
     
     if isfield(timelock, 'elec')
+      % ensure that the electrode structure is up to date
       timelock.elec = ft_datatype_sens(timelock.elec);
     end
 
@@ -105,6 +101,6 @@ switch version
 
   otherwise
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    error('unsupported version "%s" for freq datatype', version);
+    error('unsupported version "%s" for timelock datatype', version);
 end
 

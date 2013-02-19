@@ -120,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 7413 2013-01-28 11:13:25Z roboos $
+% $Id: ft_prepare_sourcemodel.m 7473 2013-02-14 13:18:45Z jorhor $
 
-revision = '$Id: ft_prepare_sourcemodel.m 7413 2013-01-28 11:13:25Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 7473 2013-02-14 13:18:45Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -391,6 +391,7 @@ if basedonpos
   end
   if isfield(cfg.grid, 'unit')
     grid.unit  = cfg.grid.unit;
+    grid = ft_convert_units(grid, cfg.sourceunits);
   end
   % this is not supported any more
   if isfield(cfg.grid, 'avg') && isfield(cfg.grid.avg, 'filter')
@@ -658,7 +659,7 @@ if ~isfield(grid, 'inside') && ~isfield(grid, 'outside')
     grid.inside  = 1:size(grid.pos,1);
     grid.outside = [];
     outside      = zeros(1,size(grid.pos,1));
-    grid.outside = find(outside);
+    grid.outside = find(outside); % JMH: this makes no sense, right??
     grid.inside  = find(~outside);
   elseif ft_voltype(vol, 'halfspace') || ft_voltype(vol, 'halfspace_monopole')
     grid.inside  = 1:size(grid.pos,1);

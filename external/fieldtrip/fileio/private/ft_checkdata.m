@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 7394 2013-01-23 14:33:30Z jorhor $
+% $Id: ft_checkdata.m 7500 2013-02-19 09:41:30Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -388,7 +388,10 @@ if ~isempty(stype)
   end
   
   if isfield(data, 'grad') || isfield(data, 'elec')
-    if any(strcmp(ft_senstype(data), stype));
+    if any(strcmp(ft_senstype(data), stype))
+      okflag = 1;
+    elseif any(cellfun(@ft_senstype, repmat({data}, size(stype)), stype))
+      % this is required to detect more general types, such as "meg" or "ctf" rather than "ctf275"
       okflag = 1;
     else
       okflag = 0;
@@ -693,10 +696,13 @@ if issource && ~strcmp(haspow, 'no')
 end
 
 if isfield(data, 'grad')
-  % ensure that the gradiometer balancing is specified
-  if ~isfield(data.grad, 'balance') || ~isfield(data.grad.balance, 'current')
-    data.grad.balance.current = 'none';
-  end
+  % ensure that the gradiometer structure is up to date
+  data.grad = ft_datatype_sens(data.grad);
+end
+
+if isfield(data, 'elec')
+  % ensure that the electrode structure is up to date
+  data.elec = ft_datatype_sens(data.elec);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

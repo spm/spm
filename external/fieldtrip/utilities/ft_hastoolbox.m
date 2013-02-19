@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 7171 2012-12-13 11:50:47Z roboos $
+% $Id: ft_hastoolbox.m 7485 2013-02-17 12:21:02Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -125,6 +125,7 @@ url = {
   'ICASSO'     'see http://www.cis.hut.fi/projects/ica/icasso'
   'XUNIT'      'see http://www.mathworks.com/matlabcentral/fileexchange/22846-matlab-xunit-test-framework'
   'PLEXON'     'available from http://www.plexon.com/assets/downloads/sdk/ReadingPLXandDDTfilesinMatlab-mexw.zip'
+  'MISC'       'various functions that were downloaded from http://www.mathworks.com/matlabcentral/fileexchange and elsewhere'
   };
 
 if nargin<2

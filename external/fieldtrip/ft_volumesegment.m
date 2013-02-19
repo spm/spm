@@ -122,9 +122,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 7428 2013-01-31 10:31:31Z jorhor $
+% $Id: ft_volumesegment.m 7479 2013-02-15 15:27:39Z jansch $
 
-revision = '$Id: ft_volumesegment.m 7428 2013-01-31 10:31:31Z jorhor $';
+revision = '$Id: ft_volumesegment.m 7479 2013-02-15 15:27:39Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -279,12 +279,13 @@ if dotpm
   % of the segmentation algorithm
   [mri,permutevec,flipflags] = align_ijk2xyz(mri);
   
-  Va = ft_write_mri([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion);
   
   % spm is quite noisy, prevent the warnings from displaying on screen
   % warning off;
   
   if strcmpi(cfg.spmversion, 'spm2'),
+    Va = ft_write_mri([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion, 'dataformat', 'analyze_img');
+    
     % set the spm segmentation defaults (from /opt/spm2/spm_defaults.m script)
     defaults.segment.estimate.priors = str2mat(...
       fullfile(spm('Dir'),'apriori','gray.mnc'),...
@@ -343,6 +344,7 @@ if dotpm
     end
     
   elseif strcmpi(cfg.spmversion, 'spm8'),
+    Va = ft_write_mri([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion, 'dataformat', 'nifti_spm');
     
     fprintf('performing the segmentation on the specified volume\n');
     if isfield(cfg, 'tpm')

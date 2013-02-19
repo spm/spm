@@ -105,7 +105,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 7432 2013-01-31 14:29:57Z jorhor $
+% $Id: ft_databrowser.m 7487 2013-02-18 11:52:54Z roboos $
 
 % Undocumented options
 % 
@@ -116,7 +116,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 7432 2013-01-31 14:29:57Z jorhor $';
+revision = '$Id: ft_databrowser.m 7487 2013-02-18 11:52:54Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,8 +129,8 @@ hasdata = (nargin>1);
 hascomp = hasdata && ft_datatype(data, 'comp');
 
 % for backward compatibility
-cfg = ft_checkconfig(cfg, 'unused', {'comps', 'inputfile', 'outputfile'});
-cfg = ft_checkconfig(cfg, 'renamed', {'zscale', 'ylim'});
+cfg = ft_checkconfig(cfg, 'unused',     {'comps', 'inputfile', 'outputfile'});
+cfg = ft_checkconfig(cfg, 'renamed',    {'zscale', 'ylim'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'ylim', 'auto', 'maxabs'});
 cfg = ft_checkconfig(cfg, 'renamedval', {'selectmode', 'mark', 'markartifact'});
 
@@ -164,8 +164,6 @@ if ~isfield(cfg, 'continuous'),      cfg.continuous = [];                 end % 
 if ~isfield(cfg, 'ploteventlabels'), cfg.ploteventlabels = 'type=value';  end
 cfg.zlim           = ft_getopt(cfg, 'zlim',          'maxmin');
 cfg.compscale      = ft_getopt(cfg, 'compscale',     'global');
-
-
 
 
 if ~isfield(cfg, 'viewmode')

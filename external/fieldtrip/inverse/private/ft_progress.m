@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 7196 2012-12-15 10:26:31Z eelspa $
+% $Id: ft_progress.m 7491 2013-02-18 14:29:29Z eelspa $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -60,6 +60,12 @@ persistent s        % the string containing the title
 persistent strlen   % the length of the previously printed string, used to remove it by \b
 persistent tprev    % the time of previous invocation, used to restrict number of updates
 
+persistent lastArgin % the last varargin, this is used when ft_progress('close') is called
+                     % but the previous invocation was not processed (due
+                     % to the restriction in the number of updates to once
+                     % every 100ms)
+persistent closing;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
   a = 0;
@@ -68,6 +74,8 @@ if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
   c = 0;
   strlen = 0;
   tprev = tic();
+  lastArgin = [];
+  closing = 0;
   
   % determine the type of feedback
   t = varargin{2};
@@ -97,6 +105,12 @@ if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 elseif nargin==1 && ischar(varargin{1}) && strcmp(varargin{1}, 'close')
+  
+  if ~isempty(lastArgin)
+    closing = 1;
+    ft_progress(lastArgin{:});
+  end
+  
   switch t
   case 'gui'
     % close the waitbar dialog
@@ -115,6 +129,8 @@ elseif nargin==1 && ischar(varargin{1}) && strcmp(varargin{1}, 'close')
   p0 = [];
   strlen = 0;
   tprev = [];
+  lastArgin = [];
+  closing = 0;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,10 +138,12 @@ else
   
   % make sure we don't update more than once every 100ms, significant
   % performance hit otherwise in certain conditions
-  if ~isempty(tprev) && toc(tprev) < 0.1
+  if ~isempty(tprev) && toc(tprev) < 0.1 && ~closing
+    lastArgin = varargin;
     return;
   end
   tprev = tic();
+  lastArgin = [];
   
   if strcmp(t, 'dial')
     % display should always be updated for the dial

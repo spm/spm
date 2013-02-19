@@ -75,7 +75,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_freq.m 7497 2013-02-19 09:38:12Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -95,16 +95,12 @@ switch version
   case '2011'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if isfield(freq, 'grad')
-      % ensure that the gradiometer balancing is specified
-      if ~isfield(freq.grad, 'balance') || ~isfield(freq.grad.balance, 'current')
-        freq.grad.balance.current = 'none';
-      end
-      
-      % ensure the new style sensor description
+      % ensure that the gradiometer structure is up to date
       freq.grad = ft_datatype_sens(freq.grad);
     end
     
     if isfield(freq, 'elec')
+      % ensure that the electrode structure is up to date
       freq.elec = ft_datatype_sens(freq.elec);
     end
  

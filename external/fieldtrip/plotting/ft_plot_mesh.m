@@ -50,7 +50,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 7344 2013-01-17 14:24:00Z roboos $
+% $Id: ft_plot_mesh.m 7470 2013-02-14 10:26:36Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -189,7 +189,7 @@ if haspnt && ~isempty(pnt)
   elseif ~isempty(line)
     hs = patch('Vertices', pnt, 'Faces', line);
   else
-    hs = patch('Vertices', pnt);
+    hs = patch('Vertices', pnt, 'Faces', []);
   end
   set(hs, 'FaceColor', facecolor);
   set(hs, 'EdgeColor', edgecolor);

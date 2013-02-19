@@ -69,7 +69,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 7217 2012-12-17 19:45:35Z roboos $
+% $Id: ft_datatype_raw.m 7498 2013-02-19 09:38:14Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');
@@ -126,16 +126,12 @@ switch version
   case '2011'
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if isfield(data, 'grad')
-      % ensure that the gradiometer balancing is specified
-      if ~isfield(data.grad, 'balance') || ~isfield(data.grad.balance, 'current')
-        data.grad.balance.current = 'none';
-      end
-      
-      % ensure the new style sensor description
+      % ensure that the gradiometer structure is up to date
       data.grad = ft_datatype_sens(data.grad);
     end
     
     if isfield(data, 'elec')
+      % ensure that the electrode structure is up to date
       data.elec = ft_datatype_sens(data.elec);
     end
     

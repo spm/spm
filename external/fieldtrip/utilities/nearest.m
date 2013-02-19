@@ -41,7 +41,7 @@ function [indx] = nearest(array, val, insideflag, toleranceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nearest.m 7397 2013-01-23 15:49:54Z roboos $
+% $Id: nearest.m 7466 2013-02-14 09:35:26Z jorhor $
 
 mbreal(array);
 mbreal(val);
@@ -93,10 +93,10 @@ if insideflag
     end
   else
     if ~isequal(array, sort(array))
-      error('the array should be sorted from small to large');
+      error('the input array should be sorted from small to large');
     end
     if numel(array)<2
-      error('the array have multiple elements to compute the tolerance');
+      error('the input array must have multiple elements to compute the tolerance');
     end
     mintolerance = (array(2)-array(1))/2;
     maxtolerance = (array(end)-array(end-1))/2;
