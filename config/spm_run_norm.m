@@ -9,7 +9,7 @@ function out = spm_run_norm(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_run_norm.m 5261 2013-02-19 16:37:37Z john $
 
 for i=1:numel(job.subj)
 
@@ -53,7 +53,7 @@ preproc8.channel.write    = [0 0];
 tpm = job.eoptions.tpm{:};
 Nii = nifti(tpm);
 for i=1:size(Nii.dat,4),
-    preproc8.tissue(i) = struct('tpm',   [tpm ',' num2str(i)],...
+    preproc8.tissue(i) = struct('tpm',   {{[tpm ',' num2str(i)]}},...
                                 'ngaus', Inf,...
                                 'native',[0 0],...
                                 'warped',[0 0]);
