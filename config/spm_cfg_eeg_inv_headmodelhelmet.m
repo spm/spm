@@ -6,7 +6,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5202 2013-01-23 16:05:05Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5259 2013-02-19 15:05:30Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -312,7 +312,14 @@ for i = 1:numel(job.D)
         %% coordinate system use defaultHead2currentHead
         
         dewDEFAULT2NATIVE=H1.MEGdewar2MRI'; % H1.MEG2MRI transforms from MEG default dewar space to native MRI
-        defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',H1.Dnocoils.sensors('MEG').coilpos');
+        
+        
+        try, %% need to fix this- spm object changed since calibration
+        nocoilpos=H1.Dnocoils.sensors('MEG').coilpos;
+        catch
+            nocoilpos=H1.Dnocoils.sensors.meg.coilpos;
+        end;
+        defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',nocoilpos');
         
         meegfid = D.fiducials;
         
@@ -342,7 +349,9 @@ for i = 1:numel(job.D)
                 disp('ADDING COREG ERROR');
             end;
             meegfid.fid.pnt
-             rng('shuffle') 
+             %rng('shuffle') 
+             randn('seed',sum(100*clock));
+             
             meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
             meegfid.fid.pnt
             
