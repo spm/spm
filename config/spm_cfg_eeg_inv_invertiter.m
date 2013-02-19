@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5258 2013-02-19 15:04:40Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -50,6 +50,15 @@ standard.tag = 'standard';
 standard.name = 'Standard';
 standard.help = {'Use default settings for the inversion'};
 standard.val  = {1};
+
+invfunc = cfg_menu;
+invfunc.tag = 'invfunc';
+invfunc.name = 'Inversion function';
+invfunc.help = {'Current code allows multiple subjects and modalities; classic is for single subject single modality but has no additional scaling factors'};
+invfunc.labels = {'Current','Classic'};
+invfunc.values = {'Current','Classic'};
+invfunc.val = {'Classic'};
+
 
 invtype = cfg_menu;
 invtype.tag = 'invtype';
@@ -99,6 +108,15 @@ niter.strtype = 'i';
 niter.num = [1 1];
 niter.val = {[8]};
 niter.help = {'Number of times the inversion will be run using a random set of patches each time'};
+
+
+mselect = cfg_menu;
+mselect.tag = 'mselect';
+mselect.name = 'Selction of winning model';
+mselect.help = {'How to get the final current density estimate from multiple iterations'};
+mselect.labels = {'BMA','Highest Evidence'};
+mselect.values = {'BMA','Highest Evidence'};
+mselect.val = {'BMA'};
 
 nsmodes = cfg_entry;
 nsmodes.tag = 'nsmodes';
@@ -164,7 +182,7 @@ custom = cfg_branch;
 custom.tag = 'custom';
 custom.name = 'Custom';
 custom.help = {'Define custom settings for the inversion'};
-custom.val  = {invtype, woi, foi, hanning,npatches,niter,nsmodes,ntmodes, priors, restrict};
+custom.val  = {invfunc,invtype, woi, foi, hanning,npatches,niter,mselect,nsmodes,ntmodes, priors, restrict};
 
 isstandard = cfg_choice;
 isstandard.tag = 'isstandard';
@@ -191,7 +209,7 @@ modality.val = {{'All'}};
 
 invert = cfg_exbranch;
 invert.tag = 'invertiter';
-invert.name = 'unscaled M/EEG source inversion, iterative';
+invert.name = 'M/EEG source inversion, iterative';
 invert.val = {D, val, whatconditions, isstandard, modality};
 invert.help = {'Run imaging source reconstruction'};
 invert.prog = @run_inversion;
@@ -213,18 +231,22 @@ end;
 
 
 if isfield(job.isstandard, 'custom')
+    funccall=job.isstandard.custom.invfunc;
     inverse.type = job.isstandard.custom.invtype;
     inverse.woi  = fix([max(min(job.isstandard.custom.woi), 1000*D.time(1)) min(max(job.isstandard.custom.woi), 1000*D.time(end))]);
     inverse.Han  = job.isstandard.custom.hanning;
-    inverse.hpf  =  fix(min(job.isstandard.custom.foi));
-    inverse.lpf  =  fix(max(job.isstandard.custom.foi));
+    inverse.lpf  =  fix(min(job.isstandard.custom.foi)); %% hpf and lpf are the wrong way round at the moment but leave for now
+    inverse.hpf  =  fix(max(job.isstandard.custom.foi));
     inverse.Np =  fix(max(job.isstandard.custom.npatches));
-    inverse.Niter =  fix(max(job.isstandard.custom.niter));
-    inverse.Ns =  fix(max(job.isstandard.custom.nsmodes));
+    Npatchiter =  fix(max(job.isstandard.custom.niter));
+    inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     
+    inverse.BMA=strcmp(job.isstandard.custom.mselect,'BMA');
+    
+    
     P = char(job.isstandard.custom.priors.priorsmask);
-    if ~isempty(P)        
+    if ~isempty(P)
         [p,f,e] = fileparts(P);
         switch lower(e)
             case '.gii'
@@ -253,6 +275,13 @@ if isfield(job.isstandard, 'custom')
         inverse.xyz = job.isstandard.custom.restrict.locs;
         inverse.rad = job.isstandard.custom.restrict.radius;
     end
+else %% standard inversion option, empty fields so they will become defaults
+    funccall='Current';
+    inverse.Np = [];
+    inverse.Nt = [];
+    inverse.Niter=[];
+    inverse.Ns=[];
+    Npatchiter = 1;
 end
 
 [mod, list] = modality(D, 1, 1);
@@ -291,9 +320,9 @@ for i = 1:numel(job.D)
     D{i}.inv{D{i}.val}.inverse = inverse;
 end
 
-D{i}.inv{D{i}.val}.inverse.BMA=0;
 
-[D,allmodels,allF] = spm_eeg_invertiter(D,inverse.Np,inverse.Niter,inverse.Ns,inverse.Nt);
+
+[D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall);
 
 
 if ~iscell(D)
