@@ -1,57 +1,62 @@
-function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Np,Npatchiter,Nm,Nt)
+function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 
 %  Function to perform several MSP type inversions with different
 %  pseudo-randomly selected priors- in this case single cortical patches
 % Np :number of patches to be used per iteration
 % Npatchiter: number of iterations
-% Nm: number of spatial modes 
+% Nm: number of spatial modes
 % Nt: number of temporal modes
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
-% 
+%
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5244 2013-02-05 17:05:47Z gareth $
+% $Id: spm_eeg_invertiter.m 5256 2013-02-19 15:02:26Z gareth $
 
-
-disp('running iterative inversion');
-if nargin<4,
-    disp('estimating spatial modes from lead fields');
-    Nm=[];
-end;
-
-if nargin<5,
-    disp('estimating temporal modes from data');
-    Nt=[];
+if nargin<2,
+    Npatchiter=[];
 end;
 
 
-if ~isfield(Dtest{1},'val'),
-    val=1;
+if nargin<3,
+    error('No function call specified');
 end;
-    
 
+if isempty(Npatchiter),
+    Npatchiter=16;
+end;
+
+if numel(Dtest)>1,
+    error('only works with single datasets at the moment');e
+end;
+
+val=Dtest{1}.val;
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
-twindow=Dtest{1}.inv{val}.inverse.woi./1000; %% in sec
-fband=[Dtest{1}.inv{val}.inverse.hpf Dtest{1}.inv{1}.inverse.lpf];
+Np=Dtest{1}.inv{val}.inverse.Np;
+
 allF=zeros(Npatchiter,1);
 disp('Reseting random number seed !');
-rand('state',0); 
+rand('state',0);
 for patchiter=1:Npatchiter, %% change patches
     
     randind=randperm(Nvert);
     Ip=randind(1:Np);
     
     
+    switch funcname,
+        case 'Classic',
+            
+            Dtest{1}.inv{val}.inverse.Ip=Ip;
+            
+            Dtest{1}	= spm_eeg_invert_classic(Dtest{1});
+        case 'Current'
+            warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
+            
     
-    
-    Dtest{1}	= spm_eeg_invert_noscale(Dtest{1},Ip,fband,Nm,Nt,[],twindow);			% Source reconstruction
-    Dtest{1}.inv{val}.inverse.Ip=Ip;
-    if isempty(Nm),
-        allNt=max([size(Dtest{1}.inv{val}.inverse.T,2),1]);
-        allNm=size(Dtest{1}.inv{val}.inverse.M,2);
-        Nm=allNm;
-        Nt=allNt;
+            Dtest{1}	= spm_eeg_invert(Dtest{1}); %
+            Dtest{1}.inv{val}.inverse.Ip=Ip;
     end;
+    
+    
     
     modelF(patchiter).inverse=Dtest{1}.inv{val}.inverse;
     allF(patchiter)=[Dtest{1}.inv{val}.inverse.F];
@@ -85,7 +90,7 @@ spm_eeg_invert_display(Dtest{1});
 
 
 
-  
+
 
 
 
