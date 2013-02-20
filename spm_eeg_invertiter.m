@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5256 2013-02-19 15:02:26Z gareth $
+% $Id: spm_eeg_invertiter.m 5268 2013-02-20 14:46:38Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -77,16 +77,19 @@ sort(allF-bestF)
 Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
 if Dtest{1}.inv{val}.inverse.BMA,
     disp('Running BMA to get current estimate');
-    Jbma=spm_bma_msp(manyinverse,allF); %% onlt the mean is calculated using BMA (but could extend to covariance)
-    Dtest{1}.inv{val}.inverse.T=1; %% Jbma is the sum of all modes
+    [Jbma,qCbma]=spm_eeg_invert_bma(manyinverse,allF); %% onlt the mean is calculated using BMA (but could extend to covariance)
+    %Dtest{1}.inv{val}.inverse.T=1; %% Jbma is the sum of all modes
     Dtest{1}.inv{val}.inverse.J={Jbma};
+    Dtest{1}.inv{val}.inverse.qC=qCbma;
+    
 else
     disp('Using best patch set to current estimate');
 end; % if BMA
 
-Dtest{1}.inv{val}.inverse.allF=allF;
+keyboard
+Dtest{1}.inv{val}.inverse.BMAF=allF;
 spm_eeg_invert_display(Dtest{1});
-%Dtest{1}.inv{val}.inverse.J=Jbma;
+
 
 
 
