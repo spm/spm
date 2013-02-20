@@ -28,7 +28,7 @@ function [Q,J] = spm_dcm_delay(M,P,D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_delay.m 5225 2013-02-01 14:10:28Z vladimir $
+% $Id: spm_dcm_delay.m 5263 2013-02-20 11:42:19Z karl $
 
 
 % evaluate delay matrix D from parameters
@@ -41,7 +41,7 @@ if nargin < 3
         
         % number of states per sources
         %------------------------------------------------------------------
-        nx  = numel(M.x);
+        nx  = size(M.x,2);
         
         % get prior means (log-delays)
         %------------------------------------------------------------------
