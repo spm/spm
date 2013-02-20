@@ -1,5 +1,6 @@
 function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
-% Returns the corrected FDR P value 
+% Returns the corrected FDR P value
+%
 % FORMAT [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 %
 % Z     - height (minimum of n statistics)
@@ -14,6 +15,14 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % Ps    - Vector of sorted (ascending) p-values in search volume
 %
 % P     - corrected FDR P value
+%
+%
+% FORMAT [P] = spm_P_FDR(p)
+%
+% p     - vector or array of all uncorrected P values, from which
+%         non-finite values will be excluded (but zeros and ones are kept)
+%
+% P     - corrected FDR P values (a vector or array of the same shape as p)
 %
 %__________________________________________________________________________
 %
@@ -65,16 +74,49 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % controlling multiple test procedures for correlated test
 % statistics".  J of Statistical Planning and Inference, 82:171-196.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
-% Thomas Nichols
-% $Id: spm_P_FDR.m 4013 2010-07-22 17:12:45Z guillaume $
-
+% Thomas Nichols and Ged Ridgway
+% $Id: spm_P_FDR.m 5266 2013-02-20 13:23:54Z ged $
 
 %-Set Benjamini & Yeuketeli cV for independence/PosRegDep case
 %--------------------------------------------------------------------------
-cV   = 1; 
-S    = length(Ps);
+cV = 1; 
+
+if nargin == 1
+    %-FORMAT [P] = spm_P_FDR(p), with p -> Z, (all uncorrected p-values)
+    %======================================================================
+    
+    %-Exclude non-finite (allowing use on a masked image) and sort
+    %----------------------------------------------------------------------
+    mask    = isfinite(Z);
+    Z       = Z(mask);
+    S       = numel(Z);
+    [Z, si] = sort(Z(:));
+    [i, ui] = sort(si); % "unsorting indices"
+    
+    %-"Corrected" p-values
+    %----------------------------------------------------------------------
+    Z       = Z*S./(1:S)'*cV;
+    
+    %-"Adjusted" p-values
+    %----------------------------------------------------------------------
+    Z(end + 1) = 1; % (sentinel 1 at end, dropped in ui indexing below)
+    for i = S:-1:1
+        Z(i) = min(Z([i i+1]));
+    end
+    
+    %-Unsort, unmask and return
+    %----------------------------------------------------------------------
+    Z = Z(ui);
+    P = nan(size(mask));
+    P(mask) = Z;
+    return
+end
+
+
+%-FORMAT [P] = spm_P_FDR(Z,df,STAT,n,Ps)
+%==========================================================================
 
 %-Calculate p-value of Z
 %--------------------------------------------------------------------------
@@ -99,6 +141,7 @@ end
 
 %-"Corrected" p-values
 %--------------------------------------------------------------------------
+S     = length(Ps);
 Qs    = Ps*S./(1:S)'*cV;    
 
 %-"Adjusted" p-values
