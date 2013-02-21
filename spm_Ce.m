@@ -1,7 +1,7 @@
 function [C] = spm_Ce(v,a)
 % return error covariance constraints (for serially correlated data)
 % FORMAT [C] = spm_Ce(v,a)
-% v  - (1 x l) v(i) = number of observations for i-th block
+% v  - (1 x n) v(i) = number of observations for i-th block
 % a  - AR coefficient expansion point  (default a = [])
 % 
 % a  = [] (default) - block diagonal identity matrices specified by v:
@@ -19,7 +19,7 @@ function [C] = spm_Ce(v,a)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Ce.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_Ce.m 5273 2013-02-21 15:05:42Z karl $
  
  
 % defaults

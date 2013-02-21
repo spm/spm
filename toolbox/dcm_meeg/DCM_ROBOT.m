@@ -98,7 +98,8 @@ for i = 1:length(model)
         
         % evidence and cod
         %------------------------------------------------------------------
-        F(i)  = DCM.F;
+        F(i)   = DCM.F;
+        str{i} = model{i};
         for j = 1:length(DCM.R)
             R(i,j) = std(spm_vec(DCM.R{j}));
         end
@@ -124,13 +125,13 @@ spm_figure('GetWin','Model comparison ERP');
 subplot(2,2,1)
 bar(F - min(F))
 ylabel('log-evidence','FontSize',16)
-set(gca,'XTickLabel',model)
+set(gca,'XTickLabel',str)
 axis square
 
 subplot(2,2,2)
 bar(R)
 ylabel('Residual SSQ','FontSize',16)
-set(gca,'XTickLabel',model)
+set(gca,'XTickLabel',str)
 legend({'condition 1','condition 2'})
 axis square
 
@@ -159,8 +160,9 @@ for i = 1:length(model)
         % invert model
         %------------------------------------------------------------------
         DCM.options.model  = model{i};
-        M.Nmax = 128;
-        DCM.M  = M;
+        if isfield(DCM,'M')
+            DCM  = rmfield(DCM,'M');
+        end
         DCM    = spm_dcm_csd(DCM);
         spm_figure('GetWin',['CSD model: ' model{i}]);
         spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)
@@ -171,7 +173,8 @@ for i = 1:length(model)
         
         % evidence and cod
         %------------------------------------------------------------------
-        F(i)  = DCM.F;
+        F(i)   = DCM.F;
+        str{i} = model{i};
         
     catch
         
@@ -194,7 +197,7 @@ spm_figure('GetWin','Model comparison CSD');
 subplot(2,2,1)
 bar(F - min(F))
 ylabel('log-evidence','FontSize',16)
-set(gca,'XTickLabel',model)
+set(gca,'XTickLabel',str)
 axis square
 
 spm_demo_print

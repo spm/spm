@@ -46,13 +46,11 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_fx_mfm.m 5273 2013-02-21 15:05:42Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-try, x = spm_unvec(x,M.x); end
-
-xin = x;
+x   = spm_unvec(spm_vec(x),M.x);                % neuronal states
 if iscell(x)
     mfm = 1;                                    % mean-field model
 else
@@ -268,7 +266,10 @@ if nargout < 2, return, end
 
 % Jacobian
 %==========================================================================
-J = spm_cat(spm_diff('spm_fx_mfm',xin,u,P,M,1));
+if ~mfm, x = x{1}; end
+
+J = spm_cat(spm_diff('spm_fx_mfm',x,u,P,M,1));
+
 
 if nargout < 3, return, end
 
@@ -295,11 +296,7 @@ nk = 3;                                               % number of states
 Sp = kron(ones(nk,nk),kron( eye(np,np),eye(ns,ns)));  % states: same pop.
 Ss = kron(ones(nk,nk),kron(ones(np,np),eye(ns,ns)));  % states: same source
 
-Dp = ~Ss;                            % states: different sources
-Ds = ~Sp & Ss;                       % states: same source different pop.
-D  = d(2)*Dp + d(1)*Ds;
-
-% disable for mean field models (temporarily)
+% mean field models
 %--------------------------------------------------------------------------
 if mfm
 
@@ -307,16 +304,18 @@ if mfm
     Cs = kron(ones(nk,1),kron(kron(ones(np,np),eye(ns,ns)),ones(1,nk*nk)));
     Dp = kron(kron( eye(np,np),eye(ns,ns)),kron(ones(nk,nk),ones(nk,nk)));
     Ds = kron(kron(ones(np,np),eye(ns,ns)),kron(ones(nk,nk),ones(nk,nk)));
-
+    
     Sp = spm_cat({Sp Cp; Cp' Dp});
     Ss = spm_cat({Ss Cs; Cs' Ds});
 
-    Dp = ~Ss;                        % states: different sources
-    Ds = ~Sp & Ss;                   % states: same source different pop.
-
-    D  = d(2)*Dp + d(1)*Ds;
 end
 
+% Delays
+%--------------------------------------------------------------------------
+Dp = ~Ss;                        % states: different sources
+Ds = ~Sp & Ss;                   % states: same source different pop.
+D  = d(2)*Dp + d(1)*Ds;
+    
 
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 - D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)

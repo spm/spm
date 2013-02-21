@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_int_L.m 5273 2013-02-21 15:05:42Z karl $
  
  
 % convert U to U.u if necessary
@@ -69,9 +69,9 @@ try, dt = U.dt;  catch, dt = 1;    end
 % state equation; add [0] states if not specified
 %--------------------------------------------------------------------------
 try
-    f   = fcnchk(M.f,'x','u','P','M');
+    f   = str2func(M.f);
 catch
-    f   = inline('sparse(0,1)','x','u','P','M');
+    f   = @(x,u,P,M) sparse(0,1);
     M.n = 0;
     M.x = sparse(0,0);
 end
@@ -79,9 +79,9 @@ end
 % and output nonlinearity
 %--------------------------------------------------------------------------
 try
-    g   = fcnchk(M.g,'x','u','P','M');
+    g   = str2func(M.g);
 catch
-    g   = [];
+    g   = @(x,u,P,M) x;
 end
  
 % Initial states and inputs
@@ -117,27 +117,40 @@ Q     = (spm_expm(dt*D*dfdx/N) - speye(n,n))*spm_inv(dfdx);
  
 % integrate
 %==========================================================================
+v     = spm_vec(x);
 for i = 1:size(U.u,1)
- 
+    
     % input
     %----------------------------------------------------------------------
     u  = U.u(i,:);
- 
-    % update dx = (expm(dt*J) - I)*inv(J)*f(x,u)
-    %----------------------------------------------------------------------
-    for j = 1:N
-        x = spm_vec(x) + Q*spm_vec(f(x,u,P,M));
-        x = spm_unvec(x,M.x);
-    end
- 
-    % output - implement g(x)
-    %----------------------------------------------------------------------
-    if ~isempty(g)
+    
+    try
+        % update dx = (expm(dt*J) - I)*inv(J)*f(x,u)
+        %------------------------------------------------------------------
+        for j = 1:N
+            v = v + Q*f(v,u,P,M);
+        end
+        
+        % output - implement g(x)
+        %------------------------------------------------------------------
+        y(:,i) = g(v,u,P,M);
+
+    catch
+        
+        % update dx = (expm(dt*J) - I)*inv(J)*f(x,u)
+        %------------------------------------------------------------------
+        for j = 1:N
+            x = spm_vec(x) + Q*spm_vec(f(x,u,P,M));
+            x = spm_unvec(x,M.x);
+        end
+        
+        % output - implement g(x)
+        %------------------------------------------------------------------
         y(:,i) = spm_vec(g(x,u,P,M));
-    else
-        y(:,i) = spm_vec(x);
-    end
  
+        
+    end
+    
 end
  
 % transpose

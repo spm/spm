@@ -39,7 +39,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_fx_lfp.m 5273 2013-02-21 15:05:42Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
@@ -47,7 +47,7 @@ try, P.G; catch, P.G = 0; end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-u    = spm_vec(u);             % input
+x    = spm_unvec(x,M.x);       % neuronal states
 n    = size(x,1);              % number of sources
 s    = size(x,2);              % number of states
 

@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_induced_optimise_parameters.m 5273 2013-02-21 15:05:42Z karl $
  
  
 % Model specification
@@ -172,7 +172,7 @@ W     = [1 0 1/4 1;
  
 % Target spectrum - gamma, beta and alpha
 %--------------------------------------------------------------------------
-S     = -[32 32 32 128]' + 1i*2*pi*[40 20 10 5]';
+S     = -[32 32 32 128]' + 1i*2*pi*[40 16 8 4]';
 S     = S(1:M.Nm);
 W     = W(:,1:M.Nm);
 W     = W/max(W(:));
