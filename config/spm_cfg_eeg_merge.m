@@ -4,9 +4,9 @@ function merge = spm_cfg_eeg_merge
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_merge.m 5271 2013-02-21 14:40:30Z vladimir $
 
-rev = '$Rev: 5079 $';
+rev = '$Rev: 5271 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -60,7 +60,7 @@ prefix.name    = 'Filename Prefix';
 prefix.help    = {'Specify the string to be prepended to the filenames of the merged dataset. Default prefix is ''m''.'};
 prefix.strtype = 's';
 prefix.num     = [1 Inf];
-prefix.val     = {'m'};
+prefix.val     = {'c'};
 
 merge = cfg_exbranch;
 merge.tag = 'merge';
