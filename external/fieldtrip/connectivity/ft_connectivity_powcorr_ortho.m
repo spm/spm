@@ -1,6 +1,22 @@
-function [c] = ft_connectivity_amplcorr_ortho(mom, varargin)
+function [c] = ft_connectivity_powcorr_ortho(mom, varargin)
 
-% FIXME build in proper documentation
+% FT_CONNECTIVITY_POWCORR_ORTHO computes power correlation after removing
+% the zero-lag contribution on a trial-by-trial basis, according to Hipp's
+% Nature Neuroscience paper. 
+%
+% Use as
+%   c = ft_connectivity_powcorr(mom)
+%   c = ft_connectivity_powcorr(mom, 'refindx', refindx)
+%
+% Where mom is a NchanxNrpt matrix containing the complex-valued amplitude
+% and phase information at a given frequency, and the optional key refindx
+% specifies the index/indices of the channels that serve as a reference 
+% channel. (Default is 'all').
+%
+% The output c is a Nchanx(Nrefchanx2) matrix that contain the power correlation
+% for all channels orthogonalised relative to the reference channel in the first
+% Nrefchan columns, and the power correlation for the reference channels 
+% orthogonalised relative to the channels in the second Nrefchan columns.
 
 % Copyright (C) 2012 Jan-Mathijs Schoffelen
 %
@@ -20,7 +36,7 @@ function [c] = ft_connectivity_amplcorr_ortho(mom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_powcorr_ortho.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_connectivity_powcorr_ortho.m 7502 2013-02-19 14:05:47Z jansch $
 
 refindx = ft_getopt(varargin, 'refindx', 'all');
 tapvec  = ft_getopt(varargin, 'tapvec',  ones(1,size(mom,2)));

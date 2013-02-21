@@ -164,9 +164,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 7501 2013-02-19 10:57:10Z jorhor $
+% $Id: ft_sourceplot.m 7504 2013-02-19 19:09:46Z jansch $
 
-revision = '$Id: ft_sourceplot.m 7501 2013-02-19 10:57:10Z jorhor $';
+revision = '$Id: ft_sourceplot.m 7504 2013-02-19 19:09:46Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -488,6 +488,8 @@ else
   hastime = 0;
   
   doimage = 0;
+  fcolmin = 0; % needs to be defined for callback
+  fcolmax = 1;
 end % handle fun
 
 %%% maskparameter
@@ -577,6 +579,9 @@ if hasmsk
     end
   end % handling opacitylim and opacitymap
   clear mskmin mskmax;
+else
+  opacmin = [];
+  opacmax = [];
 end
 
 % prevent outside fun from being plotted
@@ -607,6 +612,8 @@ if hasfun && hasroi && ~hasmsk
   opacmax = 1;
 elseif hasfun && hasroi && hasmsk
   msk = roi .* msk;
+  opacmin = [];
+  opacmax = []; % has to be defined
 elseif hasroi
   error('you can not have a roi without functional data')
 end
@@ -726,7 +733,6 @@ if isequal(cfg.method,'ortho')
   
   % create structure to be passed to gui
   opt = [];
-  opt.fun = fun;
   opt.dim = dim;
   opt.ijk = [xi yi zi];
   opt.xsize = xsize;
@@ -735,12 +741,20 @@ if isequal(cfg.method,'ortho')
   opt.handlesfigure = h;
   opt.axis = cfg.axis;
   opt.quit = ~strcmp(cfg.interactive, 'yes');
-  opt.atlas = atlas;
-  opt.ana = ana;
+  if hasatlas
+    opt.atlas = cfg.atlas;
+  end
+  if hasana
+    opt.ana = ana;
+  end
+  if hasfun
+    opt.fun = fun;
+  end
   opt.update = [1 1 1];
   opt.init = true;
   opt.isvolume = isvolume;
   opt.issource= issource;
+  opt.hasatlas = hasatlas;
   opt.hasfreq = hasfreq;
   opt.hastime = hastime;
   opt.hasmsk = hasmsk;
@@ -749,7 +763,9 @@ if isequal(cfg.method,'ortho')
   opt.qi = qi;
   opt.tag = 'ik';
   opt.data = data;
-  opt.msk = msk;
+  if hasmsk
+    opt.msk = msk;
+  end
   opt.fcolmin = fcolmin;
   opt.fcolmax = fcolmax;
   opt.opacmin = opacmin;
@@ -1223,7 +1239,7 @@ opt.ijk = [xi yi zi 1]';
 if opt.isvolume
   xyz = data.transform * opt.ijk;
 elseif opt.issource
-  ix  = sub2ind(dim,xi,yi,zi);
+  ix  = sub2ind(opt.dim,xi,yi,zi);
   xyz = data.pos(ix,:);
 end
 opt.ijk = opt.ijk(1:3);
@@ -1270,7 +1286,7 @@ end
 
 %fprintf('%s %s %s %s\n', str1, str2, str3, str4);
 
-if ~isempty(opt.atlas)
+if opt.hasatlas
   tmp = [opt.ijk(:)' 1] * opt.atlas.transform; % atlas and data might have different transformation matrices, so xyz cannot be used here anymore
   % determine the anatomical label of the current position
   lab = atlas_lookup(opt.atlas, (tmp(1:3)), 'inputcoord', data.coordsys, 'queryrange', opt.queryrange);
@@ -1304,7 +1320,7 @@ if opt.hasana
   end
 end
 
-if opt.hasfun,
+if opt.hasfun
   if opt.init
     if opt.hasmsk
       tmpqi = [opt.qi 1];
@@ -1327,7 +1343,7 @@ if opt.hasfun,
     opt.funtag     = get(opt.funhandles, 'tag');
     opt.funhandles = opt.funhandles(~strcmp('ana', opt.funtag));
     opt.parenttag  = get(cell2mat(get(opt.funhandles,'parent')),'tag');
-    [i1,i2,i3] = intersect(parenttag, {'ik';'jk';'ij'});
+    [i1,i2,i3] = intersect(opt.parenttag, {'ik';'jk';'ij'});
     opt.funhandles = opt.funhandles(i3(i2)); % seems like swapping the order
     opt.funhandles = opt.funhandles(:)';
     set(opt.funhandles, 'tag', 'fun');
@@ -1393,7 +1409,7 @@ elseif strcmp(opt.colorbar,  'yes') && ~isfield(opt, 'hc'),
   end
 end
 
-if ~(opt.hasfreq || opt.hastime)
+if ~((opt.hasfreq && length(data.freq)>1) || opt.hastime)
   if opt.init
     subplot('position',[0.07+opt.xsize(1)+0.05 0.07 opt.xsize(2) opt.ysize(2)]);
     set(gca,'visible','off');

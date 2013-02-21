@@ -38,7 +38,7 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_connectivityplot.m 7505 2013-02-20 11:18:14Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -142,10 +142,15 @@ for k = 1:nchan
   end
 end
 
+% add channel labels on grand X and Y axes
 for k = 1:nchan
   ft_plot_text(0,       (nchan + 1 - k).*1.2, data.label{k});
   ft_plot_text(k.*1.2,  (nchan + 1)    .*1.2, data.label{k});
 end
+
+% add 'from' and 'to' labels
+ft_plot_text(-0.5,           (nchan + 1)/1.7, '\it{from}', 'rotation', 90);
+ft_plot_text((nchan + 1)/1.7, (nchan + 1)*1.2+0.4, '\it{to}');
 
 axis([-0.2 (nchan+1).*1.2+0.2 0 (nchan+1).*1.2+0.2]);
 axis off;

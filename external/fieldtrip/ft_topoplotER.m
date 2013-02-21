@@ -73,7 +73,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %                            'title' to place comment as title
 %                            'layout' to place comment as specified for COMNT in layout
 %                            [x y] coordinates
-%   cfg.interactive        = Interactive plot 'yes' or 'no' (default = 'no')
+%   cfg.interactive        = Interactive plot 'yes' or 'no' (default = 'yes')
 %                            In a interactive plot you can select areas and produce a new
 %                            interactive plot when a selected area is clicked. Multiple areas
 %                            can be selected by holding down the SHIFT key.
@@ -139,9 +139,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 7487 2013-02-18 11:52:54Z roboos $
+% $Id: ft_topoplotER.m 7509 2013-02-20 15:04:06Z eelspa $
 
-revision = '$Id: ft_topoplotER.m 7487 2013-02-18 11:52:54Z roboos $';
+revision = '$Id: ft_topoplotER.m 7509 2013-02-20 15:04:06Z eelspa $';
 
 % do the general setup of the function
 ft_defaults

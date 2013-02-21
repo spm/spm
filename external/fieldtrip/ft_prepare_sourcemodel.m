@@ -120,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 7473 2013-02-14 13:18:45Z jorhor $
+% $Id: ft_prepare_sourcemodel.m 7511 2013-02-20 16:31:22Z johzum $
 
-revision = '$Id: ft_prepare_sourcemodel.m 7473 2013-02-14 13:18:45Z jorhor $';
+revision = '$Id: ft_prepare_sourcemodel.m 7511 2013-02-20 16:31:22Z johzum $';
 
 % do the general setup of the function
 ft_defaults
@@ -440,9 +440,7 @@ if basedonmri
   
   % apply a smoothing of a certain amount of voxels
   if ~strcmp(cfg.smooth, 'no');
-    fprintf('smoothing gray matter segmentation with %d voxels\n', cfg.smooth);
-    % check that the required low-level toolbox is available
-    spm_smooth(mri.gray, mri.gray, cfg.smooth);
+    mri.gray = volumesmooth(mri.gray, cfg.smooth, 'MRI gray matter');
   end
   
   % determine for each voxel whether it belongs to the cortex

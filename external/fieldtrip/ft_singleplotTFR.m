@@ -31,7 +31,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %   cfg.hotkeys           = enables hotkeys (up/down arrows) for dynamic colorbar adjustment
 %   cfg.colormap       = any sized colormap, see COLORMAP
 %   cfg.colorbar       = 'yes', 'no' (default = 'yes')
-%   cfg.interactive    = Interactive plot 'yes' or 'no' (default = 'no')
+%   cfg.interactive    = Interactive plot 'yes' or 'no' (default = 'yes')
 %                        In a interactive plot you can select areas and produce a new
 %                        interactive plot when a selected area is clicked. Multiple areas
 %                        can be selected by holding down the SHIFT key.
@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 7487 2013-02-18 11:52:54Z roboos $
+% $Id: ft_singleplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $
 
-revision = '$Id: ft_singleplotTFR.m 7487 2013-02-18 11:52:54Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -119,7 +119,7 @@ cfg.ylim           = ft_getopt(cfg, 'ylim',         'maxmin');
 cfg.zlim           = ft_getopt(cfg, 'zlim',         'maxmin');
 cfg.fontsize       = ft_getopt(cfg, 'fontsize',      8);
 cfg.colorbar       = ft_getopt(cfg, 'colorbar',     'yes');
-cfg.interactive    = ft_getopt(cfg, 'interactive',  'no');
+cfg.interactive    = ft_getopt(cfg, 'interactive',  'yes');
 cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',      'no');
 cfg.renderer       = ft_getopt(cfg, 'renderer',      []);
 cfg.maskalpha      = ft_getopt(cfg, 'maskalpha',     1);

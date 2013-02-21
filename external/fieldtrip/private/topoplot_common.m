@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 7487 2013-02-18 11:52:54Z roboos $
+% $Id: topoplot_common.m 7509 2013-02-20 15:04:06Z eelspa $
 
-revision = '$Id: topoplot_common.m 7487 2013-02-18 11:52:54Z roboos $';
+revision = '$Id: topoplot_common.m 7509 2013-02-20 15:04:06Z eelspa $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -131,7 +131,7 @@ cfg.commentpos     = ft_getopt(cfg, 'commentpos',    'leftbottom');
 cfg.fontsize       = ft_getopt(cfg, 'fontsize',      8);
 cfg.baseline       = ft_getopt(cfg, 'baseline',      'no'); %to avoid warning in timelock/freqbaseline
 cfg.trials         = ft_getopt(cfg, 'trials',        'all');
-cfg.interactive    = ft_getopt(cfg, 'interactive',   'no');
+cfg.interactive    = ft_getopt(cfg, 'interactive',   'yes');
 cfg.hotkeys        = ft_getopt(cfg, 'hotkeys',       'no');
 cfg.renderer       = ft_getopt(cfg, 'renderer',      []); % matlab sets the default
 cfg.marker         = ft_getopt(cfg, 'marker',        'on');
