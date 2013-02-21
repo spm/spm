@@ -50,10 +50,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5272 2013-02-21 15:04:24Z karl $
+% $Id: spm_dcm_estimate.m 5277 2013-02-21 15:41:19Z guillaume $
 
 
-SVNid = '$Rev: 5272 $';
+SVNid = '$Rev: 5277 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -179,14 +179,14 @@ if n > nmax
     
 end
 
-% hyperpriors over precision – expectation and covariance
+% hyperpriors over precision - expectation and covariance
 %--------------------------------------------------------------------------
 i    = DCM.options.hidden;
 if DCM.options.stochastic
-    hE  = ones(1,n)*6;
+    hE  = ones(n,1)*6;
     hC  = speye(n,n)/128;
 else
-    hE  = ones(1,n)*4;
+    hE  = ones(n,1)*4;
     hC  = speye(n,n)/2048;
 end
 hE(i)   = exp(-16);
