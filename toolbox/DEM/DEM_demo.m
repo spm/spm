@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 12-Feb-2013 15:43:31
+% Last Modified by GUIDE v2.5 21-Feb-2013 14:36:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -410,5 +410,7 @@ function pushbutton132_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'FEP_Manifold')
 
-
-
+% --- Executes on button press in pushbutton133.
+function pushbutton133_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
+run_demo_Callback(hObject, handles, 'spm_MDP_trust')
