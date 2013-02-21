@@ -3,7 +3,7 @@ function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % FORMAT spm_dcm_generate(syn_model,SNR)
 % 
 % syn_model     Name of synthetic DCM file
-% SNR           Signal to noise ratio (default=1)
+% SNR           Signal to noise ratio [default: 1]
 %
 % This routine will update the DCM.Y field as follows: 
 %           Y.y     synthetic BOLD data
@@ -16,10 +16,10 @@ function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % Y             Simulated (Noisy) BOLD data
 % x             Simulated neuronal activity (first hidden variable in each region)
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 4694 2012-03-19 12:30:29Z will $
+% $Id: spm_dcm_generate.m 5276 2013-02-21 15:28:02Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -29,8 +29,8 @@ if isstruct(syn_model)
 else
     load(syn_model)
 end
-if nargin <3  || isempty(SNR)
-    SNR  = 1;
+if nargin < 2 || isempty(SNR)
+    SNR = 1;
 end
 
 
