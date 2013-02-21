@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5258 2013-02-19 15:04:40Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5275 2013-02-21 15:18:35Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -114,8 +114,8 @@ mselect = cfg_menu;
 mselect.tag = 'mselect';
 mselect.name = 'Selction of winning model';
 mselect.help = {'How to get the final current density estimate from multiple iterations'};
-mselect.labels = {'BMA','Highest Evidence'};
-mselect.values = {'BMA','Highest Evidence'};
+mselect.labels = {'BMA','MaxF'};
+mselect.values = {'BMA','MaxF'};
 mselect.val = {'BMA'};
 
 nsmodes = cfg_entry;
@@ -242,7 +242,7 @@ if isfield(job.isstandard, 'custom')
     inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     
-    inverse.BMA=strcmp(job.isstandard.custom.mselect,'BMA');
+    BMAflag=strncmp('BMA',job.isstandard.custom.mselect,3);
     
     
     P = char(job.isstandard.custom.priors.priorsmask);
@@ -318,6 +318,10 @@ for i = 1:numel(job.D)
     end
     
     D{i}.inv{D{i}.val}.inverse = inverse;
+    
+    D{i}.inv{D{i}.val}.inverse.allF=zeros(1,Npatchiter);
+    D{i}.inv{D{i}.val}.inverse.BMAflag=BMAflag;
+    
 end
 
 
