@@ -10,8 +10,9 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.c                              % switch on exogenous connections
 % DCM.d                              % switch on nonlinear modulations
 % DCM.U                              % exogenous inputs
-% DCM.Y                              % responses
+% DCM.Y.y                            % responses
 % DCM.Y.X0                           % confounds
+% DCM.Y.Q                            % some array of precision components
 % DCM.n                              % number of regions
 % DCM.v                              % number of scans
 %
@@ -23,6 +24,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.nograph                % graphical display
 % DCM.options.centre                 % mean-centre inputs
 % DCM.options.P                      % starting estimates for parameters
+% DCM.options.hidden                 % indices of hidden regions
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -48,10 +50,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 4750 2012-05-24 14:05:41Z guillaume $
+% $Id: spm_dcm_estimate.m 5272 2013-02-21 15:04:24Z karl $
 
 
-SVNid = '$Rev: 4750 $';
+SVNid = '$Rev: 5272 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -84,6 +86,7 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
+try, DCM.options.hidden;     catch, DCM.options.hidden     = [];    end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
 try, M.P       = DCM.options.P ;end
@@ -176,6 +179,19 @@ if n > nmax
     
 end
 
+% hyperpriors over precision – expectation and covariance
+%--------------------------------------------------------------------------
+i    = DCM.options.hidden;
+if DCM.options.stochastic
+    hE  = ones(1,n)*6;
+    hC  = speye(n,n)/128;
+else
+    hE  = ones(1,n)*4;
+    hC  = speye(n,n)/2048;
+end
+hE(i)   = exp(-16);
+hC(i,i) = exp(-16);
+
 
 % complete model specification
 %--------------------------------------------------------------------------
@@ -184,8 +200,8 @@ M.g  = 'spm_gx_fmri';                     % observation equation
 M.x  = x;                                 % initial condition (states)
 M.pE = pE;                                % prior expectation (parameters)
 M.pC = pC;                                % prior covariance  (parameters)
-M.hE = 4;                                 % prior expectation (precisions)
-M.hC = exp(-8);                           % prior covariance  (precisions)
+M.hE = hE;                                % prior expectation (precisions)
+M.hC = hC;                                % prior covariance  (precisions)
 M.m  = size(U.u,2);
 M.n  = size(x(:),1);
 M.l  = size(x,1);
@@ -247,8 +263,8 @@ else
     % Specify hyper-priors on (log-precision of) observation noise
     % ---------------------------------------------------------------------
     DEM.M(1).Q  = spm_Ce(ones(1,n));      % precision components
-    DEM.M(1).hE = 6;                      % prior expectation
-    DEM.M(1).hC = 1/128;                  % prior covariance
+    DEM.M(1).hE = hE;                     % prior expectation
+    DEM.M(1).hC = hC;                     % prior covariance
     
     
     % allow (only) neuronal [x, s, f, q, v] hidden states to fluctuate
