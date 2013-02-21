@@ -78,7 +78,7 @@ function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_select.m 5163 2012-12-21 20:08:22Z karl $
+% $Id: spm_MDP_select.m 5279 2013-02-21 19:06:40Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -159,14 +159,14 @@ end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
-s      = find(MDP.S(:,1));         % initial state
+s      = find(MDP.S(:,1));         % initial state (index)
+a      = sparse(1,1,1,1,T);        % action (index)
+o      = sparse(1,1,s,1,T);        % observations (index)
+S      = sparse(s,1,1,Ns,T);       % states sampled (1 in K vector)
+O      = sparse(s,1,1,Ns,T);       % states observed (1 in K vector)
+U      = sparse(1,1,1,Nu,T - 1);   % action selected (1 in K vector)
 P      = sparse(Nu,T - 1);         % posterior beliefs about control
-a      = sparse(1,1,1,1,T);        % action
-o      = sparse(s,1,1,1,T);        % observations
-S      = sparse(s,1,1,Ns,T);       % states sampled
-O      = sparse(s,1,1,Ns,T);       % states observed
-U      = sparse(1,1,1,Nu,T - 1);   % action selected
- 
+
 % hyperpriors
 %--------------------------------------------------------------------------
 alpha  = 8;
