@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_cfg_preproc8.m 5278 2013-02-21 18:08:11Z john $
 
 
 % ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ biasreg.values = {
                   1
                   10
                   }';
-biasreg.val    = {0.0001};
+biasreg.val    = {0.01};
 % ---------------------------------------------------------------------
 % biasfwhm Bias FWHM
 % ---------------------------------------------------------------------
@@ -241,7 +241,7 @@ tissues.num     = [0 Inf];
 
 tissues.val     = {tissue tissue tissue tissue tissue tissue };
 tpm_nam = fullfile(spm('dir'),'tpm','TPM.nii');
-ngaus   = [1 1 1 3 4 2];
+ngaus   = [1 1 2 3 4 2];
 nval    = {[1 0],[1 0],[1 0],[1 0],[1 0],[0 0]};
 for k=1:numel(ngaus),
     tissue.val{1}.val{1} = {[tpm_nam ',' num2str(k)]};
@@ -262,6 +262,24 @@ mrf.help    = {'When tissue class images are written out, a few iterations of a 
 mrf.strtype = 'e';
 mrf.num     = [1 1];
 mrf.val     = {1};
+% ---------------------------------------------------------------------
+% cleanup Clean up any partitions
+% ---------------------------------------------------------------------
+cleanup         = cfg_menu;
+cleanup.tag     = 'cleanup';
+cleanup.name    = 'Clean Up';
+cleanup.help    = {
+                   'This uses a crude routine for extracting the brain from segmented images.  It begins by taking the white matter, and eroding it a couple of times to get rid of any odd voxels.  The algorithm continues on to do conditional dilations for several iterations, where the condition is based upon gray or white matter being present.This identified region is then used to clean up the grey and white matter partitions, and has a slight influences on the CSF partition.'
+                   ''
+                   'If you find pieces of brain being chopped out in your data, then you may wish to disable or tone down the cleanup procedure. Note that the procedure uses a number of assumptions about what each tissue class refers to.  If a different set of tissue priors are used, then this routine should be disabled.'
+}';
+cleanup.labels = {
+                  'Dont do cleanup'
+                  'Light Clean'
+                  'Thorough Clean'
+}';
+cleanup.values = {0 1 2};
+cleanup.val    = {1};
 % ---------------------------------------------------------------------
 % reg Warping Regularisation
 % ---------------------------------------------------------------------
@@ -353,7 +371,7 @@ write.val    = {[0 0]};
 warp         = cfg_branch;
 warp.tag     = 'warp';
 warp.name    = 'Warping & MRF';
-warp.val     = {mrf reg affreg smo samp write };
+warp.val     = {mrf cleanup reg affreg smo samp write};
 warp.help    = {
 'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'};
 % ---------------------------------------------------------------------

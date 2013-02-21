@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 5262 2013-02-19 19:18:09Z john $
+% $Id: spm_maff8.m 5278 2013-02-21 18:08:11Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -183,10 +183,10 @@ for iter=1:200
     end
 
     ssh   = sum(h0(:));
-    ll1   = sum(sum(h0.*log2(h1./(sum(h1,2)*sum(h1,1)))))/ssh - penalty/ssh;
+    ll1   = (sum(sum(h0.*log(h1))) - penalty)/ssh/log(2);
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_plot_convergence('Set',ll1);
-    if abs(ll1-ll)<1e-4, break; end;
+    if abs(ll1-ll)<1e-5, break; end;
     ll    = ll1;
     sol   = sol1;
     Alpha = zeros(12);

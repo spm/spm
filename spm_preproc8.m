@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_preproc8.m 5278 2013-02-21 18:08:11Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -779,12 +779,20 @@ for iter=1:20,
         if ~isfield(obj,'Twarp')
             switch iter
             case 1,
-                prm = [param(1:3) 16*param(4:8)];
+                prm = [param(1:3) 256*param(4:8)];
             case 2,
-                prm = [param(1:3)  8*param(4:8)];
+                prm = [param(1:3) 128*param(4:8)];
             case 3,
-                prm = [param(1:3)  4*param(4:8)];
+                prm = [param(1:3)  64*param(4:8)];
             case 4,
+                prm = [param(1:3)  32*param(4:8)];
+            case 5,
+                prm = [param(1:3)  16*param(4:8)];
+            case 6,
+                prm = [param(1:3)  8*param(4:8)];
+            case 7,
+                prm = [param(1:3)  4*param(4:8)];
+            case 8,
                 prm = [param(1:3)  2*param(4:8)];
             otherwise
                 prm = [param(1:3)    param(4:8)];

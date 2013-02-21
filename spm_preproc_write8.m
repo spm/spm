@@ -1,11 +1,11 @@
-function cls = spm_preproc_write8(res,tc,bf,df,mrf)
+function cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
 % Write out VBM preprocessed data
-% FORMAT cls = spm_preproc_write8(res,tc,bf,df,mrf)
+% FORMAT cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_preproc_write8.m 5278 2013-02-21 18:08:11Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -38,7 +38,8 @@ N   = numel(res.image);
 if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
 if nargin<3, bf = true(N,2);  end % field, corrected
 if nargin<4, df = true(1,2);  end % inverse, forward
-if nargin<5, mrf= 2;          end % MRF parameter
+if nargin<5, mrf= 1;          end % MRF parameter
+if nargin<6, cleanup = 0;     end % Run the ad hoc cleanup
 
 [pth,nam]=fileparts(res.image(1).fname);
 ind  = res.image(1).n;
@@ -217,7 +218,7 @@ if do_cls
     end
     if mrf~=0, nmrf_its = 10; else nmrf_its = 1; end
 
-    if mrf==0, % Done this way as spm_mrf is not compiled for all platforms yet
+    if mrf==0,
         sQ = (sum(Q,4)+eps)/255;
         for k1=1:size(Q,4)
             P(:,:,:,k1) = uint8(round(Q(:,:,:,k1)./sQ));
@@ -233,8 +234,15 @@ if do_cls
             spm_progress_bar('set',iter);
         end
     end
-
     clear Q
+
+    if cleanup,
+        if size(P,4)>5,
+            P = clean_gwc(P,cleanup);
+        else
+            warning('Cleanup not done.');
+        end
+    end
 
     for k1=1:Kb,
         if ~isempty(tiss(k1).Nt),
@@ -496,4 +504,55 @@ for i=1:d(3),
     x(:,:,i,3) = single(i);
 end
 %=======================================================================
+
+%==========================================================================
+function [P] = clean_gwc(P,level)
+if nargin<4, level = 1; end
+
+b    = P(:,:,:,2);
+
+% Build a 3x3x3 seperable smoothing kernel
+%--------------------------------------------------------------------------
+kx=[0.75 1 0.75];
+ky=[0.75 1 0.75];
+kz=[0.75 1 0.75];
+sm=sum(kron(kron(kz,ky),kx))^(1/3);
+kx=kx/sm; ky=ky/sm; kz=kz/sm;
+
+th1 = 0.15;
+if level==2, th1 = 0.2; end
+% Erosions and conditional dilations
+%--------------------------------------------------------------------------
+niter = 32;
+spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
+for j=1:niter
+    if j>2, th=th1; else th=0.6; end  % Dilate after two its of erosion
+    for i=1:size(b,3)
+        gp       = double(P(:,:,i,1));
+        wp       = double(P(:,:,i,2));
+        bp       = double(b(:,:,i))/255;
+        bp       = (bp>th).*(wp+gp);
+        b(:,:,i) = uint8(round(bp));
+    end
+    spm_conv_vol(b,b,kx,ky,kz,-[1 1 1]);
+    spm_progress_bar('Set',j);
+end
+th = 0.05;
+for i=1:size(b,3)
+    gp       = double(P(:,:,i,1))/255;
+    wp       = double(P(:,:,i,2))/255;
+    cp       = double(P(:,:,i,3))/255;
+    bp       = double(b(:,:,i))/255;
+    bp       = ((bp>th).*(wp+gp))>th;
+
+    g = int16(round(255*gp.*bp./(gp+wp+cp+eps)));
+    w = int16(round(255*wp.*bp./(gp+wp+cp+eps)));
+    c = int16(round(255*(cp.*bp./(gp+wp+cp+eps)+cp.*(1-bp))));
+    P(:,:,i,5) = uint8(int16(P(:,:,i,5)) + (int16(P(:,:,i,1))-g+int16(P(:,:,i,2))-w+int16(P(:,:,i,3))-c));
+    P(:,:,i,1) = g;
+    P(:,:,i,2) = w;
+    P(:,:,i,3) = c;
+
+end
+spm_progress_bar('Clear');
 

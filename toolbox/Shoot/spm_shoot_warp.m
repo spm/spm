@@ -5,7 +5,7 @@ function out = spm_shoot_warp(job)
 %     job.images{1} first set of images (eg rc1*.nii)
 %     job.images{2} second set of images (eg rc2*.nii)
 %     etc
-%     job.template template file
+%     job.templates template files
 % Other settings are defined in spm_shoot_defaults.m
 %
 % The outputs are flow fields (v*.nii), deformation fields (y*.nii) and
@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot_warp.m 5278 2013-02-21 18:08:11Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -29,7 +29,6 @@ eul_its = d.eul_its; % Start with fewer steps
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
 
-rparam=[2 12 1e-3 0];
 
 % Sort out handles to images
 n1 = numel(job.images);
@@ -54,7 +53,7 @@ dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 
 g  = cell(n1+1,1);
-NG = nifti(job.template{end});
+NG = nifti(job.templates{end});
 for j=1:n1+1,
     g{j} = spm_bsplinc(log(NG.dat(:,:,:,j)), bs_args);
 end
@@ -108,14 +107,14 @@ for i=1:n2, % Loop over subjects
 
         % More regularisation in the early iterations, as well as a
         % a less accurate approximation in the integration.
-        prm      = [rparam(1), vx, rparam(2:3)*sched(it+1), rparam(4)];
+        prm      = [vx, rparam*sched(it+1)*prod(vx)];
         int_args = [eul_its(it), cyc_its];
         drawnow
 
         fprintf(' %-5d %-3d\t| ',i,it);
 
         % Gauss-Newton iteration to re-estimate deformations for this subject
-        u     = spm_shoot_update(g,f,u,y,dt,prm,int_args,bs_args); drawnow
+        u     = spm_shoot_update(g,f,u,y,dt,prm,bs_args); drawnow
         [y,J] = spm_shoot3d(u,prm,int_args); drawnow
         dt    = spm_diffeo('det',J); clear J
         clear J

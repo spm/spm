@@ -18,7 +18,7 @@ function out = spm_shoot_scalmom(job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 5260 2013-02-19 16:23:33Z john $
+% $Id: spm_shoot_scalmom.m 5278 2013-02-21 18:08:11Z john $
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);
@@ -110,7 +110,7 @@ for j=1:size(Py,1), % Loop over subjects
     % Write output data
     [pth,nam]  = fileparts(Pc{1}(j,:));
     No         = nifti;
-    No.dat     = file_array(fullfile('.',['a_' nam '.nii']),size(A),'FLOAT32',0,1,0);
+    No.dat     = file_array(fullfile(pth,['a_' nam '.nii']),size(A),'FLOAT32',0,1,0);
     No.mat0    = Nt.mat0;
     No.mat     = Nt.mat;
     No.descrip = sprintf('Scalar Momentum (%g)', fwhm);

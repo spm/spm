@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 5260 2013-02-19 16:23:33Z john $
+% $Id: tbx_cfg_shoot.m 5278 2013-02-21 18:08:11Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -73,8 +73,8 @@ warp1.name    = 'Run Shoot (existing Templates)';
 warp1.val     = {images template };
 warp1.check   = @check_shoot_template;
 warp1.help    = {'Run the Shoot nonlinear image registration procedure to match individual images to pre-existing template data. Start out with smooth templates, and select crisp templates for the later iterations.'};
-%warp1.prog = @spm_shoot_warp;
-%warp1.vout = @vout_shoot_warp;
+warp1.prog = @spm_shoot_warp;
+warp1.vout = @vout_shoot_warp;
 % ---------------------------------------------------------------------
 % velocities Velocity fields
 % ---------------------------------------------------------------------
@@ -454,7 +454,7 @@ fwhm.val     = {10};
 scalmom         = cfg_exbranch;
 scalmom.tag     = 'scalmom';
 scalmom.name    = 'Generate Scalar Momenta';
-scalmom.val     = {template images deformations jacobians fwhm };
+scalmom.val     = {template images deformations jacobians fwhm};
 scalmom.check   = @check_scalmom;
 scalmom.help    = {'Generate spatially smoothed ``scalar momenta'''' /* cite{singh2010multivariate,singh2012genetic} */ in a form suitable for using with pattern recognition. In principle, a Gaussian Process model can be used to determine the optimal (positive) linear combination of kernel matrices.  The idea would be to combine a kernel matrix derived from these, with a kernel derived from the velocity-fields. Such a combined kernel should then encode more relevant information than the individual kernels alone.  The scalar momentum fields that are generated contain a number of volumes equal to the number of sets of ``rc*'''' images used (equal to the number of volumes in the template - 1).  /* See Figures 10 and 11 of \cite{ashburner2011multivariate} for examples of scalar momenta (Jacobian scaled residuals) for simulated data. */'};
 scalmom.prog = @spm_shoot_scalmom;
@@ -552,7 +552,7 @@ shoot.help    = {
                   ''
                   'This toolbox should be considered as only a beta (trial) version, and will include a number of (as yet unspecified) extensions in future updates.  Please report any bugs or problems to the SPM mailing list.'
 }';
-shoot.values  = {warp kernfun};
+shoot.values  = {warp warp1 kernfun};
 
 %_______________________________________________________________________
 %
