@@ -25,9 +25,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_eeg_filter.m 5270 2013-02-21 14:40:13Z vladimir $
 
-SVNrev = '$Rev: 5160 $';
+SVNrev = '$Rev: 5270 $';
 
 
 %-Startup
@@ -168,13 +168,15 @@ end
 N   = S.order;
 dir = S.dir;
 
+instabilityfix = 'reduce';
+
 switch S.band
     case 'low'
-        dat = ft_preproc_lowpassfilter(dat,Fs,Fp,N,type,dir);
+        dat = ft_preproc_lowpassfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
     case 'high'
-        dat = ft_preproc_highpassfilter(dat,Fs,Fp,N,type,dir);
+        dat = ft_preproc_highpassfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
     case 'bandpass'
-        dat = ft_preproc_bandpassfilter(dat, Fs, Fp, N, type, dir);
+        dat = ft_preproc_bandpassfilter(dat, Fs, Fp, N, type, dir, instabilityfix);
     case 'stop'
-        dat = ft_preproc_bandstopfilter(dat,Fs,Fp,N,type,dir);
+        dat = ft_preproc_bandstopfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
 end
