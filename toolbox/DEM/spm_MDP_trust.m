@@ -27,62 +27,105 @@ function spm_MDP_trust
  
 % Karl Friston
 % $Id: spm_MDP_offer.m 5168 2013-01-03 11:02:15Z karl $
- 
+
 % set up and preliminaries
 %==========================================================================
-T     = 2;                            % number of offers
-Pa    = 1/2;                          % probability of a high offer
-Pb    = 1/16;                         % probability of withdrawn offer
-Plos  = @(t,Pb)(1 - (1 - Pb).^t);
-Pwin  = @(T,Pa)(1 - (1 - Pa)^(1/T));
- 
- 
-% transition probabilities (B{1} - decline; B{2} - accept)
+% Payoffs (reward):
+% _________________________________________________________________________
+%                                 Trustee
+% _________________________________________________________________________
+% Investor              Cooperate (fT high) Defect (fT low)
+% _________________________________________________________________________
+% Cooperate            A (e.g.=26)         C (e.g.= 10)
+% (fI high)            a (e.g.=26)         b (e.g.= 42)
+%
+% Defect               B (e.g.=21)         D (e.g.= 18)
+% (fI low)             c (e.g.= 7)         d (e.g.= 10)
+% _________________________________________________________________________
+
+U(:,:,1) = [26 10;
+            21 18]/8;
+     
+U(:,:,2) = [26 42;
+             7 10]/8;
+         
+% investor's payoffs or prior beliefs (softmax(utility))
 %--------------------------------------------------------------------------
-for t = 1:T
+a     = 1;
+C     = spm_softmax([1; spm_vec(U(:,:,1) + a*U(:,:,2)); ...
+                     1; spm_vec(U(:,:,1) + a*U(:,:,2))]);
+
+% investor's belief (based on a prosocial and nonsocial trustee)
+%--------------------------------------------------------------------------
+cp    = spm_softmax((U(1,:,2) + a*U(1,:,1))');
+dp    = spm_softmax((U(2,:,2) + a*U(2,:,1))');
+cn    = spm_softmax((U(1,:,2)             )');
+dn    = spm_softmax((U(2,:,2)             )');
+ 
+% transition probabilities (B{1} - (c)ooperate; B{2} - (d)efect)
+%--------------------------------------------------------------------------
+B{1}  = ...                       % cooperate:
+   [0     0 0 0 0  0 0 0 0 0;     % start - prosocial trustee
+    cp(1) 1 0 0 0  0 0 0 0 0;     % cc - prosocial
+    0     0 1 0 0  0 0 0 0 0;     % dc - prosocial
+    cp(2) 0 0 1 0  0 0 0 0 0;     % cd - prosocial
+    0     0 0 0 1  0 0 0 0 0;     % dd - prosocial
     
-    a       = Pwin(T,Pa);
-    b       = Plos(t,Pb);
-    B{t,1}  = [(1 - a + a*b - b) 0 0 0 0;
-                a*(1 - b)        0 0 0 0;
-                b                1 1 0 0;
-                0                0 0 1 0;
-                0                0 0 0 1];
+    0 0 0 0 0  0     0 0 0 0;     % cc - nonsocial
+    0 0 0 0 0  cn(1) 1 0 0 0;     % cc - nonsocial
+    0 0 0 0 0  0     0 1 0 0;     % dc - nonsocial
+    0 0 0 0 0  cn(2) 0 0 1 0;     % cd - nonsocial
+    0 0 0 0 0  0     0 0 0 1];    % dd - nonsocial
     
-    B{t,2}  = [ 0 0 0 0 0;
-                0 0 0 0 0;
-                0 0 1 1 1;
-                1 0 0 0 0;
-                0 1 0 0 0];
-end
-      
- 
-% initial state
+B{2}  = ...                       % defect:
+   [0     0 0 0 0  0 0 0 0 0;     % start - nonsocial trustee
+    0     1 0 0 0  0 0 0 0 0;     % ...
+    dp(1) 0 1 0 0  0 0 0 0 0;
+    0     0 0 1 0  0 0 0 0 0;
+    dp(2) 0 0 0 1  0 0 0 0 0;
+    
+    0 0 0 0 0  0     0 0 0 0;
+    0 0 0 0 0  0     1 0 0 0;
+    0 0 0 0 0  dn(1) 0 1 0 0;
+    0 0 0 0 0  0     0 0 1 0;
+    0 0 0 0 0  dn(2) 0 0 0 1];
+
+% prior beliefs about initial state – E[Dirichlet distribution]
 %--------------------------------------------------------------------------
-S     = [1 0 0 0 0]';
- 
-% priors over final state (exp(utility))
+k     = [8 8]';
+D     = kron(k,[1 0 0 0 0]');
+
+% observation probabilities
 %--------------------------------------------------------------------------
-C     = spm_softmax([1 1 1 2 4]');
+A     = kron([1 1],speye(5,5));
+ 
+% initial state – encoding the actual type of trustee
+%--------------------------------------------------------------------------
+S     = [0 0 0 0 0  1 0 0 0 0]';
+
  
  
 % MDP Structure
 %==========================================================================
-MDP.T = T;                          % process depth (the horizon)
-MDP.S = S;                          % initial state
+MDP.K = 0;                          % no memory
+MDP.T = 3;                          % process depth (one-shot game)
+MDP.S = S;                          % true initial state
+MDP.A = A;                          % observation model
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
- 
+MDP.D = D;                          % initial state probabilities (priors)
+
 % Solve - an example game (with high offer at t = 10)
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
-MDP.s    = [1 1 1 1 1 1 1 1 1 2];
-MDP.a    = [1 1 1 1 1 1 1 1 1 1];
-MDP.plot = gcf;
+MDP.plot = 2;
 MDP.N    = 8;
  
 [P,Q,S,U,W,da] = spm_MDP_select(MDP);
+
+
+return
  
 % plot convergence and precision
 %--------------------------------------------------------------------------

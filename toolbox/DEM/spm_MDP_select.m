@@ -3,11 +3,14 @@ function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % FORMAT [P,Q,S,U,W] = spm_MDP_select(MDP)
 %
 % MDP.T           - process depth (the horizon)
-% MDP.K           - memory  depth (default 1)
+% MDP.K           - memory  depth (default 0)
 % MDP.N           - number of variational iterations (default 4)
-% MDP.S(N,1)      - initial state
+% MDP.S(N,1)      - true initial state
+%
+% MDP.A(N,N)      - Likelihood of outcomes given hidden states
 % MDP.B{M}(N,N)   - transition probabilities among hidden states (priors)
-% MDP.C(N,1)      - terminal probabilities (prior N over hidden states)
+% MDP.C(N,1)      - terminal cost probabilities (prior N over hidden states)
+% MDP.D(N,1)      - initial prior probabilities (concentration parameters)
 %
 % optional:
 % MDP.s(1 x T)    -  vector of true states  - for deterministic solutions
@@ -17,8 +20,6 @@ function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 %
 % MDP.G{M}(N,N)   - transition probabilities used to generate outcomes
 %                   (default: the prior transition probabilities)
-% MDP.A(N,N)      - Likelihood of outcomes given hidden states
-%                   (default: an identity mapping from states to outcomes)
 % MDP.B{T,M}(N,N) - transition probabilities for each time point
 % MDP.G{T,M}(N,N) - transition probabilities for each time point
 %                   (default: MDP.B{T,M} = MDP.B{M})
@@ -78,7 +79,7 @@ function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_select.m 5279 2013-02-21 19:06:40Z karl $
+% $Id: spm_MDP_select.m 5280 2013-02-24 22:10:36Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -86,14 +87,14 @@ function [P,x,S,U,W,da] = spm_MDP_select(MDP,varargin)
 % options and precision defaults
 %--------------------------------------------------------------------------
 try, PLOT = MDP.plot; catch, PLOT = 0; end
-try, K    = MDP.K;    catch, K = 1;    end
+try, K    = MDP.K;    catch, K = 0;    end
 try, N    = MDP.N;    catch, N = 4;    end
  
 if PLOT
-    try
+    if ishandle(PLOT)
         figure(PLOT); clf
         PLOT = 2;
-    catch
+    else
         spm_figure('GetWin','MDP'); clf
     end
 end
@@ -109,9 +110,11 @@ p0    = eps;                       % smallest probability
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
 try
-    A = MDP.A + p0;
+    A  = MDP.A + p0;
+    No = size(MDP.A,1);           % number of outcomes
 catch
-    A = speye(Ns,Ns) + p0;
+    A  = speye(Ns,Ns) + p0;
+    No = Ns;
 end
 A     = A*diag(1./sum(A));
 lnA   = log(A);
@@ -137,7 +140,15 @@ end
 C     = spm_vec(MDP.C) + p0;
 C     = C/sum(C);
 lnC   = log(C);
- 
+
+% oncentration parameters of Dirichlet prior over initial state
+%--------------------------------------------------------------------------
+try
+    D  = spm_vec(MDP.D) + 1;
+catch
+    D  = 2;
+end
+
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
 try
@@ -159,11 +170,12 @@ end
  
 % initial states and outcomes
 %--------------------------------------------------------------------------
-s      = find(MDP.S(:,1));         % initial state (index)
+[p q]  = max(A*MDP.S(:,1));        % initial outcome (index)
+s      = find( MDP.S(:,1));        % initial state (index)
 a      = sparse(1,1,1,1,T);        % action (index)
-o      = sparse(1,1,s,1,T);        % observations (index)
+o      = sparse(1,1,q,1,T);        % observations (index)
 S      = sparse(s,1,1,Ns,T);       % states sampled (1 in K vector)
-O      = sparse(s,1,1,Ns,T);       % states observed (1 in K vector)
+O      = sparse(q,1,1,No,T);       % states observed (1 in K vector)
 U      = sparse(1,1,1,Nu,T - 1);   % action selected (1 in K vector)
 P      = sparse(Nu,T - 1);         % posterior beliefs about control
 
@@ -173,7 +185,6 @@ alpha  = 8;
 beta   = alpha/8;
 W      = alpha/beta;
  
- 
 % solve
 %==========================================================================
  
@@ -181,6 +192,8 @@ W      = alpha/beta;
 %--------------------------------------------------------------------------
 x      = zeros(Ns,    T);
 u      = zeros(Nu - 1,T);
+d      = D/sum(D);
+x(:,1) = d;
 x(:,T) = C;
 da     = [];
 for t  = 1:(T - 1)
@@ -205,9 +218,9 @@ for t  = 1:(T - 1)
             % divergence
             %--------------------------------------------------------------
             if nargin > 1
-                D(j,k,:) = -lnC'*p;
+                KL(j,k,:) = -lnC'*p;
             else
-                D(j,k,:) = sum(p.*log(p)) - lnC'*p;
+                KL(j,k,:) = sum(p.*log(p)) - lnC'*p;
             end
             
         end
@@ -228,17 +241,23 @@ for t  = 1:(T - 1)
             x(:,k) = spm_softmax(v);
         end
         
-        
+        % intial state (with a Dirichlet prior)
+        %------------------------------------------------------------------
+        if t == 1
+            v  = x(:,t) + D - 1;
+            d  = v/sum(v);
+        end       
+
         % present state
         %------------------------------------------------------------------
         k = t:T;
         p = max(t - 1,1);
-        v = lnA(o(t),:)';
-        if K > 0
-            v = v + lnB{p,a(p)}*x(:,p);
+        v = lnA(o(t),:)' + lnB{p,a(p)}*x(:,p);
+        if t == 1
+            v = v + log(d);
         end
         for j = 1:(Nu - 1)
-            v = v - W(t)*(u(j,k)*squeeze(D(j,k,:)))';
+            v = v - W(t)*(u(j,k)*squeeze(KL(j,k,:)))';
         end
         x(:,t) = spm_softmax(v);
         
@@ -250,7 +269,7 @@ for t  = 1:(T - 1)
         catch
             v     = beta;
             for j = 1:(Nu - 1)
-                v = v + u(j,k)*squeeze(D(j,k,:))*x(:,t);
+                v = v + u(j,k)*squeeze(KL(j,k,:))*x(:,t);
             end
             W(t)  = alpha/v;
         end
@@ -261,7 +280,7 @@ for t  = 1:(T - 1)
         %------------------------------------------------------------------
         v     = 0;
         for j = 1:Ns
-            v = v - W(t)*squeeze(D(:,k,j))*x(j,t);
+            v = v - W(t)*squeeze(KL(:,k,j))*x(j,t);
         end
         u(:,k) = spm_unvec(spm_softmax(spm_vec(v)),v);
         u(:,k) = u(:,k)*(1 - any(a > 1));

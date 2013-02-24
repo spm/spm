@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: spm_MDP_offer.m 5280 2013-02-24 22:10:36Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -261,7 +261,7 @@ axis square
  
  
  
-% The effect of memory and its interaction with precision
+% The effect of memory
 %==========================================================================
 spm_figure('GetWin','Figure 5'); clf
  
@@ -284,15 +284,7 @@ imagesc(1 - Q)
 title('Inferred states (K > 0)','FontSize',16)
 xlabel('Time','FontSize',12)
 ylabel('State','FontSize',12)
- 
-% precisions
-%--------------------------------------------------------------------------
-subplot(3,1,1)
-plot((1:length(da))/MDP.N,da,'r')
-title('Expected decision','FontSize',16)
-xlabel('Time','FontSize',12)
-ylabel('Precision','FontSize',12)
-axis square
+
  
 % now repeat but with no memory
 %--------------------------------------------------------------------------
@@ -310,13 +302,6 @@ imagesc(1 - Q)
 title('Inferred states (K = 0)','FontSize',16)
 xlabel('Time','FontSize',12)
 ylabel('State','FontSize',12)
- 
-% precisions
-%--------------------------------------------------------------------------
-subplot(3,1,1), hold on
-plot((1:length(da))/MDP.N,da,'k'), hold off
-axis([1 8 1 4])
- 
  
  
 % Effective utility (the effect of optimising precision or sensitivity)
