@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: clone.m 5281 2013-02-25 10:18:20Z christophe $
 
 if nargin < 4
     reset = 0;
@@ -43,13 +43,14 @@ d.fname = newFileName;
 dim_o = d.dim;
 
 % This takes care of an issue specific to int data files which are not
-% officially supported in SPM8.
-if ~strncmpi(d.dtype, 'float', 5) && ...
-        dim(1)>dim_o(1) && length(d.scl_slope)>1
-    % adding channel and scl_slope defined -> need to increase scl_slope
+% officially supported in SPM8/12.
+if dim(1)>dim_o(1) && length(d.scl_slope)>1
+    % adding channel to montage and scl_slope defined for old montage
+    %       -> need to increase scl_slope
     v_slope = mode(d.scl_slope);
     if length(v_slope)>1
-        warning('Trying to guess the scaling factor for new channels. This might be wrong.');        
+        warning(['Trying to guess the scaling factor for new channels.',...
+                ' This might be not exact.']);        
     end
     d.scl_slope = [d.scl_slope' ones(1,dim(1)-dim_o(1))*v_slope]';
 end
