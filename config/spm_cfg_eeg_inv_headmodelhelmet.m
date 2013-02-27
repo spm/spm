@@ -6,7 +6,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5283 2013-02-27 15:13:46Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5286 2013-02-27 17:26:52Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -175,14 +175,14 @@ coregdefault.num     = [0 1];
 coregdefault.help = {'Select the subject''s helmet to MEG dewar transform'};
 coregdefault.val = {{'NOT DEFINED'}};
 
-coregerror = cfg_entry;
-coregerror.tag = 'coregerror';
-coregerror.name = 'Coregistration ERROR to add in mm';
-coregerror.strtype = 'r';
-coregerror.val = {0};
-coregerror.help = {'random coreg error to add to fiducuals-LEAVE AT ZERO UNLESS YOU ARE SURE ABOUT THIS'};
-
-
+% coregerror = cfg_entry;
+% coregerror.tag = 'coregerror';
+% coregerror.name = 'Coregistration ERROR to add in mm';
+% coregerror.strtype = 'r';
+% coregerror.val = {0};
+% coregerror.help = {'random coreg error to add to fiducuals-LEAVE AT ZERO UNLESS YOU ARE SURE ABOUT THIS'};
+% 
+% 
 
 coregistration = cfg_choice;
 coregistration.tag = 'coregistration';
@@ -214,7 +214,7 @@ forward.val = {eeg, meg};
 headmodelhelmet = cfg_exbranch;
 headmodelhelmet.tag = 'headmodelhelmet';
 headmodelhelmet.name = 'MEG helmet head model specification';
-headmodelhelmet.val = {D, val, comment, meshing, coregistration, coregerror, forward};
+headmodelhelmet.val = {D, val, comment, meshing, coregistration, forward};
 headmodelhelmet.help = {'Specify MEG head model for forward computation using helmet'};
 headmodelhelmet.prog = @specify_headmodel;
 headmodelhelmet.vout = @vout_specify_headmodel;
@@ -358,24 +358,24 @@ for i = 1:numel(job.D)
         mrifid.fid.label=mrilbl;
         
         D.inv{val}.mesh.fid=mrifid; %% set mri fid to be transformed MEG fid
-        if isfield(job,'coregerror');  %%
-            if job.coregerror>0,
-                disp('ADDING COREG ERROR');
-            end;
-            meegfid.fid.pnt
-            
-            randn('seed',sum(100*clock));
-            
-            meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
-            meegfid.fid.pnt
-            
-            
-        else
-            coregerror=0;
-        end;
+%         if isfield(job,'coregerror');  %%
+%             if job.coregerror>0,
+%                 disp('ADDING COREG ERROR');
+%             end;
+%             meegfid.fid.pnt
+%             
+%             randn('seed',sum(100*clock));
+%             
+%             meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
+%             meegfid.fid.pnt
+%             
+%             
+%         else
+%             coregerror=0;
+%         end;
+%         
         
         
- 
         D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
         
     else
