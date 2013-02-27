@@ -6,7 +6,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5259 2013-02-19 15:05:30Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5283 2013-02-27 15:13:46Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -267,7 +267,7 @@ for i = 1:numel(job.D)
     D = spm_eeg_inv_mesh_ui(D, val, sMRI, job.meshing.meshres); %% the mesh on the custom (or template) mri
     %% writes out new cortex mesh in native mri space
     spm_eeg_inv_checkmeshes(D);
-    
+
     if isfield(job.meshing.meshes, 'custom')
         if ~isempty(job.meshing.meshes.custom.scalp{1})
             D.inv{val}.mesh.tess_scalp = job.meshing.meshes.custom.scalp{1};
@@ -281,6 +281,7 @@ for i = 1:numel(job.D)
             D.inv{val}.mesh.tess_iskull = job.meshing.meshes.custom.iskull{1};
         end
         
+
         if ~isempty(job.meshing.meshes.custom.cortex{1})
             
             D.inv{val}.mesh.tess_ctx = job.meshing.meshes.custom.cortex{1};
@@ -293,6 +294,7 @@ for i = 1:numel(job.D)
             out = spm_deformations(defs);
             
             D.inv{val}.mesh.tess_mni     = export(gifti(out.surf{1}), 'spm');
+ 
         end
     end
     
@@ -315,18 +317,29 @@ for i = 1:numel(job.D)
         
         
         try, %% need to fix this- spm object changed since calibration
-        nocoilpos=H1.Dnocoils.sensors('MEG').coilpos;
+            nocoilpos=H1.Dnocoils.sensors('MEG').coilpos;
+            nocoilfids=H1.Dnocoils.fiducials;
         catch
             nocoilpos=H1.Dnocoils.sensors.meg.coilpos;
+            nocoilfids=H1.Dnocoils.fiducials;
+        end;
+        
+        if max(max(abs(D.fiducials.fid.pnt-nocoilfids.fid.pnt)))>1e-3,
+            error('Both fiducial and headcast info: reset with ''changeHeadPos -nominal'' on Acq machine'); %% NEED TO WORK ON THIS
+            %% changeHeadpos -nominal resets to default coil positions
+            
         end;
         defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',nocoilpos');
         
         meegfid = D.fiducials;
         
+        
         mrifid = [];
         
         mrifid = D.inv{val}.mesh.fid; %% fiducials in the native MRI space (obtained from inverse transform from standard space)
+
         
+
         megpts=meegfid.fid.pnt; %% fiducials in head (dewar/sensor) space
         %% first convert these to points in default head centred space
         megpts_defaulthead=pinv(defaultHead2currentHead)*[megpts';ones(1,size(megpts,2))];
@@ -334,6 +347,7 @@ for i = 1:numel(job.D)
         megpts_dewar=H1.defaultHead2MEGdewar*megpts_defaulthead;
         %% now from dewar points to native
         megpts_native=dewDEFAULT2NATIVE*megpts_dewar;
+
         
         %% put all transforms into one big one: current head centred coordinates to native space
         currenthead2NATIVE=dewDEFAULT2NATIVE*H1.defaultHead2MEGdewar*pinv(defaultHead2currentHead);
@@ -349,9 +363,9 @@ for i = 1:numel(job.D)
                 disp('ADDING COREG ERROR');
             end;
             meegfid.fid.pnt
-             %rng('shuffle') 
-             randn('seed',sum(100*clock));
-             
+            
+            randn('seed',sum(100*clock));
+            
             meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
             meegfid.fid.pnt
             
@@ -361,6 +375,7 @@ for i = 1:numel(job.D)
         end;
         
         
+ 
         D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
         
     else
