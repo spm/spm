@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: spm_cfg.m 5284 2013-02-27 17:03:14Z gareth $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -77,7 +77,7 @@ source        = cfg_choice;
 source.tag    = 'source';
 source.name   = 'M/EEG Source reconstruction';
 source.help   = {'M/EEG source reconstruction.'};
-source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract }; 
+source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift }; 
 
 %--------------------------------------------------------------------------
 % M/EEG other
