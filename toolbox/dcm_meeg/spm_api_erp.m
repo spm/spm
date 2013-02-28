@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5145 2012-12-20 16:50:50Z guillaume $
+% $Id: spm_api_erp.m 5289 2013-02-28 18:43:43Z rosalyn $
  
 
 %-Launch GUI
@@ -111,6 +111,8 @@ handles = ERP_Callback(hObject, eventdata, handles);
 % 'MFM'    - (nonlinear second order NMM second-order moments)
 % 'CMM'    - (nonlinear second order NMM Canonical microcircuit)
 % 'DEM'    - (functional architecture based on a DEM scheme)
+% 'NMM'    - (nonlinear second order NMM first-order moments with NMDA receptors)
+
 try
     model = DCM.options.model;
 catch
@@ -126,6 +128,7 @@ switch model
     case{'NMM'}, set(handles.model,'Value',5);
     case{'MFM'}, set(handles.model,'Value',6);
     case{'CMM'}, set(handles.model,'Value',7);
+    case{'NMDA'}, set(handles.model,'Value',8);
 
     otherwise
 end
@@ -895,7 +898,7 @@ end
 % string labels
 %--------------------------------------------------------------------------
 switch DCM.options.model
-    case{'NMM','MFM'}
+    case{'NMM','MFM','NMDA'}
         constr = {'Excit.' 'Inhib.'    'Mixed'       'input'};
     case{'CMC'}
         constr = {'forward' 'back'     '(not used)'  'input'};

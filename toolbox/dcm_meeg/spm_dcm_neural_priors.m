@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_neural_priors.m 5289 2013-02-28 18:43:43Z rosalyn $
  
 % check options
 %==========================================================================
@@ -84,6 +84,14 @@ switch lower(model)
         %------------------------------------------------------------------
         [pE,pC] = spm_nmm_priors(A,B,C);
         
+            % Neural mass model (nonlinear in states)
+    %======================================================================
+    case{'nmda'}
+ 
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_nmda_priors(A,B,C);
+        
     % Canonical neural mass model (nonlinear in states)
     %======================================================================
     case{'cmm'}
@@ -91,6 +99,14 @@ switch lower(model)
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_cmm_priors(A,B,C);
+        
+    % Canonical neural mass model with NMDA channels(nonlinear in states)
+    %======================================================================
+    case{'cmm_nmda'}
+ 
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_cmm_NMDA_priors(A,B,C);
         
         
     % Neural field model (linear in states)

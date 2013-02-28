@@ -245,6 +245,7 @@ switch model
     case{'LFP'}, set(handles.model,'Value',4);
     case{'NMM'}, set(handles.model,'Value',5);
     case{'MFM'}, set(handles.model,'Value',6);
+    case{'NMDA'}, set(handles.model,'Value',8);
     otherwise
 end
 

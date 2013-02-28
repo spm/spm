@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 4827 2012-08-03 16:45:56Z karl $
+% $Id: spm_dcm_x_neural.m 5289 2013-02-28 18:43:43Z rosalyn $
 
 
 % initial state and equation
@@ -82,6 +82,20 @@ switch lower(model)
         x  = x{1};
         f  = 'spm_fx_mfm';
         
+            % Neural mass model (nonlinear in states)
+    %======================================================================
+    case{'nmda'}
+        
+   
+        % get initialisation from full mean-field model
+        %------------------------------------------------------------------
+        x  = spm_x_nmda(P);
+        
+        % remove dispersion and fix the covariance of the states (Cx)
+        %--------------------------------------------------------------------------
+        x  = x{1};
+        f  = 'spm_fx_nmm_nmda';
+        
     % Canonical mass model (nonlinear in states)
     %======================================================================
     case{'cmm'}
@@ -90,6 +104,15 @@ switch lower(model)
         %------------------------------------------------------------------
         x  = spm_x_cmm(P);
         f  = 'spm_fx_cmm';
+        
+  % Canonical mass model with NMDA (nonlinear in states)
+    %======================================================================
+    case{'cmm_nmda'}
+        
+        % inital states and model
+        %------------------------------------------------------------------
+        x  = spm_x_cmm_NMDA(P);
+        f  = 'spm_fx_cmm_NMDA';
         
         
     % Mean field model (nonlinear in states) - with covariance
