@@ -5,10 +5,10 @@ function out = spm_run_factorial_design(job)
 % Output:
 % out    - struct variable containing the path of the saved SPM.mat
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_run_factorial_design.m 5288 2013-02-28 16:37:55Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -1000,7 +1000,8 @@ SPM.xM      = xM;           % mask structure
 SPM.xsDes   = xsDes;        % description
 
 % Automatic contrast generation only works for 'Full factorials'
-if ~strcmp(DesName,'Full factorial')
+%--------------------------------------------------------------------------
+if ~strcmp(char(fieldnames(job.des)),'fd') || ~job.des.fd.contrasts
     SPM = rmfield(SPM,'factor');
 end
 
