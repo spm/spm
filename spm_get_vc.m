@@ -1,77 +1,72 @@
-function SPM = spm_get_vc(SPM)
-% generate variance components for factorial designs
-% FORMAT SPM = spm_get_vc(SPM)
+function Vi = spm_get_vc(I,factor)
+% Generate error covariance components for factorial designs
+% FORMAT Vi = spm_get_vc(I,factor)
+% I         - n x m matrix of factor level indicators
+%             I(n,i) is the level of factor i for observation n
+% factor(i) - structure array of sphericity assumptions for each factor
+% .variance - 1 for different variance among levels of factor i
+% .dept     - 1 for dependencies within levels of factor i
 %
-% SPM - SPM struct
-% required fields
-% SPM.xVi.I           - matrix containing levels for each scan and factor
-% SPM.factor.variance - for each factor, indicate whether variances are
-%                       equal (0) or unequal (1) between levels
-% SPM.factor.dept     - for each factor, indicate whether variances are
-%                       independent (0) or dependent (1) between levels
-% set in output
-% SPM.xVi.Vi          - cell vector of covariance components
-%_______________________________________________________________________
+% Vi        - cell vector of covariance components
+%__________________________________________________________________________
 %
 % spm_get_vc generates variance components for a given design. For each
 % factor, the user specifies whether its levels have identical variances
-% and are uncorrelated. The individual components for each factor are
+% and are independent. The individual components for each factor are
 % combined into covariance components by using the Kronecker tensor
 % product. If there are unequal number of observations at different levels,
-% the function specifies covariance components for a full factorial
-% design first and subsequently removes unwanted rows and columns from
-% the covariance matrices.
+% the function specifies covariance components for a full factorial design
+% first and subsequently removes unwanted rows and columns from the
+% covariance matrices.
 %
-% The functionality of spm_get_vc is similar to that of
-% spm_non_sphericity. The difference is that spm_get_vc can accommodate 
-% any number of factors and is more general, because it can cope with
-% different number of observations under different levels of a factor.
-%_______________________________________________________________________
+% The functionality of spm_get_vc is similar to that of spm_non_sphericity.
+% The difference is that spm_get_vc can accommodate any number of factors
+% and is more general, because it can cope with different number of
+% observations under different levels of a factor.
+%__________________________________________________________________________
 % Copyright (C) 2006 Freiburg Brain Imaging 
-% This code is part of SPM, which is
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
  
 % Volkmar Glauche
-% $Id: spm_get_vc.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_get_vc.m 5293 2013-03-01 16:41:46Z guillaume $
  
-% set up (numbers of scans and factors)
+
+%-Numbers of scans and factors
 %--------------------------------------------------------------------------
-Iin             = SPM.xVi.I;
-[nscan,nfactor] = size(Iin);
+[nscan,nfactor] = size(I);
  
-% make sure each row of Iin is unique
+%-Make sure each row of Iin is unique
 %==========================================================================
-[Iu,Ii,Ij] = unique(Iin,'rows');
+[Iu,Ii,Ij]  = unique(I,'rows');
 if size(Iu,1) < nscan
-    nfactor = nfactor+1;
-    uf = zeros(nscan, 1);
+    nfactor = nfactor + 1;
+    uf      = zeros(nscan, 1);
     for k = 1:max(Ij)
         uf(Ij==k) = 1:sum(Ij==k);
     end
-    Iin = [Iin uf];
+    I       = [I uf];
 end
-Nlevels = max(Iin);
-Vi = {};
+nlevel      = max(I);
  
-% first factor in SPM is replications, assume identical variance and independence
-% pad with zeroes in case there are less than nfactor factors specified
+%-Non-sphericity assumptions
 %--------------------------------------------------------------------------
-variance = [0 cat(2, SPM.factor.variance) zeros(1,nfactor)];
-dept = [0 cat(2, SPM.factor.dept) zeros(1,nfactor)];
- 
- 
+% First factor is replications, assume identical variance and independence.
+% Pad with zeroes in case there are less than nfactor factors specified.
+variance    = [0 cat(2, factor.variance) zeros(1,nfactor)];
+dept        = [0 cat(2, factor.dept) zeros(1,nfactor)];
+
 % (i) generate generic index
 %==========================================================================
-ngen = prod(Nlevels);
-Igen = zeros(ngen, nfactor);
-Igen(:,1) = kron(ones(1,prod(Nlevels(2:end))),1:Nlevels(1))';
+Igen = zeros(prod(nlevel), nfactor);
+Igen(:,1) = kron(ones(1,prod(nlevel(2:end))),1:nlevel(1))';
 for cf = 2:(nfactor-1)
-    Igen(:,cf) = kron(ones(1,prod(Nlevels((cf+1):end))),kron(1:Nlevels(cf),ones(1,prod(Nlevels(1:(cf-1))))))';
+    Igen(:,cf) = kron(ones(1,prod(nlevel((cf+1):end))),kron(1:nlevel(cf),ones(1,prod(nlevel(1:(cf-1))))))';
 end        
-Igen(:,nfactor) = kron(1:Nlevels(nfactor),ones(1,prod(Nlevels(1:(nfactor-1)))))';
+Igen(:,nfactor) = kron(1:nlevel(nfactor),ones(1,prod(nlevel(1:(nfactor-1)))))';
         
 % (ii) generate error variance components
 %==========================================================================
+Vi = {};
 for f=1:nfactor
     
     % identical/non-identical variances
@@ -81,17 +76,17 @@ for f=1:nfactor
     %----------------------------------------------------------------------
     nVi = {};
     if ~variance(f)
-        nVi{1} = speye(Nlevels(f),Nlevels(f));
+        nVi{1} = speye(nlevel(f),nlevel(f));
     else
-        for l1=1:Nlevels(f)
-            nVi{l1} = sparse(l1,l1,1,Nlevels(f),Nlevels(f));
+        for l1=1:nlevel(f)
+            nVi{l1} = sparse(l1,l1,1,nlevel(f),nlevel(f));
         end
     end
     if dept(f)
-        for l1 = 1:Nlevels(f)
+        for l1 = 1:nlevel(f)
             for l2 = 1:(l1-1)
-                nVi{end+1} = sparse([l1 l2],[l2 l1],1,Nlevels(f), ...
-                                         Nlevels(f));
+                nVi{end+1} = sparse([l1 l2],[l2 l1],1,nlevel(f), ...
+                                         nlevel(f));
             end
         end
     end
@@ -112,9 +107,9 @@ for f=1:nfactor
     end
 end
  
-%(iii) sort out rows/columns & remove all-zero variance components
+% (iii) sort out rows/columns & remove all-zero variance components
 %==========================================================================
-[unused,ind] = ismember(Iin,Igen,'rows');
+[unused,ind] = ismember(I,Igen,'rows');
 az = false(size(Vi));
  
 for cVi = 1:numel(Vi)
@@ -132,12 +127,3 @@ for cVi = 1:numel(Vi)
     end
 end
 Vi = Vi(~dupl);
- 
-% (iv) save covariance components. If only one left, use this as error
-% covariance matrix without going through the ReML step
-%==========================================================================
-if numel(Vi) == 1
-    SPM.xVi.V = Vi{1};
-else
-    SPM.xVi.Vi = Vi;
-end

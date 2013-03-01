@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5288 2013-02-28 16:37:55Z guillaume $
+% $Id: spm_run_factorial_design.m 5293 2013-03-01 16:41:46Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -288,6 +288,7 @@ sGMsca = {'scaling of overall grand mean';...               %-1
 %--------------------------------------------------------------------------
 B      = [];
 Bnames = {};
+factor = [];
 
 switch char(fieldnames(job.des))
     
@@ -299,15 +300,15 @@ switch char(fieldnames(job.des))
 
         P = job.des.t1.scans;
         n = length(P);
-        I = [1:n]';
+        I = (1:n)';
         I = [I,ones(n,3)];
 
         [H,Hnames] = spm_DesMtx(I(:,2),'-','mean');
 
-        SPM.factor(1).name     = 'Group';
-        SPM.factor(1).levels   = 1;
-        SPM.factor(1).variance = 0;
-        SPM.factor(1).dept     = 0;
+        factor(1).name     = 'Group';
+        factor(1).levels   = 1;
+        factor(1).variance = 0;
+        factor(1).dept     = 0;
         
     %-Two-sample t-test
     %======================================================================
@@ -320,25 +321,23 @@ switch char(fieldnames(job.des))
         P  = [P; job.des.t2.scans2];
         n2 = length(job.des.t2.scans2);
 
-        I = [];
-        I = [1:n1]';
-        I = [I;[1:n2]'];
-        I = [I,[ones(n1,1);2*ones(n2,1)]];
-        I = [I,ones(n1+n2,2)];
+        I  = [(1:n1),(1:n2)]';
+        I  = [I,[ones(n1,1);2*ones(n2,1)]];
+        I  = [I,ones(n1+n2,2)];
 
         [H,Hnames] = spm_DesMtx(I(:,2),'-','Group');
 
         % Names and levels
-        SPM.factor(1).name     = 'Group';
-        SPM.factor(1).levels   = 2;
+        factor(1).name     = 'Group';
+        factor(1).levels   = 2;
 
         % Ancova options
-        SPM.factor(1).gmsca    = job.des.t2.gmsca;
-        SPM.factor(1).ancova   = job.des.t2.ancova;
+        factor(1).gmsca    = job.des.t2.gmsca;
+        factor(1).ancova   = job.des.t2.ancova;
 
         % Nonsphericity options
-        SPM.factor(1).variance = job.des.t2.variance;
-        SPM.factor(1).dept     = job.des.t2.dept;
+        factor(1).variance = job.des.t2.variance;
+        factor(1).dept     = job.des.t2.dept;
 
     %-Paired t-test
     %======================================================================
@@ -348,7 +347,7 @@ switch char(fieldnames(job.des))
 
         Npairs  = length(job.des.pt.pair);
         P       = [];
-        for p   = 1:Npairs,
+        for p   = 1:Npairs
             P   = [P;job.des.pt.pair(p).scans];
         end
 
@@ -361,22 +360,22 @@ switch char(fieldnames(job.des))
         [H,Hnames] = spm_DesMtx(I(:,3),'-','Condition');
 
         % Names and levels
-        SPM.factor(1).name     = 'Subject';
-        SPM.factor(1).levels   = Npairs;
-        SPM.factor(2).name     = 'Condition';
-        SPM.factor(2).levels   = 2;
+        factor(1).name     = 'Subject';
+        factor(1).levels   = Npairs;
+        factor(2).name     = 'Condition';
+        factor(2).levels   = 2;
 
         % Ancova options
-        SPM.factor(1).gmsca    = 0;
-        SPM.factor(1).ancova   = 0;
-        SPM.factor(2).gmsca    = job.des.pt.gmsca;
-        SPM.factor(2).ancova   = job.des.pt.ancova;
+        factor(1).gmsca    = 0;
+        factor(1).ancova   = 0;
+        factor(2).gmsca    = job.des.pt.gmsca;
+        factor(2).ancova   = job.des.pt.ancova;
 
         % Nonsphericity options
-        SPM.factor(1).variance = 0;
-        SPM.factor(1).dept     = 0;
-        SPM.factor(2).variance = 0;
-        SPM.factor(2).dept     = 0;
+        factor(1).variance = 0;
+        factor(1).dept     = 0;
+        factor(2).variance = 0;
+        factor(2).dept     = 0;
 
     %-Multiple regression
     %======================================================================
@@ -386,16 +385,16 @@ switch char(fieldnames(job.des))
 
         P = job.des.mreg.scans;
         n = length(P);
-        I = [1:n]';
+        I = (1:n)';
         I = [I,ones(n,3)];
 
         % Names and levels
-        SPM.factor(1).name     = '';
-        SPM.factor(1).levels   = 1;
+        factor(1).name     = '';
+        factor(1).levels   = 1;
 
         % Nonsphericity options
-        SPM.factor(1).variance = 0;
-        SPM.factor(1).dept     = 0;
+        factor(1).variance = 0;
+        factor(1).dept     = 0;
 
         if job.des.mreg.incint==0
             H = []; Hnames = '';
@@ -416,28 +415,28 @@ switch char(fieldnames(job.des))
         
         DesName = 'ANOVA';
         
-        job.des.anova.fact.name='Groups';
+        job.des.anova.fact.name = 'Groups';
         
-        % Automatically number cells 1 to levels, so user does'nt have to
-        levels=length(job.des.anova.icell);
-        job.des.anova.fact.levels=levels;
-        for i=1:levels,
-            job.des.anova.icell(i).levels=i;
+        % Automatically number cells 1 to levels, so user doesn't have to
+        levels = length(job.des.anova.icell);
+        job.des.anova.fact.levels = levels;
+        for i=1:levels
+            job.des.anova.icell(i).levels = i;
         end
         [I,P,H,Hnames] = spm_design_factorial(job.des.anova);
 
         
         % Names and levels
-        SPM.factor(1).name     = 'Groups';
-        SPM.factor(1).levels   = levels;
+        factor(1).name     = 'Groups';
+        factor(1).levels   = levels;
         
         % Ancova options
-        SPM.factor(1).gmsca    = job.des.anova.gmsca;
-        SPM.factor(1).ancova   = job.des.anova.ancova;
+        factor(1).gmsca    = job.des.anova.gmsca;
+        factor(1).ancova   = job.des.anova.ancova;
         
         % Nonsphericity options
-        SPM.factor(1).variance = job.des.anova.variance;
-        SPM.factor(1).dept     = job.des.anova.dept;
+        factor(1).variance = job.des.anova.variance;
+        factor(1).dept     = job.des.anova.dept;
         
     %-ANOVA: within-subject
     %======================================================================
@@ -466,12 +465,12 @@ switch char(fieldnames(job.des))
         
         [I,P,job.cov] = spm_design_within_subject(anovaw,job.cov);
             
-        [H,Hnames,B,Bnames]  = spm_design_flexible(anovaw,I);
+        [H,Hnames,B,Bnames] = spm_design_flexible(anovaw,I);
         
         for i=1:2
-            SPM.factor(i)    = anovaw.fac(i);
+            factor(i)    = anovaw.fac(i);
         end
-        SPM.factor(1).levels = length(job.des.anovaw.fsubject);
+        factor(1).levels = length(job.des.anovaw.fsubject);
         
     %-Full Factorial Design
     %======================================================================
@@ -484,16 +483,16 @@ switch char(fieldnames(job.des))
         Nfactors = length(job.des.fd.fact);
         for i=1:Nfactors
             % Names and levels
-            SPM.factor(i).name     = job.des.fd.fact(i).name;
-            SPM.factor(i).levels   = job.des.fd.fact(i).levels;
+            factor(i).name     = job.des.fd.fact(i).name;
+            factor(i).levels   = job.des.fd.fact(i).levels;
 
             % Ancova options
-            SPM.factor(i).gmsca    = job.des.fd.fact(i).gmsca;
-            SPM.factor(i).ancova   = job.des.fd.fact(i).ancova;
+            factor(i).gmsca    = job.des.fd.fact(i).gmsca;
+            factor(i).ancova   = job.des.fd.fact(i).ancova;
 
             % Nonsphericity options
-            SPM.factor(i).variance = job.des.fd.fact(i).variance;
-            SPM.factor(i).dept     = job.des.fd.fact(i).dept;
+            factor(i).variance = job.des.fd.fact(i).variance;
+            factor(i).dept     = job.des.fd.fact(i).dept;
         end
         
     %-Flexible factorial design
@@ -509,9 +508,8 @@ switch char(fieldnames(job.des))
         else
             % Specify all scans and factor matrix
             [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
-            if ~(nc==4)
-                disp('Error: factor matrix must have four columns');
-                return
+            if nc~=4
+                error('Factor matrix must have four columns');
             end
             I=job.des.fblock.fsuball.specall.imatrix;
             % Pad out factorial matrix to cover the four canonical factors
@@ -525,30 +523,28 @@ switch char(fieldnames(job.des))
             
         end
 
+        if isempty(job.des.fblock.maininters)
+            warning('No main effects or interactions have been specified.');
+        end
         [H,Hnames,B,Bnames] = spm_design_flexible(job.des.fblock,I);
         
         for i=1:nf
             % Names and levels
-            SPM.factor(i).name     = job.des.fblock.fac(i).name;
-            SPM.factor(i).levels   = length(unique(I(:,i+1)));
+            factor(i).name     = job.des.fblock.fac(i).name;
+            factor(i).levels   = length(unique(I(:,i+1)));
 
             % Ancova options
-            SPM.factor(i).gmsca    = job.des.fblock.fac(i).gmsca;
-            SPM.factor(i).ancova   = job.des.fblock.fac(i).ancova;
+            factor(i).gmsca    = job.des.fblock.fac(i).gmsca;
+            factor(i).ancova   = job.des.fblock.fac(i).ancova;
 
             % Nonsphericity options
-            SPM.factor(i).variance = job.des.fblock.fac(i).variance;
-            SPM.factor(i).dept     = job.des.fblock.fac(i).dept;
+            factor(i).variance = job.des.fblock.fac(i).variance;
+            factor(i).dept     = job.des.fblock.fac(i).dept;
 
         end
 
 end
 
-% Set up data structures for non-sphericity routine
-%==========================================================================
-nScan = size(I,1);
-SPM.xVi.I = I;
-SPM = spm_get_vc(SPM);
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %==========================================================================
@@ -634,13 +630,15 @@ clear c tI tConst tFnames
 % dimensions and orientation / voxel size
 %==========================================================================
 fprintf('%-40s: ','Mapping files')                                      %-#
-VY = spm_data_hdr_read(char(P));
+nScan = size(I,1);
+VY    = spm_data_hdr_read(char(P));
 
 %-Check compatibility of images
 %--------------------------------------------------------------------------
 spm_check_orientations(VY);
 
 fprintf('%30s\n','...done')                                             %-#
+
 
 %-Global values, scaling and global normalisation
 %==========================================================================
@@ -663,10 +661,10 @@ switch job.globalm.glonorm
     case 3,
         iGloNorm = 1;
 end
-if SPM.factor(1).levels > 1
+if factor(1).levels > 1
     % Override if factor-specific ANCOVA has been specified
-    for i=1:length(SPM.factor)
-        if SPM.factor(i).ancova
+    for i=1:length(factor)
+        if factor(i).ancova
             iGloNorm=i+2;
         end
     end
@@ -692,7 +690,7 @@ switch char(fieldnames(job.masking.tm)),
 end
 
 if iGXcalc==1 && (any(iGloNorm == [1:5 8]) || ...
-        (SPM.factor(1).levels > 1 && any([SPM.factor.gmsca])))
+        (factor(1).levels > 1 && any([factor.gmsca])))
     % Over-ride omission of global calculation if we need it
     disp(' ');
     disp('SPM needs estimates of global activity.');
@@ -739,10 +737,10 @@ else
         case 'gmsca_no',
             iGMsca=9;
     end
-    if SPM.factor(1).levels > 1
+    if factor(1).levels > 1
         % Over-ride if factor-specific scaling has been specified
-        for i=1:length(SPM.factor),
-            if SPM.factor(i).gmsca
+        for i=1:numel(factor)
+            if factor(i).gmsca
                 iGMsca=i+2;
             end
         end
@@ -811,7 +809,6 @@ switch iGMsca,
         error('illegal iGMsca')
 end
 
-
 %-Apply gSF to memory-mapped scalefactors to implement scaling
 %--------------------------------------------------------------------------
 for i = 1:nScan
@@ -876,7 +873,6 @@ if any(iGloNorm == [1:7])
     G = [G,f]; Gnames = [Gnames; gnames];
     if isempty(xC), xC = tmp; else xC = [xC,tmp]; end
 
-
 elseif iGloNorm==8 || iGXcalc>1
 
     %-Globals calculated, but not AnCova: Make a note of globals
@@ -900,7 +896,6 @@ elseif iGloNorm==8 || iGXcalc>1
 
     if isempty(xC), xC = tmp; else xC = [xC,tmp]; end
 end
-
 
 %-Save info on global calculation in xGX structure
 %--------------------------------------------------------------------------
@@ -957,11 +952,13 @@ end
 
 xM     = struct('T',M_T, 'TH',M_TH, 'I',M_I, 'VM',{VM}, 'xs',xsM);
 
+
 %-Construct full design matrix (X), parameter names and structure (xX)
 %==========================================================================
 X      = [H C B G];
 tmp    = cumsum([size(H,2), size(C,2), size(B,2), size(G,2)]);
-xX     = struct(    'X',        X,...
+xX     = struct(...
+    'X',        X,...
     'iH',       [1:size(H,2)],...
     'iC',       [1:size(C,2)] + tmp(1),...
     'iB',       [1:size(B,2)] + tmp(2),...
@@ -985,8 +982,13 @@ xsDes = struct('Design',    {DesName},...
     'Global_normalisation', {sGloNorm},...
     'Parameters',           {tmp});
 
-
 fprintf('%30s\n','...done')                                             %-#
+
+
+%-Generate error covariance components (non-sphericity)
+%==========================================================================
+Vi          = spm_get_vc(I, factor);
+
 
 %-Assemble SPM structure
 %==========================================================================
@@ -998,11 +1000,17 @@ SPM.xC      = xC;           % covariate structure
 SPM.xGX     = xGX;          % global structure
 SPM.xM      = xM;           % mask structure
 SPM.xsDes   = xsDes;        % description
+SPM.xVi.I   = I;            % factor matrix
+if numel(Vi) == 1
+    SPM.xVi.V  = Vi{1};     % non-sphericity matrix
+else
+    SPM.xVi.Vi = Vi;        % non-sphericity variance components
+end
 
-% Automatic contrast generation only works for 'Full factorials'
+%-Automatic contrast generation for 'Full factorial'
 %--------------------------------------------------------------------------
-if ~strcmp(char(fieldnames(job.des)),'fd') || ~job.des.fd.contrasts
-    SPM = rmfield(SPM,'factor');
+if strcmp(char(fieldnames(job.des)),'fd') && job.des.fd.contrasts
+    SPM.factor = factor;
 end
 
 %-Save SPM.mat and set output argument
@@ -1012,6 +1020,7 @@ save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
+
 
 %-Display Design report
 %==========================================================================

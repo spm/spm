@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_spm.m 5293 2013-03-01 16:41:46Z guillaume $
 
 
-SVNid = '$Rev: 5097 $';
+SVNid = '$Rev: 5293 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -342,10 +342,16 @@ if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
         spm('Pointer','Arrow')
         return
     else
+        sw = warning('off','backtrace');
         warning('Overwriting old results\n\t (pwd = %s) ',SPM.swd);
-        try, SPM     = rmfield(SPM,     'xVol'); end
-        try, SPM.xX  = rmfield(SPM.xX,  'W');    end
-        try, SPM.xVi = rmfield(SPM.xVi, 'V');    end
+        warning(sw);
+        try, SPM     = rmfield(SPM,    'xVol'); end
+        try, SPM.xX  = rmfield(SPM.xX, 'W');    end
+        try,
+            if isfield(SPM.xVi,'Vi') && numel(SPM.xVi.Vi)>1
+                SPM.xVi = rmfield(SPM.xVi, 'V');
+            end
+        end
     end
 end
 
