@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_cfg_preproc8.m 5292 2013-03-01 15:45:19Z john $
 
 
 % ---------------------------------------------------------------------
@@ -49,7 +49,7 @@ biasreg.values = {
                   1
                   10
                   }';
-biasreg.val    = {0.01};
+biasreg.val    = {0.001};
 % ---------------------------------------------------------------------
 % biasfwhm Bias FWHM
 % ---------------------------------------------------------------------

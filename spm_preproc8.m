@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_preproc8.m 5292 2013-03-01 15:45:19Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -115,9 +115,9 @@ rand('state',0);
 % (4*pi*s^2)^(-1/2)*(2*pi*s2^2)^(-1/2)*exp(-0.5*x.^2/s2^2), from which
 % the (4*pi*s^2)^(-1/2) factor comes from.
 fwhm = obj.fwhm;                            % FWHM of image smoothness
-fwhm = fwhm+mean(sqrt(sum(V(1).mat(1:3,1:3).^2))); 
-s    = fwhm/sqrt(8*log(2));                 % Standard deviation
 vx   = sqrt(sum(V(1).mat(1:3,1:3).^2));     % Voxel size
+fwhm = fwhm+mean(vx); 
+s    = fwhm/sqrt(8*log(2));                 % Standard deviation
 ff   = prod(4*pi*(s./vx./sk).^2 + 1)^(1/2); 
 
 
@@ -266,16 +266,27 @@ for n=1:N,
 end
 
 spm_plot_convergence('Init','Initialising','Log-likelihood','Iteration');
+if isfield(obj,'wp'),
+    wp = obj.wp;
+else
+    wp = ones(1,Kb);
+end
 for iter=1:20,
 
     % Load the warped prior probability images into the buffer
     %------------------------------------------------------------
+    mgm = zeros(1,Kb);
     for z=1:length(z0),
         if ~buf(z).nm, continue; end
         [x1,y1,z1] = defs(Twarp,z,x0,y0,z0,M,buf(z).msk);
         b          = spm_sample_priors8(tpm,x1,y1,z1);
+        s          = zeros(size(b{1}));
         for k1=1:Kb,
-            buf(z).dat(:,k1) = single(b{k1});
+            s = s + wp(k1)*b{k1};
+        end
+        for k1=1:Kb,
+            mgm(k1) = mgm(k1) + sum(b{k1}./s);
+            buf(z).dat(:,k1) = single(wp(k1)*b{k1}./s);
         end
     end
 
@@ -378,13 +389,11 @@ for iter=1:20,
                 ll   = llr+llrb;
                 for z=1:length(z0),
                     if ~buf(z).nm, continue; end
-                    q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
+                    q   = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
                     for k1=1:Kb,
-                        b = double(buf(z).dat(:,k1));
                         for k=find(lkp==k1),
-                            q(:,k) = q(:,k).*b;
+                            q(:,k) = q(:,k).*double(buf(z).dat(:,k1));
                         end
-                        clear b
                     end
                     sq = sum(q,2)+tiny;
                     ll = ll + sum(log(sq + tiny));
@@ -409,6 +418,9 @@ for iter=1:20,
                     mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
                     mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
                     vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
+                end
+                for k1=1:Kb,
+                    wp(k1) = sum(mom0(lkp==k1))/mgm(k1);
                 end
 
                 if subit>1 || iter>1,
@@ -462,7 +474,7 @@ for iter=1:20,
                         end
                     end
                 end
-
+                wp = sum(chan(1).hist)./mgm;
                 for n=1:N,
                     chan(n).lik   = spm_smohist(chan(n).hist,chan(n).lam)*chan(n).interscal(2);
                 end
@@ -591,11 +603,9 @@ for iter=1:20,
                             if use_mog,
                                 q = likelihoods(buf(z).f,buf(z).bf,mg,mn,vr);
                                 for k1=1:Kb,
-                                    b = double(buf(z).dat(:,k1));
                                     for k=find(lkp==k1),
-                                        q(:,k) = q(:,k).*b;
+                                        q(:,k) = q(:,k).*double(buf(z).dat(:,k1));
                                     end
-                                    clear b
                                 end
                                 ll = ll + sum(log(sum(q,2)+tiny));
                             else
@@ -701,9 +711,8 @@ for iter=1:20,
                 for k=find(lkp==k1),
                     q(:,k1) = q(:,k1) + qt(:,k);
                 end
-                b                = double(buf(z).dat(:,k1));
                 buf(z).dat(:,k1) = single(q(:,k1));
-                q(:,k1)          = q(:,k1).*b;
+                q(:,k1)          = q(:,k1).*double(buf(z).dat(:,k1));
             end
             ll = ll + sum(log(sum(q,2) + tiny));
         end
@@ -719,7 +728,7 @@ for iter=1:20,
                     q(:,k1) = q(:,k1).*chan(n).lik(cr(:),k1);
                 end
             end
-            ll         = ll + sum(log(sum(q.*buf(z).dat,2) + tiny),1);
+            ll         = ll + sum(log(sum(q.*double(buf(z).dat),2) + tiny),1);
             buf(z).dat = q;
         end
     end
@@ -738,6 +747,25 @@ for iter=1:20,
             % Tissue probability map and spatial derivatives
             [b,db1,db2,db3] = spm_sample_priors8(tpm,x1,y1,z1);
             clear x1 y1 z1
+
+            % Adjust for tissue weights
+            s   = zeros(size(b{1}));
+            ds1 = zeros(size(b{1}));
+            ds2 = zeros(size(b{1}));
+            ds3 = zeros(size(b{1}));
+            for k1=1:Kb,
+                s   =  s  + wp(k1)*b{k1};
+                ds1 = ds1 + wp(k1)*db1{k1};
+                ds2 = ds2 + wp(k1)*db2{k1};
+                ds3 = ds3 + wp(k1)*db3{k1};
+            end
+            for k1=1:Kb,
+                b{k1}   = b{k1}./s;
+                db1{k1} = (db1{k1}-b{k1}.*ds1)./s;
+                db2{k1} = (db2{k1}-b{k1}.*ds2)./s;
+                db3{k1} = (db3{k1}-b{k1}.*ds3)./s;
+            end
+            clear s ds1 ds2 ds3
 
             % Rotate gradients (according to initial affine registration) and
             % compute the sums of the tpm and its gradients, times the likelihoods
@@ -816,6 +844,9 @@ for iter=1:20,
                 [x1,y1,z1] = defs(Twarp1,z,x0,y0,z0,M,buf(z).msk);
                 b          = spm_sample_priors8(tpm,x1,y1,z1);
                 clear x1 y1 z1
+                s   = zeros(size(b{1}));
+                for k1=1:Kb, b{k1} = b{k1}*wp(k1); s = s + b{k1}; end
+                for k1=1:Kb, b{k1} = b{k1}./s; end
 
                 sq = zeros(buf(z).nm,1) + tiny;
                 for k1=1:Kb,
@@ -863,7 +894,9 @@ if use_mog,
     results.mg     = mg;
     results.mn     = mn;
     results.vr     = vr;
+    results.wp     = wp;
 else
+    results.wp     = wp;
     for n=1:N,
         results.intensity(n).lik       = chan(n).lik;
         results.intensity(n).interscal = chan(n).interscal;

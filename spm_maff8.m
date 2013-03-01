@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_maff8.m 5292 2013-03-01 15:45:19Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -39,7 +39,7 @@ x3      = 1:sk(3):d(3);
 
 % Fudge Factor - to (approximately) account for
 % non-independence of voxels
-s    = fwhm/sqrt(8*log(2));                 % Standard deviation
+s    = (fwhm+mean(vx))/sqrt(8*log(2));                 % Standard deviation
 ff   = prod(4*pi*(s./vx./sk).^2 + 1)^(1/2);
 
 %% Old version of fudge factor

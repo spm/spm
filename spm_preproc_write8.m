@@ -1,11 +1,11 @@
-function cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
+function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Write out VBM preprocessed data
 % FORMAT cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_preproc_write8.m 5292 2013-03-01 15:45:19Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -13,9 +13,6 @@ function cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
 % reduced because of the spatial smoothing typically used in VBM studies.
 % Having the optimal bias/variance tradeoff for each voxel is not the same
 % as having the optimal tradeoff for weighted averages over several voxels.
-if nargout, prior_adjust = 1.0; else prior_adjust = 0.5; end
-
-prior_adjust = 1.0; %%%%%%%%%%%%%%%
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -25,7 +22,14 @@ end
 d1        = size(tpm.dat{1});
 d1        = d1(1:3);
 M1        = tpm.M;
+
+% Sort out bounding box etc
 [bb1,vx1] = spm_get_bbox(tpm.V(1), 'old');
+bb(~isfinite(bb)) = bb1(~isfinite(bb));
+if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
+bb(1,:) = vx*round(bb(1,:)/vx);
+bb(2,:) = vx*round(bb(2,:)/vx);
+odim    = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
 
 if isfield(res,'mg'),
     lkp = res.lkp;
@@ -85,7 +89,7 @@ for n=1:N,
     end
 end
 
-do_cls   = any(tc(:)) || nargout>1;
+do_cls   = any(tc(:)) || nargout>=1;
 tiss(Kb) = struct('Nt',[]);
 for k1=1:Kb,
     if tc(k1,4) || any(tc(:,3)) || tc(k1,2) || nargout>=1,
@@ -158,8 +162,12 @@ for z=1:length(x3),
 
 
     if do_defs,
+        % Compute the deformation (mapping voxels in image to voxels in TPM)
         [t1,t2,t3] = defs(Coef,z,res.MT,prm,x1,x2,x3,M);
+
         if exist('Ndef','var'),
+            % Write out the deformation to file, adjusting it so mapping is
+            % to voxels (voxels in image to mm in TPM)
             tmp = M1(1,1)*t1 + M1(1,2)*t2 + M1(1,3)*t3 + M1(1,4);
             Ndef.dat(:,:,z,1,1) = tmp;
             tmp = M1(2,1)*t1 + M1(2,2)*t2 + M1(2,3)*t3 + M1(2,4);
@@ -169,26 +177,34 @@ for z=1:length(x3),
         end
 
         if exist('y','var'),
+            % If needed later, save in variable y
             y(:,:,z,1) = t1;
             y(:,:,z,2) = t2;
             y(:,:,z,3) = t3;
         end
 
         if do_cls,
+            % Generate variable Q if tissue classes are needed
             msk = (f==0) | ~isfinite(f);
 
             if isfield(res,'mg'),
+                % Parametric representation of intensity distributions
                 q   = zeros([d(1:2) Kb]);
                 q1  = likelihoods(cr,[],res.mg,res.mn,res.vr);
                 q1  = reshape(q1,[d(1:2),numel(res.mg)]);
                 b   = spm_sample_priors8(tpm,t1,t2,t3);
-                b   = adjust_priors(b,prior_adjust);
+                wp  = res.wp;
+                s   = zeros(size(b{1}));
+                for k1 = 1:Kb,
+                    b{k1} = wp(k1)*b{k1};
+                    s     = s + b{k1};
+                end
                 for k1=1:Kb,
-                    q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*b{k1};
+                    q(:,:,k1) = sum(q1(:,:,lkp==k1),3).*(b{k1}./s);
                 end
             else
+                % Nonparametric representation of intensity distributions
                 q   = spm_sample_priors8(tpm,t1,t2,t3);
-                q   = adjust_priors(q,prior_adjust);
                 q   = cat(3,q{:});
                 for n=1:N,
                     tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
@@ -200,31 +216,26 @@ for z=1:length(x3),
                 end
             end
             Q(:,:,z,:) = reshape(q,[d(1:2),1,Kb]);
-
         end
     end
     spm_progress_bar('set',z);
 end
 spm_progress_bar('clear');
 
+
 cls   = cell(1,Kb);
 if do_cls
     P = zeros([d(1:3),Kb],'uint8');
-    for z=1:length(x3),
-        sq = sum(Q(:,:,z,:),4) + eps^2;
-        for k1=1:Kb
-            P(:,:,z,k1) = uint8(round(255 * Q(:,:,z,k1)./sq));
-        end
-    end
-    if mrf~=0, nmrf_its = 10; else nmrf_its = 1; end
-
     if mrf==0,
+        % Normalise to sum to 1
         sQ = (sum(Q,4)+eps)/255;
         for k1=1:size(Q,4)
             P(:,:,:,k1) = uint8(round(Q(:,:,:,k1)./sQ));
         end
         clear sQ
     else
+        % Use a MRF cleanup procedure
+        nmrf_its = 10;
         spm_progress_bar('init',nmrf_its,['MRF: Working on ' nam],'Iterations completed');
         G   = ones([Kb,1],'single')*mrf;
         vx2 = single(sum(res.image(1).mat(1:3,1:3).^2));
@@ -237,6 +248,7 @@ if do_cls
     clear Q
 
     if cleanup,
+        % Use an ad hoc brain cleanup procedure
         if size(P,4)>5,
             P = clean_gwc(P,cleanup);
         else
@@ -244,6 +256,7 @@ if do_cls
         end
     end
 
+    % Write tissues if necessary
     for k1=1:Kb,
         if ~isempty(tiss(k1).Nt),
             for z=1:length(x3),
@@ -254,30 +267,20 @@ if do_cls
     end
     spm_progress_bar('clear');
 
+    % Put tissue classes into a cell array...
     for k1=1:Kb,
         if tc(k1,4) || any(tc(:,3)) || tc(k1,2) || nargout>=1,
             cls{k1} = P(:,:,:,k1);
         end
     end
-    clear P
+    clear P % ...and remove the original 4D array
 end
 
 clear tpm
-M0 = res.image(1).mat;
+M0  = res.image(1).mat;
 
-if any(tc(:,2)),
-
-    bb = nan(2,3);
-    vx = 1.5;
-    % Sort out bounding box etc
-    bb(~isfinite(bb)) = bb1(~isfinite(bb));
-    if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
-    bb(1,:) = vx*round(bb(1,:)/vx);
-    bb(2,:) = vx*round(bb(2,:)/vx);
-
-    % Figure out the mapping from the volumes to create to the original
-    mm = [[
-        bb(1,1) bb(1,2) bb(1,3)
+% Compute Voxel-to-world of "imported" image space
+mm  = [[bb(1,1) bb(1,2) bb(1,3)
         bb(2,1) bb(1,2) bb(1,3)
         bb(1,1) bb(2,2) bb(1,3)
         bb(2,1) bb(2,2) bb(1,3)
@@ -285,11 +288,7 @@ if any(tc(:,2)),
         bb(2,1) bb(1,2) bb(2,3)
         bb(1,1) bb(2,2) bb(2,3)
         bb(2,1) bb(2,2) bb(2,3)]'; ones(1,8)];
-
-    vx2  = M1\mm;
-    odim = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
-    vx3  = [[
-        1       1       1
+vx3 = [[1       1       1
         odim(1) 1       1
         1       odim(2) 1
         odim(1) odim(2) 1
@@ -297,55 +296,85 @@ if any(tc(:,2)),
         odim(1) 1       odim(3)
         1       odim(2) odim(3)
         odim(1) odim(2) odim(3)]'; ones(1,8)];
+mat    = mm/vx3; 
 
+if any(tc(:,2)),
+    % "Imported" tissue class images
+
+    % Generate mm coordinates of where deformations map from
     x      = affind(rgrid(d),M0);
+
+    % Generate mm coordinates of where deformation maps to
     y1     = affind(y,M1);
-    ind    = find(tc(:,2));
+
+    % Procrustes analysis to compute the closest rigid-body
+    % transformation to the deformation, weighted by the
+    % interesting tissue classes.
+    ind    = find(tc(:,2)); % Saved tissue classes
     [M,R]  = spm_get_closest_affine(x,y1,single(cls{ind(1)})/255);
     clear x y1
 
-    M      = M0\inv(R)*M1*vx2/vx3;
-    mat0   =         R\M1*vx2/vx3;
-    mat    = mm/vx3;
+    mat0   = R\mat; % Voxel-to-world of original image space
 
-    fwhm = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
+    [pth,nam,ext1]=fileparts(res.image(1).fname);
+    fwhm   = max(vx./sqrt(sum(res.image(1).mat(1:3,1:3).^2))-1,0.01);
     for k1=1:size(tc,1),
         if tc(k1,2),
-            tmp1     = decimate(single(cls{k1}),fwhm);
-            [pth,nam,ext1]=fileparts(res.image(1).fname);
-            VT      = struct('fname',fullfile(pth,['rc', num2str(k1), nam, '.nii']),...
-                'dim',  odim,...
-                'dt',   [spm_type('float32') spm_platform('bigend')],...
-                'pinfo',[1.0 0]',...
-                'mat',mat);
-            VT = spm_create_vol(VT);
 
-            Ni             = nifti(VT.fname);
-            Ni.mat0        = mat0;
+            % Low pass filtering to reduce aliasing effects in downsampled images,
+            % then reslice and write to disk
+            tmp1    = decimate(single(cls{k1}),fwhm);
+            Ni      = nifti;
+            Ni.dat  = file_array(fullfile(pth,['rc', num2str(k1), nam, '.nii']),...
+                                 odim,...
+                                 [spm_type('float32') spm_platform('bigend')],...
+                                 0,1,0);
+            Ni.mat         = mat;
             Ni.mat_intent  = 'Aligned';
+            Ni.mat0        = mat0;
             Ni.mat0_intent = 'Aligned';
+            Ni.descrip     = ['Imported Tissue ' num2str(k1)];
             create(Ni);
 
             for i=1:odim(3),
-                tmp = spm_slice_vol(tmp1,M*spm_matrix([0 0 i]),odim(1:2),[1,NaN])/255;
-                VT  = spm_write_plane(VT,tmp,i);
+                tmp           = spm_slice_vol(tmp1,M0\mat0*spm_matrix([0 0 i]),odim(1:2),[1,NaN])/255;
+                Ni.dat(:,:,i) = tmp;
             end
             clear tmp1
         end
     end
 end
 
-if any(tc(:,3)),
-    C = zeros([d1,Kb],'single');
+if any(tc(:,3)) || any(tc(:,4)) || nargout>=1 || df(2),
+    % Adjust stuff so that warped data (and deformations) have the
+    % desired bounding box and voxel sizes, instead of being the same
+    % as those of the tissue probability maps.
+    M = mat\M1;
+    for i=1:size(y,3),
+        t1         = y(:,:,i,1);
+        t2         = y(:,:,i,2);
+        t3         = y(:,:,i,3);
+        y(:,:,i,1) = M(1,1)*t1 + M(1,2)*t2 + M(1,3)*t3 + M(1,4);
+        y(:,:,i,2) = M(2,1)*t1 + M(2,2)*t2 + M(2,3)*t3 + M(2,4);
+        y(:,:,i,3) = M(3,1)*t1 + M(3,2)*t2 + M(3,3)*t3 + M(3,4);
+    end
+    M1 = mat;
+    d1 = odim;
 end
 
+
 if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
+
+    if any(tc(:,3)),
+        C = zeros([d1,Kb],'single');
+    end
+
     spm_progress_bar('init',Kb,'Warped Tissue Classes','Classes completed');
     for k1 = 1:Kb,
         if ~isempty(cls{k1}),
             c = single(cls{k1})/255;
             if any(tc(:,3)),
-                [c,w]  = spm_diffeo('push',c,y,d1(1:3));
+                [c,w]       = spm_diffeo('push',c,y,d1(1:3));
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
                 spm_field('bound',1);
                 C(:,:,:,k1) = spm_field(w,c,[vx  1e-6 1e-4 0  3 2]);
@@ -372,27 +401,27 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
         end
     end
     spm_progress_bar('Clear');
-end
 
-if any(tc(:,3)),
-    spm_progress_bar('init',Kb,'Writing Warped Tis Cls','Classes completed');
-    C = max(C,eps);
-    s = sum(C,4);
-    for k1=1:Kb,
-        if tc(k1,3),
-            N      = nifti;
-            N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, '.nii']),...
-                                d1,'uint8',0,1/255,0);
-            N.mat  = M1;
-            N.mat0 = M1;
-            N.descrip = ['Warped tissue class ' num2str(k1)];
-            create(N);
-            N.dat(:,:,:) = C(:,:,:,k1)./s;
+    if any(tc(:,3)),
+        spm_progress_bar('init',Kb,'Writing Warped Tis Cls','Classes completed');
+        C = max(C,eps);
+        s = sum(C,4);
+        for k1=1:Kb,
+            if tc(k1,3),
+                N      = nifti;
+                N.dat  = file_array(fullfile(pth,['wc', num2str(k1), nam, '.nii']),...
+                                    d1,'uint8',0,1/255,0);
+                N.mat  = M1;
+                N.mat0 = M1;
+                N.descrip = ['Warped tissue class ' num2str(k1)];
+                create(N);
+                N.dat(:,:,:) = C(:,:,:,k1)./s;
+            end
+            spm_progress_bar('set',k1);
         end
-        spm_progress_bar('set',k1);
+        spm_progress_bar('Clear');
+        clear C s
     end
-    spm_progress_bar('Clear');
-    clear C s
 end
 
 if df(2),
@@ -408,20 +437,6 @@ if df(2),
 end
 
 return;
-%=======================================================================
-
-%=======================================================================
-function b = adjust_priors(b,fac)
-% An ad hoc fix.
-s=zeros(size(b{1}));
-for i=1:numel(b),
-    b{i} = b{i}.^fac;
-    s    = s + b{i};
-end
-for i=1:numel(b),
-    b{i} = b{i}./s;
-end
-
 %=======================================================================
 
 %=======================================================================

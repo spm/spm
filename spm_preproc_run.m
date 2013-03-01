@@ -9,19 +9,24 @@ function varargout = spm_preproc_run(job,arg)
 % job.tissue(k).ngaus
 % job.tissue(k).native
 % job.tissue(k).warped
+% job.warp.mrf
+% job.warp.cleanup
 % job.warp.affreg
 % job.warp.reg
+% job.warp.fwhm
 % job.warp.samp
 % job.warp.write
 % job.warp.bb
 % job.warp.vox
+% job.iterations
+% job.alpha
 %
 % See the user interface for a description of the fields.
 %_______________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_preproc_run.m 5292 2013-03-01 15:45:19Z john $
 
 if nargin == 1, arg = 'run'; end
 
@@ -47,16 +52,19 @@ vout   = vout_job(job);
 tpm    = strvcat(cat(1,job.tissue(:).tpm));
 tpm    = spm_load_priors8(tpm);
 
-if ~isfield(job,'iterations'), nit           =  1; else nit   = job.iterations; end
-if ~isfield(job,'alpha'),      alpha         = 12; else alpha = job.alpha;      end
-if ~isfield(job.warp,'fwhm'),  job.warp.fwhm =  1; end
+if ~isfield(job,'iterations'),   nit              =  1; else nit   = job.iterations; end
+if ~isfield(job,'alpha'),        alpha            = 12; else alpha = job.alpha;      end
+if ~isfield(job.warp,'fwhm'),    job.warp.fwhm    =  1; end
+if ~isfield(job.warp,'bb'),      job.warp.bb      =  NaN(2,3); end
+if ~isfield(job.warp,'vox'),     job.warp.vox     =  1.5; end
+if ~isfield(job.warp,'cleanup'), job.warp.cleanup =  0; end
+if ~isfield(job.warp,'mrf'),     job.warp.mrf     =  0; end
+
+if nit>1,
+    orig_priors = tpm;
+end
 
 for iter=1:nit,
-    if nit>1,
-        % Sufficient statistics for possible generation of group-specific
-        % template data.
-        SS = zeros([size(tpm.dat{1}),numel(tpm.dat)],'single');
-    end
     for subj=1:numel(job.channel(1).vols),
         images = '';
         for n=1:numel(job.channel),
@@ -119,13 +127,21 @@ for iter=1:nit,
             tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
             tmp2 =  cat(1,job.channel(:).write);
             tmp3 = job.warp.write;
-            spm_preproc_write8(res,tmp1,tmp2,tmp3,job.warp.mrf,job.warp.cleanup);
+            spm_preproc_write8(res,tmp1,tmp2,tmp3,job.warp.mrf,job.warp.cleanup,job.warp.bb,job.warp.vox);
         else
             % Not the final iteration, so compute sufficient statistics for
             % re-estimating the template data.
             N    = numel(job.channel);
             K    = numel(job.tissue);
-            cls  = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0],job.warp.mrf,job.warp.cleanup);
+            [cls,M1] = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0],job.warp.mrf,...
+                                          job.warp.cleanup,job.warp.bb,job.warp.vox);
+
+            if subj==1,
+                % Sufficient statistics for possible generation of group-specific
+                % template data.
+                SS = zeros([size(cls{1}),numel(cls)],'single');
+            end
+
             for k=1:K,
                 SS(:,:,:,k) = SS(:,:,:,k) + cls{k};
             end
@@ -136,11 +152,25 @@ for iter=1:nit,
          % Treat the tissue probability maps as Dirichlet priors, and compute the 
          % MAP estimate of group tissue probability map using the sufficient
          % statistics.
-         for k=1:K,
-             SS(:,:,:,k) = SS(:,:,:,k) + spm_bsplinc(tpm.V(k),[0 0 0  0 0 0])*alpha + eps;
+         [x1,x2] = ndgrid(1:size(SS,1),1:size(SS,2));
+         for i=1:size(SS,3),
+             M  = orig_priors.M\M1;
+             y1 = M(1,1)*x1 + M(1,2)*x2 + M(1,3)*i + M(1,4);
+             y2 = M(2,1)*x1 + M(2,2)*x2 + M(2,3)*i + M(2,4);
+             y3 = M(3,1)*x1 + M(3,2)*x2 + M(3,3)*i + M(3,4);
+             b  = spm_sample_priors8(orig_priors,y1,y2,y3);
+             msk = (y1<1) | (y1>orig_priors.V(1).dim(1)) | ...
+                   (y2<1) | (y2>orig_priors.V(1).dim(2)) | ...
+                   (y3<1) | (y3>orig_priors.V(1).dim(3));
+             for k=1:K,
+                 bk      = b{k}*alpha;
+                 bk(msk) = bk(msk)*0.01;
+                 SS(:,:,i,k) = SS(:,:,i,k) + bk;
+             end
          end
-         %save SS.mat SS
-         s = sum(SS,4);
+         save SS.mat SS M1
+         tpm.M = M1;
+         s     = sum(SS,4);
          for k=1:K,
              tmp        = SS(:,:,:,k)./s;
              tpm.bg1(k) = mean(mean(tmp(:,:,1)));
