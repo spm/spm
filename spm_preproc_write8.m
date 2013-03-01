@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5292 2013-03-01 15:45:19Z john $
+% $Id: spm_preproc_write8.m 5294 2013-03-01 23:12:36Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -205,7 +205,17 @@ for z=1:length(x3),
             else
                 % Nonparametric representation of intensity distributions
                 q   = spm_sample_priors8(tpm,t1,t2,t3);
+                wp  = res.wp;
+                s   = zeros(size(q{1}));
+                for k1 = 1:Kb,
+                    q{k1} = wp(k1)*q{k1};
+                    s     = s + q{k1};
+                end
+                for k1 = 1:Kb,
+                    q{k1} = q{k1}./s;
+                end
                 q   = cat(3,q{:});
+
                 for n=1:N,
                     tmp = round(cr{n}*res.intensity(n).interscal(2) + res.intensity(n).interscal(1));
                     tmp = min(max(tmp,1),size(res.intensity(n).lik,1));
@@ -482,8 +492,8 @@ end
 p  = ones(numel(f{1}),K);
 for k=1:K,
     amp    = mg(k)/sqrt((2*pi)^N * det(vr(:,:,k)));
-    d      = cr - repmat(mn(:,k)',M,1);
-    p(:,k) = amp * exp(-0.5* sum(d.*(d/vr(:,:,k)),2));
+    d      = bsxfun(@minus,cr,mn(:,k)')*inv(chol(vr(:,:,k)));
+    p(:,k) = amp*exp(-0.5*sum(d.*d,2)) + eps;
 end
 %=======================================================================
 
