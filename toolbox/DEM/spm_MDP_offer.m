@@ -12,7 +12,7 @@ function spm_MDP_offer
 % offer in terms of active inference, under prior beliefs about future
 % states. The model is specified in a fairly general way in terms of
 % probability transition matrices and beliefs about future states. The
-% particular inversion scheme used here is spm_MDP_select, which uses a
+% particular inversion scheme used here is spm_MDP_game, which uses a
 % mean-field approximation between hidden control and hidden states. It is
 % assumed that the agent believes that it will select a particular action
 % (accept or decline) at a particular time.
@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5280 2013-02-24 22:10:36Z karl $
+% $Id: spm_MDP_offer.m 5295 2013-03-03 22:07:26Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -64,6 +64,10 @@ S     = [1 0 0 0 0]';
 % priors over final state (exp(utility))
 %--------------------------------------------------------------------------
 C     = spm_softmax([1 1 1 2 4]');
+
+% allowable policies (one shift at different times)
+%--------------------------------------------------------------------------
+V     = eye(T,T) + 1;
  
  
 % MDP Structure
@@ -72,37 +76,39 @@ MDP.T = T;                          % process depth (the horizon)
 MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
+MDP.V = V;                          % allowable policies
+MDP.K = 1;                          % memory depth
  
 % Solve - an example game (with high offer at t = 10)
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
 MDP.s    = [1 1 1 1 1 1 1 1 1 2];
-MDP.a    = [1 1 1 1 1 1 1 1 1 1];
+MDP.a    = [1 1 1 1 1 1 1 1 1];
 MDP.plot = gcf;
 MDP.N    = 8;
- 
-[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+MDP      = spm_MDP_game(MDP);
  
 % plot convergence and precision
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-spm_axis tight
-subplot(2,2,3)
-plot(W)
+subplot(4,2,7)
+plot(MDP.W)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Expected precision','FontSize',16)
 spm_axis tight
-axis square
+
+% deconvolve to simulate dopamine responses
+%--------------------------------------------------------------------------
+nd  = length(MDP.d);
+K   = tril(toeplitz(exp(-((1:nd) - 1)'/8)));
  
-subplot(2,2,4)
-plot(da,'b')
-xlabel('Latency (offers)','FontSize',12)
+subplot(4,2,8)
+plot(pinv(K)*MDP.d'), hold on
+xlabel('Latency (iterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
-title('Precision dynamics','FontSize',16)
-axis([1 length(da) 2 4])
-axis square
+title('Simulated dopamine responses','FontSize',16)
+axis([1 nd 0 4])
 
  
 % Solve - an example game (with low offer at t = 5)
@@ -112,29 +118,24 @@ spm_figure('GetWin','Figure 2'); clf
 MDP.s    = [1 1 1 1 3];
 MDP.a    = ones(1,T);
 MDP.plot = gcf;
- 
-[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+MDP      = spm_MDP_game(MDP);
  
 % plot convergence and precision
 %--------------------------------------------------------------------------
-subplot(2,2,2)
-spm_axis tight
-subplot(2,2,3)
-plot(W)
+subplot(4,2,7)
+plot(MDP.W)
 xlabel('Latency (offers)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Expected precision','FontSize',16)
 spm_axis tight
-axis square
  
-subplot(2,2,4)
-plot(da,'b')
-xlabel('Latency (offers)','FontSize',12)
+subplot(4,2,8)
+plot(pinv(K)*MDP.d'), hold on
+xlabel('Latency (iiterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
-title('Precision dynamics','FontSize',16)
-axis([1 length(da) 1 4])
-axis square
- 
+title('Simulated dopamine responses','FontSize',16)
+axis([1 nd 0 4])
+
  
  
 % Illustrate dependency parameters
@@ -154,13 +155,15 @@ MDP.a    = ones(1,T);                % and action
 DP    = MDP;
 p     = linspace(0,8,16);
 for i = 1:length(p)
-    DP.C     = spm_softmax([1 1 1 p(i) 4]');
-    BF       = spm_MDP_select(DP);
-    BE       = spm_MDP_select(DP,'EU');  
-    PF(i,:)  = BF(2,:);
-    PE(i,:)  = BE(2,:);
-    DF(i,:)  = PrT(BF);
-    DE(i,:)  = PrT(BE);
+    DP.C    = spm_softmax([1 1 1 p(i) 4]');
+    DP      = spm_MDP_game(DP);
+    BF      = DP.P;
+    DP      = spm_MDP_game(DP,'EU');
+    BE      = DP.P;
+    PF(i,:) = BF(2,:);
+    PE(i,:) = BE(2,:);
+    DF(i,:) = PrT(BF);
+    DE(i,:) = PrT(BE);
 end
  
 % probability of accepting
@@ -215,9 +218,11 @@ MDP.plot = 0;
 MDP.K    = 1;
 MDP.N    = 4;
  
-MDP.C       = spm_softmax([1 1 1 3 8]');
-[P,Q,S,U,W] = spm_MDP_select(MDP);
-H           = sum(-P.*log(P),1);
+MDP.C    = spm_softmax([1 1 1 3 8]');
+MDP      = spm_MDP_game(MDP);
+P        = MDP.P;
+W        = MDP.W;
+H        = sum(-P.*log(P),1);
  
 % action entropy
 %--------------------------------------------------------------------------
@@ -246,7 +251,8 @@ axis square
 %--------------------------------------------------------------------------
 beta = 1;
 D    = 1./W - beta;
-[P,Q,S,U,W] = spm_MDP_select(MDP,'EU');
+MDP  = spm_MDP_game(MDP,'EU');
+W    = MDP.W;
 V    = 1./W - beta;
  
 subplot(2,2,3)
@@ -268,14 +274,15 @@ spm_figure('GetWin','Figure 5'); clf
 MDP.C    = spm_softmax([1 1 1 2 4]');
  
 MDP.s    = [1 1 1 1 1 1 2];
-MDP.a    = [1 1 1 1 1 1 1];
+MDP.a    = [1 1 1 1 1 1];
 MDP.o    = [1 1 1 4 1 1 2];
 MDP.plot = gcf;
  
 MDP.N    = 8;
 MDP.K    = 1;
  
-[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+MDP      = spm_MDP_game(MDP);
+Q        = MDP.Q;
  
 % plot true and inferred states
 %--------------------------------------------------------------------------
@@ -291,7 +298,8 @@ ylabel('State','FontSize',12)
 MDP.plot = 0;
 MDP.K    = 0;
  
-[P,Q,S,U,W,da] = spm_MDP_select(MDP);
+MDP      = spm_MDP_game(MDP);
+Q        = MDP.Q;
  
 % plot true and inferred states
 %--------------------------------------------------------------------------
@@ -322,10 +330,10 @@ for i = 1:length(p)
  
     % high offer utility (with an EU agent)
     %----------------------------------------------------------------------
-    DP.C        = spm_softmax([1 1 1 2 p(i)]');
-    UP(i,:)     = log(DP.C);
-    [P,Q,S,U,W] = spm_MDP_select(DP,'EU');
-    DW(i,:)     = W;
+    DP.C    = spm_softmax([1 1 1 2 p(i)]');
+    UP(i,:) = log(DP.C);
+    DP      = spm_MDP_game(DP,'EU');
+    DW(i,:) = DP.W;
     
 end
  
@@ -365,8 +373,8 @@ DP.C  = spm_softmax([1 1 1 4 4]');
 p     = linspace(0,4,16);
 for i = 1:length(p)
     DP.w    = zeros(1,T) + p(i);
-    P       = spm_MDP_select(DP,'EU');
-    DT(i,:) = PrT(P);
+    DP      = spm_MDP_game(DP,'EU');
+    DT(i,:) = PrT(DP.P);
 end
 
 subplot(2,2,4)
@@ -395,9 +403,9 @@ MDP.N    = 4;
 % trials
 %--------------------------------------------------------------------------
 for i = 1:256
-    [P,Q,S,U] = spm_MDP_select(MDP);
+    MDP = spm_MDP_game(MDP);
     try
-        Y(i)  = find(U(2,:),1);
+        Y(i)  = find(MDP.U(2,:),1);
     catch
         Y(i)  = T;
     end
@@ -406,10 +414,10 @@ end
  
 % probability distribution over time to act
 %--------------------------------------------------------------------------
-MDP.s     = ones(1,T);
-MDP.a     = ones(1,T);
-[P,Q,S,U] = spm_MDP_select(MDP);
-Py        = PrT(P);
+MDP.s = ones(1,T);
+MDP.a = ones(1,T);
+MDP   = spm_MDP_game(MDP);
+Py    = PrT(MDP.P);
  
 % plot
 %--------------------------------------------------------------------------
@@ -440,19 +448,18 @@ for i = 1:length(p);
         
     % get likelihood for this parameter
     %----------------------------------------------------------------------
-    P     = spm_MDP_select(DP);
-    Py    = PrT(P);
+    DP    = spm_MDP_game(DP);
+    Py    = PrT(DP.P);
     L(i)  = sum(log(Py(Y) + eps));
     
 end
  
 % approximate the MAP with the ML and use the Laplace assumption
 %--------------------------------------------------------------------------
-[l i] = max(L);
-dp    = p(2) - p(1);
-dLdpp = (L(i + 1) - L(i) - L(i) + L(i - 1))/(dp^2);
-Cp    = inv(-dLdpp);
-Ep    = p(i);
+dLdpp = diff(L,2)/(((2) - p(1))^2);
+[l i] = max(L(2:end - 1) + (dLdpp < 0)*1024);
+Cp    = inv(-dLdpp(i));
+Ep    = p(i + 1);
  
  
 % plot likelihood
@@ -495,7 +502,7 @@ MDP.o = [];
  
 ST    = 0;
 for i = 1:64
-    [P,Q,S] = spm_MDP_select(MDP);
+    [P,Q,S] = spm_MDP_game(MDP);
     ST = ST + S(:,end);
 end
 PT    = ST/sum(ST);
