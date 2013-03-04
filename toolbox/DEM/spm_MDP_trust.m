@@ -26,7 +26,7 @@ function spm_MDP_trust
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: spm_MDP_trust.m 5299 2013-03-04 18:19:35Z guillaume $
 
 % set up and preliminaries
 %==========================================================================

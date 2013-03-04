@@ -24,7 +24,7 @@ function [x,M] = spm_x_mfm(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_x_mfm.m 5023 2012-10-30 19:25:32Z karl $
+% $Id: spm_x_nmda.m 5299 2013-03-04 18:19:35Z guillaume $
 
  
 % dimensions

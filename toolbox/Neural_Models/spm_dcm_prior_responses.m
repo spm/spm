@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_induced_optimise.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_dcm_prior_responses.m 5299 2013-03-04 18:19:35Z guillaume $
 
 
 % Model specification

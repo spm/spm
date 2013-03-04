@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_mfm.m 5027 2012-10-31 21:51:09Z karl $
+% $Id: spm_fx_nmda.m 5299 2013-03-04 18:19:35Z guillaume $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------

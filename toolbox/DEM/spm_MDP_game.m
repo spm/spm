@@ -85,7 +85,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_select.m 5280 2013-02-24 22:10:36Z karl $
+% $Id: spm_MDP_game.m 5299 2013-03-04 18:19:35Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
