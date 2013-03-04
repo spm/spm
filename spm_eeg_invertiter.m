@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5282 2013-02-25 15:34:06Z gareth $
+% $Id: spm_eeg_invertiter.m 5297 2013-03-04 11:50:39Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -26,7 +26,7 @@ if isempty(Npatchiter),
 end;
 
 if numel(Dtest)>1,
-    error('only works with single datasets at the moment');e
+    error('only works with single datasets at the moment');
 end;
 
 val=Dtest{1}.val;
@@ -35,39 +35,50 @@ Np=Dtest{1}.inv{val}.inverse.Np;
 
 allF=zeros(Npatchiter,1);
 disp('Reseting random number seed !');
-rand('state',0);
-for patchiter=1:Npatchiter, %% change patches
+
+
+
+
+fprintf('Checking leadfields')
+[L Dtest{1}] = spm_eeg_lgainmat(Dtest{1});	% Generate/load lead field- this stops it being done at each iteration
+  rand('state',0);
+
+for f=1:Npatchiter,
+    tmp=randperm(Nvert);
+    allIp(f,:)=tmp(1:Np);
+end;
+
+%%parfor patchiter=1:Npatchiter, %% change patches- could be parallelized
+for patchiter=1:Npatchiter, 
+  
+    Din=Dtest{1};
+    Dout=Din;
+    Ip=allIp(patchiter,:)
     
-    randind=randperm(Nvert);
-    Ip=randind(1:Np);
-    
+
     
     switch funcname,
         case 'Classic',
             
-            Dtest{1}.inv{val}.inverse.Ip=Ip;
+            Din.inv{val}.inverse.Ip=Ip;
             
-            Dtest{1}	= spm_eeg_invert_classic(Dtest{1});
+            Dout	= spm_eeg_invert_classic(Din);
         case 'Current'
             warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
-            
-    
-            Dtest{1}	= spm_eeg_invert(Dtest{1}); %
-            Dtest{1}.inv{val}.inverse.Ip=Ip;
-    end;
-    
-    
-    
-    modelF(patchiter).inverse=Dtest{1}.inv{val}.inverse;
-    allF(patchiter)=[Dtest{1}.inv{val}.inverse.F];
-    allJ{patchiter}=Dtest{1}.inv{val}.inverse.J;
-    manyinverse{patchiter}=modelF(patchiter).inverse;
-    disp('iteration:');
-    patchiter
-    allF
-    
+               
+              Dout	= spm_eeg_invert(Din); %
+              Dout.inv{val}.inverse.Ip=Ip;
+     end;
+     modelF(patchiter).inverse=Dout.inv{val}.inverse;
+     
     
 end; % for patchiter
+
+
+for patchiter=1:Npatchiter,
+    allF(patchiter)=modelF(patchiter).inverse.F;
+    manyinverse{patchiter}=modelF(patchiter).inverse;
+end;
 
 [bestF,bestind]=max(allF);
 disp('model evidences relative to maximum:')
