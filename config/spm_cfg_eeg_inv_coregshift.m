@@ -6,7 +6,7 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5285 2013-02-27 17:03:50Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 5296 2013-03-04 10:34:02Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -40,15 +40,23 @@ sdshift.name = 'Standard deviation in x,y z in mm';
 sdshift.strtype = 'r';
 sdshift.num = [1 3];
 sdshift.val = {[0 0 0]};
-sdshift.help = {'The standard deviation of the Gaussian random variable in mm'};
+sdshift.help = {'The standard deviation (mm) of the random displacement to be added to all fiducials'};
 
+
+pperror = cfg_entry;
+pperror.tag = 'pperror';
+pperror.name = 'Per point per dimension standard deviation of error (mm)';
+pperror.strtype = 'r';
+pperror.num = [1 1];
+pperror.val = {[0]};
+pperror.help = {'The standard deviation of the error (mm) on each fiducial in each dimension'};
 
 
 
 coregshift = cfg_exbranch;
 coregshift.tag = 'coregshift';
-coregshift.name = 'Add fixed or random displacement to head model coregistration';
-coregshift.val = {D, val, meanshift, sdshift};
+coregshift.name = 'Add head model error';
+coregshift.val = {D, val, meanshift, sdshift,pperror};
 coregshift.help = {'To simulate the effects of coregistration error'};
 coregshift.prog = @specify_coregshift;
 coregshift.vout = @vout_specify_coregshift;
@@ -85,7 +93,7 @@ for i = 1:numel(job.D)
         error('no head model set up');
     end
     
-    meegfid = D.fiducials;   
+    meegfid = D.fiducials;
     
     mrifid = D.inv{val}.mesh.fid; %% fiducials in the native MRI space (obtained from inverse transform from standard space)
     
@@ -97,15 +105,17 @@ for i = 1:numel(job.D)
     startpos=meegfid.fid.pnt;
     mmshift=job.meanshift;
     
-    if max(abs(job.sdshift)>0),
+    if max(abs(job.sdshift)>0)|| abs((job.pperror)>0),
         disp('changing random seed and adding coreg error');
         randn('seed',sum(100*clock));
-        mmshift=mmshift+job.sdshift.*randn(1,3)
+        mmshift=mmshift+job.sdshift.*randn(1,3);
+        
+        
     end;
     
-    meegfid.fid.pnt=meegfid.fid.pnt+repmat(mmshift,3,1);
+    meegfid.fid.pnt=meegfid.fid.pnt+repmat(mmshift,3,1)+ones(size(meegfid.fid,pnt)).*job.pperror;
     
-   %% NB just change the effective head model position rather than the actual fiducial locations
+    %% NB just change the effective head model position rather than the actual fiducial locations
     
     D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
     
