@@ -12,9 +12,9 @@ function tpm = spm_load_priors8(V)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_load_priors8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_load_priors8.m 5298 2013-03-04 17:13:09Z john $
 
-tiny = 1e-3;
+tiny = 1e-4;
 
 deg = 1;
 if ~isstruct(V), V  = spm_vol(V); end;

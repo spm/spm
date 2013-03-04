@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 5294 2013-03-01 23:12:36Z john $
+% $Id: spm_preproc8.m 5298 2013-03-04 17:13:09Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -419,7 +419,7 @@ for iter=1:20,
                     vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
                 end
                 for k1=1:Kb,
-                    wp(k1) = sum(mom0(lkp==k1))/mgm(k1);
+                    wp(k1) = (sum(mom0(lkp==k1)) +1)/(mgm(k1) +1); % bias the solution towards 1
                 end
 
                 if subit>1 || iter>1,
@@ -452,7 +452,8 @@ for iter=1:20,
                     chan(n).lik                = chan(n).lik*chan(n).interscal(2);
                     chan(n).hist               = zeros(K,Kb);
                 end
-                h0 = zeros(size(h0));
+                mgm  = zeros(1,Kb);
+                h0   = zeros(size(h0));
                 for z=1:length(z0),
                     q   = double(buf(z).dat);
                     s   = 1./(q*wp');
