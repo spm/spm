@@ -1,11 +1,11 @@
 function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Write out VBM preprocessed data
-% FORMAT cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup)
+% FORMAT cls = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 %____________________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5298 2013-03-04 17:13:09Z john $
+% $Id: spm_preproc_write8.m 5300 2013-03-05 11:59:49Z ged $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -14,13 +14,21 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Having the optimal bias/variance tradeoff for each voxel is not the same
 % as having the optimal tradeoff for weighted averages over several voxels.
 
+if isfield(res,'mg'),
+    lkp = res.lkp;
+    Kb  = max(lkp);
+else
+    Kb  = size(res.intensity(1).lik,2);
+end
+N   = numel(res.image);
+
 if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
-if nargin<3, bf = true(N,2);  end % field, corrected
-if nargin<4, df = true(1,2);  end % inverse, forward
-if nargin<5, mrf= 1;          end % MRF parameter
-if nargin<6, cleanup = 0;     end % Run the ad hoc cleanup
-if nargin<7, bb = NaN(2,3);   end % Run the ad hoc cleanup
-if nargin<8, vx = NaN;        end % Run the ad hoc cleanup
+if nargin<3, bf = false(N,2); end % field, corrected
+if nargin<4, df = false(1,2); end % inverse, forward
+if nargin<5, mrf = 1;         end % MRF parameter
+if nargin<6, cleanup = 1;     end % Run the ad hoc cleanup
+if nargin<7, bb = NaN(2,3);   end % Default to TPM bounding box
+if nargin<8, vx = NaN;        end % Default to TPM voxel size
 
 % Read essentials from tpm (it will be cleared later)
 tpm = res.tpm;
@@ -38,20 +46,6 @@ if ~isfinite(vx), vx = abs(prod(vx1))^(1/3); end;
 bb(1,:) = vx*round(bb(1,:)/vx);
 bb(2,:) = vx*round(bb(2,:)/vx);
 odim    = abs(round((bb(2,1:3)-bb(1,1:3))/vx))+1;
-
-if isfield(res,'mg'),
-    lkp = res.lkp;
-    Kb  = max(lkp);
-else
-    Kb  = size(res.intensity(1).lik,2);
-end
-
-N   = numel(res.image);
-if nargin<2, tc = true(Kb,4); end % native, import, warped, warped-mod
-if nargin<3, bf = true(N,2);  end % field, corrected
-if nargin<4, df = true(1,2);  end % inverse, forward
-if nargin<5, mrf= 1;          end % MRF parameter
-if nargin<6, cleanup = 0;     end % Run the ad hoc cleanup
 
 [pth,nam]=fileparts(res.image(1).fname);
 ind  = res.image(1).n;
