@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5302 2013-03-06 15:57:07Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5307 2013-03-06 17:15:45Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -58,8 +58,8 @@ woi.tag = 'woi';
 woi.name = 'Time window';
 woi.strtype = 'r';
 woi.num = [1 2];
-woi.val = {[0.1 0.4]};
-woi.help = {'Time window in which to simulate data (s)'};
+woi.val = {[100  400]};
+woi.help = {'Time window in which to simulate data (ms)'};
 
 
 foi = cfg_entry;
@@ -181,7 +181,7 @@ else
     whitenoise=[];
 end;
 
-[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.locs,job.foi,job.woi,SIdipmom,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.locs,job.foi,job.woi./1000,SIdipmom,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 
 if ~iscell(D)
     D = {D};
@@ -191,7 +191,7 @@ for i = 1:numel(D)
     save(D{i});
 end
 
-out.D = job.D;
+out.D = {D{1}.fname};
 
 function dep = vout_simulation(job)
 % Output is always in field "D", no matter how job is structured
