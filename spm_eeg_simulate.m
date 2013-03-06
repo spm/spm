@@ -1,4 +1,4 @@
-function [D,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,woi,dipmoment,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,woi,dipmoment,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 %% Simulate a number of MSP patches at specified locations on existing mesh
 % Synthetic MEG data generator for SPM8
 % This is a demo version related with the Technical Note:
@@ -17,7 +17,7 @@ function [D,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,woi
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5303 2013-03-06 15:57:35Z gareth $
+% $Id: spm_eeg_simulate.m 5305 2013-03-06 17:12:08Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
