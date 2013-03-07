@@ -9,7 +9,9 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 %           Or a [3 x m] matrix of voxel coordinates {mm}
 % fhandle - function handle to be applied on image data within VOI
 %           Must transform a [1 x m] array into a [1 x p] array
-%           Default is Identity (returns raw data, vectorised into rows)
+%           Default is Identity (returns raw data, vectorised into rows).
+%           Can also use keyword 'litres' to compute the total volume,
+%           within the region of interest, for a tissue segment image.
 %
 % Y       - [n x p] data summary
 % xY      - (updated) VOI structure
@@ -23,7 +25,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_summarise.m 5311 2013-03-07 15:05:25Z ged $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -31,6 +33,7 @@ if nargin < 1 || isempty(V)
     [V, sts] = spm_select([1 Inf], 'image', 'Specify Images');
     if ~sts, error('Must select 1 or more images'), end
 end
+if iscellstr(V), V = char(V); end
 if ischar(V), V = spm_vol(V); end
 spm_check_orientations(V);
 
@@ -56,9 +59,9 @@ end
 if ~isfield(xY,'XYZmm'), [xY, xY.XYZmm] = spm_ROI(xY,V(1)); end
 
 if nargin < 3 || isempty(fhandle), fhandle = @(x) x; end
-if ischar(fhandle) && strcmp(fhandle,'summl')
-    vsz     = abs(det(V(1).mat));  % voxel size in mm^3 
-    fhandle = @(x) sum(x) * vsz / 1000;
+if ischar(fhandle) && strcmp(fhandle, 'litres')
+    vsz     = abs(det(V(1).mat));  % voxel size in mm^3
+    fhandle = @(x) sum(x) * vsz / 1e6;
 end
 if ischar(fhandle), fhandle = str2func(fhandle); end
 
