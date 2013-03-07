@@ -26,7 +26,7 @@ function spm_MDP_trust
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5299 2013-03-04 18:19:35Z guillaume $
+% $Id: spm_MDP_trust.m 5310 2013-03-07 14:13:26Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -43,30 +43,41 @@ function spm_MDP_trust
 % (fI low)             c (e.g.= 7)         d (e.g.= 10)
 % _________________________________________________________________________
 
-U(:,:,1) = [26 10;
-            21 18]/8;
+U{1} = [26 10;
+        21 18]/8;                   % self payoff (utility)
      
-U(:,:,2) = [26 42;
-             7 10]/8;
+U{2} = [26 42;
+         7 10]/8;                   % other payoff (utility)
+    
          
 % initial state – encoding the actual type of trustee
 %--------------------------------------------------------------------------
-S    = [1 0]';                    % indicator - [prosocial nonsocial]
+S    = [0 1]';                    % indicator - [prosocial nonsocial]
 S    = kron(S,[1 0 0 0 0]');
+
+
+% prior beliefs about initial state – E[Dirichlet distribution]
+%--------------------------------------------------------------------------
+k    = [1 1];
+p    = softmax(k(:));
+k    = log(p);
+D    = kron(p,[1 0 0 0 0]');
+
          
 % investor's payoffs or prior beliefs (softmax(utility))
 %--------------------------------------------------------------------------
 a    = 1/2;
-C    = spm_softmax([1; spm_vec((1 - a)*U(:,:,1) + a*U(:,:,2)); ...
-                    1; spm_vec((1 - a)*U(:,:,1) + a*U(:,:,2))]);
+pp   = [0; spm_softmax(spm_vec((1 - a)*U{1} + a*U{2}))];
+pn   = [0; spm_softmax(spm_vec(        U{1}         ))];
+
+C    = [pp*p(1); pn*p(2)];
 
 % investor's belief (based on a prosocial and nonsocial trustee)
 %--------------------------------------------------------------------------
-a    = 1/2;
-cp   = spm_softmax(((1 - a)*U(1,:,2) + a*U(1,:,1))');
-dp   = spm_softmax(((1 - a)*U(2,:,2) + a*U(2,:,1))');
-cn   = spm_softmax((        U(1,:,2)             )');
-dn   = spm_softmax((        U(2,:,2)             )');
+cp   = spm_softmax(((1 - a)*U{2}(1,:) + a*U{1}(1,:))');
+dp   = spm_softmax(((1 - a)*U{2}(2,:) + a*U{1}(2,:))');
+cn   = spm_softmax((        U{2}(1,:)              )');
+dn   = spm_softmax((        U{2}(2,:)              )');
  
 % transition probabilities (B{1} - (c)ooperate; B{2} - (d)efect)
 %--------------------------------------------------------------------------
@@ -96,10 +107,6 @@ B{2} = ...                        % defect:
     0 0 0 0 0  0     0 0 1 0;
     0 0 0 0 0  dn(2) 0 0 0 1];
 
-% prior beliefs about initial state – E[Dirichlet distribution]
-%--------------------------------------------------------------------------
-k    = [1 1]'*8;
-D    = kron(k,[1 0 0 0 0]');
 
 % observation probabilities
 %--------------------------------------------------------------------------
@@ -113,6 +120,7 @@ V    = [1 2;
  
 % MDP Structure
 %==========================================================================
+MDP.N = 8;                          % number of variational iterations
 MDP.K = 0;                          % no memory
 MDP.T = 2;                          % process depth (one-shot game)
 MDP.S = S;                          % true initial state
@@ -122,35 +130,44 @@ MDP.C = C;                          % terminal cost probabilities (priors)
 MDP.D = D;                          % initial state probabilities (priors)
 MDP.V = V;                          % allowable policies
 
+MDP.alpha = 2;                      % gamma hyperparameters
+MDP.beta  = 1/2;
+
 % Solve - an example game
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
 MDP.plot = gcf;
-MDP.N    = 8;
-MDP      = spm_MDP_game(MDP,'EU');
+MDP      = spm_MDP_game(MDP);
 
 
 % now iterate repeated games accumulating posterior beliefs
 %==========================================================================
 MDP.plot = 0;
-MDP.N    = 4;
-K        = kron(eye(2,2),[1 1 1 1 1]);
+K        = kron(eye(2,2),[1 0 0 0 0]');
 NG       = 64;
 
 for i = 1:NG
     
     % solve and marginalise over posterior beliefs about hidden states
     %----------------------------------------------------------------------
-    MDP    = spm_MDP_game(MDP,'EU');
-    Q(:,i) = k/sum(k);
+    MDP    = spm_MDP_game(MDP);
+    Q(:,i) = softmax(k);
     O(:,i) = MDP.O(:,end);
     P(:,i) = MDP.P(:,end);
     W(:,i) = MDP.W(:,end);
     
-    % prior beliefs about initial state – update concentration parameters
+    % update prior beliefs about initial state (context)
     %----------------------------------------------------------------------
-    k      = k + K*MDP.Q(:,end);
-    MDP.D  = kron(k,[1 0 0 0 0]');
+    a     = find(MDP.U);
+    p     = MDP.O(:,2)'*MDP.A*MDP.B{a}*K;
+    p     = p(:)/sum(p);
+    
+    % update prior beliefs about initial state (context)
+    %----------------------------------------------------------------------
+    k      = k + log(p);
+    p      = softmax(k);
+    MDP.D  = kron(p,[1 0 0 0 0]');
+    MDP.C  = [pp*p(1); pn*p(2)];
     
 end
 
@@ -184,6 +201,10 @@ xlabel('Number of games','FontSize',12)
 ylabel('Observed outcome','FontSize',12)
 axis square
 
+subplot(2,2,4)
+plot(W)
+title('Precision','FontSize',16)
+xlabel('Number of games','FontSize',12)
+ylabel('Expected precision','FontSize',12)
+axis square
 
-return
- 

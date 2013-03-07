@@ -7,10 +7,10 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % MDP.N           - number of variational iterations (default 4)
 % MDP.S(N,1)      - true initial state
 %
-% MDP.A(N,N)      - Likelihood of outcomes given hidden states
+% MDP.A(O,N)      - Likelihood of O outcomes given N hidden states
 % MDP.B{M}(N,N)   - transition probabilities among hidden states (priors)
-% MDP.C(N,1)      - terminal cost probabilities (prior N over hidden states)
-% MDP.D(N,1)      - initial prior probabilities (concentration parameters)
+% MDP.C(N,1)      - terminal cost probabilities (prior over hidden states)
+% MDP.D(N,1)      - initial prior probabilities (prior over hidden states)
 %
 % MDP.V(T,P)      - allowable policies (control sequences over time)
 %
@@ -20,11 +20,9 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % MDP.a(1 x T)    - vector of action       - for deterministic solutions
 % MDP.w(1 x T)    - vector of precisions   - for deterministic solutions
 %
-% MDP.G{M}(N,N)   - transition probabilities used to generate outcomes
-%                   (default: the prior transition probabilities)
-% MDP.B{T,M}(N,N) - transition probabilities for each time point
-% MDP.G{T,M}(N,N) - transition probabilities for each time point
-%                   (default: MDP.B{T,M} = MDP.B{M})
+% MDP.B{T,M}(N,N) - model transition probabilities for each time point
+% MDP.G{T,M}(N,N) - true  transition probabilities for each time point
+%                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M} = )
 %
 % MDP.plot        - switch to suppress graphics: (default: [0])
 % MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
@@ -36,8 +34,8 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % MDP.Q(N,T)   - an array of conditional (posterior) expectations over
 %                N hidden states and time 1,...,T
 % MDP.O(O,T)   - a sparse matrix of ones encoding outcomes at time 1,...,T
-% MDP.S(N,T)   - a sparse matrix of ones,  encoding states at time 1,...,T
-% MDP.V(M,T)   - a sparse matrix of ones,  encoding action at time 1,...,T
+% MDP.S(N,T)   - a sparse matrix of ones encoding states at time 1,...,T
+% MDP.V(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
 % MDP.W(1,T)   - posterior expectations of precision
 % MDP.d        - simulated dopamine responses
 %
@@ -46,23 +44,24 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % decision process. This model and inference scheme is formulated
 % in discrete space and time. This means that the generative model (and
 % process) are  finite state  machines or hidden Markov models whose
-% dynamics are given by transition probabilities among states. For
-% simplicity, we assume an isomorphism between hidden states and outcomes,
-% where the likelihood corresponds to a particular outcome conditioned upon
+% dynamics are given by transition probabilities among states and the 
+% likelihood corresponds to a particular outcome conditioned upon
 % hidden states. Similarly, for simplicity, this routine assumes that action
 % and hidden controls are isomorphic. If the dynamics of transition
 % probabilities of the true process are not provided, this routine will use
 % the equivalent probabilities from the generative model.
-
-% This particular scheme is designed for situations in which a particular
-% action is to be selected at a particular time. The first control state
-% is considered the baseline or default behaviour. Subsequent control
-% states are assumed to be selected under the constraint that only one
-% action can be emitted once. This provides a particular simplification for
-% the generative model, allowing a fairly exhaustive model of potential
-% outcomes – eschewing a mean field approximation over successive
-% control states. In brief, the agent simply represents the current state
-% and states in the immediate and distant future.
+%
+% This particular scheme is designed for any allowable policies or control 
+% sequences specified in MDP.V. Constraints on allowable policies can limit 
+% the numerics or combinatorics considerable; For example, situations in 
+% which a particular
+% action is to be selected at a particular time can be reduced to T polices
+% – with one (shift) control being emitted at all possible time points.
+% This specification of polices simplifiesthe generative model, allowing a
+% fairly exhaustive model of potential outcomes – eschewing a mean field 
+% approximation over successive control states. In brief, the agent simply
+% represents the current state and states in the immediate and distant 
+% future.
 %
 % The transition probabilities are a cell array of probability transition
 % matrices corresponding to each (discrete) the level of the control state.
@@ -85,7 +84,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 5299 2013-03-04 18:19:35Z guillaume $
+% $Id: spm_MDP_game.m 5310 2013-03-07 14:13:26Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -146,19 +145,25 @@ for i = 1:T
     end
 end
 
-% terminal cost probabilities (priors)
+% terminal probabilities (priors)
 %--------------------------------------------------------------------------
-C     = spm_vec(MDP.C) + p0;
+try
+    C = spm_vec(MDP.C) + p0;
+catch
+    C = ones(Ns,1);
+end
 C     = C/sum(C);
 lnC   = log(C);
 
-% concentration parameters of Dirichlet prior over initial state
+% intital probabilities (priors)
 %--------------------------------------------------------------------------
 try
-    D  = spm_vec(MDP.D) + 1;
+    D = spm_vec(MDP.D) + p0;
 catch
-    D  = 2;
+    D = ones(Ns,1);
 end
+D     = D/sum(D);
+lnD   = log(D);
 
 % generative process (assume the true process is the same as the model)
 %--------------------------------------------------------------------------
@@ -205,8 +210,6 @@ W      = sparse(1,T);              % posterior precision
 %--------------------------------------------------------------------------
 gamma  = [];                       % simulated dopamine responses
 x      = zeros(Ns,T);
-x(:,1) = D/sum(D);
-
 
 % solve
 %==========================================================================
@@ -259,7 +262,7 @@ for t  = 1:T
     %======================================================================
     for i  = 1:N
         
-        % past states
+        % past states (x)
         %------------------------------------------------------------------
         for k = (t - K):(t - 1)
             if k > 0
@@ -267,21 +270,17 @@ for t  = 1:T
                 if k > 2
                     v = v  + lnB{(k - 1),a(k - 1)} *x(:,k - 1);
                 end
+                if k == 1
+                    v = v  + lnD;
+                end
                 x(:,k) = spm_softmax(v);
             end
         end
         
-        % intial state (with a Dirichlet prior)
+        % present state (x)
         %------------------------------------------------------------------
         if t == 1
-            v  = x(:,t) + D - 1;
-            d  = v/sum(v);
-        end
-        
-        % present state
-        %------------------------------------------------------------------
-        if t == 1
-            v  = log(d);
+            v  = lnD;
         else
             v  = lnB{t - 1,a(t - 1)}*x(:,t - 1);
         end
