@@ -13,7 +13,7 @@ function [x] = spm_expm(J,x)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_expm.m 4579 2011-12-02 20:21:07Z karl $
+% $Id: spm_expm.m 5309 2013-03-07 14:13:10Z karl $
 
 
 
@@ -99,7 +99,7 @@ else
 
     % If no convergence
     %----------------------------------------------------------------------
-    disp('reverting to full pade')
+    disp('reverting to full Pade')
     x   = spm_expm(J)*x(:,1);
 
 end

@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_fx_cmc.m 5309 2013-03-07 14:13:10Z karl $
  
  
 % get dimensions and configure state variables
@@ -113,8 +113,8 @@ G    = ones(n,1)*G;
 %--------------------------------------------------------------------------
 % extrinsic connections
 %--------------------------------------------------------------------------
-% foward   (i)   2  sp -> ss (+ve)
-% foward   (ii)  1  sp -> dp (+ve)
+% forward   (i)   2  sp -> ss (+ve)
+% forward   (ii)  1  sp -> dp (+ve)
 % backward (i)   2  dp -> sp (-ve)
 % backward (ii)  1  dp -> ii (-ve)
 %--------------------------------------------------------------------------

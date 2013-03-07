@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int.m 5309 2013-03-07 14:13:10Z karl $
  
  
 % convert U to U.u if necessary
@@ -75,20 +75,21 @@ x = [1; spm_vec(M.x)];
  
 % add [0] states if not specified
 %--------------------------------------------------------------------------
-if ~isfield(M,'f')
-    M.f = inline('sparse(0,1)','x','u','P','M');
+try
+    f   = str2func(M.f);
+catch
+    M.f = @(x,u,P,M) sparse(0,1);
     M.n = 0;
     M.x = sparse(0,0);
 end
- 
 
  
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
 try
-    g   = fcnchk(M.g,'x','u','P','M');
+    g   = str2func(M.g);
 catch
-    g   = inline('x','x','u','P','M');
+    g   = @(x,u,P,M) x;
     M.g = g;
 end
  
@@ -116,7 +117,7 @@ su    = sparse(1,i,1,1,u);
  
 % get times that the response is sampled
 %--------------------------------------------------------------------------
-s     = ceil([0:v - 1]*u/v);
+s     = ceil((0:v - 1)*u/v);
 for j = 1:M.l
     i       = s + D(j);
     sy(j,:) = sparse(1,i,1:v,1,u);
@@ -151,7 +152,7 @@ for i = 1:length(t)
     %----------------------------------------------------------------------
     if any(sy(:,i))
         q      = spm_unvec(x(2:end),M.x);
-        q      = spm_vec(feval(g,q,u,P,M));
+        q      = spm_vec(g(q,u,P,M));
         j      = find(sy(:,i));
         s      = sy(j(1),i);
         y(j,s) = q(j);

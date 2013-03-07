@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_nlsi_GN.m 5309 2013-03-07 14:13:10Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -299,32 +299,37 @@ for k = 1:M.Nmax
         
         [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
         dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
-
         
         % check for stability
         %------------------------------------------------------------------
         normdfdp = norm(dfdp,'inf');
         revert   = isnan(normdfdp) || normdfdp > exp(32);
-            
+        
     catch
         revert   = true;
     end
     
     if revert
-        
-        % reset expansion point and increase regularization
-        %------------------------------------------------------------------
-        p        = C.p;
-        v        = min(v - 2,-4);
-        
-        % E-Step: update
-        %------------------------------------------------------------------
-        p        = p + spm_dx(dFdpp,dFdp,{v});
-        Ep       = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-        [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
-        dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
-
-        
+        try
+            % reset expansion point and increase regularization
+            %--------------------------------------------------------------
+            p        = C.p;
+            v        = min(v - 2,-4);
+            
+            % E-Step: update
+            %--------------------------------------------------------------
+            p        = p + spm_dx(dFdpp,dFdp,{v});
+            Ep       = spm_unvec(spm_vec(pE) + V*p(ip),pE);
+            [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
+            dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
+            
+        catch
+            
+            % convergence failure
+            %--------------------------------------------------------------
+            warning('MATLAB:spm_nsli_GN','Convergence failure on first iteration - please check priors or data scaling');
+            return
+        end
     end
     
     
