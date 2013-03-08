@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5306 2013-03-06 17:15:06Z gareth $
+% $Id: spm_eeg_invertiter.m 5317 2013-03-08 16:48:08Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -83,6 +83,13 @@ sort(allF-bestF)
 
 Dtest{1}.inv{val}.inverse.allF=allF;
 Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
+
+for f=1:Npatchiter-1,
+    Dtest{1}.inv{f+val}.inverse=modelF(f).inverse; %% set fields in inversion to specific iterations
+    Dtest{1}.inv{f+val}.comment=sprintf('Iteration %d of %d',f+1,Npatchiter);
+end;
+    
+
 if (Dtest{1}.inv{val}.inverse.BMAflag==1)&&(Npatchiter>1)
     disp('Running BMA to get current estimate');
     [Jbma,qCbma]=spm_eeg_invert_bma(manyinverse,allF); %% onlt the mean is calculated using BMA (but could extend to covariance)
@@ -90,8 +97,12 @@ if (Dtest{1}.inv{val}.inverse.BMAflag==1)&&(Npatchiter>1)
     Dtest{1}.inv{val}.inverse.J={Jbma};
     Dtest{1}.inv{val}.inverse.qC=qCbma;
     Dtest{1}.inv{val}.inverse.allF=allF;
+    Dtest{1}.inv{val}.comment=sprintf('BMA of %d solutions',Npatchiter);
 else
     disp('Using best patch set to current estimate');
+    if isempty(Dtest{1}.inv{val}.comment),
+        Dtest{1}.inv{val}.comment=sprintf('Best of %d solutions',Npatchiter);
+    end;
 end; % if BMA
 
 
