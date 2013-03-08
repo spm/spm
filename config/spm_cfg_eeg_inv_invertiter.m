@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5275 2013-02-21 15:18:35Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5313 2013-03-08 16:46:46Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -316,11 +316,15 @@ for i = 1:numel(job.D)
             error('Forward model is missing for subject %d.', i);
         end
     end
+    val=D{i}.val;
+    D{i}.inv{val}.inverse = inverse;
     
-    D{i}.inv{D{i}.val}.inverse = inverse;
+    D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
+    D{i}.inv{val}.inverse.BMAflag=BMAflag;
     
-    D{i}.inv{D{i}.val}.inverse.allF=zeros(1,Npatchiter);
-    D{i}.inv{D{i}.val}.inverse.BMAflag=BMAflag;
+    for iterval=1:Npatchiter-1,
+        D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
+    end;
     
 end
 
