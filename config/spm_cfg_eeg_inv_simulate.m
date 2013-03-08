@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5307 2013-03-06 17:15:45Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5314 2013-03-08 16:47:03Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -79,6 +79,14 @@ dipmom.num = [Inf 1];
 dipmom.val = {[20;20]};
 dipmom.help = {'Enter dipole moments for sources (nAm)'};
 
+whitenoise = cfg_entry;
+whitenoise.tag = 'whitenoise';
+whitenoise.name = 'White noise in rms femto Tesla ';
+whitenoise.strtype = 'r';
+whitenoise.num = [1 1];
+whitenoise.val = {[100]};
+whitenoise.help = {'White noise in the recording bandwidth (rms fT)'};
+
 
 setSNR = cfg_entry;
 setSNR.tag = 'setSNR';
@@ -88,14 +96,6 @@ setSNR.num = [1 1];
 setSNR.val = {[0]};
 setSNR.help = {'Enter sensor level SNR=20*log10(rms source/ rms noise)'};
 
-
-isSNR = cfg_choice;
-isSNR.tag = 'isSNR';
-isSNR.name = 'Set SNR or set moments';
-isSNR.help = {'Choose whether to a fixed SNR or specify source moments in nAm'};
-isSNR.values = {setSNR, dipmom};
-isSNR.val = {setSNR};
-
 locs  = cfg_entry;
 locs.tag = 'locs';
 locs.name = 'Source locations (or patch indices)';
@@ -104,10 +104,40 @@ locs.num = [Inf 3];
 locs.help = {'Input mni source locations (mm) as n x 3 matrix, or patch indices only in 1st column'};
 locs.val = {[ 53.7203  -25.7363    9.3949;  -52.8484  -25.7363    9.3949]};
 
+
+setsources = cfg_branch;
+setsources.tag = 'setsources';
+setsources.name = 'Set sources';
+setsources.help = {'Define sources and locations'};
+setsources.val  = {woi, foi, dipmom, locs};
+
+setinversion = cfg_const;
+setinversion.tag = 'isinversion';
+setinversion.name = 'Use current density estimate';
+setinversion.help = {'Use the current density estimate at the inversion index to produce MEG data'};
+setinversion.val  = {1};
+
+isinversion = cfg_choice;
+isinversion.tag = 'isinversion';
+isinversion.name = 'Use inversion or define sources';
+isinversion.help = {'Use existing current density estimate to generate data or generate from defined sources'};
+isinversion.values = {setinversion, setsources};
+isinversion.val = {setsources};
+
+
+
+isSNR = cfg_choice;
+isSNR.tag = 'isSNR';
+isSNR.name = 'Set SNR or set white noise level';
+isSNR.help = {'Choose whether to a fixed SNR or specify system noise level'};
+isSNR.values = {setSNR, whitenoise};
+isSNR.val = {setSNR};
+
+
 simulate = cfg_exbranch;
 simulate.tag = 'simulate';
-simulate.name = 'simulation of sources on cortex';
-simulate.val = {D, val, prefix, whatconditions,locs,foi,woi,isSNR};
+simulate.name = 'M/EEG simulation of sources on cortex';
+simulate.val = {D, val, prefix, whatconditions,isinversion,isSNR};
 simulate.help = {'Run simulation'};
 simulate.prog = @run_simulation;
 simulate.vout = @vout_simulation;
@@ -119,24 +149,18 @@ function  out = run_simulation(job)
 D = spm_eeg_load(job.D{1});
 
 
+
 trialind=[];
 if isfield(job.whatconditions, 'condlabel')
     trialind =D.indtrial( job.whatconditions.condlabel);
     if isempty(trialind),
         error('No such condition found');
-    end; 
+    end;
 end
 if numel(job.D)>1,
     error('Simulation routine only meant to replace data for single subjects');
 end;
 
-
-
-Nsources=size(job.foi,1);
-
-if size(job.locs,1)~=Nsources,
-    error('Number of locations must equal number of frequencies specified');
-end;
 
 
 
@@ -167,21 +191,37 @@ for i = 1:numel(job.D) %% only set up for one subject at the moment but leaving 
 end; % for i
 
 
-mnimesh=[]; %% using mesh defined in forward model at the moment
-SmthInit=[]; %% leave patch size as default for now
-
-
-if isfield(job.isSNR,'dipmom'),
-    SIdipmom=job.isSNR.dipmom*1e-9; %% put dipole moment into Am rather than nAm
+if isfield(job.isSNR,'whitenoise'),
+    whitenoiseTesla=job.isSNR.whitenoise*1e-15; %% put white noise in as Tesla
     SNRdB=[];
-    whitenoise=[]; %% need to add this later
 else
     SNRdB=job.isSNR.setSNR;
-    SIdipmom=[];
-    whitenoise=[];
+    whitenoiseTesla=[];
 end;
 
-[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.locs,job.foi,job.woi./1000,SIdipmom,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+if isfield(job.isinversion,'setsources'), %% defining individual sources
+    
+    Nsources=size(job.isinversion.setsources.foi,1);
+    
+    if (size(job.isinversion.setsources.dipmom,1)~=Nsources)|| (size(job.isinversion.setsources.locs,1)~=Nsources),
+        error('Number of locations must equal number of frequencies specified');
+    end;
+    mnimesh=[]; %% using mesh defined in forward model at the moment
+    SmthInit=[]; %% leave patch size as default for now
+    SIdipmom=job.isinversion.setsources.dipmom.*1e-9; %% put into nAm
+    
+    [D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,job.isinversion.setsources.foi,job.isinversion.setsources.woi./1000,SIdipmom,whitenoiseTesla,SNRdB,trialind,mnimesh,SmthInit);
+    
+    
+else %% simulate sources based on inversion
+    if ~isfield(D{i}.inv{job.val},'inverse'),
+        error('There is no solution defined for these data at that index');
+    end;
+    
+    [D]=spm_eeg_simulate_frominv(D,job.prefix,job.val,whitenoiseTesla,SNRdB,trialind);
+end;
+
+
 
 if ~iscell(D)
     D = {D};
@@ -191,7 +231,9 @@ for i = 1:numel(D)
     save(D{i});
 end
 
-out.D = {D{1}.fname};
+
+fullname=[D{1}.path filesep D{1}.fname];
+out.D = {fullname};
 
 function dep = vout_simulation(job)
 % Output is always in field "D", no matter how job is structured
