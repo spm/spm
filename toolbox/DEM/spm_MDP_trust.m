@@ -26,7 +26,7 @@ function spm_MDP_trust
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5310 2013-03-07 14:13:26Z karl $
+% $Id: spm_MDP_trust.m 5318 2013-03-08 17:38:06Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -56,7 +56,7 @@ S    = [0 1]';                    % indicator - [prosocial nonsocial]
 S    = kron(S,[1 0 0 0 0]');
 
 
-% prior beliefs about initial state – E[Dirichlet distribution]
+% prior beliefs about initial state
 %--------------------------------------------------------------------------
 k    = [1 1];
 p    = softmax(k(:));
@@ -143,7 +143,6 @@ MDP      = spm_MDP_game(MDP);
 % now iterate repeated games accumulating posterior beliefs
 %==========================================================================
 MDP.plot = 0;
-K        = kron(eye(2,2),[1 0 0 0 0]');
 NG       = 64;
 
 for i = 1:NG
@@ -158,9 +157,9 @@ for i = 1:NG
     
     % update prior beliefs about initial state (context)
     %----------------------------------------------------------------------
-    a     = find(MDP.U);
-    p     = MDP.O(:,2)'*MDP.A*MDP.B{a}*K;
-    p     = p(:)/sum(p);
+    a      = find(MDP.U);
+    p      = MDP.O(:,2)'*MDP.A*MDP.B{a}(:,[1 6]);
+    p      = p(:)/sum(p);
     
     % update prior beliefs about initial state (context)
     %----------------------------------------------------------------------

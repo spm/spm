@@ -12,7 +12,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % MDP.C(N,1)      - terminal cost probabilities (prior over hidden states)
 % MDP.D(N,1)      - initial prior probabilities (prior over hidden states)
 %
-% MDP.V(T,P)      - allowable policies (control sequences over time)
+% MDP.V(T,P)      - P allowable policies (control sequences over T times)
 %
 % optional:
 % MDP.s(1 x T)    - vector of true states  - for deterministic solutions
@@ -35,7 +35,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 %                N hidden states and time 1,...,T
 % MDP.O(O,T)   - a sparse matrix of ones encoding outcomes at time 1,...,T
 % MDP.S(N,T)   - a sparse matrix of ones encoding states at time 1,...,T
-% MDP.V(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
+% MDP.U(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
 % MDP.W(1,T)   - posterior expectations of precision
 % MDP.d        - simulated dopamine responses
 %
@@ -84,7 +84,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 5310 2013-03-07 14:13:26Z karl $
+% $Id: spm_MDP_game.m 5318 2013-03-08 17:38:06Z karl $
 
 % set up and preliminaries
 %==========================================================================
