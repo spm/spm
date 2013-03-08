@@ -17,7 +17,7 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5305 2013-03-06 17:12:08Z gareth $
+% $Id: spm_eeg_simulate.m 5315 2013-03-08 16:47:33Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -87,8 +87,8 @@ if isempty(patchmni),
 end;
 
 
-if ~xor(isempty(dipmoment),isempty(SNRdB))
-    error('Must specify either dipole moment or sensor level SNR');
+if ~xor(isempty(whitenoise),isempty(SNRdB))
+    error('Must specify either white noise level or sensor level SNR');
 end;
 
 if ~isempty(SNRdB),
@@ -138,8 +138,14 @@ disp('Using closest mesh vertices to the specified coordinates')
 for d=1:Ndips,
     vdist= Dnew.inv{val}.mesh.tess_mni.vert-repmat(patchmni(d,:),size(Dnew.inv{val}.mesh.tess_mni.vert,1),1);
     dist=sqrt(dot(vdist',vdist'));
-    [mnidist,meshsourceind(d)] =min(dist);
+    [mnidist(d),meshsourceind(d)] =min(dist);
 end;
+
+disp(sprintf('Furthest distance %3.2f',max(mnidist)));
+if max(mnidist)>0.1
+    warning('Supplied vertices do not sit on the mesh!');
+end;
+
 
 Ndip = size(meshsourceind,2);		% Number of dipoles
 if isempty(dipfreq),
@@ -147,15 +153,15 @@ if isempty(dipfreq),
 end;
 
 %% some default noise levels
-
-if isempty(whitenoise)&&isempty(SNRdB),
-    sensor_noise_TrtHz=10e-15; %% Sensor noise in Tesla per root Hz; default 10 fT/rtHz
-    sensor_bw_Hz=80; %% recording bandwith in Hz
-    whitenoise=sqrt(sensor_bw_Hz)*sensor_noise_TrtHz;
-    disp('setting default 10ftrtHz white noise in 80Hz BW');
-else
-    whitenoise=1;
-end;
+% 
+% if isempty(whitenoise)&&isempty(SNRdB),
+%     sensor_noise_TrtHz=10e-15; %% Sensor noise in Tesla per root Hz; default 10 fT/rtHz
+%     sensor_bw_Hz=80; %% recording bandwith in Hz
+%     whitenoise=sqrt(sensor_bw_Hz)*sensor_noise_TrtHz;
+%     disp('setting default 10ftrtHz white noise in 80Hz BW');
+% else
+%     whitenoise=1;
+% end;
 
 
 
@@ -239,7 +245,7 @@ end
 tmp=L*X;
 
 tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale;
-
+keyboard
 switch Dnew.sensors('MEG').chanunit{1}
     case 'T'
         whitenoise=whitenoise; %% rms tesla
