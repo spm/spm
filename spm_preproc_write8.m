@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5300 2013-03-05 11:59:49Z ged $
+% $Id: spm_preproc_write8.m 5319 2013-03-11 13:38:22Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -550,8 +550,9 @@ th1 = 0.15;
 if level==2, th1 = 0.2; end
 % Erosions and conditional dilations
 %--------------------------------------------------------------------------
-niter = 32;
-spm_progress_bar('Init',niter,'Extracting Brain','Iterations completed');
+niter  = 32;
+niter2 = 32;
+spm_progress_bar('Init',niter+niter2,'Extracting Brain','Iterations completed');
 for j=1:niter
     if j>2, th=th1; else th=0.6; end  % Dilate after two its of erosion
     for i=1:size(b,3)
@@ -564,22 +565,48 @@ for j=1:niter
     spm_conv_vol(b,b,kx,ky,kz,-[1 1 1]);
     spm_progress_bar('Set',j);
 end
+
+% Also clean up the CSF.
+if niter2 > 0,
+    c = b;
+    for j=1:niter2
+        for i=1:size(b,3)
+            gp       = double(P(:,:,i,1));
+            wp       = double(P(:,:,i,2));
+            cp       = double(P(:,:,i,3));
+            bp       = double(c(:,:,i))/255;
+            bp       = (bp>th).*(wp+gp+cp);
+            c(:,:,i) = uint8(round(bp));
+        end
+        spm_conv_vol(c,c,kx,ky,kz,-[1 1 1]);
+        spm_progress_bar('Set',j+niter);
+    end
+end
+
 th = 0.05;
 for i=1:size(b,3)
-    gp       = double(P(:,:,i,1))/255;
-    wp       = double(P(:,:,i,2))/255;
-    cp       = double(P(:,:,i,3))/255;
-    bp       = double(b(:,:,i))/255;
-    bp       = ((bp>th).*(wp+gp))>th;
+    slices = cell(1,size(P,4));
+    for k1=1:size(P,4),
+        slices{k1} = double(P(:,:,i,k1))/255;
+    end
+    bp        = double(b(:,:,i))/255;
+    bp        = ((bp>th).*(slices{1}+slices{2}))>th;
+    slices{1} = slices{1}.*bp;
+    slices{2} = slices{2}.*bp;
 
-    g = int16(round(255*gp.*bp./(gp+wp+cp+eps)));
-    w = int16(round(255*wp.*bp./(gp+wp+cp+eps)));
-    c = int16(round(255*(cp.*bp./(gp+wp+cp+eps)+cp.*(1-bp))));
-    P(:,:,i,5) = uint8(int16(P(:,:,i,5)) + (int16(P(:,:,i,1))-g+int16(P(:,:,i,2))-w+int16(P(:,:,i,3))-c));
-    P(:,:,i,1) = g;
-    P(:,:,i,2) = w;
-    P(:,:,i,3) = c;
-
+    if niter2>0,
+        cp        = double(c(:,:,i))/255;
+        cp        = ((cp>th).*(slices{1}+slices{2}+slices{3}))>th;
+        slices{3} = slices{3}.*cp;
+    end
+    slices{5} = slices{5}+1e-4; % Add a little to the soft tissue class
+    tot       = zeros(size(bp))+eps;
+    for k1=1:size(P,4),
+        tot   = tot + slices{k1};
+    end
+    for k1=1:size(P,4),
+        P(:,:,i,k1) = uint8(round(slices{k1}./tot*255));
+    end 
 end
 spm_progress_bar('Clear');
 
