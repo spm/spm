@@ -1,9 +1,9 @@
 function job = spm_rewrite_job(job)
 % Rewrite a job for SPM12
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 4908 2012-09-06 19:53:19Z guillaume $
+% $Id: spm_rewrite_job.m 5320 2013-03-12 19:06:48Z guillaume $
 
 
 try
@@ -28,6 +28,12 @@ try
     job.spatial.normalise.estwrite.subj(1).source;
     fprintf('Conversion Normalise:EstWrite -> Old Normalise:EstWrite\n');%-#
     job = struct('tools', struct('oldnorm', job.spatial.normalise));
+end
+
+try
+    job.tools.preproc8;
+    fprintf('Conversion Tools:New Segment -> Spatial:Segment\n');       %-#
+    job = struct('spatial',struct('preproc',job.tools.preproc8));
 end
 
 try
