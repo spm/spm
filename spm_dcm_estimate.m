@@ -23,6 +23,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
 % DCM.options.centre                 % mean-centre inputs
+% DCM.options.nmodes                 % maximal number of modes
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 %
@@ -47,13 +48,13 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5277 2013-02-21 15:41:19Z guillaume $
+% $Id: spm_dcm_estimate.m 5321 2013-03-13 12:23:26Z guillaume $
 
 
-SVNid = '$Rev: 5277 $';
+SVNid = '$Rev: 5321 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -87,6 +88,7 @@ try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.hidden;     catch, DCM.options.hidden     = [];    end
+try, DCM.options.nmodes;     catch, DCM.options.nmodes     = 8;     end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
 try, M.P       = DCM.options.P ;end
@@ -162,7 +164,7 @@ end
 
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
-nmax = 8;
+nmax = DCM.options.nmodes;
 if n > nmax
     
     % remove confounds and find principal (nmax) modes
