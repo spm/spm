@@ -3,7 +3,6 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % FORMAT [MDP] = spm_MDP_select(MDP)
 %
 % MDP.T           - process depth (the horizon)
-% MDP.K           - memory  depth (default 0)
 % MDP.N           - number of variational iterations (default 4)
 % MDP.S(N,1)      - true initial state
 %
@@ -53,9 +52,8 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 %
 % This particular scheme is designed for any allowable policies or control 
 % sequences specified in MDP.V. Constraints on allowable policies can limit 
-% the numerics or combinatorics considerable; For example, situations in 
-% which a particular
-% action is to be selected at a particular time can be reduced to T polices
+% the numerics or combinatorics considerable. For example, situations in 
+% which one action can be selected at one time can be reduced to T polices
 % – with one (shift) control being emitted at all possible time points.
 % This specification of polices simplifiesthe generative model, allowing a
 % fairly exhaustive model of potential outcomes – eschewing a mean field 
@@ -84,7 +82,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 5318 2013-03-08 17:38:06Z karl $
+% $Id: spm_MDP_game.m 5324 2013-03-13 22:04:55Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -94,7 +92,6 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 try, PLOT  = MDP.plot;  catch, PLOT  = 0; end
 try, alpha = MDP.alpha; catch, alpha = 8; end
 try, beta  = MDP.beta;  catch, beta  = 1; end
-try, K     = MDP.K;     catch, K     = 0; end
 try, N     = MDP.N;     catch, N     = 4; end
 
 
@@ -262,20 +259,6 @@ for t  = 1:T
     %======================================================================
     for i  = 1:N
         
-        % past states (x)
-        %------------------------------------------------------------------
-        for k = (t - K):(t - 1)
-            if k > 0
-                v = lnA(o(k),:)' + lnB{k,a(k    )}'*x(:,k + 1);
-                if k > 2
-                    v = v  + lnB{(k - 1),a(k - 1)} *x(:,k - 1);
-                end
-                if k == 1
-                    v = v  + lnD;
-                end
-                x(:,k) = spm_softmax(v);
-            end
-        end
         
         % present state (x)
         %------------------------------------------------------------------

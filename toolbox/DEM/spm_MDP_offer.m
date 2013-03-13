@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5295 2013-03-03 22:07:26Z karl $
+% $Id: spm_MDP_offer.m 5324 2013-03-13 22:04:55Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -77,7 +77,6 @@ MDP.S = S;                          % initial state
 MDP.B = B;                          % transition probabilities (priors)
 MDP.C = C;                          % terminal cost probabilities (priors)
 MDP.V = V;                          % allowable policies
-MDP.K = 1;                          % memory depth
  
 % Solve - an example game (with high offer at t = 10)
 %==========================================================================
@@ -215,7 +214,6 @@ MDP.a = ones(1,T);
 MDP.o = ones(1,T);
  
 MDP.plot = 0;
-MDP.K    = 1;
 MDP.N    = 4;
  
 MDP.C    = spm_softmax([1 1 1 3 8]');
@@ -264,57 +262,11 @@ title('Expected utility','FontSize',16)
 legend({'Entropy','Expected utility'})
 spm_axis tight
 axis square
- 
- 
- 
-% The effect of memory
-%==========================================================================
-spm_figure('GetWin','Figure 5'); clf
- 
-MDP.C    = spm_softmax([1 1 1 2 4]');
- 
-MDP.s    = [1 1 1 1 1 1 2];
-MDP.a    = [1 1 1 1 1 1];
-MDP.o    = [1 1 1 4 1 1 2];
-MDP.plot = gcf;
- 
-MDP.N    = 8;
-MDP.K    = 1;
- 
-MDP      = spm_MDP_game(MDP);
-Q        = MDP.Q;
- 
-% plot true and inferred states
-%--------------------------------------------------------------------------
-subplot(4,2,6)
-imagesc(1 - Q)
-title('Inferred states (K > 0)','FontSize',16)
-xlabel('Time','FontSize',12)
-ylabel('State','FontSize',12)
 
- 
-% now repeat but with no memory
-%--------------------------------------------------------------------------
-MDP.plot = 0;
-MDP.K    = 0;
- 
-MDP      = spm_MDP_game(MDP);
-Q        = MDP.Q;
- 
-% plot true and inferred states
-%--------------------------------------------------------------------------
-spm_figure('GetWin','Figure 5');
- 
-subplot(4,2,8)
-imagesc(1 - Q)
-title('Inferred states (K = 0)','FontSize',16)
-xlabel('Time','FontSize',12)
-ylabel('State','FontSize',12)
- 
  
 % Effective utility (the effect of optimising precision or sensitivity)
 %==========================================================================
-spm_figure('GetWin','Figure 6'); clf
+spm_figure('GetWin','Figure 5'); clf
  
 % how does precision depend on beliefs about high offer?
 %--------------------------------------------------------------------------
@@ -387,7 +339,7 @@ axis square xy
  
 % Simulate multiple trials and record when an offer was accepted
 %==========================================================================
-spm_figure('GetWin','Figure 7'); clf
+spm_figure('GetWin','Figure 6'); clf
  
 % trials with no higher offer
 %--------------------------------------------------------------------------
@@ -397,7 +349,6 @@ MDP.a = [];
 MDP.o = [];
  
 MDP.plot = 0;
-MDP.K    = 1;
 MDP.N    = 4;
  
 % trials
@@ -456,7 +407,8 @@ end
  
 % approximate the MAP with the ML and use the Laplace assumption
 %--------------------------------------------------------------------------
-dLdpp = diff(L,2)/(((2) - p(1))^2);
+dp    = mean(diff(p,1));
+dLdpp = diff(L,2)/(dp^2);
 [l i] = max(L(2:end - 1) + (dLdpp < 0)*1024);
 Cp    = inv(-dLdpp(i));
 Ep    = p(i + 1);
@@ -476,9 +428,9 @@ axis square
 subplot(2,2,4)
 pp  = spm_Npdf(p,Ep,Cp);                   % posterior probability
 tp  = log(MDP.C);                          % true utilities
-tp  = 1 + tp(end) - tp(1);
+tp  = tp - min(tp) + 1;
 plot(p,pp), hold on
-plot([tp tp],[0 1.2*max(pp)],':'),   hold off
+plot([tp(end) tp(end)],[0 1.2*max(pp)],':'),   hold off
 xlabel('Utility','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Posterior probability','FontSize',16)

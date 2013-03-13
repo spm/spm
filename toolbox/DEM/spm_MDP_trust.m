@@ -26,7 +26,7 @@ function spm_MDP_trust
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5318 2013-03-08 17:38:06Z karl $
+% $Id: spm_MDP_trust.m 5324 2013-03-13 22:04:55Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -121,7 +121,6 @@ V    = [1 2;
 % MDP Structure
 %==========================================================================
 MDP.N = 8;                          % number of variational iterations
-MDP.K = 0;                          % no memory
 MDP.T = 2;                          % process depth (one-shot game)
 MDP.S = S;                          % true initial state
 MDP.A = A;                          % observation model
