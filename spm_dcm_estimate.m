@@ -12,7 +12,7 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.U                              % exogenous inputs
 % DCM.Y.y                            % responses
 % DCM.Y.X0                           % confounds
-% DCM.Y.Q                            % some array of precision components
+% DCM.Y.Q                            % array of precision components
 % DCM.n                              % number of regions
 % DCM.v                              % number of scans
 %
@@ -23,9 +23,9 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
 % DCM.options.centre                 % mean-centre inputs
-% DCM.options.nmodes                 % maximal number of modes
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
+% DCM.options.nmax                   % maximum number of (effective) nodes
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -48,13 +48,13 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.BIC                            % Bayesian Information criterion
 %
 %__________________________________________________________________________
-% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5321 2013-03-13 12:23:26Z guillaume $
+% $Id: spm_dcm_estimate.m 5323 2013-03-13 22:04:28Z karl $
 
 
-SVNid = '$Rev: 5321 $';
+SVNid = '$Rev: 5323 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -87,8 +87,8 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
+try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
 try, DCM.options.hidden;     catch, DCM.options.hidden     = [];    end
-try, DCM.options.nmodes;     catch, DCM.options.nmodes     = 8;     end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
 try, M.P       = DCM.options.P ;end
@@ -164,14 +164,13 @@ end
 
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
-nmax = DCM.options.nmodes;
-if n > nmax
+if n > DCM.options.nmax
     
     % remove confounds and find principal (nmax) modes
     %----------------------------------------------------------------------
     y       = Y.y - Y.X0*(pinv(Y.X0)*Y.y);
     V       = spm_svd(y');
-    V       = V(:,1:nmax);
+    V       = V(:,1:DCM.options.nmax);
     
     % remove minor modes from priors on A
     %----------------------------------------------------------------------
@@ -191,7 +190,7 @@ else
     hE  = ones(n,1)*4;
     hC  = speye(n,n)/2048;
 end
-hE(i)   = exp(-16);
+hE(i)   = -4;
 hC(i,i) = exp(-16);
 
 

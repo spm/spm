@@ -33,7 +33,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_fx_fmri.m 5323 2013-03-13 22:04:28Z karl $
 
 
 % Neuronal motion
@@ -67,17 +67,23 @@ else
 
     % extrinsic (two neuronal states)
     %----------------------------------------------------------------------
-    A      = exp(P.A)/8;             % enforce positivity
-    IE     = diag(diag(A));          % inhibitory to excitatory
-    EI     = eye(length(A));         % excitatory to inhibitory
-    EE     = A - IE;                 % excitatory to excitatory
-    SE     = 1;                      % self-inhibition (excitatory)
-    SI     = 2;                      % self-inhibition (inhibitory)
+    n     = length(P.A);            % number of regions
+    A     = exp(P.A)/8;             % enforce positivity
+    DA    = diag(diag(A));          % intrinsic connectivity
+    EE    = A - DA;                 % excitatory to excitatory
+    IE    = eye(n,n);               % inhibitory to excitatory
+    EI    = eye(n,n);               % excitatory to inhibitory
+    SE    = eye(n,n);               % self-inhibition (excitatory)
+    SI    = eye(n,n);               % self-inhibition (inhibitory)
     
-    % switch excitatory to excitatory -> excitatory to inhibitory
+    
+    % <<< intrinsic moduation >>>
     %----------------------------------------------------------------------
-    in     = {};
-    
+    SI    = DA;                     % self-inhibition (inhibitory)
+
+    % <<< switch excitatory to excitatory -> excitatory to inhibitory >>>
+    %----------------------------------------------------------------------
+    in    = {};
     for i = 1:length(in)
         EI(in{i}(1),in{i}(2)) = EE(in{i}(1),in{i}(2));
         EE(in{i}(1),in{i}(2)) = 0;
@@ -87,7 +93,7 @@ else
     % motion - excitatory and inhibitory: y = dx/dt
     %----------------------------------------------------------------------
     y(:,1) = EE*x(:,1) - SE*x(:,1) - IE*x(:,6) + P.C*u(:);
-    y(:,6) = EI*x(:,1) - SI*x(:,6);
+    y(:,6) = EI*x(:,1) - SI*x(:,6)*2;
 
 end
 

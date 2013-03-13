@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_fmri_check(P)
 % post-hoc diagnostics for DCM (bilinear or nonlinear) of fMRI data
-% FORMAT [DCM] = spm_dcm_fmri_check(DM)
+% FORMAT [DCM] = spm_dcm_fmri_check(DCM)
 %   DCM - DCM structure or its filename
 %
 % This routine provides some diagnostics to ensure model inversion has
@@ -30,11 +30,11 @@ function [DCM] = spm_dcm_fmri_check(P)
 % This routine is compatible with DCM8, DCM10 and DCM12 files.
 %__________________________________________________________________________
 % Copyright (C) 20012 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 5242 2013-02-05 16:06:09Z karl $
- 
- 
+% $Id: spm_dcm_fmri_check.m 5323 2013-03-13 22:04:28Z karl $
+
+
 %-Load DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
@@ -44,25 +44,25 @@ elseif isstruct(P)
 else
     load(P)
 end
- 
+
 % Assemble diagnostics
 %==========================================================================
- 
+
 % coefficient of determination (percent variance explained)
 %--------------------------------------------------------------------------
 PSS   = sum(sum(DCM.y.^2));
 RSS   = sum(sum(DCM.R.^2));
 D(1)  = 100*PSS/(PSS + RSS);
- 
+
 % largest absolute posterior expectation (extrinsic connections)
 %--------------------------------------------------------------------------
 try
-A     = DCM.Ep.A;
+    A     = DCM.Ep.A;
 catch
-A     = DCM.A;
+    A     = DCM.A;
 end
 D(2)  = max(max(abs(A - diag(diag(A)))));
- 
+
 % complexity and effective number of parameters estimated
 %--------------------------------------------------------------------------
 qE    = spm_vec(DCM.Ep);
@@ -71,22 +71,22 @@ qC    = DCM.Cp;
 pC    = DCM.M.pC;
 k     = rank(full(pC));
 pC    = pinv(pC);
- 
+
 D(3)  = trace(pC*qC) + (pE - qE)'*pC*(pE - qE) - spm_logdet(qC*pC) - k;
 D(3)  = D(3)/log(DCM.v);
- 
- 
+
+
 % Plot summary of inversion
 %==========================================================================
 spm_figure('GetWin','DCM diagnostics'); clf
 
- 
+
 % plot predicted and observed regional responses
 %--------------------------------------------------------------------------
 subplot(2,1,1);
 t   = (1:DCM.v)*DCM.Y.dt;
 D   = full(D);
- 
+
 plot(t,DCM.y,t,DCM.y + DCM.R,':');
 str = sprintf('variance explained %0.0f%%', D(1));
 str = {'responses and predictions',str};
@@ -96,18 +96,22 @@ else
     title(str,'FontSize',16,'Color','r');
 end
 xlabel('time {seconds}');
- 
- 
+
+
 % posterior densities over A parameters
 %--------------------------------------------------------------------------
 try
-i   = spm_fieldindices(DCM.Ep,'A');
+    i   = spm_fieldindices(DCM.Ep,'A');
 catch
     i = 1 + (1:DCM.n^2);
 end
 qE  = spm_vec(DCM.Ep);
 qC  = DCM.Cp;
- 
+
+if DCM.options.two_state
+    qE = exp(qE);
+end
+
 subplot(2,2,3)
 spm_plot_ci(qE(i),qC(i,i)), hold on
 str = sprintf('largest connection strength %0.2f', D(2));
@@ -119,8 +123,8 @@ else
 end
 xlabel('parameter}');
 axis square
- 
- 
+
+
 % posterior correlations among all parameters
 %--------------------------------------------------------------------------
 subplot(2,2,4)
