@@ -8,7 +8,7 @@ function this = gifti(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: gifti.m 3999 2010-07-19 10:54:18Z guillaume $
+% $Id: gifti.m 5322 2013-03-13 15:04:14Z guillaume $
 
 switch nargin
     
@@ -64,6 +64,9 @@ switch nargin
                 catch
                     error('[GIFTI] Loading of file %s failed.', varargin{1});
                 end
+            elseif strcmpi(e,'.asc') || strcmpi(e,'.srf')
+                this = read_freesurfer_file(varargin{1});
+                this = gifti(this);
             else
                 this = read_gifti_file(varargin{1},giftistruct);
                 this = class(this,'gifti');
