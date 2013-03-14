@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5293 2013-03-01 16:41:46Z guillaume $
+% $Id: spm_run_factorial_design.m 5327 2013-03-14 11:59:24Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -545,55 +545,56 @@ switch char(fieldnames(job.des))
 
 end
 
+nScan = size(I,1);
+
 
 %-Covariate partition(s): interest (C) & nuisance (G) excluding global
 %==========================================================================
-dstr   = {'covariate','nuisance variable'};
-C  = []; Cnames = {};  %-Covariate DesMtx partitions & names
+dstr = {'covariate','nuisance variable'};
+C  = []; Cnames = {};                 %-Covariate DesMtx partitions & names
 G  = []; Gnames = {};
 
-xC = [];                         %-Struct array to hold raw covariates
+xC = [];                              %-Struct array to hold raw covariates
 
-% Covariate options:
-nc=length(job.cov); % number of covariates
-for i=1:nc,
+nc = length(job.cov);                 %-Number of covariates
+for i=1:nc
 
     c      = job.cov(i).c;
     cname  = job.cov(i).cname;
-    rc     = c;                         %-Save covariate value
-    rcname = cname;                     %-Save covariate name
-    if job.cov(i).iCFI==1,
+    rc     = c;                       %-Save covariate value
+    rcname = cname;                   %-Save covariate name
+    if job.cov(i).iCFI==1
         iCFI=1;
     else
         % SPMs internal factor numbers are 1 higher than specified in user
         % interface as, internally, the first factor is always `replication'
-        iCFI=job.cov(i).iCFI+1;
+        iCFI = job.cov(i).iCFI+1;
     end
-    switch job.cov(i).iCC,
+    switch job.cov(i).iCC
         case 1
-            iCC=1;
+            iCC = 1;
         case {2,3,4}
-            iCC=job.cov(i).iCC+1;
+            iCC = job.cov(i).iCC + 1;
         otherwise
-            iCC=job.cov(i).iCC+3;
+            iCC = job.cov(i).iCC + 3;
     end
 
     %-Centre within factor levels as appropriate
-    if any(iCC == [1:7]),
+    if any(iCC == (1:7))
         c = c - spm_meanby(c,eval(CCforms{iCC}));
     end
 
     %-Do any interaction (only for single covariate vectors)
     %----------------------------------------------------------------------
-    if iCFI > 1             %-(NB:iCFI=1 if size(c,2)>1)
+    if iCFI > 1                       %-(NB:iCFI=1 if size(c,2)>1)
         tI        = [eval(CFIforms{iCFI,1}),c];
         tConst    = CFIforms{iCFI,2};
         tFnames   = [eval(CFIforms{iCFI,3}),{cname}];
         [c,cname] = spm_DesMtx(tI,tConst,tFnames);
-    elseif size(c,2)>1          %-Design matrix block
+    elseif size(c,2)>1                %-Design matrix block
         [null,cname] = spm_DesMtx(c,'X',cname);
     else
-        cname = {cname};
+        cname     = {cname};
     end
 
     %-Store raw covariate details in xC struct for reference
@@ -630,7 +631,6 @@ clear c tI tConst tFnames
 % dimensions and orientation / voxel size
 %==========================================================================
 fprintf('%-40s: ','Mapping files')                                      %-#
-nScan = size(I,1);
 VY    = spm_data_hdr_read(char(P));
 
 %-Check compatibility of images
@@ -711,7 +711,7 @@ switch iGXcalc,
         g = job.globalc.g_user.global_uval;
     case 3
         %-Compute as mean voxel value (within per image fullmean/8 mask)
-        g = zeros(nScan,1 );
+        g = zeros(nScan,1);
         fprintf('%-40s: %30s','Calculating globals',' ')                %-#
         for i = 1:nScan
             str = sprintf('%3d/%-3d',i,nScan);
