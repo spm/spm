@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_inv_extract.m 5326 2013-03-14 11:23:39Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -56,7 +56,7 @@ end
  
 % find relevant vertices
 %==========================================================================
-vert  = inv.mesh.tess_mni.vert;              % vertices
+vert  = inv.mesh.tess_mni.vert(inv.inverse.Is, :);        % vertices
 Ns    = size(XYZ, 1);                        % number of sources
 svert = {};
 for i = 1:Ns
