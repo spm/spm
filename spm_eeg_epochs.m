@@ -2,51 +2,51 @@ function D = spm_eeg_epochs(S)
 % Epoching continuous M/EEG data
 % FORMAT D = spm_eeg_epochs(S)
 %
-% S                   - input structure 
+% S                - input structure 
 %  fields of S:
-%   S.D               - MEEG object or filename of M/EEG mat-file with
+%   S.D                 - MEEG object or filename of M/EEG mat-file with
 %                         continuous data
-%   S.bc              - baseline-correct the data (1 - yes, 0 - no).
+%   S.bc                - baseline-correct the data (1 - yes, 0 - no).
 %
 % Either (to use a ready-made trial definition):
-%     S.trl            - [N x 3] trl matrix or name of the trial definition file
-%                      containing 'trl' variable with such a matrix
+%     S.trl             - [N x 3] trl matrix or name of the trial definition file
+%                         containing 'trl' variable with such a matrix
 %     S.conditionlabels - labels for the trials in the data [default: 'Undefined']
 %
 %  or
 %
 %     S.timewin         -  time window in PST ms
-%     S.trialdef       - structure array for trial definition with fields
+%     S.trialdef        - structure array for trial definition with fields
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
 %
 %
-%    S.eventpadding  -  (optional) the additional time period around each
-%                                     trial for which the events are saved with
-%                                     the trial (to let the user keep and use
-%                                     for analysis events which are outside) [in ms]
+%    S.eventpadding     - (optional) the additional time period around each
+%                         trial for which the events are saved with
+%                         the trial (to let the user keep and use
+%                         for analysis events which are outside) [in ms]
 %
-%    S.prefix     - prefix for the output file (default - 'e')
+%    S.prefix           - prefix for the output file (default - 'e')
 %
 %
 % Output:
 % D                     - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_epochs.m 5328 2013-03-14 19:10:32Z guillaume $
 
-SVNrev = '$Rev: 5219 $';
+SVNrev = '$Rev: 5328 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG epoching'); spm('Pointer','Watch');
 
-if ~isfield(S, 'prefix'),       S.prefix = 'e';           end
-if ~isfield(S, 'eventpadding'), S.eventpadding = 0;       end
+if ~isfield(S, 'prefix'),       S.prefix = 'e';     end
+if ~isfield(S, 'eventpadding'), S.eventpadding = 0; end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -59,7 +59,7 @@ if isTF && isfield(S, 'bc') && S.bc
     S.bc = 0;
 end
     
-if ~isfield(S, 'bc'),           S.bc = ~isTF;             end
+if ~isfield(S, 'bc'),           S.bc = ~isTF;       end
 
 %-Check that the input file contains continuous data
 %--------------------------------------------------------------------------
@@ -159,7 +159,7 @@ if S.bc
         bc = Dnew.indsample(0);
         chanbc = D.indchantype('Filtered');
     else
-       bc = 0;
+       S.bc = 0;
        warning('There was no baseline specified. The data is not baseline-corrected');
     end
 end

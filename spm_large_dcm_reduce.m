@@ -11,13 +11,13 @@ function [DCM,S] = spm_large_dcm_reduce(DCM)
 %
 % Reference
 %
-% Mohamed L. Seghier and K.J. Friston, "Network discovery with large DCMs".
-% NeuroImage, 68:181–191, 2013.
+% M.L. Seghier and K.J. Friston, "Network discovery with large DCMs".
+% NeuroImage, 68:181-191, 2013.
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_large_dcm_reduce.m 5321 2013-03-13 12:23:26Z guillaume $
+% $Id: spm_large_dcm_reduce.m 5328 2013-03-14 19:10:32Z guillaume $
 
 
 %-Create priors

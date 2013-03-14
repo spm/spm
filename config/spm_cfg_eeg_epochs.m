@@ -1,89 +1,88 @@
 function epoch = spm_cfg_eeg_epochs
 % Configuration file for M/EEG epoching
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 5075 2012-11-23 15:24:02Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 5328 2013-03-14 19:10:32Z guillaume $
 
 
-D = cfg_files;
-D.tag = 'D';
-D.name = 'File Name';
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Name';
 D.filter = 'mat';
-D.num = [1 1];
-D.help = {'Select the EEG mat file.'};
+D.num    = [1 1];
+D.help   = {'Select the M/EEG mat file.'};
 
-bc = cfg_menu;
-bc.tag     = 'bc';
-bc.name    = 'Baseline corrrection';
-bc.help    = {'Perform baseline correction when epoching, or not.'};
-bc.labels  = {'Yes'
-    'No'}';
-bc.values  = {1 0};
-bc.val     = {1};
+bc        = cfg_menu;
+bc.tag    = 'bc';
+bc.name   = 'Baseline correction';
+bc.help   = {'Perform baseline correction when epoching, or not.'};
+bc.labels = {'Yes','No'};
+bc.values = {1 0};
+bc.val    = {1};
 
 % input via trl file
-trlfile = cfg_files;
-trlfile.tag = 'trlfile';
-trlfile.name = 'Trial definiton file';
+trlfile        = cfg_files;
+trlfile.tag    = 'trlfile';
+trlfile.name   = 'Trial definition file';
 trlfile.filter = 'mat';
-trlfile.num = [1 1];
-trlfile.help = {'Select the trialfile mat file.'};
+trlfile.num    = [1 1];
+trlfile.help   = {'Select the trialfile mat file.'};
 
-eventpadding = cfg_entry;
-eventpadding.tag = 'eventpadding';
-eventpadding.name = 'Event padding';
+eventpadding         = cfg_entry;
+eventpadding.tag     = 'eventpadding';
+eventpadding.name    = 'Event padding';
 eventpadding.strtype = 'r';
-eventpadding.val = {0};
-eventpadding.num = [1 1];
-eventpadding.help = {'in sec - the additional time period around each trial',...
-    'for which the events are saved with the trial (to let the',...
-    'user keep and use for analysis events which are outside',...
-    'trial borders). Default - 0'};
+eventpadding.val     = {0};
+eventpadding.num     = [1 1];
+eventpadding.help    = {['In seconds: the additional time period around each trial',...
+    'for which the events are saved with the trial (to let the ',...
+    'user keep and use for analysis events which are outside ',...
+    'trial borders). Default is 0 s.']};
 
 % input via trialdef
-timewin = cfg_entry;
-timewin.tag = 'timewin';
-timewin.name = 'Time window';
+timewin         = cfg_entry;
+timewin.tag     = 'timewin';
+timewin.name    = 'Time window';
 timewin.strtype = 'r';
-timewin.num = [1 2];
-timewin.help = {'start and end of epoch [ms]'};
+timewin.num     = [1 2];
+timewin.help    = {'Start and end of epoch [ms].'};
 
-conditionlabel = cfg_entry;
-conditionlabel.tag = 'conditionlabel';
-conditionlabel.name = 'Condition label';
+conditionlabel         = cfg_entry;
+conditionlabel.tag     = 'conditionlabel';
+conditionlabel.name    = 'Condition label';
 conditionlabel.strtype = 's';
 
-eventtype = cfg_entry;
-eventtype.tag = 'eventtype';
-eventtype.name = 'Event type';
+eventtype         = cfg_entry;
+eventtype.tag     = 'eventtype';
+eventtype.name    = 'Event type';
 eventtype.strtype = 's';
 
-eventvalue = cfg_entry;
-eventvalue.tag = 'eventvalue';
-eventvalue.name = 'Event value';
+eventvalue         = cfg_entry;
+eventvalue.tag     = 'eventvalue';
+eventvalue.name    = 'Event value';
 eventvalue.strtype = 'e';
 
-trialdef = cfg_branch;
-trialdef.tag = 'trialdef';
+trialdef      = cfg_branch;
+trialdef.tag  = 'trialdef';
 trialdef.name = 'Trial';
-trialdef.val = {conditionlabel eventtype eventvalue};
+trialdef.val  = {conditionlabel eventtype eventvalue};
 
-define1 = cfg_repeat;
-define1.tag = 'unused';
-define1.name = 'Trial definitions';
+define1        = cfg_repeat;
+define1.tag    = 'unused';
+define1.name   = 'Trial definitions';
 define1.values = {trialdef};
 
-define = cfg_branch;
-define.tag = 'define';
+define      = cfg_branch;
+define.tag  = 'define';
 define.name = 'Define trial';
-define.val = {timewin define1};
+define.val  = {timewin define1};
 
-trlchoice         = cfg_choice;
-trlchoice.tag     = 'trialchoice';
-trlchoice.name    = 'How to define trials';
-trlchoice.help    = {'Choose one of the two options how to define trials'}';
+trlchoice        = cfg_choice;
+trlchoice.tag    = 'trialchoice';
+trlchoice.name   = 'How to define trials';
+trlchoice.help   = {'Choose one of the two options how to define trials.'}';
 trlchoice.values = {trlfile define};
 
 prefix         = cfg_entry;
@@ -94,26 +93,27 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'e'};
 
-epoch = cfg_exbranch;
-epoch.tag = 'epoch';
-epoch.name = 'M/EEG Epoching';
-epoch.val = {D, trlchoice, bc, eventpadding, prefix};
-epoch.help = {'Epoch continuous EEG/MEG data.'};
-epoch.prog = @eeg_epochs;
-epoch.vout = @vout_eeg_epochs;
+epoch          = cfg_exbranch;
+epoch.tag      = 'epoch';
+epoch.name     = 'M/EEG Epoching';
+epoch.val      = {D, trlchoice, bc, eventpadding, prefix};
+epoch.help     = {'Epoch continuous EEG/MEG data.'};
+epoch.prog     = @eeg_epochs;
+epoch.vout     = @vout_eeg_epochs;
 epoch.modality = {'EEG'};
 
 
+%==========================================================================
 function out = eeg_epochs(job)
 % construct the S struct
 S.D = job.D{1};
 
 if isfield(job.trialchoice, 'define')
-    S.timewin = job.trialchoice.define.timewin;
+    S.timewin  = job.trialchoice.define.timewin;
     S.trialdef = job.trialchoice.define.trialdef;
 else
     trlfile = load(char(job.trialchoice.trlfile));
-    usetrl = 0;
+    usetrl  = 0;
     
     % In the new code trl file contains both trl matrix and trial definition
     % struct. trl is usually only applicable to the file on which it was
@@ -149,10 +149,11 @@ S.bc = job.bc;
 S.prefix = job.prefix;
 S.eventpadding = job.eventpadding;
 
-out.D = spm_eeg_epochs(S);
+out.D      = spm_eeg_epochs(S);
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 
+%==========================================================================
 function dep = vout_eeg_epochs(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
