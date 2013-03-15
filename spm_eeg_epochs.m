@@ -36,9 +36,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5328 2013-03-14 19:10:32Z guillaume $
+% $Id: spm_eeg_epochs.m 5329 2013-03-15 12:15:01Z vladimir $
 
-SVNrev = '$Rev: 5328 $';
+SVNrev = '$Rev: 5329 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -152,6 +152,9 @@ else
     Dnew = clone(D, [S.prefix fname(D)], [D.nchannels, nsampl, ntrial]);
 end
 
+Dnew = timeonset(Dnew, timeOnset);
+Dnew = type(Dnew, 'single');
+
 %-Baseline correction
 %--------------------------------------------------------------------------
 if S.bc
@@ -166,7 +169,7 @@ end
 
 %-Epoch data
 %--------------------------------------------------------------------------
-spm_progress_bar('Init', ntrial, 'Events read');
+spm_progress_bar('Init', ntrial, 'Trials completed');
 if ntrial > 100, Ibar = floor(linspace(1, ntrial, 100));
 else Ibar = [1:ntrial]; end
 
@@ -199,8 +202,7 @@ if isfield(S, 'trialdef')
 end
 
 Dnew = trialonset(Dnew, ':', trl(:, 1)./D.fsample+D.trialonset);
-Dnew = timeonset(Dnew, timeOnset);
-Dnew = type(Dnew, 'single');
+
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
