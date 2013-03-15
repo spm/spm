@@ -17,7 +17,7 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5315 2013-03-08 16:47:33Z gareth $
+% $Id: spm_eeg_simulate.m 5330 2013-03-15 16:25:09Z vladimir $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -245,7 +245,7 @@ end
 tmp=L*X;
 
 tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale;
-keyboard
+
 switch Dnew.sensors('MEG').chanunit{1}
     case 'T'
         whitenoise=whitenoise; %% rms tesla
@@ -269,10 +269,10 @@ end;
 
 
 for i=1:Ntrials
-    if find(i,trialind), %% only add signal to specific trials
+    if any(i == trialind), %% only add signal to specific trials
         Dnew(:,:,i) = tmp;
     else
-        Dnew=zeros(size(tmp));
+        Dnew(:,:,i)=zeros(size(tmp));
     end;
     Dnew(:,:,i)=Dnew(:,:,i)+randn(size(Dnew(:,:,i))).*whitenoise; %% add white noise in fT
 end
