@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_orthviews.m 5332 2013-03-18 18:40:57Z guillaume $
 
 
 % The basic fields of st are:
@@ -805,9 +805,11 @@ rmblobs(handle);
 for i=valid_handles(handle)
     kids = get(st.fig,'Children');
     for j=1:3
-        if any(kids == st.vols{i}.ax{j}.ax)
-            set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
-            delete(st.vols{i}.ax{j}.ax);
+        try
+            if any(kids == st.vols{i}.ax{j}.ax)
+                set(get(st.vols{i}.ax{j}.ax,'Children'),'DeleteFcn','');
+                delete(st.vols{i}.ax{j}.ax);
+            end
         end
     end
     st.vols{i} = [];
@@ -1564,7 +1566,7 @@ set(0,'CurrentFigure',st.fig);
 item_parent = uicontextmenu;
 
 % contextsubmenu 0
-item00 = uimenu(item_parent, 'Label','unknown image');
+item00 = uimenu(item_parent, 'Label','unknown image', 'UserData','filename');
 spm_orthviews('context_menu','image_info',item00,volhandle);
 item0a = uimenu(item_parent, 'UserData','pos_mm', 'Separator','on', ...
     'Callback','spm_orthviews(''context_menu'',''repos_mm'');');
