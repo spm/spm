@@ -21,6 +21,13 @@ function D = spm_eeg_epochs(S)
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
 %
+%  or
+%       
+%    S.trialength       - length of arbitray trials to split the data into
+%                         (in ms). This is useful e.g. for spectral
+%                         analysis of steady state data
+%    S.conditionlabels - labels for the trials in the data [default: 'Undefined']
+%
 %
 %    S.eventpadding     - (optional) the additional time period around each
 %                         trial for which the events are saved with
@@ -36,9 +43,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5329 2013-03-15 12:15:01Z vladimir $
+% $Id: spm_eeg_epochs.m 5331 2013-03-18 13:36:02Z vladimir $
 
-SVNrev = '$Rev: 5329 $';
+SVNrev = '$Rev: 5331 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -102,6 +109,15 @@ elseif isfield(S, 'trl')
             conditionlabels = 'Undefined';
         end
     end
+elseif isfield(S, 'trialength')
+    trl = round(1:(1e-3*S.trialength*D.fsample):D.nsamples);
+    trl = [trl(1:(end-1))' trl(2:end)' 0*trl(2:end)'];
+    
+    if isfield(S, 'conditionlabels')
+        conditionlabels = S.conditionlabels;
+    else
+        conditionlabels = 'Undefined';
+    end
 else
     error('Invalid trial definition');
 end
@@ -160,6 +176,9 @@ Dnew = type(Dnew, 'single');
 if S.bc
     if time(Dnew, 1) < 0
         bc = Dnew.indsample(0);
+        chanbc = D.indchantype('Filtered');
+    elseif isfield(S, 'trialength')
+        bc = Dnew.nsamples;
         chanbc = D.indchantype('Filtered');
     else
        S.bc = 0;

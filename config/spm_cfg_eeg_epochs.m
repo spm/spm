@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 5328 2013-03-14 19:10:32Z guillaume $
+% $Id: spm_cfg_eeg_epochs.m 5331 2013-03-18 13:36:02Z vladimir $
 
 
 D        = cfg_files;
@@ -79,11 +79,25 @@ define.tag  = 'define';
 define.name = 'Define trial';
 define.val  = {timewin define1};
 
+% input via trialdef
+trialength         = cfg_entry;
+trialength.tag     = 'trialength';
+trialength.name    = 'Trial length';
+trialength.strtype = 'r';
+trialength.num     = [1 1];
+trialength.help    = {'Arbitary trial length [ms].'};
+
+arbitrary      = cfg_branch;
+arbitrary.tag  = 'arbitrary';
+arbitrary.name = 'Arbitrary trials';
+arbitrary.val  = {trialength, conditionlabel};
+arbitrary.help = {'Epoch the data in arbitray fixed length trials (e.g. for spectral analysis'};
+
 trlchoice        = cfg_choice;
 trlchoice.tag    = 'trialchoice';
 trlchoice.name   = 'How to define trials';
 trlchoice.help   = {'Choose one of the two options how to define trials.'}';
-trlchoice.values = {trlfile define};
+trlchoice.values = {trlfile define arbitrary};
 
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
@@ -111,7 +125,10 @@ S.D = job.D{1};
 if isfield(job.trialchoice, 'define')
     S.timewin  = job.trialchoice.define.timewin;
     S.trialdef = job.trialchoice.define.trialdef;
-else
+elseif isfield(job.trialchoice, 'arbitrary')
+    S.trialength = job.trialchoice.arbitrary.trialength;
+    S.conditionlabels = job.trialchoice.arbitrary.conditionlabel;
+else    
     trlfile = load(char(job.trialchoice.trlfile));
     usetrl  = 0;
     
