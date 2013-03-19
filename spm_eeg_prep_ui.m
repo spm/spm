@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_prep_ui.m 5333 2013-03-19 12:31:13Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5219 $';
+SVNrev = '$Rev: 5333 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -48,6 +48,14 @@ FileHeaderMenu = uimenu(FileMenu, ...
     'HandleVisibility', 'on',...
     'Accelerator','H',...
     'Callback', 'spm_eeg_prep_ui(''FileHeaderCB'')');
+
+FileImportMenu = uimenu(FileMenu, ...
+    'Label','Import from workspace',...
+    'Separator','off',...
+    'Tag','EEGprepUI',...
+    'HandleVisibility', 'on',...
+    'Accelerator','I',...
+    'Callback', 'spm_eeg_prep_ui(''FileImportCB'')');
 
 FileSaveMenu = uimenu(FileMenu, ...
     'Label','Save',...
@@ -324,6 +332,72 @@ update_menu;
 
 end
 
+%==========================================================================
+% function FileImportCB
+%==========================================================================
+function FileImportCB
+
+var = evalin('base', 'whos');
+var = {var(ismember({var.class}, {'single', 'double'})).name};
+
+[selection, ok]= listdlg('ListString', var, 'SelectionMode', 'single' ,'Name', 'Select variable' , 'ListSize', [400 300]);
+
+if ok
+    data = full(double(evalin('base', var{selection})));
+    dim = size(data);
+    ndim = length(dim);
+    
+    if length(dim)>3
+        error('Data of up to 3 dimensions are supported.');
+    end
+    
+    prompt = sprintf('%d|', dim);
+    prompt(end) = [];
+    
+    chandim = spm_input('Number of channels:', 1, prompt, 1:length(dim));
+    
+    nchan = dim(chandim);
+    
+    otherdim = setdiff(1:ndim, chandim);
+    
+    if ndim == 3        
+        prompt = sprintf('%d|', dim(otherdim));
+        prompt(end) = [];
+        trialdim = spm_input('Number of trials:','+1', prompt, otherdim);
+        
+        ntrials = dim(trialdim);
+    else
+        trialdim = [];
+        ntrials  = 1;
+    end
+        
+    sampledim = setdiff(1:ndim, [trialdim, chandim]);
+    nsamples  = dim(sampledim);
+    
+    data    = permute(data, [chandim, sampledim, trialdim]);
+    
+    fs      = spm_input('Sampling rate (Hz):', '+1','r');
+    t_onset = spm_input('Time axis onset (ms):', '+1','r');
+    
+    fname   = spm_input('Output file name:', '+1','s');
+    
+    time    = (0:(nsamples-1))/fs - 1e-3*t_onset;
+    
+    for i = 1:ntrials
+        ftdata.trial{i} = data(:, :, i);
+        ftdata.time{i}  = time;
+    end
+    
+    for i = 1:nchan
+        ftdata.label{i, 1} = sprintf('Ch%d', i); 
+    end
+    
+    D = spm_eeg_ft2spm(ftdata, fname);
+    
+    spm_eeg_review(D);
+    spm_eeg_review_callbacks('edit', 'prep');    
+end
+end
 %==========================================================================
 % function FileSaveCB
 %==========================================================================

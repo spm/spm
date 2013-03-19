@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5240 2013-02-05 11:08:33Z christophe $
+% $Id: spm_eeg_review_callbacks.m 5333 2013-03-19 12:31:13Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -93,8 +93,11 @@ switch varargin{1}
                 if isequal(d1,d0)
                     % The objects only differ by their history
                     % => remove last operation from modified object
-                    hh = history(D); hh(end) = [];
-                    D = history(D,hh);
+                    hh = history(D);
+                    if ~isempty(hh)
+                        hh(end) = [];
+                        D = history(D,hh);
+                    end
                 end
                 spm_eeg_review(D);
                 hf = spm_figure('FindWin','Graphics');
