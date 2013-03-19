@@ -1,11 +1,11 @@
 function D = spm_eeg_ft2spm(ftdata, filename)
 % Converter from Fieldtrip (http://www.ru.nl/fcdonders/fieldtrip/)
-% data structures to SPM8 file format
+% data structures to SPM file format
 %_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 5158 2012-12-21 14:41:43Z vladimir $
+% $Id: spm_eeg_ft2spm.m 5334 2013-03-19 13:22:04Z vladimir $
 
 isTF = 0;
 
@@ -100,17 +100,16 @@ D.trials = repmat(struct('label', {'Undefined'}), 1, Ntrials);
 D.path = pathname;
 D.fname = [fname '.mat'];
 
-D.data.fnamedat = [fname '.dat'];
-D.data.datatype = 'float32-le';
+fnamedat = [fname '.dat'];
 
 if ~isTF
     if Ntrials == 1
-        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples], D.data.datatype);
+        datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nsamples], 'float32-le');
         % physically initialise file
         datafile(end,end) = 0;
         datafile(:, :) = data;
     else
-        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nsamples Ntrials], D.data.datatype);
+        datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nsamples Ntrials], 'float32-le');
         % physically initialise file
         datafile(end,end) = 0;
 
@@ -118,12 +117,12 @@ if ~isTF
     end
 else
     if Ntrials == 1
-        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nfrequencies Nsamples], D.data.datatype);
+        datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nfrequencies Nsamples], 'float32-le');
         % physically initialise file
         datafile(end,end) = 0;
         datafile(:, :, :) = data;
     else
-        datafile = file_array(fullfile(D.path, D.data.fnamedat), [Nchannels Nfrequencies Nsamples Ntrials], D.data.datatype);
+        datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nfrequencies Nsamples Ntrials], 'float32-le');
         % physically initialise file
         datafile(end,end) = 0;
 
@@ -133,7 +132,7 @@ else
     D.transform.frequencies = ftdata.freq;
 end
 
-D.data.y = datafile;
+D.data = datafile;
 
 D = meeg(D);
 
