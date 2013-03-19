@@ -15,9 +15,9 @@ function D = spm_eeg_detect_eyeblinks(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_detect_eyeblinks.m 4265 2011-03-28 13:18:31Z vladimir $
+% $Id: spm_eeg_detect_eyeblinks.m 5335 2013-03-19 15:31:27Z vladimir $
 
-SVNrev = '$Rev: 4265 $';
+SVNrev = '$Rev: 5335 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ end
 eog_data = D(eogchan,:,:);
 
 %% filter data at 1-15Hz (eyeblink duration typically 100-300ms) and demean
-eog_filt = detrend(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but'), 'constant');
+eog_filt = detrend(abs(hilbert(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but'))), 'constant');
 
 %% find eye-movements
 
