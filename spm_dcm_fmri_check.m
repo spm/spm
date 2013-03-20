@@ -5,7 +5,7 @@ function [DCM] = spm_dcm_fmri_check(P)
 %
 % This routine provides some diagnostics to ensure model inversion has
 % converged. It plots the predicted and observed responses over all regions
-% and provides the coefficient of determination – or percent variance
+% and provides the coefficient of determination - or percent variance
 % explained. This should normally be above 10%. An abnormally low
 % coefficient of determination is highlighted in red. Quantitatively, one
 % would normally expect to see one or more extrinsic (between source)
@@ -29,17 +29,19 @@ function [DCM] = spm_dcm_fmri_check(P)
 %
 % This routine is compatible with DCM8, DCM10 and DCM12 files.
 %__________________________________________________________________________
-% Copyright (C) 20012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 5323 2013-03-13 22:04:28Z karl $
+% $Id: spm_dcm_fmri_check.m 5337 2013-03-20 16:45:55Z guillaume $
 
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
 if ~nargin
-    uiopen('load');
-elseif isstruct(P)
+    [P, sts] = spm_select(1,'^DCM.*\.mat$','select DCM_???.mat');
+    if ~sts, DCM = []; return; end
+end
+if isstruct(P)
     DCM = P;
 else
     load(P)
@@ -57,9 +59,9 @@ D(1)  = 100*PSS/(PSS + RSS);
 % largest absolute posterior expectation (extrinsic connections)
 %--------------------------------------------------------------------------
 try
-    A     = DCM.Ep.A;
+    A = DCM.Ep.A;
 catch
-    A     = DCM.A;
+    A = DCM.A;
 end
 D(2)  = max(max(abs(A - diag(diag(A)))));
 
@@ -101,7 +103,7 @@ xlabel('time {seconds}');
 % posterior densities over A parameters
 %--------------------------------------------------------------------------
 try
-    i   = spm_fieldindices(DCM.Ep,'A');
+    i = spm_fieldindices(DCM.Ep,'A');
 catch
     i = 1 + (1:DCM.n^2);
 end
@@ -121,7 +123,7 @@ if D(2) > 1/8
 else
     title(str,'FontSize',16,'Color','r');
 end
-xlabel('parameter}');
+xlabel('parameters');
 axis square
 
 
