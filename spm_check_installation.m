@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_check_installation.m 5338 2013-03-20 17:35:46Z guillaume $
 
 if isdeployed, return; end
 
@@ -46,7 +46,7 @@ function check_basic
 try
     v = spm_check_version('matlab','7.4');
 catch
-    error('Where is spm_check_version.m?');
+    error('A problem occurred with spm_check_version.m.');
 end
 if v < 0
     error([...
