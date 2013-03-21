@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 5320 2013-03-12 19:06:48Z guillaume $
+% $Id: spm_rewrite_job.m 5344 2013-03-21 17:12:29Z guillaume $
 
 
 try
@@ -34,6 +34,41 @@ try
     job.tools.preproc8;
     fprintf('Conversion Tools:New Segment -> Spatial:Segment\n');       %-#
     job = struct('spatial',struct('preproc',job.tools.preproc8));
+end
+
+try
+    F = cellfun(@fieldnames,job.stats.con.consess);
+    if any(strcmp('tconsess',F))
+        ws = warning('off','backtrace');
+        warning(['''T-contrast (cond/sess based)'' option is DEPRECATED. ' ...
+            'Please use T/F-contrast option instead.']);
+        warning(ws);
+    end
+end
+
+try
+    for i=1:numel(job.stats.con.consess)
+        try
+            con = job.stats.con.consess{i}.tcon.convec;
+            job.stats.con.consess{i}.tcon = rmfield(job.stats.con.consess{i}.tcon,'convec');
+            job.stats.con.consess{i}.tcon.weights = con;
+        end
+        try
+            con = job.stats.con.consess{i}.fcon.convec;
+            job.stats.con.consess{i}.fcon = rmfield(job.stats.con.consess{i}.fcon,'convec');
+            job.stats.con.consess{i}.fcon.weights = con;
+        end
+        try
+            job.stats.con.consess{i}.fcon.weights{1};
+            fprintf('Conversion to new syntax: Contrast Manager:F-contrast\n'); %-#
+            try
+                con = cat(1,job.stats.con.consess{i}.fcon.weights{:});
+            catch
+                fprintf('Error concatenating F-contrast vectors.\n');   %-#
+            end
+            job.stats.con.consess{i}.fcon.weights = con;
+        end
+    end
 end
 
 try

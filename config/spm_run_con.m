@@ -7,7 +7,7 @@ function out = spm_run_con(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 5008 2012-10-16 18:13:25Z guillaume $
+% $Id: spm_run_con.m 5344 2013-03-21 17:12:29Z guillaume $
 
 
 %-Change to the analysis directory
@@ -94,7 +94,7 @@ for i = 1:length(job.consess)
         else
             STAT = 'T';
         end
-        con = job.consess{i}.tcon.convec(:)';
+        con = job.consess{i}.tcon.weights(:)';
         sessrep = job.consess{i}.tcon.sessrep;
         
     %-T-contrast (cond/sess based)
@@ -167,12 +167,7 @@ for i = 1:length(job.consess)
         else
             STAT = 'F';
         end
-        try
-            con  = cat(1,job.consess{i}.fcon.convec{:});
-        catch
-            error('Error concatenating F-contrast vectors. Sizes are:\n %s\n',... 
-                   num2str(cellfun('length',job.consess{i}.fcon.convec)))
-        end
+        con = job.consess{i}.fcon.weights;
         sessrep = job.consess{i}.fcon.sessrep;
     end
 
