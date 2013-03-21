@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 5065 2012-11-16 20:00:21Z guillaume $
+% $Id: spm_mesh_render.m 5345 2013-03-21 18:46:52Z guillaume $
 
 
 %-Input parameters
@@ -725,12 +725,17 @@ clim = getappdata(H.patch, 'clim');
 if isempty(clim), clim = [false NaN NaN]; end
 mi = clim(2); ma = clim(3);
 if any(v(:))
-    if size(col,1)>3
+    if size(col,1)>3 && size(col,1) ~= size(v,1)
         if size(v,1) == 1
             if ~clim(1), mi = min(v(:)); ma = max(v(:)); end
             C = squeeze(ind2rgb(floor(((v(:)-mi)/(ma-mi))*size(col,1)),col));
-        else
+        elseif isequal(size(v),[size(curv,1) 3])
             C = v; v = v';
+        else
+            if ~clim(1), mi = min(v(:)); ma = max(v(:)); end
+            for i=1:size(v,1)
+                C = C + squeeze(ind2rgb(floor(((v(i,:)-mi)/(ma-mi))*size(col,1)),col));
+            end
         end
     else
         if ~clim(1), ma = max(v(:)); end
@@ -738,7 +743,6 @@ if any(v(:))
             C = C + v(i,:)'/ma * col(i,:);
         end
     end
-else
 end
 setappdata(H.patch, 'clim', [false mi ma]);
 
