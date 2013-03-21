@@ -1,7 +1,16 @@
 function D = meeg(varargin)
 % Function for creating meeg objects.
-% FORMAT m = meeg(varargin)
-%
+% FORMAT 
+%         D = meeg;
+%             returns an empty object
+%         D = meeg(D);
+%             converts a D struct to object or does nothing if already
+%             object
+%         D = meeg(nchannels, nsamples, ntrials)
+%             return a time dataset with default settings
+%         D = meeg(nchannels, nfrequencies, nsamples, ntrials)
+%             return TF time dataset with default settings        
+%         
 % SPM MEEG format consists of a header object optionally linked to 
 % binary data file. The object is usually saved in the header mat file
 %
@@ -105,12 +114,25 @@ function D = meeg(varargin)
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: meeg.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: meeg.m 5343 2013-03-21 16:07:50Z vladimir $
 
-if nargin == 0
-    D    = struct('Nsamples', 0); 
-else
-    D = varargin{1};
+switch nargin
+    case 0
+        D    = struct('Nsamples', 0);
+    case 1
+        D = varargin{1};
+    case 2
+        error('Illegal number of arguments');
+    case 3
+        D    = struct('Nsamples', varargin{2}, ...
+            'channels', struct('bad', num2cell(zeros(1, varargin{1}))), ...
+            'trials', struct('bad', num2cell(zeros(1, varargin{3}))));
+    case 4
+        D    = struct('Nsamples', varargin{3}, ...
+            'channels', struct('bad', num2cell(zeros(1, varargin{1}))), ...
+            'trials', struct('bad', num2cell(zeros(1, varargin{4}))));
+        D.transform.ID = 'TF';
+        D.transform.frequencies = 1:varargin{2};
 end
 
 if ~isa(D, 'meeg')
