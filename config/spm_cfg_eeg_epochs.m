@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 5331 2013-03-18 13:36:02Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 5340 2013-03-21 11:22:02Z vladimir $
 
 
 D        = cfg_files;
@@ -64,10 +64,19 @@ eventvalue.tag     = 'eventvalue';
 eventvalue.name    = 'Event value';
 eventvalue.strtype = 'e';
 
+trlshift         = cfg_entry;
+trlshift.tag     = 'trlshift';
+trlshift.name    = 'Shift';
+trlshift.strtype = 'r';
+trlshift.num     = [1 1];
+trlshift.val     = {0};
+trlshift.help    = {'shift the triggers by a fixed amount (ms)',... 
+                   '(e.g. projector delay).'};
+
 trialdef      = cfg_branch;
 trialdef.tag  = 'trialdef';
 trialdef.name = 'Trial';
-trialdef.val  = {conditionlabel eventtype eventvalue};
+trialdef.val  = {conditionlabel eventtype eventvalue, trlshift};
 
 define1        = cfg_repeat;
 define1.tag    = 'unused';

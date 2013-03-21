@@ -8,6 +8,8 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
+%       S.trialdef.trlshift       - shift the triggers by a fixed amount (ms) 
+%                                   (e.g. projector delay).
 %   S.reviewtrials - review individual trials after selection (yes/no: 1/0)
 %   S.save         - save trial definition (yes/no: 1/0)
 % OUTPUT:
@@ -18,10 +20,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_definetrial.m 5340 2013-03-21 11:22:02Z vladimir $
 
 
-SVNrev = '$Rev: 5219 $';
+SVNrev = '$Rev: 5340 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -83,11 +85,13 @@ if ~isfield(S, 'trialdef')
             if isempty(conditionlabel) || isempty(selected)
                 pos = '-1';
             else
+                shift = spm_input('Shift triggers (ms)', pos, 'r', '0');
                 for j = 1:size(selected, 1)
                     S.trialdef = [S.trialdef ...
                         struct('conditionlabel', conditionlabel, ...
                         'eventtype', selected{j, 1}, ...
-                        'eventvalue', selected{j, 2})];
+                        'eventvalue', selected{j, 2}, ...
+                        'trlshift', shift)];
                     OK=1;
                 end
             end
