@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5347 2013-03-22 17:03:36Z john $
+% $Id: spm_deformations.m 5348 2013-03-22 18:58:14Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -468,7 +468,11 @@ for m=1:numel(PI)
     NO.mat0        = mat;
     NO.mat_intent  = 'Aligned';
     NO.mat0_intent = 'Aligned';
-    out{m}         = NO.dat.fname;
+    if isempty(num),
+        out{m}     = NO.dat.fname;
+    else
+        out{m}     = [NO.dat.fname, ',', num2str(num(1))]; 
+    end
     NO.extras      = [];
     create(NO);
 
@@ -635,7 +639,12 @@ for m=1:numel(PI)
     NO.mat_intent  = 'Aligned';
     NO.mat0_intent = 'Aligned';
 
-    out{m}         = NO.dat.fname;
+    if isempty(num),
+        out{m}     = NO.dat.fname;
+    else
+        out{m}     = [NO.dat.fname, ',', num2str(num(1))];
+    end
+
     NO.extras      = [];
     create(NO);
 
