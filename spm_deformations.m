@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_deformations.m 5347 2013-03-22 17:03:36Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -208,24 +208,6 @@ if d(4)~=1 || d(5)~=3, error('Deformation field is wrong!'); end
 Def = reshape(Def,[d(1:3) d(5)]);
 mat = Nii.mat;
 
-
-%==========================================================================
-% function [Def,mat] = get_dartel_old(job)
-%==========================================================================
-function [Def,mat] = get_dartel_old(job)
-% Integrate a DARTEL flow field
-Nii     = nifti(job.flowfield{1});
-y       = spm_dartel_integrate(Nii.dat,job.times,job.K);
-if all(job.times == [0 1]),
-    M   = single(Nii.mat);
-    mat = Nii.mat0;
-else
-    M   = single(Nii.mat0);
-    mat = Nii.mat;
-end
-Def     = affine(y,M);
-
-
 %==========================================================================
 % function [Def,mat] = get_dartel(job)
 %==========================================================================
@@ -234,9 +216,9 @@ function [Def,mat] = get_dartel(job)
 Nii    = nifti(job.flowfield{1});
 
 if ~isempty(job.template{1})
-    Nt            = nifti(job.template{1});
-    [pth,nam,ext] = fileparts(job.template{1});
-    if exist(fullfile(pth,[nam '_2mni.mat']))
+   %Nt        = nifti(job.template{1});
+    [pth,nam] = fileparts(job.template{1});
+    if exist(fullfile(pth,[nam '_2mni.mat']),'file')
         load(fullfile(pth,[nam '_2mni.mat']),'mni');
     else
         % Affine registration of DARTEL Template with MNI space.
@@ -250,10 +232,10 @@ if ~isempty(job.template{1})
         save(fullfile(pth,[nam '_2mni.mat']),'mni', spm_get_defaults('mat.format'));
     end
     Mat    = mni.affine;
-    do_aff = true;
+   %do_aff = true;
 else
     Mat    = Nii.mat;
-    do_aff = false;
+   %do_aff = false;
 end
 
 % Integrate a DARTEL flow field
@@ -413,10 +395,16 @@ if job.mask
     dim = size(Def);
     msk = true(dim);
     for m=1:numel(PI)
-        [pth,nam,ext] = fileparts(PI{m});
+        [pth,nam,ext,num] = spm_fileparts(PI{m});
         NI = nifti(fullfile(pth,[nam ext]));
         dm = NI.dat.dim(1:3);
-        for j=1:size(NI.dat,4)
+        if isempty(num)
+            j_range = 1:size(NI.dat,4);
+        else
+            num     = sscanf(num,',%d');
+            j_range = num(1);
+        end
+        for j=j_range,
 
             M0 = NI.mat;
             if isfield(NI,'extras') && isfield(NI.extras,'mat')
@@ -443,7 +431,17 @@ for m=1:numel(PI)
 
     % Generate headers etc for output images
     %----------------------------------------------------------------------
-    [pth,nam,ext] = fileparts(PI{m});
+    [pth,nam,ext,num] = spm_fileparts(PI{m});
+    j_range = 1:size(NI.dat,4);
+    k_range = 1:size(NI.dat,5);
+    l_range = 1:size(NI.dat,6);
+    if ~isempty(num),
+        num = sscanf(num,',%d');
+        if numel(num)>=1, j_range = num(1); end
+        if numel(num)>=2, k_range = num(2); end
+        if numel(num)>=3, l_range = num(3); end
+    end
+
     NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
     if isfield(job.savedir,'savepwd')
@@ -481,7 +479,7 @@ for m=1:numel(PI)
     % Loop over volumes within the file
     %----------------------------------------------------------------------
     fprintf('%s',nam);
-    for j=1:size(NI.dat,4)
+    for j=j_range,
 
         M0 = NI.mat;
         if isfield(NI,'extras') && isfield(NI.extras,'mat')
@@ -498,8 +496,8 @@ for m=1:numel(PI)
         oM  = M;
         % Write the warped data for this time point
         %------------------------------------------------------------------
-        for k=1:size(NI.dat,5)
-            for l=1:size(NI.dat,6)
+        for k=k_range,
+            for l=l_range,
                 C   = spm_diffeo('bsplinc',single(NI.dat(:,:,:,j,k,l)),intrp);
                 dat = spm_diffeo('bsplins',C,Y,intrp);
                 if job.mask
@@ -588,7 +586,17 @@ for m=1:numel(PI)
 
     % Generate headers etc for output images
     %----------------------------------------------------------------------
-    [pth,nam,ext] = fileparts(PI{m});
+    [pth,nam,ext,num] = spm_fileparts(PI{m});
+    j_range = 1:size(NI.dat,4);
+    k_range = 1:size(NI.dat,5);
+    l_range = 1:size(NI.dat,6);
+    if ~isempty(num),
+        num = sscanf(num,',%d');
+        if numel(num)>=1, j_range = num(1); end
+        if numel(num)>=2, k_range = num(2); end
+        if numel(num)>=3, l_range = num(3); end
+    end
+
     NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
     if isfield(job.savedir,'savepwd')
@@ -638,7 +646,7 @@ for m=1:numel(PI)
     % Loop over volumes within the file
     %----------------------------------------------------------------------
     fprintf('%s',nam); drawnow;
-    for j=1:size(NI.dat,4)
+    for j=j_range,
 
         % Need to resample the mapping by an affine transform
         % so that it maps from voxels in the native space image
@@ -669,8 +677,8 @@ for m=1:numel(PI)
         oM  = M;
         % Write the warped data for this time point.
         %------------------------------------------------------------------
-        for k=1:size(NI.dat,5)
-            for l=1:size(NI.dat,6)
+        for k=k_range,
+            for l=l_range,
                 f  = single(NI.dat(:,:,:,j,k,l));
                 if isempty(wt)
                     if ~job.preserve

@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_cfg_norm.m 5347 2013-03-22 17:03:36Z john $
 
 
 % ---------------------------------------------------------------------
@@ -359,7 +359,7 @@ resample         = cfg_files;
 resample.tag     = 'resample';
 resample.name    = 'Images to Write';
 resample.help    = {'These are the images for warping according to the estimated parameters. They can be any images that are in register with the image used to generate the deformation.'};
-resample.filter  = 'nifti';
+resample.filter  = 'image';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
 

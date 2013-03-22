@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 4883 2012-09-03 12:34:55Z john $ */
+/* $Id: spm_diffeo.c 5347 2013-03-22 17:03:36Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -260,6 +260,9 @@ static void kernel_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArra
 {
     mwSize dm[5];
     static double param[] = {1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    if (nrhs!=2 || nlhs>1)
+        mexErrMsgTxt("Incorrect usage");
 
     if (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || mxIsSparse(prhs[0]) || !mxIsDouble(prhs[0]))
         mexErrMsgTxt("Data must be numeric, real, full and double");

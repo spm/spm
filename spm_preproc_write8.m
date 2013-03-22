@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5319 2013-03-11 13:38:22Z john $
+% $Id: spm_preproc_write8.m 5347 2013-03-22 17:03:36Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -73,7 +73,9 @@ for n=1:N,
                                      [spm_type('float32') spm_platform('bigend')],...
                                      0,1,0);
         chan(n).Nc.mat  = res.image(n).mat;
-        chan(n).Nc.mat0 = res.image(n).mat;
+        chan(n).Nc.mat0 = res.image(n).mat0;
+        chan(n).Nc.mat_intent  = res.image(n).mat_intent;
+        chan(n).Nc.mat0_intent = res.image(n).mat0_intent;
         chan(n).Nc.descrip = 'Bias corrected';
         create(chan(n).Nc);
     end
@@ -85,7 +87,9 @@ for n=1:N,
                                      [spm_type('float32') spm_platform('bigend')],...
                                      0,1,0);
         chan(n).Nf.mat  = res.image(n).mat;
-        chan(n).Nf.mat0 = res.image(n).mat;
+        chan(n).Nf.mat0 = res.image(n).mat0;
+        chan(n).Nf.mat_intent  = res.image(n).mat_intent;
+        chan(n).Nf.mat0_intent = res.image(n).mat0_intent;
         chan(n).Nf.descrip = 'Estimated Bias Field';
         create(chan(n).Nf);
     end
@@ -105,6 +109,8 @@ for k1=1:Kb,
                                       0,1/255,0);
         tiss(k1).Nt.mat  = res.image(n).mat;
         tiss(k1).Nt.mat0 = res.image(n).mat;
+        tiss(k1).Nt.mat_intent  = res.image(n).mat_intent;
+        tiss(k1).Nt.mat0_intent = res.image(n).mat0_intent;
         tiss(k1).Nt.descrip = ['Tissue class ' num2str(k1)];
         create(tiss(k1).Nt);
         do_cls = true;
