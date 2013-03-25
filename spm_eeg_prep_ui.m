@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5333 2013-03-19 12:31:13Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5350 2013-03-25 13:57:11Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5333 $';
+SVNrev = '$Rev: 5350 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -489,7 +489,7 @@ D = getD;
 % Get indices for just EEG channels and remove any bad channels
 %--------------------------------------------------------------------------
 eegchan  = D.indchantype('EEG');
-goodind = D.indchantype('EEG', 'GOOD');
+goodind  = D.indchantype('EEG', 'GOOD');
 
 if isempty(goodind)
     error('No good EEG channels.')
@@ -505,6 +505,10 @@ end
 
 refind  = goodind(selection);
 badind  = D.indchantype('EEG', 'BAD');
+
+goodind = find(ismember(eegchan, goodind));
+badind  = find(ismember(eegchan,  badind));
+refind  = find(ismember(eegchan,  refind));
 
 tra                 = eye(length(eegchan));
 tra(goodind,refind) = tra(goodind,refind) - 1/length(refind);
