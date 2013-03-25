@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5311 2013-03-07 15:05:25Z ged $
+% $Id: spm_cfg.m 5352 2013-03-25 16:23:29Z vladimir $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -30,7 +30,7 @@ stats         = cfg_choice;
 stats.tag     = 'stats';
 stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_mfx spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi };
+stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_eeg spm_cfg_mfx spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi };
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
