@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5332 2013-03-18 18:40:57Z guillaume $
+% $Id: spm_orthviews.m 5355 2013-03-26 12:13:52Z guillaume $
 
 
 % The basic fields of st are:
@@ -466,7 +466,7 @@ switch lower(action)
         
     case 'addcontext'
         if nargin == 1
-            handles = 1:24;
+            handles = 1:max_img;
         else
             handles = varargin{1};
         end
@@ -474,7 +474,7 @@ switch lower(action)
         
     case {'removecontext','rmcontext'}
         if nargin == 1
-            handles = 1:24;
+            handles = 1:max_img;
         else
             handles = varargin{1};
         end
@@ -485,7 +485,7 @@ switch lower(action)
         
     case 'valid_handles'
         if nargin == 1
-            handles = 1:24;
+            handles = 1:max_img;
         else
             handles = varargin{1};
         end
@@ -738,7 +738,7 @@ end
 function register(hreg)
 global st
 %tmp = uicontrol('Position',[0 0 1 1],'Visible','off','Parent',st.fig);
-h   = valid_handles(1:24);
+h   = valid_handles;
 if ~isempty(h)
     tmp = st.vols{h(1)}.ax{1}.ax;
     st.registry = struct('hReg',hreg,'hMe', tmp);
@@ -762,7 +762,7 @@ if ~strcmpi(state,'on')
 else
     st.xhairs = 1;
 end
-for i=valid_handles(1:24)
+for i=valid_handles
     for j=1:3
         set(st.vols{i}.ax{j}.lx,'Visible',opt);
         set(st.vols{i}.ax{j}.ly,'Visible',opt);
@@ -790,7 +790,7 @@ global st
 if ~isempty(st) && isfield(st,'registry') && ishandle(st.registry.hMe)
     delete(st.registry.hMe); st = rmfield(st,'registry');
 end
-my_delete(1:24);
+my_delete(1:max_img);
 reset_st;
 
 
@@ -896,7 +896,7 @@ if nargin < 2, res = Inf; end
 if isinf(fov)
     st.bb = maxbb;
 elseif isnan(fov) || fov == 0
-    current_handle = valid_handles(1:24);
+    current_handle = valid_handles;
     if numel(current_handle) > 1 % called from check reg context menu
         current_handle = get_current_handle;
     end
@@ -960,7 +960,7 @@ sz    = get(st.fig,'Position');set(st.fig,'Units',un);
 sz    = sz(3:4);
 sz(2) = sz(2)-40;
 
-for i=valid_handles(1:24)
+for i=valid_handles
     area   = st.vols{i}.area(:);
     area   = [area(1)*sz(1) area(2)*sz(2) area(3)*sz(1) area(4)*sz(2)];
     if st.mode == 0
@@ -1403,7 +1403,7 @@ drawnow;
 % function redraw_all
 %==========================================================================
 function redraw_all
-redraw(1:24);
+redraw(1:max_img);
 
 
 %==========================================================================
@@ -1441,7 +1441,7 @@ obj    = get(st.fig,'CurrentObject');
 centre = [];
 cent   = [];
 cp     = [];
-for i=valid_handles(1:24)
+for i=valid_handles
     for j=1:3
         if ~isempty(obj)
             if (st.vols{i}.ax{j}.ax == obj),
@@ -1477,12 +1477,12 @@ if ~isempty(cent), centre = st.Space(1:3,1:3)*cent(:) + st.Space(1:3,4); end
 %==========================================================================
 function handles = valid_handles(handles)
 global st
-if ~nargin, handles = 1:24; end
+if ~nargin, handles = 1:max_img; end
 if isempty(st) || ~isfield(st,'vols')
     handles = [];
 else
     handles = handles(:)';
-    handles = handles(handles<=24 & handles>=1 & ~rem(handles,1));
+    handles = handles(handles<=max_img & handles>=1 & ~rem(handles,1));
     for h=handles
         if isempty(st.vols{h}), handles(handles==h)=[]; end
     end
@@ -1496,7 +1496,7 @@ function reset_st
 global st
 fig = spm_figure('FindWin','Graphics');
 bb  = []; %[ [-78 78]' [-112 76]' [-50 85]' ];
-st  = struct('n', 0, 'vols',{cell(24,1)}, 'bb',bb, 'Space',eye(4), ...
+st  = struct('n', 0, 'vols',{cell(max_img,1)}, 'bb',bb, 'Space',eye(4), ...
              'centre',[0 0 0], 'callback',';', 'xhairs',1, 'hld',1, ...
              'fig',fig, 'mode',1, 'plugins',{{}}, 'snap',[]);
 
@@ -1954,7 +1954,7 @@ switch lower(varargin{1})
             {'linear', 'histeq', 'loghisteq', 'quadhisteq'});
         checked = checked(end:-1:1); % Handles are stored in inverse order
         cm_handles = get_cm_handles;
-        for k = valid_handles(1:24)
+        for k = valid_handles
             st.vols{k}.mapping = varargin{2};
             z_handle = get(findobj(cm_handles(k), ...
                 'label','Intensity mapping'),'Children');
@@ -1981,7 +1981,7 @@ switch lower(varargin{1})
         
     case 'add_blobs'
         % Add blobs to the image - in split colortable
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
@@ -2009,7 +2009,7 @@ switch lower(varargin{1})
         end
         
     case 'remove_blobs'
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         for i = 1:numel(cm_handles)
             rmblobs(cm_handles(i));
@@ -2025,7 +2025,7 @@ switch lower(varargin{1})
         
     case 'add_image'
         % Add blobs to the image - in split colortable
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         fname = spm_select(1,'image','select image');
@@ -2054,7 +2054,7 @@ switch lower(varargin{1})
         
     case 'add_c_blobs'
         % Add blobs to the image - in full colour
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         [SPM,xSPM] = spm_getSPM;
@@ -2084,7 +2084,7 @@ switch lower(varargin{1})
         end
         
     case 'remove_c_blobs'
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
         for i = 1:numel(cm_handles)
@@ -2110,7 +2110,7 @@ switch lower(varargin{1})
         
     case 'add_c_image'
         % Add truecolored image
-        cm_handles = valid_handles(1:24);
+        cm_handles = valid_handles;
         if varargin{2} == 2, cm_handles = get_current_handle; end
         spm_input('!DeleteInputObj');
         fname = spm_select([1 Inf],'image','select image(s)');
@@ -2141,7 +2141,7 @@ switch lower(varargin{1})
     case 'setblobsmax'
         if varargin{2} == 1
             % global
-            cm_handles = valid_handles(1:24);
+            cm_handles = valid_handles;
             mx = -inf;
             for i = 1:numel(cm_handles)
                 if ~isfield(st.vols{cm_handles(i)}, 'blobs'), continue, end
@@ -2188,7 +2188,7 @@ current_handle = find(cm_handles==cm_handle);
 %==========================================================================
 function cm_pos
 global st
-for i = 1:numel(valid_handles(1:24))
+for i = 1:numel(valid_handles)
     if isfield(st.vols{i}.ax{1},'cm')
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_mm'),...
             'Label',sprintf('mm:  %.1f %.1f %.1f',spm_orthviews('pos')));
@@ -2207,7 +2207,7 @@ end
 function cm_handles = get_cm_handles
 global st
 cm_handles = [];
-for i = valid_handles(1:24)
+for i = valid_handles
     cm_handles = [cm_handles st.vols{i}.ax{1}.cm];
 end
 
@@ -2227,3 +2227,10 @@ for i = 1:numel(cm_handles)
         set(findobj(z_handle,'Label',sprintf('%dx%d mm', 2*zoom, 2*zoom)),'Checked','on');
     end % leave all unchecked if either bounding box option was chosen
 end
+
+
+%==========================================================================
+% function m = max_img
+%==========================================================================
+function m = max_img
+m = 24;
