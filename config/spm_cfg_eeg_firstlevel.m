@@ -3,9 +3,9 @@ function eeg_design = spm_cfg_eeg
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 5351 2013-03-25 16:22:19Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5356 2013-03-26 14:50:46Z vladimir $
 
-rev = '$Rev: 5351 $';
+rev = '$Rev: 5356 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
