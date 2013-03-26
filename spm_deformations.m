@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5348 2013-03-22 18:58:14Z john $
+% $Id: spm_deformations.m 5358 2013-03-26 16:59:50Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -432,6 +432,8 @@ for m=1:numel(PI)
     % Generate headers etc for output images
     %----------------------------------------------------------------------
     [pth,nam,ext,num] = spm_fileparts(PI{m});
+    NI = nifti(fullfile(pth,[nam ext]));
+
     j_range = 1:size(NI.dat,4);
     k_range = 1:size(NI.dat,5);
     l_range = 1:size(NI.dat,6);
@@ -442,7 +444,6 @@ for m=1:numel(PI)
         if numel(num)>=3, l_range = num(3); end
     end
 
-    NI = nifti(fullfile(pth,[nam ext]));
     NO = NI;
     if isfield(job.savedir,'savepwd')
         wd = pwd;
