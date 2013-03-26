@@ -1,11 +1,11 @@
-function eeg_design = spm_cfg_eeg
+function convmodel = spm_cfg_eeg_firstlevel
 % SPM Configuration file for M/EEG convolution modelling
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5357 2013-03-26 15:04:40Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5359 2013-03-26 23:38:22Z vladimir $
 
-rev = '$Rev: 5357 $';
+rev = '$Rev: 5359 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -471,13 +471,13 @@ atfpad.val     = {400};
 % ---------------------------------------------------------------------
 % eeg_design MEEG model specification 
 % ---------------------------------------------------------------------
-eeg_design         = cfg_exbranch;
-eeg_design.tag     = 'eeg_design';
-eeg_design.name    = 'M/EEG convolution modelling';
-eeg_design.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt};
-eeg_design.prog = @eeg_run;
-eeg_design.vout = @vout_eeg;
-eeg_design.modality = {'EEG'};
+convmodel         = cfg_exbranch;
+convmodel.tag     = 'convmodel';
+convmodel.name    = 'M/EEG convolution modelling';
+convmodel.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt};
+convmodel.prog = @eeg_run;
+convmodel.vout = @vout_eeg;
+convmodel.modality = {'EEG'};
 
 %-------------------------------------------------------------------------
 function out = eeg_run(job)

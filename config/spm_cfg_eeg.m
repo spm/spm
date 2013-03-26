@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 5357 2013-03-26 15:04:40Z vladimir $
+% $Id: spm_cfg_eeg.m 5359 2013-03-26 23:38:22Z vladimir $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -54,11 +54,11 @@ source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, sp
 %--------------------------------------------------------------------------
 % M/EEG Statistics
 %--------------------------------------------------------------------------
-meegstat        = cfg_choice;
-meegstat.tag    = 'stat';
-meegstat.name   = 'M/EEG Stats';
-meegstat.help   = {'M/EEG Statistics'};
-meegstat.values = {spm_cfg_eeg_firstlevel}; 
+meegmodel        = cfg_choice;
+meegmodel.tag    = 'modelling';
+meegmodel.name   = 'M/EEG Modelling';
+meegmodel.help   = {'M/EEG Modelling'};
+meegmodel.values = {spm_cfg_eeg_firstlevel}; 
 %--------------------------------------------------------------------------
 % M/EEG other
 %--------------------------------------------------------------------------
@@ -75,4 +75,4 @@ meeg         = cfg_choice;
 meeg.tag     = 'meeg';
 meeg.name    = 'M/EEG';
 meeg.help    = {'M/EEG functions.'};
-meeg.values  = {spm_cfg_eeg_convert meegprep meegavg meegimg meegtf source meegstat meegothr};
+meeg.values  = {spm_cfg_eeg_convert meegprep meegavg meegimg meegtf source meegmodel meegothr};
