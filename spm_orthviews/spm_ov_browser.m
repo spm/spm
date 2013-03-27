@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5360 2013-03-27 13:59:27Z guillaume $
+% $Id: spm_ov_browser.m 5363 2013-03-27 17:03:34Z ged $
 
 
 cmd = lower(varargin{1});
@@ -90,12 +90,14 @@ function browser_play_button(hObj,event)
 hS = getappdata(hObj,'hS');
 f  = getappdata(hS,'f');
 j  = round(get(hS,'Value'));
+if j == numel(f), j = 1; end % if at end already, play from start
+tp = 1 / numel(f); % make the complete sequence take at least 1 second
 for i=j:numel(f)
     if ~get(hObj,'Value'), return; end
     t = tic;
     set(hS,'Value',i);
     browser_slider(hS);
-    pause(0-toc(t))
+    pause(tp - toc(t))
 end
 set(hObj,'Value',0);
 

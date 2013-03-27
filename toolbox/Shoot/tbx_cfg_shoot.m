@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 5278 2013-02-21 18:08:11Z john $
+% $Id: tbx_cfg_shoot.m 5363 2013-03-27 17:03:34Z ged $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -572,8 +572,8 @@ end;
 %_______________________________________________________________________
 function dep = vout_shoot_template(job)
 
-if isa(job.template,'cfg_dep') || ~ ...
-        isempty(deblank(job.template))
+if isfield(job, 'template') && (isa(job.template,'cfg_dep') || ~ ...
+        isempty(deblank(job.template)))
     for it=0:numel(job.param),
         tdep(it+1)            = cfg_dep;
         tdep(it+1).sname      = sprintf('Template (Iteration %d)', it);
