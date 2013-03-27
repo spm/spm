@@ -1,7 +1,5 @@
-% $Id: ReleaseNotes.tex 5362 2013-03-27 16:07:31Z john $
 \documentclass[a4paper,titlepage,openany]{article}
 \usepackage{epsfig,amsmath,pifont,moreverb,multirow,multicol}
-\usepackage[3D]{movie15}
 
 %\usepackage[scaled=.92]{helvet}
 %\usepackage{newcent}
@@ -14,7 +12,7 @@
 
 \usepackage[colorlinks=true,
 pdfpagemode=UseOutlines,
-pdftitle={SPM12 Manual},
+pdftitle={SPM12 Release Notes},
 pdfauthor={The SPM Developers},
 pdfsubject={Statistical Parametric Mapping},
 pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
@@ -85,7 +83,7 @@ We are always interested to hear feedbacks and comments from SPM users - please 
 If you happen to find any bug, please report them at the same email address. Thank you! 
 
 
-SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file spm\_LICENCE.man, or at your option, any later version). Further details on ``copyleft'' can be found at \url{http://www.gnu.org/copyleft/}. 
+SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file spm\_LICENCE.man, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}. \\
 SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of Neurology at University College London (UCL), UK.
  
 %Copyright (C) 1991,1994-2013 Wellcome Trust Centre for Neuroimaging.
@@ -125,6 +123,16 @@ However, the cleanup step (re-introduced from the old segmentation routine, and 
 \section{fMRI Statistics}
 
 \section{EEG/MEG}
+
+\subsection{DCM}
+
+\begin{itemize}
+\item The routine evaluating cross spectra (\texttt{spm\_dcm\_data\_csd}) now performs a moving window cross spectral analysis (based on an eighth order MAR model) to remove (nonstationary) fluctuations in the cross spectra. This is achieved by performing a singular value decomposition on the time-dependent cross spectra and retaining only the principal spectral mode.
+\item The data features used for inverting dynamic causal models of cross spectral density now include both the cross spectra per se and the cross covariance functions. These are simply concatenated to provide a greater latitude of data features to compute free energy gradients. Heuristically, the cross spectra inform gradients that affect low frequencies, while the covariance functions allow high frequencies to be fitted gracefully. This means that any frequency dependent precision can be removed.
+\item The inversion routines for event related potentials (\texttt{spm\_dcm\_erp}) and complex cross spectra (\texttt{spm\_dcm\_csd}) now use more precise (hyper) priors on data feature noise (with an expected log precision \texttt{hE} of eight and a log precision of eight). Effectively, this means that, a priori, we expect these data features to be essentially noiseless -- because they accumulate information from long timeseries, with many degrees of freedom.
+\item To ensure the quantitative veracity of the hyperpriors, the data are scaled to have a maximum amplitude of one (for evoked responses) and a variance of 16 (four cross spectral density analysis).The scaling of the exogenous and endogenous input (\texttt{U}) in the equations of motion has also been adjusted, to ensure that the neural mass and mean field models used in DCM produce an ERP with a maximum height of about 1 and autospectra with about unit variance.
+\item The amplitude of evoked responses, and the spectral responses (shown in terms of autospectra and covariance functions) can now be visualised -- for all models -- using the survey of models button in the \texttt{Neural\_models} demo.
+\end{itemize}
 
 \section{Utilities}
 
