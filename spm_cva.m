@@ -5,7 +5,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % X            - design
 % X0           - null space
 % c            - contrast weights
-% U            - dimension reduction
+% U            - dimension reduction (projection matrix)
 % 
 % 
 % CVA.c        - contrast weights
@@ -53,11 +53,12 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 4845 2012-08-15 19:23:46Z guillaume $
+% $Id: spm_cva.m 5366 2013-03-27 21:12:10Z karl $
 
 
 if nargin < 3, X0 = [];             end
 if nargin < 4, c  = eye(size(X,2)); end
+if isempty(c), c  = eye(size(X,2)); end
 
 %-Get null-space of contrast
 %--------------------------------------------------------------------------

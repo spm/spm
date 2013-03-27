@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_DEM_play_song.m 5366 2013-03-27 21:12:10Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -74,6 +74,7 @@ Y   = Y/max(Y);
  
 % Graphics
 %==========================================================================
+colormap('pink')
 imagesc(pst,Hz,abs(S))
 axis xy
 xlabel('time (sec)')
