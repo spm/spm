@@ -5,12 +5,13 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % D        - MEEG object or filename of M/EEG mat-file (optional)
 %
 %     D.inv{val}.contrast.display:   display image at the end {true, [false]}
-%     D.inv{val}.contrast.space:     native [0] or MNI {1} output image space
+%     D.inv{val}.contrast.space:     native [0] or MNI {1} output space
+%     D.inv{val}.contrast.format:    output file format {['image'], 'mesh'}
 %     D.inv{val}.contrast.smoothing: # iterations for cortical smoothing
 %
 % Output:
 % D        - MEEG object containing the new image filenames in fields:
-%     D.inv{val}.contrast.Vout
+%
 %     D.inv{val}.contrast.fname
 %__________________________________________________________________________
 %
@@ -24,13 +25,13 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % (using a graph Laplacian) and then in voxel-space using a conventional
 % Gaussian filter.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 5365 2013-03-27 20:53:02Z guillaume $
 
 
-SVNrev = '$Rev: 4873 $';
+SVNrev = '$Rev: 5365 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -44,6 +45,7 @@ spm('FnBanner', mfilename, SVNrev);
 %--------------------------------------------------------------------------
 try, Disp    = D.inv{val}.contrast.display;   catch, Disp   = 0; end
 try, space   = D.inv{val}.contrast.space;     catch, space  = 1; end
+try, fmt     = D.inv{val}.contrast.format;    catch, fmt    = 'image'; end
 try, smooth  = D.inv{val}.contrast.smoothing; catch, smooth = 8; end
 
 %-Time and Frequency windows of interest
@@ -117,6 +119,62 @@ for c = 1:length(GW)
 end
 
 scale = exp(mean(meanlss));
+
+%-Save as meshes
+%==========================================================================
+if strcmpi(fmt,'mesh')
+    [pth,name] = fileparts(D.fname);
+    tag = cell(1,Nw);
+    for i = 1:Nw
+        tag{i} = ['t' sprintf('%d_', woi(i,:)) 'f' sprintf('%d_', foi)];
+    end
+    
+    %-Save mesh topology
+    %----------------------------------------------------------------------
+    g = gifti(m);
+	save(g,fullfile(D.path,[name '.surf.gii']));
+    
+    %-Save mesh data
+    %----------------------------------------------------------------------
+    spm_progress_bar('Init',numel(ssq),'Exporting as meshes','');
+    for c = 1:numel(ssq)
+        
+        fprintf('%s%30s',repmat(sprintf('\b'),1,30),...
+            sprintf('...mesh %d/%d',c,numel(ssq)));                     %-#
+        
+        %-Filename
+        %------------------------------------------------------------------
+        con       = mod(iw(c) - 1, Nj) + 1;
+        str       = tag{ceil(iw(c)/Nj)};
+        if bytrial, bt = sprintf('_%.0f',ie(c)); else bt = ''; end
+        fname     = fullfile(D.path,...
+            sprintf('%s_%.0f_%s%.0f%s.gii', name, val, str, con, bt));
+        
+        %-Normalise
+        %------------------------------------------------------------------
+        Contrast = ssq{c} / scale;
+        
+        %-Write mesh
+        %------------------------------------------------------------------
+        g = gifti;
+        g.cdata = Contrast;
+        g.private.metadata(1).name = 'SurfaceID';
+        g.private.metadata(1).value = fullfile(D.path,[name '.surf.gii']);
+        save(g, fname, 'ExternalFileBinary');
+        
+        %-Store filename
+        %------------------------------------------------------------------
+        D.inv{val}.contrast.fname{c} = fname;
+    
+        spm_progress_bar('Set', c);
+        
+    end
+    
+    spm_progress_bar('Clear');
+    fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');           %-#
+    
+    return;
+end
 
 %-Normalise and embed in 3D-space
 %==========================================================================
