@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5358 2013-03-26 16:59:50Z john $
+% $Id: spm_deformations.m 5362 2013-03-27 16:07:31Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -224,7 +224,7 @@ if ~isempty(job.template{1})
         % Affine registration of DARTEL Template with MNI space.
         %------------------------------------------------------------------
         fprintf('** Affine registering "%s" with MNI space **\n', nam);
-        tpm        = fullfile(spm('Dir'),'TPM','TPM.nii');
+        tpm        = fullfile(spm('Dir'),'tpm','TPM.nii');
         Mmni       = spm_get_space(tpm);
         Nt         = nifti(job.template{1});
         mni.affine = Mmni/spm_klaff(Nt,tpm);

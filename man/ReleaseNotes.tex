@@ -1,4 +1,4 @@
-% $Id: ReleaseNotes.tex 5248 2013-02-13 20:21:04Z john $
+% $Id: ReleaseNotes.tex 5362 2013-03-27 16:07:31Z john $
 \documentclass[a4paper,titlepage,openany]{article}
 \usepackage{epsfig,amsmath,pifont,moreverb,multirow,multicol}
 \usepackage[3D]{movie15}
@@ -111,15 +111,16 @@ Rather than the old sn.mat format, they are now saved as y\_$*$.nii files, which
 Note that for spatially normalising PET, SPECT and other images that have spatially correlated noise, it is a good idea to change the smoothness setting on the user interface (from 0 to about 5 mm).
 
 \subsection{Segment}
-The default segmentation has now been replaced by what was unimaginatively called ``New Segment'' in SPM8.
+The default segmentation has now been replaced by a slightly modified version of what was unimaginatively called ``New Segment'' in SPM8.
 For those of you who preferred the older way of segmenting images, this is still available via the ``Old Segment'' Tool.
 The aim, however, is to try to simplify SPM and eventually remove the older functionality that works less well.
-Both implementations are based on the algorithm presented in \cite{ashburner05}, although the newer version makes use of additional tissue classes, does include parameters that re-scale the tissue priors, and incorporates a more flexible image registration component.
+Both implementations are based on the algorithm presented in \cite{ashburner05}, although the newer version makes use of additional tissue classes, allows multi-channel segmentation (of eg T2-weighted and PD-weighted images), and incorporates a more flexible image registration component.
 
-Changes to the SPM8 version of ``New Segment'' include different regularisation for the deformations, and some different default settings.  In addition, the tissue probability maps were re-generated using the T2-weighted and PD-weighted scans from the IXI dataset\footnote{\url{http://www.brain-development.org/}}.
+Changes to the SPM8 version of ``New Segment'' include different regularisation for the deformations, some different default settings, as well as re-introducing the re-scaling of the tissue probability maps (which was in the old segment, but not the new).  In addition, the tissue probability maps were re-generated using the T2-weighted and PD-weighted scans from the IXI dataset\footnote{\url{http://www.brain-development.org/}}.
 This was initially done in an automated way (by enabling a hidden feature in spm\_preproc\_run.m, which allows the necessary sufficient statistics for re-generating the templates to be computed), with some manual editing of the results to tidy them up.
 Note that eyeballs are now included within the same class as CSF.
 Separating eyeballs from other non-brain tissue allows the nonlinear registration part to be made more flexible, but the disadvantage is that intra-cranial volumes are now fractionally more difficult to compute.
+However, the cleanup step (re-introduced from the old segmentation routine, and extended slightly) should allow eyeballs to be removed from the fluid tissue class.
 
 \section{fMRI Statistics}
 
