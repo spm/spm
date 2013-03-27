@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5332 2013-03-18 18:40:57Z guillaume $
+% $Id: spm_ov_browser.m 5360 2013-03-27 13:59:27Z guillaume $
 
 
 cmd = lower(varargin{1});
@@ -43,7 +43,7 @@ hS = uicontrol('Parent', Fgraph,...
     'Min',               1,...
     'Max',               numel(f),...
     'Value',             1,...
-    'SliderStep',        [1 1]/numel(f));
+    'SliderStep',        [1 1]/(numel(f)-1));
 try
     hListener = handle.listener(hS,'ActionEvent',@browser_slider);
     setappdata(hS,'myListener',hListener);
@@ -89,7 +89,7 @@ setappdata(hS,'hP',hP);
 function browser_play_button(hObj,event)
 hS = getappdata(hObj,'hS');
 f  = getappdata(hS,'f');
-j  = ceil(get(hS,'Value'));
+j  = round(get(hS,'Value'));
 for i=j:numel(f)
     if ~get(hObj,'Value'), return; end
     t = tic;
@@ -111,7 +111,7 @@ delete(hS);
 %==========================================================================
 function browser_slider(hObj,event)
 global st
-i  = ceil(get(hObj,'Value'));
+i  = round(get(hObj,'Value'));
 f  = getappdata(hObj,'f');
 hT = getappdata(hObj,'hT');
 hC = getappdata(hObj,'hC');

@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_image.m 5360 2013-03-27 13:59:27Z guillaume $
 
 
-SVNid = '$Rev: 5219 $';
+SVNid = '$Rev: 5360 $';
 
 global st
 
@@ -85,7 +85,7 @@ switch lower(action)
     else
         dispf = @(f) f;
     end
-    fprintf('Display %s\n',dispf(P.fname));                             %-#
+    fprintf('Display %s\n',dispf([P.fname ',' num2str(P.n(1))]));       %-#
     
     init_display(P);
     

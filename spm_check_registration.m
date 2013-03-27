@@ -9,13 +9,13 @@ function spm_check_registration(images, captions, varargin)
 % the bottom right. The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %__________________________________________________________________________
-% Copyright (C) 1997-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1997-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 4916 2012-09-11 19:15:53Z guillaume $
+% $Id: spm_check_registration.m 5360 2013-03-27 13:59:27Z guillaume $
 
 
-SVNid = '$Rev: 4916 $';
+SVNid = '$Rev: 5360 $';
 
 if ~nargin
     [images, sts] = spm_select([1 24],'image','Select images');
@@ -26,14 +26,12 @@ if ischar(images), images = spm_vol(images); end
 
 spm('FnBanner',mfilename,SVNid);                                        %-#
 if desktop('-inuse')
-    dispf = @(f) ...
-        sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
-else
-    dispf = @(f) f;
+    dispf = @(f) sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
+else dispf = @(f) f;
 end
 for i=1:numel(images)
-    if i==1, fprintf('Display %s\n',dispf(images(i).fname));            %-#
-    else     fprintf('        %s\n',dispf(images(i).fname)); end        %-#
+    if i==1, fprintf('Display '); else fprintf('        '); end         %-#
+    fprintf('%s\n',dispf([images(i).fname ',' num2str(images(i).n(1))]));%-#
 end
 
 spm_figure('GetWin','Graphics');
