@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5347 2013-03-22 17:03:36Z john $
+% $Id: spm_cfg_norm.m 5372 2013-03-28 20:24:57Z john $
 
 
 % ---------------------------------------------------------------------
@@ -121,7 +121,7 @@ reg.name    = 'Warping Regularisation';
 reg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
 reg.strtype = 'e';
 reg.num     = [1  5];
-reg.val     = {[0 0.001 0.5 0.025 0.1]};
+reg.val     = {[0 0.001 0.5 0.05 0.2]};
 
 % ---------------------------------------------------------------------
 % affreg Affine Regularisation

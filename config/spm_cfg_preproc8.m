@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5319 2013-03-11 13:38:22Z john $
+% $Id: spm_cfg_preproc8.m 5372 2013-03-28 20:24:57Z john $
 
 
 % ---------------------------------------------------------------------
@@ -296,7 +296,7 @@ reg.help    = {...
 'The amount of regularisation determines the tradeoff between the terms. More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations.'};
 reg.strtype = 'e';
 reg.num     = [1  5];
-reg.val     = {[0 0.001 0.5 0.025 0.1]};
+reg.val     = {[0 0.001 0.5 0.05 0.2]};
 % ---------------------------------------------------------------------
 % affreg Affine Regularisation
 % ---------------------------------------------------------------------
