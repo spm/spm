@@ -28,10 +28,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 5365 2013-03-27 20:53:02Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 5367 2013-03-28 13:03:39Z guillaume $
 
 
-SVNrev = '$Rev: 5365 $';
+SVNrev = '$Rev: 5367 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -43,10 +43,10 @@ spm('FnBanner', mfilename, SVNrev);
 
 %-Get options
 %--------------------------------------------------------------------------
-try, Disp    = D.inv{val}.contrast.display;   catch, Disp   = 0; end
 try, space   = D.inv{val}.contrast.space;     catch, space  = 1; end
 try, fmt     = D.inv{val}.contrast.format;    catch, fmt    = 'image'; end
 try, smooth  = D.inv{val}.contrast.smoothing; catch, smooth = 8; end
+try, Disp    = D.inv{val}.contrast.display;   catch, Disp   = 0; end
 
 %-Time and Frequency windows of interest
 %--------------------------------------------------------------------------
@@ -126,7 +126,7 @@ if strcmpi(fmt,'mesh')
     [pth,name] = fileparts(D.fname);
     tag = cell(1,Nw);
     for i = 1:Nw
-        tag{i} = ['t' sprintf('%d_', woi(i,:)) 'f' sprintf('%d_', foi)];
+        tag{i} = ['t' sprintf('%g_', woi(i,:)) 'f' sprintf('%d_', foi)];
     end
     
     %-Save mesh topology
@@ -153,13 +153,14 @@ if strcmpi(fmt,'mesh')
         %-Normalise
         %------------------------------------------------------------------
         Contrast = ssq{c} / scale;
+        %Contrast = Contrast.*(Contrast > exp(-8));
         
         %-Write mesh
         %------------------------------------------------------------------
         g = gifti;
         g.cdata = Contrast;
         g.private.metadata(1).name = 'SurfaceID';
-        g.private.metadata(1).value = fullfile(D.path,[name '.surf.gii']);
+        g.private.metadata(1).value = [name '.surf.gii'];
         save(g, fname, 'ExternalFileBinary');
         
         %-Store filename
@@ -238,4 +239,4 @@ fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done');               %-#
 
 %-Display
 %==========================================================================
-if Disp, spm_eeg_inv_image_display(D); end
+if Disp && ~spm('CmdLine'), spm_eeg_inv_image_display(D); end

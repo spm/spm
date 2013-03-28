@@ -7,16 +7,17 @@ function [D] = spm_eeg_inv_results(D)
 %     D.inv{i}.contrast.fboi  - frequency window of interest
 %     D.inv{i}.contrast.type  - 'evoked' or 'induced'
 %
-% this routine will create a contrast for each trial type and will compute
+% This routine will create a contrast for each trial type and will compute
 % induced responses in terms of power (over trials) if requested; otherwise
-% the power in D.inv{i}.contrast.GW corresponds to the evoked power
+% the power in D.inv{i}.contrast.GW corresponds to the evoked power.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 3976 2010-07-08 14:12:31Z karl $
+% $Id: spm_eeg_inv_results.m 5367 2013-03-28 13:03:39Z guillaume $
 
-% SPM data structure
+
+%-MEEG data structure
 %==========================================================================
 try
     model = D.inv{D.val};
@@ -27,10 +28,10 @@ end
 
 % defaults
 %--------------------------------------------------------------------------
-try, woi  = model.contrast.woi;  catch, woi  = model.inverse.woi; end
-try, foi  = model.contrast.fboi; catch, foi  = [];                end
-try, type = model.contrast.type; catch, type = 'evoked';          end
-
+try, woi  = model.contrast.woi;     catch, woi  = model.inverse.woi; end
+try, foi  = model.contrast.fboi;    catch, foi  = [];                end
+try, type = model.contrast.type;    catch, type = 'evoked';          end
+try, Disp = model.contrast.display; catch, Disp = 1;                 end
 
 % Ensure contrast woi is within inversion woi
 %--------------------------------------------------------------------------
@@ -65,7 +66,7 @@ catch
 end
 
 
-% time-frequency contrast
+%-Time-frequency contrast
 %==========================================================================
 model.contrast.W  = {};
 model.contrast.JW = {};
@@ -212,7 +213,7 @@ for w = 1:Nw;
     end
     
     
-    % Save results
+    %-Save results
     %======================================================================
     model.contrast.woi   = woi;
     model.contrast.fboi  = foi;
@@ -226,6 +227,6 @@ end % window
 D.inv{D.val}         = model;
 
 
-% Display
+%-Display
 %==========================================================================
-spm_eeg_inv_results_display(D);
+if Disp && ~spm('CmdLine'), spm_eeg_inv_results_display(D); end

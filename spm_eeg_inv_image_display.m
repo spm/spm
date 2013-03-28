@@ -1,15 +1,14 @@
 function spm_eeg_inv_image_display(varargin)
-% spm_orthviews of an interpolated 3D image of a contrast or window
+% Display an interpolated 3D image of a contrast or window
 %
 % FORMAT D = spm_eeg_inv_image_display(D,val)
 % Input:
 % D        - input data struct (optional)
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
-% Jeremie Mattout, Stefan Kiebel & Karl Friston
-% $Id: spm_eeg_inv_image_display.m 2720 2009-02-09 19:50:46Z vladimir $
+% Karl Friston
+% $Id: spm_eeg_inv_image_display.m 5367 2013-03-28 13:03:39Z guillaume $
 
 
 % checks
@@ -27,8 +26,8 @@ wEEG = D.inv{val}.contrast.fname{D.con};
 
 % display
 %--------------------------------------------------------------------------
+spm_figure('Clear','Graphics');
 spm_check_registration(sMRI);
 spm_orthviews('addcolouredimage',1,wEEG,[1 0 0]);
 spm_orthviews('addcolourbar',1,1);
 spm_orthviews('Redraw');
-rotate3d off;

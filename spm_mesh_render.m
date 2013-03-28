@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 5345 2013-03-21 18:46:52Z guillaume $
+% $Id: spm_mesh_render.m 5367 2013-03-28 13:03:39Z guillaume $
 
 
 %-Input parameters
@@ -62,7 +62,17 @@ switch lower(action)
         else
             M = varargin{1};
         end
-        if ischar(M), M = export(gifti(M),'patch'); end
+        if ischar(M), M = gifti(M); end
+        if ~isfield(M,'vertices')
+            try
+                MM = M;
+                M  = gifti(MM.private.metadata(1).value);
+                try, M.cdata = MM.cdata(); end
+            catch
+                error('Cannot find a surface mesh to be displayed.');
+            end
+        end
+        M = export(M,'patch');
         O = getOptions(varargin{2:end});
         
         %-Figure & Axis
@@ -109,7 +119,12 @@ switch lower(action)
         
         %-Apply texture to mesh
         %------------------------------------------------------------------
-        updateTexture(H,[]);
+        if isfield(M,'facevertexcdata')
+            T = M.facevertexcdata;
+        else
+            T = [];
+        end
+        updateTexture(H,T);
         
         %-Set viewpoint, light and manipulation options
         %------------------------------------------------------------------

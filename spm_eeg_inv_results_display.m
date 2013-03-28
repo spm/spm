@@ -2,16 +2,16 @@ function spm_eeg_inv_results_display(D)
 % Displays contrast of evoked responses and power
 % FORMAT spm_eeg_inv_results_display((D)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results_display.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_inv_results_display.m 5367 2013-03-28 13:03:39Z guillaume $
 
 %==========================================================================
 Ndip  = 256; % Number of dipoles to display
 %==========================================================================
 
-% SPM data structure
+%-MEEG data structure
 %==========================================================================
 try, val = D.val; catch, val = 1; end
 try, con = D.con; catch, con = 1; end
@@ -22,7 +22,7 @@ end
 
 model = D.inv{D.val};
 try
-    con   = min(con,length(model.contrast.GW));
+    con = min(con,length(model.contrast.GW));
 catch
     warndlg('please specify a [time-frequency] contrast')
     return
@@ -51,13 +51,13 @@ end
 
 % sqrt(energy) (G) = abs(JW) for single trials
 %--------------------------------------------------------------------------
-G    = sqrt(sparse(Is,1,GW,Nd,1));
+G      = sqrt(sparse(Is,1,GW,Nd,1));
 
-% display
+%-Display
 %==========================================================================
 Fgraph = spm_figure('GetWin','Graphics');
-clf(Fgraph)
-figure(Fgraph)
+spm_figure('Clear',Fgraph)
+spm_figure('Focus',Fgraph)
 
 % get vertices (even if not normalised)
 %--------------------------------------------------------------------------
@@ -91,7 +91,3 @@ axis square
 xlabel('PST {ms}')
 ylabel('contrast')
 drawnow
-
-
-
-
