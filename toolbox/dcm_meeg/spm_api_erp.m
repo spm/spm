@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5289 2013-02-28 18:43:43Z rosalyn $
+% $Id: spm_api_erp.m 5369 2013-03-28 20:09:27Z karl $
  
 
 %-Launch GUI
@@ -829,11 +829,8 @@ for i = 1:n
                 set(A{k}(i,j),'Enable','on')
             end
             
-            % disallow lateral connections for CMC
+            % Fill in values if specified
             %--------------------------------------------------------------
-            if strcmpi(DCM.options.model,'CMC') && k == 3
-                set(A{k}(i,j),'Enable','off')
-            end
             try
                 set(A{k}(i,j),'Value',DCM.A{k}(i,j));
             catch
@@ -901,7 +898,7 @@ switch DCM.options.model
     case{'NMM','MFM','NMDA'}
         constr = {'Excit.' 'Inhib.'    'Mixed'       'input'};
     case{'CMC'}
-        constr = {'forward' 'back'     '(not used)'  'input'};
+        constr = {'forward' 'back'     'Modulatory'  'input'};
     case{'DEM'}
         constr = {'States' ' '         ' '           ' '    };
     otherwise

@@ -23,7 +23,6 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % E  = (forward, backward, lateral) extrinsic rates 
 % G  = intrinsic rates
 % D  = propagation delays (intrinsic, extrinsic)
-% H  = overall synaptic kinetics
 % T  = synaptic time constants
 % R  = slope of sigmoid activation function
 %
@@ -34,21 +33,21 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5309 2013-03-07 14:13:10Z karl $
+% $Id: spm_fx_cmc.m 5369 2013-03-28 20:09:27Z karl $
  
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-x     = spm_unvec(x,M.x);           % neuronal states
-n     = size(x,1);                  % number of sources
+x  = spm_unvec(x,M.x);            % neuronal states
+n  = size(x,1);                   % number of sources
 
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1/2 1 1/2]*200;             % extrinsic (forward and backward)  
-G  = [4 4 4 4 4 2 4 4 2 1]*200;     % intrinsic connections
-T  = [2 2 16 28];                   % synaptic time constants
-R  = 2/3;                           % slope of sigmoid activation function
+E  = [1 1/2 1 1/2]*200;           % extrinsic (forward and backward)  
+G  = [4 4 4 4 4 2 4 4 2 1]*200;   % intrinsic connections
+T  = [2 2 16 28];                 % synaptic time constants
+R  = 2/3;                         % slope of sigmoid activation function
  
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
@@ -67,10 +66,10 @@ end
 % dp = deep pyramidal
 % ii = inhibitory interneurons
 %--------------------------------------------------------------------------
-A{1} = exp(P.A{1})*E(1);           % forward  connections (sp -> ss)
-A{2} = exp(P.A{2})*E(2);           % forward  connections (sp -> dp)
-A{3} = exp(P.A{3})*E(3);           % backward connections (dp -> sp)
-A{4} = exp(P.A{4})*E(4);           % backward connections (dp -> ii)
+A{1} = exp(P.A{1})*E(1);          % forward  connections (sp -> ss)
+A{2} = exp(P.A{2})*E(2);          % forward  connections (sp -> dp)
+A{3} = exp(P.A{3})*E(3);          % backward connections (dp -> sp)
+A{4} = exp(P.A{4})*E(4);          % backward connections (dp -> ii)
 C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
@@ -113,8 +112,8 @@ G    = ones(n,1)*G;
 %--------------------------------------------------------------------------
 % extrinsic connections
 %--------------------------------------------------------------------------
-% forward   (i)   2  sp -> ss (+ve)
-% forward   (ii)  1  sp -> dp (+ve)
+% forward  (i)   2  sp -> ss (+ve)
+% forward  (ii)  1  sp -> dp (+ve)
 % backward (i)   2  dp -> sp (-ve)
 % backward (ii)  1  dp -> ii (-ve)
 %--------------------------------------------------------------------------
@@ -124,7 +123,11 @@ end
 for i = 1:size(P.G,2)
     G(:,i) = G(:,i).*exp(P.G(:,i));
 end
- 
+
+% Modulatory effects of dp on sp -> sp self-connectivity
+%--------------------------------------------------------------------------
+G(:,7) = G(:,7).*exp(P.M*8*S(:,7));
+
  
 % Motion of states: f(x)
 %--------------------------------------------------------------------------
@@ -136,25 +139,25 @@ end
 %--------------------------------------------------------------------------
 u      =   A{1}*S(:,3) + U;
 u      = - G(:,1).*S(:,1) - G(:,3).*S(:,5) - G(:,2).*S(:,3) + u;
-f(:,2) = (u - 2*x(:,2) - x(:,1)./T(:,1))./T(:,1);
+f(:,2) =  (u - 2*x(:,2) - x(:,1)./T(:,1))./T(:,1);
  
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
 u      = - A{3}*S(:,7);
 u      =   G(:,8).*S(:,1) - G(:,7).*S(:,3) + u;
-f(:,4) = (u - 2*x(:,4) - x(:,3)./T(:,2))./T(:,2);
+f(:,4) =  (u - 2*x(:,4) - x(:,3)./T(:,2))./T(:,2);
  
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
 u      = - A{4}*S(:,7);
 u      =   G(:,5).*S(:,1) + G(:,6).*S(:,7) - G(:,4).*S(:,5) + u;
-f(:,6) = (u - 2*x(:,6) - x(:,5)./T(:,3))./T(:,3);
+f(:,6) =  (u - 2*x(:,6) - x(:,5)./T(:,3))./T(:,3);
  
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
 u      =   A{2}*S(:,3);
 u      = - G(:,10).*S(:,7) - G(:,9).*S(:,5) + u;
-f(:,8) = (u - 2*x(:,8) - x(:,7)./T(:,4))./T(:,4);
+f(:,8) =  (u - 2*x(:,8) - x(:,7)./T(:,4))./T(:,4);
  
 % Voltage
 %==========================================================================

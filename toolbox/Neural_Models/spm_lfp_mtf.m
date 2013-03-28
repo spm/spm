@@ -14,7 +14,7 @@ function [y,w] = spm_lfp_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_mtf.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_lfp_mtf.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % compute log-spectral density
@@ -57,11 +57,11 @@ end
 
 % spectrum of innovations (Gu)
 %--------------------------------------------------------------------------
-AR   = f.^-1;                                     % pink component
-ID   = f.^0;                                      % white component
-Gu   = AR*exp(P.a(1))   + ID*exp(P.a(2))/4;       % neuronal innovations
-Gn   = AR*exp(P.b(1))   + ID*exp(P.b(2))/8;       % channel noise (non-specific)
-Gs   = AR*exp(P.c(1,:)) + ID*exp(P.c(2,:))/8;     % channel noise (specific)
+AR   = f.^-1;                                   % pink component
+ID   = f.^0;                                    % white component
+Gu   = AR*exp(P.a(1))   + ID*exp(P.a(2))/4;     % neuronal innovations
+Gn   = AR*exp(P.b(1))   + ID*exp(P.b(2))/8;     % channel noise (non-specific)
+Gs   = AR*exp(P.c(1,:)) + ID*exp(P.c(2,:))/8;   % channel noise (specific)
 
 
 
@@ -72,65 +72,68 @@ try, X = U.X; catch, X = sparse(1,0); end
 
 % cycle over trials
 %--------------------------------------------------------------------------
-GS     = 0;
 for  c = 1:size(X,1)
-
+    
     % basline parameters
     %----------------------------------------------------------------------
     Q  = P;
-
+    
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-        Q.A{1} = Q.A{1} + X(c,i)*P.B{i};         % forward   connections
-        Q.A{2} = Q.A{2} + X(c,i)*P.B{i};         % backward  connections
-        Q.A{3} = Q.A{3} + X(c,i)*P.B{i};         % lateral   connections
-       try
-            Q.H(:, 1) = Q.H(:, 1) + X(c,i)*diag(P.B{i});     % intrinsic connections
-        catch
-            Q.G = Q.G + X(c,i)*diag(P.B{i});
+        
+        % extrinsic (forward and backwards) connections
+        %------------------------------------------------------------------
+        for j = 1:length(Q.A)
+            Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
+        
+        % intrinsic connections
+        %------------------------------------------------------------------
+        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
+        
     end
-
+    
+    
     % augment and bi-linearise (with delays)
     %----------------------------------------------------------------------
     [M0,M1,L] = spm_bireduce(M,Q);
-
+    
     % project onto spatial modes
     %----------------------------------------------------------------------
     try
         L = M.U'*L;
     end
-
+    
     % compute modulation transfer function using FFT of the kernels
     %----------------------------------------------------------------------
     [~,K1]    = spm_kernels(M0,M1,L,N,dt);
-
-
+    
+    
     % [cross]-spectral density
     %----------------------------------------------------------------------
     [N,nc,nu] = size(K1);
     G     = zeros(N/2,nc,nc);
     for i = 1:nc
         for j = i:nc
-
+            
             % cross-spectral density from neuronal interactions
             %--------------------------------------------------------------
             for k = 1:nu
                 Si       = fft(K1(:,i,k));
                 Sj       = fft(K1(:,j,k));
                 Gij      = Si.*conj(Sj);
-                Gij      = Gij([1:N/2] + 1).*Gu;
+                Gij      = Gij((1:N/2) + 1).*Gu;
                 G(:,i,j) = G(:,i,j) + Gij;
             end
-
-        end        
+            
+        end
     end
-
+    
     % save trial-specific frequencies of interest
     %----------------------------------------------------------------------
     y{c} = G(If,:,:);
-
+    
 end
 
 % and add channel noise
@@ -139,7 +142,7 @@ for c = 1:length(y)
     G     = y{c};
     for i = 1:nc
         for j = i:nc
-
+            
             % cross-spectral density from common channel noise
             %--------------------------------------------------------------
             G(:,i,j) = G(:,i,j) + Gn(If);
@@ -163,6 +166,6 @@ for c = 1:length(y)
     end
     y{c} = abs(G);
 end
-    
+
 
 

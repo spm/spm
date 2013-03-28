@@ -301,7 +301,7 @@ for j = 1:length(H);
     text(0,0.5,get(gcf,'Name'),'Fontsize',10,'Fontweight','Bold')
     axis off
     
-    print(gcf,'-dpsc','-append','-r0','DEMO.ps')
+    spm_print('DEMO.ps',gcf)
     
 end
 delete(H)

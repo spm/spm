@@ -30,26 +30,26 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_erp_results.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % get Action if necessary
 %--------------------------------------------------------------------------
 if nargin < 2
     
-    str{1} = 'ERPs (mode)';
-    str{2} = 'ERPs (sources)';
-    str{3} = 'Coupling (A)';
-    str{4} = 'Coupling (B)';
-    str{5} = 'Coupling (C)';
-    str{6} = 'trial-specific effects';
-    str{7} = 'Input';
-    str{8} = 'Response';
-    str{9} = 'Response (image)';
+    str{1}  = 'ERPs (mode)';
+    str{2}  = 'ERPs (sources)';
+    str{3}  = 'Coupling (A)';
+    str{4}  = 'Coupling (B)';
+    str{5}  = 'Coupling (C)';
+    str{6}  = 'trial-specific effects';
+    str{7}  = 'Input';
+    str{8}  = 'Response';
+    str{9}  = 'Response (image)';
     str{10} = 'Scalp maps';
     str{11} = 'Data';
     
-    s      = listdlg('PromptString','Select an option:',...
+    s       = listdlg('PromptString','Select an option:',...
         'SelectionMode','single',...
         'ListString',str);
     

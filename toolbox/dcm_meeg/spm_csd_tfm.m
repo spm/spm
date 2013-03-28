@@ -16,7 +16,7 @@ function [y,w,t,x] = spm_csd_tfm(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_tfm.m 4866 2012-08-28 12:47:34Z karl $
+% $Id: spm_csd_tfm.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % check input - one trial (no between-tria effects)
@@ -83,11 +83,7 @@ for  c = 1:size(X,1)
         
         % intrinsic connections
         %------------------------------------------------------------------
-        try
-            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
-        catch
-            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        end
+        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         
     end
     

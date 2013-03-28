@@ -9,7 +9,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T - synaptic time constants
-%    pE.H - synaptic densities
+%    pE.G - synaptic densities (intrinsic gain)
 %    pE.S - activation function parameters
 %    pE.G - intrinsic connection strengths
 %
@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 4521 2011-10-07 20:00:40Z vladimir $
+% $Id: spm_erp_priors.m 5369 2013-03-28 20:09:27Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -58,10 +58,10 @@ u     = size(C,2);                                % number of inputs
 % parameters for neural-mass forward model
 %==========================================================================
  
-% set intrinsic [excitatory] time constants
+% set intrinsic [excitatory] time constants and gain
 %--------------------------------------------------------------------------
 E.T   = sparse(n,2);  V.T = sparse(n,2) + 1/16;   % time constants
-E.H   = sparse(n,2);  V.H = sparse(n,2) + 1/16;   % synaptic density
+E.G   = sparse(n,2);  V.G = sparse(n,2) + 1/16;   % synaptic density
 
 % set parameter of activation function
 %--------------------------------------------------------------------------
@@ -90,17 +90,17 @@ V.C    = C/32;
  
 % set intrinsic connectivity
 %--------------------------------------------------------------------------
-E.G    = sparse(1,4);
-V.G    = sparse(1,4) + 1/16;
+E.H    = sparse(1,4);
+V.H    = sparse(1,4) + 1/16;
 
 % set delay
 %--------------------------------------------------------------------------
 E.D    = sparse(n,n);
 V.D    = Q/16;
  
-% set stimulus parameters: onset and dispersion
+% set stimulus parameters: onset, dispersion and sustained proportion
 %--------------------------------------------------------------------------
-E.R    = sparse(u,2);  V.R   = ones(u,1)*[1/16 1/16];
+E.R    = sparse(u,2);  V.R   = E.R + 1/16;
 warning('on','MATLAB:log:logOfZero');
 
 return

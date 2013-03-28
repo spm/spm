@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5211 2013-01-25 15:41:31Z guillaume $
+% $Id: spm_csd_int.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -99,13 +99,9 @@ for c = 1:size(X,1)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
         
-        % intrinsic connections (encoded by H or G)
+        % intrinsic connections or gain (encoded by G)
         %------------------------------------------------------------------
-        try
-            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
-        catch
-            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        end
+        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         
     end
     

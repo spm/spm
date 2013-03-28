@@ -29,7 +29,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_csd_mtf.m 5369 2013-03-28 20:09:27Z karl $
  
  
 % between-trial (experimental) inputs
@@ -94,11 +94,7 @@ for  c = 1:size(X,1)
         
         % intrinsic connections
         %------------------------------------------------------------------
-        try
-            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
-        catch
-            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        end
+        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         
     end
     

@@ -1,6 +1,6 @@
-function [f,J,Q] = spm_fx_mfm(x,u,P,M)
+function [f,J,Q] = spm_fx_nmda(x,u,P,M)
 % state equations for neural-mass and mean-field models
-% FORMAT [f,J,Q] = spm_fx_mfm(x,u,P,M)
+% FORMAT [f,J,Q] = spm_fx_nmda(x,u,P,M)
 %
 % x - states and covariances
 %
@@ -46,7 +46,7 @@ function [f,J,Q] = spm_fx_mfm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_nmda.m 5299 2013-03-04 18:19:35Z guillaume $
+% $Id: spm_fx_nmda.m 5369 2013-03-28 20:09:27Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -116,21 +116,21 @@ end
  
 % rate constants (ns x np) (excitatory 4ms, inhibitory 16ms)
 %--------------------------------------------------------------------------
-KE   = exp(-P.T)*1000/4;                     % excitatory time constants
-KI   = 1000/16;                              % inhibitory time constants
-KNMDA=  1000/100;                  % excitatory rate constants (NMDA)
+KE    = exp(-P.T)*1000/4;                 % excitatory time constants
+KI    = 1000/16;                          % inhibitory time constants
+KNMDA =  1000/100;                        % excitatory rate constants (NMDA)
  
 % Voltages
 %--------------------------------------------------------------------------
-VL   = -70;                                  % reversal  potential leak (K)
-VE   =  60;                                  % reversal  potential excite (Na)
-VI   = -90;                                  % reversal  potential inhib (Cl)
-VR   = -40;                                 % threshold potential
-VN   =  10;                                 % reversal Ca(NMDA)   
+VL   = -70;                               % reversal  potential leak (K)
+VE   =  60;                               % reversal  potential excite (Na)
+VI   = -90;                               % reversal  potential inhib (Cl)
+VR   = -40;                               % threshold potential
+VN   =  10;                               % reversal Ca(NMDA)   
 
-CV   = exp(P.CV)*8/1000;                     % membrane capacitance
-GL   = 1;                                    % leak conductance
-fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV);    % curvature: df(V)/dxx
+CV   = exp(P.CV)*8/1000;                  % membrane capacitance
+GL   = 1;                                 % leak conductance
+fxx  = sparse([2 3 1 1],[1 1 2 3],-1/CV); % curvature: df(V)/dxx
  
 % mean-field effects: the paramters of the sigmoid activation function
 %==========================================================================
@@ -141,11 +141,11 @@ if mfm
     for i = 1:ns
         for j = 1:np
             Cx{i,j} = x{2}(:,:,i,j);
-            Vx(i,j) = Cx{i,j}(1,1);          % population variance
+            Vx(i,j) = Cx{i,j}(1,1);       % population variance
         end
     end
 
-    D   = sparse(diag([1/8 1 1]));          % diffusion
+    D   = sparse(diag([1/8 1 1]));        % diffusion
     D   = exp(P.S)*D;
     
 else
@@ -212,8 +212,8 @@ for i = 1:ns
         
         % extrinsic coupling (excitatory only) and background activity
         %------------------------------------------------------------------
-        E =  E + SA(j,:)*a(i,:)' + B;
-        ENMDA = E + B + SNMDA(j,:)*a(i,:)'; %% + B   for ERP was in 
+        E     = E + SA(j,:)*a(i,:)' + B;
+        ENMDA = E + B + SNMDA(j,:)*a(i,:)'; 
         
         % Voltage
         %------------------------------------------------------------------

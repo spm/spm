@@ -23,7 +23,7 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Fixed parameter scaling [Defaults]
 %
 %  E = [32 16 4];             % extrinsic rates (forward, backward, lateral)
-%  G = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2 g3, g4, g5)
+%  G = [1 1 1/2 1/2 1/8]*128; % intrinsic rates (g1, g2, g3, g4, g5)
 %  D = [2 16];                % propagation delays (intrinsic, extrinsic)
 %  H = [4 32];                % receptor densities (excitatory, inhibitory)
 %  T = [4 16];                % synaptic constants (excitatory, inhibitory)
@@ -39,11 +39,11 @@ function [f,J] = spm_fx_lfp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_lfp.m 5273 2013-02-21 15:05:42Z karl $
+% $Id: spm_fx_lfp.m 5369 2013-03-28 20:09:27Z karl $
 
 % check if intrinsic connections are free parameters
 %--------------------------------------------------------------------------
-try, P.G; catch, P.G = 0; end
+try, P.H; catch, P.H = 0; end
 
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -64,9 +64,9 @@ R    = [1 2];                  % parameters of static nonlinearity
 %--------------------------------------------------------------------------
 if isfield(M,'pF')
     try, E  = M.pF.E; end
-    try, G  = M.pF.G; end
+    try, G  = M.pF.H; end
     try, D  = M.pF.D; end
-    try, H  = M.pF.H; end
+    try, H  = M.pF.G; end
     try, T  = M.pF.T; end
     try, R  = M.pF.R; end
 end
@@ -77,14 +77,14 @@ A{1} = exp(P.A{1})*E(1);
 A{2} = exp(P.A{2})*E(2);
 A{3} = exp(P.A{3})*E(3);
 C    = exp(P.C);
-G    = exp(P.G)*diag(G);
+G    = exp(P.H)*diag(G);
  
 % intrinsic connectivity and parameters
 %--------------------------------------------------------------------------
 Te   = T(1)/1000*exp(P.T(:,1));      % excitatory time constants
 Ti   = T(2)/1000*exp(P.T(:,2));      % inhibitory time constants
 Tk   = 512/1000;                     % slow potassium
-He   = H(1)*exp(P.H);                % excitatory receptor density
+He   = H(1)*exp(P.G);                % excitatory receptor density
 Hi   = H(2);                         % inhibitory receptor density
 
 

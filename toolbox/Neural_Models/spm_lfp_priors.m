@@ -9,7 +9,7 @@ function [E,V] = spm_lfp_priors(A,B,C)
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T - synaptic time constants
-%    pE.H - synaptic densities
+%    pE.G - synaptic densities (intrinsic gain)
 %    pE.R - activation function parameters
 %
 % connectivity parameters
@@ -17,7 +17,7 @@ function [E,V] = spm_lfp_priors(A,B,C)
 %    pE.A - extrinsic - coupling
 %    pE.B - extrinsic - trial-dependent
 %    pE.C - extrinsic - stimulus input
-%    pE.G - intrinsic
+%    pE.H - intrinsic rates
 %    pE.D - extrinsic delays
 %    pE.I - intrinsic delays
 %
@@ -38,7 +38,7 @@ function [E,V] = spm_lfp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lfp_priors.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_lfp_priors.m 5369 2013-03-28 20:09:27Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -60,14 +60,14 @@ warning('off','MATLAB:log:logOfZero');
 %--------------------------------------------------------------------------
 E.R   = [0 0];             V.R = [1 1]/8;
  
-% set intrinsic [excitatory] time constants
+% set intrinsic [excitatory] time constants and gain
 %--------------------------------------------------------------------------
 E.T   = log(ones(n,2));    V.T = ones(n,2)/8;      % time constants
-E.H   = log(ones(n,1));    V.H = ones(n,1)/16;     % synaptic density
+E.G   = log(ones(n,1));    V.G = ones(n,1)/16;     % synaptic density
 
 % set intrinsic connections
 %--------------------------------------------------------------------------
-E.G   = log(ones(n,5));    V.G = ones(n,5)/16;     % intrinsic connections
+E.H   = log(ones(n,5));    V.H = ones(n,5)/16;     % intrinsic connections
  
  
 % set extrinsic connectivity

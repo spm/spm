@@ -16,7 +16,7 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_gen_erp.m 5369 2013-03-28 20:09:27Z karl $
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
@@ -39,7 +39,7 @@ end
 if ~isfield(U,'u')
     
     % peri-stimulus time inputs
-    %-----------------------------------------------------------but-----------
+    %----------------------------------------------------------------------
     U.u = feval(M.fu,(1:M.ns)*U.dt,P,M);
     
 end
@@ -78,17 +78,21 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
         
-        % extrinsic (forward and backwards) connections
+        % extrinsic (driving) connections
         %------------------------------------------------------------------
         for j = 1:length(Q.A)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
         end
         
+        % modulatory connections
+        %------------------------------------------------------------------
+        try
+            Q.M  = Q.M + X(c,i)*P.N{i};
+        end
+        
         % intrinsic connections
         %------------------------------------------------------------------
         try
-            Q.H(:,1) = Q.H(:,1) + X(c,i)*diag(P.B{i});
-        catch
             Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         end
     end

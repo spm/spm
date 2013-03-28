@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 5289 2013-02-28 18:43:43Z rosalyn $
+% $Id: spm_dcm_x_neural.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % initial state and equation
@@ -94,7 +94,7 @@ switch lower(model)
         % remove dispersion and fix the covariance of the states (Cx)
         %--------------------------------------------------------------------------
         x  = x{1};
-        f  = 'spm_fx_nmm_nmda';
+        f  = 'spm_fx_nmda';
         
     % Canonical mass model (nonlinear in states)
     %======================================================================

@@ -13,7 +13,8 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % synaptic parameters
 %--------------------------------------------------------------------------
 %    pE.T    - synaptic time constants
-%    pE.G    - intrinsic connectivity
+%    pE.H    - intrinsic connectivity
+%    pE.G    - intrinsic gain
 %
 % connectivity parameters
 %--------------------------------------------------------------------------
@@ -42,7 +43,7 @@ function [pE,pC] = spm_cmm_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_cmm_priors.m 5369 2013-03-28 20:09:27Z karl $
  
  
 % disable log zero warning
@@ -59,10 +60,10 @@ p     = 4;                                        % number of populations
 %--------------------------------------------------------------------------
 pE.S  = 0;                 pC.S = 1/64;
  
-% intrinic [excitatory] time constants (H mediates the effects of B)
+% intrinic [excitatory] time constants (G mediates the effects of B)
 %--------------------------------------------------------------------------
 pE.T  = zeros(n,1);        pC.T =  ones(n,1)/64;
-pE.H  = zeros(n,1);        pC.H = zeros(n,1)/16;
+pE.G  = zeros(n,1);        pC.G = zeros(n,1)/16;
 
 % Capacitance and backround activity
 %--------------------------------------------------------------------------
@@ -109,8 +110,8 @@ gC    = [1   1   1   0;
          1   0   1   1;
          0   1   1   1]/32;
      
-pE.G  = repmat(zeros(p,p),[1 1 n]);
-pC.G  = repmat(gC        ,[1 1 n]);
+pE.H  = repmat(zeros(p,p),[1 1 n]);
+pC.H  = repmat(gC        ,[1 1 n]);
 
 % Exogenous inputs: onset and dispersion
 %--------------------------------------------------------------------------

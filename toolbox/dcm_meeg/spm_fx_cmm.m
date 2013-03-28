@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_fx_cmm.m 5369 2013-03-28 20:09:27Z karl $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
@@ -78,9 +78,9 @@ end
 
 % condition specific effects
 %--------------------------------------------------------------------------
-G    = full(P.G);
-if any(P.H)
-    G(2,2,:) = squeeze(G(2,2,:)) + P.H;
+G    = full(P.H);
+if any(P.G)
+    G(2,2,:) = squeeze(G(2,2,:)) + P.G;
 end
 G(2,2,:) = 0;
 G    = exp(G);

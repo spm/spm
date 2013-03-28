@@ -22,9 +22,9 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Prior fixed parameter scaling [Defaults]
 %
 %  M.pF.E = [32 16 4];           % extrinsic rates (forward, backward, lateral)
-%  M.pF.G = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
+%  M.pF.H = [1 4/5 1/4 1/4]*128; % intrinsic rates (g1, g2 g3, g4)
 %  M.pF.D = [2 16];              % propogation delays (intrinsic, extrinsic)
-%  M.pF.H = [4 32];              % receptor densities (excitatory, inhibitory)
+%  M.pF.G = [4 32];              % receptor densities (excitatory, inhibitory)
 %  M.pF.T = [8 16];              % synaptic constants (excitatory, inhibitory)
 %  M.pF.R = [1 1/2];             % parameter of static nonlinearity
 %
@@ -35,7 +35,7 @@ function [f,J,Q] = spm_fx_erp(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fx_erp.m 5273 2013-02-21 15:05:42Z karl $
+% $Id: spm_fx_erp.m 5369 2013-03-28 20:09:27Z karl $
 
 
 % get dimensions and configure state variables
@@ -56,9 +56,9 @@ R = [2 1]/3;                % parameters of static nonlinearity
 %--------------------------------------------------------------------------
 if isfield(M,'pF')
     try, E = M.pF.E; end
-    try, G = M.pF.G; end
+    try, G = M.pF.H; end
     try, D = M.pF.D; end
-    try, H = M.pF.H; end
+    try, H = M.pF.G; end
     try, T = M.pF.T; end
     try, R = M.pF.R; end
 end
@@ -67,7 +67,7 @@ end
 % test for free parameters on intrinsic connections
 %--------------------------------------------------------------------------
 try
-    G = G.*exp(P.G);
+    G = G.*exp(P.H);
 end
 G     = ones(n,1)*G;
 
@@ -82,8 +82,8 @@ C     = exp(P.C);
 %--------------------------------------------------------------------------
 Te    = T(1)/1000*exp(P.T(:,1));         % excitatory time constants
 Ti    = T(2)/1000*exp(P.T(:,2));         % inhibitory time constants
-He    = H(1)*exp(P.H(:,1));              % excitatory receptor density
-Hi    = H(2)*exp(P.H(:,2));              % inhibitory receptor density
+He    = H(1)*exp(P.G(:,1));              % excitatory receptor density
+Hi    = H(2)*exp(P.G(:,2));              % inhibitory receptor density
 
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------

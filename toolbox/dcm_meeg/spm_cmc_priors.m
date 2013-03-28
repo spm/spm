@@ -15,7 +15,8 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % connectivity parameters
 %--------------------------------------------------------------------------
 %    pE.A - extrinsic
-%    pE.B - trial-dependent
+%    pE.B - trial-dependent (driving)
+%    pE.N - trial-dependent (modulatory)
 %    pE.C - stimulus input
 %    pE.D - delays
 %
@@ -38,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_cmc_priors.m 5369 2013-03-28 20:09:27Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -63,6 +64,11 @@ D{1}  = A{1};                                     % forward  (i)
 D{2}  = A{1};                                     % forward  (ii)
 D{3}  = A{2};                                     % backward (i)
 D{4}  = A{2};                                     % backward (ii)
+
+% modulatory extrinsic connectivity
+%--------------------------------------------------------------------------
+E.M   = 0*A{3};
+V.M   = ~~A{3};
 A     = D;
  
 % extrinsic connectivity
@@ -72,19 +78,29 @@ for i = 1:length(A)
       A{i} = ~~A{i};
     E.A{i} = A{i}*32 - 32;
     V.A{i} = A{i}/8;
-    Q      = Q | A{i};                            % and lateral connections
+    Q      = Q | A{i};
 end
+
+% allow intrinsic delays
+%--------------------------------------------------------------------------
+Q     = Q | speye(n,n);                            
  
-% extrinsic connectivity - input-dependent scaling
+% driving connectivity - input-dependent scaling
 %--------------------------------------------------------------------------
 for i = 1:length(B)
       B{i} = ~~B{i};
     E.B{i} = 0*B{i};
-    V.B{i} = B{i}/8;
-    Q      = Q | B{i};
+    V.B{i} = (B{i} & Q)/8;
 end
- 
-% extrinsic connectivity - where inputs enter
+
+% modulatory connectivity - input-dependent scaling
+%--------------------------------------------------------------------------
+for i = 1:length(B)
+    E.N{i} = 0*B{i};
+    V.N{i} = (B{i} & V.M)/8;
+end
+
+% exogenous connectivity - where inputs enter
 %--------------------------------------------------------------------------
 C      = ~~C;
 E.C    = C*32 - 32;
@@ -93,7 +109,6 @@ V.C    = C/32;
 % synaptic parameters
 %--------------------------------------------------------------------------
 m    = 4;                                         % number of intrinsic
-Q    = Q + speye(n,n);                            % allow intrinsic delays
 E.T  = sparse(n,4);   V.T  = sparse(n,4) + 1/16;  % time constants
 E.G  = sparse(n,m);   V.G  = sparse(n,m) + 1/16;  % intrinsic connectivity
 E.D  = sparse(n,n);   V.D  = Q/32;                % delay

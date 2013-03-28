@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_induced_optimise.m 5369 2013-03-28 20:09:27Z karl $
  
  
 % Model specification
@@ -25,7 +25,7 @@ function spm_induced_optimise(Ep)
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMM';
+options.model    = 'CMC';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
@@ -147,7 +147,7 @@ M.Nm  = 3;
 % Steady state solution and number of eigenmodes
 %--------------------------------------------------------------------------
 M.Nm  = 3;
-x     = M.x;
+x     = full(M.x);
  
  
 % MTF, expanding around perturbed states
