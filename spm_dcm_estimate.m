@@ -20,9 +20,10 @@ function [DCM] = spm_dcm_estimate(P)
 %--------------------------------------------------------------------------
 % DCM.options.two_state              % two regional populations (E and I)
 % DCM.options.stochastic             % fluctuations on hidden states
+% DCM.options.centre                 % mean-centre inputs
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
-% DCM.options.centre                 % mean-centre inputs
+
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 % DCM.options.nmax                   % maximum number of (effective) nodes
@@ -51,10 +52,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5323 2013-03-13 22:04:28Z karl $
+% $Id: spm_dcm_estimate.m 5370 2013-03-28 20:10:29Z karl $
 
 
-SVNid = '$Rev: 5323 $';
+SVNid = '$Rev: 5370 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -129,7 +130,7 @@ try, M.TE     = DCM.TE;     end
 % check DCM.d (for nonlinear DCMs)
 %--------------------------------------------------------------------------
 try
-    DCM.d;
+    DCM.options.nonlinear = logical(size(DCM.d,3));
 catch
     DCM.d = zeros(n,n,0);
     DCM.options.nonlinear = 0;
@@ -187,8 +188,8 @@ if DCM.options.stochastic
     hE  = ones(n,1)*6;
     hC  = speye(n,n)/128;
 else
-    hE  = ones(n,1)*4;
-    hC  = speye(n,n)/2048;
+    hE  = ones(n,1)*6;
+    hC  = speye(n,n)/128;
 end
 hE(i)   = -4;
 hC(i,i) = exp(-16);
@@ -219,12 +220,13 @@ if ~DCM.options.stochastic
     %----------------------------------------------------------------------
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
     
+    
     % predicted responses (y) and residuals (R)
     %----------------------------------------------------------------------
     y      = feval(M.IS,Ep,M,U);
     R      = Y.y - y;
     R      = R - Y.X0*spm_inv(Y.X0'*Y.X0)*(Y.X0'*R);
-    Ce     = exp(-Eh);
+    Ce     = exp(-Eh);   
     
 else
     

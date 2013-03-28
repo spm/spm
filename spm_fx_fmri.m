@@ -33,7 +33,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5323 2013-03-13 22:04:28Z karl $
+% $Id: spm_fx_fmri.m 5370 2013-03-28 20:10:29Z karl $
 
 
 % Neuronal motion
@@ -79,7 +79,7 @@ else
     
     % <<< intrinsic moduation >>>
     %----------------------------------------------------------------------
-    SI    = DA;                     % self-inhibition (inhibitory)
+    IE    = DA;                     % self-inhibition (inhibitory)
 
     % <<< switch excitatory to excitatory -> excitatory to inhibitory >>>
     %----------------------------------------------------------------------
