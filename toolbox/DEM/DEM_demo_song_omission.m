@@ -24,7 +24,7 @@ function DEM_demo_song_omission
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_omission.m 5366 2013-03-27 21:12:10Z karl $
+% $Id: DEM_demo_song_omission.m 5371 2013-03-28 20:10:54Z karl $
  
  
 % Hierarchical non-linear generative model (dynamic & chaotic)
@@ -150,8 +150,8 @@ axis([1 N*dt*1000 -100 100])
 %--------------------------------------------------------------------------
 dem.M(1).V = exp(2);
 dem.M(1).W = exp(8);
-dem.M(2).V = exp(8);
-dem.M(2).W = exp(8);
+dem.M(2).V = exp(16);
+dem.M(2).W = exp(16);
 dem        = spm_DEM(dem);
 
 spm_figure('GetWin','Figure 4');
@@ -169,8 +169,8 @@ axis([1 N*dt*1000 -100 100])
 %--------------------------------------------------------------------------
 dem.M(1).V = exp(2);
 dem.M(1).W = exp(8);
-dem.M(2).V = exp(4);
-dem.M(2).W = exp(4);
+dem.M(2).V = exp(2);
+dem.M(2).W = exp(2);
 dem        = spm_DEM(dem);
  
 spm_figure('GetWin','Figure 4');
@@ -186,9 +186,9 @@ axis([1 N*dt*1000 -100 100])
 % and finally reduce sensory precision to compensate
 %==========================================================================
 dem.M(1).V = exp(-2);
-dem.M(1).W = exp(4);
-dem.M(2).V = exp(4);
-dem.M(2).W = exp(4);
+dem.M(1).W = exp(8);
+dem.M(2).V = exp(2);
+dem.M(2).W = exp(2);
 dem        = spm_DEM(dem);
  
 spm_figure('GetWin','Figure 4');

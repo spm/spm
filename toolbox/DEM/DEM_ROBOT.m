@@ -51,7 +51,7 @@ for i = 1:N
             text(0,0.5,str,'Fontsize',10,'Fontweight','Bold')
             axis off
             
-            print(gcf,'-dpsc','-append','-r0','DEMO.ps')
+            spm_print('DEMO.ps',gcf);
        
         end
         delete(H)

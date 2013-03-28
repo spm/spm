@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 5366 2013-03-27 21:12:10Z karl $
+% $Id: spm_DEM_play_song.m 5371 2013-03-28 20:10:54Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -56,8 +56,9 @@ end
 b     = V(1,:);                            % amplitude modulation
 f     = V(2,:);                            % frequency modulation
 b     = abs(b);
+b     = b - min(b);
 b     = b/max(b);
-b     = exp(b*4);
+b     = tanh((b - 1/2)*6) + 1;
 f     = 64*f + Lf;
 S     = sparse(Nf,N);
 for i = 1:N
