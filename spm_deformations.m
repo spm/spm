@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5362 2013-03-27 16:07:31Z john $
+% $Id: spm_deformations.m 5374 2013-03-29 17:26:24Z ged $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -102,8 +102,7 @@ bb  = job.bb;
 sn  = load(job.matname{1});
 
 if any(isfinite(bb(:))) || any(isfinite(vox))
-    [bb0,vox0] = bbvox_from_V(sn.VG(1));
-
+    [bb0, vox0] = spm_get_bbox(sn.VG(1));
     if any(~isfinite(vox)), vox = vox0; end
     if any(~isfinite(bb)),  bb  = bb0;  end
     bb  = sort(bb);
@@ -185,18 +184,6 @@ end
 
 
 %==========================================================================
-% function [bb,vx] = bbvox_from_V(V)
-%==========================================================================
-function [bb,vx] = bbvox_from_V(V)
-% Return the default bounding box for an image volume
-
-vx = sqrt(sum(V.mat(1:3,1:3).^2));
-o  = V.mat\[0 0 0 1]';
-o  = o(1:3)';
-bb = [-vx.*(o-1) ; vx.*(V.dim(1:3)-o)];
-
-
-%==========================================================================
 % function [Def,mat] = get_def(job)
 %==========================================================================
 function [Def,mat] = get_def(job)
@@ -254,11 +241,8 @@ end
 %==========================================================================
 function [Def,mat] = get_id(job)
 % Get an identity transform based on an image volume
-Nii = nifti(job.space{1});
-d   = [size(Nii.dat),1];
-d   = d(1:3);
-mat = Nii.mat;
-Def = identity(d,mat);
+[mat, dim] = spm_get_matdim(job.space{1});
+Def = identity(dim, mat);
 
 
 %==========================================================================
@@ -267,13 +251,8 @@ Def = identity(d,mat);
 function [Def,mat] = get_idbbvox(job)
 % Get an identity transform based on bounding box and voxel size.
 % This will produce a transversal image.
-bb  = job.bb;
-bb  = sort(bb);
-vox = abs(job.vox);
-bb  = [round(bb(1,:)./vox).*vox; round(bb(2,:)./vox).*vox];
-d   = floor(diff(job.bb)./job.vox + 1);
-mat = diag([-1 1 1 1])*spm_matrix([bb(1,:)-vox 0 0 0 vox]);
-Def = identity(d,mat);
+[mat, dim] = spm_get_matdim('', job.vox, job.bb);
+Def = identity(dim, mat);
 
 
 %==========================================================================
@@ -539,36 +518,7 @@ if isfield(job.fov,'file')
 else
     bb   = job.fov.bbvox.bb;
     vox  = job.fov.bbvox.vox;
-    Mt   = mat;
-    dimt = [size(Def,1),size(Def,2),size(Def,3)];
-    if any(isfinite(bb(:))) || any(isfinite(vox))
-
-        % This option does not work as expected because a good default
-        % bounding box is not defined.  The bb we want is that of the
-        % space we want to move points to, whereas the one we have is
-        % actually that of the image we want to push the voxels from.
-        [bb0,vox0] = bbvox(Mt,dimt);
-
-        msk = ~isfinite(vox); vox(msk) = vox0(msk);
-        msk = ~isfinite(bb);   bb(msk) =  bb0(msk);
-
-        bb  = sort(bb);
-        vox = abs(vox);
-
-        % Adjust bounding box slightly - so it rounds to closest voxel.
-        bb(:,1) = round(bb(:,1)/vox(1))*vox(1);
-        bb(:,2) = round(bb(:,2)/vox(2))*vox(2);
-        bb(:,3) = round(bb(:,3)/vox(3))*vox(3);
-        dim  = round(diff(bb)./vox+1);
-        of   = -vox.*(round(-bb(1,:)./vox)+1);
-        mat0 = [vox(1) 0 0 of(1) ; 0 vox(2) 0 of(2) ; 0 0 vox(3) of(3) ; 0 0 0 1];
-        if det(Mt(1:3,1:3)) < 0,
-            mat0 = mat0*[-1 0 0 dim(1)+1; 0 1 0 0; 0 0 1 0; 0 0 0 1];
-        end
-    else
-        dim = dimt(1:3);
-        mat0 = Mt;
-    end
+    [mat0, dim] = spm_get_matdim('', vox, bb);
 end
 
 M   = inv(mat0);
@@ -592,6 +542,7 @@ for m=1:numel(PI)
     % Generate headers etc for output images
     %----------------------------------------------------------------------
     [pth,nam,ext,num] = spm_fileparts(PI{m});
+    NI = nifti(fullfile(pth,[nam ext]));
     j_range = 1:size(NI.dat,4);
     k_range = 1:size(NI.dat,5);
     l_range = 1:size(NI.dat,6);
@@ -601,9 +552,7 @@ for m=1:numel(PI)
         if numel(num)>=2, k_range = num(2); end
         if numel(num)>=3, l_range = num(3); end
     end
-
-    NI = nifti(fullfile(pth,[nam ext]));
-    NO = NI;
+    
     if isfield(job.savedir,'savepwd')
         wd = pwd;
     elseif isfield(job.savedir,'saveusr')
@@ -614,6 +563,7 @@ for m=1:numel(PI)
         wd = pwd;
     end
 
+    NO = NI;
     if job.preserve
         NO.dat.scl_slope = 1.0;
         NO.dat.scl_inter = 0.0;

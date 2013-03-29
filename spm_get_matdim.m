@@ -20,7 +20,7 @@ function [mat, dim] = spm_get_matdim(img, vx, bb)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_matdim.m 5312 2013-03-08 15:18:49Z ged $
+% $Id: spm_get_matdim.m 5374 2013-03-29 17:26:24Z ged $
 
 if nargin < 3, vx  = nan(1, 3); end
 if nargin < 2, bb  = nan(2, 3); end
@@ -51,9 +51,9 @@ if ~valid_vx, vx = VX; end
 % (i.e. transverse with negative first voxel dimension)
 vx  = [-1 1 1] .* abs(vx);
 mn  = vx .* min(bb ./ repmat(vx, 2, 1)); % "first" voxel's mm coordinates
-mx  = vx .* ceil(max(bb ./ repmat(vx, 2, 1))); % "last voxel's mm coords
+mx  = vx .* round(max(bb ./ repmat(vx, 2, 1))); % "last voxel's mm coords
 % matrix that maps voxel [1 1 1] to mn
 mat = spm_matrix([mn 0 0 0 vx]) * spm_matrix([-1 -1 -1]);
 % dim such that mat * [dim 1]' == [mx 1]'
 dim = mat \ [mx 1]';
-dim = ceil(dim(1:3)');
+dim = round(dim(1:3)');
