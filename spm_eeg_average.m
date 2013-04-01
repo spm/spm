@@ -18,9 +18,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 5075 2012-11-23 15:24:02Z vladimir $
+% $Id: spm_eeg_average.m 5375 2013-04-01 17:12:53Z vladimir $
 
-SVNrev = '$Rev: 5075 $';
+SVNrev = '$Rev: 5375 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -50,6 +50,9 @@ end
 %-Get MEEG object
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
+
+montage_ind = D.montage('getindex');
+D           = D.montage('switch', 0);
 
 %-Check that there is any good data available
 %--------------------------------------------------------------------------
@@ -199,6 +202,7 @@ spm_progress_bar('Clear');
 %--------------------------------------------------------------------------
 Dnew = conditions(Dnew, ':', cl);
 Dnew = repl(Dnew, ':', ni);
+Dnew = montage(Dnew, 'switch', montage_ind);
 
 %-Display averaging statistics
 %--------------------------------------------------------------------------

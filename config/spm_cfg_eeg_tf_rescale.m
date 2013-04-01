@@ -4,7 +4,7 @@ function rescale = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 5192 2013-01-18 12:14:00Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 5375 2013-04-01 17:12:53Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -110,6 +110,16 @@ method_sqrt.name = 'Sqrt';
 method_sqrt.val  = {1};
 method_sqrt.help = {'Square Root.'};
 
+
+%--------------------------------------------------------------------------
+% method_sqrt
+%--------------------------------------------------------------------------
+method_none      = cfg_const;
+method_none.tag  = 'None';
+method_none.name = 'None';
+method_none.val  = {1};
+method_none.help = {'No rescaling - just copy. Useful for optimising batch pipelines.'};
+
 %--------------------------------------------------------------------------
 % method
 %--------------------------------------------------------------------------
@@ -118,7 +128,7 @@ method.tag    = 'method';
 method.name   = 'Rescale method';
 method.val    = {method_logr};
 method.help   = {'Select the rescale method.'};
-method.values = {method_logr method_diff method_rel method_zscore method_log method_logeps method_sqrt};
+method.values = {method_logr method_diff method_rel method_zscore method_log method_logeps method_sqrt, method_none};
 
 %--------------------------------------------------------------------------
 % rescale

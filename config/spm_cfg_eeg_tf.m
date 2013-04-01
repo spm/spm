@@ -4,7 +4,7 @@ function tf = spm_cfg_eeg_tf
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_tf.m 5375 2013-04-01 17:12:53Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -108,11 +108,11 @@ S.prefix = job.prefix;
 [Dtf, Dtph] = spm_eeg_tf(S);
 
 out.Dtf = Dtf;
-out.Dtfname = {Dtf.fname};
+out.Dtfname = {Dtf.fullfile};
 
 out.Dtph = Dtph;
 if ~isempty(Dtph)
-    out.Dtphname = {Dtph.fname};
+    out.Dtphname = {Dtph.fullfile};
 else
     out.Dtphname = {''};
 end

@@ -4,7 +4,7 @@ function channels = spm_cfg_eeg_channel_selector(jobtree)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: spm_cfg_eeg_channel_selector.m 5375 2013-04-01 17:12:53Z vladimir $
 
 if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;
@@ -53,7 +53,7 @@ else
         elseif isfield(jobtree{j}, 'chan')
             channels = [channels {jobtree{j}.chan}];
         elseif isfield(jobtree{j}, 'chanfile')
-            channels = [channels getfield(load(jobtree{j}.chanfile.file{1}), 'label')];
+            channels = [channels getfield(load(char(jobtree{j}.chanfile)), 'label')];
         end
     end
 end

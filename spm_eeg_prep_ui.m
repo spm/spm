@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5350 2013-03-25 13:57:11Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5375 2013-04-01 17:12:53Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5350 $';
+SVNrev = '$Rev: 5375 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -468,7 +468,7 @@ function MontageCB
 
 D = getD;
 
-label = D.chanlabels(D.indchantype('EEG'));
+label = D.chanlabels(D.indchantype({'EEG', 'EOG', 'ECG', 'EMG'}));
 
 montage = [];
 montage.labelorg = label;

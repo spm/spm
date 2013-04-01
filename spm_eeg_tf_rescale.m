@@ -5,7 +5,7 @@ function D = spm_eeg_tf_rescale(S)
 % S                    - input structure (optional)
 % fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.method           - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt'
+%   S.method           - 'LogR', 'Diff', 'Rel', 'Log', 'Sqrt', 'None'
 %   S.timewin          - 2-element vector: start and stop of baseline (ms)
 %                        (need to specify this for LogR and Diff)
 %   S.Db               - MEEG object or filename of M/EEG mat-file to use
@@ -24,9 +24,9 @@ function D = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 5192 2013-01-18 12:14:00Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 5375 2013-04-01 17:12:53Z vladimir $
 
-SVNrev = '$Rev: 5192 $';
+SVNrev = '$Rev: 5375 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -103,6 +103,9 @@ for i = 1:D.ntrials
             
         case 'sqrt'
             Dnew(:, :, :, i) = sqrt(D(:, :, :, i));
+            
+        case 'none'
+            Dnew(:, :, :, i) = D(:, :, :, i);
             
         otherwise
             error('Unknown rescaling method');

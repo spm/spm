@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_reduce.m 5375 2013-04-01 17:12:53Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ S.settings = job.method.(S.method);
 D = spm_eeg_reduce(S);
 
 out.D = D;
-out.Dfname = {D.fname};
+out.Dfname = {D.fullfile};
 
 
 %==========================================================================
