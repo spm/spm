@@ -4,9 +4,9 @@ function filter = spm_cfg_eeg_filter
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_filter.m 5060 2012-11-15 16:42:14Z vladimir $
+% $Id: spm_cfg_eeg_filter.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 5060 $';
+rev = '$Rev: 5377 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -64,7 +64,7 @@ prefix.val     = {'f'};
 
 filter = cfg_exbranch;
 filter.tag = 'filter';
-filter.name = 'M/EEG Filter';
+filter.name = 'Filter';
 filter.val = {D type band freq dir order, prefix};
 filter.help = {'Filters EEG/MEG data.'};
 filter.prog = @eeg_filter;

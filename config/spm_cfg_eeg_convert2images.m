@@ -5,7 +5,7 @@ function convert2images = spm_cfg_eeg_convert2images
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 5177 2013-01-07 11:36:08Z vladimir $
+% $Id: spm_cfg_eeg_convert2images.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -96,7 +96,7 @@ virtual.help = {'Select the mode for conversion to images'};
 
 convert2images = cfg_exbranch;
 convert2images.tag = 'convert2images';
-convert2images.name = 'M/EEG Convert2Images';
+convert2images.name = 'Convert2Images';
 convert2images.val = {D, mode, conditions, spm_cfg_eeg_channel_selector, timewin, freqwin, prefix, virtual};
 convert2images.help = {'Convert SPM M/EEG data to voxel-based images'};
 convert2images.prog = @run_convert2images;

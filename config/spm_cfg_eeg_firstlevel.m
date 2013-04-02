@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5359 2013-03-26 23:38:22Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 5359 $';
+rev = '$Rev: 5377 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -473,7 +473,7 @@ atfpad.val     = {400};
 % ---------------------------------------------------------------------
 convmodel         = cfg_exbranch;
 convmodel.tag     = 'convmodel';
-convmodel.name    = 'M/EEG convolution modelling';
+convmodel.name    = 'Convolution modelling';
 convmodel.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt};
 convmodel.prog = @eeg_run;
 convmodel.vout = @vout_eeg;

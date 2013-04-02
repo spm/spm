@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 5339 2013-03-21 10:32:30Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 5339 $';
+rev = '$Rev: 5377 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -209,7 +209,7 @@ task.values = {defaulttype, settype, loadmegsens, headshape,...
 
 prepare = cfg_exbranch;
 prepare.tag = 'prepare';
-prepare.name = 'M/EEG Prepare';
+prepare.name = 'Prepare';
 prepare.val = {D, task};
 prepare.help = {'Converts EEG/MEG data.'};
 prepare.prog = @eeg_prepare;

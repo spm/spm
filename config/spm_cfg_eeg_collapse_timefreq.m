@@ -4,7 +4,7 @@ function collapse = spm_cfg_eeg_collapse_timefreq
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_collapse_timefreq.m 5194 2013-01-18 15:04:19Z vladimir $
+% $Id: spm_cfg_eeg_collapse_timefreq.m 5377 2013-04-02 17:07:57Z vladimir $
 
 % ---------------------------------------------------------------------
 % Images to Smooth
@@ -44,7 +44,7 @@ prefix.val     = {'l'};
 %--------------------------------------------------------------------------
 collapse          = cfg_exbranch;
 collapse.tag      = 'collapse';
-collapse.name     = 'M/EEG Collapse time';
+collapse.name     = 'Collapse time';
 collapse.val      = {images, timewin, prefix};
 collapse.help     = {'Compute within-peristimulus time (or frequency) averages (contrasts) of M/EEG data in voxel-space'}';
 collapse.prog     = @eeg_collapse;

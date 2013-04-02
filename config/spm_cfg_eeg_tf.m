@@ -4,7 +4,7 @@ function tf = spm_cfg_eeg_tf
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 5377 2013-04-02 17:07:57Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -79,7 +79,7 @@ prefix.val     = {''};
 %--------------------------------------------------------------------------
 tf = cfg_exbranch;
 tf.tag = 'tf';
-tf.name = 'M/EEG Time-frequency analysis';
+tf.name = 'Time-frequency analysis';
 tf.val = {D, spm_cfg_eeg_channel_selector, frequencies, timewin, method, phase, prefix};
 tf.help = {'Perform time-frequency analysis of epoched M/EEG data.'};
 tf.prog = @eeg_tf;

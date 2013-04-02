@@ -4,7 +4,7 @@ function convert = spm_cfg_eeg_convert
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 5377 2013-04-02 17:07:57Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -145,7 +145,7 @@ inputformat.help = {'Force the reader to assume a particular data format (usuall
 
 convert = cfg_exbranch;
 convert.tag = 'convert';
-convert.name = 'M/EEG Conversion';
+convert.name = 'Conversion';
 convert.val = {dataset mode spm_cfg_eeg_channel_selector outfile...
     eventpadding blocksize checkboundary saveorigheader inputformat};
 convert.help = {'Converts EEG/MEG data.'};

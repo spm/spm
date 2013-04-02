@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5314 2013-03-08 16:47:03Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -136,7 +136,7 @@ isSNR.val = {setSNR};
 
 simulate = cfg_exbranch;
 simulate.tag = 'simulate';
-simulate.name = 'M/EEG simulation of sources on cortex';
+simulate.name = 'Simulation of sources on cortex';
 simulate.val = {D, val, prefix, whatconditions,isinversion,isSNR};
 simulate.help = {'Run simulation'};
 simulate.prog = @run_simulation;

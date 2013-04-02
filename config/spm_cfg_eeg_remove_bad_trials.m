@@ -4,7 +4,7 @@ function remove = spm_cfg_eeg_remove_bad_trials
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_remove_bad_trials.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_remove_bad_trials.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -32,7 +32,7 @@ prefix.val     = {'r'};
 %--------------------------------------------------------------------------
 remove          = cfg_exbranch;
 remove.tag      = 'remove';
-remove.name     = 'M/EEG Remove bad trials';
+remove.name     = 'Remove bad trials';
 remove.val      = {D, prefix};
 remove.help     = {'Removes bad trials and re-orders trials to conform to condlist'}';
 remove.prog     = @eeg_remove;

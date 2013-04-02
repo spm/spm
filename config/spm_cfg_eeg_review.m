@@ -4,9 +4,9 @@ function S = spm_cfg_eeg_review
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_review.m 3881 2010-05-07 21:02:57Z vladimir $
+% $Id: spm_cfg_eeg_review.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 3881 $';
+rev = '$Rev: 5377 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -18,7 +18,7 @@ D.help = {'Select the EEG mat file.'};
 
 S = cfg_exbranch;
 S.tag = 'review';
-S.name = 'M/EEG Display';
+S.name = 'Display';
 S.val = {D};
 S.help = {'Run the reviewing tool with the given dataset as input.'};
 S.prog = @eeg_review;

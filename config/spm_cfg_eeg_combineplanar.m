@@ -4,7 +4,7 @@ function combineplanar = spm_cfg_eeg_combineplanar
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_combineplanar.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: spm_cfg_eeg_combineplanar.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -43,7 +43,7 @@ prefix.val     = {'P'};
 %--------------------------------------------------------------------------
 combineplanar          = cfg_exbranch;
 combineplanar.tag      = 'combineplanar';
-combineplanar.name     = 'M/EEG Combine planar';
+combineplanar.name     = 'Combine planar';
 combineplanar.val      = {D, mode, prefix};
 combineplanar.help     = {'Combine planar MEG channels'}';
 combineplanar.prog     = @eeg_combineplanar;

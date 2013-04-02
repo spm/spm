@@ -4,7 +4,7 @@ function avgtime = spm_cfg_eeg_avgtime
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgtime.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_cfg_eeg_avgtime.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -43,7 +43,7 @@ prefix.val     = {'S'};
 %--------------------------------------------------------------------------
 avgtime          = cfg_exbranch;
 avgtime.tag      = 'avgtime';
-avgtime.name     = 'M/EEG Average over time';
+avgtime.name     = 'Average over time';
 avgtime.val      = {D, timewin, prefix};
 avgtime.help     = {'Average M/EEG data over time'}';
 avgtime.prog     = @eeg_avgtime;

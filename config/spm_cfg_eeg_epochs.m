@@ -4,7 +4,7 @@ function epoch = spm_cfg_eeg_epochs
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_epochs.m 5340 2013-03-21 11:22:02Z vladimir $
+% $Id: spm_cfg_eeg_epochs.m 5377 2013-04-02 17:07:57Z vladimir $
 
 
 D        = cfg_files;
@@ -118,7 +118,7 @@ prefix.val     = {'e'};
 
 epoch          = cfg_exbranch;
 epoch.tag      = 'epoch';
-epoch.name     = 'M/EEG Epoching';
+epoch.name     = 'Epoching';
 epoch.val      = {D, trlchoice, bc, eventpadding, prefix};
 epoch.help     = {'Epoch continuous EEG/MEG data.'};
 epoch.prog     = @eeg_epochs;
@@ -147,14 +147,12 @@ else
     % adjusted in the GUI. Otherwise trialdef has priority if present.
     if isfield(trlfile, 'trl')
         if ~all(isfield(trlfile, {'trialdef', 'timewin'}))
-            if isfield(trlfile, 'source')
+             usetrl = 1;
+        elseif isfield(trlfile, 'source')
                 D = spm_eeg_load(S.D);
                 if isequal(D.fname, trlfile.source)
                     usetrl = 1;
                 end
-            end
-        else
-            usetrl = 1;
         end
     elseif ~all(isfield(trlfile, {'trialdef', 'timewin'}))
         error('The trial definition file could not be inetrpreted');

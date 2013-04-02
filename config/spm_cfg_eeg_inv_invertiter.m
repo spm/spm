@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5313 2013-03-08 16:46:46Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -209,7 +209,7 @@ modality.val = {{'All'}};
 
 invert = cfg_exbranch;
 invert.tag = 'invertiter';
-invert.name = 'M/EEG source inversion, iterative';
+invert.name = 'Source inversion, iterative';
 invert.val = {D, val, whatconditions, isstandard, modality};
 invert.help = {'Run imaging source reconstruction'};
 invert.prog = @run_inversion;

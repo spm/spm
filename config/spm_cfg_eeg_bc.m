@@ -4,7 +4,7 @@ function bc = spm_cfg_eeg_bc
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_bc.m 5073 2012-11-22 16:08:51Z vladimir $
+% $Id: spm_cfg_eeg_bc.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -42,7 +42,7 @@ prefix.val     = {'b'};
 %--------------------------------------------------------------------------
 bc          = cfg_exbranch;
 bc.tag      = 'bc';
-bc.name     = 'M/EEG Baseline correction';
+bc.name     = 'Baseline correction';
 bc.val      = {D, timewin, prefix};
 bc.help     = {'Baseline correction of M/EEG time data'}';
 bc.prog     = @eeg_bc;

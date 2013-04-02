@@ -4,9 +4,9 @@ function downsample = spm_cfg_eeg_downsample
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: spm_cfg_eeg_downsample.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 5068 $';
+rev = '$Rev: 5377 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -32,7 +32,7 @@ prefix.val     = {'d'};
 
 downsample = cfg_exbranch;
 downsample.tag = 'downsample';
-downsample.name = 'M/EEG Downsampling';
+downsample.name = 'Downsampling';
 downsample.val = {D fsample_new, prefix};
 downsample.help = {'Downsample EEG/MEG data.'};
 downsample.prog = @eeg_downsample;
@@ -45,7 +45,9 @@ function out = eeg_downsample(job)
 S = job;
 S.D = S.D{1};
 
+profile on
 out.D = spm_eeg_downsample(S);
+profile off
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
 function dep = vout_eeg_downsample(job)

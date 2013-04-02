@@ -4,7 +4,7 @@ function reduce = spm_cfg_eeg_reduce
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_reduce.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_cfg_eeg_reduce.m 5377 2013-04-02 17:07:57Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ prefix.val     = {'R'};
 %--------------------------------------------------------------------------
 reduce = cfg_exbranch;
 reduce.tag = 'reduce';
-reduce.name = 'M/EEG Data reduction';
+reduce.name = 'Data reduction';
 reduce.val = {D, spm_cfg_eeg_channel_selector, method};
 reduce.help = {'Perform data reduction.'};
 reduce.prog = @eeg_reduce;

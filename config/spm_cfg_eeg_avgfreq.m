@@ -4,7 +4,7 @@ function avgfreq = spm_cfg_eeg_avgfreq
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgfreq.m 5190 2013-01-17 15:32:45Z vladimir $
+% $Id: spm_cfg_eeg_avgfreq.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -43,7 +43,7 @@ prefix.val     = {'P'};
 %--------------------------------------------------------------------------
 avgfreq          = cfg_exbranch;
 avgfreq.tag      = 'avgfreq';
-avgfreq.name     = 'M/EEG Average over frequency';
+avgfreq.name     = 'Average over frequency';
 avgfreq.val      = {D, freqwin, prefix};
 avgfreq.help     = {'Average M/EEG data over frequency'}';
 avgfreq.prog     = @eeg_avgfreq;

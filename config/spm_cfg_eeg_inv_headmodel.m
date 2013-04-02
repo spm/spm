@@ -5,7 +5,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_inv_headmodel.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -194,7 +194,7 @@ forward.val = {eeg, meg};
 
 headmodel = cfg_exbranch;
 headmodel.tag = 'headmodel';
-headmodel.name = 'M/EEG head model specification';
+headmodel.name = 'Head model specification';
 headmodel.val = {D, val, comment, meshing, coregistration, forward};
 headmodel.help = {'Specify M/EEG head model for forward computation'};
 headmodel.prog = @specify_headmodel;

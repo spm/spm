@@ -5,7 +5,7 @@ function extract = spm_cfg_eeg_inv_extract
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_extract.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_inv_extract.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -73,7 +73,7 @@ fname.help = {'Output file name (empty for default)'};
 
 extract = cfg_exbranch;
 extract.tag = 'extract';
-extract.name = 'M/EEG source extraction';
+extract.name = 'Source extraction';
 extract.val = {D, val, sources, rad, type, fname};
 extract.help = {'Extract source data from the results of inverse source reconstruction'};
 extract.prog = @run_extract;

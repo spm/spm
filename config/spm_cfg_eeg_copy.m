@@ -4,7 +4,7 @@ function copy = spm_cfg_eeg_copy
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_copy.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_copy.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -31,7 +31,7 @@ outfile.help = {'Choose filename.'};
 %--------------------------------------------------------------------------
 copy          = cfg_exbranch;
 copy.tag      = 'copy';
-copy.name     = 'M/EEG Copy';
+copy.name     = 'Copy';
 copy.val      = {D, outfile};
 copy.help     = {'Copying M/EEG datasets'}';
 copy.prog     = @eeg_copy;

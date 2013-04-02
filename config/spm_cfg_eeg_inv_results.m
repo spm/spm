@@ -4,7 +4,7 @@ function results = spm_cfg_eeg_inv_results
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_results.m 5365 2013-03-27 20:53:02Z guillaume $
+% $Id: spm_cfg_eeg_inv_results.m 5377 2013-04-02 17:07:57Z vladimir $
 
 
 D        = cfg_files;
@@ -72,7 +72,7 @@ smoothing.val     = {8};
 
 results          = cfg_exbranch;
 results.tag      = 'results';
-results.name     = 'M/EEG inversion results';
+results.name     = 'Inversion results';
 results.val      = {D, val, woi, foi, ctype, space, fmt, smoothing};
 results.help     = {'Export results of imaging source reconstruction.'};
 results.prog     = @run_results;

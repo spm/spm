@@ -4,7 +4,7 @@ function delete = spm_cfg_eeg_delete
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_delete.m 5200 2013-01-22 10:08:01Z vladimir $
+% $Id: spm_cfg_eeg_delete.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -21,7 +21,7 @@ D.help   = {'Select the M/EEG mat file(s).'};
 %--------------------------------------------------------------------------
 delete          = cfg_exbranch;
 delete.tag      = 'delete';
-delete.name     = 'M/EEG Delete';
+delete.name     = 'Delete';
 delete.val      = {D};
 delete.help     = {'Copying M/EEG datasets'}';
 delete.prog     = @eeg_delete;

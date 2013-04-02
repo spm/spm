@@ -4,7 +4,7 @@ function grandmean = spm_cfg_eeg_grandmean
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_grandmean.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_grandmean.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D File Names
@@ -41,7 +41,7 @@ weighted.values  = {1 0};
 %--------------------------------------------------------------------------
 grandmean            = cfg_exbranch;
 grandmean.tag        = 'grandmean';
-grandmean.name       = 'M/EEG Grandmean';
+grandmean.name       = 'Grandmean';
 grandmean.val        = {D outfile weighted};
 grandmean.help       = {'Average multiple evoked responses'};
 grandmean.prog       = @eeg_grandmean;

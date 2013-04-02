@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_contrast
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_contrast.m 5192 2013-01-18 12:14:00Z vladimir $
+% $Id: spm_cfg_eeg_contrast.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -56,7 +56,7 @@ prefix.val     = {'w'};
 
 S = cfg_exbranch;
 S.tag = 'contrast';
-S.name = 'M/EEG Contrast over epochs';
+S.name = 'Contrast over epochs';
 S.val = {D contrasts weighted prefix};
 S.help = {'Computes contrasts over EEG/MEG epochs.'};
 S.prog = @eeg_contrast;

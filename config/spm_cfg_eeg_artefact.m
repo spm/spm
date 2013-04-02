@@ -4,7 +4,7 @@ function artefact = spm_cfg_eeg_artefact
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_eeg_artefact.m 5377 2013-04-02 17:07:57Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ prefix.val     = {'a'};
 %--------------------------------------------------------------------------
 artefact          = cfg_exbranch;
 artefact.tag      = 'artefact';
-artefact.name     = 'M/EEG Artefact detection';
+artefact.name     = 'Artefact detection';
 artefact.val      = {D, badchanthresh, methodsrep, prefix};
 artefact.help     = {'Detect artefacts in epoched M/EEG data.'};
 artefact.prog     = @eeg_artefact;

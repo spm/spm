@@ -4,7 +4,7 @@ function crop = spm_cfg_eeg_crop
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_crop.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_crop.m 5377 2013-04-02 17:07:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -54,7 +54,7 @@ prefix.val     = {'p'};
 %--------------------------------------------------------------------------
 crop          = cfg_exbranch;
 crop.tag      = 'crop';
-crop.name     = 'M/EEG Crop';
+crop.name     = 'Crop';
 crop.val      = {D, timewin, freqwin, spm_cfg_eeg_channel_selector, prefix};
 crop.help     = {'Cropping M/EEG data'}';
 crop.prog     = @eeg_crop;

@@ -4,9 +4,9 @@ function fuse = spm_cfg_eeg_fuse
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_fuse.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_cfg_eeg_fuse.m 5377 2013-04-02 17:07:57Z vladimir $
 
-rev = '$Rev: 5079 $';
+rev = '$Rev: 5377 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -24,7 +24,7 @@ prefix.val     = {'u'};
 
 fuse = cfg_exbranch;
 fuse.tag = 'fuse';
-fuse.name = 'M/EEG Fusion';
+fuse.name = 'Fusion';
 fuse.val = {D, prefix};
 fuse.help = {'Fuse EEG/MEG data.'};
 fuse.prog = @eeg_fuse;

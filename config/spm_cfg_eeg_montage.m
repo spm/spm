@@ -4,7 +4,7 @@ function S = spm_cfg_eeg_montage
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_montage.m 5072 2012-11-20 19:06:11Z vladimir $
+% $Id: spm_cfg_eeg_montage.m 5377 2013-04-02 17:07:57Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -104,7 +104,7 @@ mode.help = {'Choose between writing a new dataset or online montage operation'}
 
 S = cfg_exbranch;
 S.tag = 'montage';
-S.name = 'M/EEG Montage';
+S.name = 'Montage';
 S.val = {D, mode};
 S.help = {'Apply a montage (linear transformation) to EEG/MEG data.'};
 S.prog = @eeg_montage;
