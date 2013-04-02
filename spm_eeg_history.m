@@ -22,7 +22,7 @@ function H = spm_eeg_history(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_history.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: spm_eeg_history.m 5379 2013-04-02 18:59:18Z karl $
 
 try
     h = S.history;
@@ -169,7 +169,7 @@ for i=1:numel(h)
                 end
             else
                 if length(h(i).args.freq) == 2
-                    hh{i} = [upper(h(i).args.band(1)) h(i).args.filter.band(2:end)...
+                    hh{i} = [upper(h(i).args.band(1)) h(i).args.band(2:end)...
                         ' filter ' num2str(h(i).args.freq(:)', '%g %g') ' Hz'];
                 else
                     hh{i} = [upper(h(i).args.band(1)) h(i).args.band(2:end)...

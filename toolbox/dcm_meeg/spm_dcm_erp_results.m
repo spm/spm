@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_dcm_erp_results.m 5379 2013-04-02 18:59:18Z karl $
 
 
 % get Action if necessary
@@ -373,7 +373,7 @@ switch(lower(Action))
         
         % spm_dcm_erp_results(DCM,'trial-specific effects');
         %------------------------------------------------------------------
-        if ~isfield(DCM.Ep,'B'), return, end
+        if ~any(isfield(DCM.Ep,{'B','N'})), return, end
         
         for i = 1:ns
             for j = 1:ns
@@ -382,25 +382,30 @@ switch(lower(Action))
                 %----------------------------------------------------------
                 q     = 0;
                 for k = 1:nu
-                    q = q | DCM.B{k}(i,j);
+                    try, q = q | DCM.Ep.B{k}(i,j); end
+                    try, q = q | DCM.Ep.N{k}(i,j); end
                 end
                 
                 % plot trial-specific effects
                 %----------------------------------------------------------
                 if q
+                    D     = zeros(nt,0);
                     B     = zeros(nt,1);
+                    N     = zeros(nt,1);
                     for k = 1:nu
-                        B = B + DCM.xU.X(:,k)*DCM.Ep.B{k}(i,j);
-                    end
+                        try, B = B + DCM.xU.X(:,k)*DCM.Ep.B{k}(i,j); end
+                        try, N = N + DCM.xU.X(:,k)*DCM.Ep.N{k}(i,j); end
+                    end            
+                    
+                    if isfield(DCM.Ep,{'B'}), D = B;     end
+                    if isfield(DCM.Ep,{'N'}), D = [D N]; end
                     
                     subplot(ns,ns,(i - 1)*ns + j)
-                    bar(exp(B)*100,'c')
+                    bar(exp(D)*100)
                     title([DCM.Sname{j}, ' to ' DCM.Sname{i}],'FontSize',10)
                     xlabel('trial',  'FontSize',8)
                     ylabel('strength (%)','FontSize',8)
                     set(gca,'XLim',[0 nt + 1])
-                    axis square
-                    
                 end
             end
         end
