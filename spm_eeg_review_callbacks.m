@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5333 2013-03-19 12:31:13Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 5378 2013-04-02 17:10:36Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -209,7 +209,7 @@ switch varargin{1}
                     I = intersect(I,find(~[D.badchannels(1:D.nchannels)]));
                      try %CP
                         pos = coor2D(D,I)';
-                        labels = chan(chanlabels(D,I));
+                        labels = char(chanlabels(D,I));
                         y = D(I,:,trN);
                         in.min = min(y(:));
                         in.max = max(y(:));
