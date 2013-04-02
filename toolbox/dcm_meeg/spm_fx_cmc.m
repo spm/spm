@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_fx_cmc.m 5376 2013-04-02 09:59:01Z karl $
  
  
 % get dimensions and configure state variables
@@ -46,7 +46,7 @@ n  = size(x,1);                   % number of sources
 %--------------------------------------------------------------------------
 E  = [1 1/2 1 1/2]*200;           % extrinsic (forward and backward)  
 G  = [4 4 4 4 4 2 4 4 2 1]*200;   % intrinsic connections
-T  = [2 2 16 28];                 % synaptic time constants
+T  = [4 2 16 28];                 % synaptic time constants
 R  = 2/3;                         % slope of sigmoid activation function
  
 % [specified] fixed parameters
@@ -117,11 +117,13 @@ G    = ones(n,1)*G;
 % backward (i)   2  dp -> sp (-ve)
 % backward (ii)  1  dp -> ii (-ve)
 %--------------------------------------------------------------------------
+j     = [1 2 3 4];
 for i = 1:size(P.T,2)
-    T(:,i) = T(:,i).*exp(P.T(:,i));
+    T(:,j(i)) = T(:,j(i)).*exp(P.T(:,i));
 end
+j     = [7 2 3 4];
 for i = 1:size(P.G,2)
-    G(:,i) = G(:,i).*exp(P.G(:,i));
+    G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end
 
 % Modulatory effects of dp on sp -> sp self-connectivity

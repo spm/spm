@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 5058 2012-11-15 13:09:56Z guillaume $
+% $Id: spm_eeg_load.m 5376 2013-04-02 09:59:01Z karl $
 
 
 %-Bypass if the input is already an MEEG object
@@ -35,7 +35,8 @@ P = spm_file(spm_file(P, 'ext', '.mat'), 'cpath');
 %--------------------------------------------------------------------------
 try
     load(P);
-catch    
+catch
+    
     error('Cannot load file "%s".', P);
 end
 

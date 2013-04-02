@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 5376 2013-04-02 09:59:01Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -53,7 +53,11 @@ end
 
 % D - SPM data structure
 %--------------------------------------------------------------------------
-D    = spm_eeg_load(DCM.xY.Dfile);
+try
+    D  = spm_eeg_load(DCM.xY.Dfile);
+catch
+    D  = spm_eeg_load(spm_file(DCM.xY.Dfile,'filename'));
+end
  
  
 % set options in dipfit

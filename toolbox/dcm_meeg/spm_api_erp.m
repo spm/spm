@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_api_erp.m 5376 2013-04-02 09:59:01Z karl $
  
 
 %-Launch GUI
@@ -18,10 +18,13 @@ if nargin == 0 || nargin == 1
     set(fig,'units','pixels'); Fdim = get(fig,'position');
     set(fig,'position',[S0(1) S0(2) 0 0] + Fdim);
     Fgraph  = spm_figure('GetWin','Graphics');
+    
     % Use system color scheme for figure:
+    %----------------------------------------------------------------------
     set(fig,'Color',get(0,'defaultUicontrolBackgroundColor'));
  
-    % Generate a structure of handles to pass to callbacks, and store it.
+    % Generate a structure of handles to pass to callbacks, and store it
+    %----------------------------------------------------------------------
     handles  = guihandles(fig);
     handles.Fgraph = Fgraph;
     guidata(fig, handles);
@@ -56,21 +59,21 @@ end
 % -------------------------------------------------------------------------
 function load_Callback(hObject, eventdata, handles, varargin)
 try
-    DCM         = varargin{1};
-    f           = spm_file(DCM.name,'filename');
+    DCM     = varargin{1};
+    f       = spm_file(DCM.name,'filename');
 catch
-    [name, sts] = spm_select(1,'mat','please select DCM file');
-    if ~sts, return; end
-    cd(spm_file(name,'fpath'));
-    f           = spm_file(name,'filename');
-    DCM         = load(f,'-mat');
+    name    = spm_select(1,'mat','please select DCM file');
+    
+    f       = spm_file(name,'filename');
+    DCM     = load(f,'-mat');
     try
-        DCM     = DCM.DCM;
+        DCM = DCM.DCM;
     catch
         error('File "%s" does not contain a DCM structure.',f);
     end
     DCM.name    = name;
     handles.DCM = DCM;
+    cd(spm_file(name,'path'))
     guidata(hObject,handles);
 end
  
@@ -1049,15 +1052,15 @@ end
 
 % initialise with posteriors if required
 % -------------------------------------------------------------------------
-% try
-%     handles.DCM.M.pE;
-%     Str = questdlg('use previous priors');
-%     if strcmp(Str,'No')
-%         handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
-%     elseif strcmp(Str,'Cancel')
-%         return
-%     end
-% end
+try
+    handles.DCM.M.pE;
+    Str = questdlg('use previous priors');
+    if strcmp(Str,'No')
+        handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
+    elseif strcmp(Str,'Cancel')
+        return
+    end
+end
  
  
 % invert and save

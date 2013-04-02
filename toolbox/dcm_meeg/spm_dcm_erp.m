@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_dcm_erp.m 5376 2013-04-02 09:59:01Z karl $
 
 % check options
 %==========================================================================
@@ -50,9 +50,7 @@ try, lock  = DCM.options.lock;      catch, lock      = 0;           end
 try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
 try, Nmax  = DCM.options.Nmax;      catch, Nmax      = 64;          end
 
-
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
-    
 
 
 % Data and spatial model (use h only for de-trending data)

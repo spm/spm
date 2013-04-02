@@ -2,7 +2,6 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % state equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
 % responses
 % FORMAT [y] = spm_fx_fmri(x,u,P,M)
-
 % x      - state vector
 %   x(:,1) - excitatory neuronal activity             ue
 %   x(:,2) - vascular signal                          s
@@ -33,7 +32,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5370 2013-03-28 20:10:29Z karl $
+% $Id: spm_fx_fmri.m 5376 2013-04-02 09:59:01Z karl $
 
 
 % Neuronal motion
