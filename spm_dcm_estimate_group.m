@@ -1,4 +1,4 @@
-function spm_dcm_estimate_group(DCMs, DD, P, pE, pC)
+function spm_dcm_estimate_group(DCMs, DD, P, pE, pC, feedback)
 % Apply a set of pre-specified DCMs to a set of subjects.
 %
 % FORMAT spm_dcm_estimate_group(DCM, D, P, pE, pC)
@@ -10,13 +10,14 @@ function spm_dcm_estimate_group(DCMs, DD, P, pE, pC)
 % P   - initialisation (1 - use previous posteriors)
 % pE  - priors (1 - take from DCM)
 % pC  - prior covariance
+% feedback - provide graphical feedback (1)
 %
 % All results will be saved in the current directory
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_dcm_estimate_group.m 5382 2013-04-03 14:56:41Z vladimir $
+% $Id: spm_dcm_estimate_group.m 5383 2013-04-03 16:22:30Z vladimir $
 
 % Disclaimer: this code is provided as an example and is not guaranteed to
 % work with data on which it was not tested. If it does not work for you,
@@ -34,6 +35,9 @@ end
 if nargin < 3,    P  = [];  end
 if nargin < 4,    pE = [];  end
 if nargin < 5,    pC = [];  end
+
+if nargin < 6,    feedback = 1;  end
+
 
 for i = 1:size(DCMs, 1)
     cDCM = getfield(load(deblank(DCMs(i, :)), 'DCM'), 'DCM');
@@ -67,7 +71,7 @@ for i = 1:size(DCMs, 1)
         
         D = spm_eeg_load(deblank(DD(j, :)));
         
-        [ok, D] = check(D, 'dcm');
+        [D, ok] = check(D, 'dcm');
         
         if ~ok
             if check(D, 'basic')
@@ -87,6 +91,8 @@ for i = 1:size(DCMs, 1)
         [p, f] = fileparts(DCM.name);
         
         DCM.name = fullfile(pwd, [f '_' D.fname]);
+        
+        DCM.M.nograph = ~feedback;
         
         % invert and save
         %--------------------------------------------------------------------------
