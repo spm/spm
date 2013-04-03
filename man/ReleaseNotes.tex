@@ -124,6 +124,34 @@ However, the cleanup step (re-introduced from the old segmentation routine, and 
 
 \section{EEG/MEG}
 
+\subsection{@meeg object}
+
+The following @meeg methods have been removed to simplify and rationalise the object interface
+\begin{itemize}
+\item   'pickconditions' - replaced with 'indtrial'
+\item   'meegchannels', 'ecgchannels', 'emgchannels',  'eogchannels' - replaced with 'indchantype'
+\item 'reject' - replaced with 'badtrials'
+\end{itemize}
+
+It is now possible to have @meeg objects without a linked data file. This was useful to simplify the conversion code. Also in 'Prepare' one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion). 
+
+
+\subsection{Preprocessing}
+
+The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the 'Prepare' tool under 'Batch inputs' menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch. 
+
+It is still also possible to call the preprocessing function via scripts and scripts can be generated using History2script functionality as in SPM8. The inputs structures and parameters names of preprocessing function have been standardised so that e.g. time window is always called S.timewin and units of peristimulus time are always ms. Also substructures of S have been removed except for where they are functionally essential. 
+
+Simple GUI functionality for converting a variable in the workspace into SPM M\EEG dataset was added to 'Prepare' (File/Import from workspace). 
+
+For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling. 
+
+Conversion to images was completely rewritten. It is now possible to easily create 1D images and average across any set of dimensions to reduce the number of multiple comparisons.
+
+\subsection{Convolution modelling}
+An implementation of recently published (Litvak et al. 2012) convolution modelling method for M/EEG power has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool. 
+
+
 \subsection{DCM}
 
 \begin{itemize}
