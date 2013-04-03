@@ -9,7 +9,7 @@ function [Dnew]=spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % SNRdB  : SNR in dBs (alternative to specifying white noise)
 % trialind: trials in which the simulated signal is to appear (all other
 % trials will be noise)
-% $Id: spm_eeg_simulate_frominv.m 5316 2013-03-08 16:48:00Z gareth $
+% $Id: spm_eeg_simulate_frominv.m 5380 2013-04-03 10:48:40Z gareth $
 
 %% LOAD IN ORGINAL DATA
 
@@ -96,20 +96,27 @@ spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
 
 M=Dnew.inv{val}.inverse.M;
 J=Dnew.inv{val}.inverse.J{1};
-Y=Dnew.inv{val}.inverse.Y;
-L=Dnew.inv{val}.inverse.L;
+%Y=Dnew.inv{val}.inverse.Y;
+Lorig=Dnew.inv{val}.inverse.L;
 T=Dnew.inv{val}.inverse.T;
 U=Dnew.inv{val}.inverse.U;
-Is=Dnew.inv{val}.inverse.Is;
+%Is=Dnew.inv{val}.inverse.Is;
 Ic=Dnew.inv{val}.inverse.Ic;
 It=Dnew.inv{val}.inverse.It;
 
+[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix- from file rather than from inversion itself
         
+Lnew=U*L;
+if max(max(Lnew-Lorig))>0,
+    warning('Lead fields have changed since inversion (but keeping original U)');
+end;
+%keyboard
         
-tmp=(L*J)*T';
+tmp=(Lnew*J)*T';
 tmp=U'*tmp; %% channels x time
-
-
+% 
+% tmpo=(Lorig*J)*T';
+% tmpo=U'*tmpo;
 
 switch Dnew.sensors('MEG').chanunit{1}
     case 'T'
