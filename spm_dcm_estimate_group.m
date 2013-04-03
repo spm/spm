@@ -16,7 +16,7 @@ function spm_dcm_estimate_group(DCMs, DD, P, pE, pC)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_dcm_estimate_group.m 4390 2011-07-13 18:04:22Z vladimir $
+% $Id: spm_dcm_estimate_group.m 5382 2013-04-03 14:56:41Z vladimir $
 
 % Disclaimer: this code is provided as an example and is not guaranteed to
 % work with data on which it was not tested. If it does not work for you,
