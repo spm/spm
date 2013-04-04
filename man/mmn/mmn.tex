@@ -121,14 +121,14 @@ Here, we will consider a 3D example, where the third dimension is time, and test
 
 Select 'Convert to images' from the 'Images' dropdown menu. In the batch tool that will appear select the  \texttt{aefdfMspmeeg\_subject1.mat} as input. For the 'Mode' option select 'scalp x time'.  In the 'Channel selection' option delete the default choice ('All') and choose 'Select channels by type' with 'EEG' as the type selection. You can now run the batch.
 
-SPM will take some time as it writes out a NIfTI image for each trial (except rejected trials), in a new directory called \texttt{aefdfMspmeeg\_subject1.mat}, which will itself contain two subdirectories, one for each trialtype, called \texttt{condition\_rare} and \texttt{condition\_standard}. In each trialtype subdirectory there will be image and header files for each non-rejected trial of that type, e.g, trial0001.img/hdr. You can press ``Display: images'' to view one of these images - it will have dimensions 32$\times$32$\times$101.
+SPM will take some time as it writes out a NIfTI image for each condition in a new directory called \texttt{aefdfMspmeeg\_subject1.mat}. In our case there will be two files ,  called \texttt{condition\_rare} and \texttt{condition\_standard}. These are 4D files, meaning that eac files contains multiple 3D scalp x time images, corresponding to non-rejected trials. You can press ``Display: images'' to view one of these images. Change the numner in the 'Frames' box to select a particular trial  (first trial is the default). The image will have dimensions 32$\times$32$\times$101.
 
 To perform statistics on these images:
 \begin{itemize}
 \item{Create a new directory, eg. \texttt{mkdir XYTstats}.}
 \item{Press the ``Specify 2nd level'' button.}
 \item{Select ``two-sample t-test'' (unpaired t-test)}
-\item{Define the images for ``Group 1'' as all those in the subdirectory \texttt{type\_standard} (using right mouse, and ``select all'') and the images for ``Group 2'' as all those in the subdirectory \texttt{type\_rare}.}
+\item{Define the images for ``Group 1'' as all those in the file  \texttt{condition\_standard}. To do that write 'standard' in the 'Filter' box and 'Inf' in the 'Frames' box of the file selector. All the frames will be shown. Right click on any of the frames in the list and choose 'Select all'. Similarly for  ``Group 2''  select the images from   \texttt{condition\_rare}  file.
 \item{Finally, specify the new \texttt{XYTstats} directory as the output directory.}
 \item{Press the ``save'' icon, top left, and save this design specification as \texttt{mmn\_design.mat} and press ``save''.}
 \item{Press the green ``Run'' button to execute the job\footnote{Note that we can use the default ``nonsphericity'' selections, i.e, that the two trial-types may have different variances, but are uncorrelated.} This will produce the design matrix for a two-sample t-test.} 

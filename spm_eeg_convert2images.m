@@ -24,8 +24,6 @@ function images = spm_eeg_convert2images(S)
 %   channels   - cell array of channel labels, modality or 'all'.
 %
 %   prefix     - prefix for the folder containing the images (default: none)
-%   virtual    - if 0 (default) images will always be written to disk
-%                1  return virtual handles if possible
 %
 % output:
 %   images     - list of generated image files or objects
@@ -33,9 +31,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: spm_eeg_convert2images.m 5389 2013-04-04 12:01:28Z vladimir $
 
-SVNrev = '$Rev: 5238 $';
+SVNrev = '$Rev: 5389 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,7 +43,6 @@ spm('FigName','M/EEG conversion setup'); spm('Pointer','Watch');
 if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
 if ~isfield(S, 'freqwin'),      S.freqwin  = [-Inf Inf];    end
 if ~isfield(S, 'channels'),     S.channels = 'all';         end
-if ~isfield(S, 'virtual'),      S.virtual = 0;              end
 if ~isfield(S, 'prefix'),       S.prefix = '';              end
 
 D = spm_eeg_load(S.D);
@@ -143,7 +140,7 @@ switch S.mode
             0     0     0               1];
         N.mat(3,4) = N.mat(3,4) - N.mat(3,3);
         
-        dat = file_array('', [n n 1], 'FLOAT32-LE');
+        dat = file_array('', [n n], 'FLOAT32-LE');
         
     case 'time x frequency'
         if ~isTF
@@ -205,19 +202,12 @@ else
     dataind = {chanind, timeind};
 end
 
-% Force saving when the virtual mode is impossible
-virtual = S.virtual && ~(isscalp || any(cellfun(@length, dataind(avflag)) > 1));
-
-if virtual ~= S.virtual
-    warning('Images must be written to disk for this case. Overriding the user setting');
-end
-
-if ~virtual
-    outroot    = [S.prefix spm_file(D.fname, 'basename')];
-    [sts, msg] = mkdir(D.path, outroot);
-    if ~sts,     error(msg); end
-    outroot     = fullfile(D.path, outroot);
-end
+%-Create the output folder
+%--------------------------------------------------------------------------
+outroot    = [S.prefix spm_file(D.fname, 'basename')];
+[sts, msg] = mkdir(D.path, outroot);
+if ~sts,     error(msg); end
+outroot     = fullfile(D.path, outroot);
 
 if isscalp
     [Cel, x, y] = spm_eeg_locate_channels(D, n, chanind);
@@ -231,66 +221,65 @@ for c = 1:numel(S.conditions)
     if isempty(trialind)
         warning(['No good trials found for condition ' S.conditions{c}]);
         continue;
-    end          
-    
-    if ~virtual
-        %-Make subdirectory for each condition
-        %--------------------------------------------------------------------------
-        condlabel = S.conditions{c};
-        condlabel = condlabel(isstrprop(condlabel, 'alphanum') | ismember(condlabel, '_-'));
-        if isempty(condlabel)
-            condlabel = sprintf('condition%04d', c);
-        end
-        outdir = ['condition_' condlabel];
-        [sts, msg] = mkdir(outroot, outdir);
-        if ~sts, error(msg); end
-        outdir = fullfile(outroot, outdir);
     end
+    
+    
+    %-Make subdirectory for each condition
+    %--------------------------------------------------------------------------
+    condlabel = S.conditions{c};
+    condlabel = condlabel(isstrprop(condlabel, 'alphanum') | ismember(condlabel, '_-'));
+    if isempty(condlabel)
+        condlabel = sprintf('condition%04d', c);
+    end
+    
+    fname      = fullfile(outroot, ['condition_' condlabel '.nii']);
+    
+    cdat       = dat;
+    cdat.fname = fname;    
+    cdat.dim   = [dat.dim ones(1, 3-length(dat.dim)) length(trialind)];
+    N.dat      = cdat;   
+    create(N);
     
     spm_progress_bar('Init', length(trialind),['Converting condition ',S.conditions{c}],'Trial');
     if length(trialind) > 100, Ibar = floor(linspace(1, length(trialind), 100)); else Ibar = 1:length(trialind); end
     
     for i = 1:length(trialind)
-        if ~virtual
-            if strcmp(D.type, 'single')
-                % single trial data
-                fname = [sprintf('trial%04d', trialind(i)) spm_file_ext];
-            else
-                % evoked data
-                fname = ['average' spm_file_ext];
-            end
-            
-            fname = fullfile(outdir, fname);
-            
-            images{ind} = fname;
-            ind = ind + 1;
-            
-            dat.fname = fname;
-            N.dat = dat;
-            create(N);
-            
-            Y = subsref(D, struct('type', '()', 'subs', {[dataind, {trialind(i)}]}));
-            
-            for m = sort(find(avflag), 1, 'descend')
-                Y = mean(Y, m);
-            end
-            
-            Y = squeeze(Y);
-            
-            if isscalp
-                for j = 1 : size(Y, 2)
-                    YY = NaN(n,n);
-                    YY(sub2ind([n n], x, y)) = griddata(Cel(:,1),Cel(:,2),...
-                        double(Y(:, j)), x, y,'linear');
-                    N.dat(:,:,j) = YY;
-                end                
-            else                               
-                if size(Y, 1) == 1
-                    Y = Y';
-                end
+        
+        images{ind} = [fname ',' num2str(i)];
+        
+        ind = ind + 1;
+        
+        Y = subsref(D, struct('type', '()', 'subs', {[dataind, {trialind(i)}]}));
+        
+        for m = sort(find(avflag), 1, 'descend')
+            Y = mean(Y, m);
+        end
+        
+        Y = squeeze(Y);
+        
+        if isscalp
+            for j = 1:size(Y, 2)
+                YY = NaN(n,n);
+                YY(sub2ind([n n], x, y)) = griddata(Cel(:,1),Cel(:,2),...
+                    double(Y(:, j)), x, y,'linear');
                 
-                N.dat(:, :) = Y;
+                switch length(N.dat.dim)
+                    case 2
+                      N.dat(:,:)     = YY;  
+                    case 3
+                      N.dat(:,:, j)  = YY;  
+                    case 4
+                      N.dat(:,:,j,i) = YY;
+                    otherwise
+                        error('Invalid output file');
+                end
             end
+        else
+            if size(Y, 1) == 1
+                Y = Y';
+            end
+            
+            N.dat(:, :, 1, i) = Y;
         end
         
         if ismember(i, Ibar), spm_progress_bar('Set', i); end
@@ -298,9 +287,8 @@ for c = 1:numel(S.conditions)
 end
 
 
-if ~virtual
-    images = images(:);
-end
+images = images(:);
+
 
 %-Cleanup
 %--------------------------------------------------------------------------
