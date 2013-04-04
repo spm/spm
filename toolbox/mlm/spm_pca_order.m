@@ -1,10 +1,14 @@
-function [M_opt,log_ev,lambda,var] = spm_pca_order (X)
+function [M_opt,log_ev,lambda,var] = spm_pca_order (X, N)
 % Model order selection for PCA   
-% FORMAT [M_opt,log_ev,lambda,var] = spm_pca_order (X)
+% FORMAT [M_opt,log_ev,lambda,var] = spm_pca_order (X, N)
 %
 % Model order selection for PCA using Minka's approximation to model evidence
-%
-% X             Data
+% Input can be
+%     X         Data
+% or
+%    
+%     X         Covariance matrix
+%     N         number of samples used for computing X
 %
 % M_opt         Optimum number of sources
 % log_ev        Log Evidence
@@ -25,15 +29,20 @@ function [M_opt,log_ev,lambda,var] = spm_pca_order (X)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % Will Penny 
-% $Id: spm_pca_order.m 4651 2012-02-09 16:03:39Z will $
+% $Id: spm_pca_order.m 5390 2013-04-04 16:04:31Z vladimir $
 
-[N,d]=size(X);
-if d > N 
-  X=X';
-  [N,d]=size(X);
+if nargin == 1
+    [N,d]=size(X);
+    if d > N
+        X=X';
+        [N,d]=size(X);
+    end
+    X=X-ones(N,1)*mean(X);
+    S=(1/N)*ctranspose(X)*X; %to also work for complex input
+else
+    d = size(X, 1);
+    S = X;
 end
-X=X-ones(N,1)*mean(X);
-S=(1/N)*X'*X;
 
 [w,lambda] = eig (S);
 lambda=diag(lambda);
