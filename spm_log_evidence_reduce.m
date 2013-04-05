@@ -24,18 +24,20 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 5022 2012-10-30 19:25:02Z karl $
+% $Id: spm_log_evidence_reduce.m 5392 2013-04-05 19:14:45Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
  
-% check to see if priors are specified by a function
+% check to see if prior oovaiances are structures
 %--------------------------------------------------------------------------
+if isstruct(pC), pC = diag(spm_vec(pC)); end
+if isstruct(rC), rC = diag(spm_vec(rC)); end
  
  
 % Remove (a priori) null space
 %--------------------------------------------------------------------------
-E     = pE;
+E     = rE;
 U     = spm_svd(pC);
 qE    = U'*spm_vec(qE);
 pE    = U'*spm_vec(pE);
@@ -67,8 +69,9 @@ F     = F/2;
 % restore full conditional density
 %--------------------------------------------------------------------------
 if nargout > 1
+    pE = spm_vec(E);
     rE = sC*sE;
     rC = sC;
-    sE = spm_unvec(U*rE,E);
+    sE = spm_unvec(U*rE + pE - U*U'*pE,E);
     sC = U*rC*U';
 end

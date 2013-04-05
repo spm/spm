@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5376 2013-04-02 09:59:01Z karl $
+% $Id: spm_api_erp.m 5392 2013-04-05 19:14:45Z karl $
  
 
 %-Launch GUI
@@ -258,7 +258,7 @@ end
 % --- Executes on button press in save.
 % -------------------------------------------------------------------------
 function handles = save_Callback(hObject, eventdata, handles)
- 
+
 handles = reset_Callback(hObject, eventdata, handles);
 try
    file      = spm_file(handles.DCM.name,'filename');
@@ -673,6 +673,7 @@ set(handles.Slocation,        'Enable', 'off');
 set(handles.spatial_back,     'Enable', 'off');
  
 set(handles.con_reset,        'Enable', 'on');
+set(handles.save_spec,        'Enable', 'on');
 set(handles.priors,           'Enable', 'on');
 set(handles.connectivity_back,'Enable', 'on');
 set(handles.Hz1,              'Enable', 'on');
@@ -983,6 +984,7 @@ guidata(hObject,handles)
 function connectivity_back_Callback(hObject, eventdata, handles)
  
 set(handles.con_reset,         'Enable', 'off');
+set(handles.save_spec,         'Enable', 'off');
 set(handles.connectivity_back, 'Enable', 'off');
 set(handles.Hz1,               'Enable', 'off');
 set(handles.Hz2,               'Enable', 'off');
@@ -1429,3 +1431,9 @@ guidata(hObject,handles);
 function priors_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 spm_api_nmm(handles.DCM)
+
+% --- Executes on button press in save_spec.
+function save_spec_Callback(hObject, eventdata, handles)
+spm_dcm_search_eeg;
+
+ 

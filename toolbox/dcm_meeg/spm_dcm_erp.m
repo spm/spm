@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5376 2013-04-02 09:59:01Z karl $
+% $Id: spm_dcm_erp.m 5392 2013-04-05 19:14:45Z karl $
 
 % check options
 %==========================================================================
@@ -234,10 +234,10 @@ x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 %--------------------------------------------------------------------------
 j     = find(kron(Qg.J,ones(1,Nr)));    % Indices of contributing states
 for i = 1:Nt
-    x{i} = x{i} - x0;                   % centre on expansion point
-    y{i} = T0*x{i}*L'*M.U;              % prediction (sensor space)
+    K{i} = x{i} - x0;                   % centre on expansion point
+    y{i} = T0*K{i}*L'*M.U;              % prediction (sensor space)
     r{i} = T0*xY.y{i}*M.U - y{i};       % residuals  (sensor space)
-    x{i} = x{i}(:,j);                   % Depolarization in sources
+    K{i} = K{i}(:,j);                   % Depolarization in sources
 end
 
 
@@ -253,7 +253,8 @@ DCM.Cg = Cg;                   % conditional covariances
 DCM.Ce = Ce;                   % conditional error
 DCM.Pp = Pp;                   % conditional probability
 DCM.H  = y;                    % conditional responses (y), projected space
-DCM.K  = x;                    % conditional responses (x)
+DCM.K  = K;                    % conditional responses (x) (contributing)
+DCM.x  = x;                    % conditional responses (x) (all states)
 DCM.R  = r;                    % conditional residuals (y)
 DCM.F  = F;                    % Laplace log evidence
 DCM.L  = LE;                   % Laplace log evidence components

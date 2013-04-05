@@ -1,4 +1,4 @@
-function spm_induced_optimise(Ep)
+function spm_induced_optimise(Ep,model)
 % Demo routine that computes transfer functions for free parameters
 %==========================================================================
 %
@@ -13,19 +13,21 @@ function spm_induced_optimise(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_induced_optimise.m 5392 2013-04-05 19:14:45Z karl $
  
  
 % Model specification
 %==========================================================================
- 
- 
+if nargin < 2
+    model = 'CMC';
+end
+
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMC';
+options.model    = upper(model);
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
@@ -86,7 +88,8 @@ for k = 1:length(P)
     
     % check parameter exists
     %----------------------------------------------------------------------
-    spm_figure('GetWin',sprintf('Dependency on parameters %i',ifig));
+    sfig = sprintf('%s: Parameter dependency - %i',model,ifig);
+    spm_figure('GetWin',sfig);
     
     Q = getfield(pE,P{k});
     
@@ -125,7 +128,8 @@ for k = 1:length(P)
                 if iplot > 4
                     iplot = 1;
                     ifig  = ifig + 1;
-                    spm_figure('GetWin',sprintf('Dependency on parameters %i',ifig));
+                    sfig = sprintf('%s: Parameter dependency - %i',model,ifig);
+                    spm_figure('GetWin',sfig);
                 end
                 
             end
@@ -138,12 +142,13 @@ end
  
 % new figure
 %--------------------------------------------------------------------------
-spm_figure('GetWin',sprintf('Dependency on states %i',1));
 iplot = 1;
 ifig  = 1;
 D     = 4;
 M.Nm  = 3;
- 
+sfig  = sprintf('%s: State dependency - %i',model,ifig);
+spm_figure('GetWin',sfig);
+
 % Steady state solution and number of eigenmodes
 %--------------------------------------------------------------------------
 M.Nm  = 3;
@@ -177,8 +182,7 @@ for i = 1:size(x,1)
                 S        = S(1:M.Nm);
                 W(:,q)   = abs(imag(S)/(2*pi));
                 A(:,q)   = min(4, (exp(real(S)) - 1)./(real(S)) );
-                
-                
+                  
             end
             
             % plot
@@ -210,7 +214,8 @@ for i = 1:size(x,1)
             if iplot > 4
                 iplot = 1;
                 ifig  = ifig + 1;
-                spm_figure('GetWin',sprintf('Dependency on states %i',ifig));
+                sfig = sprintf('%s: State dependency - %i',model,ifig);
+                spm_figure('GetWin',sfig);
             end
             
         end

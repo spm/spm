@@ -23,11 +23,13 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % full model is positive definite. We additionally assume that the prior
 % means are unchanged. The two input argument formats are for use with
 % spm_argmax.
+%
+% See also: spm_log_evidence_reduce
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 4729 2012-05-03 16:29:45Z karl $
+% $Id: spm_log_evidence.m 5392 2013-04-05 19:14:45Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
