@@ -5,11 +5,11 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % P         - character/cell array of DCM filenames
 %           - or cell array of DCM structures
 %
-% fun       - optional family definition function: k = fun(A,B,C,D)
+% fun       - optional family definition function: k = fun(A,B,C)
 %             k = 1,2,...,K for K families or proper subsets of a partition
 %             of model space - a function of the adjacency matrices: e.g.,
 %
-%             fun = inline('any(spm_vec(B(:,:,2))) + 1','A','B','C','D')
+%             fun = @(A,B,C) any(spm_vec(B(:,:,2))) + 1;
 %
 %             returns 1 if there are no bilinear parameters for the 2nd
 %             bilinear effect and 2 if there are. fun should be an inline
@@ -60,7 +60,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 4807 2012-07-26 16:15:49Z guillaume $
+% $Id: spm_dcm_post_hoc.m 5391 2013-04-05 08:30:17Z karl $
 
 
 % Get filenames
@@ -85,8 +85,8 @@ for j = 1:N
     
     % Get prior covariances
     %----------------------------------------------------------------------
-    try, load(P{j}); catch, DCM = P{j}; end
-    pC = diag(DCM.M.pC);
+    try, load(P{j});          catch, DCM = P{j};              end
+    try, pC = diag(DCM.M.pC); catch, pC  = spm_vec(DCM.M.pC); end
     
     % and compare it with the first model
     %----------------------------------------------------------------------
@@ -106,19 +106,20 @@ end
 
 % Accumulated reduction vector (C)
 %--------------------------------------------------------------------------
-C  = ~~C;
+C  = logical(C);
 GS = 1;
 while GS
     
     % Find free coupling parameters
     %----------------------------------------------------------------------
-    k = spm_fieldindices(DCM.Ep,'A','B','C','D');
+    k = spm_fieldindices(DCM.Ep,'A','B','C');
     k = k(C(k));
+    nparam = length(k);
     
     
     % If there are too many find those with the least evidence
     %----------------------------------------------------------------------
-    if length(k) > 16
+    if nparam > 16
         
         % Loop through DCMs and free parameters and get log-evidences
         %------------------------------------------------------------------
@@ -126,6 +127,11 @@ while GS
         for j = 1:N
             
             try, load(P{j}); catch, DCM = P{j}; end
+            try 
+                DCM.M.pC = double(DCM.M.pC); 
+            catch
+                DCM.M.pC = diag(spm_vec(DCM.M.pC));
+            end
             fprintf('\ninitial search (%i): 00%%',j)
             
             % Get priors and posteriors
@@ -184,6 +190,11 @@ while GS
     for j = 1:N
         
         try, load(P{j}); catch, DCM = P{j}; end
+        try
+            DCM.M.pC = double(DCM.M.pC);
+        catch
+            DCM.M.pC = diag(spm_vec(DCM.M.pC));
+        end
         fprintf('\nsearching (%i): 00%%',j)
         
         % Get priors and posteriors
@@ -236,7 +247,7 @@ while GS
     spm_figure('Getwin','Graphics');
     spm_figure('Clear');
     
-    fprintf('%i out of %i free parameters removed \n',nelim,full(sum(C)))
+    fprintf('%i out of %i free parameters removed \n',nelim,nparam)
     
     subplot(2,2,1)
     if length(K) > 32, plot(S,'k'), else, bar(S,'c'), end
@@ -277,7 +288,7 @@ if ~isempty(fun)
         Pn     = full(C);
         Pn(K(i,:)) = 0;
         Pn     = spm_unvec(Pn,pE);
-        Kf(i)  = fun(Pn.A,Pn.B,Pn.C,Pn.D);
+        Kf(i)  = fun(Pn.A,Pn.B,Pn.C);
     end
     for i = 1:max(Kf)
         Pf(i) = mean(p(Kf == i));

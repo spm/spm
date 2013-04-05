@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 5379 2013-04-02 18:59:18Z karl $
+% $Id: spm_dcm_erp_results.m 5391 2013-04-05 08:30:17Z karl $
 
 
 % get Action if necessary
@@ -397,8 +397,8 @@ switch(lower(Action))
                         try, N = N + DCM.xU.X(:,k)*DCM.Ep.N{k}(i,j); end
                     end            
                     
-                    if isfield(DCM.Ep,{'B'}), D = B;     end
-                    if isfield(DCM.Ep,{'N'}), D = [D N]; end
+                    if any(B(:)), D = B;     end
+                    if any(N(:)), D = [D N]; end
                     
                     subplot(ns,ns,(i - 1)*ns + j)
                     bar(exp(D)*100)
