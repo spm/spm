@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_dcm_erp.m 5393 2013-04-06 11:02:13Z karl $
 
 % check options
 %==========================================================================
@@ -225,14 +225,14 @@ warning(sw);
 
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
-x0  = ones(Ns,1)*spm_vec(M.x)';         % expansion point for states
 L   = feval(M.G, Qg,M);                 % get gain matrix
 x   = feval(M.IS,Qp,M,xU);              % prediction (source space)
 
 
 % trial-specific responses (in mode, channel and source space)
 %--------------------------------------------------------------------------
-j     = find(kron(Qg.J,ones(1,Nr)));    % Indices of contributing states
+j   = find(kron(Qg.J,ones(1,Nr)));      % Indices of contributing states
+x0  = ones(Ns,1)*spm_vec(M.x)';         % expansion point for states
 for i = 1:Nt
     K{i} = x{i} - x0;                   % centre on expansion point
     y{i} = T0*K{i}*L'*M.U;              % prediction (sensor space)
@@ -309,7 +309,7 @@ if strcmp(M.dipfit.type,'IMG')
     Ix    = find(any(G,1));
     G     = G(Is,Ix);
     for i = 1:Nt
-        J{i} = G*x{i}';
+        J{i} = G*K{i}';
     end
 
     % get D and dipole space lead field
