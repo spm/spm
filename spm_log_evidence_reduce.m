@@ -1,5 +1,5 @@
 function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
-% Return the log-evidence of a reduced model (under Laplace approximation)
+% Returns the log-evidence of a reduced model (under Laplace approximation)
 % FORMAT [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
 %
 % qE,qC    - posterior expectation and covariance of full model
@@ -17,14 +17,14 @@ function [F,sE,sC] = spm_log_evidence_reduce(qE,qC,pE,pC,rE,rC)
 % means are unchanged. The two input argument formats are for use with
 % spm_argmax.
 %
-% This version is the same as spm_log_evidence but perform an
+% This version is the same as spm_log_evidence but performs an
 % eigen-reduction of the prior covariance matrix to eliminate fixed mixtures
-% of parameters ()and ensure well conditioned matrix inversion)
+% of parameters (to ensure well conditioned matrix inversion)
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence_reduce.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_log_evidence_reduce.m 5394 2013-04-07 14:51:28Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================

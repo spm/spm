@@ -64,7 +64,6 @@ for i = 1:length(OPT)
         F(i) = TCM.F;
         
         if TCM.options.two_state
-            
             a      = exp(spm_vec(TCM.Ep.A))/8;
             A(:,i) = a - 2*diag(diag(a));
             B(:,i) = exp(spm_vec(TCM.Ep.B))/8;

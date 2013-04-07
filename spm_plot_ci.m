@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_plot_ci.m 5394 2013-04-07 14:51:28Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -109,7 +109,7 @@ else
         
         % conditional means
         %------------------------------------------------------------------
-        h = bar(E);
+        h = bar(E); hold on
         
         % conditional variances
         %------------------------------------------------------------------

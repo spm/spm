@@ -62,7 +62,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_dcm_post_hoc.m 5394 2013-04-07 14:51:28Z karl $
 
 
 % Get filenames
@@ -129,11 +129,8 @@ while GS
         for j = 1:N
             
             try, load(P{j}); catch, DCM = P{j}; end
-            try 
-                DCM.M.pC = double(DCM.M.pC); 
-            catch
-                DCM.M.pC = diag(spm_vec(DCM.M.pC));
-            end
+            if isstruct(DCM.M.pC), DCM.M.pC = diag(spm_vec(DCM.M.pC)); end
+            
             fprintf('\ninitial search (%i): 00%%',j)
             
             % Get priors and posteriors
@@ -192,11 +189,7 @@ while GS
     for j = 1:N
         
         try, load(P{j}); catch, DCM = P{j}; end
-        try
-            DCM.M.pC = double(DCM.M.pC);
-        catch
-            DCM.M.pC = diag(spm_vec(DCM.M.pC));
-        end
+        if isstruct(DCM.M.pC), DCM.M.pC = diag(spm_vec(DCM.M.pC)); end
         fprintf('\nsearching (%i): 00%%',j)
         
         % Get priors and posteriors
@@ -251,14 +244,14 @@ while GS
     
     fprintf('%i out of %i free parameters removed \n',nelim,nparam)
     
-    subplot(2,2,1)
+    subplot(3,2,1)
     if length(K) > 32, plot(S,'k'), else, bar(S,'c'), end
     title('log-posterior','FontSize',16)
     xlabel('model','FontSize',12)
     ylabel('log-probability','FontSize',12)
     axis square
     
-    subplot(2,2,2)
+    subplot(3,2,2)
     if length(K) > 32, plot(p,'k'), else, bar(p,'r'), end
     title('model posterior','FontSize',16)
     xlabel('model','FontSize',12)
@@ -333,7 +326,7 @@ for j = 1:N
     
     % Get posterior of selected model - rC
     %----------------------------------------------------------------------
-    [F, Ep, Cp] = spm_log_evidence(qE,qC,pE,pC,pE,rC);
+    [F, Ep, Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,rC);
     
     % Bayesian parameter average (for full and reduced selected model)
     %----------------------------------------------------------------------
@@ -381,19 +374,16 @@ for j = 1:N
         DCM.b   = R.b;
         DCM.c   = R.c;
         DCM.d   = R.d;
-    end
-    
-    % Report and save
-    %----------------------------------------------------------------------
-    subplot(2,2,4); plot(diag(Cp));drawnow
-    
+    end  
     
     % approximations to model evidence: negative free energy, AIC, BIC
     %------------------------------------------------------------------
     DCM.F    = F;
-    evidence = spm_dcm_evidence(DCM);
-    DCM.AIC  = evidence.aic_overall;
-    DCM.BIC  = evidence.bic_overall;
+    try
+        evidence = spm_dcm_evidence(DCM);
+        DCM.AIC  = evidence.aic_overall;
+        DCM.BIC  = evidence.bic_overall;
+    end
     
     %-Save optimised DCM
     %==================================================================
@@ -413,6 +403,8 @@ end
 
 %-Bayesian parameter average
 %==========================================================================
+if isstruct(pC), pC = diag(spm_vec(pC)); end
+
 CQ  = spm_inv(PQ,TOL);
 Cq  = spm_inv(Pq,TOL);
 EQ  = CQ*EQ;
@@ -427,38 +419,58 @@ Cq  = spm_inv(Pq + (1 - N)*spm_inv(rC),TOL);
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Graphics');
 
-i   = spm_fieldindices(DCM.Ep,'A','B','C','D');
+i   = spm_fieldindices(DCM.Ep,'A','B','C');
+pE  = spm_vec(pE);
 EP  = spm_vec(EQ);
 Ep  = spm_vec(Eq);
 
-subplot(2,2,3)
-spm_plot_ci(EP(i),CQ(i,i)), hold on
+subplot(3,2,3)
+spm_plot_ci(EP(i),CQ(i,i))
 title('MAP connections (full)','FontSize',16)
 axis square
 a   = axis;
 
-subplot(2,2,4)
-spm_plot_ci(Ep(i),Cq(i,i)), hold off
+subplot(3,2,4)
+spm_plot_ci(Ep(i),Cq(i,i))
 title('MAP connections (reduced)','FontSize',16)
 axis square
 axis(a)
+
+subplot(3,2,5)
+bar(EP(i) - pE(i))
+xlabel('parameter')
+title('MAP minus prior','FontSize',16)
+spm_axis tight
+axis square
+
+subplot(3,2,6)
+bar(Ep(i) - EP(i))
+xlabel('parameter')
+title('differences in MAP','FontSize',16)
+spm_axis tight
+axis square
 drawnow
 
 
 % Show structural and functional graphs
 %--------------------------------------------------------------------------
+spm_figure('Getwin','Graph analysis'); clf
 try
-    spm_figure('Getwin','Parameter posterior'); clf
-    spm_dcm_graph(DCM.xY,Eq.A)
+    spm_dcm_graph(DCM.xY,Eq.A);
+catch
+    spm_dcm_graph(DCM,Eq.A);
 end
+
 
 % Show coupling matrices
 %--------------------------------------------------------------------------
-spm_figure('Getwin','Bayesian parameter average (selected model)'); clf
-spm_dcm_fmri_image(Eq)
-
-spm_figure('Getwin','Model posterior (over parameters)'); clf
-spm_dcm_fmri_image(Pk)
+if isnumeric(Eq.A)
+    spm_figure('Getwin','Bayesian parameter average (selected model)'); clf
+    spm_dcm_fmri_image(Eq)
+    
+    spm_figure('Getwin','Model posterior (over parameters)'); clf
+    spm_dcm_fmri_image(Pk)
+end
 
 if ~isempty(fun)
     spm_figure('Getwin','Model posterior (over families)'); clf

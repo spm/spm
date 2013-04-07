@@ -1,14 +1,14 @@
 function spm_dcm_graph(xY,A)
 % Region and anatomical graph display
 % FORMAT spm_dcm_graph(xY,[A])
-% FORMAT spm_dcm_graph(DCM,[A])
-% xY    - cell of region structures (see spm_regions)
+% xY    - cell of region structures (see spm_regions) (fMRI)
+%       - or ECD locations xY.Lpos and xY.Sname (EEG)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_dcm_graph.m 5394 2013-04-07 14:51:28Z karl $
 
  
 % get dimensions, locations and names
