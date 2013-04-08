@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 4604 2011-12-20 18:21:03Z guillaume $
+% $Id: spm_cva_ui.m 5395 2013-04-08 18:51:14Z karl $
 
 
 %-Get figure handles
@@ -196,6 +196,7 @@ switch lower(action)
         CVA.XYZ      = XYZ;                      %-locations of voxels (mm)
         CVA.xyz      = xyzmm;                    %-seed voxel location (mm)
         CVA.VOX      = VOX;                      %-dimension of voxels (mm)
+        CVA.U        = U;                        %-dimension reduction (SVD)
         
         %-Save
         %------------------------------------------------------------------
