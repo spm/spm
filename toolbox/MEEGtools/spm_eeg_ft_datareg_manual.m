@@ -10,7 +10,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_datareg_manual.m 4315 2011-04-26 13:56:07Z vladimir $
+% $Id: spm_eeg_ft_datareg_manual.m 5397 2013-04-11 15:13:47Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -18,7 +18,7 @@ function D = spm_eeg_ft_datareg_manual(varargin)
 
 [D,val] = spm_eeg_inv_check(varargin{:});
 
-[ok, D] = check(D, 'sensfid');
+[D, ok] = check(D, 'sensfid');
 
 if ~ok
     if check(D, 'basic')
