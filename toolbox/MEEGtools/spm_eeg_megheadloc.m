@@ -46,7 +46,7 @@ function D = spm_eeg_megheadloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_megheadloc.m 4358 2011-06-14 15:57:15Z vladimir $
+% $Id: spm_eeg_megheadloc.m 5396 2013-04-11 13:38:24Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','MEG head locations',0);
@@ -158,7 +158,7 @@ for f=1:numel(D)
                 (squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3))) - norm(header_fid(2,:) - header_fid(3,:)))';...
                 (squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3))) - norm(header_fid(3,:) - header_fid(1,:)))'];
             
-            tracking_lost_ind = find(any(abs(dist_dev) > 0.01));
+            tracking_lost_ind = find(any(abs(dist_dev) > 0.02));
             
             if ~isempty(tracking_lost_ind)
                 warning(['Tracking loss detected in file ' D{f}.fname ' trial ' num2str(k)]);
@@ -209,7 +209,7 @@ for f=1:numel(D)
                 trlind = [trlind k];
                 fileind= [fileind f];
             else
-                D{f} = reject(D{f}, k, 1);
+                D{f} = badtrials(D{f}, k, 1);
             end
         end
         
@@ -219,7 +219,7 @@ for f=1:numel(D)
             
             pltdat = [pltdat; pltdat(1, :)];
             
-            if ~reject(D{f}, k)
+            if ~badtrials(D{f}, k)
                 h = plot3(pltdat(:, 1), pltdat(:, 2), pltdat(:, 3), ...
                     [colors{mod(f, length(colors))+1}]);
             else
@@ -280,7 +280,7 @@ if  length(trlind)>1 && ~all(all(isnan(dat)))
     if ~isempty(nanind)
         if S.rejectbetween
             for i = length(nanind)
-                D{fileind(nanind(i))} = reject(D{fileind(nanind(i))}, trlind(nanind(i)), 1);
+                D{fileind(nanind(i))} = badtrials(D{fileind(nanind(i))}, trlind(nanind(i)), 1);
             end
         end
         dat(:, nanind) = [];
@@ -364,12 +364,12 @@ if  length(trlind)>1 && ~all(all(isnan(dat)))
         %%
         
         for f = 1:numel(D)
-            origreject = reject(D{f});
-            D{f} = reject(D{f}, [], 1);
+            origreject = badtrials(D{f});
+            D{f} = badtrials(D{f}, ':', 1);
             if ismember(f, ufileind) && any(captured & (fileind == f))
-                D{f} = reject(D{f}, trlind(captured & (fileind == f)), 0);
+                D{f} = badtrials(D{f}, trlind(captured & (fileind == f)), 0);
                 if any(origreject)
-                    D{f} = reject(D{f}, find(origreject), 1);
+                    D{f} = badtrials(D{f}, find(origreject), 1);
                 end
             end
         end

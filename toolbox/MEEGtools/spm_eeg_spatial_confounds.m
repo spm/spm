@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 4371 2011-06-20 21:32:11Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 5396 2013-04-11 13:38:24Z vladimir $
 
 
-SVNrev = '$Rev: 4371 $';
+SVNrev = '$Rev: 5396 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ end
 
 switch upper(S.method)
     case 'EYES'
-        [ok, D] = check(D, 'sensfid');
+        [D, ok] = check(D, 'sensfid');
         
         if ~ok
             if check(D, 'basic')

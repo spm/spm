@@ -4,14 +4,13 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 5388 2013-04-04 09:28:00Z vladimir $
+% $Id: spm_MEEGtools.m 5396 2013-04-11 13:38:24Z vladimir $
 
 
 funlist = {
     'Transform EEG cap', 'spm_eeg_transform_cap';
     'Re-reference EEG', 'spm_eeg_reref_eeg';
-    'Split conditions into separate datasets', 'spm_eeg_split_conditions';
-    'Estimate multiple DCMs', 'spm_dcm_estimate_group';
+    'Split conditions into separate datasets', 'spm_eeg_split_conditions';   
     'Fieldtrip interactive plotting', 'spm_eeg_plot_interactive';
     'Fieldtrip visual artefact rejection', 'spm_eeg_ft_artefact_visual';
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
@@ -25,7 +24,6 @@ funlist = {
     'Reduce jumps in MEG data' , 'spm_eeg_remove_jumps'
     'Detrending and Hanning for ERPs', 'spm_eeg_erp_correction'
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
-    'Fieldtrip multitaper TF', 'spm_eeg_ft_multitaper_tf'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
     'Fieldtrip multitaper power map', 'spm_eeg_ft_multitaper_powermap'
     'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'

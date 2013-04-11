@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_eeg_var_measures.m 5396 2013-04-11 13:38:24Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -71,12 +71,11 @@ else % ============ Select the data and convert to Fieldtrip struct
         error('No valid trials found');
     end
     
-    data = D.ftraw(0);
+    data = D.ftraw;
     data.trial = data.trial(ind);
     data.time =  data.time(ind);
 end
 %%
-data.fsample = round(data.fsample);
 
 cfg=[];
 cfg.channel = chan;

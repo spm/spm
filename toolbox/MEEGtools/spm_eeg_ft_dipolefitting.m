@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 4798 2012-07-20 11:22:29Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 5396 2013-04-11 13:38:24Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -18,7 +18,7 @@
 
 D = spm_eeg_load;
 
-[ok, D] = check(D, 'sensfid');
+[D, ok] = check(D, 'sensfid');
 
 if ~ok
     if check(D, 'basic')
