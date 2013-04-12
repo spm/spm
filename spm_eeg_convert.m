@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_convert.m 5403 2013-04-12 15:07:41Z vladimir $
 
-SVNrev = '$Rev: 5219 $';
+SVNrev = '$Rev: 5403 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -449,7 +449,11 @@ end
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
-    D.sensors.meg = ft_convert_units(hdr.grad, 'mm');
+    grad = ft_convert_units(hdr.grad, 'mm');
+%     try
+%         grad = ft_convert_grad(grad, 'fT', 'mm',  'fieldstrength/distance');
+%     end
+    D.sensors.meg = grad;
 end
 if isfield(hdr, 'elec')
     D.sensors.eeg = ft_convert_units(hdr.elec, 'mm');
@@ -457,7 +461,7 @@ else
     try
         D.sensors.eeg = ft_convert_units(ft_read_sens(S.dataset, 'fileformat', S.inputformat), 'mm');
         % It might be that read_sens will return the grad for MEG datasets
-        if isfield(D.sensors.eeg, 'ori')
+        if any(ismember({'ori', 'coilori', 'coilpos'}, fieldnames(D.sensors.eeg))) 
             D.sensors.eeg = [];
         end
     catch
