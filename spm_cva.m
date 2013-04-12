@@ -53,7 +53,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5366 2013-03-27 21:12:10Z karl $
+% $Id: spm_cva.m 5408 2013-04-12 19:03:58Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -70,9 +70,19 @@ X0    = spm_svd(X0);
 %-Dimension reduction (if necessary)
 %==========================================================================
 if nargin < 5
-    U = speye(size(Y,2));
+    [n m] = size(Y);
+    n     = fix(n/4);
+    if m > n
+        U = spm_svd(Y');
+        try
+            U = U(:,1:n);
+        end
+    else
+        U = speye(size(Y,2));
+    end
+else
+    U = spm_svd(U);
 end
-U     = spm_svd(U);
 Y     = Y*U;
 
 
