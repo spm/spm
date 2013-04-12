@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5406 2013-04-12 16:27:20Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -209,7 +209,7 @@ modality.val = {{'All'}};
 
 invert = cfg_exbranch;
 invert.tag = 'invertiter';
-invert.name = 'Source inversion, iterative';
+invert.name = 'M/EEG Source inversion, iterative';
 invert.val = {D, val, whatconditions, isstandard, modality};
 invert.help = {'Run imaging source reconstruction'};
 invert.prog = @run_inversion;
@@ -325,12 +325,17 @@ for i = 1:numel(job.D)
     for iterval=1:Npatchiter-1,
         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
     end;
-    
+    D{i}.inv{D{i}.val}.inverse.PostMax=zeros(  length(D{i}.inv{D{i}.val}.forward.mesh.vert),1);
 end
 
 
 
+try 
+[D,allmodels,allF] = parfor_spm_eeg_invertiter(D,Npatchiter,funccall);
+catch
 [D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall);
+end;
+
 
 
 if ~iscell(D)
