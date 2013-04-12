@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5393 2013-04-06 11:02:13Z karl $
+% $Id: spm_dcm_erp.m 5407 2013-04-12 19:03:29Z karl $
 
 % check options
 %==========================================================================
@@ -47,6 +47,7 @@ try, onset = DCM.options.onset;     catch, onset     = 60;          end
 try, dur   = DCM.options.dur;       catch, dur       = 16;          end
 try, model = DCM.options.model;     catch, model     = 'NMM';       end
 try, lock  = DCM.options.lock;      catch, lock      = 0;           end
+try, multC = DCM.options.multiC;    catch, multC     = 0;           end
 try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
 try, Nmax  = DCM.options.Nmax;      catch, Nmax      = 64;          end
 
@@ -120,6 +121,13 @@ try, M = rmfield(M,'g'); end
 %--------------------------------------------------------------------------
 [pE,pC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 
+% check for trial specific inputs
+%--------------------------------------------------------------------------
+if multC
+    pE.C(:,:,2) = pE.C(:,:,1);
+    pC.C(:,:,2) = pC.C(:,:,1);
+end
+
 % check for previous priors
 %--------------------------------------------------------------------------
 try
@@ -152,9 +160,9 @@ if symm, gC = spm_dcm_symm(gC,gE);   end
 
 
 
-%-Feature selection using principal components (U) of lead-field
+%-Feature selection using (canonical) eigenmodes of lead-field
 %==========================================================================
-M.U      = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
+M.U      = spm_dcm_eeg_channelmodes(M.dipfit,Nm,xY);
 
 % scale data features
 %--------------------------------------------------------------------------

@@ -16,7 +16,7 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_gen_erp.m 5407 2013-04-12 19:03:29Z karl $
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
@@ -74,7 +74,13 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     Q  = P;
     
-    % trial-specific effects
+    % trial-specific effects on C (first effect only)
+    %----------------------------------------------------------------------
+    try
+        Q.C = Q.C(:,:,1) + X(c,1)*Q.C(:,:,2);
+    end
+    
+    % trial-specific effects on A (connections)
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
         
@@ -95,6 +101,7 @@ for  c = 1:size(X,1)
         try
             Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         end
+        
     end
     
     % solve for steady-state - for each condition

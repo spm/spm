@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 5391 2013-04-05 08:30:17Z karl $
+% $Id: spm_dcm_erp_results.m 5407 2013-04-12 19:03:29Z karl $
 
 
 % get Action if necessary
@@ -234,6 +234,11 @@ switch(lower(Action))
         for i = 1:ns
             subplot(ceil(ns/2),2,i)
             axis([t(1) t(end) A(1) A(2)]);
+            
+            % or
+            %--------------------------------------------------------------
+            spm_axis tight
+            
         end
         
     case{lower('Coupling (A)')}
@@ -414,7 +419,6 @@ switch(lower(Action))
         
         % plot data
         % -----------------------------------------------------------------
-        xU    = DCM.xU;
         tU    = t - t(1);
         U     = spm_erp_u(tU/1000,DCM.Ep,DCM.M);
         

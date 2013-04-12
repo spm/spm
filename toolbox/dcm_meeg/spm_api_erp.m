@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_api_erp.m 5407 2013-04-12 19:03:29Z karl $
  
 
 %-Launch GUI
@@ -187,6 +187,7 @@ try, set(handles.h,            'Value', ...
 try, set(handles.han,         'Value', DCM.options.han);             end
 try, set(handles.D,           'Value', DCM.options.D);               end
 try, set(handles.lock,        'Value', DCM.options.lock);            end
+try, set(handles.multiC,      'Value', DCM.options.multiC);          end
 try, set(handles.location,    'Value', DCM.options.location);        end
 try, set(handles.symmetry,    'Value', DCM.options.symmetry);        end
 try, set(handles.design,      'String',num2str(DCM.xU.X','%7.2f'));  end
@@ -336,6 +337,7 @@ handles.DCM.options.h        = detrend_val(get(handles.h, 'Value'));
 handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
+handles.DCM.options.multiC   = get(handles.multiC,          'Value');
 handles.DCM.options.location = get(handles.location,      'Value');
 handles.DCM.options.symmetry = get(handles.symmetry,      'Value');
  
@@ -801,7 +803,7 @@ try, if size(DCM.C,2)    ~= l, DCM = rmfield(DCM,'C'); end, end
 set(handles.con_reset,'Units','Normalized')
 p  = get(handles.con_reset,'Position');
 x0 = 0.1;
-y0 = 0.425;
+y0 = 0.44;
 sx = 1/36;
 sy = 1/72;
 for i = 1:n
@@ -1235,7 +1237,7 @@ switch handles.DCM.options.analysis
         set(handles.text20,     'String', 'modes');
         set(handles.model,      'Enable','on');
         set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
-        set(handles.Wavelet,    'Enable','off','String','-');
+        set(handles.Wavelet,    'Enable','off');
         set(handles.onset,      'Enable','on');
         set(handles.dur,        'Enable','on');
         
@@ -1266,7 +1268,7 @@ switch handles.DCM.options.analysis
         set(handles.text20, 'String', 'modes');
         set(handles.model,  'Enable','on');              
         set(handles.Spatial,'String',{'IMG','ECD','LFP'});
-        set(handles.Wavelet,'Enable','on','String','Spectral density');
+        set(handles.Wavelet,'Enable','on');
         set(handles.onset,  'Enable','off');
         set(handles.dur,    'Enable','off');
 
@@ -1436,4 +1438,3 @@ spm_api_nmm(handles.DCM)
 function save_spec_Callback(hObject, eventdata, handles)
 spm_dcm_search_eeg;
 
- 
