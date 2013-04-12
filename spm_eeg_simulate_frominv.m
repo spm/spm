@@ -9,7 +9,7 @@ function [Dnew]=spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % SNRdB  : SNR in dBs (alternative to specifying white noise)
 % trialind: trials in which the simulated signal is to appear (all other
 % trials will be noise)
-% $Id: spm_eeg_simulate_frominv.m 5380 2013-04-03 10:48:40Z gareth $
+% $Id: spm_eeg_simulate_frominv.m 5402 2013-04-12 14:49:54Z gareth $
 
 %% LOAD IN ORGINAL DATA
 
@@ -103,8 +103,11 @@ U=Dnew.inv{val}.inverse.U;
 %Is=Dnew.inv{val}.inverse.Is;
 Ic=Dnew.inv{val}.inverse.Ic;
 It=Dnew.inv{val}.inverse.It;
-
+try
+[L Dnew] = parfor_spm_eeg_lgainmat(Dnew);				% Gain matrix- from file rather than from inversion itself
+catch
 [L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix- from file rather than from inversion itself
+end;
         
 Lnew=U*L;
 if max(max(Lnew-Lorig))>0,
