@@ -13,7 +13,7 @@ function [BB,vx] = spm_get_bbox(V, thr, premul)
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_get_bbox.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_get_bbox.m 5398 2013-04-12 12:37:00Z ged $
 
 % Undocumented expert options:
 % V           - can be a 4D @nifti object (but not 5D), image-based BBs
@@ -71,7 +71,7 @@ elseif strcmpi(thr, 'old')
     end
 else
     % image-based bounding box using voxel intensities
-    [img,XYZ] = spm_read_vols(V);
+    img = spm_read_vols(V);
     if ischar(thr)
         switch lower(thr)
             case 'nn'  % non-NaN, though include +/- Inf in computation
@@ -91,8 +91,16 @@ else
     if nnz(img) == 0
         warning('spm_get_bbox:nothing', ...
             'Threshold leaves no voxels, returning full field of view');
+        if exist('premul', 'var')
+            [BB,vx] = spm_get_bbox(V, 'fv', premul);
+        else
+            [BB,vx] = spm_get_bbox(V, 'fv');
+        end
+        return
     else
-        XYZ = XYZ(:, img); % keep only coords that satisfy condition
+        img = find(img); % (clears img to save memory)
+        [X Y Z] = ind2sub(V(1).dim, img);
+        XYZ = V(1).mat(1:3, :) * [X Y Z ones(size(X))]';
     end
 end
 
