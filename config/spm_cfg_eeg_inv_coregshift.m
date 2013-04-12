@@ -6,7 +6,7 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5381 2013-04-03 10:50:41Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 5399 2013-04-12 14:41:29Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -114,29 +114,21 @@ for i = 1:numel(job.D)
     end;
     
     
-    %[L0,D] = spm_eeg_lgainmat(D);
+
     meegfid.fid.pnt=meegfid.fid.pnt+repmat(mmshift,3,1)+randn(size(meegfid.fid.pnt)).*job.pperror;
        
-%        % meegfid.fid.pnt=meegfid.fid.pnt+randn(size(meegfid.fid.pnt)).*job.coregerror;
-% %     87.4190   36.3453   10.4075
-% %   -25.1042   73.3485   12.6594
-% %    18.1259  -64.6969   10.5064
+
 %     %% NB just change the effective head model position rather than the actual fiducial locations
 %     
      D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
-% %       1.0368    0.0926   -0.0473  -22.2709
-% %    -0.0287    0.8593    0.4148  -37.9634
-% %     0.0880   -0.4511    0.9678   17.7373
-% %          0         0         0    1.0000
      D.inv{D.val}.gainmat=''; %% these will now be incorrect
-      D = spm_eeg_inv_forward(D);
+     
+       D = spm_eeg_inv_forward(D);
+     
 %      
       for j = 1:numel(D.inv{val}.forward)
           spm_eeg_inv_checkforward(D, D.val, j);
       end
-% %     
-%     [L1,D] = spm_eeg_lgainmat(D);
-%   
     
     save(D);
     
