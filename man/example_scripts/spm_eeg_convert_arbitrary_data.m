@@ -18,7 +18,7 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_convert_arbitrary_data.m 3841 2010-04-27 14:18:53Z vladimir $
+% $Id: spm_eeg_convert_arbitrary_data.m 5404 2013-04-12 15:08:57Z vladimir $
 
 
 % Initialize SPM
@@ -77,7 +77,7 @@ D = spm_eeg_ft2spm(ftdata, fname);
 % applies to all channels/all trials.
 %--------------------------------------------------------------------------
 D = type(D, 'single');                        % Sets the dataset type
-D = chantype(D, [], 'LFP');                   % Sets the channel type 
+D = chantype(D, ':', 'LFP');                   % Sets the channel type 
 D = conditions(D, 1:Ntrials, 'Condition 1');  % Sets the condition label
 
 % save

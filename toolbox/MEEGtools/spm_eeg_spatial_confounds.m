@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 5396 2013-04-11 13:38:24Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 5404 2013-04-12 15:08:57Z vladimir $
 
 
-SVNrev = '$Rev: 5396 $';
+SVNrev = '$Rev: 5404 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -158,11 +158,12 @@ switch upper(S.method)
         end
         
         if S.ncomp>0
+            ncomp = min(S.ncomp, size(U, 2));
             [sel1, sel2] = spm_match_str(D.chanlabels(D.meegchannels), D.chanlabels(setdiff(D.meegchannels, D.badchannels)));
             sconf = [];
             sconf.label = D.chanlabels(D.meegchannels);
-            sconf.coeff = nan(length(sconf.label), S.ncomp);
-            sconf.coeff(sel1, :) = U(sel2, 1:min(S.ncomp, size(U, 2)));
+            sconf.coeff = nan(length(sconf.label), ncomp);
+            sconf.coeff(sel1, :) = U(sel2, 1:ncomp);
             sconf.bad = ones(length(sconf.label), 1);
             sconf.bad(sel1, :) = 0;
             D = sconfounds(D, sconf);
