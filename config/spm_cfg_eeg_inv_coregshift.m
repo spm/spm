@@ -6,7 +6,7 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5399 2013-04-12 14:41:29Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 5400 2013-04-12 14:48:43Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -101,7 +101,7 @@ for i = 1:numel(job.D)
     megpts=meegfid.fid.pnt; %% fiducials in head (dewar/sensor) space
     
     
-    
+   
     startpos=meegfid.fid.pnt;
     mmshift=job.meanshift;
     
