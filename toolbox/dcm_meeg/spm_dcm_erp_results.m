@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 5407 2013-04-12 19:03:29Z karl $
+% $Id: spm_dcm_erp_results.m 5409 2013-04-14 22:15:11Z karl $
 
 
 % get Action if necessary
@@ -335,15 +335,31 @@ switch(lower(Action))
         % spm_dcm_erp_results(DCM,'coupling (B)');
         %------------------------------------------------------------------
         if ~isfield(DCM.Ep,'B'), return, end
+        if  isfield(DCM.Ep,'N')
+            if any(spm_vec(DCM.Ep.N))
+                xU.name = [DCM.xU.name DCM.xU.name];
+                Ep.B    = [DCM.Ep.B DCM.Ep.N];
+                Pp.B    = [DCM.Pp.B DCM.Pp.N];
+            else
+                xU.name = DCM.xU.name;
+                Ep.B    = DCM.Ep.B;
+                Pp.B    = DCM.Pp.B;
+            end
+        else
+            xU.name = DCM.xU.name;
+            Ep.B    = DCM.Ep.B;
+            Pp.B    = DCM.Pp.B;
+        end
         
-        for i = 1:length(DCM.Ep.B)
+        nb    = length(Ep.B);
+        for i = 1:nb
             
             % images
             %--------------------------------------------------------------
-            subplot(4,nu,i)
-            imagesc(exp(DCM.Ep.B{i}))
-            title(DCM.xU.name{i},'FontSize',10)
-            set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
+            subplot(4,nb,i)
+            imagesc(exp(Ep.B{i}))
+            title(xU.name{i},'FontSize',10)
+            set(gca,'YTick',1:ns,'YTickLabel',DCM.Sname,'FontSize',8)
             set(gca,'XTick',[])
             xlabel('from','FontSize',8)
             ylabel('to','FontSize',8)
@@ -351,15 +367,15 @@ switch(lower(Action))
             
             % tables
             %--------------------------------------------------------------
-            subplot(4,nu,i + nu)
-            text(0,1/2,num2str(full(exp(DCM.Ep.B{i})),' %.2f'),'FontSize',8)
+            subplot(4,nb,i + nb)
+            text(0,1/2,num2str(full(exp(Ep.B{i})),' %.2f'),'FontSize',8)
             axis off
             axis square
             
             % PPM
             %--------------------------------------------------------------
-            subplot(4,nu,i + 2*nu)
-            image(64*DCM.Pp.B{i})
+            subplot(4,nb,i + 2*nb)
+            image(64*Pp.B{i})
             set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
             set(gca,'XTick',[])
             title('PPM')
@@ -367,8 +383,8 @@ switch(lower(Action))
             
             % tables
             %--------------------------------------------------------------
-            subplot(4,nu,i + 3*nu)
-            text(0,1/2,num2str(DCM.Pp.B{i},' %.2f'),'FontSize',8)
+            subplot(4,nb,i + 3*nb)
+            text(0,1/2,num2str(Pp.B{i},' %.2f'),'FontSize',8)
             axis off
             axis square
             

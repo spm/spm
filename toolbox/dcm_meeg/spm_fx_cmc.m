@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_fx_cmc.m 5409 2013-04-14 22:15:11Z karl $
  
  
 % get dimensions and configure state variables
@@ -70,6 +70,16 @@ A{1} = exp(P.A{1})*E(1);          % forward  connections (sp -> ss)
 A{2} = exp(P.A{2})*E(2);          % forward  connections (sp -> dp)
 A{3} = exp(P.A{3})*E(3);          % backward connections (dp -> sp)
 A{4} = exp(P.A{4})*E(4);          % backward connections (dp -> ii)
+
+% detect and reduce the strength of reciprocal (lateral) connections
+%--------------------------------------------------------------------------
+for i = 1:length(A)
+    L    = (A{i} > exp(-8)) & (A{i}' > exp(-8));
+    A{i} = A{i}./(1 + 4*L);
+end
+
+% input connections
+%--------------------------------------------------------------------------
 C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
@@ -128,7 +138,7 @@ end
 
 % Modulatory effects of dp on sp -> sp self-connectivity
 %--------------------------------------------------------------------------
-G(:,7) = G(:,7).*exp(P.M*8*S(:,7));
+G(:,7) = G(:,7).*exp(-P.M*32*S(:,7));
 
  
 % Motion of states: f(x)
