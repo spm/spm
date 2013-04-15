@@ -35,7 +35,7 @@ function varargout = spm_mesh_render(action,varargin)
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_render.m 5367 2013-03-28 13:03:39Z guillaume $
+% $Id: spm_mesh_render.m 5411 2013-04-15 11:45:08Z guillaume $
 
 
 %-Input parameters
@@ -62,7 +62,7 @@ switch lower(action)
         else
             M = varargin{1};
         end
-        if ischar(M), M = gifti(M); end
+        if ischar(M) || isstruct(M), M = gifti(M); end
         if ~isfield(M,'vertices')
             try
                 MM = M;
