@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_fmri_check(P)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 5337 2013-03-20 16:45:55Z guillaume $
+% $Id: spm_dcm_fmri_check.m 5412 2013-04-15 15:25:55Z guillaume $
 
 
 %-Load DCM structure
@@ -63,6 +63,11 @@ try
 catch
     A = DCM.A;
 end
+
+if DCM.options.two_state
+	A = exp(A);
+end
+
 D(2)  = max(max(abs(A - diag(diag(A)))));
 
 % complexity and effective number of parameters estimated
