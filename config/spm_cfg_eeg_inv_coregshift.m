@@ -6,7 +6,7 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5421 2013-04-16 13:43:53Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 5422 2013-04-16 15:35:49Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -122,7 +122,7 @@ for i = 1:numel(job.D)
         disp('changing random seed and adding coreg error');
         randn('seed',sum(100*clock));
     end;
-    %keyboard
+    
     P(1:3)= job.meanshift+randn(1,3).*job.sdshift; %%  TRanslation
     P(4:6)=(job.meanangshift+randn(1,3).*job.sdangshift).*pi/180;   %% rotation in radians
     
