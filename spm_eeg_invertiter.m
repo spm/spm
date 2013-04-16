@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5418 2013-04-16 11:15:26Z gareth $
+% $Id: spm_eeg_invertiter.m 5419 2013-04-16 11:21:22Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -44,11 +44,13 @@ par=0;
 
 try 
     [L Dtest{1}] = parfor_spm_eeg_lgainmat(Dtest{1});
-    par=0;
+    par=1;
 catch
 [L Dtest{1}] = spm_eeg_lgainmat(Dtest{1});	% Generate/load lead field- this stops it being done at each iteration
 end;
-  rand('state',0);
+  
+
+rand('state',0);
 
 
 %% make random patch centers, except on the first iteration when we keep to a fixed stepsize
