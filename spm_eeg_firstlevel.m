@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 5414 2013-04-15 18:27:05Z guillaume $
+% $Id: spm_eeg_firstlevel.m 5416 2013-04-16 09:04:41Z vladimir $
 
 
-SVNrev = '$Rev: 5414 $';
+SVNrev = '$Rev: 5416 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -108,7 +108,7 @@ for i = 1:nsess
             elseif isfield(S.sess(i).cond(j).define, 'manual')
                 if isequal(S.timing.units, 'secs')
                     trig{j}         = S.sess(i).cond(j).define.manual.onset;
-                    trigsample{j}   = D.indsample(trig);
+                    trigsample{j}   = D.indsample(trig{j});
                     duration{j}     = S.sess(i).cond(j).define.manual.duration;
                     if isempty(duration)
                         duration{j} = 0*trig{j};
