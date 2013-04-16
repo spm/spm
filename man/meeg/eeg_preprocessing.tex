@@ -2,42 +2,45 @@
 
 In this chapter we will describe the function and syntax of all SPM/MEEG preprocessing and display functions. This will be the most detailed description of the functions in this manual. Our goal is to provide a comprehensive description of how the software can be used to preprocess M/EEG data up to the point where one would use one of the source reconstruction techniques or statistical analysis of M/EEG channel data.
 
-These functions can be called either from SPM's graphical user interface (GUI), from the \matlab\ command line, or via the batch input system. We recommend beginners use the GUI first, because this will prompt SPM to ask for all relevant information needed to process the data. The batch input system is designed for repetitive analyses of data (eg. from multiple subjects) once the user knows what should be done, and in which order. The command line facilities are very useful for writing scripts, or using SPM's history-to-script functionality to generate scripts automatically. The command line use of SPM for M/EEG will require some \matlab\ knowledge.
+These functions can be called either from the \matlab\ command line and scripts, or via the batch input system. The batch input system is designed for repetitive analyses of data (eg. from multiple subjects) . Once the user becomes familiar with the batch tools necessary for their analysis it is very easy to chain them using batch dependencies and run them as one pipeline. The principles of  using the batch tool are described in \reference{Chap:batch}. The command line facilities are very useful for writing scripts, or using SPM's history-to-script functionality to generate scripts automatically. 
 
-For the command line, we follow the concept of providing only one input argument to each function. This input argument is usually a structure (struct) that contains all input arguments as fields. This approach has the advantage that the input does not need to follow a specific input argument order. If an obligatory input argument is missing, the function will invoke the GUI and ask the user for the missing argument. When using the GUI, a function is called without any input argument, i.e. SPM will ask for all input arguments. If using the command line (e.g., with a script), you can specify all arguments in advance and effectively use SPM/MEEG functions in batch mode. We provide some sample batch scripts (\texttt{history\_subject1.m}) in the \texttt{man$\backslash$example\_scripts} folder of the SPM8-distribution.
+For scripts  we follow the concept of providing only one input argument to each function. This input argument is usually a structure (struct) that contains all input arguments as fields. This approach has the advantage that the input does not need to follow a specific input argument order. For some arguments default values can be provided. When an obligatory argument is misisng, this will cause an error. 
+
+Below we will describe the parameters available in the batch tool and the names of the corresponding low-level SPM functions. The interface for calling these functions from a script is described in function headers. 
 \\
 \\
-In the following we will go through the conversion of the data, specifics of the M/EEG format in SPM8, how to properly enter additional information about the channels, how to call FieldTrip-functions from SPM, a complete reference of all methods and functions, how to use the display, and finally how to script and batch the preprocessing.
+We will go through the conversion of the data, specifics of the M/EEG format in SPM, how to properly enter additional information about the channels, how to call FieldTrip-functions from SPM, a complete reference of all methods and functions, how to use the display, and finally how to script and batch the preprocessing.
 
 \section{Conversion of data}
-The first step of any analysis is the conversion of data from its native machine-dependent format to a \matlab\-based, common SPM format. This format stores the data in a \texttt{*.dat} file and all other information in a \texttt{*.mat} file. The \texttt{*.mat} file contains the data structure \texttt{D} and the \texttt{*.dat} is the M/EEG data. The conversion facility of SPM is based on the ``fileio'' toolbox\footnote{fileio: \url{http://fieldtrip.fcdonders.nl/development/fileio}}, which is shared between SPM8, FieldTrip and EEGLAB toolboxes and jointly developed by the users of these toolboxes. At the moment most common EEG and MEG data formats are supported. For some cases, it might be necessary to install additional \matlab\ toolboxes. In this case an error message will be displayed with a link where the appropriate toolbox can be downloaded. If your data format is not recognized by ``fileio'', it will still try to read the file using the Biosig toolbox\footnote{Biosig: \url{http://biosig.sourceforge.net/}}, if available. This can work for some EEG systems, particularly clinical ones. One of the consequences of using Biosig as 'fallback' is that you may see error messages from Biosig or mentioning Biosig if your data format is not presently supported. In such a case you can extend the ``fileio'' toolbox and contribute your code to us. See ``fileio'' page for details.
+The first step of any analysis is the conversion of data from its native machine-dependent format to a \matlab\-based, common SPM format. This format stores the data in a \texttt{*.dat} file and all other information in a \texttt{*.mat} file. The \texttt{*.mat} file contains the data structure \texttt{D} and the \texttt{*.dat} is the M/EEG data. The conversion facility of SPM is based on the ``fileio'' toolbox\footnote{fileio: \url{http://fieldtrip.fcdonders.nl/development/fileio}}, which is shared between SPM, FieldTrip and EEGLAB toolboxes and jointly developed by the users of these toolboxes. At the moment most common EEG and MEG data formats are supported. For some cases, it might be necessary to install additional \matlab\ toolboxes. In this case an error message will be displayed with a link where the appropriate toolbox can be downloaded. If your data format is not recognized by ``fileio'',  you can extend the ``fileio'' toolbox and contribute your code to us. See ``fileio'' page for details.
 
-In the following we will describe the GUI-version for conversion. One could also convert data using the batch or a script. After clicking on the \textsc{Convert} button of the M/EEG GUI you will be asked to select the file to be converted. As a rule of thumb, if the dataset consists of several files, the file containing the data (which is usually the largest) should be selected. SPM can usually automatically recognize the data format and apply the appropriate conversion routine. However, in some cases there is not enough information in the data file for SPM to recognize the format. This will typically be the case for files with non-specific extensions (\texttt{*.dat}, \texttt{*.bin}, \texttt{*.eeg}, etc). In these cases the header-, and not the data-, file should be chosen for conversion and if it is recognized, SPM will locate the data file automatically. Note that SPM8 can also convert data in SPM5 format, where the the \texttt{*.mat} file should be selected. In some rare cases automatic recognition is not possible or there are several possible low-level readers available for the same format. For these cases there is an option to force SPM to use a particular low-level reader available with the batch tool or in a script (see below).
+After selecting  on the \textsc{Convert} from the \textsc{Convert} dropdown menu of the M/EEG GUI you will be asked (``Define settings?'') to choose whether to define some settings for the conversion or ``just read''. The latter option was introduced to enable a simple and convenient conversion of the data with no questions asked.  The resulting SPM M/EEG data file can then be explored with SPM's reviewing tool to determine the appropriate conversion parameters for the future. If the ``just read'' option is chosen, SPM will try to convert the whole dataset preserving as much data as possible. The other option - ``yes'' - opens the batch tool for conversion
 
-After the file is chosen, you will be asked (``Define settings?'') to choose whether to define some settings for the conversion or ``just read''. The latter option was introduced to enable a simple and convenient conversion of the data with no questions asked. The resulting SPM M/EEG data file can then be explored with SPM's reviewing tool to determine the appropriate conversion parameters for the future. If the ``just read'' option is chosen, SPM will try to convert the whole dataset preserving as much data as possible. The other option - ``yes'' - lets you control all features of the conversion, to convert only the data that will be used in subsequent processing.
+In either case you will need to select the file to be converted. As a rule of thumb, if the dataset consists of several files, the file containing the data (which is usually the largest) should be selected. SPM can usually automatically recognize the data format and apply the appropriate conversion routine. However, in some cases there is not enough information in the data file for SPM to recognize the format. This will typically be the case for files with non-specific extensions (\texttt{*.dat}, \texttt{*.bin}, \texttt{*.eeg}, etc). In these cases the header-, and not the data-, file should be chosen for conversion and if it is recognized, SPM will locate the data file automatically. In some rare cases automatic recognition is not possible or there are several possible low-level readers available for the same format. For these cases there is an option to force SPM to use a particular low-level reader available with the batch tool or in a script (see below).
 
-If this option is chosen, the next question will be whether to read the data as ``continuous'' or as ``trials''. Note that some datasets do not contain continuous data to begin with. These datasets should usually be converted with the ``trials'' option.
-
-If the ``continuous'' option is chosen you will be asked (``Read everything?'') whether to convert the whole file (``yes'') or a subset of it (``no''). If the answer is ``no'' you will be asked to specify the time window in seconds. Note that if a data file contains several concatenated long segments (e.g., if the recording was paused and then resumed) only one of these segments at a time can be converted as continuous. Therefore you should specify a time window which does not cross the boundaries between segments.
-
-If the ``trial'' option is selected, the next question will be where to retrieve the information about trials. There are three options. If ``data'' is chosen, SPM will attempt to look for information about trials in the dataset. This option is suitable for datasets that are already epoched or datasets which contain information about trials. If ``define'' is selected, trials can be defined based on information about events which appears in the file. The routine used for this option is identical to the one used in epoching (see below) and the resulting SPM file will be already epoched. The advantage of defining trials at conversion is that only the necessary subset of the raw data is converted. This is useful when the trials of interest are only a small subset of the whole recording. After the trial definition is completed, the results can be saved into a file. This file can be later used instead of repeating the trial definition again. This is done by selecting the third trial definition option - ``file''.
-
-The next question will be about which channels should be converted. Five options are available. ``all'' - convert all the available channels. ``meg'', ``eeg'' - automatically detect and choose MEG and EEG channels respectively. These options may not work correctly for some EEG systems because many data formats do not provide information about what data were acquired by a specific channel. However, the most common cases are supported. ``gui'' - choose the channels to convert using a graphical interface. The overall selection of channels can be saved in a file and this file can later be used by choosing the ``file'' option.
-
-The final question is by which name the new SPM EEG files should be written to disk. By default SPM will add the prefix \texttt{spm8\_} to the name of the raw data file if the data is read as continuous and \texttt{espm8\_} if the data is read by trials.
-
-SPM will now convert the data. This may take some time depending on file size and a red bar will inform you about the progress.
+The other options in the conversion batch are as follows:
+\begin{itemize}
+\item Reading mode - a file can be read either as continuous or epoched. In the continuous case either the whole file or a contiguous time window can be read. In the epoched case trials should be defined (see 'Epoching' below).  The advantage of defining trials at conversion is that only the necessary subset of the raw data is converted. This is useful when the trials of interest are only a small subset of the whole recording (e.g. some events recorded during sleep). Note that some datasets do not contain continuous data to begin with. These datasets should usually be converted with the ``Epoched'' option. There is also a possibility to only convert the header without the data. This can be useful if the information of interest is in the header (e.g. sensor locations).
+\item Channel selection - a subset of channels can be selected. There are several options for defining this subset that can be combined:  by channel type, by names or using a .mat file containing a list of channel labels. Note that channel selection branch is available in many batch tools and its functionality is the same everywhere. 
+\item Output filename - the name for the output dataset. Note that here any name can be given whereas in other preprocessing tools the user can only define a prefix to be appended to the existing name (this limitation can be circumvented using the 'Copy' tool). By default SPM will append \texttt{'spmeeg\_} prefix to the raw data file name.
+\item Event padding - usually when epoching at conversion only events occuring within trials are included with the trials. This option makes it possible to also include events occurring earlier and later within the specified time window.
+\item Block size - this is size of blocks used internally to read large files. Does not usually need to be modified unless you have an old system with memory limitations. 
+\item Check trial boundaries - SPM will not usually read data as continuous if it is clear from the raw data file that it is not the case and will give an error. In some rare cases this might need to be circumvented (e.g. if truly continuous data are stored in chunks (pseudo-epoched) and SPM does not recognise it automatically). 
+\item Save original header - the generic fileio interface does not let through all the possible header fields abailable for specific formats. Sometimes those missing header fields are necessary for particular functionality and this option allows to keep the complete original header as a subfield of the converted header. A particular case where this is useful is processing  of continuous head localisation data in CTF MEG system which requires some information from the original header to interpret it.
+\item Input data format - this option allows to force a particular low-level reader to convert the data. It is not usually necessary. Power users can find possible values for this field in the code of \texttt{ft\_read\_header} function. 
+\end{itemize}
 
 
 \section{Converting arbitrary data}
-It might be the case that your data is not in any standard format but is only available as an ASCII or Excel file or as a variable in the \matlab\ workspace. Then you have two options depending on whether you would be willing to use a \matlab\ script or want to only use the GUI. If you want to only use the GUI, we suggest that you assemble your dataset in EEGLAB and then  save it and convert to SPM as any other format. The developers of EEGLAB have invested a lot of effort into making it possible to build a dataset from scratch without using the command line or scripts and we see no reason for reproducing the same functionality in SPM.
+It might be the case that your data is not in any standard format but is only available as an ASCII or Excel file or as a variable in the \matlab\ workspace. Then you have two options depending on whether you would be willing to use a \matlab\ script or want to only use the GUI. 
+
+'Prepare' interface in SPM has an option to convert a variable in the \matlab\ workspace to SPM format. Only a few question will be asked to determine the dimensions of the data and the time axis. The other information (e.g. channel labels) can be provided via the SPM reviewing tool. 
 
 If you are willing to write a simple \matlab\ script, the most straightforward way to convert your data would be to create a quite simple FieldTrip raw data structure (\matlab\ \texttt{struct}) and then use SPM's \texttt{spm\_eeg\_ft2spm.m} function to convert this structure to SPM dataset. Missing information can then be supplemented using \texttt{meeg} methods and SPM functions.
 
 FieldTrip raw struct must contain the following fields:
 
 \begin{itemize}
-\item \texttt{.fsample} - sampling rate (Hz)
 \item \texttt{.trial} - cell array of trials containing matrices with identical dimensions (channels $\times$ time). 
 \item \texttt{.time} - cell array of time vectors (in sec) - one cell per trial, containing a time vector the same length as the second dimension of the data. For SPM, the time vectors must be identical.
 \item \texttt{.label} - cell array of strings, list of channel labels. Same length as the first dimension of the data.
@@ -45,15 +48,19 @@ FieldTrip raw struct must contain the following fields:
 
 If your data only has one trial (e.g. it is already an average or it is raw continuous data) you should only have one cell in \texttt{.trial} and \texttt{.time} fields of the raw struct.
 
-An example script for converting LFP data can be found under \texttt{toolbox$\backslash$Neural\_Models$\backslash$spm\_lfp\_txt2mat.m}.
+An example script for converting LFP data can be found under \texttt{man$\backslash$examplel\_scripts$\backslash$spm\_eeg\_convert\_arbitrary\_data.m}.
+
+As some of third party toolboxes whose format SPM can convert also support converting arbitrary data via GUI (e.g. EEGLAB), it is also possible to use one these toolboxes first to build a dataset and then convert it to SPM. 
 
 \section{The M/EEG SPM format}
-The M/EEG format has changed from SPM5 to SPM8. There were many reasons why we decided that it was time to radically change the format. If you still have some data from your SPM5 analyses, you can convert them to SPM8 (see above).
+SPM8 introduced major changes to the initial implementation of M/EEG analyses in SPM5. The main change was a different data format that used an object to ensure internal consistency and integrity of the data structures and provide a consistent interface to the functions using M/EEG data. The use of the object substantially improved  the stability and robustness of SPM code. The changes in data format and object details from SPM8 to SPM12 were relatively minor. The aims of those changes were to rationalise the internal data  structures and object methods to remove some 'historical' design mistakes and inconsistencies.
 
-Here are the reasons why we changed the format. Previously, we placed all header information into a struct, which was then stored in a \matlab\ \texttt{mat}-file. When the data were read, the struct-file was put into working memory, and the data, contained in the \texttt{dat}-file, was linked to the struct, using memory-mapping. We found that making a struct available in working memory was highly problematic. This was because users would manipulate the struct but sometimes introduced an error to the format (e.g., they removed a few trials from the data but did not update all fields relating to the total number of trials). This would generate hard-to-resolve errors when trying to further process the now inconsistent data. To avoid this in the future, we have introduced two changes. The first is that SPM8 now always does a consistency check when loading a file. This means, if, for whatever reason, the data format was made inconsistent, SPM8 will now report this as soon the user tries to load these data. SPM8 will also report where the check flagged an inconsistency. If there is enough information available to fix the inconsistency, it will be fixed on the fly. For instance, you will usually see some messages about missing information starting with 'checkmeeg:' when converting a file to SPM8 format. These messages are normal and if no error is generated they do not indicate a problem. Second, when reading the data, we now convert the header struct to an object and only then make it available in working memory. Generally, this \matlab\ object can only be manipulated using standardized functions (called methods), which makes it very hard to introduce any inconsistency into SPM M/EEG data in the first place. Also, using methods simplifies internal book-keeping, which makes it much easier to program functions operating on the M/EEG object. For example, while the SPM5 format kept a variable which contained the number of trials, the SPM8 object does not have this variable but a method that returns the number of trials by simply counting how many trials of data there are. This makes it easy for a programmer to, for example, remove trials. There is no longer a need to update a variable for the number of trials. Also there is no need to check for the presence of particular fields in the struct in every SPM function. All the methods are guaranteed to work on a valid object. There are many more simplifications along these lines due to the use of ``objects'' and ``methods''. In summary, the change in format has resulted in a much more robust, and usable data format.
+SPM M/EEG format consists of two files: header file with extension .mat and data file with extension .dat. The header is saved in the mat file as a struct called 'D'. Description of the struct fields can be found in the header of meeg.m . When a dataset is loaded into memory by SPM using the \texttt{spm\_eeg\_load} function (see below) the header is converted to @meeg object and the data are linked to the object using memory mapping so they are not actually kept in memory unnecessarily. The object can only be manipulated using standardized functions (called methods), which makes it very hard to introduce any inconsistency into SPM M/EEG data. Also, using methods simplifies internal book-keeping, which makes it much easier to program functions operating on the M/EEG object. SPM functions only access the header data via the object interface and we strongly encourage the power users to become faimilar with this interface and also use it in their own code. Using the object can make your code simpler as many operations requiring multiple commands when working with the struct directly are already implemented in @meeg methods.  When converting from struct to an object an automatic integrity check is done. Many problems can be fixed on the fly and there will only be an error if SPM does not know how to fix a problem. Messages from the automatic consistency checks will sometimes appear during conversion or other processing steps. They do not usually indicate a problem, unless an error is generated. 
 
 \section{Preparing the data after conversion}
-SPM tries to do its best to extract information automatically from the various data formats. In some cases it can also supplement the converted dataset with information not directly present in the raw data. For instance, SPM can recognize common EEG setups (extended 1020, Biosemi, EGI) based on channel labels and assigns 'EEG' channel type and default electrode locations for these cases. However, there are data types which are either not yet supported in this way or do not contain sufficient information for SPM to make the automatic choices. Also the channel labels do not always correctly describe the actual electrode locations in an experiment. In these cases, further information needs to be supplied by the user. Reading and linking this additional information with the data is the purpose of the \texttt{Prepare} interface. This interface is accessed by selecting \texttt{Prepare} from the ``Other'' drop-down menu in the GUI. A menu (easily overlooked) will appear at the top of SPM's interactive window. The same functionality can also be accessed by pressing ``Prepare SPM file'' in the SPM M/EEG reviewing tool.
+SPM does its best to extract information automatically from the various data formats. In some cases it can also supplement the converted dataset with information not directly present in the raw data. For instance, SPM can recognize common EEG channel setups (extended 1020, Biosemi, EGI) based on channel labels and assigns 'EEG' channel type and default electrode locations for these cases. However, there are data types which are either not yet supported in this way or do not contain sufficient information for SPM to make the automatic choices. Also the channel labels do not always correctly describe the actual electrode locations in an experiment. In these cases, further information needs to be supplied by the user. Reading and linking this additional information with the data was the original purpose of the \texttt{Prepare} interface. In SPM12 with removal of interactive GUI elements from all preprocessing functions some of those elements were added to 'Prepare' so that the users will be able to prepare inputs for batch tool using interactive GUI. These tools can be found in the 'Batch inputs menu'.
+
+'Prepare' interface is accessed by selecting \texttt{Prepare} from the \texttt{Convert} drop-down menu in the GUI. A menu (easily overlooked) will appear at the top of SPM's interactive window. The same functionality can also be accessed by pressing ``Prepare SPM file'' in the SPM M/EEG reviewing tool.
 
 In this menu, an SPM M/EEG file can be loaded and saved using the ``File'' submenu. The ``Channel types'' submenu allows reviewing and changing the channel types. Use the ``Review'' option to examine the presently set channel types. During conversion, SPM  will make an informed \textit{guess} at the correct channel types but this can sometimes go wrong, especiallly for EEG data. To set a particular channel group to some channel type, select this type from the menu. A list of all channels will appear. Select the subset whose type you would like to set. \texttt{Ctrl} and \texttt{Shift} buttons can be used to refine the selection. Press OK to apply your choice. It is especially important to correctly specify which are the EEG channels. MEG types are assigned automatically by SPM and cannot be modified using the GUI.
 
@@ -100,37 +107,26 @@ for multiple versions of a given channel name. Case can be ignored, i.e., it doe
 Note that the channel template files and 3D coordinate files with labels (such as \texttt{*.sfp}) can contain many more channel labels than your data file. SPM searches, for each channel in the data, through the labels in the channel template file. If the labels match, the coordinate is used.
 
 \section{Integration of SPM and Fieldtrip}
-The SPM8 distribution includes the latest version of the FieldTrip toolbox\footnote{FieldTrip: \url{http://fieldtrip.fcdonders.nl/}}. FieldTrip is a \matlab\ toolbox for MEG and EEG analysis that is being developed at the F.C. Donders Centre (FCDC) together with collaborating institutes. FieldTrip functions can be used for many kinds of analysis which are not supported in SPM proper. However, FieldTrip does not have extensive graphical user interface and its functionality should be accessed by writing scripts. Full reference documentation for FieldTrip including example scripts is available at the FieldTrip website. The SPM distribution also contains some documentation, contained as help comments in FieldTrip functions. These can be found in the directory \texttt{external$\backslash$fieldtrip}. 
+The SPM distribution includes the latest version of the FieldTrip toolbox\footnote{FieldTrip: \url{http://fieldtrip.fcdonders.nl/}}. FieldTrip is a \matlab\ toolbox for MEG and EEG analysis that is being developed at the Donders Institute for Brain, Cognition and Behaviour at the Radboud University Nijmegen together with collaborating institutes. FieldTrip functions can be used for many kinds of analysis which are not supported in SPM proper. However, FieldTrip does not have extensive graphical user interface and its functionality should be accessed by writing scripts. Full reference documentation for FieldTrip including example scripts is available at the FieldTrip website. The SPM distribution also contains some documentation, contained as help comments in FieldTrip functions. These can be found in the directory \texttt{external$\backslash$fieldtrip}. 
 
 Fieldtrip data structures can be converted to SPM EEG files using the \texttt{spm\_eeg\_ft2spm} function. SPM M/EEG data, once loaded with the function \texttt{spm\_eeg\_load} can be converted to FieldTrip format using the methods \texttt{ftraw} (with syntax \texttt{D.ftraw} or \texttt{ftraw(D)}) and \texttt{fttimelock} (with syntax \texttt{D.fttimelock} or \texttt{fttimelock(D)}). For SPM time-frequency datasets \texttt{fttimelock} method converts the data to Fieldtrip time-frequency structure.
 
-\section{Reading of data\label{sec:load}}
+\section{Loading data into workspace}\label{sec:load}}
 If you use the GUI only, there is no need to read this section because the functions called by the GUI will read the data automatically. However, if you plan to write scripts and access the data and header information more directly, this section should contain all the necessary information to do so.
 
-An SPM8 for M/EEG file can be read using the \texttt{spm\_eeg\_load} function. Without any arguments a file requester asks for the name of the file. With a string argument $P$, \texttt{spm\_eeg\_load(P)} will attempt to read a file with the name \texttt{P}. The behavior in this case is identical to the ``Just read'' option in the GUI. The SPM-format stores the binary data in a \texttt{*.dat} file. All header information are stored in a \texttt{*.mat} file. This \texttt{*.mat} file contains a single struct named \texttt{D} which contains several fields. When using \texttt{spm\_eeg\_load}, the struct is transformed into an object, and the data are linked into this object. The linking is done via memory mapping using \texttt{file\_array} objects. Note that the data should always be read using the routine \texttt{spm\_eeg\_load}. The memory mapped data can be addressed like a matrix (see below) which is convenient for accessing the data in a random access way. However, a word of caution: If you write new values to this matrix, the matrix is not only changed in the object (in memory), but also physically on the hard disk.
+An SPM M/EEG file can be read using the \texttt{spm\_eeg\_load} function. Without any arguments a file requester asks for the name of the file. With a string argument $P$, \texttt{spm\_eeg\_load(P)} will attempt to read a file with the name \texttt{P}. The SPM-format stores the binary data in a \texttt{*.dat} file. All header information are stored in a \texttt{*.mat} file. This \texttt{*.mat} file contains a single struct named \texttt{D} which contains several fields. When using \texttt{spm\_eeg\_load}, the struct is transformed into an object, and the data are linked into this object. The linking is done via memory mapping using \texttt{file\_array} objects. Note that the data should always be read using the routine \texttt{spm\_eeg\_load}. The memory mapped data can be addressed like a matrix (see below) which is convenient for accessing the data in a random access way. However, a word of caution: If you write new values to this matrix, the matrix is not only changed in the object (in memory), but also physically on the hard disk.
 
-You can also load the header struct using a simple \matlab\ \texttt{load} but this just returns the header struct, without the data linked in, and SPM functions won't know what to do with this struct. In the following, we will describe the methods that one can use on an M/EEG-object. Note that we will not describe the internal format of the data here. This would be helpful only for programmers who want to write new methods for \texttt{meeg} object, because when simply analyzing M/EEG or even writing SPM functions there should never be a need to access the internal format. If you think that the existing methods do not provide the functionality you need, please let us know. For interested power users, there is documentation about the internal format within the \texttt{meeg} class constructor.
-\textit{meeg}.
-
-\subsection{Syntax}
-\texttt{D = spm\_eeg\_load(P)}
-\\
-
-\subsubsection{Input}
-The input string \texttt{P} is optional and contains the file name of the \texttt{*.mat} file.
-
-\subsubsection{Output}
-The output struct \texttt{D} contains all header information about the data. The data are memory mapped and can be accessed directly using something like \texttt{d = D(:,:,1)}. This command would put the first trial over all channels and time points into the variable \texttt{d}. The first dimension of \texttt{D} is channels, the second peri-stimulus time, and the third is trials. If the data are time-frequency transformed, there would be four dimensions, where the frequency dimension is squeezed in at the second position (i.e., channels/frequencies/time/trials). If you wanted to change the values of the data, you would write something like \texttt{D(1,2,3) = 1;}, which would change the value of the first channel, second time-point, and third trial to 1.
-
-
-\section{Methods for the \texttt{meeg} object}
-\texttt{meeg} methods are functions that operate on an \texttt{meeg} object, loaded with \texttt{spm\_eeg\_load}. These methods should not be used, if you just want to analyze your data using the GUI or simple scripts. However, if you write your own scripts or high-level functions that need to read or manipulate the object, you need these methods. In the following, we will provide details about most of the methods. The code for all methods can be found in the \texttt{@meeg} SPM directory. Most methods provide some minimalist help text. In the following, we will assume that the object variable is called \texttt{D}, i.e. previously loaded by using \texttt{D = spm\_eeg\_load;}.
+\section{The \texttt{meeg} object}
+This section describes the \texttt{meeg} object and its methods. This information is intended for power users who would like to write their own scripts and high level functions integrated with SPM. \texttt{meeg} methods are functions that operate on an \texttt{meeg} object, loaded with \texttt{spm\_eeg\_load}. The code for all methods can be found in the \texttt{@meeg} SPM directory. Most methods provide some minimalist help text. In the following, we will assume that the object variable is called \texttt{D} and was  loaded by using \texttt{D = spm\_eeg\_load;}. Methods can be called in two ways, either as standard function call with D as the first input (e.g. chanlabels(D, 1) returns the label of the first channel) or with struct-like syntax D.chanlabels(1). 
 
 \subsection{Constructor \texttt{meeg}}
-The \texttt{meeg} method is a constructor. Called without any arguments it will produce a consistent, but empty object. In SPM, the constructor is called when a struct has been loaded into memory by \textit{spm\_eeg\_load}, and is transformed into an \texttt{meeg} object. Importantly, the constructor also checks the consistency of the object.
+The \texttt{meeg} method is a constructor. Called without any arguments it will produce a consistent, but empty object. It is also possible to provide data dimensions as inputs and create a dataset with default labels etc. that can be susbsequently updated using other methods. Most functions in SPM create new datasets in a different, more convenient way using \texttt{clone} method (see below).  In SPM, the constructor is called when a struct has been loaded into memory by \textit{spm\_eeg\_load}, and is transformed into an \texttt{meeg} object. Importantly, the constructor also checks the consistency of the object. 
+
+\subsection{Array-like interface}
+The actual M/EEG data are memory mapped and can be accessed directly using something like \texttt{d = D(:,:,1)}. This command would put the first trial over all channels and time points into the variable \texttt{d}. The first dimension of \texttt{D} is channels, the second peri-stimulus time, and the third is trials. If the data are time-frequency transformed, there would be four dimensions, where the frequency dimension is squeezed in at the second position (i.e., channels/frequencies/time/trials). If you wanted to change the values of the data, you would write something like \texttt{D(1,2,3) = 1;}, which would change the value of the first channel, second time-point, and third trial to 1.
 
 \subsection{display}
-This method will return, in the \matlab\ window, some information about the object, e.g., \texttt{display(D)}.
+This method will return, in the \matlab\ window, some information about the object, e.g., \texttt{display(D)}. The same will hapen when just writing \texttt{D} in the command line and pressing Enter.
 
 \subsection{Number methods}
 These are methods which return the number of something; they count the number of channels, etc. For example, to find out how many channels an MEEG object contains, you would use \texttt{D.nchannels}, where $D$ is the object. Number functions are \texttt{nchannels, nfrequencies, nsamples, ntrials}. You can also use \texttt{size(D)} to get all the dimensions of the data array at once.
@@ -141,11 +137,20 @@ There are a large number of methods that can be used to either read or write som
 \subsubsection{selectdata}
 With this method the data can be indexed using channel labels, times and condition labels instead of indices which you would usually need to find out in your code. For instance \texttt{D.selectdata('Cz', [0.1 0.12], 'Oddball')} will return the waveforms of channel Cz between 100 and 120 ms in peristimulus time for the condition ``Oddball''.
 
+\subsubsection{badchannels}
+Flags/unflags channels as bad. 
+
+\subsubsection{badtrials}
+Flags/unflags trials as bad. 
+
 \subsubsection{chanlabels}
 This method reads or writes the label of the channels (string).  Note that the channel labels must be unique.
 
 \subsubsection{chantype}
 This method reads or writes the type of a channel (string). Currently, the types recognized by SPM are: ``EEG'', ``MEG'', ``EMG'', ``EOG'', or ``Other'', but in principle type can be any string.
+
+\subsubsection{clone}
+This is a useful method for creating new datasets by copying the header information from an existing dataset and creating a new blank data file. Optionally the data dimensions can be changed when cloning. This method is used by SPM preprocessing functions to create new datasets where the processed data is written out.
 
 \subsubsection{conditions}
 This method  reads or writes the name of the condition of an epoch (string).
@@ -163,10 +168,10 @@ This method returns the events stored with each trial. Events are records of thi
 Note that in order to find out the time of an event in peristimulus time you will need additional information provided by ``trialonset'' method.
 
 \subsubsection{fname}
-This method reads or writes the name of the \texttt{mat}-file, in which the header information are stored.
+This method reads or sets the name of the \texttt{mat}-file, in which the header information are stored.
 
 \subsubsection{fnamedat}
-This method reads or writes the name of the \texttt{dat}-file, in which the data are stored.
+This method returns the name of the \texttt{dat}-file, in which the data are stored. Most commonly the \texttt{dat}-file will have the same name as the \texttt{mat}-file and will be stored in the same folder. However for some less common uses there is a possibility to link an meeg header to a binary datafile located elsewhere. (See also \texttt{link} method).
 
 \subsubsection{frequencies}
 If the data has been transformed to time-frequency, this method reads or writes the frequencies (Hz) of the data.
@@ -174,14 +179,20 @@ If the data has been transformed to time-frequency, this method reads or writes 
 \subsubsection{fsample}
 This method reads or writes the sampling rate of the data. In SPM, all data must have the same sampling frequency.
 
+\subsubsection{fullfile}
+Returns the full path to the dataset mat file. This is a shortcut for commonly used fullfile(D.path, D.fname).
+
 \subsubsection{history}
 This method can read or add to the history of a file. Usually, each time a SPM function (e.g. like converting) does something to a data set, the function name and arguments (possibly after collecting them with the GUI) are stored in the history. Effectively, the history is a documentation of how exactly the data were processed. Of course, the history function can also be used to replicate the processing, or generate (modifiable) scripts for processing other data in the same way.
+
+\subsubsection{montage}
+This method makes it possible to define online montages to apply linear transforms to the data without writing it out as a new dataset. See the method code for more documentation. 
 
 \subsubsection{path}
 This method reads or writes the path, under which the \texttt{mat}- and \texttt{dat}-files are stored.
 
-\subsubsection{reject}
-This method reads or writes the indices of rejected (bad) trials.
+\subsubsection{repl}
+This method returns the number of replications measured for a condition. This method is usually only used on single trial data.
 
 \subsubsection{timeonset}
 This method reads and writes the time of the first sample in a trial in peristimulus time (in seconds). In SPM all trials should have the same time axis. Therefore there is only one timeonset in a file. For instance, if you have a pre-stimulus baseline of 100 ms and the stimulus comes at time zero, \texttt{timeonset} will be -0.1. In general it is possible to define the time axis any way you like and there is no requirement that the stimulus comes at 0 or that there is baseline with negative times (which was the case in SPM5).
@@ -202,79 +213,84 @@ This method reads and writes the units of the measurements (string). The units a
 Some methods can only read information but not change them. These are:
 
 \subsubsection{condlist}
-This method returns a list of condition labels. Multiple entries of labels have been removed.
+This method returns a list of unique condition labels in the file. The order of this list is important as SPM functions rely on it many cases. For instance, when averaging an epoched dataset the conditions in the averaged file will be in the order of condlist. The order of condlist does not have to be the same as physical order of trial on disk and can be changed (See 'Sort conditions' below).
 
 \subsubsection{coor2D}
-This method returns the 2D-coordinates used for displaying or writing sensor data to voxel-based images.
+This method returns the 2D-coordinates used for displaying or writing sensor data to voxel-based images. These coordinates can also be useful e.g. to find all the frontal channels (y-coordinate above 0.5) or all the left channels (x-coordinate below 0.5) etc.
 
-\subsubsection{dtype}
-This method returns the type under which the data are stored in the \texttt{file\_array} object.
+\subsubsection{ind-methods}
+This is a group of methods that return indices into the data array based on labels of the relevant data dimension. These include:
 
-\subsubsection{eogchannels}
-This method returns which of the channels are EOG channels.
-
-\subsubsection{indsample}
-This method returns the index of the sample which is closest to a specific time point (ms).
-
-\subsubsection{indfrequency}
-For time-frequency datasets this method returns the index of the frequency closest to the given value in Hz.
-
-\subsubsection{indchannel}
-This method returns indices of channels based on their labels.
-
-\subsubsection{indtrial}
-This method returns indices of trials based on condition labels.
-
-\subsubsection{meegchannels}
-This method returns the indices of all channels that are either of the MEG or EEG type.
+\begin{itemize}
+\item indchannel - returns indices given channel labels. Several labels can be provided together as a cell array. 
+\item indchantype - returns indices given channel types. Several types can be provided together as a cell array. An additional flag 'GOOD' or 'BAD' can be provided to return only good or bad channels.
+\item indfrequency - returns indices given frequencies (for TF datasets).
+\item indsample -  returns indices given times (in sec).
+\item indtrial - returns trial indices given condition labels. Several labels can be provided together as a cell array. An additional flag 'GOOD' or 'BAD' can be provided to return only good or bad trials.
+\end{itemize}
 
 \subsubsection{modality}
-This method returns the modality of channels (MEG, EEG, etc.).
-
-\subsubsection{pickconditions}
-This method returns the indices of trials of a certain condition. The condition must be supplied by its label (string).
-
-\subsubsection{repl}
-This method returns the number of replications measured for a condition. This method is usually only used on single trial data.
+This method returns the modality of the dataset (MEG, EEG, etc.). There can be datasets with multiple modalities and in this case the method returns 'Multimodal' with a list of modalities as the second output. 
 
 \subsubsection{time}
-This method returns the time (ms) of the samples.
+This method returns the time axis of the dataset (in sec). When given sample indices as input it will return the corresponding times. 
 
 \subsubsection{sensors}
-This method returns the sensor locations structure. There is an additional argument for modality ('EEG' or 'MEG') as we are planning to support datasets with more than one sensor type. The exact way sensors are represented depends on the modality and you can find more information in Fieldtrip documentation as the sensors structure is produced and used by code originally developed at FCDC. Note that in SPM, sensors are not directly linked with channels, unlike for instance in EEGLAB. So there is no requirement for the number of sensors and channels to match or even for any relation between them. Of course loading sensors completely unrelated to your data will not be very useful and will eventually lead to an error. This kind of representation is more powerful than a simple correspondence and it will become even more useful with further development of SPM.
+This method returns the sensor locations structure. There is an additional argument for modality ('EEG' or 'MEG') as SPM supports datasets with more than one sensor type. The exact way sensors are represented depends on the modality and you can find more information in Fieldtrip documentation as the sensors structure is produced and used by code originally developed at by the Fieldtrip team. Note that in SPM, sensors are not directly linked with channels, unlike for instance in EEGLAB. So there is no requirement for the number of sensors and channels to match or even for any relation between them. Of course loading sensors completely unrelated to your data will not be very useful and will eventually lead to an error. This kind of representation is more powerful than a simple correspondence.
 
 \subsubsection{fiducials}
 This method returns the fiducials. They are represented as \texttt{shape} struct (see the discussion of loading fiducials by the \texttt{Prepare} function) with an additional field for units that is assigned automatically.
 
 \subsubsection{ftraw}
-This method converts an object to a FieldTrip structure. An additional argument can be supplied to indicate whether the data is memory mapped (1: default) or loaded into memory (0). Note that not all FieldTrip functions can properly handle memory mapped data. In order to avoid corrupting the data, \texttt{ftraw} sets a read-only flag on it so in the worst case you might encounter errors in Fieldtrip functions. Please report such errors on the SPM or Fieldtrip mailing list so that we can fix them. \texttt{ftraw(0)} is safer in this respect but inefficient in its memory use.
+This method converts an object to a FieldTrip structure. Additional arguments can be provided to only convert a subset of the data.
 
 \subsubsection{fttimelock}
 Similar to \texttt{ftraw} but converts the data to a different kind of Fieldtrip structure. 
 
-\subsection{Changing the information saved on the disk}
-
-\subsubsection{save}
-This method saves the object to the \texttt{mat}- and \texttt{dat}-files.
+\subsection{Manipulations of the data on  disk}
 
 \subsubsection{delete}
 This function deletes the \texttt{mat}- and \texttt{dat}-files from the disk. This is useful, for instance, in a script to delete the intermediate datasets after the next processing step has been completed. 
 
-\subsection{struct-like interface}
-In addition to pre-defined internal fields that should only be manipulated using methods, the \texttt{meeg} object also allows storing additional information in it as long as the names of additional fields do not clash with the names of existing methods. This functionality is used by some SPM functions. For instance, the results of 3D source reconstructions are stored in \texttt{D.inv} field for which no methods are necessary to access and modify it. You can use this functionality in your scripts (try commands like \texttt{D.myfield = 'hellow world'; disp(D.myfield);}). The methods \texttt{rmfield} and \texttt{isfield} work for these extra-fields as they would if the \texttt{meeg} object was a struct.
+\subsubsection{link}
+Links a header in the workspace to a binary data file on disk. This is usually done automatically when loading the dataset. The dimensions of the datafile should match the header.
+
+\subsubsection{unlink}
+Unlinks the header from the data. This can be useful e.g. for working with the header when the datafile is not available.
+
+\subsubsection{blank}
+Creates a new empty datafile matching header dimensions.
+
+\subsubsection{move}
+Renames or moves a dataset
+
+\subsubsection{copy}
+Makes a copy of the dataset.
+
+\subsubsection{save}
+This method saves the object to the \texttt{mat}- and \texttt{dat}-files.
+
+\subsection{Struct-like interface}
+In addition to pre-defined internal fields that should only be manipulated using methods, the \texttt{meeg} object also allows storing additional information in it as long as the names of additional fields do not clash with the names of existing methods. This functionality is used by some SPM functions. For instance, the results of 3D source reconstructions are stored in \texttt{D.inv} field for which no methods are necessary to access and modify it. You can use this functionality in your scripts (try commands like \texttt{D.myfield = 'hellow world'; disp(D.myfield);}). The methods \texttt{rmfield} and \texttt{isfield} work for these extra-fields as they would if the \texttt{meeg} object was a struct. Several of the methods support the struct-like interface functionality: fieldnames, getfield, rmfield, isfield. The struct-like interface only allows to access those extra-fields that were added using it and not the core fields of the object.
 
 \section{SPM functions}
-In this section we will describe the high-level SPM functions which are used for preprocessing M/EEG data. These functions are fairly standard and should allow a simple preprocessing of the data (e.g., epoching, filtering, averaging, etc.). Here, we will just describe what each function roughly does and what the input arguments mean. More detailed information about the syntax can be found in the help text of the code. For example, to get detailed help on epoching, type \texttt{help spm\_eeg\_epochs}. The general syntax is the same for all functions. If called from the command-line, and if no input arguments are specified, the function will behave exactly as if you called the function from the GUI by pressing a button or choosing it from the ``Other'' menu. However, on the command line, or from a script, you can supply input arguments, up to the point when all required input arguments are specified, so that the function will run without any user interaction. In this way, one can write a script that runs without user interaction. See the folder \texttt{man$\backslash$example\_scripts} for an example. Input arguments are provided in a struct \texttt{S}, whose fields contain the arguments. A typical call, e.g., from a script would be: \texttt{D = spm\_eeg\_epochs(S)}, where $S$ is the input struct, and \texttt{D} contains the return argument, the epoched \texttt{meeg} object. Note that, with all SPM functions, the object is also always written to hard disk. The filenames of the \texttt{mat}- and \texttt{dat}-files are generated by prepending a single letter to the old file name. In the example of epoching this would be an \textit{'e'}. The idea is that by calling a sequence of functions on a file, the list of first letters of the file name shows (roughly) which preprocessing steps were called to produce this file. Note that another way of calling SPM functions and specifying all input parameters is to use the new batch interface.
+In this section we will describe the high-level SPM functions which are used for preprocessing M/EEG data. These functions are fairly standard and should allow a simple preprocessing of the data (e.g., epoching, filtering, averaging, etc.). Here, we will just describe what each function roughly does and what the batch input arguments mean. More detailed information about the syntax for scripts can be found in the help text of the code. For example, to get detailed help on epoching, type \texttt{help spm\_eeg\_epochs}. The general syntax is the same for all functions. Input arguments are provided in a struct (by convention called \texttt{S}), whose fields contain the arguments. A typical call, e.g., from a script would be: \texttt{D = spm\_eeg\_epochs(S)}, where $S$ is the input struct, and \texttt{D} contains the return argument, the epoched \texttt{meeg} object. Note that, with all SPM functions, the object is also always written to hard disk. The filenames of the \texttt{mat}- and \texttt{dat}-files are generated by prepending (by default) a single letter to the old file name. In the example of epoching this would be an \textit{'e'}. The idea is that by calling a sequence of functions on a file, the list of first letters of the file name shows (roughly) which preprocessing steps were called to produce this file. Note that another way of calling SPM functions and specifying all input parameters is to use the batch interface.
 
 \subsection{Epoching the data: \texttt{spm\_eeg\_epochs}}
-Epoching cuts out little chunks of continuous data and saves them as ``single trials''. In M/EEG research, this is a standard data selection procedure to remove long gaps between each single trial. For each stimulus onset, the epoched trial starts at some user-specified pre-stimulus time and end at some post-stimulus time, e.g. from -100 to 400 milliseconds in peri-stimulus time. The epoched data will also be baseline-corrected, i.e. the mean of the pre-stimulus time is subtracted from the whole trial. The resulting event codes are the same as saved in the \texttt{*.mat} file. The prepended output letter is \textit{'e'}.
+Epoching cuts out little chunks of continuous data and saves them as ``single trials''. In M/EEG research, this is a standard data selection procedure to remove long gaps between trials and extract time segments with the same time relation to the event of interest. The first input to epoching is a continuous M/EEG dataset. It can be either data in the time domain or time-frequency data. 
 
-The epoching function can deal with two different ways of specifying trials you want to epoch. The first is to specify explicitly where each trial is located in the measured time-series. The second is to specify trials using the labeled events stored in the file. For most users, the second way is the most convenient, but sometimes, when the stored triggers in the file do not relate to what you want to epoch or there is no event information available in the raw data (e.g. when you have an external stimuli file), you should use the first.
+The epoching function can deal with three different ways of specifying trials (chosen under 'How to define trials') . The first way ('Define trial') is to specify trials based on events stored in the dataset. One should define the time window in peristimulus time (which will be the same for all trials). In addition it is necessary to specify the events (triggers) around which the epochs will be ``cut' . The user can add multiple entries for all the event types of interest. SPM identifies events by their ``event type'' and ``event value''. These are strings or numbers which the software run by the EEG or MEG vendor uses when generating the measurement file. If you don't know what they are for your system the interactive GUI in 'Prepare' will present the found triggers with their type and value entries. These tend to be the same over scanning sessions, so that you can batch multi-subject epoching using the types and values found in one subject. You also have to come up with a ``condition label'' for each trial type, which can be anything you choose. This is the label that SPM will use to indicate the trial type at later processing stages. It is possible to use several types of triggers for defining trials with the same label. Using the 'Shift' parameter it is possible to shift 'time zero' of the trial relative to the original event. This can be useful e.g. to account for known projector delay. 
+
+The second choice is to load a trial definition file. This file can be produced by an interactive GUI tool in 'Prepare' (under 'Batch inputs'/'Trial definition') or by the user's custom code.  Trial definition file is a mat-file containing either variables named 'trialdef' and 'timewin' or the variables 'trl' and 'conditionlabels'.  'trialdef' and 'timewin' are analogous to the specification described above. The first is to specify explicitly where each trial is located in the measured time-series. 
+
+
+For each stimulus onset, the epoched trial starts at some user-specified pre-stimulus time and end at some post-stimulus time, e.g. from -100 to 400 milliseconds in peri-stimulus time. The epoched data will also be baseline-corrected by default, i.e. the mean of the pre-stimulus time is subtracted from the whole trial (the baseline correction can be removed if undesirable).  The prepended output letter is \textit{'e'}.
+
+The epoching function can deal with three different ways of specifying trials you want to epoch. The first is to specify explicitly where each trial is located in the measured time-series. The second is to specify trials using the labeled events stored in the file. For most users, the second way is the most convenient, but sometimes, when the stored triggers in the file do not relate to what you want to epoch or there is no event information available in the raw data (e.g. when you have an external stimuli file), you should use the first. The third was is only relevant for studies of steady-state data (i.e. spectra). It is possible to break the data into arbitrary segments with length defined by the user. 
 
 For the first method, you specify a $N \times 2$ so-called \texttt{trl} matrix, where each row contains the start and end of a trial (in samples). Optionally, there can be a third column containing the offset of the trigger with respect to the trial. An offset of 0 (default) means that the first sample of the trial corresponds to the trigger. A positive offset indicates that the first sample is later than the trigger, a negative offset indicates that the trial begins before the trigger. In SPM the offset should be the same for all trials. The need to specify a whole column is for interoperability with FieldTrip where trials can have different time axes. In addition you have to specify \texttt{conditionlabels} (a single string or a cell array of strings), either one for each trial or one for all trials. You can also enter a \texttt{padding} which will add time points before and after each trial to allow the user to later cut out this padding again. This is useful, e.g., for filtering epoched data, where one would otherwise, without padding experience ``edge effects''.
 
-For the second method, one should define the pre- and post-stimulus interval, and also specify the events (triggers) around which the epochs will be ``cut''. SPM identifies events by their ``event type'' and ``event value''. These are strings or numbers which the software run by the EEG or MEG vendor uses when generating the measurement file. If you don't specify parameters for the epoching function, a GUI will pop up, and present the found triggers with their type and value entries. These can sometimes look strange, but if you want to run a batch or script to do the epoching, you have to first find out what the type and value of your event of interest are. Fortunately, these tend to be the same over scanning sessions, so that you can batch multi-subject epoching using the types and values found in one subject. You also have to come up with a ``condition label'' for each trial type, which can be anything you choose. This is the label that SPM will use to indicate the trial type of a trial at later processing stages. It is possible to use several types of triggers for defining trials with the same label - in the GUI, just select several events using \texttt{Shift} or \texttt{Ctrl} key.
-
+For the second method, 
 For both methods of input you also have to set a (0/1)-flag (no/yes) indicating whether you want to review the information for all trials after selecting them. This allows you to make sure that all your trials are there. You should set the review-flag to 0, if you write a non-interactive script. In the GUI you can review a list of the epochs you defined and exclude some of them by hand (e.g. only take the triggers from the first 5 min of recording). You can also choose to save the trial definitions, for example, for re-use of another epoching of the same data.
 
 \subsection{Filtering the data: \texttt{spm\_eeg\_filter}} 
@@ -374,7 +390,6 @@ displays source reconstructions (if any). See below (2- source reconstructions v
 \end{itemize}
 
 In addition, the user can call the SPM \textsc{Prepare} routine \footnote{This is part of the SPM EEG preprocessing tools. It mainly concerns the coregistration of the sensors onto the normalized SPM space. See relevant section in the SPM manual.} or save any modification in the data file using the top-right buttons ``Prepare SPM file'' and ``SAVE''.
-
 
 \subsection{Data visualization}
 The graphics window of SPM \textsc{Review} offers two modes of data visualization: ``scalp'' and ``standard'' (default). For continuous (non-epoched) data, only ``standard'' mode is enabled. For time-frequency data, only ``scalp'' mode is enabled. For any other type of data, the user can switch to any of these modes using the standard/scalp radio button.
