@@ -172,10 +172,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_fmri_spm_ui.m 5417 2013-04-16 11:03:58Z guillaume $
 
 
-SVNid = '$Rev: 5097 $';
+SVNid = '$Rev: 5417 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -228,7 +228,7 @@ end
 %-Create Vi structure
 %--------------------------------------------------------------------------
 
-if ~ischar(cVi) % AR coefficient specified
+if ~ischar(cVi)                 % AR coefficient specified
     %----------------------------------------------------------------------
     SPM.xVi.Vi = spm_Ce(nscan,cVi(1));
     cVi        = ['AR( ' sprintf('%0.1f ',cVi) ')'];
@@ -236,12 +236,12 @@ if ~ischar(cVi) % AR coefficient specified
 else
     switch lower(cVi)
         
-        case 'none'     %  xVi.V is i.i.d
+        case {'i.i.d', 'none'}  %  xVi.V is i.i.d
             %--------------------------------------------------------------
             SPM.xVi.V  = speye(sum(nscan));
             cVi        = 'i.i.d';
 
-        otherwise       % otherwise assume AR(0.2) in xVi.Vi
+        otherwise               % otherwise assume AR(0.2) in xVi.Vi
             %--------------------------------------------------------------
             SPM.xVi.Vi = spm_Ce(nscan,0.2);
             cVi        = 'AR(0.2)';
