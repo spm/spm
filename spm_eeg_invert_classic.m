@@ -22,11 +22,11 @@ function [D] = spm_eeg_invert_classic(D,val);
 %% if SHUFFLEADS is no zero then this will randomly assign lead fields to different channels
 %%
 %%The code was used in
-%% López, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
+%% Lï¿½pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5257 2013-02-19 15:03:33Z gareth $
+% $Id: spm_eeg_invert_classic.m 5418 2013-04-16 11:15:26Z gareth $
 
 
 
@@ -161,6 +161,12 @@ if isempty(Nm),
     
 else
     [U,ss,vv]    = spm_svd((L*L'),0);
+    if length(ss)<Nm,
+        error('Not this many spatial modes in lead fields');
+        disp('number available');
+        length(ss)
+    end;
+        
     ss=ss(1:Nm);
     disp('using preselected number spatial modes !');
     A     = U(:,1:Nm)';					% spatial projector A

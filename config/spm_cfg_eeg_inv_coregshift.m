@@ -6,7 +6,7 @@ function coregshift = spm_cfg_eeg_inv_coregshift
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_coregshift.m 5413 2013-04-15 15:36:16Z gareth $
+% $Id: spm_cfg_eeg_inv_coregshift.m 5418 2013-04-16 11:15:26Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -133,14 +133,15 @@ for i = 1:numel(job.D)
     newfid=newfid(:,1:3);
    
     meegfid.fid.pnt=newfid+randn(size(meegfid.fid.pnt)).*job.pperror; %% now adding random error to each point
-       
+    disp('Displaced fid');
+       meegfid.fid.pnt
 
 %     %% NB just change the effective head model position rather than the actual fiducial locations
 %     
      D = spm_eeg_inv_datareg_ui(D, D.val, meegfid, mrifid,0);
      D.inv{D.val}.gainmat=''; %% these will now be incorrect
      
-       D = spm_eeg_inv_forward(D);
+      D = spm_eeg_inv_forward(D);
      
 %      
       for j = 1:numel(D.inv{val}.forward)

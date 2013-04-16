@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5406 2013-04-12 16:27:20Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5418 2013-04-16 11:15:26Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -330,11 +330,8 @@ end
 
 
 
-try 
-[D,allmodels,allF] = parfor_spm_eeg_invertiter(D,Npatchiter,funccall);
-catch
 [D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall);
-end;
+
 
 
 

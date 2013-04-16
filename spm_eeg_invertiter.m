@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5401 2013-04-12 14:49:15Z gareth $
+% $Id: spm_eeg_invertiter.m 5418 2013-04-16 11:15:26Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -39,9 +39,12 @@ disp('Reseting random number seed !');
 
 
 
-fprintf('Checking leadfields')
+fprintf('Checking leadfields');
+par=0;
+
 try 
     [L Dtest{1}] = parfor_spm_eeg_lgainmat(Dtest{1});
+    par=0;
 catch
 [L Dtest{1}] = spm_eeg_lgainmat(Dtest{1});	% Generate/load lead field- this stops it being done at each iteration
 end;
@@ -56,24 +59,41 @@ end;
 allIp(1).Ip=[]; %% fix the step size of the first patch set
 
 
-
-parfor patchiter=1:Npatchiter,
-    Din=Dtest{1};
-    Dout=Din;
-    Ip=allIp(patchiter).Ip;
-    
-    switch funcname,
-        case 'Classic',
-            Din.inv{val}.inverse.Ip=Ip;
-            Dout	= spm_eeg_invert_classic(Din);
-        case 'Current',
-            warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
-            Dout	= spm_eeg_invert(Din); %
-            Dout.inv{val}.inverse.Ip=Ip;
-    end;
-    modelF(patchiter).inverse=Dout.inv{val}.inverse;
-end; % for patchiter
-
+if par, %% RUN IN PARALLEL 
+    parfor patchiter=1:Npatchiter,
+        Din=Dtest{1};
+        Dout=Din;
+        Ip=allIp(patchiter).Ip;
+        
+        switch funcname,
+            case 'Classic',
+                Din.inv{val}.inverse.Ip=Ip;
+                Dout	= spm_eeg_invert_classic(Din);
+            case 'Current',
+                warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
+                Dout	= spm_eeg_invert(Din); %
+                Dout.inv{val}.inverse.Ip=Ip;
+        end;
+        modelF(patchiter).inverse=Dout.inv{val}.inverse;
+    end; % for patchiter
+else %% RUN IN SERIAL - the code below should be the same as the code above -need to do this more elegantly
+    for patchiter=1:Npatchiter,
+        Din=Dtest{1};
+        Dout=Din;
+        Ip=allIp(patchiter).Ip;
+        
+        switch funcname,
+            case 'Classic',
+                Din.inv{val}.inverse.Ip=Ip;
+                Dout	= spm_eeg_invert_classic(Din);
+            case 'Current',
+                warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
+                Dout	= spm_eeg_invert(Din); %
+                Dout.inv{val}.inverse.Ip=Ip;
+        end;
+        modelF(patchiter).inverse=Dout.inv{val}.inverse;
+    end; % for patchiter
+end; %% if par
 
 for patchiter=1:Npatchiter,
     allF(patchiter)=modelF(patchiter).inverse.F;
