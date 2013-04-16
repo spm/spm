@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5415 2013-04-15 18:59:30Z karl $
+% $Id: spm_dcm_average.m 5420 2013-04-16 13:08:24Z karl $
 
 try
     P;
@@ -82,20 +82,22 @@ end
 %-Average models using Bayesian fixed-effects analysis -> average Ep,Cp
 %==========================================================================
 
+% averaged posterior covariance
+%--------------------------------------------------------------------------
+ipC           = inv(pC(wsel,wsel));
+Cp(wsel,wsel) = inv(sum(miCp,3) - (N - 1)*ipC);
+
+
 % averaged posterior mean
 %--------------------------------------------------------------------------
-pE    = DCM.M.pE;
+pE    = spm_vec(DCM.M.pE);
 wEp   = 0;
 for model = 1:N
     wEp   = wEp + miCp(:,:,model)*mEp(:,model);
 end
-Ep(wsel)  = sum(miCp,3)\wEp;
-Ep        = spm_unvec(Ep,pE);
-
-
-% averaged posterior covariance
-%--------------------------------------------------------------------------
-Cp(wsel,wsel) = inv(sum(miCp,3) - (N - 1)*inv(pC(wsel,wsel)));
+wEp       = wEp - (N - 1)*ipC*pE(wsel);
+Ep(wsel)  = Cp(wsel,wsel)*wEp;
+Ep        = spm_unvec(Ep,DCM.M.pE);
 
 
 %-Copy contents of first DCM into the output DCM and add BPA
@@ -113,8 +115,8 @@ warning(sw);
 
 DCM.Ep  = Ep;
 DCM.Cp  = Cp;
-DCM.Vp  = spm_unvec(Vp,pE);
-DCM.Pp  = spm_unvec(Pp,pE);
+DCM.Vp  = spm_unvec(Vp,DCM.M.pE);
+DCM.Pp  = spm_unvec(Pp,DCM.M.pE);
 
 
 %-Save new DCM
