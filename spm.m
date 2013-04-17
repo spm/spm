@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5336 2013-03-20 14:07:14Z guillaume $
+% $Id: spm.m 5425 2013-04-17 15:49:59Z guillaume $
 
 
 %=======================================================================
@@ -325,8 +325,11 @@ spm_check_installation('basic');
 %-Initialisation and workspace canonicalisation
 %-----------------------------------------------------------------------
 local_clc;
-spm('AsciiWelcome');                    fprintf('\n\nInitialising SPM');
-Modality = upper(Action);                                  fprintf('.');
+spm('AsciiWelcome');
+[SPMver, SPMrev] = spm('Ver');
+spm('FnBanner', ['v' SPMrev]);
+fprintf('%-40s: %18s', 'Initialising SPM', '');
+Modality = upper(Action);
 spm_figure('close',allchild(0));                           fprintf('.');
 
 %-Load startup global defaults
