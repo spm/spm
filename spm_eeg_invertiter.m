@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5422 2013-04-16 15:35:49Z gareth $
+% $Id: spm_eeg_invertiter.m 5424 2013-04-17 13:42:25Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -97,6 +97,8 @@ else %% RUN IN SERIAL - the code below should be the same as the code above -nee
     end; % for patchiter
 end; %% if par
 
+
+
 for patchiter=1:Npatchiter,
     allF(patchiter)=modelF(patchiter).inverse.F;
     manyinverse{patchiter}=modelF(patchiter).inverse;
@@ -107,7 +109,7 @@ disp('model evidences relative to maximum:')
 
 sort(allF-bestF)
 
-
+Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
 if Npatchiter>1, %% keep iterations if more than 1
     for f=1:Npatchiter,
         Dtest{1}.inv{f+val}.inverse=modelF(f).inverse; %% set fields in inversion to specific iterations
