@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 5248 2013-02-13 20:21:04Z john $
+% $Id: tbx_cfg_longitudinal.m 5430 2013-04-19 17:03:52Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -41,7 +41,7 @@ vols.num     = [1 Inf];
 
 tdif         = cfg_entry;
 tdif.tag     = 'tdif';
-tdif.name    = 'Time difference';
+tdif.name    = 'Time Difference';
 tdif.help    = {'Specify the time difference between the scans in years.  This can be a single value (if it is the same for all subjects) or a vector of values (if it differs among subjects).'};
 tdif.strtype = 'e';
 tdif.num     = [1 Inf];
@@ -104,7 +104,7 @@ write_avg.val    = {1};
 
 write_div         = cfg_menu;
 write_div.tag     = 'write_div';
-write_div.name    = 'Save divergence';
+write_div.name    = 'Save Divergence';
 write_div.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''' and written out in the same directory of the first time point data.'};
 write_div.labels = {
                 'Save'
@@ -113,10 +113,14 @@ write_div.labels = {
 write_div.values = { 1 0 };
 write_div.val    = {1};
 
+write_divd         = write_div;
+write_divd.name    = 'Save Divergence Rate';
+write_divd.help    = {'Do you want to save a map of divergence of the velocity field?  This is useful for morphometrics, and may be considered as the rate of volumetric expansion.  Negative values indicate contraction. These files are prefixed by ``dv_'''' and written out in the same directory of the first time point data. Note that the divergences written out have been divided by the time interval between scans'};
+
 write_jacd         = cfg_menu;
 write_jacd.tag     = 'write_jac';
-write_jacd.name    = 'Save Jacobian Differences';
-write_jacd.help    = {'Do you want to save a map of the differences between the Jacobian determinants?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). Two Jacobian determinants are computed, one for the deformation from the mid point to the first scan, and one fof the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_'''' and written out in the same directory of the first time point data.'};
+write_jacd.name    = 'Save Jacobian Rate';
+write_jacd.help    = {'Do you want to save a map of the differences between the Jacobian determinants, divided by the time interval?  Some consider these useful for morphometrics (although the divergences of the initial velocities may be preferable). The difference between two Jacobian determinants is computed and this is divided by the time interval. One original Jacobian map is for the deformation from the mid point to the first scan, and the other is for the deformation from the mid point to the second scan.  Each of these encodes the relative volume (at each spatial location) between the scan and the mid-point average. Values less than 0 indicate contraction (over time), whereas values greater than zero indicate expansion.  These files are prefixed by ``jd_'''' and written out in the same directory of the first time point data.'};
 write_jacd.labels = {
                 'Save'
                 'Dont save'
@@ -152,7 +156,7 @@ write_defs.val    = {0};
 long2         = cfg_exbranch;
 long2.tag     = 'pairwise';
 long2.name    = 'Pairwise Longitudinal Registration';
-long2.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jacd write_div write_defs};
+long2.val     = {vols1 vols2 tdif noise wparam bparam write_avg write_jacd write_divd write_defs};
 long2.help    = {'Longitudinal registration of pairs of anatomical MRI scans.  It is based on pairwise inverse-consistent alignment between the first and second scan of each subject, and incorporates a bias field correction.  Prior to running the registration, the scans should already be in very rough alignment, although because the model incorporates a rigid-body transform, this need not be extremely precise.  Note that there are a bunch of hyper-parameters to be specified.  If you are unsure what values to take, then the defaults should be a reasonable guess of what works.  Note that changes to these hyper-parameters will impact the results obtained.',...
 '',...
 'The alignment assumes that all scans have similar resolutions and dimensions, and were collected on the same (or very similar) MR scanner using the same pulse sequence.  If these assumption are not correct, then the approach will not work as well.'};

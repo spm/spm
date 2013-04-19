@@ -6,7 +6,7 @@ function out = spm_pairwise(job)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_pairwise.m 4839 2012-08-14 18:53:20Z john $
+% $Id: spm_pairwise.m 5430 2013-04-19 17:03:52Z john $
 
 N = numel(job.vols1);
 if numel(job.vols2) ~= N, error('Incompatible numbers of scans.'); end
@@ -70,7 +70,7 @@ for i=1:numel(tdif),
         Nio.mat0_intent = Nio.mat_intent;
         Nio.descrip = 'Jacobian Difference';
         create(Nio);
-        Nio.dat(:,:,:) = dat.jac{2} - dat.jac{1};
+        Nio.dat(:,:,:) = (dat.jac{2} - dat.jac{1})/tdif(i);
         out.jac{i}     = nam;
     end
 
@@ -85,7 +85,7 @@ for i=1:numel(tdif),
         Nio.mat0_intent = Nio.mat_intent;
         Nio.descrip = 'Div';
         create(Nio);
-        Nio.dat(:,:,:) = dat.div{2} - dat.div{1};
+        Nio.dat(:,:,:) = (dat.div{2} - dat.div{1})/tdif(i);
         out.div{i}     = nam; 
     end
 
