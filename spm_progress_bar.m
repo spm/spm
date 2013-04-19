@@ -6,14 +6,18 @@ function spm_progress_bar(action,varargin)
 %
 % FORMAT spm_progress_bar('Set',value)
 % Set the height of the bar itself.
+
+% FORMAT spm_progress_bar('Set','xlabel',xlabel)
+% FORMAT spm_progress_bar('Set','ylabel',ylabel)
+% Set the progress bar labels.
 %
 % FORMAT spm_progress_bar('Clear')
 % Clear the 'Interactive' window.
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 4457 2011-09-05 14:04:22Z guillaume $
+% $Id: spm_progress_bar.m 5431 2013-04-19 17:24:35Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
@@ -69,12 +73,17 @@ switch lower(action)
         br = findobj(Finter,'Tag','ProgressBar');
         if ~isempty(br)
             pb = get(br,'UserData');
-            set(br,'Ydata',[0 value]);
-            lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
-            lab = get(pb.ax,'Title'); 
-            set(lab,'string',sprintf('%.0f%% Complete',100*value/lim)); 
+            if ischar(value)
+                if nargin == 2, str = ''; else str = varargin{2}; end
+                set(get(pb.ax,value),'String',str);
+            else
+                set(br,'Ydata',[0 value]);
+                lim = get(get(br,'Parent'),'Ylim');lim=lim(2);
+                lab = get(pb.ax,'Title');
+                set(lab,'string',sprintf('%.0f%% Complete',100*value/lim));
+            end
             drawnow;
-        end 
+        end
     
     % Clear
     %----------------------------------------------------------------------

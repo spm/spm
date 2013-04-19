@@ -22,12 +22,12 @@ function D = spm_eeg_filter(S)
 %
 % D           - MEEG object (also written to disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5270 2013-02-21 14:40:13Z vladimir $
+% $Id: spm_eeg_filter.m 5431 2013-04-19 17:24:35Z guillaume $
 
-SVNrev = '$Rev: 5270 $';
+SVNrev = '$Rev: 5431 $';
 
 
 %-Startup
@@ -35,9 +35,9 @@ SVNrev = '$Rev: 5270 $';
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG filter'); spm('Pointer', 'Watch');
 
-if ~isfield(S, 'type'),         S.type   = 'butterworth'; end
-if ~isfield(S, 'dir'),          S.dir    = 'twopass';     end
-if ~isfield(S, 'prefix'),       S.prefix = 'f';           end
+if ~isfield(S, 'type'),   S.type   = 'butterworth'; end
+if ~isfield(S, 'dir'),    S.dir    = 'twopass';     end
+if ~isfield(S, 'prefix'), S.prefix = 'f';           end
 if ~isfield(S, 'order')
     if strcmp(S.type, 'butterworth')
         S.order = 5;
@@ -56,16 +56,16 @@ switch lower(S.band)
     
     case {'low','high'}
         if numel(S.freq)~=1
-            error('Cutoff frequency should be a single number');
+            error('Cutoff frequency should be a single number.');
         end
         
         if S.freq < 0 || S.freq > D.fsample/2
-            error('Cutoff must be > 0 & < half sample rate');
+            error('Cutoff must be > 0 & < half sample rate.');
         end
         
     case {'bandpass','stop'}
         if S.freq(1) < 0 || S.freq(2) > D.fsample/2 || S.freq(1) > S.freq(2)
-            error('Incorrect frequency band specification');
+            error('Incorrect frequency band specification.');
         end
         
     otherwise
@@ -82,6 +82,8 @@ Dnew = clone(D, [S.prefix fname(D)]);
 Fchannels = D.indchantype('Filtered');
 
 Fs = D.fsample;
+
+ignoreWarnings = false;
 
 if strcmp(D.type, 'continuous')
     %-Continuous data
@@ -105,20 +107,24 @@ if strcmp(D.type, 'continuous')
         % load meeg object blockwise into workspace
         blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
         if isempty(blkchan), break, end
+        spm_progress_bar('Set','ylabel','reading...');
         Dtemp=D(blkchan,:,1);
+        spm_progress_bar('Set','ylabel','filtering...');
         chncnt=chncnt+blksz;
         %loop through channels
         for j = 1:numel(blkchan)
             
-            if ismember(blkchan(j), Fchannels)
-                Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs);
+            if any(blkchan(j) == Fchannels)
+                Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs, ignoreWarnings);
             end
+            ignoreWarnings = true;
             
             if any(Ibar == j), spm_progress_bar('Set', blkchan(j)); end
             
         end
         
         % write Dtemp to Dnew
+        spm_progress_bar('Set','ylabel','writing...');
         Dnew(blkchan,:,1)=Dtemp;
         clear Dtemp;
     end
@@ -132,8 +138,9 @@ else
     
     for i=1:D.ntrials
         Dtemp = D(Fchannels, :, i);
-        Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs);
+        Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs, ignoreWarnings);
         Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
+        ignoreWarnings = true;
         
         if any(Ibar == i), spm_progress_bar('Set', i); end
     end
@@ -153,9 +160,9 @@ spm('FigName',''); spm('Pointer', 'Arrow');
 
 
 %==========================================================================
-% function dat = spm_eeg_preproc_filter(S, dat, Fs)
+% function dat = spm_eeg_preproc_filter(S, dat, Fs, ignoreWarnings)
 %==========================================================================
-function dat = spm_eeg_preproc_filter(S, dat, Fs)
+function dat = spm_eeg_preproc_filter(S, dat, Fs, ignoreWarnings)
 
 Fp  = S.freq;
 
@@ -170,13 +177,18 @@ dir = S.dir;
 
 instabilityfix = 'reduce';
 
+if nargin < 4, ignoreWarnings = false; end
+if ignoreWarnings, ws = warning('off'); end
+    
 switch S.band
     case 'low'
-        dat = ft_preproc_lowpassfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
+        dat = ft_preproc_lowpassfilter(dat,Fs,Fp,N,type,dir,instabilityfix);
     case 'high'
-        dat = ft_preproc_highpassfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
+        dat = ft_preproc_highpassfilter(dat,Fs,Fp,N,type,dir,instabilityfix);
     case 'bandpass'
-        dat = ft_preproc_bandpassfilter(dat, Fs, Fp, N, type, dir, instabilityfix);
+        dat = ft_preproc_bandpassfilter(dat,Fs,Fp,N,type,dir,instabilityfix);
     case 'stop'
-        dat = ft_preproc_bandstopfilter(dat,Fs,Fp,N,type,dir, instabilityfix);
+        dat = ft_preproc_bandstopfilter(dat,Fs,Fp,N,type,dir,instabilityfix);
 end
+
+if ignoreWarnings, warning(ws); end
