@@ -6,14 +6,27 @@ function res = condlist(this, newcondlist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: condlist.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: condlist.m 5429 2013-04-19 04:01:45Z vladimir $
 
 res = getset(this, 'trials', 'label');
+
+if isempty(res)
+    if nargin == 1
+        res = {};
+    else
+        res = this;
+    end
+    return;
+end
+    
+
 if ~iscell(res)
     res = {res};
 end
 
+
 [res, ind] = unique(res);
+
 
 if nargin == 1
 
