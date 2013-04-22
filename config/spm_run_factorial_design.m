@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5327 2013-03-14 11:59:24Z guillaume $
+% $Id: spm_run_factorial_design.m 5433 2013-04-22 15:43:48Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -467,9 +467,7 @@ switch char(fieldnames(job.des))
             
         [H,Hnames,B,Bnames] = spm_design_flexible(anovaw,I);
         
-        for i=1:2
-            factor(i)    = anovaw.fac(i);
-        end
+        factor           = anovaw.fac;
         factor(1).levels = length(job.des.anovaw.fsubject);
         
     %-Full Factorial Design
