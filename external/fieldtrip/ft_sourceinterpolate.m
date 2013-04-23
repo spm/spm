@@ -96,9 +96,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_sourceinterpolate.m 7557 2013-03-01 09:07:01Z jimher $
 
-revision = '$Id: ft_sourceinterpolate.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_sourceinterpolate.m 7557 2013-03-01 09:07:01Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -206,7 +206,7 @@ elseif (~is2Dana && is2Dfun) || (is2Dana && is2Dfun)
     if isfield(anatomical, 'pos')
       pos = anatomical.pos;
     elseif isfield(anatomical, 'pnt')
-      pos = anatomical.pos;
+      pos = anatomical.pnt;
     else
       error('the input data sould contain either a pos or pnt field');
     end

@@ -19,7 +19,6 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %                    'dics'    dynamic imaging of coherent sources
 %                    'pcc'     partial cannonical correlation/coherence
 %                    'mne'     minimum norm estimation
-%                    'loreta'  minimum norm estimation with smoothness constraint
 %                    'rv'      scan residual variance with single dipole
 %                    'music'   multiple signal classification
 %                    'mvl'   multivariate Laplace source localization
@@ -192,9 +191,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 7450 2013-02-07 11:26:09Z johzum $
+% $Id: ft_sourceanalysis.m 7813 2013-04-15 13:34:30Z roboos $
 
-revision = '$Id: ft_sourceanalysis.m 7450 2013-02-07 11:26:09Z johzum $';
+revision = '$Id: ft_sourceanalysis.m 7813 2013-04-15 13:34:30Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -276,7 +275,7 @@ cfg.(cfg.method).normalize     = ft_getopt(cfg.(cfg.method), 'normalize',     'n
 
 convertfreq = 0;
 convertcomp = 0;
-if ~istimelock && (strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'loreta') || strcmp(cfg.method, 'rv') || strcmp(cfg.method, 'music'))
+if ~istimelock && (strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'rv') || strcmp(cfg.method, 'music'))
   % these timelock methods are also supported for frequency or component data
   if isfreq
     [data, cfg] = freq2timelock(cfg, data);
@@ -608,7 +607,7 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % do time domain source reconstruction
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv', 'music', 'pcc', 'mvl'}))
+elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'rv', 'music', 'pcc', 'mvl'}))
   
   % determine the size of the data
   Nsamples = size(data.avg,2);
@@ -810,15 +809,16 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   % get the relevant low level options from the cfg and convert into key-value pairs
   optarg = ft_cfg2keyval(getfield(cfg, cfg.method));
   
+  siz=[size(avg) 1];
   if strcmp(cfg.method, 'lcmv') && ~isfield(grid, 'filter'),
     for i=1:Nrepetitions
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
       fprintf('scanning repetition %d\n', i);
-      dip(i) = beamformer_lcmv(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:});
+      dip(i) = beamformer_lcmv(grid, sens, vol, squeeze_avg, squeeze(Cy(i,:,:)), optarg{:});
     end
   elseif strcmp(cfg.method, 'lcmv')
     %don't loop over repetitions (slow), but reshape the input data to obtain single trial timecourses efficiently
     %in the presence of filters pre-computed on the average (or whatever)
-    siz    = size(avg);
     tmpdat = reshape(permute(avg,[2 3 1]),[siz(2) siz(3)*siz(1)]);
     tmpdip = beamformer_lcmv(grid, sens, vol, tmpdat, squeeze(mean(Cy,1)), optarg{:});
     tmpmom = tmpdip.mom{tmpdip.inside(1)};
@@ -866,44 +866,39 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
   elseif strcmp(cfg.method, 'sam')
     for i=1:Nrepetitions
       fprintf('scanning repetition %d\n', i);
-      dip(i) = beamformer_sam(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:});
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
+      dip(i) = beamformer_sam(grid, sens, vol, squeeze_avg, squeeze(Cy(i,:,:)), optarg{:});
     end
   elseif strcmp(cfg.method, 'pcc')
     for i=1:Nrepetitions
       fprintf('scanning repetition %d\n', i);
-      dip(i) = beamformer_pcc(grid, sens, vol, squeeze(avg(i,:,:)), squeeze(Cy(i,:,:)), optarg{:}, 'refdip', cfg.refdip, 'refchan', refchanindx, 'supchan', supchanindx);
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
+      dip(i) = beamformer_pcc(grid, sens, vol, squeeze_avg, squeeze(Cy(i,:,:)), optarg{:}, 'refdip', cfg.refdip, 'refchan', refchanindx, 'supchan', supchanindx);
     end
   elseif strcmp(cfg.method, 'mne')
     for i=1:Nrepetitions
       fprintf('estimating current density distribution for repetition %d\n', i);
-      if size(avg,3)==1
-        squeeze_avg = avg(i,:)';
-      else
-        squeeze_avg = squeeze(avg(i,:,:));
-      end
-      if hascovariance 
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
+      if hascovariance
         dip(i) = minimumnormestimate(grid, sens, vol, squeeze_avg, optarg{:}, 'noisecov', squeeze(Cy(i,:,:)));
       else
         dip(i) = minimumnormestimate(grid, sens, vol, squeeze_avg, optarg{:});
       end
     end
-  elseif strcmp(cfg.method, 'loreta')
-    for i=1:Nrepetitions
-      fprintf('estimating LORETA current density distribution for repetition %d\n', i);
-      dip(i) = loreta(             grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:});
-    end
   elseif strcmp(cfg.method, 'rv')
     for i=1:Nrepetitions
       fprintf('estimating residual variance at each grid point for repetition %d\n', i);
-      dip(i) = residualvariance(   grid, sens, vol, squeeze(avg(i,:,:)),                     optarg{:});
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
+      dip(i) = residualvariance(grid, sens, vol, squeeze_avg,      optarg{:});
     end
   elseif strcmp(cfg.method, 'music')
     for i=1:Nrepetitions
       fprintf('computing multiple signal classification for repetition %d\n', i);
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
       if hascovariance
-        dip(i) = music(grid, sens, vol, squeeze(avg(i,:,:)), 'cov', squeeze(Cy(i,:,:)), optarg{:});
+        dip(i) = music(grid, sens, vol, squeeze_avg, 'cov', squeeze(Cy(i,:,:)), optarg{:});
       else
-        dip(i) = music(grid, sens, vol, squeeze(avg(i,:,:)),                            optarg{:});
+        dip(i) = music(grid, sens, vol, squeeze_avg,                            optarg{:});
       end
     end
   elseif strcmp(cfg.method, 'mvl')
@@ -917,7 +912,8 @@ elseif istimelock && any(strcmp(cfg.method, {'lcmv', 'sam', 'mne', 'loreta', 'rv
         optarg{n+1} = cfg.(fns{c});
         n=n+2;
       end
-      dip(i) = mvlestimate(grid, sens, vol, squeeze(avg(i,:,:)), optarg{:});
+      squeeze_avg=reshape(avg(i,:,:),[siz(2) siz(3)]);
+      dip(i) = mvlestimate(grid, sens, vol, squeeze_avg, optarg{:});
     end
   else
     error(sprintf('method ''%s'' is unsupported for source reconstruction in the time domain', cfg.method));
@@ -1048,6 +1044,10 @@ end
 if (strcmp(cfg.keeptrials, 'yes') || strcmp(cfg.method, 'pcc')) && isfield(data, 'trialinfo')
   source.trialinfo = data.trialinfo;
 end
+
+% clean up the output source structure, e.g. ensure that the size of output
+% elements is npos*1 and not 1*npos
+source = ft_checkdata(source);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

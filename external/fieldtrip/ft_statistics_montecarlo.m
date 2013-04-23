@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 7431 2013-01-31 11:24:37Z jorhor $
+% $Id: ft_statistics_montecarlo.m 7702 2013-03-25 16:11:46Z jorhor $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});
@@ -381,6 +381,29 @@ if strcmp(cfg.correcttail, 'prob') && cfg.tail==0
   end
 elseif strcmp(cfg.correcttail, 'alpha') && cfg.tail==0
   cfg.alpha = cfg.alpha / 2;
+end
+
+% compute range of confidence interval p ± 1.96(sqrt(var(p))), with var(p) = var(x/n) = p*(1-p)/N
+stddev = sqrt(stat.prob.*(1-stat.prob)/Nrand);
+stat.cirange = 1.96*stddev;
+
+if isfield(stat, 'posclusters')
+  for i=1:length(stat.posclusters)
+    stat.posclusters(i).stddev  = sqrt(stat.posclusters(i).prob.*(1-stat.posclusters(i).prob)/Nrand);
+    stat.posclusters(i).cirange =  1.96*stat.posclusters(i).stddev;
+    if stat.posclusters(i).prob<cfg.alpha && stat.posclusters(i).prob+stat.posclusters(i).cirange>=cfg.alpha
+      warning('FieldTrip:posCluster_exceeds_alpha', sprintf('The p-value confidence interval of positive cluster #%i includes %.3f - consider increasing the number of permutations!', i, cfg.alpha));
+    end
+  end
+end
+if isfield(stat, 'negclusters')  
+  for i=1:length(stat.negclusters)
+    stat.negclusters(i).stddev  = sqrt(stat.negclusters(i).prob.*(1-stat.negclusters(i).prob)/Nrand);
+    stat.negclusters(i).cirange =  1.96*stat.negclusters(i).stddev;
+    if stat.negclusters(i).prob<cfg.alpha && stat.negclusters(i).prob+stat.negclusters(i).cirange>=cfg.alpha
+      warning('FieldTrip:negCluster_exceeds_alpha', sprintf('The p-value confidence interval of negative cluster #%i includes %.3f - consider increasing the number of permutations!', i, cfg.alpha));
+    end
+  end
 end
 
 switch lower(cfg.correctm)

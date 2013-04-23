@@ -63,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 7440 2013-02-05 10:00:36Z jorhor $
+% $Id: ft_prepare_neighbours.m 7654 2013-03-13 09:10:39Z jorhor $
 
-revision = '$Id: ft_prepare_neighbours.m 7440 2013-02-05 10:00:36Z jorhor $';
+revision = '$Id: ft_prepare_neighbours.m 7654 2013-03-13 09:10:39Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -128,7 +128,7 @@ if strcmp(cfg.method, 'template')
   end
   % check for existence
   if ~exist(cfg.template, 'file')
-    error('Template file could not be found - please check spelling or contact jm.horschig(at)donders.ru.nl if you want to create and share your own template! See also http://fieldtrip.fcdonders.nl/faq/how_can_i_define_my_own_neighbourhood_template');
+    error('Template file could not be found - please check spelling or see http://fieldtrip.fcdonders.nl/faq/how_can_i_define_my_own_neighbourhood_template (please consider sharing it with others via the FT mailing list)');
   end
   load(cfg.template);
   fprintf('Successfully loaded neighbour structure from %s\n', cfg.template);
@@ -140,6 +140,9 @@ else
     sens = ft_fetch_sens(cfg);
   end
   
+  if strcmp(ft_senstype(sens), 'neuromag306')
+      warning('Neuromagr06 system detected - be aware of different sensor types, see http://fieldtrip.fcdonders.nl/faq/why_are_there_multiple_neighbour_templates_for_the_neuromag306_system');
+  end
   chanpos = sens.chanpos;
   label   = sens.label;
   

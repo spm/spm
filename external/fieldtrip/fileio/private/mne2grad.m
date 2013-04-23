@@ -35,7 +35,7 @@ function [grad, elec] = mne2grad(hdr)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 7435 2013-02-04 12:53:45Z roboos $
+% $Id: mne2grad.m 7821 2013-04-16 10:07:20Z roboos $
 
 grad = [];
 
@@ -216,4 +216,9 @@ elseif nPlaGrad<=122 && nMag==0
   grad.type = 'neuromag122';
 else
   % do not specify type of acquisition system
+end
+
+% remove grad if empty
+if size(grad.label,1) == 0
+  grad = [];
 end

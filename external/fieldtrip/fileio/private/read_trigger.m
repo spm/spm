@@ -33,7 +33,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_trigger.m 7688 2013-03-18 11:48:14Z jansch $
 
 event = [];
 
@@ -49,7 +49,7 @@ trigshift   = ft_getopt(varargin, 'trigshift',    false);
 trigpadding = ft_getopt(varargin, 'trigpadding',  true);
 fixctf      = ft_getopt(varargin, 'fixctf',       false);
 fixneuromag = ft_getopt(varargin, 'fixneuromag',  false);
-fix4dglasgow= ft_getopt(varargin, 'fix4dglasgow', false);
+fix4d8192   = ft_getopt(varargin, 'fix4d8192', false);
 fixbiosemi  = ft_getopt(varargin, 'fixbiosemi',   false);
 threshold   = ft_getopt(varargin, 'threshold'); 
 
@@ -138,7 +138,7 @@ if fixneuromag
   dat(dat<5) = 0;
 end
 
-if fix4dglasgow
+if fix4d8192
   % synchronization pulses have a value of 8192 and are set to 0
   dat = dat - bitand(dat, 8192);
   % triggers containing the first bit assume a value of 4096 when sent by presentation

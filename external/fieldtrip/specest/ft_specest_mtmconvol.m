@@ -32,7 +32,7 @@ function [spectrum,ntaper,freqoi,timeoi] = ft_specest_mtmconvol(dat, time, varar
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmconvol.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_specest_mtmconvol.m 7979 2013-04-17 13:53:33Z roevdmei $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_wltspctrm
@@ -93,6 +93,7 @@ endnsample = round(pad * fsample);  % total number of samples of padded data
 endtime    = pad;            % total time in seconds of padded data
 
 % Set freqboi and freqoi
+freqoiinput = freqoi;
 if isnumeric(freqoi) % if input is a vector
   freqboi   = round(freqoi ./ (fsample ./ endnsample)) + 1; % is equivalent to: round(freqoi .* endtime) + 1;
   freqboi   = unique(freqboi);
@@ -113,19 +114,50 @@ end
 nfreqboi = length(freqboi);
 nfreqoi  = length(freqoi);
 
+% throw a warning if input freqoi is different from output freqoi
+if isnumeric(freqoiinput)
+  % check whether padding is appropriate for the requested frequency resolution
+  rayl = 1/endtime;
+  if any(rem(freqoiinput,rayl))
+    warning('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip')
+  end
+  if numel(freqoiinput) ~= numel(freqoi) % freqoi will not contain double frequency bins when requested
+    warning('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
+  else
+    if any(abs(freqoiinput-freqoi) >= eps*1e6)
+      warning('output frequencies are different from input frequencies');
+    end
+  end
+end
+
 % Set timeboi and timeoi
+timeoiinput = timeoi;
 offset = round(time(1)*fsample);
 if isnumeric(timeoi) % if input is a vector
+  timeoi   = unique(round(timeoi .* fsample) ./ fsample);
   timeboi  = round(timeoi .* fsample - offset) + 1;
   ntimeboi = length(timeboi);
-  timeoi   = round(timeoi .* fsample) ./ fsample;
 elseif strcmp(timeoi,'all') % if input was 'all'
   timeboi  = 1:length(time);
   ntimeboi = length(timeboi);
   timeoi   = time;
 end
 
+% throw a warning if input timeoi is different from output timeoi
+if isnumeric(timeoiinput)
+  if numel(timeoiinput) ~= numel(timeoi) % timeoi will not contain double time-bins when requested
+    warning('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
+  else
+    if any(abs(timeoiinput-timeoi) >= eps*1e6) 
+      warning('output time-bins are different from input time-bins');
+    end
+  end
+end
+
 % set number of samples per time-window (timwin is in seconds)
+if numel(timwin)==1 && nfreqoi~=1
+  timwin = repmat(timwin,[1 nfreqoi]);
+end
 timwinsample = round(timwin .* fsample);
 
 

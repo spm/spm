@@ -34,7 +34,7 @@ function [selected] = ft_select_point(pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_select_point.m 7676 2013-03-16 14:55:44Z roboos $
 
 
 % get optional input arguments
@@ -103,3 +103,18 @@ if nearest && ~isempty(pos)
 else
   selected = [x(:) y(:)];
 end % if nearest
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This function serves as a replacement for the dist function in the Neural
+% Networks toolbox.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [d] = dist(x)
+n = size(x,2);
+d = zeros(n,n);
+for i=1:n
+  for j=(i+1):n
+    d(i,j) = sqrt(sum((x(:,i)-x(:,j)).^2));
+    d(j,i) = d(i,j);
+  end
+end
+

@@ -37,7 +37,7 @@ function [spike] = read_neurosim_spikes(filename,headerOnly)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_spikes.m 7340 2013-01-17 09:21:33Z bargip $
+% $Id: read_neurosim_spikes.m 7517 2013-02-21 14:17:01Z bargip $
 
 if isdir(filename)
     filename = fullfile(filename, 'spikes');
@@ -115,16 +115,15 @@ else
 % every neuron is considered to have its own channel (identified by its
 % neuron number).
 
-[number, ~, idx]=unique(dat{2});
-spike.label=cell(1,length(number));
-spike.timestamp=cell(1,length(number));
+spike.label=cell(1,numel(label));
+spike.timestamp=cell(1,numel(label));
 
 
-for n=1:length(number)
+for n=1:numel(label)
     % write labels ([number]: [neuron type] in [network])
-    spike.label{n}=strrep(label{number(n)},'neuron ','');
+    spike.label{n}=strrep(label{n},'neuron ','');
     % select spike times belonging to the neuron
-    sel=idx==n;
+    sel=dat{2}==n;
     spike.timestamp{n}=dat{1}(sel)';
 end
 end

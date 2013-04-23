@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 7352 2013-01-18 05:12:10Z josdie $
+% $Id: ft_read_data.m 8053 2013-04-18 15:17:53Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -74,6 +74,7 @@ fallback      = ft_getopt(varargin, 'fallback');
 cache         = ft_getopt(varargin, 'cache', false);
 dataformat    = ft_getopt(varargin, 'dataformat');
 chanunit      = ft_getopt(varargin, 'chanunit');
+timestamp     = ft_getopt(varargin, 'timestamp');
 
 if isempty(dataformat)
   dataformat = ft_filetype(filename);  % the default is automatically detected, but only if not specified
@@ -770,6 +771,17 @@ switch dataformat
     % cut out the desired samples
     begsample = begsample - (begrecord-1)*512;
     endsample = endsample - (begrecord-1)*512;
+    if istrue(timestamp)   
+      ncs.dat = cast(ncs.dat, class(ncs.TimeStamp));
+      d = ncs.TimeStamp(2:end)-ncs.TimeStamp(1:end-1);
+      medianTimestampPerBlock  = median(double(d)); % to avoid influence of the gaps
+      TimestampPerSample       = medianTimestampPerBlock/512; % divide by known block size
+      cls = class(ncs.TimeStamp);
+      % replace the data with the timestamp of each sample
+      for i=1:512
+        ncs.dat(i,:) = ncs.TimeStamp + cast((i-1)*TimestampPerSample,cls);
+      end
+    end
     % this also reshape the data from 512 X records into a linear array
     dat = ncs.dat(begsample:endsample);
     
@@ -1036,6 +1048,10 @@ switch dataformat
     
   case 'bucn_nirs'
     dat = read_bucn_nirsdata(filename, hdr, begsample, endsample, chanindx);
+
+  case 'riff_wave'
+    dat = wavread(filename, [begsample endsample])';
+    dat = dat(chanindx,:);
     
   case {'neurosim_ds' 'neurosim_signals'}
     [hdr, dat] = read_neurosim_signals(filename);

@@ -14,12 +14,6 @@ incorporate low-level algorithms for new EEG/MEG analysis methods.
 
 For more information please visit http://www.ru.nl/neuroimaging/fieldtrip
 
-The following files were downloaded from http://www.mathworks.com/matlabcentral/fileexchange
-  uimage.m
-  uimagesc.m
-  arrow.m
-  keep.m
-
 The FieldTrip software is free but copyrighted software, distributed
 under the terms of the GNU General Public Licence as published by
 the Free Software Foundation (either version 2, or at your option
@@ -40,8 +34,8 @@ The functions in this toolbox are copyrighted by their respective authors:
   Martin Vinck, DCCN, SILS
   and others ...
 
-Copyright (C) 2008-2012, Donders Institute for Brain, Cognition and Behaviour, Radboud University Nijmegen, The Netherlands (DCCN, DCC, DCN)
-Copyright (C) 2010-2012, Swammerdam Institute for Life Sciences, University of Amsterdam (SILS)
+Copyright (C) 2008-2013, Donders Institute for Brain, Cognition and Behaviour, Radboud University Nijmegen, The Netherlands (DCCN, DCC, DCN)
+Copyright (C) 2010-2013, Swammerdam Institute for Life Sciences, University of Amsterdam (SILS)
 Copyright (C) 2008-2009, Centre for Cognitive Neuroimaging in Glasgow, United Kingdom (CCNi)
 Copyright (C) 2009-2009, Netherlands Institute for Neuroscience (NIN)
 Copyright (C) 2003-2008, F.C. Donders Centre, Radboud University Nijmegen, The Netherlands (FCDC)

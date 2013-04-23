@@ -1,7 +1,7 @@
 function str = printstruct(name, val)
 
-% PRINTSTRUCT converts a Matlab structure to text which can be interpreted by MATLAB,
-% resulting in the original structure.
+% PRINTSTRUCT converts a MATLAB structure int a multi-line string that can be
+% interpreted by MATLAB, resulting in the original structure.
 %
 % Use as
 %   str = printstruct(val)
@@ -18,8 +18,10 @@ function str = printstruct(name, val)
 %
 %   b = rand(3);
 %   s = printstruct(b)
+%
+%   s = printstruct('c', randn(10)>0.5)
 
-% Copyright (C) 2006-2012, Robert Oostenveld
+% Copyright (C) 2006-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -37,7 +39,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 7270 2012-12-29 12:09:08Z roboos $
+% $Id: printstruct.m 8062 2013-04-19 18:59:32Z roboos $
 
 if nargin==1
   val  = name;
@@ -57,30 +59,31 @@ if isstruct(val)
     % print it as a named structure
     fn = fieldnames(val);
     for i=1:length(fn)
-      fv = val.(fn{i});
-      switch class(fv)
-        case 'char'
-          % line = sprintf('%s = ''%s'';\n', fn{i}, fv);
-          % line = [name '.' line];
-          line = printstr([name '.' fn{i}], fv);
-          str  = [str line];
-        case {'single' 'double'}
-          line = printmat([name '.' fn{i}], fv);
-          str  = [str line];
-        case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64' 'logical'}
-          line = printmat([name '.' fn{i}], fv);
-          str  = [str line];
-        case 'cell'
-          line = printcell([name '.' fn{i}], fv);
-          str  = [str line];
-        case 'struct'
-          line = printstruct([name '.' fn{i}], fv);
-          str  = [str line];
-        case 'function_handle'
-          printstr([name '.' fn{i}], func2str(fv));
-          str  = [str line];
-        otherwise
-          error('unsupported');
+      if numel(val)==0
+        warning('not displaying empty structure')
+      else
+        fv = val.(fn{i});
+        switch class(fv)
+          case 'char'
+            % line = sprintf('%s = ''%s'';\n', fn{i}, fv);
+            % line = [name '.' line];
+            line = printstr([name '.' fn{i}], fv);
+            str  = [str line];
+          case {'single' 'double' 'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64' 'logical'}
+            line = printmat([name '.' fn{i}], fv);
+            str  = [str line];
+          case 'cell'
+            line = printcell([name '.' fn{i}], fv);
+            str  = [str line];
+          case 'struct'
+            line = printstruct([name '.' fn{i}], fv);
+            str  = [str line];
+          case 'function_handle'
+            printstr([name '.' fn{i}], func2str(fv));
+            str  = [str line];
+          otherwise
+            error('unsupported');
+        end
       end
     end
   end
@@ -89,9 +92,7 @@ elseif ~isstruct(val)
   switch class(val)
     case 'char'
       str = printstr(name, val);
-    case 'double'
-      str = printmat(name, val);
-    case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64'}
+    case {'single' 'double' 'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64' 'logical'}
       str = printmat(name, val);
     case 'cell'
       str = printcell(name, val);
@@ -134,22 +135,22 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function str = printmat(name, val)
-str = [];
 siz = size(val);
-if any(size(val)==0)
+if prod(siz)==0
   str = sprintf('%s = [];\n', name);
-elseif all(size(val)==1)
+elseif prod(siz)==1
   str = sprintf('%s = %s;\n', name, printval(val));
-elseif size(val,1)==1
-  dum = sprintf('%g ', str, val(:));
-  str = sprintf('%s = [%s];\n', name, dum);
-else
+elseif numel(siz)==2
   str = sprintf('%s = [\n', name);
-  for i=1:siz(1)
-    dum = sprintf('%g ', val(i,:));
-    str = sprintf('%s  %s\n', str, dum);
+  for row=1:siz(1)
+    for col=1:siz(2)
+      str = sprintf('%s %s', str, printval(val(row,col)));
+    end
+    str = sprintf('%s\n', str);
   end
   str = sprintf('%s];\n', str);
+else
+  str = sprintf('%s = %s;\n', name, printval(val));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -168,12 +169,33 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function str = printbool(val)
+% val is a 1xN vector with booleans
+dum = {'false ', ' true '}; % note the spaces at the end
+str = cat(2, dum{val+1});
+str = str(1:end-1); % remove the last space
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function str = printval(val)
 str = '';
 siz = size(val);
 switch class(val)
   case 'char'
     str = sprintf('''%s''', val);
+    
+  case 'logical'
+    if all(siz==0)
+      str = '[]';
+    elseif all(siz==1)
+      str = sprintf('%s', printbool(val));
+    elseif length(siz)==2
+      for i=1:siz(1);
+        str = [ str sprintf('%s ', printbool(val(i,:))) '; ' ];
+      end
+      str = sprintf('[ %s ]', str(1:end-3));
+    else
+      error('multidimensional arrays are not supported');
+    end
     
   case {'single' 'double'}
     if all(siz==0)
@@ -202,13 +224,6 @@ switch class(val)
       error('multidimensional arrays are not supported');
     end
     
-  case 'logical'
-    if val
-      str = 'true';
-    else
-      str = 'false';
-    end
-    
   case 'function_handle'
     str = sprintf('@%s', func2str(val));
     
@@ -220,4 +235,3 @@ switch class(val)
     warning('cannot print unknown object at this level');
     str = '''FIXME''';
 end
-

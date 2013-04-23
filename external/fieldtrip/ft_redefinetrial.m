@@ -71,9 +71,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_redefinetrial.m 7556 2013-02-28 22:01:57Z sashae $
 
-revision = '$Id: ft_redefinetrial.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_redefinetrial.m 7556 2013-02-28 22:01:57Z sashae $';
 
 % do the general setup of the function
 ft_defaults
@@ -91,7 +91,7 @@ cfg.toilim    = ft_getopt(cfg, 'toilim',    []);
 cfg.begsample = ft_getopt(cfg, 'begsample', []);
 cfg.endsample = ft_getopt(cfg, 'endsample', []);
 cfg.minlength = ft_getopt(cfg, 'minlength', []);
-cfg.trials    = ft_getopt(cfg, 'trials',    []);
+cfg.trials    = ft_getopt(cfg, 'trials',    'all');
 cfg.feedback  = ft_getopt(cfg, 'feedback',  'yes');
 cfg.trl       = ft_getopt(cfg, 'trl',       []);
 cfg.length    = ft_getopt(cfg, 'length',    []);

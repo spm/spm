@@ -164,9 +164,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 7504 2013-02-19 19:09:46Z jansch $
+% $Id: ft_sourceplot.m 7707 2013-03-26 14:23:46Z eelspa $
 
-revision = '$Id: ft_sourceplot.m 7504 2013-02-19 19:09:46Z jansch $';
+revision = '$Id: ft_sourceplot.m 7707 2013-03-26 14:23:46Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -742,7 +742,7 @@ if isequal(cfg.method,'ortho')
   opt.axis = cfg.axis;
   opt.quit = ~strcmp(cfg.interactive, 'yes');
   if hasatlas
-    opt.atlas = cfg.atlas;
+    opt.atlas = atlas;
   end
   if hasana
     opt.ana = ana;
@@ -773,6 +773,7 @@ if isequal(cfg.method,'ortho')
   opt.colorbar = cfg.colorbar;
   opt.queryrange = cfg.queryrange;
   opt.funcolormap = cfg.funcolormap;
+  opt.crosshair = strcmp(cfg.crosshair, 'yes');
   opt.lpa = [];
   opt.rpa = [];
   opt.nas = [];
@@ -1009,8 +1010,12 @@ elseif isequal(cfg.method,'slice')
   elseif isequal(cfg.slicerange, 'auto')
     if hasfun %default
       if isfield(data,'inside')
-        ind_fslice = min(find(max(max(data.inside,[],1),[],2)));
-        ind_lslice = max(find(max(max(data.inside,[],1),[],2)));
+        
+        insideMask = false(size(fun));
+        insideMask(data.inside) = true;
+        
+        ind_fslice = min(find(max(max(insideMask,[],1),[],2)));
+        ind_lslice = max(find(max(max(insideMask,[],1),[],2)));
       else
         ind_fslice = min(find(~isnan(max(max(fun,[],1),[],2))));
         ind_lslice = max(find(~isnan(max(max(fun,[],1),[],2))));
@@ -1214,6 +1219,8 @@ axis xy
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb_redraw(h, eventdata)
 
+profile resume;
+
 h   = getparent(h);
 opt = getappdata(h, 'opt');
 
@@ -1287,9 +1294,9 @@ end
 %fprintf('%s %s %s %s\n', str1, str2, str3, str4);
 
 if opt.hasatlas
-  tmp = [opt.ijk(:)' 1] * opt.atlas.transform; % atlas and data might have different transformation matrices, so xyz cannot be used here anymore
+  %tmp = [opt.ijk(:)' 1] * opt.atlas.transform; % atlas and data might have different transformation matrices, so xyz cannot be used here anymore
   % determine the anatomical label of the current position
-  lab = atlas_lookup(opt.atlas, (tmp(1:3)), 'inputcoord', data.coordsys, 'queryrange', opt.queryrange);
+  lab = atlas_lookup(opt.atlas, (xyz(1:3)), 'inputcoord', data.coordsys, 'queryrange', opt.queryrange);
   if isempty(lab)
     lab = 'NA';
     %fprintf('atlas labels: not found\n');
@@ -1432,23 +1439,29 @@ sel = findobj('type','axes','tag',tag);
 if ~isempty(sel)
   set(opt.handlesfigure, 'currentaxes', sel(1));
 end
-if opt.init
-  hch1 = crosshair([xi 1 zi], 'parent', opt.handlesaxes(1));
-  hch3 = crosshair([xi yi opt.dim(3)], 'parent', opt.handlesaxes(3));
-  hch2 = crosshair([opt.dim(1) yi zi], 'parent', opt.handlesaxes(2));
-  
-  opt.handlescross  = [hch1(:)';hch2(:)';hch3(:)'];
+if opt.crosshair
+  if opt.init
+    hch1 = crosshair([xi 1 zi], 'parent', opt.handlesaxes(1));
+    hch3 = crosshair([xi yi opt.dim(3)], 'parent', opt.handlesaxes(3));
+    hch2 = crosshair([opt.dim(1) yi zi], 'parent', opt.handlesaxes(2));
+    opt.handlescross  = [hch1(:)';hch2(:)';hch3(:)'];
+  else
+    crosshair([xi 1 zi], 'handle', opt.handlescross(1, :));
+    crosshair([opt.dim(1) yi zi], 'handle', opt.handlescross(2, :));
+    crosshair([xi yi opt.dim(3)], 'handle', opt.handlescross(3, :));
+  end
+end
 
+if opt.init
   opt.init = false;
   setappdata(h, 'opt', opt);
-else
-  crosshair([xi 1 zi], 'handle', opt.handlescross(1, :));
-  crosshair([opt.dim(1) yi zi], 'handle', opt.handlescross(2, :));
-  crosshair([xi yi opt.dim(3)], 'handle', opt.handlescross(3, :));
 end
+
 set(h, 'currentaxes', curr_ax);
 
 uiresume
+
+profile off;
 
 function cb_keyboard(h, eventdata)
 
@@ -1584,16 +1597,16 @@ if ~isempty(tag) && ~opt.init
     opt.update = [1 1 1];
   elseif strcmp(tag, 'TF1')
     % timefreq
-    opt.qi(2) = nearest(data.time, pos(1));
-    opt.qi(1) = nearest(data.freq, pos(2));
+    opt.qi(2) = nearest(opt.data.time, pos(1));
+    opt.qi(1) = nearest(opt.data.freq, pos(2));
     opt.update = [1 1 0];
   elseif strcmp(tag, 'TF2')
     % freq only
-    opt.qi  = nearest(data.freq, pos(1));
+    opt.qi  = nearest(opt.data.freq, pos(1));
     opt.update = [1 1 1];
   elseif strcmp(tag, 'TF3')
     % time only
-    opt.qi  = nearest(data.time, pos(1));  
+    opt.qi  = nearest(opt.data.time, pos(1));  
     opt.update = [1 1 1];
   end
 end

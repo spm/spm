@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7435 2013-02-04 12:53:45Z roboos $
+% $Id: ft_read_header.m 7723 2013-03-29 20:25:00Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1651,6 +1651,20 @@ switch headerformat
     orig = read_bucn_nirshdr(filename);
     hdr  = rmfield(orig, 'time');
     hdr.orig = orig;
+    
+  case 'riff_wave'
+    [y, fs, nbits, opts] = wavread(filename, 1); % read one sample
+    siz = wavread(filename,'size');
+    hdr.Fs          = fs;
+    hdr.nChans      = siz(2);
+    hdr.nSamples    = siz(1);
+    hdr.nSamplesPre = 0;
+    hdr.nTrials     = 1;
+    for i=1:hdr.nChans
+      hdr.label{i,1} = sprintf('%d', i);
+      hdr.chantype{i,1} = 'audio';
+    end
+    hdr.orig = opts;
     
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)

@@ -25,7 +25,7 @@ function [header] = read_4d_hdr(datafile, configfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_4d_hdr.m 7238 2012-12-20 19:53:52Z jansch $
+% $Id: read_4d_hdr.m 7593 2013-03-05 16:09:24Z jansch $
 
 %read header
 if nargin ~= 2
@@ -513,9 +513,24 @@ header.header_data.EventCodes     = 0;%no obvious field to take this from
 if isfield(header, 'channel_data'),
   header.ChannelGain        = double([header.config.channel_data([header.channel_data.chan_no]).gain]');
   header.ChannelUnitsPerBit = double([header.config.channel_data([header.channel_data.chan_no]).units_per_bit]');
-  %header.Channel            = {header.config.channel_data([header.channel_data.chan_no]).name}';
-  header.Channel            = {header.channel_data.chan_label}';
+  header.Channel            = {header.config.channel_data([header.channel_data.chan_no]).name}';
+  header.ChannelType        = double([header.config.channel_data([header.channel_data.chan_no]).type]');
+  %header.Channel            = {header.channel_data.chan_label}';
+  %header.Channel            = {header.channel_data([header.channel_data.index]+1).chan_label}';
   header.Format             = header.header_data.Format;
+  
+  % take the EEG labels from the channel_data, and the rest of the labels
+  % from the config.channel_data. Some systems have overloaded MEG channel
+  % labels, which clash with the labels in the grad-structure. This will
+  % lead to problems in forward/inverse modelling. Use the following
+  % convention: keep the ones from the config.
+  % Some systems have overloaded EEG channel
+  % labels, rather than Exxx have a human interpretable form. Use these,
+  % to prevent a clash with the elec-structure, if present. This is a
+  % bit clunky (because EEG is treated different from MEG), but inherent is
+  % inherent in how the header information is organised.
+  header.Channel(header.ChannelType==2) = {header.channel_data(header.ChannelType==2).chan_label}';
+  
 end
 
 function align_file_pointer(fid)

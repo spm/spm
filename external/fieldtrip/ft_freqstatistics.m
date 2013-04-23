@@ -70,9 +70,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 7428 2013-01-31 10:31:31Z jorhor $
+% $Id: ft_freqstatistics.m 7696 2013-03-20 13:43:33Z eelspa $
 
-revision = '$Id: ft_freqstatistics.m 7428 2013-01-31 10:31:31Z jorhor $';
+revision = '$Id: ft_freqstatistics.m 7696 2013-03-20 13:43:33Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -149,6 +149,10 @@ fmin = -inf;
 fmax =  inf;
 tmin = -inf;
 tmax =  inf;
+
+% this is set to 1 when not all input arguments have the same channels
+% 'chan' will contain the intersection of all the input arguments' channels
+shouldIntersectChannels = 0;
 for i=1:Ndata
   fmin = max(fmin, varargin{i}.freq(1));
   fmax = min(fmax, varargin{i}.freq(end));
@@ -164,7 +168,13 @@ for i=1:Ndata
       chan = varargin{i}.label;
     end
   else
-    chan = varargin{i}.label(ismember(varargin{i}.label, chan));
+    % intersect messes up the order, but this does not matter as it is
+    % dealt with later on
+    newchan = intersect(chan, varargin{i}.label);
+    if numel(newchan) ~= numel(chan) || numel(newchan) ~= numel(varargin{i}.label)
+      shouldIntersectChannels = 1;
+      chan = newchan;
+    end
   end
 end
 
@@ -193,6 +203,17 @@ end
 % only do those channels present in the data
 cfg.channel = ft_channelselection(cfg.channel, chan);
 
+if shouldIntersectChannels
+  % subselect the common channels from each input argument before appending
+  warning('not all channels present in all input arguments, subselecting the channels common to all');
+  tmpcfg = [];
+  tmpcfg.channel = cfg.channel;
+  for k = 1:Ndata
+    varargin{k} = ft_selectdata(tmpcfg, varargin{k});
+  end
+  % FIXME rollback the provenance info here and at later points?
+end
+
 if ~ischar(cfg.trials)
   if Ndata==1
     varargin{1} = ft_selectdata(varargin{1}, 'rpt', cfg.trials);
@@ -202,29 +223,41 @@ if ~ischar(cfg.trials)
 end
 
 % intersect the data and combine it into one structure
+tmpcfg = [];
+tmpcfg.parameter = cfg.parameter;
+
 if hastime
   if haschan
-    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    data = ft_appendfreq(cfg, varargin{:});
+    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
       'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
       'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
       'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
   else
-    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    data = ft_appendfreq(cfg, varargin{:});
+    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
     'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
     'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
     'avgoverchan', cfg.avgoverchan);
   end
 else
   if haschan
-    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    data = ft_appendfreq(cfg, varargin{:});
+    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
       'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
       'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
   else
-    data =  ft_selectdata(varargin{:}, 'param', cfg.parameter, 'avgoverrpt', false, ...
+    data = ft_appendfreq(cfg, varargin{:});
+    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
       'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
       'avgoverchan', cfg.avgoverchan);
   end
 end
+
+% after the append step above, make sure cfg.channel is in the order of our
+% appended data structure (this is used by the lower-level functions to
+% create a neighbourhood matrix)
+cfg.channel = data.label;
 
 % keep the sensor info, just in case
 if isfield(varargin{1}, 'elec')

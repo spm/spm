@@ -62,7 +62,7 @@ function vol = ft_datatype_headmodel(vol, varargin)
 
 % Copyright (C) 2011-2012, Cristiano Micheli, Robert Oostenveld
 %
-% $Id: ft_datatype_headmodel.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_headmodel.m 7569 2013-03-04 15:29:22Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -113,8 +113,8 @@ switch version
       end
     end
     
-    if isfield(vol, 'type') && strcmp(vol.type, 'infinite')
-      % ensure that the sensor description is up to date
+    if isfield(vol, 'sens')
+      % this applies to type=interpolate, ensure that the sensor description is up to date
       vol.sens = ft_datatype_sens(vol.sens);
     end
     

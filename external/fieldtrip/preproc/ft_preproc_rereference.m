@@ -1,7 +1,7 @@
 function [dat, ref] = ft_preproc_rereference(dat, refchan)
 
 % FT_PREPROC_REREFERENCE computes the average reference over all EEG channels
-% or rereferences the data to the selected channeld
+% or rereferences the data to the selected channels
 %
 % Use as
 %   [dat] = ft_preproc_rereference(dat, refchan)
@@ -32,7 +32,7 @@ function [dat, ref] = ft_preproc_rereference(dat, refchan)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_rereference.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_rereference.m 7710 2013-03-28 10:55:02Z jansch $
 
 % determine the size of the data
 [Nchans, Nsamples] = size(dat);

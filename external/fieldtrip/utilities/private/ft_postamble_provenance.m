@@ -27,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_provenance.m 7199 2012-12-15 15:53:28Z roboos $
+% $Id: ft_postamble_provenance.m 8060 2013-04-19 15:11:32Z roevdmei $
 
 % the name of the variables are passed in the preamble field
 global ft_default
@@ -71,9 +71,25 @@ end
 
 % compute the MD5 hash of each of the output arguments
 if isequal(ft_default.postamble, {'varargout'})
-  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, varargout, 'UniformOutput', false), 'UniformOutput', false);
+  % temporarily remove the cfg field for getting the hash
+  tmpvarargout = varargout; % does not need extra memory, below shouldn't change the references to the data
+  for icell = 1:numel(tmpvarargout);
+    try
+      tmpvarargout{icell} = rmfield(tmpvarargout{icell},'cfg'); 
+    end
+  end
+  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, tmpvarargout, 'UniformOutput', false), 'UniformOutput', false);
+  clear tmpvarargout; % remove the reference
 else
-  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, cellfun(@eval, ft_default.postamble, 'UniformOutput', false), 'UniformOutput', false), 'UniformOutput', false);
+  % temporarily remove the cfg field for getting the hash
+  tmpvarargout = cellfun(@eval, ft_default.postamble, 'UniformOutput', false); % does not need extra memory, below shouldn't change the references to the data
+  for icell = 1:numel(tmpvarargout);
+    try
+      tmpvarargout{icell} = rmfield(tmpvarargout{icell},'cfg');
+    end
+  end
+  cfg.callinfo.outputhash = cellfun(@CalcMD5, cellfun(@mxSerialize, tmpvarargout, 'UniformOutput', false), 'UniformOutput', false);
+  clear tmpvarargout; % remove the reference
 end
 
 clear ftohDiW7th_FuncTimer

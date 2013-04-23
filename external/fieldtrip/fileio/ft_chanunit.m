@@ -42,7 +42,7 @@ function chanunit = ft_chanunit(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 7268 2012-12-28 16:38:31Z vlalit $
+% $Id: ft_chanunit.m 7805 2013-04-15 09:03:03Z vlalit $
 
 
 % determine the type of input, this is handled similarly as in FT_CHANTYPE
@@ -137,10 +137,10 @@ elseif ft_senstype(input, 'neuromag') && isfield(input, 'chantype')
   end
   
 elseif ft_senstype(input, 'ctf') && isfield(input, 'chantype')
-  chanunit(strcmp('eeg',              input.chantype)) = {'unknown'}; % FIXME
-  chanunit(strcmp('emg',              input.chantype)) = {'unknown'}; % FIXME
-  chanunit(strcmp('eog',              input.chantype)) = {'unknown'}; % FIXME
-  chanunit(strcmp('ecg',              input.chantype)) = {'unknown'}; % FIXME
+  chanunit(strcmp('eeg',              input.chantype)) = {'V'}; 
+  chanunit(strcmp('emg',              input.chantype)) = {'V'}; 
+  chanunit(strcmp('eog',              input.chantype)) = {'V'}; 
+  chanunit(strcmp('ecg',              input.chantype)) = {'V'}; 
   chanunit(strcmp('meggrad',          input.chantype)) = {'T'};
   chanunit(strcmp('refmag',           input.chantype)) = {'T'};
   chanunit(strcmp('refgrad',          input.chantype)) = {'T'};

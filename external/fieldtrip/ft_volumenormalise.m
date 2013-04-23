@@ -13,7 +13,7 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %   cfg.template    = filename of the template anatomical MRI (default = 'T1.mnc' for spm2 or 'T1.nii' for spm8)
 %   cfg.parameter   = cell-array with the functional data which has to be normalised (default = 'all')
 %   cfg.downsample  = integer number (default = 1, i.e. no downsampling)
-%   cfg.coordinates = 'spm, 'ctf' or empty for interactive (default = [])
+%   cfg.coordsys    = 'spm, 'ctf' or empty for interactive (default = [])
 %   cfg.name        = string for output filename
 %   cfg.write       = 'no' (default) or 'yes', writes the segmented volumes to SPM2
 %                     compatible analyze-file, with the suffix
@@ -63,9 +63,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 7404 2013-01-23 16:39:24Z roevdmei $
+% $Id: ft_volumenormalise.m 7780 2013-04-10 19:33:40Z roboos $
 
-revision = '$Id: ft_volumenormalise.m 7404 2013-01-23 16:39:24Z roevdmei $';
+revision = '$Id: ft_volumenormalise.m 7780 2013-04-10 19:33:40Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -38,7 +38,7 @@ function [trl, event] = ft_trialfun_general(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_general.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_trialfun_general.m 7763 2013-04-04 12:25:45Z roboos $
 
 % some events do not require the specification a type, pre or poststim period
 % in that case it is more convenient not to have them, instead of making them empty
@@ -314,8 +314,8 @@ else
       end
     end
     for j=1:length(eventvalue)
-      if (ischar(eventvalue(j)) && ~strcmp(eventvalue(j), 'Inf')) || ...
-          (isnumeric(eventvalue(j)) && eventvalue(j)~=Inf)
+      if (isnumeric(eventvalue(j)) && eventvalue(j)~=Inf) || ...
+          (iscell(eventvalue(j)) && ischar(eventvalue{j}) && ~strcmp(eventvalue{j}, 'Inf'))
         settings=[settings; [eventtype(i), eventvalue(j)]];
       else
         settings=[settings; [eventtype(i), {[]}]];
@@ -333,11 +333,11 @@ else
     return
   end
 
-  [selection ok]= listdlg('ListString',strsettings, 'SelectionMode', 'single', 'Name', 'Select event', 'ListSize', [300 300]);
+  [selection ok]= listdlg('ListString',strsettings, 'SelectionMode', 'multiple', 'Name', 'Select event', 'ListSize', [300 300]);
 
   if ok
-    trialdef.eventtype=settings{selection,1};
-    trialdef.eventvalue=settings{selection,2};
+    trialdef.eventtype=settings(selection,1);
+    trialdef.eventvalue=settings(selection,2);
   end
 end
 

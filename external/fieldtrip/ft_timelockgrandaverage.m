@@ -62,9 +62,9 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_timelockgrandaverage.m 7522 2013-02-21 15:11:11Z jimher $
 
-revision = '$Id: ft_timelockgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_timelockgrandaverage.m 7522 2013-02-21 15:11:11Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -136,8 +136,9 @@ for i=1:Nsubj
   if ~isfield(varargin{i}, cfg.parameter)
     error('the field %s is not present in data structure %d', cfg.parameter, i);
   end
-  chansel = match_str(varargin{i}.label, cfg.channel);
+  [dum, chansel] = match_str(cfg.channel, varargin{i}.label);
   varargin{i}.label = varargin{i}.label(chansel);
+  
   if hastime
     timesel = nearest(varargin{i}.time, cfg.latency(1)):nearest(varargin{i}.time, cfg.latency(2));
     varargin{i}.time = varargin{i}.time(timesel);

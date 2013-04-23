@@ -19,7 +19,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %   cfg.method  =  string, can be
 %     'amplcorr',  amplitude correlation, support for freq and source data
 %     'coh',       coherence, support for freq, freqmvar and source data.
-%                  For partial coherence also specify cfg.partchannel
+%                  For partial coherence also specify cfg.partchannel, see below.
+%                  For imaginary part of coherency or coherency also specify
+%                  cfg.complex, see below.
 %     'csd',       cross-spectral density matrix, can also calculate partial
 %                  csds - if cfg.partchannel is specified, support for freq
 %                  and freqmvar data
@@ -30,6 +32,8 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %                  freqmvar data
 %     'plv',       phase-locking value, support for freq and freqmvar data
 %     'powcorr',   power correlation, support for freq and source data
+%     'powcorr_ortho', power correlation with single trial
+%                  orthogonalisation, support for source data
 %     'ppc'        pairwise phase consistency
 %     'psi',       phaseslope index, support for freq and freqmvar data
 %     'wpli',      weighted phase lag index (signed one,
@@ -71,7 +75,11 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 % input/output structure.
 %
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS,
-% FT_MVARANALYSIS, FT_SOURCEANALYSIS, FT_NETWORKANALYSIS
+% FT_MVARANALYSIS, FT_SOURCEANALYSIS, FT_NETWORKANALYSIS.
+%
+% For the implemented methods, see also FT_CONNECTIVITY_CORR,
+% FT_CONNECTIVITY_GRANGER, FT_CONNECTIVITY_PPC, FT_CONNECTIVITY_WPLI,
+% FT_CONNECTIVITY_PDC, FT_CONNECTIVITY_DTF, FT_CONNECTIVITY_PSI
 
 % Undocumented options:
 %   cfg.refindx
@@ -108,9 +116,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 7428 2013-01-31 10:31:31Z jorhor $
+% $Id: ft_connectivityanalysis.m 7542 2013-02-25 08:56:09Z jansch $
 
-revision = '$Id: ft_connectivityanalysis.m 7428 2013-01-31 10:31:31Z jorhor $';
+revision = '$Id: ft_connectivityanalysis.m 7542 2013-02-25 08:56:09Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -403,6 +411,11 @@ if any(~isfield(data, inparam)) || (isfield(data, 'crsspctrm') && (ischar(inpara
       end
       
     case 'source'
+      if ischar(cfg.refindx) && strcmp(cfg.refindx, 'all')
+        cfg.refindx = 1:size(data.pos,1);
+      elseif ischar(cfg.refindx)
+        error('cfg.refindx should be a 1xN vector, or ''all''');
+      end
       if strcmp(inparam, 'crsspctrm')
         [data, powindx, hasrpt] = univariate2bivariate(data, 'mom', 'crsspctrm', dtype, 'cmb', cfg.refindx, 'keeprpt', 0);
         % [data, powindx, hasrpt] = univariate2bivariate(data, 'fourierspctrm', 'crsspctrm', dtype, 0, cfg.refindx, [], 1);
@@ -470,7 +483,7 @@ elseif hasrpt && dojack && ~(exist('debiaswpli', 'var') || exist('weightppc', 'v
   % compute leave-one-outs
   data = ft_selectdata(data, 'jackknife', 'yes');
   hasjack = 1;
-elseif hasrpt && ~(exist('debiaswpli', 'var') || exist('weightppc', 'var') || strcmp(cfg.method, 'hipp'))% || needrpt)
+elseif hasrpt && ~(exist('debiaswpli', 'var') || exist('weightppc', 'var') || strcmp(cfg.method, 'powcorr_ortho'))% || needrpt)
   % create dof variable
   if isfield(data, 'dof')
     dof = data.dof;
@@ -716,10 +729,10 @@ switch cfg.method
     if exist('powindx', 'var'), optarg = cat(2, optarg, {'powindx', powindx}); end
     [datout, varout, nrpt] = ft_connectivity_psi(data.(inparam), optarg{:});
     
-  case 'hipp'
+  case 'powcorr_ortho'
     % Joerg Hipp's power correlation method
     optarg = {'refindx', cfg.refindx, 'tapvec', data.cumtapcnt};
-    [datout] = ft_connectivity_hipp(cat(2, data.mom{data.inside}).', optarg{:});
+    [datout] = ft_connectivity_powcorr_ortho(cat(2, data.mom{data.inside}).', optarg{:});
     varout = [];
     nrpt = numel(data.cumtapcnt);
     

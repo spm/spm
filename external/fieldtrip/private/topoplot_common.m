@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 7509 2013-02-20 15:04:06Z eelspa $
+% $Id: topoplot_common.m 8053 2013-04-18 15:17:53Z roboos $
 
-revision = '$Id: topoplot_common.m 7509 2013-02-20 15:04:06Z eelspa $';
+revision = '$Id: topoplot_common.m 8053 2013-04-18 15:17:53Z roboos $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -151,7 +151,7 @@ cfg.component         = ft_getopt(cfg, 'component',         []);
 cfg.directionality    = ft_getopt(cfg, 'directionality',    []);
 cfg.channel           = ft_getopt(cfg, 'channel',           'all');
 cfg.figurename        = ft_getopt(cfg, 'figurename',        []);
-
+cfg.interpolatenan    = ft_getopt(cfg, 'interpolatenan',    'yes');
 
 % compatibility for previous highlighting option
 if isnumeric(cfg.highlight)
@@ -309,9 +309,9 @@ elseif strcmp(dtype, 'freq') && hasrpt,
   dimtok = tokenize(dimord, '_');
 end
 
-if isfield(cfg, 'channel') && isfield(data, 'label')
+if isfield(data, 'label')
   cfg.channel = ft_channelselection(cfg.channel, data.label);
-elseif isfield(cfg, 'channel') && isfield(data, 'labelcmb')
+elseif isfield(data, 'labelcmb')
   cfg.channel = ft_channelselection(cfg.channel, unique(data.labelcmb(:)));
 end
 
@@ -624,7 +624,7 @@ elseif strcmp(cfg.comment, 'xlim')
 elseif ~ischar(cfg.comment)
   error('cfg.comment must be string');
 end
-if isfield(cfg,'refchannel')
+if ~strcmp(cfg.comment, 'no') && isfield(cfg,'refchannel')
   if iscell(cfg.refchannel)
     cfg.comment = sprintf('%s\nreference=%s %s', comment, cfg.refchannel{:});
   else
@@ -689,11 +689,14 @@ if strcmp(cfg.style,'fill');        style = 'isofill';     end
 
 % check for nans
 nanInds = isnan(datavector);
-if any(nanInds)
+if strcmp(cfg.interpolatenan,'yes') && any(nanInds)
   warning('removing NaNs from the data');
   chanX(nanInds) = [];
   chanY(nanInds) = [];
   datavector(nanInds) = [];
+  if ~isempty(maskdatavector)
+    maskdatavector(nanInds) = [];
+  end
 end
 
 % Draw plot
@@ -745,8 +748,8 @@ end % for icell
 % For Markers (all channels)
 if ~strcmp(cfg.marker,'off')
   channelsToMark = 1:length(data.label);
-  channelsToMark(nanInds) = [];
-  channelsToMark(highlightchansel) = [];
+  channelsNotMark = union(find(nanInds),highlightchansel);
+  channelsToMark(channelsNotMark) = [];
   [dum labelindex] = match_str(ft_channelselection(channelsToMark, data.label),lay.label);
   templay.pos      = lay.pos(labelindex,:);
   templay.width    = lay.width(labelindex);
@@ -825,7 +828,7 @@ if strcmp(cfg.interactive, 'yes')
     set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonDownFcn'});
     set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonMotionFcn'});
   else
-    error('unsupported dimord "%" for interactive plotting', data.dimord);
+    warning('unsupported dimord "%s" for interactive plotting', data.dimord);
   end
 end
 

@@ -50,9 +50,9 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_freqgrandaverage.m 7522 2013-02-21 15:11:11Z jimher $
 
-revision = '$Id: ft_freqgrandaverage.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_freqgrandaverage.m 7522 2013-02-21 15:11:11Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -138,8 +138,9 @@ for k=1:numel(cfg.parameter)
         if ~isfield(varargin{i}, cfg.parameter{k})
             error('the field %s is not present in data structure %d', cfg.parameter{k}, i);
         end
-        chansel = match_str(varargin{i}.label, cfg.channel);
+        [dum, chansel] = match_str(cfg.channel, varargin{i}.label);
         varargin{i}.label = varargin{i}.label(chansel);
+        
         if hasfreq
             freqsel = nearest(varargin{i}.freq, fbeg):nearest(varargin{i}.freq, fend);
             varargin{i}.freq = varargin{i}.freq(freqsel);

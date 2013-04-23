@@ -36,7 +36,7 @@ function [data] = ft_checkdata(data, varargin)
 %   [data] = ft_checkdata(data, 'senstype', {'ctf151', 'ctf275'}), e.g. in megrealign
 %   [data] = ft_checkdata(data, 'datatype', {'timelock', 'freq'}), e.g. in sourceanalysis
 
-% Copyright (C) 2007-2012, Robert Oostenveld
+% Copyright (C) 2007-2013, Robert Oostenveld
 % Copyright (C) 2010-2012, Martin Vinck
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 7500 2013-02-19 09:41:30Z roboos $
+% $Id: ft_checkdata.m 8055 2013-04-18 15:46:46Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -396,8 +396,6 @@ if ~isempty(stype)
     else
       okflag = 0;
     end
-  else
-    okflag = 0;
   end
   
   if ~okflag
@@ -1273,23 +1271,24 @@ if isempty(type),   type   = 'old'; end
 if isempty(haspow), haspow = 'no';  end
 
 fnames = fieldnames(input);
-tmp    = cell2mat(strfind(fnames, 'dimord')); %get dimord like fields
-if any(tmp>1),
+tmp    = cell2mat(strfind(fnames, 'dimord')); % get dimord like fields
+
+if any(tmp>1)
   current = 'new';
-elseif any(tmp==1),
-  %don't know what to do yet data is JM's own invention
+elseif any(tmp==1)
+  % don't know what to do yet data is JM's own invention
   current = 'old';
 else
   current = 'old';
 end
 
 if strcmp(current, type),
-  %do nothing
+  % do nothing
   output = input;
   
-  %return
+  % return
 elseif strcmp(current, 'old') && strcmp(type, 'new'),
-  %go from old to new
+  % go from old to new
   
   if isfield(input, 'avg'),
     stuff  = getfield(input, 'avg');
@@ -1298,9 +1297,10 @@ elseif strcmp(current, 'old') && strcmp(type, 'new'),
     stuff  = getfield(input, 'trial');
     output = rmfield(input,  'trial');
   else
-    %this could occur later in the pipeline, e.g. when doing group statistics using individual subject
-    %descriptive statistics
-    error('the input does not contain an avg or trial field');
+    % this could occur later in the pipeline, e.g. when doing group statistics using individual subject descriptive statistics
+    warning('the input does not contain an avg or trial field');
+    stuff  = struct; % empty structure
+    output = input;
   end
   
   %-------------------------------------------------
@@ -1488,12 +1488,12 @@ elseif strcmp(current, 'old') && strcmp(haspow, 'yes')
 end
 
 
-%--------------------------------------------------------
-function [dimord] = createdimord(output, fname, rptflag);
+%-------------------------------------------------------
+function [dimord] = createdimord(output, fname, rptflag)
 
 if nargin==2, rptflag = 0; end
 
-tmp = getfield(output, fname);
+tmp = output.(fname);
 
 dimord = '';
 dimnum = 1;
@@ -1507,6 +1507,14 @@ elseif ~iscell(tmp) && size(output.pos,1)==size(tmp,dimnum)
   dimnum = dimnum + 1;
 end
 
+if isfield(output, 'inside')
+  if islogical(output.inside)
+    firstinside = find(output.inside, 1);
+  else
+    firstinside = output.inside(1);
+  end
+end
+
 switch fname
   case 'cov'
     if hasori, dimord = [dimord,'_ori_ori']; end;
@@ -1517,29 +1525,24 @@ switch fname
   case 'filter'
     dimord = [dimord,'_ori_chan'];
   case 'leadfield'
-    %if hasori,
     dimord = [dimord,'_chan_ori'];
-    %else
-    %  dimord = [dimord,'_chan'];
-    %end
   case 'mom'
-    if isfield(output, 'cumtapcnt') && sum(output.cumtapcnt)==size(tmp{output.inside(1)},1)
+    if isfield(output, 'cumtapcnt') && sum(output.cumtapcnt)==size(tmp{firstinside},1)
       if hasori,
         dimord = [dimord,'_rpttap_ori'];
       else
         dimord = [dimord,'_rpttap'];
       end
-    elseif isfield(output, 'time')
+    elseif isfield(output, 'time') && numel(output.time)>1
       if rptflag,
         dimord = [dimord,'_rpt'];
         dimnum = dimnum + 1;
       end
-      if numel(output.time)==size(tmp{output.inside(1)},dimnum)
+      if numel(output.time)==size(tmp{firstinside},dimnum)
         dimord = [dimord,'_ori_time'];
       end
     end
-    
-    if isfield(output, 'freq') && numel(output.freq)>1,
+    if isfield(output, 'freq') && numel(output.freq)>1
       dimord = [dimord,'_freq'];
     end
   case 'nai'
@@ -1551,7 +1554,9 @@ switch fname
       dimord = [dimord,'_freq'];
     end
   case 'noisecsd'
-    if hasori, dimord = [dimord,'_ori_ori']; end
+    dimord = [dimord,'_ori_ori'];
+  case 'noisecov'
+    dimord = [dimord,'_ori_ori'];
   case 'ori'
     dimord = '';
   case 'pow'
@@ -1559,20 +1564,16 @@ switch fname
       dimord = [dimord,'_rpt'];
       dimnum = dimnum + 1;
     end
-    
     if isfield(output, 'freq') && numel(output.freq)>1 && numel(output.freq)==size(tmp,dimnum)
       dimord = [dimord,'_freq'];
       dimnum = dimnum+1;
     end
-    
     if isfield(output, 'time') && numel(output.time)>1 && numel(output.time)==size(tmp,dimnum)
       dimord = [dimord,'_time'];
       dimnum = dimnum+1;
     end
-    
   otherwise
     warning('skipping unknown fieldname %s', fname);
-    %error(sprintf('unknown fieldname %s', fname));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1582,7 +1583,7 @@ function data = comp2raw(data)
 % remove the fields that are specific to the comp representation
 fn = fieldnames(data);
 fn = intersect(fn, {'topo' 'topolabel' 'unmixing'});
-data = rmfield(data, fn);  
+data = rmfield(data, fn);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes
@@ -1890,8 +1891,8 @@ for i=1:ntrial
   for j=1:nchans
     hasAllInts    = all(isnan(data.trial{i}(j,:)) | data.trial{i}(j,:) == round(data.trial{i}(j,:)));
     hasAllPosInts = all(isnan(data.trial{i}(j,:)) | data.trial{i}(j,:)>=0);
-    T = nansum(diff(data.time{i})); % total time
-    fr            = nansum(data.trial{i}(j,:)) ./ T;
+    T = nansum(diff(data.time{i}),2); % total time
+    fr            = nansum(data.trial{i}(j,:),2) ./ T;
     spikechan(j)  = spikechan(j) + double(hasAllInts & hasAllPosInts & fr<=maxRate);
   end
 end

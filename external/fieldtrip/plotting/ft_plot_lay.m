@@ -42,7 +42,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_plot_lay.m 7703 2013-03-25 16:39:37Z roevdmei $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -62,6 +62,7 @@ verbose      = ft_getopt(varargin, 'verbose',      false);
 pointsymbol  = ft_getopt(varargin, 'pointsymbol');
 pointcolor   = ft_getopt(varargin, 'pointcolor');
 pointsize    = ft_getopt(varargin, 'pointsize');
+interpreter  = ft_getopt(varargin, 'interpreter', 'tex');
 
 % convert between true/false/yes/no etc. statements
 point   = istrue(point);
@@ -133,7 +134,7 @@ if label
   % the MATLAB text function fails if the position for the string is specified in single precision
   X = double(X);
   Y = double(Y);
-  text(X+labeloffset, Y+(labeloffset*1.5), Lbl ,'fontsize',labelsize);
+  text(X+labeloffset, Y+(labeloffset*1.5), Lbl ,'fontsize',labelsize,'interpreter',interpreter);
 end
 
 if box

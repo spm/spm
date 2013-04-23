@@ -22,7 +22,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %   cfg.ylim           = 'maxmin' or [ymin ymax] (default = 'maxmin')
 %   cfg.zlim           = 'maxmin','maxabs' or [zmin zmax] (default = 'maxmin')
 %   cfg.baseline       = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
-%   cfg.baselinetype   = 'absolute', 'relative' or 'relchange' (default = 'absolute')
+%   cfg.baselinetype   = 'absolute', 'relative', 'relchange' or 'db' (default = 'absolute')
 %   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.channel        = Nx1 cell-array with selection of channels (default = 'all'),
 %                        see FT_CHANNELSELECTION for details
@@ -84,9 +84,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $
+% $Id: ft_singleplotTFR.m 7698 2013-03-22 09:30:51Z eelspa $
 
-revision = '$Id: ft_singleplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $';
+revision = '$Id: ft_singleplotTFR.m 7698 2013-03-22 09:30:51Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -501,10 +501,14 @@ else
   chans = '<multiple channels>';
 end
 if isfield(cfg,'dataname')
-  dataname = cfg.dataname;
+  if iscell(cfg.dataname)
+    dataname = cfg.dataname{1};
+  else
+    dataname = cfg.dataname;
+  end
 elseif nargin > 1
   dataname = inputname(2);
-else
+else % data provided through cfg.inputfile
   dataname = cfg.inputfile;
 end
 if isempty(cfg.figurename)
@@ -547,6 +551,11 @@ if isfield(cfg, 'inputfile')
   % the reading has already been done and varargin contains the data
   cfg = rmfield(cfg, 'inputfile');
 end
+
+% make sure the topo displays all channels, not just the ones in this
+% singleplot
+cfg.channel = 'all';
+
 cfg.comment = 'auto';
 cfg.xlim = range(1:2);
 cfg.ylim = range(3:4);

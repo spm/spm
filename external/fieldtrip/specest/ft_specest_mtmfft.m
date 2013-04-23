@@ -4,7 +4,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 % the DPSS sequence or using a variety of single tapers
 %
 % Use as
-%   [spectrum,freqoi] = specest_mtmfft(dat,time...)
+%   [spectrum,ntaper,freqoi] = specest_mtmfft(dat,time...)
 % where
 %   dat      = matrix of chan*sample
 %   time     = vector, containing time in seconds for each sample
@@ -29,7 +29,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 7444 2013-02-06 14:48:10Z roevdmei $
+% $Id: ft_specest_mtmfft.m 7979 2013-04-17 13:53:33Z roevdmei $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap
@@ -84,6 +84,7 @@ endtime    = pad;                   % total time in seconds of padded data
 
 
 % Set freqboi and freqoi
+freqoiinput = freqoi;
 if isnumeric(freqoi) % if input is a vector
   freqboi   = round(freqoi ./ (fsample ./ endnsample)) + 1; % is equivalent to: round(freqoi .* endtime) + 1;
   freqboi   = unique(freqboi);
@@ -99,7 +100,21 @@ if strcmp(taper, 'dpss') && numel(tapsmofrq)~=1 && (numel(tapsmofrq)~=nfreqoi)
   error('tapsmofrq needs to contain a smoothing parameter for every frequency when requesting variable number of slepian tapers')
 end
 
-
+% throw a warning if input freqoi is different from output freqoi
+if isnumeric(freqoiinput)
+  % check whether padding is appropriate for the requested frequency resolution
+  rayl = 1/endtime;
+  if any(rem(freqoiinput,rayl)) % not always the case when they mismatch
+    warning('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip')
+  end
+  if numel(freqoiinput) ~= numel(freqoi) % freqoi will not contain double frequency bins when requested
+    warning('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
+  else
+    if any(abs(freqoiinput-freqoi) >= eps*1e6)
+      warning('output frequencies are different from input frequencies');
+    end
+  end
+end
 
 % determine whether tapers need to be recomputed
 current_argin = {time, postpad, taper, tapsmofrq, freqoi, tapopt, dimord}; % reasoning: if time and postpad are equal, it's the same length trial, if the rest is equal then the requested output is equal

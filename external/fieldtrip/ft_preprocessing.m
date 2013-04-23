@@ -64,6 +64,10 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.hpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.bpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
 %   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass') 
+%   cfg.lpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
+%   cfg.hpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
+%   cfg.bpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
+%   cfg.bsinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
 %   cfg.medianfiltord = length of median filter (default = 9)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
 %   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
@@ -179,9 +183,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_preprocessing.m 7820 2013-04-16 10:07:19Z roboos $
 
-revision = '$Id: ft_preprocessing.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_preprocessing.m 7820 2013-04-16 10:07:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -610,6 +614,9 @@ else
     end
     if isfield(hdr, 'grad')
       dataout.grad             = hdr.grad;             % gradiometer system in head coordinates
+    end
+    if isfield(hdr, 'elec')
+      dataout.elec             = hdr.elec;             % EEG information in header (f.e. headerformat = 'neuromag_fif')
     end
 
   end % for all channel groups

@@ -4,7 +4,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir,instabilityfix
 % the low frequency components in the data
 %
 % Use as
-%   [filt] = ft_preproc_highpassfilter(dat, Fsample, Fhp, N, type, dir)
+%   [filt] = ft_preproc_highpassfilter(dat, Fsample, Fhp, N, type, dir, instabilityfix)
 % where
 %   dat        data matrix (Nchans X Ntime)
 %   Fsample    sampling frequency in Hz
@@ -21,6 +21,10 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir,instabilityfix
 %                'twopass'         zero-phase forward and reverse filter (default)
 %                'twopass-reverse' zero-phase reverse and forward filter
 %                'twopass-average' average of the twopass and the twopass-reverse
+%   instabilityfix optional method to deal with filter instabilities
+%                'no'       only detect and give error (default)
+%                'reduce'   reduce the filter order
+%                'split'    split the filter in two lower-order filters, apply sequentially
 %
 % Note that a one- or two-pass filter has consequences for the strength of the filter,
 % i.e. a two-pass filter with the same filter order will attenuate the signal twice as
@@ -46,7 +50,7 @@ function [filt] = ft_preproc_highpassfilter(dat,Fs,Fhp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_highpassfilter.m 7513 2013-02-20 16:54:20Z roboos $
+% $Id: ft_preproc_highpassfilter.m 8058 2013-04-18 19:19:07Z roboos $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);
@@ -66,9 +70,9 @@ if nargin<6 || isempty(dir)
   dir = 'twopass';
 end
 
-% specify the default instability fix
-if nargin<7 || isempty(instabilityfix)
-  instabilityfix = 'none'; % can be reduce, split or none
+% set the default method to deal with filter instabilities
+if nargin<7|| isempty(instabilityfix)
+  instabilityfix = 'no';
 end
 
 % Nyquist frequency
@@ -120,10 +124,10 @@ dat = bsxfun(@minus, dat, meandat);
 
 try
   filt = filter_with_correction(B,A,dat,dir);
-catch ME
+catch
   switch instabilityfix
-    case 'none'
-      rethrow(ME);
+    case 'no'
+      rethrow(lasterror);
     case 'reduce'
       warning('backtrace', 'off')
       warning('filter instability detected - reducing the %dth order filter to an %dth order filter', N, N-1);

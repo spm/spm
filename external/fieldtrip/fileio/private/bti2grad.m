@@ -39,7 +39,7 @@ function [grad, elec] = bti2grad(hdr, balanceflag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bti2grad.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: bti2grad.m 7596 2013-03-06 13:12:08Z sardal $
 
 % for backward compatibility issues FIXME check whether anyone actually uses this code
 if isfield(hdr, 'Meg_pos'),
@@ -177,10 +177,10 @@ elseif isfield(hdr, 'config'),
       % the user_block does not contain labels to the channels and references
       % warning('the weight table does not contain contain labels to the channels and references: assuming the channel order as they occur in the header and the refchannel order M.A M.aA G.A');
       label    = {hdr.config.channel_data(:).name}';
-      meglabel = channelselection('MEG',    label);
+      meglabel = ft_channelselection('MEG',    label);
       imeg     = match_str(label, meglabel);
       tabreflabel = {'MxA';'MyA';'MzA';'MxaA';'MyaA';'MzaA';'GxxA';'GyyA';'GyxA';'GzxA';'GzyA'}; % FIXME this is hard coded according to a few tests
-      reflabel = channelselection('MEGREF', label);
+      reflabel = ft_channelselection('MEGREF', label);
       [dum, order] = match_str(reflabel, tabreflabel);
       weights.dweights = weights.dweights(imeg,:);
       weights.aweights = weights.aweights(imeg,:);

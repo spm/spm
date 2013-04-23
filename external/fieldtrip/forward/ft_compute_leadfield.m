@@ -79,7 +79,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 7456 2013-02-08 15:27:30Z roboos $
+% $Id: ft_compute_leadfield.m 7745 2013-04-02 19:23:44Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -103,8 +103,11 @@ if ~isstruct(sens) && size(sens, 2)==3
   sens = struct('pnt', sens);
 end
 
-% ensure that the sensor description is up-to-date (Aug 2011)
-sens = ft_datatype_sens(sens);
+% ft_prepare_vol_sens should be called prior to ft_compute_leadfield
+% to ensure that the sens and vol are up to date, since the backward
+% compatibility check should not be performed for each dipole location
+% sens = ft_datatype_sens(sens);
+% vol  = ft_datatype_headmodel(vol);
 
 % determine whether it is EEG or MEG
 iseeg = ft_senstype(sens, 'eeg');

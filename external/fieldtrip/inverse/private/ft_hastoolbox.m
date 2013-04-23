@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 7486 2013-02-17 12:21:05Z roboos $
+% $Id: ft_hastoolbox.m 7675 2013-03-16 09:45:16Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -206,7 +206,7 @@ switch toolbox
   case {'SPLINES', 'CURVE_FITTING'}
     status = license('checkout', 'curve_fitting_toolbox');      % also check the availability of a toolbox license
   case 'SIGNAL'
-    status = license('checkout', 'signal_toolbox');             % also check the availability of a toolbox license
+    status = license('checkout', 'signal_toolbox') && exist('window', 'file'); % also check the availability of a toolbox license
   case 'IMAGE'
     status = license('checkout', 'image_toolbox');              % also check the availability of a toolbox license
   case {'DCT', 'DISTCOMP'}

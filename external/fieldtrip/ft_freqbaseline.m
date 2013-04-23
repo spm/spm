@@ -7,7 +7,7 @@ function [freq] = ft_freqbaseline(cfg, freq)
 % where the freq data comes from FT_FREQANALYSIS and the configuration
 % should contain
 %   cfg.baseline     = [begin end] (default = 'no')
-%   cfg.baselinetype = 'absolute', 'relchange' or 'relative' (default = 'absolute')
+%   cfg.baselinetype = 'absolute', 'relchange', 'relative', or 'db' (default = 'absolute')
 %   cfg.parameter    = field for which to apply baseline normalization, or
 %                      cell array of strings to specify multiple fields to normalize
 %                      (default = 'powspctrm')
@@ -38,9 +38,9 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_freqbaseline.m 7552 2013-02-26 17:36:31Z sardal $
 
-revision = '$Id: ft_freqbaseline.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_freqbaseline.m 7552 2013-02-26 17:36:31Z sardal $';
 
 % do the general setup of the function
 ft_defaults
@@ -63,7 +63,7 @@ cfg.parameter    =  ft_getopt(cfg, 'parameter', 'powspctrm');
 
 % check validity of input options
 cfg =               ft_checkopt(cfg, 'baseline', {'char', 'doublevector'});
-cfg =               ft_checkopt(cfg, 'baselinetype', 'char', {'absolute', 'relative', 'relchange'});
+cfg =               ft_checkopt(cfg, 'baselinetype', 'char', {'absolute', 'relative', 'relchange','db'});
 cfg =               ft_checkopt(cfg, 'parameter', {'char', 'charcell'});
 
 % make sure cfg.parameter is a cell array of strings
@@ -176,6 +176,8 @@ elseif (strcmp(baselinetype, 'relative'))
   data = data ./ meanVals;
 elseif (strcmp(baselinetype, 'relchange'))
   data = (data - meanVals) ./ meanVals;
+elseif (strcmp(baselinetype, 'db'))
+  data = 10*log10(data ./ meanVals);
 else
   error('unsupported method for baseline normalization: %s', baselinetype);
 end

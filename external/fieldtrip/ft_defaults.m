@@ -14,7 +14,7 @@ function ft_defaults
 %   ft_default.checkconfig    string, can be pedantic, loose, silent (default = 'loose')
 %   ft_default.checksize      number in bytes, can be inf (default = 1e5)
 %   ft_default.showcallinfo   string, can be yes or no (default = 'yes')
-%   ft_default.debug          string, can be 'display', 'displayonerror', 'displayonsuccess', 
+%   ft_default.debug          string, can be 'display', 'displayonerror', 'displayonsuccess',
 %                             'save', 'saveonerror', saveonsuccess' or 'no' (default = 'no')
 %
 % See also FT_HASTOOLBOX, FT_CHECKCONFIG
@@ -40,9 +40,9 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 7485 2013-02-17 12:21:02Z roboos $
+% $Id: ft_defaults.m 8053 2013-04-18 15:17:53Z roboos $
 
-global ft_default 
+global ft_default
 persistent initialized
 
 % Set the defaults in a global variable, ft_checkconfig will copy these over into the local configuration.
@@ -62,7 +62,7 @@ if ~isfield(ft_default, 'trackparaminfo'), ft_default.trackparaminfo = 'no';    
 % track whether we have executed ft_defaults already. Note that we should
 % not use ft_default itself directly, because the user might have set stuff
 % in that struct already before ft_defaults is called for the first time.
-if initialized
+if ~isempty(initialized) && exist('ft_hastoolbox', 'file')
   return;
 end
 
@@ -75,39 +75,39 @@ if isempty(regexp(path, [ftPath pathsep '|' ftPath '$'], 'once'))
   addpath(ftPath);
 end
 
-% Some people mess up their path settings and then have
-% different versions of certain toolboxes on the path.
-% The following will issue a warning
-checkMultipleToolbox('FieldTrip',           'ft_defaults.m');
-checkMultipleToolbox('spm',                 'spm.m');
-checkMultipleToolbox('mne',                 'fiff_copy_tree.m');
-checkMultipleToolbox('eeglab',              'eeglab2fieldtrip.m');
-checkMultipleToolbox('dipoli',              'write_tri.m');
-checkMultipleToolbox('eeprobe',             'read_eep_avr.mexa64');
-checkMultipleToolbox('yokogawa',            'GetMeg160ChannelInfoM.p');
-checkMultipleToolbox('simbio',              'sb_compile_vista.m');
-checkMultipleToolbox('fns',                 'fns_region_read.m');
-checkMultipleToolbox('bemcp',               'bem_Cii_cst.mexa64');
-checkMultipleToolbox('bci2000',             'load_bcidat.m');
-checkMultipleToolbox('openmeeg',            'openmeeg_helper.m');
-checkMultipleToolbox('freesurfer',          'vox2ras_ksolve.m');
-checkMultipleToolbox('fastica',             'fastica.m');
-checkMultipleToolbox('besa',                'readBESAmul.m');
-checkMultipleToolbox('neuroshare',          'ns_GetAnalogData.m');
-checkMultipleToolbox('ctf',                 'setCTFDataBalance.m');
-checkMultipleToolbox('afni',                'WriteBrikHEAD.m');
-checkMultipleToolbox('gifti',               '@gifti/display.m');
-checkMultipleToolbox('sqdproject',          'sqdread.m');
-checkMultipleToolbox('xml4mat',             'xml2mat.m');
-checkMultipleToolbox('cca',                 'ccabss.m');
-checkMultipleToolbox('bsmart',              'armorf.m');
-checkMultipleToolbox('iso2mesh',            'iso2meshver.m');
-checkMultipleToolbox('bct',                 'degrees_und.m');
-checkMultipleToolbox('yokogawa_meg_reader', 'getYkgwHdrEvent.p');
-checkMultipleToolbox('biosig',              'sopen.m');
-checkMultipleToolbox('icasso',              'icassoEst.m');
-
 if ~isdeployed
+  
+  % Some people mess up their path settings and then have
+  % different versions of certain toolboxes on the path.
+  % The following will issue a warning
+  checkMultipleToolbox('FieldTrip',           'ft_defaults.m');
+  checkMultipleToolbox('spm',                 'spm.m');
+  checkMultipleToolbox('mne',                 'fiff_copy_tree.m');
+  checkMultipleToolbox('eeglab',              'eeglab2fieldtrip.m');
+  checkMultipleToolbox('dipoli',              'write_tri.m');
+  checkMultipleToolbox('eeprobe',             'read_eep_avr.mexa64');
+  checkMultipleToolbox('yokogawa',            'GetMeg160ChannelInfoM.p');
+  checkMultipleToolbox('simbio',              'sb_compile_vista.m');
+  checkMultipleToolbox('fns',                 'fns_region_read.m');
+  checkMultipleToolbox('bemcp',               'bem_Cii_cst.mexa64');
+  checkMultipleToolbox('bci2000',             'load_bcidat.m');
+  checkMultipleToolbox('openmeeg',            'openmeeg_helper.m');
+  checkMultipleToolbox('freesurfer',          'vox2ras_ksolve.m');
+  checkMultipleToolbox('fastica',             'fastica.m');
+  checkMultipleToolbox('besa',                'readBESAmul.m');
+  checkMultipleToolbox('neuroshare',          'ns_GetAnalogData.m');
+  checkMultipleToolbox('ctf',                 'setCTFDataBalance.m');
+  checkMultipleToolbox('afni',                'WriteBrikHEAD.m');
+  checkMultipleToolbox('gifti',               '@gifti/display.m');
+  checkMultipleToolbox('sqdproject',          'sqdread.m');
+  checkMultipleToolbox('xml4mat',             'xml2mat.m');
+  checkMultipleToolbox('cca',                 'ccabss.m');
+  checkMultipleToolbox('bsmart',              'armorf.m');
+  checkMultipleToolbox('iso2mesh',            'iso2meshver.m');
+  checkMultipleToolbox('bct',                 'degrees_und.m');
+  checkMultipleToolbox('yokogawa_meg_reader', 'getYkgwHdrEvent.p');
+  checkMultipleToolbox('biosig',              'sopen.m');
+  checkMultipleToolbox('icasso',              'icassoEst.m');
   
   if isempty(which('ft_hastoolbox'))
     % the fieldtrip/utilities directory contains the ft_hastoolbox function
@@ -116,8 +116,13 @@ if ~isdeployed
   end
   
   try
+    % external/signal directory contains alternative implementations of some signal processing functions
+    addpath(fullfile(fileparts(which('ft_defaults')), 'external', 'signal'));
+  end
+  
+  try
     % this directory contains various functions that were obtained from elsewere, e.g. Matlab file exchange
-    ft_hastoolbox('misc', 3, 1); % not required
+    ft_hastoolbox('fileexchange', 3, 1); % not required
   end
   
   try

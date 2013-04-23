@@ -63,9 +63,9 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_regressconfound.m 7725 2013-03-30 14:01:46Z jansch $
 
-revision = '$Id: ft_regressconfound.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_regressconfound.m 7725 2013-03-30 14:01:46Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -462,6 +462,12 @@ end
 if isfield(dataout, 'grad')
   warning('discarding gradiometer information because the weightings have been changed');
   dataout = rmfield(dataout, 'grad');
+end
+
+% discard the electrode information because the weightings have been changed
+if isfield(dataout, 'elec')
+  warning('discarding electrode information because the weightings have been changed');
+  dataout = rmfield(dataout, 'elec');
 end
 
 % do the general cleanup and bookkeeping at the end of the function

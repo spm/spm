@@ -72,7 +72,7 @@ function [channel] = ft_channelselection(desired, datachannel, type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 7478 2013-02-15 14:57:59Z jansch $
+% $Id: ft_channelselection.m 7683 2013-03-17 15:03:43Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
@@ -88,7 +88,12 @@ end
 channel = desired;
 
 if length(datachannel)~=length(unique(datachannel))
-  error('data with non-unique channel names is not supported');
+  warning('discarding non-unique channel names');
+  sel = false(size(datachannel));
+  for i=1:length(datachannel)
+    sel(i) = sum(strcmp(datachannel, datachannel{i}))==1;
+  end
+  datachannel = datachannel(sel);
 end
 
 if any(size(channel) == 0)

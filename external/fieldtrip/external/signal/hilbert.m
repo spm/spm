@@ -8,7 +8,7 @@ function [x] = hilbert(xr)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny
-% $Id: hilbert.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: hilbert.m 7674 2013-03-16 09:45:12Z roboos $
 
 if ~isreal(xr)
   xr = real(xr);

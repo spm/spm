@@ -29,7 +29,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert_new(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: ft_specest_hilbert.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_specest_hilbert.m 7919 2013-04-17 13:44:49Z roevdmei $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');
@@ -82,16 +82,29 @@ end
 nfreqoi = length(freqoi);
 
 % Set timeboi and timeoi
+timeoiinput = timeoi;
 offset = round(time(1)*fsample);
 if isnumeric(timeoi) % if input is a vector
+  timeoi   = unique(round(timeoi .* fsample) ./ fsample);
   timeboi  = round(timeoi .* fsample - offset) + 1;
   ntimeboi = length(timeboi);
-  timeoi   = round(timeoi .* fsample) ./ fsample;
 elseif strcmp(timeoi,'all') % if input was 'all'
   timeboi  = 1:length(time);
   ntimeboi = length(timeboi);
   timeoi   = time;
 end
+
+% throw a warning if input timeoi is different from output timeoi
+if isnumeric(timeoiinput)
+  if numel(timeoiinput) ~= numel(timeoi) % timeoi will not contain double time-bins when requested
+    warning('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
+  else
+    if any(abs(timeoiinput-timeoi) >= eps*1e6)
+      warning('output time-bins are different from input time-bins');
+    end
+  end
+end
+
 
 % expand width to array if constant width
 if numel(width) == 1

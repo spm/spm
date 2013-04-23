@@ -49,7 +49,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 7308 2013-01-14 14:53:49Z jansch $
+% $Id: ft_plot_slice.m 7727 2013-03-30 19:58:50Z jansch $
 
 persistent previous_dim X Y Z
 
@@ -57,7 +57,7 @@ persistent previous_dim X Y Z
 % (dat, varargin)
 % (dat, msk, varargin)
 % (dat, [], varargin)
-if numel(varargin)>0 && (isempty(varargin{1}) || isnumeric(varargin{1}))
+if numel(varargin)>0 && (isempty(varargin{1}) || isnumeric(varargin{1}) || islogical(varargin{1}))
   M        = varargin{1};
   varargin = varargin(2:end);
 end
@@ -300,6 +300,7 @@ end
 set(h, 'linestyle', 'none');
 
 if domask,
+  if islogical(Vmask), Vmask = double(Vmask); end
   set(h, 'FaceAlpha', 'flat');
   set(h, 'AlphaDataMapping', 'scaled');
   set(h, 'AlphaData', Vmask);

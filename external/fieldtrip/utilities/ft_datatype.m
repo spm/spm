@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype.m 7598 2013-03-06 15:50:12Z jansch $
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip, segmentation, parcellation
 israw          =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
@@ -150,12 +150,28 @@ if any(isfield(volume, {'seg', 'csf', 'white', 'gray', 'skull', 'scalp', 'brain'
 end
 
 fn = fieldnames(volume);
+isboolean = [];
+cnt = 0;
 for i=1:length(fn)
   if isfield(volume, [fn{i} 'label'])
     res = true;
     return
+  else
+    if (islogical(volume.(fn{i})) || isnumeric(volume.(fn{i}))) && isequal(size(volume.(fn{i})),volume.dim)
+      cnt = cnt+1;
+      if islogical(volume.(fn{i}))
+        isboolean(cnt) = true;
+      else
+        isboolean(cnt) = false;
+      end
+    end
   end
 end
+if ~isempty(isboolean)
+  res = all(isboolean);
+end
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

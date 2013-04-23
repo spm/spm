@@ -38,7 +38,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 7135 2012-12-11 08:24:41Z roboos $
+% $Id: ft_plot_vol.m 7568 2013-03-04 15:29:20Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -85,6 +85,10 @@ switch ft_voltype(vol)
   case {'bem', 'dipoli', 'asa', 'bemcp', 'singleshell' 'openmeeg'}
     % these already contain one or multiple triangulated surfaces for the boundaries
     bnd = vol.bnd;
+    
+  case 'infinite'
+    warning('there is nothing to plot for an infinite volume conductor')
+    return
     
   otherwise
     error('unsupported voltype')

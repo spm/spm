@@ -104,7 +104,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %
 % $id: ft_singleplotER.m 3147 2011-03-17 12:38:09z jansch $
 
-revision = '$Id: ft_singleplotER.m 7509 2013-02-20 15:04:06Z eelspa $';
+revision = '$Id: ft_singleplotER.m 8053 2013-04-18 15:17:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -639,11 +639,21 @@ if isfield(cfg, 'showlabels')
   % this is not allowed in topoplotER
   cfg = rmfield(cfg, 'showlabels');
 end
+
+% make sure the topo displays all channels, not just the ones in this
+% singleplot
+cfg.channel = 'all';
+
+% if user specified a ylim, copy it over to the zlim of topoplot
+if isfield(cfg, 'ylim')
+  cfg.zlim = cfg.ylim;
+  cfg = rmfield(cfg, 'ylim');
+end
 fprintf('selected cfg.xlim = [%f %f]\n', cfg.xlim(1), cfg.xlim(2));
 p = get(gcf, 'position');
 f = figure;
 set(f, 'position', p);
-ft_topoplotTFR(cfg, varargin{:});
+ft_topoplotER(cfg, varargin{:});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which handles hot keys in the current plot

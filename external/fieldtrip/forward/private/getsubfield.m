@@ -29,7 +29,7 @@ function [s] = getsubfield(s, f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: getsubfield.m 7660 2013-03-13 16:29:20Z roboos $
 if iscell(f)
   f = f{1};
 end
@@ -38,11 +38,10 @@ if ~ischar(f)
   error('incorrect input argument for fieldname');
 end
 
-t = {};
 while (1)
-  [t{end+1}, f] = strtok(f, '.');
+  [t, f] = strtok(f, '.');
+  s = getfield(s, t);
   if isempty(f)
     break
   end
 end
-s = getfield(s, t{:});

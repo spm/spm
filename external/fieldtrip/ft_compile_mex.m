@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_compile_mex.m 7763 2013-04-04 12:25:45Z roboos $
 
 if nargin<1
   force=false;
@@ -98,6 +98,8 @@ L = add_mex_source(L,'src','sandwich2x2');
 L = add_mex_source(L,'src','mxSerialize');
 L = add_mex_source(L,'src','mxDeserialize');
 L = add_mex_source(L,'src','CalcMD5');
+
+L = add_mex_source(L,'src','combineClusters');
 
 oldDir = pwd;
 [baseDir, myName] = fileparts(mfilename('fullpath'));

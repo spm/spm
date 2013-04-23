@@ -115,6 +115,13 @@ function [realign, h] = ft_volumerealign(cfg, mri, target)
 % See also FT_READ_MRI, FT_ELECTRODEREALIGN, HEADCOORDINATES, SPM_AFFREG,
 % SPM_NORMALISE
 
+% Undocumented option:
+%   cfg.weights = vector of weights that is used to weight the individual
+%   headshape points in the icp algorithm. Used optionally in cfg.method     
+%   = 'headshape'. If not specified, weights are put on points with
+%   z-coordinate<0 (assuming those to be eye rims and nose ridges, i.e.
+%   important points.
+%
 % Copyright (C) 2006-2011, Robert Oostenveld, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see
@@ -134,9 +141,9 @@ function [realign, h] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 7479 2013-02-15 15:27:39Z jansch $
+% $Id: ft_volumerealign.m 7701 2013-03-25 14:16:56Z eelspa $
 
-revision = '$Id: ft_volumerealign.m 7479 2013-02-15 15:27:39Z jansch $';
+revision = '$Id: ft_volumerealign.m 7701 2013-03-25 14:16:56Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -267,6 +274,7 @@ switch cfg.method
       '3. To change the display:\n',...
       '   a. press c or C on keyboard to show/hide crosshair\n',...
       '   b. press m or M on keyboard to show/hide marked positions\n',...
+      '   c. press + or - on (numeric) keyboard to change the color range''s upper limit\n',...
       '4. To finalize markers and quit interactive mode, press q on keyboard\n'));
     
     %'3. To unmark or remark a location\n',...
@@ -305,6 +313,23 @@ switch cfg.method
       
       try, [d1, d2, key] = ginput(1); catch, key='q'; end
       switch key
+        
+        % contrast scaling
+        case 43 % numpad +
+          if isempty(cfg.clim)
+            cfg.clim = [min(dat(:)) max(dat(:))];
+          end
+          % reduce color scale range by 10%
+          cscalefactor = (cfg.clim(2)-cfg.clim(1))/10;
+          cfg.clim(2) = cfg.clim(2)-cscalefactor;
+        case 45 % numpad -
+          if isempty(cfg.clim)
+            cfg.clim = [min(dat(:)) max(dat(:))];
+          end
+          % increase color scale range by 10%
+          cscalefactor = (cfg.clim(2)-cfg.clim(1))/10;
+          cfg.clim(2) = cfg.clim(2)+cscalefactor;
+          
         case 113 % 'q'
           delete(h(end));
           h = h(1:end-1);
@@ -560,16 +585,23 @@ switch cfg.method
     end
     seg           = ft_volumesegment(tmpcfg, mri);
     
-    cfg             = [];
-    cfg.method      = 'singleshell';
-    cfg.numvertices = 20000;
-    scalp           = ft_prepare_headmodel(cfg, seg);
+    tmpcfg             = [];
+    tmpcfg.method      = 'singleshell';
+    tnocfg.numvertices = 20000;
+    scalp           = ft_prepare_headmodel(tmpcfg, seg);
     scalp           = ft_convert_units(scalp, 'mm');
     
-    % weight the points with z-coordinate more than the rest. These are the
-    % likely points that belong to the nose and eye rims
-    weights = ones(size(shape.pnt,1),1);
-    weights(shape.pnt(:,3)<0) = 100; % this value seems to work
+    if ~isfield(cfg, 'weights')
+      % weight the points with z-coordinate more than the rest. These are the
+      % likely points that belong to the nose and eye rims
+      weights = ones(size(shape.pnt,1),1);
+      weights(shape.pnt(:,3)<0) = 100; % this value seems to work
+    else
+      weights = cfg.weights(:);
+      if numel(weights)~=size(shape.pnt,1),
+        error('number of weights should be equal to the number of points in the headshape');
+      end
+    end
     
     % construct the coregistration matrix
     [R, t, corr, D, data2] = icp2(scalp.bnd.pnt', shape.pnt', 20, [], weights); % icp2 is a helper function implementing the iterative closest point algorithm

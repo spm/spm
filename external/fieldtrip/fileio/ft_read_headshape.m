@@ -9,7 +9,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %
 % Additional options should be specified in key-value pairs and can be
 %   'format'		  = string, see below
-%   'coordinates' = string, e.g. 'head' or 'dewar' (CTF)
+%   'coordsys'    = string, e.g. 'head' or 'dewar'
 %   'unit'        = string, e.g. 'cm'
 %
 % Supported input formats are
@@ -54,7 +54,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 7242 2012-12-21 08:42:56Z roboos $
+% $Id: ft_read_headshape.m 7834 2013-04-16 18:25:29Z roboos $
 
 % Check the input, if filename is a cell-array, call ft_read_headshape recursively and combine the outputs.
 % This is used to read the left and right hemisphere of a Freesurfer cortical segmentation.
@@ -111,10 +111,17 @@ end
 filename = fetch_url(filename);
 
 % get the options
-fileformat  = ft_getopt(varargin, 'format');
-coordinates = ft_getopt(varargin, 'coordinates', 'head'); % the alternative for CTF coil positions is dewar
-unit        = ft_getopt(varargin, 'unit'); % the default for yokogawa is cm, see below
+fileformat     = ft_getopt(varargin, 'format');
+unit           = ft_getopt(varargin, 'unit');             % the default for yokogawa is cm, see below
 annotationfile = ft_getopt(varargin, 'annotationfile');
+coordsys       = ft_getopt(varargin, 'coordsys', 'head'); % the alternative for CTF coil positions is dewar
+coordinates    = ft_getopt(varargin, 'coordinates');      % for backward compatibility
+
+% coordsys is preferred over coordinates, check whether the user specified it with the old option name
+if ~isempty(coordinates)
+  warning('please use the option coordsys instead of coordinates, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2114');
+  coordsys = coordinates;
+end
 
 if isempty(fileformat)
   % only do the autodetection if the format was not specified

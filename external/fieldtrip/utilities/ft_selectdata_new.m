@@ -1,4 +1,4 @@
-function [varargout] = ft_selectdata(cfg, varargin)
+function [varargout] = ft_selectdata_new(cfg, varargin)
 
 % FT_SELECTDATA makes a selection in the input data along specific data
 % dimensions, such as channels, time, frequency, trials, etc. It can also
@@ -8,7 +8,8 @@ function [varargout] = ft_selectdata(cfg, varargin)
 %  [data] = ft_selectdata_new(cfg, data, ...)
 %
 % Valid cfg field are:
-%   cfg.trials  = 1xN, trial indices to keep (can be 'all', [] removes all trials)
+%   cfg.trials  = 1xN, trial indices to keep. It can be 'all'. You can use
+%                 logical indexing, where false(1,N) removes all the trials) 
 % For data with a time-dimension possible specifications are
 %   cfg.latency = value     -> can be 'all'
 %   cfg.latency = [beg end]
@@ -36,10 +37,14 @@ function [varargout] = ft_selectdata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 7471 2013-02-14 11:46:14Z jorhor $
+% $Id: ft_selectdata_new.m 7763 2013-04-04 12:25:45Z roboos $
 
-ft_defaults
-ft_preamble help
+ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
+ft_preamble help              % this will show the function help if nargin==0 and return an error
+ft_preamble provenance        % this records the time and memory usage at teh beginning of the function
+ft_preamble trackconfig       % this converts the cfg structure in a config object, which tracks the cfg options that are being used
+ft_preamble debug             % this allows for displaying or saving the function name and input arguments upon an error
+ft_preamble loadvar varargin  % this reads the input data in case the user specified the cfg.inputfile option
 
 % determine the characteristics of the input data
 dtype = ft_datatype(varargin{1});
@@ -50,6 +55,17 @@ for i=2:length(varargin)
 end
 
 cfg = ft_checkconfig(cfg, 'renamed', {'toilim' 'latency'});
+
+if strcmp(dtype, 'source')
+  % FIXME this updates the old-style beamformer source reconstruction
+  for i=1:length(varargin)
+    varargin{i} = ft_datatype_source(varargin{i}, 'version', '2013x');
+  end
+  dimord = varargin{1}.dimord;
+  if isfield(cfg, 'parameter') && strcmp(cfg.parameter(1:4), 'avg.')
+    cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
+  end
+end
 
 if strcmp(dtype, 'raw')
   
@@ -72,11 +88,24 @@ else
   hastime   = isfield(varargin{1}, 'time');
   hasfreq   = isfield(varargin{1}, 'freq');
   hasdimord = ~all(cellfun(@isempty, regexp(fieldnames(varargin{1}), '.*dimord')));
+  haspos    = isfield(varargin{1}, 'pos');
   
   avgoverchan = istrue(ft_getopt(cfg, 'avgoverchan', false));
   avgoverfreq = istrue(ft_getopt(cfg, 'avgoverfreq', false));
   avgovertime = istrue(ft_getopt(cfg, 'avgovertime', false));
   avgoverrpt  = istrue(ft_getopt(cfg, 'avgoverrpt',  false));
+  
+  % although being called region-of-interest, the selection is actually made over source positions
+  avgoverpos  = istrue(ft_getopt(cfg, 'avgoverroi',  false));
+  if avgoverpos
+    for i=1:length(varargin)
+      % must be a source representation, not a volume representation
+      varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'source');
+    end
+    % the rest of the implementation is not yet complete
+    % there is already avgoverpos, which works, but the selection according to cfg.roi does not work
+    error('this is not yet implemented, please see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2053')
+  end
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % PART 2:
@@ -114,7 +143,6 @@ else
       case 'comp'
         dimsiz(i) = length(varargin{1}.label);
         dimfields{i} = 'label';
-        
       case 'subj'
         % the number of elements along this dimension is implicit
         dimsiz(i) = nan;
@@ -171,7 +199,7 @@ else
   fn  = fieldnames(varargin{1})';
   sel = false(size(fn));
   for i=1:numel(fn)
-    sel(i) = isequal(size(varargin{1}.(fn{i})), dimsiz);
+    sel(i) = isequal(size(varargin{1}.(fn{i})), dimsiz) || isequal(size(varargin{1}.(fn{i})), [dimsiz 1]);
   end
   
   % select the fields that represent the data
@@ -207,14 +235,13 @@ else
       end % varargin
       
       
-      
     case 'freq'
       for i=1:numel(varargin)
         % trim the selection to all inputs
         [selchan, cfg] = getselection_chan(cfg, varargin{i});
         [selfreq, cfg] = getselection_freq(cfg, varargin{i});
         if hastime
-          [seltime, cfg] = getselection_time(cfg, varargin{i}, 'datfields', datfields);
+          [seltime, cfg] = getselection_time(cfg, varargin{i});
         end
       end % varargin
       
@@ -251,11 +278,24 @@ else
       keyboard
       
     case 'raw'
+      error('FIXME');
       for i=1:numel(varargin)
         % trim the selection to all inputs
         [selchan, cfg] = getselection_chan(cfg, varargin{i});
       end % varargin
       keyboard
+      
+    case 'source'
+      for i=1:numel(varargin)
+        % trim the selection to all inputs
+        [selpos, cfg] = getselection_pos(cfg, varargin{i});
+      end
+      
+      for i=1:numel(varargin)
+        % get the selection from all inputs
+        varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok,'pos')), selpos, avgoverpos, datfields);
+        varargin{i} = makeselection_pos(varargin{i}, selpos, avgoverpos); % update the pos field
+      end % varargin
       
     case 'freqmvar'
       error('FIXME');
@@ -267,9 +307,6 @@ else
       error('FIXME');
       
     case 'volume'
-      error('FIXME');
-      
-    case 'source'
       error('FIXME');
       
     case 'dip'
@@ -288,24 +325,32 @@ else
   end % switch dtype
   
   % update the dimord
+  keep = {};
   if avgovertime
     dimtok = setdiff(dimtok, 'time');
   end
   if avgoverfreq
     dimtok = setdiff(dimtok, 'freq');
   end
+  if avgoverpos
+    dimtok = setdiff(dimtok, 'pos');
+  else
+    keep = [keep {'inside' 'outside' 'dim'}];
+  end
   if avgoverrpt
     % FIXME could also be rpttap or subject
     dimtok = setdiff(dimtok, 'rpt');
+  else
+    keep = [keep {'cumtapcnt' 'cumsumcnt' 'sampleinfo' 'trialinfo'}];
   end
   for i=1:numel(varargin)
     varargin{i}.dimord = sprintf('%s_', dimtok{:});
     varargin{i}.dimord = varargin{i}.dimord(1:end-1);  % remove the last '_'
   end
-
+  
   % remove all fields from the data that do not pertain to the selection
   for i=1:numel(varargin)
-    varargin{i} = keepfields(varargin{i}, [datfields dimfields {'cfg' 'grad'}]);
+    varargin{i} = keepfields(varargin{i}, [datfields dimfields {'cfg' 'grad'} keep]);
   end
   
 end % if raw or something else
@@ -314,12 +359,17 @@ end % if raw or something else
 % PART 3:
 %   if desired, concatenate over repetitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if nargin>2 && nargout==2
-  % concatenate all input data into a single structure
-  error('FIXME');
-else
-  % no reason to concatenate
-  varargout = varargin;
+varargout = varargin;
+
+ft_postamble debug              % this clears the onCleanup function used for debugging in case of an error
+ft_postamble trackconfig        % this converts the config object back into a struct and can report on the unused fields
+ft_postamble provenance         % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and matlab version etc. to the output cfg
+ft_postamble previous varargin  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
+ft_postamble history varargout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
+% ft_postamble savevar varargout  % this saves the output data structure to disk in case the user specified the cfg.outputfile option
+
+if nargout>numel(varargout)
+  % also return the input cfg
   varargout{end+1} = cfg;
 end
 
@@ -381,6 +431,7 @@ elseif avgoverchan && ~any(isnan(selchan))
   data.label = data.label(1:end-1);                  % remove the last '+'
 elseif ~isnan(selchan)
   data.label = data.label(selchan);
+  data.label = data.label(:);
 end
 end % function makeselection_chan
 
@@ -388,7 +439,7 @@ function data = makeselection_freq(data, selfreq, avgoverfreq)
 if avgoverfreq
   data = rmfield(data, 'freq');
 elseif ~isnan(selfreq)
-  data.freq  = data.time(selfreq);
+  data.freq  = data.freq(selfreq);
 end
 end % function makeselection_freq
 
@@ -399,6 +450,15 @@ elseif ~isnan(seltime)
   data.time  = data.time(seltime);
 end
 end % function makeselection_time
+
+function data = makeselection_pos(data, selpos, avgoverpos)
+if avgoverpos
+  data = rmfield(data, 'pos');
+elseif ~isnan(selpos)
+  data.pos = data.pos(selpos, :);
+end
+end % function makeselection_pos
+
 
 function [chanindx, cfg] = getselection_chan(cfg, data)
 
@@ -507,7 +567,7 @@ if isfield(cfg, 'frequency')
     minfreq = min(data.freq);
     maxfreq = max(data.freq);
     if all(cfg.frequency<minfreq) || all(cfg.frequency>maxfreq)
-      error('the selected range falls outside the time axis in the data');
+      error('the selected range falls outside the frequency axis in the data');
     end
     fbeg = nearest(data.freq, cfg.frequency(1), false, false);
     fend = nearest(data.freq, cfg.frequency(2), false, false);
@@ -565,7 +625,7 @@ if isfield(cfg, 'trials') && ~isequal(cfg.trials, 'all') && ~isempty(datfields)
       % convert from booleans to indices
       rptindx = find(rptindx);
     end
-  
+    
     rptindx = unique(sort(rptindx));
     rptindx = unique(sort(rptindx));
     rptsiz  = size(data.(datfields{1}), rptdim);
@@ -584,7 +644,7 @@ if isfield(cfg, 'trials') && ~isequal(cfg.trials, 'all') && ~isempty(datfields)
       rptindx   = find(tapers);
       [srt,ix] = sort(tapers(tapers~=0));
       rptindx  = rptindx(ix);
-%       cfg.trials = rptindx;
+      %       cfg.trials = rptindx;
       % TODO FIXME think about whether this is a good or a bad thing...
       %warning('cfg.trials accounts for the number of tapers now');
     end
@@ -594,19 +654,24 @@ if isfield(cfg, 'trials') && ~isequal(cfg.trials, 'all') && ~isempty(datfields)
     elseif rptindx(end)>rptsiz
       error('cannot select rpt/subj/rpttap larger than the number of repetitions in the data');
     end
-
+    
     % commented out because of rpttap dilemma...
-%     cfg.trials = rptindx;
-
+    %     cfg.trials = rptindx;
+    
     return
-  end    
- 
+  end
+  
 else
   rptindx = nan;
   rptdim = nan;
 end % if isfield cfg.trials
 
 end % function getselection_rpt
+
+function [posindx, cfg] = getselection_pos(cfg, data)
+% possible specifications are <none>
+posindx = 1:size(data.pos,1);
+end % function getselection_pos
 
 function ok = isequalwithoutnans(a, b)
 % this is *only* used to compare matrix sizes, so we can ignore any
@@ -619,7 +684,7 @@ if numdiff > 0
   b = b(:);
 elseif numdiff < 0
   % assume singleton dimensions missing in b
-  b = [b(:); ones(abs(numdiff), 1)];  
+  b = [b(:); ones(abs(numdiff), 1)];
   a = a(:);
 end
 

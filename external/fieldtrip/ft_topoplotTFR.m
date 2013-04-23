@@ -163,9 +163,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $
+% $Id: ft_topoplotTFR.m 7667 2013-03-15 08:06:15Z eelspa $
 
-revision = '$Id: ft_topoplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $';
+revision = '$Id: ft_topoplotTFR.m 7667 2013-03-15 08:06:15Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -200,9 +200,15 @@ ft_postamble previous varargin
 
 % add a menu to the figure
 % ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
-ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+if isempty(strfind(get(gcf, 'Tag'), 'ft-menushowing'))
+  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+  
+  % mark the figure so that we don't add multiple menus to the same (in the
+  % case of subplots)
+  set(gcf, 'Tag', [get(gcf, 'Tag') ',ft-menushowing']);
+end
 
 if ~nargout
   clear cfg

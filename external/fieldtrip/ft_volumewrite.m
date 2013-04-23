@@ -79,9 +79,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 7398 2013-01-23 15:50:59Z jorhor $
+% $Id: ft_volumewrite.m 7676 2013-03-16 14:55:44Z roboos $
 
-revision = '$Id: ft_volumewrite.m 7398 2013-01-23 15:50:59Z jorhor $';
+revision = '$Id: ft_volumewrite.m 7676 2013-03-16 14:55:44Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -198,8 +198,8 @@ if strcmp(cfg.scaling, 'yes')
       data = int16((2^15-1) * data./maxval);
     case 'int32'
       data = int32((2^31-1) * data./maxval);
-    case 'float'
-      data = float(data ./ maxval);
+    case {'single' 'float'}
+      data = single(data ./ maxval);
     case 'double'
       data = double(data ./ maxval);
     otherwise

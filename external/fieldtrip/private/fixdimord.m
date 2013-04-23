@@ -43,7 +43,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fixdimord.m 7764 2013-04-04 12:25:47Z roboos $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -103,6 +103,10 @@ if strcmp(data.dimord, 'voxel')
 end
 
 dimtok = tokenize(data.dimord, '_');
+if strncmp('{pos_pos}', data.dimord, 9)
+  % keep these together for bivariate source structures
+  dimtok = {'{pos_pos}', dimtok{3:end}};
+end
 
 for i=1:length(dimtok)
   switch dimtok{i}
@@ -147,6 +151,9 @@ for i=1:length(dimtok)
     case {'{pos}'}
       % this is for source data on a 3-d grid, a cortical sheet, or unstructured positions
       % the data itself is represented in a cell-array, e.g. source.mom or source.leadfield
+
+    case {'{pos_pos}'}
+      % this is for bivariate source data on a 3-d grid, a cortical sheet, or unstructured positions
       
     otherwise
       error(sprintf('unexpected dimord "%s"', data.dimord));

@@ -37,7 +37,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_padding.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_padding.m 7923 2013-04-17 13:50:46Z roboos $
 
 if nargin < 4
   postpadlength = prepadlength;
@@ -76,7 +76,7 @@ switch(padtype)
     % postdata padding
     begsample = 1;
     endsample = 0;
-    while padlength > begsample % this will be a linear piecewise function consisting of two pieces taking turns
+    while postpadlength > begsample % this will be a linear piecewise function consisting of two pieces taking turns
       endsample                                 = begsample + min(postpadlength-endsample, nsamples-1);
       padend(begsample:endsample-1)             = fliplr(mod(0:(endsample-begsample-1), nsamples)+nsamples-endsample+begsample);
       begsample = endsample-1;

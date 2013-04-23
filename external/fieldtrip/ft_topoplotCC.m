@@ -54,9 +54,9 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_topoplotCC.m 7604 2013-03-07 16:32:00Z jansch $
 
-revision = '$Id: ft_topoplotCC.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_topoplotCC.m 7604 2013-03-07 16:32:00Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -106,7 +106,7 @@ else
 end
 
 if isfield(freq, cfg.colorparam)
-  colorparam = freq.(cfg.colorparam)(:,:,fbin);
+  colorparam = freq.(cfg.colorparam)(:,fbin);
 else
   colorparam = [];
 end

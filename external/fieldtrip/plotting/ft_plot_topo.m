@@ -45,7 +45,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 7455 2013-02-07 21:27:33Z ingnie $
+% $Id: ft_plot_topo.m 7637 2013-03-12 00:10:08Z ingnie $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -191,7 +191,7 @@ end
 if ~isempty(datmask)
   xi           = linspace(hlim(1), hlim(2), gridscale);   % x-axis for interpolation (row vector)
   yi           = linspace(vlim(1), vlim(2), gridscale);   % y-axis for interpolation (row vector)
-  maskimagetmp = griddata(chanX', chanY, datmask, xi', yi, 'nearest'); % interpolate the mask data
+  maskimagetmp = griddata(chanX', chanY, double(datmask), xi', yi, 'nearest'); % interpolate the mask data
   if isempty(maskimage)
     maskimage = maskimagetmp;
   else
@@ -206,6 +206,11 @@ if flagNaN && strcmp(interpmethod,'v4')
   chanX(NaNind) = [];
   chanY(NaNind) = [];
 end
+
+% convert chanX, chanY and dat to double
+dat = double(dat);
+chanX = double(chanX);
+chanY = double(chanY);
 
 %interpolate data
 xi         = linspace(hlim(1), hlim(2), gridscale);       % x-axis for interpolation (row vector)

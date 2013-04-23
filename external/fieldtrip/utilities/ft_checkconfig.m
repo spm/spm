@@ -61,7 +61,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 7406 2013-01-25 11:43:01Z jansch $
+% $Id: ft_checkconfig.m 7813 2013-04-15 13:34:30Z roboos $
 
 global ft_default
 
@@ -384,7 +384,7 @@ if ~isempty(createsubcfg)
           'fixedori'
           };
         
-      case {'loreta', 'rv'}
+      case {'rv'}
         fieldname = {
           'feedback'
           'lambda'

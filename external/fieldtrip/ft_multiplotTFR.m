@@ -28,7 +28,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.channel          = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel       = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline         = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
-%   cfg.baselinetype     = 'absolute', 'relative' or 'relchange' (default = 'absolute')
+%   cfg.baselinetype     = 'absolute', 'relative', 'relchange' or 'db' (default = 'absolute')
 %   cfg.trials           = 'all' or a selection given as a 1xN vector (default = 'all')
 %   cfg.box              = 'yes', 'no' (default = 'no' if maskparameter given default = 'yes')
 %                          Draw a box around each graph
@@ -124,9 +124,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $
+% $Id: ft_multiplotTFR.m 7760 2013-04-03 13:39:36Z jorhor $
 
-revision = '$Id: ft_multiplotTFR.m 7509 2013-02-20 15:04:06Z eelspa $';
+revision = '$Id: ft_multiplotTFR.m 7760 2013-04-03 13:39:36Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -172,7 +172,6 @@ cfg.masknans       = ft_getopt(cfg, 'masknans',        'yes');
 cfg.maskparameter  = ft_getopt(cfg, 'maskparameter',   []);
 cfg.maskstyle      = ft_getopt(cfg, 'maskstyle',       'opacity');
 cfg.directionality = ft_getopt(cfg, 'directionality',  '');
-cfg.channel        = ft_getopt(cfg, 'channel',         'all');
 cfg.figurename     = ft_getopt(cfg, 'figurename',      []);
 if ~isfield(cfg,'box')             
   if ~isempty(cfg.maskparameter)
@@ -246,7 +245,7 @@ if hasrpt,
 end % if hasrpt
 
 % Read or create the layout that will be used for plotting:
-clf; 
+cla; 
 hold on
 lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
@@ -504,7 +503,7 @@ end
 % set colormap
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('multiplotTFR(): Colormap must be a n x 3 matrix'); end
-  set(gcf,'colormap',cfg.colormap);
+  set(gca,'colormap',cfg.colormap);
 end;
 
 % Plot channels:

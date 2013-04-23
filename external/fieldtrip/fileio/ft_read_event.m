@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 7350 2013-01-18 05:03:58Z josdie $
+% $Id: ft_read_event.m 7688 2013-03-18 11:48:14Z jansch $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -176,10 +176,10 @@ switch eventformat
     
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
-    if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && strcmp(hdr.orig.config_data.site_name, 'Glasgow'),
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',1, 'dataformat', '4d');
+    if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && (strcmp(hdr.orig.config_data.site_name, 'Glasgow') || strcmp(hdr.orig.config_data.site_name, 'Marseille')),
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4d8192',1, 'dataformat', '4d');
     else
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4dglasgow',0, 'dataformat', '4d');
+      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4d8192',0, 'dataformat', '4d');
     end
     event   = appendevent(event, trigger);
     
@@ -1183,7 +1183,6 @@ switch eventformat
       error('Support for epoched *.fif data is not yet implemented.')
     end
     
-    
   case {'neuralynx_ttl' 'neuralynx_bin' 'neuralynx_dma' 'neuralynx_sdma'}
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -1325,6 +1324,30 @@ switch eventformat
       event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'duration', duration, 'offset', offset, 'number', number);
     end
     
+  case {'neuralynx_nev'}
+    % instead of the directory containing the combination of nev and ncs files, the nev file was specified
+    % do NOT read the header of the dataset
+
+    % read the events, apply filter is applicable
+    nev = read_neuralynx_nev(filename, 'type', flt_type, 'value', flt_value, 'mintimestamp', flt_mintimestamp, 'maxtimestamp', flt_maxtimestamp, 'minnumber', flt_minnumber, 'maxnumber', flt_maxnumber);
+    
+    % the following code should only be executed if there are events,
+    % otherwise there will be an error subtracting an uint64 from an []
+    if ~isempty(nev)
+      % now get the values as cell array, since the struct function can work with those
+      value     = {nev.TTLValue};
+      timestamp = {nev.TimeStamp};
+      number    = {nev.EventNumber};
+      type      = repmat({'trigger'},size(value));
+      duration  = repmat({[]},size(value));
+      offset    = repmat({[]},size(value));
+      % since the ncs files are not specified, there is no mapping between lfp samples and timestamps
+      sample    = repmat({nan}, size(value)); 
+      % convert it into a structure array
+      event = struct('type', type, 'value', value, 'sample', sample, 'timestamp', timestamp, 'duration', duration, 'offset', offset, 'number', number);
+    end
+    
+  
   case 'neuralynx_cds'
     % this is a combined Neuralynx dataset with seperate subdirectories for the LFP, MUA and spike channels
     dirlist   = dir(filename);
@@ -1592,10 +1615,11 @@ end
 if ~isempty(event)
   % sort the events on the sample on which they occur
   % this has the side effect that events without a sample number are discarded
-  [dum, indx] = sort([event.sample]);
-  event = event(indx);
-  % else
-  %   warning('no events found in %s', filename);
+  sample = [event.sample];
+  if ~all(isnan(sample))
+    [dum, indx] = sort(sample);
+    event = event(indx);
+  end
 end
 
 % apply the optional filters
