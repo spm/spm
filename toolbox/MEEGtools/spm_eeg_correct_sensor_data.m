@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 3602 2009-11-30 13:38:48Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 5434 2013-04-23 13:40:48Z vladimir $
 
-SVNrev = '$Rev: 3602 $';
+SVNrev = '$Rev: 5434 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -90,7 +90,7 @@ for i = 1:numel(A)
     end
     
     if isequal(lower(S.correction), 'berg')
-        [ok, D] = check(D, 'sensfid');
+        [D, ok] = check(D, 'sensfid');
         
         if ~ok
             if check(D, 'basic')
@@ -142,7 +142,7 @@ for i = 1:numel(A)
     S1   = [];
     S1.D = D;
     S1.montage = montage;
-    S1.keepothers = 'yes';
+    S1.keepothers = 1;
     S1.updatehistory  = 0;
     
     Dnew = spm_eeg_montage(S1); 
@@ -171,7 +171,7 @@ montage.tra = tra(sel2, :);
 S1   = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 'no';
+S1.keepothers = 0;
 S1.updatehistory  = 0;
 
 Dnew = spm_eeg_montage(S1);
