@@ -3,7 +3,7 @@ function fmri_est = spm_cfg_fmri_est
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 3753 2010-03-05 13:06:47Z guillaume $
+% $Id: spm_cfg_fmri_est.m 5445 2013-04-24 16:45:54Z will $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -109,7 +109,12 @@ LogEv         = cfg_menu;
 LogEv.tag     = 'LogEv';
 LogEv.name    = 'Log evidence map';
 LogEv.val     = {'No'};
-LogEv.help    = {'Computes the log evidence for each voxel'};
+LogEv.help    = {
+                'Computes the log evidence for each voxel. When comparing models that differ, for example, just in their'
+                'parametric modulation columns, it is important that these columns should be identically scaled.'
+                'That is, they should have the same variance. If you just wish to compare models over a local region'
+                'it may be better to use the command line option spm_vb_regionF.m. This latter function automatically scales'
+                'design matrix columns (except for the mean) to have unit variance'};
 LogEv.labels  = {'No','Yes'}';
 LogEv.values  = {'No','Yes'}';
 % ---------------------------------------------------------------------

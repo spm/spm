@@ -77,15 +77,15 @@ Institute of Neurology, UCL\\
 \vspace{10mm}
 
 %\section*{Welcome to SPM12b}
-This is SPM12b, the beta version of the next major release of SPM\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm12/}}. 
-Public updates are taking place frequently until the final release (see spm\_update.m). 
-We are always interested to hear feedbacks and comments from SPM users - please contact us at \href{mailto:fil.spm@ucl.ac.uk}{fil.spm@ucl.ac.uk}. 
-If you happen to find any bug, please report them at the same email address. Thank you! 
+This is SPM12b, the beta version of the next major release of SPM\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm12/}}.
+Public updates are taking place frequently until the final release (see spm\_update.m).
+We are always interested to hear feedbacks and comments from SPM users - please contact us at \href{mailto:fil.spm@ucl.ac.uk}{fil.spm@ucl.ac.uk}.
+If you happen to find any bug, please report them at the same email address. Thank you!
 
 
 SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file LICENCE.txt, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}. \\
 SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of Neurology at University College London (UCL), UK.
- 
+
 %Copyright (C) 1991,1994-2013 Wellcome Trust Centre for Neuroimaging.
 
 \vspace{10mm}
@@ -122,6 +122,20 @@ However, the cleanup step (re-introduced from the old segmentation routine, and 
 
 \section{fMRI Statistics}
 
+\subsection{Canonical Variates Analysis}
+
+SPM's Canonical Variates Analysis (CVA) function, \verb!spm_cva.m!, has been updated so that it also computes Log Bayes Factors to make inferences about the number of significantly non-zero canonical vectors. It computes AIC and BIC approximations to these Log Bayes Factors. These quantities can be used in second-level analysis to make inferences about a group of subjects/sessions using the SPM's random effects model selection tool (\verb!spm_BMS.m!). 
+
+\subsection{Regional Bayesian model comparison - first level}
+
+The function \verb!spm_vb_regionF.m! now provides approximation of the log model evidence for a first level fMRI model. If you call this function multiple times with different design matrices it will allow you to implement Bayesian model comparison. This is useful for example for comparing non-nested GLMs with, for example, different (sets of) parametric modulators. The approach can be applied to first level fMRI data from a local region. This is the recommended method for Bayesian comparison of General Linear Models of first level fMRI data.
+
+\subsection{Interactive Bayesian model comparison - second level}
+
+Multidimensional (or two-sided) inferences about GLM parameters 
+ are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
+This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG) .
+
 \section{EEG/MEG}
 
 \subsection{@meeg object}
@@ -133,23 +147,23 @@ The following @meeg methods have been removed to simplify and rationalise the ob
 \item 'reject' - replaced with 'badtrials'
 \end{itemize}
 
-It is now possible to have @meeg objects without a linked data file. This was useful to simplify the conversion code. Also in 'Prepare' one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion). 
+It is now possible to have @meeg objects without a linked data file. This was useful to simplify the conversion code. Also in 'Prepare' one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion).
 
 
 \subsection{Preprocessing}
 
-The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the 'Prepare' tool under 'Batch inputs' menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch. 
+The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the 'Prepare' tool under 'Batch inputs' menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch.
 
-It is still also possible to call the preprocessing function via scripts and scripts can be generated using History2script functionality as in SPM8. The inputs structures and parameters names of preprocessing function have been standardised so that e.g. time window is always called S.timewin and units of peristimulus time are always ms. Also substructures of S have been removed except for where they are functionally essential. 
+It is still also possible to call the preprocessing function via scripts and scripts can be generated using History2script functionality as in SPM8. The inputs structures and parameters names of preprocessing function have been standardised so that e.g. time window is always called S.timewin and units of peristimulus time are always ms. Also substructures of S have been removed except for where they are functionally essential.
 
-Simple GUI functionality for converting a variable in the workspace into SPM M/EEG dataset was added to 'Prepare' (File/Import from workspace). 
+Simple GUI functionality for converting a variable in the workspace into SPM M/EEG dataset was added to 'Prepare' (File/Import from workspace).
 
-For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling. 
+For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling.
 
 Conversion to images was completely rewritten. It is now possible to easily create 1D images and average across any set of dimensions to reduce the number of multiple comparisons.
 
 \subsection{Convolution modelling}
-An implementation of recently published (Litvak et al. 2012) convolution modelling method for M/EEG power has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool. 
+An implementation of recently published (Litvak et al. 2012) convolution modelling method for M/EEG power has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool.
 
 
 \subsection{DCM}
@@ -186,7 +200,7 @@ The eventual plan will be to replace Dartel with this toolbox, although more wor
 SPM12 incorporates a new longitudinal registration approach \cite{ashburner2013symmetric}, which replaces the old ``high-dimensional warping'' toolbox.
 It essentially now involves a group-wise intra-subject modeling framework, which combines diffeomorphic \cite{ashburner2011diffeomorphic} and rigid-body registration, incorporating a correction for the intensity inhomogeneity artifact usually seen in MRI data.
 Recently, systematic bias in longitudinal image registration has become a more notable issue.
-The aim of this toolbox is to estimate volume changes that do not depend on whether the first time point is aligned to the second, or vice verca. 
+The aim of this toolbox is to estimate volume changes that do not depend on whether the first time point is aligned to the second, or vice verca.
 
 \subsection{Old Segment}
 The default segmentation approach in SPM12 is now based on what was known as ``New Segment'' in SPM8.
