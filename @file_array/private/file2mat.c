@@ -1,5 +1,5 @@
 /*
- * $Id: file2mat.c 4809 2012-07-30 14:55:59Z guillaume $
+ * $Id: file2mat.c 5446 2013-04-24 16:56:51Z guillaume $
  * John Ashburner
  */
 

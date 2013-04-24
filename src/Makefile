@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2012 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 4923 2012-09-13 15:01:01Z guillaume $
+# $Id: Makefile 5446 2013-04-24 16:56:51Z guillaume $
 #
 ###############################################################################
 #
@@ -49,12 +49,13 @@ SPMMEX  =\
 	spm_unlink.$(SUF) spm_existfile.$(SUF) spm_gamrnd.$(SUF)\
 	spm_hist.$(SUF) spm_krutil.$(SUF) spm_project.$(SUF) spm_hist2.$(SUF)\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
-	mat2file.$(SUF) file2mat.$(SUF) spm_voronoi.$(SUF)\
-	spm_mesh_utils.$(SUF) spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF)
+	spm_voronoi.$(SUF) spm_mesh_utils.$(SUF) \
+	spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF)
 
 SUBDIRS =\
-	toolbox/FieldMap \
-	@xmltree/private
+	@file_array/private \
+	@xmltree/private \
+	toolbox/FieldMap
 
 ###############################################################################
 # The main ways to run make
@@ -75,7 +76,6 @@ archive: spm_vol_utils.$(SUF).a
 
 install: verb.install $(SPMMEX)
 	$(COPY) $(SPMMEX) ..
-	$(MOVE) ../file2mat.$(SUF) ../mat2file.$(SUF) ../@file_array/private
 	$(MOVE) ../spm_brainwarp.$(SUF) ../toolbox/OldNorm
 
 toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
@@ -234,12 +234,6 @@ spm_sample_vol.$(SUF): spm_sample_vol.c spm_vol_utils.$(SUF).a\
 spm_slice_vol.$(SUF): spm_slice_vol.c  spm_vol_utils.$(SUF).a\
 		spm_mapping.h spm_vol_access.h
 	$(MEX) spm_slice_vol.c  spm_vol_utils.$(SUF).a $(MEXEND)
-
-file2mat.$(SUF): file2mat.c
-	$(MEX) file2mat.c $(MEXEND)
-
-mat2file.$(SUF): mat2file.c
-	$(MEX) mat2file.c $(MEXEND)
 
 spm_bsplins.$(SUF): spm_bsplins.c bsplines.c bsplines.h
 	$(MEX) spm_bsplins.c bsplines.c $(MEXEND)

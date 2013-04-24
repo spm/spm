@@ -1,5 +1,5 @@
 /*
- * $Id: mat2file.c 4839 2012-08-14 18:53:20Z john $
+ * $Id: mat2file.c 5446 2013-04-24 16:56:51Z guillaume $
  * John Ashburner
  */
 
@@ -26,6 +26,7 @@
 #define fseeko fseeko64
 #endif
 #endif
+#define snprintf _snprintf
 #endif
 
 #define MXDIMS 256
@@ -287,8 +288,10 @@ void open_file(const mxArray *ptr, FTYPE *map)
             map->fp = fopen(buf,"wb");
             if (map->fp == (FILE *)0)
             {
+                char s[512];
+                (void)snprintf(s,sizeof(s),"Can't open file for writing:\n\t%s\nCheck for write permission or whether the directory exists.", buf);
                 mxFree(buf);
-                mexErrMsgTxt("Cant open file for writing (check for write permission or whether the directory exists).");
+                mexErrMsgTxt(s);
             }
         }
 
