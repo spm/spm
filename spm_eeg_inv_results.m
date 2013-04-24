@@ -14,7 +14,7 @@ function [D] = spm_eeg_inv_results(D)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_results.m 5367 2013-03-28 13:03:39Z guillaume $
+% $Id: spm_eeg_inv_results.m 5443 2013-04-24 15:16:07Z vladimir $
 
 
 %-MEEG data structure
@@ -133,7 +133,7 @@ for w = 1:Nw;
                 JW{iw} = sparse(0);
                 JWWJ   = sparse(0);
                 
-                c = D.pickconditions(trial{i});
+                c = D.indtrial(trial{i}, 'GOOD');
                 
                 % conditional expectation of contrast (J*W) and its energy
                 %----------------------------------------------------------
@@ -177,7 +177,7 @@ for w = 1:Nw;
                 JW{iw} = {};
                 JWWJ   = {};
                 
-                c = D.pickconditions(trial{i});
+                c = D.indtrial(trial{i}, 'GOOD');
                 
                 % conditional expectation of contrast (J*W) and its energy
                 %----------------------------------------------------------
