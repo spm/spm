@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 5238 2013-02-04 19:01:13Z vladimir $
+% $Id: spm_eeg_tf.m 5438 2013-04-24 10:38:47Z vladimir $
 
-SVNrev = '$Rev: 5238 $';
+SVNrev = '$Rev: 5438 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -101,10 +101,11 @@ if ~isequal(D.type, 'continuous')
     else Ibar = 1:D.ntrials; end
     
     for k = 1:D.ntrials
+        spm_progress_bar('Set','ylabel','reading and computing...');
         trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind, timeind, k), D.time(timeind));
         
         if k == 1
-            
+            spm_progress_bar('Set','ylabel','initialising output...');
             if isfield(trial, 'fourier')
                 outdata = trial.fourier;
             else
@@ -141,6 +142,7 @@ if ~isequal(D.type, 'continuous')
             
         end
         
+        spm_progress_bar('Set','ylabel','writing...');
         if isfield(trial, 'fourier')
             Dtf(:, :, :, k) = trial.fourier.*conj(trial.fourier);
             
@@ -167,10 +169,11 @@ else % by channel for continuous data
     else Ibar = 1:Nchannels; end
     
     for k = 1:Nchannels 
+        spm_progress_bar('Set','ylabel','reading and computing...');
         trial = feval(['spm_eeg_specest_' S.method], S1, D(chanind(k), timeind), D.time(timeind));
         
         if k == 1
-            
+            spm_progress_bar('Set','ylabel','initialising output...');
             if isfield(trial, 'fourier')
                 outdata = trial.fourier;
             else
@@ -209,6 +212,7 @@ else % by channel for continuous data
             end            
         end
         
+        spm_progress_bar('Set','ylabel','writing...');
         if isfield(trial, 'fourier')
             Dtf(k, :, :, 1) = trial.fourier.*conj(trial.fourier);
             

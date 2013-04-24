@@ -18,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 5061 2012-11-16 11:15:50Z vladimir $
+% $Id: spm_eeg_downsample.m 5438 2013-04-24 10:38:47Z vladimir $
 
-SVNrev = '$Rev: 5061 $';
+SVNrev = '$Rev: 5438 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -79,11 +79,13 @@ if strcmp(D.type, 'continuous')
     % now downsample blocks of channels
     chncnt=1;
     for blk=1:blknum
+        spm_progress_bar('Set','ylabel','reading...');
         % load old meeg object blockwise into workspace
         blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
         Dtemp=D(blkchan,:,1);
         chncnt=chncnt+blksz;
         
+        spm_progress_bar('Set','ylabel','writing...');
         if flag_tbx % Signal Proc. Toolbox
             Dnew(blkchan,:) = resample(Dtemp', P, Q)';
         else

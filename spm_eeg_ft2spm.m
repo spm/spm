@@ -5,7 +5,7 @@ function D = spm_eeg_ft2spm(ftdata, filename)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft2spm.m 5334 2013-03-19 13:22:04Z vladimir $
+% $Id: spm_eeg_ft2spm.m 5438 2013-04-24 10:38:47Z vladimir $
 
 isTF = 0;
 
@@ -105,27 +105,17 @@ fnamedat = [fname '.dat'];
 if ~isTF
     if Ntrials == 1
         datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nsamples], 'float32-le');
-        % physically initialise file
-        datafile(end,end) = 0;
         datafile(:, :) = data;
     else
         datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nsamples Ntrials], 'float32-le');
-        % physically initialise file
-        datafile(end,end) = 0;
-
         datafile(:, :, :) = data;
     end
 else
     if Ntrials == 1
         datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nfrequencies Nsamples], 'float32-le');
-        % physically initialise file
-        datafile(end,end) = 0;
         datafile(:, :, :) = data;
     else
         datafile = file_array(fullfile(D.path, fnamedat), [Nchannels Nfrequencies Nsamples Ntrials], 'float32-le');
-        % physically initialise file
-        datafile(end,end) = 0;
-
         datafile(:, :, :, :) = data;
     end    
     D.transform.ID = 'TF';

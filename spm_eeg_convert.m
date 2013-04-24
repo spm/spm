@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5403 2013-04-12 15:07:41Z vladimir $
+% $Id: spm_eeg_convert.m 5438 2013-04-24 10:38:47Z vladimir $
 
-SVNrev = '$Rev: 5403 $';
+SVNrev = '$Rev: 5438 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -399,7 +399,7 @@ if ~isequal(S.mode, 'header')
     end
     
     % physically initialise file
-    D.data(end,end) = 0;
+    initialise(D.data);
     
     spm_progress_bar('Init', ntrial, 'reading and converting'); drawnow;
     if ntrial > 100, Ibar = floor(linspace(1, ntrial,100));
@@ -409,6 +409,7 @@ if ~isequal(S.mode, 'header')
     
     offset = 1;
     for i = 1:ntrial
+        spm_progress_bar('Set','ylabel','reading...');
         if readbytrials
             dat = ft_read_data(S.dataset,'header',  hdr, 'begtrial', i, 'endtrial', i,...
                 'chanindx', chansel, 'chanunit', chanunit, 'checkboundary', S.checkboundary, 'dataformat', S.inputformat);
@@ -420,6 +421,7 @@ if ~isequal(S.mode, 'header')
         % Sometimes ft_read_data returns sparse output
         dat = full(dat);
         
+        spm_progress_bar('Set','ylabel','writing...');
         switch S.mode
             case 'continuous'
                 nblocksamples = size(dat,2);
