@@ -164,9 +164,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 7707 2013-03-26 14:23:46Z eelspa $
+% $Id: ft_sourceplot.m 8069 2013-04-23 21:20:19Z roboos $
 
-revision = '$Id: ft_sourceplot.m 7707 2013-03-26 14:23:46Z eelspa $';
+revision = '$Id: ft_sourceplot.m 8069 2013-04-23 21:20:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -786,7 +786,7 @@ if isequal(cfg.method,'ortho')
   fprintf('click and hold right mouse button to update the position while moving the mouse\n');
   fprintf('use the arrowkeys to navigate in the current axis\n');
     
-  if cfg.interactive
+  if istrue(cfg.interactive)
     fprintf('** INTERACTIVE MODE SPECIAL **\n');
     fprintf('press n/l/r on keyboard to record a fiducial position\n');
     fprintf('press q on keyboard to quit interactive mode\n');

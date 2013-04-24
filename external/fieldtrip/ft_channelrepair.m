@@ -65,9 +65,9 @@ function [data] = ft_channelrepair(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelrepair.m 7439 2013-02-05 09:09:03Z jorhor $
+% $Id: ft_channelrepair.m 8069 2013-04-23 21:20:19Z roboos $
 
-revision = '$Id: ft_channelrepair.m 7439 2013-02-05 09:09:03Z jorhor $';
+revision = '$Id: ft_channelrepair.m 8069 2013-04-23 21:20:19Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -276,8 +276,6 @@ if strcmp(cfg.method, 'nearest')
   
   
 elseif strcmp(cfg.method, 'spline') || strcmp(cfg.method, 'slap')
-  warning('make sure that your sensor coordinates are in spherical coordinates');
-  
   if ~isempty(cfg.badchannel) || ~isempty(cfg.missingchannel)
     fprintf('Spherical spline and surface Laplacian interpolation will treat bad and missing channels the same. Missing channels will be concatenated at the end of your data structure.\n');
   end

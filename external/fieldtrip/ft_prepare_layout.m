@@ -82,9 +82,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8059 2013-04-19 06:15:23Z jorhor $
+% $Id: ft_prepare_layout.m 8065 2013-04-23 15:30:55Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 8059 2013-04-19 06:15:23Z jorhor $';
+revision = '$Id: ft_prepare_layout.m 8065 2013-04-23 15:30:55Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -660,9 +660,12 @@ cfg.channel = ft_channelselection(cfg.channel, setdiff(layout.label, {'COMNT', '
 chansel = match_str(layout.label, cat(1, cfg.channel(:), 'COMNT', 'SCALE'));                % include COMNT and SCALE, keep all channels in the order of the layout
 % return the layout for the subset of channels
 layout.pos    = layout.pos(chansel,:);
-layout.width  = layout.width(chansel);
-layout.height = layout.height(chansel);
 layout.label  = layout.label(chansel);
+if ~strcmp(cfg.style, '3d')
+  % these don't exist for the 3D layout
+  layout.width  = layout.width(chansel);
+  layout.height = layout.height(chansel);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % apply the montage, i.e. combine bipolar channels into a new representation
