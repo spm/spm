@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5254 2013-02-18 18:54:51Z guillaume $
+% $Id: spm_mip_ui.m 5440 2013-04-24 13:03:03Z vladimir $
 
 
 %==========================================================================
@@ -685,12 +685,12 @@ switch lower(varargin{1}), case 'display'
 
             DIM = get(findobj('Tag','hFxyz'), 'UserData');
 
-            [mod, chanind] = spm_eeg_modality_ui(D, 1, 1);
-            otherind = setdiff(1:nchannels(D), chanind);
+            [mod, Cind] = spm_eeg_modality_ui(D, 1, 1);
+            otherind = setdiff(1:nchannels(D), Cind);
             if ~isempty(otherind)
                 D = chantype(D, otherind, 'Other');
             end
-            [Cel, Cind, x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), 1);
+            [Cel x, y] = spm_eeg_locate_channels(D, DIM.DIM(1), Cind);
             Cel = DIM.M * [Cel'; ones(2,size(Cel,1))];
             Cel = Cel(1:2,:)';
             pos = [Cel'; zeros(1,size(Cel,1))];
