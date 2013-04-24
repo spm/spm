@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 5333 2013-03-19 12:31:13Z vladimir $
+% $Id: spm_eeg_review.m 5439 2013-04-24 12:13:23Z vladimir $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -147,7 +147,7 @@ switch D.type
                     Events(i).type = num2str(Events(i).type);
                 end
             end
-            D = events(D,1,Events);
+            %D = events(D,1,Events);
         end
         D.PSD.VIZU.type = 1;
         
