@@ -24,6 +24,9 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % CVA.df       - d.f.
 % CVA.p        - p-values
 %
+% CVA.bic      - Bayesian Information Criterion 
+% CVA.aic      - Akaike Information Criterion
+%
 %__________________________________________________________________________
 % 
 % CVA uses the generalised eigenvalue solution to the treatment and
@@ -39,6 +42,11 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % for the canonical values are used after the data (and design matrix) have
 % been whitened; using the appropriate ReML estimate of non-sphericity.
 % 
+% This function also computes the LogBayesFactor for testing the hypothesis
+% that the latent dimension (number of sig. canonical vectors) is i versus zero.
+% Two approximations are given: CVA.bic(i) and CVA.aic(i). 
+% These LogBFs can then be used for group inference - see Jafarpour et al.
+%              
 % References:
 % 
 % Characterizing dynamic brain responses with fMRI: a multivariate
@@ -49,11 +57,14 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % KJ, Stephan KM, Heather JD, Frith CD, Ioannides AA, Liu LC, Rugg MD,
 % Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;
 % 3(3):167-174.
+%
+% Population level inference for multivariate MEG analysis. Jafarpour et
+% al. (2013)
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5408 2013-04-12 19:03:58Z karl $
+% $Id: spm_cva.m 5444 2013-04-24 15:20:17Z will $
 
 
 if nargin < 3, X0 = [];             end
@@ -128,6 +139,11 @@ for i = 1:h
     df(i)  = (m - i + 1)*(b - i + 1);
     p(i)   = 1 - spm_Xcdf(chi(i),df(i));
     r(i)   = sqrt(cval(i) / (1 + cval(i)));
+    
+    % BIC/AIC
+    k = i*(m+b);
+    bic(i) = 0.5*n*sum(log(cval(1:i) + 1))-0.5*k*log(n);
+    aic(i) = 0.5*n*sum(log(cval(1:i) + 1))-k;
 end
 
 %-Prevent overflow
@@ -153,3 +169,6 @@ CVA.r      = r;                    % canonical correlations
 CVA.chi    = chi;                  % Chi-squared statistics testing D >= i
 CVA.df     = df;                   % d.f.
 CVA.p      = p;                    % p-values
+
+CVA.bic    = bic;                  % LogBF from Bayesian Information Criterion
+CVA.aic    = aic;                  % LogBF from Akaike Information Criterion
