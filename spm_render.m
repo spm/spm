@@ -30,12 +30,12 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %__________________________________________________________________________
-% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 4920 2012-09-13 10:25:07Z guillaume $
+% $Id: spm_render.m 5449 2013-04-25 15:51:04Z guillaume $
 
-SVNrev = '$Rev: 4920 $';
+SVNrev = '$Rev: 5449 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -44,18 +44,58 @@ end
 
 %-Parse arguments, get data if not passed as parameters
 %==========================================================================
-if nargin < 1
+
+%-Get surface
+%--------------------------------------------------------------------------
+if nargin < 3 || isempty(prevrend.rendfile)
     spm('FnBanner',mfilename,SVNrev);
+    [rendfile, sts] = spm_select(1,{'mat','mesh'},'Render file');
+    if ~sts, return; end
+end
+prevrend.rendfile = rendfile;
+
+ext = spm_file(rendfile,'ext');
+loadgifti = false;
+if strcmpi(ext,'mat')
+    load(rendfile);
+    if ~exist('rend','var') && ~exist('Matrixes','var')
+        loadgifti = true;
+    end
+end
+if ~strcmpi(ext,'mat') || loadgifti
+    try
+        rend = gifti(rendfile);
+    catch
+        error('Cannot read  render file "%s".\n', rendfile);
+    end
+    if ~isfield(rend,'vertices')
+        try
+            M = rend;
+            rend = gifti(rend.private.metadata(1).value);
+            try, rend.cdata = M.cdata(); end
+        catch
+            error('Cannot find a surface mesh to be displayed.');
+        end
+    end
+    rend = export(rend,'patch');
+end
+    
+%-Get data
+%--------------------------------------------------------------------------
+if isfield(rend,'facevertexcdata')
+    dat = rend.facevertexcdata;
+    num = 1;
+elseif nargin < 1
     spm('FigName','Results: render');
 
     num   = spm_input('Number of sets',1,'1 set|2 sets|3 sets',[1 2 3],1);
 
     for i = 1:num
         [SPM,xSPM] = spm_getSPM;
-        dat(i)    = struct( 'XYZ',  xSPM.XYZ,...
-                    't',    xSPM.Z',...
-                    'mat',  xSPM.M,...
-                    'dim',  xSPM.DIM);
+        dat(i) = struct('XYZ', xSPM.XYZ,...
+                        't',   xSPM.Z',...
+                        'mat', xSPM.M,...
+                        'dim', xSPM.DIM);
     end
     showbar = 1;
 else
@@ -63,28 +103,9 @@ else
     showbar = 0;
 end
 
-%-Get surface
+%-Get brightness & colours (mesh)
 %--------------------------------------------------------------------------
-if nargin < 3 || isempty(prevrend.rendfile)
-    [rendfile, sts] = spm_select(1,{'mat','mesh'},'Render file');
-    if ~sts, return; end
-end
-prevrend.rendfile = rendfile;
-
-[p,f,e] = fileparts(rendfile);
-loadgifti = false;
-if strcmpi(e,'.mat')
-    load(rendfile);
-    if ~exist('rend','var') && ~exist('Matrixes','var')
-        loadgifti = true;
-    end
-end
-if ~strcmpi(e,'.mat') || loadgifti
-    try
-        rend = export(gifti(rendfile),'patch');
-    catch
-        error('\nCannot read  render file "%s".\n', rendfile);
-    end
+if isfield(rend,'vertices')
     if num == 1
         col = hot(256);
     else
@@ -99,7 +120,7 @@ if ~strcmpi(e,'.mat') || loadgifti
     return
 end
 
-%-Get brightness & colours
+%-Get brightness & colours (image)
 %--------------------------------------------------------------------------
 if nargin < 2  || isempty(prevrend.brt)
     brt = 1;
@@ -134,22 +155,12 @@ prevrend.col = col;
 %==========================================================================
 spm('Pointer','Watch');
 
-if ~exist('rend','var') % Assume old format...
-    rend = cell(size(Matrixes,1),1);
-    for i=1:size(Matrixes,1),
-        rend{i}=struct('M',eval(Matrixes(i,:)),...
-            'ren',eval(Rens(i,:)),...
-            'dep',eval(Depths(i,:)));
-        rend{i}.ren = rend{i}.ren/max(max(rend{i}.ren));
-    end
-end
-
 if showbar, spm_progress_bar('Init', size(dat,1)*length(rend),...
             'Formatting Renderings', 'Number completed'); end
-for i=1:length(rend),
+for i=1:length(rend)
     rend{i}.max=0;
     rend{i}.data = cell(size(dat,1),1);
-    if issparse(rend{i}.ren),
+    if issparse(rend{i}.ren)
         % Assume that images have been DCT compressed
         % - the SPM99 distribution was originally too big.
         d = size(rend{i}.ren);
@@ -172,13 +183,13 @@ if showbar, spm_progress_bar('Init', length(dat)*length(rend),...
 mx = zeros(length(rend),1)+eps;
 mn = zeros(length(rend),1);
 
-for j=1:length(dat),
+for j=1:length(dat)
     XYZ = dat(j).XYZ;
     t   = dat(j).t;
     dim = dat(j).dim;
     mat = dat(j).mat;
 
-    for i=1:length(rend),
+    for i=1:length(rend)
 
         % transform from Talairach space to space of the rendered image
         %------------------------------------------------------------------
@@ -207,7 +218,7 @@ for j=1:length(dat),
             msk = [];
         end
         
-        if ~isempty(msk),
+        if ~isempty(msk)
 
             % Generate an image of the integral of the blob values.
             %--------------------------------------------------------------
@@ -254,7 +265,7 @@ ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible
 image(0,'Parent',ax);
 set(ax,'YTick',[],'XTick',[]);
 
-if ~isfinite(brt),
+if ~isfinite(brt)
     % Old style split colourmap display.
     %----------------------------------------------------------------------
     load Split;
@@ -276,10 +287,10 @@ else
     % Combine the brain surface renderings with the blobs, and display using
     % 24 bit colour.
     %----------------------------------------------------------------------
-    for i=1:length(rend),
+    for i=1:length(rend)
         ren = rend{i}.ren;
         X = cell(3,1);
-        for j=1:length(rend{i}.data),
+        for j=1:length(rend{i}.data)
             X{j} = rend{i}.data{j}/(mxmx-mnmn)-mnmn;
         end
         for j=(length(rend{i}.data)+1):3
@@ -373,9 +384,9 @@ switch lower(varargin{1})
     
     varargout = {hs};
     
-    %=======================================================================
+    %======================================================================
     case 'setcoords'    % Set co-ordinates
-    %=======================================================================
+    %======================================================================
     % [xyz,d] = mydispcursor('SetCoords',xyz,hMe,hC)
     hMe  = varargin{3};
     pxyz = get(hMe,'UserData');
@@ -388,9 +399,9 @@ switch lower(varargin{1})
     
     varargout = {xyz,[]};
     
-    %=======================================================================
+    %======================================================================
     otherwise
-    %=======================================================================
+    %======================================================================
     error('Unknown action string')
 
 end
