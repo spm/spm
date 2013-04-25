@@ -2,13 +2,13 @@ function spm_dcm_graph(xY,A)
 % Region and anatomical graph display
 % FORMAT spm_dcm_graph(xY,[A])
 % xY    - cell of region structures (see spm_regions) (fMRI)
-%       - or ECD locations xY.Lpos and xY.Sname (EEG)
+%         or ECD locations xY.Lpos and xY.Sname (EEG)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_graph.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_dcm_graph.m 5448 2013-04-25 11:08:52Z guillaume $
 
  
 % get dimensions, locations and names
@@ -38,7 +38,7 @@ col   = {'b','g','r','c','m','y','k','w'};
 m     = size(L,2);
 
 
-% Render graph in anatomical space
+%-Render graph in anatomical space
 %==========================================================================
 subplot(2,1,1); cla
 set(gca,'position',[0 .5 1 .5])
@@ -82,7 +82,7 @@ for i = 1:length(A)
             
             % associate colour with the strongest influence
             %--------------------------------------------------------------
-            if abs(A(i,j)) > abs(A(j,i)), c = j; else, c = i; end
+            if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
             k   = rem(c - 1,length(col)) + 1;
             line(L(1,[i j]),L(2,[i j]),L(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
@@ -92,9 +92,9 @@ for i = 1:length(A)
 end
 
 
-% Render graph in functional space
+%-Render graph in functional space
 %==========================================================================
-if length(A) < 3, return, end
+if length(A) < 3, return; end
  
 % Multidimensional scaling (with the Weighted Graph Laplacian)
 %--------------------------------------------------------------------------
@@ -102,7 +102,7 @@ D      = diag(sum(W));
 G      = D - W;
 [U,V]  = eig(full(spm_pinv(G)));
 U      = U*sqrt(V);
-[~,i]  = sort(-diag(V));
+[V,i]  = sort(-diag(V));
 U      = U(:,i(1:3))';
  
 % Procrustean transform to align with anatomy (not currently used)
@@ -119,7 +119,7 @@ U      = real(U*80/max(abs(U(:))));
 subplot(2,1,2);cla
 set(gca,'position',[0 0 1 .5])
 options.ParentAxes = gca;
-if m > 8; i = 8; else, i = 16; end
+if m > 8; i = 8; else i = 16; end
 g     = spm_eeg_displayECD(U,[],i,name,options);
 delete(g.handles.mesh)
 delete(findobj(get(gcf,'Children'),'Type','uicontrol'))
@@ -135,7 +135,7 @@ for i = 1:m
             
             % associate colour with the strongest influence
             %--------------------------------------------------------------
-            if abs(A(i,j)) > abs(A(j,i)), c = j; else, c = i; end
+            if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
             k   = rem(c - 1,length(col)) + 1;
             line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
@@ -143,4 +143,3 @@ for i = 1:m
         end
     end
 end
-

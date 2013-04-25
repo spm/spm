@@ -14,7 +14,7 @@ function [S] = spm_ssm2s(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_ssm2s.m 5448 2013-04-25 11:08:52Z guillaume $
 
 
 % Steady state solution
@@ -78,7 +78,7 @@ end
 
 % principal eigenmodes (highest imaginary value)
 %--------------------------------------------------------------------------
-[~,i]  = sort(imag(s),'descend');
+[q,i]  = sort(imag(s),'descend');
 u      = u(:,i);
 s      = s(i);
 
@@ -86,7 +86,7 @@ s      = s(i);
 %--------------------------------------------------------------------------
 j      = find(~imag(s));
 
-[~,i]  = sort(real(s(j)),'descend');
+[r,i]  = sort(real(s(j)),'descend');
 u(:,j) = u(:,j(i));
 s(j)   = s(j(i));
 

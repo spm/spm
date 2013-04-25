@@ -17,7 +17,7 @@ pst = DCM.xY.pst;
 
 T0     = speye(Ns) - X0*((X0'*X0)\X0');
 
-[~, s]  = spm_cond_units(DCM.xY.xy,1);
+[dummy, s] = spm_cond_units(DCM.xY.xy,1);
 % neuronal and sensor responses (x and y)
 %--------------------------------------------------------------------------
 x0  = ones(Ns,1)*spm_vec(M.x)';      % expansion point for states
