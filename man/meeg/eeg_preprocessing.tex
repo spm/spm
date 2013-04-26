@@ -2,7 +2,7 @@
 
 In this chapter we will describe the function and syntax of all SPM/MEEG preprocessing and display functions. This will be the most detailed description of the functions in this manual. Our goal is to provide a comprehensive description of how the software can be used to preprocess M/EEG data up to the point where one would use one of the source reconstruction techniques or statistical analysis of M/EEG channel data.
 
-These functions can be called either from the \matlab\ command line and scripts, or via the batch input system. The batch input system is designed for repetitive analyses of data (eg. from multiple subjects) . Once the user becomes familiar with the batch tools necessary for their analysis it is very easy to chain them using batch dependencies and run them as one pipeline. The principles of  using the batch tool are described in \ref{Chap:batch}. The command line facilities are very useful for writing scripts, or using SPM's history-to-script functionality to generate scripts automatically. 
+These functions can be called either from the \matlab\ command line and scripts, or via the batch input system. The batch input system is designed for repetitive analyses of data (eg. from multiple subjects) . Once the user becomes familiar with the batch tools necessary for their analysis it is very easy to chain them using batch dependencies and run them as one pipeline. The principles of  using the batch tool are described in \ref{Chap:batch:tutorial}. The command line facilities are very useful for writing scripts, or using SPM's history-to-script functionality to generate scripts automatically. 
 
 For scripts  we follow the concept of providing only one input argument to each function. This input argument is usually a structure (struct) that contains all input arguments as fields. This approach has the advantage that the input does not need to follow a specific input argument order. For some arguments default values can be provided. When an obligatory argument is misisng, this will cause an error. 
 
@@ -423,7 +423,7 @@ SPM M/EEG \textsc{Review} makes use of sub tabs for any source reconstruction th
 Although all functions can be called by the GUI, using only the GUI for preprocessing multi-subject data is a cumbersome and error-prone affair. For this reason, we included functions in SPM8 which should make batching jobs feasible, with only a small amount of \matlab\ knowledge required. How would one batch a series of preprocessing steps in SPM8? There are two ways of doing this, the new batch system of SPM8, and generating scripts.
 
 \subsection{The new SPM8 batch system}
-This method uses the new SPM8 batch system described in chapter \ref{Chap:batch_interface}. Using this batch system, you can put together a series of processing steps by choosing options from menus, in any order you like. When the full ``job'' is specified which may be a sequence of several processing step, one executes the job.
+This method uses the new SPM8 batch system described in chapter \ref{Chap:batch:tutorial}. Using this batch system, you can put together a series of processing steps by choosing options from menus, in any order you like. When the full ``job'' is specified which may be a sequence of several processing step, one executes the job.
 
 
 \subsection{Script generation}
