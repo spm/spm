@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5355 2013-03-26 12:13:52Z guillaume $
+% $Id: spm_orthviews.m 5450 2013-04-26 11:25:36Z guillaume $
 
 
 % The basic fields of st are:
@@ -1050,7 +1050,7 @@ Dims = round(diff(bb)'+1);
 is   = inv(st.Space);
 cent = is(1:3,1:3)*st.centre(:) + is(1:3,4);
 
-for i = valid_handles(arg1),
+for i = valid_handles(arg1)
     M = st.Space\st.vols{i}.premul*st.vols{i}.mat;
     TM0 = [ 1 0 0 -bb(1,1)+1
             0 1 0 -bb(1,2)+1
@@ -1066,7 +1066,7 @@ for i = valid_handles(arg1),
     CM = inv(CM0*M);
     CD = Dims([1 3]);
     
-    if st.mode ==0,
+    if st.mode ==0
         SM0 = [ 0 0 1 -bb(1,3)+1
                 0 1 0 -bb(1,2)+1
                 1 0 0 -cent(1)
@@ -1088,7 +1088,8 @@ for i = valid_handles(arg1),
         imgs = spm_slice_vol(st.vols{i},SM,SD,st.hld)';
         ok   = true;
     catch
-        fprintf('Image "%s" can not be resampled\n', st.vols{i}.fname);
+        fprintf('Cannot access file "%s".\n', st.vols{i}.fname);
+        fprintf('%s\n',getfield(lasterror,'message'));
         ok   = false;
     end
     if ok
@@ -2195,8 +2196,14 @@ for i = 1:numel(valid_handles)
         pos = spm_orthviews('pos',i);
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','pos_vx'),...
             'Label',sprintf('vx:  %.1f %.1f %.1f',pos));
+        try
+            Y = spm_sample_vol(st.vols{i},pos(1),pos(2),pos(3),st.hld);
+        catch
+            Y = NaN;
+            fprintf('Cannot access file "%s".\n', st.vols{i}.fname);
+        end
         set(findobj(st.vols{i}.ax{1}.cm,'UserData','v_value'),...
-            'Label',sprintf('Y = %g',spm_sample_vol(st.vols{i},pos(1),pos(2),pos(3),st.hld)));
+            'Label',sprintf('Y = %g',Y));
     end
 end
 
