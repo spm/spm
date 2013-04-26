@@ -1,19 +1,19 @@
 function sts = write_hdr_raw(fname,hdr,be)
 % Write a NIFTI-1 header
-% FORMAT ok = write_hdr_raw(fname,hdr,be)
-% fname     - filename of image
-% hdr       - a structure containing hdr info
-% be        - whether big-endian or not [Default: native]
+% FORMAT sts = write_hdr_raw(fname,hdr,be)
+% fname      - filename of image
+% hdr        - a structure containing hdr info
+% be         - whether big-endian or not [Default: native]
 %
-% sts       - status (1=good, 0=bad)
+% sts        - status (1=good, 0=bad)
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 4986 2012-10-05 17:35:09Z guillaume $
+% $Id: write_hdr_raw.m 5451 2013-04-26 14:03:05Z guillaume $
 
 
-[pth,nam,ext] = fileparts(fname);
+[pth,nam] = fileparts(fname);
 if isempty(pth), pth = pwd; end
 
 if isfield(hdr,'magic')
@@ -38,7 +38,7 @@ else
     hname = fullfile(pth,[nam '.hdr']);
 end
 
-if nargin >=3
+if nargin >= 3
     if be, mach = 'ieee-be';
     else   mach = 'ieee-le';
     end
@@ -49,7 +49,7 @@ sts = true;
 if spm_existfile(hname)
     fp = fopen(hname,'r+',mach);
 else
-    fp = fopen(hname,'w+',mach);
+    fp = fopen(hname,'W+',mach);
 end
 if fp == -1
     sts = false;
