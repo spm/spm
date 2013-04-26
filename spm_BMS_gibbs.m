@@ -19,7 +19,7 @@ function [exp_r,xp,r_samp,g_post] = spm_BMS_gibbs (lme, alpha0, Nsamp)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_BMS_gibbs.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_BMS_gibbs.m 5452 2013-04-26 14:55:35Z will $
 
 
 if nargin < 3 || isempty(Nsamp)
@@ -51,6 +51,7 @@ lme = lme - mean(lme,2)*ones(1,Nk);
 
 % Ensure all log model evidence differences are now within machine range
 max_val = log(realmax('double'));
+max_val = max_val/Nk;
 for i = 1:Ni
     for k = 1:Nk
         lme(i,k) = sign(lme(i,k)) * min(max_val,abs(lme(i,k)));
