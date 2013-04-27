@@ -27,7 +27,7 @@ function spm_dcm_average (P,name)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5420 2013-04-16 13:08:24Z karl $
+% $Id: spm_dcm_average.m 5454 2013-04-27 10:46:41Z karl $
 
 try
     P;
@@ -95,8 +95,7 @@ wEp   = 0;
 for model = 1:N
     wEp   = wEp + miCp(:,:,model)*mEp(:,model);
 end
-wEp       = wEp - (N - 1)*ipC*pE(wsel);
-Ep(wsel)  = Cp(wsel,wsel)*wEp;
+Ep(wsel)  = Cp(wsel,wsel)*(wEp - (N - 1)*ipC*pE(wsel));
 Ep        = spm_unvec(Ep,DCM.M.pE);
 
 

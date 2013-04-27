@@ -16,7 +16,7 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 5407 2013-04-12 19:03:29Z karl $
+% $Id: spm_gen_erp.m 5454 2013-04-27 10:46:41Z karl $
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
@@ -52,63 +52,28 @@ if isfield(M,'u')
     
 end
 
-
 % between-trial (experimental) inputs
 %==========================================================================
-try
-    X = U.X;
-    if ~size(X,1)
-        X = sparse(1,0);
-    end
-catch
+X = U.X;
+if ~size(X,1)
     X = sparse(1,0);
 end
 
 
 % cycle over trials
-%--------------------------------------------------------------------------
+%==========================================================================
 y      = cell(size(X,1),1);
 for  c = 1:size(X,1)
     
-    % baseline parameters
+    % condition-specific parameters
     %----------------------------------------------------------------------
-    Q  = P;
-    
-    % trial-specific effects on C (first effect only)
-    %----------------------------------------------------------------------
-    try
-        Q.C = Q.C(:,:,1) + X(c,1)*Q.C(:,:,2);
-    end
-    
-    % trial-specific effects on A (connections)
-    %----------------------------------------------------------------------
-    for i = 1:size(X,2)
-        
-        % extrinsic (driving) connections
-        %------------------------------------------------------------------
-        for j = 1:length(Q.A)
-            Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
-        end
-        
-        % modulatory connections
-        %------------------------------------------------------------------
-        try
-            Q.M  = Q.M + X(c,i)*P.N{i};
-        end
-        
-        % intrinsic connections
-        %------------------------------------------------------------------
-        try
-            Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        end
-        
-    end
+    Q   = spm_gen_Q(P,X(c,:));
     
     % solve for steady-state - for each condition
     %----------------------------------------------------------------------
     M.x  = spm_dcm_neural_x(Q,M);
     
-    % integrate DCM for this trial
+    % integrate DCM - for this condition
     %----------------------------------------------------------------------
     y{c} = spm_int_L(Q,M,U);
     

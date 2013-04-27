@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5409 2013-04-14 22:15:11Z karl $
+% $Id: spm_fx_cmc.m 5454 2013-04-27 10:46:41Z karl $
  
  
 % get dimensions and configure state variables
@@ -84,8 +84,9 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-R    = R.*exp(P.S);
-S    = 1./(1 + exp(-R*x)) - 1/2;
+R    = R.*exp(P.S);              % gain of activation function
+F    = 1./(1 + exp(-R*x + 0));   % firing rate
+S    = F - 1/(1 + exp(0));       % deviation from baseline firing
 
 % input
 %==========================================================================
@@ -136,7 +137,7 @@ for i = 1:size(P.G,2)
     G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end
 
-% Modulatory effects of dp on sp -> sp self-connectivity
+% Modulatory effects of dp depolarisation on sp -> sp self-connectivity
 %--------------------------------------------------------------------------
 G(:,7) = G(:,7).*exp(-P.M*32*S(:,7));
 

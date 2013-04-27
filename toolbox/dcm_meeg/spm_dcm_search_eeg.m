@@ -36,7 +36,7 @@ function spm_dcm_search_eeg(P)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 5395 2013-04-08 18:51:14Z karl $
+% $Id: spm_dcm_search_eeg.m 5454 2013-04-27 10:46:41Z karl $
 
 % get filenames
 %--------------------------------------------------------------------------
@@ -145,17 +145,21 @@ for j = 1:N
     DCM.Cp   = Cp;
     DCM.F    = F;
     
+    filename = spm_file(DCM.name,'basename');
+    name{j}  = filename(5:end);
     filename = spm_file(DCM.name,'filename');
     filename = spm_file(filename,'prefix','r');
-    name{j}  = filename(6:end - 4);
     filename = fullfile(pathname,filename);
+    
     
     % Save DCM
     %======================================================================
     save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
+    P{j} = DCM;
     
-    % Record free-energy
+    % Record free-energy and MAP estimates
     %----------------------------------------------------------------------
+    P{j} = DCM;
     G(j) = F;
     
 end

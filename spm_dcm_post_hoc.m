@@ -62,7 +62,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_dcm_post_hoc.m 5454 2013-04-27 10:46:41Z karl $
 
 
 % Get filenames
@@ -386,7 +386,7 @@ for j = 1:N
     end
     
     %-Save optimised DCM
-    %==================================================================
+    %======================================================================
     try
         [pth, name] = fileparts(P{j});
         if ~strncmp(name,'DCM_opt_',8)
@@ -405,15 +405,14 @@ end
 %==========================================================================
 if isstruct(pC), pC = diag(spm_vec(pC)); end
 
-CQ  = spm_inv(PQ,TOL);
-Cq  = spm_inv(Pq,TOL);
-EQ  = CQ*EQ;
-Eq  = Cq*Eq;
+ipC = spm_inv(pC);
+irC = spm_inv(rC);
+CQ  = spm_inv(PQ + (1 - N)*ipC,TOL);
+Cq  = spm_inv(Pq + (1 - N)*irC,TOL);
+EQ  = CQ*(EQ - (N - 1)*ipC*spm_vec(pE));
+Eq  = Cq*(Eq - (N - 1)*irC*spm_vec(pE));
 EQ  = spm_unvec(EQ,pE);
 Eq  = spm_unvec(Eq,pE);
-CQ  = spm_inv(PQ + (1 - N)*spm_inv(pC),TOL);
-Cq  = spm_inv(Pq + (1 - N)*spm_inv(rC),TOL);
-
 
 % Show full and reduced conditional estimates (for Bayesian average)
 %--------------------------------------------------------------------------

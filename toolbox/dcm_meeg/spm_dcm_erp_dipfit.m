@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 5376 2013-04-02 09:59:01Z karl $
+% $Id: spm_dcm_erp_dipfit.m 5454 2013-04-27 10:46:41Z karl $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -108,16 +108,20 @@ end
 % If not LFP, get electromagnetic forward model
 %==========================================================================
 if ~isfield(D, 'val'), D.val = 1; end
- 
+
+% detects old version of the struct 
+%--------------------------------------------------------------------------
 if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
         ~(isfield(D.inv{D.val}, 'forward') && isfield(D.inv{D.val}, 'datareg')) ||...
-        ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') % detects old version of the struct
+        ~isa(D.inv{D.val}.mesh.tess_ctx, 'char') 
     D = spm_eeg_inv_mesh_ui(D, D.val);
     D = spm_eeg_inv_datareg_ui(D, D.val);
     D = spm_eeg_inv_forward_ui(D, D.val);
     save(D);
 end
 
+% fill in dipfit
+%--------------------------------------------------------------------------
 for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(DCM.xY.modality, D.inv{D.val}.forward(m).modality, 3)
         DCM.M.dipfit.vol      = D.inv{D.val}.forward(m).vol;
@@ -156,10 +160,11 @@ switch DCM.options.spatial
         % parameters
         %==================================================================
  
-        % defaults: Nm = 8; number of modes per region
+        % defaults: Nm = 6; number of modes per region
         %------------------------------------------------------------------
         try, rad  = DCM.M.dipfit.radius; catch, rad  = 16;    end
-        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 8;     end
+        try, Nm   = DCM.M.dipfit.Nm;     catch, Nm   = 6;     end
+        
  
         % Compute spatial basis (eigenmodes of lead field)
         %==================================================================
