@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 5404 2013-04-12 15:08:57Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5455 2013-04-28 12:14:09Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -98,10 +98,11 @@ if ~isfield(S, 'quickfix')
             squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3)))';...
             squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3)))' ];
         %%
-        [y, W]= spm_robust_average(dist, 2, 3);
-        %%
+        rdist = (round(100*dist));
         
-        W = W>0.9;
+        M = mode(rdist');
+        
+        W = (rdist == repmat(M(:), 1, size(rdist, 2)));
     end
     
     % Theoretically one should use 'or' here and not 'and' but I found it
@@ -116,20 +117,24 @@ if ~isfield(S, 'quickfix')
         error('Not enough valid head localization data');
     end
     %%
+    fixed = 0*tmpdat;
     for i = 1:size(tmpdat, 1)
         if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))
-            tmpdat(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
+            fixed(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
         end
-    end
-    D(D.indchannel(hlc_chan_label), :) = tmpdat;
+    end    
     
-    dewarfid = 100*reshape(median(tmpdat(:, tmpind), 2), 3, 3);
+    D(D.indchannel(hlc_chan_label), :) = fixed;
+    
+    dewarfid = 100*reshape(median(fixed(:, tmpind), 2), 3, 3);
     %%
     D.origheader.hc.dewar = dewarfid;
     
     spm_figure('GetWin','Graphics');clf;
     subplot(2, 1, 1);
-    plot(D.time, tmpdat);
+    plot(D.time, tmpdat, 'Color', 0.5*[1 1 1], 'LineWidth', 5);
+    hold on
+    plot(D.time, fixed, 'r');
     subplot(2, 1, 2);
 else
     spm_figure('GetWin','Graphics');clf;
@@ -192,7 +197,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spm_eeg_fix_ctf_headloc.m 5404 2013-04-12 15:08:57Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5455 2013-04-28 12:14:09Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
