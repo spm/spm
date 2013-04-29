@@ -100,6 +100,7 @@ switch lower(e)
     else
       warnstr = ['LUT map ' acmapname ' was wrong size'];
     end
+    fclose(fid);
   else
     warnstr = ['Cannot open LUT colormap file ' acmapname];
   end

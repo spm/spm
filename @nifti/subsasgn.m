@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: subsasgn.m 5456 2013-04-29 15:49:22Z guillaume $
 
 
 switch subs(1).type,
@@ -343,34 +343,50 @@ return;
 
 %=======================================================================
 function obj = assigndat(obj,val)
-if isa(val,'file_array'),
+if isa(val,'file_array')
     sz = size(val);
-    if numel(sz)>7,
+    if numel(sz)>7
         error('Too many dimensions in data.');
-    end;
+    end
     sz = [sz 1 1 1 1 1 1 1];
     sz = sz(1:7);
+    use_nifti2 = obj.hdr.sizeof_hdr ~= 348; % i.e. == 540
+    if any(sz > spm_type('int16','maxval')) && ~use_nifti2
+        warning('Image dimensions are too large for NIfTI-1 format.');
+        obj.hdr = empty_hdr('nifti2'); % should also copy modified fields
+        use_nifti2 = true;
+        warning('Header is reinitialised and NIfTI-2 is used.');
+    end
     sval = struct(val);
     d    = findindict(sval.dtype,'dtype');
     if isempty(d)
         error(['Unknown datatype (' num2str(double(sval.datatype)) ').']);
-    end;
+    end
 
     [pth,nam,suf] = fileparts(sval.fname);
     switch suf
         case {'.img','.IMG'}
-            val.offset    = max(sval.offset,0);
-            obj.hdr.magic = ['ni1' char(0)]; % or ni2
+            val.offset        = max(sval.offset,0);
+            if use_nifti2
+                obj.hdr.magic = ['ni2' char(0) sprintf('\r\n\032\n')];
+            else
+                obj.hdr.magic = ['ni1' char(0)];
+            end
         case {'.nii','.NII'}
-            val.offset    = max(sval.offset,352); % or 544
-            obj.hdr.magic = ['n+1' char(0)]; % or n+2
+            if use_nifti2
+                val.offset    = max(sval.offset,544);
+                obj.hdr.magic = ['n+2' char(0) sprintf('\r\n\032\n')];
+            else
+                val.offset    = max(sval.offset,352);
+                obj.hdr.magic = ['n+1' char(0)];
+            end
         otherwise
             error(['Unknown filename extension (' suf ').']);
     end
-    if obj.hdr.sizeof_hdr ~= 348 % i.e. == 540
-        warning('Saving file as NIfTI-1.');
-        obj.hdr.sizeof_hdr = 348;
-    end
+    %if obj.hdr.sizeof_hdr ~= 348 % i.e. == 540
+    %    warning('Saving file as NIfTI-1.');
+    %    obj.hdr.sizeof_hdr = 348;
+    %end
     val.offset         = (ceil(val.offset/16))*16;
     obj.hdr.vox_offset = val.offset;
 
