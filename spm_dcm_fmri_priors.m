@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 4625 2012-01-24 20:53:10Z karl $
+% $Id: spm_dcm_fmri_priors.m 5457 2013-04-30 14:13:20Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ else
 
     % prior expectations
     %----------------------------------------------------------------------
-    pE.A  =  A/(64*n) - eye(n,n)/2;
+    pE.A  =  A/(64*n);
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;

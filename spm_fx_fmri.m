@@ -32,7 +32,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5376 2013-04-02 09:59:01Z karl $
+% $Id: spm_fx_fmri.m 5457 2013-04-30 14:13:20Z karl $
 
 
 % Neuronal motion
@@ -58,8 +58,10 @@ end
 y    = x;
 if size(x,2) == 5  
     
-    % one neuronal state per region
+    % one neuronal state per region: diag(A) is a log self-inhibition
     %----------------------------------------------------------------------
+    SI     = diag(P.A);
+    P.A    = P.A - diag(exp(SI)/2 + SI);
     y(:,1) = P.A*x(:,1) + P.C*u(:);
 
 else

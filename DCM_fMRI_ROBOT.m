@@ -38,7 +38,7 @@ DCM.options.nonlinear  = 0;        % interactions among hidden states
 DCM.options.centre     = 0;        % mean-centre inputs
 DCM.options.hidden     = [];       % indices of hidden regions
 
-OPT   = {'standard','centre','two_state','stochastic'};
+OPT   = {'standard','two_state','stochastic'};
 for i = 1:length(OPT)
     try
         % report
@@ -68,7 +68,9 @@ for i = 1:length(OPT)
             A(:,i) = a - 2*diag(diag(a));
             B(:,i) = exp(spm_vec(TCM.Ep.B))/8;
         else
-            A(:,i) = spm_vec(TCM.Ep.A);
+            a      = TCM.Ep.A;
+            a      = a - diag(diag(a)) - diag(exp(diag(a))/2);
+            A(:,i) = spm_vec(a);
             B(:,i) = spm_vec(TCM.Ep.B);
         end
         
@@ -109,9 +111,11 @@ title('MAP estimates (B)','FontSize',16)
 axis square
 
 
-% print graphics
+% print graphics and save
 %------------------------------------------------------------------
 spm_demo_print
+
+save ROBOT
 
 
 return
