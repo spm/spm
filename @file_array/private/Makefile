@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # @file_array Makefile called by {SPM}/src/Makefile
 #
-# Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5446 2013-04-24 16:56:51Z guillaume $
+# $Id: Makefile 5458 2013-05-01 14:32:23Z guillaume $
 
 include ../../src/Makefile.var
 
@@ -12,6 +12,9 @@ SPMMEX = file2mat.$(SUF) mat2file.$(SUF) init.$(SUF)
 all: $(SPMMEX)
 
 clean:
+ifeq (mex,$(SUF))
+	$(DEL) $(subst .$(SUF),.o,$(SPMMEX))
+endif
 
 distclean: clean
 	$(DEL) $(SPMMEX)
