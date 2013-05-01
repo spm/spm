@@ -3,7 +3,7 @@
 #
 # Copyright (C) 1991-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5446 2013-04-24 16:56:51Z guillaume $
+# $Id: Makefile 5459 2013-05-01 17:51:59Z guillaume $
 #
 ###############################################################################
 #
@@ -14,7 +14,7 @@
 # so they can be included here. 
 #
 # To compile and install SPM, type the following in a Unix console:
-# >  make && make install
+# >  make distclean && make && make install
 #
 # You can specify a particular platform with the following syntax:
 # >  make PLATFORM=Your_Platform
@@ -58,45 +58,56 @@ SUBDIRS =\
 	toolbox/FieldMap
 
 ###############################################################################
-# The main ways to run make
+# Public make targets
 ###############################################################################
 
-all: verb.$(SUF) $(SPMMEX) verb.end
+all: verb.$(SUF) main-all tbx-all verb.all.end
 
-clean: verb.clean
-	$(DEL) $(OBS)
-ifeq (mex,$(SUF))
-	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o bsplines.o
-endif
+clean: verb.clean main-clean tbx-clean
 
-distclean: clean verb.distclean
-	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
+distclean: clean verb.distclean main-distclean tbx-distclean verb.distclean.end
 
-archive: spm_vol_utils.$(SUF).a
-
-install: verb.install $(SPMMEX)
-	$(COPY) $(SPMMEX) ..
-	$(MOVE) ../spm_brainwarp.$(SUF) ../toolbox/OldNorm
-
-toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
-	@@for p in $(SUBDIRS); do \
-	echo "_____________________________________________________________";\
-	echo "";\
-	echo "          In " ../$$p; \
-	echo "_____________________________________________________________";\
-	echo ""	;\
-	$(MAKE) -C ../$$p --no-print-directory $(subst -,,$(subst toolbox,,$@));\
-	done
+install: verb.install main-all main-install tbx-install verb.install.end
 
 external external-all external-clean external-distclean external-install external-tarball: verb.external
 	@ $(MAKE) -C ../external --no-print-directory $(subst -,,$(subst external,,$@))
 
-tarball: all toolbox-all toolbox-tarball verb.archive
+tarball: all tbx-tarball verb.tarball
 	$(TAR) cf spm_mex.tar $(SPMMEX)
 	@@for p in $(SUBDIRS); do \
 		$(TAR) Af spm_mex.tar  ../$$p/spm_mex.tar;\
 	done
 	$(ZIP) spm_mex.tar
+
+###############################################################################
+# Private make targets
+###############################################################################
+
+main-all: $(SPMMEX)
+
+main-clean:
+	$(DEL) $(OBS)
+ifeq (mex,$(SUF))
+	$(DEL) $(subst .$(SUF),.o,$(SPMMEX)) spm_matfuns.o bsplines.o
+endif
+
+main-distclean:
+	$(DEL) $(SPMMEX) spm_vol_utils.$(SUF).a
+
+main-install:
+	$(COPY) $(SPMMEX) ..
+	$(MOVE) ../spm_brainwarp.$(SUF) ../toolbox/OldNorm
+
+archive: spm_vol_utils.$(SUF).a
+
+tbx tbx-all tbx-clean tbx-distclean tbx-install tbx-tarball:
+	@@for p in $(SUBDIRS); do \
+		$(MAKE) -C ../$$p $(subst -,,$(subst tbx,,$@));\
+	done
+
+.PHONY: toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball
+toolbox toolbox-all toolbox-clean toolbox-distclean toolbox-install toolbox-tarball:
+	$(warning Target "toolbox" is deprecated.)
 
 ###############################################################################
 # Compile spm_vol_utils.c with various flags
@@ -281,107 +292,54 @@ spm_field.$(SUF): spm_field.c  shoot_optimN.c shoot_multiscale.c shoot_boundary.
 	$(MEX)  spm_field.c shoot_optimN.c shoot_multiscale.c shoot_boundary.c $(MEXEND)
 
 ###############################################################################
-# General messages
+# Display Messages
 ###############################################################################
-
-verb.end:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        FINISHED"
-	@ echo "_____________________________________________________________"
-	@ echo ""
 
 verb.clean:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting object (.o) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Deleting object (.o) files")
 
 verb.distclean:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Deleting mex and archive (.a) files"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Deleting MEX (.$(SUF)) and archive (.a) files")
 
 verb.install:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Installing mex files"
-	@ echo "_____________________________________________________________"
-	@ echo ""	
+	$(call verb, "Installing MEX files")
 
-verb.archive:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Creating archive spm_mex.tar.gz"
-	@ echo "_____________________________________________________________"
-	@ echo ""	
-
-###############################################################################
-# Assorted architecture dependent messages
-###############################################################################
+verb.tarball:
+	$(call verb, "Creating archive spm_mex.tar.gz")
 
 verb.mexw32:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "         Windows compilation (32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Windows compilation (32 bit)")
 
 verb.mexw64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Windows compilation (64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Windows compilation (64 bit)")
 
 verb.mexglx:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Linux compilation (x86-32)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Linux compilation (x86-32)")
 
 verb.mexa64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Linux compilation (x86-64)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "Linux compilation (x86-64)")
 
 verb.mexmac:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, PowerPC)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "MacOS compilation (PowerPC)")
 
 verb.mexmaci:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, Intel 32 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "MacOS compilation (Intel 32 bit)")
 
 verb.mexmaci64:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        Unix compilation (MacOS X, Intel 64 bit)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "MacOS compilation (Intel 64 bit)")
 
 verb.mex:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        ${PLATFORM} compilation (`octave -v | head -n 1`)"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "${PLATFORM} compilation (`octave -v | head -n 1`)")
+
+verb.all.end:
+	$(call verb, "Compilation: done")
+        
+verb.distclean.end:
+	$(call verb, "Distclean: done")
+        
+verb.install.end:
+	$(call verb, "Installation: done")
+
 
 verb.external:
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In external"
-	@ echo "_____________________________________________________________"
-	@ echo ""
+	$(call verb, "In external")

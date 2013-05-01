@@ -3,7 +3,7 @@
 #
 # Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5182 2013-01-09 12:00:59Z guillaume $
+# $Id: Makefile 5459 2013-05-01 17:51:59Z guillaume $
 
 include ../src/Makefile.var
 
@@ -43,14 +43,3 @@ bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
 engine engine-all engine-clean engine-distclean engine-install engine-tarball:
 	@ $(call verb,engine)
 	@ $(MAKE) -f Makefile.engine --no-print-directory $(subst engine,,$(subst -,,$@))
-
-###############################################################################
-# MESSAGE
-###############################################################################
-define verb
-	@ echo "_____________________________________________________________"
-	@ echo ""
-	@ echo "        In " $1
-	@ echo "_____________________________________________________________"
-	@ echo ""
-endef
