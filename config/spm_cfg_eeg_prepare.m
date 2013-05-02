@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 5462 2013-05-02 21:01:37Z vladimir $
 
-rev = '$Rev: 5377 $';
+rev = '$Rev: 5462 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -199,13 +199,26 @@ setbadchan.name = 'Set/unset bad channels';
 setbadchan.val = {spm_cfg_eeg_channel_selector, status};
 setbadchan.help = {'Set or clear bad flag for channels'};
 
+fname = cfg_entry;
+fname.tag = 'fname';
+fname.name = 'Output file name';
+fname.strtype = 's';
+fname.val = {'avref_montage.mat'};
+
+avref = cfg_branch;
+avref.tag = 'avref';
+avref.name = 'Create average reference montage';
+avref.help = {'Create an average reference montage for the specific dataset, ',...
+    'taking into account bad channels.'};
+avref.val  = {fname};
+
 task = cfg_repeat;
 task.tag = 'task';
 task.name = 'Select task(s)';
 task.num = [1 Inf];
 task.values = {defaulttype, settype, loadmegsens, headshape,...
     defaulteegsens, loadeegsens, seteegref, project3dEEG, project3dMEG,...
-    loadtemplate, setbadchan};
+    loadtemplate, setbadchan, avref};
 
 prepare = cfg_exbranch;
 prepare.tag = 'prepare';
@@ -225,13 +238,16 @@ for i = 1:numel(job.task)
     switch  char(fieldnames(job.task{i}))
         case 'defaulttype'
             S.task = 'defaulttype';
+            D = spm_eeg_prep(S);
         case 'settype'
             S.task = 'settype';
             S.type = job.task{i}.settype.newtype;
             S.ind  = D.selectchannels(spm_cfg_eeg_channel_selector(job.task{i}.settype.channels));
+            D = spm_eeg_prep(S);
         case 'loadmegsens'
             S.task = 'loadmegsens';
             S.source = char(job.task{i}.loadmegsens.rawmeg{1});
+            D = spm_eeg_prep(S);
         case 'headshape'
             S.task = 'headshape';
             S.source = 'convert';
@@ -241,6 +257,7 @@ for i = 1:numel(job.task)
                 S.regfid{j, 1} = job.task{i}.headshape.matching(j).hsname;
                 S.regfid{j, 2} = job.task{i}.headshape.matching(j).fidname;
             end
+            D = spm_eeg_prep(S);
         case 'defaulteegsens'
             S.task = 'defaulteegsens';
             S.regfid ={
@@ -248,6 +265,7 @@ for i = 1:numel(job.task)
                 job.task{i}.defaulteegsens.multimodal.lpafid 'spmlpa'
                 job.task{i}.defaulteegsens.multimodal.lpafid 'spmrpa'
                 };
+            D = spm_eeg_prep(S);
         case 'loadeegsens'
             S.task = 'loadeegsens';
             S.source = 'locfile';
@@ -259,6 +277,7 @@ for i = 1:numel(job.task)
                     S.regfid{j, 2} = job.task{i}.loadeegsens.megmatch.matching(j).fidname;
                 end
             end
+            D = spm_eeg_prep(S);
         case 'seteegref'
             S.task = 'sens2chan';
             if isfield(job.task{i}.seteegref, 'refsens')
@@ -266,21 +285,47 @@ for i = 1:numel(job.task)
             else
                 S.montage = char(job.task{i}.seteegref.montage);
             end
+            D = spm_eeg_prep(S);
         case 'project3dEEG'
             S.task = 'project3D';
             S.modality = 'EEG';
+            D = spm_eeg_prep(S);
         case 'project3dMEG'
             S.task = 'project3D';
             S.modality = 'MEG';
+            D = spm_eeg_prep(S);
         case 'loadtemplate'
             S.task = 'loadtemplate';
             S.P = char(job.task{i}.loadtemplate);
+            D = spm_eeg_prep(S);
         case 'setbadchan'
             S.task = 'setbadchan';
             S.channels = spm_cfg_eeg_channel_selector(job.task{i}.setbadchan.channels);
             S.status   =  job.task{i}.setbadchan.status;
+            D = spm_eeg_prep(S);
+        case 'avref'
+            eegchan  = D.indchantype('EEG');
+            goodind  = D.indchantype('EEG', 'GOOD');
+            
+            goodind = find(ismember(eegchan, goodind));
+            
+            tra              =  eye(length(eegchan));
+            tra(: ,goodind)  =  tra(:, goodind) - 1/length(goodind);
+            
+            montage          = [];
+            montage.labelorg = D.chanlabels(eegchan);
+            montage.labelnew = D.chanlabels(eegchan);
+            montage.tra      = tra;
+            
+            [p, f]           = fileparts(job.task{i}.avref.fname);
+            if isempty(p)
+                p = D.path;
+            end
+            
+            out.avrefname    = {fullfile(p, [f '.mat'])};
+            
+            save(char(out.avrefname), 'montage', spm_get_defaults('mat.format'));
     end
-    D = spm_eeg_prep(S);
 end
 
 save(D);
@@ -304,3 +349,10 @@ dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 
+if ismember('avref', cellfun(@fieldnames, job.task))
+    dep(3) = cfg_dep;
+    dep(3).sname = 'Average reference montage';
+    dep(3).src_output = substruct('.','avrefname');
+    % this can be entered into any file selector
+    dep(3).tgt_spec   = cfg_findspec({{'filter','mat'}});
+end
