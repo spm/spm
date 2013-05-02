@@ -19,14 +19,14 @@ function [handles] = spm_uitab(hparent,labels,callbacks,...
 %   - height: the relative height of the tab panels within its parent
 %   spatial extent (default = 1)
 %   - tab_height: the relative height of the tabs within its parent spatial
-%   extent (default = 1)
+%   extent (default = 0.025)
 % OUT:
 %   - handles: a structure of handles for the differents tab objects.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 3062 2009-04-17 14:07:40Z jean $
+% $Id: spm_uitab.m 5460 2013-05-02 13:28:40Z christophe $
 
 Ntabs = length(labels);
 
@@ -51,11 +51,11 @@ if ~isequal(get(hparent,'type'),'figure')
     set(hparent,'units','normalized')
     POS = get(hparent,'position');
     pos1 = [POS(1)+0.02,POS(2)+0.01,POS(3)-0.04,POS(4)-(tab_height+0.035)];
-    dx = 0.1*(POS(3)-0.04)./0.98;
+    dx = 0.095*(POS(3)-0.04)./0.98;
     dx2 = [0.04,0.93]*(POS(3)-0.04)./0.98;
 else
     pos1 = [0.01 0.005 0.98 1-(tab_height+0.01)];
-    dx = 0.1;
+    dx = 0.095;
     dx2 = [0.04,0.93];
 end
 pos1(4) = pos1(4).*height;

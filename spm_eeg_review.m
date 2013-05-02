@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 5439 2013-04-24 12:13:23Z vladimir $
+% $Id: spm_eeg_review.m 5460 2013-05-02 13:28:40Z christophe $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -22,13 +22,15 @@ end
 %-- Initialize SPM figure
 D.PSD.handles.hfig = spm_figure('GetWin','Graphics');
 spm_clf(D.PSD.handles.hfig);
-% Get default SPM graphics options --> revert back to defaults 
+% Get default SPM graphics options --> revert back to defaults
 D.PSD.SPMdefaults.col = get(D.PSD.handles.hfig,'colormap');
 D.PSD.SPMdefaults.renderer = get(D.PSD.handles.hfig,'renderer');
 
 %-- Create default userdata structure
-try D.PSD.source.VIZU.current = inv; end
-    [D] = PSD_initUD(D);
+try
+    D.PSD.source.VIZU.current = inv;
+end
+[D] = PSD_initUD(D);
 if ~(strcmp(transformtype(D),'time') || D.nsamples == 1)
     D.PSD.type = 'epoched';
     D.PSD.trials.current = 1;
@@ -36,17 +38,18 @@ if ~(strcmp(transformtype(D),'time') || D.nsamples == 1)
 end
 
 %-- Create figure uitabs
-labels = {'EEG', 'MEG', 'PLANAR', 'OTHER','info','source'};
+labels = {'EEG', 'MEG', 'MPLANAR', 'MCOMB', 'OTHER','info','source'};
 callbacks = {'spm_eeg_review_callbacks(''visu'',''main'',''eeg'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''meg'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''megplanar'')',...
+    'spm_eeg_review_callbacks(''visu'',''main'',''megcomb'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''other'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''info'')',...
     'spm_eeg_review_callbacks(''visu'',''main'',''source'')'};
 try
     [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],flag);
 catch
-    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],5);
+    [h] = spm_uitab(D.PSD.handles.hfig,labels,callbacks,[],6);
 end
 D.PSD.handles.tabs = h;
 
@@ -83,12 +86,14 @@ try
         case 2
             spm_eeg_review_callbacks('visu','main','meg')
         case 3
-            spm_eeg_review_callbacks('visu','main','megplanar')    
+            spm_eeg_review_callbacks('visu','main','megplanar')
         case 4
-            spm_eeg_review_callbacks('visu','main','other')
+            spm_eeg_review_callbacks('visu','main','megcomb')
         case 5
-            spm_eeg_review_callbacks('visu','main','info')
+            spm_eeg_review_callbacks('visu','main','other')
         case 6
+            spm_eeg_review_callbacks('visu','main','info')
+        case 7
             spm_eeg_review_callbacks('visu','main','source')
     end
 catch
@@ -127,7 +132,7 @@ switch D.type
     
     case 'continuous'
         D.PSD.type = 'continuous';
-         if ntrials(D) && ~isempty(events(D,1)) 
+        if ntrials(D) && ~isempty(events(D,1))
             Events = events(D);
             Nevents = length(Events);
             for i =1:Nevents
@@ -151,8 +156,8 @@ switch D.type
         end
         D.PSD.VIZU.type = 1;
         
-    %------ after epoching -----%
-    
+        %------ after epoching -----%
+        
     case 'single'
         D.PSD.type = 'epoched';
         nTrials = D.ntrials;
@@ -189,7 +194,9 @@ nc = D.nchannels;
 D.PSD.EEG.I  = indchantype(D,'EEG');
 D.PSD.MEG.I  = sort(indchantype(D,'MEG'));
 D.PSD.MEGPLANAR.I  = indchantype(D,'MEGPLANAR');
-D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:)]);
+D.PSD.MEGCOMB.I  = indchantype(D,'MEGCOMB');
+D.PSD.other.I = setdiff(1:nc, ...
+    [D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:);D.PSD.MEGCOMB.I(:)]);
 %-- Get basic display variables (data range, offset,...)
 if ~isempty(D.PSD.EEG.I)
     set(D.PSD.handles.hfig,'userdata',D);
@@ -214,6 +221,14 @@ if ~isempty(D.PSD.MEGPLANAR.I)
     D.PSD.MEGPLANAR.VIZU = out;
 else
     D.PSD.MEGPLANAR.VIZU = [];
+end
+if ~isempty(D.PSD.MEGCOMB.I)
+    set(D.PSD.handles.hfig,'userdata',D);
+    figure(D.PSD.handles.hfig)
+    [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEGCOMB.I);
+    D.PSD.MEGCOMB.VIZU = out;
+else
+    D.PSD.MEGCOMB.VIZU = [];
 end
 if ~isempty(D.PSD.other.I)
     set(D.PSD.handles.hfig,'userdata',D);
@@ -252,9 +267,9 @@ if isfield(D,'inv') && ~isempty(D.inv)
                 D.inv{isInv(i)}.date(2,:) = ' ';
             end
             if isfield(D.inv{isInv(i)}.inverse,'R2') ...
-                   && isnan(D.inv{isInv(i)}.inverse.R2)
+                    && isnan(D.inv{isInv(i)}.inverse.R2)
                 D.inv{isInv(i)}.inverse.R2 = [];
-            end 
+            end
             if isfield(D.inv{isInv(i)}.inverse, 'ID')
                 ID(i) = D.inv{isInv(i)}.inverse.ID;
             else

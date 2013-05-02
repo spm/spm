@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 5240 2013-02-05 11:08:33Z christophe $
+% $Id: spm_eeg_review_switchDisplay.m 5460 2013-05-02 13:28:40Z christophe $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -69,6 +69,9 @@ switch D.PSD.VIZU.modality
     case 'megplanar'
         I = D.PSD.MEGPLANAR.I;
         scb = 6;    
+    case 'megcomb'
+        I = D.PSD.MEGCOMB.I;
+        scb = 6;    
     case 'other'
         I = D.PSD.other.I;
         scb = [];  % no scalp interpolation button
@@ -130,6 +133,8 @@ switch D.PSD.VIZU.modality
         I = D.PSD.MEG.I;
     case 'megplanar'
         I = D.PSD.MEGPLANAR.I;    
+    case 'megcomb'
+        I = D.PSD.MEGCOMB.I;    
     case 'other'
         I = D.PSD.other.I;
 end
@@ -180,6 +185,9 @@ else
             case 'megplanar'
                 I = D.PSD.MEGPLANAR.I;
                 ylim = D.PSD.MEGPLANAR.VIZU.ylim;
+            case 'megcomb'
+                I = D.PSD.MEGCOMB.I;
+                ylim = D.PSD.MEGCOMB.VIZU.ylim;
             case 'other'
                 I = D.PSD.other.I;
                 ylim = D.PSD.other.VIZU.ylim;

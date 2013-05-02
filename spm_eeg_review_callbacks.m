@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5378 2013-04-02 17:10:36Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 5460 2013-05-02 13:28:40Z christophe $
 
 spm('pointer','watch');
 drawnow expose
@@ -113,7 +113,7 @@ switch varargin{1}
 
         switch varargin{2}
 
-            %% Switch main uitabs: EEG/MEG/OTHER/INFO/SOURCE
+            %% Switch main uitabs: EEG/MEG/MPLANAR/MCOMB/OTHER/INFO/SOURCE
             case 'main'
 
                 try
@@ -129,6 +129,8 @@ switch varargin{1}
                         D.PSD.VIZU.modality = 'meg';
                     case 'megplanar'
                         D.PSD.VIZU.modality = 'megplanar';
+                    case 'megcomb'
+                        D.PSD.VIZU.modality = 'megcomb';
                     case 'other'
                         D.PSD.VIZU.modality = 'other';
                     case 'source'
@@ -202,6 +204,9 @@ switch varargin{1}
                         case 'megplanar'
                             I = D.PSD.MEGPLANAR.I;
                             in.type = 'MEGPLANAR';
+                        case 'megcomb'
+                            I = D.PSD.MEGCOMB.I;
+                            in.type = 'MEGCOMB';
                         case 'other'
                             I = D.PSD.other.I;
                             in.type = 'other';
@@ -307,7 +312,8 @@ switch varargin{1}
                     try
                         labels = cat(2,...
                             D.PSD.MEG.VIZU.montage.clab,...
-                            D.PSD.MEGPLANAR.VIZU.montage.clab);
+                            D.PSD.MEGPLANAR.VIZU.montage.clab,...
+                            D.PSD.MEGCOMB.VIZU.montage.clab);
                         text(pos3d(:,1),pos3d(:,2),pos3d(:,3),...
                             labels,...
                             'parent',opt.ParentAxes);
@@ -405,6 +411,8 @@ switch varargin{1}
                         D.PSD.MEG.VIZU.visu_scale = varargin{3}*D.PSD.MEG.VIZU.visu_scale;
                     case 'megplanar'
                         D.PSD.MEGPLANAR.VIZU.visu_scale = varargin{3}*D.PSD.MEGPLANAR.VIZU.visu_scale;
+                    case 'megcomb'
+                        D.PSD.MEGPCOMB.VIZU.visu_scale = varargin{3}*D.PSD.MEGPCOMB.VIZU.visu_scale;
                     case 'other'
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
@@ -475,6 +483,8 @@ switch varargin{1}
                                 VIZU = D.PSD.MEG.VIZU;
                             case 'megplanar'
                                 VIZU = D.PSD.MEGPLANAR.VIZU;
+                            case 'megcomb'
+                                VIZU = D.PSD.MEGCOMB.VIZU;
                             case 'other'
                                 VIZU = D.PSD.other.VIZU;
                         end
@@ -893,6 +903,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
             VIZU = D.PSD.MEG.VIZU;
         case 'megplanar'
             VIZU = D.PSD.MEGPLANAR.VIZU;
+        case 'megcomb'
+            VIZU = D.PSD.MEGCOMB.VIZU;
         case 'other'
             VIZU = D.PSD.other.VIZU;
         case 'info'
@@ -1421,6 +1433,9 @@ switch D.PSD.VIZU.modality
     case 'megplanar'
         I = D.PSD.MEGPLANAR.I;
         VIZU = D.PSD.MEGPLANAR.VIZU;    
+    case 'megcomb'
+        I = D.PSD.MEGCOMB.I;
+        VIZU = D.PSD.MEGCOMB.VIZU;    
     case 'other'
         I = D.PSD.other.I;
         VIZU = D.PSD.other.VIZU;
@@ -1674,6 +1689,8 @@ if length(cn) == 5  % channel info
                         D = chantype(D,i,'MEG');
                     case 'megplanar'
                         D = chantype(D,i,'MEGPLANAR');
+                    case 'megcomb'
+                        D = chantype(D,i,'MEGCOMB');
                     case 'megmag'
                         D = chantype(D,i,'MEGMAG');
                     case 'meggrad'
@@ -1712,7 +1729,9 @@ if length(cn) == 5  % channel info
         D.PSD.EEG.I  = indchantype(D,'EEG');
         D.PSD.MEG.I  = sort(indchantype(D,'MEG'));
         D.PSD.MEGPLANAR.I  = indchantype(D,'MEGPLANAR');
-        D.PSD.other.I = setdiff(1:nc,[D.PSD.EEG.I(:);D.PSD.MEG.I(:)]);
+        D.PSD.MEGCOMB.I  = indchantype(D,'MEGCOMB');
+        D.PSD.other.I = setdiff(1:nc, ...
+            [D.PSD.EEG.I(:);D.PSD.MEG.I(:);D.PSD.MEGPLANAR.I(:);D.PSD.MEGCOMB.I(:)]);
         if ~isempty(D.PSD.EEG.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.EEG.I);
             D.PSD.EEG.VIZU = out;
@@ -1730,6 +1749,12 @@ if length(cn) == 5  % channel info
             D.PSD.MEGPLANAR.VIZU = out;
         else
             D.PSD.MEGPLANAR.VIZU = [];
+        end
+        if ~isempty(D.PSD.MEGCOMB.I)
+            [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.MEGCOMB.I);
+            D.PSD.MEGCOMB.VIZU = out;
+        else
+            D.PSD.MEGCOMB.VIZU = [];
         end
         if ~isempty(D.PSD.other.I)
             [out] = spm_eeg_review_callbacks('get','VIZU',D.PSD.other.I);
