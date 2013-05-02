@@ -8,7 +8,7 @@ function spm_eeg_inv_image_display(varargin)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_image_display.m 5367 2013-03-28 13:03:39Z guillaume $
+% $Id: spm_eeg_inv_image_display.m 5461 2013-05-02 19:01:57Z vladimir $
 
 
 % checks
@@ -28,6 +28,6 @@ wEEG = D.inv{val}.contrast.fname{D.con};
 %--------------------------------------------------------------------------
 spm_figure('Clear','Graphics');
 spm_check_registration(sMRI);
-spm_orthviews('addcolouredimage',1,wEEG,[1 0 0]);
+spm_orthviews('addcolouredimage',1,[wEEG, ',1'],[1 0 0]);
 spm_orthviews('addcolourbar',1,1);
 spm_orthviews('Redraw');

@@ -28,10 +28,10 @@ function [D] = spm_eeg_inv_Mesh2Voxels(varargin)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_inv_Mesh2Voxels.m 5367 2013-03-28 13:03:39Z guillaume $
+% $Id: spm_eeg_inv_Mesh2Voxels.m 5461 2013-05-02 19:01:57Z vladimir $
 
 
-SVNrev = '$Rev: 5367 $';
+SVNrev = '$Rev: 5461 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -98,22 +98,22 @@ for c = 1:length(GW)
     else
         cGW = GW(c);
     end
-
+    
     for t = 1:Ne(c)
         %-Smooth on the cortical surface
         %------------------------------------------------------------------
         ssq{k} = full(sparse(D.inv{val}.inverse.Is,1,cGW{t},nd,1));
         ssq{k} = spm_mesh_smooth(GL,ssq{k},smooth);
-
+        
         %-Compute (truncated) moment
         %------------------------------------------------------------------
         lss        = log(ssq{k} + eps);
         i          = lss > (max(lss) - log(32));
         meanlss(k) = mean(lss(i));
-
+        
         iw(k) = c;
         ie(k) = t;
-
+        
         k = k + 1;
     end
 end
@@ -132,7 +132,7 @@ if strcmpi(fmt,'mesh')
     %-Save mesh topology
     %----------------------------------------------------------------------
     g = gifti(m);
-	save(g,fullfile(D.path,[name '.surf.gii']));
+    save(g,fullfile(D.path,[name '.surf.gii']));
     
     %-Save mesh data
     %----------------------------------------------------------------------
@@ -166,7 +166,7 @@ if strcmpi(fmt,'mesh')
         %-Store filename
         %------------------------------------------------------------------
         D.inv{val}.contrast.fname{c} = fname;
-    
+        
         spm_progress_bar('Set', c);
         
     end
@@ -189,49 +189,63 @@ end
 
 spm_progress_bar('Init',numel(ssq),'Interpolating images','');
 
-for c = 1:numel(ssq)
-    
-    fprintf('%s%30s',repmat(sprintf('\b'),1,30),...
-        sprintf('...image %d/%d',c,numel(ssq)));                        %-#
-    
-    %-Initialise image
-    %----------------------------------------------------------------------
-    con       = mod(iw(c) - 1, Nj) + 1;
-    str       = tag{ceil(iw(c)/Nj)};
-    if bytrial, bt = sprintf('_%.0f',ie(c)); else bt = ''; end
-    fname     = fullfile(D.path,...
-        sprintf('%s_%.0f_%s%.0f%s.nii', name, val, str, con, bt));
-    Vout      = struct(...
-        'fname',   fname,...
-        'dim',     Vin.dim,...
-        'dt',      [spm_type('float32') spm_platform('bigend')],...
-        'mat',     Vin.mat,...
-        'pinfo',   [1 0 0]',...
-        'descrip', '');
+con       = mod(iw - 1, Nj) + 1;
+win       = ceil(iw/Nj);
 
-    %-Normalise
-    %----------------------------------------------------------------------
-    Contrast = ssq{c} / scale;
+ucon      = unique(con);
+uwin      = unique(win);
 
-    %-Interpolate those values into voxels
-    %----------------------------------------------------------------------
-    RECimage = spm_mesh_to_grid(m, Vin, Contrast);
-    
-    %-3D smoothing and thresholding
-    %----------------------------------------------------------------------
-    spm_smooth(RECimage, RECimage, 1);
-    RECimage = RECimage.*(RECimage > exp(-8));
-
-    %-Write (smoothed and scaled) image
-    %----------------------------------------------------------------------
-    Vout     = spm_write_vol(Vout, RECimage);
-
-    %-Store filename
-    %----------------------------------------------------------------------
-    D.inv{val}.contrast.fname{c} = fname;
-
-    spm_progress_bar('Set', c);
-    
+n = 0;
+for c = 1:length(ucon)
+    for w = 1:numel(uwin)
+        
+        ind = find((con == ucon(c)) & (win == uwin(w)));
+        str = tag{uwin(w)};
+        
+        fname     = fullfile(D.path,...
+            sprintf('%s_%.0f_%s%.0f.nii', name, val, str, con(c)));
+        
+        %-Initialise image
+        %----------------------------------------------------------------------
+        N      = nifti;
+        N.dat  = file_array(fname, [Vin.dim, length(ind)], 'FLOAT32-LE');
+        N.mat  = Vin.mat;
+        N.mat0 = Vin.mat;
+        create(N);
+        
+        
+        for i = 1:length(ind)
+            
+            n = n+1;
+            
+            fprintf('%s%30s',repmat(sprintf('\b'),1,30),...
+                sprintf('...image %d/%d',n,numel(ssq)));                        %-#            
+            
+            %-Normalise
+            %----------------------------------------------------------------------
+            Contrast = ssq{ind(i)} / scale;
+            
+            %-Interpolate those values into voxels
+            %----------------------------------------------------------------------
+            RECimage = spm_mesh_to_grid(m, Vin, Contrast);
+            
+            %-3D smoothing and thresholding
+            %----------------------------------------------------------------------
+            spm_smooth(RECimage, RECimage, 1);
+            RECimage = RECimage.*(RECimage > exp(-8));
+            
+            %-Write (smoothed and scaled) image
+            %----------------------------------------------------------------------            
+            N.dat(:, :, :, i) = RECimage;
+            
+            %-Store filename
+            %----------------------------------------------------------------------
+            D.inv{val}.contrast.fname{n} = fname;
+            
+            spm_progress_bar('Set', n);
+            
+        end
+    end
 end
 
 spm_progress_bar('Clear');

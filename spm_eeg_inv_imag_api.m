@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 5076 2012-11-23 16:05:21Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 5461 2013-05-02 19:01:57Z vladimir $
 
 spm('Clear');
 
@@ -106,6 +106,8 @@ Reset(hObject, eventdata, handles);
 %--------------------------------------------------------------------------
 function Image_Callback(hObject, eventdata,handles)
 handles.D.inv{handles.D.val}.contrast.display = 1;
+handles.D.inv{handles.D.val}.contrast.format = ...
+spm_input('Output format:', 1, 'image|mesh', {'image', 'mesh'}, 1);
 handles.D = spm_eeg_inv_Mesh2Voxels(handles.D);
 Reset(hObject, eventdata, handles);
 
