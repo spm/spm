@@ -11,7 +11,7 @@ function spm_eeg_review(D,flag,inv)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review.m 5460 2013-05-02 13:28:40Z christophe $
+% $Id: spm_eeg_review.m 5463 2013-05-03 14:40:45Z christophe $
 
 if nargin == 0
     [D, sts] = spm_select(1, 'mat$', 'Select M/EEG mat file');
@@ -31,7 +31,7 @@ try
     D.PSD.source.VIZU.current = inv;
 end
 [D] = PSD_initUD(D);
-if ~(strcmp(transformtype(D),'time') || D.nsamples == 1)
+if ~strcmp(transformtype(D),'time') % || D.nsamples == 1
     D.PSD.type = 'epoched';
     D.PSD.trials.current = 1;
     D.PSD.VIZU.type = 2;

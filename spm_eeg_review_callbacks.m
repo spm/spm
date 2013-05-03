@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5460 2013-05-02 13:28:40Z christophe $
+% $Id: spm_eeg_review_callbacks.m 5463 2013-05-03 14:40:45Z christophe $
 
 spm('pointer','watch');
 drawnow expose
@@ -15,7 +15,7 @@ try
 end
 
 switch varargin{1}
-
+    
     %% File I/O
     case 'file'
         switch varargin{2}
@@ -33,10 +33,10 @@ switch varargin{1}
             case 'saveHistory'
                 spm_eeg_history(D);
         end
-
+        
     %% Get information from MEEG object
     case 'get'
-
+        
         switch varargin{2}
             case 'VIZU'
                 visuSensors             = varargin{3};
@@ -64,7 +64,7 @@ switch varargin{1}
                     VIZU.montage.M          = M;
                     VIZU.y2                 = permute(sum(data.^2,1),[2 3 1]);
                     VIZU.sci                = size(VIZU.y2,1)./D.nsamples;
-                else
+                else % case where data is TD (?)
                     nts                     = min([2e2,D.nsamples*D.nfrequencies]);
                     decim                   = max([floor(D.nsamples*D.nfrequencies)./nts,1]);
                     data                    = D(visuSensors,:,1:decim:D.nsamples,:);
@@ -107,21 +107,21 @@ switch varargin{1}
                 spm_eeg_review_callbacks('visu','update')
                 spm_clf(Finter)
         end
-
-    %% Visualization callbacks
+        
+        %% Visualization callbacks
     case 'visu'
-
+        
         switch varargin{2}
-
+            
             %% Switch main uitabs: EEG/MEG/MPLANAR/MCOMB/OTHER/INFO/SOURCE
             case 'main'
-
+                
                 try
                     D.PSD.VIZU.fromTab = D.PSD.VIZU.modality;
                 catch
                     D.PSD.VIZU.fromTab = [];
                 end
-
+                
                 switch varargin{3}
                     case 'eeg'
                         D.PSD.VIZU.modality = 'eeg';
@@ -147,12 +147,12 @@ switch varargin{1}
                 end
                 try, D.PSD.VIZU.xlim = get(handles.axes(1),'xlim');end
                 [D] = spm_eeg_review_switchDisplay(D);
-                 try %CP
+                try
                     updateDisp(D,1);
-                 catch
-                     set(D.PSD.handles.hfig,'userdata',D);
-                 end
-
+                catch % just catching error and not displaying anything...
+                    set(D.PSD.handles.hfig,'userdata',D);
+                end
+                
             %% Switch from 'standard' to 'scalp' display type
             case 'switch'
                 
@@ -164,16 +164,16 @@ switch varargin{1}
                         spm_eeg_review_callbacks('visu','main','scalp')
                     end
                 end
-
+                
             %% Update display
             case 'update'
-
+                
                 try D = varargin{3};end
                 updateDisp(D)
-
+                
             %% Scalp interpolation
             case 'scalp_interp'
-
+                
                 XY_coor2D = coor2D(D);
                 if ~isempty(XY_coor2D(1,:))
                     x = round(mean(get(handles.axes(1),'xlim')));
@@ -212,7 +212,7 @@ switch varargin{1}
                             in.type = 'other';
                     end
                     I = intersect(I,find(~[D.badchannels(1:D.nchannels)]));
-                     try %CP
+                    try %CP
                         pos = coor2D(D,I)';
                         labels = char(chanlabels(D,I));
                         y = D(I,:,trN);
@@ -225,24 +225,24 @@ switch varargin{1}
                             D.PSD.handles.hli = in.hl;
                             set(D.PSD.handles.hfig,'userdata',D);
                         end
-                     catch
-                         msgbox('Get 2d positions for these channels!')
-                     end
+                    catch
+                        msgbox('Get 2d positions for these channels!')
+                    end
                 else
                     msgbox('Get 2d positions for EEG/MEG channels!')
                 end
-
+                
             %% Display sensor positions (and canonical cortical mesh)
             case 'sensorPos'
-
+                
                 % get canonical mesh
                 mco = fullfile(spm('Dir'),'canonical','cortex_5124.surf.gii');
-                msc = fullfile(spm('Dir'),'canonical','scalp_2562.surf.gii');               
+                msc = fullfile(spm('Dir'),'canonical','scalp_2562.surf.gii');
                 
                 % get and plot 3D sensor positions
                 
                 try     % EEG
-                    try 
+                    try
                         for i=1:numel(D.inv{end}.datareg)
                             if isequal(D.inv{end}.datareg(i).modality,'EEG')
                                 pos3d = spm_eeg_inv_transform_points(...
@@ -322,18 +322,18 @@ switch varargin{1}
                     axis(opt.ParentAxes,'tight')
                     axis(opt.ParentAxes,'off')
                 end
-            
+                
             %% Update display for 'SOURCE' main tab
             case 'inv'
-
+                
                 cla(D.PSD.handles.axes2,'reset')
                 D.PSD.source.VIZU.current = varargin{3};
                 updateDisp(D);
-
+                
             %% Check xlim when resizing display window using 'standard'
             %% display type
             case 'checkXlim'
-
+                
                 xlim = varargin{3};
                 ud = get(D.PSD.handles.gpa,'userdata');
                 xm = mean(xlim);
@@ -352,7 +352,7 @@ switch varargin{1}
                 elseif xlim(end) >= ud.v.nt
                     xlim = [ud.v.nt-sw+1,ud.v.nt];
                 end
-
+                
                 % Restrain buttons usage:
                 if isequal(xlim,[1,ud.v.nt])
                     set(D.PSD.handles.BUTTONS.vb3,'enable','off')
@@ -400,10 +400,10 @@ switch varargin{1}
                     D.PSD.VIZU.xlim = xlim;
                     set(D.PSD.handles.hfig,'userdata',D)
                 end
-
+                
             %% Contrast/intensity rescaling
             case 'iten_sc'
-
+                
                 switch D.PSD.VIZU.modality
                     case 'eeg'
                         D.PSD.EEG.VIZU.visu_scale = varargin{3}*D.PSD.EEG.VIZU.visu_scale;
@@ -417,31 +417,31 @@ switch varargin{1}
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
                 updateDisp(D,3);
-
+                
             %% Resize plotted data window ('standard' display type)
             case 'time_w'
-
+                
                 % Get current plotted data window range and limits
                 xlim = get(handles.axes(1),'xlim');
-
+                
                 sw = varargin{3}*diff(xlim);
                 xm = mean(xlim);
                 xlim = xm + 0.5*[-sw,sw];
-
+                
                 xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
                 D.PSD.VIZU.xlim = xlim;
-
+                
                 updateDisp(D,4)
-
+                
             %% Scroll through data ('standard' display type)
             case 'slider_t'
-
+                
                 offset = get(gco,'value');
                 updateDisp(D)
-
+                
             %% Scroll through data page by page  ('standard' display type)
             case 'goOne'
-
+                
                 % Get current plotted data window range and limits
                 xlim = get(handles.axes(1),'xlim');
                 sw = diff(xlim);
@@ -449,14 +449,14 @@ switch varargin{1}
                 xlim = spm_eeg_review_callbacks('visu','checkXlim',xlim);
                 D.PSD.VIZU.xlim = xlim;
                 updateDisp(D,4)
-
+                
             %% Zoom
             case 'zoom'
-
+                
                 switch D.PSD.VIZU.type
-
+                    
                     case 1 % 'standard' display type
-
+                        
                         if ~isempty(D.PSD.handles.zoomh)
                             switch get(D.PSD.handles.zoomh,'enable')
                                 case 'on'
@@ -472,9 +472,9 @@ switch varargin{1}
                             end
                             %set(D.PSD.handles.BUTTONS.vb5,'value',~val);
                         end
-
+                        
                     case 2 % 'scalp' display type
-
+                        
                         set(D.PSD.handles.BUTTONS.vb5,'value',1)
                         switch D.PSD.VIZU.modality
                             case 'eeg'
@@ -503,9 +503,9 @@ switch varargin{1}
                                 'XGrid','on','YGrid','on');
                             trN = D.PSD.trials.current(:);
                             Ntrials = length(trN);
-
+                            
                             if strcmp(transformtype(D),'time')
-
+                                
                                 leg = cell(Ntrials,1);
                                 col = lines;
                                 col = repmat(col(1:7,:),floor(Ntrials./7)+1,1);
@@ -532,93 +532,105 @@ switch varargin{1}
                                 end
                                 title(ha2,['channel ',chanLabel,...
                                     ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')'])
-
+                                
                             else % time-frequency data
-
-                                datai = squeeze(D(VIZU.visuSensors(indAxes),:,:,trN(1)));    
-                                pst = (0:1/D.fsample:(D.nsamples-1)/D.fsample) + D.timeonset;
-                                pst = pst*1e3;  % in msec
-                                if any(size(datai)==1)
+                                if D.nsamples>1 % standard TF data, else -> spectrum data
+                                    datai = squeeze(D(VIZU.visuSensors(indAxes),:,:,trN(1)));
+                                    pst = (0:1/D.fsample:(D.nsamples-1)/D.fsample) + D.timeonset;
+                                    pst = pst*1e3;  % in msec
+                                    if any(size(datai)==1)
+                                        hp2 = plot(datai,...
+                                            'parent',ha2);
+                                        set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
+                                            'xlim',[1 length(pst)]);
+                                        xlabel(ha2,'time (in ms after time onset)')
+                                        ylabel(ha2,'power in frequency space')
+                                        title(ha2,['channel ',chanLabel,...
+                                            ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')',...
+                                            ' -- frequency: ',num2str(frequencies(D)),' Hz'])
+                                    else
+                                        nx = max([1,length(pst)./10]);
+                                        xtick = floor(1:nx:length(pst));
+                                        ny = max([1,length(frequencies(D))./10]);
+                                        ytick = floor(1:ny:length(frequencies(D)));
+                                        hp2 = image(datai,...
+                                            'CDataMapping','scaled',...
+                                            'parent',ha2);
+                                        colormap(ha2,jet)
+                                        colorbar('peer',ha2)
+                                        set(ha2,...
+                                            'xtick',xtick,...
+                                            'xticklabel',pst(xtick),...
+                                            'xlim',[0.5 length(pst)+0.5],...
+                                            'ylim',[0.5 size(datai,1)+0.5],...
+                                            'ytick',ytick,...
+                                            'yticklabel',frequencies(D,ytick));
+                                        xlabel(ha2,'time (in ms after time onset)')
+                                        ylabel(ha2,'frequency (in Hz)')
+                                        title(ha2,['channel ',chanLabel,...
+                                            ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')'])
+                                        caxis(ha2,VIZU.ylim)
+                                    end
+                                else %-> spectrum data
+                                    datai = squeeze(D(VIZU.visuSensors(indAxes),:,:,trN(1)));
+                                    pst = D.frequencies;
                                     hp2 = plot(datai,...
                                         'parent',ha2);
                                     set(ha2,'xtick',1:10:length(pst),'xticklabel',pst(1:10:length(pst)),...
                                         'xlim',[1 length(pst)]);
-                                    xlabel(ha2,'time (in ms after time onset)')
-                                    ylabel(ha2,'power in frequency space')
-                                    title(ha2,['channel ',chanLabel,...
-                                        ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')',...
-                                        ' -- frequency: ',num2str(frequencies(D)),' Hz'])
-                                else
-                                    nx = max([1,length(pst)./10]);
-                                    xtick = floor(1:nx:length(pst));
-                                    ny = max([1,length(frequencies(D))./10]);
-                                    ytick = floor(1:ny:length(frequencies(D)));
-                                    hp2 = image(datai,...
-                                        'CDataMapping','scaled',...
-                                        'parent',ha2);
-                                    colormap(ha2,jet)
-                                    colorbar('peer',ha2)
-                                    set(ha2,...
-                                        'xtick',xtick,...
-                                        'xticklabel',pst(xtick),...
-                                        'xlim',[0.5 length(pst)+0.5],...
-                                        'ylim',[0.5 size(datai,1)+0.5],...
-                                        'ytick',ytick,...
-                                        'yticklabel',frequencies(D,ytick));
-                                    xlabel(ha2,'time (in ms after time onset)')
-                                    ylabel(ha2,'frequency (in Hz)')
+                                    xlabel(ha2,'frequency in Hz')
+                                    ylabel(ha2,'power')
                                     title(ha2,['channel ',chanLabel,...
                                         ' (',char(chantype(D,VIZU.visuSensors(indAxes))),')'])
-                                    caxis(ha2,VIZU.ylim)
                                 end
-
+                                
                             end
-
+                            
                             axes(ha2)
                         end
                         set(D.PSD.handles.BUTTONS.vb5,'value',0)
                 end
-
+                
             otherwise;disp('unknown command !')
-
+                
         end
-
+        
     %% Events callbacks accessible from uicontextmenu
     %% ('standard' display type when playing with 'continuous' data)
     case 'menuEvent'
-
+        
         Events = events(D);
         Nevents = length(Events);
-
+        
         x                       = [Events.time]';
         x(:,2)                  = [Events.duration]';
         x(:,2)                  = sum(x,2);
-
+        
         % Find the index of the selected event
         currentEvent = get(gco,'userdata');
         eventType = Events(currentEvent).type;
         eventValue = Events(currentEvent).value;
         tit = ['Current event is selection #',num2str(currentEvent),...
             ' /',num2str(Nevents),' (type= ',eventType,', value=',num2str(eventValue),').'];
-
+        
         switch varargin{2}
-
+            
             % Execute actions accessible from the event contextmenu : click
             case 'click'
-
+                
                 % Highlight the selected event
                 hh = findobj('selected','on');
                 set(hh,'selected','off');
                 set(gco,'selected','on')
-
+                
                 % Prompt basic information on the selected event
                 disp(tit)
-
+                
                 % Execute actions accessible from the event contextmenu : edit event properties
             case 'EventProperties'
-
+                
                 set(gco,'selected','on')
-
+                
                 % Build GUI for manipulating the event properties
                 stc = cell(4,1);
                 default = cell(4,1);
@@ -631,9 +643,9 @@ switch varargin{1}
                 default{3} = num2str(x(currentEvent,1));
                 default{4} = num2str(abs(diff(x(currentEvent,:))));
                 answer = inputdlg(stc,tit,1,default);
-
+                
                 if ~isempty(answer)
-
+                    
                     try
                         eventType = answer{1};
                         eventValue = str2double(answer{2});
@@ -643,15 +655,15 @@ switch varargin{1}
                         Events(currentEvent).value = eventValue;
                         D = events(D,1,Events);
                     end
-
+                    
                     updateDisp(D,2,currentEvent)
-
+                    
                 end
-
-            % Execute actions accessible from the event contextmenu : go to next/previous event
+                
+                % Execute actions accessible from the event contextmenu : go to next/previous event
             case 'goto'
-
-
+                
+                
                 here = mean(x(currentEvent,:));
                 values = [Events.value];
                 xm = mean(x(values==eventValue,:),2);
@@ -660,7 +672,7 @@ switch varargin{1}
                 else
                     ind = find(xm > here);
                 end
-
+                
                 if ~isempty(ind)
                     if varargin{3} == 0
                         offset = round(max(xm(ind))).*D.fsample;
@@ -686,23 +698,23 @@ switch varargin{1}
                         updateDisp(D,4)
                     end
                 end
-
-
-
-            % Execute actions accessible from the event contextmenu : delete event
+                
+                
+                
+                % Execute actions accessible from the event contextmenu : delete event
             case 'deleteEvent'
-
+                
                 Events(currentEvent) = [];
                 D = events(D,1,Events);
                 updateDisp(D,2)
-
+                
         end
-
+        
     %% Events callbacks
     case 'select'
-
+        
         switch varargin{2}
-
+            
             %% Switch to another trial (when playing with 'epoched' data)
             case 'switch'
                 trN = get(gco,'value');
@@ -726,7 +738,7 @@ switch varargin{1}
                         'cdata',ud.img{2-status},'userdata',ud)
                 end
                 updateDisp(D,1)
-
+                
             %% Switch event to 'bad' (when playing with 'epoched' data)
             case 'bad'
                 trN = D.PSD.trials.current;
@@ -754,7 +766,7 @@ switch varargin{1}
                     'tooltipstring',str,...
                     'cdata',ud.img{2-bad},'userdata',ud)
                 set(D.PSD.handles.hfig,'userdata',D)
-
+                
             %% Add an event to current selection
             %% (when playing with 'continuous' data)
             case 'add'
@@ -778,8 +790,8 @@ switch varargin{1}
                 set(handles.BUTTONS.sb3,'enable','on');
                 % Update display
                 updateDisp(D,2,Nevents+1)
-
-
+                
+                
             %% scroll through data upto next event
             %% (when playing with 'continuous' data)
             case 'goto'
@@ -817,16 +829,16 @@ switch varargin{1}
                         updateDisp(D,4)
                     end
                 end
-
+                
         end
-
-   %% Edit callbacks (from spm_eeg_prep_ui)
+        
+    %% Edit callbacks (from spm_eeg_prep_ui)
     case 'edit'
-
+        
         switch varargin{2}
-
+            
             case 'prep'
-
+                
                 try rotate3d off;end
                 spm_eeg_prep_ui;
                 Finter = spm_figure('GetWin','Interactive');
@@ -845,22 +857,22 @@ switch varargin{1}
                     'BusyAction','cancel',...
                     'Interruptible','off',...
                     'Tag','EEGprepUI');
-
+                
                 spm_eeg_prep_ui('update_menu')
                 delete(setdiff(findobj(Finter), [Finter; findobj(Finter,'Tag','EEGprepUI')]));
                 figure(Finter);
-
+                
         end
-
-
+        
+        
 end
 
 % Check changes in the meeg object
 if isa(D,'meeg')&& isfield(D,'PSD') && ...
         isfield(D.PSD,'D0')
-    d1 = rmfield(D,{'PSD'}); 
+    d1 = rmfield(D,{'PSD'});
     d1 = history(d1,1,2,3); %reset history to []
-    d0 = history(D.PSD.D0,1,2,3); %reset history to []  
+    d0 = history(D.PSD.D0,1,2,3); %reset history to []
     if isequal(d1,d0)
         set(D.PSD.handles.BUTTONS.pop1,...
             'BackgroundColor',[0.8314 0.8157 0.7843])
@@ -895,7 +907,7 @@ catch
 end
 
 if ~strcmp(D.PSD.VIZU.modality,'source')
-
+    
     switch D.PSD.VIZU.modality
         case 'eeg'
             VIZU = D.PSD.EEG.VIZU;
@@ -910,12 +922,12 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
         case 'info'
             return
     end
-
-
+    
+    
     switch D.PSD.VIZU.type
-
+        
         case 1
-
+            
             % Create new data to display
             %   - switch from scalp to standard displays
             %   - switch from EEG/MEG/OTHER/info/inv
@@ -930,9 +942,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 options.hp = handles.hfig;
                 options.Fsample = D.fsample;
                 options.timeOnset = D.timeonset;
-%                 if strcmp(D.PSD.VIZU.modality,'eeg') % R.L added if -- montage not defined for other modalities
                 options.M = VIZU.visu_scale*full(VIZU.montage.M);
-%                 end
                 options.bad = [badchannels(D,VIZU.visuSensors(:))];
                 Events = events(D);
                 if strcmp(D.PSD.type,'continuous') && ~isempty(Events)
@@ -1030,7 +1040,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 spm_eeg_review_callbacks('visu','checkXlim',...
                     get(D.PSD.handles.axes,'xlim'))
             end
-
+            
             % modify events properties (delete,add,time,...)
             if ismember(2,flags)
                 Events = events(D);
@@ -1077,7 +1087,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                                 'Clipping','on');
                             % Add events uicontextmenu
                             sc.currentEvent = i;
-                            sc.eventType    = Events(i).type; %CP 
+                            sc.eventType    = Events(i).type; %CP
                             sc.eventValue   = Events(i).value;
                             sc.N_select     = Nevents;
                             psd_defineMenuEvent(D.PSD.handles.PLOT.e(i),sc);
@@ -1087,8 +1097,8 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     case 'modify'
                         Events = events(D); %CP
                         levents(in).time = Events(in).time.*D.fsample;% +1;
-%                       CP, Question, why using the 1st trial here but the 
-%                       trN(1)_th one after on...
+                        %                       CP, Question, why using the 1st trial here but the
+                        %                       trN(1)_th one after on...
                         levents(in).type = ja(in);
                         levents(in).col = mod(levents(in).type+7,7)+1;
                         D.PSD.handles.PLOT.e(in) = plot(D.PSD.handles.axes,levents(in).time.*[1 1],...
@@ -1103,10 +1113,10 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                         sc.eventValue   = Events(in).value;
                         sc.N_select     = Nevents;
                         psd_defineMenuEvent(D.PSD.handles.PLOT.e(in),sc);
-                end     
+                end
                 set(handles.hfig,'userdata',D);
             end
-
+            
             % modify scaling factor
             if ismember(3,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
@@ -1125,7 +1135,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 set(D.PSD.handles.gpa,'userdata',ud);
                 set(handles.hfig,'userdata',D);
             end
-
+            
             % modify plotted time window (goto, ...)
             if ismember(4,flags)
                 ud = get(D.PSD.handles.gpa,'userdata');
@@ -1149,12 +1159,12 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     'sliderstep',.1*[sw/(ud.v.nt-1) 4*sw/(ud.v.nt-1)]);
                 set(handles.hfig,'userdata',D);
             end
-
-
+            
+            
         case 2
-
+            
             if strcmp(transformtype(D),'time')
-
+                
                 Ntrials = length(trN);
                 v_data = zeros(size(VIZU.montage.M,1),...
                     size(D,2),Ntrials);
@@ -1164,7 +1174,7 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     v_data(:,:,i)           = v_datai;
                 end
                 % Create graphical objects if absent
-                if ~isfield(handles,'PLOT')                                        
+                if ~isfield(handles,'PLOT')
                     miY = min(v_data(~isnan(v_data(:))));
                     maY = max(v_data(~isnan(v_data(:))));
                     
@@ -1211,9 +1221,9 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                 set(handles.scale,'yticklabel',num2str(dz));
                 set(handles.hfig,'userdata',D);
                 axes(D.PSD.handles.scale)
-
+                
             else %---- Time-frequency data !! ----%
-
+                
                 for i=1:length(VIZU.visuSensors)
                     cmenu = uicontextmenu;
                     uimenu(cmenu,'Label',['channel ',num2str(VIZU.visuSensors(i)),': ',VIZU.montage.clab{i}]);
@@ -1265,13 +1275,13 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     caxis(handles.axes(i),VIZU.ylim);
                 end
                 set(handles.hfig,'userdata',D);
-
+                
             end
     end
-
-
+    
+    
 else  % source space
-
+    
     % get model/trial info
     VIZU = D.PSD.source.VIZU;
     isInv = VIZU.isInv;
@@ -1284,7 +1294,7 @@ else  % source space
     tmp = (model.pst-t0).^2;
     indTime = find(tmp==min(tmp));
     gridTime = model.pst(indTime);
-
+    
     try % simple time scroll
         % update time line
         set(VIZU.lineTime,'xdata',[gridTime;gridTime]);
@@ -1292,12 +1302,12 @@ else  % source space
         tex = VIZU.J(:,indTime);
         set(D.PSD.handles.mesh,'facevertexcdata',tex)
         set(D.PSD.handles.BUTTONS.slider_step,'value',gridTime)
-
+        
     catch % VIZU.lineTime deleted -> switch to another source recon
         % get the inverse model info
         str = getInfo4Inv(D,invN);
         set(D.PSD.handles.infoText,'string',str);
-                  
+        
         if Ninv>1
             if isnan(ID(invN))
                 xF = find(isnan(ID));
@@ -1411,10 +1421,10 @@ else  % source space
         set(D.PSD.handles.BUTTONS.slider_step,'value',gridTime)
         % update data structure
         set(handles.hfig,'userdata',D);
-
+        
     end
-
-
+    
+    
 end
 
 
@@ -1432,10 +1442,10 @@ switch D.PSD.VIZU.modality
         VIZU = D.PSD.MEG.VIZU;
     case 'megplanar'
         I = D.PSD.MEGPLANAR.I;
-        VIZU = D.PSD.MEGPLANAR.VIZU;    
+        VIZU = D.PSD.MEGPLANAR.VIZU;
     case 'megcomb'
         I = D.PSD.MEGCOMB.I;
-        VIZU = D.PSD.MEGCOMB.VIZU;    
+        VIZU = D.PSD.MEGCOMB.VIZU;
     case 'other'
         I = D.PSD.other.I;
         VIZU = D.PSD.other.VIZU;
@@ -1474,9 +1484,9 @@ switch D.PSD.VIZU.type
         axes(D.PSD.handles.scale)
 end
 
-d1 = rmfield(D,{'PSD'}); 
+d1 = rmfield(D,{'PSD'});
 d1 = history(d1,1,2,3); %reset history to []
-d0 = history(D.PSD.D0,1,2,3); %reset history to []  
+d0 = history(D.PSD.D0,1,2,3); %reset history to []
 if isequal(d1,d0)
     set(D.PSD.handles.BUTTONS.pop1,...
         'BackgroundColor',[0.8314 0.8157 0.7843])
@@ -1555,7 +1565,7 @@ else % For backward compatibility
         str{3} = 'Modality: ?';
     end
 end
-    
+
 if strcmp(D.inv{invN}.method,'Imaging')
     source = 'distributed';
 else
@@ -1698,7 +1708,7 @@ if length(cn) == 5  % channel info
                     case 'refmag'
                         D = chantype(D,i,'REFMAG');
                     case 'refgrad'
-                        D = chantype(D,i,'REFGRAD');     
+                        D = chantype(D,i,'REFGRAD');
                     case 'lfp'
                         D = chantype(D,i,'LFP');
                     case 'eog'
@@ -1763,7 +1773,7 @@ if length(cn) == 5  % channel info
             D.PSD.other.VIZU = [];
         end
     else
-
+        
     end
 elseif length(cn) == 7
     if strcmp(D.type,'continuous')
@@ -1835,12 +1845,12 @@ elseif length(cn) == 7
                     str = ' (not bad)';
                 end
                 D.PSD.trials.TrLabels{i} = ['Trial ',num2str(i),': ', ...
-                                            char(conditions(D,i)),str];
+                    char(conditions(D,i)),str];
             end
         else
         end
     end
-
+    
 elseif length(cn) == 3
     if ~emptyTable
         nt = D.ntrials;
@@ -1853,9 +1863,9 @@ elseif length(cn) == 3
         end
     else
     end
-
+    
 elseif length(cn) == 12     % source reconstructions
-
+    
     if ~emptyTable
         if ~~D.PSD.source.VIZU.current
             isInv = D.PSD.source.VIZU.isInv;
