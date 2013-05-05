@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5463 2013-05-03 14:40:45Z christophe $
+% $Id: spm_eeg_review_callbacks.m 5468 2013-05-05 20:46:32Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -412,7 +412,7 @@ switch varargin{1}
                     case 'megplanar'
                         D.PSD.MEGPLANAR.VIZU.visu_scale = varargin{3}*D.PSD.MEGPLANAR.VIZU.visu_scale;
                     case 'megcomb'
-                        D.PSD.MEGPCOMB.VIZU.visu_scale = varargin{3}*D.PSD.MEGPCOMB.VIZU.visu_scale;
+                        D.PSD.MEGCOMB.VIZU.visu_scale = varargin{3}*D.PSD.MEGCOMB.VIZU.visu_scale;
                     case 'other'
                         D.PSD.other.VIZU.visu_scale = varargin{3}*D.PSD.other.VIZU.visu_scale;
                 end
