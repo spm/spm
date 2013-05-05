@@ -6,7 +6,9 @@ function D = spm_eeg_prep(S)
 %   S.D             - MEEG object or filename of M/EEG mat-file
 %   S.task          - action string. One of 'settype', 'defaulttype',
 %                     'loadtemplate','setcoor2d', 'project3d', 'loadeegsens',
-%                     'defaulteegsens', 'sens2chan', 'headshape', 'coregister'.
+%                     'defaulteegsens', 'sens2chan', 'headshape',
+%                     'coregister', 'sortconditions'
+%
 %   S.updatehistory - update history information [default: true]
 %   S.save          - save MEEG object [default: false]
 %
@@ -15,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_prep.m 5466 2013-05-05 16:11:21Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -436,6 +438,14 @@ switch lower(S.task)
         D = spm_eeg_inv_mesh_ui(D, val, 1, Msize);
         D = spm_eeg_inv_datareg_ui(D, val);
         
+    case 'sortconditions'    
+        if ischar(S.condlist)
+            cl = getfield(load(S.condlist), 'condlist');
+        else
+            cl = S.condlist;
+        end
+        
+        D = condlist(D, cl);        
         %----------------------------------------------------------------------
     otherwise
         %----------------------------------------------------------------------

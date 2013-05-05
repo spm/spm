@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5466 2013-05-05 16:11:21Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5375 $';
+SVNrev = '$Rev: 5466 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -98,6 +98,12 @@ BInputsMontageMenu = uimenu(BatchInputsMenu, 'Label', 'Montage',...
     'Enable', 'off', ...
     'HandleVisibility','on');
 
+BInputsSortCondMenu = uimenu(BatchInputsMenu, 'Label', 'Sort conditions',...
+    'Tag','EEGprepUI',...
+    'Enable', 'on', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''SortCondCB'')');
+
 MontageCustomMenu = uimenu(BInputsMontageMenu, 'Label', 'Custom Montage',...
     'Tag','EEGprepUI',...
     'Enable', 'on', ...
@@ -115,12 +121,6 @@ MontageROIMenu = uimenu(BInputsMontageMenu, 'Label', 'ROI',...
     'Enable', 'off', ...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''roiCB'')');
-
-MontageCombinePlanarMenu = uimenu(BInputsMontageMenu, 'Label', 'Combine planar',...
-    'Tag','EEGprepUI',...
-    'Enable', 'off', ...
-    'HandleVisibility','on',...
-    'Callback', 'spm_eeg_prep_ui(''CombinePlanarCB'')');
 
 % ====== Channel types ===============================
 
@@ -575,33 +575,38 @@ update_menu;
 end
 
 %==========================================================================
-% function CombinePlanarCB
+% function SortCondCB
 %==========================================================================
-function CombinePlanarCB
+function SortCondCB
 
 D = getD;
 
-planar = spm_eeg_planarchannelset(D.chanlabels);
-
-montage = [];
-montage.labelorg = D.chanlabels(D.indchantype('MEGPLANAR', 'GOOD'))';
-montage.labelnew = {};
-montage.tra      = [];
-
-for i = 1:size(planar, 1)
-    tra = zeros(1, length(montage.labelorg));
-    tra(ismember(montage.labelorg, planar(i, 1:2))) = 1/2;
-    if sum(tra) == 1
-        montage.labelnew(i, 1) = planar(i, 3);
-        montage.tra = [montage.tra; tra];
-    end
+S   = [];
+S.task = 'sortconditions';
+S.D = D;
+oldcondlist = D.condlist;
+S.condlist = cell(size(oldcondlist));
+for i = 1:D.nconditions
+    str = sprintf('%s|', oldcondlist{:});
+    str = str(1:(end-1));
+    
+    ind = spm_input(['Select condition ' num2str(i)], 1, 'm', str, 1:numel(oldcondlist));
+    S.condlist(i) = oldcondlist(ind);
+    oldcondlist(ind) = [];
 end
 
-[filename, pathname] = uiputfile('*.mat', 'Save montage as');
+[filename, pathname] = uiputfile('*.mat', 'Save conditions list as');
 
 if ~isequal(filename, 0)
-    save(fullfile(pathname, filename), 'montage', spm_get_defaults('mat.format'));
+    condlist = S.condlist;
+    
+    save(fullfile(pathname, filename), 'condlist', spm_get_defaults('mat.format'));
 end
+
+D = spm_eeg_prep(S);
+
+setD(D);
+update_menu;
 
 end
 
@@ -1053,6 +1058,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 IsEEG = 'off';
 IsMEG = 'off';
 IsEpochable = 'off';
+IsEpoched   = 'off';
 HasPlanar   = 'off';
 HasSensors  = 'off';
 HasSensorsEEG = 'off';
@@ -1078,6 +1084,11 @@ if isa(get(Finter, 'UserData'), 'meeg')
     if isequal(D.type, 'continuous') && ~isempty(D.events);
         IsEpochable = 'on';
     end
+    
+    if ~isequal(D.type, 'continuous')
+        IsEpoched = 'on';
+    end
+    
     
     [res, list] = modality(D, 1, 1);
     if ismember('MEGPLANAR', list);
@@ -1150,8 +1161,8 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Batch inputs'), 'Enable', Dloade
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Trial definition'), 'Enable', IsEpochable);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Montage'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Re-reference'), 'Enable', IsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'ROI'), 'Enable', Dloaded);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Combine planar'), 'Enable', HasPlanar);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'ROI'), 'Enable', Dloaded);;
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sort conditions'), 'Enable', IsEpoched);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sensors'), 'Enable', Dloaded);

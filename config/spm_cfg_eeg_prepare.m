@@ -4,9 +4,9 @@ function prepare = spm_cfg_eeg_prepare
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_prepare.m 5462 2013-05-02 21:01:37Z vladimir $
+% $Id: spm_cfg_eeg_prepare.m 5466 2013-05-05 16:11:21Z vladimir $
 
-rev = '$Rev: 5462 $';
+rev = '$Rev: 5466 $';
 
 D = cfg_files;
 D.tag = 'D';
@@ -212,13 +212,39 @@ avref.help = {'Create an average reference montage for the specific dataset, ',.
     'taking into account bad channels.'};
 avref.val  = {fname};
 
+condlabel = cfg_entry;
+condlabel.tag = 'label';
+condlabel.name = 'Condition label';
+condlabel.strtype = 's';
+
+condlist = cfg_repeat;
+condlist.tag = 'condlist';
+condlist.name = 'Specify conditions list';
+condlist.num = [1 Inf];
+condlist.values = {condlabel};
+condlist.help = {'Specify the conditions order manually as a list'};
+
+condfile = cfg_files;
+condfile.tag = 'condfile';
+condfile.name = 'Read from conditions file';
+condfile.filter = 'mat';
+condfile.num = [1 1];
+condfile.help = {'Select a mat-file with cell array of condition labels'};
+
+sortconditions = cfg_choice;
+sortconditions.name = 'Sort conditions';
+sortconditions.tag = 'sortconditions';
+sortconditions.values = {condlist, condfile};
+sortconditions.val = {condlist};
+sortconditions.help = {'Specify conditions order.'};
+
 task = cfg_repeat;
 task.tag = 'task';
 task.name = 'Select task(s)';
 task.num = [1 Inf];
 task.values = {defaulttype, settype, loadmegsens, headshape,...
     defaulteegsens, loadeegsens, seteegref, project3dEEG, project3dMEG,...
-    loadtemplate, setbadchan, avref};
+    loadtemplate, setbadchan, avref, sortconditions};
 
 prepare = cfg_exbranch;
 prepare.tag = 'prepare';
@@ -325,6 +351,14 @@ for i = 1:numel(job.task)
             out.avrefname    = {fullfile(p, [f '.mat'])};
             
             save(char(out.avrefname), 'montage', spm_get_defaults('mat.format'));
+        case 'sortconditions'
+            S.task = 'sortconditions';
+            if isfield(job.task{i}.sortconditions, 'label')
+                S.condlist = job.task{i}.sortconditions.label;
+            else
+                S.condlist = char(job.task{i}.sortconditions.condfile);
+            end
+            D = spm_eeg_prep(S);
     end
 end
 
