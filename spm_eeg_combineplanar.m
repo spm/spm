@@ -22,9 +22,9 @@ function D = spm_eeg_combineplanar(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_combineplanar.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: spm_eeg_combineplanar.m 5469 2013-05-05 21:28:12Z vladimir $
 
-SVNrev = '$Rev: 5212 $';
+SVNrev = '$Rev: 5469 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -117,15 +117,12 @@ if strcmp(D.type, 'continuous')
             
             planar1 = D(chanind(1, :), :, Iblock);
             planar2 = D(chanind(2, :), :, Iblock);
+                       
+            Dnew(chanind(3, :), :, Iblock) = planar1 + planar2;
             
-            for j = 1:size(chanind, 2)
-                Dnew(chanind(3, j), :, Iblock) = planar1(j, :, :) + planar2(j, :, :);
-            end
             
             if ~isempty(copyind)
-                for j = 1:size(copyind, 2)
-                    Dnew(copyind(2, j), :, Iblock) =  D(copyind(1, j), :, Iblock);
-                end
+                Dnew(copyind(2, :), :, Iblock) =  D(copyind(1, :), :, Iblock);
             end
             
             if any(Ibar == i), spm_progress_bar('Set', i); end
@@ -147,14 +144,10 @@ if strcmp(D.type, 'continuous')
             planar1 = D(chanind(1, :),  Iblock);
             planar2 = D(chanind(2, :),  Iblock);
             
-            for j = 1:size(chanind, 2)
-                Dnew(chanind(3, j), Iblock) = sqrt(planar1(j, :).^2 + planar2(j, :).^2);
-            end
+            Dnew(chanind(3, :), Iblock) = sqrt(planar1.^2 + planar2.^2);
             
             if ~isempty(copyind)
-                for j = 1:size(copyind, 2)
-                    Dnew(copyind(2, j), Iblock) =  D(copyind(1, j), Iblock);
-                end
+                Dnew(copyind(2, :), Iblock) =  D(copyind(1, :), Iblock);
             end
             
             if any(Ibar == i), spm_progress_bar('Set', i); end
@@ -172,14 +165,10 @@ else  %-------- Epoched data --------------------------------------------------
             planar1 = D(chanind(1, :), :, :, i);
             planar2 = D(chanind(2, :), :, :, i);
             
-            for j = 1:size(chanind, 2)
-                Dnew(chanind(3, j),:, :, i) = planar1(j, :, :) + planar2(j, :, :);
-            end
+            Dnew(chanind(3, :),:, :, i) = planar1 + planar2;
             
             if ~isempty(copyind)
-                for j = 1:size(copyind, 2)
-                    Dnew(copyind(2, j), :, :, i) =  D(copyind(1, j), :, :, i);
-                end
+                Dnew(copyind(2, :), :, :, i) =  D(copyind(1, :), :, :, i);
             end
             
             if any(Ibar == i), spm_progress_bar('Set', i); end
@@ -189,14 +178,10 @@ else  %-------- Epoched data --------------------------------------------------
             planar1 = D(chanind(1, :), :, i);
             planar2 = D(chanind(2, :), :, i);
             
-            for j = 1:size(chanind, 2)
-                Dnew(chanind(3, j), :, i) = sqrt(planar1(j, :).^2 + planar2(j, :).^2);
-            end
+            Dnew(chanind(3, :), :, i) = sqrt(planar1.^2 + planar2.^2);
             
             if ~isempty(copyind)
-                for j = 1:size(copyind, 2)
-                    Dnew(copyind(2, j), :, i) =  D(copyind(1, j), :, i);
-                end
+                Dnew(copyind(2, :), :, i) =  D(copyind(1, :), :, i);
             end
             
             if any(Ibar == i), spm_progress_bar('Set', i); end
