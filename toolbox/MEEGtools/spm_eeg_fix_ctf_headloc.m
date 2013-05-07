@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 5455 2013-04-28 12:14:09Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5471 2013-05-07 22:24:41Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -85,10 +85,20 @@ if ~isfield(S, 'quickfix')
             valid_fid = S.valid_fid;
         end
         
+        if numel(valid_fid) == 9
+            valid_dist = [norm(valid_fid(1,:) - valid_fid(2,:));
+                norm(valid_fid(2,:) - valid_fid(3,:));
+                norm(valid_fid(3,:) - valid_fid(1,:))];
+        elseif numel(valid_fid) == 3
+            valid_dist = valid_fid;
+        else
+            error('Unexpected input');
+        end
+                    
         dist_dev = [
-            (squeeze(sqrt(sum((cont_fid(:, 1, :) - cont_fid(:, 2, :)).^2, 3))) - norm(valid_fid(1,:) - valid_fid(2,:)))';...
-            (squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3))) - norm(valid_fid(2,:) - valid_fid(3,:)))';...
-            (squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3))) - norm(valid_fid(3,:) - valid_fid(1,:)))'];
+            (squeeze(sqrt(sum((cont_fid(:, 1, :) - cont_fid(:, 2, :)).^2, 3))) - valid_dist(1))';...
+            (squeeze(sqrt(sum((cont_fid(:, 2, :) - cont_fid(:, 3, :)).^2, 3))) - valid_dist(2))';...
+            (squeeze(sqrt(sum((cont_fid(:, 3, :) - cont_fid(:, 1, :)).^2, 3))) - valid_dist(3))'];
         
         W = abs(dist_dev) < 0.01;
     else
@@ -102,7 +112,11 @@ if ~isfield(S, 'quickfix')
         
         M = mode(rdist');
         
-        W = (rdist == repmat(M(:), 1, size(rdist, 2)));
+        W = (abs(dist - repmat(0.01*M(:), 1, size(rdist, 2))) < 0.01);
+    end
+    
+    if sum(sum(W) == 3) > 2
+        W(:, sum(W)<3) = 0;
     end
     
     % Theoretically one should use 'or' here and not 'and' but I found it
@@ -113,17 +127,17 @@ if ~isfield(S, 'quickfix')
     
     OK = [nasOK;nasOK;nasOK; leOK; leOK;leOK; reOK;reOK;reOK];
     
-    if min(sum(OK, 2))<2
-        error('Not enough valid head localization data');
-    end
-    %%
-    fixed = 0*tmpdat;
-    for i = 1:size(tmpdat, 1)
-        if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))
-            fixed(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
+    if min(sum(OK, 2))>2               
+        fixed = tmpdat;
+        for i = 1:size(tmpdat, 1)
+            if any(~OK(i, :)) || (length(tmpind)<size(tmpdat, 2))
+                fixed(i, :) = interp1(D.time(tmpind(OK(i, :))), tmpdat(i, tmpind(OK(i, :))),  D.time, 'linear', 'extrap');
+            end
         end
-    end    
-    
+    else
+        fixed = repmat(0.01*D.origheader.hc.dewar(:), 1, size(tmpdat, 2));
+        warning('Not enough valid head localization data');
+    end
     D(D.indchannel(hlc_chan_label), :) = fixed;
     
     dewarfid = 100*reshape(median(fixed(:, tmpind), 2), 3, 3);
@@ -135,6 +149,7 @@ if ~isfield(S, 'quickfix')
     plot(D.time, tmpdat, 'Color', 0.5*[1 1 1], 'LineWidth', 5);
     hold on
     plot(D.time, fixed, 'r');
+    ylim([min(fixed(:)) max(fixed(:))]);
     subplot(2, 1, 2);
 else
     spm_figure('GetWin','Graphics');clf;
@@ -197,7 +212,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spm_eeg_fix_ctf_headloc.m 5455 2013-04-28 12:14:09Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5471 2013-05-07 22:24:41Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
