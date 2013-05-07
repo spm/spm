@@ -25,7 +25,7 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %______________________________________________________________________________________
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmconvol.m 5241 2013-02-05 12:20:57Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 5470 2013-05-07 22:24:09Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -96,7 +96,7 @@ if ~isfield(S, 'timestep')
 end
 timestep = 1e-3*S.timestep;
 
-dt = time(end) - time(1);
+dt = time(end) - time(1) + diff(time(1:2));
 
 
 if ~isfield(S, 'frequencies') || isempty(S.frequencies)
@@ -128,7 +128,7 @@ end
 
 % Correct the time step to the closest multiple of the sampling interval to
 % keep the time axis uniform
-timestep = 1/(fsample/mod(fsample,1/timestep));
+timestep = round(fsample*timestep)/fsample;
 
 timeoi=(time(1)+(timeres/2)):timestep:(time(end)-(timeres/2)-1/fsample); % Time axis
 
@@ -140,9 +140,25 @@ res.freq = freqoi;
 res.time = timeoi;
 
 if ndims(spectrum) == 4 && size(spectrum, 1)>1
-    res.pow = spm_squeeze(mean(spectrum.*conj(spectrum), 1), 1);
+    res.pow = spm_squeeze(nanmean(spectrum.*conj(spectrum), 1), 1);
 elseif ndims(spectrum) == 4
     res.fourier = spm_squeeze(spectrum, 1);
 else
     res.fourier = spectrum;
+end
+end
+
+function y = nansum(x, dim)
+
+x(isnan(x)) = 0;
+if nargin==1
+  y = sum(x);
+else
+  y = sum(x,dim);
+end
+end
+
+function y = nanmean(x, dim)
+N = sum(~isnan(x), dim);
+y = nansum(x, dim) ./ N;
 end
