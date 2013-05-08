@@ -13,11 +13,11 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% patchmni : patch centres in mni space or patch indices
 %% dipfreq : frequency of simulated sources (Hz)
 %% mnimesh : a new mesh with vertices in mni space
-%% dipmoment : dipole moment in Am
+%% dipmoment: relative dipole moments
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5330 2013-03-15 16:25:09Z vladimir $
+% $Id: spm_eeg_simulate.m 5478 2013-05-08 15:00:56Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -243,8 +243,11 @@ end
 
 % Copy same data to all trials
 tmp=L*X;
-
-tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale;
+if isfield(Dnew.inv{val}.forward,'scale'),
+    tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale; %% account for rescaling of lead fields
+else
+    tmp=Lscale.*tmp; %% no rescaling
+end; 
 
 switch Dnew.sensors('MEG').chanunit{1}
     case 'T'
