@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5418 2013-04-16 11:15:26Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5476 2013-05-08 15:00:07Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -64,8 +64,8 @@ invtype = cfg_menu;
 invtype.tag = 'invtype';
 invtype.name = 'Inversion type';
 invtype.help = {'Select the desired inversion type'};
-invtype.labels = {'GS', 'ARD', 'MSP (GS+ARD)' 'COH', 'IID'};
-invtype.values = {'GS', 'ARD', 'MSP', 'LOR', 'IID'};
+invtype.labels = {'GS', 'ARD', 'MSP (GS+ARD)' 'COH', 'IID','EBB'};
+invtype.values = {'GS', 'ARD', 'MSP', 'LOR', 'IID','EBB'};
 invtype.val = {'GS'};
 
 woi = cfg_entry;
@@ -114,9 +114,9 @@ mselect = cfg_menu;
 mselect.tag = 'mselect';
 mselect.name = 'Selction of winning model';
 mselect.help = {'How to get the final current density estimate from multiple iterations'};
-mselect.labels = {'BMA','MaxF'};
-mselect.values = {'BMA','MaxF'};
-mselect.val = {'BMA'};
+mselect.labels = {'MaxF'}; %% removed BMA option for now
+mselect.values = {'MaxF'};
+mselect.val = {'MaxF'};
 
 nsmodes = cfg_entry;
 nsmodes.tag = 'nsmodes';
@@ -209,7 +209,7 @@ modality.val = {{'All'}};
 
 invert = cfg_exbranch;
 invert.tag = 'invertiter';
-invert.name = 'M/EEG Source inversion, iterative';
+invert.name = 'Source inversion, iterative';
 invert.val = {D, val, whatconditions, isstandard, modality};
 invert.help = {'Run imaging source reconstruction'};
 invert.prog = @run_inversion;
@@ -320,6 +320,7 @@ for i = 1:numel(job.D)
     D{i}.inv{val}.inverse = inverse;
     
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
+    
     D{i}.inv{val}.inverse.BMAflag=BMAflag;
     
     for iterval=1:Npatchiter-1,
