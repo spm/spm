@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 4370 2011-06-20 14:51:19Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 5481 2013-05-08 15:43:18Z gareth $
 
 
 
@@ -55,6 +55,7 @@ end
 
 y    = P.y;
 sc_y = 1/std(y);
+sc_y=1; %% remove the scaling for now
 y    = y*sc_y;
 Y.y  = y;
 
@@ -100,7 +101,8 @@ while outsideflag==1, %% don't use sources which end up outside the head
     startguess=M.pE;
     M.Setup =P;             % pass volume conductor and sensor locations on
     M.sc_y =sc_y;           % pass on scaling factor
-    
+  
+
     %% startguess=[-0.3553  -69.8440    1.0484    0.2545    0.3428    1.8526]'
     
     [starty]=spm_eeg_wrap_dipfit_vbecd(startguess,M,U);
