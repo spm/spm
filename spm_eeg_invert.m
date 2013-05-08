@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_invert.m 5474 2013-05-08 11:58:32Z gareth $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -631,6 +631,24 @@ switch(type)
         Qp{1}   = speye(Ns,Ns);
         LQpL{1} = UL*UL';
         
+    case {'EBB'}
+        % create beamforming prior. See:
+        % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches. 
+        % Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985. 
+        %------------------------------------------------------------------
+        InvCov = spm_inv(YY);
+        allsource = zeros(Ns,1);
+        Sourcepower = zeros(Ns,1);
+        for bk = 1:Ns
+            normpower = 1/(UL(:,bk)'*UL(:,bk));
+            Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
+            allsource(bk) = Sourcepower(bk)./normpower;
+        end
+        allsource = allsource/max(allsource);	% Normalise
+        
+        Qp{1} = diag(allsource);
+        LQpL{1} = UL*diag(allsource)*UL';
+        
 end
  
  
@@ -702,6 +720,7 @@ switch(type)
         
         % Accumulate empirical priors
         %------------------------------------------------------------------
+        
         Qcp           = Q*MVB.cp;
         QP{end + 1}   = sum(Qcp.*Q,2);
         LQP{end + 1}  = (UL*Qcp)*Q';
@@ -740,7 +759,7 @@ end
  
 switch(type)
     
-    case {'IID','MMN','LOR','COH'}
+    case {'IID','MMN','LOR','COH','EBB'}
         
         % or ReML - ARD
         %------------------------------------------------------------------
