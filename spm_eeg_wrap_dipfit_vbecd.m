@@ -13,7 +13,7 @@ function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 %% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 4369 2011-06-20 14:50:27Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 5480 2013-05-08 15:42:59Z gareth $
 
 x=U.u; %% input , unused
 
@@ -40,8 +40,8 @@ leads=zeros(Ndips,3,numel(sens.label));
 for i=1:Ndips,
     
     pos=allpos(i,:);
-    mom=allmom(i,:)./1000; %% SCALE BACK FROM SIMILAR UNITS TO LOCATION;
-    
+    %%mom=allmom(i,:)./1000; %% SCALE BACK FROM SIMILAR UNITS TO LOCATION;
+    mom=allmom(i,:); %% in nAm
     % mean correction of LF, only for EEG data.
     if ft_senstype(sens, 'eeg')
         [tmp] = ft_compute_leadfield(pos, sens, vol);
@@ -51,7 +51,8 @@ for i=1:Ndips,
     end
     gmn=tmp;
     leads(i,:,:)=gmn';
-    y=y+gmn*mom';
+    rescale=1e3*1e9; %%%% NEED TO DO THIS PROPERLY -GRB MAY 2013
+    y=y+gmn*mom'.*rescale;
     outside = outside+ ~ft_inside_vol(pos,vol);
 end; % for i
 
