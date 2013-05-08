@@ -6,7 +6,7 @@ function res = condlist(this, newcondlist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: condlist.m 5429 2013-04-19 04:01:45Z vladimir $
+% $Id: condlist.m 5472 2013-05-08 00:24:36Z vladimir $
 
 res = getset(this, 'trials', 'label');
 
@@ -34,14 +34,16 @@ if nargin == 1
 
     res = res(ind);
 
-    if numel(res)>1 && isfield(this.other, 'condlist') &&...
-            iscell(this.other.condlist) && ~isempty(this.other.condlist)
-        [sel1, sel2] = match_str(this.other.condlist, res);
+    if numel(res)>1  && ~isempty(this.condlist)
+        [sel1, sel2] = match_str(this.condlist, res);
         res = res([sel2(:)' setdiff(1:numel(res), sel2)]);
     end
 else
-    if iscell(newcondlist) && ~isempty(intersect(newcondlist, res))     
-        this.other(1).condlist = newcondlist(ismember(newcondlist, res));
+    if iscell(newcondlist) && ~isempty(intersect(newcondlist, res))  
+        [junk, ind] = unique(newcondlist, 'first');
+        newcondlist = newcondlist(sort(ind));
+        
+        this.condlist = newcondlist(ismember(newcondlist, res));
     else
         error('Expecting a cell array with condition labels as input.');
     end
