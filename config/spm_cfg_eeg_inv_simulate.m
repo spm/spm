@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_simulate.m 5477 2013-05-08 15:00:17Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -77,7 +77,7 @@ dipmom.name = 'Dipole moments (nAm) ';
 dipmom.strtype = 'r';
 dipmom.num = [Inf 1];
 dipmom.val = {[20;20]};
-dipmom.help = {'Enter dipole moments for sources (nAm)'};
+dipmom.help = {'Enter dipole moments for sources: note only relative value will be used if SNR is specified later'};
 
 whitenoise = cfg_entry;
 whitenoise.tag = 'whitenoise';
@@ -98,10 +98,10 @@ setSNR.help = {'Enter sensor level SNR=20*log10(rms source/ rms noise)'};
 
 locs  = cfg_entry;
 locs.tag = 'locs';
-locs.name = 'Source locations (or patch indices)';
+locs.name = 'Source locations (mm)';
 locs.strtype = 'r';
 locs.num = [Inf 3];
-locs.help = {'Input mni source locations (mm) as n x 3 matrix, or patch indices only in 1st column'};
+locs.help = {'Input mni source locations (mm) as n x 3 matrix'};
 locs.val = {[ 53.7203  -25.7363    9.3949;  -52.8484  -25.7363    9.3949]};
 
 
