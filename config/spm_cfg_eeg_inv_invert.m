@@ -5,7 +5,7 @@ function invert = spm_cfg_eeg_inv_invert
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invert.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_invert.m 5473 2013-05-08 11:55:46Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -56,8 +56,8 @@ invtype = cfg_menu;
 invtype.tag = 'invtype';
 invtype.name = 'Inversion type';
 invtype.help = {'Select the desired inversion type'};
-invtype.labels = {'GS', 'ARD', 'MSP (GS+ARD)' 'COH', 'IID'};
-invtype.values = {'GS', 'ARD', 'MSP', 'LOR', 'IID'};
+invtype.labels = {'GS', 'ARD', 'MSP (GS+ARD)' 'COH', 'IID','EBB'};
+invtype.values = {'GS', 'ARD', 'MSP', 'LOR', 'IID','EBB'};
 invtype.val = {'GS'};
 
 woi = cfg_entry;
