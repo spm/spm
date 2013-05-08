@@ -13,7 +13,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
-% There is an option for a Beamforming prior : inversion type 'BMF'
+% There is an option for a Beamforming prior : inversion type 'EBB'
 %% Ip: determines the mesh vertices where the patches will be centred
 %% Nm number of spatial modes to use
 %% Nt number of temporal modes to use
@@ -26,7 +26,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5418 2013-04-16 11:15:26Z gareth $
+% $Id: spm_eeg_invert_classic.m 5475 2013-05-08 11:59:46Z gareth $
 
 
 
@@ -358,8 +358,10 @@ switch(type)
             
         end
         
-    case {'BMF'}
-        % create beamforming prior
+    case {'EBB'}
+        % create beamforming prior. See:
+        % Source reconstruction accuracy of MEG and EEG Bayesian inversion approaches. 
+        %Belardinelli P, Ortiz E, Barnes G, Noppeney U, Preissl H. PLoS One. 2012;7(12):e51985. 
         %------------------------------------------------------------------
         InvCov = spm_inv(YY);
         allsource = zeros(Ns,1);
@@ -458,7 +460,7 @@ end
 
 switch(type)
     
-    case {'IID','MMN','LOR','COH','BMF'}
+    case {'IID','MMN','LOR','COH','EBB'}
         
         % or ReML - ARD (Here is performed the inversion)
         %------------------------------------------------------------------
