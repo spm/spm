@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 4906 2012-09-06 17:30:56Z john $
+% $Id: spm_groupwise_ls.m 5485 2013-05-09 15:51:24Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -76,7 +76,8 @@ for i=1:numel(Nii),
     dm = [size(Nii(i).dat) 1];
     d  = max(d, dm(1:3));
 end
-d = prod(d-2)^(1/3);
+%d = prod(d-2)^(1/3);
+d  = min(d);
 
 % Specify highest resolution data
 %-----------------------------------------------------------------------

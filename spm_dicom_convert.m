@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5250 2013-02-15 21:04:36Z john $
+% $Id: spm_dicom_convert.m 5485 2013-05-09 15:51:24Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -45,6 +45,10 @@ if nargin<4, format   = 'img'; end
 [spect,guff]      = select_spectroscopy_images(other);
 [mosaic,standard] = select_mosaic_images(images);
 [standard, guff]  = select_last_guff(standard, guff); % See email of Christoph Berger, 17/08/11
+
+if ~isempty(guff),
+    warning('spm:dicom','%d files could not be converted from DICOM.', numel(guff));
+end
 
 fmos = {};
 fstd = {};
@@ -358,9 +362,11 @@ for j=1:length(vol),
             fprintf('***************************************************\n');
             fprintf('* VARIABLE SLICE SPACING                          *\n');
             fprintf('* This may be due to missing DICOM files.         *\n');
-            if checkfields(vol{j}{1},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+            PatientID = 'anon';
+            if checkfields(vol{j}{1},'PatientID'), PatientID = deblank(vol{j}{1}.PatientID); end
+            if checkfields(vol{j}{1},'SeriesNumber','AcquisitionNumber','InstanceNumber'),
                 fprintf('*    %s / %d / %d / %d \n',...
-                    deblank(vol{j}{1}.PatientID), vol{j}{1}.SeriesNumber, ...
+                    PatientID, vol{j}{1}.SeriesNumber, ...
                     vol{j}{1}.AcquisitionNumber, vol{j}{1}.InstanceNumber);
                 fprintf('*                                                 *\n');
             end;
@@ -393,9 +399,11 @@ fprintf('* DICOM slices are used multiple times.           *\n');
 %fprintf('* supplier to have this fixed.                    *\n');
 fprintf('* The conversion is having to guess how slices    *\n');
 fprintf('* should be arranged into volumes.                *\n');
-if checkfields(volj{1},'PatientID','SeriesNumber','AcquisitionNumber'),
+PatientID = 'anon';
+if checkfields(volj{1},'PatientID'), PatientID = deblank(volj{1}.PatientID); end
+if checkfields(volj{1},'SeriesNumber','AcquisitionNumber'),
     fprintf('*    %s / %d / %d\n',...
-        deblank(volj{1}.PatientID), volj{1}.SeriesNumber, ...
+        PatientID, volj{1}.SeriesNumber, ...
         volj{1}.AcquisitionNumber);
 end;
 fprintf('***************************************************\n');
@@ -465,9 +473,11 @@ if msg,
     fprintf('***************************************************\n');
     fprintf('* There are missing DICOM files, so the the       *\n');
     fprintf('* resulting volumes may be messed up.             *\n');
-    if checkfields(volj{1},'PatientID','SeriesNumber','AcquisitionNumber'),
+    PatientID = 'anon';
+    if checkfields(volj{1},'PatientID'), PatientID = deblank(volj{1}.PatientID); end
+    if checkfields(volj{1},'SeriesNumber','AcquisitionNumber'),
         fprintf('*    %s / %d / %d\n',...
-            deblank(volj{1}.PatientID), volj{1}.SeriesNumber, ...
+            PatientID, volj{1}.SeriesNumber, ...
             volj{1}.AcquisitionNumber);
     end;
     fprintf('***************************************************\n');
@@ -848,7 +858,7 @@ for i=1:length(hdr),
     elseif ~(checkfields(hdr{i},'PixelSpacing','ImagePositionPatient','ImageOrientationPatient')||isfield(hdr{i},'Private_0029_1110')||isfield(hdr{i},'Private_0029_1210')),
         disp(['Cant find "Image Plane" information for "' hdr{i}.Filename '".']);
         guff = [guff(:)',hdr(i)];
-    elseif ~checkfields(hdr{i},'PatientID','SeriesNumber','AcquisitionNumber','InstanceNumber'),
+    elseif ~checkfields(hdr{i},'SeriesNumber','AcquisitionNumber','InstanceNumber'),
        %disp(['Cant find suitable filename info for "' hdr{i}.Filename '".']);
         if ~isfield(hdr{i},'SeriesNumber')
             disp('Setting SeriesNumber to 1');
@@ -1119,22 +1129,25 @@ if strncmp(root_dir,'ice',3)
     prefix = [prefix imtype get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims')];
 end;
 
+PatientID = 'anon';
+if checkfields(hdr,'PatientID'), PatientID = deblank(hdr.PatientID); end
+
 if strcmp(root_dir, 'flat')
     % Standard SPM file conversion
     %-------------------------------------------------------------------
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.%s', prefix, strip_unwanted(hdr.PatientID),...
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.%s', prefix, strip_unwanted(PatientID),...
                 hdr.SeriesNumber, hdr.AcquisitionNumber, hdr.InstanceNumber,...
                 hdr.EchoNumbers, format);
         else
-            fname = sprintf('%s%s-%.4d-%.5d-%.6d.%s', prefix, strip_unwanted(hdr.PatientID),...
+            fname = sprintf('%s%s-%.4d-%.5d-%.6d.%s', prefix, strip_unwanted(PatientID),...
                 hdr.SeriesNumber, hdr.AcquisitionNumber, ...
                 hdr.InstanceNumber, format);
         end;
     else
         fname = sprintf('%s%s-%.6d.%s',prefix, ...
-            strip_unwanted(hdr.PatientID),hdr.InstanceNumber, format);
+            strip_unwanted(PatientID),hdr.InstanceNumber, format);
     end;
 
     fname = fullfile(pwd,fname);
@@ -1164,7 +1177,7 @@ switch root_dir
     case {'date_time','series'}
     id = studydate;
     case {'patid', 'patid_date', 'patname'},
-    id = strip_unwanted(hdr.PatientID);
+    id = strip_unwanted(PatientID);
 end;
 serdes = strrep(strip_unwanted(hdr.SeriesDescription),...
     strip_unwanted(hdr.ProtocolName),'');

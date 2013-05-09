@@ -18,7 +18,7 @@ function out = spm_shoot_scalmom(job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_shoot_scalmom.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_shoot_scalmom.m 5485 2013-05-09 15:51:24Z john $
 
 Pt = strvcat(job.template);
 Nt = nifti(Pt);
@@ -87,6 +87,7 @@ for j=1:size(Py,1), % Loop over subjects
         % Loop over imported data
         for i=1:d(4)-1,
             f  = spm_diffeo('samp',F{i},y);   % Warp the imported tissue
+            f(~isfinite(f)) = 0;              % Assume all values are zero outside FOV
             fe = fe-f;                        % Subtract from background
             t  = single(Nt.dat(:,:,z,i));     % Slice of template
             x(:,:,i) = (f-t).*jd;             % Compute scalar momentum
@@ -95,7 +96,7 @@ for j=1:size(Py,1), % Loop over subjects
         % Deal with background class (no imported background)
         t = single(Nt.dat(:,:,z,d(4))); % Background slice of template
         x(:,:,d(4))     = (fe-t).*jd;   % Compute scalar momentum (background)
-        x(~isfinite(x)) = 0;            % Remove NaNs
+       %x(~isfinite(x)) = 0;            % Remove NaNs - should not be needed
 
         % There is redundancy in using all tissues because they sum to 1 at each
         % voxel. Reduce to N-1 tissues by projecting into the null space.

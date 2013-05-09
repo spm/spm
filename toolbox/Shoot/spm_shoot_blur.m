@@ -20,7 +20,7 @@ function [sig,a] = spm_shoot_blur(t,prm,its,sig)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_blur.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot_blur.m 5485 2013-05-09 15:51:24Z john $
 
 d   = [size(t),1,1,1];
 if nargin<3, its = 16;                         end; % Maximum no. iterations
@@ -36,8 +36,8 @@ s    = sum(t,4);
 for k=1:d(4),
     t(:,:,:,k) = t(:,:,:,k)./s;
 end
-maxs     = max(s(:)); % Used for scaling the regularisation
-prm(4) = prm(4)+maxs*d(4)*1e-3;
+maxs   = max(s(:)); % Used for scaling the regularisation
+prm(4) = prm(4)+maxs*d(4)*1e-6;
 
 % Only d(4)-1 fields need to be estimated because sum(a,4) = 0.  This matrix
 % is used to rotate out the null space
@@ -148,7 +148,7 @@ for i=1:its,
 
     fprintf('%2d %8.4f %8.4f %8.4f %g\n', i, ll/prod(d(1:3)),ll1/prod(d(1:3)), (ll+ll1)/prod(d(1:3)), (ss2)/prod(d(1:3)));
 
-    reg = double(0.1*sqrt(mx)*d(4));
+    reg = double(0.01*sqrt(mx)*d(4));
    %reg = double(0.1*sqrt(ss2/prod(d(1:3))));
     a   = a - spm_field(W,gr,[prm(1:3) prm(4)+reg prm(5:6) rits]); % Gauss-Newton update
 

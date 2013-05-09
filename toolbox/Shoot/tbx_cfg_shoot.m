@@ -1,7 +1,7 @@
 function shoot = tbx_cfg_shoot
 % MATLABBATCH Configuration file for toolbox 'Shoot Tools'
 
-% $Id: tbx_cfg_shoot.m 5363 2013-03-27 17:03:34Z ged $
+% $Id: tbx_cfg_shoot.m 5485 2013-05-09 15:51:24Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','Shoot')); end
 
@@ -572,11 +572,11 @@ end;
 %_______________________________________________________________________
 function dep = vout_shoot_template(job)
 
-if isfield(job, 'template') && (isa(job.template,'cfg_dep') || ~ ...
-        isempty(deblank(job.template)))
-    for it=0:numel(job.param),
+d = spm_shoot_defaults;
+if isfield(d, 'tname') & ~isempty(deblank(d.tname)),
+    for it=0:ceil((numel(d.sched)-1)/6),
         tdep(it+1)            = cfg_dep;
-        tdep(it+1).sname      = sprintf('Template (Iteration %d)', it);
+        tdep(it+1).sname      = sprintf('Template (%d)', it);
         tdep(it+1).src_output = substruct('.','template','()',{it+1});
         tdep(it+1).tgt_spec   = cfg_findspec({{'filter','nifti'}});
     end
