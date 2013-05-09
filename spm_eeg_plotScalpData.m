@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 4432 2011-08-15 12:43:44Z christophe $
+% $Id: spm_eeg_plotScalpData.m 5483 2013-05-09 11:30:29Z vladimir $
 
 ParentAxes = [];
 f = [];
@@ -75,7 +75,7 @@ end
 goodChannels = find(~isnan(pos(1,:)));
 pos          = pos(:,goodChannels);
 Z            = Z(goodChannels,:);
-ChanLabel    = ChanLabel(goodChannels);
+ChanLabel    = ChanLabel(goodChannels, :);
 
 
 if ~isempty(in) && isfield(in,'type') && strcmp(in.type, 'MEGPLANAR')
@@ -319,6 +319,10 @@ xy = [X(:),Y(:)];
 % combineplanar
 %==========================================================================
 function [Z, pos, ChanLabel] = combineplanar(Z, pos, ChanLabel)
+
+if ~iscell(ChanLabel)
+    ChanLabel = cellstr(ChanLabel);
+end
 
 chanind = zeros(1, numel(ChanLabel));
 for i = 1:numel(ChanLabel)
