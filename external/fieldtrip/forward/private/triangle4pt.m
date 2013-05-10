@@ -55,7 +55,7 @@ for ii=1:Ns % treat each mesh one at a time
     lv = tri(lt,:);
     lv = setxor(lv(:),tri(jj,:));
     % list of 3 voxels connected by 2 edges to the jj_th triangle.
-    sph_pnt = pnt([tri(jj,:) lv],:);
+    sph_pnt = pnt([tri(jj,:) lv(:)'],:);
     [center,radius] = fitsphere(sph_pnt);
     % best fitting sphere radius & centre, for the 6 points chosen
     pnt_c = sum(pnt(tri(jj,:),:))/3;
