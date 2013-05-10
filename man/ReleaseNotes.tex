@@ -136,6 +136,12 @@ Multidimensional (or two-sided) inferences about GLM parameters
  are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
 This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG) .
 
+\subsection{DCM}
+
+The bilinear model used by (single-state) DCM for fMRI has been upgraded. To summarise, a number of people have observed that Bayesian parameter averages (BPA) of self (intrinsic) connections can be positive, despite being negative for each subject or session. This is perfectly plausible behaviour -- in the sense that their prior expectation is $-1/2$ and each subject can provide evidence that the posterior is less than the prior mean (but still negative). When this evidence is accumulated by BPA, the posterior can be `pushed' into positive values. The anomalous aspect of this behaviour rests on the fact that there is no negativity constraint on the self-connections.  In the revised code, the self-connections -- in the leading diagonal of the $A$ matrix -- now specify log scaling parameters. This means that these (and only these) parameters encode a self-connections of $-1/2*exp(A)$; where $A$ has a prior mean of $0$ and $-1/2*exp(0) = -1/2$. 
+
+This re-parameterisation does not affect model inversion very much but guarantees the BPA is always negative because $-1/2*exp(A) < 0$ has to be less than one. The parameterisation of connection strengths in terms of log scale parameters is already used by two-state models for fMRI and all EEG (and MEG) DCMs.
+
 \section{EEG/MEG}
 
 \subsection{@meeg object}
