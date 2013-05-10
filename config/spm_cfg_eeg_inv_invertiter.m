@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5476 2013-05-08 15:00:07Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5487 2013-05-10 11:59:07Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -322,10 +322,11 @@ for i = 1:numel(job.D)
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
     
     D{i}.inv{val}.inverse.BMAflag=BMAflag;
+%% commented out section will add an inversion at new indices
     
-    for iterval=1:Npatchiter-1,
-        D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
-    end;
+%     for iterval=1:Npatchiter-1,
+%         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
+%     end;
     D{i}.inv{D{i}.val}.inverse.PostMax=zeros(  length(D{i}.inv{D{i}.val}.forward.mesh.vert),1);
 end
 
