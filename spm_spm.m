@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5293 2013-03-01 16:41:46Z guillaume $
+% $Id: spm_spm.m 5489 2013-05-10 14:35:05Z guillaume $
 
 
-SVNid = '$Rev: 5293 $';
+SVNid = '$Rev: 5489 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -654,6 +654,9 @@ else
     end
     g = gifti(VY(1).fname);
     g = g.private.metadata(1).value;
+    if isempty(spm_file(g,'path'))
+        g = fullfile(spm_file(VY(1).fname,'path'),g);
+    end
     [R, RPV] = spm_mesh_resels(gifti(g),mask,ResI);
     RPV(~mask) = NaN;
     VRpv = spm_data_write(VRpv,RPV);
