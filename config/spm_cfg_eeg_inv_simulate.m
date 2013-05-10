@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5477 2013-05-08 15:00:17Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5492 2013-05-10 17:23:09Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -208,7 +208,7 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
     end;
     mnimesh=[]; %% using mesh defined in forward model at the moment
     SmthInit=[]; %% leave patch size as default for now
-    SIdipmom=job.isinversion.setsources.dipmom.*1e-9; %% put into nAm
+    SIdipmom=job.isinversion.setsources.dipmom.*1e-9/1000; %% put into nAm %% the 1000 is  a fiddle factor until I find true scaling
     
     [D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,job.isinversion.setsources.foi,job.isinversion.setsources.woi./1000,SIdipmom,whitenoiseTesla,SNRdB,trialind,mnimesh,SmthInit);
     
