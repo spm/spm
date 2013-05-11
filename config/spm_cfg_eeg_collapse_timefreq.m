@@ -4,7 +4,7 @@ function collapse = spm_cfg_eeg_collapse_timefreq
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_collapse_timefreq.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_collapse_timefreq.m 5494 2013-05-11 16:23:27Z vladimir $
 
 % ---------------------------------------------------------------------
 % Images to Smooth
@@ -22,8 +22,8 @@ images.num     = [0 Inf];
 %--------------------------------------------------------------------------
 timewin         = cfg_entry;
 timewin.tag     = 'timewin';
-timewin.name    = 'Time window';
-timewin.help    = {'Start and stop of the time window [ms].'};
+timewin.name    = 'Time/frequency window';
+timewin.help    = {'Start and stop of the time/frequency window [ms/Hz].'};
 timewin.strtype = 'e';
 timewin.num     = [1 2];
 timewin.val     = {[-Inf Inf]};

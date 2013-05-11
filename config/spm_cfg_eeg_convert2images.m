@@ -5,7 +5,7 @@ function convert2images = spm_cfg_eeg_convert2images
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 5389 2013-04-04 12:01:28Z vladimir $
+% $Id: spm_cfg_eeg_convert2images.m 5494 2013-05-11 16:23:27Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -77,7 +77,7 @@ conditions.val = {};
 %--------------------------------------------------------------------------
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
-prefix.name    = 'Filename Prefix';
+prefix.name    = 'Directory prefix';
 prefix.help    = {'Specify the string to be prepended to the output directory name'};
 prefix.strtype = 's';
 prefix.num     = [0 Inf];
