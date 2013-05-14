@@ -6,8 +6,7 @@ In this section we will generate some simulated data to show how the inversion a
 
 \section{Simulation}
 The easiest way to simulate M/EEG data is by replacing data from an existing experimental recording in which sensor locations/head position etc are already defined. You can do this using the batch editor. Start the batch editor (\texttt{Batch} button) on main panel. Then from the dropdown menu SPM: select \texttt{M/EEG}; select \texttt{Source reconstruction}; select \texttt{Simulation of sources on cortex}.
-You will see the following menu
-%%% Slide 1 ppt %%%
+You will see the following menu:
 
 \begin{figure}
 \begin{center}
@@ -38,7 +37,7 @@ This file has dipoles at [52, -25, 9] and  [-52, -25, 9] in MNI space. The dipol
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{meg_sloc/slide2}
-\caption{\em The simulation outputs a glass brain showing maximum and median channel time-series as well as a glass brain showing the locations at which the sources were simulated} \label{meg_sloc:fig:2}
+\caption{\em The simulation outputs a glass brain showing maximum and median channel time-series as well as a glass brain showing the locations at which the sources were simulated } \label{meg_sloc:fig:2}
 \end{center}
 \end{figure}
 
@@ -47,7 +46,7 @@ You can visualise the data trial by trial if you like by using the main menu Dis
 
 There are two pathways you can take to analyse the data. Either with the GUI buttons or with the batch interface. 
 
-Firstly lets use the GUI to check that the data is ready for source inversion. On the main menu Click \texttt{3D Source Reconstruction}. Press \texttt{Load}. Select the new simulated data file \texttt{sim\_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat}.
+Firstly lets use the GUI to check that the data is ready for source inversion. On the main menu Click \texttt{3D Source Reconstruction}. Press \texttt{Load}. Select the new simulated data file \texttt{sim\_cdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.mat}.
 
 Moving left to right along the bottom panel you will notice that all of the buttons (MRI, Co-register, Forward Model) are active. This means that the preprocessing stages have already been carried out on these data (see multi-modal evoked responses chapter).
 
@@ -55,7 +54,7 @@ Moving left to right along the bottom panel you will notice that all of the butt
 
 So restart the Batch editor from the main menu \texttt{Batch}. Then from the \texttt{SPM} drop-down menu select \texttt{M/EEG} / \texttt{source reconstruction} / \texttt{Source inversion}.
 
-Select the new simulated data file \texttt{sim\_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat}.
+Select the new simulated data file \texttt{sim\_cdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.mat}.
 Now we wish to invert all conditions using the same assumptions (and then compare between conditions afterwards) so under 'what conditions to include' select 'All'.
 At this point we can now try out inversion algorithms with different implicit assumptions. Under \texttt{Inversion parameters} select \texttt{Custom}.
 We will modify \texttt{inversion type} in the subsequent sections. Select \texttt{IID} for minimum norm assumptions for now.
@@ -86,7 +85,7 @@ The top panel shows two time-series extracted from the mesh vertex (location giv
 
 
 \subsection{Smooth priors (COH)}
-The COH (under \texttt(Inversion type} )option allows the mixture of two possible source covariance matrices: the minimum norm prior above and a much smoother source covariance matrix in which adjacent sources are correlated (over the scale of a few mm). Select \texttt{COH} as the custom source reconstruction and run the batch again.
+The \texttt{COH}, under \texttt{Inversion type}, option allows the mixture of two possible source covariance matrices: the minimum norm prior above and a much smoother source covariance matrix in which adjacent sources are correlated (over the scale of a few mm). Select \texttt{COH} as the custom source reconstruction and run the batch again.
  
  You will see a plot similar to Figure~\ref{meg_sloc:fig:5} appear. The lower panel shows the glass brain in which bilateral sources are apparent. The upper panel shows the time-series of the source with the largest amplitude. In this case the peak activation is identified at location 59,-15, 15mm. The 20Hz time-course (associated with this source) is also clearly visible in the top panel.  Log evidence is 2000393  (again this number may be different in your spm version). Note both that the source reconstruction is more compact and that the log evidence has increased over the IID solution.
 
@@ -140,8 +139,8 @@ The alogorithm returns the current distribution based on the patch set with maxm
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/slide7}
-\caption{\em  Source inversions based on the same data but using randomly selected sets of 512 spatial priors.\label{meg_sloc:fig:7}}
+\includegraphics[width=100mm]{meg_sloc/slide8}
+\caption{\em  Source inversions based on the same data but using randomly selected sets of 512 spatial priors.\label{meg_sloc:fig:8}}
 \end{center}
 \end{figure}
 
@@ -150,8 +149,8 @@ An alternative to many spatial priors is to have a single prior that is optimise
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{meg_sloc/slide8}
-\caption{\em  Source inversions based on the same data but using a single beamformer prior.\label{meg_sloc:fig:8}}
+\includegraphics[width=100mm]{meg_sloc/slide9}
+\caption{\em  Source inversions based on the same data but using a single beamformer prior.\label{meg_sloc:fig:9}}
 \end{center}
 \end{figure}
 
@@ -169,7 +168,7 @@ Press  \texttt{3D source Reconstruction}.
 
 \subsection{Load/preview the data}
 
-In the main menu click on the drop-down \texttt{Display} menu. Select \texttt{M/EEG}. For the dipole fitting we are going to use averaged MEG data, this is prefixed with an ``m'' in SPM. You can generate this file by averaging the epoched file that we have used until now. Select the file \texttt{msim\_cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat}.
+In the main menu click on the drop-down \texttt{Display} menu. Select \texttt{M/EEG}. For the dipole fitting we are going to use averaged MEG data, this is prefixed with an ``m'' in SPM. You can generate this file by averaging the epoched file that we have used until now. Select the file \texttt{msim\_cdbespm8\_SPM\_CTF\_MEG\_example\_faces1\_3D.mat}.
 
 The two sources we simulated were at 10Hz an 20Hz frequency so we can select times when only one or both of them were active.  At 235ms there is only one dominant source and at 205ms both sources are clearly visible at the sensor level.
 
@@ -181,12 +180,12 @@ Proceed by pressing the \texttt{Invert} button. Select the \texttt{VB-ECD} butto
 
 \subsubsection{Fitting a single dipole with no priors}
 At the \texttt{time\_bin or average\_win} prompt enter ``235''. For \texttt{Trial type number} choose ``1'' (we want to model the faces data). At the \texttt{Add dipoles to model} click \texttt{Single}. For \texttt{location prior} click \texttt{Non-info}. For \texttt{Moment prior} click \texttt{Non-info}. At the \texttt{Add dipoles to 1 or stop?} prompt click \texttt{stop}. At the \texttt{Data SNR (amp)} leave as default \texttt{5}. Leave the default number of iterations at ``10''.
-You will see the 10 successive fits of the same data using a random starting location and moment. At each fit maps of the predicted and simulated data along with free-energy values and percent variance explained are shown. The final plot will be similar to Figure~\ref{meg_sloc:fig:9} where the model (i.e. dipole) which maximised the evidence (the best iteration is shown with a red dot) is displayed. Note down the model evidence (in this case -7.508e2, but the absolute value in your implementation may be different). The Bayesian dipole fit algorithm will be most useful when one has some prior knowledge of the sources (such as location, orientation or symmetry). Typical dipole fit algorithms fit 3 location parameters per dipole and then estimate the moment through a pseudo-inverse. The VB-ECD algorithm however fits 6 parameters per dipole as the moments are also allowed prior values. That is, if you have no prior knowledge then the Bayesian method will be generally less robust than such fitting methods (as more parameters are being fit). However it is when prior knowledge is supplied that the Bayesian methods become optimal.
+You will see the 10 successive fits of the same data using a random starting location and moment. At each fit maps of the predicted and simulated data along with free-energy values and percent variance explained are shown. The final plot will be similar to Figure~\ref{meg_sloc:fig:10} where the model (i.e. dipole) which maximised the evidence (the best iteration is shown with a red dot) is displayed. Note down the model evidence (in this case -7.508e2, but the absolute value in your implementation may be different). The Bayesian dipole fit algorithm will be most useful when one has some prior knowledge of the sources (such as location, orientation or symmetry). Typical dipole fit algorithms fit 3 location parameters per dipole and then estimate the moment through a pseudo-inverse. The VB-ECD algorithm however fits 6 parameters per dipole as the moments are also allowed prior values. That is, if you have no prior knowledge then the Bayesian method will be generally less robust than such fitting methods (as more parameters are being fit). However it is when prior knowledge is supplied that the Bayesian methods become optimal.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=140mm]{meg_sloc/slide9}
-\caption{\em Results of fitting a single dipole with noninformative priors.\label{meg_sloc:fig:9}}
+\includegraphics[width=140mm]{meg_sloc/slide10}
+\caption{\em Results of fitting a single dipole with noninformative priors.\label{meg_sloc:fig:10}}
 \end{center}
 \end{figure}
 
