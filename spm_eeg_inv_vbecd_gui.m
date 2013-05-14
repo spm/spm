@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_inv_vbecd_gui.m 5504 2013-05-14 14:30:44Z gareth $
 
 %%
 % Load data, if necessary
@@ -425,6 +425,7 @@ end
 
 %str2='Data SNR (amp)';
 % SNRamp = spm_input(str2, 1+tr_q+dip_q+2+1,'e',5)';
+%SNRamp=3;
 SNRamp=3;
  hE=log(SNRamp^2); %% expected log precision of data
  hC=1; % variability of the above precision
@@ -478,6 +479,7 @@ for ii=1:length(ltr)
     set(P.handles.hfig,'userdata',P)
     dip_amp=[];
     for j=1:Niter,
+        
      Pout(j) = spm_eeg_inv_vbecd(P);
      close(gcf);
      varresids(j)=var(Pout(j).y-Pout(j).ypost);
