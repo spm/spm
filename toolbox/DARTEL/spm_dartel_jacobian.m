@@ -10,7 +10,7 @@ function out = spm_dartel_jacobian(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_jacobian.m 1381 2008-04-11 19:10:56Z john $
+% $Id: spm_dartel_jacobian.m 5506 2013-05-14 17:13:43Z john $
 
 PU = job.flowfields;
 K  = job.K;
@@ -32,7 +32,7 @@ for i=1:numel(PU),
     NO.mat0 = NU.mat;
     NO.mat_intent  = 'Aligned';
     NO.mat0_intent = 'Aligned';
-    NO.descrip = 'DARTEL Jacobian';
+    NO.descrip = 'Dartel Jacobian';
     create(NO);
     NO.dat(:,:,:)=dt;
     spm_progress_bar('Set',i);

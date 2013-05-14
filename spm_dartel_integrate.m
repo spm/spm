@@ -1,5 +1,5 @@
 function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
-% Integrate a DARTEL flow field
+% Integrate a Dartel flow field
 % FORMAT [Phi,DPhi] = spm_dartel_exp(U,t,K)
 %     U    - name of flow field (nx x ny x nz x nt x 3)
 %     t    - [t0 t1] Start and end time (values between 0 and 1)
@@ -14,13 +14,13 @@ function [Phi,DPhi] = spm_dartel_integrate(U,t,K)
 % where U is a piecewise constant flow field
 %
 % Note: this function is ready for LDDMM-style flow fields, even
-% though the none of the official DARTEL tools can generate them
+% though the none of the official Dartel tools can generate them
 % yet.
 % _______________________________________________________________________
 %  Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_integrate.m 2107 2008-09-17 16:49:03Z john $
+% $Id: spm_dartel_integrate.m 5506 2013-05-14 17:13:43Z john $
 
 if isa(U,'char'), U = nifti(U); end;
 if isa(U,'nifti'), U = U.dat; end;

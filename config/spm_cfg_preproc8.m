@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5372 2013-03-28 20:24:57Z john $
+% $Id: spm_cfg_preproc8.m 5506 2013-05-14 17:13:43Z john $
 
 
 % ---------------------------------------------------------------------
@@ -183,12 +183,12 @@ ngaus.val    = {Inf};
 native         = cfg_menu;
 native.tag     = 'native';
 native.name    = 'Native Tissue';
-native.help    = {'The native space option allows you to produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/. It can also be used for ``importing'''' into a form that can be used with the DARTEL toolbox (rc*).'};
+native.help    = {'The native space option allows you to produce a tissue class image (c*) that is in alignment with the original/* (see Figure \ref{seg1})*/. It can also be used for ``importing'''' into a form that can be used with the Dartel toolbox (rc*).'};
 native.labels = {
                  'None'
                  'Native Space'
-                 'DARTEL Imported'
-                 'Native + DARTEL Imported'
+                 'Dartel Imported'
+                 'Native + Dartel Imported'
                  }';
 native.values = {
                  [0 0]
@@ -229,7 +229,7 @@ tissue         = cfg_branch;
 tissue.tag     = 'tissue';
 tissue.name    = 'Tissue';
 tissue.val     = {tpm ngaus native warped };
-tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use DARTEL, then make sure you generate ``imported'''' tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
+tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use Dartel, then make sure you generate ``imported'''' tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
 % ---------------------------------------------------------------------
 % tissues Tissues
 % ---------------------------------------------------------------------

@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5374 2013-03-29 17:26:24Z ged $
+% $Id: spm_deformations.m 5506 2013-05-14 17:13:43Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -208,7 +208,7 @@ if ~isempty(job.template{1})
     if exist(fullfile(pth,[nam '_2mni.mat']),'file')
         load(fullfile(pth,[nam '_2mni.mat']),'mni');
     else
-        % Affine registration of DARTEL Template with MNI space.
+        % Affine registration of Dartel Template with MNI space.
         %------------------------------------------------------------------
         fprintf('** Affine registering "%s" with MNI space **\n', nam);
         tpm        = fullfile(spm('Dir'),'tpm','TPM.nii');
@@ -225,7 +225,7 @@ else
    %do_aff = false;
 end
 
-% Integrate a DARTEL flow field
+% Integrate a Dartel flow field
 y0      = spm_dartel_integrate(Nii.dat,job.times,job.K);
 if all(job.times == [0 1]),
     mat = Nii.mat0;

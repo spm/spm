@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 5347 2013-03-22 17:03:36Z john $ */
+/* $Id: spm_diffeo.c 5506 2013-05-14 17:13:43Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -1146,7 +1146,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxFree(fnc_str);
             brc_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);
         }
-        else if (!strcmp(fnc_str,"dartel")  || !strcmp(fnc_str,"DARTEL"))
+        else if (!strcmp(fnc_str,"dartel")  || !strcmp(fnc_str,"DARTEL") || !strcmp(fnc_str,"Dartel"))
         {
             mxFree(fnc_str);
             dartel_mexFunction(nlhs, plhs, nrhs-1, &prhs[1]);

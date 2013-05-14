@@ -33,7 +33,7 @@ function varargout = dartel3(varargin)
 %                   encodes the means and interpolation of temlate
 %                   done using logs and softmax function.
 %
-% This is for performing a single iteration of the DARTEL optimisation.
+% This is for performing a single iteration of the Dartel optimisation.
 % All flow fields and images are represented by single precision floating
 % point values. Images can be scalar fields, in which case the objective
 % function is the sum of squares difference.  Alternatively, images can be
@@ -201,7 +201,7 @@ function varargout = dartel3(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: dartel3.m 4883 2012-09-03 12:34:55Z john $
+% $Id: dartel3.m 5506 2013-05-14 17:13:43Z john $
 
 %error('Not compiled for %s in MATLAB %s  (see make.m)\n', computer, version);
 

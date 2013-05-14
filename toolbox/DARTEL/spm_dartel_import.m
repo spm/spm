@@ -1,5 +1,5 @@
 function out = spm_dartel_import(job)
-% Import subjects' data for use with DARTEL
+% Import subjects' data for use with Dartel
 % FORMAT spm_dartel_import(job)
 % job.matnames  - Names of *_seg_sn.mat files to use
 % job.odir      - Output directory
@@ -15,7 +15,7 @@ function out = spm_dartel_import(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_import.m 4194 2011-02-05 18:08:06Z ged $
+% $Id: spm_dartel_import.m 5506 2013-05-14 17:13:43Z john $
 
 matnames = job.matnames;
 for i=1:numel(matnames),
