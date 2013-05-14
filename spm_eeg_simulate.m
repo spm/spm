@@ -17,7 +17,7 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5478 2013-05-08 15:00:56Z gareth $
+% $Id: spm_eeg_simulate.m 5503 2013-05-14 14:30:18Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -91,9 +91,10 @@ if ~xor(isempty(whitenoise),isempty(SNRdB))
     error('Must specify either white noise level or sensor level SNR');
 end;
 
-if ~isempty(SNRdB),
-    dipmoment=ones(size(patchmni,1),1).*20e-9; %% set to 20nAm
-end;
+% keyboard
+% if ~isempty(SNRdB),
+%     dipmoment=ones(size(patchmni,1),1).*20e-9; %% set to 20nAm
+% end;
 
 
 
