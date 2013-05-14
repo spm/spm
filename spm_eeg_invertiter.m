@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5479 2013-05-08 15:01:06Z gareth $
+% $Id: spm_eeg_invertiter.m 5505 2013-05-14 14:30:51Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -115,11 +115,12 @@ sort(allF-bestF)
 
 Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
 if Npatchiter>1, %% keep iterations if more than 1
-    for f=1:Npatchiter,
-        Dtest{1}.inv{f+val}.inverse=modelF(f).inverse; %% set fields in inversion to specific iterations
-        Dtest{1}.inv{f+val}.comment=sprintf('Iteration %d of %d',f,Npatchiter);
-    end;
-    
+%% commented out section for storing all iterations in dataset
+    %     for f=1:Npatchiter,
+%         Dtest{1}.inv{f+val}.inverse=modelF(f).inverse; %% set fields in inversion to specific iterations
+%         Dtest{1}.inv{f+val}.comment=sprintf('Iteration %d of %d',f,Npatchiter);
+%     end;
+%     
     if (Dtest{1}.inv{val}.inverse.BMAflag==1)
         disp('Running BMA to get current estimate');
         [Jbma,qCbma]=spm_eeg_invert_bma(manyinverse,allF); %% onlt the mean is calculated using BMA (but could extend to covariance)
@@ -127,11 +128,13 @@ if Npatchiter>1, %% keep iterations if more than 1
         Dtest{1}.inv{val}.inverse.J={Jbma};
         Dtest{1}.inv{val}.inverse.qC=qCbma;
         Dtest{1}.inv{val}.inverse.allF=allF;
-        Dtest{1}.inv{val}.comment=sprintf('BMA of %d solutions',Npatchiter);
+        %Dtest{1}.inv{val}.comment={sprintf('BMA of %d solutions',Npatchiter)};
     else % NOT BMA- just take the best
         disp('Using best patch set to current estimate');
         
-        Dtest{1}.inv{val}.comment=sprintf('Best F of %d solutions',Npatchiter);
+        Dtest{1}.inv{val}.comment{1}=sprintf('Best F of %d solutions',Npatchiter);
+       % keyboard
+      %  [Dtest{1}.inv{1}.comment{1}]
         
         Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
         Dtest{1}.inv{val}.inverse.allF=allF;
