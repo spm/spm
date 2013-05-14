@@ -117,7 +117,7 @@ Often we will interested in some summary of conditions over a specific time-freq
 
 From the \texttt{SPM} drop down menu click \texttt{M/EEG}/  \texttt{Source reconstruction}/  \texttt{Inversion results}. Now for \texttt{M/EEG dataset}, click \texttt{Dependency}- and press OK to link the output of the previous function (the inversion) to the inpput of this one. We can now produce power images per condition based on a 0 to 600ms time window and a 0 to 80Hz frequency window. For \texttt{Contrast type} select \texttt{Evoked} and for output space and format select \texttt{MNI} and  \texttt{Mesh} .
 
-You should now be able to run the complete batch which re-does the inversion and outputs two surface meshes (one for each condition). You can view these meshes from the main menu : \texttt{Render}/ \texttt{Display}. The output image for the face condition (and the GS algorithm) is shown below. 
+You should now be able to run the complete batch which re-does the inversion and outputs two surface meshes (one for each condition). You can view these meshes from the main menu : \texttt{Render}/ \texttt{Display}. The output image for the face condition (and the IID algorithm) is shown below. 
 
 
 \begin{figure}
@@ -131,12 +131,12 @@ You should now be able to run the complete batch which re-does the inversion and
 \subsection{Other MSP options}
 
 The MSP algorithm is optimized to give the simplest source distribution that explains the most data. However the library of priors (possible patch locations) must be pre-specified in advance. This could potentially cause a problem if the source of interest were not precisely centred on one of the patches in the default library. To this end Jose David Lopez (Conf Proc IEEE Eng Med Biol Soc. 2012;2012:1534-7.) has produced a version of MSP which uses multiple random patch libraries to invert the same data several times. 
-We can make a new batch file for this. So restart the Batch editor from the main menu 'Batch'. Then from the 'SPM' drop-down menu select 'M/EEG' / 'source reconstruction' / 'Source inversion, iterative'.
+We can make a new batch file for this. So restart the Batch editor from the main menu \texttt{Batch}. Then from the \texttt{SPM} drop-down menu select \texttt{M/EEG} /  \texttt{source reconstruction} / \texttt{Source inversion, iterative}.
 
 Select \texttt{Classic} as the custom source reconstruction algorithm- this is basically the original version of the MSP algorithm without any re-scaling factors to allow mixing of modalies or group imaging. It is advanatageous in many cases as the lack of these scaling factors means that it is a true generative model of the data (and it becomes possible to test between different head positions etc). Note however that these differences in pre-processing mean that at the moment the data entering the inversion (for custom and classic options) are different and so it is not possible to compare between solutions from these two pipleines.
  The rest of the parameters (time, frequency windows etc) can remain as they were in the last section. The new options are the choice over the number of patches in the library  and the number of iterations. You can play with these parameters to adjust the relative burden of computation time. For example- allowing just 2 patches and many iterations will make this something like a (cortically constrained) multiple dipole (patch) fit. Alternatively, having lots of patches initially will mean the computation time is spent on pruning this set (with ARD or GS etc). 
 You also have control over the number of temporal and spatial modes which will be used here (this makes it easier to compare between models where the lead field matrix has changed). 
-The individual inversions are saved with different indices so you can review them individually using the 'Source reconstruction' button on the main menu. A copy of he best solution (in terms of free energy) is the first in the list.
+The alogorithm returns the current distribution based on the patch set with maxmum free energy.
 
 \begin{figure}
 \begin{center}
