@@ -22,9 +22,9 @@ function D = spm_eeg_combineplanar(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_combineplanar.m 5469 2013-05-05 21:28:12Z vladimir $
+% $Id: spm_eeg_combineplanar.m 5507 2013-05-17 13:37:19Z vladimir $
 
-SVNrev = '$Rev: 5469 $';
+SVNrev = '$Rev: 5507 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -110,6 +110,7 @@ if strcmp(D.type, 'continuous')
                 Iblock  = ((i-1)*blksz + 1):(i*blksz);
             elseif blknum*blksz < D.nsamples
                 Iblock  = (blknum*blksz + 1):D.nsamples;
+                break;
             else
                 break;
             end
@@ -136,6 +137,7 @@ if strcmp(D.type, 'continuous')
                 Iblock  = ((i-1)*blksz + 1):(i*blksz);
             elseif blknum*blksz < D.nsamples
                 Iblock  = (blknum*blksz + 1):D.nsamples;
+                break;
             else
                 break;
             end

@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: spm_eeg_tf.m 5507 2013-05-17 13:37:19Z vladimir $
 
-SVNrev = '$Rev: 5438 $';
+SVNrev = '$Rev: 5507 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -85,11 +85,15 @@ timeind = D.indsample(1e-3*min(S.timewin)):D.indsample(1e-3*max(S.timewin));
 
 % remove uninetended non-uniformities in the frequency axis
 frequencies = S.frequencies;
-df = unique(diff(frequencies));
-if length(df) == 1 || (max(diff(df))/mean(df))<0.1
-    df = mean(diff(frequencies));
-    frequencies = (0:(length(frequencies)-1))*df + frequencies(1);
+
+if length(frequencies)>1
+    df = unique(diff(frequencies));
+    if length(df) == 1 || (max(diff(df))/mean(df))<0.1
+        df = mean(diff(frequencies));
+        frequencies = (0:(length(frequencies)-1))*df + frequencies(1);
+    end
 end
+
 S1.frequencies = frequencies;
 
 if ~isequal(D.type, 'continuous')
