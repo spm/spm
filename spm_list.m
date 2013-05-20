@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_list.m 5508 2013-05-20 16:52:15Z guillaume $
 
 
 %==========================================================================
@@ -548,8 +548,8 @@ case 'table'                                                        %-Table
     %-Setup Graphics panel
     %----------------------------------------------------------------------
     Fgraph = spm_figure('FindWin','Satellite');
-    if Fgraph
-        figure(Fgraph);
+    if ~isempty(Fgraph)
+        spm_figure('Focus',Fgraph);
         ht = 0.85; bot = 0.14;
     else
         Fgraph = spm_figure('GetWin','Graphics');
