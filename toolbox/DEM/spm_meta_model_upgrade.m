@@ -54,7 +54,7 @@ function DCM = spm_meta_model(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_meta_model - upgarde.m 5510 2013-05-20 17:15:48Z karl $
+% $Id: spm_meta_model_upgrade.m 5511 2013-05-20 18:07:29Z spm $
  
  
  
