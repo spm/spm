@@ -48,7 +48,7 @@ function varargout = spm_mip_ui(varargin)
 %
 % In addition a ContextMenu is provided, giving the option to jump the
 % cursors to the nearest suprathreshold voxel, the nearest local
-% maxima, or to the global maxima. (Right click on the MIP to bring up
+% maximum, or to the global maximum. (Right click on the MIP to bring up
 % the ContextMenu.) A message in the MATLAB command window describes the
 % jump.
 %
@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5440 2013-04-24 13:03:03Z vladimir $
+% $Id: spm_mip_ui.m 5512 2013-05-20 18:35:33Z guillaume $
 
 
 %==========================================================================
@@ -114,8 +114,8 @@ function varargout = spm_mip_ui(varargin)
 % h       - Handle of MIP axes [defaults to spm_mip_ui('FindMIPax')]
 % loc     - String defining jump: 'dntmv' - don't move
 %                                 'nrvox' - nearest suprathreshold voxel
-%                                 'nrmax' - nearest local maxima
-%                                 'glmax' - global maxima
+%                                 'nrmax' - nearest local maximum
+%                                 'glmax' - global maximum
 % xyz     - co-ordinates of voxel centre jumped to {3 x 1} vector
 % d       - (square) Euclidian distance jumped
 %
@@ -295,31 +295,30 @@ switch lower(varargin{1}), case 'display'
     %-Create UIContextMenu for marker jumping
     %-----------------------------------------------------------------------
     h = uicontextmenu('Tag','MIPconmen','UserData',hMIPax);
-    uimenu(h,'Label','MIP');
+    if isempty(XYZ), str='off'; else str='on'; end
+    uimenu(h,'Separator','off','Label','goto nearest suprathreshold voxel',...
+        'CallBack',['spm_mip_ui(''Jump'',',...
+        'get(get(gcbo,''Parent''),''UserData''),''nrvox'');'],...
+        'Interruptible','off','BusyAction','Cancel','Enable',str);
+    uimenu(h,'Separator','off','Label','goto nearest local maximum',...
+        'CallBack',['spm_mip_ui(''Jump'',',...
+        'get(get(gcbo,''Parent''),''UserData''),''nrmax'');'],...
+        'Interruptible','off','BusyAction','Cancel','Enable',str);
+    uimenu(h,'Separator','off','Label','goto global maximum',...
+        'CallBack',['spm_mip_ui(''Jump'',',...
+        'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
+        'Interruptible','off','BusyAction','Cancel','Enable',str);
     uimenu(h,'Separator','on','Label','save MIP as...',...
         'CallBack',['spm_mip_ui(''Save'', ',...
         'get(get(gcbo,''Parent''),''UserData''));'],...
         'Interruptible','off','BusyAction','Cancel');
-    h1 = uimenu(h,'Separator','on','Label','Extract betas...');
+    h1 = uimenu(h,'Separator','on','Label','Extract betas');
     uimenu(h1,'Label','This voxel',...
         'CallBack','beta=spm_mip_ui(''Extract'', ''voxel'')',...
         'Interruptible','off','BusyAction','Cancel');
     uimenu(h1,'Label','This cluster',...
         'CallBack','beta=spm_mip_ui(''Extract'', ''cluster'')',...
         'Interruptible','off','BusyAction','Cancel');
-    if isempty(XYZ), str='off'; else str='on'; end
-    uimenu(h,'Separator','on','Label','goto nearest suprathreshold voxel',...
-        'CallBack',['spm_mip_ui(''Jump'',',...
-        'get(get(gcbo,''Parent''),''UserData''),''nrvox'');'],...
-        'Interruptible','off','BusyAction','Cancel','Enable',str);
-    uimenu(h,'Separator','off','Label','goto nearest local maxima',...
-        'CallBack',['spm_mip_ui(''Jump'',',...
-        'get(get(gcbo,''Parent''),''UserData''),''nrmax'');'],...
-        'Interruptible','off','BusyAction','Cancel','Enable',str);
-    uimenu(h,'Separator','off','Label','goto global maxima',...
-        'CallBack',['spm_mip_ui(''Jump'',',...
-        'get(get(gcbo,''Parent''),''UserData''),''glmax'');'],...
-        'Interruptible','off','BusyAction','Cancel','Enable',str);
 
     % overlay sensor positions for M/EEG
     %----------------------------------------------------------------------
@@ -454,14 +453,14 @@ switch lower(varargin{1}), case 'display'
                 str       = 'nearest suprathreshold voxel';
                 [xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,MD.XYZ);
             case 'nrmax'
-                str       = 'nearest local maxima';
+                str       = 'nearest local maximum';
                 iM        = inv(MD.M);
                 XYZvox    = iM(1:3,:)*[MD.XYZ; ones(1,size(MD.XYZ,2))];
                 [null,null,XYZvox] = spm_max(MD.Z,XYZvox);
                 XYZ       = MD.M(1:3,:)*[XYZvox; ones(1,size(XYZvox,2))];
                 [xyz,i,d] = spm_XYZreg('NearestXYZ',oxyz,XYZ);
             case 'glmax'
-                str       = 'global maxima';
+                str       = 'global maximum';
                 [null, i] = max(MD.Z); i = i(1);
                 xyz       = MD.XYZ(:,i);
                 d         = sqrt(sum((oxyz-xyz).^2));

@@ -10,7 +10,7 @@ function out = spm_run_voi(job)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_voi.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_run_voi.m 5512 2013-05-20 18:35:33Z guillaume $
 
 
 %-Load SPM.mat
@@ -220,7 +220,7 @@ switch mv
     case 'global'
         [i,j] = max(Z);
         nc    = SPM.xVol.M(1:3,:)*[M(:,j);1];
-        str   = sprintf(['centre moved to global maxima ' str],nc);
+        str   = sprintf(['centre moved to global maximum ' str],nc);
     case 'local'
         XYZmm = SPM.xVol.M(1:3,:)*[M;ones(1,size(M,2))];
         nc    = spm_XYZreg('NearestXYZ',c,XYZmm);

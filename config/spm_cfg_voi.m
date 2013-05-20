@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 4511 2011-10-04 17:57:46Z guillaume $
+% $Id: spm_cfg_voi.m 5512 2013-05-20 18:35:33Z guillaume $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -165,31 +165,31 @@ mskexp.num     = [0 Inf];
 mskexp.val     = {''};
 
 % -------------------------------------------------------------------------
-% glob Movement of centre: Global maxima
+% glob Movement of centre: Global maximum
 % -------------------------------------------------------------------------
 glob      = cfg_branch;
 glob.tag  = 'global';
-glob.name = 'Global maxima';
+glob.name = 'Global maximum';
 glob.val  = { mp mskexp };
-glob.help = {'Global maxima'};
+glob.help = {'Global maximum'};
 
 % -------------------------------------------------------------------------
-% loc Movement of centre: Nearest local maxima
+% loc Movement of centre: Nearest local maximum
 % -------------------------------------------------------------------------
 loc      = cfg_branch;
 loc.tag  = 'local';
-loc.name = 'Nearest local maxima';
+loc.name = 'Nearest local maximum';
 loc.val  = { mp mskexp };
-loc.help = {'Nearest local maxima'};
+loc.help = {'Nearest local maximum'};
 
 % -------------------------------------------------------------------------
-% supra Movement of centre: Nearest suprathreshold maxima
+% supra Movement of centre: Nearest suprathreshold voxel
 % -------------------------------------------------------------------------
 supra      = cfg_branch;
 supra.tag  = 'supra';
-supra.name = 'Nearest suprathreshold maxima';
+supra.name = 'Nearest suprathreshold voxel';
 supra.val  = { mp mskexp };
-supra.help = {'Nearest suprathreshold maxima.'};
+supra.help = {'Nearest suprathreshold voxel.'};
 
 % -------------------------------------------------------------------------
 % mvt Movement of centre
@@ -363,6 +363,17 @@ name.help    = {['Name of the VOI mat file that will be saved in the ' ...
 'A binary NIfTI image of the VOI will also be saved.']};
 name.strtype = 's';
 name.num     = [1 Inf];
+
+% ---------------------------------------------------------------------
+% dir Directory
+% ---------------------------------------------------------------------
+% dir         = cfg_files;
+% dir.tag     = 'dir';
+% dir.name    = 'Directory';
+% dir.help    = {'Output directory.'};
+% dir.filter  = 'dir';
+% dir.ufilter = '.*';
+% dir.num     = [1 1];
 
 % -------------------------------------------------------------------------
 % voi VOI
