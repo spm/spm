@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 4818 2012-07-31 14:53:10Z guillaume $
+% $Id: spm_DEM_M_set.m 5509 2013-05-20 17:12:12Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -112,7 +112,8 @@ end
 try
     M.pC;
 catch
-    % Assume fixed parameters
+    
+    % Assume fixed (zero variance) parameters
     %----------------------------------------------------------------------
     for i = 1:g
         p       = length(spm_vec(M(i).pE));
@@ -120,7 +121,7 @@ catch
     end
 end
 
-% check pC if user specified
+% check pC, if user specified
 %--------------------------------------------------------------------------
 for i = 1:g
     

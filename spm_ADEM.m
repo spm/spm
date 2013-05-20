@@ -129,7 +129,7 @@ function [DEM] = spm_ADEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_ADEM.m 5509 2013-05-20 17:12:12Z karl $
  
 % check model, data, priors and unpack
 %--------------------------------------------------------------------------
@@ -141,11 +141,16 @@ U     = DEM.U;
 
 % check whether to print 
 %--------------------------------------------------------------------------
-db     = dbstack;
-if strcmpi(db(2).file,'spm_meta_model.m')
-    db = 0;
-else
+try
+    db = DEM.db;
+catch
     db = 1;
+end
+
+% find or create a DEM figure
+%--------------------------------------------------------------------------
+if db
+    Fdem = spm_figure('GetWin','DEM');
 end
  
 % ensure embedding dimensions are compatible
@@ -153,10 +158,7 @@ end
 G(1).E.n = M(1).E.n;
 G(1).E.d = M(1).E.n;
  
-% find or create a DEM figure
-%--------------------------------------------------------------------------
-Fdem = spm_figure('GetWin','DEM');
- 
+
 % order parameters (d = n = 1 for static models) and checks
 %==========================================================================
 d    = M(1).E.d + 1;                      % embedding order of q(v)
@@ -755,31 +757,32 @@ for iE = 1:nE
  
     % report and break if convergence
     %======================================================================
-    figure(Fdem)
-    spm_DEM_qU(QU)
-    if np
-        subplot(nl,4,4*nl)
-        bar(full(Up*qp.e))
-        xlabel({'parameters';'{minus prior}'})
-        axis square, grid on
-    end
-    if length(F) > 2
-        subplot(nl,4,4*nl - 1)
-        plot(F - F(1))
-        xlabel('updates')
-        title('log-evidence')
-        axis square, grid on
-    end
-    drawnow
- 
-    % report (EM-Steps)
-    %----------------------------------------------------------------------
-    str{1} = sprintf('ADEM: %i (%i)',iE,iM);
-    str{2} = sprintf('F:%.4e',full(L - F(1)));
-    str{3} = sprintf('p:%.2e',full(dp'*dp));
-    str{4} = sprintf('h:%.2e',full(mh'*mh));
-    str{5} = sprintf('(%.2e sec)',full(toc));
     if db
+        figure(Fdem)
+        spm_DEM_qU(QU)
+        if np
+            subplot(nl,4,4*nl)
+            bar(full(Up*qp.e))
+            xlabel({'parameters';'{minus prior}'})
+            axis square, grid on
+        end
+        if length(F) > 2
+            subplot(nl,4,4*nl - 1)
+            plot(F - F(1))
+            xlabel('updates')
+            title('log-evidence')
+            axis square, grid on
+        end
+        drawnow
+        
+        % report (EM-Steps)
+        %------------------------------------------------------------------
+        str{1} = sprintf('ADEM: %i (%i)',iE,iM);
+        str{2} = sprintf('F:%.4e',full(L - F(1)));
+        str{3} = sprintf('p:%.2e',full(dp'*dp));
+        str{4} = sprintf('h:%.2e',full(mh'*mh));
+        str{5} = sprintf('(%.2e sec)',full(toc));
+        
         fprintf('%-16s%-16s%-14s%-14s%-16s\n',str{:})
     end
     

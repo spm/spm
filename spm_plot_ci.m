@@ -1,8 +1,8 @@
 function spm_plot_ci(E,C,x,j,s)
 % plots mean and conditional confidence intervals
 % FORMAT spm_plot_ci(E,C,x,j,s)
-% E - expectation
-% C - variance or covariance
+% E - expectation (structure or array)
+% C - variance or covariance (structure or array)
 % x - domain
 % j - rows of E to plot
 % s - string to specify plot type:e.g. '--r' or 'exp'
@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5394 2013-04-07 14:51:28Z karl $
+% $Id: spm_plot_ci.m 5509 2013-05-20 17:12:12Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -36,8 +36,13 @@ E     = E(j,:);
 ci    = spm_invNcdf(1 - 0.05);
 
 if iscell(C)
-    for i = 1:N
-        c(:,i) = ci*sqrt(diag(C{i}(j,j)));
+    try
+        for i = 1:N
+            c(:,i) = ci*sqrt(diag(C{i}(j,j)));
+        end
+    catch
+        c = ci*sqrt(spm_vec(C));
+        c = c(j);
     end
 else
     if all(size(C) == size(E))

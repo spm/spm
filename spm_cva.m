@@ -43,8 +43,8 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % been whitened; using the appropriate ReML estimate of non-sphericity.
 % 
 % This function also computes the LogBayesFactor for testing the hypothesis
-% that the latent dimension (number of sig. canonical vectors) is i versus zero.
-% Two approximations are given: CVA.bic(i) and CVA.aic(i). 
+% that the latent dimension (number of sig. canonical vectors) is i versus 
+% zero: Two approximations are given: CVA.bic(i) and CVA.aic(i). 
 % These LogBFs can then be used for group inference - see Jafarpour et al.
 %              
 % References:
@@ -64,7 +64,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5444 2013-04-24 15:20:17Z will $
+% $Id: spm_cva.m 5509 2013-05-20 17:12:12Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -119,7 +119,7 @@ T     = X*(P*Y);
 SST   = T'*T;
 SSR   = Y - T;
 SSR   = SSR'*SSR;
-[v,d] = eig(SSR\SST);
+[v,d] = eig(spm_inv(SSR)*SST);
 [q,r] = sort(-real(diag(d)));
 r     = r(1:h);
 d     = real(d(r,r));
@@ -135,40 +135,45 @@ C     = c*W;                       % canonical contrast (design)
 cval  = diag(d);
 [chi, df, p, r] = deal(zeros(1,h));
 for i = 1:h
+    
+    % Chi-squared approximation
+    %----------------------------------------------------------------------
     chi(i) = (f - (m - b + 1)/2)*sum(log(cval(i:h) + 1));
     df(i)  = (m - i + 1)*(b - i + 1);
     p(i)   = 1 - spm_Xcdf(chi(i),df(i));
     r(i)   = sqrt(cval(i) / (1 + cval(i)));
     
     % BIC/AIC
-    k = i*(m+b);
-    bic(i) = 0.5*n*sum(log(cval(1:i) + 1))-0.5*k*log(n);
-    aic(i) = 0.5*n*sum(log(cval(1:i) + 1))-k;
+    %----------------------------------------------------------------------
+    k      = i*(m + b);
+    bic(i) = 0.5*n*sum(log(cval(1:i) + 1)) - 0.5*k*log(n);
+    aic(i) = 0.5*n*sum(log(cval(1:i) + 1)) - k;
+    
 end
 
 %-Prevent overflow
 %--------------------------------------------------------------------------
-p          = max(p,exp(-16));
-r          = min(max(r,0),1);
+p       = max(p,exp(-16));
+r       = min(max(r,0),1);
 
 
 %-Assemble results
 %==========================================================================
-CVA.X      = X;                    % contrast subspace
-CVA.Y      = Y;                    % whitened and adjusted data
-CVA.c      = c;                    % contrast weights
-CVA.X0     = X0;                   % null space of contrast
+CVA.X   = X;                    % contrast subspace
+CVA.Y   = Y;                    % whitened and adjusted data
+CVA.c   = c;                    % contrast weights
+CVA.X0  = X0;                   % null space of contrast
  
-CVA.V      = V;                    % canonical vectors  (data)
-CVA.v      = v;                    % canonical variates (data)
-CVA.W      = W;                    % canonical vectors  (design)
-CVA.w      = w;                    % canonical variates (design)
-CVA.C      = C;                    % canonical contrast (design)
+CVA.V   = V;                    % canonical vectors  (data)
+CVA.v   = v;                    % canonical variates (data)
+CVA.W   = W;                    % canonical vectors  (design)
+CVA.w   = w;                    % canonical variates (design)
+CVA.C   = C;                    % canonical contrast (design)
 
-CVA.r      = r;                    % canonical correlations
-CVA.chi    = chi;                  % Chi-squared statistics testing D >= i
-CVA.df     = df;                   % d.f.
-CVA.p      = p;                    % p-values
+CVA.r   = r;                    % canonical correlations
+CVA.chi = chi;                  % Chi-squared statistics testing D >= i
+CVA.df  = df;                   % d.f.
+CVA.p   = p;                    % p-values
 
-CVA.bic    = bic;                  % LogBF from Bayesian Information Criterion
-CVA.aic    = aic;                  % LogBF from Akaike Information Criterion
+CVA.bic = bic;                  % LogBF from Bayesian Information Criterion
+CVA.aic = aic;                  % LogBF from Akaike Information Criterion
