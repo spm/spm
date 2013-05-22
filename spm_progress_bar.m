@@ -6,7 +6,7 @@ function spm_progress_bar(action,varargin)
 %
 % FORMAT spm_progress_bar('Set',value)
 % Set the height of the bar itself.
-
+%
 % FORMAT spm_progress_bar('Set','xlabel',xlabel)
 % FORMAT spm_progress_bar('Set','ylabel',ylabel)
 % Set the progress bar labels.
@@ -17,7 +17,7 @@ function spm_progress_bar(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 5431 2013-04-19 17:24:35Z guillaume $
+% $Id: spm_progress_bar.m 5514 2013-05-22 14:56:12Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
