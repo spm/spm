@@ -28,7 +28,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5407 2013-04-12 19:03:29Z karl $
+% $Id: spm_dcm_erp.m 5515 2013-05-22 21:03:01Z vladimir $
 
 % check options
 %==========================================================================
@@ -143,7 +143,6 @@ end
 %--------------------------------------------------------------------------
 try
     if length(spm_vec(pE)) == length(spm_vec(M.P))
-        fprintf('Using intial parameters\n')
         fprintf('Using initial parameters\n')
     end
 end
