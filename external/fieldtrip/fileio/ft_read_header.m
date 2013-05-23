@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 7723 2013-03-29 20:25:00Z roboos $
+% $Id: ft_read_header.m 8073 2013-04-24 20:15:41Z josdie $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -927,7 +927,30 @@ switch headerformat
     % ensure that the EGI_MFF toolbox is on the path
     ft_hastoolbox('egi_mff', 1);
     % ensure that the JVM is running and the jar file is on the path
+    %%%%%%%%%%%%%%%%%%%%%%
+    %workaround for Matlab bug resulting in global variables being cleared
+    globalTemp=cell(0);
+    globalList=whos('global');
+    varList=whos;
+    for i=1:length(globalList)
+        eval(['global ' globalList(i).name ';']);
+        eval(['globalTemp{end+1}=' globalList(i).name ';']);
+    end;
+    %%%%%%%%%%%%%%%%%%%%%%
+    
     mff_setup;
+    
+    %%%%%%%%%%%%%%%%%%%%%%
+    %workaround for Matlab bug resulting in global variables being cleared
+    varNames={varList.name};
+    for i=1:length(globalList)
+        eval([globalList(i).name '=globalTemp{i};']);
+        if ~any(strcmp(globalList(i).name,varNames)) %was global variable originally out of scope?
+            eval(['clear ' globalList(i).name ';']); %clears link to global variable without affecting it
+        end;
+    end;
+    clear globalTemp globalList varNames varList;
+    %%%%%%%%%%%%%%%%%%%%%%
 
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory

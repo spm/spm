@@ -82,13 +82,13 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8065 2013-04-23 15:30:55Z roboos $
+% $Id: ft_prepare_layout.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_prepare_layout.m 8065 2013-04-23 15:30:55Z roboos $';
+revision = '$Id: ft_prepare_layout.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -67,13 +67,13 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 7385 2013-01-23 13:21:45Z johzum $
+% $Id: ft_prepare_mesh.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_prepare_mesh.m 7385 2013-01-23 13:21:45Z johzum $';
+revision = '$Id: ft_prepare_mesh.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

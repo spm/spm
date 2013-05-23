@@ -38,11 +38,11 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 7505 2013-02-20 11:18:14Z eelspa $';
+revision = '$Id: ft_connectivityplot.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
@@ -115,7 +115,8 @@ if isempty(cfg.zlim)
 end
 
 if (isfield(cfg, 'holdfig') && cfg.holdfig==0) || ~isfield(cfg, 'holdfig')
-  h = figure;hold on;
+  cla;
+  hold on;
 end
 
 for k = 1:nchan

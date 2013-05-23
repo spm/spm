@@ -86,13 +86,13 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 7428 2013-01-31 10:31:31Z jorhor $
+% $Id: ft_megplanar.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_megplanar.m 7428 2013-01-31 10:31:31Z jorhor $';
+revision = '$Id: ft_megplanar.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
@@ -244,11 +244,6 @@ if strcmp(cfg.planarmethod, 'sourceproject')
   %   end
   %
 else
-  % generically call megplanar_orig megplanar_sincos or megplanar_fitplante
-  fun = ['megplanar_'  cfg.planarmethod];
-  if ~exist(fun, 'file')
-    error('unknown method for computation of planar gradient');
-  end
   
   sens = ft_convert_units(data.grad);
   if any(isnan(sens.chanpos(:)))
@@ -279,8 +274,32 @@ else
   
   fprintf('minimum distance between neighbours is %6.2f %s\n', min(distance(distance~=0)), sens.unit);
   fprintf('maximum distance between gradiometers is %6.2f %s\n', max(distance(distance~=0)), sens.unit);
-    
-  planarmontage = eval([fun '(cfg, data.grad)']);
+  
+  % The following does not work when running in deployed mode because the
+  % private functions that compute the planar montage are not recognized as
+  % such and won't be compiled, unless explicitly specified.
+  
+  % % generically call megplanar_orig megplanar_sincos or megplanar_fitplane
+  %fun = ['megplanar_'  cfg.planarmethod];
+  %if ~exist(fun, 'file')
+  %  error('unknown method for computation of planar gradient');
+  %end
+  %planarmontage = eval([fun '(cfg, data.grad)']);
+  
+  switch cfg.planarmethod
+    case 'sincos'
+      planarmontage = megplanar_sincos(cfg, data.grad);
+    case 'orig'
+      planarmontage = megplanar_orig(cfg, data.grad);
+    case 'fitplane'
+      planarmontage = megplanar_fitplane(cfg, data.grad);
+    otherwise
+      fun = ['megplanar_' cfg.planarmethod];
+      if ~exist(fun, 'file')
+        error('unknown method for computation of planar gradient');
+      end
+      planarmontage = eval([fun '(cfg, data.grad)']);
+  end
   
   % apply the linear transformation to the data
   interp = ft_apply_montage(data, planarmontage, 'keepunused', 'yes', 'feedback', cfg.feedback);
@@ -298,7 +317,7 @@ else
   % add the chanpos info back into the gradiometer description
   tmplabel = interp.grad.label;
   for k = 1:numel(tmplabel)
-    if strcmp(tmplabel{k}(end-2:end), '_dV') || strcmp(tmplabel{k}(end-2:end), '_dH')
+    if ~isempty(strfind(tmplabel{k}, '_dV')) || ~isempty(strfind(tmplabel{k}, '_dH'))
       tmplabel{k} = tmplabel{k}(1:end-3);
     end
   end

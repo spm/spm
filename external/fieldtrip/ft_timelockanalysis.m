@@ -114,13 +114,13 @@ function [timelock] = ft_timelockanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockanalysis.m 7682 2013-03-17 13:30:20Z roboos $
+% $Id: ft_timelockanalysis.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_timelockanalysis.m 7682 2013-03-17 13:30:20Z roboos $';
+revision = '$Id: ft_timelockanalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble loadvar    data
 ft_preamble provenance data
 ft_preamble trackconfig
@@ -152,7 +152,6 @@ if ~isfield(cfg, 'preproc'),       cfg.preproc      = [];     end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
-  fprintf('selecting %d trials\n', length(cfg.trials));
   data = ft_selectdata(data, 'rpt', cfg.trials);
 end
 

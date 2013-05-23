@@ -54,13 +54,13 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 7604 2013-03-07 16:32:00Z jansch $
+% $Id: ft_topoplotCC.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_topoplotCC.m 7604 2013-03-07 16:32:00Z jansch $';
+revision = '$Id: ft_topoplotCC.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

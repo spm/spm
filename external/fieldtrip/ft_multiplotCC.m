@@ -34,13 +34,13 @@ function [cfg] = ft_multiplotCC(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotCC.m 7400 2013-01-23 16:05:54Z roboos $
+% $Id: ft_multiplotCC.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_multiplotCC.m 7400 2013-01-23 16:05:54Z roboos $';
+revision = '$Id: ft_multiplotCC.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

@@ -90,13 +90,13 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 7724 2013-03-30 13:56:04Z jansch $
+% $Id: ft_mvaranalysis.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_mvaranalysis.m 7724 2013-03-30 13:56:04Z jansch $';
+revision = '$Id: ft_mvaranalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
@@ -239,6 +239,7 @@ ntap = size(tap,1);
 tmpcfg        = [];
 tmpcfg.toilim = cfg.toi([1 end]) + cfg.t_ftimwin.*[-0.5 0.5];
 data          = ft_redefinetrial(tmpcfg, data);
+ntrl          = length(data.trial);
 
 %---demean
 if strcmp(cfg.demean, 'yes'),

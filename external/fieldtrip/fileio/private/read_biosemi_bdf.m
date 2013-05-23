@@ -45,7 +45,7 @@ function dat = read_biosemi_bdf(filename, hdr, begsample, endsample, chanindx);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_biosemi_bdf.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_biosemi_bdf.m 8119 2013-05-09 12:35:07Z jansch $
 
 if nargin==1
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,7 +190,10 @@ if nargin==1
   end;
 
   EDF.AS.spb = sum(EDF.SPR);    % Samples per Block
-
+  
+  % close the file
+  fclose(EDF.FILE.FID);
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % convert the header to Fieldtrip-style
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

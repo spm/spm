@@ -94,13 +94,13 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 7362 2013-01-18 14:27:55Z johzum $
+% $Id: ft_topoplotIC.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_topoplotIC.m 7362 2013-01-18 14:27:55Z johzum $';
+revision = '$Id: ft_topoplotIC.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 
 % make sure figure window titles are labeled appropriately, pass this onto

@@ -65,9 +65,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_sourcegrandaverage.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_sourcegrandaverage.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 if 1,
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,7 +76,7 @@ if 1,
   
   % do the general setup of the function
   ft_defaults
-  ft_preamble help
+  ft_preamble init
   ft_preamble provenance
   ft_preamble trackconfig
   ft_preamble debug
@@ -275,7 +275,7 @@ else
   
   % do the general setup of the function
   ft_defaults
-  ft_preamble help
+  ft_preamble init
   ft_preamble provenance
   ft_preamble trackconfig
   ft_preamble debug

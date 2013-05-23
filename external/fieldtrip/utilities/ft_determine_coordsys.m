@@ -25,7 +25,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 % coordinate system, you should press the corresponding keyboard button.
 %
 % Recognized and supported coordinate systems include: ctf, 4d, bti, itab,
-% neuromag, spm, mni, als, ras. T
+% neuromag, spm, mni, als, ras.
 %
 % See also FT_VOLUMEREALIGN, FT_VOLUMERESLICE
 
@@ -45,7 +45,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 7981 2013-04-18 08:30:53Z roboos $
+% $Id: ft_determine_coordsys.m 8082 2013-04-27 10:44:00Z roboos $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol

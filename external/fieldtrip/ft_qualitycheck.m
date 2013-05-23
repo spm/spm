@@ -55,11 +55,11 @@ function [varargout] = ft_qualitycheck(cfg)
 %
 % $Id:%
 
-revision = '$Id: ft_qualitycheck.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_qualitycheck.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

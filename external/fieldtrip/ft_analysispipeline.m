@@ -55,7 +55,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-revision = '$Id: ft_analysispipeline.m 7426 2013-01-30 16:50:36Z roboos $';
+revision = '$Id: ft_analysispipeline.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -63,7 +63,7 @@ if ~isfield(cfg, 'showcallinfo'), cfg.showcallinfo = 'no';   end
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

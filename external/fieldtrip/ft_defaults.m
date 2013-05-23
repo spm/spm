@@ -40,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: ft_defaults.m 8139 2013-05-22 06:32:30Z jorhor $
 
 global ft_default
 persistent initialized
@@ -71,7 +71,7 @@ end
 ftPath = fileparts(mfilename('fullpath')); % get path, strip away 'ft_defaults'
 ftPath = strrep(ftPath, '\', '\\');
 if isempty(regexp(path, [ftPath pathsep '|' ftPath '$'], 'once'))
-  warning('FieldTrip is not yet on your MATLAB path, adding %s', ftPath);
+  warning('FieldTrip is not yet on your MATLAB path, adding %s', strrep(ftPath, '\\', '\'));
   addpath(ftPath);
 end
 

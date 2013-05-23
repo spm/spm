@@ -45,7 +45,7 @@ function [dat] = read_edf(filename, hdr, begsample, endsample, chanindx)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_edf.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_edf.m 8119 2013-05-09 12:35:07Z jansch $
 
 needhdr = (nargin==1);
 needevt = (nargin==2);
@@ -207,7 +207,10 @@ if needhdr
   %EDF.AS.bi=bi;
   EDF.AS.IDX2=idx2;
   %EDF.AS.IDX3=idx3;
-
+  
+  % close the file
+  fclose(EDF.FILE.FID);
+  
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % convert the header to Fieldtrip-style
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -105,7 +105,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 7687 2013-03-18 11:25:00Z roevdmei $
+% $Id: ft_databrowser.m 8144 2013-05-23 14:12:24Z jorhor $
 
 % Undocumented options
 %
@@ -116,11 +116,11 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 7687 2013-03-18 11:25:00Z roevdmei $';
+revision = '$Id: ft_databrowser.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

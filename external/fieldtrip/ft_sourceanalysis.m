@@ -191,13 +191,13 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 7813 2013-04-15 13:34:30Z roboos $
+% $Id: ft_sourceanalysis.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_sourceanalysis.m 7813 2013-04-15 13:34:30Z roboos $';
+revision = '$Id: ft_sourceanalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
@@ -587,10 +587,23 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
   end
   
   % get the relevant low level options from the cfg and convert into key-value pairs
-  optarg = ft_cfg2keyval(getfield(cfg, cfg.method));
+  tmpcfg = cfg.(cfg.method);
+  % disable console feedback for the low-level function in case of multiple
+  % repetitions
+  if Nrepetitions > 1
+    tmpcfg.feedback = 'none';
+  end
+  optarg = ft_cfg2keyval(tmpcfg);
   
+  if Nrepetitions > 1
+    ft_progress('init', 'text');
+  end
   for i=1:Nrepetitions
-    fprintf('scanning repetition %d\n', i);
+    
+    if Nrepetitions > 1
+      ft_progress(i/Nrepetitions, 'scanning repetition %d of %d', i, Nrepetitions);
+    end
+    
     if     strcmp(cfg.method, 'dics') && strcmp(submethod, 'dics_power')
       dip(i) = beamformer_dics(grid, sens, vol, [],  squeeze(Cf(i,:,:)), optarg{:});
     elseif strcmp(cfg.method, 'dics') && strcmp(submethod, 'dics_refchan')
@@ -602,6 +615,9 @@ if isfreq && any(strcmp(cfg.method, {'dics', 'pcc'}))
     else
       error(sprintf('method ''%s'' is unsupported for source reconstruction in the frequency domain', cfg.method));
     end
+  end
+  if Nrepetitions > 1
+    ft_progress('close');
   end
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

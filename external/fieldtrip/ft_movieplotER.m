@@ -53,13 +53,13 @@ function [cfg] = ft_movieplotER(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_movieplotER.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_movieplotER.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: ft_movieplotER.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 
 % check if the input data is valid for this function

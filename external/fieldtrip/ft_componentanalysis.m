@@ -147,18 +147,18 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 7410 2013-01-25 14:28:54Z dieloz $
+% $Id: ft_componentanalysis.m 8144 2013-05-23 14:12:24Z jorhor $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
 
-revision = '$Id: ft_componentanalysis.m 7410 2013-01-25 14:28:54Z dieloz $';
+revision = '$Id: ft_componentanalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble randomseed
 ft_preamble trackconfig

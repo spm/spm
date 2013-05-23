@@ -63,13 +63,13 @@ function [data] = ft_regressconfound(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_regressconfound.m 7725 2013-03-30 14:01:46Z jansch $
+% $Id: ft_regressconfound.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_regressconfound.m 7725 2013-03-30 14:01:46Z jansch $';
+revision = '$Id: ft_regressconfound.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

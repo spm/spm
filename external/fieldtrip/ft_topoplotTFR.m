@@ -163,13 +163,13 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 7667 2013-03-15 08:06:15Z eelspa $
+% $Id: ft_topoplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_topoplotTFR.m 7667 2013-03-15 08:06:15Z eelspa $';
+revision = '$Id: ft_topoplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 
 % this is just a wrapper function around the common code that does all the hard work

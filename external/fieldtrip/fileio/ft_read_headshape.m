@@ -54,7 +54,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 7834 2013-04-16 18:25:29Z roboos $
+% $Id: ft_read_headshape.m 8126 2013-05-15 00:04:08Z jansch $
 
 % Check the input, if filename is a cell-array, call ft_read_headshape recursively and combine the outputs.
 % This is used to read the left and right hemisphere of a Freesurfer cortical segmentation.
@@ -82,11 +82,19 @@ if iscell(filename)
     catch
       tmpsulc = [];
     end
+    try,
+      tmpcurv = read_curv(fullfile(path, [name,'.curv']));
+    catch
+      tmpcurv = [];
+    end
     
     if i==1,
       shape = tmpshape;
       if ~isempty(tmpsulc)
         shape.sulc = tmpsulc;
+      end
+      if ~isempty(tmpcurv)
+        shape.curv = tmpcurv;
       end
     else
       tmpshape  = ft_convert_units(tmpshape, shape.unit);
@@ -101,6 +109,9 @@ if iscell(filename)
       end
       if ~isempty(tmpsulc)
         shape.sulc = cat(1, shape.sulc, tmpsulc);
+      end
+      if ~isempty(tmpcurv)
+        shape.curv = cat(1, shape.curv, tmpcurv);
       end
     end
   end

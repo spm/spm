@@ -42,14 +42,14 @@ function dataout = ft_annotate(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_annotate.m 7395 2013-01-23 15:00:19Z roboos $
+% $Id: ft_annotate.m 8144 2013-05-23 14:12:24Z jorhor $
 
 
-revision = '$Id: ft_annotate.m 7395 2013-01-23 15:00:19Z roboos $';
+revision = '$Id: ft_annotate.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
-ft_preamble help            % this will show the function help if nargin==0 and return an error
+ft_preamble init            % this will show the function help if nargin==0 and return an error
 ft_preamble provenance      % this records the time and memory usage at teh beginning of the function
 ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug           % this allows for displaying or saving the function name and input arguments upon an error

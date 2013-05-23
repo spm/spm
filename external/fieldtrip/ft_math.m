@@ -27,16 +27,16 @@ function data = ft_math(cfg, varargin)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% $Id: ft_math.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: ft_math.m 8144 2013-05-23 14:12:24Z jorhor $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 8053 2013-04-18 15:17:53Z roboos $';
+revision = '$Id: ft_math.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
-ft_preamble help              % this will show the function help if nargin==0 and return an error
+ft_preamble init              % this will show the function help if nargin==0 and return an error
 ft_preamble provenance        % this records the time and memory usage at teh beginning of the function
 ft_preamble trackconfig       % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug
@@ -45,7 +45,7 @@ ft_preamble loadvar varargin  % this reads the input data in case the user speci
 type = ft_datatype(varargin{1});
 for i=1:length(varargin)
   % check that all data types are equal, and update old data structures
-  varargin{i} = ft_checkdata(varargin{1}, 'datatype', type);
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', type);
 end
 
 % ensure that the required options are present
@@ -57,6 +57,17 @@ if length(varargin)>1
 else
   % the operation involves the data structure and the specified value
   % or the operation is a transformation such as log10
+end
+
+% this function only works for the new (2013x) source representation without sub-structures 
+if ft_datatype(varargin{1}, 'source')
+  % update the old-style beamformer source reconstruction
+  for i=1:length(varargin)
+    varargin{i} = ft_datatype_source(varargin{i}, 'version', '2013x');
+  end
+  if isfield(cfg, 'parameter') && length(cfg.parameter)>4 && strcmp(cfg.parameter(1:4), 'avg.')
+    cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
+  end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,13 +154,13 @@ else
     case 'add'
       for i=2:length(varargin)
         fprintf('adding the %s input argument\n', nth(i));
-        tmp = tmp + varargin{2}.(cfg.parameter);
+        tmp = tmp + varargin{i}.(cfg.parameter);
       end
       
     case 'multiply'
       for i=2:length(varargin)
         fprintf('multiplying with the %s input argument\n', nth(i));
-        tmp = tmp .* varargin{2}.(cfg.parameter);
+        tmp = tmp .* varargin{i}.(cfg.parameter);
       end
       
     case 'subtract'
@@ -190,11 +201,11 @@ ft_postamble savevar data       % this saves the output data structure to disk i
 % SUBFUNCTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function s = nth(n)
-if n==1
+if rem(n,10)==1 && rem(n,100)~=11
   s = sprintf('%dst', n);
-elseif n==2
+elseif rem(n,10)==2 && rem(n,100)~=12
   s = sprintf('%dnd', n);
-elseif n==3
+elseif rem(n,10)==3 && rem(n,100)~=13
   s = sprintf('%drd', n);
 else
   s = sprintf('%dth', n);

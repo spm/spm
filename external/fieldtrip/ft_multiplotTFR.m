@@ -124,13 +124,13 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 7760 2013-04-03 13:39:36Z jorhor $
+% $Id: ft_multiplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_multiplotTFR.m 7760 2013-04-03 13:39:36Z jorhor $';
+revision = '$Id: ft_multiplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

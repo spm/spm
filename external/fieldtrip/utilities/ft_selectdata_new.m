@@ -37,7 +37,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 7763 2013-04-04 12:25:45Z roboos $
+% $Id: ft_selectdata_new.m 8133 2013-05-17 15:32:05Z roboos $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble help              % this will show the function help if nargin==0 and return an error
@@ -56,19 +56,18 @@ end
 
 cfg = ft_checkconfig(cfg, 'renamed', {'toilim' 'latency'});
 
+% this function only works for the new (2013x) source representation without sub-structures 
 if strcmp(dtype, 'source')
-  % FIXME this updates the old-style beamformer source reconstruction
+  % update the old-style beamformer source reconstruction
   for i=1:length(varargin)
     varargin{i} = ft_datatype_source(varargin{i}, 'version', '2013x');
   end
-  dimord = varargin{1}.dimord;
-  if isfield(cfg, 'parameter') && strcmp(cfg.parameter(1:4), 'avg.')
+  if isfield(cfg, 'parameter') && length(cfg.parameter)>4 && strcmp(cfg.parameter(1:4), 'avg.')
     cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
   end
 end
 
 if strcmp(dtype, 'raw')
-  
   % use selfromraw
   cfg.channel = ft_getopt(cfg, 'channel', 'all');
   cfg.latency = ft_getopt(cfg, 'latency', 'all');

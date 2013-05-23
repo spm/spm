@@ -4,11 +4,12 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %
 % Use as
 %    output = ft_sourceparcellate(cfg, source, parcellation)
-% where the input source is a 3D voxel-based or a 2D surface-based source grid
-% that was for example obtained from FT_SOURCEANALYSIS or FT_COMPUTE_LEADFIELD.
-% The input parcellation is described in detail in FT_DATATYPE_PARCELLATION and
-% can be obtained from FT_READ_ATLAS. The output is a channel-based representation
-% with the combined (e.g. averaged) representation of the source parameters per parcel.
+% where the input source is a 2D surface-based or 3-D voxel-based source grid that was for
+% example obtained from FT_SOURCEANALYSIS or FT_COMPUTE_LEADFIELD. The input parcellation is
+% described in detail in FT_DATATYPE_PARCELLATION (2-D) or FT_DATATYPE_SEGMENTATION (3-D) and
+% can be obtained from FT_READ_ATLAS or from a custom parcellation/segmentation for your
+% individual subject. The output is a channel-based representation with the combined (e.g.
+% averaged) representation of the source parameters per parcel.
 %
 % The configuration "cfg" is a structure that can contain the following
 % fields
@@ -43,12 +44,12 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceparcellate.m 8055 2013-04-18 15:46:46Z roboos $
+% $Id: ft_sourceparcellate.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_sourceparcellate.m 8055 2013-04-18 15:46:46Z roboos $';
+revision = '$Id: ft_sourceparcellate.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

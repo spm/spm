@@ -34,7 +34,7 @@ function [label] = atlas_lookup(atlas, pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_lookup.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: atlas_lookup.m 8125 2013-05-14 13:55:30Z eelspa $
 
 % get the optional input arguments
 queryrange  = ft_getopt(varargin, 'queryrange', 3);
@@ -89,8 +89,16 @@ for i=1:num
             ijk(3)>=1 && ijk(3)<=atlas.dim(3)
           brick0_val = atlas.brick0(ijk(1), ijk(2), ijk(3));
           brick1_val = atlas.brick1(ijk(1), ijk(2), ijk(3));
-          sel = [sel; find(atlas.descr.brick==0 & atlas.descr.value==brick0_val)];
-          sel = [sel; find(atlas.descr.brick==1 & atlas.descr.value==brick1_val)];
+          
+          toAdd = find(atlas.descr.brick==0 & atlas.descr.value==brick0_val);
+          if ~isempty(toAdd)
+            sel = [sel; toAdd];
+          end
+          
+          toAdd = find(atlas.descr.brick==1 & atlas.descr.value==brick1_val);
+          if ~isempty(toAdd)
+            sel = [sel; toAdd];
+          end
         else
           warning('location is outside atlas volume');
         end

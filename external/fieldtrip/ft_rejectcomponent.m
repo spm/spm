@@ -50,13 +50,13 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 7712 2013-03-28 12:18:54Z jansch $
+% $Id: ft_rejectcomponent.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_rejectcomponent.m 7712 2013-03-28 12:18:54Z jansch $';
+revision = '$Id: ft_rejectcomponent.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

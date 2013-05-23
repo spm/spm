@@ -62,13 +62,13 @@ function [stat] = ft_networkanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_networkanalysis.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: ft_networkanalysis.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_networkanalysis.m 8053 2013-04-18 15:17:53Z roboos $';
+revision = '$Id: ft_networkanalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

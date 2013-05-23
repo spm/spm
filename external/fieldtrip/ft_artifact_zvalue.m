@@ -101,13 +101,13 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 7715 2013-03-28 12:36:29Z jansch $
+% $Id: ft_artifact_zvalue.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_artifact_zvalue.m 7715 2013-03-28 12:36:29Z jansch $';
+revision = '$Id: ft_artifact_zvalue.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble loadvar data
 

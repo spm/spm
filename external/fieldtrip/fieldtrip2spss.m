@@ -10,12 +10,20 @@ function fieldtrip2spss(filename, labels, data)
 %
 % When importing to SPSS, use;
 %   - variables included at top of file: 'yes'
-%   - first case of data on line number: '2'
-%   - delimiter appearing between variables: 'tab'
+%   - first case of data on line number: '2' (default)
+%   - delimiter appearing between variables: 'tab' (default)
+%
+% In case the columns that make up the data matrix have unequal lengths
+% (e.g. because of different number of subjects per group), use:
+%   data         = ones(30,2)*9999
+%   data(:,1)    = Group1 (30 subj) 
+%   data(1:20,2) = Group2 (only 20 subj)
+% After importing to SPSS, click the Missing cell in the Variable View
+% window and enter 9999 as the missing value definition.
 %
 % See also NUTMEG2FIELDTRIP, SPASS2FIELDTRIP, LORETA2FIELDTRIP
 
-% Copyright (C) 2011, Arjen Stolk
+% Copyright (C) 2011-2013, Arjen Stolk
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -33,9 +41,9 @@ function fieldtrip2spss(filename, labels, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2spss.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fieldtrip2spss.m 8107 2013-05-07 08:32:52Z arjsto $
 
-revision = '$Id: fieldtrip2spss.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: fieldtrip2spss.m 8107 2013-05-07 08:32:52Z arjsto $';
 
 % do the general setup of the function
 ft_defaults

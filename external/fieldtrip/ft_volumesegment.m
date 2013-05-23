@@ -134,13 +134,13 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 8069 2013-04-23 21:20:19Z roboos $
+% $Id: ft_volumesegment.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_volumesegment.m 8069 2013-04-23 21:20:19Z roboos $';
+revision = '$Id: ft_volumesegment.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble callinfo
 ft_preamble trackconfig
 ft_preamble debug

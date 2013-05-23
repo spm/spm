@@ -30,13 +30,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: ft_examplefunction.m 8144 2013-05-23 14:12:24Z jorhor $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: ft_examplefunction.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 
@@ -44,7 +44,7 @@ revision = '$Id: ft_examplefunction.m 7188 2012-12-13 21:26:34Z roboos $';
 % fieldtrip/utility/private that are able to modify the local workspace
 
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
-ft_preamble help            % this will show the function help if nargin==0 and return an error
+ft_preamble init            % this will reset warning_once and show the function help if nargin==0 and return an error
 ft_preamble provenance      % this records the time and memory usage at teh beginning of the function
 ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug           % this allows for displaying or saving the function name and input arguments upon an error

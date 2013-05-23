@@ -35,9 +35,9 @@ function [atlas, cfg] = ft_prepare_atlas(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 7567 2013-03-04 12:25:13Z arjsto $
+% $Id: ft_prepare_atlas.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_prepare_atlas.m 7567 2013-03-04 12:25:13Z arjsto $';
+revision = '$Id: ft_prepare_atlas.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 if ischar(cfg)
   % prior to 7 December 2011, this function was called with the filename as input
@@ -47,7 +47,7 @@ end
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble debug
 ft_preamble provenance
 

@@ -51,7 +51,7 @@ function ft_write_headshape(filename, bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_headshape.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_write_headshape.m 8075 2013-04-25 14:15:36Z roboos $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 data       = ft_getopt(varargin,'data',  []); % can be stored in a gifti file
@@ -140,13 +140,22 @@ switch fileformat
   case 'ply'
     [p, f, x] = fileparts(filename);
     filename = fullfile(p, [f, '.ply']); % ensure it has the right extension
-    if isfield(bnd, 'tri')
-      write_ply(filename, bnd.pnt, bnd.tri);
-    elseif isfield(bnd, 'tet')
-      write_ply(filename, bnd.pnt, bnd.tet);
-    elseif isfield(bnd, 'hex')
-      write_ply(filename, bnd.pnt, bnd.hex);
+    
+    if isfield(bnd, 'pnt')
+      vertices = bnd.pnt;
+    elseif isfield(bnd, 'pos')
+      vertices = bnd.pos;
     end
+    
+    if isfield(bnd, 'tri')
+      elements = bnd.tri;
+    elseif isfield(bnd, 'tet')
+      elements = bnd.tet;
+    elseif isfield(bnd, 'hex')
+      elements = bnd.hex;
+    end
+    
+    write_ply(filename, vertices, elements);
 
   case 'stl'
     nrm = normals(bnd.pnt, bnd.tri, 'triangle');

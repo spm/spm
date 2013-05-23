@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: ft_read_data.m 8123 2013-05-09 21:30:13Z josdie $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -635,7 +635,7 @@ switch dataformat
     dimord = 'chans_samples_trials';
     
   case 'egi_sbin'
-    if mod(hdr.orig.header_array(1),2)==0,
+    if (mod(hdr.orig.header_array(1),2)==0) && ~(hdr.orig.header_array(14))==0 && (hdr.orig.header_array(15) > 1),
       %unsegmented data contains only 1 trial, don't read the whole file
       dat = read_sbin_data(filename, hdr, begsample, endsample, chanindx);
       requestsamples = 0;
@@ -726,7 +726,30 @@ switch dataformat
     % ensure that the EGI_MFF toolbox is on the path
     ft_hastoolbox('egi_mff', 1);
     % ensure that the JVM is running and the jar file is on the path
-    mff_setup;
+      %%%%%%%%%%%%%%%%%%%%%%
+      %workaround for Matlab bug resulting in global variables being cleared
+      globalTemp=cell(0);
+      globalList=whos('global');
+      varList=whos;
+      for i=1:length(globalList)
+          eval(['global ' globalList(i).name ';']);
+          eval(['globalTemp{end+1}=' globalList(i).name ';']);
+      end;
+      %%%%%%%%%%%%%%%%%%%%%%
+      
+      mff_setup;
+      
+      %%%%%%%%%%%%%%%%%%%%%%
+      %workaround for Matlab bug resulting in global variables being cleared
+      varNames={varList.name};
+      for i=1:length(globalList)
+          eval([globalList(i).name '=globalTemp{i};']);
+          if ~any(strcmp(globalList(i).name,varNames)) %was global variable originally out of scope?
+              eval(['clear ' globalList(i).name ';']); %clears link to global variable without affecting it
+          end;
+      end;
+      clear globalTemp globalList varNames varList;
+      %%%%%%%%%%%%%%%%%%%%%%
 
     if isunix && filename(1)~=filesep
       % add the full path to the dataset directory

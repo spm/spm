@@ -65,7 +65,9 @@ function [v,ftpath] = ft_version(cmd)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_version.m 7383 2013-01-23 13:19:28Z eelspa $
+% $Id: ft_version.m 8132 2013-05-17 13:56:42Z eelspa $
+
+persistent issvn;
 
 if nargin<1
   cmd = 'info';
@@ -77,8 +79,10 @@ signaturefile = fullfile(ftpath, 'signature.md5');
 remotesignature = 'http://fieldtrip.fcdonders.nl/signature.md5';
 repository = 'http://fieldtrip.googlecode.com/svn/trunk/';
 
-% are we dealing with an SVN working copy of fieldtrip?
-issvn = isdir(fullfile(ftpath, '.svn'));
+if isempty(issvn)
+  % are we dealing with an SVN working copy of fieldtrip?
+  issvn = isdir(fullfile(ftpath, '.svn'));
+end
 
 switch cmd
 

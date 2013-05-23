@@ -104,13 +104,13 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 7611 2013-03-10 15:18:05Z lilmag $
+% $Id: ft_electroderealign.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_electroderealign.m 7611 2013-03-10 15:18:05Z lilmag $';
+revision = '$Id: ft_electroderealign.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug

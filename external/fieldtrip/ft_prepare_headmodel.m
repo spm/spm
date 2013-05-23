@@ -129,13 +129,13 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 7441 2013-02-06 09:33:26Z johzum $
+% $Id: ft_prepare_headmodel.m 8144 2013-05-23 14:12:24Z jorhor $
 
-revision = '$Id: ft_prepare_headmodel.m 7441 2013-02-06 09:33:26Z johzum $';
+revision = '$Id: ft_prepare_headmodel.m 8144 2013-05-23 14:12:24Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
-ft_preamble help
+ft_preamble init
 ft_preamble trackconfig
 ft_preamble provenance
 
