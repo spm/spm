@@ -120,7 +120,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_normalise.m 5519 2013-05-23 17:13:32Z john $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -140,7 +140,7 @@ if ischar(VWG), VWG=spm_vol(VWG); end;
 if ischar(VWF), VWF=spm_vol(VWF); end;                                                                     
 
 
-def_flags          = spm_get_defaults('normalise.estimate');
+def_flags          = spm_get_defaults('old.normalise.estimate');
 def_flags.graphics = 1;
 if nargin < 6,
     flags = def_flags;
@@ -198,7 +198,7 @@ else
 end;
 clear VF1 VG1
 
-flags.version = '$Rev: 4873 $';
+flags.version = '$Rev: 5519 $';
 flags.date    = date;
 
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
