@@ -14,7 +14,7 @@ function [y,w] = spm_nfm_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Dimitris Pinotsis, Karl Friston
-% $Id: spm_nfm_mtf.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_nfm_mtf.m 5517 2013-05-23 12:47:45Z dimitris $
  
  
 % compute log-spectral density
@@ -96,10 +96,10 @@ for  t = 1:size(X,1)
     %----------------------------------------------------------------------
     vel  = 16*exp(Q.vel)/1000;      % inverse velocity (transit time)
     c    = [1 2 1 1]*exp(Q.ext)/16; % extent (units of patch size)
-    C23  = c(1);
-    C13  = c(2);
-    C32  = c(3);
-    C31  = c(4);
+    C23  = 1/c(1);
+    C13  = 1/c(2);
+    C32  = 1/c(3);
+    C31  = 1/c(4);
     
   
     % analytic form of the spectrum
@@ -110,10 +110,10 @@ for  t = 1:size(X,1)
         
         k      = pi.*m;
         
-        D23    = A23*(C23+1i*vel*w)./(C23^2-vel^2*w.^2+2*1i*vel*w+k^2);
-        D13    = A13*(C13+1i*vel*w)./(C13^2-vel^2*w.^2+2*1i*vel*w+k^2);
-        D32    = A32*(C32+1i*vel*w)./(C32^2-vel^2*w.^2+2*1i*vel*w+k^2);
-        D31    = A31*(C31+1i*vel*w)./(C31^2-vel^2*w.^2+2*1i*vel*w+k^2);
+        D23    = A23*(C23+1i*vel*w)./(C23^2-vel^2*w.^2+2*1i*C23*vel*w+k^2);
+        D13    = A13*(C13+1i*vel*w)./(C13^2-vel^2*w.^2+2*1i*C13*vel*w+k^2);
+        D32    = A32*(C32+1i*vel*w)./(C32^2-vel^2*w.^2+2*1i*C32*vel*w+k^2);
+        D31    = A31*(C31+1i*vel*w)./(C31^2-vel^2*w.^2+2*1i*C31*vel*w+k^2);
         
         E3D    = D31*g*(ke^2)*(me^2).*((ki + 1i*w).^2);
         E3N    = (-D23.*D32.*(g^2)*ke*ki*me*mi).*((ke+1i*w).^2)+((ki+1i*w).^2).*(ke^4+4*ke^3*(1i*w)-4*1i*ke*(w).^3 + (w).^4 +...
