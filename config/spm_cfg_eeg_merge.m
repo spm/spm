@@ -4,9 +4,9 @@ function merge = spm_cfg_eeg_merge
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Volkmar Glauche
-% $Id: spm_cfg_eeg_merge.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_merge.m 5516 2013-05-23 11:02:51Z vladimir $
 
-rev = '$Rev: 5377 $';
+rev = '$Rev: 5516 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Names';
@@ -38,7 +38,7 @@ labelnew.help = {['New condition label for the merged file. Special tokens can b
     'condition labels.']}; 
 
 rule = cfg_branch;
-rule.tag = 'rule';
+rule.tag = 'recode';
 rule.name = 'Recoding rule';
 rule.val  = {file, labelorg, labelnew};
 rule.help = {'Recoding rule. The default means that all trials will keep their original label.'}; 
