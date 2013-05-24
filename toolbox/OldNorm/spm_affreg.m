@@ -38,14 +38,14 @@ function [M,scal] = spm_affreg(VG,VF,flags,M,scal)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_affreg.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_affreg.m 5520 2013-05-24 10:35:18Z john $
 
 
 if nargin<5, scal = ones(length(VG),1); end;
 if nargin<4, M    = eye(4);             end;
 
 def_flags = struct('sep',5, 'regtype','subj','WG',[],'WF',[],'globnorm',1,'debug',0);
-if nargin < 2 || ~isstruct(flags),
+if nargin < 3 || ~isstruct(flags),
     flags = def_flags;
 else
     fnms = fieldnames(def_flags);
