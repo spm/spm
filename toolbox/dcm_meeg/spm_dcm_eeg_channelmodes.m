@@ -20,7 +20,7 @@ function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_eeg_channelmodes.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_dcm_eeg_channelmodes.m 5521 2013-05-25 11:55:48Z karl $
  
 % number of channels and modes
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ pE    = spm_L_priors(dipfit);
 %--------------------------------------------------------------------------
 dGdg  = spm_diff('spm_erp_L',pE,dipfit,1);
 L     = spm_cat(dGdg);
-L     = L(:,any(L));
+L     = spm_svd(L);
 
 if nargin < 3
     

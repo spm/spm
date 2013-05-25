@@ -20,7 +20,7 @@ function ADEM_salience
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: ADEM_salience.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: ADEM_salience.m 5521 2013-05-25 11:55:48Z karl $
 
 
 % hidden causes and states
@@ -88,7 +88,7 @@ x.x    = -log(nh)*ones(nh,1);                 % hypotheses
 % Recognition model
 %==========================================================================
 M(1).E.s = 1/2;                               % smoothness
-M(1).E.n = 3;                                 % order of
+M(1).E.n = 4;                                 % order of
 M(1).E.d = 2;                                 % generalised motion
 
 
