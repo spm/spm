@@ -64,7 +64,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_cva.m 5522 2013-05-27 12:35:17Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -119,10 +119,11 @@ T     = X*(P*Y);
 SST   = T'*T;
 SSR   = Y - T;
 SSR   = SSR'*SSR;
-[v,d] = eig(spm_inv(SSR)*SST);
-[q,r] = sort(-real(diag(d)));
+[v,d] = eig(SSR\SST);
+d     = real(diag(d));
+[q,r] = sort(-d);
 r     = r(1:h);
-d     = real(d(r,r));
+d     = real(d(r));
 v     = real(v(:,r));
 V     = U*v;                       % canonical vectors  (data)
 v     = Y*v;                       % canonical variates (data)
@@ -132,7 +133,7 @@ C     = c*W;                       % canonical contrast (design)
 
 %-Inference on dimensionality - p(i) test of D >= i; Wilks' Lambda := p(1)
 %--------------------------------------------------------------------------
-cval  = diag(d);
+cval  = d.*(d > 0);
 [chi, df, p, r] = deal(zeros(1,h));
 for i = 1:h
     
