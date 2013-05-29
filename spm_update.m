@@ -12,11 +12,11 @@ function spm_update(update)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 5161 2012-12-21 18:30:26Z guillaume $
+% $Id: spm_update.m 5523 2013-05-29 17:06:38Z guillaume $
 
 
 vspm = 'SPM12b';
-url  = ['ftp://ftp.fil.ion.ucl.ac.uk/spm/' lower(vspm) '_updates/'];
+url  = ['http://www.fil.ion.ucl.ac.uk/spm/download/' lower(vspm) '_updates/'];
 
 if ~nargin
     update = false;
