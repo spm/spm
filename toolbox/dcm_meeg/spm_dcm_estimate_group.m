@@ -1,49 +1,45 @@
 function spm_dcm_estimate_group(DCMs, DD, P, pE, pC, feedback)
-% Apply a set of pre-specified DCMs to a set of subjects.
+% Apply a set of pre-specified DCMs to a set of subjects
 %
-% FORMAT spm_dcm_estimate_group(DCM, D, P, pE, pC)
+% FORMAT spm_dcm_estimate_group(DCM, D, P, pE, pC, feedback)
 %  
 % Arguments (optional)
 %
-% DCMs - a list of DCM files
-% DD   - a list of MEEG datasets
-% P   - initialisation (1 - use previous posteriors)
-% pE  - priors (1 - take from DCM)
-% pC  - prior covariance
-% feedback - provide graphical feedback (1)
+% DCMs     - a list of DCM files
+% DD       - a list of MEEG datasets
+% P        - initialisation (1 - use previous posteriors)
+% pE       - priors (1 - take from DCM)
+% pC       - prior covariance
+% feedback - provide graphical feedback [Default: 1]
 %
-% All results will be saved in the current directory
+% All results will be saved in the current directory.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_dcm_estimate_group.m 5383 2013-04-03 16:22:30Z vladimir $
+% $Id: spm_dcm_estimate_group.m 5524 2013-05-30 12:55:31Z guillaume $
 
-% Disclaimer: this code is provided as an example and is not guaranteed to
-% work with data on which it was not tested. If it does not work for you,
-% feel free to improve it and contribute your improvements to the MEEGtools
-% toolbox in SPM (http://www.fil.ion.ucl.ac.uk/spm/)
 
 if nargin == 0
-    DCMs =  spm_select(Inf, 'mat', 'Select DCM mat files');
+    DCMs = spm_select(Inf, 'mat', 'Select DCM mat files');
 end
 
 if nargin < 2
-    DD =  spm_select(Inf, 'mat', 'Select SPM M/EEG mat files');
+    DD = spm_select(Inf, 'mat', 'Select SPM M/EEG mat files');
 end
 
-if nargin < 3,    P  = [];  end
-if nargin < 4,    pE = [];  end
-if nargin < 5,    pC = [];  end
+if nargin < 3, P  = []; end
+if nargin < 4, pE = []; end
+if nargin < 5, pC = []; end
 
-if nargin < 6,    feedback = 1;  end
+if nargin < 6, feedback = 1; end
 
 
 for i = 1:size(DCMs, 1)
     cDCM = getfield(load(deblank(DCMs(i, :)), 'DCM'), 'DCM');
     
     % initialise with posteriors if required
-    % -------------------------------------------------------------------------
+    % ---------------------------------------------------------------------
     if isequal(P, 1)
         cDCM.M.P = cDCM.Ep;
     else
@@ -51,7 +47,7 @@ for i = 1:size(DCMs, 1)
     end
     
     % initialise with posteriors if required
-    % -------------------------------------------------------------------------
+    % ---------------------------------------------------------------------
     if isempty(pE)
         if isfield(cDCM.M,'pE')
             cDCM.M = rmfield(cDCM.M,'pE');
@@ -95,36 +91,36 @@ for i = 1:size(DCMs, 1)
         DCM.M.nograph = ~feedback;
         
         % invert and save
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         switch DCM.options.analysis
             
             % conventional neural-mass and mean-field models
-            %----------------------------------------------------------------------
+            %--------------------------------------------------------------
             case{'ERP'}
                 DCM = spm_dcm_erp(DCM);
                 
-                % cross-spectral density model (complex)
-                %----------------------------------------------------------------------
+            % cross-spectral density model (complex)
+            %--------------------------------------------------------------
             case{'CSD'}
                 DCM = spm_dcm_csd(DCM);
                 
-                % cross-spectral density model (steady-state responses)
-                %----------------------------------------------------------------------
+            % cross-spectral density model (steady-state responses)
+            %--------------------------------------------------------------
             case{'SSR'}
                 DCM = spm_dcm_ssr(DCM);
                 
-                % induced responses
-                %----------------------------------------------------------------------
+            % induced responses
+            %--------------------------------------------------------------
             case{'IND'}
                 DCM = spm_dcm_ind(DCM);
                 
-                % phase coupling
-                %----------------------------------------------------------------------
+            % phase coupling
+            %--------------------------------------------------------------
             case{'PHA'}
                 DCM = spm_dcm_phase(DCM);
                 
             otherwise
-                error('unknown DCM type')
+                error('unknown DCM type');
         end
     end
 end
