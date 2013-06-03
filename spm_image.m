@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5360 2013-03-27 13:59:27Z guillaume $
+% $Id: spm_image.m 5525 2013-06-03 17:31:46Z john $
 
 
-SVNid = '$Rev: 5360 $';
+SVNid = '$Rev: 5525 $';
 
 global st
 
@@ -323,9 +323,9 @@ switch lower(action)
     h = findobj(st.fig,'Tag','spm_image:hdr:m3'); if isempty(h), spm_image('Reset'); end
     set(h, 'String', tmp2);
 
-    tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
+    tmp = R*diag(Z) - mat(1:3,1:3);
     h = findobj(st.fig,'Tag','spm_image:hdr:shear'); if isempty(h), spm_image('Reset'); end
-    if sum(tmp(:).^2)>1e-5
+    if sum(tmp(:).^2)>1e-6
         set(h, 'String', 'Warning: shears involved');
     else
         set(h, 'String', '');
@@ -522,8 +522,8 @@ uicontrol('Parent',u1,'Style','Text', 'Position', [105 25 160 016].*WS,...
     'String',tmp2, 'Tag','spm_image:hdr:m3',...
     'HorizontalAlignment','left', 'FontWeight','bold');
 
-tmp = [[R zeros(3,1)] ; 0 0 0 1]*diag([Z 1])*spm_matrix(-O) - mat;
-if sum(tmp(:).^2)>1e-8
+tmp = R*diag(Z) - mat(1:3,1:3);
+if sum(tmp(:).^2)>1e-6
     str = 'Warning: shears involved';
 else
     str = '';
