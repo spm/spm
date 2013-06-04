@@ -30,7 +30,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %   - label, dimord, freq
 %
 % Optional fields:
-%   - powspctrm, fouriesspctrm, csdspctrm, cohspctrm, time, labelcmb, grad, elec
+%   - powspctrm, fouriesspctrm, csdspctrm, cohspctrm, time, labelcmb, grad, elec, cumsumcnt, cumtapcnt, trialinfo 
 %
 % Deprecated fields:
 %   - <none>
@@ -75,7 +75,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 7498 2013-02-19 09:38:14Z roboos $
+% $Id: ft_datatype_freq.m 8154 2013-05-24 11:42:42Z dieloz $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

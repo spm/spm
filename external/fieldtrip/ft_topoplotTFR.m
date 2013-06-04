@@ -163,9 +163,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_topoplotTFR.m 8161 2013-05-29 07:33:16Z eelspa $
 
-revision = '$Id: ft_topoplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_topoplotTFR.m 8161 2013-05-29 07:33:16Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -197,18 +197,6 @@ cfg = rmfield(cfg, 'funcname');
 % this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER
 ft_postamble provenance
 ft_postamble previous varargin
-
-% add a menu to the figure
-% ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
-if isempty(strfind(get(gcf, 'Tag'), 'ft-menushowing'))
-  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
-  
-  % mark the figure so that we don't add multiple menus to the same (in the
-  % case of subplots)
-  set(gcf, 'Tag', [get(gcf, 'Tag') ',ft-menushowing']);
-end
 
 if ~nargout
   clear cfg

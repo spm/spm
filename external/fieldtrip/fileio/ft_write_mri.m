@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_write_mri.m 8180 2013-06-04 13:30:13Z vlalit $
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));
@@ -79,46 +79,47 @@ switch dataformat
     save_mgh(dat, filename, transform);
     
   case {'nifti'}
-    %% nifti data, using SPM
-    % V = volumewrite_spm(filename, dat, transform, spmversion);
-    
-    % nifti data, using Freesurfer
-    ft_hastoolbox('freesurfer', 1);
-    
-    datatype = class(dat);
-    switch(datatype)
-      case 'int8'
-        datatype = 'uchar';
-      case 'int16'
-        datatype = 'short';
-      case 'int32'
-        datatype = 'int';
-      case 'double'
-        datatype = 'double';
-      case 'single'
-        datatype = 'float';
-      case 'logical'
-        datatype = 'uchar';
-      otherwise
-        error('unsupported datatype to write to Nifti');
-    end
-    
-    ndims = numel(size(dat));
-    if ndims==3
-      dat = ipermute(dat, [2 1 3]); 
-      % FIXME although this is probably correct
-      % see the help of MRIread, anecdotally columns and rows seem to need a swap in
-      % order to match the transform matrix (alternatively a row switch of the latter
-      % can be done) to keep the writing consistent with the reading
-    elseif ndims==4
-      dat = ipermute(dat, [2 1 3 4]);
-    end
-    
-    mri          = [];
-    mri.vol      = dat;
-    mri.vox2ras0 = vox2ras_1to0(transform);
-    MRIwrite(mri, filename, datatype);
-    
+      if ft_hastoolbox('spm8up', 1);
+          %% nifti data, using SPM
+          V = volumewrite_spm(filename, dat, transform, spmversion);
+          
+      elseif ft_hastoolbox('freesurfer', 1);
+          % nifti data, using Freesurfer
+          
+          datatype = class(dat);
+          switch(datatype)
+              case 'int8'
+                  datatype = 'uchar';
+              case 'int16'
+                  datatype = 'short';
+              case 'int32'
+                  datatype = 'int';
+              case 'double'
+                  datatype = 'double';
+              case 'single'
+                  datatype = 'float';
+              case 'logical'
+                  datatype = 'uchar';
+              otherwise
+                  error('unsupported datatype to write to Nifti');
+          end
+          
+          ndims = numel(size(dat));
+          if ndims==3
+              dat = ipermute(dat, [2 1 3]);
+              % FIXME although this is probably correct
+              % see the help of MRIread, anecdotally columns and rows seem to need a swap in
+              % order to match the transform matrix (alternatively a row switch of the latter
+              % can be done) to keep the writing consistent with the reading
+          elseif ndims==4
+              dat = ipermute(dat, [2 1 3 4]);
+          end
+          
+          mri          = [];
+          mri.vol      = dat;
+          mri.vox2ras0 = vox2ras_1to0(transform);
+          MRIwrite(mri, filename, datatype);
+      end
   case {'vista'}
     % this requires the SIMBIO/Vista toolbox
     ft_hastoolbox('simbio', 1);

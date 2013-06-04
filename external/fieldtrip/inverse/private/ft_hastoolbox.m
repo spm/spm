@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 7675 2013-03-16 09:45:16Z roboos $
+% $Id: ft_hastoolbox.m 8181 2013-06-04 13:30:15Z vlalit $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -60,6 +60,7 @@ url = {
   'SPM2'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM5'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'SPM8'       'see http://www.fil.ion.ucl.ac.uk/spm'
+  'SPM12'       'see http://www.fil.ion.ucl.ac.uk/spm'
   'MEG-PD'     'see http://www.kolumbus.fi/kuutela/programs/meg-pd'
   'MEG-CALC'   'this is a commercial toolbox from Neuromag, see http://www.neuromag.com'
   'BIOSIG'     'see http://biosig.sourceforge.net'
@@ -161,6 +162,14 @@ switch toolbox
     status = exist('spm.m') && strcmp(spm('ver'),'SPM5');
   case 'SPM8'
     status = exist('spm.m') && strncmp(spm('ver'),'SPM8', 4);
+  case 'SPM8UP' % version 8 or later
+    status = 0;  
+    if exist('spm.m')
+        v = spm('ver');
+        if str2num(v(isstrprop(v, 'digit')))>=8
+            status = 1;
+        end
+    end
   case 'SPM12'
     status = exist('spm.m') && strncmp(spm('ver'),'SPM12', 5);
   case 'MEG-PD'

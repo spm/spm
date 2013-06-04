@@ -56,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: ft_prepare_vol_sens.m 8180 2013-06-04 13:30:13Z vlalit $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -524,7 +524,7 @@ elseif iseeg
       end % if recomputing interpolation
       
       % for the leadfield computations the @nifti object is used to map the image data into memory
-      ft_hastoolbox('spm8', 1);
+      ft_hastoolbox('spm8up', 1);
       for i=1:length(vol.sens.label)
         % map each of the leadfield files into memory
         vol.chan{i} = nifti(vol.filename{i});

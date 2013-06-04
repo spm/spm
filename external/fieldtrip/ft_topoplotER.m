@@ -84,6 +84,8 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %                            of the input data (see below).
 %   cfg.layout             = specify the channel layout for plotting using one of
 %                            the supported ways (see below).
+%   cfg.interpolatenan     = string 'yes', 'no' (default = 'yes')
+%                            interpolate over channels containing NaNs 
 %
 % For the plotting of directional connectivity data the cfg.directionality
 % option determines what is plotted. The default value and the supported
@@ -139,9 +141,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_topoplotER.m 8163 2013-05-30 19:36:10Z ingnie $
 
-revision = '$Id: ft_topoplotER.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_topoplotER.m 8163 2013-05-30 19:36:10Z ingnie $';
 
 % do the general setup of the function
 ft_defaults
@@ -173,18 +175,6 @@ cfg = rmfield(cfg, 'funcname');
 % this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER
 ft_postamble provenance
 ft_postamble previous varargin
-
-% add a menu to the figure
-% ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
-if isempty(strfind(get(gcf, 'Tag'), 'ft-menushowing'))
-  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
-  
-  % mark the figure so that we don't add multiple menus to the same (in the
-  % case of subplots)
-  set(gcf, 'Tag', [get(gcf, 'Tag') ',ft-menushowing']);
-end
 
 if ~nargout
   clear cfg

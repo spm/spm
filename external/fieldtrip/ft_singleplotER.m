@@ -103,9 +103,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    you should have received a copy of the gnu general public license
 %    along with fieldtrip. if not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_singleplotER.m 8161 2013-05-29 07:33:16Z eelspa $
 
-revision = '$Id: ft_singleplotER.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_singleplotER.m 8161 2013-05-29 07:33:16Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -625,17 +625,22 @@ if ~isempty(cfg.renderer)
   set(gcf, 'renderer', cfg.renderer)
 end
 
+% add a menu to the figure, but only if the current figure does not have
+% subplots
+% also, delete any possibly existing previous menu
+% this is safe because delete([]) does nothing
+delete(findobj(gcf, 'type', 'uimenu', 'label', 'FieldTrip'));
+if numel(findobj(gcf, 'type', 'axes')) <= 1
+  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+end
+
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous varargin
-
-% add a menu to the figure
-% ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
-ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting a time range

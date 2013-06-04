@@ -35,9 +35,9 @@ function [atlas, cfg] = ft_prepare_atlas(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_atlas.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_prepare_atlas.m 8179 2013-06-04 13:29:15Z jorhor $
 
-revision = '$Id: ft_prepare_atlas.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_prepare_atlas.m 8179 2013-06-04 13:29:15Z jorhor $';
 
 if ischar(cfg)
   % prior to 7 December 2011, this function was called with the filename as input
@@ -614,7 +614,7 @@ elseif usewfu
       if ~ischar(tline), break, end
       % split into separate strings
       C = textscan(tline,'%s');
-      num = C{1}{3}; 
+      num = C{1}{1}; 
       str = C{1}{2};
       
       num = str2double(num);

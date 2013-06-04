@@ -29,7 +29,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 7979 2013-04-17 13:53:33Z roevdmei $
+% $Id: ft_specest_mtmfft.m 8160 2013-05-28 12:47:21Z eelspa $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap
@@ -228,7 +228,12 @@ if ~(strcmp(taper,'dpss') && numel(tapsmofrq)>1) % ariable number of slepian tap
   spectrum = cell(ntaper(1),1);
   for itap = 1:ntaper(1)
     %dum = transpose(fft(transpose(ft_preproc_padding(dat .* repmat(tap(itap,:),[nchan, 1]), padtype, 0, postpad)))); % double explicit transpose to speedup fft    
-    dum = transpose(fft(transpose(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad)))); % double explicit transpose to speedup fft
+    %dum = transpose(fft(transpose(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad)))); % double explicit transpose to speedup fft
+    
+    % in fact double explicit transpose (see above) is slower than using the dim
+    % argument for fft (eelspa, 28 may 2013)
+    dum = fft(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad),[],2);
+    
     dum = dum(:,freqboi);
     % phase-shift according to above angles
     if timedelay ~= 0

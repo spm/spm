@@ -21,9 +21,9 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_init.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_preamble_init.m 8184 2013-06-04 14:03:22Z eelspa $
 
-warning_once('-clear');
+%warning_once('-clear');
 if nargin==0
   stack = dbstack('-completenames');
   % stack(1) is this script

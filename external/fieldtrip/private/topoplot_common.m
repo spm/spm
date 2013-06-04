@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 8053 2013-04-18 15:17:53Z roboos $
+% $Id: topoplot_common.m 8163 2013-05-30 19:36:10Z ingnie $
 
-revision = '$Id: topoplot_common.m 8053 2013-04-18 15:17:53Z roboos $';
+revision = '$Id: topoplot_common.m 8163 2013-05-30 19:36:10Z ingnie $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -748,7 +748,11 @@ end % for icell
 % For Markers (all channels)
 if ~strcmp(cfg.marker,'off')
   channelsToMark = 1:length(data.label);
-  channelsNotMark = union(find(nanInds),highlightchansel);
+  if strcmp(cfg.interpolatenan,'no')
+    channelsNotMark = highlightchansel;
+  else
+    channelsNotMark = union(find(isnan(dat)),highlightchansel);
+  end
   channelsToMark(channelsNotMark) = [];
   [dum labelindex] = match_str(ft_channelselection(channelsToMark, data.label),lay.label);
   templay.pos      = lay.pos(labelindex,:);
@@ -864,6 +868,17 @@ end
 axis off
 hold off
 axis equal
+
+% add a menu to the figure, but only if the current figure does not have
+% subplots
+% also, delete any possibly existing previous menu
+% this is safe because delete([]) does nothing
+delete(findobj(gcf, 'type', 'uimenu', 'label', 'FieldTrip'));
+if numel(findobj(gcf, 'type', 'axes')) <= 1
+  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

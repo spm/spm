@@ -30,6 +30,8 @@ function ft_write_headshape(filename, bnd, varargin)
 %   'stl'       STereoLithography file format, for use with CAD and generic 3D mesh editing programs
 %   'vtk'       Visualization ToolKit file format, for use with Paraview
 %   'ply'       Stanford Polygon file format, for use with Paraview or Meshlab
+%   'freesurfer' Freesurfer surf-file format, using write_surf from
+%   Freesurfer
 %
 % See also FT_READ_HEADSHAPE
 
@@ -51,7 +53,7 @@ function ft_write_headshape(filename, bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_headshape.m 8075 2013-04-25 14:15:36Z roboos $
+% $Id: ft_write_headshape.m 8158 2013-05-26 11:56:52Z jansch $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 data       = ft_getopt(varargin,'data',  []); % can be stored in a gifti file
@@ -171,7 +173,11 @@ switch fileformat
     end
     tmp = gifti(tmp);
     save(tmp, filename);
-    
+  
+  case 'freesurfer'
+    ft_hastoolbox('freesurfer', 1);
+    write_surf(filename, bnd.pnt, bnd.tri);
+ 
   case []
     error('you must specify the output format');
     
