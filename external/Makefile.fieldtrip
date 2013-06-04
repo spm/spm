@@ -1,10 +1,10 @@
 #!/usr/bin/env make -f
 # FieldTrip Makefile called by {SPM}/external/Makefile
 #
-# Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 5148 2012-12-20 18:42:30Z guillaume $
+# $Id: Makefile.fieldtrip 5527 2013-06-04 14:38:17Z guillaume $
 
 include ../src/Makefile.var
 
@@ -18,8 +18,8 @@ FIELDTRIP =\
 	fieldtrip/src/mxSerialize.$(SUF) fieldtrip/src/mxDeserialize.$(SUF) \
 	fieldtrip/src/ft_getopt.$(SUF) \
 	\
-	fieldtrip/src/nanmean.$(SUF) fieldtrip/src/nannumel.$(SUF) \
-	fieldtrip/src/nansum.$(SUF) fieldtrip/src/nanvar_base.$(SUF) \
+	fieldtrip/src/nanmean.$(SUF) fieldtrip/src/nanstd.$(SUF) \
+	fieldtrip/src/nansum.$(SUF) fieldtrip/src/nanvar.$(SUF) \
 	\
 	fieldtrip/src/meg_leadfield1.$(SUF) fieldtrip/src/ptriproj.$(SUF) \
 	fieldtrip/src/lmoutr.$(SUF) fieldtrip/src/plgndr.$(SUF) \
@@ -40,9 +40,9 @@ install:
 	$(COPY) fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/read_16bit.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/fileio/private/
+	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/fileio/private/
 
@@ -63,31 +63,31 @@ install:
 	$(COPY) fieldtrip/src/routlm.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/private/
+	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/private/
 
 	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/utilities/
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/utilities/private/
-	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/utilities/private/
-	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/utilities/private/
+	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/utilities/private/
+	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/utilities/private/
 
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/connectivity/private/
-	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/connectivity/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/connectivity/private/
-	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/connectivity/private/
+	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/connectivity/private/
+	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/connectivity/private/
 	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/connectivity/private/
 
 	$(COPY) fieldtrip/src/nanmean.$(SUF) fieldtrip/statfun/private/
-	$(COPY) fieldtrip/src/nannumel.$(SUF) fieldtrip/statfun/private/
 	$(COPY) fieldtrip/src/nansum.$(SUF) fieldtrip/statfun/private/
-	$(COPY) fieldtrip/src/nanvar_base.$(SUF) fieldtrip/statfun/private/
+	$(COPY) fieldtrip/src/nanstd.$(SUF) fieldtrip/statfun/private/
+	$(COPY) fieldtrip/src/nanvar.$(SUF) fieldtrip/statfun/private/
 
 tarball: all
 	$(TAR) -cf fieldtrip_mex.tar $(FIELDTRIP)
