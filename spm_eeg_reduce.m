@@ -22,9 +22,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_reduce.m 5528 2013-06-07 11:47:27Z vladimir $
 
-SVNrev = '$Rev: 5079 $';
+SVNrev = '$Rev: 5528 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -35,6 +35,7 @@ spm('FigName','M/EEG reduce'); spm('Pointer','Watch');
 %-Configure the analysis
 %--------------------------------------------------------------------------
 if ~isfield(S, 'channels'),   S.channels = 'all';             end
+if ~isfield(S, 'conditions'), S.conditions.all = 1;           end
 if ~isfield(S, 'timewin'),    S.timewin  = [-Inf Inf];        end
 if ~isfield(S, 'prefix'),     S.prefix   = 'R';               end
 

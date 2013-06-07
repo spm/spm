@@ -16,7 +16,7 @@ function res = spm_eeg_reduce_pca(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak 
-% $Id: spm_eeg_reduce_pca.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_reduce_pca.m 5528 2013-06-07 11:47:27Z vladimir $
 
 
 if nargin == 0 
@@ -72,6 +72,7 @@ montage.labelorg = D.chanlabels(S.chanind);
 montage.tra = U(:, 1:S.ncomp)';
 for i = 1:S.ncomp
     montage.labelnew{i, 1} = ['comp' num2str(i)];
+    montage.chantypenew{i}='MEGPCACOMP';
 end
 
 res = montage;
