@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_fx_cmc.m 5529 2013-06-09 19:48:34Z karl $
  
  
 % get dimensions and configure state variables
@@ -107,7 +107,14 @@ end
 %==========================================================================
 T    = ones(n,1)*T/1000;
 G    = ones(n,1)*G;
- 
+
+% extrinsic connections
+%--------------------------------------------------------------------------
+% forward  (i)   2  sp -> ss (+ve)
+% forward  (ii)  1  sp -> dp (+ve)
+% backward (i)   2  dp -> sp (-ve)
+% backward (ii)  1  dp -> ii (-ve)
+%--------------------------------------------------------------------------
 % free parameters on time constants and intrinsic connections
 %--------------------------------------------------------------------------
 % G(:,1)  ss -> ss (-ve self)  4
@@ -121,12 +128,16 @@ G    = ones(n,1)*G;
 % G(:,9)  ii -> dp (-ve rec )  2
 % G(:,10) dp -> dp (-ve self)  1
 %--------------------------------------------------------------------------
-% extrinsic connections
+% Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
-% forward  (i)   2  sp -> ss (+ve)
-% forward  (ii)  1  sp -> dp (+ve)
-% backward (i)   2  dp -> sp (-ve)
-% backward (ii)  1  dp -> ii (-ve)
+%   S(:,1) - voltage     (spiny stellate cells)
+%   S(:,2) - conductance (spiny stellate cells)
+%   S(:,3) - voltage     (superficial pyramidal cells)
+%   S(:,4) - conductance (superficial pyramidal cells)
+%   S(:,5) - current     (inhibitory interneurons)
+%   S(:,6) - conductance (inhibitory interneurons)
+%   S(:,7) - voltage     (deep pyramidal cells)
+%   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
 j     = [1 2 3 4];
 for i = 1:size(P.T,2)
@@ -137,9 +148,9 @@ for i = 1:size(P.G,2)
     G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end
 
-% Modulatory effects of dp depolarisation on sp -> sp self-connectivity
+% Modulatory effects of dp depolarisation on intrinsic connection j(1)
 %--------------------------------------------------------------------------
-G(:,7) = G(:,7).*exp(-P.M*32*S(:,7));
+G(:,j(1)) = G(:,j(1)).*exp(-P.M*32*S(:,7));
 
  
 % Motion of states: f(x)

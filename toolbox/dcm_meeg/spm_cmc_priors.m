@@ -39,7 +39,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 5522 2013-05-27 12:35:17Z karl $
+% $Id: spm_cmc_priors.m 5529 2013-06-09 19:48:34Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -85,12 +85,12 @@ end
 %--------------------------------------------------------------------------
 Q     = Q | speye(n,n);                            
  
-% driving connectivity - input-dependent scaling (precluding M connections)
+% driving connectivity - input-dependent scaling
 %--------------------------------------------------------------------------
 for i = 1:length(B)
       B{i} = ~~B{i};
     E.B{i} = 0*B{i};
-    V.B{i} = (B{i} & Q & ~V.M)/8;
+    V.B{i} = (B{i} & Q & ~V.M)/8;   
 end
 
 % modulatory connectivity - input-dependent scaling

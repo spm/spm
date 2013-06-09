@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_api_erp.m 5529 2013-06-09 19:48:34Z karl $
  
 
 %-Launch GUI
@@ -337,7 +337,7 @@ handles.DCM.options.h        = detrend_val(get(handles.h, 'Value'));
 handles.DCM.options.han      = get(handles.han,           'Value');
 handles.DCM.options.D        = get(handles.D,             'Value');
 handles.DCM.options.lock     = get(handles.lock,          'Value');
-handles.DCM.options.multiC   = get(handles.multiC,          'Value');
+handles.DCM.options.multiC   = get(handles.multiC,        'Value');
 handles.DCM.options.location = get(handles.location,      'Value');
 handles.DCM.options.symmetry = get(handles.symmetry,      'Value');
  
@@ -827,12 +827,15 @@ for i = 1:n
                 set(A{k}(i,j),'Enable','off')
             end
 
-            % allow nonlinear self-connections (induced responses)
+            % allow nonlinear self-connections when appriopriate
             %--------------------------------------------------------------
             if strcmpi(DCM.options.analysis,'IND') && k == 2
                 set(A{k}(i,j),'Enable','on')
             end
             if strcmpi(DCM.options.model,'DEM')
+                set(A{k}(i,j),'Enable','on')
+            end
+            if strcmpi(DCM.options.model,'CMC') && k ==3
                 set(A{k}(i,j),'Enable','on')
             end
             
