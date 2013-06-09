@@ -64,7 +64,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5522 2013-05-27 12:35:17Z karl $
+% $Id: spm_cva.m 5530 2013-06-09 19:59:07Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -119,12 +119,21 @@ T     = X*(P*Y);
 SST   = T'*T;
 SSR   = Y - T;
 SSR   = SSR'*SSR;
-[v,d] = eig(SSR\SST);
-d     = real(diag(d));
-[q,r] = sort(-d);
-r     = r(1:h);
-d     = real(d(r));
-v     = real(v(:,r));
+[v,d] = eig(SST,SSR);
+
+%-sort and order
+%--------------------------------------------------------------------------
+d     = diag(d);
+i     = isfinite(d);
+d     = d(i);
+v     = v(:,i);
+[d,i] = sort(d,1,'descend');
+v     = v(:,i);
+
+h     = min(length(d),h);
+d     = d(1:h);
+v     = spm_en(v(:,1:h));
+
 V     = U*v;                       % canonical vectors  (data)
 v     = Y*v;                       % canonical variates (data)
 W     = P*v;                       % canonical vectors  (design)
