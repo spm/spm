@@ -24,11 +24,12 @@ function DCM = spm_dcm_erp(DCM)
 %   options.spatial      - 'ECD', 'LFP' or 'IMG'
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
+%   options.SVD          - use prior density for spatial modes [default]
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5515 2013-05-22 21:03:01Z vladimir $
+% $Id: spm_dcm_erp.m 5531 2013-06-09 20:00:06Z karl $
 
 % check options
 %==========================================================================
@@ -50,6 +51,7 @@ try, lock  = DCM.options.lock;      catch, lock      = 0;           end
 try, multC = DCM.options.multiC;    catch, multC     = 0;           end
 try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
 try, Nmax  = DCM.options.Nmax;      catch, Nmax      = 64;          end
+try, SVD   = DCM.options.SVD;       catch, SVD       = 1;           end
 
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
 
@@ -161,7 +163,11 @@ if symm, gC = spm_dcm_symm(gC,gE);   end
 
 %-Feature selection using (canonical) eigenmodes of lead-field
 %==========================================================================
-M.U      = spm_dcm_eeg_channelmodes(M.dipfit,Nm,xY);
+if SVD
+    M.U  = spm_dcm_eeg_channelmodes(M.dipfit,Nm);
+else
+    M.U  = spm_dcm_eeg_channelmodes(M.dipfit,Nm,xY);
+end
 
 % scale data features
 %--------------------------------------------------------------------------
