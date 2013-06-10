@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5468 2013-05-05 20:46:32Z vladimir $
+% $Id: spm_eeg_review_callbacks.m 5532 2013-06-10 10:29:34Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -955,12 +955,25 @@ if ~strcmp(D.PSD.VIZU.modality,'source')
                     else
                         [y1,i1,j1] = unique(x1);
                     end
-                    if ~iscellstr(x2)
-                        [y2,i2,j2] = unique(cell2mat(x2));
-                    else
-                        [y2,i2,j2] = unique(x2);
-                    end
+                    
+                    numind = find(...
+                        cellfun('isclass', {Events(:).value}, 'double') & ...
+                        ~cellfun('isempty', {Events(:).value}));
+                    
+                    charind = find(cellfun('isclass', {Events(:).value}, 'char'));
+                    
+                    emptyind = find(cellfun('isempty', {Events(:).value}));
+                                       
+                    [dum,dum,jj1] = unique(cell2mat(x2(numind)));
+                    [dum,dum,jj2] = unique(x2(charind));
+                    
+                    j2 = zeros(numel(x2, 1));
+                    j2(emptyind) = 1;
+                    j2(numind)   = jj1 + 1;
+                    j2(charind)  = jj2 + max(jj1) + 1;
+                    
                     A = [j1(:),j2(:)];
+                    
                     [ya,ia,ja] = unique(A,'rows');
                     options.events = rmfield(Events,{'duration','value'});
                     for i=1:length(options.events)
