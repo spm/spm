@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_dcm_ind_data.m 5536 2013-06-10 15:05:50Z vladimir $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -156,7 +156,7 @@ Nt          = length(It);                % number of bins (full)
 Nb          = length(Ib);                % number of bins (pst)
 DCM.xY.pst  = DCM.xY.Time(Ib);           % PST
 DCM.xY.It   = Ib;                        % indices of time bins
-DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
+DCM.xY.dt   = double(DT/D.fsample);      % sampling in seconds
 Id          = (1:Nb) + fix((Ib(1) - It(1) + 1)/DT);
 
 
@@ -322,14 +322,14 @@ for i = 1:Ne;
         f     = [1:Ny] + (j - 1)*Ny;
         for k = 1:Nt
             if TFinput
-                y      = squeeze(D(Ic, D.indfrequency(DCM.xY.Hz(j)), It, c(k)))';
+                y      = squeeze(D(Ic, D.indfrequency(DCM.xY.Hz(j)), Ib, c(k)))';
                 Y(f,k) = y(:);
             else
                 y      = D(Ic,Is,c(k));
                 y      = abs(M{j}*y'*MAP');
                 Y(f,k) = log(y(:));
             end
-        end
+       end
         fprintf('\nevaluating %.1f Hz, condition %i (%i trials)',DCM.xY.Hz(j),i,Nt)
     end        
     
@@ -357,7 +357,8 @@ end
 Y         = spm_cat(Yz(:));
 [U S]     = spm_svd(Y'*Y,0);
 U         = U(:,1:Nm);
- 
+
+
 % project time-frequency data onto modes
 %--------------------------------------------------------------------------
 DCM.xY.xf = cell(Ne,Nr);
