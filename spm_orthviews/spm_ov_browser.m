@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5363 2013-03-27 17:03:34Z ged $
+% $Id: spm_ov_browser.m 5534 2013-06-10 13:29:09Z guillaume $
 
 
 cmd = lower(varargin{1});
@@ -20,9 +20,6 @@ switch cmd
             'Label', 'Browse...', ...
             'Callback', @browser);
         ret = item0;
-    case 'redraw'
-    case 'quit'
-        
     otherwise
 end
 
