@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5529 2013-06-09 19:48:34Z karl $
+% $Id: spm_api_erp.m 5537 2013-06-10 15:45:39Z vladimir $
  
 
 %-Launch GUI
@@ -392,6 +392,16 @@ if ~ok
 end
 
 [mod, list] = modality(D, 0, 1);
+
+if ismember('MEGCOMB', list)
+    list = setdiff(list, 'MEGCOMB');
+    if isempty(list)
+        errordlg('MEGCOMB modality cannot be used for DCM', 'Error');
+        return;
+    elseif numel(list) == 1
+        mod = list{1};
+    end
+end
 
 if isequal(mod, 'Multimodal')
     qstr = 'Only one modality can be modelled at a time. Please select.';
