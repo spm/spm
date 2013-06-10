@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5466 2013-05-05 16:11:21Z vladimir $
+% $Id: spm_eeg_prep.m 5535 2013-06-10 14:18:34Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -100,6 +100,20 @@ switch lower(S.task)
                 [xy, label] = spm_eeg_project3D(sens, S.modality);
         end
         
+        megcombind   = D.indchantype('MEGCOMB');
+        
+        if ~isempty(megcombind)
+            chanset = spm_eeg_planarchannelset(D.chanlabels);
+            [sel1, sel2] = spm_match_str(lower(chanset(:, 1)), lower(label));
+            [sel3, sel4] = spm_match_str(lower(chanset(:, 2)), lower(label));
+            
+            [sel5, sel6, sel7] = intersect(sel1, sel3);
+            
+            label = [label(:); chanset(sel5, 3)];
+            
+            xy    = [xy 0.5*(xy(:, sel2(sel6)) + xy(:, sel4(sel7)))];
+        end
+        
         [sel1, sel2] = spm_match_str(lower(D.chanlabels), lower(label));
         
         if ~isempty(sel1)
@@ -109,6 +123,10 @@ switch lower(S.task)
             
             if ~isempty(intersect(megind, sel1)) && ~isempty(setdiff(megind, sel1))
                 error('2D locations not found for all MEG channels');
+            end
+            
+            if ~isempty(intersect(megcombind, sel1)) && ~isempty(setdiff(megcombind, sel1))
+                error('2D locations not found for all MEGCOMB channels');
             end
             
             if ~isempty(intersect(eegind, sel1)) && ~isempty(setdiff(eegind, sel1))

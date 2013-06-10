@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: coor2D.m 5535 2013-06-10 14:18:34Z vladimir $
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});
@@ -30,6 +30,8 @@ elseif ischar(ind)
             ind = megind;
         case 'EEG'
             ind = eegind;
+        case ':'
+            ind = 1:nchannels(this);
         otherwise
             ind = otherind;
     end
