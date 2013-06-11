@@ -28,9 +28,9 @@ function D = spm_eeg_contrast(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_contrast.m 5221 2013-01-31 11:11:02Z vladimir $
+% $Id: spm_eeg_contrast.m 5538 2013-06-11 11:59:34Z vladimir $
 
-SVNrev = '$Rev: 5221 $';
+SVNrev = '$Rev: 5538 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -117,7 +117,7 @@ for i = 1:Ncontrasts
         Dnew(1:Dnew.nchannels, 1:Dnew.nsamples, i) = d;
     end
     
-    newrepl(i) = sum(D.repl(c(i,:)~=0));
+    newrepl(i) = sum(D.repl(find(c(i,:)~=0)));
 
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 
