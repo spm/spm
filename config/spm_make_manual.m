@@ -4,7 +4,7 @@ function spm_make_manual(c)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 5346 2013-03-22 12:35:40Z guillaume $
+% $Id: spm_make_manual.m 5540 2013-06-11 14:01:23Z guillaume $
 
 
 if ~nargin, c = spm_cfg; end
@@ -87,7 +87,7 @@ function part(c,fp)
 %==========================================================================
 function sts = chapter(c)
 bn = c.tag;
-if strcmp(bn,'preproc') && ~isempty(strfind(c.name,'EEG'))
+if strcmp(bn,'preproc') && ~isempty(strfind(c.help{1},'M/EEG'))
     bn = ['MEEG_' bn]; % fix for name clash with other 'preproc'
 end
 fp = fopen([bn '.tex'],'w');

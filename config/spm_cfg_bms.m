@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 5193 2013-01-18 14:16:04Z vladimir $
+% $Id: spm_cfg_bms.m 5540 2013-06-11 14:01:23Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -607,12 +607,11 @@ bms.help    = {['Bayesian Model Selection for group studies (fixed '...
                'effects and random effects analysis).']};
 bms.values  = {bms_dcm bms_dcm_vis bms_map_inf bms_map_vis };
 
-%------------------------------------------------------------------------
+
+%==========================================================================
 function dep = vout(varargin)
 % Output file names will be saved in a struct with field .files
 dep(1)            = cfg_dep;
-dep(1).sname      = 'BMS Maps';
+dep(1).sname      = 'BMS.mat File';
 dep(1).src_output = substruct('.','files');
-dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-
-
+dep(1).tgt_spec   = cfg_findspec({{'filter','mat','strtype','e'}});
