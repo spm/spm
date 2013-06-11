@@ -7,98 +7,123 @@ function out = spm_run_results(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_results.m 5001 2012-10-12 15:46:16Z guillaume $
+% Guillaume Flandin
+% $Id: spm_run_results.m 5543 2013-06-11 17:48:18Z guillaume $
+
 
 cspec = job.conspec;
 for k = 1:numel(cspec)
-    job.conspec=cspec(k);
+    job.conspec = cspec(k);
+    
+    %-Apply to all contrasts if Inf is entered
+    %----------------------------------------------------------------------
     if (numel(cspec(k).contrasts) == 1) && isinf(cspec(k).contrasts)
         tmp    = load(job.spmmat{1});
         cspec1 = repmat(cspec(k),size(tmp.SPM.xCon));
         for l = 1:numel(tmp.SPM.xCon)
             cspec1(l).contrasts = l;
         end
-        job1           = job;
-        %job1.print     = 1;
-        job1.conspec   = cspec1;
+        job1         = job;
+        %job1.print  = spm_get_defaults('ui.print');
+        job1.conspec = cspec1;
         out = spm_run_results(job1);
+        continue;
+    end
+    
+    %-Create xSPM variable
+    %----------------------------------------------------------------------
+    xSPM.swd       = spm_file(job.spmmat{1},'fpath');
+    xSPM.Ic        = job.conspec.contrasts;
+    xSPM.u         = job.conspec.thresh;
+    xSPM.Im        = [];
+    if ~isempty(job.conspec.mask)
+        xSPM.Im    = job.conspec.mask.contrasts;
+        xSPM.pm    = job.conspec.mask.thresh;
+        xSPM.Ex    = job.conspec.mask.mtype;
+    end
+    xSPM.thresDesc = job.conspec.threshdesc;
+    xSPM.title     = job.conspec.titlestr;
+    xSPM.k         = job.conspec.extent;
+    %xSPM.n        = 1; % conjunction 
+    switch job.units
+        case 1
+            xSPM.units = {'mm' 'mm' 'mm'};
+        case 2
+            xSPM.units = {'mm' 'mm' 'ms'};
+        case 3
+            xSPM.units = {'mm' 'mm' 'Hz'};
+        case 4
+            xSPM.units = {'Hz' 'ms' ''};
+        case 5
+            xSPM.units = {'Hz' 'Hz' ''};
+        otherwise
+            error('Unknown data type.');
+    end
+    
+    %-Compute a specified and thresholded SPM
+    %----------------------------------------------------------------------
+    if ~spm('CmdLine')
+        [hReg, xSPM, SPM] = spm_results_ui('Setup',xSPM);
+        TabDat = spm_list('List',xSPM,hReg);
     else
-        xSPM.swd       = spm_file(job.spmmat{1},'fpath');
-        xSPM.Ic        = job.conspec.contrasts;
-        xSPM.u         = job.conspec.thresh;
-        xSPM.Im        = [];
-        if ~isempty(job.conspec.mask)
-            xSPM.Im    = job.conspec.mask.contrasts;
-            xSPM.pm    = job.conspec.mask.thresh;
-            xSPM.Ex    = job.conspec.mask.mtype;
-        end
-        xSPM.thresDesc = job.conspec.threshdesc;
-        xSPM.title     = job.conspec.titlestr;
-        xSPM.k         = job.conspec.extent;
-        switch job.units
-            case 1
-                xSPM.units = {'mm' 'mm' 'mm'};
-            case 2
-                xSPM.units = {'mm' 'mm' 'ms'};
-            case 3
-                xSPM.units = {'mm' 'mm' 'Hz'};
-            case 4
-                xSPM.units = {'Hz' 'ms' ''};
-            case 5
-                xSPM.units = {'Hz' 'Hz' ''};
-            otherwise
-                error('Unknown data type.');
-        end
-        if ~spm('CmdLine')
-            [hReg, xSPM, SPM] = spm_results_ui('Setup',xSPM);
-            TabDat = spm_list('List',xSPM,hReg);
-            if job.print
-                spm_figure('Print');
-            end
+        [SPM, xSPM] = spm_getSPM(xSPM);
+        TabDat = spm_list('Table',xSPM);
+        hReg = [];
+    end
+    
+    %-Return/save result outputs
+    %----------------------------------------------------------------------
+    if ~isequal(job.print, false)
+        if strcmpi(job.print,'html')
+            spm_results_export(SPM,xSPM,TabDat);
         else
-            [SPM,xSPM] = spm_getSPM(xSPM);
-            TabDat = spm_list('Table',xSPM);
-            if job.print
+            if ~spm('CmdLine')
+                spm_figure('Print','Graphics','',job.print);
+            else
                 spm_list('TxtList',TabDat);
             end
-            hReg = [];
-        end
-        assignin('base', 'TabDat', TabDat);
-        assignin('base', 'hReg',   hReg);
-        assignin('base', 'xSPM',   xSPM);
-        assignin('base', 'SPM',    SPM);
-        out.xSPMvar(k)   = xSPM;
-        out.TabDatvar(k) = TabDat;
-        
-        fn = fieldnames(job.write);
-        switch fn{1}
-            case 'none'
-            case {'tspm','binary','nary'}
-                if numel(xSPM.Ic)>1, continue; end
-                fname = spm_file(xSPM.Vspm.fname,...
-                    'suffix',['_' job.write.(fn{1}).basename]);
-                out.filtered{k} = fname;
-                descrip = sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',...
-                    xSPM.STAT,xSPM.u,xSPM.k);
-                switch fn{1} % see spm_results_ui.m
-                    case 'tspm'
-                        Z = xSPM.Z;
-                    case 'binary'
-                        Z = ones(size(xSPM.Z));
-                    case 'nary'
-                        Z       = spm_clusters(xSPM.XYZ);
-                        num     = max(Z);
-                        [n, ni] = sort(histc(Z,1:num), 2, 'descend');
-                        n       = size(ni);
-                        n(ni)   = 1:num;
-                        Z       = n(Z);
-                end
-                spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
-                    descrip,fname);
-            otherwise
-                error('Unknown option.');
         end
     end
+    
+    assignin('base', 'TabDat', TabDat);
+    assignin('base', 'hReg',   hReg);
+    assignin('base', 'xSPM',   xSPM);
+    assignin('base', 'SPM',    SPM);
+    
+    out.xSPMvar(k)   = xSPM;
+    out.TabDatvar(k) = TabDat;
+    
+    %-Write filtered images
+    %----------------------------------------------------------------------
+    fn = fieldnames(job.write);
+    switch fn{1}
+        case 'none'
+        case {'tspm','binary','nary'}
+            if numel(xSPM.Ic)>1, continue; end
+            fname = spm_file(xSPM.Vspm.fname,...
+                'suffix',['_' job.write.(fn{1}).basename]);
+            out.filtered{k} = fname;
+            descrip = sprintf('SPM{%c}-filtered: u = %5.3f, k = %d',...
+                xSPM.STAT,xSPM.u,xSPM.k);
+            switch fn{1} % see spm_results_ui.m
+                case 'tspm'
+                    Z = xSPM.Z;
+                case 'binary'
+                    Z = ones(size(xSPM.Z));
+                case 'nary'
+                    Z       = spm_clusters(xSPM.XYZ);
+                    num     = max(Z);
+                    [n, ni] = sort(histc(Z,1:num), 2, 'descend');
+                    n       = size(ni);
+                    n(ni)   = 1:num;
+                    Z       = n(Z);
+            end
+            spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,...
+                descrip,fname);
+        otherwise
+            error('Unknown option.');
+    end
+    
 end

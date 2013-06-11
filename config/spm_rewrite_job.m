@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 5344 2013-03-21 17:12:29Z guillaume $
+% $Id: spm_rewrite_job.m 5543 2013-06-11 17:48:18Z guillaume $
 
 
 try
@@ -68,6 +68,12 @@ try
             end
             job.stats.con.consess{i}.fcon.weights = con;
         end
+    end
+end
+
+try
+    if isequal(job.stats.results.print, true)
+        job.stats.results.print = spm_get_defaults('ui.print');
     end
 end
 

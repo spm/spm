@@ -12,7 +12,7 @@ function varargout = spm_print(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_print.m 5157 2012-12-21 14:31:18Z guillaume $
+% $Id: spm_print.m 5543 2013-06-11 17:48:18Z guillaume $
 
 
 %-Shortcut for list of graphics file formats available
@@ -63,14 +63,9 @@ else
     bname = spm_file(fname,'basename');
     pname = spm_file(fname,'fpath');
 end
-if opts.append
-    fname = fullfile(pname,[bname opts.ext]);
-else
-    fname = ''; i = 1;
-    while isempty(fname)
-        fname = spm_file(sprintf('%s_%03d%s',bname,i,opts.ext),'path',pname);
-        if ~exist(fname,'file'), break; else fname=''; i = i + 1; end
-    end
+fname = fullfile(pname,[bname opts.ext]);
+if ~opts.append
+    fname = spm_file(fname,'unique');
 end
 
 %-Get figure handle

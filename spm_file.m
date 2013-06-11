@@ -4,7 +4,7 @@ function str = spm_file(str,varargin)
 % str        - character array, or cell array of strings
 % option     - string of requested item - one among:
 %              {'path', 'cpath', 'fpath', 'basename', 'ext', 'filename',
-%              'number', 'shortxx'}
+%              'number', 'shortxx', 'unique'}
 %
 % FORMAT str = spm_file(str,opt_key,opt_val,...)
 % str        - character array, or cell array of strings
@@ -14,7 +14,7 @@ function str = spm_file(str,varargin)
 % opt_val    - string of new value for feature
 %__________________________________________________________________________
 %
-% Definition:
+% Definitions:
 %
 % <cpath> = <fpath>filesep<filename>
 % <filename> = <basename>.<ext><number>
@@ -23,7 +23,9 @@ function str = spm_file(str,varargin)
 % 'shortxx' produces a string of at most xx characters long. If the input
 % string is longer than n, then it is prefixed with '..' and the last xx-2
 % characters are returned. If the input string is a path, the leading
-% directories are replaced by './'
+% directories are replaced by './'.
+%
+% 'unique' returns an unique filename by adding an incremental _%03d suffix.
 %__________________________________________________________________________
 %
 % Examples:
@@ -49,10 +51,10 @@ function str = spm_file(str,varargin)
 %
 % See also: spm_fileparts, spm_select, spm_file_ext, spm_existfile
 %__________________________________________________________________________
-% Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_file.m 5543 2013-06-11 17:48:18Z guillaume $
 
 
 needchar = ischar(str);
@@ -80,6 +82,13 @@ if numel(options) == 1
                 str{n} = spm_select('CPath',str{n});
             case 'fpath'
                 str{n} = spm_fileparts(spm_select('CPath',str{n}));
+            case 'unique'
+                i = 1;
+                while true
+                    str{n} = fullfile(pth,sprintf('%s_%03d%s',nam,i,ext));
+                    if ~spm_existfile(str{n}), break; else i = i + 1; end
+                end
+                str{n} = [str{n} num];
             otherwise
                 if strncmpi(options{1},'short',5)
                     c = str2num(options{1}(6:end));
