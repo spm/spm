@@ -148,10 +148,10 @@ function varargout = spm_orthviews(action,varargin)
 % spm_orthviews('plugin_name', plugin_arguments). For detailed descriptions
 % of each plugin see help spm_orthviews/spm_ov_'plugin_name'.
 %__________________________________________________________________________
-% Copyright (C) 1996-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5450 2013-04-26 11:25:36Z guillaume $
+% $Id: spm_orthviews.m 5542 2013-06-11 17:31:00Z guillaume $
 
 
 % The basic fields of st are:
@@ -303,7 +303,7 @@ switch lower(action)
         
     case 'redraw'
         redraw_all;
-        eval(st.callback);
+        callback;
         if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
@@ -332,7 +332,7 @@ switch lower(action)
             st.centre = tmp(1:3);
         end
         redraw_all;
-        eval(st.callback);
+        callback;
         if isfield(st,'registry')
             spm_XYZreg('SetCoords',st.centre,st.registry.hReg,st.registry.hMe);
         end
@@ -342,7 +342,7 @@ switch lower(action)
         st.centre = varargin{1};
         st.centre = st.centre(:);
         redraw_all;
-        eval(st.callback);
+        callback;
         cm_pos;
         
     case 'space'
@@ -403,7 +403,7 @@ switch lower(action)
         redraw_all;
         
     case 'xhairs'
-        xhairs(varargin{1});
+        xhairs(varargin{:});
         
     case 'register'
         register(varargin{1});
@@ -751,10 +751,23 @@ st.centre = st.centre(:);
 
 
 %==========================================================================
+% function callback
+%==========================================================================
+function callback
+global st
+if isa(st.callback,'function_handle')
+    feval(st.callback);
+else
+    eval(st.callback);
+end
+
+
+%==========================================================================
 % function xhairs(state)
 %==========================================================================
 function xhairs(state)
 global st
+if ~nargin, if st.xhairs, state = 'off'; else state = 'on'; end; end
 st.xhairs = 0;
 opt = 'on';
 if ~strcmpi(state,'on')
@@ -1599,9 +1612,7 @@ end
 % contextsubmenu 2
 checked   = {'off','off'};
 checked{st.xhairs+1} = 'on';
-item2     = uimenu(item_parent,'Label','Crosshairs');
-item2_1   = uimenu(item2,      'Label','on',  'Callback','spm_orthviews(''context_menu'',''Xhair'',''on'');','Checked',checked{2});
-item2_2   = uimenu(item2,      'Label','off', 'Callback','spm_orthviews(''context_menu'',''Xhair'',''off'');','Checked',checked{1});
+item2     = uimenu(item_parent,'Label','Crosshairs','Callback','spm_orthviews(''context_menu'',''Xhair'');','Checked',checked{2});
 
 % contextsubmenu 3
 if st.Space == eye(4)
@@ -1677,21 +1688,21 @@ if license('test','image_toolbox') == 1
 end
 
 % contextsubmenu 7
-item7     = uimenu(item_parent,'Label','Blobs');
+item7     = uimenu(item_parent,'Label','Overlay');
 item7_1   = uimenu(item7,      'Label','Add blobs');
 item7_1_1 = uimenu(item7_1,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_blobs'',2);');
 item7_1_2 = uimenu(item7_1,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_blobs'',1);');
 item7_2   = uimenu(item7,      'Label','Add image');
 item7_2_1 = uimenu(item7_2,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_image'',2);');
 item7_2_2 = uimenu(item7_2,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_image'',1);');
-item7_3   = uimenu(item7,      'Label','Add colored blobs','Separator','on');
+item7_3   = uimenu(item7,      'Label','Add coloured blobs','Separator','on');
 item7_3_1 = uimenu(item7_3,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',2);');
 item7_3_2 = uimenu(item7_3,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_blobs'',1);');
-item7_4   = uimenu(item7,      'Label','Add colored image');
+item7_4   = uimenu(item7,      'Label','Add coloured image');
 item7_4_1 = uimenu(item7_4,    'Label','local',  'Callback','spm_orthviews(''context_menu'',''add_c_image'',2);');
 item7_4_2 = uimenu(item7_4,    'Label','global', 'Callback','spm_orthviews(''context_menu'',''add_c_image'',1);');
 item7_5   = uimenu(item7,      'Label','Remove blobs',        'Visible','off','Separator','on');
-item7_6   = uimenu(item7,      'Label','Remove colored blobs','Visible','off');
+item7_6   = uimenu(item7,      'Label','Remove coloured blobs','Visible','off');
 item7_6_1 = uimenu(item7_6,    'Label','local', 'Visible','on');
 item7_6_2 = uimenu(item7_6,    'Label','global','Visible','on');
 item7_7   = uimenu(item7,      'Label','Set blobs max', 'Visible','off');
@@ -1814,13 +1825,15 @@ switch lower(varargin{1})
         redraw_all;
         
     case 'xhair'
-        spm_orthviews('Xhairs',varargin{2});
+        spm_orthviews('Xhairs',varargin{2:end});
         cm_handles = get_cm_handles;
         for i = 1:numel(cm_handles)
-            z_handle = get(findobj(cm_handles(i),'label','Crosshairs'),'Children');
-            set(z_handle,'Checked','off'); %reset check
-            if strcmp(varargin{2},'off'), op = 1; else op = 2; end
-            set(z_handle(op),'Checked','on');
+            z_handle = findobj(cm_handles(i),'label','Crosshairs');
+            if st.xhairs
+                set(z_handle,'Checked','on');
+            else
+                set(z_handle,'Checked','off');
+            end
         end
         
     case 'orientation'
@@ -1990,7 +2003,7 @@ switch lower(varargin{1})
             for i = 1:numel(cm_handles)
                 addblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M);
                 % Add options for removing blobs
-                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
@@ -1998,7 +2011,7 @@ switch lower(varargin{1})
                     item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
                 end
                 % Add options for setting maxima for blobs
-                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
+                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
@@ -2015,11 +2028,11 @@ switch lower(varargin{1})
         for i = 1:numel(cm_handles)
             rmblobs(cm_handles(i));
             % Remove options for removing blobs
-            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove blobs');
             delete(get(c_handle,'Children'));
             set(c_handle,'Visible','off');
             % Remove options for setting maxima for blobs
-            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
+            c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Set blobs max');
             set(c_handle,'Visible','off');
         end
         redraw_all;
@@ -2034,7 +2047,7 @@ switch lower(varargin{1})
             for i = 1:numel(cm_handles)
                 addimage(cm_handles(i),fname);
                 % Add options for removing blobs
-                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove blobs');
+                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove blobs');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 item7_3_1 = uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''remove_blobs'',2);');
@@ -2042,7 +2055,7 @@ switch lower(varargin{1})
                     item7_3_2 = uimenu(c_handle,'Label','global','Callback','spm_orthviews(''context_menu'',''remove_blobs'',1);');
                 end
                 % Add options for setting maxima for blobs
-                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Set blobs max');
+                c_handle = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Set blobs max');
                 set(c_handle,'Visible','on');
                 delete(get(c_handle,'Children'));
                 uimenu(c_handle,'Label','local','Callback','spm_orthviews(''context_menu'',''setblobsmax'',2);');
@@ -2068,7 +2081,7 @@ switch lower(varargin{1})
             for i = 1:numel(cm_handles)
                 addcolouredblobs(cm_handles(i),xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:),xSPM.title);
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
-                c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+                c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove coloured blobs');
                 ch_c_handle = get(c_handle,'Children');
                 set(c_handle,'Visible','on');
                 %set(ch_c_handle,'Visible',on');
@@ -2099,7 +2112,7 @@ switch lower(varargin{1})
                         break;
                     end
                 end
-                rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove colored blobs');
+                rm_c_menu = findobj(st.vols{cm_handles(i)}.ax{1}.cm,'Label','Remove coloured blobs');
                 delete(gcbo);
                 if isempty(st.vols{cm_handles(i)}.blobs)
                     st.vols{cm_handles(i)} = rmfield(st.vols{cm_handles(i)},'blobs');
@@ -2124,7 +2137,7 @@ switch lower(varargin{1})
             for i = 1:numel(cm_handles)
                 addcolouredimage(cm_handles(i),fname(k,:),colours(c,:));
                 addcolourbar(cm_handles(i),numel(st.vols{cm_handles(i)}.blobs));
-                c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Blobs'),'Label','Remove colored blobs');
+                c_handle    = findobj(findobj(st.vols{cm_handles(i)}.ax{1}.cm,'label','Overlay'),'Label','Remove coloured blobs');
                 ch_c_handle = get(c_handle,'Children');
                 set(c_handle,'Visible','on');
                 %set(ch_c_handle,'Visible',on');

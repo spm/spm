@@ -9,7 +9,7 @@ function ret = spm_ov_picker(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_picker.m 5534 2013-06-10 13:29:09Z guillaume $
+% $Id: spm_ov_picker.m 5542 2013-06-11 17:31:00Z guillaume $
 
 
 cmd = lower(varargin{1});
@@ -20,9 +20,10 @@ switch cmd
             'Label', 'Display values', ...
             'Callback', @orthviews_picker);
         ret = item0;
-    case 'update'
-        orthviews_picker_update;
+    case 'redraw'
+        orthviews_picker_redraw(varargin{2:end});
     otherwise
+        disp(cmd)
 end
 
 %==========================================================================
@@ -32,24 +33,30 @@ global st
 
 if strcmp(get(hObj, 'Checked'),'on')
     set(hObj, 'Checked', 'off');
-    st.callback = ';';
     for i=1:numel(st.vols)
         if ~isempty(st.vols{i})
             xlabel(st.vols{i}.ax{3}.ax,'');
+            st.vols{i} = rmfield(st.vols{i},'picker');
         end
     end
 else 
     set(hObj, 'Checked', 'on');
-    st.callback = 'spm_ov_picker(''update'');';
-    eval(st.callback);
+    for i=1:numel(st.vols)
+        if ~isempty(st.vols{i})
+            st.vols{i}.picker = [];
+        end
+    end
+    spm_ov_picker('redraw');
 end
 
 %==========================================================================
-function orthviews_picker_update
+function orthviews_picker_redraw(i,varargin) %i, TM0, TD, CM0, CD, SM0, SD
 
 global st
 
-for i=1:numel(st.vols)
+if ~nargin, n = 1:numel(st.vols); else n = i; end
+
+for i=n
     if ~isempty(st.vols{i})
         pos = spm_orthviews('pos',i);
         try
