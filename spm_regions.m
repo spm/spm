@@ -44,10 +44,10 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_regions.m 5539 2013-06-11 13:43:26Z guillaume $
  
 if nargin < 4, xY = []; end
  
@@ -117,11 +117,11 @@ end
 if isfield(SPM,'Sess') && ~isfield(xY,'Sess')
     s       = length(SPM.Sess);
     if s > 1
-        s   = spm_input('which session','!+1','n1',s,s);
+        s   = spm_input('which session','!+1','n1',s,Inf);
     end
     xY.Sess = s;
 end
- 
+
 %-Specify VOI
 %--------------------------------------------------------------------------
 xY.M = xSPM.M;
@@ -134,7 +134,21 @@ if isempty(xY.XYZmm)
     Y = [];
     return;
 end
- 
+
+%-Perform time-series extraction to all sessions if Inf is entered
+%--------------------------------------------------------------------------
+if isfield(SPM,'Sess') && isfield(xY,'Sess') && isinf(xY.Sess)
+    if length(SPM.Sess) == 1
+        xY.Sess = 1;
+    else
+        for i=1:length(SPM.Sess)
+            xY.Sess = i;
+            [tY{i},txY(i)] = spm_regions(xSPM,SPM,hReg,xY);
+        end
+        Y = tY; xY = txY;
+        return;
+    end
+end
  
 %-Extract required data from results files
 %==========================================================================
