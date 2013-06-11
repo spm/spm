@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 5460 2013-05-02 13:28:40Z christophe $
+% $Id: spm_eeg_review_switchDisplay.m 5541 2013-06-11 15:21:56Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -478,6 +478,19 @@ switch D.PSD.VIZU.uitable
                 object.list = [object.list;12;14];
                 nc = D.nchannels;
                 table = cell(nc,5);
+                grad = D.sensors('MEG');
+                elec = D.sensors('EEG');
+                coor3D = {};
+                if ~isempty(elec)
+                    coor3D = [coor3D; elec.label(:)];
+                end
+                
+                if ~isempty(grad)
+                    coor3D = [coor3D; grad.label(:)];
+                end
+                
+                have_pos_ind = spm_match_str(D.chanlabels, coor3D);
+                
                 for i=1:nc
                     table{i,1} = char(chanlabels(D,i));
                     table{i,2} = char(chantype(D,i));
@@ -486,8 +499,8 @@ switch D.PSD.VIZU.uitable
                     else
                         table{i,3} = 'no';
                     end
-                    Coor2D = coor2D(D,i);
-                    if ~isempty(Coor2D(1))
+                    
+                    if any(i == have_pos_ind)
                         table{i,4} = 'yes';
                     else
                         table{i,4} = 'no';
