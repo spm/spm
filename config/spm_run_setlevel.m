@@ -8,7 +8,7 @@ function out = spm_run_setlevel(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 5550 2013-06-12 13:13:56Z gareth $
+% $Id: spm_run_setlevel.m 5552 2013-06-12 13:17:37Z gareth $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -222,7 +222,7 @@ gY = [squeeze(allLKCregress(nSres+1,useLKCind)); squeeze(allLKCregress(1:nSres,u
 gX = [1 0; [zeros(nSres, 1) ones(nSres, 1)]];
 gC = [1 -1]';
 
-[gL gF gdf gp] = spm_wilks(gX, gY, gC)
+[gL gF gdf gp] = spm_wilks(gX, gY, gC);
 
 
 %% get empirical mean and sd of EC over subjects / observations.
