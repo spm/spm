@@ -8,7 +8,7 @@ function out = spm_run_setlevel(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 5546 2013-06-12 12:09:20Z gareth $
+% $Id: spm_run_setlevel.m 5550 2013-06-12 13:13:56Z gareth $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -73,8 +73,8 @@ maskind=intersect(cmask,find(mask));
 datatrial1d=zeros(nSres,length(maskind));
 
 %% disp read back in standardised residuals
-for t=1:nSres, 
-    [sigvoldata,XYZ]=spm_read_vols(VResI(t)); 
+for t=1:nSres,
+    [sigvoldata,XYZ]=spm_read_vols(VResI(t));
     datatrial1d(t,:)=sigvoldata(maskind);
 end % for t
 
@@ -82,6 +82,7 @@ end % for t
 %% read in statistical image
 [Teststat,XYZ]=spm_read_vols(SPM.xCon.Vspm);
 test_STAT=SPM.xCon.STAT;
+
 
 ec_R0=zeros(nSres+1,1); %% topology
 alleuler2_spm=zeros(nSres+1,length(threshlevels));
@@ -93,9 +94,9 @@ for tr=1:nSres+1, % last extra trial is for Teststat
     if tr<=nSres,
         vol_data(maskind)=datatrial1d(tr,:);
     else
-        vol_data(maskind)=Teststat(maskind); 
+        vol_data(maskind)=Teststat(maskind);
     end;
-  
+    
     binpoints=zeros(size(vol_data));
     binpoints(find(vol_data))=1;
     R0 = spm_resels_vol(binpoints,SPM.xVol.FWHM);
@@ -107,7 +108,7 @@ for tr=1:nSres+1, % last extra trial is for Teststat
         binpoints=zeros(size(vol_data));
         binpoints(useind)=1;
         R0 = spm_resels_vol(binpoints,SPM.xVol.FWHM);
-        ec_spm=R0(1);      
+        ec_spm=R0(1);
         ECcount(tr,threshind)=ec_spm;
     end; % for threshind
 end; % for tr
@@ -127,11 +128,15 @@ fitind=find(abs(threshlevels)<=LOWTHRESH);
 
 for threshind=1:length(fitind),
     %%% NEED TO CHECK THIS ___
-    [ECperresel_trial,ECperLKC_trial]=spm_ECdensity(trial_STAT,threshlevels(fitind(threshind)),df); %% ACTUALLY THIS IS LKC density
-    %EC_trial2=spm_ECdensity(trial_STAT,threshlevels(fitind(threshind)),df);
-    allpju_trial(threshind,:)=ECperLKC_trial(1:max_resel_dimension+1)';
+    [ECperresel_trial]=spm_ECdensity(trial_STAT,threshlevels(fitind(threshind)),df); %% ACTUALLY THIS IS LKC density
+    [ECperresel_test]=spm_ECdensity(test_STAT,threshlevels(fitind(threshind)),df);
     
-    [ECperresel_test,ECperLKC_test]=spm_ECdensity(test_STAT,threshlevels(fitind(threshind)),df);
+    for d=0:3, %% Turn density estimates from EC per resel to EC per LKC unit
+        ECperLKC_trial(d+1,:)=ECperresel_trial(d+1,:)./power(4*log(2),d/2);
+        ECperLKC_test(d+1,:)=ECperresel_test(d+1,:)./power(4*log(2),d/2);
+    end;
+    
+    allpju_trial(threshind,:)=ECperLKC_trial(1:max_resel_dimension+1)';
     allpju_test(threshind,:)=ECperLKC_test(1:max_resel_dimension+1)';
 end;
 
@@ -144,10 +149,10 @@ allR=SPM.xVol.R; %% resel counts
 
 
 reselVec=SPM.xVol.R;
- LKCresel=[];
- for d=0:max_resel_dimension, %%% or alternatively LKC estimate from the reselts
-     LKCresel(d+1)=reselVec(d+1)*power(4*log(2),d/2);
- end;
+LKCresel=[];
+for d=0:max_resel_dimension, %%% or alternatively LKC estimate from the reselts
+    LKCresel(d+1)=reselVec(d+1)*power(4*log(2),d/2);
+end;
 
 
 
@@ -181,7 +186,7 @@ for tbase=1:nSres+2,
     end;
     
     
-    fitstr='bweuler';
+   
     dimension_test=max_resel_dimension;
     
     %% LKC based on average EC through basic regression
@@ -192,7 +197,7 @@ for tbase=1:nSres+2,
         
         wprec=1e-10;
         [rglm] = spm_glm (Ydash,allpju(:,useLKCind),wprec);
-               
+        
         LKC=[LKC0; rglm.posts.w_mean];  %% put them back together
         
         
@@ -208,11 +213,6 @@ for tbase=1:nSres+2,
     
     allLKCregress(tbase,:)=LKC; %% LKC based on fit to average EC (/ or EC of Teststat)
     
-    
-%     for d=0:max_resel_dimension, %%% or alternatively LKC estimate from the reselts
-%         reselLKC(tbase,d+1)=LKC(d+1)./power(4*log(2),d/2);
-%     end;
-%     
 end; % for tbase
 
 
@@ -222,16 +222,16 @@ gY = [squeeze(allLKCregress(nSres+1,useLKCind)); squeeze(allLKCregress(1:nSres,u
 gX = [1 0; [zeros(nSres, 1) ones(nSres, 1)]];
 gC = [1 -1]';
 
-[gL gF gdf gp] = wilks(gX, gY, gC)
+[gL gF gdf gp] = spm_wilks(gX, gY, gC)
 
 
 %% get empirical mean and sd of EC over subjects / observations.
-meanECtrial_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_trial'; %% unweighted based on mean Euler
+%meanECtrial_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_trial'; %% unweighted based on mean Euler
 meanECtest_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
 sdECtest_regtrial=std(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
-sderrECtest_regtrial=sdECtest_regtrial./sqrt(nSres-1);
+%sderrECtest_regtrial=sdECtest_regtrial./sqrt(nSres-1);
 %% estimate what EC profile should be based on smoothness of image
-meanECtrial_resel=LKCresel*allpju_trial'; 
+%meanECtrial_resel=LKCresel*allpju_trial';
 meanECtest_resel=LKCresel*allpju_test';
 
 %% PLOT RESULTS
@@ -249,11 +249,13 @@ hold on;
 
 xlabel('threshold');
 ylabel('EC');
-legend('stat','regress','resel');
+legend(sprintf('Observered EC for %s field',test_STAT),...
+    sprintf('Random %s field based on regression',test_STAT),...
+    sprintf('Random %s field based on smoothness',test_STAT));
 
 
 
-title(sprintf('Set level p<%3.2f',gp));
+title(sprintf('Probability that this is a random field  p<%3.4f',gp));
 
 
 
