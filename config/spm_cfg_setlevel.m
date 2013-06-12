@@ -4,7 +4,7 @@ function setlevel = spm_cfg_setlevel
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_setlevel.m 5547 2013-06-12 12:09:35Z gareth $
+% $Id: spm_cfg_setlevel.m 5551 2013-06-12 13:14:04Z gareth $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -13,8 +13,8 @@ spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
 spmmat.help    = {
-                  'Select the SPM.mat file that contains the design specification. '
-                  'The directory containing this file is known as the input directory.'
+                  'Select the SPM.mat file that contains the design matrix specification and results. '
+                  
 }';
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
