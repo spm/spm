@@ -1,14 +1,13 @@
 function out = spm_run_setlevel(job)
 % out = spm_run_setlevel(job)
-% test to see how likely it is that an SPM statistical image is a random
-% field.
-% based on
+% test to see how likely it is that an SPM statistical image is a random field.
+% based on:
 %  Set-level threshold-free tests on the intrinsic volumes of SPMs.
 %   Barnes GR, Ridgway GR, Flandin G, Woolrich M, Friston K. Neuroimage. 2013
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 5552 2013-06-12 13:17:37Z gareth $
+% $Id: spm_run_setlevel.m 5553 2013-06-12 13:19:13Z gareth $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
