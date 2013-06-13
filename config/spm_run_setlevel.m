@@ -7,7 +7,7 @@ function out = spm_run_setlevel(job)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_setlevel.m 5553 2013-06-12 13:19:13Z gareth $
+% $Id: spm_run_setlevel.m 5554 2013-06-13 09:13:56Z gareth $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -21,6 +21,7 @@ SPM = [];
 load(job.spmmat{:});
 out.spmmat = job.spmmat;
 
+cindex=job.cindex; %% contrast of interest
 
 %% First we need to redo the residual images - these have normally been cleaned up.
 
@@ -79,14 +80,14 @@ end % for t
 
 
 %% read in statistical image
-[Teststat,XYZ]=spm_read_vols(SPM.xCon.Vspm);
-test_STAT=SPM.xCon.STAT;
+[Teststat,XYZ]=spm_read_vols(SPM.xCon(cindex).Vspm);
+test_STAT=SPM.xCon(cindex).STAT;
 
 
 ec_R0=zeros(nSres+1,1); %% topology
 alleuler2_spm=zeros(nSres+1,length(threshlevels));
 
-disp('Getting ECs over residual images and thresholds...');
+disp(sprintf('Getting ECs over %d residual images and %d thresholds...',nSres,length(threshlevels)));
 
 for tr=1:nSres+1, % last extra trial is for Teststat
     vol_data=ones(size(sigvoldata)).*NaN;
@@ -192,20 +193,13 @@ for tbase=1:nSres+2,
     if ~ESTZEROLKC, %% do not estimate 0th LKC
         LKC0=R0_set; %% TAKE THIS AS FIXED
         Ydash=Y-LKC0*allpju(:,1);
-        useLKCind=2:dimension_test+1;
-        
-        wprec=1e-10;
-        [rglm] = spm_glm (Ydash,allpju(:,useLKCind),wprec);
-        
-        LKC=[LKC0; rglm.posts.w_mean];  %% put them back together
-        
-        
+        useLKCind=2:dimension_test+1; 
+        LKC_est=pinv(allpju(:,useLKCind))*Ydash; %% get least squares estimate of extra LKC coeffs
+        LKC=[LKC0; LKC_est];  %% put them back together with 0th order
+       
     else %% estimate allLKCs
         useLKCind=1:dimension_test+1;
-        
-        [rglm] = spm_glm (Y,allpju(:,useLKCind),wprec);
-        LKC=[rglm.posts.w_mean];  %% put them back together
-        
+        LKC=pinv(allpju(:,useLKCind))*Ydash; %% get least squares estimate of all LKC coeffs
     end; % if
     
     
@@ -220,17 +214,15 @@ gY = [squeeze(allLKCregress(nSres+1,useLKCind)); squeeze(allLKCregress(1:nSres,u
 %then the design matrix and contrast could be e.g.
 gX = [1 0; [zeros(nSres, 1) ones(nSres, 1)]];
 gC = [1 -1]';
-
-[gL gF gdf gp] = spm_wilks(gX, gY, gC);
+[CVA] = spm_cva(gY,gX,[],gC); %% do multivariate test
 
 
 %% get empirical mean and sd of EC over subjects / observations.
-%meanECtrial_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_trial'; %% unweighted based on mean Euler
+
 meanECtest_regtrial=mean(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
 sdECtest_regtrial=std(squeeze(allLKCregress(1:nSres,:)))*allpju_test'; %% unweighted based on mean Euler
-%sderrECtest_regtrial=sdECtest_regtrial./sqrt(nSres-1);
+
 %% estimate what EC profile should be based on smoothness of image
-%meanECtrial_resel=LKCresel*allpju_trial';
 meanECtest_resel=LKCresel*allpju_test';
 
 %% PLOT RESULTS
@@ -254,7 +246,7 @@ legend(sprintf('Observered EC for %s field',test_STAT),...
 
 
 
-title(sprintf('Probability that this is a random field  p<%3.4f',gp));
+title(sprintf('Probability that this is a random field  p<%3.4f ',CVA.p));
 
 
 
