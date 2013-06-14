@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5246 2013-02-07 15:35:54Z vladimir $
+% $Id: checkmeeg.m 5556 2013-06-14 13:35:07Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -115,10 +115,8 @@ if isa(this.data, 'file_array')
     end       
 end
 
-actual_size = size(this.data);
-if (~isTF && length(actual_size) == 2) || (isTF && length(actual_size) == 3)
-    actual_size = [actual_size 1];
-end
+actual_size = size(this.data); 
+actual_size = [actual_size ones(1, isTF + 3 - length(actual_size))];
 
 if ~isfield(this, 'Fsample')
     this.Fsample = 0.01;
