@@ -28,9 +28,9 @@ function D = spm_eeg_contrast(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_contrast.m 5538 2013-06-11 11:59:34Z vladimir $
+% $Id: spm_eeg_contrast.m 5559 2013-06-17 21:52:57Z vladimir $
 
-SVNrev = '$Rev: 5538 $';
+SVNrev = '$Rev: 5559 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -131,6 +131,7 @@ Dnew = conditions(Dnew, ':', S.label);
 Dnew = trialonset(Dnew, ':', []);
 Dnew = badtrials(Dnew, ':', 0);
 Dnew = repl(Dnew, ':', newrepl);
+Dnew = type(Dnew, 'evoked');
 
 % remove previous source reconsructions
 if isfield(Dnew,'inv')
