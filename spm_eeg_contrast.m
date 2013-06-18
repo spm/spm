@@ -28,9 +28,9 @@ function D = spm_eeg_contrast(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Rik Henson
-% $Id: spm_eeg_contrast.m 5559 2013-06-17 21:52:57Z vladimir $
+% $Id: spm_eeg_contrast.m 5560 2013-06-18 10:49:00Z vladimir $
 
-SVNrev = '$Rev: 5559 $';
+SVNrev = '$Rev: 5560 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -100,7 +100,7 @@ for i = 1:Ncontrasts
 
         for j = 1:D.nchannels
             for f = 1:D.nfrequencies
-                d(j, f, :) = c(i,:) * squeeze(D(j, f, :, :))';
+                d(j, f, :) = c(i,:) * spm_squeeze(D(j, f, :, :), [1 2 4])';
             end
         end
 
