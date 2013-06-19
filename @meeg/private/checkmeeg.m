@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5556 2013-06-14 13:35:07Z vladimir $
+% $Id: checkmeeg.m 5561 2013-06-19 11:33:45Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -287,8 +287,10 @@ if isTF
     end
     
     df = diff(this.transform.frequencies);
+    % To avoid small numerical errors
     if length(unique(df)) > 1 && (max(diff(df))/mean(df))<0.1
-        this.transform.frequencies = (0:(Nfrequencies-1))*mean(df) + this.transform.frequencies(1);
+        this.transform.frequencies = (0:(Nfrequencies-1))*round(100*mean(df))/100+...
+            round(100*this.transform.frequencies(1))/100;
     end
 end
 
