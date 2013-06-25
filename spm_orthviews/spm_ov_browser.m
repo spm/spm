@@ -9,29 +9,44 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5534 2013-06-10 13:29:09Z guillaume $
+% $Id: spm_ov_browser.m 5565 2013-06-25 16:13:05Z guillaume $
 
 
 cmd = lower(varargin{1});
 switch cmd
     % Context menu and callbacks
     case 'context_menu'
-        item0 = uimenu(varargin{3}, ...
+        ret = uimenu(varargin{3}, ...
             'Label', 'Browse...', ...
-            'Callback', @browser);
-        ret = item0;
+            'Callback', @browser_ui);
+    case 'ui'
+        ret = @browser;
     otherwise
 end
 
 
 %==========================================================================
-function browser(hObj,event)
+function browser_ui(hObj,event)
 
 [f,sts] = spm_select([2 Inf],'image','Select images...');
 if ~sts, return; end
-f = cellstr(f);
 
 Fgraph = ancestor(hObj,'figure');
+
+browser(f, Fgraph, current_handle);
+
+
+%==========================================================================
+function browser(f, Fgraph, hC)
+
+global st
+f = cellstr(f);
+if nargin < 2 || isempty(Fgraph)
+    Fgraph = st.fig;
+end
+if nargin < 3 || isempty(hC)
+    hC = 1;
+end
 
 hS = uicontrol('Parent', Fgraph,...
     'Style',             'slider',...
@@ -72,8 +87,6 @@ hT = uicontrol('Parent',   Fgraph,...
     'HorizontalAlignment', 'center',...
     'BackgroundColor',     [1 1 1],...
     'String',              f{1});
-
-hC = current_handle;
 
 setappdata(hS,'f', f);
 setappdata(hS,'hT',hT);
