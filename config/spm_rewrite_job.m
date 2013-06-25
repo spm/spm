@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 5543 2013-06-11 17:48:18Z guillaume $
+% $Id: spm_rewrite_job.m 5566 2013-06-25 19:03:54Z guillaume $
 
 
 try
@@ -34,16 +34,6 @@ try
     job.tools.preproc8;
     fprintf('Conversion Tools:New Segment -> Spatial:Segment\n');       %-#
     job = struct('spatial',struct('preproc',job.tools.preproc8));
-end
-
-try
-    F = cellfun(@fieldnames,job.stats.con.consess);
-    if any(strcmp('tconsess',F))
-        ws = warning('off','backtrace');
-        warning(['''T-contrast (cond/sess based)'' option is DEPRECATED. ' ...
-            'Please use T/F-contrast option instead.']);
-        warning(ws);
-    end
 end
 
 try

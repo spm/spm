@@ -3,7 +3,7 @@ function con = spm_cfg_con
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 5344 2013-03-21 17:12:29Z guillaume $
+% $Id: spm_cfg_con.m 5566 2013-06-25 19:03:54Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -413,7 +413,7 @@ consess.help   = {
     ''
     'For an F-contrast, SPM (spm_getSPM.m) writes the Extra Sum-of-Squares (the difference in the residual sums of squares for the full and reduced model) as ess_????.{img,nii}. (Note that the ess_????.{img,nii} and SPM{T,F}_????.{img,nii} images are not suitable input for a higher level analysis.)'
     }';
-consess.values = {tcon fcon}; % tconsess
+consess.values = {tcon fcon tconsess};
 consess.num    = [0 Inf];
 
 %--------------------------------------------------------------------------
