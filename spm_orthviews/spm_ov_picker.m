@@ -9,21 +9,21 @@ function ret = spm_ov_picker(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_picker.m 5542 2013-06-11 17:31:00Z guillaume $
+% $Id: spm_ov_picker.m 5564 2013-06-25 15:20:27Z guillaume $
 
 
-cmd = lower(varargin{1});
-switch cmd
+switch lower(varargin{1})
     % Context menu and callbacks
     case 'context_menu'
         item0 = uimenu(varargin{3}, ...
-            'Label', 'Display values', ...
+            'Label', spm_ov_picker('label'), ...
             'Callback', @orthviews_picker);
         ret = item0;
     case 'redraw'
         orthviews_picker_redraw(varargin{2:end});
+    case 'label'
+        ret = 'Display intensities';
     otherwise
-        disp(cmd)
 end
 
 %==========================================================================
@@ -32,7 +32,8 @@ function orthviews_picker(hObj,event)
 global st
 
 if strcmp(get(hObj, 'Checked'),'on')
-    set(hObj, 'Checked', 'off');
+    set(findobj(st.fig,'Type','uimenu','Label',spm_ov_picker('label')), ...
+        'Checked', 'off');
     for i=1:numel(st.vols)
         if ~isempty(st.vols{i})
             xlabel(st.vols{i}.ax{3}.ax,'');
@@ -40,7 +41,8 @@ if strcmp(get(hObj, 'Checked'),'on')
         end
     end
 else 
-    set(hObj, 'Checked', 'on');
+    set(findobj(st.fig,'Type','uimenu','Label',spm_ov_picker('label')), ...
+        'Checked', 'on');
     for i=1:numel(st.vols)
         if ~isempty(st.vols{i})
             st.vols{i}.picker = [];
