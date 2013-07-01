@@ -5,13 +5,9 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 5068 2012-11-19 15:00:07Z vladimir $
+% $Id: getset.m 5567 2013-07-01 11:05:40Z vladimir $
 
 this = struct(this);
-
-if nargin>3 && isempty(ind)
-    warning_flexible('The use of empty matrix to indicate ''all'' is deprecated in SPM12. Please change your code if necessary');
-end
 
 if nargin == 3 || ~isnumeric(ind)
     try

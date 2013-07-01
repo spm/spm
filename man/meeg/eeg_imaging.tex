@@ -90,7 +90,7 @@ The actual lead field matrix will be computed at the beginning of the next step 
 
 
 \section{Inverse reconstruction}
-To get started press the \texttt{Invert} button. The first choice you will see is between \texttt{Imaging}, \texttt{VB-ECD} and \texttt{Beamforming}. For reconstruction based on an empirical Bayesian approach to localize either the evoked response, the evoked power or the induced power, as measured by EEG or MEG press the \texttt{Imaging} button. The other options are explained in greater detail elsewhere.
+To get started press the \texttt{Invert} button. The first choice you will see is between \texttt{Imaging}, \texttt{VB-ECD} and \texttt{DCM}. For reconstruction based on an empirical Bayesian approach to localize either the evoked response, the evoked power or the induced power, as measured by EEG or MEG press the \texttt{Imaging} button. The other options are explained in greater detail elsewhere.
 
 If you have trials belonging to more than one condition in your dataset then the next choice you will have is whether to invert all the conditions together or to choose a subset. It is recommended to invert the conditions together if you are planning to later do a statistical comparison between them. If you have only one condition, or after choosing the conditions, you will get a choice between ``Standard'' and ``Custom'' inversion. If you choose ``Standard'' inversion, SPM will start the computation with default settings. These correspond to the multiple sparse priors (MSP) algorithm \cite{karl_msp} which is then applied to the whole input data segment.
 
