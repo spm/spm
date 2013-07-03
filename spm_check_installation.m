@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5338 2013-03-20 17:35:46Z guillaume $
+% $Id: spm_check_installation.m 5571 2013-07-03 16:37:56Z guillaume $
 
 if isdeployed, return; end
 
@@ -394,7 +394,7 @@ a = {l.file}; a = strrep(a,'\','/'); [l.file] = a{:};
 %-Look for missing or unknown files
 %--------------------------------------------------------------------------
 [x,ir,il] = setxor({r.file},{l.file});
-if isempty([ir il])
+if isempty(ir) && isempty(il)
     fprintf('No missing or unknown files\n');
 else
     if ~isempty(ir)
