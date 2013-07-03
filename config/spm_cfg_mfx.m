@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 4684 2012-03-12 17:54:04Z guillaume $
+% $Id: spm_cfg_mfx.m 5570 2013-07-03 11:38:05Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -111,35 +111,41 @@ switch SPMS{1}.xBF.name
 end
 matlabbatch{1}.spm.stats.fmri_spec.volt   = SPMS{1}.xBF.Volterra;
 matlabbatch{1}.spm.stats.fmri_spec.global = SPMS{1}.xGX.iGXcalc;
+if isfield(SPMS{1}.xM,'gMT')
+    matlabbatch{1}.spm.stats.fmri_spec.mthresh = SPMS{1}.xM.gMT;
+end
 if ~isempty(SPMS{1}.xM.VM)
     matlabbatch{1}.spm.stats.fmri_spec.mask = cellstr(SPMS{1}.xM.VM.fname); % can be intersection
 end
 if strncmp('AR',SPMS{1}.xVi.form,2)
     matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'AR(1)';
 else
-    matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'none';
+    %matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'none';
+    disp('Forcing serial correlation modelling to be AR(1).');
+    matlabbatch{1}.spm.stats.fmri_spec.cvi  = 'AR(1)';
 end
 
-k = 1;
+k  = 1;
+np = zeros(1,numel(SPMS));
 disp(' ');
 for i=1:numel(SPMS)
-    disp(sprintf('Subject %d:',i));
-    np(i)=0;
-    n = cumsum([1 SPMS{i}.nscan]);
-    nSess=numel(SPMS{i}.Sess);
+    fprintf('Subject %d:\n',i);
+    np(i) = 0;
+    n     = cumsum([1 SPMS{i}.nscan]);
+    nSess = numel(SPMS{i}.Sess);
     for j=1:nSess
-        disp(sprintf('Session %d:',j));
+        fprintf(' Session %d:\n',j);
         matlabbatch{1}.spm.stats.fmri_spec.sess(k).scans = cellstr(SPMS{i}.xY.P(n(j):n(j+1)-1,:));
         nCond=numel(SPMS{i}.Sess(j).U);
         for l=1:nCond
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).name = SPMS{i}.Sess(j).U(l).name{1};
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).onset = SPMS{i}.Sess(j).U(l).ons;
             matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).duration = SPMS{i}.Sess(j).U(l).dur;
-            o = 1;
-            nReg=numel(SPMS{i}.Sess(j).U(l).P);
+            o    = 1;
+            nReg = numel(SPMS{i}.Sess(j).U(l).P);
             for m=1:nReg
-                disp(sprintf('Condition %d: Columns %d',l,nReg));
-                np(i)=np(i)+nReg;
+                fprintf('  Condition %d: Columns %d\n',l,nReg);
+                np(i) = np(i)+nReg;
                 switch SPMS{i}.Sess(j).U(l).P(m).name
                     case 'time'
                         matlabbatch{1}.spm.stats.fmri_spec.sess(k).cond(l).tmod = SPMS{i}.Sess(j).U(l).P(m).h;
