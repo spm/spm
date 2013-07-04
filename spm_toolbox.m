@@ -8,7 +8,7 @@ function varargout = spm_toolbox(action,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 4857 2012-08-23 17:17:30Z guillaume $
+% $Id: spm_toolbox.m 5573 2013-07-04 16:58:49Z guillaume $
 
 
 if ~nargin, action = 'Display'; end
@@ -37,24 +37,30 @@ function tbx_display
 
 SPMver = spm_toolbox('SPMver');
 
-%-Initialise window
-%--------------------------------------------------------------------------
-h = tbx_figure([SPMver ' Toolboxes']);
-H = getappdata(h,'Hbrowser');
-
 if ispc, s = '/'; else s = ''; end
 localurl = @(f) sprintf(['file://' s strrep(spm('Dir'),'\','/') '/help/' f]);
 
-html_header = sprintf(['<html>\n<head>\n<title>SPM Toolboxes</title>\n',...
-    '<link rel="stylesheet" type="text/css" href="%s" />\n',...
-    '</head>\n<body>\n'],localurl('spm.css'));
-html_footer = sprintf('\n</body>\n</html>');
+%-Initialise HTML template
+%--------------------------------------------------------------------------
+tpl = spm_file_template(fullfile(spm('Dir'),'help'),'keep');
+tpl = tpl.file('TPL_TBX','spm_toolbox.tpl');
+tpl = tpl.block('TPL_TBX','loading','load');
+tpl = tpl.block('TPL_TBX','listing','list');
+tpl = tpl.block('listing','toolbox','tbx');
+tpl = tpl.var('SPM',SPMver);
+tpl = tpl.var('SPM_CSS',localurl('spm.css'));
 
-html = ['<h1 style="text-align:center;">%s Toolboxes</h1>\n' ...
-    '<br/><p>Loading description of toolboxes...</p>' ...
-    '<p style="margin-top:5em;"><center><img src="%s"></center></p>'];
-html = sprintf(html,SPMver,localurl('images/loading.gif'));
-html = [html_header html html_footer];
+%-Initialise window
+%--------------------------------------------------------------------------
+h   = tbx_figure([SPMver ' Toolboxes']);
+H   = getappdata(h,'Hbrowser');
+
+tpl = tpl.var('IMG_LOADING',localurl('images/loading.gif'));
+tpl = tpl.parse('load','loading',0);
+tpl = tpl.var('list','');
+tpl = tpl.parse('OUT','TPL_TBX');
+html = get(tpl,'OUT');
+
 spm_browser(html,H);
 
 %-Download and parse toolboxes' description
@@ -80,9 +86,10 @@ end
 
 %-Select relevant toolboxes
 %--------------------------------------------------------------------------
-html = sprintf('<h1 style="text-align:center;">%s Toolboxes</h1>\n',SPMver);
 ind  = find(ext,'//ext');
 nbtbx = 0;
+tpl = tpl.var('load','');
+tpl = tpl.var('tbx','');
 for i=1:numel(ind)
     try, v = attributes(ext,'get',ind(i),'ver'); catch, v = ''; end
     if isempty(v) || ~isempty(strfind(lower(v),lower(SPMver)))
@@ -96,22 +103,23 @@ for i=1:numel(ind)
             imgtitle = 'Install';
             % matlab:spm_toolbox(''install'',''%s'')
         end
-        html = [html ...
-            sprintf(['<div class="tbx">\n<h4><a href="matlab:web(''%s'',''-browser'')">%s</a>' ...
-            '<span class="star"><a href="matlab:spm_toolbox(''install'',''%s'')"><img src="%s" width="16" height="18" title="%s"/></a></span></h4>\n' ...
-            '<p><a href="mailto:%s" title="email %s <%s>">%s</a></p>\n' ...
-            '<p>%s</p>\n</div>\n'],...
-            tbx.url, tbx.name,...
-            tbx.id,localurl(imgname), imgtitle,...
-            tbx.email, tbx.author, tbx.email, tbx.author,tbx.summary)];
         nbtbx = nbtbx + 1;
+        tpl = tpl.var('TBX_URL',tbx.url);
+        tpl = tpl.var('TBX_NAME',tbx.name);
+        tpl = tpl.var('TBX_ID',tbx.id);
+        tpl = tpl.var('IMG_STAR',localurl(imgname));
+        tpl = tpl.var('IMG_STAR_TITLE',imgtitle);
+        tpl = tpl.var('TBX_EMAIL',tbx.email);
+        tpl = tpl.var('TBX_AUTHOR',tbx.author);
+        tpl = tpl.var('TBX_SUMMARY',tbx.summary);
+        tpl = tpl.parse('tbx','toolbox',1);
     end
 end
-html = [html sprintf(['<p>Found %d toolboxes compatible with %s.' ...
-    '<span class="star"><a href="matlab:spm_toolbox;"><img src="%s" width="16" height="18" title="Refresh"/></a></span></p>'],...
-    nbtbx, SPMver, localurl('images/refresh.gif'))];
-
-html = [html_header html html_footer];
+tpl = tpl.var('TBX_NB',int2str(nbtbx));
+tpl = tpl.var('IMG_REFRESH',localurl('images/refresh.gif'));
+tpl = tpl.parse('list','listing',0);
+tpl = tpl.parse('OUT','TPL_TBX');
+html = get(tpl,'OUT');
 
 %-Display
 %--------------------------------------------------------------------------
