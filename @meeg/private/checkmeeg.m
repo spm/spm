@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5561 2013-06-19 11:33:45Z vladimir $
+% $Id: checkmeeg.m 5572 2013-07-04 14:16:11Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -178,6 +178,14 @@ if Nchannels > 0
         [this.channels.units] = deal('unknown');
     else
         [this.channels(cellfun('isempty', {this.channels.units})).units] = deal('unknown');
+    end
+    
+    for i = 1:Nchannels
+        if ~(~isempty(this.channels(i).X_plot2D) && isfinite(this.channels(i).X_plot2D) &&...
+                ~isempty(this.channels(i).Y_plot2D) && isfinite(this.channels(i).Y_plot2D))
+            this.channels(i).X_plot2D = [];
+            this.channels(i).Y_plot2D = [];
+        end
     end
 end
 
