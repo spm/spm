@@ -33,9 +33,9 @@ function spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 5449 2013-04-25 15:51:04Z guillaume $
+% $Id: spm_render.m 5574 2013-07-05 11:30:44Z guillaume $
 
-SVNrev = '$Rev: 5449 $';
+SVNrev = '$Rev: 5574 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -99,8 +99,26 @@ elseif nargin < 1
     end
     showbar = 1;
 else
-    num     = length(dat);
-    showbar = 0;
+    if isstruct(dat)
+        num     = length(dat);
+        showbar = 0;
+    else
+        files = cellstr(dat);
+        clear dat
+        num = numel(files);
+        for i=1:num
+            V  = spm_vol(files{i});
+            d  = spm_read_vols(V);
+            id = find(isfinite(d));
+            [X,Y,Z]    = ind2sub(V.dim,id);
+            dat(i).XYZ = [X Y Z]';
+            dat(i).t   = d(id);
+            dat(i).mat = V.mat;
+            dat(i).dim = V.dim';
+            clear X Y Z id
+        end
+        showbar = 1;
+    end
 end
 
 %-Get brightness & colours (mesh)
