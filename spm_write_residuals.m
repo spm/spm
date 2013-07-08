@@ -5,19 +5,19 @@ function VRes = spm_write_residuals(SPM,Ic)
 % Ic     - contrast index used to adjust data (0:   no adjustment)
 %                                             (NaN: adjust for everything) 
 %
-% Vres   - struct array of residual image handles
+% VRes   - struct array of residual image handles
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_write_residuals.m 5549 2013-06-12 12:41:18Z gareth $
+% $Id: spm_write_residuals.m 5575 2013-07-08 16:38:51Z guillaume $
 
 
 %-Get SPM.mat
- %--------------------------------------------------------------------------
+%--------------------------------------------------------------------------
  if ~nargin || isempty(SPM)
      [SPM,sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-     if ~sts, Vres = ''; return; end
+     if ~sts, VRes = ''; return; end
  end
 
 if ~isstruct(SPM)
@@ -54,41 +54,52 @@ end
 %-Compute and write residuals
 %==========================================================================
 spm('Pointer','Watch')
-N   = numel(SPM.xY.VY);
 M   = SPM.xY.VY(1).mat;
-DIM = SPM.xY.VY(1).dim(1:3)';
+DIM = SPM.xY.VY(1).dim(1:3);
+[nScan, nBeta] = size(SPM.xX.X);
+
+if spm_mesh_detect(SPM.xY.VY)
+    file_ext = '.gii';
+else
+    file_ext = spm_file_ext;
+end
 
 %-Initialise residual images
 %--------------------------------------------------------------------------
-VRes(1:N) = deal(struct(...
+VRes(1:nScan) = deal(struct(...
     'fname',    [],...
-    'dim',      DIM',...
+    'dim',      DIM,...
     'dt',       [spm_type('float64') spm_platform('bigend')],...
     'mat',      M,...
     'pinfo',    [1 0 0]',...
     'descrip',  'Residuals'));
-for i = 1:N
-    VRes(i).fname   = [sprintf('Res_%04d', i) spm_file_ext];
+for i = 1:nScan
+    VRes(i).fname   = [sprintf('Res_%04d', i) file_ext];
     VRes(i).descrip = sprintf('Residuals (%04d)', i);
 end
-VRes = spm_create_vol(VRes);
+VRes = spm_data_hdr_write(VRes);
 
-%-Loop over slices
+%-Loop over chunks
 %--------------------------------------------------------------------------
-spm_progress_bar('Init',DIM(3),'Slices');
-for i=1:DIM(3)
+chunksize = floor(spm_get_defaults('stats.maxmem') / 8 / nScan);
+nbchunks  = ceil(prod(DIM) / chunksize);
+chunks    = min(cumsum([1 repmat(chunksize,1,nbchunks)]),prod(DIM)+1);
+
+spm_progress_bar('Init',nbchunks,'Writing residuals','Chunks');
+
+for i=1:nbchunks
+    chunk = chunks(i):chunks(i+1)-1;
     
     %-Get mask
     %----------------------------------------------------------------------
-    m = spm_slice_vol(SPM.VM,spm_matrix([0 0 i]),DIM(1:2),0) > 0;
+    m = spm_data_read(SPM.VM,chunk) > 0;
     m = m(:)';
     
     %-Get raw data, whiten and filter
     %----------------------------------------------------------------------
-    y = zeros(N,prod(DIM(1:2)));
-    for j=1:N
-        tmp = spm_slice_vol(SPM.xY.VY(j),spm_matrix([0 0 i]),DIM(1:2),0);
-        y(j,:) = tmp(:)';
+    y = zeros(nScan,numel(chunk));
+    for j=1:nScan
+        y(j,:) = spm_data_read(SPM.xY.VY(j),chunk);
     end
     y(:,~m) = [];
     
@@ -98,10 +109,9 @@ for i=1:DIM(3)
         
         %-Parameter estimates: beta = xX.pKX*xX.K*y
         %------------------------------------------------------------------
-        beta = zeros(numel(SPM.Vbeta),prod(DIM(1:2)));
-        for j=1:numel(SPM.Vbeta)
-            tmp = spm_slice_vol(SPM.Vbeta(j),spm_matrix([0 0 i]),DIM(1:2),0);
-            beta(j,:) = tmp(:)';
+        beta = zeros(nBeta,numel(chunk));
+        for j=1:nBeta
+            beta(j,:) = spm_data_read(SPM.Vbeta(j),chunk);
         end
         beta(:,~m) = [];
         
@@ -117,10 +127,10 @@ for i=1:DIM(3)
     
     %-Write residuals
     %----------------------------------------------------------------------
-    yy = NaN(DIM(1:2)');
-    for j=1:N
-        yy(m) = y(j,:);
-        VRes(j) = spm_write_plane(VRes(j),yy,i);
+    yy = NaN(numel(chunk),1);
+    for j=1:nScan
+        yy(m)   = y(j,:);
+        VRes(j) = spm_data_write(VRes(j), yy, chunk); 
     end
     
     spm_progress_bar('Set',i)

@@ -8,9 +8,9 @@ function out = spm_run_fmri_est(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 5008 2012-10-16 18:13:25Z guillaume $
+% $Id: spm_run_fmri_est.m 5575 2013-07-08 16:38:51Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -90,18 +90,27 @@ if isfield(job.method,'Classical')
         
     end
     
+    if job.write_residuals
+        spm_write_residuals(SPM,NaN);
+    end
+    
     %-Computation results
     %----------------------------------------------------------------------
     %out.spmvar = SPM;
-    out.beta = cellfun(@(fn)fullfile(SPM.swd,fn), cellstr(char(SPM.Vbeta(:).fname)),'UniformOutput',false);
-    out.mask = {fullfile(SPM.swd,SPM.VM.fname)};
+    out.beta  = spm_file({SPM.Vbeta(:).fname}','path',SPM.swd);
+    out.mask  = {fullfile(SPM.swd,SPM.VM.fname)};
     out.resms = {fullfile(SPM.swd,SPM.VResMS.fname)};
     cd(original_dir);
     fprintf('Done\n');
     return
 end
 
+if job.write_residuals
+    warning('Save residuals option is only implemented for classical inference.');
+    job.write_residuals = false;
+end
 
+    
 %==========================================================================
 %        B A Y E S I A N   2nd   L E V E L   E S T I M A T I O N
 %==========================================================================

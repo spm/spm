@@ -1,13 +1,14 @@
 function fmri_est = spm_cfg_fmri_est
 % SPM Configuration file for Model Estimation
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 5445 2013-04-24 16:45:54Z will $
+% $Id: spm_cfg_fmri_est.m 5575 2013-07-08 16:38:51Z guillaume $
 
-% ---------------------------------------------------------------------
+
+%==========================================================================
 % spmmat Select SPM.mat
-% ---------------------------------------------------------------------
+%==========================================================================
 spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
@@ -18,37 +19,43 @@ spmmat.help    = {
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
-% ---------------------------------------------------------------------
-% Classical Classical
-% ---------------------------------------------------------------------
-Classical         = cfg_const;
-Classical.tag     = 'Classical';
-Classical.name    = 'Classical';
-Classical.val     = {1};
-Classical.help    = {
+
+%==========================================================================
+% Classical Classical Inference
+%==========================================================================
+Classical      = cfg_const;
+Classical.tag  = 'Classical';
+Classical.name = 'Classical';
+Classical.val  = {1};
+Classical.help = {
                      'Model parameters are estimated using Restricted Maximum Likelihood (ReML). This assumes the error correlation structure is the same at each voxel. This correlation can be specified using either an AR(1) or an Independent and Identically Distributed (IID) error model. These options are chosen at the model specification stage. ReML estimation should be applied to spatially smoothed functional images.'
                      ''
                      'After estimation, specific profiles of parameters are tested using a linear compound or contrast with the T or F statistic. The resulting statistical map constitutes an SPM. The SPM{T}/{F} is then characterised in terms of focal or regional differences by assuming that (under the null hypothesis) the components of the SPM (ie. residual fields) behave as smooth stationary Gaussian fields.'
 }';
-% ---------------------------------------------------------------------
-% Volume Volume
-% ---------------------------------------------------------------------
-volBlocktype         = cfg_menu;
-volBlocktype.tag     = 'block_type';
-volBlocktype.name    = 'Block type';
-volBlocktype.val     = {'Slices'};
-volBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
-volBlocktype.labels  = {'Slices', 'Subvolumes'}';
+
+%--------------------------------------------------------------------------
+% volBlocktype Block type
+%--------------------------------------------------------------------------
+volBlocktype        = cfg_menu;
+volBlocktype.tag    = 'block_type';
+volBlocktype.name   = 'Block type';
+volBlocktype.val    = {'Slices'};
+volBlocktype.help   = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+volBlocktype.labels = {'Slices', 'Subvolumes'}';
 volBlocktype.values = {'Slices', 'Subvolumes'}';
 
-Volume         = cfg_branch;
-Volume.tag     = 'volume';
-Volume.name    = 'Volume';
-Volume.val     = {volBlocktype};
-Volume.help    = {'A volume of data is analysed in "blocks", which can be a slice or 3D subvolume, where the extent of each subvolume is determined using a graph partitioning algorithm. Enter the block type, i.e. "Slices" or "Subvolumes".'};
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+% Volume Volume
+%--------------------------------------------------------------------------
+Volume      = cfg_branch;
+Volume.tag  = 'volume';
+Volume.name = 'Volume';
+Volume.val  = {volBlocktype};
+Volume.help = {'A volume of data is analysed in "blocks", which can be a slice or 3D subvolume, where the extent of each subvolume is determined using a graph partitioning algorithm. Enter the block type, i.e. "Slices" or "Subvolumes".'};
+
+%--------------------------------------------------------------------------
 % Slices Slices
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 SliceNs         = cfg_entry;
 SliceNs.tag     = 'numbers';
 SliceNs.name    = 'Slice numbers';
@@ -56,22 +63,29 @@ SliceNs.help    = {' '};
 SliceNs.strtype = 'e';
 SliceNs.num     = [Inf 1];
 
-slBlocktype         = cfg_menu;
-slBlocktype.tag     = 'block_type';
-slBlocktype.name    = 'Block type';
-slBlocktype.val     = {'Slices'};
-slBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
-slBlocktype.labels  = {'Slices', 'Subvolumes'}';
+%--------------------------------------------------------------------------
+% slBlocktype Block type
+%--------------------------------------------------------------------------
+slBlocktype        = cfg_menu;
+slBlocktype.tag    = 'block_type';
+slBlocktype.name   = 'Block type';
+slBlocktype.val    = {'Slices'};
+slBlocktype.help   = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+slBlocktype.labels = {'Slices', 'Subvolumes'}';
 slBlocktype.values = {'Slices', 'Subvolumes'}';
 
-Slices         = cfg_branch;
-Slices.tag     = 'slices';
-Slices.name    = 'Slices';
-Slices.val     = {SliceNs slBlocktype};
-Slices.help    = {'Enter Slice Numbers. This can be a single slice or multiple slices. If you select a single slice or only a few slices you must be aware of the interpolation options when, after estimation, displaying the estimated images eg. images of contrasts or AR maps. The default interpolation option may need to be changed to nearest neighbour (NN) (see bottom right hand of graphics window) for you slice maps to be visible.'};
-% ---------------------------------------------------------------------
-% Clusters 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+% Slices Slices
+%--------------------------------------------------------------------------
+Slices      = cfg_branch;
+Slices.tag  = 'slices';
+Slices.name = 'Slices';
+Slices.val  = {SliceNs slBlocktype};
+Slices.help = {'Enter Slice Numbers. This can be a single slice or multiple slices. If you select a single slice or only a few slices you must be aware of the interpolation options when, after estimation, displaying the estimated images eg. images of contrasts or AR maps. The default interpolation option may need to be changed to nearest neighbour (NN) (see bottom right hand of graphics window) for you slice maps to be visible.'};
+
+%--------------------------------------------------------------------------
+% Clustermask Cluster mask
+%--------------------------------------------------------------------------
 Clustermask         = cfg_files;
 Clustermask.tag     = 'mask';
 Clustermask.name    = 'Cluster mask';
@@ -80,31 +94,39 @@ Clustermask.filter  = 'image';
 Clustermask.ufilter = '.*';
 Clustermask.num     = [0 1];
 
-clBlocktype         = cfg_menu;
-clBlocktype.tag     = 'block_type';
-clBlocktype.name    = 'Block type';
-clBlocktype.val     = {'Slices'};
-clBlocktype.help    = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
-clBlocktype.labels  = {'Slices', 'Subvolumes'}';
-clBlocktype.values  = {'Slices', 'Subvolumes'}';
+%--------------------------------------------------------------------------
+%  clBlocktype Block type
+%--------------------------------------------------------------------------
+clBlocktype        = cfg_menu;
+clBlocktype.tag    = 'block_type';
+clBlocktype.name   = 'Block type';
+clBlocktype.val    = {'Slices'};
+clBlocktype.help   = {'Enter the block type, i.e. "Slices" or "Subvolumes"'}';
+clBlocktype.labels = {'Slices', 'Subvolumes'}';
+clBlocktype.values = {'Slices', 'Subvolumes'}';
 
-Clusters         = cfg_branch;
-Clusters.tag     = 'clusters';
-Clusters.name    = 'Clusters';
-Clusters.val     = {Clustermask clBlocktype};
-Clusters.help    = {'Because estimation can be time consuming an option is provided to analyse selected clusters rather than the whole volume.'};
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+% Clusters Clusters
+%--------------------------------------------------------------------------
+Clusters      = cfg_branch;
+Clusters.tag  = 'clusters';
+Clusters.name = 'Clusters';
+Clusters.val  = {Clustermask clBlocktype};
+Clusters.help = {'Because estimation can be time consuming an option is provided to analyse selected clusters rather than the whole volume.'};
+
+%--------------------------------------------------------------------------
 % space Analysis Space
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 space         = cfg_choice;
 space.tag     = 'space';
 space.name    = 'Analysis Space';
 space.val     = {Volume};
 space.help    = {'Because estimation can be time consuming options are provided to analyse selected slices or clusters rather than the whole volume.'};
 space.values  = {Volume Slices Clusters};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % LogEv - Compute F 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 LogEv         = cfg_menu;
 LogEv.tag     = 'LogEv';
 LogEv.name    = 'Log evidence map';
@@ -117,9 +139,10 @@ LogEv.help    = {
                 'design matrix columns (except for the mean) to have unit variance'};
 LogEv.labels  = {'No','Yes'}';
 LogEv.values  = {'No','Yes'}';
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % signal Signal priors
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 signal         = cfg_menu;
 signal.tag     = 'signal';
 signal.name    = 'Signal priors';
@@ -153,9 +176,10 @@ signal.values = {
                  'Uninformative'
 }';
 signal.val     = {'UGL'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % ARP AR model order
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 ARP         = cfg_entry;
 ARP.tag     = 'ARP';
 ARP.name    = 'AR model order';
@@ -169,33 +193,37 @@ ARP.help    = {
 ARP.strtype = 'e';
 ARP.num     = [Inf 1];
 ARP.val     = {3};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % UGL UGL
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 UGL         = cfg_const;
 UGL.tag     = 'UGL';
 UGL.name    = 'UGL';
 UGL.val     = {1};
 UGL.help    = {'[UGL] Unweighted graph-Laplacian. This is the default option. This spatial prior is the same as that used for the regression coefficients. Spatial precisions are estimated separately for each AR coefficient eg. the AR(1) coefficient over space, AR(2) over space etc. '};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % GMRF GMRF
-% ---------------------------------------------------------------------
-GMRF         = cfg_const;
-GMRF.tag     = 'GMRF';
-GMRF.name    = 'GMRF';
-GMRF.val     = {1};
-GMRF.help    = {'[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regresion coefficients. '};
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+GMRF        = cfg_const;
+GMRF.tag    = 'GMRF';
+GMRF.name   = 'GMRF';
+GMRF.val    = {1};
+GMRF.help   = {'[GMRF] Gaussian Markov Random Field. See comments on GMRF priors for regresion coefficients. '};
+
+%--------------------------------------------------------------------------
 % LORETA LORETA
-% ---------------------------------------------------------------------
-LORETA         = cfg_const;
-LORETA.tag     = 'LORETA';
-LORETA.name    = 'LORETA';
-LORETA.val     = {1};
-LORETA.help    = {'[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.'};
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+LORETA      = cfg_const;
+LORETA.tag  = 'LORETA';
+LORETA.name = 'LORETA';
+LORETA.val  = {1};
+LORETA.help = {'[LORETA] Low resolution Tomography Prior. See comments on LORETA priors for regresion coefficients.'};
+
+%--------------------------------------------------------------------------
 % tissue_type Tissue-type
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tissue_type         = cfg_files;
 tissue_type.tag     = 'tissue_type';
 tissue_type.name    = 'Tissue-type';
@@ -204,20 +232,22 @@ tissue_type.help    = {
                        ''
                        'Previous work has shown that there is significant variation in AR values with tissue type. However, GMRF priors have previously been favoured by Bayesian model comparison.'
 }';
-tissue_type.filter = 'image';
+tissue_type.filter  = 'image';
 tissue_type.ufilter = '.*';
 tissue_type.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % Robust Robust
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Robust         = cfg_const;
 Robust.tag     = 'Robust';
 Robust.name    = 'Robust';
 Robust.val     = {1};
 Robust.help    = {'Robust GLM. Uses Mixture of Gaussians noise model.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % noise Noise priors
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 noise         = cfg_choice;
 noise.tag     = 'noise';
 noise.name    = 'Noise priors';
@@ -227,9 +257,10 @@ noise.help    = {
                  '(4) Tissue-type and (5) Robust'
 }';
 noise.values  = {UGL GMRF LORETA tissue_type Robust };
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % first First level
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 first         = cfg_menu;
 first.tag     = 'first';
 first.name    = 'First level';
@@ -239,21 +270,16 @@ first.help    = {
                  ''
                  'To use this option you must have already specified your factorial design during the model specification stage. '
 }';
-first.labels = {
-                'No'
-                'Yes'
-}';
-first.values = {
-                'No'
-                'Yes'
-}';
-% ---------------------------------------------------------------------
+first.labels  = {'No', 'Yes'};
+first.values  = {'No', 'Yes'};
+
+%--------------------------------------------------------------------------
 % second Second level
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 second         = cfg_menu;
 second.tag     = 'second';
 second.name    = 'Second level';
-second.val = {'Yes'};
+second.val     = {'Yes'};
 second.help    = {
                   'This option tells SPM to automatically generate the simple contrasts that are necessary to produce the contrast images for a second-level (between-subject) ANOVA. Naturally, these contrasts can also be used to characterise simple effects for each subject. '
                   ''
@@ -263,51 +289,50 @@ second.help    = {
                   ''
                   'If you wish to use these contrast images for a second-level analysis then you will need to spatially smooth them to take into account between-subject differences in functional anatomy ie. the fact that one persons V5 may be in a different position than anothers. '
 }';
-second.labels = {
-                 'No'
-                 'Yes'
-}';
-second.values = {
-                 'No'
-                 'Yes'
-}';
-% ---------------------------------------------------------------------
+second.labels = {'No', 'Yes'};
+second.values = {'No', 'Yes'};
+
+%--------------------------------------------------------------------------
 % anova ANOVA
-% ---------------------------------------------------------------------
-anova         = cfg_branch;
-anova.tag     = 'anova';
-anova.name    = 'ANOVA';
-anova.val     = {first second };
-anova.help    = {'Perform 1st or 2nd level Analysis of Variance.'};
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
+anova        = cfg_branch;
+anova.tag    = 'anova';
+anova.name   = 'ANOVA';
+anova.val    = {first second };
+anova.help   = {'Perform 1st or 2nd level Analysis of Variance.'};
+
+%--------------------------------------------------------------------------
 % name Name
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 name         = cfg_entry;
 name.tag     = 'name';
 name.name    = 'Name';
 name.help    = {'Name of contrast eg. ''Positive Effect'''};
 name.strtype = 's';
 name.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % convec Contrast vector
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 convec         = cfg_entry;
 convec.tag     = 'convec';
 convec.name    = 'Contrast vector';
 convec.help    = {'These contrasts are used to generate PPMs which characterise effect sizes at each voxel. This is in contrast to SPMs in which eg. maps of t-statistics show the ratio of the effect size to effect variability (standard deviation). SPMs are therefore a-dimensional. This is not the case for PPMs as the size of the effect is of primary interest. Some care is therefore needed about the scaling of contrast vectors. For example, if you are interested in the differential effect size averaged over conditions then the contrast 0.5 0.5 -0.5 -0.5 would be more suitable than the 1 1 -1 -1 contrast which looks at the differential effect size summed over conditions. '};
 convec.strtype = 'e';
 convec.num     = [Inf 1];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % gcon Simple contrast
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 gcon         = cfg_branch;
 gcon.tag     = 'gcon';
 gcon.name    = 'Simple contrast';
 gcon.val     = {name convec };
 gcon.help    = {''};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % generic Simple contrasts
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 generic         = cfg_repeat;
 generic.tag     = 'generic';
 generic.name    = 'Simple contrasts';
@@ -322,13 +347,14 @@ generic.help    = {
 }';
 generic.values  = {gcon };
 generic.num     = [0 Inf];
-% ---------------------------------------------------------------------
+
+%==========================================================================
 % Bayesian Bayesian 1st-level
-% ---------------------------------------------------------------------
+%==========================================================================
 Bayesian         = cfg_branch;
 Bayesian.tag     = 'Bayesian';
 Bayesian.name    = 'Bayesian 1st-level';
-Bayesian.val     = {space signal ARP noise LogEv anova generic };
+Bayesian.val     = {space signal ARP noise LogEv anova generic};
 Bayesian.help    = {
                     'Model parameters are estimated using Variational Bayes (VB). This allows you to specify spatial priors for regression coefficients and regularised voxel-wise AR(P) models for fMRI noise processes. The algorithm does not require functional images to be spatially smoothed. Estimation will take about 5 times longer than with the classical approach. This is why VB is not the default estimation option. '
                     ''
@@ -336,40 +362,56 @@ Bayesian.help    = {
                     ''
                     'After estimation, contrasts are used to find regions with effects larger than a user-specified size eg. 1 per cent of the global mean signal. These effects are assessed statistically using a Posterior Probability Map (PPM).'
 }';
-% ---------------------------------------------------------------------
+
+%==========================================================================
 % Bayesian2 Bayesian 2nd-level
-% ---------------------------------------------------------------------
+%==========================================================================
 Bayesian2         = cfg_const;
 Bayesian2.tag     = 'Bayesian2';
 Bayesian2.name    = 'Bayesian 2nd-level';
 Bayesian2.val     = {1};
 Bayesian2.help    = {'Bayesian estimation of 2nd level models. This option uses the Empirical Bayes algorithm with global shrinkage priors that was previously implemented in SPM2. Use of the global shrinkage prior embodies a prior belief that, on average over all voxels, there is no net experimental effect. Some voxels will respond negatively and some positively with a variability determined by the prior precision. This prior precision can be estimated from the data using Empirical Bayes. '};
-% ---------------------------------------------------------------------
+
+%==========================================================================
 % method Method
-% ---------------------------------------------------------------------
+%==========================================================================
 method         = cfg_choice;
 method.tag     = 'method';
 method.name    = 'Method';
-method.val     = {Classical };
+method.val     = {Classical};
 method.help    = {
                   'There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses a Variational Bayes (VB) algorithm that is new to SPM5. Option (3) uses the Empirical Bayes algorithm with global shrinkage priors that was also in SPM2. '
                   ''
                   'To use option (3) you must have already estimated the model using option (1). That is, for second-level models you must run a ReML estimation before running a Bayesian estimation. This is not necessary for option (2). Bayesian estimation of 1st-level models using VB does not require a prior ReML estimation.'
 }';
 method.values  = {Classical Bayesian Bayesian2};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
+% write_residuals Write Residuals
+%--------------------------------------------------------------------------
+write_residuals        = cfg_menu;
+write_residuals.tag    = 'write_residuals';
+write_residuals.name   = 'Write residuals';
+write_residuals.val    = {0};
+write_residuals.help   = {'Write images of residuals to disk. This is only implemented for classical inference.'};
+write_residuals.labels = {'No', 'Yes'};
+write_residuals.values = {0, 1};
+
+%--------------------------------------------------------------------------
 % fmri_est Model estimation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fmri_est          = cfg_exbranch;
 fmri_est.tag      = 'fmri_est';
 fmri_est.name     = 'Model estimation';
-fmri_est.val      = {spmmat method };
+fmri_est.val      = {spmmat write_residuals method};
 fmri_est.help     = {'Model parameters can be estimated using classical (ReML - Restricted Maximum Likelihood) or Bayesian algorithms. After parameter estimation, the RESULTS button can be used to specify contrasts that will produce Statistical Parametric Maps (SPMs) or Posterior Probability Maps (PPMs) and tables of statistics.'};
 fmri_est.prog     = @spm_run_fmri_est;
 fmri_est.vout     = @vout_stats;
 fmri_est.modality = {'FMRI' 'PET' 'EEG'};
 
 
+%==========================================================================
+% function dep = vout_stats(job)
 %==========================================================================
 function dep = vout_stats(job)
 dep(1)            = cfg_dep;
@@ -395,4 +437,4 @@ if isfield(job.method, 'Classical')
     dep(4).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
     % can't check whether auto-generated contrasts are generated this is
     % specified in input SPM.mat, not this job
-end;
+end
