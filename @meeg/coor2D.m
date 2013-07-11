@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5535 2013-06-10 14:18:34Z vladimir $
+% $Id: coor2D.m 5576 2013-07-11 12:24:56Z vladimir $
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});
@@ -39,40 +39,42 @@ end
 
 if nargin < 3 || isempty(val)
     if ~isempty(intersect(ind, megind))
-        if ~any(cellfun('isempty', {this.channels(megind).X_plot2D}))
+        if ~any(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
             meg_xy = [this.channels(megind).X_plot2D; this.channels(megind).Y_plot2D];
-        elseif all(cellfun('isempty', {this.channels(megind).X_plot2D}))
+        elseif all(cellfun('isempty', {this.channels(megind).X_plot2D this.channels(megind).Y_plot2D}))
             meg_xy = grid(length(megind));
         else
             error('Either all or none of MEG channels should have 2D coordinates defined.');
         end
     end
-
+    
     if ~isempty(intersect(ind, eegind))
         if this.montage.Mind==0
-            if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+            if ~any(cellfun('isempty', {this.channels(eegind).X_plot2D this.channels(eegind).Y_plot2D}))
                 eeg_xy = [this.channels(eegind).X_plot2D; this.channels(eegind).Y_plot2D];
-            elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D}))
+            elseif all(cellfun('isempty', {this.channels(eegind).X_plot2D this.channels(eegind).Y_plot2D}))
                 eeg_xy = grid(length(eegind));
             else
                 error('Either all or none of EEG channels should have 2D coordinates defined.');
             end
         else
-            if ~any(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D}))
+            if ~any(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D ...
+                    this.montage.M(this.montage.Mind).channels(eegind).Y_plot2D}))
                 eeg_xy = [this.montage.M(this.montage.Mind).channels(eegind).X_plot2D; ...
                     this.montage.M(this.montage.Mind).channels(eegind).Y_plot2D];
-            elseif all(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D}))
+            elseif all(cellfun('isempty', {this.montage.M(this.montage.Mind).channels(eegind).X_plot2D...
+                    this.montage.M(this.montage.Mind).channels(eegind).Y_plot2D}))
                 eeg_xy = grid(length(eegind));
             else
                 error('Either all or none of EEG channels should have 2D coordinates defined.');
             end
         end
     end
-
+    
     if ~isempty(intersect(ind, otherind))
         other_xy = grid(length(otherind));
     end
-
+    
     xy = zeros(2, length(ind));
     plotind = zeros(1, length(ind));
     for i = 1:length(ind)
@@ -94,11 +96,11 @@ if nargin < 3 || isempty(val)
             end
         end
     end
-
+    
     if nargin > 3 && ~isempty(mindist)
         xy = shiftxy(xy,mindist);
     end
-
+    
     res = xy;
 else
     if this.montage.Mind==0
@@ -135,10 +137,10 @@ while (~isempty(i) && l<50)
     xdiff = repmat(x,length(x),1) - repmat(x',1,length(x));
     ydiff = repmat(y,length(y),1) - repmat(y',1,length(y));
     xydist= sqrt(xdiff.^2 + ydiff.^2); %euclidean distance between all sensor pairs
-
+    
     [i,j] = find(xydist<mindist*0.999);
     rm=(i<=j); i(rm)=[]; j(rm)=[]; %only look at i>j
-
+    
     for m = 1:length(i);
         if (xydist(i(m),j(m)) == 0)
             diffvec = [mindist./sqrt(2) mindist./sqrt(2)];
