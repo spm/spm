@@ -10,7 +10,7 @@ function chanind = selectchannels(this, channels)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: selectchannels.m 5212 2013-01-26 13:16:36Z vladimir $
+% $Id: selectchannels.m 5578 2013-07-12 15:30:00Z vladimir $
 
 if ischar(channels)
     channels = {channels};
@@ -24,6 +24,10 @@ for i = 1:numel(channels)
         chanind = [chanind indchantype(this, upper(channels{i}))];
     else
         chanind = [chanind indchannel(this, channels{i})];
+    end
+    
+    if any(size(chanind) == 0)
+        chanind = [];
     end
 end
 
