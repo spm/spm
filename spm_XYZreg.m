@@ -167,7 +167,7 @@ function varargout = spm_XYZreg(varargin)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Chloe Hutton
-% $Id: spm_XYZreg.m 4838 2012-08-14 11:35:41Z guillaume $
+% $Id: spm_XYZreg.m 5581 2013-07-16 15:28:33Z guillaume $
 
 
 
@@ -521,16 +521,6 @@ if nargin<5
 end
 
 varargout = {xyz,d};
-
-if ~strcmp(mfn,'spm_graph')
-    sHdl=findobj(0,'Tag','SPMGraphSatelliteFig');
-    axHdl=findobj(sHdl,'Type','axes','Tag','SPMGraphSatelliteAxes');
-    %tag for true axis, as legend is of type axis, too
-    for j=1:length(axHdl)
-        autoinp=get(axHdl(j),'UserData');
-        if ~isempty(autoinp), spm_graph([],[],hReg,axHdl(j)); end
-    end
-end
 
 
 
