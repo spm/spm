@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8123 2013-05-09 21:30:13Z josdie $
+% $Id: ft_read_data.m 8277 2013-06-24 23:08:38Z josdie $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -635,7 +635,7 @@ switch dataformat
     dimord = 'chans_samples_trials';
     
   case 'egi_sbin'
-    if (mod(hdr.orig.header_array(1),2)==0) && ~(hdr.orig.header_array(14))==0 && (hdr.orig.header_array(15) > 1),
+    if (bitand(hdr.orig.header_array(1),1) == 0) && ~((hdr.orig.header_array(14)==0) && (hdr.orig.header_array(15) > 1)),
       %unsegmented data contains only 1 trial, don't read the whole file
       dat = read_sbin_data(filename, hdr, begsample, endsample, chanindx);
       requestsamples = 0;

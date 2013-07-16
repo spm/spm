@@ -27,7 +27,7 @@ function vol = ft_headmodel_dipoli(geom, varargin)
 %
 % See also FT_PREPARE_VOL_SENS, FT_COMPUTE_LEADFIELD
 
-% $Id: ft_headmodel_dipoli.m 7310 2013-01-14 15:44:07Z roboos $
+% $Id: ft_headmodel_dipoli.m 8305 2013-07-02 09:59:57Z roboos $
 
 ft_hastoolbox('dipoli', 1);
 
@@ -79,6 +79,13 @@ else
   % convert into a boolean
   isolatedsource = istrue(isolatedsource);
 end
+
+if isolatedsource
+  fprintf('using isolated source approach\n');
+else
+  fprintf('not using isolated source approach\n');
+end
+
 
 % determine the desired nesting of the compartments
 order = surface_nesting(vol.bnd, 'outsidefirst');

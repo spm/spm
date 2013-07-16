@@ -22,13 +22,13 @@ function [cfg, M] = ft_sourcemovie(cfg, source, source2)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 8175 2013-06-04 06:46:31Z jansch $
+% $Id: ft_sourcemovie.m 8269 2013-06-14 19:16:03Z jansch $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_sourcemovie.m 8175 2013-06-04 06:46:31Z jansch $';
+revision = '$Id: ft_sourcemovie.m 8269 2013-06-14 19:16:03Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -249,9 +249,9 @@ set(hx, 'position', [0.4 0.08 0.6 0.8]);
 set(hx, 'tag', 'mesh');
 if isfield(source, 'sulc')
   vdat = source.sulc;
-  vdat = vdat-min(vdat)+1;
+  vdat = vdat-min(vdat);
   vdat = vdat./max(vdat);
-  vdat = 0.8.*repmat(vdat,[1 3]);
+  vdat = 0.1+0.3.*repmat(round(1-vdat),[1 3]);
   hs1 = ft_plot_mesh(source, 'edgecolor', 'none', 'vertexcolor', vdat);
 else
   hs1 = ft_plot_mesh(source, 'edgecolor', 'none', 'facecolor', [0.5 0.5 0.5]);

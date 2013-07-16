@@ -35,7 +35,7 @@ function output = fourier2crsspctrm(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fourier2crsspctrm.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fourier2crsspctrm.m 8285 2013-06-28 10:38:18Z roboos $
 
 if ~isfield(cfg, 'channel'),     cfg.channel     = {'all'};                       end
 if ~isfield(cfg, 'channelcmb'),  cfg.channelcmb  = {};                            end
@@ -47,7 +47,7 @@ if ~isfield(cfg, 'feedback'),    cfg.feedback    = 'text';                      
 chn     = channelselection(cfg.channel,freq.label);
 for j = 1:length(chn)
   chnindx(j,1) = find(strcmp(chn(j), freq.label));
-  %chnindx(j,1) = strmatch(chn{j}, freq.label, 'exact');
+  %chnindx(j,1) = find(strcmp(chn{j}, freq.label));
 end
 
 %convert the channelcombinations to indices
@@ -56,8 +56,8 @@ cmbindx = zeros(size(chncmb,1),2);
 for j = 1:size(chncmb,1)
   cmbindx(j,1) = find(strcmp(chncmb(j,1), freq.label));
   cmbindx(j,2) = find(strcmp(chncmb(j,2), freq.label));
-  %cmbindx(j,1) = strmatch(chncmb{j,1}, freq.label, 'exact');
-  %cmbindx(j,2) = strmatch(chncmb{j,2}, freq.label, 'exact');
+  %cmbindx(j,1) = find(strcmp(chncmb{j,1}, freq.label));
+  %cmbindx(j,2) = find(strcmp(chncmb{j,2}, freq.label));
 end
 
 %dimensionality of the input data
@@ -118,7 +118,7 @@ if isempty(output.labelcmb ), output = rmfield(output, 'labelcmb' ); end;
 
 % add information about the version of this function to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: fourier2crsspctrm.m 7123 2012-12-06 21:21:38Z roboos $';
+cfg.version.id = '$Id: fourier2crsspctrm.m 8285 2013-06-28 10:38:18Z roboos $';
 
 % remember the configuration details of the input data
 try, cfg.previous = freq.cfg; end

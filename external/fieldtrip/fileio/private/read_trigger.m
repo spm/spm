@@ -33,7 +33,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 7688 2013-03-18 11:48:14Z jansch $
+% $Id: read_trigger.m 8212 2013-06-06 10:18:34Z eelspa $
 
 event = [];
 
@@ -179,6 +179,12 @@ for i=1:length(chanindx)
         event(end+1).type   = channel;
         event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
         event(end  ).value  = trig(j+trigshift);      % assign the trigger value just _after_ going up
+      end
+    case 'updiff'
+      for j=find(diff([pad trig(:)'])>0)
+        event(end+1).type   = channel;
+        event(end  ).sample = j + begsample - 1;      % assign the sample at which the trigger has gone down
+        event(end  ).value  = trig(j+trigshift)-trig(j-1);      % assign the trigger value just _after_ going up
       end
     case 'down'
       % convert the trigger into an event with a value at a specific sample

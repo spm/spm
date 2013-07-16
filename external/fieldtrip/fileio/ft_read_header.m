@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8073 2013-04-24 20:15:41Z josdie $
+% $Id: ft_read_header.m 8311 2013-07-15 09:29:23Z jansch $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -109,7 +109,7 @@ end
 % get the options
 retry        = ft_getopt(varargin, 'retry', false); % the default is not to retry reading the header
 headerformat = ft_getopt(varargin, 'headerformat');
-coordsys     = ft_getopt(varargin, 'coordsys', 'head'); % this is used for CTF, it can be head or dewar
+coordsys     = ft_getopt(varargin, 'coordsys', 'head'); % this is used for ctf and neuromag_mne, it can be head or dewar
 
 if isempty(headerformat)
   % only do the autodetection if the format was not specified
@@ -183,8 +183,8 @@ if cache && exist(headerfile, 'file') && ~isempty(cacheheader)
 end % if cache
 
 % the support for head/dewar coordinates is still limited
-if strcmp(coordsys, 'dewar') && ~any(strcmp(headerformat, {'fcdc_buffer', 'ctf_ds', 'ctf_meg4', 'ctf_res4'}))
-  error('dewar coordinates are sofar only supported for CTF data');
+if strcmp(coordsys, 'dewar') && ~any(strcmp(headerformat, {'fcdc_buffer', 'ctf_ds', 'ctf_meg4', 'ctf_res4', 'neuromag_fif', 'neuromag_mne', 'babysquid_fif'}))
+  error('dewar coordinates are not supported for %s', headerformat);
 end
   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -724,7 +724,6 @@ switch headerformat
     hdr.orig.ftext  = ftext;
     
   case 'egi_sbin'
-    % segmented type only
     [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(filename);
     [p, f, x]       = fileparts(filename);
     
@@ -1277,7 +1276,7 @@ switch headerformat
 
     % add a gradiometer structure for forward and inverse modelling
     try
-      [grad, elec] = mne2grad(orig);
+      [grad, elec] = mne2grad(orig, strcmp(coordsys, 'dewar'));
       if ~isempty(grad)
         hdr.grad = grad;
       end
@@ -1327,6 +1326,7 @@ switch headerformat
       orig.raw        = raw; % keep all the details
       
     elseif isaverage
+      try,
       evoked_data    = fiff_read_evoked_all(filename);
       vartriallength = any(diff([evoked_data.evoked.first])) || any(diff([evoked_data.evoked.last]));
       if vartriallength
@@ -1353,7 +1353,11 @@ switch headerformat
         orig.info       = evoked_data.info;               % keep all the details
         orig.vartriallength = 0;
       end
-      
+      catch
+        hdr.nSamples    = 0;
+        hdr.nSamplesPre = 0;
+        hdr.nTrials     = 0;
+      end
     elseif isepoched
       error('Support for epoched *.fif data is not yet implemented.')
     end

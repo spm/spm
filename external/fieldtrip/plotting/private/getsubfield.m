@@ -11,7 +11,7 @@ function [s] = getsubfield(s, f);
 %
 % See also GETFIELD, ISSUBFIELD, SETSUBFIELD
 
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -29,7 +29,8 @@ function [s] = getsubfield(s, f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 7660 2013-03-13 16:29:20Z roboos $
+% $Id: getsubfield.m 8268 2013-06-14 12:32:05Z roboos $
+
 if iscell(f)
   f = f{1};
 end

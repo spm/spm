@@ -18,7 +18,7 @@ function [n, fn] = dimlength(data, seldim, fld)
 
 % Copyright (C) 2010, Jan-Mathijs Schoffelen
 %
-% $Id: dimlength.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: dimlength.m 8250 2013-06-12 15:09:53Z jorhor $
 
 if nargin<3
   fld = 'dimord';
@@ -180,11 +180,15 @@ else
       
     case 'chan'
       if ~isfield(data, 'inside'),
-        try
-          n = length(data.label);
-        catch
-          n = size(data.labelcmb, 1);
-        end
+        n = length(data.label);
+      else
+        %error('cannot determine number of repetitions for dim "%s"', seldim);
+        n = nan; %FIXME discuss appending label to source-like data
+      end
+      
+    case 'chancmb'
+      if ~isfield(data, 'inside'),
+        n = size(data.labelcmb, 1);        
       else
         %error('cannot determine number of repetitions for dim "%s"', seldim);
         n = nan; %FIXME discuss appending label to source-like data

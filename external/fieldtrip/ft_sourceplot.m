@@ -176,9 +176,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_sourceplot.m 8195 2013-06-05 15:00:42Z irisim $
 
-revision = '$Id: ft_sourceplot.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_sourceplot.m 8195 2013-06-05 15:00:42Z irisim $';
 
 % do the general setup of the function
 ft_defaults
@@ -886,8 +886,8 @@ elseif isequal(cfg.method,'surface')
     % FIXME this should partially be dealt with by ft_sourceinterpolate
     
     % read the triangulated cortical surface from file
-    tmp  = load(cfg.surffile, 'bnd');
-    surf = tmp.bnd;
+    surf  = ft_read_headshape(cfg.surffile);
+
     if isfield(surf, 'transform'),
       % compute the surface vertices in head coordinates
       surf.pnt = warp_apply(surf.transform, surf.pnt);
@@ -975,13 +975,16 @@ elseif isequal(cfg.method,'surface')
   end
   
   if ~isempty(cfg.surfinflated)
-    % read the inflated triangulated cortical surface from file
-    tmp = load(cfg.surfinflated, 'bnd');
-    surf = tmp.bnd;
-    if isfield(surf, 'transform'),
-      % compute the surface vertices in head coordinates
-      surf.pnt = warp_apply(surf.transform, surf.pnt);
-    end
+      if ~isstruct(cfg.surfinflated)
+          % read the inflated triangulated cortical surface from file
+          surf = ft_read_headshape(cfg.surfinflated);
+      else
+          surf = cfg.surfinflated;
+          if isfield(surf, 'transform'),
+              % compute the surface vertices in head coordinates
+              surf.pnt = warp_apply(surf.transform, surf.pnt);
+          end
+      end
   end
   
   %------do the plotting

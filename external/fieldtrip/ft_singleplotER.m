@@ -103,9 +103,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    you should have received a copy of the gnu general public license
 %    along with fieldtrip. if not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 8161 2013-05-29 07:33:16Z eelspa $
+% $Id: ft_singleplotER.m 8285 2013-06-28 10:38:18Z roboos $
 
-revision = '$Id: ft_singleplotER.m 8161 2013-05-29 07:33:16Z eelspa $';
+revision = '$Id: ft_singleplotER.m 8285 2013-06-28 10:38:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -357,13 +357,13 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
     if ~isfull,
       % convert 2-dimensional channel matrix to a single dimension:
       if isempty(cfg.directionality)
-        sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
-        sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
+        sel1 = find(strcmp(cfg.refchannel, varargin{i}.labelcmb(:,2)));
+        sel2 = find(strcmp(cfg.refchannel, varargin{i}.labelcmb(:,1)));
       elseif strcmp(cfg.directionality, 'outflow')
         sel1 = [];
-        sel2 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,1), 'exact');
+        sel2 = find(strcmp(cfg.refchannel, varargin{i}.labelcmb(:,1)));
       elseif strcmp(cfg.directionality, 'inflow')
-        sel1 = strmatch(cfg.refchannel, varargin{i}.labelcmb(:,2), 'exact');
+        sel1 = find(strcmp(cfg.refchannel, varargin{i}.labelcmb(:,2)));
         sel2 = [];
       end
       fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.parameter);
@@ -566,27 +566,29 @@ if strcmp('yes',cfg.hotkeys)
 end
 
 % set the figure window title, add channel labels if number is small
-if length(sellab) < 5
-  chans = join_str(',', cfg.channel);
-else
-  chans = '<multiple channels>';
-end
-if isfield(cfg, 'dataname')
-  dataname = cfg.dataname;
-elseif nargin > 1
-  dataname = inputname(2);
-  for k = 2:Ndata
-    dataname = [dataname ', ' inputname(k+1)];
+if isempty(get(gcf,'Name'))
+  if length(sellab) < 5
+    chans = join_str(',', cfg.channel);
+  else
+    chans = '<multiple channels>';
   end
-else
-  dataname = cfg.inputfile;
-end
-if isempty(cfg.figurename)
-  set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
-  set(gcf, 'NumberTitle', 'off');
-else
-  set(gcf, 'name', cfg.figurename);
-  set(gcf, 'NumberTitle', 'off');
+  if isfield(cfg, 'dataname')
+    dataname = cfg.dataname;
+  elseif nargin > 1
+    dataname = inputname(2);
+    for k = 2:Ndata
+      dataname = [dataname ', ' inputname(k+1)];
+    end
+  else
+    dataname = cfg.inputfile;
+  end
+  if isempty(cfg.figurename)
+    set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
+    set(gcf, 'NumberTitle', 'off');
+  else
+    set(gcf, 'name', cfg.figurename);
+    set(gcf, 'NumberTitle', 'off');
+  end
 end
 
 % make the figure interactive

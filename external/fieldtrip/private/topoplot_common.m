@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 8163 2013-05-30 19:36:10Z ingnie $
+% $Id: topoplot_common.m 8317 2013-07-16 11:44:40Z jorhor $
 
-revision = '$Id: topoplot_common.m 8163 2013-05-30 19:36:10Z ingnie $';
+revision = '$Id: topoplot_common.m 8317 2013-07-16 11:44:40Z jorhor $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -327,7 +327,7 @@ lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
 
 % Create time-series of small topoplots:
-if ~ischar(cfg.xlim) && length(cfg.xlim)>2
+if ~ischar(cfg.xlim) && length(cfg.xlim)>2 && any(ismember(dimtok, 'time'))
   % Switch off interactive mode:
   cfg.interactive = 'no';
   xlims = cfg.xlim;
@@ -402,13 +402,13 @@ if (isfull || haslabelcmb) && isfield(data, cfg.parameter)
   if ~isfull,
     % Convert 2-dimensional channel matrix to a single dimension:
     if isempty(cfg.directionality)
-      sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
-      sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
+      sel1 = find(strcmp(cfg.refchannel, data.labelcmb(:,2)));
+      sel2 = find(strcmp(cfg.refchannel, data.labelcmb(:,1)));
     elseif strcmp(cfg.directionality, 'outflow')
       sel1 = [];
-      sel2 = strmatch(cfg.refchannel, data.labelcmb(:,1), 'exact');
+      sel2 = find(strcmp(cfg.refchannel, data.labelcmb(:,1)));
     elseif strcmp(cfg.directionality, 'inflow')
-      sel1 = strmatch(cfg.refchannel, data.labelcmb(:,2), 'exact');
+      sel1 = find(strcmp(cfg.refchannel, data.labelcmb(:,2)));
       sel2 = [];
     end
     fprintf('selected %d channels for %s\n', length(sel1)+length(sel2), cfg.parameter);
@@ -823,11 +823,11 @@ if strcmp(cfg.interactive, 'yes')
   info.label = lay.label;
   guidata(gcf, info);
   
-  if any(strcmp(data.dimord, {'chan_time', 'chan_freq', 'subj_chan_time', 'rpt_chan_time', 'chan_chan_freq'}))
+  if any(strcmp(data.dimord, {'chan_time', 'chan_freq', 'subj_chan_time', 'rpt_chan_time', 'chan_chan_freq', 'chancmb_freq', 'rpt_chancmb_freq', 'subj_chancmb_freq'}))
     set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonUpFcn'});
     set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonDownFcn'});
     set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonMotionFcn'});
-  elseif any(strcmp(data.dimord, {'chan_freq_time', 'subj_chan_freq_time', 'rpt_chan_freq_time', 'rpttap_chan_freq_time', 'chan_chan_freq_time'}))
+  elseif any(strcmp(data.dimord, {'chan_freq_time', 'subj_chan_freq_time', 'rpt_chan_freq_time', 'rpttap_chan_freq_time', 'chan_chan_freq_time', 'chancmb_freq_time', 'rpt_chancmb_freq_time', 'subj_chancmb_freq_time'}))
     set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonUpFcn'});
     set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonDownFcn'});
     set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonMotionFcn'});
@@ -836,33 +836,35 @@ if strcmp(cfg.interactive, 'yes')
   end
 end
 
-% set the figure window title
-if isfield(cfg,'funcname')
-  funcname = cfg.funcname;
-else
-  funcname = mfilename;
-end
-if isfield(cfg,'dataname')
-  if iscell(cfg.dataname)
-    dataname = cfg.dataname{indx};
+% set the figure window title, but only if the user has not changed it
+if isempty(get(gcf, 'Name'))
+  if isfield(cfg,'funcname')
+    funcname = cfg.funcname;
   else
-    dataname = cfg.dataname;
+    funcname = mfilename;
   end
-elseif nargin > 1
-  dataname = {inputname(2)};
-  for k = 2:Ndata
-    dataname{end+1} = inputname(k+1);
+  if isfield(cfg,'dataname')
+    if iscell(cfg.dataname)
+      dataname = cfg.dataname{indx};
+    else
+      dataname = cfg.dataname;
+    end
+  elseif nargin > 1
+    dataname = {inputname(2)};
+    for k = 2:Ndata
+      dataname{end+1} = inputname(k+1);
+    end
+  else % data provided through cfg.inputfile
+    dataname = cfg.inputfile;
   end
-else % data provided through cfg.inputfile
-  dataname = cfg.inputfile;
-end
 
-if isempty(cfg.figurename)
-  set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
-  set(gcf, 'NumberTitle', 'off');
-else
-  set(gcf, 'name', cfg.figurename);
-  set(gcf, 'NumberTitle', 'off');
+  if isempty(cfg.figurename)
+    set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+    set(gcf, 'NumberTitle', 'off');
+  else
+    set(gcf, 'name', cfg.figurename);
+    set(gcf, 'NumberTitle', 'off');
+  end
 end
 
 axis off

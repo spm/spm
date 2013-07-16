@@ -53,6 +53,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - VSM-Medtech/CTF
 %  - Yokogawa
 %  - nifti, gifti
+%  - Localite
 
 % Copyright (C) 2003-2011 Robert Oostenveld
 %
@@ -72,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 7351 2013-01-18 05:09:26Z josdie $
+% $Id: ft_filetype.m 8288 2013-06-28 11:53:23Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1088,7 +1089,7 @@ elseif filetype_check_extension(filename, '.foci') && filetype_check_header(file
 elseif filetype_check_extension(filename, '.border') && filetype_check_header(filename, '<?xml')
   type = 'caret_border';
   manufacturer = 'Caret and ConnectomeWB';
-elseif filetype_check_extension(filename, '.spec') && filetype_check_header(filename, '<?xml')
+elseif filetype_check_extension(filename, '.spec') && (filetype_check_header(filename, '<?xml') || filetype_check_header(filename, 'BeginHeader'))
   type = 'caret_spec';
   manufacturer = 'Caret and ConnectomeWB';
 elseif filetype_check_extension(filename, '.gii') && ~isempty(strfind(filename, '.coord.')) && filetype_check_header(filename, '<?xml')
@@ -1129,6 +1130,10 @@ elseif filetype_check_extension(filename, 'trk')
   type = 'trackvis_trk';
   manufacturer = 'Martinos Center for Biomedical Imaging, see http://www.trackvis.org';
   content = 'fiber tracking data from diffusion MR imaging';
+elseif filetype_check_extension(filename, '.xml') &&  filetype_check_header(filename, '<EEGMarkerList', 39)
+  type = 'localite_pos';
+  manufacturer = 'Localite';
+  content = 'EEG electrode positions';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1242,7 +1247,7 @@ if ~isempty(p)
 else
   d = dir;
 end
-res = ~isempty(strmatch(filename,{d.name},'exact'));
+res = any(strcmp(filename,{d.name}));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that checks whether the directory is neuralynx_cds

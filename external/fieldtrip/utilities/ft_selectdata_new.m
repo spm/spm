@@ -37,10 +37,10 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 8133 2013-05-17 15:32:05Z roboos $
+% $Id: ft_selectdata_new.m 8316 2013-07-16 11:42:00Z jorhor $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
-ft_preamble help              % this will show the function help if nargin==0 and return an error
+ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
 ft_preamble provenance        % this records the time and memory usage at teh beginning of the function
 ft_preamble trackconfig       % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug             % this allows for displaying or saving the function name and input arguments upon an error
@@ -56,11 +56,11 @@ end
 
 cfg = ft_checkconfig(cfg, 'renamed', {'toilim' 'latency'});
 
-% this function only works for the new (2013x) source representation without sub-structures 
+% this function only works for the upcoming (not yet standard) source representation without sub-structures 
 if strcmp(dtype, 'source')
   % update the old-style beamformer source reconstruction
   for i=1:length(varargin)
-    varargin{i} = ft_datatype_source(varargin{i}, 'version', '2013x');
+    varargin{i} = ft_datatype_source(varargin{i}, 'version', 'upcoming');
   end
   if isfield(cfg, 'parameter') && length(cfg.parameter)>4 && strcmp(cfg.parameter(1:4), 'avg.')
     cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part
@@ -424,10 +424,10 @@ end % function makeselection
 function data = makeselection_chan(data, selchan, avgoverchan)
 if avgoverchan && all(isnan(selchan))
   data.label = sprintf('%s+', data.label{:});        % concatenate all channel labels
-  data.label = data.label(1:end-1);                  % remove the last '+'
+  data.label = {data.label(1:end-1)};                  % remove the last '+'
 elseif avgoverchan && ~any(isnan(selchan))
   data.label = sprintf('%s+', data.label{selchan});  % concatenate all channel labels
-  data.label = data.label(1:end-1);                  % remove the last '+'
+  data.label = {data.label(1:end-1)};                  % remove the last '+'
 elseif ~isnan(selchan)
   data.label = data.label(selchan);
   data.label = data.label(:);

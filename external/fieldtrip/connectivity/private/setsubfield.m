@@ -1,18 +1,19 @@
-function [r] = issubfield(s, f)
+function [s] = setsubfield(s, f, v);
 
-% ISSUBFIELD tests for the presence of a field in a structure just like the standard
-% Matlab ISFIELD function, except that you can also specify nested fields
-% using a '.' in the fieldname. The nesting can be arbitrary deep.
+% SETSUBFIELD sets the contents of the specified field to a specified value
+% just like the standard Matlab SETFIELD function, except that you can also
+% specify nested fields using a '.' in the fieldname. The nesting can be
+% arbitrary deep.
 %
 % Use as
-%   f = issubfield(s, 'fieldname')
+%   s = setsubfield(s, 'fieldname', value)
 % or as
-%   f = issubfield(s, 'fieldname.subfieldname')
+%   s = setsubfield(s, 'fieldname.subfieldname', value)
 %
-% This function returns true if the field is present and false if the field
-% is not present.
+% where nested is a logical, false denoting that setsubfield will create
+% s.subfieldname instead of s.fieldname.subfieldname
 %
-% See also ISFIELD, GETSUBFIELD, SETSUBFIELD
+% See also SETFIELD, GETSUBFIELD, ISSUBFIELD
 
 % Copyright (C) 2005-2013, Robert Oostenveld
 %
@@ -32,11 +33,19 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: setsubfield.m 8267 2013-06-14 12:27:12Z roboos $
 
-try
-  getsubfield(s, f);    % if this works, then the subfield must be present  
-  r = true;
-catch
-  r = false;                % apparently the subfield is not present
+if ~ischar(f)
+  error('incorrect input argument for fieldname');
 end
+
+t = {};
+while (1)
+  [t{end+1}, f] = strtok(f, '.');
+  if isempty(f)
+    break
+  end
+  
+end
+
+s = setfield(s, t{:}, v);

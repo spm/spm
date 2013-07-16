@@ -44,7 +44,7 @@ function vol = ft_headmodel_interpolate(filename, sens, grid, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_interpolate.m 8180 2013-06-04 13:30:13Z vlalit $
+% $Id: ft_headmodel_interpolate.m 8272 2013-06-18 09:50:03Z vlalit $
 
 % check the validity of the input arguments
 assert(ft_datatype(sens, 'sens'), 'the second input argument should be a sensor definition');
@@ -98,10 +98,16 @@ if isfield(grid, 'leadfield')
       lfy(j) = grid.leadfield{j}(i,2);
       lfz(j) = grid.leadfield{j}(i,3);
     end
-    lf = cat(4, lfx, lfy, lfz);
+    dat = cat(4, lfx, lfy, lfz);
+    if exist('spm_bsplinc', 'file')
+        dat = cat(4, dat, 0*dat);
+        for k = 1:3
+            dat(:, :, :, k+3) = spm_bsplinc(squeeze(dat(:, :, :, k)), [4 4 4 0 0 0]);
+        end
+    end
     vol.filename{i} = sprintf('%s_%s.nii', filename, sens.label{i});
     fprintf('writing single channel leadfield to %s\n', vol.filename{i})
-    ft_write_mri(vol.filename{i}, lf, 'spmversion', 'SPM12');
+    ft_write_mri(vol.filename{i}, dat, 'spmversion', 'SPM12');
   end
   
   filename = sprintf('%s.mat', filename);
@@ -184,8 +190,14 @@ elseif isfield(grid, 'filename')
       weight = make4from1.tra(i,j);
       if weight
         % interpolate the leadfields from the old to the new channels
-        dat = dat + weight * chan{j}.dat(:,:,:,:);
+        dat = dat + weight * chan{j}.dat(:,:,:,1:3);
       end
+    end
+    if exist('spm_bsplinc', 'file')
+        dat = cat(4, dat, 0*dat);
+        for k = 1:3
+            dat(:, :, :, k+3) = spm_bsplinc(squeeze(dat(:, :, :, k)), [4 4 4 0 0 0]);
+        end
     end
     outputvol.filename{i} = sprintf('%s_%s.nii', filename, sens.label{i});
     fprintf('writing single channel leadfield to %s\n', outputvol.filename{i})

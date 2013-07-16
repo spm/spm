@@ -1,20 +1,15 @@
-function [r] = issubfield(s, f)
+function str = fixname(str)
 
-% ISSUBFIELD tests for the presence of a field in a structure just like the standard
-% Matlab ISFIELD function, except that you can also specify nested fields
-% using a '.' in the fieldname. The nesting can be arbitrary deep.
+% FIXNAME changes all inappropriate characters in a sting into '_'
+% such that it can be used as a filename or as a structure field name. If
+% the string begins with a numeric digit, an 'x' is prepended.
 %
 % Use as
-%   f = issubfield(s, 'fieldname')
-% or as
-%   f = issubfield(s, 'fieldname.subfieldname')
+%   str = fixname(str)
 %
-% This function returns true if the field is present and false if the field
-% is not present.
-%
-% See also ISFIELD, GETSUBFIELD, SETSUBFIELD
+% See also DEBLANK
 
-% Copyright (C) 2005-2013, Robert Oostenveld
+% Copyright (C) 2012, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -32,11 +27,15 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: fixname.m 8296 2013-07-01 17:06:52Z roboos $
 
-try
-  getsubfield(s, f);    % if this works, then the subfield must be present  
-  r = true;
-catch
-  r = false;                % apparently the subfield is not present
+str = lower(str);
+str(regexp(str,'\W')) = '_';
+
+while(str(1) == '_'),   str = str(2:end); end;   % remove all underscore at the begin of the string
+while(str(end) == '_'), str = str(1:end-1); end; % remove all underscore at the end of the string
+
+if ~isempty(str2num(str(1))) && ~isequal(str(1), 'i')
+  % the string begins with a digit, prepend an 'x'
+  str = ['x' str];
 end

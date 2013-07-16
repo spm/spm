@@ -1,4 +1,4 @@
-function [output, firstIndexPoint] = read_hs_file( filename, outfile)
+function [output, firstIndexPoint] = read_4d_hs( filename, outfile)
 
 %read_hs_file Reads in BTI-Headshape files
 %   filename: file with the headshape informations
@@ -23,17 +23,17 @@ function [output, firstIndexPoint] = read_hs_file( filename, outfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_hs.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_bti_hs.m 8313 2013-07-15 09:31:42Z jansch $
 
 if nargin == 1
     outfile = [];
 end %if
 
-fid = fopen(filename, 'r', 'b');
-version = fread(fid, 1, '*uint32');
+fid       = fopen(filename, 'r', 'b');
+version   = fread(fid, 1, '*uint32');
 timestamp = fread(fid, 1, '*int32');
-checksum = fread(fid, 1, '*int32');
-nPoints = fread(fid, 1, '*int32');
+checksum  = fread(fid, 1, '*int32');
+nPoints   = fread(fid, 1, '*int32');
 
 firstIndexPoint = fread(fid, [3, 5], 'double')';
 

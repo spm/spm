@@ -105,7 +105,7 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_databrowser.m 8271 2013-06-16 11:38:09Z roevdmei $
 
 % Undocumented options
 %
@@ -116,7 +116,7 @@ function [cfg] = ft_databrowser(cfg, data)
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_databrowser.m 8271 2013-06-16 11:38:09Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -1675,7 +1675,7 @@ elseif any(strcmp(cfg.viewmode, {'vertical' 'component'}))
       % this is a cheap quick fix. If it causes error in plotting components, do this conditional on viewmode
       if numel(findobj(h,'tag', 'chanlabel'))<numel(chanindx)
         if opt.plotLabelFlag == 1 || (opt.plotLabelFlag == 2 && mod(i,10)==0)
-          ft_plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'tag', 'chanlabel', 'HorizontalAlignment', 'right','interpreter','none');
+          ft_plot_text(labelx(laysel), labely(laysel), opt.hdr.label(chanindx(i)), 'tag', 'chanlabel', 'HorizontalAlignment', 'right','interpreter','none','FontUnits','normalized','FontSize',0.9/2/numel(chanindx));
         end
       end
       

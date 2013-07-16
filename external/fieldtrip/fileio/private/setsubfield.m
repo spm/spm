@@ -15,7 +15,7 @@ function [s] = setsubfield(s, f, v);
 %
 % See also SETFIELD, GETSUBFIELD, ISSUBFIELD
 
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -33,7 +33,7 @@ function [s] = setsubfield(s, f, v);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: setsubfield.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: setsubfield.m 8268 2013-06-14 12:32:05Z roboos $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');
@@ -49,4 +49,3 @@ while (1)
 end
 
 s = setfield(s, t{:}, v);
-  

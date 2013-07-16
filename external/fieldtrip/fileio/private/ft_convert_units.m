@@ -21,7 +21,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %
 % See FT_ESTIMATE_UNITS, FT_READ_VOL, FT_READ_SENS
 
-% Copyright (C) 2005-2012, Robert Oostenveld
+% Copyright (C) 2005-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -39,7 +39,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 7457 2013-02-08 15:27:32Z roboos $
+% $Id: ft_convert_units.m 8306 2013-07-02 10:00:00Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -61,7 +61,9 @@ if isstruct(obj) && numel(obj)>1
   return
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % determine the unit-of-dimension of the input object
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if isfield(obj, 'unit') && ~isempty(obj.unit)
   % use the units specified in the object
   unit = obj.unit;
@@ -131,7 +133,9 @@ elseif strcmp(unit, target)
   return
 end
 
-% compue the scaling factor from the input units to the desired ones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% compute the scaling factor from the input units to the desired ones
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 scale = scalingfactor(unit, target);
 
 if istrue(feedback)

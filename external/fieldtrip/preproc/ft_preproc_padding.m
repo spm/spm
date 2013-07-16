@@ -9,7 +9,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 %   [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 % where
 %   dat           data matrix (Nchan x Ntime)
-%   padtype       'zero', 'mean', 'localmean', 'edge', 'mirror' or 'remove'
+%   padtype       'zero', 'mean', 'localmean', 'edge', 'mirror', 'nan' or 'remove'
 %   padlength     scalar, number of samples that will be padded 
 %   prepadlength  scalar, number of samples that will be padded before the data
 %   postpadlength scalar, number of samples that will be padded after the data
@@ -37,7 +37,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_padding.m 7923 2013-04-17 13:50:46Z roboos $
+% $Id: ft_preproc_padding.m 8315 2013-07-15 10:28:55Z jorhor $
 
 if nargin < 4
   postpadlength = prepadlength;
@@ -105,6 +105,9 @@ switch(padtype)
     return;
   case 'zero'
     dat       = [zeros(nchans,prepadlength) dat zeros(nchans,postpadlength)];
+    return;
+  case 'nan'
+    dat       = [nan(nchans,prepadlength) dat nan(nchans,postpadlength)];
     return;
   otherwise
     error('unknown padding option');

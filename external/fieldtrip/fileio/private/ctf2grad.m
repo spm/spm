@@ -12,7 +12,7 @@ function [grad] = ctf2grad(hdr, dewar)
 % undocumented option: it will return the gradiometer information in dewar
 % coordinates if second argument is present and non-zero
 
-% Copyright (C) 2004-2012, Robert Oostenveld
+% Copyright (C) 2004-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -30,7 +30,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ctf2grad.m 8285 2013-06-28 10:38:18Z roboos $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -38,7 +38,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %   following coils belong to reference channels
 
 if nargin<2 || isempty(dewar)
-  dewar = 0;
+  dewar = false;
 end
 
 if isfield(hdr, 'orig')

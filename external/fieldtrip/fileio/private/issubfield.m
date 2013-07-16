@@ -14,7 +14,7 @@ function [r] = issubfield(s, f)
 %
 % See also ISFIELD, GETSUBFIELD, SETSUBFIELD
 
-% Copyright (C) 2005, Robert Oostenveld
+% Copyright (C) 2005-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -32,7 +32,7 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: issubfield.m 8268 2013-06-14 12:32:05Z roboos $
 
 try
   getsubfield(s, f);    % if this works, then the subfield must be present  

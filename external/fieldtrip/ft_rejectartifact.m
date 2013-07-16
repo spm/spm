@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_rejectartifact.m 8285 2013-06-28 10:38:18Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_rejectartifact.m 8285 2013-06-28 10:38:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -133,7 +133,7 @@ end
 
 % support the rejectXXX cfg settings for backward compatibility
 if isfield(cfg, 'rejectmuscle')
-  dum = strmatch('muscle', cfg.artfctdef.type, 'exact');
+  dum = find(strcmp('muscle', cfg.artfctdef.type));
   if strcmp(cfg.rejectmuscle,'yes') && isempty(dum)
     % this overrules the other setting, add it to the type-list
     cfg.artfctdef.type = cat(1, {'muscle'}, cfg.artfctdef.type(:));
@@ -146,7 +146,7 @@ end
 
 % support the rejectXXX cfg settings for backward compatibility
 if isfield(cfg, 'rejecteog')
-  dum = strmatch('eog', cfg.artfctdef.type, 'exact');
+  dum = find(strcmp('eog', cfg.artfctdef.type));
   if strcmp(cfg.rejecteog,'yes') && isempty(dum)
     % this overrules the other setting, add it to the type-list
     cfg.artfctdef.type = cat(1, {'eog'}, cfg.artfctdef.type(:));
@@ -159,7 +159,7 @@ end
 
 % support the rejectXXX cfg settings for backward compatibility
 if isfield(cfg, 'rejectjump')
-  dum = strmatch('jump', cfg.artfctdef.type, 'exact');
+  dum = find(strcmp('jump', cfg.artfctdef.type));
   if strcmp(cfg.rejectjump,'yes') && isempty(dum)
     % this overrules the other setting, add it to the type-list
     cfg.artfctdef.type = cat(1, {'jump'}, cfg.artfctdef.type(:));
@@ -173,7 +173,7 @@ end
 % support the rejectXXX cfg settings for backward compatibility
 if isfield(cfg, 'rejectfile')
   % this is slightly different to the ones above, since rejectfile is either 'no' or contains the filename
-  dum = strmatch('file', cfg.artfctdef.type, 'exact');
+  dum = find(strcmp('file', cfg.artfctdef.type));
   if ~strcmp(cfg.rejectfile,'no') && isempty(dum)
     % this overrules the other setting, add it to the type-list
     cfg.artfctdef.type = cat(1, {'file'}, cfg.artfctdef.type(:));

@@ -105,7 +105,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 7679 2013-03-17 08:23:15Z roboos $
+% $Id: preproc.m 8307 2013-07-02 14:59:22Z jimher $
 
 % compute fsample
 fsample = 1./mean(diff(time));
@@ -229,7 +229,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % do the rereferencing in case of EEG
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ~isempty(cfg.implicitref) && ~any(strmatch(cfg.implicitref,label))
+if ~isempty(cfg.implicitref) && ~any(match_str(cfg.implicitref,label))
   label = {label{:} cfg.implicitref};
   dat(end+1,:) = 0;
 end

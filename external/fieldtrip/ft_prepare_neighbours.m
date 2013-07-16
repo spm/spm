@@ -19,7 +19,7 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %   neighbours = ft_prepare_neighbours(cfg, data)
 %
 % The configuration can contain
-%   cfg.method        = 'distance', 'triangulation' or 'template' (default = 'distance')
+%   cfg.method        = 'distance', 'triangulation' or 'template' 
 %   cfg.neighbourdist = number, maximum distance between neighbouring sensors (only for 'distance')
 %   cfg.template      = name of the template file, e.g. CTF275_neighb.mat
 %   cfg.layout        = filename of the layout, see FT_PREPARE_LAYOUT
@@ -63,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_prepare_neighbours.m 8186 2013-06-05 08:49:12Z roevdmei $
 
-revision = '$Id: ft_prepare_neighbours.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_prepare_neighbours.m 8186 2013-06-05 08:49:12Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults

@@ -39,7 +39,7 @@ function [varargout] = ft_plot_text(X, Y, str, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_text.m 7267 2012-12-27 13:08:34Z roboos $
+% $Id: ft_plot_text.m 8271 2013-06-16 11:38:09Z roevdmei $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -53,6 +53,7 @@ vlim                = ft_getopt(varargin, 'vlim');
 Color               = ft_getopt(varargin, 'Color', 'k');
 FontSize            = ft_getopt(varargin, 'FontSize');
 FontName            = ft_getopt(varargin, 'FontName');
+FontUnits           = ft_getopt(varargin, 'FontUnits');
 HorizontalAlignment = ft_getopt(varargin, 'HorizontalAlignment', 'center');
 rotation            = ft_getopt(varargin, 'rotation', 0);
 VerticalAlignment   = ft_getopt(varargin, 'VerticalAlignment', 'middle');
@@ -118,9 +119,10 @@ h = text(X, Y, str);
 set(h, 'HorizontalAlignment', HorizontalAlignment);
 set(h, 'Color', Color);
 set(h, 'rotation', rotation);
-set(h, 'VerticalAlignment',VerticalAlignment);
-if ~isempty(FontSize), set(h, 'FontSize', FontSize); end
-if ~isempty(FontName), set(h, 'FontName', FontName); end
+set(h, 'VerticalAlignment',VerticalAlignment); 
+if ~isempty(FontSize),  set(h, 'FontSize', FontSize);  end
+if ~isempty(FontName),  set(h, 'FontName', FontName);  end
+if ~isempty(FontUnits), set(h, 'FontUnits', FontUnits); end
 set(h, 'tag', tag);
 set(h, 'interpreter', interpreter);
 

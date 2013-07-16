@@ -52,7 +52,7 @@ function [ws warned] = warning_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warning_once.m 8267 2013-06-14 12:27:12Z roboos $
+% $Id: warning_once.m 8295 2013-07-01 17:05:23Z roboos $
 
 global ft_default
 

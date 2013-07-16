@@ -76,9 +76,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_volumelookup.m 8285 2013-06-28 10:38:18Z roboos $
 
-revision = '$Id: ft_volumelookup.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_volumelookup.m 8285 2013-06-28 10:38:18Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -157,7 +157,7 @@ if roi2mask
 
     sel = [];
     for i = 1:length(cfg.roi)
-      sel = [sel; strmatch(cfg.roi{i}, atlas.descr.name, 'exact')];
+      sel = [sel; find(strcmp(cfg.roi{i}, atlas.descr.name))];
     end
 
     fprintf('found %d matching anatomical labels\n', length(sel));

@@ -120,9 +120,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_prepare_sourcemodel.m 8305 2013-07-02 09:59:57Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_prepare_sourcemodel.m 8305 2013-07-02 09:59:57Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -254,9 +254,9 @@ end
 if (isfield(cfg, 'smooth') && ~strcmp(cfg.smooth, 'no')) || basedonmni
   % check that SPM is on the path, try to add the preferred version
   if strcmpi(cfg.spmversion, 'spm2'),
-    ft_hastoolbox('SPM2',1);
+    ft_hastoolbox('SPM2', 1);
   elseif strcmpi(cfg.spmversion, 'spm8'),
-    ft_hastoolbox('SPM8',1);
+    ft_hastoolbox('SPM8', 1);
   end
 end
 

@@ -29,7 +29,7 @@ function [spectrum,ntaper,freqoi] = ft_specest_mtmfft(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_mtmfft.m 8160 2013-05-28 12:47:21Z eelspa $
+% $Id: ft_specest_mtmfft.m 8254 2013-06-12 15:16:47Z jorhor $
 
 % these are for speeding up computation of tapers on subsequent calls
 persistent previous_argin previous_tap
@@ -105,13 +105,13 @@ if isnumeric(freqoiinput)
   % check whether padding is appropriate for the requested frequency resolution
   rayl = 1/endtime;
   if any(rem(freqoiinput,rayl)) % not always the case when they mismatch
-    warning('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip')
+    warning_once('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip')
   end
   if numel(freqoiinput) ~= numel(freqoi) % freqoi will not contain double frequency bins when requested
-    warning('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
+    warning_once('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');
   else
     if any(abs(freqoiinput-freqoi) >= eps*1e6)
-      warning('output frequencies are different from input frequencies');
+      warning_once('output frequencies are different from input frequencies');
     end
   end
 end
@@ -227,12 +227,8 @@ if ~(strcmp(taper,'dpss') && numel(tapsmofrq)>1) % ariable number of slepian tap
   end
   spectrum = cell(ntaper(1),1);
   for itap = 1:ntaper(1)
-    %dum = transpose(fft(transpose(ft_preproc_padding(dat .* repmat(tap(itap,:),[nchan, 1]), padtype, 0, postpad)))); % double explicit transpose to speedup fft    
-    %dum = transpose(fft(transpose(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad)))); % double explicit transpose to speedup fft
-    
-    % in fact double explicit transpose (see above) is slower than using the dim
-    % argument for fft (eelspa, 28 may 2013)
-    dum = fft(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad),[],2);
+
+    dum = fft(ft_preproc_padding(bsxfun(@times,dat,tap(itap,:)), padtype, 0, postpad),[], 2);
     
     dum = dum(:,freqboi);
     % phase-shift according to above angles
@@ -262,8 +258,9 @@ else % variable number of slepian tapers requested
           fprintf([str, '\n']);
         end
         for itap = 1:ntaper(ifreqoi)
-          %dum = transpose(fft(transpose(ft_preproc_padding(dat .* repmat(tap{ifreqoi}(itap,:),[nchan, 1]), padtype, 0, postpad)))); % double explicit transpose to speedup fft          
-          dum = transpose(fft(transpose(ft_preproc_padding(bsxfun(@times,dat,tap{ifreqoi}(itap,:)), padtype, 0, postpad)))); % double explicit transpose to speedup fft          
+
+          dum = fft(ft_preproc_padding(bsxfun(@times,dat,tap{ifreqoi}(itap,:)), padtype, 0, postpad), [], 2);
+          
           dum = dum(:,freqboi(ifreqoi));
           % phase-shift according to above angles
           if timedelay ~= 0
@@ -294,8 +291,9 @@ else % variable number of slepian tapers requested
           fprintf([str, '\n']);
         end
         for itap = 1:ntaper(ifreqoi)
-          %dum = transpose(fft(transpose(ft_preproc_padding(dat .* repmat(tap{ifreqoi}(itap,:),[nchan, 1]), padtype, 0, postpad)))); % double explicit transpose to speedup fft
-          dum = transpose(fft(transpose(ft_preproc_padding(bsxfun(@times,dat,tap{ifreqoi}(itap,:)), padtype, 0, postpad)))); % double explicit transpose to speedup fft          
+          
+          dum = fft(ft_preproc_padding(bsxfun(@times,dat,tap{ifreqoi}(itap,:)), padtype, 0, postpad), [], 2);
+          
           dum = dum(:,freqboi(ifreqoi));
           % phase-shift according to above angles
           if timedelay ~= 0

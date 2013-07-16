@@ -1,20 +1,18 @@
-function [r] = issubfield(s, f)
+function [s] = rmsubfield(s, f, v);
 
-% ISSUBFIELD tests for the presence of a field in a structure just like the standard
-% Matlab ISFIELD function, except that you can also specify nested fields
-% using a '.' in the fieldname. The nesting can be arbitrary deep.
+% RMSUBFIELD removes the contents of the specified field from a structure
+% just like the standard Matlab RMFIELD function, except that you can also
+% specify nested fields using a '.' in the fieldname. The nesting can be
+% arbitrary deep.
 %
 % Use as
-%   f = issubfield(s, 'fieldname')
+%   s = rmsubfield(s, 'fieldname')
 % or as
-%   f = issubfield(s, 'fieldname.subfieldname')
+%   s = rmsubfield(s, 'fieldname.subfieldname')
 %
-% This function returns true if the field is present and false if the field
-% is not present.
-%
-% See also ISFIELD, GETSUBFIELD, SETSUBFIELD
+% See also SETFIELD, GETSUBFIELD, ISSUBFIELD
 
-% Copyright (C) 2005-2013, Robert Oostenveld
+% Copyright (C) 2006-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -32,11 +30,17 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: rmsubfield.m 8267 2013-06-14 12:27:12Z roboos $
 
-try
-  getsubfield(s, f);    % if this works, then the subfield must be present  
-  r = true;
-catch
-  r = false;                % apparently the subfield is not present
+if ~ischar(f)
+  error('incorrect input argument for fieldname');
+end
+
+% remove the nested subfield using recursion
+[t, f] = strtok(f, '.');
+if any(f=='.')
+  u = rmsubfield(getfield(s, t), f);
+  s = setfield(s, t, u);
+else
+  s = rmfield(s, t);
 end

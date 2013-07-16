@@ -43,7 +43,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 7764 2013-04-04 12:25:47Z roboos $
+% $Id: fixdimord.m 8251 2013-06-12 15:09:57Z jorhor $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -129,7 +129,7 @@ for i=1:length(dimtok)
       % don't change, it is ok
       
     case {'sgncmb' 'labelcmb' 'chancmb'}
-      dimtok{i} = 'chan';
+      dimtok{i} = 'chancmb';
       
     case {'rpttap'}
       % this is a 2-D field, coding trials and tapers along the same dimension

@@ -14,8 +14,7 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %                   freq2.powspctrm etc, use cft.parameter = 'powspctrm'.
 %
 % The configuration can optionally contain
-%  cfg.appenddim  = String. The dimension to concatenate over (default:
-%                   'auto').
+%  cfg.appenddim  = String. The dimension to concatenate over (default is 'auto').
 %  cfg.tolerance  = Double. Tolerance determines how different the units of
 %                   frequency structures are allowed to be to be considered
 %                   compatible (default: 1e-5).
@@ -49,9 +48,9 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 8159 2013-05-28 08:33:54Z dieloz $
+% $Id: ft_appendfreq.m 8294 2013-07-01 17:01:53Z roboos $
 
-revision = '$Id: ft_appendfreq.m 8159 2013-05-28 08:33:54Z dieloz $';
+revision = '$Id: ft_appendfreq.m 8294 2013-07-01 17:01:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -208,7 +207,6 @@ switch cfg.appenddim
       hascumtapcnt = [];
       hastrialinfo = [];
       for i=1:Ndata
-        foivec{i} = varargin{i}.freq;%cgeck if the frequecies across datasets are equal
         if isfield(varargin{i},'cumsumcnt');
           hascumsumcnt(end+1) = 1;
         else
@@ -227,10 +225,10 @@ switch cfg.appenddim
       end
       
       % screen concatenable fields
-      if ~isequal(foivec{:});
+      if ~checkfreq(varargin{:}, 'identical', tol)
         error('the freq fields of the input data structures are not equal');
       else
-        freq.freq=foivec{1};
+        freq.freq=varargin{1}.freq;
       end
       if ~sum(hascumsumcnt)==0 && ~(sum(hascumsumcnt)==Ndata);
         error('the cumsumcnt fields of the input data structures are not equal');
@@ -275,9 +273,9 @@ switch cfg.appenddim
         clear trialinfo;
       end
     end
-
+    
     freq.label = varargin{1}.label;
-%     freq.freq  = varargin{1}.freq;
+    freq.freq  = varargin{1}.freq;
     if isfield(varargin{1}, 'time'), freq.time = varargin{1}.time; end
     
   case 'chan'
@@ -444,70 +442,3 @@ elseif strcmp(required, 'identical')
     faxis   = faxis(:,1);
   end
 end
-
-%---------------------------------------------
-% subfunction to check uniqueness of time bins
-function [boolval, taxis] = checktime(varargin)
-
-% last input is always the required string
-tol      = varargin{end};
-required = varargin{end-1};
-varargin = varargin(1:end-2);
-
-Ndata = numel(varargin);
-Ntime = zeros(1,Ndata);
-taxis = zeros(1,0);
-for i=1:Ndata
-  Ntime(i) = numel(varargin{i}.time);
-  taxis    = [taxis;varargin{i}.time(:)];
-end
-
-if strcmp(required, 'unique')
-  boolval = numel(unique(taxis))==numel(taxis) && ~all(isnan(taxis));
-  % the second condition is included when the time is set to dummy nan
-elseif strcmp(required, 'identical')
-  % the number of time bins needs at least to be the same across
-  % inputs
-  boolval = all(Ntime==Ntime(1));
-  if boolval
-    % then check whether the axes are equal
-    taxis   = reshape(taxis, Ntime(1), []);
-    boolval = all(all(abs(taxis - repmat(taxis(:,1), 1, Ndata))<tol)==1);
-    taxis   = taxis(:,1);
-  end
-end
-
-%--------------------------------------------------
-% subfunction to check uniqueness of channel labels
-function [boolval, list] = checkchan(varargin)
-
-% last input is always the required string
-required = varargin{end};
-varargin = varargin(1:end-1);
-
-Ndata = numel(varargin);
-
-if strcmp(required, 'unique')
-  Nchan = zeros(1,Ndata);
-  list  = cell(0,1);
-  for i=1:Ndata
-    Nchan(i) = numel(varargin{i}.label);
-    list     = [list;varargin{i}.label(:)];
-  end
-  boolval = numel(unique(list))==numel(list);
-  
-elseif strcmp(required, 'identical')
-  
-  % determine whether channels are equal across the inputs
-  % channel order is not yet handled here
-  for k = 2:Ndata
-    matched = numel(match_str(varargin{1}.label, varargin{k}.label));
-    if matched ~= numel(varargin{1}.label) || matched ~= numel(varargin{k}.label)
-      boolval = 0;
-      return;
-    end
-  end
-  
-  boolval = 1;
-end
-

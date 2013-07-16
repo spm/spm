@@ -38,7 +38,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 8074 2013-04-25 14:06:28Z roboos $
+% $Id: ft_plot_vol.m 8272 2013-06-18 09:50:03Z vlalit $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -92,7 +92,18 @@ switch ft_voltype(vol)
     bnd = vol;
     % only plot the outer edge of the volume
     edgeonly = true;
-
+    
+  case 'interpolate'
+    xgrid = 1:vol.dim(1);
+    ygrid = 1:vol.dim(2);
+    zgrid = 1:vol.dim(3);
+    [x y z] = ndgrid(xgrid, ygrid, zgrid);
+    gridpos = warp_apply(vol.transform, [x(:) y(:) z(:)]);
+    
+    plot3(gridpos(vol.inside, 1), gridpos(vol.inside, 2), gridpos(vol.inside, 3), 'k.');
+    
+    return;
+    
   case 'infinite'
     warning('there is nothing to plot for an infinite volume conductor')
     return

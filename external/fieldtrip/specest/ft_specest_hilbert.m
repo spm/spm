@@ -29,7 +29,7 @@ function [spectrum,freqoi,timeoi] = ft_specest_hilbert_new(dat, time, varargin)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: ft_specest_hilbert.m 7919 2013-04-17 13:44:49Z roevdmei $
+% $Id: ft_specest_hilbert.m 8254 2013-06-12 15:16:47Z jorhor $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi');
@@ -97,10 +97,10 @@ end
 % throw a warning if input timeoi is different from output timeoi
 if isnumeric(timeoiinput)
   if numel(timeoiinput) ~= numel(timeoi) % timeoi will not contain double time-bins when requested
-    warning('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
+    warning_once('output time-bins are different from input time-bins, multiples of the same bin were requested but not given');
   else
     if any(abs(timeoiinput-timeoi) >= eps*1e6)
-      warning('output time-bins are different from input time-bins');
+      warning_once('output time-bins are different from input time-bins');
     end
   end
 end

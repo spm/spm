@@ -34,7 +34,7 @@ function [mask] = atlas_mask(atlas, mri, label, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_mask.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: atlas_mask.m 8285 2013-06-28 10:38:18Z roboos $
 
 % get the optional input arguments
 inputcoord = ft_getopt(varargin, 'inputcoord');
@@ -49,7 +49,7 @@ end
 
 sel = [];
 for i=1:length(label)
-  sel = [sel; strmatch(label{i}, atlas.descr.name, 'exact')];
+  sel = [sel; find(strcmp(label{i}, atlas.descr.name))];
 end
 
 fprintf('found %d matching anatomical labels\n', length(sel));

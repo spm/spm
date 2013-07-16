@@ -191,9 +191,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_sourceanalysis.m 8319 2013-07-16 11:47:51Z jorhor $
 
-revision = '$Id: ft_sourceanalysis.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_sourceanalysis.m 8319 2013-07-16 11:47:51Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -287,6 +287,8 @@ if ~istimelock && (strcmp(cfg.method, 'mne') || strcmp(cfg.method, 'rv') || strc
   istimelock = 1;     % from now on the data can be treated as timelocked
   isfreq     = 0;
   iscomp     = 0;
+elseif isfreq && isfield(data, 'labelcmb')
+  data = ft_checkdata(data, 'cmbrepresentation', 'full');
 end
 
 % select only those channels that are present in the data
@@ -311,11 +313,17 @@ if strcmp(cfg.rawtrial,'yes') && isfield(cfg,'grid') && ~isfield(cfg.grid,'filte
 end
 
 if isfreq
-  if ~strcmp(data.dimord, 'chan_freq')          && ...
+  if  ~strcmp(data.dimord, 'chan_freq')          && ...
       ~strcmp(data.dimord, 'chan_freq_time')     && ...
       ~strcmp(data.dimord, 'rpt_chan_freq')      && ...
       ~strcmp(data.dimord, 'rpt_chan_freq_time') && ...
       ~strcmp(data.dimord, 'rpttap_chan_freq')   && ...
+      ~strcmp(data.dimord, 'chancmb_freq')       && ...
+      ~strcmp(data.dimord, 'rpt_chancmb_freq')   && ...
+      ~strcmp(data.dimord, 'rpttap_chancmb_freq')  && ...
+      ~strcmp(data.dimord, 'chan_chan_freq')       && ...
+      ~strcmp(data.dimord, 'rpt_chan_chan_freq')   && ...
+      ~strcmp(data.dimord, 'rpttap_chan_chan_freq')  && ...
       ~strcmp(data.dimord, 'rpttap_chan_freq_time')
     error('dimord of input frequency data is not recognized');
   end

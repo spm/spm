@@ -11,11 +11,11 @@ function [H] = rigidbody(f)
 %   y-shift
 %   z-shift
 % followed by the
-%   pitch (rotation around x-axis)
-%   roll  (rotation around y-axis)
-%   yaw   (rotation around z-axis)
+%   pitch (rotation around x-axis, in degrees)
+%   roll  (rotation around y-axis, in degrees)
+%   yaw   (rotation around z-axis, in degrees)
 
-% Copyright (C) 2000-2005, Robert Oostenveld
+% Copyright (C) 2000-2013, Robert Oostenveld
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ function [H] = rigidbody(f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rigidbody.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: rigidbody.m 8285 2013-06-28 10:38:18Z roboos $
 
 if numel(f)~=6
   error('incorrect input vector');

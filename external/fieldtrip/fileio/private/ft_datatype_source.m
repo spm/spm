@@ -68,7 +68,7 @@ function source = ft_datatype_source(source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_source.m 7662 2013-03-13 16:33:50Z roboos $
+% $Id: ft_datatype_source.m 8300 2013-07-01 20:57:55Z roboos $
 
 % FIXME: I am not sure whether the removal of the xgrid/ygrid/zgrid fields
 % was really in 2007
@@ -97,7 +97,7 @@ if isfield(source, 'latency'),
 end
 
 switch version
-  case '2013x'
+  case 'upcoming' % this is under development and expected to become the standard in 2013
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if isfield(source, 'xgrid')
       source = rmfield(source, 'xgrid');

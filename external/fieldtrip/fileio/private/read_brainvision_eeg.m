@@ -27,7 +27,7 @@ function [dat] = read_brainvision_eeg(filename, hdr, begsample, endsample, chani
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_eeg.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_brainvision_eeg.m 8256 2013-06-13 10:05:15Z jimher $
 
 if nargin<5
   % read all channels
@@ -61,7 +61,7 @@ if strcmpi(hdr.DataFormat, 'binary') && strcmpi(hdr.DataOrientation, 'multiplexe
   
   if isempty(chanindx)
     % read all the channels
-    fseek(fid, hdr.NumberOfChannels*2*(begsample-1), 'cof');
+    fseek(fid, hdr.NumberOfChannels*samplesize*(begsample-1), 'cof');
     dat = fread(fid, [hdr.NumberOfChannels, (endsample-begsample+1)], sampletype);
     % compute real microvolts using the calibration factor (resolution)
     % calib = diag(hdr.resolution);

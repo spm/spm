@@ -27,13 +27,13 @@ function data = ft_math(cfg, varargin)
 
 % Copyright (C) 2012, Robert Oostenveld
 %
-% $Id: ft_math.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_math.m 8299 2013-07-01 20:57:53Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_math.m 8299 2013-07-01 20:57:53Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -59,11 +59,11 @@ else
   % or the operation is a transformation such as log10
 end
 
-% this function only works for the new (2013x) source representation without sub-structures 
+% this function only works for the upcoming (not yet standard) source representation without sub-structures 
 if ft_datatype(varargin{1}, 'source')
   % update the old-style beamformer source reconstruction
   for i=1:length(varargin)
-    varargin{i} = ft_datatype_source(varargin{i}, 'version', '2013x');
+    varargin{i} = ft_datatype_source(varargin{i}, 'version', 'upcoming');
   end
   if isfield(cfg, 'parameter') && length(cfg.parameter)>4 && strcmp(cfg.parameter(1:4), 'avg.')
     cfg.parameter = cfg.parameter(5:end); % remove the 'avg.' part

@@ -32,7 +32,7 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: issubfield.m 8267 2013-06-14 12:27:12Z roboos $
 
 try
   getsubfield(s, f);    % if this works, then the subfield must be present  

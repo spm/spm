@@ -36,7 +36,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %
 % See also FT_READ_SENS, FT_TRANSFORM_SENS
 
-% Copyright (C) 2008-2012, Robert Oostenveld
+% Copyright (C) 2008-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -54,7 +54,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 7496 2013-02-19 09:25:34Z roboos $
+% $Id: ft_apply_montage.m 8268 2013-06-14 12:32:05Z roboos $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');

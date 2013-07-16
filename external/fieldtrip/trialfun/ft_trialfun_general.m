@@ -38,7 +38,7 @@ function [trl, event] = ft_trialfun_general(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_general.m 7763 2013-04-04 12:25:45Z roboos $
+% $Id: ft_trialfun_general.m 8285 2013-06-28 10:38:18Z roboos $
 
 % some events do not require the specification a type, pre or poststim period
 % in that case it is more convenient not to have them, instead of making them empty
@@ -303,7 +303,7 @@ else
       [event(sel(emptyval)).value]=deal(Inf);
       eventvalue = unique([event(sel).value]);
     else
-      if ~isempty(strmatch('Inf', {event(sel).value},'exact'))
+      if ~isempty(find(strcmp('Inf', {event(sel).value})))
         % It's a very unlikely scenario but ...
         warning('Event value''Inf'' cannot be handled by GUI selection. Mistakes are possible.')
       end

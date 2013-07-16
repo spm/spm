@@ -1,4 +1,4 @@
-function [file] = read_bti_ascii(filename);
+function [file] = read_bti_ascii(filename)
 
 % READ_BTI_ASCII reads general data from a BTI configuration file
 %
@@ -28,7 +28,7 @@ function [file] = read_bti_ascii(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_ascii.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_bti_ascii.m 8313 2013-07-15 09:31:42Z jansch $
 
 fid = fopen(filename, 'r');
 if fid==-1
