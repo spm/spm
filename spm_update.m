@@ -1,18 +1,27 @@
-function spm_update(update)
+function varargout = spm_update(update)
 % Check (and install) SPM updates from the FIL server
 % FORMAT spm_update
-% This function will connect itself to the FIL server, compare the
-% version number of the updates with the one of the SPM installation 
-% currently in the MATLAB path and will display the outcome.
+% This function will contact the FIL server, compare the version number of
+% the updates with the one of the SPM installation currently in the MATLAB
+% path and display the outcome.
 %
 % FORMAT spm_update(update)
 % Invoking this function with any input parameter will do the same as
 % above but will also attempt to download and install the updates.
+% Note that it will close any open window and clear the workspace.
+%
+% FORMAT [sts, msg] = spm_update(update)
+% sts  - status code:
+%        NaN - SPM server not accessible
+%        Inf - no updates available
+%        0   - SPM installation up to date
+%        n   - new revision <n> is available for download
+% msg  - string describing outcome, that would otherwise be displayed.
 %__________________________________________________________________________
-% Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 5523 2013-05-29 17:06:38Z guillaume $
+% $Id: spm_update.m 5582 2013-07-18 11:44:18Z guillaume $
 
 
 vspm = 'SPM12b';
@@ -24,16 +33,30 @@ else
     update = true;
 end
 
-[s,sts] = urlread(url);
-if ~sts, error('Cannot access SPM server.'); end
-n       = regexp(s,[lower(vspm) '_updates_r(\d.*?)\.zip'],'tokens','once');
-if isempty(n)
-    fprintf('         There are no updates available yet.\n');
-    return;
-else
-    n   = str2double(n{1});
+%-Get list of updates from SPM server
+%--------------------------------------------------------------------------
+[s,status] = urlread(url);
+if ~status
+    sts = NaN;
+    msg = 'Cannot access SPM server.';
+    if ~nargout, error(msg); else varargout = {sts, msg}; end
+    return
 end
 
+%-Get revision number of latest update
+%--------------------------------------------------------------------------
+n = regexp(s,[lower(vspm) '_updates_r(\d.*?)\.zip'],'tokens','once');
+if isempty(n)
+    sts = Inf;
+    msg = 'There are no updates available yet.';
+    if ~nargout, fprintf([blanks(9) msg '\n']);
+    else varargout = {sts, msg}; end
+    return
+end
+n = str2double(n{1});
+
+%-Get revision number of SPM installation
+%--------------------------------------------------------------------------
 try
     [v,r] = spm('Ver','',1); r = str2double(r);
 catch
@@ -50,40 +73,53 @@ if floor(r) == str2double(vspm(4:end))
     end
 end
 
+%-Compare versions
+%--------------------------------------------------------------------------
 if n > r
-    fprintf('         A new version of %s is available on:\n',vspm);
-    fprintf('     %s\n',url);
-    fprintf('        (Your version: %d - New version: %d)\n',r,n);
-
-    if update
-        d = spm('Dir'); 
-        delete(get(0,'Children')); spm('clean'); evalc('spm_rmpath');
-        try
-            lastwarn('');
-            s = unzip([url sprintf('%s_updates_r%d.zip',lower(vspm),n)], d);
-            fprintf('             %d files have been updated.\n',numel(s));
-        catch
-            le = lasterror;
-            switch le.identifier
-                case 'MATLAB:checkfilename:urlwriteError'
-                    fprintf('          Update failed: cannot download update file.\n');
-                otherwise
-                    fprintf('\n%s\n',le.message);
-            end
-        end
-        [warnmsg, msgid] = lastwarn;
-        switch msgid
-            case ''
-            case 'MATLAB:extractArchive:unableToCreate'
-                fprintf('          Update failed: check folder permission.\n');
-            case 'MATLAB:extractArchive:unableToOverwrite'
-                fprintf('          Update failed: check file permissions.\n');
-            otherwise
-                fprintf('          Update failed: %s.\n',warnmsg);
-        end
-        addpath(d);
-        rehash toolboxcache;
-    end
+    sts = n;
+    msg = sprintf('         A new version of %s is available on:\n',vspm);
+    msg = [msg sprintf('   %s\n',url)];
+    msg = [msg sprintf('        (Your version: %d - New version: %d)\n',r,n)];
+    if ~nargout, fprintf(msg); else varargout = {sts, msg}; end
 else
-    fprintf('         Your version of %s is up to date.\n',vspm);
+    sts = 0;
+    msg = sprintf('Your version of %s is up to date.',vspm);
+    if ~nargout, fprintf([blanks(9) msg '\n']);
+    else varargout = {sts, msg}; end
+    return
+end
+
+%-and install...
+%--------------------------------------------------------------------------
+if update
+    d = spm('Dir');
+    delete(get(0,'Children')); spm('clean'); evalc('spm_rmpath'); drawnow
+    try
+        lastwarn('');
+        m = '          Download and install in progress...\n';
+        if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
+        s = unzip([url sprintf('%s_updates_r%d.zip',lower(vspm),n)], d);
+        m = sprintf('         Success: %d files have been updated.\n',numel(s));
+        if ~nargout, fprintf(m); else varargout = {sts, [msg m]}; end
+    catch
+        le = lasterror;
+        switch le.identifier
+            case 'MATLAB:checkfilename:urlwriteError'
+                fprintf('          Update failed: cannot download update file.\n');
+            otherwise
+                fprintf('\n%s\n',le.message);
+        end
+    end
+    [warnmsg, msgid] = lastwarn;
+    switch msgid
+        case ''
+        case 'MATLAB:extractArchive:unableToCreate'
+            fprintf('          Update failed: check folder permission.\n');
+        case 'MATLAB:extractArchive:unableToOverwrite'
+            fprintf('          Update failed: check file permissions.\n');
+        otherwise
+            fprintf('          Update failed: %s.\n',warnmsg);
+    end
+    addpath(d);
+    rehash toolboxcache;
 end

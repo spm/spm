@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 5237 2013-02-04 17:27:58Z guillaume $
+% $Id: spm_figure.m 5582 2013-07-18 11:44:18Z guillaume $
 
 
 %==========================================================================
@@ -746,7 +746,7 @@ if ~isdeployed
     uimenu(t0,'Separator','on','Label','SPM Check Installation',...
         'CallBack','spm_check_installation(''full'')');
     uimenu(t0,'Label','SPM Check for Updates',...
-        'CallBack','spm(''alert"'',evalc(''spm_update''),''SPM Update'');');
+        'CallBack',@spm_check_update);
 end
 
 %- About Menu
@@ -1115,3 +1115,19 @@ else
     c = [1 1 1] - 6*abs(0.4-x);
 end
 c(c<0) = 0; c(c>1) = 1;
+
+%==========================================================================
+function spm_check_update(obj,evt)
+%==========================================================================
+[sts, msg] = spm_update;
+if ~isfinite(sts) || sts == 0
+    spm('alert"',msg,'Update');
+    return
+end
+
+str = {'SPM updates are available!','Do you want to install them now?'};
+if spm_input(str,1,'bd','Yes|No',[1,0],1,'Update')
+    spm_update(true);
+else
+    fprintf(msg);
+end
