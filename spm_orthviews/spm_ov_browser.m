@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5565 2013-06-25 16:13:05Z guillaume $
+% $Id: spm_ov_browser.m 5585 2013-07-19 15:50:44Z guillaume $
 
 
 cmd = lower(varargin{1});
@@ -17,10 +17,17 @@ switch cmd
     % Context menu and callbacks
     case 'context_menu'
         ret = uimenu(varargin{3}, ...
-            'Label', 'Browse...', ...
+            'Label',    'Browse...', ...
+            'Tag',      'orthviews_browser', ...
             'Callback', @browser_ui);
     case 'ui'
-        ret = @browser;
+        if nargin == 1
+            browser_ui;
+        else
+            browser(varargin{2:end});
+        end
+    case 'redraw'
+        browser_redraw(varargin{2:end});
     otherwise
 end
 
@@ -31,13 +38,27 @@ function browser_ui(hObj,event)
 [f,sts] = spm_select([2 Inf],'image','Select images...');
 if ~sts, return; end
 
-Fgraph = ancestor(hObj,'figure');
+if nargin
+    Fgraph = ancestor(hObj,'figure');
+    hC = current_handle;
+else
+    spm_check_registration(f(1,:));
+    Fgraph = [];
+    hC = 1;
+end
 
-browser(f, Fgraph, current_handle);
+hS = browser(f, Fgraph, hC);
+
+hM = getappdata(hS,'hM');
+set(hM,'Label','Browse','Callback','');
+h = uimenu('Parent',hM,'Label','Display profile','Callback',@browser_profile);
+setappdata(h,'hS',hS);
+h = uimenu('Parent',hM,'Label','Quit','Callback',@browser_quit_button);
+setappdata(h,'hS',hS);
 
 
 %==========================================================================
-function browser(f, Fgraph, hC)
+function hS = browser(f, Fgraph, hC)
 
 global st
 f = cellstr(f);
@@ -93,6 +114,7 @@ setappdata(hS,'hT',hT);
 setappdata(hS,'hC',hC);
 setappdata(hS,'hB',hB);
 setappdata(hS,'hP',hP);
+setappdata(hS,'hM',findobj(st.fig,'Type','uimenu','Tag','orthviews_browser'));
 
 
 %==========================================================================
@@ -114,11 +136,18 @@ set(hObj,'Value',0);
 
 %==========================================================================
 function browser_quit_button(hObj,event)
+global st
 hS = getappdata(hObj,'hS');
+hC = getappdata(hS,'hC');
 delete(getappdata(hS,'hT'));
 delete(getappdata(hS,'hB'));
 delete(getappdata(hS,'hP'));
+hM = getappdata(hS,'hM');
+set(hM,'Label','Browse...','Callback',@browser_ui);
+delete(get(hM,'Children'));
 delete(hS);
+try, st.vols{hC} = rmfield(st.vols{hC},'browser'); end % remove redraw callback
+
 
 %==========================================================================
 function browser_slider(hObj,event)
@@ -140,6 +169,39 @@ set(findobj(st.vols{hC}.ax{1}.cm,'UserData','v_value'),...
     'Label',sprintf('Y = %g',spm_sample_vol(st.vols{hC},pos(1),pos(2),pos(3),st.hld)));
 spm_orthviews('Redraw');
 set(hT,'String',f{i});
+
+
+%==========================================================================
+function browser_redraw(i,varargin) %i, TM0, TD, CM0, CD, SM0, SD
+global st
+feval(st.vols{i}.browser.fun,st.vols{i}.browser.h);
+
+
+%==========================================================================
+function browser_profile(hObj,event)
+global st
+hS  = getappdata(hObj,'hS');
+hC  = getappdata(hS,'hC');
+hV  = getappdata(hObj,'hV');
+if isempty(hV)
+    hV = spm_vol(char(getappdata(hS,'f')));
+    setappdata(hObj,'hV',hV);
+end
+
+pos = spm_orthviews('pos',hC);
+Y = spm_get_data(hV,[pos(1),pos(2),pos(3)]',false);
+
+hAx = getappdata(hObj,'hAx');
+if isempty(hAx) || ~ishandle(hAx)
+    hF = figure;
+    hAx = axes('Parent',hF);
+    setappdata(hObj,'hAx',hAx);
+end
+
+plot(hAx,Y);
+ylabel(hAx,sprintf('[%.2f %.2f %.2f]',pos));
+st.vols{hC}.browser.fun = @browser_profile;
+st.vols{hC}.browser.h = hObj;
 
 
 %==========================================================================
