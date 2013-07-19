@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5581 2013-07-16 15:28:33Z guillaume $
+% $Id: spm_results_ui.m 5584 2013-07-19 14:16:56Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5581 $'; 
+SVNid = '$Rev: 5584 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -648,13 +648,13 @@ switch lower(Action), case 'setup'                         %-Set up results
             'Position',[005 055 100 020].*WS,...
             'Tag','plotButton')
  
-        str  = { 'overlays...','slices','slover','sections','render','previous sections','previous render'};
+        str  = { 'overlays...','slices','sections','montage','render','previous sections','previous render'};
         tstr = { 'overlay filtered SPM on another image: ',...
             '3 slices / ','slice overlay /','ortho sections / ','render /','previous ortho sections /','previous surface rendering'};
  
         tmp  = { 'spm_transverse(''set'',xSPM,hReg)',...
-            {@myslover},...
             'spm_sections(xSPM,hReg)',...
+            {@myslover},...
             ['spm_render(   struct( ''XYZ'',    xSPM.XYZ,',...
             '''t'',     xSPM.Z'',',...
             '''mat'',   xSPM.M,',...
