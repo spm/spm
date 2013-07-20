@@ -37,7 +37,7 @@ function [M0,M1,L1,L2] = spm_bireduce(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_bireduce.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_bireduce.m 5586 2013-07-20 15:27:10Z karl $
 
 
 % set up
@@ -54,7 +54,7 @@ catch
     funx = fcnchk(M.f,'x','u','P','M');
 end
 
-% expansion pointt
+% expansion point
 %--------------------------------------------------------------------------
 x     = M.x;
 try

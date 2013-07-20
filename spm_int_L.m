@@ -58,32 +58,14 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 5448 2013-04-25 11:08:52Z guillaume $
+% $Id: spm_int_L.m 5586 2013-07-20 15:27:10Z karl $
  
  
 % convert U to U.u if necessary
 %--------------------------------------------------------------------------
 if ~isstruct(U), u.u = U; U = u;   end
 try, dt = U.dt;  catch, dt = 1;    end
- 
-% state equation; add [0] states if not specified
-%--------------------------------------------------------------------------
-try
-    f   = str2func(M.f);
-catch
-    f   = @(x,u,P,M) sparse(0,1);
-    M.n = 0;
-    M.x = sparse(0,0);
-end
- 
-% and output nonlinearity
-%--------------------------------------------------------------------------
-try
-    g   = str2func(M.g);
-catch
-    g   = @(x,u,P,M) x;
-end
- 
+
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
@@ -97,6 +79,34 @@ catch
     x   = sparse(0,1);
     M.x = x;
 end
+
+ 
+% state equation; add [0] states if not specified
+%--------------------------------------------------------------------------
+try
+    if isa(M.f,'function_handle')
+        f   = M.f;
+    else
+        f   = str2func(M.f);
+    end
+catch
+    f   = @(x,u,P,M) sparse(0,1);
+    M.n = 0;
+    M.x = sparse(0,0);
+end
+
+% and output nonlinearity
+%--------------------------------------------------------------------------
+try
+    if isa(M.g,'function_handle')
+        g   = M.g;
+    else
+        g   = str2func(M.g);
+    end
+catch
+    g   = @(x,u,P,M) x;
+end
+
 
 % dx(t)/dt and Jacobian df/dx and check for delay operator
 %--------------------------------------------------------------------------
