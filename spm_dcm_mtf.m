@@ -1,31 +1,54 @@
 function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % computes transfer functions using the system's eigenspectrum
-% FORMAT [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
+% FORMAT [S,K,s,w,t] = spm_dcm_mtf(P,M,[U])
 %
 % P - model parameters
 % M - model (with flow M.f and expansion point M.x and M.u)
-% U - induces expansion around steady state
+% U - induces expansion around steady state (from spm_dcm_neural_x(P,M))
 %
 % S - directed transfer functions (complex)
 % K - directed kernels (real)
 % s - eigenspectrum (complex)
-% w - frequencies (Hz)
-% t - time (seconds)
+% w - frequencies (Hz) = M.Hz
+% t - time (seconds)   = M.pst
+%
+% This routine uses the eigensolution of a dynamical systems Jacobian to
+% complete the first-order Volterra terminals and transfer functions  in
+% peristimulus and frequency space respectively.  The advantage of using
+% the-solution is that unstable modes (eigenvectors of the Jacobian) can be
+% conditioned (suppressed). Furthermore, this provides for a
+% computationally efficient and transparent evaluation of the transfer
+% functions that draws on linear signal processing theory in frequency
+% space.
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_dcm_mtf.m 5588 2013-07-21 20:59:39Z karl $
 
 
 % get local linear approximation
 %==========================================================================
 
-% solve for steady-state - if exogenous inputs are specified
+% solve for steady-state - if required
 %--------------------------------------------------------------------------
 if nargin > 2
     M.x   = spm_dcm_neural_x(P,M);
 end
+
+% check expansion points
+%--------------------------------------------------------------------------
+try, M.x; catch, M.x = sparse(M.n,1); end
+try, M.u; catch, M.u = sparse(M.l,1); end
+
+% frequencies and peristimulus time of interest
+%--------------------------------------------------------------------------
+w      = (1:64)';
+t      = (0:64 - 1)'/64;
+try, w = M.Hz(:);       end
+try, t = M.pst(:);      end
+try, t = M.dt*(1:M.N)'; end
+
 
 % delay operator - if not specified already
 %--------------------------------------------------------------------------
@@ -51,27 +74,17 @@ dfdu  = D*dfdu;
 s     = diag(s);
 
 
-% condition remove unstable eigenmodes
+% condition unstable eigenmodes
 %--------------------------------------------------------------------------
-s     = 1j*imag(s) + min(real(s),-4);
+if max(w) > 1
+    s = 1j*imag(s) + min(real(s),-4);
+else
+    s = 1j*imag(s) + min(real(s),-1/32);
+end
 
 
 % Transfer functions
 %==========================================================================
-
-% frequencies of interest
-%--------------------------------------------------------------------------
-try
-    dt = 1/(2*round(M.Hz(end)));
-    N  = 1/dt;
-    w  = (round(linspace(M.Hz(1),M.Hz(end),length(M.Hz))))';
-    t  = (0:N - 1)'*dt;
-catch
-    N  = 128;
-    dt = 1/N;
-    w  = (1:N/2)';
-    t  = (0:N - 1)'*dt;
-end
 
 % transfer functions (FFT of kernel)
 %--------------------------------------------------------------------------
@@ -108,4 +121,4 @@ for j = 1:nu
         end
     end
 end
- 
+

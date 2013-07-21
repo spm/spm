@@ -1,87 +1,103 @@
-function [y,w,s] = spm_csd_fmri_mtf(P,M,U)
-% Spectral response of a NMM (transfer function x noise spectrum)
+function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
+% Spectral response of a DCM (transfer function x noise spectrum)
 % FORMAT [y,w,s] = spm_csd_fmri_mtf(P,M,U)
 %
-% P - parameters
-% M - neural mass model structure
-% U - trial-specific effects (induces expansion around steady state)
+% P - model parameters
+% M - model structure
+% U - model inputs (expects U.csd as complex cross spectra)
 %
-% y - y(N,nc,nc} - cross-spectral density for nc channels {trials}
-%                - for N frequencies in M.Hz [default 1:64Hz]
+% y - y(nw,nn,nn} - cross-spectral density for nn nodes
+%                 - for nw frequencies in M.Hz
 % w - frequencies
-% s - directed transfer functions (complex)
+% S - directed transfer functions (complex)
 %
-% When called with U this function will return a cross-spectral response
-% for each of the condition-specific parameters specified in U.X; otherwise
-% it returns the complex CSD for the parameters in P.
+% This routine computes the spectral response of a network of regions
+% driven by  endogenous fluctuations and exogenous (experimental) inputs.
+% It returns the complex cross spectra of regional responses as a
+% three-dimensional array. The endogenous innovations or fluctuations are
+% parameterised in terms of a (scale free) power law, in frequency space.
 %
-% When the observer function M.g is specified the CSD response is
-% supplemented with channel noise in sensor space; otherwise the CSD
-% pertains to hidden states.
+% When the observer function M.g is specified, the CSD response is
+% supplemented with observation noise in sensor space; otherwise the CSD
+% is noiseless.
 %
-% NB: requires M.u to specify the number of endogenous inputs
-% This routine and will solve for the (hidden) steady state and use it as
-% the expansion point for subsequent linear systems analysis (if trial
-% specific effects are specified).
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5587 2013-07-20 15:37:17Z karl $
- 
+% $Id: spm_csd_fmri_mtf.m 5588 2013-07-21 20:59:39Z karl $
+
 
 % compute log-spectral density
 %==========================================================================
- 
+
 % frequencies of interest
 %--------------------------------------------------------------------------
-w    = M.Hz;
+w    = M.Hz(:);
 nw   = length(w);
- 
-% number of regions and exogenous (neuronal) inputs or sources
+
+% number of nodes and endogenous (neuronal) fluctuations
 %--------------------------------------------------------------------------
-nc   = M.l;
-ns   = length(M.u);
+nn   = M.l;
+nu   = length(M.u);
 
-% spectrum of neuronal innovations (Gu) and noise (Gs)
-%==========================================================================
-for i = 1:ns
-    Gu(:,i) = exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
-end
-for i = 1:size(P.c,2)
-    Gs(:,i) = exp(P.c(1,i) - 2)*w.^(-exp(P.c(2,i)));
-end
 
-% add exogenous input
-%--------------------------------------------------------------------------
-P.C   = eye(ns,ns);
-
- 
-% transfer functions (FFT of kernel)
+% spectrum of neuronal fluctuations (Gu) and observation noise (Gn)
 %==========================================================================
 
-S     = spm_dcm_mtf(P,M);
-
-% [cross]-spectral density from neuronal innovations
-%----------------------------------------------------------------------
-G     = zeros(nw,nc,nc);
-for i = 1:nc
-    for j = 1:nc
-        for k = 1:ns
-            Gij      = S(:,i,k).*conj(S(:,j,k));
-            G(:,i,j) = G(:,i,j) + Gij.*Gu(:,k);
+% experimental inputs
+%--------------------------------------------------------------------------
+Gu    = zeros(nw,nu,nu);
+Gn    = zeros(nw,nn,nn);
+if size(P.C,2)
+    for i = 1:nu
+        for j = 1:nu
+            for k = 1:nw
+                Gu(k,i,j) = P.C(i,:)*squeeze(U.csd(k,:,:))*P.C(j,:)';
+            end
         end
     end
 end
 
-% and add channel noise
-%==========================================================================
-if isfield(M,'g')
-    for i = 1:nc
-        G(:,i,i) = G(:,i,i) + Gs(:,i);
+% neuronal fluctuations (Gu)
+%--------------------------------------------------------------------------
+for i = 1:nu
+    Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,i) - 8)*w.^(-exp(P.a(2,i) - 1));
+end
+
+% observation noise (with global and specific components)
+%--------------------------------------------------------------------------
+for i = 1:nn
+    for j = 1:nn
+        Gn(:,i,j) = Gn(:,i,j) + exp(P.b(1,1) - 4)*w.^(-exp(P.b(2,1) - 2));
     end
-    y = G + Gs;
+    Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i) - 2)*w.^(-exp(P.c(2,i) - 2));
+end
+
+
+% transfer functions (FFT of first-order Volterra kernel)
+%==========================================================================
+P.C   = speye(nn,nu);
+S     = spm_dcm_mtf(P,M);
+
+% predicted cross-spectral density
+%--------------------------------------------------------------------------
+G     = zeros(nw,nn,nn);
+for i = 1:nn
+    for j = 1:nn
+        for k = 1:nu
+            for l = 1:nu
+                G(:,i,j) = G(:,i,j) + S(:,i,k).*Gu(:,k,l).*conj(S(:,j,l));
+            end
+        end
+    end
+end
+
+% and  channel noise
+%--------------------------------------------------------------------------
+if isfield(M,'g')
+    y = G + Gn;
 else
-    y = g;
+    y = G;
 end

@@ -52,10 +52,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5370 2013-03-28 20:10:29Z karl $
+% $Id: spm_dcm_estimate.m 5588 2013-07-21 20:59:39Z karl $
 
 
-SVNid = '$Rev: 5370 $';
+SVNid = '$Rev: 5588 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -312,7 +312,7 @@ end
 
 % and neuronal kernels
 %--------------------------------------------------------------------------
-L       = sparse(1:n,[1:n] + 1,1,n,length(M0));
+L       = sparse(1:n,(1:n) + 1,1,n,length(M0));
 [K0,K1] = spm_kernels(M0,M1,L,M.N,M.dt);
 
 

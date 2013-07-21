@@ -34,7 +34,7 @@ function [K0,K1,K2,H1] = spm_kernels(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_kernels.m 4987 2012-10-05 19:21:44Z karl $
+% $Id: spm_kernels.m 5588 2013-07-21 20:59:39Z karl $
  
  
 % assign inputs
@@ -151,9 +151,6 @@ end
 if nargout > 1
     for p = 1:m
         for i = 1:N
- 
-            % 1st order kernel
-            %--------------------------------------------------------------
             H1(i,:,p) = M{i,p}*H0;
             K1(i,:,p) = H1(i,:,p)*L1';
         end
@@ -167,12 +164,9 @@ if nargout > 2
     for p = 1:m
         for q = 1:m
             for j = 1:N
- 
-                % 2nd order kernel
-                %----------------------------------------------------------
                 H  = L1*M{j,q}*H1((j:N),:,p)';
-                K2(j,[j:N],:,q,p) = H';
-                K2([j:N],j,:,p,q) = H';
+                K2(j,j:N,:,q,p) = H';
+                K2(j:N,j,:,p,q) = H';
  
             end
         end
