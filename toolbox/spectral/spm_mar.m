@@ -22,7 +22,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_mar.m 5589 2013-07-22 08:47:31Z karl $
 
 if nargin < 4 || isempty(verbose)
     verbose=0;
@@ -131,7 +131,7 @@ for it=1:max_iters,
     % Update noise precision posterior
     B=E_d_av;
     a=N;
-    mean_lambda=a\B;
+    mean_lambda=a*inv(B);
     
     prior_cov=zeros(k,k);
     for j=1:prior.groups,

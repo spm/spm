@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5253 2013-02-18 14:31:49Z karl $
+% $Id: spm_dcm_csd_data.m 5589 2013-07-22 08:47:31Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -215,7 +215,6 @@ for i = 1:Ne;
     for k = 1:Nw
         P     = zeros(Nf,Nm,Nm);
         for j = 1:Nt
-            
             Iw  = It((1:w) + fix((k - 1)*w/8));
             Y   = full(double(D(Ic,Iw,c(j))'*DCM.M.U));
             mar = spm_mar(Y,8);
