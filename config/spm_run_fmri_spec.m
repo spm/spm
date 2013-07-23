@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 5053 2012-11-14 14:42:46Z volkmar $
+% $Id: spm_run_fmri_spec.m 5591 2013-07-23 15:30:56Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -203,6 +203,7 @@ for i = 1:numel(job.sess)
         U(j).ons  = cond.onset(:);
         U(j).dur  = cond.duration(:);
         U(j).orth = cond.orth;
+        if isempty(U(j).orth), U(j).orth = true; end
         if length(U(j).dur) == 1
             U(j).dur = repmat(U(j).dur,size(U(j).ons));
         elseif numel(U(j).dur) ~= numel(U(j).ons)
