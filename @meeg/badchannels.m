@@ -5,7 +5,7 @@ function res = badchannels(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: badchannels.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: badchannels.m 5592 2013-07-24 16:25:55Z vladimir $
 
 if length(varargin) == 2 && isnumeric(varargin{1})
     % make sure that the two inputs for set are the same length
@@ -38,6 +38,7 @@ if numel(varargin) <= 1 % get
     if iscell(res)
         res = [res{:}];
     end
+    res = logical(res);
     if isempty(varargin)
         res = find(res);
     end

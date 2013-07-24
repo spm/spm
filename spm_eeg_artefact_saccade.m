@@ -1,96 +1,81 @@
-function D = spm_eeg_detect_saccades(S)
+function res = spm_eeg_artefact_saccade(S)
 % Detects eyeblinks in spm continuous data file
-% FORMAT  D = spm_eeg_detect_eyeblinks(S)
+% S                     - input structure
+% fields of S:
+%    S.D                - M/EEG object
+%    S.chanind          - vector of indices of channels that this plugin will look at.
+%    S.threshold        - threshold parameter (in stdev)
 %
-% S                    - input structure (optional)
-% (optional) fields of S:
-%          .stdthresh  - threshold to reject things that look like
-%                         eye-blinks but probably aren't (default: 3)
-%          .overwrite  - 1 - replace previous eybelink events (default)
-%                        0 - append
+%    Additional parameters can be defined specific for each plugin
 % Output:
-% D                 - MEEG object with added eyeblink events(also
-%                     written on disk)
-%__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%  res -
+%   If no input is provided the plugin returns a cfg branch for itself
+%
+%   If input is provided the plugin returns a matrix of size D.nchannels x D.ntrials
+%   with zeros for clean channel/trials and ones for artefacts.
+%______________________________________________________________________________________
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
-% Markus Bauer, based on spm_eeg_detect_eyeblink
+% Markus Bauer, Laurence Hunt
 % simplified version of a method described by 
 % Engbert, R., & Mergenthaler, K. (2006) Microsaccades 
 %  are triggered by low retinal image slip. Proceedings of the National 
 %  Academy of Sciences of the United States of America, 103: 7192-7197. 
-% $Id: spm_eeg_detect_saccades.m 
+% $Id: spm_eeg_artefact_saccade.m 5592 2013-07-24 16:25:55Z vladimir $
 
-SVNrev = '$Rev: 5388 $';
+
+%-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
+% Any parameters can be specified and they are then passed to the plugin
+% when it's called.
+%--------------------------------------------------------------------------
+if nargin == 0
+    threshold = cfg_entry;
+    threshold.tag = 'threshold';
+    threshold.name = 'Threshold';
+    threshold.strtype = 'r';
+    threshold.val = {3};
+    threshold.num = [1 1];
+    threshold.help = {'Threshold to reject things that look like saccades but probably aren''t'};
+           
+    excwin = cfg_entry;
+    excwin.tag = 'excwin';
+    excwin.name = 'Excision window';
+    excwin.strtype = 'r';
+    excwin.num = [1 1];
+    excwin.val = {0};
+    excwin.help = {'Window (in ms) to mark as bad around each saccade, 0 to not mark data as bad'};
+    
+    saccade = cfg_branch;
+    saccade.tag = 'saccade';
+    saccade.name = 'Saccades';
+    saccade.val = {threshold, excwin};
+    
+    res = saccade;
+    
+    return
+end
+
+SVNrev = '$Rev: 5592 $';
 
 %-Startup
 %--------------------------------------------------------------------------
-spm('FnBanner', mfilename, SVNrev);
-spm('FigName','Saccade detect'); spm('Pointer','Watch');
+spm('sFnBanner', mfilename, SVNrev);
+spm('FigName','M/EEG saccade detection');
 
-
-%-Test for the presence of required Matlab toolbox - not needed anymore, 
-% using ft_preproc_bandpassfilter instead
-%--------------------------------------------------------------------------
-if ~license('test','signal_toolbox')
-%    error('Signal Processing Toolbox is required for eyeblink detection.');
+if isequal(S.mode, 'reject')
+     error('Only mark mode is supported by this plug-in, use event-based rejection to reject.');
 end
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
+D = spm_eeg_load(S.D);
+
+chanind  =  S.chanind;
+threshold = S.threshold;
+
+if length(chanind)~=1
+    error('More than one channel - not currently supported')
 end
 
-D = spm_eeg_load(D);
-
-if ~strcmp(D.type, 'continuous')
-    error('Only continuous data is supported at the moment.');
-end
-
-
-% Get the indicex for EOG channel
-%--------------------------------------------------------------------------
-if ~(isfield(S, 'eogchan') && ~isempty(S.eogchan))
-   eogchan = setdiff(D.eogchannels, D.badchannels);
-   if length(eogchan)~=1
-       [selection, ok]= listdlg('ListString', D.chanlabels(eogchan), 'SelectionMode', 'single' ,'Name', 'Select EOG channel' , 'ListSize', [400 300]);
-       if ~ok
-           return;
-       end
-       if ~isempty(eogchan)
-           eogchan = eogchan(selection);
-       else
-           eogchan = selection;
-       end
-       S.eogchan = D.chanlabels(eogchan);
-   end
-elseif ~isnumeric(S.eogchan)
-    eogchan = D.indchannel(S.eogchan);
-else
-    eogchan = S.eogchan;
-end
-
-try 
-    stdthresh = S.stdthresh;
-catch
-    stdthresh = 4;
-end
-
-if ~isfield(S, 'overwrite')
-    S.overwrite = spm_input('Overwrite previous?','+1','yes|no',[1 0], 1);
-end
-
-%% get EOG data
-if length(eogchan)~=1
-    error('More than one EOG channel - not currently supported')
-end
-
-eog_data = D(eogchan,:,:);
+eog_data = reshape(squeeze(D(chanind,:,:)), 1, []);
 
 %% SACCADE DETECTION:
 % 1) filter the data, saccade duration ~40 ms, filtering at 30 Hz is fine even if it may weaken signal a tiny bit,
@@ -104,11 +89,11 @@ eog_filt = [eog_data(:,1),diff(eog_data,1,2)];
 %% find saccades by thresholding
 
 sd_eeg=(spm_percentile(eog_filt,85)-spm_percentile(eog_filt,15))/2; %robust estimate of standard deviation, suggested by Mark Woolrich
-em_thresh = stdthresh*sd_eeg;
+em_thresh = S.threshold*sd_eeg;
 
 %% find 'spikes' (putative saccades):
 
-eblength = round(D.fsample/5); %length of eyeblink(200 ms) in samples;
+eblength = round(D.fsample/5); %length of saccade(200 ms) in samples;
 spikes = [];
 for i = eblength:length(eog_filt)-eblength;
     if abs(eog_filt(i))>em_thresh && ... %bigger than threshold
@@ -137,7 +122,7 @@ spikemat(:,find(spikemat(eblength,:)>mn_spike+sd_spike | ...
 
 disp(['Number of putative saccades detected: ' num2str(length(spikes))]);
        
-num_eb_per_min=60*length(spikes)/(D.time(end)-D.time(1));
+num_eb_per_min=(60*D.fsample*length(spikes))/length(eog_data);
 disp([num2str(num_eb_per_min) ' saccades per minute '])
 if (num_eb_per_min<0.5)
     error(['Only ' num2str(num_eb_per_min) ' saccades per minute detected by algorithm. Try a lower threshold.'])
@@ -153,7 +138,7 @@ colormap(gray)
 figure(Fgraph)
 clf
 subplot(2, 1 , 1)
-plot(spikes,ones(length(spikes),1)*stdthresh*sd_eeg,'r.');
+plot(spikes,ones(length(spikes),1)*5*sd_eeg,'r.');
 hold on;
 plot(eog_filt);
 
@@ -177,26 +162,35 @@ if ~isempty(spikes)
         end
         
         
-        if ~isempty(ev) && S.overwrite
-            ind1 = strmatch('artefact', {ev.type}, 'exact');
+        if ~isempty(ev) && ~S.append
+            ind1 = strmatch('artefact_saccade', {ev.type}, 'exact');
             if ~isempty(ind1)
-                ind2 = strmatch('saccade', {ev(ind1).value}, 'exact');
+                ind2 = strmatch(D.chanlabels(chanind), {ev(ind1).value}, 'exact');
                 if ~isempty(ind2)
                     ev(ind1(ind2)) = [];
                 end
             end
-        end
+        end        
         
         Nevents = numel(ev);
         for i=1:numel(ctime)
-            ev(Nevents+i).type     = 'artefact';
-            ev(Nevents+i).value    = 'saccade';
-            ev(Nevents+i).duration = [];
-            ev(Nevents+i).time     = ctime{i};
+            if ctime{i} == 0
+                continue; %likely to be trial border falsely detected as saccade
+            end
+            ev(Nevents+i).type     = 'artefact_saccade';
+            ev(Nevents+i).value    = char(D.chanlabels(chanind));
+            if S.excwin == 0
+                ev(Nevents+i).duration = [];
+                ev(Nevents+i).time     = ctime{i};
+            else
+                ev(Nevents+i).time     = max(D.trialonset(n), ctime{i} - 5e-4*S.excwin);
+                ev(Nevents+i).duration = min(1e-3*S.excwin, (D.time(end)-D.time(1))-(ev(Nevents+i).time-D.trialonset(n)))+...
+                    min(ctime{i} - 5e-4*S.excwin, 0);               
+            end                      
         end
         
         if ~isempty(ev)
-            [tevent, I] = sort([ev.time]);
+            [dum, I] = sort([ev.time]);
             ev = ev(I);
             D = events(D, n, ev);
         end
@@ -205,18 +199,6 @@ else
     warning(['No saccade events detected in the selected channel']);
 end
 
-%-Update history (not necessary; leave as call to spm_eeg_montage?) Save new evoked M/EEG dataset
-%--------------------------------------------------------------------------
-D = D.history(mfilename, S);
+res = D;
 
-save(D);
-
-%-Cleanup
-%--------------------------------------------------------------------------
-spm_progress_bar('Clear');
-spm('FigName','Saccade detect: done'); spm('Pointer','Arrow');
-
-
-
-
-    
+spm('FigName','M/EEG saccade detection: done');

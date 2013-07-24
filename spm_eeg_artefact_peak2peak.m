@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_peak2peak(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_peak2peak.m 3259 2009-07-09 10:19:57Z vladimir $
+% $Id: spm_eeg_artefact_peak2peak.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -41,12 +41,16 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 3259 $';
+SVNrev = '$Rev: 5592 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG peak to peak artefact detection');
+
+if isequal(S.mode, 'mark')
+    error('Only reject mode is supported by this plug-in');
+end
 
 D = spm_eeg_load(S.D);
 

@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 5396 2013-04-11 13:38:24Z vladimir $
+% $Id: spm_MEEGtools.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
 funlist = {
@@ -26,10 +26,7 @@ funlist = {
     'Extract dipole waveforms', 'spm_eeg_dipole_waveforms'
     'Fieldtrip-SPM robust multitaper coherence', 'spm_eeg_ft_multitaper_coherence'
     'Fieldtrip multitaper power map', 'spm_eeg_ft_multitaper_powermap'
-    'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'
-    'FMRIB Detect ECG peaks',   'spm_eeg_fmrib_qrsdetect'     
-    'Detect eyeblinks',  'spm_eeg_detect_eyeblinks'
-    'Detect saccades', 'spm_eeg_detect_saccades'
+    'Interpolate artefact segment', 'spm_eeg_interpolate_artefact'     
     'Relabel trials for epoched CTF datasets', 'spm_eeg_recode_epoched_ctf'
     'Correct TMS artefact', 'spm_eeg_tms_correct'
     'Plot scalp maps from M/EEG image', 'spm_eeg_img2maps'

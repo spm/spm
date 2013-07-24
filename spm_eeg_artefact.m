@@ -5,10 +5,15 @@ function D = spm_eeg_artefact(S)
 % S                     - input structure
 %
 % fields of S:
+%   S.mode               'reject' (default) - reject bad channels and trials
+%                        'mark' - scan the data and create events marking
+%                                 the artefacts
 %   S.D                 - MEEG object or filename of M/EEG mat-file with
-%   S.badchanthresh     - fraction of trials with artefacts above which a 
+%   S.badchanthresh     - fraction of trials (or time) with artefacts above which a
 %                         channel is declared as bad (default: 0.2)
 %
+%   S.append            - 1 (default) append new markings to existing ones
+%                         0  overwrite existing markings
 %   S.methods           - a structure array with configuration parameters
 %                         for artefact detection plugins.
 %   S.prefix     - prefix for the output file (default - 'a')
@@ -32,81 +37,134 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 5076 2012-11-23 16:05:21Z vladimir $
+% $Id: spm_eeg_artefact.m 5592 2013-07-24 16:25:55Z vladimir $
 
-SVNrev = '$Rev: 5076 $';
+SVNrev = '$Rev: 5592 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG artefact detection'); spm('Pointer','Watch');
 
+if ~isfield(S, 'mode'),            S.mode = 'reject';          end
 if ~isfield(S, 'badchanthresh'),   S.badchanthresh = 0.2;      end
+if ~isfield(S, 'append'),          S.append = true;            end
 if ~isfield(S, 'prefix'),          S.prefix        = 'a';      end
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
 D = spm_eeg_load(S.D);
 
-if isequal(D.type, 'continuous')
-    error('Artefact detection can only be applied to epoched data');
-end
-
-%-Create a copy of the dataset
-%--------------------------------------------------------------------------
-D = copy(D, [S.prefix D.fname]);
-
-%-Run the artefact detection routines
-%--------------------------------------------------------------------------
-bad = zeros(D.nchannels, D.ntrials);
-
-for i = 1:numel(S.methods)
-    chanind = setdiff(D.selectchannels(S.methods(i).channels), D.badchannels);
+if isequal(S.mode, 'reject')
     
-    if ~isempty(chanind)
-        S1 =  S.methods(i).settings;
-
-        if isempty(S1)
-            S1 = [];
+    if isequal(D.type, 'continuous')
+        error('Artefact rejection can only be applied to epoched data');
+    end
+    
+    %-Create a copy of the dataset
+    %--------------------------------------------------------------------------
+    D = copy(D, [S.prefix D.fname]);
+    
+    %-Run the artefact detection routines
+    %--------------------------------------------------------------------------
+    bad = zeros(D.nchannels, D.ntrials);
+    
+    for i = 1:numel(S.methods)
+        chanind = D.selectchannels(S.methods(i).channels);
+        if S.append
+            chanind = setdiff(chanind, D.badchannels);
         end
         
-        S1.D = D;
-        S1.chanind = chanind;
-
-        bad = bad | feval(['spm_eeg_artefact_' S.methods(i).fun], S1);
+        if ~isempty(chanind)
+            S1 =  S.methods(i).settings;
+            
+            if isempty(S1)
+                S1 = [];
+            end
+            
+            S1.mode = S.mode;
+            S1.D    = D;            
+            S1.chanind = chanind;
+            
+            bad = bad | feval(['spm_eeg_artefact_' S.methods(i).fun], S1);
+        end
     end
+    
+    %-Classify MEEG channels as bad if the fraction of bad trials exceeds threshold
+    %-------------------------------------------------------------------------------
+    badchanind  = intersect(find(mean(bad, 2)>S.badchanthresh), indchantype(D, 'MEEG'));
+    badchanind  = union(badchanind, D.badchannels);
+    goodchanind = setdiff(1:D.nchannels, badchanind);
+    
+    %-Classify trials as bad if they have artefacts in good M/EEG channels
+    %-or in non-M/EEG channels
+    %--------------------------------------------------------------------------
+    badtrialind = find(any(bad(goodchanind, :)));
+    
+    %-Update and save new dataset
+    %--------------------------------------------------------------------------
+    if ~S.append
+        D = badtrials(D, ':', 0);
+        D = badchannels(D, ':', 0);
+    end
+    
+    D = badtrials(D, badtrialind, 1);
+    D = badchannels(D, badchanind, ones(size(badchanind)));
+    
+    %-Report on command line
+    %--------------------------------------------------------------------------
+    fprintf('%d rejected trials: %s\n', length(badtrialind), num2str(badtrialind));
+    
+elseif isequal(S.mode, 'mark')
+    
+    %-Create a copy of the dataset
+    %--------------------------------------------------------------------------
+    D = copy(D, [S.prefix D.fname]);
+           
+    %-Run the artefact detection routines
+    %--------------------------------------------------------------------------    
+    for i = 1:numel(S.methods)
+        chanind = setdiff(D.selectchannels(S.methods(i).channels), D.badchannels);
+       
+        if ~isempty(chanind)
+            S1 =  S.methods(i).settings;
+            
+            if isempty(S1)
+                S1 = [];
+            end
+            
+            S1.mode = S.mode;
+            S1.D    = D;
+            S1.badchanthresh = S.badchanthresh;
+            S1.append =  S.append;
+            S1.chanind = chanind;
+            
+            
+            D =  feval(['spm_eeg_artefact_' S.methods(i).fun], S1);
+        end
+    end    
+    
+    bad = squeeze(mean(mean(badsamples(D, D.indchantype({'MEEG', 'LFP'}), ':', ':'), 2), 3)) > S.badchanthresh;
+    
+    badchanind = find(bad);
+    
+    %-Update and save new dataset
+    %--------------------------------------------------------------------------
+    D = badchannels(D, badchanind, 1);
+else
+    error('Invalid mode specification');
 end
 
-%-Classify MEEG channels as bad if the fraction of bad trials exceeds threshold
-%-------------------------------------------------------------------------------
-badchanind  = intersect(find(mean(bad, 2)>S.badchanthresh), indchantype(D, 'MEEG'));
-badchanind  = union(badchanind, D.badchannels);
-goodchanind = setdiff(1:D.nchannels, badchanind);
-
-%-Classify trials as bad if they have artefacts in good M/EEG channels
-%-or in non-M/EEG channels
-%--------------------------------------------------------------------------
-badtrialind = find(any(bad(goodchanind, :)));
-
-%-Update and save new dataset
-%--------------------------------------------------------------------------
-D = badtrials(D, badtrialind, 1);
-D = badchannels(D, badchanind, ones(size(badchanind)));
-
-
-D = D.history(mfilename, S);
-save(D);
-
-%-Report on command line
-%--------------------------------------------------------------------------
 if isempty(badchanind)
-    fprintf('There isn''t a bad channel.\n');                                   
+    fprintf('There isn''t a bad channel.\n');
 else
     lbl = D.chanlabels(badchanind);
     if ~iscell(lbl), lbl = {lbl}; end
-    fprintf('%d bad channels: %s\n', numel(lbl), sprintf('%s ', lbl{:}));      
+    fprintf('%d bad channels: %s\n', numel(lbl), sprintf('%s ', lbl{:}));
 end
-fprintf('%d rejected trials: %s\n', length(badtrialind), num2str(badtrialind));
+
+D = D.history(mfilename, S);
+save(D);
 
 %-Cleanup
 %--------------------------------------------------------------------------

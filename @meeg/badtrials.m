@@ -5,7 +5,7 @@ function res = badtrials(this, varargin)
 % Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: badtrials.m 5220 2013-01-31 11:10:13Z vladimir $
+% $Id: badtrials.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
 if length(varargin) == 2 && ~isempty(varargin{1})
@@ -30,6 +30,7 @@ if numel(varargin) <= 1 % get
     if iscell(res)
         res = [res{:}];
     end
+    res = logical(res);
     if isempty(varargin)
         res = find(res);
     end

@@ -20,10 +20,10 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 5340 2013-03-21 11:22:02Z vladimir $
+% $Id: spm_eeg_definetrial.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
-SVNrev = '$Rev: 5340 $';
+SVNrev = '$Rev: 5592 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -48,22 +48,11 @@ if ~isequal(D.type, 'continuous')
     error('Trial definition requires continuous dataset as input');
 end
 
-event     = D.events;
-timeonset = D.timeonset;
+event     = events(D, 1, 'samples');
 fsample   = D.fsample;
 
 if isempty(event)
     error('No event information was found in the input');
-end
-
-for i = 1:numel(event)
-    if timeonset == 0
-        event(i).sample = event(i).time*fsample;
-    else
-        event(i).sample = (event(i).time-timeonset)*fsample+1;
-    end
-    
-    event(i).sample = round(event(i).sample);
 end
 
 if ~isfield(S, 'timewin')
@@ -81,7 +70,7 @@ if ~isfield(S, 'trialdef')
         pos = '+1';
         while ~OK
             conditionlabel = spm_input(['Label of condition ' num2str(i)], pos, 's');
-            selected = select_event_ui(event);
+            selected = spm_eeg_select_event_ui(event);
             if isempty(conditionlabel) || isempty(selected)
                 pos = '-1';
             else
@@ -206,71 +195,3 @@ end
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Interactive'); clf;
 
-%==========================================================================
-% select_event_ui
-%==========================================================================
-function selected = select_event_ui(event)
-% Allow the user to select an event using GUI
-
-selected={};
-
-if isempty(event)
-    fprintf('no events were found\n');
-    return
-end
-
-eventtype = unique({event.type});
-Neventtype = length(eventtype);
-
-% Two lists are built in parallel
-settings={}; % The list of actual values to be used later
-strsettings={}; % The list of strings to show in the GUI
-
-for i=1:Neventtype
-    sel = find(strcmp(eventtype{i}, {event.type}));
-
-    numind = find(...
-        cellfun('isclass', {event(sel).value}, 'double') & ...
-        ~cellfun('isempty', {event(sel).value}));
-
-    charind = find(cellfun('isclass', {event(sel).value}, 'char'));
-
-    emptyind = find(cellfun('isempty', {event(sel).value}));
-
-    if ~isempty(numind)
-        numvalue = unique([event(sel(numind)).value]);
-        for j=1:length(numvalue)
-            ninstances = sum([event(sel(numind)).value] == numvalue(j));
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' num2str(numvalue(j)) ...
-                ' ; ' num2str(ninstances) ' instances']}];
-            settings=[settings; [eventtype(i), {numvalue(j)}]];
-        end
-    end
-
-    if ~isempty(charind)
-        charvalue = unique({event(sel(charind)).value});
-        if ~iscell(charvalue)
-            charvalue = {charvalue};
-        end
-        for j=1:length(charvalue)
-            ninstances = length(strmatch(charvalue{j}, {event(sel(charind)).value}, 'exact'));
-            strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ' charvalue{j}...
-                ' ; ' num2str(ninstances) ' instances']}];
-            settings=[settings; [eventtype(i), charvalue(j)]];
-        end
-    end
-
-    if ~isempty(emptyind)
-        strsettings=[strsettings; {['Type: ' eventtype{i} ' ; Value: ; ' ...
-            num2str(length(emptyind)) ' instances']}];
-        settings=[settings; [eventtype(i), {[]}]];
-    end
-end
-
-[selection,ok]= listdlg('ListString',strsettings, 'SelectionMode', 'multiple', 'Name', 'Select event', 'ListSize', [400 300]);
-
-if ok
-    selected=settings(selection, :);
-else
-    selected={};
-end

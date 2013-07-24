@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5466 2013-05-05 16:11:21Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5466 $';
+SVNrev = '$Rev: 5592 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -92,6 +92,12 @@ BInputsTrialsMenu = uimenu(BatchInputsMenu, 'Label', 'Trial definition',...
     'Enable', 'off', ...
     'HandleVisibility','on',...
     'Callback', 'spm_eeg_prep_ui(''TrialsCB'')');
+
+BInputsEventsMenu = uimenu(BatchInputsMenu, 'Label', 'Event list',...
+    'Tag','EEGprepUI',...
+    'Enable', 'off', ...
+    'HandleVisibility','on',...
+    'Callback', 'spm_eeg_prep_ui(''EventsCB'')');
 
 BInputsMontageMenu = uimenu(BatchInputsMenu, 'Label', 'Montage',...
     'Tag','EEGprepUI',...
@@ -459,6 +465,41 @@ setD(D);
 
 update_menu;
 
+end
+
+%==========================================================================
+% function EventsCB
+%==========================================================================
+function EventsCB
+
+D = getD;
+
+ev = D.events;
+
+if iscell(ev)
+    sev = ev{1};
+    for i = 2:numel(ev)
+        sev = spm_cat_struct(sev, ev{i});
+    end
+else
+    sev = ev;
+end
+
+selected = spm_eeg_select_event_ui(sev);
+
+events = [];
+for i = 1:size(selected, 1)
+    events(i).type  = selected{i, 1};
+    events(i).value = selected{i, 2};
+end
+
+if ~isempty(events)
+    [filename, pathname] = uiputfile('*.mat', 'Save event list as');
+    
+    if ~isequal(filename, 0)
+        save(fullfile(pathname, filename), 'events', spm_get_defaults('mat.format'));
+    end
+end
 end
 
 %==========================================================================
@@ -1058,6 +1099,7 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'File'), 'Enable', 'on');
 IsEEG = 'off';
 IsMEG = 'off';
 IsEpochable = 'off';
+HasEvents   = 'off';
 IsEpoched   = 'off';
 HasPlanar   = 'off';
 HasSensors  = 'off';
@@ -1079,6 +1121,10 @@ if isa(get(Finter, 'UserData'), 'meeg')
     
     if ~isempty(D.indchantype('MEG'));
         IsMEG = 'on';
+    end
+    
+    if ~isempty(D.events)
+        HasEvents = 'on';
     end
     
     if isequal(D.type, 'continuous') && ~isempty(D.events);
@@ -1159,9 +1205,10 @@ set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Save'), 'Enable', 'on');
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Batch inputs'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Trial definition'), 'Enable', IsEpochable);
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Event list'), 'Enable', HasEvents);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Montage'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Re-reference'), 'Enable', IsEEG);
-set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'ROI'), 'Enable', Dloaded);;
+set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'ROI'), 'Enable', Dloaded);
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Sort conditions'), 'Enable', IsEpoched);
 
 set(findobj(Finter,'Tag','EEGprepUI', 'Label', 'Channel types'), 'Enable', Dloaded);

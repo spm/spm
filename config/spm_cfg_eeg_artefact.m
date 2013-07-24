@@ -4,7 +4,7 @@ function artefact = spm_cfg_eeg_artefact
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_artefact.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_artefact.m 5592 2013-07-24 16:25:55Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -16,6 +16,18 @@ D.name   = 'File Name';
 D.filter = 'mat';
 D.num    = [1 1];
 D.help   = {'Select the M/EEG mat file.'};
+
+%--------------------------------------------------------------------------
+% mode
+%--------------------------------------------------------------------------
+mode = cfg_menu;
+mode.tag = 'mode';
+mode.name = 'Mode';
+mode.labels = {'Reject', 'Mark'};
+mode.val = {'reject'};
+mode.values = {'reject', 'mark'};
+mode.help = {'Action mode reject - to set trials and channels as bad',...
+    'mark - just create artefact events, set channels as bad if mostly artefactual'};
 
 %--------------------------------------------------------------------------
 % badchanthresh
@@ -69,12 +81,23 @@ prefix.num     = [1 Inf];
 prefix.val     = {'a'};
 
 %--------------------------------------------------------------------------
+% append
+%--------------------------------------------------------------------------
+append = cfg_menu;
+append.tag = 'append';
+append.name = 'Append';
+append.labels = {'yes', 'no'};
+append.val = {true};
+append.values = {true, false};
+append.help = {'Append new artefacts to already marked or overwrite'};
+
+%--------------------------------------------------------------------------
 % M/EEG Artefact detection
 %--------------------------------------------------------------------------
 artefact          = cfg_exbranch;
 artefact.tag      = 'artefact';
 artefact.name     = 'Artefact detection';
-artefact.val      = {D, badchanthresh, methodsrep, prefix};
+artefact.val      = {D, mode, badchanthresh, append, methodsrep, prefix};
 artefact.help     = {'Detect artefacts in epoched M/EEG data.'};
 artefact.prog     = @eeg_artefact;
 artefact.vout     = @vout_eeg_artefact;
@@ -86,6 +109,7 @@ artefact.modality = {'EEG'};
 function out = eeg_artefact(job)
 % construct the S struct
 S.D = job.D{1};
+S.mode = job.mode;
 S.badchanthresh = job.badchanthresh;
 
 for i = 1:numel(job.methods)

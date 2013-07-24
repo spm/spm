@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5576 2013-07-11 12:24:56Z vladimir $
+% $Id: checkmeeg.m 5592 2013-07-24 16:25:55Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -277,6 +277,10 @@ if Ntrials > 0
         end
         
         this.trials(i).events = event;
+    end
+    
+    if Ntrials == 1
+        this.trials.onset = this.timeOnset;
     end
     
     if ~isfield(this.trials, 'onset')

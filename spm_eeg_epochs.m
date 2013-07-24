@@ -43,9 +43,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5331 2013-03-18 13:36:02Z vladimir $
+% $Id: spm_eeg_epochs.m 5592 2013-07-24 16:25:55Z vladimir $
 
-SVNrev = '$Rev: 5331 $';
+SVNrev = '$Rev: 5592 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -110,7 +110,7 @@ elseif isfield(S, 'trl')
         end
     end
 elseif isfield(S, 'trialength')
-    trl = round(1:(1e-3*S.trialength*D.fsample):D.nsamples);
+    trl = 1:round(1e-3*S.trialength*D.fsample):D.nsamples;
     trl = [trl(1:(end-1))' trl(2:end)' 0*trl(2:end)'];
     
     if isfield(S, 'conditionlabels')
