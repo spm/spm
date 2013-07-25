@@ -5,7 +5,7 @@ function res = badsamples(this, chanind, sampind, trialind)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: badsamples.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: badsamples.m 5593 2013-07-25 09:52:35Z vladimir $
 
 if ischar(chanind) && isequal(chanind, ':')
     chanind = 1:nchannels(this);
@@ -19,7 +19,7 @@ if ischar(trialind) && isequal(trialind, ':')
     trialind = 1:ntrials(this);
 end
 
-res = false(length(chanind), length(sampind), length(trialind));
+res = false(length(chanind), D.nsamples, length(trialind));
 for i = 1:length(trialind)
     ev = events(this, trialind(i), 'samples');
     if iscell(ev)
@@ -37,5 +37,6 @@ for i = 1:length(trialind)
     end
 end
 
+res = res(:, sampind, :);
 res(badchannels(this, chanind), :, :) = true;
 res(:, :, badtrials(this, trialind))  = true;
