@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_nans(S)
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_nans.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_nans.m 5594 2013-07-29 16:10:40Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -34,7 +34,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 5594 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ elseif isequal(S.mode, 'mark')
                 onsets = find(diffs>1);
                 k = 1;
                 m = 1;
-                while ~isempty(onsets)
+                while k<=length(onsets)
                     if m <= length(onsets)
                         ind1 = onsets(k);
                         ind2 = onsets(m) + diffs(onsets(m));
