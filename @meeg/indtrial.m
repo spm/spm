@@ -13,7 +13,7 @@ function res = indtrial(this, label, flag)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indtrial.m 5057 2012-11-15 13:03:35Z vladimir $
+% $Id: indtrial.m 5596 2013-08-01 14:36:18Z vladimir $
 
 if ischar(label)
     label = {label};
@@ -28,3 +28,5 @@ if nargin > 2
         res = intersect(res, badtrials(this));
     end
 end
+
+res = res(:)';
