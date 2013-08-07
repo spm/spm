@@ -17,7 +17,7 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5563 2013-06-21 11:33:33Z gareth $
+% $Id: spm_eeg_simulate.m 5599 2013-08-07 15:00:09Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -272,7 +272,7 @@ if ~isempty(SNRdB),
 end;
 
 
-chans = meegchannels(Dnew); %% added by Anna Jafarpour 13/06/13
+chans = Dnew.indchantype('MEG'); %% added by Anna Jafarpour 13/06/13
 for i=1:Ntrials
     if any(i == trialind), %% only add signal to specific trials
         Dnew(chans,:,i) = tmp;
