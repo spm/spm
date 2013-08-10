@@ -36,10 +36,14 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_dcm_fmri_csd.m 5600 2013-08-10 20:20:49Z karl $
 
 
-% DCN name
+% get DCM
+%--------------------------------------------------------------------------
+if ischar(DCM), load(DCM); end
+
+% DCM name
 %--------------------------------------------------------------------------
 try, DCM.name; catch, DCM.name = sprintf('DCM_%s',date); end
 
@@ -54,12 +58,14 @@ try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  en
 
 % parameter initialisation
 %--------------------------------------------------------------------------
-try, M.P = DCM.options.P;    end
+try, DCM.M.P = DCM.options.P;  end
+
 
 % sizes
 %--------------------------------------------------------------------------
-try, DCM.n;  catch, DCM.n = size(DCM.a,1);    end
-try, DCM.v;  catch, DCM.v = size(DCM.Y.y,1);  end
+try, DCM.U.u; catch, DCM.U.u = [];            end
+try, DCM.n;   catch, DCM.n = size(DCM.a,1);   end
+try, DCM.v;   catch, DCM.v = size(DCM.Y.y,1); end
 
 
  % analysis and options
@@ -89,8 +95,8 @@ n       = DCM.n;
 DCM.b   = zeros(n,n,0);
 DCM.d   = zeros(n,n,0);
 if isempty(DCM.c) || isempty(DCM.U.u)
-    DCM.c      = zeros(n,1);
-    DCM.U.u    = zeros(v,1);
+    DCM.c      = zeros(DCM.n,1);
+    DCM.U.u    = zeros(DCM.v,1);
     DCM.U.name = {'null'};
 end
 
@@ -104,7 +110,7 @@ if n > DCM.options.nmax
     
     % remove confounds and find principal (nmax) modes
     %----------------------------------------------------------------------
-    y       = Y.y - Y.X0*(pinv(Y.X0)*Y.y);
+    y       = DCM.Y.y - DCM.Y.X0*(pinv(DCM.Y.X0)*DCM.Y.y);
     V       = spm_svd(y');
     V       = V(:,1:DCM.options.nmax);
     
@@ -118,9 +124,9 @@ end
 
 % add prior on spectral density of fluctuations (amplitude and exponent)
 %--------------------------------------------------------------------------
-pE.a  = sparse(2,n);   pV.a = sparse(2,n) + 1/32; % neuronal fluctuations
-pE.b  = sparse(2,1);   pV.b = sparse(2,1) + 1/32; % channel noise global
-pE.c  = sparse(2,n);   pV.c = sparse(2,n) + 1/32; % channel noise specific
+pE.a  = sparse(2,n);   pV.a = sparse(2,n) + 1/16; % neuronal fluctuations
+pE.b  = sparse(2,1);   pV.b = sparse(2,1) + 1/16; % channel noise global
+pE.c  = sparse(2,n);   pV.c = sparse(2,n) + 1/16; % channel noise specific
 pC    = blkdiag(pC,spm_diag(spm_vec(pV)));
 
 
@@ -133,7 +139,7 @@ DCM.M.f  = 'spm_fx_fmri';
 DCM.M.x  = x;
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 6;
+DCM.M.hE = 4;
 DCM.M.hC = 1/128;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
@@ -153,9 +159,11 @@ DCM.M.N  = 64;
 
 % scale input (to a variance of 1/8)
 %--------------------------------------------------------------------------
-ccf         = spm_csd2ccf(DCM.U.csd,DCM.Y.Hz);
-DCM.U.scale = max(spm_vec(ccf))*8;
-DCM.U.csd   = spm_unvec(spm_vec(DCM.U.csd)/DCM.U.scale,(DCM.U.csd));
+if any(diff(DCM.U.u))
+    ccf         = spm_csd2ccf(DCM.U.csd,DCM.Y.Hz);
+    DCM.U.scale = max(spm_vec(ccf))*8;
+    DCM.U.csd   = spm_unvec(spm_vec(DCM.U.csd)/DCM.U.scale,(DCM.U.csd));
+end
 
 
 % complete model specification and invert
@@ -223,9 +231,9 @@ DCM.K1      = K1;
 DCM.Ep = Ep;                   % conditional expectation
 DCM.Cp = Cp;                   % conditional covariance
 DCM.Pp = Pp;                   % conditional probability
-DCM.Hc = Hc;                   % conditional responses (y), channel space
-DCM.Rc = Ec;                   % conditional residuals (y), channel space
-DCM.Hs = Hs;                   % conditional responses (y), source space
+DCM.Hc = Hc;                   % conditional responses (y), BOLD space
+DCM.Rc = Ec;                   % conditional residuals (y), BOLD space
+DCM.Hs = Hs;                   % conditional responses (y), neural space
 DCM.Ce = exp(-Eh);             % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 

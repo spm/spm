@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5590 2013-07-22 11:10:19Z guillaume $
+% $Id: spm_dcm_fmri_csd_data.m 5600 2013-08-10 20:20:49Z karl $
 
 
 if ~isdeployed
@@ -24,6 +24,7 @@ end
 %--------------------------------------------------------------------------
 Nb        = size(DCM.Y.y,1);              % number of bins
 Nu        = size(DCM.U.u,1);              % number of bins
+Nc        = size(DCM.U.u,2);              % number of inputs
 DCM.Y.pst = (1:Nb)*DCM.Y.dt;              % PST
 
 % Get frequency range
@@ -38,24 +39,32 @@ end
 
 % Frequencies
 %--------------------------------------------------------------------------
-DCM.Y.Hz  = linspace(Hz1,Hz2,64);          % Frequencies
+Nw        = 64;
+DCM.Y.Hz  = linspace(Hz1,Hz2,Nw);          % Frequencies
 
 
-% Cross spectral density - respones
+% Cross spectral density - respones (MAR(p) model)
 %==========================================================================
-mar       = spm_mar(DCM.Y.y,16);
+p         = 4;
+mar       = spm_mar(DCM.Y.y,p);
 mar       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
 DCM.Y.csd = mar.P;
 
 % Decimate U.u from micro-time
 % -------------------------------------------------------------------------
-Dy        = spm_dctmtx(Nb,Nb);
-Du        = spm_dctmtx(Nu,Nb);
-Dy        = Dy*sqrt(Nb/Nu);
-u         = Dy*(Du'*DCM.U.u);
-
-% Cross spectral density - inputs
-%==========================================================================
-mar       = spm_mar(full(u),16);
-mar       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
-DCM.U.csd = mar.P;
+if any(diff(DCM.U.u))
+    
+    Dy        = spm_dctmtx(Nb,Nb);
+    Du        = spm_dctmtx(Nu,Nb);
+    Dy        = Dy*sqrt(Nb/Nu);
+    u         = Dy*(Du'*DCM.U.u);
+    
+    % Cross spectral density - inputs
+    %======================================================================
+    mar       = spm_mar(full(u),p);
+    mar       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
+    DCM.U.csd = mar.P;
+    
+else
+    DCM.U.csd = zeros(Nw,Nc,Nc);
+end

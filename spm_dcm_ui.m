@@ -67,7 +67,7 @@ function varargout = spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 5160 2012-12-21 16:58:38Z guillaume $
+% $Id: spm_dcm_ui.m 5600 2013-08-10 20:20:49Z karl $
 
 
 DCMversion = 'DCM12';
@@ -95,7 +95,8 @@ disp(['Please refer to this version as ' ...
 if ~nargin
     str       =  'Action: ';
     Actions   = {'specify',  ...
-                 'estimate', ...
+                 'estimate (time-series)', ...
+                 'estimate (cross-spectra)', ...
                  'search', ...
                  'optimise', ...
                  'review',   ...
@@ -120,9 +121,9 @@ case 'specify',
     
     
 %==========================================================================  
-% Estimate models
+% Estimate models - standard
 %==========================================================================
-case 'estimate',
+case 'estimate (time-series)',
     
     %-estimate models
     %----------------------------------------------------------------------
@@ -141,6 +142,30 @@ case 'estimate',
     for i=1:numel(P)
         spm('SFnBanner',sprintf('spm_dcm_estimate: model %d',i));
         spm_dcm_estimate(P{i});
+    end
+    
+%==========================================================================  
+% Estimate models - cross spectral density
+%==========================================================================
+case 'estimate (cross-spectra)',
+    
+    %-estimate models
+    %----------------------------------------------------------------------
+    spm('FnBanner','spm_dcm_fmri_csd');
+
+    %-select DCM models
+    %----------------------------------------------------------------------
+    [P, sts] = spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat');
+    if ~sts, return; else P = cellstr(P); end
+
+    spm('Pointer','Watch');
+    spm('FigName','Estimation in progress');
+
+    %-loop over models
+    %----------------------------------------------------------------------
+    for i=1:numel(P)
+        spm('SFnBanner',sprintf('spm_dcm_fmri_csd: model %d',i));
+        spm_dcm_fmri_csd(P{i});
     end
 
 %==========================================================================

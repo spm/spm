@@ -33,7 +33,7 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 4913 2012-09-09 19:54:16Z karl $
+% $Id: spm_dcm_csd_results.m 5600 2013-08-10 20:20:49Z karl $
  
  
 % get figure
@@ -78,7 +78,6 @@ DCM.xY.y  = spm_cond_units(DCM.xY.csd,'csd');
 %--------------------------------------------------------------------------
 xY  = DCM.xY;                   % data
 nt  = length(xY.y);             % Nr trial types
-nf  = size(xY.y{1},1);          % Nr frequency bins
 nm  = size(xY.y{1},2);          % Nr spatial modes
 Hz  = xY.Hz;                    % PST
  
@@ -176,7 +175,7 @@ case{lower('Coupling (A)')}
         %------------------------------------------------------------------
         subplot(4,m,i + m + m)
         image(64*DCM.Pp.A{i})
-        set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
+        set(gca,'YTick',1:ns,'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         title('PPM')
         axis square
@@ -254,7 +253,7 @@ case{lower('Coupling (B)')}
         %------------------------------------------------------------------
         subplot(4,nu,i + 2*nu)
         image(64*DCM.Pp.B{i})
-        set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
+        set(gca,'YTick',1:ns,'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
         title('PPM')
         axis square

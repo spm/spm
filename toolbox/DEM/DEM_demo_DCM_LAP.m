@@ -12,7 +12,7 @@ function DEM_demo_DCM_LAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: DEM_demo_DCM_LAP.m 5600 2013-08-10 20:20:49Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================
@@ -63,7 +63,7 @@ M(2).v  = sparse(n,1);
 pP   = pE;
 a    =  0.3;
 b    = -0.3;
-c    = -0.5;
+c    =  0.0;
 pP.A = [c  a  0  0  0;
         a  c  b  0  0;
         0  b  c  a  0;

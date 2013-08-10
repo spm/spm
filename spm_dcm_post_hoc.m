@@ -62,7 +62,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_dcm_post_hoc.m 5600 2013-08-10 20:20:49Z karl $
 
 
 % Get filenames
@@ -457,7 +457,9 @@ spm_figure('Getwin','Graph analysis'); clf
 try
     spm_dcm_graph(DCM.xY,Eq.A);
 catch
-    spm_dcm_graph(DCM,Eq.A);
+    try
+        spm_dcm_graph(DCM,Eq.A);
+    end
 end
 
 

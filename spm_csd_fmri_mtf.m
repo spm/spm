@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_csd_fmri_mtf.m 5600 2013-08-10 20:20:49Z karl $
 
 
 % compute log-spectral density
@@ -63,16 +63,16 @@ end
 % neuronal fluctuations (Gu)
 %--------------------------------------------------------------------------
 for i = 1:nu
-    Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,i) - 8)*w.^(-exp(P.a(2,i) - 1));
+    Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,i) - 4)*w.^(-exp(P.a(2,i) - 0));
 end
 
 % observation noise (with global and specific components)
 %--------------------------------------------------------------------------
 for i = 1:nn
     for j = 1:nn
-        Gn(:,i,j) = Gn(:,i,j) + exp(P.b(1,1) - 4)*w.^(-exp(P.b(2,1) - 2));
+        Gn(:,i,j) = Gn(:,i,j) + exp(P.b(1,1) - 8)*w.^(-exp(P.b(2,1) - 0));
     end
-    Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i) - 2)*w.^(-exp(P.c(2,i) - 2));
+    Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i) - 8)*w.^(-exp(P.c(2,i) - 0));
 end
 
 

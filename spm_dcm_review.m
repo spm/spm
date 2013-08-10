@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 4759 2012-05-29 17:03:21Z ged $
+% $Id: spm_dcm_review.m 5600 2013-08-10 20:20:49Z karl $
 
 
 %-Get DCM structure
@@ -33,12 +33,19 @@ if ~isstruct(DCM)
     load(DCM);
 end
 
+%-Call spm_dcm_fmri_results for DCM of CSD
+%--------------------------------------------------------------------------
+try
+    if strcmp(DCM.options.analysis,'CSD')
+        spm_dcm_fmri_results(DCM);
+        return
+    end
+end
 
 %-Get model specification structure (see spm_nlsi)
 %--------------------------------------------------------------------------
 try
     m  = DCM.M.m;                      % number of inputs
-    n  = DCM.M.n;                      % number of hidden states
     l  = DCM.M.l;                      % number of regions (responses)
     U  = 0.9;                          % p-value threshold for display
 catch
@@ -47,19 +54,19 @@ catch
 end
 
 % Fontsize
-%------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if l > 0,  fs = 12; end
 if l > 8,  fs = 10; end
 if l > 16, fs = 8;  end
  
 % experimental input specific reports
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:m
     inputstr{i} = ['    effects of ' DCM.U.name{i}];
 end
 
 % connectivity and kernels
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 str = [inputstr,{'fixed connections'}];
 
 if isfield(DCM,'averaged')
@@ -97,6 +104,7 @@ str = [str,{'quit'}];
 %==========================================================================
 try
     action;
+    
 catch
     
     %-Get action
@@ -334,7 +342,7 @@ switch action
 
         % priors
         %------------------------------------------------------------------
-        x     = (1:length(DCM.U.u))*DCM.Y.dt*length(DCM.U.u)/length(DCM.Y.y);
+        x     = (1:length(DCM.U.u))*DCM.U.dt;
         t     = (1:length(DCM.Y.y))*DCM.Y.dt;
         for i = 1:m
 
