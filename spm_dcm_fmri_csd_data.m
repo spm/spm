@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 5601 2013-08-11 21:19:53Z karl $
 
 
 if ~isdeployed
@@ -45,7 +45,7 @@ DCM.Y.Hz  = linspace(Hz1,Hz2,Nw);          % Frequencies
 
 % Cross spectral density - respones (MAR(p) model)
 %==========================================================================
-p         = 4;
+p         = 8;
 mar       = spm_mar(DCM.Y.y,p);
 mar       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
 DCM.Y.csd = mar.P;

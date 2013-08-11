@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_csd_fmri_mtf.m 5601 2013-08-11 21:19:53Z karl $
 
 
 % compute log-spectral density
@@ -60,19 +60,30 @@ if size(P.C,2)
     end
 end
 
+% amplitude scaling constant
+%--------------------------------------------------------------------------
+C     = 1/(log(w(end)) - log(w(1)));
+C     = C/256;
+
 % neuronal fluctuations (Gu)
 %--------------------------------------------------------------------------
 for i = 1:nu
-    Gu(:,i,i) = Gu(:,i,i) + exp(P.a(1,i) - 4)*w.^(-exp(P.a(2,i) - 0));
+    Gu(:,i,i) = Gu(:,i,i) + (C/2)*exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
 end
 
-% observation noise (with global and specific components)
+% observation noise
 %--------------------------------------------------------------------------
 for i = 1:nn
+    
+    % global component
+    %----------------------------------------------------------------------
     for j = 1:nn
-        Gn(:,i,j) = Gn(:,i,j) + exp(P.b(1,1) - 8)*w.^(-exp(P.b(2,1) - 0));
+        Gn(:,i,j) = Gn(:,i,j) + (C/4)*exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
     end
-    Gn(:,i,i) = Gn(:,i,i) + exp(P.c(1,i) - 8)*w.^(-exp(P.c(2,i) - 0));
+    
+    % region specific
+    %----------------------------------------------------------------------
+    Gn(:,i,i) = Gn(:,i,i) + C*exp(P.c(1,i))*w.^(-exp(P.c(2,i))/2);
 end
 
 

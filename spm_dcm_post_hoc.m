@@ -62,7 +62,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_post_hoc.m 5601 2013-08-11 21:19:53Z karl $
 
 
 % Get filenames
@@ -239,9 +239,7 @@ while GS
     
     % Show results
     % ---------------------------------------------------------------------
-    spm_figure('Getwin','Graphics');
-    spm_figure('Clear');
-    
+    spm_figure('Getwin','Graphics'); clf    
     fprintf('%i out of %i free parameters removed \n',nelim,nparam)
     
     subplot(3,2,1)
@@ -453,19 +451,21 @@ drawnow
 
 % Show structural and functional graphs
 %--------------------------------------------------------------------------
-spm_figure('Getwin','Graph analysis'); clf
-try
-    spm_dcm_graph(DCM.xY,Eq.A);
-catch
+if ~nargout
+    spm_figure('Getwin','Graph analysis'); clf
     try
-        spm_dcm_graph(DCM,Eq.A);
+        spm_dcm_graph(DCM.xY,Eq.A);
+    catch me
+        try
+            spm_dcm_graph(DCM,Eq.A);
+        end
     end
 end
 
 
 % Show coupling matrices
 %--------------------------------------------------------------------------
-if isnumeric(Eq.A)
+if isnumeric(Eq.A) && ~nargout
     spm_figure('Getwin','Bayesian parameter average (selected model)'); clf
     spm_dcm_fmri_image(Eq)
     
@@ -473,7 +473,7 @@ if isnumeric(Eq.A)
     spm_dcm_fmri_image(Pk)
 end
 
-if ~isempty(fun)
+if ~isempty(fun) && ~nargout
     spm_figure('Getwin','Model posterior (over families)'); clf
     subplot(2,1,1)
     bar(Pf)

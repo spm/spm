@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_fmri_csd.m 5601 2013-08-11 21:19:53Z karl $
 
 
 % get DCM
@@ -72,7 +72,6 @@ try, DCM.v;   catch, DCM.v = size(DCM.Y.y,1); end
 %--------------------------------------------------------------------------
 DCM.options.analysis  = 'CSD';
 DCM.options.nonlinear = 0;
-
 
 
 % organise response variables: detrend outputs (and inputs)
@@ -121,13 +120,6 @@ if n > DCM.options.nmax
     pC(j,j) = V*pC(j,j)*V';
     
 end
-
-% add prior on spectral density of fluctuations (amplitude and exponent)
-%--------------------------------------------------------------------------
-pE.a  = sparse(2,n);   pV.a = sparse(2,n) + 1/16; % neuronal fluctuations
-pE.b  = sparse(2,1);   pV.b = sparse(2,1) + 1/16; % channel noise global
-pE.c  = sparse(2,n);   pV.c = sparse(2,n) + 1/16; % channel noise specific
-pC    = blkdiag(pC,spm_diag(spm_vec(pV)));
 
 
 % create DCM

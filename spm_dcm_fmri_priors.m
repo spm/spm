@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5457 2013-04-30 14:13:20Z karl $
+% $Id: spm_dcm_fmri_priors.m 5601 2013-08-11 21:19:53Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -89,7 +89,7 @@ else
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A*8/n + eye(n,n)/(8*n);
+    pC.A  =  A*8/n + eye(n,n)/(64*n);
     pC.B  =  B;
     pC.C  =  C;
     pC.D  =  D;
@@ -98,14 +98,23 @@ end
 
 % and add hemodynamic priors
 %==========================================================================
-pE.transit = sparse(n,1);
-pE.decay   = sparse(n,1);
-pE.epsilon = sparse(1,1);
+pE.transit = sparse(n,1);  pC.transit = sparse(n,1) + exp(-6);
+pE.decay   = sparse(n,1);  pC.decay   = sparse(n,1) + exp(-6);
+pE.epsilon = sparse(1,1);  pC.epsilon = sparse(1,1) + exp(-6);
 
-pC.transit = sparse(n,1) + exp(-6);
-pC.decay   = sparse(n,1) + exp(-6);
-pC.epsilon = sparse(1,1) + exp(-6);
 
+% add prior on spectral density of fluctuations (amplitude and exponent)
+%--------------------------------------------------------------------------
+if strcmp(options.analysis,'CSD')
+    
+    pE.a  = sparse(2,n);   pC.a = sparse(2,n) + 1/16; % neuronal fluctuations
+    pE.b  = sparse(2,1);   pC.b = sparse(2,1) + 1/16; % channel noise global
+    pE.c  = sparse(2,n);   pC.c = sparse(2,n) + 1/16; % channel noise specific
+    
+end
+
+% prior covariance matrix
+%--------------------------------------------------------------------------
 pC         = diag(spm_vec(pC));
 
 return
