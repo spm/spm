@@ -1,7 +1,7 @@
 function F = spm_Fcdf(x,v,w)
 % Cumulative Distribution Function (CDF) of F (Fisher-Snedecor) distribution
-% FORMAT F = spm_Fpdf(x,df)
-% FORMAT F = spm_Fpdf(x,v,w)
+% FORMAT F = spm_Fcdf(x,df)
+% FORMAT F = spm_Fcdf(x,v,w)
 %
 % x  - F-variate   (F has range [0,Inf) )
 % df - Degrees of freedom, concatenated along last dimension
@@ -59,10 +59,10 @@ function F = spm_Fcdf(x,v,w)
 %        Cambridge
 %
 %__________________________________________________________________________
-% Copyright (C) 1992-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1992-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_Fcdf.m 4182 2011-02-01 12:29:09Z guillaume $
+% $Id: spm_Fcdf.m 5602 2013-08-12 13:35:52Z guillaume $
 
 
 %-Format arguments, note & check sizes
