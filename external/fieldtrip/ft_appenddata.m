@@ -25,8 +25,7 @@ function [data] = ft_appenddata(cfg, varargin)
 % channels in one of the data structures). The function will then return a data
 % structure containing only the channels which are present in all inputs.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -56,9 +55,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_appenddata.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_appenddata.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_appenddata.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

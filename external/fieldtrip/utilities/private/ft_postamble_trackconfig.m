@@ -21,7 +21,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_trackconfig.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_postamble_trackconfig.m 8389 2013-08-09 10:28:48Z jansch $
 
 % otherwise the empty field would end up in the output cfg
 global ft_default
@@ -34,6 +34,12 @@ if isfield(cfg, 'outputfile')
 end
 if isfield(cfg, 'outputlock')
   cfg.outputlock;
+end
+if isfield(cfg, 'trackcallinfo')
+  % this one should be touched, otherwise it will be removed and when it is
+  % specified as 'no', it won't be correctly caught in
+  % ft_postamble_provenance (jansch: 20130810)
+  cfg.trackcallinfo;
 end
 
 % get the output cfg

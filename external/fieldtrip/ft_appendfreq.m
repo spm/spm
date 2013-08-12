@@ -19,8 +19,7 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %                   frequency structures are allowed to be to be considered
 %                   compatible (default: 1e-5).
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a
@@ -48,9 +47,9 @@ function [freq] = ft_appendfreq(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendfreq.m 8294 2013-07-01 17:01:53Z roboos $
+% $Id: ft_appendfreq.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_appendfreq.m 8294 2013-07-01 17:01:53Z roboos $';
+revision = '$Id: ft_appendfreq.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

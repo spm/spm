@@ -10,7 +10,7 @@ function ft_compile_mex(force)
 % compiler settings
 % 
 % The standards procedure for compiling mex files is detailled on
-% http://fieldtrip.fcdonders.nl/code_guidelines#compiling_mex_files
+% http://fieldtriptoolbox.org/development/guidelines/code#compiling_mex_files
 %
 % Please note that this script does NOT set up your MEX environment for
 % you, so in case you haven't selected the C compiler on Windows yet, you
@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 7763 2013-04-04 12:25:45Z roboos $
+% $Id: ft_compile_mex.m 8385 2013-08-08 07:30:51Z roboos $
 
 if nargin<1
   force=false;

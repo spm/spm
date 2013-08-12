@@ -33,8 +33,7 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 % layout. if you want to have more fine-grained control over the layout
 % of the subplots, you should create your own layout file.
 %
-% to facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following option:
+% to facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % if you specify this option the input data will be read from a *.mat
 % file on disk. this mat files should contain only a single variable named 'data',
@@ -61,7 +60,7 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 %
 % $id: ft_movieploter.m 4354 2011-10-05 15:06:02z crimic $
 
-revision = '$Id: ft_movieplotTFR.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_movieplotTFR.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

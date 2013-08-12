@@ -39,7 +39,7 @@ function [grad, elec] = mne2grad(hdr, dewar)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 8285 2013-06-28 10:38:18Z roboos $
+% $Id: mne2grad.m 8335 2013-07-29 10:09:23Z arjsto $
 
 if nargin<2 || isempty(dewar)
   dewar = false;
@@ -116,6 +116,12 @@ grad.coilori  = zeros(nCoils,3);
 grad.tra      = zeros(nSensors,nCoils);
 grad.unit     = 'cm'; % see below for the conversion, the original fif units are in meter
 grad.label    = cell(nSensors,1);
+
+if dewar
+  grad.coordsys = 'dewar';
+else
+  grad.coordsys = 'neuromag';
+end
 
 % initialise elec structure, this can remain empty
 elec = [];

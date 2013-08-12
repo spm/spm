@@ -84,8 +84,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % used for creating a layout. If you want to have more fine-grained control
 % over the layout of the subplots, you should create your own layout file.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following option:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % If you specify this option the input data will be read from a *.mat
 % file on disk. This mat files should contain only a single variable named 'data',
@@ -99,11 +98,6 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 % Undocumented local options:
 % cfg.channel
 % cfg.layoutname
-
-%
-% This function depends on FT_FREQBASELINE which has the following options:
-% cfg.baseline, documented
-% cfg.baselinetype, documented
 
 % Copyright (C) 2003-2006, Ole Jensen
 % Copyright (C) 2007-2011, Roemer van der Meij & Jan-Mathijs Schoffelen
@@ -124,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 8287 2013-06-28 11:42:15Z roboos $
+% $Id: ft_multiplotTFR.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 8287 2013-06-28 11:42:15Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

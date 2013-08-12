@@ -83,8 +83,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 % layout. If you want to have more fine-grained control over the layout
 % of the subplots, you should create your own layout file.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following option:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % If you specify this option the input data will be read from a *.mat
 % file on disk. This mat files should contain only a single variable named 'data',
@@ -96,20 +95,8 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 
 % Undocumented local options:
 % cfg.layoutname
-% cfg.zlim/xparam (set to a specific frequency range or time range [zmax zmin] for an average
-% over the frequency/time bins for TFR data.  Use in conjunction with e.g. xparam = 'time', and cfg.parameter = 'powspctrm').
+% cfg.zlim/xparam (set to a specific frequency range or time range [zmax zmin] for an average over the frequency/time bins for TFR data.  Use in conjunction with e.g. xparam = 'time', and cfg.parameter = 'powspctrm').
 % cfg.preproc
-
-% This function depends on FT_TIMELOCKBASELINE which has the following options:
-% cfg.baseline, documented
-% cfg.channel
-% cfg.baselinewindow
-% cfg.previous
-% cfg.version
-%
-% This function depends on FT_FREQBASELINE which has the following options:
-% cfg.baseline, documented
-% cfg.baselinetype
 
 % Copyright (C) 2003-2006, Ole Jensen
 % Copyright (C) 2007-2011, Roemer van der Meij & Jan-Mathijs Schoffelen
@@ -130,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 8290 2013-07-01 09:11:53Z roboos $
+% $Id: ft_multiplotER.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_multiplotER.m 8290 2013-07-01 09:11:53Z roboos $';
+revision = '$Id: ft_multiplotER.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -223,8 +210,19 @@ dimord = varargin{1}.dimord;
 dimtok = tokenize(dimord, '_');
 
 
-% ensure that the preproc specific options are located in the cfg.preproc substructure
-cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'});
+% ensure that the preproc specific options are located in the cfg.preproc 
+% substructure, but also ensure that the field 'refchannel' is present at the
+% highest level in the structure. This is a little hack by JM because the field
+% refchannel can also refer to the plotting of a connectivity metric. Also,
+% the freq2raw conversion does not work at all in the call to ft_preprocessing.
+% Therefore, for now, the preprocessing will not be done when there is freq
+% data in the input. A more generic solution should be considered.
+
+if isfield(cfg, 'refchannel'), refchannelincfg = cfg.refchannel; end
+if ~any(strcmp({'freq','freqmvar'},dtype)), 
+  cfg = ft_checkconfig(cfg, 'createsubcfg',  {'preproc'}); 
+end
+if exist('refchannelincfg', 'var'), cfg.refchannel  = refchannelincfg; end
 
 if ~isempty(cfg.preproc)
   % preprocess the data, i.e. apply filtering, baselinecorrection, etc.

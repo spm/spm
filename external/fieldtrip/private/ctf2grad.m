@@ -30,7 +30,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ctf2grad.m 8286 2013-06-28 10:38:23Z roboos $
+% $Id: ctf2grad.m 8335 2013-07-29 10:09:23Z arjsto $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels
@@ -145,6 +145,12 @@ if isfield(hdr, 'res4') && isfield(hdr.res4, 'senres')
 
   grad.label = label([selMEG selREF]);
   grad.unit  = 'cm';
+
+  if dewar
+    grad.coordsys = 'dewar';
+  else
+    grad.coordsys = 'ctf';
+  end
 
   % convert the balancing coefficients into a montage that can be used with the ft_apply_montage function
   if isfield(hdr.BalanceCoefs, 'G1BR')
@@ -275,7 +281,12 @@ elseif isfield(hdr, 'sensType') && isfield(hdr, 'Chan')
 
   grad.label = hdr.label([selMEG selREF]);
   grad.unit  = 'cm';
-
+  
+  if dewar
+    grad.coordsys = 'dewar';
+  else
+    grad.coordsys = 'ctf';
+  end
 
 elseif isfield(hdr, 'sensor') && isfield(hdr.sensor, 'info')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -103,8 +103,7 @@ function [segment] = ft_volumesegment(cfg, mri)
 % nose, and the origin is assumed to be on the interauricular line. In this specific case, when
 % ft_read_mri is used to read in the mri, the coordsys field is automatically attached.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer module, this function
-% has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat file on disk and/or
@@ -134,9 +133,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_volumesegment.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_volumesegment.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_volumesegment.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

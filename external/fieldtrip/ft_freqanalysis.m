@@ -145,8 +145,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %
 %
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -200,7 +199,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 8214 2013-06-06 13:00:12Z roevdmei $';
+revision = '$Id: ft_freqanalysis.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -212,8 +211,8 @@ ft_preamble loadvar data
 
 % defaults for optional input/ouputfile and feedback
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
-cfg.inputlock  = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing peercellfun or another distributed computation
-cfg.outputlock = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing peercellfun or another distributed computation
+cfg.inputlock  = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex when doing distributed computation
+cfg.outputlock = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing distributed computation
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', cfg.feedback, 'hassampleinfo', 'yes');

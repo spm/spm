@@ -14,8 +14,7 @@ function data = ft_math(cfg, varargin)
 % If you specify only a single input data structure, the configuration should contain
 %   cfg.value     = scalar value to be used in the operation
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -25,15 +24,31 @@ function data = ft_math(cfg, varargin)
 %
 % See also FT_DATATYPE
 
-% Copyright (C) 2012, Robert Oostenveld
+% Copyright (C) 2012-2013, Robert Oostenveld
 %
-% $Id: ft_math.m 8299 2013-07-01 20:57:53Z roboos $
+% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
+% for the documentation and details.
+%
+%    FieldTrip is free software: you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by
+%    the Free Software Foundation, either version 3 of the License, or
+%    (at your option) any later version.
+%
+%    FieldTrip is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License
+%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
+%
+% $Id: ft_math.m 8384 2013-08-07 15:13:23Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 8299 2013-07-01 20:57:53Z roboos $';
+revision = '$Id: ft_math.m 8384 2013-08-07 15:13:23Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -59,7 +74,7 @@ else
   % or the operation is a transformation such as log10
 end
 
-% this function only works for the upcoming (not yet standard) source representation without sub-structures 
+% this function only works for the upcoming (not yet standard) source representation without sub-structures
 if ft_datatype(varargin{1}, 'source')
   % update the old-style beamformer source reconstruction
   for i=1:length(varargin)
@@ -88,7 +103,7 @@ tmpcfg.parameter = cfg.parameter;
 cfg.parameter = tmpcfg.parameter;
 
 if isfield(varargin{1}, [cfg.parameter 'dimord'])
- dimord = varargin{1}.([cfg.parameter 'dimord']);
+  dimord = varargin{1}.([cfg.parameter 'dimord']);
 elseif isfield(varargin{1}, 'dimord')
   dimord = varargin{1}.dimord;
 else
@@ -169,7 +184,7 @@ else
       end
       fprintf('subtracting the 2nd input argument from the 1st\n');
       tmp = tmp - varargin{2}.(cfg.parameter);
-      
+            
     case 'divide'
       if length(varargin)>2
         error('the operation "%s" requires exactly 2 input arguments', cfg.operation);
@@ -210,4 +225,3 @@ elseif rem(n,10)==3 && rem(n,100)~=13
 else
   s = sprintf('%dth', n);
 end
-

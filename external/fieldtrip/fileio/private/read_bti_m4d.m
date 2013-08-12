@@ -23,7 +23,7 @@ function [msi] = read_bti_m4d(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_bti_m4d.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_bti_m4d.m 8378 2013-08-03 13:30:08Z jansch $
 
 [p, f, x] = fileparts(filename);
 if ~strcmp(x, '.m4d')
@@ -86,7 +86,11 @@ while ischar(line)
     error('unexpected content in m4d file');
   end
 
-  if ~isempty(strfind(line, 'Begin'))
+  if ~isempty(strfind(line, 'Begin')) && (~isempty(strfind(line, 'Meg_Position_Information')) || ~isempty(strfind(line, 'Ref_Position_Information'))) 
+    % jansch added the second ~isempty() to accommodate for when the
+    % block is about Eeg_Position_Information, which does not pertain to
+    % gradiometers, and moreover can be empty (added: Aug 03, 2013)
+    
     sep = strfind(key, '.');
     sep = sep(end);
     key = key(1:(sep-1));
@@ -118,6 +122,7 @@ while ischar(line)
     lab = lab(:);
     num = num(:);
     num = cell2mat(num);
+    
     % the following is FieldTrip specific
     if size(num,2)==6
       msi.grad.label = [msi.grad.label; lab(:)];

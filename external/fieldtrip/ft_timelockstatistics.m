@@ -28,8 +28,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 % for the corresponding configuration options and for a detailed
 % explanation of each method.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -38,8 +37,6 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 % input/output structure.
 %
 % See also FT_TIMELOCKANALYSIS, FT_TIMELOCKGRANDAVERAGE
-
-% This function depends on STATISTICS_WRAPPER
 
 % Copyright (C) 2005-2006, Robert Oostenveld
 %
@@ -59,9 +56,9 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_timelockstatistics.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_timelockstatistics.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_timelockstatistics.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

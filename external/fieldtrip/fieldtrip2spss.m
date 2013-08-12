@@ -41,9 +41,9 @@ function fieldtrip2spss(filename, labels, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2spss.m 8107 2013-05-07 08:32:52Z arjsto $
+% $Id: fieldtrip2spss.m 8335 2013-07-29 10:09:23Z arjsto $
 
-revision = '$Id: fieldtrip2spss.m 8107 2013-05-07 08:32:52Z arjsto $';
+revision = '$Id: fieldtrip2spss.m 8335 2013-07-29 10:09:23Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
@@ -63,4 +63,3 @@ dlmwrite(filename, data, '-append', 'delimiter', '\t', 'precision', 4);
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble callinfo
-

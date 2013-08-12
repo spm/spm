@@ -62,10 +62,6 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %
 % See also FT_SINGLEPLOTER, FT_MULTIPLOTER, FT_MULTIPLOTTFR, FT_TOPOPLOTER, FT_TOPOPLOTTFR
 
-% This function depends on FT_FREQBASELINE which has the following options:
-% cfg.baseline, documented
-% cfg.baselinetype, documented
-
 % Copyright (C) 2005-2006, F.C. Donders Centre
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
@@ -84,9 +80,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 8285 2013-06-28 10:38:18Z roboos $
+% $Id: ft_singleplotTFR.m 8377 2013-08-02 16:19:13Z roboos $
 
-revision = '$Id: ft_singleplotTFR.m 8285 2013-06-28 10:38:18Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 8377 2013-08-02 16:19:13Z roboos $';
 
 % do the general setup of the function
 ft_defaults

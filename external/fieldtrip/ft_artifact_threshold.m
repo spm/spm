@@ -38,8 +38,7 @@ function [cfg, artifact] = ft_artifact_threshold(cfg, data)
 % will mark the whole trial as an artifact if the threshold is exceeded.
 % Furthermore, this function does not support artifact- or filterpadding.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
 % file on disk and/or the output data will be written to a *.mat file. These mat
@@ -67,9 +66,9 @@ function [cfg, artifact] = ft_artifact_threshold(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_threshold.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_artifact_threshold.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_artifact_threshold.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_artifact_threshold.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

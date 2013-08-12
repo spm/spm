@@ -71,8 +71,7 @@ function [data] = ft_rejectvisual(cfg, data)
 %   cfg.preproc.rectify     = 'yes'
 %   cfg.preproc.boxcar      = 0.2
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -84,38 +83,6 @@ function [data] = ft_rejectvisual(cfg, data)
 
 % Undocumented local options:
 % cfg.feedback
-%
-% This function depends on PREPROC which has the following options:
-% cfg.preproc.absdiff
-% cfg.preproc.demean
-% cfg.preproc.baselinewindow
-% cfg.preproc.boxcar
-% cfg.preproc.bpfilter
-% cfg.preproc.bpfiltord
-% cfg.preproc.bpfilttype
-% cfg.preproc.bpfreq
-% cfg.preproc.derivative
-% cfg.preproc.detrend
-% cfg.preproc.dftfilter
-% cfg.preproc.dftfreq
-% cfg.preproc.hilbert
-% cfg.preproc.hpfilter
-% cfg.preproc.hpfiltord
-% cfg.preproc.hpfilttype
-% cfg.preproc.hpfreq
-% cfg.preproc.implicitref
-% cfg.preproc.lnfilter
-% cfg.preproc.lnfiltord
-% cfg.preproc.lnfreq
-% cfg.preproc.lpfilter
-% cfg.preproc.lpfiltord
-% cfg.preproc.lpfilttype
-% cfg.preproc.lpfreq
-% cfg.preproc.medianfilter
-% cfg.preproc.medianfiltord
-% cfg.preproc.rectify
-% cfg.preproc.refchannel
-% cfg.preproc.reref
 
 % Copyright (C) 2005-2006, Markus Bauer, Robert Oostenveld
 %
@@ -135,13 +102,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_rejectvisual.m 8384 2013-08-07 15:13:23Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_rejectvisual.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

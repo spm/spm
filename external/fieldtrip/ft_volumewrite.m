@@ -48,8 +48,7 @@ function ft_volumewrite(cfg, volume)
 %   cfg.markorigin    = 'yes' or 'no', mark the origin
 %   cfg.markcorner    = 'yes' or 'no', mark the first corner of the volume
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following option:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % If you specify this option the input data will be read from a *.mat
 % file on disk. This mat files should contain only a single variable named 'data',
@@ -79,9 +78,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_volumewrite.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_volumewrite.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_volumewrite.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

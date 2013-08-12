@@ -27,15 +27,14 @@ function ft_write_headshape(filename, bnd, varargin)
 %   'vista'
 %   'tetgen'
 %   'gifti'
-%   'stl'       STereoLithography file format, for use with CAD and generic 3D mesh editing programs
-%   'vtk'       Visualization ToolKit file format, for use with Paraview
-%   'ply'       Stanford Polygon file format, for use with Paraview or Meshlab
-%   'freesurfer' Freesurfer surf-file format, using write_surf from
-%   Freesurfer
+%   'stl'        STereoLithography file format, for use with CAD and generic 3D mesh editing programs
+%   'vtk'        Visualization ToolKit file format, for use with Paraview
+%   'ply'        Stanford Polygon file format, for use with Paraview or Meshlab
+%   'freesurfer' Freesurfer surf-file format, using write_surf
 %
 % See also FT_READ_HEADSHAPE
 
-% Copyright (C) 2011, Lilla Magyari & Robert Oostenveld
+% Copyright (C) 2011-2013, Lilla Magyari & Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -53,7 +52,7 @@ function ft_write_headshape(filename, bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_headshape.m 8158 2013-05-26 11:56:52Z jansch $
+% $Id: ft_write_headshape.m 8382 2013-08-06 14:52:59Z roboos $
 
 fileformat = ft_getopt(varargin,'format','unknown');
 data       = ft_getopt(varargin,'data',  []); % can be stored in a gifti file

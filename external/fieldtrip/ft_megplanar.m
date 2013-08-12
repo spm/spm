@@ -42,8 +42,7 @@ function [data] = ft_megplanar(cfg, data)
 % The following cfg fields are optional:
 %   cfg.feedback
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -52,21 +51,6 @@ function [data] = ft_megplanar(cfg, data)
 % input/output structure.
 %
 % See also FT_COMBINEPLANAR, FT_NEIGHBOURSELECTION
-
-% This function depends on FT_PREPARE_BRAIN_SURFACE which has the following options:
-% cfg.headshape  (default set in FT_MEGPLANAR: cfg.headshape = 'headmodel'), documented
-% cfg.inwardshift (default set in FT_MEGPLANAR: cfg.inwardshift = 2.5), documented
-% cfg.spheremesh (default set in FT_MEGPLANAR: cfg.spheremesh = 642), documented
-%
-% This function depends on FT_PREPARE_VOL_SENS which has the following options:
-% cfg.channel
-% cfg.elec
-% cfg.elecfile
-% cfg.grad
-% cfg.gradfile
-% cfg.hdmfile, documented
-% cfg.order
-% cfg.vol, documented
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -86,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_megplanar.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_megplanar.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_megplanar.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

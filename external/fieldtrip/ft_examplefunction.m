@@ -16,8 +16,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % The configuration can optionally contain
 %   cfg.option3   = value, explain it here (default is automatic)
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -30,13 +29,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_examplefunction.m 8384 2013-08-07 15:13:23Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_examplefunction.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 

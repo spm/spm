@@ -12,8 +12,7 @@ function ft_sourcewrite(cfg, source)
 %  cfg.filename  = string, name of the file
 %  cfg.parameter = string, functional parameter to be written to file
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 % If you specify this the input data will be read from a *.mat
 % file on disk. This mat file should contain only a single variable, 
@@ -23,9 +22,9 @@ function ft_sourcewrite(cfg, source)
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
-% $Id: ft_sourcewrite.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_sourcewrite.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_sourcewrite.m 8384 2013-08-07 15:13:23Z roboos $';
 
 ft_defaults                 
 ft_preamble init           

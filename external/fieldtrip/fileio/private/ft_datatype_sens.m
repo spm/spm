@@ -80,7 +80,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 8302 2013-07-01 21:02:47Z roboos $
+% $Id: ft_datatype_sens.m 8363 2013-08-01 10:20:45Z roboos $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'
@@ -94,6 +94,7 @@ current_argin = [{sens} varargin];
 if isequal(current_argin, previous_argin)
   % don't do the whole cheking again, but return the previous output from cache
   sens = previous_argout{1};
+  return
 end
 
 % get the optional input arguments, which should be specified as key-value pairs

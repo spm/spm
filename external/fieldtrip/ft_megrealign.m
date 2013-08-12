@@ -63,8 +63,7 @@ function [data] = ft_megrealign(cfg, data)
 % related methods, see Stolk et al., Online and offline tools for head 
 % movement compensation in MEG. NeuroImage, 2012.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -73,18 +72,6 @@ function [data] = ft_megrealign(cfg, data)
 % input/output structure.
 %
 % See also FT_PREPARE_LOCALSPHERES, FT_PREPARE_SINGLESHELL
-
-% This function depends on FT_PREPARE_DIPOLE_GRID
-%
-% This function depends on FT_PREPARE_VOL_SENS which has the following options:
-% cfg.channel
-% cfg.elec
-% cfg.elecfile
-% cfg.grad
-% cfg.gradfile
-% cfg.hdmfile, documented
-% cfg.order
-% cfg.vol, documented
 
 % Copyright (C) 2004-2007, Robert Oostenveld
 %
@@ -104,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_megrealign.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_megrealign.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_megrealign.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

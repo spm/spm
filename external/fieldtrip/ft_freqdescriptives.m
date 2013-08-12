@@ -29,8 +29,7 @@ function [freq] = ft_freqdescriptives(cfg, freq)
 % Descriptive statistics of bivariate metrics is not computed by this function anymore. To this end you
 % should use FT_CONNECTIVITYANALYSIS.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -65,7 +64,7 @@ function [freq] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqdescriptives.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_freqdescriptives.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

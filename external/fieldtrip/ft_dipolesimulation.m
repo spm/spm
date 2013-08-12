@@ -47,16 +47,6 @@ function [simulated] = ft_dipolesimulation(cfg)
 % cfg.feedback
 % cfg.previous
 % cfg.version
-%
-% This function depends on FT_PREPARE_VOL_SENS which has the following options:
-% cfg.channel, documented
-% cfg.elec, documented
-% cfg.elecfile, documented
-% cfg.grad, documented
-% cfg.gradfile, documented
-% cfg.hdmfile, documented
-% cfg.order
-% cfg.vol, documented
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -76,9 +66,9 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_dipolesimulation.m 8377 2013-08-02 16:19:13Z roboos $
 
-revision = '$Id: ft_dipolesimulation.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_dipolesimulation.m 8377 2013-08-02 16:19:13Z roboos $';
 
 % do the general setup of the function
 ft_defaults

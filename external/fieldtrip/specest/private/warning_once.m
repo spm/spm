@@ -52,7 +52,7 @@ function [ws warned] = warning_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warning_once.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: warning_once.m 8355 2013-07-30 15:38:35Z roboos $
 
 global ft_default
 
@@ -199,11 +199,11 @@ end
 
 for i=numel(stack)-1:-1:(i0)
   % skip postamble scripts
-  if strfind(stack(i).name, 'ft_postamble')
+  if strncmp(stack(i).name, 'ft_postamble', 12)
     break;
   end
 
-  fname = horzcat(fname, '.', horzcat(stack(i).name)); % , stack(i).file
+  fname = horzcat(fname, '.', horzcat(fixname(stack(i).name))); % , stack(i).file
   if ~issubfield(ft_previous_warnings, fname) % iteratively build up structure fields
     setsubfield(ft_previous_warnings, fname, []);
   end

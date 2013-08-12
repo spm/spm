@@ -26,7 +26,7 @@ function [spectrum, freqoi, timeoi] = ft_specest_tfr(dat, time, varargin)
 
 % Copyright (C) 2010, Donders Institute for Brain, Cognition and Behaviour
 %
-% $Id: ft_specest_tfr.m 8254 2013-06-12 15:16:47Z jorhor $
+% $Id: ft_specest_tfr.m 8368 2013-08-01 13:59:19Z vlalit $
 
 % get the optional input arguments
 freqoi    = ft_getopt(varargin, 'freqoi', 'all');
@@ -92,7 +92,7 @@ if isnumeric(freqoiinput)
   % check whether padding is appropriate for the requested frequency resolution
   rayl = 1/endtime;
   if any(rem(freqoiinput,rayl)) % not always the case when they mismatch
-    warning_once('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip')
+    warning_once('padding not sufficient for requested frequency resolution, for more information please see the FAQs on www.ru.nl/neuroimaging/fieldtrip');
   end
   if numel(freqoiinput) ~= numel(freqoi) % freqoi will not contain double frequency bins when requested
     warning_once('output frequencies are different from input frequencies, multiples of the same bin were requested but not given');

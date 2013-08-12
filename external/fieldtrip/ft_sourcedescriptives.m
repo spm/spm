@@ -32,8 +32,7 @@ function [source] = ft_sourcedescriptives(cfg, source)
 % parameters. This is done after applying the optional transformation
 % on the power and projected noise.
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -61,9 +60,9 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 8257 2013-06-13 10:59:42Z roboos $
+% $Id: ft_sourcedescriptives.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_sourcedescriptives.m 8257 2013-06-13 10:59:42Z roboos $';
+revision = '$Id: ft_sourcedescriptives.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

@@ -9,8 +9,7 @@ function [dataout] = ft_channelnormalise(cfg, data)
 % The configuration can contain
 %   cfg.trials = 'all' or a selection given as a 1xN vector (default = 'all')
 %
-% To facilitate data-handling and distributed computing with the peer-to-peer
-% module, this function has the following options:
+% To facilitate data-handling and distributed computing you can use
 %   cfg.inputfile   =  ...
 %   cfg.outputfile  =  ...
 % If you specify one of these (or both) the input data will be read from a *.mat
@@ -38,9 +37,9 @@ function [dataout] = ft_channelnormalise(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_channelnormalise.m 8384 2013-08-07 15:13:23Z roboos $
 
-revision = '$Id: ft_channelnormalise.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_channelnormalise.m 8384 2013-08-07 15:13:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults

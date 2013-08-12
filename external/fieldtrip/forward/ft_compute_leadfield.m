@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 8305 2013-07-02 09:59:57Z roboos $
+% $Id: ft_compute_leadfield.m 8360 2013-07-31 13:29:21Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -264,8 +264,6 @@ elseif ismeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % magnetic dipole instead of electric (current) dipole in an infinite vacuum
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % give the warning only once
-      warning_once('assuming magnetic dipole in an infinite vacuum');
       
       pnt = sens.coilpos; % position of each coil
       ori = sens.coilori; % orientation of each coil
@@ -420,8 +418,7 @@ elseif iseeg
       [lf, session] = bem_solve_lfm_eeg(session, p3);
       
     case 'infinite'
-      % the conductivity of the medium is not known
-      warning_once('assuming electric dipole in an infinite medium with unit conductivity');
+      % note that the conductivity of the medium is not known
       lf = inf_medium_leadfield(pos, sens.elecpos, 1);
       
     case 'halfspace'
