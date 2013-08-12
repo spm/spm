@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5425 2013-04-17 15:49:59Z guillaume $
+% $Id: spm.m 5604 2013-08-12 15:06:41Z vladimir $
 
 
 %=======================================================================
@@ -438,7 +438,7 @@ if strcmpi(Modality,'EEG') && ~isdeployed
     addpath(fullfile(spm('Dir'),'external','ctf'));
     addpath(fullfile(spm('Dir'),'external','eeprobe'));
     addpath(fullfile(spm('Dir'),'external','mne'));
-    addpath(fullfile(spm('Dir'),'external','yokogawa'));
+    addpath(fullfile(spm('Dir'),'external','yokogawa_meg_reader'));
     addpath(fullfile(spm('Dir'),'toolbox', 'dcm_meeg'));
     addpath(fullfile(spm('Dir'),'toolbox', 'spectral'));
     addpath(fullfile(spm('Dir'),'toolbox', 'Neural_Models'));
