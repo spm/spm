@@ -26,7 +26,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5475 2013-05-08 11:59:46Z gareth $
+% $Id: spm_eeg_invert_classic.m 5609 2013-08-13 16:48:17Z gareth $
 
 
 
@@ -82,6 +82,7 @@ type = inverse.type;	% Type of inversion scheme
 
 
 % get specified modalities to invert (default to all)
+
 %--------------------------------------------------------------------------
 modalities = D.inv{val}.forward.modality;		% MEG in this case
 Nmax  = 16;			% max number of temporal modes
@@ -111,7 +112,11 @@ end;
 
 % Check gain or lead-field matrices
 %------------------------------------------------------------------
-Ic  = setdiff(meegchannels(D, modalities), badchannels(D));
+
+if size(modalities,1)>1,
+    error('not defined for multiple modalities');
+end;
+Ic  = setdiff(D.indchantype(modalities), badchannels(D));
 Nd    = size(L,2);		% Number of dipoles
 
 fprintf(' - done\n')
@@ -569,10 +574,10 @@ inverse.L      = UL;                   % Lead-field (reduced)
 inverse.qC     = Cq;                   % spatial covariance
 inverse.qV     = Vq;                   % temporal correlations
 inverse.T      = S;                    % temporal projector
-inverse.U      = A;                    % spatial projector
+inverse.U      = {A};                    % spatial projector
 inverse.Is     = Is;                   % Indices of active dipoles
 inverse.It     = It;                   % Indices of time bins
-inverse.Ic     = Ic;                   % Indices of good channels
+inverse.Ic     = {Ic};                   % Indices of good channels
 inverse.Nd     = Nd;                   % number of dipoles
 inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
