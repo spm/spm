@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 5591 2013-07-23 15:30:56Z guillaume $
+% $Id: spm_run_fmri_spec.m 5607 2013-08-13 11:00:29Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -161,9 +161,8 @@ for i = 1:numel(job.sess)
 
             %-Mutiple Conditions: Parametric Modulation
             %--------------------------------------------------------------
-            if ~isfield(multicond,'pmod')
-                cond.pmod = [];
-            else
+            cond.pmod = [];
+            if isfield(multicond,'pmod')
                 try
                     %-Check if a PM is defined for that condition
                     if (j <= numel(multicond.pmod)) && ...
