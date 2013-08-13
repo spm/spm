@@ -9,7 +9,7 @@ function [a, b] = isintent(this,intent)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: isintent.m 4716 2012-04-19 11:01:32Z guillaume $
+% $Id: isintent.m 5608 2013-08-13 15:13:19Z guillaume $
 
 a = [];
 b = [];
@@ -44,6 +44,13 @@ for i=1:length(this(1).data)
             if tf
                 a(end+1) = loc;
                 b(end+1) = i;
+            end
+            if strcmp(this(1).data{i}.attributes.Intent(14:end),'LABEL')
+                [tf, loc] = ismember('labels',intent);
+                if tf
+                    a(end+1) = loc;
+                    b(end+1) = i;
+                end
             end
         otherwise
             fprintf('Intent %s is ignored.\n',this.data{i}.attributes.Intent);

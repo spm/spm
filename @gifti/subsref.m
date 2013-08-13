@@ -4,7 +4,7 @@ function varargout = subsref(this,subs)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsref.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: subsref.m 5608 2013-08-13 15:13:19Z guillaume $
 
 if length(this) > 1 && ~strcmp(subs(1).type,'()')
     warning('Not implemented.');
@@ -26,6 +26,8 @@ switch subs(1).type
         else
             if strcmp(subs(1).subs,'mat')
                 varargout{1} = this.data{j}.space.MatrixData;
+            elseif strcmp(subs(1).subs,'labels')
+                varargout{1} = this.label;
             else
                 if length(j) == 1
                     varargout{1} = this.data{j}.data;
