@@ -5,7 +5,7 @@ function res = badsamples(this, chanind, sampind, trialind)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: badsamples.m 5594 2013-07-29 16:10:40Z vladimir $
+% $Id: badsamples.m 5610 2013-08-14 10:28:57Z vladimir $
 
 if ischar(chanind) && isequal(chanind, ':')
     chanind = 1:nchannels(this);
@@ -27,7 +27,8 @@ for i = 1:length(trialind)
     end
     
     if ~isempty(ev)
-        ev = ev(strmatch('artefact', {ev.type}));
+        ev = ev(intersect(strmatch('artefact', {ev.type}),...
+            find(cellfun(@ischar, {ev.value}))));
         for j = 1:length(chanind)
             cev = ev(strmatch(char(chanlabels(this, chanind(j))), {ev.value}));
             for k = 1:numel(cev)
