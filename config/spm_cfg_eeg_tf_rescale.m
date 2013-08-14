@@ -4,7 +4,7 @@ function rescale = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 5611 2013-08-14 14:51:57Z vladimir $
 
 %--------------------------------------------------------------------------
 % D
@@ -131,12 +131,23 @@ method.help   = {'Select the rescale method.'};
 method.values = {method_logr method_diff method_rel method_zscore method_log method_logeps method_sqrt, method_none};
 
 %--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset. Default prefix is ''r''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'r'};
+
+%--------------------------------------------------------------------------
 % rescale
 %--------------------------------------------------------------------------
 rescale          = cfg_exbranch;
 rescale.tag      = 'rescale';
 rescale.name     = 'Time-frequency rescale';
-rescale.val      = {D, method};
+rescale.val      = {D, method, prefix};
 rescale.help     = {'Rescale (avg) spectrogram with nonlinear and/or difference operator.'
               'For ''Log'' and ''Sqrt'', these functions are applied to spectrogram.'
               'For ''LogR'', ''Rel'' and ''Diff'' this function computes power in the baseline.'
@@ -153,6 +164,7 @@ function out = eeg_tf_rescale(job)
 % construct the S struct
 S.D         = job.D{1};
 S.method    = char(fieldnames(job.method));
+S.prefix    = job.prefix;
 
 if ismember(lower(S.method), {'logr','diff', 'rel', 'zscore'})
     S.timewin = job.method.(S.method).baseline.timewin;
