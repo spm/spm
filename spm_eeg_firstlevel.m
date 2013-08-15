@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 5416 2013-04-16 09:04:41Z vladimir $
+% $Id: spm_eeg_firstlevel.m 5612 2013-08-15 11:30:02Z vladimir $
 
 
-SVNrev = '$Rev: 5416 $';
+SVNrev = '$Rev: 5612 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -32,6 +32,7 @@ job{1}.spm.stats.fmri_design.cvi            = 'none';
 
 nsess = numel(S.sess);
 scans = {};
+W     = [];
 for i = 1:nsess
     D        = spm_eeg_load(char(S.sess(i).D));
     
@@ -43,6 +44,14 @@ for i = 1:nsess
     channels = D.selectchannels(S.channels);
     nchan    = numel(channels);
     nf       = D.nfrequencies;
+    
+    bad      = badsamples(D, channels, ':', 1);
+    if sum(any(bad'))>1
+        warning('Artefacts will be combined for all channels. Run channel by channel to use more data.');
+    end
+    
+    W = [W any(badsamples(D, channels, ':', 1))];
+    
     if isempty(nf), nf = 1; end
     
     ni         = nifti;
@@ -253,6 +262,10 @@ load SPM.mat
 % no masking
 try, SPM = rmfield(SPM,'xM'); end
 
+
+W = ~W + W*exp(-256);
+SPM.xX.W = sparse(diag(W));
+
 save('SPM.mat','SPM', spm_get_defaults('mat.format'));
 
 clear job
@@ -275,9 +288,9 @@ end
 ne = numel(label);
 
 if isTF
-    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', 'P'), [nchan nf nb ne]);
+    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', S.prefix), [nchan nf nb ne]);
 else
-    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', 'P'), [nchan nb ne]);
+    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', S.prefix), [nchan nb ne]);
 end
 
 Dout = fsample(Dout, 1/dt);

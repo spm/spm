@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5612 2013-08-15 11:30:02Z vladimir $
 
-rev = '$Rev: 5377 $';
+rev = '$Rev: 5612 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -458,23 +458,25 @@ volt.labels = {
 }';
 volt.values = {1 2};
 volt.val    = {1};
-% ---------------------------------------------------------------------
-% atfpad Artefact padding
-% ---------------------------------------------------------------------
-atfpad         = cfg_entry;
-atfpad.tag     = 'atfpad';
-atfpad.name    = 'Artefact padding';
-atfpad.strtype = 'r';
-atfpad.help    = {'Time epoch to exclude around artefacts (ms). Should reflect the resolution of the TF method.'};
-atfpad.num     = [1 1];
-atfpad.val     = {400};
+
+%--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Filename Prefix';
+prefix.help    = {'Specify the string to be prepended to the filenames of the output dataset. Default prefix is ''C''.'};
+prefix.strtype = 's';
+prefix.num     = [1 Inf];
+prefix.val     = {'C'};
+
 % ---------------------------------------------------------------------
 % eeg_design MEEG model specification 
 % ---------------------------------------------------------------------
 convmodel         = cfg_exbranch;
 convmodel.tag     = 'convmodel';
 convmodel.name    = 'Convolution modelling';
-convmodel.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt};
+convmodel.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
 convmodel.prog = @eeg_run;
 convmodel.vout = @vout_eeg;
 convmodel.modality = {'EEG'};
