@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5525 2013-06-03 17:31:46Z john $
+% $Id: spm_image.m 5615 2013-08-15 14:37:24Z spm $
 
 
-SVNid = '$Rev: 5525 $';
+SVNid = '$Rev: 5615 $';
 
 global st
 
@@ -401,7 +401,7 @@ uicontrol('Parent',u1,'Style','Text', 'Position',[10 67 120 020].*WS,...
     'String','Crosshair Position','FontWeight','bold');
 uicontrol('Parent',u1,'Style','PushButton', 'Position',[135 69 050 020].*WS,...
     'String','Origin',...
-	'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','Move crosshair to origin');
+    'Callback','spm_orthviews(''Reposition'',[0 0 0]);','ToolTipString','Move crosshair to origin');
 uicontrol('Parent',u1,'Style','Text', 'Position',[10 45 35 020].*WS,'String','mm:');
 uicontrol('Parent',u1,'Style','Text', 'Position',[10 25 35 020].*WS,'String','vx:');
 uicontrol('Parent',u1,'Style','Text', 'Position',[10  1 65 020].*WS,'String','Intensity:');

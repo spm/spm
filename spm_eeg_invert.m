@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 5474 2013-05-08 11:58:32Z gareth $
+% $Id: spm_eeg_invert.m 5615 2013-08-15 14:37:24Z spm $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -644,7 +644,7 @@ switch(type)
             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
             allsource(bk) = Sourcepower(bk)./normpower;
         end
-        allsource = allsource/max(allsource);	% Normalise
+        allsource = allsource/max(allsource);   % Normalise
         
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';

@@ -4,9 +4,9 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A trimmed down version of the spm_eeg_invert() routine
 % see also spm_eeg_invert_noscale.m
 %
-% Created by:	Jose David Lopez - ralph82co@gmail.com
-%				Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
-%				Vladimir Litvak - litvak.vladimir@gmail.com
+% Created by:   Jose David Lopez - ralph82co@gmail.com
+%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
+%               Vladimir Litvak - litvak.vladimir@gmail.com
 %
 % Date: January 2012
 %
@@ -26,7 +26,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5609 2013-08-13 16:48:17Z gareth $
+% $Id: spm_eeg_invert_classic.m 5615 2013-08-15 14:37:24Z spm $
 
 
 
@@ -78,23 +78,23 @@ try SHUFFLELEADS=inverse.SHUFFLELEADS;catch SHUFFLELEADS=[];end;
 
 % defaults
 %--------------------------------------------------------------------------
-type = inverse.type;	% Type of inversion scheme
+type = inverse.type;    % Type of inversion scheme
 
 
 % get specified modalities to invert (default to all)
 
 %--------------------------------------------------------------------------
-modalities = D.inv{val}.forward.modality;		% MEG in this case
-Nmax  = 16;			% max number of temporal modes
+modalities = D.inv{val}.forward.modality;       % MEG in this case
+Nmax  = 16;         % max number of temporal modes
 
 % check lead fields and get number of dipoles (Nd) and channels (Nc)
 %==========================================================================
 
 fprintf('Checking leadfields')
-[L D] = spm_eeg_lgainmat(D);	% Generate/load lead field
+[L D] = spm_eeg_lgainmat(D);    % Generate/load lead field
 Nd=size(L,2);
 if ~isempty(Ip)
-    Np   = length(Ip);				% Number of priors/3 for GS, ARD, MSP
+    Np   = length(Ip);              % Number of priors/3 for GS, ARD, MSP
 else
     Ip=ceil([1:Np]*Nd/Np);
 end;
@@ -117,7 +117,7 @@ if size(modalities,1)>1,
     error('not defined for multiple modalities');
 end;
 Ic  = setdiff(D.indchantype(modalities), badchannels(D));
-Nd    = size(L,2);		% Number of dipoles
+Nd    = size(L,2);      % Number of dipoles
 
 fprintf(' - done\n')
 
@@ -131,15 +131,15 @@ vert  = D.inv{val}.mesh.tess_mni.vert;
 face  = D.inv{val}.mesh.tess_mni.face;
 A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
 GL    = A - spdiags(sum(A,2),0,Nd,Nd);
-GL    = GL*s/2;				% Smoother
+GL    = GL*s/2;             % Smoother
 Qi    = speye(Nd,Nd);
 QG    = sparse(Nd,Nd);
-for i = 1:8					% Taylor series approximation
+for i = 1:8                 % Taylor series approximation
     QG = QG + Qi;
     Qi = Qi*GL/i;
 end
-QG    = QG.*(QG > exp(-8));		% Eliminate small values
-QG    = QG*QG;				% Guarantee positive semidefinite matrix
+QG    = QG.*(QG > exp(-8));     % Eliminate small values
+QG    = QG*QG;              % Guarantee positive semidefinite matrix
 %%QG=QG./sum(sum(QG)); %% normalise area
 clear Qi A GL
 fprintf(' - done\n')
@@ -147,7 +147,7 @@ fprintf(' - done\n')
 
 % check for (e.g., empty-room) sensor components (in Qe)
 %==========================================================================
-QE = 1;						% No empty room
+QE = 1;                     % No empty room
 
 
 %==========================================================================
@@ -161,7 +161,7 @@ fprintf('Optimising and aligning spatial modes ...\n')
 
 if isempty(Nm),
     [U,ss,vv]    = spm_svd((L*L'),exp(-16));
-    A     = U';					% spatial projector A
+    A     = U';                 % spatial projector A
     UL    = A*L;
     
 else
@@ -174,15 +174,15 @@ else
         
     ss=ss(1:Nm);
     disp('using preselected number spatial modes !');
-    A     = U(:,1:Nm)';					% spatial projector A
+    A     = U(:,1:Nm)';                 % spatial projector A
     UL    = A*L;
 end;
 
-Nm    = size(UL,1);			% Number of spatial projectors
+Nm    = size(UL,1);         % Number of spatial projectors
 % Plot spatial projectors
 %------------------------------------------------------------------
 % figure
-% loglog(ss);					% Plot of singular values
+% loglog(ss);                   % Plot of singular values
 % title('Spatial projector');
 % xlabel('Eigenvalues');
 % ylabel('Amplitude');
@@ -194,8 +194,8 @@ fprintf('Using %d spatial modes',Nm)
 
 % None dipole is eliminated
 %--------------------------------------------------------------------------
-Is    = 1:Nd;				% Accepted dipoles
-Ns    = length(Is);			% Ns = Nd in this case
+Is    = 1:Nd;               % Accepted dipoles
+Ns    = length(Is);         % Ns = Nd in this case
 
 
 %==========================================================================
@@ -213,15 +213,15 @@ end;
 
 It     = (w/1000 - D.timeonset)*D.fsample + 1;
 It     = max(1,It(1)):min(It(end), length(D.time));
-It	   = fix(It);
+It     = fix(It);
 
 % Peristimulus time
 %----------------------------------------------------------------------
-pst    = 1000*D.time;					% peristimulus time (ms)
-pst    = pst(It);						% windowed time (ms)
-dur    = (pst(end) - pst(1))/1000;		% duration (s)
-dct    = (It - It(1))/2/dur;			% DCT frequencies (Hz)
-Nb     = length(It);					% number of time bins
+pst    = 1000*D.time;                   % peristimulus time (ms)
+pst    = pst(It);                       % windowed time (ms)
+dur    = (pst(end) - pst(1))/1000;      % duration (s)
+dct    = (It - It(1))/2/dur;            % DCT frequencies (Hz)
+Nb     = length(It);                    % number of time bins
 
 % Serial correlations
 %----------------------------------------------------------------------
@@ -232,11 +232,11 @@ qV     = sparse(K*K');
 % Confounds and temporal subspace
 %----------------------------------------------------------------------
 
-T      = spm_dctmtx(Nb,Nb);			% use plot(T) here!
+T      = spm_dctmtx(Nb,Nb);         % use plot(T) here!
 
 j      = find( (dct >= lpf) & (dct <= hpf) ); %% THis is the wrong way round but leave for nowfor compatibility with spm_eeg_invert
-T      = T(:,j);					% Apply the filter to discrete cosines
-dct    = dct(j);					% Frequencies accepted
+T      = T(:,j);                    % Apply the filter to discrete cosines
+dct    = dct(j);                    % Frequencies accepted
 
 %% Hanning window
 %----------------------------------------------------------------------
@@ -246,25 +246,25 @@ if Han
 else
     W=1;
 end;
-% W  = 1;					% Apply Hanning if desired!
+% W  = 1;                   % Apply Hanning if desired!
 
 % get temporal covariance (Y'*Y) to find temporal modes
 %======================================================================
 % Note: The variable YY was replaced with YTY because it is
 % duplicated in the original script, causing confusion.
 
-Y      = A*D(Ic,It,1);	% Data samples in spatial modes (virtual sensors)
-YTY    = Y'*Y;			% Covariance in temporal domain
+Y      = A*D(Ic,It,1);  % Data samples in spatial modes (virtual sensors)
+YTY    = Y'*Y;          % Covariance in temporal domain
 
 % Apply any Hanning and filtering
 %------------------------------------------------------------------
-YTY         = W'*YTY*W;		% Hanning
-YTY         = T'*YTY*T;		% Filter
+YTY         = W'*YTY*W;     % Hanning
+YTY         = T'*YTY*T;     % Filter
 
 % Plot temporal projectors
 %------------------------------------------------------------------
 % figure
-% imagesc(YTY);		% Plot of frequency map
+% imagesc(YTY);     % Plot of frequency map
 % title('Temporal projector');
 % xlabel('Frequency (Hz)');
 % ylabel('Frequency (Hz)');
@@ -274,31 +274,31 @@ YTY         = T'*YTY*T;		% Filter
 
 if isempty(Nt),
     
-    [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
     if isempty(U),
         warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);			% get temporal modes
+        [U E]  = svd(YTY);          % get temporal modes
     end;
-    E      = diag(E)/trace(YTY);			% normalise variance
-    Nr     = min(length(E),Nmax);			% number of temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
+    Nr     = min(length(E),Nmax);           % number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else
-    [U E]  = svd(YTY);			% get temporal modes
+    [U E]  = svd(YTY);          % get temporal modes
     
-    E      = diag(E)/trace(YTY);			% normalise variance
+    E      = diag(E)/trace(YTY);            % normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
-V      = U(:,1:Nr);						% temporal modes
-VE     = sum(E(1:Nr));					% variance explained
+V      = U(:,1:Nr);                     % temporal modes
+VE     = sum(E(1:Nr));                  % variance explained
 
 fprintf('Using %i temporal modes, ',Nr)
 fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
 
 % projection and whitening
 %----------------------------------------------------------------------
-S      = T*V;							% temporal projector
-Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
+S      = T*V;                           % temporal projector
+Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
 
 
 % get spatial covariance (Y*Y') for Gaussian process model
@@ -307,7 +307,7 @@ Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
 % stack (scaled aligned data) over modalities
 %--------------------------------------------------------------
 
-Y    = A*D(Ic,It,1)*S;		% Load data in spatial and temporal modes
+Y    = A*D(Ic,It,1)*S;      % Load data in spatial and temporal modes
 
 % accumulate first & second-order responses
 %--------------------------------------------------------------
@@ -318,7 +318,7 @@ YY   = sparse(Y*Y');            % Data covariance in spatial mode
 
 % assuming equal noise over subjects (Qe) and modalities AQ
 %--------------------------------------------------------------------------
-AQeA   = A*QE*A';			% Note that here it is A*A'
+AQeA   = A*QE*A';           % Note that here it is A*A'
 Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
 
 %==========================================================================
@@ -335,7 +335,7 @@ switch(type)
         %------------------------------------------------------------------
         Qp    = {};
         LQpL  = {};
-        %Ip    = ceil((1:Np)*Ns/Np);		% "random" selection of patches
+        %Ip    = ceil((1:Np)*Ns/Np);        % "random" selection of patches
         for i = 1:Np
             % First set (Not left hemisphere)
             %--------------------------------------------------------------
@@ -343,22 +343,22 @@ switch(type)
             Qp{end + 1}.q   = q;
             LQpL{end + 1}.q = UL*q;
             
-            % 			% Extended set (add 256 priors)
-            % 			%--------------------------------------------------------------
-            % 			[dum,j] = min(sum([vert(:,1) + vert(Ip(i),1), ...
-            % 				vert(:,2) - vert(Ip(i),2), ...
-            % 				vert(:,3) - vert(Ip(i),3)].^2,2));
-            % 			q               = QG(:,j);
-            % 			Qp{end + 1}.q   = q;
-            % 			LQpL{end + 1}.q = UL*q;
+            %           % Extended set (add 256 priors)
+            %           %--------------------------------------------------------------
+            %           [dum,j] = min(sum([vert(:,1) + vert(Ip(i),1), ...
+            %               vert(:,2) - vert(Ip(i),2), ...
+            %               vert(:,3) - vert(Ip(i),3)].^2,2));
+            %           q               = QG(:,j);
+            %           Qp{end + 1}.q   = q;
+            %           LQpL{end + 1}.q = UL*q;
             %
-            % 			% bilateral (add another 256 priors)
-            % 			%--------------------------------------------------------------
-            % 			% The bilateral patches are important with temporal
-            % 			% lobe activity (synchronous sources)
-            % 			q               = QG(:,Ip(i)) + QG(:,j);
-            % 			Qp{end + 1}.q   = q;
-            % 			LQpL{end + 1}.q = UL*q;
+            %           % bilateral (add another 256 priors)
+            %           %--------------------------------------------------------------
+            %           % The bilateral patches are important with temporal
+            %           % lobe activity (synchronous sources)
+            %           q               = QG(:,Ip(i)) + QG(:,j);
+            %           Qp{end + 1}.q   = q;
+            %           LQpL{end + 1}.q = UL*q;
             
             
         end
@@ -376,7 +376,7 @@ switch(type)
             Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
             allsource(bk) = Sourcepower(bk)./normpower;
         end
-        allsource = allsource/max(allsource);	% Normalise
+        allsource = allsource/max(allsource);   % Normalise
         
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';
@@ -499,14 +499,14 @@ fprintf('Inverting subject 1\n')
 
 % generate sensor component (Qe) per modality
 %----------------------------------------------------------------------
-AQeA  = A*QE*A';				% Again it is A*A'
+AQeA  = A*QE*A';                % Again it is A*A'
 AQ    = AQeA/(trace(AQeA));
 
 
 % using spatial priors from group analysis
 %----------------------------------------------------------------------
-Np    = length(LQPL);		% Final number of priors
-Ne    = length(Qe);			% Sensor noise prior
+Np    = length(LQPL);       % Final number of priors
+Ne    = length(Qe);         % Sensor noise prior
 Q     = [Qe LQPL];
 
 % re-do ReML (with informative hyperpriors)

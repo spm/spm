@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_fmri_check(P)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_check.m 5412 2013-04-15 15:25:55Z guillaume $
+% $Id: spm_dcm_fmri_check.m 5615 2013-08-15 14:37:24Z spm $
 
 
 %-Load DCM structure
@@ -65,7 +65,7 @@ catch
 end
 
 if DCM.options.two_state
-	A = exp(A);
+    A = exp(A);
 end
 
 D(2)  = max(max(abs(A - diag(diag(A)))));

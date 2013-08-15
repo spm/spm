@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5508 2013-05-20 16:52:15Z guillaume $
+% $Id: spm_list.m 5615 2013-08-15 14:37:24Z spm $
 
 
 %==========================================================================
@@ -743,7 +743,7 @@ case 'table'                                                        %-Table
     %======================================================================
     h = uicontextmenu('Tag','TabDat','UserData',TabDat);
     set(hAx,'UIContextMenu',h,...
-    	'Visible','on',...
+        'Visible','on',...
         'XTick',[],'YTick',[],...
         'XColor','w','YColor','w')
     uimenu(h,'Label','Print text table',...

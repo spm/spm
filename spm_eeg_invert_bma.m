@@ -6,7 +6,7 @@ function [Jbma,qCbma,PostMax]=spm_eeg_invert_bma(manyinverse,F)
 %% but this could be changed in future
 % Jos� David L�pez and Gareth Barnes
 %% At the moment adds a random DC offset (and not a random time series) to the estimated current distribution at each vertex
-% $Id: spm_eeg_invert_bma.m 5304 2013-03-06 17:11:23Z gareth $
+% $Id: spm_eeg_invert_bma.m 5615 2013-08-15 14:37:24Z spm $
 
 N=numel(manyinverse);
 % 1. Load F with the free energies and take the probabilities:
@@ -27,8 +27,8 @@ posmy = Fx/sc;
 
 % 3. With the index of the accepted values perform the BMA
 
-iter	= 2000;
-Jbma	= manyinverse{1}.J{1}.*0;
+iter    = 2000;
+Jbma    = manyinverse{1}.J{1}.*0;
 PostMax=zeros(length(Jbma),1);;
 qCbma=manyinverse{1}.qC.*0;
 
@@ -37,19 +37,19 @@ T=manyinverse{1}.T;
 tmp=zeros(size(Jbma,1),size(T,1));
 
 for j=1:N,
-    qC = manyinverse{j}.qC*diag(manyinverse{j}.qV)';						% variance over time
+    qC = manyinverse{j}.qC*diag(manyinverse{j}.qV)';                        % variance over time
     sdmean(j,:)=mean(sqrt(qC')); %% get mean sd per source (too time consuming to account for changes over time
 end;
 
 disp('running BMA');
 for i = 1:iter
     %  profile on
-    b = spm_multrnd(posmy,1);		% Take a sample from posmy
+    b = spm_multrnd(posmy,1);       % Take a sample from posmy
     
     J = cell2mat(manyinverse{b}.J);
     T=manyinverse{b}.T;
     
-    x = normrnd(0,sdmean(b,:))';					% Generate a Gaussian sample
+    x = normrnd(0,sdmean(b,:))';                    % Generate a Gaussian sample
     
     tmp=x*ones(1,size(T,1));
     

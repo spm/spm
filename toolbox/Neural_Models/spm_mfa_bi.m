@@ -23,12 +23,12 @@ function [M0,M1,L1] = spm_mfa_bi(M,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfa_bi.m 4936 2012-09-18 19:47:55Z karl $
+% $Id: spm_mfa_bi.m 5615 2013-08-15 14:37:24Z spm $
 
 % reshape coupling parameters
 %--------------------------------------------------------------------------
-[m s] = size(M.M1);				% number of inputs
-[d s] = size(M.M2);				% number of regions
+[m s] = size(M.M1);             % number of inputs
+[d s] = size(M.M2);             % number of regions
 
 p     = m*s;
 Pu    = reshape(P(1:p),m,s);
@@ -39,17 +39,17 @@ Pc    = reshape(P((p + 1):end),s,s);
 M0    = M.M0;
 for i = 1:s
     for j = 1:s
-	M0    = M0 + M.M2{i,j}*Pc(i,j);
+        M0 = M0 + M.M2{i,j}*Pc(i,j);
     end
 end
 
 % compute new M1
 %--------------------------------------------------------------------------
 for i = 1:m
-	M1{i} = sparse(1,1);
-	for j = 1:s
-		M1{i} = M1{i} + M.M1{i,j}*Pu(i,j);
-	end
+    M1{i} = sparse(1,1);
+    for j = 1:s
+        M1{i} = M1{i} + M.M1{i,j}*Pu(i,j);
+    end
 end
 
 % set output L

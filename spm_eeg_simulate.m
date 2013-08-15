@@ -4,9 +4,9 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 % This is a demo version related with the Technical Note:
 % XXX
 %
-% Created by:	Jose David Lopez - ralph82co@gmail.com
-%				Gareth Barnes - g.barnes@ucl.ac.uk
-%				Vladimir Litvak - litvak.vladimir@gmail.com
+% Created by:   Jose David Lopez - ralph82co@gmail.com
+%               Gareth Barnes - g.barnes@ucl.ac.uk
+%               Vladimir Litvak - litvak.vladimir@gmail.com
 %
 %% D dataset
 %% prefix : prefix of new simulated dataset
@@ -17,7 +17,7 @@ function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,
 %% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
 %
-% $Id: spm_eeg_simulate.m 5599 2013-08-07 15:00:09Z gareth $
+% $Id: spm_eeg_simulate.m 5615 2013-08-15 14:37:24Z spm $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -148,9 +148,9 @@ if max(mnidist)>0.1
 end;
 
 
-Ndip = size(meshsourceind,2);		% Number of dipoles
+Ndip = size(meshsourceind,2);       % Number of dipoles
 if isempty(dipfreq),
-    dipfreq = ones(Ndips,1).*20;					% Source frequency
+    dipfreq = ones(Ndips,1).*20;                    % Source frequency
 end;
 
 %% some default noise levels
@@ -181,19 +181,19 @@ end;
 
 %% WAVEFORM FOR EACH SOURCE
 
-Ntrials = Dnew.ntrials;				% Number of trials
+Ntrials = Dnew.ntrials;             % Number of trials
 
 % define period over which dipoles are active
-startf1  = woi(1);					% (sec) start time
+startf1  = woi(1);                  % (sec) start time
 endf1 = woi(2); %% end time
 f1ind = intersect(find(Dnew.time>startf1),find(Dnew.time<=endf1));
 
 % Create the waveform for each source
 signal = zeros(Ndip,length(Dnew.time));
-for j=1:Ndip				% For each source
-    for i=1:Ntrials			% and trial
-        f1 = dipfreq(j);	% Frequency depends on stim condition
-        amp1 = dipmoment(j);	% also the amplitude
+for j=1:Ndip                % For each source
+    for i=1:Ntrials         % and trial
+        f1 = dipfreq(j);    % Frequency depends on stim condition
+        amp1 = dipmoment(j);    % also the amplitude
         phase1 = pi/2;
         signal(j,f1ind) = signal(j,f1ind)...
             + amp1*sin((Dnew.time(f1ind)...
@@ -204,12 +204,12 @@ end
 %% CREATE A NEW FORWARD PROBLEM
 
 fprintf('Computing Gain Matrix: ')
-spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
+spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
 
-[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
+[L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix
 
-Nd    = size(L,2);							% number of dipoles
-X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
+Nd    = size(L,2);                          % number of dipoles
+X     = zeros(Nd,size(Dnew,2));                     % Matrix of dipoles
 fprintf(' - done\n')
 
 
@@ -289,11 +289,11 @@ end
 [dum,plotind]=sort(allchanstd);
 
 
-Nj		= size(vert,1);
-M		= mean(X(:,f1ind)'.^2,1);
-G		= sqrt(sparse(1:Nj,1,M,Nj,1));
-Fgraph	= spm_figure('GetWin','Graphics');
-j		= find(G);
+Nj      = size(vert,1);
+M       = mean(X(:,f1ind)'.^2,1);
+G       = sqrt(sparse(1:Nj,1,M,Nj,1));
+Fgraph  = spm_figure('GetWin','Graphics');
+j       = find(G);
 
 clf(Fgraph)
 figure(Fgraph)

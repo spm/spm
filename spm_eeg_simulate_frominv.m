@@ -9,7 +9,7 @@ function [Dnew]=spm_eeg_simulate_frominv(D,prefix,val,whitenoise,SNRdB,trialind)
 % SNRdB  : SNR in dBs (alternative to specifying white noise)
 % trialind: trials in which the simulated signal is to appear (all other
 % trials will be noise)
-% $Id: spm_eeg_simulate_frominv.m 5402 2013-04-12 14:49:54Z gareth $
+% $Id: spm_eeg_simulate_frominv.m 5615 2013-08-15 14:37:24Z spm $
 
 %% LOAD IN ORGINAL DATA
 
@@ -89,7 +89,7 @@ chanind=strmatch('MEG',Dnew.chantype);
 %% CREATE A NEW FORWARD MODEL (not necessarily the same as the one used to make the inversion)
 
 fprintf('Computing Gain Matrix: ')
-spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
+spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
 
 
 
@@ -104,9 +104,9 @@ U=Dnew.inv{val}.inverse.U;
 Ic=Dnew.inv{val}.inverse.Ic;
 It=Dnew.inv{val}.inverse.It;
 try
-[L Dnew] = parfor_spm_eeg_lgainmat(Dnew);				% Gain matrix- from file rather than from inversion itself
+[L Dnew] = parfor_spm_eeg_lgainmat(Dnew);               % Gain matrix- from file rather than from inversion itself
 catch
-[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix- from file rather than from inversion itself
+[L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix- from file rather than from inversion itself
 end;
         
 Lnew=U*L;
@@ -161,11 +161,11 @@ end
 
 % vert=Dnew.inv{val}.mesh.tess_mni.vert;
 % 
-% Nj		= size(vert,1);
-% M		= mean(X(:,f1ind)'.^2,1);
-% G		= sqrt(sparse(1:Nj,1,M,Nj,1));
-% Fgraph	= spm_figure('GetWin','Graphics');
-% j		= find(G);
+% Nj        = size(vert,1);
+% M     = mean(X(:,f1ind)'.^2,1);
+% G     = sqrt(sparse(1:Nj,1,M,Nj,1));
+% Fgraph    = spm_figure('GetWin','Graphics');
+% j     = find(G);
 % 
 % clf(Fgraph)
 % figure(Fgraph)

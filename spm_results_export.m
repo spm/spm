@@ -5,7 +5,7 @@ function spm_results_export(SPM,xSPM,TabDat)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_export.m 5543 2013-06-11 17:48:18Z guillaume $
+% $Id: spm_results_export.m 5615 2013-08-15 14:37:24Z spm $
 
 
 if nargin < 2
@@ -96,7 +96,7 @@ for i=1:size(TabDat.dat,1)
 end
 tpl = tpl.var('resftrs','');
 for i=1:size(TabDat.ftr,1)
-	tpl = tpl.var('RES_FTR',sprintf(TabDat.ftr{i,1},TabDat.ftr{i,2}));
+    tpl = tpl.var('RES_FTR',sprintf(TabDat.ftr{i,1},TabDat.ftr{i,2}));
     tpl = tpl.parse('resftrs','resftr',1);
 end
 tpl = tpl.parse('OUT','TPL_RES');

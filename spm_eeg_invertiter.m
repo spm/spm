@@ -10,7 +10,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5505 2013-05-14 14:30:51Z gareth $
+% $Id: spm_eeg_invertiter.m 5615 2013-08-15 14:37:24Z spm $
 
 if nargin<2,
     Npatchiter=[];
@@ -50,7 +50,7 @@ if par,
     [L Dtest{1}] = parfor_spm_eeg_lgainmat(Dtest{1});
     
 else
-    [L Dtest{1}] = spm_eeg_lgainmat(Dtest{1});	% Generate/load lead field- this stops it being done at each iteration
+    [L Dtest{1}] = spm_eeg_lgainmat(Dtest{1});  % Generate/load lead field- this stops it being done at each iteration
 end;
 
 
@@ -74,10 +74,10 @@ if par, %% RUN IN PARALLEL
         switch funcname,
             case 'Classic',
                 Din.inv{val}.inverse.Ip=Ip;
-                Dout	= spm_eeg_invert_classic(Din);
+                Dout    = spm_eeg_invert_classic(Din);
             case 'Current',
                 warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
-                Dout	= spm_eeg_invert(Din); %
+                Dout    = spm_eeg_invert(Din); %
                 Dout.inv{val}.inverse.Ip=Ip;
         end;
         modelF(patchiter).inverse=Dout.inv{val}.inverse;
@@ -91,10 +91,10 @@ else %% RUN IN SERIAL - the code below should be the same as the code above -nee
         switch funcname,
             case 'Classic',
                 Din.inv{val}.inverse.Ip=Ip;
-                Dout	= spm_eeg_invert_classic(Din);
+                Dout    = spm_eeg_invert_classic(Din);
             case 'Current',
                 warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
-                Dout	= spm_eeg_invert(Din); %
+                Dout    = spm_eeg_invert(Din); %
                 Dout.inv{val}.inverse.Ip=Ip;
         end;
         modelF(patchiter).inverse=Dout.inv{val}.inverse;
