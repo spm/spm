@@ -26,7 +26,7 @@ function D = spm_eeg_fix_ctf_headloc(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_fix_ctf_headloc.m 5471 2013-05-07 22:24:41Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5614 2013-08-15 12:15:16Z vladimir $
 
 
 [Finter,Fgraph,CmdLine] = spm('FnUIsetup','Fix CTF head locations',0);
@@ -82,8 +82,13 @@ if ~isfield(S, 'quickfix')
         if isequal(S.valid_fid, 1)
             valid_fid = 0.01*D.origheader.hc.dewar';
         else
-            valid_fid = S.valid_fid;
+            valid_fid = S.valid_fid;             
         end
+        
+        dewar_fid = 0.01*D.origheader.hc.dewar';
+        dewar_dist = [norm(dewar_fid(1,:) - dewar_fid(2,:));
+            norm(dewar_fid(2,:) - dewar_fid(3,:));
+            norm(dewar_fid(3,:) - dewar_fid(1,:))];
         
         if numel(valid_fid) == 9
             valid_dist = [norm(valid_fid(1,:) - valid_fid(2,:));
@@ -93,6 +98,12 @@ if ~isfield(S, 'quickfix')
             valid_dist = valid_fid;
         else
             error('Unexpected input');
+        end
+        
+        if max(abs(dewar_dist-valid_dist))<0.01
+            dewar_valid = 1;
+        else
+            dewar_valid = 0;
         end
                     
         dist_dev = [
@@ -113,6 +124,8 @@ if ~isfield(S, 'quickfix')
         M = mode(rdist');
         
         W = (abs(dist - repmat(0.01*M(:), 1, size(rdist, 2))) < 0.01);
+        
+        dewar_valid = 1;
     end
     
     if sum(sum(W) == 3) > 2
@@ -135,9 +148,17 @@ if ~isfield(S, 'quickfix')
             end
         end
     else
-        fixed = repmat(0.01*D.origheader.hc.dewar(:), 1, size(tmpdat, 2));
-        warning('Not enough valid head localization data');
+        if dewar_valid
+            fixed = repmat(0.01*D.origheader.hc.dewar(:), 1, size(tmpdat, 2));
+            warning('Not enough valid head localization data');
+        elseif exist('valid_fid', 'var') && numel(valid_fid) == 9
+            fixed = repmat(reshape(valid_fid', [], 1), 1, size(tmpdat, 2));
+            warning('No valid information in the dataset. Using the valid fiducials provided.');
+        else
+            error('There is no way to fix the head location data')
+        end       
     end
+    
     D(D.indchannel(hlc_chan_label), :) = fixed;
     
     dewarfid = 100*reshape(median(fixed(:, tmpind), 2), 3, 3);
@@ -212,7 +233,7 @@ function [grad] = ctf2grad(hdr, dewar)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spm_eeg_fix_ctf_headloc.m 5471 2013-05-07 22:24:41Z vladimir $
+% $Id: spm_eeg_fix_ctf_headloc.m 5614 2013-08-15 12:15:16Z vladimir $
 
 % My preferred ordering in the grad structure is:
 %   1st 151 coils are bottom coils of MEG channels

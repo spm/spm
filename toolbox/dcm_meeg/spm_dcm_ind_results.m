@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: spm_dcm_ind_results.m 5614 2013-08-15 12:15:16Z vladimir $
  
  
 % set up
@@ -255,11 +255,9 @@ case{lower('Coupling (B - Hz)')}
     elseif nu == 1;
         k = 1;
     else
-        k = questdlg('which effect','please select',DCM.xU.name{:},DCM.xU.name{1});
-        for i = 1:length(DCM.xU.name)
-            b(i) = strcmp(k,DCM.xU.name{i});
-        end
-        k = find(b);
+        [k, ok] = listdlg('PromptString', 'which effect', 'Name', 'please select',...
+            'SelectionMode','single', 'ListString', DCM.xU.name);
+        if ~ok, return; end;
     end
     
     % reconstitute time-frequency coupling

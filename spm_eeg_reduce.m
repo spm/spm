@@ -22,9 +22,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 5528 2013-06-07 11:47:27Z vladimir $
+% $Id: spm_eeg_reduce.m 5614 2013-08-15 12:15:16Z vladimir $
 
-SVNrev = '$Rev: 5528 $';
+SVNrev = '$Rev: 5614 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -95,7 +95,7 @@ end
 S1 = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 'no'; 
+S1.keepothers = 1; 
 S1.prefix = S.prefix;
 S1.updatehistory  = 0;
 D = spm_eeg_montage(S1);

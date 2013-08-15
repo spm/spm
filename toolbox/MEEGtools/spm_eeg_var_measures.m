@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 5396 2013-04-11 13:38:24Z vladimir $
+% $Id: spm_eeg_var_measures.m 5614 2013-08-15 12:15:16Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -64,7 +64,7 @@ else % ============ Select the data and convert to Fieldtrip struct
         selection = 1;
     end
     
-    ind = D.pickconditions(clb(selection));
+    ind = D.indtrial(clb(selection), 'GOOD');
     
     
     if isempty(ind)
