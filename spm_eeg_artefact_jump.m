@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_jump(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_jump.m 5594 2013-07-29 16:10:40Z vladimir $
+% $Id: spm_eeg_artefact_jump.m 5613 2013-08-15 11:56:07Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -49,7 +49,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5594 $';
+SVNrev = '$Rev: 5613 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ elseif isequal(S.mode, 'mark')
         
         if S.excwin>0
             excwin = ones(round(5e-4*S.excwin*D.fsample), 1);
-            bad = ~~conv2(1, excwin, double(bad), 'same');
+            bad = ~~conv2(excwin, 1, double(bad), 'same');
         end
         
         res = [];

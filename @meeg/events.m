@@ -6,7 +6,7 @@ function res = events(this, varargin)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: events.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: events.m 5613 2013-08-15 11:56:07Z vladimir $
 
 if nargin == 2
     res = getset(this, 'trials', 'events', varargin{:});
@@ -33,7 +33,7 @@ elseif nargin == 3 && ischar(varargin{2})
                         event(i).sample = event(i).time*this.Fsample+1;
                     end
                     
-                    event(i).duration = round(event(i).duration*this.Fsample);
+                    event(i).duration = ceil(event(i).duration*this.Fsample);
                     
                     event(i).sample   = max(round(event(i).sample), 1);
                 end

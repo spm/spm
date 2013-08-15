@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_zscorediff(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_zscorediff.m 5610 2013-08-14 10:28:57Z vladimir $
+% $Id: spm_eeg_artefact_zscorediff.m 5613 2013-08-15 11:56:07Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -50,7 +50,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5610 $';
+SVNrev = '$Rev: 5613 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -103,7 +103,7 @@ for j = 1:length(chanind)
         
         if S.excwin>0
             excwin = ones(round(1e-3*S.excwin*D.fsample), 1);
-            bad = ~~conv2(1, excwin, double(bad), 'same');
+            bad = ~~conv2(excwin, 1, double(bad), 'same');
         end
         
         for i = 1:D.ntrials
