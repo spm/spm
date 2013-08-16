@@ -33,7 +33,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 8212 2013-06-06 10:18:34Z eelspa $
+% $Id: read_trigger.m 8400 2013-08-15 12:00:11Z vlalit $
 
 event = [];
 

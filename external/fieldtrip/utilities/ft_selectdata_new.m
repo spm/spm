@@ -37,7 +37,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 8316 2013-07-16 11:42:00Z jorhor $
+% $Id: ft_selectdata_new.m 8397 2013-08-15 10:25:11Z dieloz $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -423,11 +423,15 @@ end % function makeselection
 
 function data = makeselection_chan(data, selchan, avgoverchan)
 if avgoverchan && all(isnan(selchan))
-  data.label = sprintf('%s+', data.label{:});        % concatenate all channel labels
-  data.label = {data.label(1:end-1)};                  % remove the last '+'
+  str = sprintf('%s, ', data.label{:});
+  str = str(1:(end-2));
+  str = sprintf('mean(%s)', str);
+  data.label = {str};
 elseif avgoverchan && ~any(isnan(selchan))
-  data.label = sprintf('%s+', data.label{selchan});  % concatenate all channel labels
-  data.label = {data.label(1:end-1)};                  % remove the last '+'
+  str = sprintf('%s, ', data.label{selchan});
+  str = str(1:(end-2));
+  str = sprintf('mean(%s)', str);
+  data.label = {str};                 % remove the last '+'
 elseif ~isnan(selchan)
   data.label = data.label(selchan);
   data.label = data.label(:);
