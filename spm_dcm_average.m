@@ -1,6 +1,6 @@
-function spm_dcm_average (P,name,ROBUST)
+function spm_dcm_average(P,name,ROBUST)
 % Produce an aggregate DCM model using Bayesian FFX averaging
-% FORMAT spm_dcm_average (P,name,ROBUST)
+% FORMAT spm_dcm_average(P,name,ROBUST)
 %
 % P         -  character/cell array of DCM filenames
 % name      -  name of DCM output file (will be prefixed by 'DCM_avg_')
@@ -29,7 +29,7 @@ function spm_dcm_average (P,name,ROBUST)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_dcm_average.m 5617 2013-08-16 11:58:36Z karl $
  
  
 % Preiminaries
@@ -60,7 +60,11 @@ N = numel(P);
 %==========================================================================
 for model = 1:N
     
-    load(P{model});
+    if ischar(P{model})
+        load(P{model});
+    else
+        DCM = P{model};
+    end
     
     % Only look at those parameters with non-zero prior variance
     %----------------------------------------------------------------------
@@ -151,9 +155,11 @@ Ep  = spm_unvec(Ep,DCM.M.pE);
  
 %-Copy contents of first DCM into the output DCM and add BPA
 %==========================================================================
-DCM           = DCM_first;
-DCM.models    = char(P);
-DCM.averaged  = true;
+DCM            = DCM_first;
+DCM.averaged   = true;
+try
+    DCM.models = char(P);
+end
  
 % compute posterior probabilities and variance
 %--------------------------------------------------------------------------
@@ -175,8 +181,8 @@ save(['DCM_avg_' name '.mat'], 'DCM', spm_get_defaults('mat.format'));
  
 % Warn the user how this average DCM should NOT be used
 %--------------------------------------------------------------------------
-disp(['Results of averaging DCMs were saved in DCM_avg_' name '.mat.']);
-disp('Please note that this file only contains average parameter estimates');
-disp('and their posterior probabilities, but NOT averaged time series.');
-disp('Also, note that this file can NOT be used for model comparisons.');
+% disp(['Results of averaging DCMs were saved in DCM_avg_' name '.mat.']);
+% disp('Please note that this file only contains average parameter estimates');
+% disp('and their posterior probabilities, but NOT averaged time series.');
+% disp('Also, note that this file can NOT be used for model comparisons.');
 

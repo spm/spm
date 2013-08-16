@@ -1,9 +1,10 @@
-function [ccf,pst] = spm_csd2ccf(csd,Hz)
+function [ccf,pst] = spm_csd2ccf(csd,Hz,N)
 % Converts cross spectral density to cross covariance function
-% FORMAT [ccf,pst] = spm_csd2ccf(csd,Hz)
+% FORMAT [ccf,pst] = spm_csd2ccf(csd,Hz,N)
 %
 % csd  (n,:,:)          - cross spectral density (cf, mar.P)
 % Hz   (n x 1)          - vector of frequencies (Hz)
+% N                     - number of (positive) time bins (default: 256)
 %
 % ccf                   - cross covariance functions
 % pst  (N,1)            - vector of lags for evaluation (seconds)
@@ -11,11 +12,10 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_csd2ccf.m 5617 2013-08-16 11:58:36Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------
-
 if iscell(csd)
     for i = 1:length(csd)
        [ccfi,pst] = spm_csd2ccf(csd{i},Hz);
@@ -37,7 +37,10 @@ end
 
 % Nyquist
 %--------------------------------------------------------------------------
-N     = 256;
+if nargin < 3
+    N = 256;
+end
+N     = max(length(Hz),N);
 g     = zeros(N,1);
 dt    = 1/(Hz(2) - Hz(1));
 Hz    = round(Hz*dt);
@@ -48,7 +51,7 @@ for i = 1:size(csd,2)
     if ismatrix(csd)
         g(Hz)      = csd(:,i);
         f          = ifft([0; g; flipud(conj(g))]);
-        ccf(:,i) = real(fftshift(f))*N;
+        ccf(:,i)   = real(fftshift(f))*N/dt;
     else
         for j = 1:size(csd,3)
             g(Hz)      = csd(:,i,j);

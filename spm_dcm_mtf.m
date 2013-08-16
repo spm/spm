@@ -24,7 +24,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_dcm_mtf.m 5617 2013-08-16 11:58:36Z karl $
 
 
 % get local linear approximation
@@ -110,14 +110,13 @@ for j = 1:nu
             Sk       = 1./(1j*(2*pi*w - imag(s(k))) - real(s(k)));
             S(:,i,j) = S(:,i,j) + dgdv(i,k)*dvdu(k,j)*Sk;
             
+            % kernels
+            %--------------------------------------------------------------          
             if nargout > 1
-                
-                % kernels
-                %----------------------------------------------------------
                 Kk       = exp(s(k)*t);
                 K(:,i,j) = K(:,i,j) + real(dgdv(i,k)*dvdu(k,j)*Kk);
-                
             end
+            
         end
     end
 end

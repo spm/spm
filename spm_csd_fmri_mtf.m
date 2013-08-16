@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5601 2013-08-11 21:19:53Z karl $
+% $Id: spm_csd_fmri_mtf.m 5617 2013-08-16 11:58:36Z karl $
 
 
 % compute log-spectral density
@@ -41,6 +41,7 @@ nw   = length(w);
 %--------------------------------------------------------------------------
 nn   = M.l;
 nu   = length(M.u);
+form = '1/f';
 
 
 % spectrum of neuronal fluctuations (Gu) and observation noise (Gn)
@@ -50,7 +51,7 @@ nu   = length(M.u);
 %--------------------------------------------------------------------------
 Gu    = zeros(nw,nu,nu);
 Gn    = zeros(nw,nn,nn);
-if size(P.C,2)
+if any(P.C)
     for i = 1:nu
         for j = 1:nu
             for k = 1:nw
@@ -68,7 +69,12 @@ C     = C/256;
 % neuronal fluctuations (Gu)
 %--------------------------------------------------------------------------
 for i = 1:nu
-    Gu(:,i,i) = Gu(:,i,i) + (C/2)*exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
+    if strcmp(form,'1/f')
+        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
+    else
+        G     = exp(P.a(1,i))*spm_mar2csd(exp(P.a(2,i))/2,w,M.ns);
+    end
+    Gu(:,i,i) = Gu(:,i,i) + C*G;
 end
 
 % observation noise
@@ -78,12 +84,24 @@ for i = 1:nn
     % global component
     %----------------------------------------------------------------------
     for j = 1:nn
-        Gn(:,i,j) = Gn(:,i,j) + (C/4)*exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
+        
+        if strcmp(form,'1/f')
+            G     = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
+        else
+            G     = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w,M.ns)/8;
+        end
+        Gn(:,i,j) = Gn(:,i,j) + (C/8)*G;
     end
     
     % region specific
     %----------------------------------------------------------------------
-    Gn(:,i,i) = Gn(:,i,i) + C*exp(P.c(1,i))*w.^(-exp(P.c(2,i))/2);
+    if strcmp(form,'1/f')
+        G     = exp(P.c(1,i))*w.^(-exp(P.c(2,i))/2);
+    else
+        G     = exp(P.c(1,i))*spm_mar2csd(exp(P.c(2,i))/2,w,M.ns)/8;
+    end
+    Gn(:,i,i) = Gn(:,i,i) + C*G;
+    
 end
 
 
