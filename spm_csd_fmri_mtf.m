@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_csd_fmri_mtf.m 5618 2013-08-17 10:36:56Z karl $
 
 
 % compute log-spectral density
@@ -51,7 +51,7 @@ form = '1/f';
 %--------------------------------------------------------------------------
 Gu    = zeros(nw,nu,nu);
 Gn    = zeros(nw,nn,nn);
-if any(P.C)
+if any(any(P.C))
     for i = 1:nu
         for j = 1:nu
             for k = 1:nw

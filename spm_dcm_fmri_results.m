@@ -1,6 +1,6 @@
-function spm_dcm_fmri_results(DCM,Action)
+function spm_dcm_fmri_results(DCM,Action,fig)
 % Review an estimated DCM for BOLD CSD
-% FORMAT spm_dcm_fmri_results(DCM,Action)
+% FORMAT spm_dcm_fmri_results(DCM,Action,fig)
 %
 % Action:
 %     'spectral data'
