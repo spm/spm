@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5618 2013-08-17 10:36:56Z karl $
+% $Id: spm_csd_fmri_mtf.m 5619 2013-08-19 10:43:45Z karl $
 
 
 % compute log-spectral density
@@ -70,7 +70,7 @@ C     = C/256;
 %--------------------------------------------------------------------------
 for i = 1:nu
     if strcmp(form,'1/f')
-        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)));
+        G     = exp(P.a(1,i))*w.^(-exp(P.a(2,i)))*4;
     else
         G     = exp(P.a(1,i))*spm_mar2csd(exp(P.a(2,i))/2,w,M.ns);
     end
@@ -86,11 +86,11 @@ for i = 1:nn
     for j = 1:nn
         
         if strcmp(form,'1/f')
-            G     = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2);
+            G     = exp(P.b(1,1))*w.^(-exp(P.b(2,1))/2)/8;
         else
-            G     = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w,M.ns)/8;
+            G     = exp(P.b(1,1))*spm_mar2csd(exp(P.b(2,1))/2,w,M.ns)/64;
         end
-        Gn(:,i,j) = Gn(:,i,j) + (C/8)*G;
+        Gn(:,i,j) = Gn(:,i,j) + C*G;
     end
     
     % region specific

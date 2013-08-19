@@ -1,17 +1,20 @@
-function spm_dcm_average(P,name,ROBUST)
+function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Produce an aggregate DCM model using Bayesian FFX averaging
-% FORMAT spm_dcm_average(P,name,ROBUST)
+% FORMAT [DCM] = spm_dcm_average(P,name,IND,graphics)
 %
 % P         -  character/cell array of DCM filenames
 % name      -  name of DCM output file (will be prefixed by 'DCM_avg_')
-% ROBUST    -  optional flag for detecting outliers (based on conditional
+% nocond    -  optional flag for suppressing conditional dependencies
+% graphics  -  optional flag for showing outliers (based on conditional
 %              entropy)
 %
-% This routine creates a new DCM model in which the parameters are averaged
+% This routine creates a new DCM in which the parameters are averaged
 % over a number of fitted DCM models. These can be over sessions or over
 % subjects. This average model can then be interrogated using the standard
 % DCM 'review' options to look at contrasts of parameters. The resulting
-% inferences correspond to a Bayesian Fixed Effects analysis.
+% inferences correspond to a Bayesian Fixed Effects analysis. If called with
+% no output arguments the Bayesian parameter average DCM will be written to
+% file, otherwise the DCM structure is returned.
 %
 % Note that the Bayesian averaging is only applied to the A, B and C
 % matrices (and matrix D if a nonlinear model is used).
@@ -27,11 +30,11 @@ function spm_dcm_average(P,name,ROBUST)
 % contrast using the spm_dcm_sessions.m function.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5617 2013-08-16 11:58:36Z karl $
- 
- 
+% $Id: spm_dcm_average.m 5619 2013-08-19 10:43:45Z karl $
+
+
 % Preiminaries
 %--------------------------------------------------------------------------
 try
@@ -40,31 +43,23 @@ catch
     [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
- 
-try
-    name;
-catch
-    name     = spm_input('Name for DCM_avg_???.mat','+1','s');
-end
- 
-try
-    ROBUST;
-catch
-    ROBUST = 0;
-end
- 
 if ischar(P), P = cellstr(P); end
 N = numel(P);
- 
+
+% options and filename
+%--------------------------------------------------------------------------
+try, name;     catch, name = spm_input('Name for DCM_avg_???.mat','+1','s'); end
+try, nocond;   catch, nocond = 0; end
+try, graphics; catch, graphics = 0; end
+
+
 %-Loop through all selected models and get posterior means and precisions
 %==========================================================================
 for model = 1:N
     
-    if ischar(P{model})
-        load(P{model});
-    else
-        DCM = P{model};
-    end
+    % get DCM structure
+    %----------------------------------------------------------------------
+    if ischar(P{model}), load(P{model}); else, DCM = P{model}; end
     
     % Only look at those parameters with non-zero prior variance
     %----------------------------------------------------------------------
@@ -77,7 +72,14 @@ for model = 1:N
     pC     = diag(wsel)*pC*diag(wsel);
     wsel   = find(wsel);
     
+    % find the space spanned by the prior covariance
+    %----------------------------------------------------------------------
     if model == 1
+        
+        % suppress prior dependencies if necessary
+        %----------------------------------------------------------------------
+        if nocond, pC = diag(diag(pC)); end
+        
         U          = spm_svd(pC,0);
         wsel_first = wsel;
         DCM_first  = DCM;
@@ -87,56 +89,58 @@ for model = 1:N
         end
     end
     
+    % suppress posterior dependencies if necessary
+    %----------------------------------------------------------------------
+    Cp              = DCM.Cp;
+    if nocond, Cp   = diag(diag(Cp)); end
+    
     % Get posterior precision matrix and mean
     %----------------------------------------------------------------------
-    Cp              = U'*DCM.Cp*U;
+    Cp              = U'*Cp*U;
     Ep              = U'*spm_vec(DCM.Ep);
     miCp(:,:,model) = inv(full(Cp));
     mEp(:,model)    = Ep;
     
-    if ROBUST
+    
+    % evaluate diagnostics
+    %----------------------------------------------------------------------
+    if graphics
         T(model) = trace(Cp);
         H(model) = spm_logdet(miCp(:,:,model));
         F(model) = DCM.F;
     end
     
 end
- 
- 
+
+
 %-Report free energies and conditional entropies
 %==========================================================================
-if ROBUST
+if graphics
     spm_figure('GetWin','BPA');
     
-    subplot(3,1,1)
-    bar(F)
+    subplot(3,1,1), bar(F)
     title('Free energy','FontSize',16)
-    xlabel('Subject')
-    axis square
+    xlabel('Subject'), axis square
     
-    subplot(3,1,2)
-    bar(H)
+    subplot(3,1,2), bar(H)
     title('Conditional entropy','FontSize',16)
-    xlabel('Subject')
-    axis square
+    xlabel('Subject'), axis square
     
-    subplot(3,1,3)
-    bar(T)
+    subplot(3,1,3), bar(T)
     title('Posterior variance','FontSize',16)
-    xlabel('Subject')
-    axis square
+    xlabel('Subject'), axis square
     
 end
- 
- 
+
+
 %-Average models using Bayesian fixed-effects analysis -> average Ep,Cp
 %==========================================================================
- 
+
 % averaged posterior covariance
 %--------------------------------------------------------------------------
 ipC   = inv(U'*pC*U);
 Cp    = inv(sum(miCp,3) - (N - 1)*ipC);
- 
+
 % averaged posterior mean
 %--------------------------------------------------------------------------
 pE  = spm_vec(DCM.M.pE);
@@ -151,8 +155,8 @@ Ep  = Cp*(wEp - (N - 1)*ipC*U'*pE);
 Cp  = U*Cp*U';
 Ep  = U*Ep + pE - U*U'*pE;
 Ep  = spm_unvec(Ep,DCM.M.pE);
- 
- 
+
+
 %-Copy contents of first DCM into the output DCM and add BPA
 %==========================================================================
 DCM            = DCM_first;
@@ -160,25 +164,32 @@ DCM.averaged   = true;
 try
     DCM.models = char(P);
 end
- 
+
 % compute posterior probabilities and variance
 %--------------------------------------------------------------------------
 sw      = warning('off','SPM:negativeVariance');
 Vp      = diag(Cp);
 Pp      = 1 - spm_Ncdf(0,abs(spm_vec(Ep) - spm_vec(pE)),Vp);
 warning(sw);
- 
+
 DCM.Ep  = Ep;
 DCM.Cp  = Cp;
 DCM.Vp  = spm_unvec(Vp,DCM.M.pE);
 DCM.Pp  = spm_unvec(Pp,DCM.M.pE);
- 
- 
-%-Save new DCM
+
+
+%-Save new DCM if there are no output arguments
 %==========================================================================
-DCM.name = [name ' (Bayesian FFX average)'];
-save(['DCM_avg_' name '.mat'], 'DCM', spm_get_defaults('mat.format'));
- 
+if nocond
+    DCM.name = [name ' (FFX average - no conditional dependencies)'];
+else
+    DCM.name = [name ' (Bayesian FFX average)'];
+end
+
+if ~nargout
+    save(['DCM_avg_' name '.mat'], 'DCM', spm_get_defaults('mat.format'));
+end
+
 % Warn the user how this average DCM should NOT be used
 %--------------------------------------------------------------------------
 % disp(['Results of averaging DCMs were saved in DCM_avg_' name '.mat.']);

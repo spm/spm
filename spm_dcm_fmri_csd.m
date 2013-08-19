@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_dcm_fmri_csd.m 5619 2013-08-19 10:43:45Z karl $
 
 
 % get DCM
@@ -143,7 +143,6 @@ DCM.M.u  = sparse(n,1);
 
 % get data-features (MAR(8) model)
 %==========================================================================
-DCM.Y.p  = 8;
 DCM      = spm_dcm_fmri_csd_data(DCM);
 DCM.M.Hz = DCM.Y.Hz;
 DCM.M.dt = 1/2;

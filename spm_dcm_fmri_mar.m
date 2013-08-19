@@ -150,7 +150,6 @@ DCM.M.dt = DCM.Y.dt;
 DCM.M.N  = 32;
 
 
-
 % Variational Laplace: model inversion (using spectral responses)
 %==========================================================================
 Y            = DCM.Y;

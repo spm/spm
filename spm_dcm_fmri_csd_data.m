@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 5619 2013-08-19 10:43:45Z karl $
 
 % add sspectral toolbox
 %--------------------------------------------------------------------------
@@ -55,7 +55,6 @@ end
 mar       = spm_mar(DCM.Y.y,p);
 mar       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
 DCM.Y.csd = mar.P;
-DCM.Y.gew = mar.gew;
 DCM.Y.p   = mar.p;
 
 % organise MAR coefficients
@@ -72,7 +71,7 @@ DCM.Y.mar = spm_cat(A);
 
 % simulated data features
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-% load pP
+% load true_parameters
 
 % % MAR coefficients
 % % -------------------------------------------------------------------------
@@ -115,16 +114,15 @@ if any(diff(DCM.U.u))
     % Cross spectral density - inputs
     %----------------------------------------------------------------------
     mar       = spm_mar(full(u),16);
-    csd       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
-    DCM.U.csd = csd.P;
+    DCM.U.csd = spm_mar2csd(mar.lag,DCM.Y.Hz,1/DCM.Y.dt);
     
-    % cross-correlation functions (using time bins of TR/4)
+    % cross-correlation functions
     %----------------------------------------------------------------------
     Hz        = (1:64)/DCM.Y.dt/256;
-    csd       = spm_mar_spectra(mar,DCM.Y.Hz,1/DCM.Y.dt);
-    [ccf,pst] = spm_csd2ccf(csd.P,Hz,128);
+    csd       = spm_mar2csd(mar.lag,Hz,1/DCM.Y.dt);
+    [ccf,pst] = spm_csd2ccf(csd,Hz,128);
     i         = 128 + (1:128);
-    DCM.U.ccf = ccf(i,:,:);
+    DCM.U.ccf = ccf(i,:,:)/max(abs(spm_vec(ccf)));
     DCM.U.pst = pst(i);
 
 else

@@ -27,7 +27,7 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 if isvector(mar)
     mar = mar(:);
 end
-if ismatrix(mar)
+if isnumeric(mar)
     d  = size(mar,2);
     p  = size(mar,1)/d;
     for i = 1:d
@@ -38,6 +38,9 @@ if ismatrix(mar)
         end
     end
     mar = a;
+else
+    d  = length(mar(1).a);
+    p  = length(mar);
 end
 
 % frequencies

@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_dcm_fmri_priors.m 5619 2013-08-19 10:43:45Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -107,9 +107,9 @@ pE.epsilon = sparse(1,1);  pC.epsilon = sparse(1,1) + exp(-6);
 %--------------------------------------------------------------------------
 if any(strcmp(options.analysis,{'CSD','MAR'}))
     
-    pE.a  = sparse(2,n);   pC.a = sparse(2,n) + 1/16; % neuronal fluctuations
-    pE.b  = sparse(2,1);   pC.b = sparse(2,1) + 1/16; % channel noise global
-    pE.c  = sparse(2,n);   pC.c = sparse(2,n) + 1/16; % channel noise specific
+    pE.a  = sparse(2,n);   pC.a = sparse(2,n) + 1/64; % neuronal fluctuations
+    pE.b  = sparse(2,1);   pC.b = sparse(2,1) + 1/64; % channel noise global
+    pE.c  = sparse(2,n);   pC.c = sparse(2,n) + 1/64; % channel noise specific
     
 end
 
