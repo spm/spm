@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5619 2013-08-19 10:43:45Z karl $
+% $Id: spm_dcm_fmri_priors.m 5620 2013-08-23 15:56:17Z guillaume $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -105,7 +105,7 @@ pE.epsilon = sparse(1,1);  pC.epsilon = sparse(1,1) + exp(-6);
 
 % add prior on spectral density of fluctuations (amplitude and exponent)
 %--------------------------------------------------------------------------
-if any(strcmp(options.analysis,{'CSD','MAR'}))
+if isfield(options,'analysis') && any(strcmp(options.analysis,{'CSD','MAR'}))
     
     pE.a  = sparse(2,n);   pC.a = sparse(2,n) + 1/64; % neuronal fluctuations
     pE.b  = sparse(2,1);   pC.b = sparse(2,1) + 1/64; % channel noise global
