@@ -325,7 +325,7 @@ switch(lower(Action))
         subplot(2,2,3)
         plot(Hz,Hc), hold on
         plot(Hz,Yc,':'), hold off
-        title({'Spectral density (source-space)'},'FontSize',16)
+        title({'Spectral density (BOLD)'},'FontSize',16)
         xlabel('frequency (Hz)')
         ylabel('abs(CSD)')
         axis square, spm_axis tight
@@ -358,7 +358,7 @@ switch(lower(Action))
         
         subplot(2,2,3)
         plot(Hz,Hs), hold on
-        title({'Spectral density (source-space)'},'FontSize',16)
+        title({'Spectral density (neural)'},'FontSize',16)
         xlabel('frequency (Hz)')
         ylabel('abs(CSD)')
         axis square, spm_axis tight
@@ -424,7 +424,7 @@ switch(lower(Action))
         %--------------------------------------------------------------
         subplot(2,2,3)
         plot(DCM.pst,ccf)
-        title({'Auto-covariance';'(in source-space)'},'FontSize',16)
+        title({'Auto-covariance';'(neural)'},'FontSize',16)
         xlabel('lag (s)')
         ylabel('auto-covariance')
         axis square

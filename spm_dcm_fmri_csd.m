@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5619 2013-08-19 10:43:45Z karl $
+% $Id: spm_dcm_fmri_csd.m 5622 2013-08-27 20:55:15Z karl $
 
 
 % get DCM
@@ -207,7 +207,10 @@ M.g    = @(x,u,P,M) x(:,1);                          % neuronal observer
 
 % predictions (at the level of neuronal interactions)
 %--------------------------------------------------------------------------
-[Hs Hz dtf] = spm_csd_fmri_mtf(Ep,M,DCM.U);
+Qp.b        = Qp.b - 32;                             % Switch off noise
+Qp.c        = Qp.c - 32;                             % Switch off noise
+Qp.C        = Ep.C;
+[Hs Hz dtf] = spm_csd_fmri_mtf(Qp,M,DCM.U);
 [ccf pst]   = spm_csd2ccf(Hs,Hz);
 [coh fsd]   = spm_csd2coh(Hs,Hz);
 DCM.dtf     = dtf;
