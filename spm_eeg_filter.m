@@ -25,9 +25,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5431 2013-04-19 17:24:35Z guillaume $
+% $Id: spm_eeg_filter.m 5621 2013-08-27 11:00:34Z vladimir $
 
-SVNrev = '$Rev: 5431 $';
+SVNrev = '$Rev: 5621 $';
 
 
 %-Startup
@@ -83,6 +83,14 @@ Fchannels = D.indchantype('Filtered');
 
 Fs = D.fsample;
 
+isTF  = strncmpi(D.transformtype,'TF',2);
+if isTF
+    nfreq = D.nfrequencies;
+else
+    nfreq = 1;
+end
+
+
 ignoreWarnings = false;
 
 if strcmp(D.type, 'continuous')
@@ -96,7 +104,7 @@ if strcmp(D.type, 'continuous')
     % determine blocksize
     % determine block size, dependent on memory
     memsz  = spm('Memory');
-    datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
+    datasz = nchannels(D)*nsamples(D)*nfreq*8; % datapoints x 8 bytes per double value
     blknum = ceil(datasz/memsz);
     blksz  = ceil(nchannels(D)/blknum);
     blknum = ceil(nchannels(D)/blksz);
@@ -108,14 +116,22 @@ if strcmp(D.type, 'continuous')
         blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
         if isempty(blkchan), break, end
         spm_progress_bar('Set','ylabel','reading...');
-        Dtemp=D(blkchan,:,1);
+        if isTF
+            Dtemp=D(blkchan,:,:,1);            
+        else
+            Dtemp=D(blkchan,:,1);
+        end
         spm_progress_bar('Set','ylabel','filtering...');
         chncnt=chncnt+blksz;
         %loop through channels
         for j = 1:numel(blkchan)
             
             if any(blkchan(j) == Fchannels)
-                Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs, ignoreWarnings);
+                if isTF
+                    Dtemp(j, :, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(j, :, :), 1), Fs, ignoreWarnings);
+                else
+                    Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs, ignoreWarnings);
+                end
             end
             ignoreWarnings = true;
             
@@ -125,7 +141,11 @@ if strcmp(D.type, 'continuous')
         
         % write Dtemp to Dnew
         spm_progress_bar('Set','ylabel','writing...');
-        Dnew(blkchan,:,1)=Dtemp;
+        if isTF
+             Dnew(blkchan,:,:,1)=Dtemp;
+        else
+            Dnew(blkchan,:,1)=Dtemp;
+        end
         clear Dtemp;
     end
     
@@ -137,9 +157,17 @@ else
     else Ibar = 1:D.ntrials; end
     
     for i=1:D.ntrials
-        Dtemp = D(Fchannels, :, i);
-        Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs, ignoreWarnings);
-        Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
+        if isTF
+            Dtemp = D(Fchannels, :, :, i);
+            for j = 1:nfreq
+                Dtemp(:, j, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(:, j, :), 2), Fs, ignoreWarnings);
+                Dnew(Fchannels, 1:nfreq, 1:Dnew.nsamples, i) = Dtemp;
+            end
+        else
+            Dtemp = D(Fchannels, :, i);
+            Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs, ignoreWarnings);
+            Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
+        end
         ignoreWarnings = true;
         
         if any(Ibar == i), spm_progress_bar('Set', i); end
