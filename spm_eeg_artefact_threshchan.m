@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_threshchan(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_threshchan.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_threshchan.m 5625 2013-08-30 11:08:12Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -31,32 +31,39 @@ if nargin == 0
     threshold.num = [1 1];
     threshold.help = {'Threshold value to apply to all channels'};
 
+    excwin = cfg_entry;
+    excwin.tag = 'excwin';
+    excwin.name = 'Excision window';
+    excwin.strtype = 'r';
+    excwin.num = [1 1];
+    excwin.val = {1000};
+    excwin.help = {'Window (in ms) to mark as bad around each jump (for mark mode only), 0 - do not mark data as bad'};
+    
+    
     threshchan = cfg_branch;
     threshchan.tag = 'threshchan';
     threshchan.name = 'Threshold channels';
-    threshchan.val = {threshold};
+    threshchan.val = {threshold, excwin};
     
     res = threshchan;
     
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 5625 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG threshold channels');
 
-if isequal(S.mode, 'mark')
-    error('Only reject mode is supported by this plug-in');
-end
-
 D = spm_eeg_load(S.D);
 
 chanind  = S.chanind;
 threshold = S.threshold;
 res = zeros(D.nchannels, D.ntrials);
+
+if isequal(S.mode, 'reject')
 
 %-Artefact detection
 %--------------------------------------------------------------------------
@@ -72,4 +79,68 @@ end
 
 spm_progress_bar('Clear');
 
+elseif isequal(S.mode, 'mark')
+    
+    
+    spm_progress_bar('Init', D.ntrials, 'Trials checked');
+    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+    else Ibar = [1:D.ntrials]; end
+    
+    
+    for i = 1:D.ntrials
+        
+        bad  = abs(squeeze(D(chanind, :, i)))>threshold;
+        
+        if ~any(bad(:))
+            if ismember(i, Ibar), spm_progress_bar('Set', i); end
+            continue;
+        end
+        
+        if S.excwin>0
+            excwin = ones(1, round(5e-4*S.excwin*D.fsample));
+            bad = ~~conv2(1, excwin, double(bad), 'same');
+        end
+        
+        res = [];
+        for j = 1:length(chanind)
+            if (bad(j, :)/size(bad,2))>S.badchanthresh
+                onsets = 1;
+                offsets = size(bad,2)+1;
+            else
+                onsets  = find(bad(j, :));
+                offsets = find(~bad(j, :));
+                onsets(find(diff(onsets)<2)+1) = [];
+            end
+            
+            for k = 1:length(onsets)
+                res(end+1).type   = 'artefact_threshold';
+                res(end).value    = char(D.chanlabels(chanind(j)));
+                res(end).time     = D.time(onsets(k)) - D.time(1) + D.trialonset(i);
+                res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k)+1)./D.fsample;
+            end
+            
+        end
+        
+        if ~isempty(res)
+            ev = D.events(i);
+            if iscell(ev)
+                ev = ev{1};
+            end
+            
+            if ~S.append
+                ev(strmatch('artefact_threshold', {ev.type})) = [];
+            end
+            
+            D = events(D, i, spm_cat_struct(ev, res));
+        end
+        
+        
+        if ismember(i, Ibar), spm_progress_bar('Set', i); end
+    end
+    
+    spm_progress_bar('Clear');
+    
+    res = D;
+end
+    
 spm('FigName', 'M/EEG threshold channels: done');

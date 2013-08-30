@@ -17,7 +17,7 @@ function res = spm_eeg_artefact_eyeblink(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact_eyeblink.m 5625 2013-08-30 11:08:12Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -51,7 +51,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 5625 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -65,7 +65,6 @@ end
 D = spm_eeg_load(S.D);
 
 chanind  =  S.chanind;
-threshold = S.threshold;
 
 if length(chanind)~=1
     error('More than one channel - not currently supported')

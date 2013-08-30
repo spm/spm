@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_jump(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_jump.m 5613 2013-08-15 11:56:07Z vladimir $
+% $Id: spm_eeg_artefact_jump.m 5625 2013-08-30 11:08:12Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -49,7 +49,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5613 $';
+SVNrev = '$Rev: 5625 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -60,8 +60,6 @@ D = spm_eeg_load(S.D);
 
 chanind  = S.chanind;
 threshold = S.threshold;
-res = zeros(D.nchannels, D.ntrials);
-
 
 if isequal(S.mode, 'reject')
     res = zeros(D.nchannels, D.ntrials);
