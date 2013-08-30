@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 5075 2012-11-23 15:24:02Z vladimir $
+% $Id: spm_eeg_average_TF.m 5624 2013-08-30 11:06:38Z vladimir $
 
-SVNrev = '$Rev: 5075 $';
+SVNrev = '$Rev: 5624 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,6 +42,7 @@ if isstruct(S.robust)
     savew       = S.robust.savew;
     bycondition = S.robust.bycondition;
     ks          = S.robust.ks;
+    removebad   = S.robust.removebad;
 else
     robust = 0;
 end
@@ -94,7 +95,14 @@ goodtrials  =  indtrial(D, cl, 'GOOD');
 
 for j = 1:D.nchannels
     if robust && ~bycondition
-        [Y, W1] = spm_robust_average(D(j, :, :, goodtrials), 4, ks);
+        Y       = D(j, :, :, goodtrials);
+        if removebad
+            bad     = badsamples(D, j, ':', goodtrials);
+            bad     = reshape(bad, [size(bad, 1), 1, size(bad, 2), size(bad, 3)]);
+            bad     = repmat(bad, [1 D.nfrequencies, 1, 1]);
+            Y(bad)  = NaN;
+        end
+        [Y, W1] = spm_robust_average(Y, 4, ks);
         if savew
             Dw(j, :, :, goodtrials) = W1;
         end
@@ -116,7 +124,14 @@ for j = 1:D.nchannels
                 Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
             else
                 if bycondition
-                    [Y, W] = spm_robust_average(D(j, :, :, w), 4, ks);
+                    Y      = D(j, :, :, w);
+                    if removebad
+                        bad     = badsamples(D, j, ':', w);
+                        bad     = reshape(bad, [size(bad, 1), 1, size(bad, 2), size(bad, 3)]);
+                        bad     = repmat(bad, [1 D.nfrequencies, 1, 1]);
+                        Y(bad)  = NaN;
+                    end
+                    [Y, W] = spm_robust_average(Y, 4, ks);
                     Dnew(j, :, :, i) = Y;
                     if savew
                         Dw(j, :, :, w)   = W;

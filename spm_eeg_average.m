@@ -18,9 +18,9 @@ function D = spm_eeg_average(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_eeg_average.m 5624 2013-08-30 11:06:38Z vladimir $
 
-SVNrev = '$Rev: 5375 $';
+SVNrev = '$Rev: 5624 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -43,6 +43,7 @@ if isstruct(S.robust)
     savew       = S.robust.savew;
     bycondition = S.robust.bycondition;
     ks          = S.robust.ks;
+    removebad   = S.robust.removebad;
 else
     robust = 0;
 end
@@ -103,7 +104,12 @@ if prod(size(D))*8 < spm('memory')
 
     if robust && ~bycondition
         W1      = ones(D.nchannels, D.nsamples, length(goodtrials));
-        [Y, W2] = spm_robust_average(D(chanind, :, goodtrials), 3, ks);
+        Y       = D(chanind, :, goodtrials);
+        if removebad
+            bad    = badsamples(D, chanind, ':', goodtrials);
+            Y(bad) = NaN;
+        end
+        [Y, W2] = spm_robust_average(Y, 3, ks);
         W1(chanind, :, :) = W2;
         if savew
             Dw(:, :, goodtrials) = W1;
@@ -124,8 +130,13 @@ if prod(size(D))*8 < spm('memory')
             Dnew(:, :, i) = mean(D(:, :, w), 3);
         else
             if bycondition
-                W        = ones(D.nchannels, D.nsamples, length(w));
-                [Y, W1] = spm_robust_average(D(chanind, :, w), 3, ks);
+                W       = ones(D.nchannels, D.nsamples, length(w));
+                Y       = D(chanind, :, w);
+                if removebad
+                    bad     = badsamples(D, chanind, ':', w);
+                    Y(bad)  = NaN;
+                end
+                [Y, W1] = spm_robust_average(Y, 3, ks);
                 W(chanind, :, :)    = W1;
                 Dnew(chanind, :, i) = Y;
                 if length(chanind)<D.nchannels
@@ -152,15 +163,20 @@ else
     if D.nchannels > 100, Ibar = floor(linspace(1, D.nchannels, 100));
     else Ibar = [1:D.nchannels]; end
     for j = 1:D.nchannels                
-        if robust && ~bycondition 
+        if robust && ~bycondition
             if ismember(j, chanind)
-                [Y, W1] = spm_robust_average(D(j, :, goodtrials), 3, ks);
+                Y       = D(j, :, goodtrials);
+                if removebad
+                    bad     = badsamples(D, j, ':', goodtrials);
+                    Y(bad)  = NaN;
+                end
+                [Y, W1] = spm_robust_average(Y, 3, ks);
                 W = zeros([1 D.nsamples D.ntrials]);
                 W(1, :, goodtrials) = W1;
             else
                 W1 = ones(1, D.nsamples, length(goodtrials));
             end
-
+            
             if savew
                 Dw(j, :, goodtrials) = W1;
             end
@@ -178,7 +194,12 @@ else
                 Dnew(j, :, i) = mean(D(j, :, w), 3);
             else
                 if bycondition
-                    [Y, W] = spm_robust_average(D(j, :, w), 3, ks);
+                    Y       = D(j, :, w);
+                    if removebad
+                        bad     = badsamples(D, j, ':', w);
+                        Y(bad)  = NaN;
+                    end
+                    [Y, W] = spm_robust_average(Y, 3, ks);
                     Dnew(j, :, i) = Y;
                     if savew
                         Dw(j, :, w)   = W;

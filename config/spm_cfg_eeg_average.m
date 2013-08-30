@@ -4,9 +4,9 @@ function average = spm_cfg_eeg_average
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_average.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_average.m 5624 2013-08-30 11:06:38Z vladimir $
 
-rev = '$Rev: 5377 $';
+rev = '$Rev: 5624 $';
 D = cfg_files;
 D.tag = 'D';
 D.name = 'File Name';
@@ -44,10 +44,19 @@ savew.labels = {'Yes', 'No'};
 savew.values = {true, false};
 savew.val = {false};
 
+removebad = cfg_menu;
+removebad.tag = 'removebad';
+removebad.name = 'Remove bad data';
+removebad.help = {'Replace data marked as bad by NaNs before averaging',...
+    'Warning: beware if there is no good data, NaNs may stay in the average.'};
+removebad.labels = {'Yes', 'No'};
+removebad.values = {true, false};
+removebad.val = {false};
+
 robust = cfg_branch;
 robust.tag = 'robust';
 robust.name = 'Robust';
-robust.val = {ks, bycondition, savew};
+robust.val = {ks, bycondition, savew, removebad};
 
 userobust = cfg_choice;
 userobust.tag = 'userobust';

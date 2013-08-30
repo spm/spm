@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 5205 2013-01-24 11:28:54Z vladimir $
+% $Id: spm_robust_average.m 5624 2013-08-30 11:06:38Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -81,7 +81,9 @@ while max(abs(ores-nres))>sqrt(1E-8)
     ind1 = find(mad==0);
     ind2 = find(mad~=0);
     
-    W(:, ind1) = ~res(:, ind1);
+    res1       = res(:, ind1);
+    res1(isnan(res1)) = 1;
+    W(:, ind1) = ~res1;
     
     if ~isempty(ind2)
         res = res(:, ind2);
