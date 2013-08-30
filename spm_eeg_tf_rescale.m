@@ -24,9 +24,9 @@ function D = spm_eeg_tf_rescale(S)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_eeg_tf_rescale.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_eeg_tf_rescale.m 5626 2013-08-30 14:03:16Z vladimir $
 
-SVNrev = '$Rev: 5375 $';
+SVNrev = '$Rev: 5626 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -42,12 +42,7 @@ Dnew  = clone(D, [S.prefix fname(D)]);
 
 needbaseline = ismember(lower(S.method), {'logr','diff', 'rel', 'zscore'});
 
-if needbaseline
-    timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
-    if isempty(timeind) || any(isnan(timeind))
-        error('Selected baseline time window is invalid.');
-    end
-    
+if needbaseline    
     if isfield(S, 'Db') && ~isempty(S.Db)
         Db = spm_eeg_load(S.Db);
     else
@@ -57,6 +52,11 @@ if needbaseline
     if any(abs(D.frequencies - Db.frequencies) > 0.1) || ~isequal(Db.chanlabels, D.chanlabels) ||...
             (Db.ntrials > 1 && (Db.ntrials ~= D.ntrials))
         error('The input dataset and the baseline dataset should have the same frequencies, channels and trial numbers');
+    end
+    
+    timeind = Db.indsample(1e-3*(min(S.timewin))):Db.indsample(1e-3*(max(S.timewin)));
+    if isempty(timeind) || any(isnan(timeind))
+        error('Selected baseline time window is invalid.');
     end
 end
 
