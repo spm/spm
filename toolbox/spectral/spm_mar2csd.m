@@ -20,7 +20,7 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar_spectra.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_mar2csd.m 5627 2013-09-02 18:17:05Z spm $
 
 % format coefficients
 %--------------------------------------------------------------------------

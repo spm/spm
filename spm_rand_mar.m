@@ -8,7 +8,7 @@ function [y] = spm_rand_mar(m,n,a)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_phase_shuffle.m 3334 2009-08-25 16:13:38Z karl $
+% $Id: spm_rand_mar.m 5627 2013-09-02 18:17:05Z spm $
  
 
 % create random process

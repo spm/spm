@@ -37,7 +37,7 @@ function DCM = spm_dcm_fmri_mar(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5606 2013-08-13 08:47:22Z karl $
+% $Id: spm_dcm_fmri_mar.m 5627 2013-09-02 18:17:05Z spm $
 
 
 % get DCM
