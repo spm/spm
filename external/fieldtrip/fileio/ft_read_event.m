@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 7688 2013-03-18 11:48:14Z jansch $
+% $Id: ft_read_event.m 8439 2013-08-29 17:39:09Z vlalit $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -1574,6 +1574,27 @@ switch eventformat
   case 'bucn_nirs'
     event = read_bucn_nirsevent(filename);
     
+  case {'manscan_mbi', 'manscan_mb2'} 
+      if isempty(hdr)
+          hdr = ft_read_header(filename);
+      end
+      if isfield(hdr.orig, 'epochs') && ~isempty(hdr.orig.epochs)
+          for i = 1:hdr.nTrials
+              trlind = [trlind i*ones(1, diff(hdr.orig.epochs(i).samples) + 1)];
+          end
+      else
+          trlind = ones(1, hdr.nSamples);
+      end      
+      if isfield(hdr.orig, 'events')
+          for i = 1:numel(hdr.orig.events)
+              for j = 1:length(hdr.orig.events(i).samples)
+                  event(end+1).type   = 'trigger';
+                  event(end).value    = hdr.orig.events(i).label;
+                  event(end).sample   = find(cumsum(trlind == hdr.orig.events(i).epochs(j))...
+                      == hdr.orig.events(i).samples(j), 1, 'first');
+              end
+          end
+      end
   otherwise
     warning('FieldTrip:ft_read_event:unsupported_event_format','unsupported event format (%s)', eventformat);
     event = [];

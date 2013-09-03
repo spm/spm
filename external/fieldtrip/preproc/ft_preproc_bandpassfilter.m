@@ -2,7 +2,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 
 % FT_PREPROC_BANDPASSFILTER applies a band-pass filter to the data and thereby
 % removes the spectral components in the data except for the ones in the
-% specified frequency band
+% specified frequency band.
 %
 % Use as
 %   [filt] = ft_preproc_bandpassfilter(dat, Fsample, Fbp, N, type, dir, instabilityfix)
@@ -57,7 +57,7 @@ function [filt] = ft_preproc_bandpassfilter(dat,Fs,Fbp,N,type,dir,instabilityfix
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_bandpassfilter.m 8335 2013-07-29 10:09:23Z arjsto $
+% $Id: ft_preproc_bandpassfilter.m 8419 2013-08-23 08:35:13Z dieloz $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

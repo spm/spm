@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8277 2013-06-24 23:08:38Z josdie $
+% $Id: ft_read_data.m 8439 2013-08-29 17:39:09Z vlalit $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1109,6 +1109,32 @@ switch dataformat
     
     dat=ft_checkdata(spiketrl,'datatype', 'raw', 'fsample', spiketrl.hdr.Fs);
     dat=dat.trial{1};
+    
+   case {'manscan_mb2', 'manscan_mbi'}
+     [p, f, x] = fileparts(filename);
+     filename  = fullfile(p, [f, '.mb2']);
+     trlind = [];
+     if isfield(hdr.orig, 'epochs') && ~isempty(hdr.orig.epochs)
+         for i = 1:hdr.nTrials
+             trlind = [trlind i*ones(1, diff(hdr.orig.epochs(i).samples) + 1)];
+         end
+         if checkboundary && (trlind(begsample)~=trlind(endsample))
+             error('requested data segment extends over a discontinuous trial boundary');
+         end
+     else
+         trlind = ones(1, hdr.nSamples);
+     end
+     
+     iEpoch = unique(trlind(begsample:endsample));
+     sfid = fopen(filename, 'r');
+     dat  = zeros(hdr.nChans, endsample - begsample + 1);
+     for i = 1:length(iEpoch)
+         dat(:, trlind(begsample:endsample) == iEpoch(i)) =...
+             in_fread_manscan(hdr.orig, sfid, iEpoch(i), ...
+             [sum(trlind==iEpoch(i) & (1:length(trlind))<begsample)...
+             sum(trlind==iEpoch(i) & (1:length(trlind))<endsample)]);
+     end   
+     dat = dat(chanindx, :);
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);

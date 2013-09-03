@@ -40,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 8139 2013-05-22 06:32:30Z jorhor $
+% $Id: ft_defaults.m 8411 2013-08-21 14:17:45Z eelspa $
 
 global ft_default
 persistent initialized
@@ -120,6 +120,11 @@ if ~isdeployed
     addpath(fullfile(fileparts(which('ft_defaults')), 'external', 'signal'));
   end
   
+  try
+    % some alternative implementations of statistics functions
+    addpath(fullfile(fileparts(which('ft_defaults')), 'external', 'stats'));
+  end
+
   try
     % this directory contains various functions that were obtained from elsewere, e.g. Matlab file exchange
     ft_hastoolbox('fileexchange', 3, 1); % not required

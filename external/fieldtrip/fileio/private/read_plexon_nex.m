@@ -41,7 +41,7 @@ function [varargout] = read_plexon_nex(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_plexon_nex.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_plexon_nex.m 8429 2013-08-27 13:09:43Z roboos $
 
 % parse the optional input arguments
 hdr       = ft_getopt(varargin, 'header');
@@ -121,7 +121,7 @@ for i=1:length(channel)
 
     case 6
       % Markers
-      ts = fread(fid, [1 vh.Count], 'int32=>int32');
+      buf.ts = fread(fid, [1 vh.Count], 'int32=>int32');
       for j=1:vh.NMarkers
         buf.MarkerNames{j,1} = fread(fid, [1 64], 'uint8=>char');
         for k=1:vh.Count

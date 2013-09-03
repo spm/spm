@@ -8,7 +8,7 @@ function data = ft_math(cfg, varargin)
 % with one or multiple FieldTrip data structures as input and where cfg is a
 % configuration structure that should contain
 %
-%  cfg.operation  = string, can be 'add', 'subtract', 'divide', 'multiply'
+%  cfg.operation  = string, can be 'add', 'subtract', 'divide', 'multiply', 'log10'
 %  cfg.parameter  = string, input data field on which the operation is performed
 %
 % If you specify only a single input data structure, the configuration should contain
@@ -42,13 +42,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_math.m 8433 2013-08-28 14:52:22Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_math.m 8433 2013-08-28 14:52:22Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error

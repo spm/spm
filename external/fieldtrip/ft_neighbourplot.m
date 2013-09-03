@@ -50,7 +50,7 @@ function [cfg] = ft_neighbourplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_neighbourplot.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_neighbourplot.m 8417 2013-08-23 07:26:47Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -282,9 +282,17 @@ elseif istrue(cfg.enableedit)
     y2 = proj(lastSensId,2);
     X = [x1 x2];
     Y = [y1 y2];
+    if size(proj, 2) == 2
+      hl(curSensId, lastSensId) = line(X, Y, 'color', 'r');
+      hl(lastSensId, curSensId) = line(X, Y, 'color', 'r');
+    elseif size(proj, 2) == 3
+      z1 = proj(curSensId,3);
+      z2 = proj(lastSensId,3);
+      Z =[z1 z2];
+      hl(curSensId, lastSensId) = line(X, Y, Z, 'color', 'r');
+      hl(lastSensId, curSensId) = line(X, Y, Z, 'color', 'r');
+    end
     
-    hl(curSensId, lastSensId) = line(X, Y, 'color', 'r');
-    hl(lastSensId, curSensId) = line(X, Y, 'color', 'r');
   end
   % draw nodes on top again
   delete(hs(curSensId));

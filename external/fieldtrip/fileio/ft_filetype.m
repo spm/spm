@@ -73,7 +73,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 8288 2013-06-28 11:53:23Z roboos $
+% $Id: ft_filetype.m 8439 2013-08-29 17:39:09Z vlalit $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1134,6 +1134,14 @@ elseif filetype_check_extension(filename, '.xml') &&  filetype_check_header(file
   type = 'localite_pos';
   manufacturer = 'Localite';
   content = 'EEG electrode positions';
+elseif filetype_check_extension(filename, '.mbi')
+  type = 'manscan_mbi';
+  manufacturer = 'MANSCAN';
+  content  = 'EEG header';
+elseif filetype_check_extension(filename, '.mb2')
+  type = 'manscan_mb2';
+  manufacturer = 'MANSCAN';
+  content  = 'EEG data';    
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8362 2013-08-01 10:19:44Z roboos $
+% $Id: ft_read_header.m 8439 2013-08-29 17:39:09Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1702,6 +1702,34 @@ switch headerformat
     end
     hdr.orig = opts;
     
+   case {'manscan_mbi', 'manscan_mb2'}
+    orig       = in_fopen_manscan(filename);
+    hdr.Fs     = orig.prop.sfreq;
+    hdr.nChans = numel(orig.channelmat.Channel); 
+    hdr.nTrials  = 1;
+    if isfield(orig, 'epochs') && ~isempty(orig.epochs)             
+        hdr.nSamples = 0;
+        for i = 1:hdr.nTrials
+            hdr.nSamples =  hdr.nSamples + diff(orig.epochs(i).samples) + 1;
+        end
+    else        
+        hdr.nSamples = diff(orig.prop.samples) + 1;
+    end
+    if orig.prop.times(1) < 0
+        hdr.nSamplesPre  = round(orig.prop.times(1)/hdr.Fs);
+    else
+        hdr.nSamplesPre  = 0;  
+    end
+    for i=1:hdr.nChans
+      hdr.label{i,1}    = orig.channelmat.Channel(i).Name;
+      hdr.chantype{i,1} = lower(orig.channelmat.Channel(i).Type);
+      if isequal(hdr.chantype{i,1}, 'eeg')
+          hdr.chanunit{i, 1} = 'uV';
+      else
+          hdr.chanunit{i, 1} = 'unknown';
+      end
+    end
+    hdr.orig = orig;
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       hdr = read_biosig_header(filename);

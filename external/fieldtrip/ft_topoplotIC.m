@@ -94,9 +94,9 @@ function [cfg] = ft_topoplotIC(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotIC.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_topoplotIC.m 8403 2013-08-17 10:02:14Z jimher $
 
-revision = '$Id: ft_topoplotIC.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_topoplotIC.m 8403 2013-08-17 10:02:14Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -130,6 +130,12 @@ cfg.layout = ft_prepare_layout(cfg, varargin{:});
 
 % don't show the callinfo for each separate component
 cfg.showcallinfo = 'no';
+
+% interactive plotting doesn't work for chan_comp dimord. 
+if isfield(cfg, 'interactive')
+  warning('Interactive plotting is not supported.');
+end;
+cfg.interactive = 'no';
 
 % allow multiplotting
 nplots = numel(selcomp);

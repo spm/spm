@@ -39,14 +39,14 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 8062 2013-04-19 18:59:32Z roboos $
+% $Id: printstruct.m 8443 2013-09-02 19:58:08Z roboos $
 
 if nargin==1
   val  = name;
   name = inputname(1);
 end
 
-str = [];
+str = '';
 if isstruct(val)
   if numel(val)>1
     str = cell(size(val));
@@ -208,7 +208,7 @@ switch class(val)
       end
       str = sprintf('[ %s ]', str(1:end-3));
     else
-      error('multidimensional arrays are not supported');
+      warning('multidimensional arrays are not supported');
     end
     
   case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64'}

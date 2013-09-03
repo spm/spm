@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_rejectartifact.m 8406 2013-08-20 11:39:13Z jimher $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_rejectartifact.m 8406 2013-08-20 11:39:13Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -458,6 +458,7 @@ if strcmp(cfg.artfctdef.reject, 'partial') || strcmp(cfg.artfctdef.reject, 'comp
       % Some part of the trial is bad, replace bad part with nans
       data.trial{trial}(:,rejecttrial) = nan;
       count_nan = count_nan + 1;
+      trialok = [trialok; trl(trial,:)]; % Mark the trial as good as nothing will be removed
     end
   end
   
@@ -499,7 +500,7 @@ else
       data = rmfield(data, 'offset');
     end
   end
-end
+end;
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

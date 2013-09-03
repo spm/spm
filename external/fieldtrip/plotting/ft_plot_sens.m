@@ -36,7 +36,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 8162 2013-05-29 09:22:39Z roboos $
+% $Id: ft_plot_sens.m 8422 2013-08-23 10:11:06Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -155,7 +155,7 @@ warning(ws); % revert to original state
 function plotcoil(pnt, ori, coildiameter)
 % construct a template coil at [0 0 0], oriented towards [0 0 1]
 pos = circle(12);
-s   = scale([coildiameter coildiameter coildiameter]);
+s   = scale([coildiameter coildiameter coildiameter]/2);
 for i=1:size(pnt,1)
   x = ori(i,1);
   y = ori(i,2);
