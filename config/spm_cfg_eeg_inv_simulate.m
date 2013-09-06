@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5492 2013-05-10 17:23:09Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5630 2013-09-06 09:14:44Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -64,11 +64,26 @@ woi.help = {'Time window in which to simulate data (ms)'};
 
 foi = cfg_entry;
 foi.tag = 'foi';
-foi.name = 'Frequencies (Hz) ';
+foi.name = 'Frequencies of sinusoid (Hz) ';
 foi.strtype = 'r';
 foi.num = [Inf 1];
 foi.val = {[10 ; 20]};
 foi.help = {'Enter frequencies of sources in Hz'};
+
+fband = cfg_entry;
+fband.tag = 'fband';
+fband.name = 'Bandwidth of Gaussian orthogonal white signals in (Hz) ';
+fband.strtype = 'r';
+fband.num = [ 1 2];
+fband.val = {[10  40]};
+fband.help = {'Enter frequencies over which random signal exists in Hz'};
+
+isSin = cfg_choice;
+isSin.tag = 'isSin';
+isSin.name = 'Simulate sinusoids or bandlimited orthogonal white signal ?';
+isSin.help = {'Choose whether to simulate a sinusoidal signal or a random (gaussian white) filtered (and orthogonal) signals'};
+isSin.values = {foi, fband};
+isSin.val = {foi};
 
 
 dipmom = cfg_entry;
@@ -109,7 +124,7 @@ setsources = cfg_branch;
 setsources.tag = 'setsources';
 setsources.name = 'Set sources';
 setsources.help = {'Define sources and locations'};
-setsources.val  = {woi, foi, dipmom, locs};
+setsources.val  = {woi, isSin, dipmom, locs};
 
 setinversion = cfg_const;
 setinversion.tag = 'isinversion';
@@ -164,8 +179,8 @@ end;
 
 
 
-[mod, list] = modality(D, 1, 1);
-if ~strcmp(mod, 'MEG')
+
+if ~strcmp(modality(D), 'MEG')
     error('only suitable for pure MEG data at the moment');
 end;
 
@@ -201,17 +216,45 @@ end;
 
 if isfield(job.isinversion,'setsources'), %% defining individual sources
     
-    Nsources=size(job.isinversion.setsources.foi,1);
+    %%%
+    Nsources=size(job.isinversion.setsources.locs,1)
     
-    if (size(job.isinversion.setsources.dipmom,1)~=Nsources)|| (size(job.isinversion.setsources.locs,1)~=Nsources),
-        error('Number of locations must equal number of frequencies specified');
+    if (size(job.isinversion.setsources.dipmom,1)~=Nsources),
+        error('Number of locations must equal number of moments specified');
     end;
+    
     mnimesh=[]; %% using mesh defined in forward model at the moment
     SmthInit=[]; %% leave patch size as default for now
     SIdipmom=job.isinversion.setsources.dipmom.*1e-9/1000; %% put into nAm %% the 1000 is  a fiddle factor until I find true scaling
+    woi=job.isinversion.setsources.woi./1000;
+    timeind = intersect(find(D{1}.time>woi(1)),find(D{1}.time<=woi(2)));
+    simsignal = zeros(Nsources,length(timeind));
+    if isfield(job.isinversion.setsources.isSin,'fband'),
+        %% Simulate orthogonal Gaussian signals
+
+        simsignal=randn(Nsources,length(timeind));
+        %% filter to bandwidth
+        simsignal=ft_preproc_lowpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(2),2);
+        simsignal=ft_preproc_highpassfilter(simsignal,D{1}.fsample,job.isinversion.setsources.isSin.fband(1),2);
+        [u,s,v]=svd(simsignal*simsignal');
+        simsignal=u*simsignal; %% orthogonalise all signals
+        simsignal=simsignal./repmat(std(simsignal'),size(simsignal,2),1)'; %% unit variance
+        simsignal=simsignal.*repmat(SIdipmom,1,size(simsignal,2)); %% now scale by moment
+        
+    else
+        %% simulate sinusoids
+        sinfreq=job.isinversion.setsources.isSin.foi;
+        % Create the waveform for each source
+        
+        for j=1:Nsources				% For each source
+                simsignal(j,:)=SIdipmom(j)*sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
+        end; % for j
+        
+        
+    end; %% if isfield fband
     
-    [D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,job.isinversion.setsources.foi,job.isinversion.setsources.woi./1000,SIdipmom,whitenoiseTesla,SNRdB,trialind,mnimesh,SmthInit);
-    
+    %[D,meshsourceind,signal]=spm_eeg_simulate(D,job.prefix, job.isinversion.setsources.locs,simsignal,woi,whitenoiseTesla,SNRdB,trialind,mnimesh,SmthInit);
+    [D,meshsourceind]=spm_eeg_simulate(D,job.prefix,job.isinversion.setsources.locs,simsignal,woi,whitenoiseTesla,SNRdB,trialind,mnimesh,SmthInit);
     
 else %% simulate sources based on inversion
     if ~isfield(D{i}.inv{job.val},'inverse'),
