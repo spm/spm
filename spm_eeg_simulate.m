@@ -1,23 +1,25 @@
-function [Dnew,meshsourceind,signal]=spm_eeg_simulate(D,prefix,patchmni,dipfreq,woi,dipmoment,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+%function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 %% Simulate a number of MSP patches at specified locations on existing mesh
-% Synthetic MEG data generator for SPM8
-% This is a demo version related with the Technical Note:
-% XXX
 %
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
+% Created by:	Jose David Lopez - ralph82co@gmail.com
+%				Gareth Barnes - g.barnes@ucl.ac.uk
+%				Vladimir Litvak - litvak.vladimir@gmail.com
 %
 %% D dataset
 %% prefix : prefix of new simulated dataset
 %% patchmni : patch centres in mni space or patch indices
-%% dipfreq : frequency of simulated sources (Hz)
+%% simsignal : Nsourcesx time series withinn woi
+%% woi: window of interest in seconds
+%% whitenoise level in Tesla
+%% SNRdB power signal to noise ratio in dBs
+%% trialind: trials on which the simulated data will be added to the noise
 %% mnimesh : a new mesh with vertices in mni space
-%% dipmoment: relative dipole moments
-%% woi : time window of source activity
 %% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
-%
-% $Id: spm_eeg_simulate.m 5615 2013-08-15 14:37:24Z spm $
+%% Outputs
+%% Dnew- new dataset
+%% meshsourceind- vertex indices of sources on the mesh
+% $Id: spm_eeg_simulate.m 5631 2013-09-06 09:15:59Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -31,37 +33,36 @@ end;
 
 
 if nargin<4,
-    freqs=[];
+    simsignal=[];
 end;
 if nargin<5,
     woi=[];
 end;
 
-if nargin<6,
-    dipmoment=[];
-end;
 
-if nargin<7,
+if nargin<6,
     whitenoise=[];
 end;
 
-if nargin<8,
+if nargin<7,
     SNRdB=[];
 end;
 
-if nargin<9,
+if nargin<8,
     trialind=[];
 end;
 
-if nargin<10,
+if nargin<9,
     mnimesh=[];
 end;
 
 
 
-if nargin<11
+if nargin<10
     SmthInit=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
 end;
+
+
 
 if isempty(prefix),
     prefix='sim';
@@ -101,12 +102,10 @@ end;
 
 [a1 b1 c1]=fileparts(D{useind}.fname);
 newfilename=[prefix b1];
-try
-    Dnew=spm_eeg_load(newfilename);
-    disp('Overwriting data in existing file');
-catch
-    Dnew=D{useind}.clone([prefix b1]);
-end;
+
+%% forcing overwrite of an existing file
+Dnew=D{useind}.clone([prefix b1]);
+
 
 if isempty(trialind)
     trialind=1:Dnew.ntrials;
@@ -129,8 +128,8 @@ else
     Ndips=0;
 end;
 
-if length(dipfreq)~=Ndips,
-    error('number of frequencies given does not match number of sources');
+if size(simsignal,1)~=Ndips,
+    error('number of signals given does not match number of sources');
 end;
 
 meshsourceind=[];
@@ -142,16 +141,14 @@ for d=1:Ndips,
     [mnidist(d),meshsourceind(d)] =min(dist);
 end;
 
-disp(sprintf('Furthest distance %3.2f',max(mnidist)));
+disp(sprintf('Furthest distance %3.2f mm',max(mnidist)));
 if max(mnidist)>0.1
     warning('Supplied vertices do not sit on the mesh!');
 end;
 
 
-Ndip = size(meshsourceind,2);       % Number of dipoles
-if isempty(dipfreq),
-    dipfreq = ones(Ndips,1).*20;                    % Source frequency
-end;
+Ndip = size(meshsourceind,2);		% Number of dipoles
+
 
 %% some default noise levels
 % 
@@ -181,40 +178,45 @@ end;
 
 %% WAVEFORM FOR EACH SOURCE
 
-Ntrials = Dnew.ntrials;             % Number of trials
+Ntrials = Dnew.ntrials;				% Number of trials
 
 % define period over which dipoles are active
-startf1  = woi(1);                  % (sec) start time
+startf1  = woi(1);					% (sec) start time
 endf1 = woi(2); %% end time
 f1ind = intersect(find(Dnew.time>startf1),find(Dnew.time<=endf1));
 
-% Create the waveform for each source
-signal = zeros(Ndip,length(Dnew.time));
-for j=1:Ndip                % For each source
-    for i=1:Ntrials         % and trial
-        f1 = dipfreq(j);    % Frequency depends on stim condition
-        amp1 = dipmoment(j);    % also the amplitude
-        phase1 = pi/2;
-        signal(j,f1ind) = signal(j,f1ind)...
-            + amp1*sin((Dnew.time(f1ind)...
-            - Dnew.time(min(f1ind)))*f1*2*pi + phase1);
-    end
-end
+if length(f1ind)~=size(simsignal,2),
+    error('Signal does not fit in time window');
+end;
 
+% % Create the waveform for each source
+% signal = zeros(Ndip,length(Dnew.time));
+% for j=1:Ndip				% For each source
+%     for i=1:Ntrials			% and trial
+%         f1 = dipfreq(j);	% Frequency depends on stim condition
+%         amp1 = dipmoment(j);	% also the amplitude
+%         phase1 = pi/2;
+%         signal(j,f1ind) = signal(j,f1ind)...
+%             + amp1*sin((Dnew.time(f1ind)...
+%             - Dnew.time(min(f1ind)))*f1*2*pi + phase1);
+%     end
+% end
+% 
 %% CREATE A NEW FORWARD PROBLEM
 
 fprintf('Computing Gain Matrix: ')
-spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
+spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
 
-[L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix
+[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
 
-Nd    = size(L,2);                          % number of dipoles
-X     = zeros(Nd,size(Dnew,2));                     % Matrix of dipoles
+Nd    = size(L,2);							% number of dipoles
+X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
 fprintf(' - done\n')
 
 
 % Green function for smoothing sources with the same distribution than SPM8
 fprintf('Computing Green function from graph Laplacian:')
+
 vert  = Dnew.inv{val}.mesh.tess_mni.vert;
 face  = Dnew.inv{val}.mesh.tess_mni.face;
 A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
@@ -235,9 +237,11 @@ fprintf(' - done\n')
 
 % Add waveform of all smoothed sources to their equivalent dipoles
 % QGs add up to 0.9854
+fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
+fullsignal(1:Ndip,f1ind)=simsignal;
 for j=1:Ndip
-    for i=1:size(Dnew,2)
-        X(:,i) = X(:,i) + signal(j,i)*QG(:,meshsourceind(j)); %% this will be in Am
+    for i=1:Dnew.nsamples,
+        X(:,i) = X(:,i) + fullsignal(j,i)*QG(:,meshsourceind(j)); %% this will be in Am
     end
 end
 
@@ -289,11 +293,11 @@ end
 [dum,plotind]=sort(allchanstd);
 
 
-Nj      = size(vert,1);
-M       = mean(X(:,f1ind)'.^2,1);
-G       = sqrt(sparse(1:Nj,1,M,Nj,1));
-Fgraph  = spm_figure('GetWin','Graphics');
-j       = find(G);
+Nj		= size(vert,1);
+M		= mean(X(:,f1ind)'.^2,1);
+G		= sqrt(sparse(1:Nj,1,M,Nj,1));
+Fgraph	= spm_figure('GetWin','Graphics');
+j		= find(G);
 
 clf(Fgraph)
 figure(Fgraph)
