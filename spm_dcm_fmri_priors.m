@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5620 2013-08-23 15:56:17Z guillaume $
+% $Id: spm_dcm_fmri_priors.m 5633 2013-09-10 13:58:03Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -34,6 +34,8 @@ n = length(A);
 
 % check options and D (for nonlinear coupling)
 %--------------------------------------------------------------------------
+try, options.stochastic; catch, options.stochastic = 0; end
+try, options.induced;    catch, options.induced    = 0; end
 try, options.two_state;  catch, options.two_state  = 0; end
 try, D;                  catch, D = zeros(n,n,0);       end
 
@@ -89,7 +91,11 @@ else
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A/64 + eye(n,n)/256;
+    if options.stochastic
+        pC.A = A/4 + eye(n,n)/256;
+    else
+        pC.A = A/64 + eye(n,n)/256;
+    end
     pC.B  =  B;
     pC.C  =  C;
     pC.D  =  D;
@@ -105,7 +111,7 @@ pE.epsilon = sparse(1,1);  pC.epsilon = sparse(1,1) + exp(-6);
 
 % add prior on spectral density of fluctuations (amplitude and exponent)
 %--------------------------------------------------------------------------
-if isfield(options,'analysis') && any(strcmp(options.analysis,{'CSD','MAR'}))
+if options.induced
     
     pE.a  = sparse(2,n);   pC.a = sparse(2,n) + 1/64; % neuronal fluctuations
     pE.b  = sparse(2,1);   pC.b = sparse(2,1) + 1/64; % channel noise global

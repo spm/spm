@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 21-Feb-2013 14:36:18
+% Last Modified by GUIDE v2.5 05-Sep-2013 14:20:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -414,3 +414,8 @@ run_demo_Callback(hObject, handles, 'FEP_Manifold')
 function pushbutton133_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
 run_demo_Callback(hObject, handles, 'spm_MDP_trust')
+
+% --- Executes on button press in pushbutton134.
+function pushbutton134_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEM_demo_induced_fMRI')

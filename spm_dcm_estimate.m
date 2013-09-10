@@ -23,10 +23,11 @@ function [DCM] = spm_dcm_estimate(P)
 % DCM.options.centre                 % mean-centre inputs
 % DCM.options.nonlinear              % interactions among hidden states
 % DCM.options.nograph                % graphical display
-
+% DCM.options.induced                % switch for CSD data features
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 % DCM.options.nmax                   % maximum number of (effective) nodes
+% DCM.options.nN                     % maximum number of iterations
 %
 % Evaluates:
 %--------------------------------------------------------------------------
@@ -52,10 +53,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5588 2013-07-21 20:59:39Z karl $
+% $Id: spm_dcm_estimate.m 5633 2013-09-10 13:58:03Z karl $
 
 
-SVNid = '$Rev: 5588 $';
+SVNid = '$Rev: 5633 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -89,10 +90,17 @@ try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.nonlinear;  catch, DCM.options.nonlinear  = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
+try, DCM.options.nN;         catch, DCM.options.nN         = 32;    end
 try, DCM.options.hidden;     catch, DCM.options.hidden     = [];    end
+try, DCM.n;                  catch, DCM.n = size(DCM.a,1);          end
+try, DCM.v;                  catch, DCM.v = size(DCM.Y.y,1);        end
 
 try, M.nograph = DCM.options.nograph; catch, M.nograph = spm('CmdLine');end
-try, M.P       = DCM.options.P ;end
+
+
+% analysis and options
+%--------------------------------------------------------------------------
+DCM.options.induced  = 0;
 
 % unpack
 %--------------------------------------------------------------------------
@@ -117,11 +125,12 @@ Y.scale = scale;
 
 % check confounds (add constant if necessary)
 %--------------------------------------------------------------------------
-if ~size(Y.X0,2), Y.X0 = ones(v,1); end
+if ~isfield(Y,'X0'),Y.X0 = ones(v,1); end
+if ~size(Y.X0,2),   Y.X0 = ones(v,1); end
 
 % fMRI slice time sampling
 %--------------------------------------------------------------------------
-try, M.delays = DCM.delays; end
+try, M.delays = DCM.delays; catch, M.delays = ones(n,1); end
 try, M.TE     = DCM.TE;     end
 
 % create priors
@@ -163,6 +172,11 @@ end
 %--------------------------------------------------------------------------
 [pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 
+try, M.P     = DCM.options.P;  end      % initial parameters
+try, pE      = DCM.options.pE; end      % prior expectation
+try, pC      = DCM.options.pC; end      % prior covariance
+
+
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
 if n > DCM.options.nmax
@@ -183,14 +197,9 @@ end
 
 % hyperpriors over precision - expectation and covariance
 %--------------------------------------------------------------------------
-i    = DCM.options.hidden;
-if DCM.options.stochastic
-    hE  = ones(n,1)*6;
-    hC  = speye(n,n)/128;
-else
-    hE  = ones(n,1)*6;
-    hC  = speye(n,n)/128;
-end
+hE      = sparse(n,1) + 6;
+hC      = speye(n,n)/128;
+i       = DCM.options.hidden;
 hE(i)   = -4;
 hC(i,i) = exp(-16);
 
@@ -219,7 +228,6 @@ if ~DCM.options.stochastic
     % nonlinear system identification (Variational EM) - deterministic DCM
     %----------------------------------------------------------------------
     [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y);
-    
     
     % predicted responses (y) and residuals (R)
     %----------------------------------------------------------------------
@@ -255,13 +263,13 @@ else
     DEM.M(1).E.s    = 1/2;                % smoothness of fluctuations
     DEM.M(1).E.d    = 2;                  % embedding dimension
     DEM.M(1).E.n    = 4;                  % embedding dimension
-    DEM.M(1).E.nN   = 32;                 % maximum number of iterations
+    DEM.M(1).E.nN   = DCM.options.nN;     % maximum number of iterations
     
     % adjust M.f (DEM works in time bins not seconds) and initialize M.P
     % ---------------------------------------------------------------------
     DEM.M(1).delays = M.delays/Y.dt;
     DEM.M(1).f      = inline([M.f '(x,v,P)*' num2str(Y.dt)],'x','v','P');
-    
+  
     
     % Specify hyper-priors on (log-precision of) observation noise
     % ---------------------------------------------------------------------
@@ -272,7 +280,7 @@ else
     
     % allow (only) neuronal [x, s, f, q, v] hidden states to fluctuate
     % ---------------------------------------------------------------------
-    W           = ones(n,1)*[10 16 16 16 16];
+    W           = ones(n,1)*[12 16 16 16 16];
     DEM.M(1).xP = exp(6);                 % precision (hidden-state)
     DEM.M(1).W  = diag(exp(W));           % precision (hidden-motion)
     DEM.M(2).V  = exp(16);                % precision (hidden-cause)

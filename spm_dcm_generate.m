@@ -19,7 +19,7 @@ function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 5276 2013-02-21 15:28:02Z guillaume $
+% $Id: spm_dcm_generate.m 5633 2013-09-10 13:58:03Z karl $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -89,7 +89,8 @@ try, M.delays = DCM.delays; end
 try, M.TE     = DCM.TE;     end
 
 % twice as many "outputs" (hemo and neuronal) - need this to coerce spm_int
-M.delays=[M.delays;M.delays]; 
+%--------------------------------------------------------------------------
+M.delays = [M.delays; M.delays]; 
  
 % Integrate and compute hemodynamic response at v sample points
 %--------------------------------------------------------------------------

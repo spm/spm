@@ -4,11 +4,13 @@ function [y] = spm_rand_power_law(m,n,a)
 % m   - time bins
 % n   - variates
 % a   - power law exponent g(w) = c*w^(-a): sum(g(w)) = 1
+%
+% see also: spm_rand_mar
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_rand_power_law.m 5633 2013-09-10 13:58:03Z karl $
  
 
 % create random process

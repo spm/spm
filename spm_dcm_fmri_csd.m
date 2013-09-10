@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5622 2013-08-27 20:55:15Z karl $
+% $Id: spm_dcm_fmri_csd.m 5633 2013-09-10 13:58:03Z karl $
 
 
 % get DCM
@@ -68,10 +68,11 @@ try, DCM.n;   catch, DCM.n = size(DCM.a,1);   end
 try, DCM.v;   catch, DCM.v = size(DCM.Y.y,1); end
 
 
- % analysis and options
+% analysis and options
 %--------------------------------------------------------------------------
-DCM.options.analysis  = 'CSD';
-DCM.options.nonlinear = 0;
+DCM.options.induced    = 1;
+DCM.options.nonlinear  = 0;
+DCM.options.stochastic = 0;
 
 
 % organise response variables: detrend outputs (and inputs)
