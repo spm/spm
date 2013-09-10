@@ -17,7 +17,7 @@ function [DCM,S] = spm_large_dcm_reduce(DCM)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_large_dcm_reduce.m 5328 2013-03-14 19:10:32Z guillaume $
+% $Id: spm_large_dcm_reduce.m 5632 2013-09-10 10:46:16Z guillaume $
 
 
 %-Create priors
@@ -38,11 +38,8 @@ for i = 1:n
     % remove minor modes from priors on A
     %----------------------------------------------------------------------
     v       = V(:,1:i);
-    v       = kron(v*v',v*v');
-    
-    pc      = DCM.M.pC;
-    pc(j,j) = v*DCM.M.pC(j,j)*v';
-    rC{i}   = pc;
+    v       = kron(v*v',v*v');   
+    rC{i}   = v*DCM.M.pC(j,j)*v';
     
 end
 
@@ -68,8 +65,10 @@ pC    = U'*pC*U;
 % model search
 %--------------------------------------------------------------------------
 S     = zeros(1,n);
+pc      = DCM.M.pC;
 for i = 1:n
-    S(i) = spm_log_evidence(qE,qC,pE,pC,pE,U'*rC{i}*U);
+    pc(j,j) = rC{i} ;
+    S(i) = spm_log_evidence(qE,qC,pE,pC,pE,U'*pc*U);
 end
 
 % model evidence
@@ -112,7 +111,8 @@ qC    = DCM.Cp;
 pE    = DCM.M.pE;
 pC    = DCM.M.pC;
 
-[F,Ep,Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,rC{i});
+pc(j,j) = rC{i} ;
+[F,Ep,Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,pc);
 
 % Bayesian inference and variance
 %--------------------------------------------------------------------------
@@ -122,7 +122,7 @@ Vp       = spm_unvec(diag(Cp),Ep);
 
 % Store parameter estimates
 %--------------------------------------------------------------------------
-DCM.M.pC = rC{i};
+DCM.M.pC = pc;
 DCM.Ep   = Ep;
 DCM.Cp   = Cp;
 DCM.Pp   = Pp;
