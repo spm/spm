@@ -17,10 +17,10 @@ function spm_dcm_review(DCM,action)
 % 'estimates of precisions'
 % ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_review.m 5634 2013-09-16 13:28:53Z guillaume $
 
 
 %-Get DCM structure
@@ -492,7 +492,7 @@ switch action
             j(i,[1 2]) = 1;
         end
         j = find(j(:));
-        x = DCM.qU.x{1}(j,:);
+        x = full(DCM.qU.x{1}(j,:));
         plot(t,x,':'), hold on
         plot(t,x(1,:)), hold off
         title('hidden states - neuronal', 'FontSize',16)
@@ -509,7 +509,7 @@ switch action
         j = DCM.M.x;
         j(i,[3 4 5]) = 1;
         j = find(j(:));
-        x = DCM.qU.x{1}(j,:);
+        x = full(DCM.qU.x{1}(j,:));
         plot(t,exp(x))
         title('hidden states - hemodynamic', 'FontSize',16)
         legend({'flow','volume','dHb'})
