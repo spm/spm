@@ -20,7 +20,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 5634 2013-09-16 13:28:53Z guillaume $
+% $Id: spm_dcm_review.m 5635 2013-09-16 14:06:23Z guillaume $
 
 
 %-Get DCM structure
@@ -448,7 +448,7 @@ switch action
         x(:,1) = 1;
         i      = find(x(:));
         subplot(2,2,4)
-        plot(1:DCM.v,DCM.qU.x{1}(i,:));
+        plot(1:DCM.v,full(DCM.qU.x{1}(i,:)));
         title('(excitatory) neuronal states','FontSize',16)
         ylabel('time','FontSize',12)
         spm_axis tight square
@@ -518,8 +518,8 @@ switch action
         % response
         %------------------------------------------------------------------
         subplot(4,1,4)
-        y  = DCM.qU.v{1}(i,:);
-        x  = DCM.qU.v{1}(i,:) + DCM.qU.z{1}(i,:);
+        y  = full(DCM.qU.v{1}(i,:));
+        x  = full(DCM.qU.v{1}(i,:) + DCM.qU.z{1}(i,:));
         plot(t,x,t,y)
         title('predicted BOLD signal', 'FontSize',16)
         xlabel('time (seconds)')
@@ -539,7 +539,7 @@ switch action
         disp('unknown option')
 end
 
-% retutn to menu
+% return to menu
 %--------------------------------------------------------------------------
 if nargin < 2
     spm_dcm_review(DCM);

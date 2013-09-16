@@ -85,10 +85,10 @@ function [DEM] = spm_LAP(DEM)
 % L is the ln p(y,u,p,h,g|M) under the model M. The conditional covariances
 % obtain analytically from the curvature of L with respect to the unknowns.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_LAP.m 5635 2013-09-16 14:06:23Z guillaume $
  
  
 % find or create a DEM figure
@@ -807,24 +807,24 @@ for iN = 1:nN
         %------------------------------------------------------------------
         if np && nb
             subplot(2*nl,2,4*nl - 2)
-            plot(1:ns,spm_cat(qP.p))
+            plot(1:ns,full(spm_cat(qP.p)))
             set(gca,'XLim',[1 ns])
             title('parameters (modes)','FontSize',16)
             
             subplot(2*nl,2,4*nl)
-            plot(1:ns,spm_cat(qH.p))
+            plot(1:ns,full(spm_cat(qH.p)))
             set(gca,'XLim',[1 ns])
             title('log-precision','FontSize',16)
             
         elseif nb
             subplot(nl,2,2*nl)
-            plot(1:ns,spm_cat(qH.p))
+            plot(1:ns,full(spm_cat(qH.p)))
             set(gca,'XLim',[1 ns])
             title('log-precision','FontSize',16)
             
         elseif np
             subplot(nl,2,2*nl)
-            plot(1:ns,spm_cat(qP.p))
+            plot(1:ns,full(spm_cat(qP.p)))
             set(gca,'XLim',[1 ns])
             title('parameters (modes)','FontSize',16)
             
