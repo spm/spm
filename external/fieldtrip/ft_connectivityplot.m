@@ -38,7 +38,7 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_connectivityplot.m 8460 2013-09-11 13:28:46Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -59,6 +59,7 @@ cfg = ft_checkconfig(cfg, 'renamed', {'zparam', 'parameter'});
 cfg.channel   = ft_getopt(cfg, 'channel',   'all');
 cfg.parameter = ft_getopt(cfg, 'parameter', 'cohspctrm');
 cfg.zlim      = ft_getopt(cfg, 'zlim',       []);
+cfg.xlim      = ft_getopt(cfg, 'xlim',       [varargin{1}.freq(1) varargin{1}.freq(end)]);
 cfg.color     = ft_getopt(cfg, 'color',     'brgkywrgbkywrgbkywrgbkyw');
 
 % make the function recursive if numel(varargin)>1
@@ -104,7 +105,7 @@ if ~isfield(data, cfg.parameter)
 end
 
 cfg.channel = ft_channelselection(cfg.channel, data.label);
-data        = ft_selectdata(data, 'channel', cfg.channel);
+data        = ft_selectdata(data, 'channel', cfg.channel, 'foilim', cfg.xlim);
 
 dat   = data.(cfg.parameter);
 nchan = numel(data.label);

@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8439 2013-08-29 17:39:09Z vlalit $
+% $Id: ft_read_header.m 8463 2013-09-14 04:34:42Z josdie $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -952,6 +952,7 @@ switch headerformat
     %workaround for Matlab bug resulting in global variables being cleared
     varNames={varList.name};
     for i=1:length(globalList)
+        eval(['global ' globalList(i).name ';']);
         eval([globalList(i).name '=globalTemp{i};']);
         if ~any(strcmp(globalList(i).name,varNames)) %was global variable originally out of scope?
             eval(['clear ' globalList(i).name ';']); %clears link to global variable without affecting it

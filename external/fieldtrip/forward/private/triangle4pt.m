@@ -34,7 +34,7 @@ function vol = triangle4pt(vol)
 % written by Christophe Phillips, 2009/01/19
 % Cyclotron Research Centre, University of li?ge, belgium
 %
-% $Id: triangle4pt.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: triangle4pt.m 8446 2013-09-05 17:48:55Z vlalit $
 
 Ns = length(vol.bnd);
 for ii=1:Ns % treat each mesh one at a time
@@ -53,7 +53,7 @@ for ii=1:Ns % treat each mesh one at a time
     lt(lt==jj) = [];
     % list of 3 directly surrounding triangles
     lv = tri(lt,:);
-    lv = setxor(lv(:),tri(jj,:));
+    lv = setxor(lv(:)',tri(jj,:));
     % list of 3 voxels connected by 2 edges to the jj_th triangle.
     sph_pnt = pnt([tri(jj,:) lv],:);
     [center,radius] = fitsphere(sph_pnt);

@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 8320 2013-07-16 11:47:53Z jorhor $
+% $Id: ft_checkdata.m 8453 2013-09-09 19:40:29Z jansch $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1443,12 +1443,23 @@ elseif strcmp(current, 'old') && strcmp(type, 'new'),
   if isfield(output, 'ori')
     % convert cell-array ori into matrix
     ori = nan(3,npos);
-    try,
-      ori(:,output.inside) = cat(2, output.ori{output.inside});
-    catch
-      %when oris are in wrong orientation (row rather than column)
-      for k = 1:numel(output.inside)
-        ori(:,output.inside(k)) = output.ori{output.inside(k)}';
+    if ~islogical(output.inside)
+      try,
+        ori(:,output.inside) = cat(2, output.ori{output.inside});
+      catch
+        %when oris are in wrong orientation (row rather than column)
+        for k = 1:numel(output.inside)
+          ori(:,output.inside(k)) = output.ori{output.inside(k)}';
+        end
+      end
+    else
+      try,
+        ori(:,find(output.inside)) = cat(2, output.ori{find(output.inside)});
+      catch
+        tmpinside = find(output.inside);
+        for k = 1:numel(tmpinside)
+          ouri(:,tmpinside(k)) = output.ori{tmpinside(k)}';
+        end
       end
     end
     output.ori = ori;
@@ -1568,7 +1579,7 @@ switch fname
     dimord = [dimord,'_ori_ori'];
   case 'ori'
     dimord = '';
-  case 'pow'
+  case {'pow' 'dspm'}
     if isfield(output, 'cumtapcnt') && size(output.cumtapcnt,1)==size(tmp,dimnum)
       dimord = [dimord,'_rpt'];
       dimnum = dimnum + 1;

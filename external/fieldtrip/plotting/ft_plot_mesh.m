@@ -50,7 +50,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 8259 2013-06-13 14:10:40Z jansch $
+% $Id: ft_plot_mesh.m 8457 2013-09-10 15:09:06Z lilmag $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -146,6 +146,11 @@ else
   error('no vertices found');
 end
 
+if isempty(pnt)
+    hs=[];
+    return
+end
+
 if hastri+hastet+hashex+hasline+haspoly>1
   error('cannot deal with simultaneous triangles, tetraheders and/or hexaheders')
 end
@@ -187,7 +192,7 @@ else
   line = [];
 end
 
-if haspnt && ~isempty(pnt)
+if haspnt 
   if ~isempty(tri)
     hs = patch('Vertices', pnt, 'Faces', tri);
   elseif ~isempty(line)

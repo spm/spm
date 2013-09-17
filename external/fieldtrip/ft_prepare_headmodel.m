@@ -58,11 +58,11 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 % which are listed below.
 %
 % BEMCP, DIPOLI, OPENMEEG
-%     cfg.tissue            (see above; in combination with 'seg' input; default options are 'brain' or 'scalp')
+%     cfg.tissue            (see above; in combination with 'seg' input)
 %     cfg.isolatedsource    (optional)
 %
 % CONCENTRICSPHERES
-%     cfg.tissue            (see above; in combination with 'seg' input; default options are 'brain' or 'scalp')
+%     cfg.tissue            (see above; in combination with 'seg' input)
 %     cfg.fitind            (optional)
 %
 % LOCALSPHERES
@@ -126,9 +126,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 8304 2013-07-02 09:49:33Z roboos $
+% $Id: ft_prepare_headmodel.m 8455 2013-09-10 14:16:31Z lilmag $
 
-revision = '$Id: ft_prepare_headmodel.m 8304 2013-07-02 09:49:33Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 8455 2013-09-10 14:16:31Z lilmag $';
 
 % do the general setup of the function
 ft_defaults

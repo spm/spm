@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_multiplotTFR.m 8466 2013-09-16 14:11:43Z jansch $
 
-revision = '$Id: ft_multiplotTFR.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 8466 2013-09-16 14:11:43Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -497,7 +497,7 @@ end
 % set colormap
 if isfield(cfg,'colormap')
   if size(cfg.colormap,2)~=3, error('multiplotTFR(): Colormap must be a n x 3 matrix'); end
-  set(gca,'colormap',cfg.colormap);
+  set(gcf,'colormap',cfg.colormap);
 end;
 
 % Plot channels:
