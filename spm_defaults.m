@@ -10,7 +10,7 @@ function spm_defaults
 % Example: create the following file to change the image file extension:
 % ----------- file /home/karl/Documents/MATLAB/spm_my_defauls.m -----------
 % global defaults
-% defaults.images.format = 'nii';
+% defaults.images.format = 'img';
 %--------------------------------------------------------------------------
 %
 % spm_defaults should not be called directly in any script or function
@@ -20,10 +20,10 @@ function spm_defaults
 %
 %                 ** This file should not be edited **
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 5161 2012-12-21 18:30:26Z guillaume $
+% $Id: spm_defaults.m 5639 2013-09-17 17:43:03Z guillaume $
 
 
 global defaults
@@ -44,7 +44,7 @@ defaults.renderer  = 'zbuffer';
 % Note that defaults.analyze.flip is no longer used.  Specifying the
 % left/right handedness of the voxel indices is now done entirely by
 % spm_flip_analyze_images.m
-defaults.images.format  = 'img'; % options: 'img', 'nii'
+defaults.images.format  = 'nii'; % options: 'img', 'nii'
 defaults.mat.format     = '-v6'; % options: '-mat', '-v6', '-v7.0', '-v7.3'
 
 % Toolboxes defaults
