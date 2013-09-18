@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5641 2013-09-18 15:15:02Z guillaume $
+% $Id: spm_results_ui.m 5642 2013-09-18 15:45:52Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5641 $'; 
+SVNid = '$Rev: 5642 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -370,7 +370,6 @@ switch lower(Action), case 'setup'                         %-Set up results
         hMIPax = spm_mip_ui(xSPM.Z,xSPM.XYZmm,M,DIM,hMIPax,units);
         spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
     end
-    set(hMIPax,'DeleteFcn','spm_results_ui(''Close'');');
     
     if xSPM.STAT == 'P'
         str = xSPM.STATstr;
