@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5139 2012-12-20 13:08:19Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5640 2013-09-18 12:02:29Z vladimir $
 
 
 %-Initialisation
@@ -32,6 +32,9 @@ for i = 1:numel(D.inv{val}.forward)
     mesh = spm_eeg_inv_transform_mesh(D.inv{val}.datareg(i).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
     
     switch D.inv{val}.forward(i).voltype
+        case 'EEG interpolated'
+            vol = D.inv{val}.forward(i).vol;
+            modality = 'EEG';
         case '3-Shell Sphere (experimental)'
             cfg              = [];
             cfg.feedback     = graph;

@@ -12,9 +12,9 @@ function spm_eeg_img2maps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_img2maps.m 4204 2011-02-21 12:36:08Z vladimir $
+% $Id: spm_eeg_img2maps.m 5640 2013-09-18 12:02:29Z vladimir $
 
-SVNrev = '$Rev: 4204 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ end
 
 modality    = spm_eeg_modality_ui(D, 1, 1);
 
-goodchan    = find(ismember(Cind, setdiff(D.meegchannels(modality), D.badchannels)));
+goodchan    = find(ismember(Cind, D.indchantype(modality, 'GOOD')));
 
 Cel         = Cel(goodchan, :);
 Cind        = Cind(goodchan);

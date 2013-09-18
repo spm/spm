@@ -32,7 +32,7 @@ function Dnew = spm_eeg_remove_spikes(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak, Will Penny
-% $Id: spm_eeg_remove_spikes.m 3205 2009-06-16 10:15:00Z vladimir $
+% $Id: spm_eeg_remove_spikes.m 5640 2013-09-18 12:02:29Z vladimir $
 
 if nargin == 0
     S = [];
@@ -63,7 +63,7 @@ if ~isfield(S, 'blocksize'),         S.blocksize = D.fsample;                end
 spm('Pointer', 'Watch');drawnow;
 
 if ~isfield(S, 'channels')
-    chansel = unique([D.meegchannels, strmatch('LFP', D.chantype, 'exact')]);
+    chansel = D.indchantype({'MEEG', 'LFP'});
     S.channels = D.chanlabels(chansel);
 elseif ischar(S.channels) && strcmp(S.channels, 'gui')
     chansel = listdlg('ListString', D.chanlabels, 'SelectionMode', 'multiple' ,'Name', 'Select channels' , 'ListSize', [400 300]);

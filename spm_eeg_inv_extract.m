@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 5326 2013-03-14 11:23:39Z vladimir $
+% $Id: spm_eeg_inv_extract.m 5640 2013-09-18 12:02:29Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -125,13 +125,13 @@ switch(type)
         
         clabel = trial;
     case 'trials'
-        Ne     = length(D.pickconditions(trial));
+        Ne     = length(D.indtrial(trial), 'GOOD');
         MY     = zeros(size(M,1), Ne*Np);
         clabel = {};
         
         for i = 1:numel(trial)
             
-            c      = D.pickconditions(trial{i});
+            c      = D.indtrial(trial{i}, 'GOOD');
             clabel = [clabel D.conditions(c)];
             
             % conditional expectation of contrast (J*W) and its energy

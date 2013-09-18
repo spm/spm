@@ -15,9 +15,9 @@ function D = spm_eeg_interpolate_artefact(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_interpolate_artefact.m 3429 2009-09-29 09:41:36Z vladimir $
+% $Id: spm_eeg_interpolate_artefact.m 5640 2013-09-18 12:02:29Z vladimir $
 
-SVNrev = '$Rev: 3429 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ if any(isnan(t))
     error('The artefact segment was not defined correctly.');
 end
 
-indchannels = [D.meegchannels D.eogchannels];
+indchannels = D.indchantype({'MEEG', 'EOG'});
 
 S1         = [];
 S1.D       = D;

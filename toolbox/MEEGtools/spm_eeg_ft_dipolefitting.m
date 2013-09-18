@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 5396 2013-04-11 13:38:24Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 5640 2013-09-18 12:02:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -66,7 +66,7 @@ M1(1:3,1:3) =U*V';
 vol = ft_transform_vol(M1, vol);
 sens = ft_transform_sens(M1, sens);
 
-chanind = setdiff(meegchannels(D, modality), D.badchannels);
+chanind = indchantype(D, modality, 'GOOD');
 
 %[vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 

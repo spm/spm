@@ -12,7 +12,7 @@ function chanind = spm_eeg_mask2channels(D, mask)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_mask2channels.m 3181 2009-06-04 07:52:57Z vladimir $
+% $Id: spm_eeg_mask2channels.m 5640 2013-09-18 12:02:29Z vladimir $
 
 %-Check inputs
 %--------------------------------------------------------------------------
@@ -49,7 +49,7 @@ end
 
 modality = spm_eeg_modality_ui(D, 1, 1);
 
-goodchan = setdiff(D.meegchannels(modality), D.badchannels);
+goodchan = D.indchantype(modality, 'GOOD');
 
 %-Find channels corresponding to blobs
 %--------------------------------------------------------------------------

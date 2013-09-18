@@ -16,9 +16,9 @@ function D = spm_eeg_erp_correction(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Melanie Boly
-% $Id: spm_eeg_erp_correction.m 3771 2010-03-10 11:41:11Z guillaume $
+% $Id: spm_eeg_erp_correction.m 5640 2013-09-18 12:02:29Z vladimir $
 
-SVNrev = '$Rev: 3771 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -86,7 +86,7 @@ spm('Pointer','Watch');
 %-Adjust data
 %--------------------------------------------------------------------------
 for i = 1:D.ntrials
-    Dnew(Dnew.meegchannels,:,i) = (R*spm_squeeze(D(D.meegchannels,:,i), 3)')';
+    Dnew(Dnew.indchantype('MEEG', 'GOOD'),:,i) = (R*spm_squeeze(D(D.indchantype('MEEG', 'GOOD'),:,i), 3)')';
     
     if ismember(i, Ibar), spm_progress_bar('Set', i); end
 end

@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 5404 2013-04-12 15:08:57Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 5640 2013-09-18 12:02:29Z vladimir $
 
 
-SVNrev = '$Rev: 5404 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ switch upper(S.method)
         
         
         sconf = [];
-        sconf.label = D.chanlabels(D.meegchannels);
+        sconf.label = D.chanlabels(D.indchantype('MEEG'));
         sconf.coeff = nan(length(sconf.label), 6);
         sconf.bad = ones(length(sconf.label), 1);
         
@@ -100,7 +100,7 @@ switch upper(S.method)
             vol = ft_transform_vol(M1, vol);
             sens = ft_transform_sens(M1, sens);
             
-            chanind = setdiff(meegchannels(D, modalities{k}), badchannels(D));
+            chanind = indchantype(D, modalities{k}, 'GOOD');
             
             if isempty(chanind)
                 continue;
@@ -137,7 +137,7 @@ switch upper(S.method)
         cl = D.condlist;
         svdinput = [];
         for i = 1:numel(cl)
-            svdinput = [svdinput mean(D.selectdata(D.chanlabels(setdiff(D.meegchannels, D.badchannels)), S.timewin, cl{i}), 3)];
+            svdinput = [svdinput mean(D(D.indchantype('MEEG', 'GOOD'), D.indsample(S.timewin(1)):D.indsample(S.timewin(2)), D.indtrial(cl{i})), 3)];
         end
         [U, L, V] = spm_svd(svdinput);
         
@@ -159,9 +159,9 @@ switch upper(S.method)
         
         if S.ncomp>0
             ncomp = min(S.ncomp, size(U, 2));
-            [sel1, sel2] = spm_match_str(D.chanlabels(D.meegchannels), D.chanlabels(setdiff(D.meegchannels, D.badchannels)));
+            [sel1, sel2] = spm_match_str(D.chanlabels(D.indchantype('MEEG')), D.chanlabels(D.indchantype('MEEG', 'GOOD')));
             sconf = [];
-            sconf.label = D.chanlabels(D.meegchannels);
+            sconf.label = D.chanlabels(D.indchantype('MEEG'));
             sconf.coeff = nan(length(sconf.label), ncomp);
             sconf.coeff(sel1, :) = U(sel2, 1:ncomp);
             sconf.bad = ones(length(sconf.label), 1);
@@ -203,7 +203,7 @@ if any(any(D.sconfounds))
         for j = 1:nm
             in.type = modalities{j};
             
-            ind = setdiff(D.meegchannels(modalities{j}), D.badchannels);
+            ind = D.indchantype(modalities{j}, 'GOOD');
             
             [sel1, sel2] = spm_match_str(D.chanlabels(ind), conf.label);
             

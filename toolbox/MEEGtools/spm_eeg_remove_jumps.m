@@ -34,7 +34,7 @@ function [D, alljumps] = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% $Id: spm_eeg_remove_jumps.m 3463 2009-10-14 11:30:05Z vladimir $
+% $Id: spm_eeg_remove_jumps.m 5640 2013-09-18 12:02:29Z vladimir $
 
 % Input parameters
 %==========================================================================
@@ -76,7 +76,7 @@ try
         channels = spm_match_str(D.chanlabels, channel);
     end
 catch
-    channels = meegchannels(D);
+    channels = D.indchantype('MEEG');
 end
 
 % remove or detect? 

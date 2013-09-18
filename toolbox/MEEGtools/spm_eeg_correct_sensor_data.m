@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 5434 2013-04-23 13:40:48Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 5640 2013-09-18 12:02:29Z vladimir $
 
-SVNrev = '$Rev: 5434 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -62,7 +62,7 @@ if isequal(mod, 'Multimodal')
     sconf = getfield(D, 'sconfounds');
     
     for i = 1:numel(list)
-        chanind = setdiff(meegchannels(D, list{i}), badchannels(D));
+        chanind = indchantype(D, list{i}, 'GOOD');
         [sel1, sel2] = spm_match_str(chanlabels(D, chanind), sconf.label);
         
         if any(sconf.bad(sel2))
@@ -79,7 +79,7 @@ end
 Dorig = D;
 
 for i = 1:numel(A)
-    label = D.chanlabels(setdiff(meegchannels(D, list{i}), badchannels(D)));
+    label = D.chanlabels(indchantype(D, list{i}, 'GOOD'));
     
     montage = [];
     montage.labelorg = label;

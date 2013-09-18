@@ -22,10 +22,10 @@ function Dtf = spm_eeg_ft_multitaper_powermap(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_powermap.m 3729 2010-02-17 12:47:21Z vladimir $
+% $Id: spm_eeg_ft_multitaper_powermap.m 5640 2013-09-18 12:02:29Z vladimir $
  
 %%
-SVNrev = '$Rev: 3729 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ cfg = [];
 cfg.output ='pow';
 cfg.keeptrials = 'yes';
 cfg.taper = 'dpss';
-cfg.channel = D.chanlabels(D.meegchannels('MEEG'));
+cfg.channel = D.chanlabels(D.indchantype('MEEG', 'GOOD'));
 cfg.method          = 'mtmfft';
 cfg.foilim          = S.freqwin; 
 cfg.tapsmofrq       = S.freqres;
@@ -117,7 +117,7 @@ end
 dummy.label = freq.label;
 dummy.trial  = freq.powspctrm;
 
-megind = spm_match_str(freq.label, D.chanlabels(D.meegchannels('MEG')));
+megind = spm_match_str(freq.label, D.chanlabels(D.indchantype('MEG', 'GOOD')));
 if ~isempty(megind)
     dummy.trial(:, megind, :) = 1e30*dummy.trial(:, megind, :);
 end

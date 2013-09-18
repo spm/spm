@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 4326 2011-05-13 14:13:17Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 5640 2013-09-18 12:02:29Z vladimir $
 
 %%
-SVNrev = '$Rev: 4326 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -72,11 +72,11 @@ end
 %-Configure the spectral analysis
 %--------------------------------------------------------------------------
 if ~isfield(S, 'chancomb')
-    switch spm_input('What channel combinations', 1,'all|meeg|select', strvcat('all', 'meeg', 'select'), 'all')
+    switch spm_input('What channel combinations', 1,'all|meeg|select', char('all', 'meeg', 'select'), 'all')
         case 'all'
             S.chancomb  = ft_channelcombination('all', D.chanlabels);
         case 'meeg'
-            S.chancomb = ft_channelcombination('all', D.chanlabels(D.meegchannels));
+            S.chancomb = ft_channelcombination('all', D.chanlabels(D.indchantype('MEEG', 'GOOD')));
         case 'select'
             S.chancomb = {};
             while 1
@@ -221,14 +221,14 @@ spm_progress_bar('Init', np, 'Pairs completed');
 
 ni = zeros(1,D.nconditions);
 for i = 1:D.nconditions
-    w = pickconditions(D, deblank(cl{i}), 1)';
+    w = indchantype(D, deblank(cl{i}), 'GOOD')';
     ni(i) = length(w);
     if ni(i) == 0
         warning('%s: No trials for trial type %d', D.fname, cl{i});
     end
 end
 
-goodtrials  =  pickconditions(D, cl, 1);
+goodtrials  =  indchantype(D, cl, 'GOOD');
 
 for j = 1:np
     powind   = find(ismember(freq.label, S.chancomb(j, :)));
@@ -249,7 +249,7 @@ for j = 1:np
     end
 
     for i = 1:nc
-        w = D.pickconditions(cl{i});
+        w = D.indchantype(cl{i}, 'GOOD');
 
         if isempty(w)
             continue;

@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 4701 2012-03-22 16:47:05Z guillaume $
+% $Id: spm_eeg_inv_forward_ui.m 5640 2013-09-18 12:02:29Z vladimir $
 
 %-Initialisation
 %--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ D.inv{val}.forward = struct([]);
 for i = 1:numel(D.inv{val}.datareg)
     switch D.inv{val}.datareg(i).modality
         case 'EEG'
-            models = {'EEG BEM', '3-Shell Sphere (experimental)'};
+            models = {'EEG BEM', 'EEG interpolated', 'OpenMEEG BEM', '3-Shell Sphere (experimental)'};
         case 'MEG'
             models = {'Single Sphere', 'MEG Local Spheres', 'Single Shell'};
         otherwise
@@ -35,6 +35,15 @@ for i = 1:numel(D.inv{val}.datareg)
 
     D.inv{val}.forward(i).voltype = spm_input(sprintf('Which %s head model?', ...
         D.inv{val}.datareg(i).modality), 1, 'm', str, char(models));
+    
+    if isequal(D.inv{val}.forward(i).voltype, 'EEG interpolated')
+       [P, sts] = spm_select(1, 'mat', 'Select volume model mat-file');
+       if ~sts
+           error('Volume model mat-file must be selected');
+       end
+       
+       D.inv{val}.forward(i).vol = P;
+    end
 end
 
 %-Compute forward model

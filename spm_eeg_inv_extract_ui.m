@@ -9,7 +9,7 @@ function [D] = spm_eeg_inv_extract_ui(varargin)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_extract_ui.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_eeg_inv_extract_ui.m 5640 2013-09-18 12:02:29Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ if ~isempty(Ds)
             Color = [1 1 1]*(1 - 1/4);
         end
         
-        plot(time(Ds, [], 'ms'), squeeze(Ds(1, :, Ds.pickconditions(cl{i}))), 'Color', Color);                
+        plot(time(Ds, [], 'ms'), squeeze(Ds(1, :, Ds.indtrial(cl{i}, 'GOOD'))), 'Color', Color);                
         
         hold on
     end

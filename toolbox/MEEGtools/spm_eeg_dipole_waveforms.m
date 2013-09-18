@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 3833 2010-04-22 14:49:48Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 5640 2013-09-18 12:02:29Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -105,7 +105,7 @@ M1(1:3,1:3) =U*V';
 vol = ft_transform_vol(M1, vol);
 sens = ft_transform_sens(M1, sens);
 
-chanind = setdiff(meegchannels(D, modality), badchannels(D));
+chanind = indchantype(D, modality, 'GOOD');
 
 [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 

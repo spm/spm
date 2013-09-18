@@ -20,7 +20,7 @@ function D = spm_eeg_split_conditions(S)
 % Dominik R Bach
 % based on spm_eeg_remove_bad_trials
 
-SVNrev = '$Rev: 3745 $';
+SVNrev = '$Rev: 5640 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ cl   = D.condlist;
 
 goodtrials = [];
 for i = 1:numel(cl)
-    goodtrials{i}  = [pickconditions(D, cl{i}, 1)];
+    goodtrials{i}  = indchantype(D, cl{i}, 'GOOD');
 end
 
 %-Generate new files & copy data
