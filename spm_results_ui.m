@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5584 2013-07-19 14:16:56Z guillaume $
+% $Id: spm_results_ui.m 5641 2013-09-18 15:15:02Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5584 $'; 
+SVNid = '$Rev: 5641 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -320,6 +320,9 @@ switch lower(Action), case 'setup'                         %-Set up results
         DIM(3) = Inf; % force 3D coordinates
     elseif DIM(3) == 1
         units{3} = '';
+        if DIM(2) == 1
+            units{2} = '';
+        end
     end
     xSPM.units      = units;
     SPM.xVol.units  = units;
@@ -352,10 +355,22 @@ switch lower(Action), case 'setup'                         %-Set up results
         tmp(xSPM.XYZ(1,:)) = xSPM.Z;
         hMax = spm_mesh_render('Overlay',hMax,tmp);
         hMax = spm_mesh_render('Register',hMax,hReg);
+    elseif isequal(units(2:3),{'' ''})
+        set(hMIPax, 'Position',[0.05 0.65 0.55 0.25]);
+        MIP = NaN(1,xSPM.DIM(1));
+        MIP(xSPM.XYZ(1,:)) = xSPM.Z;
+        XYZmm = xSPM.M(1,:)*[1:xSPM.DIM(1);zeros(2,xSPM.DIM(1));ones(1,xSPM.DIM(1))];
+        plot(hMIPax,XYZmm,MIP,'b-+');
+        set(hMIPax,'NextPlot','add');
+        plot(hMIPax,[XYZmm(1) XYZmm(end)],[xSPM.u xSPM.u],'r');
+        clim = get(hMIPax,'YLim');
+        axis(hMIPax,[XYZmm(1) XYZmm(end) 0 clim(2)]);
+        %set(hMIPax,'XTick',[],'YTick',[]);
     else
         hMIPax = spm_mip_ui(xSPM.Z,xSPM.XYZmm,M,DIM,hMIPax,units);
         spm_XYZreg('XReg',hReg,hMIPax,'spm_mip_ui');
     end
+    set(hMIPax,'DeleteFcn','spm_results_ui(''Close'');');
     
     if xSPM.STAT == 'P'
         str = xSPM.STATstr;
@@ -406,7 +421,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     %----------------------------------------------------------------------
     hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
     hDesMtxIm = image((SPM.xX.nKX + 1)*32,'Parent',hDesMtx);
-    xlabel('Design matrix')
+    xlabel(hDesMtx,'Design matrix')
     set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')',...
         'UserData',struct(...
         'X',        SPM.xX.xKXs.X,...
@@ -423,7 +438,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         dy     = 0.15/max(nCon,2);
         hConAx = axes('Parent',Fgraph, 'Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
             'Tag','ConGrphAx','Visible','off');
-        title('contrast(s)')
+        title(hConAx,'contrast(s)')
         htxt   = get(hConAx,'title');
         set(htxt,'Visible','on','HandleVisibility','on')
     end
@@ -435,7 +450,7 @@ switch lower(Action), case 'setup'                         %-Set up results
             %-Single vector contrast for SPM{t} - bar
             %--------------------------------------------------------------
             yy = [zeros(1,nPar);repmat(xCon(xSPM.Ic(ii)).c',2,1);zeros(1,nPar)];
-            h  = patch(xx,yy,[1,1,1]*.5);
+            h  = patch(xx,yy,[1,1,1]*.5,'Parent',hCon);
             set(hCon,'Tag','ConGrphAx',...
                 'Box','off','TickDir','out',...
                 'XTick',spm_DesRep('ScanTick',nPar,10) - 0.5,'XTickLabel','',...
@@ -459,7 +474,7 @@ switch lower(Action), case 'setup'                         %-Set up results
                 'YLim', [0,size(xCon(xSPM.Ic(ii)).c,2)]+0.5 )
  
         end
-        ylabel(num2str(xSPM.Ic(ii)))
+        ylabel(hCon,num2str(xSPM.Ic(ii)))
         set(h,'ButtonDownFcn','spm_DesRep(''SurfCon_CB'')',...
             'UserData', struct( 'i',    xSPM.Ic(ii),...
                                 'h',    htxt,...
