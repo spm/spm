@@ -1,5 +1,5 @@
 function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
-% Manage graphical output for spm_FindFields
+% Manage graphical output for spm_uw_estimate
 %
 % FORMAT spm_uw_show(mode,p1,...)
 %
@@ -8,11 +8,11 @@ function spm_uw_show(mode,p1,p2,p3,p4,p5,p6)
 %
 % FORMAT spm_uw_show('FinIter',SS,beta,fot,sot,ref,q)
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_show.m 4753 2012-05-25 14:31:56Z ged $
+% $Id: spm_uw_show.m 5645 2013-09-19 17:58:45Z guillaume $
 
 
 persistent iter;
@@ -47,15 +47,15 @@ switch mode
    case 'EndRef'
       spm_progress_bar('Clear');
    case 'StartAtA'    % Report on start of evaluation of AtA.
-      spm_progress_bar('Init',p1,sprintf('Computing AtA, iteration %d',iter)...
-      ,'Sub-matrices completed');
+      spm_progress_bar('Init',p1,sprintf('Computing AtA, iteration %d',iter),...
+      'Sub-matrices completed');
    case 'NewAtA'      % Report on new scan for AtA.
       spm_progress_bar('Set',p1);
    case 'EndAtA'
       spm_progress_bar('Clear');
    case 'StartAty'    % Report on start of evaluation of Aty.
-      spm_progress_bar('Init',p1,sprintf('Computing Aty, iteration %d',iter)...
-      ,'Scans completed');
+      spm_progress_bar('Init',p1,sprintf('Computing Aty, iteration %d',iter),...
+      'Scans completed');
    case 'NewAty'      % Report on new scan for Aty.
       spm_progress_bar('Set',p1);
    case 'EndAty'
@@ -118,7 +118,7 @@ switch mode
           spm_orthviews('Reset');
           global st;
           P = p5; 
-          for ij=1:mn,
+          for ij=1:mn
              P.dat = p2(:,ij);
              P.dat = reshape(P.dat,P.dim(1:3)) .* mask;
              i  = 1-h*(floor((ij-1)/n)+1);
@@ -127,7 +127,7 @@ switch mode
              if ij==1 
                  spm_orthviews('Space');
                  spm_orthviews('maxBB'); 
-             end;
+             end
              if ij <= size(p3,2)  % If first order effect. 
                  string = sprintf('Derivative w.r.t. %s',eff_string{p3(ij)});
              else
@@ -149,21 +149,21 @@ switch mode
                     'String',string,...
                     'ForegroundColor','k','BackgroundColor','w',...
                     'FontSize',fs(fsi),'FontName',pf.times)
-          end;
+          end
           %
           % Show plot of residual squared error
           %
-          axes('Position',[.1 .025 .375 .17]);
+          ax = axes('Position',[.1 .025 .375 .17]);
           indx = find(p1 ~= 0); 
-          plot(indx,p1(indx),'-k','LineWidth',2);
-          title('Residual error','FontSize',fs(14),'FontName',pf.times);
+          plot(ax,indx,p1(indx),'-k','LineWidth',2);
+          title(ax,'Residual error','FontSize',fs(14),'FontName',pf.times);
 
           %
           % Show plot of relevant movement parameters.
           %
-          axes('Position',[.575 .025 .375 .17]);
-          plot(p6);
-          title('Movement parameters','FontSize',fs(14),'FontName',pf.times);
+          ax = axes('Position',[.575 .025 .375 .17]);
+          plot(ax,p6);
+          title(ax,'Movement parameters','FontSize',fs(14),'FontName',pf.times);
       end
              
    case 'FinTot'     % Report on outcome of undeformation.
@@ -173,10 +173,3 @@ switch mode
 drawnow;
 
 end
-
-
-
-
-
-
-
