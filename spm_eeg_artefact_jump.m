@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_jump(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_jump.m 5625 2013-08-30 11:08:12Z vladimir $
+% $Id: spm_eeg_artefact_jump.m 5643 2013-09-19 10:48:31Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -49,7 +49,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5625 $';
+SVNrev = '$Rev: 5643 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -79,29 +79,37 @@ if isequal(S.mode, 'reject')
     spm_progress_bar('Clear');
     
 elseif isequal(S.mode, 'mark')
+    multitrial = D.ntrials>1;
     
-    
-    spm_progress_bar('Init', D.ntrials, 'Trials checked');
-    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
-    else Ibar = [1:D.ntrials]; end
-    
+    if multitrial
+        spm_progress_bar('Init', D.ntrials, 'Trials checked');
+        if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+        else Ibar = [1:D.ntrials]; end
+    end
     
     for i = 1:D.ntrials
         
         bad  = abs(diff(squeeze(D(chanind, :, i)), [], 2))>threshold;
         
         if ~any(bad(:))
-            if ismember(i, Ibar), spm_progress_bar('Set', i); end
+            if multitrial && ismember(i, Ibar), spm_progress_bar('Set', i); end
             continue;
         end
         
         if S.excwin>0
-            excwin = ones(round(5e-4*S.excwin*D.fsample), 1);
-            bad = ~~conv2(excwin, 1, double(bad), 'same');
+            excwin = ones(1, round(5e-4*S.excwin*D.fsample));
+        end
+        
+        if ~multitrial
+            spm_progress_bar('Init', D.nchannels, 'Channels checked');
+            if D.nchannels > 100, Ibar = floor(linspace(1, D.nchannels,100));
+            else Ibar = [1:D.nchannels]; end
         end
         
         res = [];
         for j = 1:length(chanind)
+            bad(j, :) = ~~conv(double(bad(j, :)), excwin, 'same');
+            
             onsets  = find(bad(j, :));
             offsets = find(~bad(j, :));
             onsets(find(diff(onsets)<2)+1) = [];
@@ -113,7 +121,10 @@ elseif isequal(S.mode, 'mark')
                 res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k)+1)./D.fsample;
             end
             
+            if ~multitrial && ismember(j, Ibar), spm_progress_bar('Set', j); end
         end
+        
+        if ~multitrial, spm_progress_bar('Clear'); end
         
         if ~isempty(res)
             ev = D.events(i);
@@ -129,10 +140,10 @@ elseif isequal(S.mode, 'mark')
         end
         
         
-        if ismember(i, Ibar), spm_progress_bar('Set', i); end
+        if multitrial && ismember(i, Ibar), spm_progress_bar('Set', i); end
     end
     
-    spm_progress_bar('Clear');
+    if multitrial, spm_progress_bar('Clear'); end
     
     res = D;
 end
