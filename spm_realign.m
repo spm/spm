@@ -83,13 +83,13 @@ function P = spm_realign(P,flags)
 % RSJ (1995) Spatial registration and normalization of images Hum. Brain
 % Map. 2:165-189
 %__________________________________________________________________________
-% Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_realign.m 4445 2011-08-26 17:53:00Z guillaume $
+% $Id: spm_realign.m 5646 2013-09-19 18:14:45Z guillaume $
 
 
-SVNid = '$Rev: 4445 $';
+SVNid = '$Rev: 5646 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -494,7 +494,7 @@ set(get(ax,'Title'),'String','Image realignment',...
 x     =  0.1;
 y     =  0.9;
 for i = 1:min([numel(P) 12])
-    text(x,y,[sprintf('%-4.0f',i) P(i).fname],...
+    text(x,y,[sprintf('%-4.0f',i) P(i).fname ',' num2str(P(i).n(1))],...
         'FontSize',10,'Interpreter','none','Parent',ax);
     y = y - 0.08;
 end
