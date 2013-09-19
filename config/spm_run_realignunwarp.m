@@ -7,10 +7,10 @@ function out = spm_run_realignunwarp(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Darren R. Gitelman
-% $Id: spm_run_realignunwarp.m 4983 2012-10-04 10:39:35Z guillaume $
+% $Id: spm_run_realignunwarp.m 5644 2013-09-19 17:34:19Z guillaume $
 
 
 %-Assemble flags
@@ -81,8 +81,12 @@ spm_realign(P,flags);
 %--------------------------------------------------------------------------
 for i = 1:numel(P)
     uweflags.sfP = sfP{i};
-    tmpP = spm_vol(P{i}(1,:));
-    uweflags.M = tmpP.mat;
+    P1 = deblank(P{i}(1,:));
+    if isempty(spm_file(P1,'number'))
+        P1 = spm_file(P1,'number',1);
+    end
+    VP1 = spm_vol(P1);
+    uweflags.M = VP1.mat;
     ds = spm_uw_estimate(P{i},uweflags);
     sess(i).ds = ds;
     dsfile = spm_file(P{i}(1,:), 'suffix','_uw', 'ext','.mat');
