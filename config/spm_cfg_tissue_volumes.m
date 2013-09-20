@@ -6,7 +6,7 @@ function tvol = spm_cfg_tissue_volumes
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_cfg_tissue_volumes.m 5311 2013-03-07 15:05:25Z ged $
+% $Id: spm_cfg_tissue_volumes.m 5647 2013-09-20 13:03:44Z ged $
 
 %%
 mat         = cfg_files;
@@ -43,21 +43,33 @@ mask.tag    = 'mask';
 mask.name   = 'Mask image';
 mask.filter = 'image';
 mask.num    = [0 1];
-mask.val    = {{fullfile(spm('dir'), 'tpm', 'brainmask.nii')}};
+mask.val    = {{fullfile(spm('dir'), 'tpm', 'mask_ICV.nii,1')}};
 mask.help   = {
     ['Optional binary mask image in same space as TPMs (e.g. MNI); ' ...
     'only voxels inside this mask will count for the total volume.']
     ''
-    ['The default mask excludes the eyes, which are otherwise ' ...
+    ['The default mask excludes the eyes, which might otherwise be ' ...
     'counted in the fluid tissue class (that includes cerebrospinal, ' ...
     'aqueous, and vitreous fluids/humours).']
+    };
+
+outf         = cfg_entry;
+outf.tag     = 'outf';
+outf.name    = 'Output file';
+outf.strtype = 's';
+outf.val     = {''};
+outf.help    = {
+    ['Filename for saving results. Segmentation filenames and volumes ' ...
+    'will be stored in CSV format (comma-separated variables).']
+    ''
+    'This can be empty; results will appear in the MATLAB command window.'
     };
 
 %%
 tvol        = cfg_exbranch;
 tvol.tag    = 'tvol';
 tvol.name   = 'Tissue Volumes';
-tvol.val    = {mat T mask};
+tvol.val    = {mat T mask outf};
 tvol.help   = {
     'Computes total tissue volumes (in litres) from segmentation results.'
     ''

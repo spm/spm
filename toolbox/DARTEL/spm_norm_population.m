@@ -7,7 +7,7 @@ function out = spm_norm_population(job)
 % (c) Wellcome Trust Centre for NeuroImaging (2011)
 
 % John Ashburner
-% $Id: spm_norm_population.m 4429 2011-08-10 16:59:47Z john $
+% $Id: spm_norm_population.m 5647 2013-09-20 13:03:44Z ged $
 
 % Hard coded stuff, that should maybe be customisable
 Ng  = nifti(fullfile(spm('Dir'),'toolbox','DARTEL','icbm152.nii'));
@@ -28,7 +28,7 @@ nd = min([df(4)+1,dg(4)]); % Use the first nd volumes.
 nd = min(nd,2);            % Just use GM, WM & other
 
 f  = single(Nf.dat(:,:,:,1:nd));   % Population average
-g  = zeros([dg(1:3),nd],'single'); % Resliced ICBM
+g  = zeros([df(1:3),nd],'single'); % Resliced ICBM
 
 % Images need to be same size, so reslice the MNI data
 M = inv(M0);
@@ -44,7 +44,7 @@ for k=1:nd,
 end
 
 % Guess some settings that might work.  Note that this uses mean squared difference.
-u   = zeros([dg(1:3),3],'single'); % Starting estimates
+u   = zeros([df(1:3),3],'single'); % Starting estimates
 
 spm_plot_convergence('Init','Least-squares Nonlin. Registration',...
               'Objective Fun.', 'Iteration');

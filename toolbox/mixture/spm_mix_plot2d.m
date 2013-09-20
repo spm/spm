@@ -11,7 +11,7 @@ function [] = spm_mix_plot2d (mix,area,nContLines,LineType,min_p,max_p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix_plot2d.m 3997 2010-07-15 12:38:24Z ged $
+% $Id: spm_mix_plot2d.m 5647 2013-09-20 13:03:44Z ged $
 
 if nargin < 2 | isempty(area), area=[0 10 0 10]; end
 if nargin < 3 | isempty(nContLines), nContLines=10; end
@@ -37,7 +37,9 @@ y1=[ymin:dx2:ymax];
 
 xplot = [reshape(g1,(d+1)^2,1), reshape(g2,(d+1)^2,1)];
 
-% Get proby density of points
+held = ishold; cla; hold on
+
+% Plot contours for each component
 for j=1:mix.m,
     y = spm_MNpdf(mix.state(j).m, mix.state(j).C, xplot);
     
@@ -53,3 +55,5 @@ for j=1:mix.m,
         contour(g1,g2,yplot,clevels,LineType);
     end
 end
+
+if ~held, hold off, end

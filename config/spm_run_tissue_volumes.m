@@ -6,7 +6,7 @@ function out = spm_run_tissue_volumes(cmd, job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 5311 2013-03-07 15:05:25Z ged $
+% $Id: spm_run_tissue_volumes.m 5647 2013-09-20 13:03:44Z ged $
 
 switch lower(cmd)
     %----------------------------------------------------------------------    
@@ -16,6 +16,7 @@ switch lower(cmd)
         mat = job.matfiles;
         T   = job.tmax;
         msk = char(job.mask);
+        outf = job.outf;
         if isempty(msk)
             msk = 'all';
         end
@@ -79,12 +80,29 @@ switch lower(cmd)
         end
         out.vol_sum = sum(vol, 2); % (total intracranial volume if T=1:3)
         
+        %% Optionally save in CSV format
+        if ~isempty(outf)
+            [pth, nam, ext] = spm_fileparts(outf);
+            if isempty(ext), ext = '.csv'; end
+            fnm = fullfile(pth, [nam ext]);
+            fid = fopen(fnm, 'w');
+            if fid < 0, error('Failed to open %s\n', fnm); end
+            delim = ',';
+            fprintf(fid, 'File');
+            fprintf(fid, [delim 'Volume%d'], 1:T);
+            for n = 1:N
+                fprintf(fid, '\n''%s''', mat{n});
+                fprintf(fid, [delim '%d'], vol(n, :));
+            end
+            fprintf(fid, '\n');
+            fclose(fid);
+        end
+        
         %% Display in command window
         fprintf('\nSegmentation files:\n');
         fprintf('\t%s\n', mat{:});
         fprintf('\nVolumes (litres):\n');
         disp(vol);
-
         %------------------------------------------------------------------
     case 'vout'
         try
