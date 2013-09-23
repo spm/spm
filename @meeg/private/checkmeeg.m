@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: checkmeeg.m 5649 2013-09-23 15:13:32Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -181,11 +181,11 @@ if Nchannels > 0
     end
     
     for i = 1:Nchannels
-        if ~(~isempty(this.channels(i).X_plot2D) && isfinite(this.channels(i).X_plot2D))
+        if ~(length(this.channels(i).X_plot2D)==1 && isfinite(this.channels(i).X_plot2D))
             this.channels(i).X_plot2D = [];
         end
         
-        if ~(~isempty(this.channels(i).Y_plot2D) && isfinite(this.channels(i).Y_plot2D))
+        if ~(length(this.channels(i).Y_plot2D)==1 && isfinite(this.channels(i).Y_plot2D))
             this.channels(i).Y_plot2D = [];
         end
     end
