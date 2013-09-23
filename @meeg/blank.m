@@ -9,7 +9,7 @@ function this = blank(this, fnamedat)
 % Copyright (C) 2011-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: blank.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: blank.m 5648 2013-09-23 12:40:40Z vladimir $
 
 if nargin == 1
     [p, f] = fileparts(fullfile(this));
@@ -35,6 +35,6 @@ end
 
 this.data = file_array(fnamedat, size(this), 'float32-le');
 
-initialise(d);
+initialise(this.data);
 
 this = check(this);

@@ -9,21 +9,21 @@ function timelock = fttimelock(this, chanind, timeind, trialind, freqind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: fttimelock.m 5062 2012-11-16 12:00:53Z vladimir $
+% $Id: fttimelock.m 5648 2013-09-23 12:40:40Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
 end
 
-if nargin < 2 || isempty(chanind)
+if nargin < 2 || ~isnumeric(chanind)
     chanind = 1:nchannels(this);
 end
 
-if nargin < 3 || isempty(timeind)
+if nargin < 3 || ~isnumeric(timeind)
     timeind = 1:nsamples(this);
 end
 
-if nargin < 4 || isempty(trialind)
+if nargin < 4 || ~isnumeric(trialind)
     trialind = 1:ntrials(this);
 end
 
