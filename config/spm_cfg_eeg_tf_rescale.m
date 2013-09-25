@@ -4,7 +4,7 @@ function rescale = spm_cfg_eeg_tf_rescale
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_eeg_tf_rescale.m 5611 2013-08-14 14:51:57Z vladimir $
+% $Id: spm_cfg_eeg_tf_rescale.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % D
@@ -34,7 +34,7 @@ timewin         = cfg_entry;
 timewin.tag     = 'timewin';
 timewin.name    = 'Baseline time window';
 timewin.help    = {'Start and stop of the baseline time window [ms].'};
-timewin.strtype = 'e';
+timewin.strtype = 'r';
 timewin.num     = [1 2];
 timewin.val     = {[-Inf 0]};
 

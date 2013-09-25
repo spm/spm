@@ -4,7 +4,7 @@ function voi = spm_cfg_voi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_voi.m 5512 2013-05-20 18:35:33Z guillaume $
+% $Id: spm_cfg_voi.m 5652 2013-09-25 09:36:22Z volkmar $
 
 % -------------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -25,7 +25,7 @@ contrast         = cfg_entry;
 contrast.tag     = 'contrast';
 contrast.name    = 'Contrast';
 contrast.help    = {'Index of contrast. If more than one index is entered, a conjunction analysis is performed.'};
-contrast.strtype = 'e';
+contrast.strtype = 'n';
 contrast.num     = [1 Inf];
 
 % -------------------------------------------------------------------------
@@ -38,7 +38,7 @@ conjunction.help    = {'Conjunction number. Unused if a simple contrast is enter
     'For Conjunction Null, enter 1.'
     'For Global Null, enter the number of selected contrasts.'
     'For Intermediate, enter the number of selected contrasts minus the number of effects under the Null.'}';
-conjunction.strtype = 'e';
+conjunction.strtype = 'n';
 conjunction.num     = [1 1];
 conjunction.val     = {1};
 
@@ -60,7 +60,7 @@ thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Threshold';
 thresh.help    = {''};
-thresh.strtype = 'e';
+thresh.strtype = 'r';
 thresh.num     = [1 1];
 thresh.val     = {0.001};
 
@@ -71,7 +71,7 @@ extent         = cfg_entry;
 extent.tag     = 'extent';
 extent.name    = 'Extent (voxels)';
 extent.help    = {''};
-extent.strtype = 'e';
+extent.strtype = 'w';
 extent.num     = [1 1];
 extent.val     = {0};
 
@@ -82,7 +82,7 @@ contrastm         = cfg_entry;
 contrastm.tag     = 'contrast';
 contrastm.name    = 'Contrast';
 contrastm.help    = {'Indices of contrast(s).'};
-contrastm.strtype = 'e';
+contrastm.strtype = 'n';
 contrastm.num     = [1 Inf];
 
 % -------------------------------------------------------------------------
@@ -92,7 +92,7 @@ threshm         = cfg_entry;
 threshm.tag     = 'thresh';
 threshm.name    = 'Uncorrected mask p-value';
 threshm.help    = {''};
-threshm.strtype = 'e';
+threshm.strtype = 'r';
 threshm.num     = [1 1];
 threshm.val     = {0.05};
 
@@ -208,7 +208,7 @@ centre         = cfg_entry;
 centre.tag     = 'centre';
 centre.name    = 'Centre';
 centre.help    = {'Centre [x y z] {mm}.'};
-centre.strtype = 'e';
+centre.strtype = 'r';
 centre.num     = [1 3];
 
 % -------------------------------------------------------------------------
@@ -218,7 +218,7 @@ radius         = cfg_entry;
 radius.tag     = 'radius';
 radius.name    = 'Radius';
 radius.help    = {'Sphere radius (mm).'};
-radius.strtype = 'e';
+radius.strtype = 'r';
 radius.num     = [1 1];
 
 % -------------------------------------------------------------------------
@@ -237,7 +237,7 @@ dim         = cfg_entry;
 dim.tag     = 'dim';
 dim.name    = 'Dimensions';
 dim.help    = {'Box dimensions [x y z] {mm}.'};
-dim.strtype = 'e';
+dim.strtype = 'r';
 dim.num     = [1 3];
 
 % -------------------------------------------------------------------------
@@ -267,7 +267,7 @@ threshold         = cfg_entry;
 threshold.tag     = 'threshold';
 threshold.name    = 'Threshold';
 threshold.help    = {'Threshold.'};
-threshold.strtype = 'e';
+threshold.strtype = 'r';
 threshold.num     = [1 1];
 threshold.val     = {0.5};
 
@@ -287,7 +287,7 @@ list         = cfg_entry;
 list.tag     = 'list';
 list.name    = 'List of labels';
 list.help    = {'List of labels.'};
-list.strtype = 'e';
+list.strtype = 'r';
 list.num     = [1 Inf];
 
 % -------------------------------------------------------------------------
@@ -338,7 +338,7 @@ adjust         = cfg_entry;
 adjust.tag     = 'adjust';
 adjust.name    = 'Adjust data';
 adjust.help    = {'Index of F-contrast used to adjust data. Enter ''0'' for no adjustment. Enter ''NaN'' for adjusting for everything.'}';
-adjust.strtype = 'e';
+adjust.strtype = 'w';
 adjust.num     = [1 1];
 
 % -------------------------------------------------------------------------
@@ -348,7 +348,7 @@ session         = cfg_entry;
 session.tag     = 'session';
 session.name    = 'Which session';
 session.help    = {'Enter the session number from which you want to extract data.'}';
-session.strtype = 'e';
+session.strtype = 'n';
 session.num     = [1 1];
 
 % -------------------------------------------------------------------------

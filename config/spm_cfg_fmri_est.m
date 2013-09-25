@@ -3,7 +3,7 @@ function fmri_est = spm_cfg_fmri_est
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 5575 2013-07-08 16:38:51Z guillaume $
+% $Id: spm_cfg_fmri_est.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 %==========================================================================
@@ -60,7 +60,7 @@ SliceNs         = cfg_entry;
 SliceNs.tag     = 'numbers';
 SliceNs.name    = 'Slice numbers';
 SliceNs.help    = {' '};
-SliceNs.strtype = 'e';
+SliceNs.strtype = 'n';
 SliceNs.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -190,7 +190,7 @@ ARP.help    = {
                ''
                'Voxel-wise AR models are fitted separately for each session of data. For each session this therefore produces maps of AR(1), AR(2) etc coefficients in the output directory. '
 }';
-ARP.strtype = 'e';
+ARP.strtype = 'n';
 ARP.num     = [Inf 1];
 ARP.val     = {3};
 
@@ -318,7 +318,7 @@ convec         = cfg_entry;
 convec.tag     = 'convec';
 convec.name    = 'Contrast vector';
 convec.help    = {'These contrasts are used to generate PPMs which characterise effect sizes at each voxel. This is in contrast to SPMs in which eg. maps of t-statistics show the ratio of the effect size to effect variability (standard deviation). SPMs are therefore a-dimensional. This is not the case for PPMs as the size of the effect is of primary interest. Some care is therefore needed about the scaling of contrast vectors. For example, if you are interested in the differential effect size averaged over conditions then the contrast 0.5 0.5 -0.5 -0.5 would be more suitable than the 1 1 -1 -1 contrast which looks at the differential effect size summed over conditions. '};
-convec.strtype = 'e';
+convec.strtype = 'r';
 convec.num     = [Inf 1];
 
 %--------------------------------------------------------------------------

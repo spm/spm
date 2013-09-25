@@ -3,9 +3,9 @@ function spm_surf_node = spm_cfg_spm_surf
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_spm_surf.m 3081 2009-04-22 20:15:38Z guillaume $
+% $Id: spm_cfg_spm_surf.m 5652 2013-09-25 09:36:22Z volkmar $
 
-rev = '$Rev: 3081 $';
+rev = '$Rev: 5652 $';
 % ---------------------------------------------------------------------
 % data Grey+white matter image
 % ---------------------------------------------------------------------
@@ -35,7 +35,7 @@ thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Surface isovalue(s)';
 thresh.help    = {'Enter one or more values at which isosurfaces through the input images will be computed.'};
-thresh.strtype = 'e';
+thresh.strtype = 'r';
 thresh.val     = {0.5};
 thresh.num     = [1 Inf];
 % ---------------------------------------------------------------------

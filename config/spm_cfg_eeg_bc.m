@@ -4,7 +4,7 @@ function bc = spm_cfg_eeg_bc
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_bc.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_bc.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % D
@@ -23,7 +23,7 @@ timewin         = cfg_entry;
 timewin.tag     = 'timewin';
 timewin.name    = 'Baseline';
 timewin.help    = {'Start and stop of baseline [ms].'};
-timewin.strtype = 'e';
+timewin.strtype = 'r';
 timewin.num     = [1 2];
 
 %--------------------------------------------------------------------------

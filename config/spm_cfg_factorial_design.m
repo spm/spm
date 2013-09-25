@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 5288 2013-02-28 16:37:55Z guillaume $
+% $Id: spm_cfg_factorial_design.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -202,7 +202,7 @@ c         = cfg_entry;
 c.tag     = 'c';
 c.name    = 'Vector';
 c.help    = {'Vector of covariate values.'};
-c.strtype = 'e';
+c.strtype = 'r';
 c.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ levels         = cfg_entry;
 levels.tag     = 'levels';
 levels.name    = 'Levels';
 levels.help    = {'Enter number of levels for this factor, eg. 2.'};
-levels.strtype = 'e';
+levels.strtype = 'n';
 levels.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -332,7 +332,7 @@ levels.help    = {
                   ''
                   'For example, length 2 vectors should be used for two-factor designs eg. the vector [2 3] specifies the cell corresponding to the 2nd-level of the first factor and the 3rd level of the 2nd factor.'
 }';
-levels.strtype = 'e';
+levels.strtype = 'n';
 levels.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -475,7 +475,7 @@ conds         = cfg_entry;
 conds.tag     = 'conds';
 conds.name    = 'Conditions';
 conds.help    = {''};
-conds.strtype = 'e';
+conds.strtype = 'n';
 conds.num     = [Inf Inf];
 
 %--------------------------------------------------------------------------
@@ -516,7 +516,7 @@ imatrix         = cfg_entry;
 imatrix.tag     = 'imatrix';
 imatrix.name    = 'Factor matrix';
 imatrix.help    = {'Specify factor/level matrix as a nscan-by-4 matrix. Note that the first column of I is reserved for the internal replication factor and must not be used for experimental factors.'};
-imatrix.strtype = 'e';
+imatrix.strtype = 'n';
 imatrix.num     = [Inf Inf];
 
 %--------------------------------------------------------------------------
@@ -551,7 +551,7 @@ fnum         = cfg_entry;
 fnum.tag     = 'fnum';
 fnum.name    = 'Factor number';
 fnum.help    = {'Enter the number of the factor.'};
-fnum.strtype = 'e';
+fnum.strtype = 'n';
 fnum.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -570,7 +570,7 @@ fnums         = cfg_entry;
 fnums.tag     = 'fnums';
 fnums.name    = 'Factor numbers';
 fnums.help    = {'Enter the numbers of the factors of this (two-way) interaction.'};
-fnums.strtype = 'e';
+fnums.strtype = 'n';
 fnums.num     = [2 1];
 
 %--------------------------------------------------------------------------
@@ -640,7 +640,7 @@ c.help    = {
              'Vector of covariate values.'
              'Enter the covariate values ''''per subject'''' (i.e. all for subject 1, then all for subject 2, etc). Importantly, the ordering of the cells of a factorial design has to be the same for all subjects in order to be consistent with the ordering of the covariate values.'
 }';
-c.strtype = 'e';
+c.strtype = 'r';
 c.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -754,7 +754,7 @@ athresh         = cfg_entry;
 athresh.tag     = 'athresh';
 athresh.name    = 'Threshold';
 athresh.help    = {'Enter the absolute value of the threshold.'};
-athresh.strtype = 'e';
+athresh.strtype = 'r';
 athresh.num     = [1 1];
 athresh.val     = {100};
 
@@ -778,7 +778,7 @@ rthresh         = cfg_entry;
 rthresh.tag     = 'rthresh';
 rthresh.name    = 'Threshold';
 rthresh.help    = {'Enter the threshold as a proportion of the global value.'};
-rthresh.strtype = 'e';
+rthresh.strtype = 'r';
 rthresh.num     = [1 1];
 rthresh.val     = {.8};
 
@@ -869,7 +869,7 @@ global_uval         = cfg_entry;
 global_uval.tag     = 'global_uval';
 global_uval.name    = 'Global values';
 global_uval.help    = {'Enter the vector of global values.'};
-global_uval.strtype = 'e';
+global_uval.strtype = 'r';
 global_uval.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -924,7 +924,7 @@ gmscv         = cfg_entry;
 gmscv.tag     = 'gmscv';
 gmscv.name    = 'Grand mean scaled value';
 gmscv.help    = {'The default value of 50, scales the global flow to a physiologically realistic value of 50ml/dl/min.'};
-gmscv.strtype = 'e';
+gmscv.strtype = 'r';
 gmscv.num     = [Inf 1];
 gmscv.val     = {50};
 

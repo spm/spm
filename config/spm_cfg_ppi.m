@@ -4,7 +4,7 @@ function ppis = spm_cfg_ppi
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_ppi.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_cfg_ppi.m 5652 2013-09-25 09:36:22Z volkmar $
 
 % ---------------------------------------------------------------------
 % spmmat Select SPM.mat
@@ -51,7 +51,7 @@ con.help    = {['Matrix of input variables and contrast weights.',...
 'SPM.Sess.U(i).name{j}. The third column is the contrast weight. ',...
 ' Unless there are parametric effects the second column will generally ',...
 'be a 1.']};
-con.strtype = 'e';
+con.strtype = 'r';
 con.num     = [Inf 3];
 
 % ---------------------------------------------------------------------

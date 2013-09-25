@@ -4,7 +4,7 @@ function bms = spm_cfg_bms
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_bms.m 5540 2013-06-11 14:01:23Z guillaume $
+% $Id: spm_cfg_bms.m 5652 2013-09-25 09:36:22Z volkmar $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -264,7 +264,7 @@ family_models.name    = 'Models';
 family_models.help    = {['Specify models belonging to this family. '...
                           'Example: write ''2 6'' if the second and sixth model '...
                           'belong to this family.']};
-family_models.strtype = 'e';
+family_models.strtype = 'n';
 family_models.num     = [Inf 1];
 
 % ---------------------------------------------------------------------
@@ -306,7 +306,7 @@ bma_part.tag     = 'bma_part';
 bma_part.name    = 'Enter family';
 bma_part.help    = {['Specify family (integer). E.g. ''2'' for the second '...
                     'family to use in BMA. ']};
-bma_part.strtype = 'e';
+bma_part.strtype = 'n';
 bma_part.num     = [0 Inf];
 
 % ---------------------------------------------------------------------
@@ -480,7 +480,7 @@ thres.name    = 'Probability threshold';
 thres.help    = {['Specify the probability threshold to apply to the '...
                  'image (optional). Leave field empty to work on '...
                  'serial mode.']};                 
-thres.strtype = 'e';
+thres.strtype = 'r';
 thres.num     = [0 Inf];
 thres.val     = {[]};
 
@@ -492,7 +492,7 @@ k.tag     = 'k';
 k.name    = 'Extent threshold';
 k.help    = {['Specify extent threshold (minimum number of voxels '...
                  'per cluster).']};                 
-k.strtype = 'e';
+k.strtype = 'w';
 k.num     = [0 Inf];
 k.val     = {[]};
 

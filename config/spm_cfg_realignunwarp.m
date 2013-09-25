@@ -3,7 +3,7 @@ function realignunwarp = spm_cfg_realignunwarp
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realignunwarp.m 5111 2012-12-12 16:05:50Z guillaume $
+% $Id: spm_cfg_realignunwarp.m 5652 2013-09-25 09:36:22Z volkmar $
 
 % ---------------------------------------------------------------------
 % scans Images
@@ -68,7 +68,7 @@ sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
 sep.help    = {'The separation (in mm) between the points sampled in the reference image.  Smaller sampling distances gives more accurate results, but will be slower.'};
-sep.strtype = 'e';
+sep.strtype = 'r';
 sep.num     = [1 1];
 sep.def     = @(val)spm_get_defaults('realign.estimate.sep', val{:});
 % ---------------------------------------------------------------------
@@ -84,7 +84,7 @@ fwhm.help    = {
                 ''
                 '    * MRI images typically use a 5 mm kernel.'
 }';
-fwhm.strtype = 'e';
+fwhm.strtype = 'r';
 fwhm.num     = [1 1];
 fwhm.def     = @(val)spm_get_defaults('realign.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
@@ -248,7 +248,7 @@ fot.help    = {
                ''
                'Otherwise enter a customised set of movements to model'
 }';
-fot.strtype = 'e';
+fot.strtype = 'n';
 fot.num     = [1 Inf];
 fot.def     = @(val)spm_get_defaults('unwarp.estimate.foe', val{:});
 % ---------------------------------------------------------------------
@@ -276,7 +276,7 @@ sot.help    = {
                ''
                '  5 5 ]'
 }';
-sot.strtype = 'e';
+sot.strtype = 'n';
 sot.num     = [Inf Inf];
 sot.def     = @(val)spm_get_defaults('unwarp.estimate.soe', val{:});
 % ---------------------------------------------------------------------

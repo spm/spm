@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 5651 2013-09-25 09:36:20Z volkmar $
+% $Id: spm_cfg_realign.m 5652 2013-09-25 09:36:22Z volkmar $
 
-rev = '$Rev: 5651 $';
+rev = '$Rev: 5652 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -44,7 +44,7 @@ sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
 sep.help    = {'The separation (in mm) between the points sampled in the reference image.  Smaller sampling distances gives more accurate results, but will be slower.'};
-sep.strtype = 'e';
+sep.strtype = 'r';
 sep.num     = [1 1];
 sep.def     = @(val)spm_get_defaults('realign.estimate.sep', val{:});
 % ---------------------------------------------------------------------
@@ -60,7 +60,7 @@ fwhm.help    = {
                 ''
                 '    * MRI images typically use a 5 mm kernel.'
 }';
-fwhm.strtype = 'e';
+fwhm.strtype = 'r';
 fwhm.num     = [1 1];
 fwhm.def     = @(val)spm_get_defaults('realign.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------

@@ -4,9 +4,9 @@ function reorient = spm_cfg_reorient
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_reorient.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_cfg_reorient.m 5652 2013-09-25 09:36:22Z volkmar $
 
-rev = '$Rev: 5120 $';
+rev = '$Rev: 5652 $';
 % ---------------------------------------------------------------------
 % srcfiles Images to reorient
 % ---------------------------------------------------------------------
@@ -42,7 +42,7 @@ transM.help    = {
                   ''
                   '   -1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1'
 }';
-transM.strtype = 'e';
+transM.strtype = 'r';
 transM.num     = [4 4];
 % ---------------------------------------------------------------------
 % transprm Reorientation Parameters
@@ -71,7 +71,7 @@ transprm.help    = {
                     '   0 0 0   0 0 0   -1 1 1   0 0 0'
                     ''
 }';
-transprm.strtype = 'e';
+transprm.strtype = 'r';
 transprm.num     = [1 12];
 % ---------------------------------------------------------------------
 % transform Reorient by

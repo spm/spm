@@ -4,7 +4,7 @@ function avgfreq = spm_cfg_eeg_avgfreq
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgfreq.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_avgfreq.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % D
@@ -23,7 +23,7 @@ freqwin         = cfg_entry;
 freqwin.tag     = 'freqwin';
 freqwin.name    = 'Frequency window';
 freqwin.help    = {'Start and stop of the frequency window (Hz).'};
-freqwin.strtype = 'e';
+freqwin.strtype = 'r';
 freqwin.num     = [1 2];
 freqwin.val     = {[-Inf Inf]};
 

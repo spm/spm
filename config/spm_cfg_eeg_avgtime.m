@@ -4,7 +4,7 @@ function avgtime = spm_cfg_eeg_avgtime
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_avgtime.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_avgtime.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % D
@@ -23,7 +23,7 @@ timewin         = cfg_entry;
 timewin.tag     = 'timewin';
 timewin.name    = 'Time window';
 timewin.help    = {'Start and stop of the time window [ms].'};
-timewin.strtype = 'e';
+timewin.strtype = 'r';
 timewin.num     = [1 2];
 timewin.val     = {[-Inf Inf]};
 

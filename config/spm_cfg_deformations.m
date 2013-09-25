@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5577 2013-07-11 12:44:25Z john $
+% $Id: spm_cfg_deformations.m 5652 2013-09-25 09:36:22Z volkmar $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -101,11 +101,11 @@ def.help     = himgr;
 matname      = files('Parameter File','matname','.*_sn\.mat$',[1 1]);
 matname.help = hmatname;
 
-vox          = entry('Voxel sizes','vox','e',[1 3]);
+vox          = entry('Voxel sizes','vox','r',[1 3]);
 vox.val      = {[NaN NaN NaN]};
 vox.help     = hvox;
 
-bb           = entry('Bounding box','bb','e',[2 3]);
+bb           = entry('Bounding box','bb','r',[2 3]);
 bb.val       = {[NaN NaN NaN;NaN NaN NaN]};
 bb.help      = hbb;
 
@@ -118,8 +118,8 @@ img.help     = himg;
 id           = branch('Identity (Reference Image)','id',{img});
 id.help      = hid;
 
-voxid        = entry('Voxel sizes','vox','e',[1 3]);
-bbid         = entry('Bounding box','bb','e',[2 3]);
+voxid        = entry('Voxel sizes','vox','r',[1 3]);
+bbid         = entry('Bounding box','bb','r',[2 3]);
 
 idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
 id.help      = hid;
@@ -279,7 +279,7 @@ fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Gaussian FWHM';
 fwhm.val     = {[0 0 0]};
-fwhm.strtype = 'e';
+fwhm.strtype = 'r';
 fwhm.num     = [1 3];
 fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian blurring kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions. Note that you can also specify [0 0 0], but any ``modulated'' data will show aliasing (see eg Wikipedia), which occurs because of the way the warped images are generated.'};
 % ---------------------------------------------------------------------
@@ -337,7 +337,7 @@ vox          = cfg_entry;
 vox.tag      = 'vox';
 vox.name     = 'Voxel sizes';
 vox.num      = [1 3];
-vox.strtype  = 'e';
+vox.strtype  = 'r';
 vox.val      = {[NaN NaN NaN]};
 vox.help     = {[...
 'Specify the voxel sizes of the deformation field to be produced. ',...
@@ -349,7 +349,7 @@ vox.help     = {[...
 bb           = cfg_entry;
 bb.tag       = 'bb';
 bb.name      = 'Bounding box';
-bb.strtype   = 'e';
+bb.strtype   = 'r';
 bb.num       = [2 3];
 bb.val       = {[NaN NaN NaN; NaN NaN NaN]};
 bb.help      = {[...

@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 5543 2013-06-11 17:48:18Z guillaume $
+% $Id: spm_cfg_results.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -40,7 +40,7 @@ contrasts.help    = {
                      ''
                      'If only one number is entered, and this number is "Inf", then results are printed for all contrasts found in the SPM.mat file.'
 }';
-contrasts.strtype = 'e';
+contrasts.strtype = 'n';
 contrasts.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ thresh         = cfg_entry;
 thresh.tag     = 'thresh';
 thresh.name    = 'Threshold';
 thresh.help    = {''};
-thresh.strtype = 'e';
+thresh.strtype = 'r';
 thresh.num     = [1 1];
 thresh.val     = {0.05};
 
@@ -72,7 +72,7 @@ extent         = cfg_entry;
 extent.tag     = 'extent';
 extent.name    = 'Extent (voxels)';
 extent.help    = {''};
-extent.strtype = 'e';
+extent.strtype = 'w';
 extent.num     = [1 1];
 extent.val     = {0};
 
@@ -83,7 +83,7 @@ contrasts1         = cfg_entry;
 contrasts1.tag     = 'contrasts';
 contrasts1.name    = 'Contrast(s)';
 contrasts1.help    = {'Index of contrast(s) for masking - leave empty for no masking.'};
-contrasts1.strtype = 'e';
+contrasts1.strtype = 'n';
 contrasts1.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -93,7 +93,7 @@ thresh1         = cfg_entry;
 thresh1.tag     = 'thresh';
 thresh1.name    = 'Mask threshold';
 thresh1.help    = {''};
-thresh1.strtype = 'e';
+thresh1.strtype = 'r';
 thresh1.num     = [1 1];
 thresh1.val     = {0.05};
 

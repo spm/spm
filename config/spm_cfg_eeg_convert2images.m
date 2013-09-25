@@ -5,7 +5,7 @@ function convert2images = spm_cfg_eeg_convert2images
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert2images.m 5494 2013-05-11 16:23:27Z vladimir $
+% $Id: spm_cfg_eeg_convert2images.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % D
@@ -41,7 +41,7 @@ timewin         = cfg_entry;
 timewin.tag     = 'timewin';
 timewin.name    = 'Time window';
 timewin.help    = {'Start and stop of the time window [ms].'};
-timewin.strtype = 'e';
+timewin.strtype = 'r';
 timewin.num     = [1 2];
 timewin.val     = {[-Inf Inf]};
 
@@ -52,7 +52,7 @@ freqwin         = cfg_entry;
 freqwin.tag     = 'freqwin';
 freqwin.name    = 'Frequency window';
 freqwin.help    = {'Start and stop of the frequency window (Hz).'};
-freqwin.strtype = 'e';
+freqwin.strtype = 'r';
 freqwin.num     = [1 2];
 freqwin.val     = {[-Inf Inf]};
 

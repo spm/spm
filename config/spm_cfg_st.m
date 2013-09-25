@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %__________________________________________________________________________
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 4649 2012-02-06 15:55:04Z guillaume $
+% $Id: spm_cfg_st.m 5652 2013-09-25 09:36:22Z volkmar $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -53,7 +53,7 @@ ta         = cfg_entry;
 ta.tag     = 'ta';
 ta.name    = 'TA';
 ta.help    = {'Enter the TA (in seconds). It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'};
-ta.strtype = 'e';
+ta.strtype = 'r';
 ta.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ so.help    = {
               ''
               'interleaved (top -> down): [nslices:-2:1, nslices-1:-2:1]'
 }';
-so.strtype = 'e';
+so.strtype = 'n';
 so.num     = [1 Inf];
 
 %--------------------------------------------------------------------------

@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ RT         = cfg_entry;
 RT.tag     = 'RT';
 RT.name    = 'Interscan interval';
 RT.help    = {'Interscan interval, TR, (specified in seconds).  This is the time between acquiring a plane of one volume and the same plane in the next volume.  It is assumed to be constant throughout.'};
-RT.strtype = 'e';
+RT.strtype = 'r';
 RT.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ fmri_t.help    = {
                   'If you have performed slice-timing correction, change this parameter to match the number of slices specified there; otherwise, you would typically not need to change this.'
                   ''
 }';
-fmri_t.strtype = 'e';
+fmri_t.strtype = 'n';
 fmri_t.num     = [1 1];
 fmri_t.def     = @(val)spm_get_defaults('stats.fmri.t', val{:});
 
@@ -66,7 +66,7 @@ fmri_t0.help    = {
                    'Setting t0 = t/2 is a good compromise if you are interested in slices at the beginning and end of the acquisition, or if you have interleaved data, or if you have 3D EPI data.'
                    ''
 }';
-fmri_t0.strtype = 'e';
+fmri_t0.strtype = 'n';
 fmri_t0.num     = [1 1];
 fmri_t0.def     = @(val)spm_get_defaults('stats.fmri.t0', val{:});
 
@@ -111,7 +111,7 @@ onset         = cfg_entry;
 onset.tag     = 'onset';
 onset.name    = 'Onsets';
 onset.help    = {'Specify a vector of onset times for this condition type. '};
-onset.strtype = 'e';
+onset.strtype = 'r';
 onset.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -121,7 +121,7 @@ duration         = cfg_entry;
 duration.tag     = 'duration';
 duration.name    = 'Durations';
 duration.help    = {'Specify the event durations. Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.'};
-duration.strtype = 'e';
+duration.strtype = 'r';
 duration.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ param         = cfg_entry;
 param.tag     = 'param';
 param.name    = 'Values';
 param.help    = {'Enter a vector of values, one for each occurence of the event.'};
-param.strtype = 'e';
+param.strtype = 'r';
 param.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -296,7 +296,7 @@ val         = cfg_entry;
 val.tag     = 'val';
 val.name    = 'Value';
 val.help    = {'Enter the vector of regressor values'};
-val.strtype = 'e';
+val.strtype = 'r';
 val.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -343,7 +343,7 @@ hpf         = cfg_entry;
 hpf.tag     = 'hpf';
 hpf.name    = 'High-pass filter';
 hpf.help    = {'The default high-pass filter cutoff is 128 seconds.Slow signal drifts with a period longer than this will be removed. Use ''explore design'' to ensure this cut-off is not removing too much experimental variance. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply to a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.'};
-hpf.strtype = 'e';
+hpf.strtype = 'r';
 hpf.num     = [1 1];
 hpf.def     = @(val)spm_get_defaults('stats.fmri.hpf', val{:});
 
@@ -388,7 +388,7 @@ levels         = cfg_entry;
 levels.tag     = 'levels';
 levels.name    = 'Levels';
 levels.help    = {'Enter number of levels for this factor, eg. 2'};
-levels.strtype = 'e';
+levels.strtype = 'n';
 levels.num     = [Inf 1];
 
 %--------------------------------------------------------------------------
@@ -449,7 +449,7 @@ length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
-length.strtype = 'e';
+length.strtype = 'r';
 length.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -459,7 +459,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -478,7 +478,7 @@ length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
-length.strtype = 'e';
+length.strtype = 'r';
 length.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -488,7 +488,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -507,7 +507,7 @@ length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
-length.strtype = 'e';
+length.strtype = 'r';
 length.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -517,7 +517,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -536,7 +536,7 @@ length         = cfg_entry;
 length.tag     = 'length';
 length.name    = 'Window length';
 length.help    = {'Post-stimulus window length (in seconds)'};
-length.strtype = 'e';
+length.strtype = 'r';
 length.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -546,7 +546,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -602,7 +602,7 @@ gMT         = cfg_entry;
 gMT.tag     = 'mthresh';
 gMT.name    = 'Masking threshold';
 gMT.help    = {'Masking threshold, defined as proportion of globals.'};
-gMT.strtype = 'e';
+gMT.strtype = 'r';
 gMT.num     = [1 1];
 gMT.def     = @(val)spm_get_defaults('mask.thresh', val{:});
 

@@ -4,7 +4,7 @@ function preproc = spm_cfg_preproc8
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5506 2013-05-14 17:13:43Z john $
+% $Id: spm_cfg_preproc8.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 % ---------------------------------------------------------------------
@@ -259,7 +259,7 @@ mrf         = cfg_entry;
 mrf.tag     = 'mrf';
 mrf.name    = 'MRF Parameter';
 mrf.help    = {'When tissue class images are written out, a few iterations of a simple Markov Random Field (MRF) cleanup procedure are run.  This parameter controls the strength of the MRF. Setting the value to zero will disable the cleanup.'};
-mrf.strtype = 'e';
+mrf.strtype = 'r';
 mrf.num     = [1 1];
 mrf.val     = {1};
 % ---------------------------------------------------------------------
@@ -294,7 +294,7 @@ reg.help    = {...
 '* Linear elasticity regularisation is also included (4th and 5th elements).  The first parameter (mu) is similar to that for linear elasticity, except it penalises the sum of squares of the Jacobian tensors after they have been made symmetric (by averaging with the transpose).  This term essentially penalises length changes, without penalising rotations.',...
 '* The final term also relates to linear elasticity, and is the weight that denotes how much to penalise changes to the divergence of the velocities (lambda).  This divergence is a measure of the rate of volumetric expansion or contraction.',...
 'The amount of regularisation determines the tradeoff between the terms. More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations.'};
-reg.strtype = 'e';
+reg.strtype = 'r';
 reg.num     = [1  5];
 reg.val     = {[0 0.001 0.5 0.05 0.2]};
 % ---------------------------------------------------------------------
@@ -331,7 +331,7 @@ smo         = cfg_entry;
 smo.tag     = 'fwhm';
 smo.name    = 'Smoothness';
 smo.help    = {'For PET or SPECT, set this value to about 5 mm, or more if the images have smoother noise.  For MRI, you can usually use a value of 0 mm.  This is used to derive a fudge factor to account for correlations between neighbouring voxels.  Smoother data have more spatial correlations, rendering the assumptions of the model inaccurate.'};
-smo.strtype = 'e';
+smo.strtype = 'r';
 smo.num     = [1  1];
 smo.val     = {0};
 
@@ -342,7 +342,7 @@ samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
 samp.help    = {'This encodes the approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower and needs more memory. Determining the ``best'''' setting involves a compromise between speed and accuracy.'};
-samp.strtype = 'e';
+samp.strtype = 'r';
 samp.num     = [1  1];
 samp.val     = {3};
 % ---------------------------------------------------------------------

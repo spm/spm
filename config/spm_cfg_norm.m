@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5372 2013-03-28 20:24:57Z john $
+% $Id: spm_cfg_norm.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 % ---------------------------------------------------------------------
@@ -119,7 +119,7 @@ reg         = cfg_entry;
 reg.tag     = 'reg';
 reg.name    = 'Warping Regularisation';
 reg.help    = {'The objective function for registering the tissue probability maps to the image to process, involves minimising the sum of two terms. One term gives a function of how probable the data is given the warping parameters. The other is a function of how probable the parameters are, and provides a penalty for unlikely deformations. Smoother deformations are deemed to be more probable. The amount of regularisation determines the tradeoff between the terms. Pick a value around one.  However, if your normalised images appear distorted, then it may be an idea to increase the amount of regularisation (by an order of magnitude). More regularisation gives smoother deformations, where the smoothness measure is determined by the bending energy of the deformations. '};
-reg.strtype = 'e';
+reg.strtype = 'r';
 reg.num     = [1  5];
 reg.val     = {[0 0.001 0.5 0.05 0.2]};
 
@@ -157,7 +157,7 @@ samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
 samp.help    = {'This encodes the approximate distance between sampled points when estimating the model parameters. Smaller values use more of the data, but the procedure is slower and needs more memory. Determining the ``best'''' setting involves a compromise between speed and accuracy.'};
-samp.strtype = 'e';
+samp.strtype = 'r';
 samp.num     = [1  1];
 samp.val     = {3};
 
@@ -168,7 +168,7 @@ smo         = cfg_entry;
 smo.tag     = 'fwhm';
 smo.name    = 'Smoothness';
 smo.help    = {'For PET or SPECT, set this value to about 5 mm, or more if the images have smoother noise.  For MRI, you can usually use a value of 0 mm.  This is used to derive a fudge factor to account for correlations between neighbouring voxels.  Smoother data have more spatial correlations, rendering the assumptions of the model inaccurate.'};
-smo.strtype = 'e';
+smo.strtype = 'r';
 smo.num     = [1  1];
 smo.val     = {0};
 
@@ -230,7 +230,7 @@ bb         = cfg_entry;
 bb.tag     = 'bb';
 bb.name    = 'Bounding box';
 bb.help    = {'The bounding box (in mm) of the volume which is to be written (relative to the anterior commissure).'};
-bb.strtype = 'e';
+bb.strtype = 'r';
 bb.num     = [2 3];
 bb.def     = @(val)spm_get_defaults('normalise.write.bb', val{:});
 
@@ -241,7 +241,7 @@ vox         = cfg_entry;
 vox.tag     = 'vox';
 vox.name    = 'Voxel sizes';
 vox.help    = {'The voxel sizes (x, y & z, in mm) of the written normalised images.'};
-vox.strtype = 'e';
+vox.strtype = 'r';
 vox.num     = [1 3];
 vox.def     = @(val)spm_get_defaults('normalise.write.vox', val{:});
 

@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5612 2013-08-15 11:30:02Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5652 2013-09-25 09:36:22Z volkmar $
 
-rev = '$Rev: 5612 $';
+rev = '$Rev: 5652 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -50,7 +50,7 @@ utime.help    = {
                   'The microtime resolution, t, is the number of time-bins per input sample used when building regressors. '
                   'Can be modified to make the output up- or downsampled with respect to the input'
 }';
-utime.strtype = 'e';
+utime.strtype = 'r';
 utime.num     = [1 1];
 utime.val     = {1};
 
@@ -89,7 +89,7 @@ onset         = cfg_entry;
 onset.tag     = 'onset';
 onset.name    = 'Onsets';
 onset.help    = {'Specify a vector of onset times for this condition type. '};
-onset.strtype = 'e';
+onset.strtype = 'r';
 onset.num     = [Inf 1];
 % ---------------------------------------------------------------------
 % duration Durations
@@ -98,7 +98,7 @@ duration         = cfg_entry;
 duration.tag     = 'duration';
 duration.name    = 'Durations';
 duration.help    = {'Specify the event durations. Epoch and event-related responses are modeled in exactly the same way but by specifying their different durations.  Events are specified with a duration of 0.  If you enter a single number for the durations it will be assumed that all trials conform to this duration. If you have multiple different durations, then the number must match the number of onset times.'};
-duration.strtype = 'e';
+duration.strtype = 'r';
 duration.num     = [Inf 1];
 %
 
@@ -190,7 +190,7 @@ param         = cfg_entry;
 param.tag     = 'param';
 param.name    = 'Values';
 param.help    = {'Enter a vector of values, one for each occurence of the event.'};
-param.strtype = 'e';
+param.strtype = 'r';
 param.num     = [Inf 1];
 % ---------------------------------------------------------------------
 % poly Polynomial Expansion
@@ -312,7 +312,7 @@ val         = cfg_entry;
 val.tag     = 'val';
 val.name    = 'Value';
 val.help    = {'Enter the vector of regressor values'};
-val.strtype = 'e';
+val.strtype = 'r';
 val.num     = [Inf 1];
 % ---------------------------------------------------------------------
 % regress Regressor
@@ -355,7 +355,7 @@ hpf         = cfg_entry;
 hpf.tag     = 'hpf';
 hpf.name    = 'High-pass filter';
 hpf.help    = {'The default high-pass filter cutoff is 10 seconds.Slow signal drifts with a period longer than this will be removed. Use ''explore design'' to ensure this cut-off is not removing too much experimental variance. High-pass filtering is implemented using a residual forming matrix (i.e. it is not a convolution) and is simply to a way to remove confounds without estimating their parameters explicitly.  The constant term is also incorporated into this filter matrix.'};
-hpf.strtype = 'e';
+hpf.strtype = 'r';
 hpf.num     = [1 1];
 hpf.val     = {10};
 % ---------------------------------------------------------------------
@@ -386,7 +386,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 % ---------------------------------------------------------------------
 % fourier Fourier Set
@@ -403,7 +403,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 % ---------------------------------------------------------------------
 % fourier_han Fourier Set (Hanning)
@@ -421,7 +421,7 @@ order         = cfg_entry;
 order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
-order.strtype = 'e';
+order.strtype = 'n';
 order.num     = [1 1];
 % ---------------------------------------------------------------------
 % fir Finite Impulse Response

@@ -3,7 +3,7 @@ function con = spm_cfg_con
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_con.m 5566 2013-06-25 19:03:54Z guillaume $
+% $Id: spm_cfg_con.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 %--------------------------------------------------------------------------
@@ -38,7 +38,7 @@ convec.help    = {
     'This is done similarly to the contrast manager. A 1 x n vector should be entered for T-contrasts.'
     'Contrast weight vectors will be padded with zeros to the correct length.'
     };
-convec.strtype = 'e';
+convec.strtype = 'r';
 convec.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -109,7 +109,7 @@ convec.help    = {
     'This is done similarly to the contrast manager.'
     'Contrast weight matrices will be padded with zeros to the correct length.'
     };
-convec.strtype = 'e';
+convec.strtype = 'r';
 convec.num     = [Inf Inf];
 
 %==========================================================================
@@ -224,7 +224,7 @@ conweight         = cfg_entry;
 conweight.tag     = 'conweight';
 conweight.name    = 'Contrast weight';
 conweight.help    = {'The contrast weight for the selected column.'};
-conweight.strtype = 'e';
+conweight.strtype = 'r';
 conweight.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -234,7 +234,7 @@ colcond         = cfg_entry;
 colcond.tag     = 'colcond';
 colcond.name    = 'Condition #';
 colcond.help    = {'Select which condition function set is to be contrasted.'};
-colcond.strtype = 'e';
+colcond.strtype = 'n';
 colcond.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -244,7 +244,7 @@ colbf         = cfg_entry;
 colbf.tag     = 'colbf';
 colbf.name    = 'Basis function #';
 colbf.help    = {'Select which basis function from the basis function set is to be contrasted.'};
-colbf.strtype = 'e';
+colbf.strtype = 'n';
 colbf.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -254,7 +254,7 @@ colmod         = cfg_entry;
 colmod.tag     = 'colmod';
 colmod.name    = 'Parametric modulation #';
 colmod.help    = {'Select which parametric modulation is to be contrasted. If there is no time/parametric modulation, enter "1". If there are both time and parametric modulations, then time modulation comes before parametric modulation.'};
-colmod.strtype = 'e';
+colmod.strtype = 'n';
 colmod.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -268,7 +268,7 @@ colmodord.help    = {
     ''
     '0 - the basis function itself, 1 - 1st order mod etc'
     }';
-colmodord.strtype = 'e';
+colmodord.strtype = 'w';
 colmodord.num     = [1 1];
 
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ colreg         = cfg_entry;
 colreg.tag     = 'colreg';
 colreg.name    = 'T contrast for extra regressors';
 colreg.help    = {'Enter T contrast vector for extra regressors.'};
-colreg.strtype = 'e';
+colreg.strtype = 'r';
 colreg.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -318,7 +318,7 @@ sessions         = cfg_entry;
 sessions.tag     = 'sessions';
 sessions.name    = 'Session(s)';
 sessions.help    = {'Enter session number(s) for which this contrast should be created. If more than one session number is specified, the contrast will be an average contrast over the specified conditions or regressors from these sessions.'};
-sessions.strtype = 'e';
+sessions.strtype = 'n';
 sessions.num     = [1 Inf];
 
 %==========================================================================

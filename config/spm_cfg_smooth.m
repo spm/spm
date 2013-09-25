@@ -3,7 +3,7 @@ function smooth = spm_cfg_smooth
 %_______________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_smooth.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_cfg_smooth.m 5652 2013-09-25 09:36:22Z volkmar $
 
 
 % ---------------------------------------------------------------------
@@ -23,7 +23,7 @@ fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'FWHM';
 fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian smoothing kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions.'};
-fwhm.strtype = 'e';
+fwhm.strtype = 'r';
 fwhm.num     = [1 3];
 fwhm.def     = @(val)spm_get_defaults('smooth.fwhm', val{:});
 % ---------------------------------------------------------------------

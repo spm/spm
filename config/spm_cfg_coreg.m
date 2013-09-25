@@ -3,7 +3,7 @@ function coreg = spm_cfg_coreg
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_coreg.m 4772 2012-06-21 18:27:33Z john $
+% $Id: spm_cfg_coreg.m 5652 2013-09-25 09:36:22Z volkmar $
 
 % ---------------------------------------------------------------------
 % ref Reference Image
@@ -63,7 +63,7 @@ sep         = cfg_entry;
 sep.tag     = 'sep';
 sep.name    = 'Separation';
 sep.help    = {'The average distance between sampled points (in mm).  Can be a vector to allow a coarse registration followed by increasingly fine ones.'};
-sep.strtype = 'e';
+sep.strtype = 'r';
 sep.num     = [1 Inf];
 sep.def     = @(val)spm_get_defaults('coreg.estimate.sep', val{:});
 % ---------------------------------------------------------------------
@@ -73,7 +73,7 @@ tol         = cfg_entry;
 tol.tag     = 'tol';
 tol.name    = 'Tolerances';
 tol.help    = {'The accuracy for each parameter.  Iterations stop when differences between successive estimates are less than the required tolerance.'};
-tol.strtype = 'e';
+tol.strtype = 'r';
 tol.num     = [1 12];
 tol.def     = @(val)spm_get_defaults('coreg.estimate.tol', val{:});
 % ---------------------------------------------------------------------
@@ -83,7 +83,7 @@ fwhm         = cfg_entry;
 fwhm.tag     = 'fwhm';
 fwhm.name    = 'Histogram Smoothing';
 fwhm.help    = {'Gaussian smoothing to apply to the 256x256 joint histogram. Other information theoretic coregistration methods use fewer bins, but Gaussian smoothing seems to be more elegant.'};
-fwhm.strtype = 'e';
+fwhm.strtype = 'r';
 fwhm.num     = [1 2];
 fwhm.def     = @(val)spm_get_defaults('coreg.estimate.fwhm', val{:});
 % ---------------------------------------------------------------------
