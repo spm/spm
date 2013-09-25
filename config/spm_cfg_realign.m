@@ -4,9 +4,9 @@ function realign = spm_cfg_realign
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_realign.m 5653 2013-09-25 14:03:46Z volkmar $
 
-rev = '$Rev: 5652 $';
+rev = '$Rev: 5653 $';
 % ---------------------------------------------------------------------
 % data Session
 % ---------------------------------------------------------------------
@@ -358,13 +358,6 @@ for k=1:numel(job.data)
         dep = [dep cdep];
     end;
 end;
-if ~strcmp(job.eoptions.rtm,'<UNDEFINED>') && job.eoptions.rtm
-    depm = cfg_dep;
-    depm.sname = 'Mean Image';
-    depm.src_output = substruct('.','rmean');
-    depm.tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-    dep = [dep depm];
-end
 
 %------------------------------------------------------------------------
  
@@ -391,7 +384,7 @@ for k=1:numel(job.data)
         dep = [dep cdep];
     end;
 end;
-if (~strcmp(job.eoptions.rtm,'<UNDEFINED>') && job.eoptions.rtm) || (~strcmp(job.roptions.which,'<UNDEFINED>') && job.roptions.which(2))
+if ~strcmp(job.roptions.which,'<UNDEFINED>') && job.roptions.which(2),
     if exist('dep','var')
         dep(end+1) = cfg_dep;
     else

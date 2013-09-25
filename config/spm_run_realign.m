@@ -9,7 +9,7 @@ function out = spm_run_realign(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_realign.m 5651 2013-09-25 09:36:20Z volkmar $
+% $Id: spm_run_realign.m 5653 2013-09-25 14:03:46Z volkmar $
 
 
 P = cell(size(job.data));
@@ -50,9 +50,6 @@ if isfield(job,'eoptions')
     for i=1:numel(job.data)
         out.sess(i).cfiles = job.data{i};
         out.sess(i).rpfile{1} = spm_file(job.data{i}{1}, 'prefix','rp_', 'ext','.txt');
-    end
-    if job.eoptions.rtm
-        out.rmean{1} = spm_file(job.data{1}{1}, 'prefix','mean');
     end
 end
 
