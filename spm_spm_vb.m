@@ -156,7 +156,7 @@
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_spm_vb.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_spm_vb.m 5655 2013-09-25 17:58:48Z guillaume $
 
 
 %-Get SPM.mat if necessary
@@ -200,9 +200,7 @@ end
 %-Delete files from previous analyses
 %-----------------------------------------------------------------------
 if SPM.PPM.window
-    if exist(fullfile(pwd,'mask.img'),'file') == 2 || ...
-       exist(fullfile(pwd,'mask.nii'),'file') == 2
-        
+    if ~isempty(spm_select('List',SPM.swd,'^mask\..{3}$'))
         str   = {'Current directory contains SPM estimation files:',...
                  'pwd = ',SPM.swd,...
                  'Existing results will be overwritten!'};

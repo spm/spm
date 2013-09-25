@@ -83,7 +83,7 @@ function ds = spm_uw_estimate(P,par)
 % Copyright (C) 2003-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson
-% $Id: spm_uw_estimate.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_uw_estimate.m 5655 2013-09-25 17:58:48Z guillaume $
 
 % This is a major rewrite which uses some new ideas to speed up
 % the estimation of the field. The time consuming part is the
@@ -166,7 +166,7 @@ function ds = spm_uw_estimate(P,par)
 %    Our tests have indicated that this is NOT a good idea though. 
 
 
-SVNid = '$Rev: 5120 $';
+SVNid = '$Rev: 5655 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -263,7 +263,7 @@ if ds.fwhm ~= 0
    spm_uw_show('SmoothStart',length(P));
    for i=1:length(old_P)
       spm_uw_show('SmoothUpdate',i);
-      sfname(i,:) = [tempname '.img,1,1'];
+      sfname(i,:) = [tempname spm_file_ext ',1,1'];
       to_smooth = sprintf('%s,%d,%d',old_P(i).fname,old_P(i).n);
       spm_smooth(to_smooth,sfname(i,:),ds.fwhm);
    end
