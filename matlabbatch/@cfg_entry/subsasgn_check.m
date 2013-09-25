@@ -11,9 +11,9 @@ function [sts, val] = subsasgn_check(item,subs,val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_check.m 4864 2012-08-27 13:57:31Z volkmar $
+% $Id: subsasgn_check.m 5650 2013-09-25 09:36:19Z volkmar $
 
-rev = '$Rev: 4864 $'; %#ok
+rev = '$Rev: 5650 $'; %#ok
 
 sts = true;
 switch subs(1).subs
@@ -39,7 +39,7 @@ switch subs(1).subs
             val = {};
         else
             % check whether val{1} is a valid element
-            [sts vtmp] = valcheck(item,val{1});
+            [sts, vtmp] = valcheck(item,val{1});
             val = {vtmp};
         end
     case {'strtype'}
@@ -81,7 +81,7 @@ else
                         '%s: Item must be a string.', subsasgn_checkstr(item,substruct('.','val')));
                 sts = false;
             else
-                [sts val] = numcheck(item,val);
+                [sts, val] = numcheck(item,val);
                 if sts && ~isempty(item.extras) && (ischar(item.extras) || iscellstr(item.extras))
                     pats = cellstr(item.extras);
                     mch = regexp(val, pats);
@@ -107,14 +107,14 @@ else
             end
         case {'n'}
             tol = 4*eps;
-            sts = isempty(val) || (isnumeric(val) && all(val(:) >= 1) && ...
+            sts = isempty(val) || (isnumeric(val) && all(val(~isnan(val(:))) >= 1) && ...
                                    all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
                 cfg_message('matlabbatch:checkval:strtype', ...
                         '%s: Item must be an array of natural numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
             end
-            [sts val] = numcheck(item,val);
+            [sts, val] = numcheck(item,val);
         case {'i'}
             tol = 4*eps;
             sts = isempty(val) || (isnumeric(val) && ...
@@ -124,7 +124,7 @@ else
                         '%s: Item must be an array of integers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
             end
-            [sts val] = numcheck(item,val);
+            [sts, val] = numcheck(item,val);
         case {'r'}
             sts = isempty(val) || (isnumeric(val) && all(isreal(val(:))));
             if ~sts
@@ -132,26 +132,26 @@ else
                         '%s: Item must be an array of real numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
             end
-            [sts val] = numcheck(item,val);
+            [sts, val] = numcheck(item,val);
         case {'w'}
             tol = 4*eps;
-            sts = isempty(val) || (isnumeric(val) && all(val(:) >= 0) && ...
+            sts = isempty(val) || (isnumeric(val) && all(val(~isnan(val(:))) >= 0) && ...
                                    all(abs(round(val(isfinite(val(:))))-val(isfinite(val(:)))) <= tol));
             if ~sts
                 cfg_message('matlabbatch:checkval:strtype', ...
                         '%s: Item must be an array of whole numbers.', subsasgn_checkstr(item,substruct('.','val')));
                 return;
             end
-            [sts val] = numcheck(item,val);
+            [sts, val] = numcheck(item,val);
         case {'e'}
             if ~isempty(item.extras) && subsasgn_check_funhandle(item.extras)
-                [sts val] = feval(item.extras, val, item.num);
+                [sts, val] = feval(item.extras, val, item.num);
             else
-                [sts val] = numcheck(item,val);
+                [sts, val] = numcheck(item,val);
             end
         otherwise
             % only do size check for other strtypes
-            [sts val] = numcheck(item,val);
+            [sts, val] = numcheck(item,val);
     end
 end
 
