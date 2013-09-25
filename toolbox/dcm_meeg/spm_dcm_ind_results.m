@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Results for induced Dynamic Causal Modelling (DCM)
-% FORMAT [DCM] = spm_dcm_ind_results(DCM,Action);
+% FORMAT [DCM] = spm_dcm_ind_results(DCM,Action)
 % Action:
 %     'Frequency modes'
 %     'Time-modes'
@@ -17,22 +17,22 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 %__________________________________________________________________________
 %
 % DCM is a causal modelling procedure for dynamical systems in which
-% causality is inherent in the differential equations that specify the model.
-% The basic idea is to treat the system of interest, in this case the brain,
-% as an input-state-output system.  By perturbing the system with known
-% inputs, measured responses are used to estimate various parameters that
-% govern the evolution of brain states.  Although there are no restrictions
-% on the parameterisation of the model, a bilinear approximation affords a
-% simple re-parameterisation in terms of effective connectivity.  This
-% effective connectivity can be latent or intrinsic or, through bilinear
-% terms, model input-dependent changes in effective connectivity. Parameter
-% estimation proceeds using fairly standard approaches to system
-% identification that rest upon Bayesian inference.
+% causality is inherent in the differential equations that specify the
+% model.  The basic idea is to treat the system of interest, in this case
+% the brain, as an input-state-output system.  By perturbing the system
+% with known inputs, measured responses are used to estimate various
+% parameters that govern the evolution of brain states.  Although there are
+% no restrictions on the parameterisation of the model, a bilinear
+% approximation affords a simple re-parameterisation in terms of effective
+% connectivity.  This effective connectivity can be latent or intrinsic or,
+% through bilinear terms, model input-dependent changes in effective
+% connectivity. Parameter estimation proceeds using fairly standard
+% approaches to system identification that rest upon Bayesian inference.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 5614 2013-08-15 12:15:16Z vladimir $
+% $Id: spm_dcm_ind_results.m 5654 2013-09-25 17:26:36Z guillaume $
  
  
 % set up
@@ -96,7 +96,7 @@ switch(lower(Action))
                 V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
                 V.dim   = [length(Hz) length(pst)  1 ];
-                V.fname =sprintf('%s_TFR%d%d.img',DCM.name(1:end-4),i,j);
+                V.fname = [sprintf('%s_TFR%d%d',DCM.name(1:end-4),i,j),spm_file_ext];
                 spm_write_vol(V, TF{i,j}');
             end
         end
@@ -234,7 +234,7 @@ case{lower('Coupling (A - Hz)')}
                 V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                 V.pinfo = [1 0 0]';
                 V.dim   = [length(Hz) length(Hz)  1 ];
-                V.fname = sprintf('%s_A%d%d.img',DCM.name(1:end-4),i,j);
+                V.fname = [sprintf('%s_A%d%d',DCM.name(1:end-4),i,j),spm_file_ext];
                 spm_write_vol(V,A);
             end
  
@@ -257,7 +257,7 @@ case{lower('Coupling (B - Hz)')}
     else
         [k, ok] = listdlg('PromptString', 'which effect', 'Name', 'please select',...
             'SelectionMode','single', 'ListString', DCM.xU.name);
-        if ~ok, return; end;
+        if ~ok, return; end
     end
     
     % reconstitute time-frequency coupling
@@ -289,7 +289,7 @@ case{lower('Coupling (B - Hz)')}
                V.mat(2,4) = V.mat(2,4) - V.mat(2,2);
                V.pinfo = [1 0 0]';
                V.dim   = [length(Hz) length(Hz)  1 ];
-               V.fname = sprintf('%s_B%d%d.img',DCM.name(1:end-4),i,j);
+               V.fname = [sprintf('%s_B%d%d',DCM.name(1:end-4),i,j),spm_file_ext];
                spm_write_vol(V,B);
             end
                 
