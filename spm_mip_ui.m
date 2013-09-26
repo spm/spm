@@ -69,7 +69,7 @@ function varargout = spm_mip_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5512 2013-05-20 18:35:33Z guillaume $
+% $Id: spm_mip_ui.m 5656 2013-09-26 15:17:18Z guillaume $
 
 
 %==========================================================================
@@ -217,10 +217,18 @@ switch lower(varargin{1}), case 'display'
         Md(3,3) = 80 / (M(3,3)*DIM(3));
         Md(3,4) = -80 * M(3,4) / (M(3,3)*DIM(3));
         Ms      = diag([scale(1:2) 1 1]);
-    elseif isequal(units,{'Hz' 'ms' ''}) || isequal(units,{'Hz' 'Hz' ''})
+    elseif isequal(units,{'Hz' 'ms' ''})
         Md      = eye(4);
         Md(1,1) = -136 / (M(1,1)*DIM(1));
         Md(1,4) = M(1,4)*136 / (M(1,1)*DIM(1)) + 68;
+        Md(2,2) = 172 / (M(2,2)*DIM(2));
+        Md(2,4) = -M(2,4)*172 / (M(2,2)*DIM(2)) - 100;
+        Md(3,4) = -100;
+        Ms      = eye(4);
+    elseif isequal(units,{'Hz' 'Hz' ''})
+        Md      = eye(4);
+        Md(1,1) = 136 / (M(1,1)*DIM(1));
+        Md(1,4) = -M(1,4)*136 / (M(1,1)*DIM(1)) - 68;
         Md(2,2) = 172 / (M(2,2)*DIM(2));
         Md(2,4) = -M(2,4)*172 / (M(2,2)*DIM(2)) - 100;
         Md(3,4) = -100;
