@@ -65,7 +65,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5558 2013-06-15 20:57:08Z karl $
+% $Id: spm_cva.m 5658 2013-09-26 16:54:53Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -180,6 +180,7 @@ CVA.v   = v;                    % canonical variates (data)
 CVA.W   = W;                    % canonical vectors  (design)
 CVA.w   = w;                    % canonical variates (design)
 CVA.C   = C;                    % canonical contrast (design)
+CVA.U   = U;                    % dimension reduction (projector)
 
 CVA.r   = r;                    % canonical correlations
 CVA.chi = chi;                  % Chi-squared statistics testing D >= i

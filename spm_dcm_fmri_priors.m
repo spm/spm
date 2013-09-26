@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5633 2013-09-10 13:58:03Z karl $
+% $Id: spm_dcm_fmri_priors.m 5658 2013-09-26 16:54:53Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -92,7 +92,7 @@ else
     % prior covariances
     %----------------------------------------------------------------------
     if options.stochastic
-        pC.A = A/4 + eye(n,n)/256;
+        pC.A = A/64 + eye(n,n)/256;
     else
         pC.A = A/64 + eye(n,n)/256;
     end
