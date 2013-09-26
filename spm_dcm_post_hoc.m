@@ -49,7 +49,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % contains the posterior probability of models partitioned according to
 % whether a particular parameter exists or not:
 %
-% DCM.Pp     -  Model posterior over parameters (with and without)
+% DCM.Pp     -  Model posterior (with and without each parameter)
 % DCM.Ep     -  Bayesian parameter average under selected model
 % DCM.Cp     -  Bayesian parameter covariance under selected model
 % DCM.Pf     -  Model posteriors over user specified families
@@ -62,7 +62,7 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5601 2013-08-11 21:19:53Z karl $
+% $Id: spm_dcm_post_hoc.m 5657 2013-09-26 16:53:40Z karl $
 
 
 % Get filenames
@@ -281,11 +281,22 @@ if ~isempty(fun)
         Pn     = full(C);
         Pn(K(i,:)) = 0;
         Pn     = spm_unvec(Pn,pE);
-        Kf(i)  = fun(Pn.A,Pn.B,Pn.C);
+        
+        try
+            Kf(i)     = fun(Pn.A,Pn.B,Pn.C);
+        catch
+            try
+                Kf(i) = fun(Pn.A,Pn.B);
+            catch
+                Kf(i) = fun(Pn.A);
+            end
+        end
+            
     end
     for i = 1:max(Kf)
         Pf(i) = mean(p(Kf == i));
     end
+    Pf(isnan(Pf)) = 0;
     Pf    = Pf/sum(Pf);
 end
 

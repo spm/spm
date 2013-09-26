@@ -39,7 +39,7 @@ function [E,V] = spm_erp_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_erp_priors.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_erp_priors.m 5657 2013-09-26 16:53:40Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -48,6 +48,10 @@ if nargin < 3
     B   = {};
     C   = 1;
 end
+
+% -log of absent (null) connections
+%--------------------------------------------------------------------------
+N     = 4;
  
 % disable log zero warning
 %--------------------------------------------------------------------------
@@ -73,7 +77,7 @@ E.S   = [0 0];        V.S = [1 1]/16;             % dispersion & threshold
 Q     = sparse(n,n);
 for i = 1:length(A)
       A{i} = ~~A{i};
-    E.A{i} = A{i}*32 - 32;                        % forward
+    E.A{i} = A{i}*N - N;                          % forward
     V.A{i} = A{i}/16;                             % backward
     Q      = Q | A{i};                            % and lateral connections
 end
@@ -85,7 +89,7 @@ for i = 1:length(B)
     Q      = Q | B{i};
 end
 C      = ~~C;
-E.C    = C*32 - 32;                               % where inputs enter
+E.C    = C*N - N;                                 % where inputs enter
 V.C    = C/32;
  
 % set intrinsic connectivity

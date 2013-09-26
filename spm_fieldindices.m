@@ -1,4 +1,4 @@
-function [i] = spm_fieldindices(X,varargin)
+function [ix] = spm_fieldindices(X,varargin)
 % Return the indices of fields in a structure (and vice versa)
 % FORMAT [i]     = spm_fieldindices(X,field1,field2,...)
 % FORMAT [field] = spm_fieldindices(X,i1,i2,...)
@@ -12,7 +12,7 @@ function [i] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_fieldindices.m 5657 2013-09-26 16:53:40Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -46,13 +46,15 @@ for i = 1:length(varargin)
         f  = spm_unvec(spm_vec(f) + 1,f);
         x.(varargin{i}) = f;
         ix = ix + spm_vec(x);
-        
-    else
+    
+    % or return the name of the field
+    %----------------------------------------------------------------------
+    elseif isnumeric(varargin{1})
         name  = fieldnames(X);
         for j = 1:length(name)
             k = spm_fieldindices(X,name{j});
             if any(ismember(varargin{i},k))
-                i = name{j};
+                ix = name{j};
                 return
             end
         end
@@ -61,4 +63,4 @@ end
 
 % find indices
 %--------------------------------------------------------------------------
-i = find(ix);
+ix = find(ix);

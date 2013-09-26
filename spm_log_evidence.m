@@ -29,7 +29,7 @@ function [F,sE,sC] = spm_log_evidence(varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_log_evidence.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_log_evidence.m 5657 2013-09-26 16:53:40Z karl $
  
 % Compute reduced log-evidence
 %==========================================================================
@@ -40,6 +40,7 @@ qE = varargin{1};
 qC = varargin{2};
 pE = varargin{3};
 pC = varargin{4};
+
 try
     priors = varargin{5}(varargin{6:end});
     rE     = priors{1};
@@ -54,6 +55,11 @@ catch
         rC = sparse(n,n);
     end
 end
+
+% check to see if prior oovaiances are structures
+%--------------------------------------------------------------------------
+if isstruct(pC), pC = diag(spm_vec(pC)); end
+if isstruct(rC), rC = diag(spm_vec(rC)); end
  
 % reduced subspace 
 %--------------------------------------------------------------------------

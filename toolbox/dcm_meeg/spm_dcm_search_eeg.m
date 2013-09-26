@@ -1,16 +1,25 @@
-function spm_dcm_search_eeg(P)
+function spm_dcm_search_eeg(P,SAVE_DCM)
 % Post hoc optimisation of DCMs (under Laplace approximation)
-% FORMAT spm_dcm_search_eeg([P])
+% FORMAT spm_dcm_search_eeg([P],[SAVE_DCM],)
 %
 % P - character/cell array of DCM filenames or cell array of DCM structures
+% SAVE_DCM - optional flag to save every DCM.mat
+%
+% Each reduced model requires DCM.A,DCM.B,DCM.C and DCM.options.model
+% or the implicit prior expectation and covariances in DCM.pE and DCM.pC
 %
 %--------------------------------------------------------------------------
 % spm_dcm_search_eeg operates on different DCMs of the same data to find
-% the best model. It will invert the full model whose free-parameters are
-% the union (superset) of all free parameters in each model specified. The
-% routine then uses a post hoc selection procedure to evaluate the log-
+% the best model. It assumes the full model – whose free-parameters are
+% the union (superset) of all free parameters in each model – has been 
+% inverted. A post hoc selection procedure is used to evaluate the log-
 % evidence and conditional density over free-parameters of each model
 % specified.
+%
+% Reduced models can be specified either in terms of the allowable
+% connections (specified in the DCM.A, DCM.B and DCM.C fields) or the
+% resulting prior density (specified in DCM.pE and DCM.pC).  If the
+% latter exist, they will be used as the model specification.
 %
 % The outputs of this routine are graphics reporting the model space search
 % (optimisation) and a DCM_optimum (in the first DCMs directory) for the
@@ -18,7 +27,7 @@ function spm_dcm_search_eeg(P)
 % based on this DCM.
 %
 % Conditional esimates (Ep, Cp and F values) in DCM_??? (specifed by P) are
-% replaced by their reduced estimates (but only these esimates) in rDCM_???
+% replaced by their reduced estimates (but only these estimates) in rDCM_???
 %
 % DCM_optimum  contains the fields:
 %
@@ -26,54 +35,38 @@ function spm_dcm_search_eeg(P)
 %        DCM.PF  - their associated free energies
 %        DCM.PP  - and posterior (model) probabilities
 %
-% In addition, the free energies and posterior estimates of each DCM in P
+% If requested, the free energies and posterior estimates of each DCM in P
 % are saved for subsequent searches over different partitions of model
 % space.
 %
-% See alos: spm_dcm_post_hoc.m
+% See also: spm_dcm_post_hoc.m
 %
 %__________________________________________________________________________
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_dcm_search_eeg.m 5657 2013-09-26 16:53:40Z karl $
 
-% get filenames
+% get filenames and set up
 %--------------------------------------------------------------------------
 if ~nargin
     [P, sts] = spm_select([2 Inf],'^DCM.*\.mat$','Select DCM*.mat files');
     if ~sts, return; end
 end
 
-if ischar(P), P = cellstr(P); end
-N = numel(P);
+try, SAVE_DCM; catch, SAVE_DCM = 0; end
+if ischar(P),   P = cellstr(P);     end
+if isstruct(P), P = {P};            end
+
 
 %-Check models are compatible in terms of their data
 %==========================================================================
+N     = numel(P);
 for j = 1:N
-    
-    % get prior covariances
-    %----------------------------------------------------------------------
-    try, load(P{j}); catch, DCM = P{j}; end
-    
-    % and compare it with the first model
-    %----------------------------------------------------------------------
-    if j == 1
-        Y = DCM.xY.y;
-    else
-        try
-            if any(spm_vec(Y) - spm_vec(DCM.xY.y))
-                fprintf('\nPlease check model %i for data compatibility\n',j)
-                return
-            end
-        catch
-            fprintf('\nPlease check model %i for compatibility\n',j)
-            return
-        end
-    end
-    
+
     % number of free parameters
     %----------------------------------------------------------------------
+    try, load(P{j}); catch, DCM = P{j}; end
     par(:,j) = logical(spm_vec(DCM.A,DCM.B,DCM.C));
 
 end
@@ -116,20 +109,16 @@ for j = 1:N
     % Get reduced model specification
     % ---------------------------------------------------------------------
     try, load(P{j}); catch, DCM = P{j}; end
-    
-    switch DCM.options.analysis
-        
-        % Get model (priors)
-        % -----------------------------------------------------------------
-        case {'ERP'}
-            
-            [rE,rC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
-            
-        otherwise
-            
-            fprintf('\nDCM analysis (%s) is not currently supported\n',DCM.options.analysis);
-            
-    end   
+
+    % Get model (priors)
+    % -----------------------------------------------------------------
+    try
+        rE      = DCM.M.pE;
+        rC      = DCM.M.pC;
+    catch
+        [rE,rC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,DCM.options.model);
+    end
+
     
     % evaluate (reduced) free-energy and posteriors
     % ---------------------------------------------------------------------
@@ -140,6 +129,7 @@ for j = 1:N
     
     % Store parameter estimates
     %----------------------------------------------------------------------
+    DCM.M.pE = rE;
     DCM.M.pC = rC;
     DCM.Ep   = Ep;
     DCM.Cp   = Cp;
@@ -154,19 +144,20 @@ for j = 1:N
     
     % Save DCM
     %======================================================================
-    save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
-    P{j} = DCM;
+    if SAVE_DCM
+        save(filename,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
+    end
     
     % Record free-energy and MAP estimates
     %----------------------------------------------------------------------
-    P{j} = DCM;
+    P{j} = filename;
     G(j) = F;
     
 end
 
 % Model evidences and best model
 % =========================================================================
-G     = G - min(G);
+G     = G - max(G);
 p     = exp(G - max(G));
 p     = p/sum(p);
 
@@ -187,11 +178,16 @@ F   = DCM.F;
 spm_figure('Getwin','Graphics'); clf
 
 subplot(2,2,1)
-if length(P) > 32, plot(G,'k'), else bar(diag(G),N), end
+if length(P) > 32
+    plot(G,'k')
+else
+    bar(diag(G),N)
+    legend(name)
+end
 title('log-posterior','FontSize',16)
 xlabel('model','FontSize',12)
 ylabel('log-probability','FontSize',12)
-legend(name)
+
 axis square
 
 subplot(2,2,2)
@@ -219,7 +215,11 @@ axis(a)
 %--------------------------------------------------------------------------
 spm_figure('Getwin','Graph'); clf
 
-spm_dcm_graph(DCM,DCM.Ep.A)
+try
+    spm_dcm_graph(DCM,DCM.Ep.A)
+catch
+    spm_figure('Getwin','Graph'); delete(gcf)
+end
 
 
 %-Save optimum and full DCM

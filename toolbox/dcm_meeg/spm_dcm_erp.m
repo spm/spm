@@ -25,11 +25,18 @@ function DCM = spm_dcm_erp(DCM)
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
 %   options.CVA          - use CVA for spatial modes [default = 0]
+%
+% The scheme can be initialised with parameters for the neuronal model
+% and spatial (observer) model by specifying the fields DCM.P and DCM.Q, 
+% respectively. If previous priors (DCM.M.pE and pC or DCM.M.gE and gC or 
+% DCM.M.hE and hC) are specified, they will be used. Explicit priors can be
+% useful for Bayesian parameter averaging – but would not normally be
+% called upon – because prior constraints are specified by DCM.A, DCM.B,...
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5558 2013-06-15 20:57:08Z karl $
+% $Id: spm_dcm_erp.m 5657 2013-09-26 16:53:40Z karl $
 
 % check options
 %==========================================================================
@@ -130,25 +137,6 @@ if multC
     pC.C(:,:,2) = pC.C(:,:,1);
 end
 
-% check for previous priors
-%--------------------------------------------------------------------------
-try
-    if length(spm_vec(pE)) == length(spm_vec(M.pE))
-        pE  = M.pE;
-        pC  = M.pC;
-        fprintf('Using previous priors\n')
-    end
-end
-
-
-% check for initial parameters
-%--------------------------------------------------------------------------
-try
-    if length(spm_vec(pE)) == length(spm_vec(M.P))
-        fprintf('Using initial parameters\n')
-    end
-end
-
 % priors on spatial model
 %--------------------------------------------------------------------------
 M.dipfit.model = model;
@@ -159,6 +147,30 @@ M.dipfit.model = model;
 if lock, pC = spm_dcm_lock(pC);      end
 if symm, gC = spm_dcm_symm(gC,gE);   end
 
+
+% hyperpriors (assuming a high signal to noise)
+%--------------------------------------------------------------------------
+hE      = 8;
+hC      = exp(-8);
+
+
+% check for previous priors
+%--------------------------------------------------------------------------
+try
+    pE  = M.pE;
+    pC  = M.pC;
+    fprintf('Using previous priors (for neural model) \n')
+end
+try
+    gE  = M.gE;
+    gC  = M.gC;
+    fprintf('Using previous priors (for spatial model)\n')
+end
+try
+    hE  = M.hE;
+    hC  = M.hC;
+    fprintf('Using previous priors (for noise precision) \n')
+end
 
 
 %-Feature selection using (canonical) eigenmodes of lead-field
@@ -174,11 +186,6 @@ end
 scale    = max(spm_vec(spm_fy_erp(xY.y,M)));
 xY.y     = spm_unvec(spm_vec(xY.y)/scale,xY.y);
 xY.scale = xY.scale/scale;
-
-% hyperpriors (assuming a high signal to noise)
-%--------------------------------------------------------------------------
-hE       = 8;
-hC       = exp(-8);
 
 
 % likelihood model

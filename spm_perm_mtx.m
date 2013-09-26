@@ -2,14 +2,14 @@ function [K] = spm_perm_mtx(n)
 % Returns a matrix of indices permuted over n
 % FORMAT [K] = spm_perm_mtx(n)
 %    n   - (scalar) number of indices
-%    K   - (n^2 x n) permutation matrix
+%    K   - (2^n x n) permutation matrix
 %    n   - (vector) indices
 %    K   - (length(n)! x n) permutation matrix
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_perm_mtx.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_perm_mtx.m 5657 2013-09-26 16:53:40Z karl $
  
 % get permutations
 %==========================================================================

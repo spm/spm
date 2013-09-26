@@ -10,11 +10,12 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_plot_ci.m 5657 2013-09-26 16:53:40Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
 if iscell(E),         E = spm_cat(E(:)); end
+if iscell(C),         C = spm_cat(C(:)); end
 if isstruct(E),       E = spm_vec(E);    end
 if isstruct(C),       C = spm_vec(C);    end
 

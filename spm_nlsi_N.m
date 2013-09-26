@@ -2,7 +2,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Bayesian inversion of a linear-nonlinear model of the form F(p)*G(g)'
 % FORMAT [Ep,Eg,Cp,Cg,S,F,L]= spm_nlsi_N(M,U,Y)
 %
-% Dynamical MIMO models
+% Generative model
 %__________________________________________________________________________
 % 
 % M.IS - IS(p,M,U) A prediction generating function name; usually an 
@@ -21,7 +21,8 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 %
 % M.x  - The expansion point for the states (i.e., the fixed point)
 %
-% M.P  - starting estimtes for model parameters [optional]
+% M.P  - starting estimates for model parameters [ states – optional]
+% M.Q  - starting estimates for model parameters [ observer – optional]
 %
 % M.pE - prior expectation  - of model parameters - f(x,u,p,M)
 % M.pC - prior covariance   - of model parameters - f(x,u,p,M)
@@ -83,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_nlsi_N.m 5657 2013-09-26 16:53:40Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -176,9 +177,15 @@ end
 %--------------------------------------------------------------------------
 try
     spm_vec(M.P) - spm_vec(M.pE);
-    fprintf('\nParameter initialisation successful\n')
+    fprintf('\n(state) parameter initialisation successful\n')
 catch
     M.P = M.pE;
+end
+try
+    spm_vec(M.Q) - spm_vec(M.gE);
+    fprintf('\n(observer) parameter initialisation successful\n')
+catch
+    M.Q = M.gE;
 end
  
  
@@ -268,7 +275,7 @@ ibC   = spm_cat(spm_diag({ipC,igC,iuC}));      % all parameters
 % initialize conditional density
 %--------------------------------------------------------------------------
 Ep    = M.P;
-Eg    = M.gE;
+Eg    = M.Q;
 Eu    = spm_pinv(dgdu)*spm_vec(y);
 
 % expansion point
