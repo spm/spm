@@ -1,13 +1,11 @@
 function varargout = pm_unwrap(varargin)
-% Unwrapping of phasemap. When measuring phase one
-% cannot easily distinguish between e.g. a phase of 182
-% degrees, and one of -178 degrees. One tries to 
-% distinguish these cases by using neighbourhood
-% information. So in the example above, if we find that
-% a neighbouring voxel has a phase of 150 degres it
-% seems much more likely that the "true" phase is
-% 182 degrees than -178 degrees. It's trickier than
-% it sounds.
+% Unwrapping of phasemap
+% When measuring phase one cannot easily distinguish between e.g. a phase
+% of 182 degrees, and one of -178 degrees. One tries to distinguish these
+% cases by using neighbourhood information. So in the example above, if we
+% find that a neighbouring voxel has a phase of 150 degres it seems much
+% more likely that the "true" phase is 182 degrees than -178 degrees. It's
+% trickier than it sounds.
 % FORMAT: [upm,(angvar),(mask),(opm)] = pm_unwrap(ci,pxs,method)
 % or
 % FORMAT: [upm,(angvar),(mask),(opm)] = pm_unwrap(ci,pxs)
@@ -73,13 +71,11 @@ function varargout = pm_unwrap(varargin)
 %
 % Jenkinson M. 2003. Fast, automated, N-dimensional phase-
 % unwrapping algorithm. MRM 49:193-197.
-%__________________________________________________________
-% Jesper Andersson 30/9-03
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson 
-% $Id: pm_unwrap.m 4842 2012-08-15 18:02:30Z guillaume $
+% $Id: pm_unwrap.m 5659 2013-09-27 12:38:24Z guillaume $
 
 %
 % The following are a set of parameters that
@@ -284,5 +280,3 @@ if nargout > 0, varargout{1} = upm;    end
 if nargout > 1, varargout{2} = angvar; end
 if nargout > 2, varargout{3} = mask;   end
 if nargout > 3, varargout{4} = opm;    end
-
-return;
