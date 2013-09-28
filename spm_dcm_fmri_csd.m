@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5633 2013-09-10 13:58:03Z karl $
+% $Id: spm_dcm_fmri_csd.m 5660 2013-09-28 21:39:11Z karl $
 
 
 % get DCM
@@ -127,8 +127,8 @@ end
 %--------------------------------------------------------------------------
 DCM.M.IS = 'spm_csd_fmri_mtf';
 DCM.M.FS = 'spm_fs_fmri_csd';
-DCM.M.g  = 'spm_gx_fmri';
-DCM.M.f  = 'spm_fx_fmri';
+DCM.M.g  = @spm_gx_fmri;
+DCM.M.f  = @spm_fx_fmri;
 DCM.M.x  = x;
 DCM.M.pE = pE;
 DCM.M.pC = pC;

@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5619 2013-08-19 10:43:45Z karl $
+% $Id: spm_csd_fmri_mtf.m 5660 2013-09-28 21:39:11Z karl $
 
 
 % compute log-spectral density
@@ -113,15 +113,11 @@ S     = spm_dcm_mtf(P,M);
 % predicted cross-spectral density
 %--------------------------------------------------------------------------
 G     = zeros(nw,nn,nn);
-for i = 1:nn
-    for j = 1:nn
-        for k = 1:nu
-            for l = 1:nu
-                G(:,i,j) = G(:,i,j) + S(:,i,k).*Gu(:,k,l).*conj(S(:,j,l));
-            end
-        end
-    end
+for i = 1:nw
+    G(i,:,:) = squeeze(S(i,:,:))*squeeze(Gu(i,:,:))*conj(squeeze(S(i,:,:)));
 end
+
+
 
 % and  channel noise
 %--------------------------------------------------------------------------

@@ -15,7 +15,7 @@ function [y] = spm_gx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 3888 2010-05-15 18:49:56Z karl $
+% $Id: spm_gx_fmri.m 5660 2013-09-28 21:39:11Z karl $
  
  
 % Biophysical constants for 1.5T
@@ -23,7 +23,7 @@ function [y] = spm_gx_fmri(x,u,P,M)
  
 % time to echo (TE) (default 0.04 sec)
 %--------------------------------------------------------------------------
-try, TE = M.TE; catch, TE = 0.04; end
+TE  = 0.04;
  
 % resting venous volume (%)
 %--------------------------------------------------------------------------
@@ -31,7 +31,7 @@ V0  = 4;
 
 % estimated region-specific ratios of intra- to extra-vascular signal 
 %--------------------------------------------------------------------------
-ep  = 1*exp(P.epsilon);
+ep  = exp(P.epsilon);
  
 % slope r0 of intravascular relaxation rate R_iv as a function of oxygen 
 % saturation S:  R_iv = r0*[(1 - S)-(1 - S0)] (Hz)
@@ -56,4 +56,4 @@ k3  = 1 - ep;
 %==========================================================================
 v   = exp(x(:,4));
 q   = exp(x(:,5));
-y   = V0*(k1.*(1 - q) + k2.*(1 - q./v) + k3.*(1 - v));
+y   = V0*(k1 - k1.*q + k2 - k2.*q./v + k3 - k3.*v);

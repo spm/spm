@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5309 2013-03-07 14:13:10Z karl $
+% $Id: spm_nlsi_GN.m 5660 2013-09-28 21:39:11Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -120,6 +120,10 @@ try
 catch
     y  = Y;
 end
+
+% convert to function handles
+%--------------------------------------------------------------------------
+
 
 try
     

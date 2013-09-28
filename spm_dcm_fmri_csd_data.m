@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5619 2013-08-19 10:43:45Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 5660 2013-09-28 21:39:11Z karl $
 
 % add sspectral toolbox
 %--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ end
 
 % Frequencies
 %--------------------------------------------------------------------------
-Nw        = 64;
+Nw        = 16;
 DCM.Y.Hz  = linspace(Hz1,Hz2,Nw);          % Frequencies
 
 

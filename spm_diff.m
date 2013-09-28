@@ -10,7 +10,7 @@ function [varargout] = spm_diff(varargin)
 %
 % V      - cell array of matrices that allow for differentiation w.r.t.
 % to a linear transformation of the parameters: i.e., returns
-% 
+%
 % df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
 %
 % q      - flag to preclude default concatenation of dfdx
@@ -22,14 +22,14 @@ function [varargout] = spm_diff(varargin)
 % - a cunning recursive routine
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_diff.m 4060 2010-09-01 17:17:36Z karl $
- 
+% $Id: spm_diff.m 5660 2013-09-28 21:39:11Z karl $
+
 % create inline object
 %--------------------------------------------------------------------------
 f     = varargin{1};
- 
+
 % parse input arguments
 %--------------------------------------------------------------------------
 if iscell(varargin{end})
@@ -50,7 +50,7 @@ elseif ischar(varargin{end})
 else
     error('improper call')
 end
- 
+
 % check transform matrices V = dxdy
 %--------------------------------------------------------------------------
 for i = 1:length(x)
@@ -63,50 +63,61 @@ for i = 1:length(x)
         V{i} = speye(length(spm_vec(x{i})));
     end
 end
- 
+
 % initialise
 %--------------------------------------------------------------------------
 m     = n(end);
 xm    = spm_vec(x{m});
 dx    = exp(-8);
 J     = cell(1,size(V{m},2));
- 
+
 % proceed to derivatives
 %==========================================================================
 if length(n) == 1
- 
     % dfdx
     %----------------------------------------------------------------------
-    f0    = feval(f,x{:});
-    for i = 1:length(J)
-        xi    = x;
-        xmi   = xm + V{m}(:,i)*dx;
-        xi{m} = spm_unvec(xmi,x{m});
-        fi    = feval(f,xi{:});
-        J{i}  = spm_dfdx(fi,f0,dx);
+    if isa(f,'function_handle')
+        
+        f0    = f(x{:});
+        for i = 1:length(J)
+            xi    = x;
+            xi{m} = spm_unvec(xm + V{m}(:,i)*dx,x{m});
+            J{i}  = spm_dfdx(f(xi{:}),f0,dx);
+        end
+        
+    else
+        
+        f0    = feval(f,x{:});
+        for i = 1:length(J)
+            xi    = x;
+            xmi   = xm + V{m}(:,i)*dx;
+            xi{m} = spm_unvec(xmi,x{m});
+            fi    = feval(f,xi{:});
+            J{i}  = spm_dfdx(fi,f0,dx);
+        end
     end
     
     % return numeric array for first-order derivatives
     %======================================================================
- 
+    
     % vectorise f
     %----------------------------------------------------------------------
     f  = spm_vec(f0);
- 
+    
     % if there are no arguments to differentiate w.r.t. ...
     %----------------------------------------------------------------------
     if isempty(xm)
         J = sparse(length(f),0);
- 
-    % or there are no arguments to differentiate
-    %----------------------------------------------------------------------
+        
+        % or there are no arguments to differentiate
+        %----------------------------------------------------------------------
     elseif isempty(f)
         J = sparse(0,length(xm));
     end
-        
+    
     % or differentiation of a vector
     %----------------------------------------------------------------------
-    if isvec(f0) && q
+    if isvector(f0) && q
         
         % concatenate into a matrix
         %------------------------------------------------------------------
@@ -121,9 +132,9 @@ if length(n) == 1
     %----------------------------------------------------------------------
     varargout{1} = J;
     varargout{2} = f0;
- 
+    
 else
- 
+    
     % dfdxdxdx....
     %----------------------------------------------------------------------
     f0        = cell(1,length(n));
@@ -138,8 +149,8 @@ else
     end
     varargout = [{J} f0];
 end
- 
- 
+
+
 function dfdx = spm_dfdx(f,f0,dx)
 % cell subtraction
 %--------------------------------------------------------------------------
@@ -153,13 +164,4 @@ elseif isstruct(f)
 else
     dfdx  = (f - f0)/dx;
 end
- 
- 
-function is = isvec(v)
-% isvector(v) returns true if v is 1-by-n or n-by-1 where n>=0
-%__________________________________________________________________________
- 
-% vec if just two dimensions, and one (or both) unity
-%--------------------------------------------------------------------------
-is = length(size(v)) == 2 && isnumeric(v);
-is = is && (size(v,1) == 1 || size(v,2) == 1);
+

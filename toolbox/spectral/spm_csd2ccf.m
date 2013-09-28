@@ -12,7 +12,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_csd2ccf.m 5660 2013-09-28 21:39:11Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ end
 N     = max(length(Hz),N);
 g     = zeros(N,1);
 dt    = 1/(Hz(2) - Hz(1));
-Hz    = round(Hz*dt);
+Hz    = ceil(Hz*dt);
  
 % Fourier transform cross-spectral density
 %==========================================================================

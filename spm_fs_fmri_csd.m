@@ -13,10 +13,10 @@ function [y] = spm_fs_fmri_csd(y,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fs_fmri_csd.m 5601 2013-08-11 21:19:53Z karl $
+% $Id: spm_fs_fmri_csd.m 5660 2013-09-28 21:39:11Z karl $
 
 
 % return (scaled) cross-spectra and covariance functions
 %--------------------------------------------------------------------------
-c  = spm_csd2ccf(y,M.Hz);
+c  = spm_csd2ccf(y,M.Hz,4*length(M.Hz));
 y  = [y; c(1:8:end,:,:)*32];

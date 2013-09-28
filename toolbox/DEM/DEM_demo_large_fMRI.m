@@ -22,7 +22,7 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5658 2013-09-26 16:54:53Z karl $
+% $Id: DEM_demo_large_fMRI.m 5660 2013-09-28 21:39:11Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -33,7 +33,7 @@ rng('default')
 T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 t  = (1:T)*TR;                        % observation times
-n  = 32;                              % number of regions or nodes
+n  = 8;                              % number of regions or nodes
 u  = spm_conv(randn(T,n),2,0)/2;      % endogenous fluctuations
  
 
@@ -128,6 +128,7 @@ DCM.U.dt = TR;
  
 % nonlinear system identification (Variational Laplace) - deterministic DCM
 % =========================================================================
+DCM.M.Nmax = 8;
 CSD = spm_dcm_fmri_csd(DCM);
  
 % summary
@@ -137,6 +138,13 @@ spm_figure('Getwin','Figure 2'); clf
 subplot(2,1,1); hold off
 spm_plot_ci(CSD.Ep.A(:),CSD.Cp(1:n*n,1:n*n)), hold on
 bar(pP.A(:),1/4), hold off
-title('True and MAP connections (Deterministic)','FontSize',16)
+title('True and MAP connections','FontSize',16)
+axis square
+
+subplot(2,1,2);
+plot(pP.A - diag(diag(pP.A)),CSD.Ep.A - diag(diag(CSD.Ep.A)),'.','MarkerSize',32)
+title('True and MAP connections (Extrinsic)','FontSize',16)
+xlabel('True')
+ylabel('Estimated')
 axis square
 
