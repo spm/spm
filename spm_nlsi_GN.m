@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_nlsi_GN.m 5661 2013-09-29 21:03:46Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -121,10 +121,6 @@ catch
     y  = Y;
 end
 
-% convert to function handles
-%--------------------------------------------------------------------------
-
-
 try
     
     % try FS(y,M)
@@ -150,6 +146,11 @@ catch
         IS = M.IS;
     end
 end
+
+% converted to function handle
+%--------------------------------------------------------------------------
+IS  = spm_funcheck(IS);
+
 
 % size of data (usually samples x channels)
 %--------------------------------------------------------------------------
