@@ -1,5 +1,5 @@
 function [h] = spm_funcheck(f)
-% cconverts strings and inline objects to function handles
+% Convert strings and inline objects to function handles
 % FORMAT [h] = spm_funcheck(f)
 %
 % f   - filename, character expression or inline function
@@ -8,10 +8,10 @@ function [h] = spm_funcheck(f)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_speye.m 1131 2008-02-06 11:17:09Z spm $
+% $Id: spm_funcheck.m 5664 2013-10-01 18:39:05Z spm $
 
 
-% create function handle
+%-Create function handle
 %==========================================================================
 
 % if f is already a function handle
@@ -36,8 +36,5 @@ elseif isa(f,'inline')
     for i = 2:length(names)
         args = [args ',' names{i}];
     end
-    h     = eval(['@(' args ')' char(f)]);
+    h     = eval(['@(' args ')' formula(f)]);
 end
-
-
-

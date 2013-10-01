@@ -1,27 +1,30 @@
-function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
-%function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
-%% Simulate a number of MSP patches at specified locations on existing mesh
+function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit)
+% Simulate a number of MSP patches at specified locations on existing mesh
+% D          - dataset
+% prefix     - prefix of new simulated dataset
+% patchmni   - patch centres in mni space or patch indices
+% simsignal  - Nsourcesx time series withinn woi
+% woi        - window of interest in seconds
+% whitenoise - total rms white noise in Tesla
+% SNRdB      - power signal to noise ratio in dBs
+% trialind   - trials on which the simulated data will be added to the noise
+% mnimesh    - new mesh with vertices in mni space
+% SmthInit   - the smoothing step that creates the patch
+%              Larger numbers, larger patches [default: 0.6]
+%              Note current density should be constant (i.e. larger patch 
+%              on tangential surface will not give larger signal)
 %
-% Created by:	Jose David Lopez - ralph82co@gmail.com
-%				Gareth Barnes - g.barnes@ucl.ac.uk
-%				Vladimir Litvak - litvak.vladimir@gmail.com
-%
-%% D dataset
-%% prefix : prefix of new simulated dataset
-%% patchmni : patch centres in mni space or patch indices
-%% simsignal : Nsourcesx time series withinn woi
-%% woi: window of interest in seconds
-%% whitenoise level in Tesla
-%% SNRdB power signal to noise ratio in dBs
-%% trialind: trials on which the simulated data will be added to the noise
-%% mnimesh : a new mesh with vertices in mni space
-%% SmthInit - the smoothing step that creates the patch- larger numbers larger patches default 0.6. Note current density should be constant (i.e. larger patch on tangential surface will not give larger signal)
-%% Outputs
-%% Dnew- new dataset
-%% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 5631 2013-09-06 09:15:59Z gareth $
+% Dnew       - new dataset
+% meshsourceind - vertex indices of sources on the mesh
+%__________________________________________________________________________
+% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-%% LOAD IN ORGINAL DATA
+% Jose David Lopez, Gareth Barnes, Vladimir Litvak
+% $Id: spm_eeg_simulate.m 5664 2013-10-01 18:39:05Z spm $
+
+
+%-Load in original data
+%==========================================================================
 useind=1; % D to use
 if nargin<2,
     prefix='';
@@ -31,14 +34,12 @@ if nargin<3,
     patchmni=[];
 end;
 
-
 if nargin<4,
     simsignal=[];
 end;
 if nargin<5,
     woi=[];
 end;
-
 
 if nargin<6,
     whitenoise=[];
@@ -56,12 +57,9 @@ if nargin<9,
     mnimesh=[];
 end;
 
-
-
 if nargin<10
-    SmthInit=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
+    SmthInit=[];
 end;
-
 
 
 if isempty(prefix),
@@ -80,13 +78,10 @@ end;
 val=D{useind}.val;
 
 
-
 if isempty(patchmni),
     patchmni=[-45.4989  -30.6967    4.9213;...
         46.7322  -31.2311    4.0085];
-    
 end;
-
 
 if ~xor(isempty(whitenoise),isempty(SNRdB))
     error('Must specify either white noise level or sensor level SNR');
@@ -98,12 +93,11 @@ end;
 % end;
 
 
-
-
-[a1 b1 c1]=fileparts(D{useind}.fname);
+[a1,b1,c1]=fileparts(D{useind}.fname);
 newfilename=[prefix b1];
 
-%% forcing overwrite of an existing file
+% forcing overwrite of an existing file
+%--------------------------------------------------------------------------
 Dnew=D{useind}.clone([prefix b1]);
 
 
@@ -147,10 +141,11 @@ if max(mnidist)>0.1
 end;
 
 
-Ndip = size(meshsourceind,2);		% Number of dipoles
+Ndip = size(meshsourceind,2);       % Number of dipoles
 
 
-%% some default noise levels
+% some default noise levels
+%--------------------------------------------------------------------------
 % 
 % if isempty(whitenoise)&&isempty(SNRdB),
 %     sensor_noise_TrtHz=10e-15; %% Sensor noise in Tesla per root Hz; default 10 fT/rtHz
@@ -162,8 +157,6 @@ Ndip = size(meshsourceind,2);		% Number of dipoles
 % end;
 
 
-
-
 switch(Dnew.inv{val}.forward.vol.unit), %% correct for non-SI lead field scaling
     case 'mm'
         
@@ -173,15 +166,15 @@ switch(Dnew.inv{val}.forward.vol.unit), %% correct for non-SI lead field scaling
         Lscale=100*100;
     otherwise
         error('unknown volume unit')
-end;
+end
 
 
-%% WAVEFORM FOR EACH SOURCE
-
-Ntrials = Dnew.ntrials;				% Number of trials
+%-Waveform for each source
+%==========================================================================
+Ntrials = Dnew.ntrials;             % Number of trials
 
 % define period over which dipoles are active
-startf1  = woi(1);					% (sec) start time
+startf1  = woi(1);                  % (sec) start time
 endf1 = woi(2); %% end time
 f1ind = intersect(find(Dnew.time>startf1),find(Dnew.time<=endf1));
 
@@ -191,26 +184,27 @@ end;
 
 % % Create the waveform for each source
 % signal = zeros(Ndip,length(Dnew.time));
-% for j=1:Ndip				% For each source
-%     for i=1:Ntrials			% and trial
-%         f1 = dipfreq(j);	% Frequency depends on stim condition
-%         amp1 = dipmoment(j);	% also the amplitude
+% for j=1:Ndip              % For each source
+%     for i=1:Ntrials           % and trial
+%         f1 = dipfreq(j);  % Frequency depends on stim condition
+%         amp1 = dipmoment(j);  % also the amplitude
 %         phase1 = pi/2;
 %         signal(j,f1ind) = signal(j,f1ind)...
 %             + amp1*sin((Dnew.time(f1ind)...
 %             - Dnew.time(min(f1ind)))*f1*2*pi + phase1);
 %     end
 % end
-% 
-%% CREATE A NEW FORWARD PROBLEM
 
+
+%-Create a new forward problem
+%==========================================================================
 fprintf('Computing Gain Matrix: ')
-spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
+spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
 
-[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
+[L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix
 
-Nd    = size(L,2);							% number of dipoles
-X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
+Nd    = size(L,2);                          % number of dipoles
+X     = zeros(Nd,size(Dnew,2));                     % Matrix of dipoles
 fprintf(' - done\n')
 
 
@@ -273,7 +267,7 @@ meanrmssignal=mean(allchanstd);
 if ~isempty(SNRdB),
     whitenoise = meanrmssignal.*(10^(-SNRdB/20));
     disp(sprintf('Setting white noise to give sensor level SNR of %dB',SNRdB));
-end;
+end
 
 
 chans = Dnew.indchantype('MEG'); %% added by Anna Jafarpour 13/06/13
@@ -287,17 +281,15 @@ for i=1:Ntrials
 end
 
 
-
-
-%% Plot and save
+%-Plot and save
+%==========================================================================
 [dum,plotind]=sort(allchanstd);
 
-
-Nj		= size(vert,1);
-M		= mean(X(:,f1ind)'.^2,1);
-G		= sqrt(sparse(1:Nj,1,M,Nj,1));
-Fgraph	= spm_figure('GetWin','Graphics');
-j		= find(G);
+Nj      = size(vert,1);
+M       = mean(X(:,f1ind)'.^2,1);
+G       = sqrt(sparse(1:Nj,1,M,Nj,1));
+Fgraph  = spm_figure('GetWin','Graphics');
+j       = find(G);
 
 clf(Fgraph)
 figure(Fgraph)
@@ -322,4 +314,3 @@ legend('Noisy','Noiseless');
 Dnew.save;
 
 fprintf('\n Finish\n')
-
