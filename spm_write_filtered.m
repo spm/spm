@@ -1,5 +1,5 @@
 function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
-% Writes the filtered SPM as an image
+% Write the filtered SPM as an image
 % FORMAT V0 = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 %
 % Z       - {1 x ?} vector point list of SPM values for MIP
@@ -20,13 +20,13 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % co-ordinates and voxel intensities), and writes it out into an image
 % file.
 %
-% It is intended for writing out filtered SPM's from the results
-% section of SPM, but can be used freestanding.
+% It is intended for writing out filtered SPM's from the results section
+% of SPM, but can be used freestanding.
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 4845 2012-08-15 19:23:46Z guillaume $
+% $Id: spm_write_filtered.m 5662 2013-10-01 17:49:48Z guillaume $
 
 
 %-Parse arguments
@@ -61,12 +61,12 @@ spm('Pointer','Watch')
 %-Set up header information
 %--------------------------------------------------------------------------
 Vo  = struct(...
-        'fname',    F,...
-        'dim',      DIM',...
-        'dt',       [spm_type('float32') spm_platform('bigend')],...
-        'pinfo',    [1 0 0]',...
-        'mat',      M,...
-        'descrip',  descrip);
+        'fname',   F,...
+        'dim',     DIM',...
+        'dt',      [spm_type('float32') spm_platform('bigend')],...
+        'pinfo',   [1 0 0]',...
+        'mat',     M,...
+        'descrip', descrip);
 if all(Z==1) % binary map
     Vo.dt(1) = spm_type('uint8');
 elseif all(ismember(Z,0:max(Z))) % n-ary map
@@ -75,14 +75,14 @@ end
 
 %-Reconstruct (filtered) image from XYZ & Z pointlist
 %--------------------------------------------------------------------------
-Y      = nan(DIM(1:3)');
+Y      = NaN(DIM(1:3)');
 OFF    = XYZ(1,:) + DIM(1)*(XYZ(2,:)-1 + DIM(2)*(XYZ(3,:)-1));
 Y(OFF) = Z.*(Z > 0);
     
 %-Write the reconstructed volume
 %--------------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-spm('alert"',{'Written:',['    ',spm_select('CPath',F)]},mfilename,1);
+spm('alert"',{'Written:',['    ',spm_file(F,'CPath')]},mfilename,1);
 
 %-End
 %--------------------------------------------------------------------------

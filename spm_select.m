@@ -34,6 +34,7 @@ function varargout = spm_select(varargin)
 % Return files matching the filter 'filt' and directories within 'direc'
 % direc  - directory to search [Default: pwd]
 % filt   - filter to select files with regexp, e.g. '^w.*\.img$' [Default: '.*']
+%
 % files  - files matching 'filt' in directory 'direc'
 % dirs   - subdirectories of 'direc'
 %
@@ -51,19 +52,25 @@ function varargout = spm_select(varargin)
 % FORMAT [files,dirs] = spm_select('ExtFPListRec',direc,filt,frames)
 % As above, but return files with full paths (i.e. prefixes 'direc' to each)
 % and search through sub directories recursively.
-% 
+%__________________________________________________________________________
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+
+% John Ashburner
+% $Id: spm_select.m 5662 2013-10-01 17:49:48Z guillaume $
+
+
+% For developers:
+%--------------------------------------------------------------------------
+%
 % FORMAT cpath = spm_select('CPath',path,cwd)
 % Canonicalise paths: prepend cwd to relative paths, process '..' & '.'
 % directories embedded in path.
 % path   - string matrix containing path name
 % cwd    - current working directory [Default: '.']
 % cpath  - canonicalised paths, in same format as input path argument
-%__________________________________________________________________________
-%
-% For developers:
 %
 % FORMAT [t,ind] = spm_select('Filter',files,typ,filt,frames)
-% filter the list of files (cell or char array) in the same way as the
+% Filter the list of files (cell or char array) in the same way as the
 % GUI would do. There is an additional typ 'extimage' which will match
 % images with frame specifications, too. Also, there is a typ 'extdir',
 % which will match canonicalised directory names. The 'frames' argument
@@ -76,11 +83,6 @@ function varargout = spm_select(varargin)
 % Add directory dir to list of previous directories.
 % FORMAT dirs = spm_select('prevdirs')
 % Retrieve list of previous directories.
-%__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
-
-% John Ashburner
-% $Id: spm_select.m 4969 2012-09-27 09:58:43Z volkmar $
 
 
 persistent isInitSelect;
