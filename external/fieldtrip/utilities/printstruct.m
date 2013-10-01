@@ -39,7 +39,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 8467 2013-09-17 11:50:42Z roboos $
+% $Id: printstruct.m 8501 2013-09-24 12:56:40Z roevdmei $
 
 if nargin==1
   val  = name;
@@ -178,12 +178,14 @@ switch class(val)
     elseif all(siz==1)
       str = sprintf('%s', printbool(val));
     elseif length(siz)==2
+      str = [];
       for i=1:siz(1);
         str = [ str sprintf('%s ', printbool(val(i,:))) '; ' ];
       end
       str = sprintf('[ %s ]', str(1:end-3));
     else
-      error('multidimensional arrays are not supported');
+      warning('multidimensional arrays are not supported');
+      str = '''FIXME: printing multidimensional logical arrays is not supported''';
     end
     
   case {'single' 'double'}
@@ -196,6 +198,7 @@ switch class(val)
         str = sprintf('%g', val);
       end
     elseif length(siz)==2
+      str = [];
       for i=1:siz(1);
         if all(isinteger(val(i,:)))
           str = [ str sprintf('%d ', val(i,:)) '; ' ];
@@ -206,6 +209,7 @@ switch class(val)
       str = sprintf('[ %s ]', str(1:end-3));
     else
       warning('multidimensional arrays are not supported');
+      str = '''FIXME: printing multidimensional single and double arrays is supported''';
     end
     
   case {'int8' 'int16' 'int32' 'int64' 'uint8' 'uint16' 'uint32' 'uint64'}
@@ -213,12 +217,14 @@ switch class(val)
     if all(siz==1)
       str = sprintf('%d', val);
     elseif length(siz)==2
+      str = [];
       for i=1:siz(1);
         str = [ str sprintf('%d ', val(i,:)) '; ' ];
       end
       str = sprintf('[ %s ]', str(1:end-3));
     else
-      error('multidimensional arrays are not supported');
+      warning('multidimensional arrays are not supported');
+      str = '''FIXME: printing multidimensional int/uint arrays is not supported''';
     end
     
   case 'function_handle'
@@ -226,11 +232,11 @@ switch class(val)
     
   case 'struct'
     warning('cannot print structure at this level');
-    str = '''FIXME''';
+    str = '''FIXME: printing structures at this level is not supported''';
     
   otherwise
     warning('cannot print unknown object at this level');
-    str = '''FIXME''';
+    str = '''FIXME: printing unknown objects is not supported''';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

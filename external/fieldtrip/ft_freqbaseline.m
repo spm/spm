@@ -12,7 +12,8 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %                      cell array of strings to specify multiple fields to normalize
 %                      (default = 'powspctrm')
 %
-% See also FT_FREQANALYSIS, FT_TIMELOCKBASELINE, FT_FREQCOMPARISON
+% See also FT_FREQANALYSIS, FT_TIMELOCKBASELINE, FT_FREQCOMPARISON,
+% FT_FREQGRANDAVERAGE
 
 % Undocumented local options:
 %   cfg.inputfile  = one can specifiy preanalysed saved data as input
@@ -38,9 +39,9 @@ function [freq] = ft_freqbaseline(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqbaseline.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_freqbaseline.m 8529 2013-09-24 15:57:35Z johzum $
 
-revision = '$Id: ft_freqbaseline.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_freqbaseline.m 8529 2013-09-24 15:57:35Z johzum $';
 
 % do the general setup of the function
 ft_defaults

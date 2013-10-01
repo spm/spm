@@ -39,7 +39,7 @@ function [varargout] = ft_plot_text(X, Y, str, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_text.m 8271 2013-06-16 11:38:09Z roevdmei $
+% $Id: ft_plot_text.m 8578 2013-10-01 09:11:23Z roevdmei $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -120,9 +120,9 @@ set(h, 'HorizontalAlignment', HorizontalAlignment);
 set(h, 'Color', Color);
 set(h, 'rotation', rotation);
 set(h, 'VerticalAlignment',VerticalAlignment); 
+if ~isempty(FontUnits), set(h, 'FontUnits', FontUnits); end
 if ~isempty(FontSize),  set(h, 'FontSize', FontSize);  end
 if ~isempty(FontName),  set(h, 'FontName', FontName);  end
-if ~isempty(FontUnits), set(h, 'FontUnits', FontUnits); end
 set(h, 'tag', tag);
 set(h, 'interpreter', interpreter);
 

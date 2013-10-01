@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8439 2013-08-29 17:39:09Z vlalit $
+% $Id: ft_read_data.m 8519 2013-09-24 14:47:36Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -654,11 +654,11 @@ switch dataformat
     % this function as 'egi_mff_v2'.
     
     % check if requested data contains multiple epochs. If so, give error
-    if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
-      data_in_epoch = zeros(1,length(hdr.orig.xml.epoch));
-      for iEpoch = 1:length(hdr.orig.xml.epoch)
-        begsamp_epoch = round(str2double(hdr.orig.xml.epoch(iEpoch).epoch.beginTime)./1000./hdr.Fs);
-        endsamp_epoch = round(str2double(hdr.orig.xml.epoch(iEpoch).epoch.endTime)./1000./hdr.Fs);
+    if isfield(hdr.orig.xml,'epochs') && length(hdr.orig.xml.epochs) > 1
+      data_in_epoch = zeros(1,length(hdr.orig.xml.epochs));
+      for iEpoch = 1:length(hdr.orig.xml.epochs)
+        begsamp_epoch = hdr.orig.epochdef(iEpoch,1);
+        endsamp_epoch = hdr.orig.epochdef(iEpoch,2);
         data_in_epoch(iEpoch) = length(intersect(begsamp_epoch:endsamp_epoch,begsample:endsample));
       end
       if sum(data_in_epoch>1) > 1
@@ -851,6 +851,7 @@ switch dataformat
     dat  = orig.data(chanindx, begsample:endsample);
     
   case {'ns_cnt' 'ns_cnt16', 'ns_cnt32'}
+    ft_hastoolbox('eeglab', 1);
     % Neuroscan continuous data
     sample1    = begsample-1;
     ldnsamples = endsample-begsample+1; % number of samples to read
@@ -865,7 +866,7 @@ switch dataformat
     end
     
     if strcmp(dataformat, 'ns_cnt')
-      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples);
+      tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples); % let loadcnt figure it out
     elseif strcmp(dataformat, 'ns_cnt16')
       tmp = loadcnt(filename, 'sample1', sample1, 'ldnsamples', ldnsamples, 'dataformat', 'int16');
     elseif strcmp(dataformat, 'ns_cnt32')

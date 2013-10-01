@@ -37,9 +37,14 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rollback_provenance.m 8407 2013-08-21 12:29:06Z eelspa $
+% $Id: rollback_provenance.m 8575 2013-09-30 12:30:12Z roboos $
 
 for i=1:(nargin-1)
+  
+  if ~isfield(varargin{i}, 'cfg')
+    % nothing to do
+    continue
+  end
   
   fn0 = fieldnames(cfg);
   
@@ -49,6 +54,7 @@ for i=1:(nargin-1)
   end
   
   fn1 = fieldnames(varargin{i}.cfg);
+  
   % only work on the fields that are explicitly present in the cfg
   fn = intersect(fn0, fn1);
   

@@ -27,7 +27,8 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin)
 % input/output structure. For this particular function, the input should be
 % specified as a cell array.
 %
-% See also FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS, FT_FREQDESCRIPTIVES
+% See also FT_TIMELOCKGRANDAVERAGE, FT_FREQANALYSIS, FT_FREQDESCRIPTIVES,
+% FT_FREQBASELINE
 
 % FIXME averaging coherence is not possible if inputs contain different amounts of data (i.e. chan/freq/time)
 
@@ -49,9 +50,9 @@ function [grandavg] = ft_freqgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqgrandaverage.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_freqgrandaverage.m 8529 2013-09-24 15:57:35Z johzum $
 
-revision = '$Id: ft_freqgrandaverage.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_freqgrandaverage.m 8529 2013-09-24 15:57:35Z johzum $';
 
 % do the general setup of the function
 ft_defaults

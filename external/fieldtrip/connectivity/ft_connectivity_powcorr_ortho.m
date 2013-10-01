@@ -13,7 +13,7 @@ function [c] = ft_connectivity_powcorr_ortho(mom, varargin)
 % specifies the index/indices of the channels that serve as a reference 
 % channel. (Default is 'all').
 %
-% The output c is a Nchanx(Nrefchanx2) matrix that contain the power correlation
+% The output c is a NchanxNrefchan matrix that contain the power correlation
 % for all channels orthogonalised relative to the reference channel in the first
 % Nrefchan columns, and the power correlation for the reference channels 
 % orthogonalised relative to the channels in the second Nrefchan columns.
@@ -36,7 +36,7 @@ function [c] = ft_connectivity_powcorr_ortho(mom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_powcorr_ortho.m 8465 2013-09-16 10:40:16Z jansch $
+% $Id: ft_connectivity_powcorr_ortho.m 8545 2013-09-25 16:22:11Z jansch $
 
 refindx = ft_getopt(varargin, 'refindx', 'all');
 tapvec  = ft_getopt(varargin, 'tapvec',  ones(1,size(mom,2)));
@@ -83,7 +83,7 @@ c = zeros(n, numel(refindx));%;*2);
 N = ones(n,1);
 %warning off;
 for k = 1:numel(refindx)      
-  indx     = refindx(k)
+  indx     = refindx(k);
   ref      = mom(indx,:);
   crefnorm = conj(ref./abs(ref));
 

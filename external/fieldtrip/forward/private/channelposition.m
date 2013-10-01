@@ -28,7 +28,7 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 7436 2013-02-04 12:53:47Z roboos $
+% $Id: channelposition.m 8571 2013-09-30 12:28:06Z roboos $
 
 % FIXME varargin is not documented
 
@@ -36,7 +36,9 @@ function [pnt, ori, lab] = channelposition(sens, varargin)
 getref = ft_getopt(varargin, 'channel', false);
 
 % remove the balancing from the sensor definition, e.g. planar gradients, 3rd-order gradients, PCA-cleaned data or ICA projections
-sens = undobalancing(sens);
+if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
+  sens = undobalancing(sens);
+end
 
 % keep it backward compatible with sensor definitions prior to 2011v1 (see ft_datatype_sens), which have pnt/ori instead of coilpos/coilori.
 if isfield(sens, 'ori')

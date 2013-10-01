@@ -40,7 +40,7 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 % input/output structure. For this particular function, the input should be
 % structured as a cell array.
 %
-% See also FT_TIMELOCKANALYSIS, FT_TIMELOCKSTATISTICS
+% See also FT_TIMELOCKANALYSIS, FT_TIMELOCKSTATISTICS, FT_TIMELOCKBASELINE
 
 % Copyright (C) 2003-2006, Jens Schwarzbach
 % Copyright (C) 2013, Burkhard Maess
@@ -61,9 +61,9 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_timelockgrandaverage.m 8529 2013-09-24 15:57:35Z johzum $
 
-revision = '$Id: ft_timelockgrandaverage.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_timelockgrandaverage.m 8529 2013-09-24 15:57:35Z johzum $';
 
 % do the general setup of the function
 ft_defaults

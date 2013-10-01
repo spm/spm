@@ -66,9 +66,9 @@ function [lrp] = ft_lateralizedpotential(cfg, avgL, avgR)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_lateralizedpotential.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_lateralizedpotential.m 8513 2013-09-24 13:46:37Z jimher $
 
-revision = '$Id: ft_lateralizedpotential.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_lateralizedpotential.m 8513 2013-09-24 13:46:37Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -110,11 +110,11 @@ Nchan = size(cfg.channelcmb);
 for i=1:Nchan
   % here the channel names "C3" and "C4" are used to clarify the 
   % computation of the lateralized potential on all channel pairs
-  C3R = strmatch(cfg.channelcmb{i,1}, avgR.label);
-  C4R = strmatch(cfg.channelcmb{i,2}, avgR.label);
-  C3L = strmatch(cfg.channelcmb{i,1}, avgL.label);
-  C4L = strmatch(cfg.channelcmb{i,2}, avgL.label);
-  if ~isempty(C3R) && ~isempty(C4R) && ~isempty(C3L) && ~isempty(C4L)
+  C3R = strcmp(cfg.channelcmb{i,1}, avgR.label);
+  C4R = strcmp(cfg.channelcmb{i,2}, avgR.label);
+  C3L = strcmp(cfg.channelcmb{i,1}, avgL.label);
+  C4L = strcmp(cfg.channelcmb{i,2}, avgL.label);
+  if any(C3R) && any(C4R) && any(C3L) && any(C4L)
     lrp.label{end+1}     = sprintf('%s/%s', cfg.channelcmb{i,1}, cfg.channelcmb{i,2});
     lrp.plotlabel{end+1} = cfg.channelcmb{i,1};
     erpC3L = avgL.avg(C3L,:);

@@ -19,7 +19,7 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 % files should contain only a single variable, corresponding with the
 % input/output structure.
 %
-% See also FT_TIMELOCKANALYSIS, FT_FREQBASELINE
+% See also FT_TIMELOCKANALYSIS, FT_FREQBASELINE, FT_TIMELOCKGRANDAVERAGE
 
 % Undocumented local options:
 %   cfg.baselinewindow
@@ -44,9 +44,9 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_timelockbaseline.m 8529 2013-09-24 15:57:35Z johzum $
 
-revision = '$Id: ft_timelockbaseline.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_timelockbaseline.m 8529 2013-09-24 15:57:35Z johzum $';
 
 % do the general setup of the function
 ft_defaults

@@ -29,6 +29,7 @@ function [type] = ft_senstype(input, desired)
 %   'yokogawa160_planar'
 %   'yokogawa440'
 %   'yokogawa440'_planar
+%   'ext1020' (this includes eeg1020, eeg1010 and eeg1005)
 %   'neuromag122'
 %   'neuromag306'
 %   'egi32'
@@ -38,10 +39,10 @@ function [type] = ft_senstype(input, desired)
 %   'biosemi64'
 %   'biosemi128'
 %   'biosemi256'
-%   'ext1020'
+%   'neuralynx'
 %   'plexon'
-%   'electrode'
-%   'magnetometer'
+%   'eeg' (this was called 'electrode' in older versions)
+%   'meg' (this was called 'magnetometer' in older versions)
 %
 % The optional input argument for the desired type can be any of the above,
 % or any of the following
@@ -87,7 +88,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 7733 2013-03-31 12:13:13Z roboos $
+% $Id: ft_senstype.m 8562 2013-09-27 07:12:52Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -225,7 +226,7 @@ elseif issubfield(input, 'orig.sys_name')
   
 elseif issubfield(input, 'orig.FILE.Ext') && strcmp(input.orig.FILE.Ext, 'edf')
   % this is a complete header that was read from an EDF or EDF+ dataset
-  type = 'electrode';
+  type = 'eeg';
   
 else
   % start with unknown, then try to determine the proper type by looking at the labels
@@ -244,7 +245,8 @@ else
     % determine the type of magnetometer/gradiometer system based on the channel names alone
     % this uses a recursive call to the "islabel" section further down
     type = ft_senstype(sens.label);
-    if strcmp(type, 'unknown')
+    %sens_temp.type = type;
+    if strcmp(type, 'unknown') %|| ~ft_senstype(sens_temp,'meg')
       % although we don't know the type, we do know that it is MEG
       type = 'meg';
     end
@@ -252,17 +254,20 @@ else
   elseif iselec
     % this looks like EEG
     
-    % determine the type of electrode/acquisition system based on the channel names alone
+    % determine the type of eeg/acquisition system based on the channel names alone
     % this uses a recursive call to the "islabel" section further down
     type = ft_senstype(sens.label);
-    if strcmp(type, 'unknown')
+    %sens_temp.type = type;
+    if strcmp(type, 'unknown') %|| ~ft_senstype(sens_temp,'eeg')
       % although we don't know the type, we do know that it is EEG
       type = 'eeg';
     end
     
   elseif islabel
     % look only at the channel labels
-    if     (mean(ismember(ft_senslabel('ctf275'),        sens.label)) > 0.8)
+    if     (mean(ismember(ft_senslabel('ant128'),        sens.label)) > 0.8)
+      type = 'ant128';
+    elseif (mean(ismember(ft_senslabel('ctf275'),        sens.label)) > 0.8)
       type = 'ctf275';
     elseif (mean(ismember(ft_senslabel('ctfheadloc'),    sens.label)) > 0.8)  % look at the head localization channels
       type = 'ctf275';
@@ -326,7 +331,7 @@ else
     elseif (mean(ismember(ft_senslabel('egi32'),         sens.label)) > 0.8)
       type = 'egi32';
     elseif (sum(ismember(sens.label,         ft_senslabel('eeg1005'))) > 10) % Otherwise it's not even worth recognizing
-      type = 'ext1020';
+      type = 'ext1020'; % the ext1020 covers eeg1020, eeg1010 and eeg1005
     elseif any(ismember(ft_senslabel('btiref'), sens.label))
       type = 'bti'; % it might be 148 or 248 channels
     elseif any(ismember(ft_senslabel('ctfref'), sens.label))
@@ -368,11 +373,11 @@ if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'eeg'
-      type = any(strcmp(type, {'eeg' 'electrode' 'biosemi64' 'biosemi128' 'biosemi256' 'egi32' 'egi64' 'egi128' 'egi256' 'ext1020'}));
+      type = any(strcmp(type, {'eeg' 'electrode' 'ant128' 'biosemi64' 'biosemi128' 'biosemi256' 'egi32' 'egi64' 'egi128' 'egi256' 'ext1020'}));
     case 'biosemi'
       type = any(strcmp(type, {'biosemi64' 'biosemi128' 'biosemi256'}));
     case 'egi'
-      type = any(strcmp(type, {'egi64' 'egi128' 'egi256'}));
+      type = any(strcmp(type, {'egi32' 'egi64' 'egi128' 'egi256'}));
     case 'meg'
       type = any(strcmp(type, {'meg' 'magnetometer' 'ctf' 'bti' 'ctf64' 'ctf151' 'ctf275' 'ctf151_planar' 'ctf275_planar' 'neuromag122' 'neuromag306' 'bti148' 'bti148_planar' 'bti248' 'bti248_planar' 'bti248grad' 'bti248grad_planar' 'yokogawa160' 'yokogawa160_planar' 'yokogawa64' 'yokogawa64_planar' 'yokogawa440' 'yokogawa440_planar' 'itab' 'itab28' 'itab153' 'itab153_planar'}));
     case 'ctf'
@@ -387,7 +392,7 @@ if ~isempty(desired)
       type = any(strcmp(type, {'itab' 'itab28' 'itab153' 'itab153_planar'}));
     case 'meg_axial'
       % note that neuromag306 is mixed planar and axial
-      type = any(strcmp(type, {'magnetometer' 'neuromag306' 'ctf64' 'ctf151' 'ctf275' 'bti148' 'bti248' 'bti248grad' 'yokogawa160' 'yokogawa64' 'yokogawa440'}));
+      type = any(strcmp(type, {'neuromag306' 'ctf64' 'ctf151' 'ctf275' 'bti148' 'bti248' 'bti248grad' 'yokogawa160' 'yokogawa64' 'yokogawa440'}));
     case 'meg_planar'
       % note that neuromag306 is mixed planar and axial
       type = any(strcmp(type, {'neuromag122' 'neuromag306' 'ctf151_planar' 'ctf275_planar' 'bti148_planar' 'bti248_planar' 'bti248grad_planar' 'yokogawa160_planar' 'yokogawa64_planar' 'yokogawa440_planar'}));

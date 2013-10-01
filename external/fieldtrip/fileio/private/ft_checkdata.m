@@ -55,7 +55,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 8453 2013-09-09 19:40:29Z jansch $
+% $Id: ft_checkdata.m 8570 2013-09-30 12:26:11Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1671,13 +1671,21 @@ data = fixinside(data, 'logical');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = freq2raw(freq)
 
-if strcmp(freq.dimord, 'rpt_chan_freq_time')
-  dat = freq.powspctrm;
-elseif strcmp(freq.dimord, 'rpttap_chan_freq_time')
-  warning('converting fourier representation into raw data format. this is experimental code');
-  dat = freq.fourierspctrm;
+if isfield(freq, 'powspctrm')
+  param = 'powspctrm';
+elseif isfield(freq, 'fourierspctrm')
+  param = 'fourierspctrm';
 else
-  error('this only works for dimord=''rpt_chan_freq_time''');
+  error('not supported for this data representation');
+end  
+
+if strcmp(freq.dimord, 'rpt_chan_freq_time') || strcmp(freq.dimord, 'rpttap_chan_freq_time')
+  dat = freq.(param);
+elseif strcmp(freq.dimord, 'chan_freq_time')
+  dat = freq.(param);
+  dat = reshape(dat, [1 size(dat)]); % add a singleton dimension
+else
+  error('not supported for dimord %s', freq.dimord);
 end
 
 nrpt  = size(dat,1);

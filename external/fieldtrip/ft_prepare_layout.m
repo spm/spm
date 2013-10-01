@@ -82,9 +82,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8309 2013-07-04 14:19:00Z vlalit $
+% $Id: ft_prepare_layout.m 8567 2013-09-30 12:15:07Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 8309 2013-07-04 14:19:00Z vlalit $';
+revision = '$Id: ft_prepare_layout.m 8567 2013-09-30 12:15:07Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -795,10 +795,10 @@ return % function readlay
 function layout = sens2lay(sens, rz, method, style, overlap)
 
 % remove the balancing from the sensor definition, e.g. 3rd order gradients, PCA-cleaned data or ICA projections
-% this should not be necessary anymore, because the sensor description is
-% up-to-date, i.e. explicit information with respect to the channel
-% positions is present
-%sens = undobalancing(sens);
+% this not only removed the linear projections, but also ensures that the channel labels are correctly named
+if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
+  sens = undobalancing(sens);
+end
 
 fprintf('creating layout for %s system\n', ft_senstype(sens));
 

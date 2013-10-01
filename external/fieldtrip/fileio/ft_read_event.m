@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 8439 2013-08-29 17:39:09Z vlalit $
+% $Id: ft_read_event.m 8510 2013-09-24 13:28:25Z jorhor $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -618,6 +618,28 @@ switch eventformat
       warning('no triggerfile was found');
     end
     
+   case 'eep_trg'
+    % check that the required low-level toolbox is available
+    ft_hastoolbox('eeprobe', 1);
+    % try to read external trigger file in EEP format
+    cntfile = [filename(1:(end-3)), 'cnt'];
+    if ~exist(cntfile, 'file') && isempty(hdr)
+        warning('No corresponding .cnt-file found, cannot read in header information. No events can be read in.\n');
+    else
+      if isempty(hdr)
+        hdr = ft_read_header(cntfile);
+      end
+      tmp = read_eep_trg(filename);
+      % translate the EEProbe trigger codes to events
+      for i=1:length(tmp)
+        event(i).type     = 'trigger';
+        event(i).sample   = round((tmp(i).time/1000) * hdr.Fs) + 1;    % convert from ms to samples
+        event(i).value    = tmp(i).code;
+        event(i).offset   = 0;
+        event(i).duration = 0;
+      end
+    end
+    
   case 'egi_egis'
     if isempty(hdr)
       hdr = ft_read_header(filename);
@@ -754,7 +776,7 @@ switch eventformat
     begTime(11) = ' '; begTime(end-5:end) = [];
     begSDV = datenum(begTime);
     % find out if there are epochs in this dataset
-    if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+    if isfield(hdr.orig.xml,'epochs') && length(hdr.orig.xml.epochs) > 1
       Msamp2offset = zeros(2,size(hdr.orig.epochdef,1),1+max(hdr.orig.epochdef(:,2)-hdr.orig.epochdef(:,1)));
       Msamp2offset(:) = NaN;
       for iEpoch = 1:size(hdr.orig.epochdef,1)
@@ -778,9 +800,9 @@ switch eventformat
           if eventOffset < 0
             % event out of range (before recording started): do nothing
           else
-            eventCount = eventCount+1;
             % calculate eventSample, relative to start of epoch
-            if isfield(hdr.orig.xml,'epoch') && length(hdr.orig.xml.epoch) > 1
+            if isfield(hdr.orig.xml,'epochs') && length(hdr.orig.xml.epochs) > 1
+              SampIndex=[];
               for iEpoch = 1:size(hdr.orig.epochdef,1)
                 [dum,dum2] = intersect(squeeze(Msamp2offset(2,iEpoch,:)), eventOffset);
                 if ~isempty(dum2)
@@ -788,16 +810,21 @@ switch eventformat
                   SampIndex = dum2;
                 end
               end
-              eventSample = Msamp2offset(1,EpochNum,SampIndex);
-            else
+              if ~isempty(SampIndex) 
+                  eventSample = Msamp2offset(1,EpochNum,SampIndex);
+              else
+                  eventSample=[]; %Drop event if past end of epoch
+              end;
+            else 
               eventSample = eventOffset+1;
             end
-            
-            event(eventCount).type     = eventNames{iXml}(8:end);
-            event(eventCount).sample   = eventSample;
-            event(eventCount).offset   = 0;
-            event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
-            event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
+           if ~isempty(eventSample) 
+              event(eventCount).type     = eventNames{iXml}(8:end);
+              event(eventCount).sample   = eventSample;
+              event(eventCount).offset   = 0;
+              event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
+              event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
+            end;
           end  %if that takes care of non "-" events that are still out of range
         end %if that takes care of "-" events, which are out of range
       end %iEvent
