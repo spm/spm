@@ -1,16 +1,19 @@
-function [y] = spm_fx_fmri(x,u,P,M)
+function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % state equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
 % responses
-% FORMAT [y] = spm_fx_fmri(x,u,P,M)
+% FORMAT [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % x      - state vector
-%   x(:,1) - excitatory neuronal activity             ue
+%   x(:,1) - excitatory neuronal activity            ue
 %   x(:,2) - vascular signal                          s
 %   x(:,3) - rCBF                                  ln(f)
 %   x(:,4) - venous volume                         ln(v)
 %   x(:,5) - deoyxHb                               ln(q)
-%  [x(:,6) - inhibitory neuronal activity             ui]
+%  [x(:,6) - inhibitory neuronal activity             ui
 %
-% y      - dx/dt
+% f      - dx/dt
+% dfdx   - df/dx
+% dfdu   - df/du
+% D      - delays
 %
 %___________________________________________________________________________
 %
@@ -32,7 +35,7 @@ function [y] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5457 2013-04-30 14:13:20Z karl $
+% $Id: spm_fx_fmri.m 5665 2013-10-02 09:03:59Z karl $
 
 
 % Neuronal motion
@@ -55,14 +58,14 @@ end
 
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
-y    = x;
+f    = x;
 if size(x,2) == 5  
     
     % one neuronal state per region: diag(A) is a log self-inhibition
     %----------------------------------------------------------------------
     SI     = diag(P.A);
     P.A    = P.A - diag(exp(SI)/2 + SI);
-    y(:,1) = P.A*x(:,1) + P.C*u(:);
+    f(:,1) = P.A*x(:,1) + P.C*u(:);
 
 else
 
@@ -89,12 +92,11 @@ else
         EI(in{i}(1),in{i}(2)) = EE(in{i}(1),in{i}(2));
         EE(in{i}(1),in{i}(2)) = 0;
     end
-    
 
-    % motion - excitatory and inhibitory: y = dx/dt
+    % motion - excitatory and inhibitory: f = dx/dt
     %----------------------------------------------------------------------
-    y(:,1) = EE*x(:,1) - SE*x(:,1) - IE*x(:,6) + P.C*u(:);
-    y(:,6) = EI*x(:,1) - SI*x(:,6)*2;
+    f(:,1) = (EE - SE)*x(:,1) - IE*x(:,6) + P.C*u(:);
+    f(:,6) = EI*x(:,1) - SI*x(:,6)*2;
 
 end
 
@@ -134,10 +136,67 @@ fv       = x(:,4).^(1/H(4));
 ff       = (1 - (1 - H(5)).^(1./x(:,3)))/H(5);
 
 
-% implement differential state equation y = dx/dt (hemodynamic)
+% implement differential state equation f = dx/dt (hemodynamic)
 %--------------------------------------------------------------------------
-y(:,2)   = x(:,1) - sd.*x(:,2) - H(2)*(x(:,3) - 1);
-y(:,3)   = x(:,2)./x(:,3);
-y(:,4)   = (x(:,3) - fv)./(tt.*x(:,4));
-y(:,5)   = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./(tt.*x(:,5));
-y        = y(:);
+f(:,2)   = x(:,1) - sd.*x(:,2) - H(2)*(x(:,3) - 1);
+f(:,3)   = x(:,2)./x(:,3);
+f(:,4)   = (x(:,3) - fv)./(tt.*x(:,4));
+f(:,5)   = (ff.*x(:,3) - fv.*x(:,5)./x(:,4))./(tt.*x(:,5));
+f        = f(:);
+
+
+if nargout < 2, return, end
+
+
+% Neuronal Jacobian
+%==========================================================================
+[n m]     = size(x);
+if m == 5  
+    
+    % one neuronal state per region
+    %----------------------------------------------------------------------
+    dfdx{1,1} = P.A;   
+
+else
+
+    % two neuronal states
+    %----------------------------------------------------------------------
+    dfdx{1,1} = EE - SE;
+    dfdx{1,6} = - IE;
+    dfdx{6,1} = EI;
+    dfdx{6,6} = - SI*2;
+
+end
+
+% input
+%==========================================================================
+dfdu{1,1} = P.C;
+dfdu{2,1} = sparse(n*(m - 1),length(u(:)));
+
+
+% Hemodynamic Jacobian
+%==========================================================================
+dfdx{2,1} = speye(n,n);
+dfdx{2,2} = diag(-sd);
+dfdx{2,3} = diag(-H(2)*x(:,3));
+dfdx{3,2} = diag( 1./x(:,3));
+dfdx{3,3} = diag(-x(:,2)./x(:,3));
+dfdx{4,3} = diag( x(:,3)./(tt.*x(:,4)));
+dfdx{4,4} = diag(-x(:,4).^(1/H(4) - 1)./(tt*H(4)) - (1./x(:,4).*(x(:,3) - x(:,4).^(1/H(4))))./tt);
+dfdx{5,3} = diag((x(:,3) + log(1 - H(5)).*(1 - H(5)).^(1./x(:,3)) - x(:,3).*(1 - H(5)).^(1./x(:,3)))./(tt.*x(:,5)*H(5)));
+dfdx{5,4} = diag((x(:,4).^(1/H(4) - 1)*(H(4) - 1))./(tt*H(4)));
+dfdx{5,5} = diag((x(:,3)./x(:,5)).*((1 - H(5)).^(1./x(:,3)) - 1)./(tt*H(5)));
+
+
+% concatenate
+%--------------------------------------------------------------------------
+dfdx      = spm_cat(dfdx);
+dfdu      = spm_cat(dfdu);
+D         = 1;
+
+
+
+
+
+
+

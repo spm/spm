@@ -22,7 +22,7 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: DEM_demo_large_fMRI.m 5665 2013-10-02 09:03:59Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -30,10 +30,10 @@ rng('default')
  
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-T  = 512;                             % number of observations (scans)
+T  = 256;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 t  = (1:T)*TR;                        % observation times
-n  = 8;                              % number of regions or nodes
+n  = 16;                              % number of regions or nodes
 u  = spm_conv(randn(T,n),2,0)/2;      % endogenous fluctuations
  
 
@@ -45,7 +45,9 @@ options.stochastic = 1;
 options.centre     = 1;
 options.induced    = 1;
 options.nN         = 8;
-options.nmax       = 128;
+options.nmax       = 16;
+
+DCM.M.Nmax         = 8;
  
 A   = ones(n,n);
 B   = zeros(n,n,0);
@@ -128,7 +130,6 @@ DCM.U.dt = TR;
  
 % nonlinear system identification (Variational Laplace) - deterministic DCM
 % =========================================================================
-DCM.M.Nmax = 8;
 CSD = spm_dcm_fmri_csd(DCM);
  
 % summary

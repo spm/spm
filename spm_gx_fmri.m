@@ -1,7 +1,7 @@
-function [y] = spm_gx_fmri(x,u,P,M)
+function [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % Simulated BOLD response to input
-% FORMAT [y] = spm_gx_fmri(x,u,P,M)
-% y          - BOLD response (%)
+% FORMAT [g,dgdx] = spm_gx_fmri(x,u,P,M)
+% g          - BOLD response (%)
 % x          - state vector     (see spm_fx_dcm)
 % P          - Parameter vector (see spm_fx_dcm)
 % M          - model specification structure (see spm_nlsi)
@@ -15,7 +15,7 @@ function [y] = spm_gx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_gx_fmri.m 5665 2013-10-02 09:03:59Z karl $
  
  
 % Biophysical constants for 1.5T
@@ -56,4 +56,18 @@ k3  = 1 - ep;
 %==========================================================================
 v   = exp(x(:,4));
 q   = exp(x(:,5));
-y   = V0*(k1 - k1.*q + k2 - k2.*q./v + k3 - k3.*v);
+g   = V0*(k1 - k1.*q + k2 - k2.*q./v + k3 - k3.*v);
+
+if nargout == 1, return, end
+
+
+%-derivative dgdx
+%==========================================================================
+[n m]      = size(x);
+dgdx{1,1}  = sparse(n,n);
+dgdx{1,2}  = sparse(n,n);
+dgdx{1,3}  = sparse(n,n);
+dgdx{1,m}  = sparse(n,n);
+dgdx{1,4}  = diag(-V0*(k3.*v - k2.*q./v));
+dgdx{1,5}  = diag(-V0*(k1.*q + k2.*q./v));
+dgdx       = spm_cat(dgdx);

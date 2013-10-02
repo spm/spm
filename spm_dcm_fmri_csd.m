@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_dcm_fmri_csd.m 5665 2013-10-02 09:03:59Z karl $
 
 
 % get DCM
@@ -89,7 +89,7 @@ scale       = 4/max(scale,4);
 DCM.Y.y     = DCM.Y.y*scale;
 DCM.Y.scale = scale;
 
-% disablehi order parameters and check for models with no inputs
+% disable high order parameters and check for models with no inputs
 %--------------------------------------------------------------------------
 n       = DCM.n;
 DCM.b   = zeros(n,n,0);
@@ -110,7 +110,11 @@ if n > DCM.options.nmax
     
     % remove confounds and find principal (nmax) modes
     %----------------------------------------------------------------------
-    y       = DCM.Y.y - DCM.Y.X0*(pinv(DCM.Y.X0)*DCM.Y.y);
+    try
+        y   = DCM.Y.y - DCM.Y.X0*(pinv(DCM.Y.X0)*DCM.Y.y);
+    catch
+        y   = spm_detrend(DCM.Y.y);
+    end
     V       = spm_svd(y');
     V       = V(:,1:DCM.options.nmax);
     
@@ -166,9 +170,8 @@ end
 % precision of spectral observation noise: AR(1/2)
 %--------------------------------------------------------------------------
 y        = spm_fs_fmri_csd(DCM.Y.csd,DCM.M);
-n        = size(y,1);
 m        = size(y,2)*size(y,3);
-q        = spm_Q(1/2,n,1);
+q        = spm_Q(1/2,size(y,1),1);
 Q        = kron(speye(m,m),q);
 DCM.Y.Q  = Q;
 DCM.Y.X0 = sparse(size(Q,1),0);
@@ -198,7 +201,7 @@ Ec     = spm_unvec(spm_vec(Y.y) - spm_vec(Hc),Hc);   % prediction error
 %--------------------------------------------------------------------------
 M      = DCM.M;                                      % model
 Qp     = Ep;                                         % posterior parameters
-Qp.C   = 1;                                          % Switch to endogenous
+Qp.C   = speye(n,n);                                          % Switch to endogenous
 [S,H1] = spm_dcm_mtf(Qp,M);                          % haemodynamic kernel
 
 % and neuronal kernels

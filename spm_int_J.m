@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_int_J.m 5665 2013-10-02 09:03:59Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -133,7 +133,7 @@ for i = 1:size(U.u,1)
     
     % dx(t)/dt and Jacobian df/dx
     %----------------------------------------------------------------------
-    if nargout(f) == 3
+    if nargout(f) >= 3
         [fx,dfdx,D] = f(x,u,P,M);
         
     elseif nargout(f) == 2

@@ -24,11 +24,11 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_diff.m 5665 2013-10-02 09:03:59Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
-f     = varargin{1};
+f     = spm_funcheck(varargin{1});
 
 % parse input arguments
 %--------------------------------------------------------------------------
@@ -74,28 +74,16 @@ J     = cell(1,size(V{m},2));
 % proceed to derivatives
 %==========================================================================
 if length(n) == 1
+    
     % dfdx
     %----------------------------------------------------------------------
-    if isa(f,'function_handle')
-        
-        f0    = f(x{:});
-        for i = 1:length(J)
-            xi    = x;
-            xi{m} = spm_unvec(xm + V{m}(:,i)*dx,x{m});
-            J{i}  = spm_dfdx(f(xi{:}),f0,dx);
-        end
-        
-    else
-        
-        f0    = feval(f,x{:});
-        for i = 1:length(J)
-            xi    = x;
-            xmi   = xm + V{m}(:,i)*dx;
-            xi{m} = spm_unvec(xmi,x{m});
-            fi    = feval(f,xi{:});
-            J{i}  = spm_dfdx(fi,f0,dx);
-        end
+    f0    = f(x{:});
+    for i = 1:length(J)
+        xi    = x;
+        xi{m} = spm_unvec(xm + V{m}(:,i)*dx,x{m});
+        J{i}  = spm_dfdx(f(xi{:}),f0,dx);
     end
+
     
     % return numeric array for first-order derivatives
     %======================================================================

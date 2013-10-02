@@ -24,7 +24,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5617 2013-08-16 11:58:36Z karl $
+% $Id: spm_dcm_mtf.m 5665 2013-10-02 09:03:59Z karl $
 
 
 % get local linear approximation
@@ -52,21 +52,30 @@ try, t = M.dt*(1:M.N)'; end
 
 % delay operator - if not specified already
 %--------------------------------------------------------------------------
-if nargout(M.f) == 3
-    [f,dfdx,D] = feval(M.f,M.x,M.u,P,M);
+if nargout(M.f) == 4
+    [f,dfdx,D,dfdu] = feval(M.f,M.x,M.u,P,M);
+    
+elseif nargout(M.f) == 3
+    [f,dfdx,D]      = feval(M.f,M.x,M.u,P,M);
+    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
     
 elseif nargout(M.f) == 2
-    [f,dfdx]   = feval(M.f,M.x,M.u,P,M);
-    D          = 1;
+    [f,dfdx]        = feval(M.f,M.x,M.u,P,M);
+    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+    D               = 1;
 else
-    dfdx       = spm_diff(M.f,M.x,M.u,P,M,1);
-    D          = 1;
+    dfdx            = spm_diff(M.f,M.x,M.u,P,M,1);
+    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+    D               = 1;
 end
 
 % Jacobian and eigenspectrum
 %==========================================================================
-dfdu  = spm_diff(M.f,M.x,M.u,P,M,2);
-dgdx  = spm_diff(M.g,M.x,M.u,P,M,1);
+if nargout(M.g) == 2
+    [g,dgdx]       = feval(M.g,M.x,M.u,P,M);
+else
+    dgdx           = spm_diff(M.g,M.x,M.u,P,M,1);
+end
 dfdx  = D*dfdx;
 dfdu  = D*dfdu;
 
