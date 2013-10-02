@@ -61,7 +61,7 @@ function [y] = spm_int_J(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_int_J.m 5665 2013-10-02 09:03:59Z karl $
+% $Id: spm_int_J.m 5667 2013-10-02 18:26:06Z karl $
 
 
 % convert U to U.u if necessary and M(1) to M
@@ -118,8 +118,6 @@ end
 % default delay operator
 %--------------------------------------------------------------------------
 D = 1;
-
-
 
 % integrate
 %==========================================================================

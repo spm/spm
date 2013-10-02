@@ -15,7 +15,7 @@ function [g,dgdx] = spm_gx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_gx_fmri.m 5665 2013-10-02 09:03:59Z karl $
+% $Id: spm_gx_fmri.m 5667 2013-10-02 18:26:06Z karl $
  
  
 % Biophysical constants for 1.5T
@@ -64,10 +64,8 @@ if nargout == 1, return, end
 %-derivative dgdx
 %==========================================================================
 [n m]      = size(x);
-dgdx{1,1}  = sparse(n,n);
-dgdx{1,2}  = sparse(n,n);
-dgdx{1,3}  = sparse(n,n);
-dgdx{1,m}  = sparse(n,n);
+dgdx       = cell(1,m);
+[dgdx{:}]  = deal(sparse(n,n));
 dgdx{1,4}  = diag(-V0*(k3.*v - k2.*q./v));
 dgdx{1,5}  = diag(-V0*(k1.*q + k2.*q./v));
 dgdx       = spm_cat(dgdx);

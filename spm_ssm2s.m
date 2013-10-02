@@ -14,7 +14,7 @@ function [S] = spm_ssm2s(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 5448 2013-04-25 11:08:52Z guillaume $
+% $Id: spm_ssm2s.m 5667 2013-10-02 18:26:06Z karl $
 
 
 % Steady state solution
@@ -34,7 +34,7 @@ end
 
 % Jacobian and delay operator - if not specified already
 %--------------------------------------------------------------------------
-if nargout(M.f) == 3
+if nargout(M.f) >= 3
     [f,dfdx,D] = feval(M.f,M.x,M.u,P,M);
     
 elseif nargout(M.f) == 2

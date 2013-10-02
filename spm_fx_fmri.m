@@ -35,7 +35,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5665 2013-10-02 09:03:59Z karl $
+% $Id: spm_fx_fmri.m 5667 2013-10-02 18:26:06Z karl $
 
 
 % Neuronal motion
@@ -44,37 +44,54 @@ P.B   = full(P.B);                       % bi-linear parameters
 P.C   = P.C/16;                          % exogenous parameters
 P.D   = full(P.D);                       % nonlinear parameters
 
-% excitatory connections
-%--------------------------------------------------------------------------
-for i = 1:size(P.B,3)
-    P.A = P.A + u(i)*P.B(:,:,i);
-end
 
-% and nonlinear (state) terms
-%--------------------------------------------------------------------------
-for i = 1:size(P.D,3)
-    P.A = P.A + x(i,1)*P.D(:,:,i);
-end
 
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
 f    = x;
-if size(x,2) == 5  
+if size(x,2) == 5
     
     % one neuronal state per region: diag(A) is a log self-inhibition
     %----------------------------------------------------------------------
     SI     = diag(P.A);
     P.A    = P.A - diag(exp(SI)/2 + SI);
-    f(:,1) = P.A*x(:,1) + P.C*u(:);
-
-else
-
-    % extrinsic (two neuronal states)
+    
+    % excitatory connections
     %----------------------------------------------------------------------
+    for i = 1:size(P.B,3)
+        P.A = P.A + u(i)*P.B(:,:,i);
+    end
+    
+    % and nonlinear (state) terms
+    %----------------------------------------------------------------------
+    for i = 1:size(P.D,3)
+        P.A = P.A + x(i,1)*P.D(:,:,i);
+    end
+    
+    % flow
+    %----------------------------------------------------------------------
+    f(:,1) = P.A*x(:,1) + P.C*u(:);
+    
+else
+    
+    % experimental effects
+    %----------------------------------------------------------------------
+    for i = 1:size(P.B,3)
+        P.A = P.A + u(i)*P.B(:,:,i);
+    end
+    
+    % and nonlinear (state) terms
+    %----------------------------------------------------------------------
+    for i = 1:size(P.D,3)
+        P.A = P.A + x(i,1)*P.D(:,:,i);
+    end
+    
+    % extrinsic (two neuronal states): enforce positivity
+    %----------------------------------------------------------------------
+    P.A   = exp(P.A)/8;  
+    DA    = diag(diag(P.A));        % intrinsic connectivity
+    EE    = P.A - DA;               % excitatory to excitatory
     n     = length(P.A);            % number of regions
-    A     = exp(P.A)/8;             % enforce positivity
-    DA    = diag(diag(A));          % intrinsic connectivity
-    EE    = A - DA;                 % excitatory to excitatory
     IE    = eye(n,n);               % inhibitory to excitatory
     EI    = eye(n,n);               % excitatory to inhibitory
     SE    = eye(n,n);               % self-inhibition (excitatory)
@@ -150,16 +167,19 @@ if nargout < 2, return, end
 
 % Neuronal Jacobian
 %==========================================================================
-[n m]     = size(x);
+[n m] = size(x);
 if m == 5  
     
     % one neuronal state per region
     %----------------------------------------------------------------------
-    dfdx{1,1} = P.A;   
+    dfdx{1,1} = P.A;
+    for i = 1:size(P.D,3)
+       dfdx{1,1}(:,i) = dfdx{1,1}(:,i) + P.D(:,:,i)*x(:,1);
+    end
 
 else
 
-    % two neuronal states
+    % two neuronal states: NB nonlinear (D) effects not implemented)
     %----------------------------------------------------------------------
     dfdx{1,1} = EE - SE;
     dfdx{1,6} = - IE;
@@ -171,6 +191,9 @@ end
 % input
 %==========================================================================
 dfdu{1,1} = P.C;
+for i = 1:size(P.B,3)
+    dfdu{1,1}(:,i) = dfdu{1,1}(:,i) + P.B(:,:,i)*x(:,1);
+end
 dfdu{2,1} = sparse(n*(m - 1),length(u(:)));
 
 

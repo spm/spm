@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 5586 2013-07-20 15:27:10Z karl $
+% $Id: spm_int_L.m 5667 2013-10-02 18:26:06Z karl $
  
  
 % convert U to U.u if necessary
@@ -111,7 +111,7 @@ end
 % dx(t)/dt and Jacobian df/dx and check for delay operator
 %--------------------------------------------------------------------------
 D    = 1;
-if nargout(f) == 3
+if nargout(f) >= 3
     [fx, dfdx,D] = f(x,u,P,M);
     
 elseif nargout(f) == 2

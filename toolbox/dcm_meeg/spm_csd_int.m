@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_csd_int.m 5667 2013-10-02 18:26:06Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -118,7 +118,7 @@ for c = 1:size(X,1)
     
     % get local linear operator LL and delay operator D
     %==================================================================
-    if nargout(f) == 3
+    if nargout(f) >= 3
         [f0,dfdx,D] = f(x(:,1),u(:,1),Q,M);
         
     elseif nargout(f) == 2

@@ -18,7 +18,7 @@ function [y] = spm_int_D(P,M,U)
 %
 % at v = M.ns is the number of samples [default v = size(U.u,1)]
 %
-% spm_int will also handle static observation models by evaluating
+% spm_int_D will also handle static observation models by evaluating
 % g(x,u,P).  It will also handle timing delays if specified in M.delays
 %
 %--------------------------------------------------------------------------
@@ -57,7 +57,7 @@ function [y] = spm_int_D(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_D.m 4121 2010-11-17 16:16:18Z karl $
+% $Id: spm_int_D.m 5667 2013-10-02 18:26:06Z karl $
  
  
 % convert U to U.u if necessary
@@ -149,7 +149,6 @@ sx    = sparse(1,i,1,1,u);
 % time in seconds
 %--------------------------------------------------------------------------
 t     = find(su | any(sy,1) | sx);
-su    = full(su(:,t));
 sy    = full(sy(:,t));
 dt    = [diff(t) 0]*U.dt;
  

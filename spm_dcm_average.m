@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5619 2013-08-19 10:43:45Z karl $
+% $Id: spm_dcm_average.m 5667 2013-10-02 18:26:06Z karl $
 
 
 % Preiminaries
@@ -129,7 +129,6 @@ if graphics
     subplot(3,1,3), bar(T)
     title('Posterior variance','FontSize',16)
     xlabel('Subject'), axis square
-    
 end
 
 
