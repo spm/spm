@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5506 2013-05-14 17:13:43Z john $
+% $Id: spm_deformations.m 5668 2013-10-03 18:34:18Z guillaume $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -386,7 +386,7 @@ if job.mask
         for j=j_range,
 
             M0 = NI.mat;
-            if isfield(NI,'extras') && isfield(NI.extras,'mat')
+            if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat')
                 M1 = NI.extras.mat;
                 if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                     M0 = M1(:,:,j);
@@ -466,7 +466,7 @@ for m=1:numel(PI)
     for j=j_range,
 
         M0 = NI.mat;
-        if isfield(NI,'extras') && isfield(NI.extras,'mat')
+        if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat')
             M1 = NI.extras.mat;
             if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                 M0 = M1(:,:,j);
@@ -613,7 +613,7 @@ for m=1:numel(PI)
         % to voxels in the spatially normalised image.
         %------------------------------------------------------------------
         M0 = NI.mat;
-        if isfield(NI,'extras') && isfield(NI.extras,'mat')
+        if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat')
             M1 = NI.extras.mat;
             if size(M1,3) >= j && sum(sum(M1(:,:,j).^2)) ~=0
                 M0 = M1(:,:,j);

@@ -13,7 +13,7 @@ function out = spm_dartel_resids(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dartel_resids.m 3548 2009-11-09 21:25:10Z john $
+% $Id: spm_dartel_resids.m 5668 2013-10-03 18:34:18Z guillaume $
 
 
 PG = job.template{1};
@@ -147,7 +147,7 @@ for i=1:numel(PI{1}),
             ty3 = y3;
         else
             mat = NI.mat;
-            if isfield(NI,'extras') && isfield(NI.extras,'mat'),
+            if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat'),
                 mat1 = NI.extras.mat;
                 if size(mat1,3) >= j && sum(sum(mat1(:,:,j).^2)) ~=0,
                     mat = mat1;
