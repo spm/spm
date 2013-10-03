@@ -47,7 +47,7 @@ function x = spm_coreg(varargin)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_coreg.m 4447 2011-08-30 13:29:21Z guillaume $
+% $Id: spm_coreg.m 5669 2013-10-03 19:51:35Z john $
 
 %--------------------------------------------------------------------------
 % References
@@ -84,7 +84,7 @@ function x = spm_coreg(varargin)
 % Published by Cambridge.
 %--------------------------------------------------------------------------
 
-SVNid = '$Rev: 4447 $';
+SVNid = '$Rev: 5669 $';
 
 if nargin >= 4
     x = optfun(varargin{:});
@@ -236,6 +236,7 @@ else
     mx = -Inf; mn =  Inf;
     for p=1:V.dim(3)
         img = spm_slice_vol(V,spm_matrix([0 0 p]),V.dim(1:2),1);
+        img = img(isfinite(img));
         mx  = max([max(img(:))+paccuracy(V,p) mx]);
         mn  = min([min(img(:)) mn]);
         spm_progress_bar('Set',p);

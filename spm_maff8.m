@@ -21,7 +21,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 5362 2013-03-27 16:07:31Z john $
+% $Id: spm_maff8.m 5669 2013-10-03 19:51:35Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -108,20 +108,23 @@ x2 = x{2};
 x3 = x{3};
 [mu,isig] = spm_affine_priors(regtyp);
 mu        = [zeros(6,1) ; mu];
-isig      = [eye(6,6)*0.00001 zeros(6,6) ; zeros(6,6) isig];
-isig      =  isig*ff;
-Alpha0    =  isig;
+Alpha0    = [eye(6,6)*0.00001 zeros(6,6) ; zeros(6,6) isig]*ff;
 
-sol  = M2P(M);
+if ~isempty(M),
+    sol  = M2P(M);
+else
+    sol  = mu;
+end
+
 sol1 = sol;
 ll   = -Inf;
-krn  = spm_smoothkern(2,(-256:256)',0);
+krn  = spm_smoothkern(4,(-256:256)',0);
 
 spm_plot_convergence('Init','Registering','Log-likelihood','Iteration');
 
 h1 = ones(256,numel(tpm.dat));
 for iter=1:200
-    penalty = 0.5*(sol1-mu)'*isig*(sol1-mu);
+    penalty = 0.5*(sol1-mu)'*Alpha0*(sol1-mu);
     T       = tpm.M\P2M(sol1)*MG;
 
    %fprintf('%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g | %g\n', sol1,penalty);
@@ -239,7 +242,7 @@ for iter=1:200
     Beta  = R'*Beta;
 
     % Gauss-Newton update
-    sol1  = sol - (Alpha+Alpha0)\(Beta+isig*(sol-mu));
+    sol1  = sol - (Alpha+Alpha0)\(Beta+Alpha0*(sol-mu));
 end;
 
 spm_plot_convergence('Clear');

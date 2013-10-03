@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5485 2013-05-09 15:51:24Z john $
+% $Id: spm_dicom_convert.m 5669 2013-10-03 19:51:35Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -1220,17 +1220,14 @@ fname = fullfile(dname, fname);
 
 function suc = mkdir_rec(str)
 % works on full pathnames only
-opwd=pwd;
 if str(end) ~= filesep, str = [str filesep];end;
 pos = strfind(str,filesep);
 suc = zeros(1,length(pos));
 for g=2:length(pos)
     if ~exist(str(1:pos(g)-1),'dir'),
-        cd(str(1:pos(g-1)-1));
-        suc(g) = mkdir(str(pos(g-1)+1:pos(g)-1));
+        suc(g) = mkdir(str(1:pos(g-1)-1),str(pos(g-1)+1:pos(g)-1));
     end;
 end;
-cd(opwd);
 return;
 %_______________________________________________________________________
 
