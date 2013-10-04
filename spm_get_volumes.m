@@ -7,7 +7,7 @@ function gl = spm_get_volumes(P)
 % Copyright (C) 2006-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_volumes.m 5647 2013-09-20 13:03:44Z ged $
+% $Id: spm_get_volumes.m 5670 2013-10-04 16:48:38Z ged $
 
 warning('spm:deprecated', ...
     ['spm_get_volumes will be removed in the future, please use ' ...
@@ -19,4 +19,14 @@ if ~nargin
     if ~sts, gl = []; return; end
 end
 
-gl = spm_summarise(P, 'all', 'litres');
+V = spm_vol(P);
+if spm_check_orientations(V, false)
+    gl = spm_summarise(V, 'all', 'litres');
+else
+    N = numel(V);
+    gl = nan(N, 1);
+    for n = 1:N
+        gl(n) = spm_summarise(V(n), 'all', 'litres');
+    end
+end
+

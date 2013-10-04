@@ -25,7 +25,7 @@ function [Y, xY] = spm_summarise(V,xY,fhandle,keepNaNs)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin, Ged Ridgway
-% $Id: spm_summarise.m 5647 2013-09-20 13:03:44Z ged $
+% $Id: spm_summarise.m 5670 2013-10-04 16:48:38Z ged $
 
 %-Argument checks
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ if nargin < 1 || isempty(V)
 end
 if iscellstr(V), V = char(V); end
 if ischar(V), V = spm_vol(V); end
-% spm_check_orientations(V);
+spm_check_orientations(V);
 
 if nargin < 2 || isempty(xY), xY = struct; end
 if ischar(xY)

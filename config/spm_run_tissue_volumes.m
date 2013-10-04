@@ -6,7 +6,7 @@ function out = spm_run_tissue_volumes(cmd, job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 5647 2013-09-20 13:03:44Z ged $
+% $Id: spm_run_tissue_volumes.m 5670 2013-10-04 16:48:38Z ged $
 
 switch lower(cmd)
     %----------------------------------------------------------------------    
@@ -85,7 +85,7 @@ switch lower(cmd)
             [pth, nam, ext] = spm_fileparts(outf);
             if isempty(ext), ext = '.csv'; end
             fnm = fullfile(pth, [nam ext]);
-            fid = fopen(fnm, 'w');
+            fid = fopen(fnm, 'wt');
             if fid < 0, error('Failed to open %s\n', fnm); end
             delim = ',';
             fprintf(fid, 'File');
