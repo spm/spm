@@ -4,7 +4,7 @@ function conf = spm_cfg_deformations
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_deformations.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_deformations.m 5671 2013-10-04 17:04:52Z ged $
 
 hsummary = {[...
 'This is a utility for working with deformation fields. ',...
@@ -70,18 +70,15 @@ himgr = {[...
 
 himgw = {[...
 'Save the result as a three-volume image.  "y_" will be prepended to the ',...
-'filename.  The result will be written to the current directory.']};
+'filename.']};
 
 hdetw = {[...
 'Save the Jacobian determinants as an image.  "j_" will be prepended to the ',...
-'filename.  The result will be written to the current directory.']};
+'filename.']};
 
 happly = {[...
 'Apply the resulting deformation field to some images. ',...
-'The warped images will be written to the current directory, and the ',...
-'filenames prepended by "w".  Note that trilinear interpolation is used ',...
-'to resample the data, so the original values in the images will ',...
-'not be preserved.']};
+'The filenames will be prepended by "w".']};
 
 hmatname = {...
 'Specify the _sn.mat to be used.'};
@@ -94,6 +91,12 @@ hid = {[...
 'changing the dimensions of the resulting deformation (and any images that ',...
 'are generated from it).  Dimensions, orientation etc are derived from ',...
 'an image.']};
+
+hidbbvox = {[...
+'This option generates an identity transform, but this can be useful for ',...
+'changing the dimensions of the resulting deformation (and any images that ',...
+'are generated from it).  Dimensions, orientation etc are derived from ',...
+'a specified bounding box and voxel dimensions.']};
 
 def          = files('Deformation Field','def','.*y_.*\.nii$',[1 1]);
 def.help     = himgr;
@@ -118,11 +121,8 @@ img.help     = himg;
 id           = branch('Identity (Reference Image)','id',{img});
 id.help      = hid;
 
-voxid        = entry('Voxel sizes','vox','r',[1 3]);
-bbid         = entry('Bounding box','bb','r',[2 3]);
-
-idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{voxid, bbid});
-id.help      = hid;
+idbbvox      = branch('Identity (Bounding Box and Voxel Size)','idbbvox',{vox, bb});
+idbbvox.help = hidbbvox;
 
 ffield = files('Flow field','flowfield','nifti',[1 1]);
 ffield.ufilter = '^u_.*';
@@ -198,15 +198,12 @@ comp.num     = [1 Inf];
 comp.help    = hcomp;
 
 saveas       = entry('Save as','ofname','s',[0 Inf]);
-saveas.val   = {''};
 saveas.help  = himgw;
 
 savedas       = entry('Save as','ofname','s',[0 Inf]);
-savedas.val   = {''};
 savedas.help  = hdetw;
 
 applyto      = files('Apply to','fnames','nifti',[0 Inf]);
-applyto.val  = {''};
 applyto.help = happly;
 
 savepwd      = cfg_const;
@@ -281,7 +278,7 @@ fwhm.name    = 'Gaussian FWHM';
 fwhm.val     = {[0 0 0]};
 fwhm.strtype = 'r';
 fwhm.num     = [1 3];
-fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian blurring kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions. Note that you can also specify [0 0 0], but any ``modulated'' data will show aliasing (see eg Wikipedia), which occurs because of the way the warped images are generated.'};
+fwhm.help    = {'Specify the full-width at half maximum (FWHM) of the Gaussian blurring kernel in mm. Three values should be entered, denoting the FWHM in the x, y and z directions.'};
 % ---------------------------------------------------------------------
 
 % ---------------------------------------------------------------------
@@ -332,32 +329,6 @@ surfa.num    = [1 Inf];
 surfa.help   = {'Select a GIFTI file to warp.'};
 % ---------------------------------------------------------------------
 
-% ---------------------------------------------------------------------
-vox          = cfg_entry;
-vox.tag      = 'vox';
-vox.name     = 'Voxel sizes';
-vox.num      = [1 3];
-vox.strtype  = 'r';
-vox.val      = {[NaN NaN NaN]};
-vox.help     = {[...
-'Specify the voxel sizes of the deformation field to be produced. ',...
-'Non-finite values will default to the voxel sizes of the template image',...
-'that was originally used to estimate the deformation.']};
-% ---------------------------------------------------------------------
-
-% ---------------------------------------------------------------------
-bb           = cfg_entry;
-bb.tag       = 'bb';
-bb.name      = 'Bounding box';
-bb.strtype   = 'r';
-bb.num       = [2 3];
-bb.val       = {[NaN NaN NaN; NaN NaN NaN]};
-bb.help      = {[...
-'Specify the bounding box of the deformation field to be produced. ',...
-'Non-finite values will default to the bounding box of the template image',...
-'that was originally used to estimate the deformation.']};
-% ---------------------------------------------------------------------
-
 bbvox         = cfg_branch;
 bbvox.name    = 'User Defined';
 bbvox.tag     = 'bbvox';
@@ -403,7 +374,12 @@ weight.tag    = 'weight';
 weight.filter = 'nifti';
 weight.num    = [0 1];
 weight.help   = {'Select an image file to weight the warped data with.  This is optional, but the idea is the same as was used by JE Lee et al (2009) in their ``A study of diffusion tensor imaging by tissue-specific, smoothing-compensated voxel-based analysis'''' paper.  In principle, a mask of (eg) white matter could be supplied, such that the warped images contain average signal intensities in WM.'};
-weight.val    = {''};
+weight.val    = {{''}};
+
+% add note on aliasing to fwhm.help for Pushforward
+fwhm.help     = {[fwhm.help{1} ' Note that you can specify [0 0 0], ',...
+    'but any "modulated" data will show aliasing, which occurs because of ',...
+    'the way the warped images are generated.']};
 
 pushfo        = cfg_branch;
 pushfo.name   = 'Pushforward';
