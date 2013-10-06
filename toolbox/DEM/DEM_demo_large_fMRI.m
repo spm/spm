@@ -22,18 +22,19 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: DEM_demo_large_fMRI.m 5672 2013-10-06 13:30:54Z karl $
 
 % Simulate timeseries
 %==========================================================================
 rng('default')
+global DCM
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
 N  = 32;                              % number of runs
-T  = 360;                             % number of observations (scans)
+T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
-n  = 8;                               % number of regions or nodes
+n  = 4;                               % number of regions or nodes
 t  = (1:T)*TR;                        % observation times
 
 % priors
@@ -117,13 +118,27 @@ DCM.b    = zeros(n,n,0);
 DCM.c    = zeros(n,1);
 DCM.d    = zeros(n,n,0);
 
+DCM.Y.y  = y + e;
 DCM.Y.dt = TR;
 DCM.U.u  = zeros(T,1);
 DCM.U.dt = TR;
 
+% provisional inversion
+%--------------------------------------------------------------------------
+%%%% DCM   = spm_dcm_fmri_csd_DEM(DCM); %%%%
+DCM   = spm_dcm_fmri_csd(DCM);
+
+
+% replace original connectivty with posterior expectations
+%--------------------------------------------------------------------------
+pP.A  = DCM.Ep.A;
+
 M.g   = 'spm_gx_fmri';
 CSD   = {};
-for i = 1:N,
+RMS   = [];
+Qp    = [];
+Pp    = pP.A - diag(diag(pP.A));
+for i = 1:N
     try
 
         % integrate states
@@ -143,12 +158,17 @@ for i = 1:N,
         % =================================================================
         CSD{end + 1} = spm_dcm_fmri_csd(DCM);
         BPA    = spm_dcm_average(CSD,'simulation',1);
+        
+        % MAP estimates
+        % -----------------------------------------------------------------
+        qp     = CSD{end}.Ep.A;
+        Qp(:,end + 1) = spm_vec(qp - diag(diag(qp)));
                 
         % root mean square error
         % -----------------------------------------------------------------
         dp     = BPA.Ep.A - pP.A;
         dp     = dp - diag(diag(dp));
-        RMS(i) = sqrt(mean(dp(~~dp).^2));
+        RMS(end + 1) = sqrt(mean(dp(~~dp).^2));
         
         
         % summary
@@ -161,8 +181,9 @@ for i = 1:N,
         title('True and MAP connections','FontSize',16)
         axis square
         
-        subplot(2,2,3);
-        plot(pP.A - diag(diag(pP.A)),BPA.Ep.A - diag(diag(BPA.Ep.A)),'.','MarkerSize',16)
+        subplot(2,2,3); cla
+        plot(Pp(:),Qp,'cd','MarkerSize',8),hold on
+        plot(Pp,BPA.Ep.A - diag(diag(BPA.Ep.A)),'.','MarkerSize',16), hold off
         title('True and MAP connections (Extrinsic)','FontSize',16)
         xlabel('True')
         ylabel('Estimated')
@@ -178,4 +199,62 @@ for i = 1:N,
         
     end
 end
+
+return
+
+% illustrate the illposed nature of the problem
+%==========================================================================
+nA    = 32;
+pA    = linspace(-.4,.4,nA);
+Y     = [];
+P     = [];
+for i = 1:nA
+    for j = 1:nA
+        
+        % map from parameter space to data space
+        %------------------------------------------------------------------
+        pp           = pP;
+        pp.A(1,2)    = pA(i);
+        pp.A(2,1)    = pA(j);
+        Y(:,end + 1) = spm_vec(spm_csd_fmri_mtf(pp,DCM.M,DCM.U));
+        P(:,end + 1) = spm_vec(pp.A);
+    end
+end
+
+% distance measures
+%--------------------------------------------------------------------------
+Up      = P([2 (n + 1)],:)';
+[Uy Sy] = spm_svd(spm_detrend(Y'));
+Uy      = real(Uy);
+
+Cp    = Up;
+for i = 1:2
+    Cp(:,i) = Up(:,i) - min(Up(:,i));
+    Cp(:,i) = 0.001 + Cp(:,i)./(max(Cp(:,i))*1.1);
+end
+
+spm_figure('Getwin','Figure 2'); clf
+subplot(2,1,1), cla
+for  i = 1:nA*nA
+    plot(Up(i,1),Up(i,2),'.','Markersize',32,'Color',[1/2 Cp(i,1) Cp(i,2)]), hold on
+end
+axis square
+title('Parameter space','FontSize',16)
+xlabel('Forward connection')
+ylabel('Backward connection')
+axis square
+
+subplot(2,1,2), cla
+for  i = 1:nA*nA
+    plot3(Uy(i,1),Uy(i,2),Uy(i,3),'.','Markersize',32,'Color',[1/2 Cp(i,1) Cp(i,2)]), hold on
+end
+axis square
+title('Data space','FontSize',16)
+xlabel('1st PC')
+ylabel('2nd PC')
+ylabel('3rd PC')
+axis square
+
+return
+
 

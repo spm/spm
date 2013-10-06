@@ -35,7 +35,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_fx_fmri.m 5672 2013-10-06 13:30:54Z karl $
 
 
 % Neuronal motion
@@ -44,7 +44,17 @@ P.B   = full(P.B);                       % bi-linear parameters
 P.C   = P.C/16;                          % exogenous parameters
 P.D   = full(P.D);                       % nonlinear parameters
 
+% excitatory connections
+%--------------------------------------------------------------------------
+for i = 1:size(P.B,3)
+    P.A = P.A + u(i)*P.B(:,:,i);
+end
 
+% and nonlinear (state) terms
+%--------------------------------------------------------------------------
+for i = 1:size(P.D,3)
+    P.A = P.A + x(i,1)*P.D(:,:,i);
+end
 
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
@@ -56,35 +66,11 @@ if size(x,2) == 5
     SI     = diag(P.A);
     P.A    = P.A - diag(exp(SI)/2 + SI);
     
-    % excitatory connections
-    %----------------------------------------------------------------------
-    for i = 1:size(P.B,3)
-        P.A = P.A + u(i)*P.B(:,:,i);
-    end
-    
-    % and nonlinear (state) terms
-    %----------------------------------------------------------------------
-    for i = 1:size(P.D,3)
-        P.A = P.A + x(i,1)*P.D(:,:,i);
-    end
-    
     % flow
     %----------------------------------------------------------------------
     f(:,1) = P.A*x(:,1) + P.C*u(:);
     
 else
-    
-    % experimental effects
-    %----------------------------------------------------------------------
-    for i = 1:size(P.B,3)
-        P.A = P.A + u(i)*P.B(:,:,i);
-    end
-    
-    % and nonlinear (state) terms
-    %----------------------------------------------------------------------
-    for i = 1:size(P.D,3)
-        P.A = P.A + x(i,1)*P.D(:,:,i);
-    end
     
     % extrinsic (two neuronal states): enforce positivity
     %----------------------------------------------------------------------
@@ -174,7 +160,8 @@ if m == 5
     %----------------------------------------------------------------------
     dfdx{1,1} = P.A;
     for i = 1:size(P.D,3)
-       dfdx{1,1}(:,i) = dfdx{1,1}(:,i) + P.D(:,:,i)*x(:,1);
+       D  = P.D(:,:,i) + diag((diag(P.A) - 1).*diag(P.D(:,:,i)));
+       dfdx{1,1}(:,i) = dfdx{1,1}(:,i) + D*x(:,1);
     end
 
 else
@@ -192,7 +179,8 @@ end
 %==========================================================================
 dfdu{1,1} = P.C;
 for i = 1:size(P.B,3)
-    dfdu{1,1}(:,i) = dfdu{1,1}(:,i) + P.B(:,:,i)*x(:,1);
+    B  = P.B(:,:,i) + diag((diag(P.A) - 1).*diag(P.B(:,:,i)));
+    dfdu{1,1}(:,i) = dfdu{1,1}(:,i) + B*x(:,1);
 end
 dfdu{2,1} = sparse(n*(m - 1),length(u(:)));
 

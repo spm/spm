@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5665 2013-10-02 09:03:59Z karl $
+% $Id: spm_dcm_fmri_csd.m 5672 2013-10-06 13:30:54Z karl $
 
 
 % get DCM
@@ -201,7 +201,7 @@ Ec     = spm_unvec(spm_vec(Y.y) - spm_vec(Hc),Hc);   % prediction error
 %--------------------------------------------------------------------------
 M      = DCM.M;                                      % model
 Qp     = Ep;                                         % posterior parameters
-Qp.C   = speye(n,n);                                          % Switch to endogenous
+Qp.C   = speye(n,n);                                 % Switch to endogenous
 [S,H1] = spm_dcm_mtf(Qp,M);                          % haemodynamic kernel
 
 % and neuronal kernels

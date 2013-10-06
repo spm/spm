@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_DEM_qU.m 5672 2013-10-06 13:30:54Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -70,6 +70,8 @@ for i = 1:g
         % hidden causes and error - single observation
         %------------------------------------------------------------------
         subplot(g,2,2*i - 1)
+        E{i} = real(E{i});
+        V{i} = real(V{i});
         t = 1:size(V{i},1);
         plot(t,full(E{i}),':r',t,full(V{i}))
         box off
