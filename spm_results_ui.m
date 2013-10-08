@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5642 2013-09-18 15:45:52Z guillaume $
+% $Id: spm_results_ui.m 5673 2013-10-08 13:15:28Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5642 $'; 
+SVNid = '$Rev: 5673 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -1279,10 +1279,12 @@ end
 hReg = spm_XYZreg('FindReg',spm_figure('GetWin','Interactive'));
 xyz  = spm_XYZreg('GetCoords',hReg);
 [hReg,xSPM,SPM] = spm_results_ui('setup',xSPM2);
+TabDat = spm_list('List',xSPM,hReg);
 spm_XYZreg('SetCoords',xyz,hReg);
 assignin('base','hReg',hReg);
 assignin('base','xSPM',xSPM);
 assignin('base','SPM',SPM);
+assignin('base','TabDat',TabDat);
 figure(spm_figure('GetWin','Interactive'));
 
 %==========================================================================

@@ -169,13 +169,13 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Map. 5:243-248
 %
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 5417 2013-04-16 11:03:58Z guillaume $
+% $Id: spm_fmri_spm_ui.m 5673 2013-10-08 13:15:28Z guillaume $
 
 
-SVNid = '$Rev: 5417 $';
+SVNid = '$Rev: 5673 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -388,9 +388,9 @@ fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 %-Display design report
 %--------------------------------------------------------------------------
-if ~spm('CmdLine')
+if ~spm('CmdLine') && ~isempty(spm_figure('FindWin','Graphics'))
     fprintf('%-40s: ','Design reporting')                               %-#
-    fname = cat(1,{SPM.xY.VY.fname}');
+    fname = reshape(cellstr(SPM.xY.P),size(SPM.xY.VY));
     spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
     fprintf('%30s\n','...done')                                         %-#
 end
