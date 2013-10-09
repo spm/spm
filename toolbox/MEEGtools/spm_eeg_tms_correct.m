@@ -23,9 +23,9 @@ function D = spm_eeg_tms_correct(S)
 % Neuroimage. 2007; 37(1):56-70.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_tms_correct.m 3602 2009-11-30 13:38:48Z vladimir $
+% $Id: spm_eeg_tms_correct.m 5674 2013-10-09 10:00:26Z vladimir $
 
-SVNrev = '$Rev: 3602 $';
+SVNrev = '$Rev: 5674 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -79,8 +79,8 @@ DD = {};
 ncomp = [];
 
 for i = 1:D.ntrials
-    tD = reject(D, [], 1);
-    tD = reject(tD, i, 0);
+    tD = badtrials(D, ':', 1);
+    tD = badtrials(tD, i, 0);
     
     tD = path(tD, pwd);
     
@@ -145,7 +145,7 @@ end
 
 D.ncomp = ncomp;
 
-D = reject(D, [], oD.reject);
+D = badtrials(D, oD.badtrials, 1);
 
 D = history(D, oD.history, [], 'reset');
 
