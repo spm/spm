@@ -12,6 +12,7 @@ function D = spm_eeg_reduce(S)
 %   S.method           - name for the spectral estimation to use. This
 %                        corresponds to the name of a plug-in function that comes
 %                        after 'spm_eeg_reduce_' prefix.
+%   S.keepothers       - keep the other (not involved) channels
 %   S.settings         - plug-in specific settings
 %   S.timewin          - time windows or interest
 %   S.prefix           - prefix for the output file (default - 'R')
@@ -22,9 +23,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 5614 2013-08-15 12:15:16Z vladimir $
+% $Id: spm_eeg_reduce.m 5675 2013-10-09 14:27:17Z vladimir $
 
-SVNrev = '$Rev: 5614 $';
+SVNrev = '$Rev: 5675 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -37,6 +38,7 @@ spm('FigName','M/EEG reduce'); spm('Pointer','Watch');
 if ~isfield(S, 'channels'),   S.channels = 'all';             end
 if ~isfield(S, 'conditions'), S.conditions.all = 1;           end
 if ~isfield(S, 'timewin'),    S.timewin  = [-Inf Inf];        end
+if ~isfield(S, 'keepothers'), S.keepothers  = true;           end
 if ~isfield(S, 'prefix'),     S.prefix   = 'R';               end
 
 
@@ -95,7 +97,7 @@ end
 S1 = [];
 S1.D = D;
 S1.montage = montage;
-S1.keepothers = 1; 
+S1.keepothers = S.keepothers; 
 S1.prefix = S.prefix;
 S1.updatehistory  = 0;
 D = spm_eeg_montage(S1);

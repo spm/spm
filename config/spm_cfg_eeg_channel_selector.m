@@ -4,7 +4,7 @@ function channels = spm_cfg_eeg_channel_selector(jobtree)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_channel_selector.m 5375 2013-04-01 17:12:53Z vladimir $
+% $Id: spm_cfg_eeg_channel_selector.m 5675 2013-10-09 14:27:17Z vladimir $
 
 if nargin == 0 || ischar(jobtree)
     chanall = cfg_const;
@@ -26,6 +26,13 @@ if nargin == 0 || ischar(jobtree)
     chan.num = [1 Inf];
     chan.help = {'Enter a single channel name.'};
     
+    regexp = cfg_entry;
+    regexp.tag = 'regexp';
+    regexp.name = 'Regular expression';
+    regexp.strtype = 's';
+    regexp.num = [1 Inf];
+    regexp.help = {'Enter a regular expression for matching multiple channel labels.'};
+    
     chanfile = cfg_files;
     chanfile.tag = 'chanfile';
     chanfile.name = 'Channel file';
@@ -37,9 +44,9 @@ if nargin == 0 || ischar(jobtree)
     channels.name = 'Channel selection';
     % Sometimes it doesn't make sense to select by type
     if nargin == 0
-        channels.values = {chanall, type, chan, chanfile};
+        channels.values = {chanall, type, chan, regexp, chanfile};
     else
-        channels.values = {chanall, chan, chanfile};
+        channels.values = {chanall, chan, regexp, chanfile};
     end
     channels.num = [1 Inf];
     channels.val = {chanall};
@@ -52,6 +59,8 @@ else
             channels = [channels {'all'}];
         elseif isfield(jobtree{j}, 'chan')
             channels = [channels {jobtree{j}.chan}];
+        elseif isfield(jobtree{j}, 'regexp')
+            channels = [channels {['regexp_' jobtree{j}.regexp]}];
         elseif isfield(jobtree{j}, 'chanfile')
             channels = [channels getfield(load(char(jobtree{j}.chanfile)), 'label')];
         end
