@@ -73,7 +73,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5666 2013-10-02 13:20:31Z gareth $
+% $Id: spm_eeg_invert_classic.m 5676 2013-10-10 12:05:59Z gareth $
 
 
 
@@ -300,35 +300,39 @@ end;
 
 
 
-
 % get trials or conditions
 %----------------------------------------------------------------------
-
 try
     trial = D.inv{D.val}.inverse.trials;
 catch
     trial = D.condlist;
 end
-Ntrialtypes = length(trial);
-
-
+Ntrialtypes=length(trial);
 % get temporal covariance (Y'*Y) to find temporal modes
 %======================================================================
+%MY    = cell(Nmod,1);                        % mean response
+YTY   = sparse(0);                           % accumulator
+
+
+% get (spatially aligned) data
 %------------------------------------------------------------------
-N     = 0;
+
 YY    = 0;
-YTY   = sparse(0);
-MY = 0; % mean response
-for j = 1:Ntrialtypes                          % pool over conditions
+%    MY{m} = 0;
+N=0;
+for j = 1:Ntrialtypes,                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
     Nk    = length(c);
     for k = 1:Nk
         Y     = A*D(Ic,It,c(k));
-        MY=MY+Y; %% mean
-        YY    = YY + Y'*Y; %% covariance- NsamplesxNsamples
-        N     = N + Nb; %% number of time bins
+        
+        YY    = YY + Y'*Y;
+        N     = N + 1;
     end
 end
+YY=YY./N;
+
+
 
 
 
@@ -346,47 +350,50 @@ YTY         = T'*YY*T;     % Filter
 % ylabel('Frequency (Hz)');
 
 % temporal projector (at most Nrmax modes) S = T*V
+
 %======================================================================
 
-if isempty(Nt), %% no temporal modes specified
+if isempty(Nt),
     
-    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
     if isempty(U),
         warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);          % get temporal modes
+        [U E]  = svd(YTY);			% get temporal modes
     end;
-    E      = diag(E)/trace(YTY);            % normalise variance
-    Nr     = min(length(E),Nmax);           % number of temporal modes
+    E      = diag(E)/trace(YTY);			% normalise variance
+    Nr     = min(length(E),Nmax);			% number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else
-    [U E]  = svd(YTY);          % get temporal modes
+    [U E]  = svd(YTY);			% get temporal modes
     
-    E      = diag(E)/trace(YTY);            % normalise variance
+    E      = diag(E)/trace(YTY);			% normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
-
-V      = U(:,1:Nr);                     % temporal modes
-VE     = sum(E(1:Nr));                  % variance explained
+V      = U(:,1:Nr);						% temporal modes
+VE     = sum(E(1:Nr));					% variance explained
 
 fprintf('Using %i temporal modes, ',Nr)
 fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
 
 % projection and whitening
 %----------------------------------------------------------------------
-S      = T*V;                           % temporal projector
-Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
+S      = T*V;							% temporal projector
+Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
 
 
 % get spatial covariance (Y*Y') for Gaussian process model
 %======================================================================
 
 %======================================================================
+%======================================================================
 
 % loop over Ntrialtypes trial types
 %----------------------------------------------------------------------
 UYYU = 0;
+AYYA=0;
 Nn    =0;                             % number of samples
+AY={};
 for j = 1:Ntrialtypes,
     
     UY{j} = sparse(0);
@@ -401,7 +408,8 @@ for j = 1:Ntrialtypes,
         %--------------------------------------------------------------
         
         Y       = D(Ic,It,c(k))*S;
-        Y   = A*Y/Nk; %% just single trial
+        Y=A*Y; %% CHANGE
+        
         
         
         % accumulate first & second-order responses
@@ -423,15 +431,15 @@ for j = 1:Ntrialtypes,
     end
 end
 
+AYYA=AYYA./Nn;
 AY=spm_cat(AY);
 
 
 % assuming equal noise over subjects (Qe) and modalities AQ
 %--------------------------------------------------------------------------
-AQeA   = A*QE*A';           % Note that here it is A*A'
-Q = AQeA/(trace(AQeA))/Nm; %% recently introduced scaling factor
-Qe{1}  = Q; % it means IID noise in virtual sensor space
-AQ=Q;
+AQeA   = A*QE*A';			% Note that here it is A*A'
+Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
+
 
 
 
@@ -539,9 +547,8 @@ switch(type)
         % Multivariate Bayes (Here is performed the inversion)
         %------------------------------------------------------------------
         
-        %MVB   = spm_mvb(Y,UL,[],Q,Qe,16); from spm_eeg_invert_classic
         MVB   = spm_mvb(AY,UL,[],Q,Qe,16);
-        %% MVB   = spm_mvb(AY,UL,[],Q,AQ,16); from spm_eeg_invert
+        
         
         % Accumulate empirical priors (New set of patches for the second inversion)
         %------------------------------------------------------------------
@@ -550,6 +557,8 @@ switch(type)
         QP{end + 1}   = sum(Qcp.*Q,2);
         LQP{end + 1}  = (UL*Qcp)*Q';
         LQPL{end + 1} = LQP{end}*UL';
+        
+        
 end
 
 switch(type)
@@ -559,8 +568,9 @@ switch(type)
         % ReML - ARD (Here is performed the inversion)
         %------------------------------------------------------------------
         
-        [Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],sum(Nn));
-        %% [C,h] = spm_sp_reml(AYYA,[],[Qe LQpL],sum(Nn)); spm_eeg_invert
+        
+        [Cy,h,Ph,F] = spm_sp_reml(AYYA,[],[Qe LQpL],1);
+        
         
         % Spatial priors (QP)
         %------------------------------------------------------------------
@@ -590,11 +600,10 @@ switch(type)
         
         % or ReML - ARD (Here is performed the inversion)
         %------------------------------------------------------------------
-        %Q0          = exp(-2)*trace(YY)*Qe{1}/trace(Qe{1});
         
-        Q0     = exp(-2)*trace(AYYA)/sum(Nn)*AQ/trace(AQ);
-        [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],sum(Nn),-4,16,Q0);
-        %[C,h] = spm_reml_sc(AYYA,[],[Qe LQpL],sum(Nn),-4,16,Q0);
+        
+        Q0          = exp(-2)*trace(AYYA)*Qe{1}/trace(Qe{1});
+        [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],1,-4,16,Q0);
         
         % Spatial priors (QP)
         %------------------------------------------------------------------
@@ -622,6 +631,10 @@ end
 
 fprintf('Inverting subject 1\n')
 
+% generate sensor component (Qe) per modality
+%----------------------------------------------------------------------
+AQeA  = A*QE*A';				% Again it is A*A'
+AQ    = AQeA/(trace(AQeA));
 
 
 % using spatial priors
@@ -634,10 +647,10 @@ Q     = [Qe LQPL];
 % re-do ReML (with informative hyperpriors)
 % Here is performed the second inversion
 %======================================================================
-Q0          = exp(-2)*trace(UYYU)/Nn*AQ/trace(AQ);
 
-[Cy,h,Ph,F] = spm_reml_sc(UYYU,[],Q,Nn,-4,16,Q0);
-%% [Cy,h,Ph,F] = spm_reml_sc(UYYU{i},[],Q,Nn(i),-4,16,Q0); %% spm_eeg_invert
+Q0          = exp(-2)*trace(AYYA)*AQ/trace(AQ);
+[Cy,h,Ph,F] = spm_reml_sc(AYYA,[],Q,1,-4,16,Q0);
+
 
 % Data ID
 %----------------------------------------------------------------------
@@ -719,7 +732,7 @@ inverse.T      = S;                    % temporal projector
 inverse.U      = {A};                    % spatial projector
 inverse.Is     = Is;                   % Indices of active dipoles
 inverse.It     = It;                   % Indices of time bins
-inverse.Ic     = {Ic};                   % Indices of good channels
+inverse.Ic     = Ic;                   % Indices of good channels
 inverse.Nd     = Nd;                   % number of dipoles
 inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
