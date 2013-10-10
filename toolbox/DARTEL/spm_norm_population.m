@@ -7,7 +7,7 @@ function out = spm_norm_population(job)
 % (c) Wellcome Trust Centre for NeuroImaging (2011)
 
 % John Ashburner
-% $Id: spm_norm_population.m 5647 2013-09-20 13:03:44Z ged $
+% $Id: spm_norm_population.m 5677 2013-10-10 18:59:11Z john $
 
 % Hard coded stuff, that should maybe be customisable
 Ng  = nifti(fullfile(spm('Dir'),'toolbox','DARTEL','icbm152.nii'));
@@ -48,8 +48,10 @@ u   = zeros([df(1:3),3],'single'); % Starting estimates
 
 spm_plot_convergence('Init','Least-squares Nonlin. Registration',...
               'Objective Fun.', 'Iteration');
+
+prm1 = [prm(1) prm(2:4)/mean(sqrt(sum(Nf.mat(1:3,1:3).^2))) prm(5:end)];
 for it=1:12,
-    [u,ll] = dartel3(u,f,g,prm); % Gauss-Newton update for registration
+    [u,ll] = dartel3(u,f,g,prm1); % Gauss-Newton update for registration
     fprintf('%d \t%g\t%g\t%g\t%g\n',...
         it,ll(1),ll(2),ll(1)+ll(2),ll(3));
     spm_plot_convergence('Set',ll(1)+ll(2));
@@ -57,7 +59,7 @@ end
 spm_plot_convergence('Clear');
 
 y1 = dartel3('Exp', u, [6,1]); % Mapping from voxels in f to voxels in g
-M  = Nf.mat*inv(M0);           % Mapping from voxels in g to mm space of ICBM
+M  = Ng.mat*inv(M0);           % Mapping from voxels in g to mm space of ICBM
 
 % Compose the transforms
 y2(:,:,:,1) = M(1,1)*y1(:,:,:,1)+M(1,2)*y1(:,:,:,2)+M(1,3)*y1(:,:,:,3)+M(1,4);
