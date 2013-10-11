@@ -389,9 +389,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_util.m 5680 2013-10-11 14:58:16Z volkmar $
 
-rev = '$Rev: 5678 $';
+rev = '$Rev: 5680 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -785,6 +785,9 @@ switch lower(cmd),
             else
                 cm = subsref(c0, [mod_cfg_id item_mod_id]);
             end
+        else
+            cfg_message('matlabbatch:cfg_util:listmod:noid', ...
+                        'Wrong id format.');
         end
         findspec = varargin{nids+1};
         if (nargin > nids+2 && isstruct(varargin{nids+2})) || nargin > nids+3
