@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5684 2013-10-11 14:58:22Z volkmar $
+% $Id: cfg_ui.m 5686 2013-10-11 14:58:25Z volkmar $
 
-rev = '$Rev: 5684 $'; %#ok
+rev = '$Rev: 5686 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -737,7 +737,7 @@ function MenuFileAddApp_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 udmodlist = get(handles.modlist, 'userdata');
-cont = local_check_job_modified(udmodlist);
+cont = local_check_job_modified(udmodlist, 'replace');
 if cont
     [file, sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
     if sts
