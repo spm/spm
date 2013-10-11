@@ -44,9 +44,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: harvest.m 5690 2013-10-11 14:58:31Z volkmar $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 5690 $'; %#ok
 
 [tag, val, typ, tdeps, chk, cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
@@ -68,7 +68,9 @@ else
             if any(cflag)
                 % update tgt_input deps if necessary
                 otdeps = tdeps(~dflag);
-                item.cfg_branch = update_deps(item.cfg_branch, {otdeps(cflag).src_exbranch}, {ntdeps(cflag).src_exbranch});
+                otdeps1 = otdeps(cflag);
+                ntdeps1 = ntdeps(cflag);
+                item.cfg_branch = update_deps(item.cfg_branch, {otdeps1.src_exbranch}, {ntdeps1.src_exbranch});
             end
             if any(dflag)
                 % delete missing deps
