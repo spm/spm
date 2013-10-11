@@ -125,6 +125,22 @@ function varargout = cfg_util(cmd, varargin)
 % running job. cfg_util('getdiary', jobid) retrieves the last diary saved
 % for a job.
 %
+%  [mod_job_idlist, mod_names, mod_item_idx, ...
+%   item_mod_idlists, item_names] = cfg_util('getopeninputs', cjob)
+%
+% List all modules and input items that are not yet filled in a job
+% template. This is a combination of 'showjob' and parts of 'showmod' to
+% access only unset input items in an entire job.
+% mod_job_idlist - cell list of module ids with open inputs
+% mod_names      - names of modules with open inputs
+% mod_item_idx   - index into mod_job_idlist/mod_names to match a
+%                  linearized version of item_mod_idlists/item_names
+% item_mod_idlists - cell list of item_mod_ids with open inputs. One cell
+%                    entry per module, containing the within-module
+%                    item_mod_idlist.
+% item_names     - cell list of item name lists for each item with open
+%                  inputs.
+%
 %  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
 %
 % Harvest is a method defined for all 'cfg_item' objects. It collects the
@@ -389,9 +405,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5680 2013-10-11 14:58:16Z volkmar $
+% $Id: cfg_util.m 5681 2013-10-11 14:58:17Z volkmar $
 
-rev = '$Rev: 5680 $';
+rev = '$Rev: 5681 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -511,6 +527,31 @@ switch lower(cmd),
             end
         else
             varargout{1} = {};
+        end
+    case 'getopeninputs'
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob)
+            % Get information about job
+            [mod_job_idlist, mod_names, sts] = cfg_util('showjob', cjob);
+            mod_job_idlist = mod_job_idlist(~sts);
+            mod_names = mod_names(~sts);
+            fspec = cfg_findspec({{'hidden',false}});
+            tropts = cfg_tropts({{'hidden','true'}},1,inf,1,inf,false);
+            item_mod_idlists = cell(1,numel(mod_job_idlist));
+            item_names = cell(1,numel(mod_job_idlist));
+            % List modules with open inputs
+            for cm = 1:numel(mod_job_idlist)
+                [item_mod_idlists1, ~, contents] = cfg_util('listmod', cjob, mod_job_idlist{cm}, [], fspec, tropts, {'name','all_set_item'});
+                % module name is 1st in list
+                item_mod_idlists{cm} = item_mod_idlists1(~[contents{2}{:}]);
+                item_names{cm} = contents{1}(~[contents{2}{:}]);
+            end
+            mod_item_idx = cell(size(mod_names));
+            for k = 1:numel(mod_names)
+                mod_item_idx{k} = k*ones(size(item_names{k}));
+            end
+            mod_item_idx = [mod_item_idx{:}];
+            varargout = {mod_job_idlist, mod_names, mod_item_idx, item_mod_idlists, item_names};
         end
     case 'gencode',
         fname = varargin{1};
