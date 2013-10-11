@@ -29,9 +29,9 @@ function [str, tag, cind, ccnt] = gencode_item(item, tag, tagctx, stoptag, tropt
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_item.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: gencode_item.m 5688 2013-10-11 14:58:28Z volkmar $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 5688 $'; %#ok
 
 %% Class of item
 % if there are function handles in .check or .def, add their names to
@@ -130,6 +130,12 @@ if ~isempty(item.check)
     % Works only because gencode does not produce subscripts for function
     % strings
     str1 = gencode(item.check, sprintf('%s.check  ', tag), tagctx);
+    str = [str(:)' str1(:)'];
+end    
+%% Rewrite job
+% Generate rewrite_job field
+if ~isempty(item.rewrite_job)
+    str1 = gencode(item.rewrite_job, sprintf('%s.rewrite_job', tag), tagctx);
     str = [str(:)' str1(:)'];
 end    
 %% Help

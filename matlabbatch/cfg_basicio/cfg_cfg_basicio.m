@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2013-09-25 15:26:19.
+% Created at 2013-10-02 13:55:50.
 % ---------------------------------------------------------------------
 % files Files
 % ---------------------------------------------------------------------
@@ -1289,5 +1289,6 @@ run_ops.values  = {runjobs call_matlab };
 cfg_basicio         = cfg_choice;
 cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
+cfg_basicio.rewrite_job = @cfg_basicio_rewrite;
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
 cfg_basicio.values  = {file_dir var_ops run_ops };

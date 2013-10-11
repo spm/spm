@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_confgui.m 5688 2013-10-11 14:58:28Z volkmar $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 5688 $'; %#ok
 
 %% Declaration of fields
 
@@ -68,6 +68,7 @@ conf_val_single.num = [1 1];
 conf_check         = cfg_entry;
 conf_check.name    = 'Check';
 conf_check.tag     = 'check';
+conf_check.val     = {[]};
 conf_check.strtype = 'f';
 conf_check.num     = [0 Inf];
 conf_check.help    = {'Check function (handle).', ...
@@ -77,6 +78,20 @@ conf_check.help    = {'Check function (handle).', ...
     'its output should be a string that describes why input is not correct or consistent.'], ...
     ['Note that the check function will be called only if all dependencies are resolved. ', ...
     'This will usually be at the time just before the job is actually run.']};
+
+% Rewrite job
+%-----------------------------------------------------------------------
+conf_rewrite_job         = cfg_entry;
+conf_rewrite_job.name    = 'Rewrite job';
+conf_rewrite_job.tag     = 'rewrite_job';
+conf_rewrite_job.val     = {[]};
+conf_rewrite_job.strtype = 'f';
+conf_rewrite_job.num     = [0 Inf];
+conf_rewrite_job.help    = {'Rewrite job function (handle).', ...
+    ['This function will be called before a job is initialised. ', ...
+    'It can be used to upgrade an job to a new configuration layout.'], ...
+    ['Its input is the part of the job starting at the current item.' ...
+    'The output should be the modified job starting at the current item.']};
 
 % Help paragraph
 %-----------------------------------------------------------------------
@@ -365,7 +380,7 @@ conf_class_repeat.help   = {'Hidden field that gives the hint to cfg_struct2cfg 
 conf_branch      = cfg_exbranch;
 conf_branch.name = 'Branch';
 conf_branch.tag  = 'conf_branch';
-conf_branch.val  = {conf_class_branch, conf_name, conf_tag, conf_val, conf_check, conf_help};
+conf_branch.val  = {conf_class_branch, conf_name, conf_tag, conf_val, conf_check, conf_rewrite_job, conf_help};
 conf_branch.help = help2cell('cfg_branch');
 conf_branch.prog = @cfg_cfg_pass;
 conf_branch.vout = @cfg_cfg_vout;
@@ -375,7 +390,7 @@ conf_branch.vout = @cfg_cfg_vout;
 conf_choice      = cfg_exbranch;
 conf_choice.name = 'Choice';
 conf_choice.tag  = 'conf_choice';
-conf_choice.val  = {conf_class_choice, conf_name, conf_tag, conf_values, conf_check, conf_help};
+conf_choice.val  = {conf_class_choice, conf_name, conf_tag, conf_values, conf_check, conf_rewrite_job, conf_help};
 conf_choice.help = help2cell('cfg_choice');
 conf_choice.prog = @cfg_cfg_pass;
 conf_choice.vout = @cfg_cfg_vout;
@@ -386,7 +401,7 @@ conf_const      = cfg_exbranch;
 conf_const.name = 'Const';
 conf_const.tag  = 'conf_const';
 conf_const.val  = {conf_class_const, conf_name, conf_tag, conf_val_single, ...
-                   conf_check, conf_help, conf_def};
+                   conf_check, conf_rewrite_job, conf_help, conf_def};
 conf_const.help = help2cell('cfg_const');
 conf_const.prog = @cfg_cfg_pass;
 conf_const.vout = @cfg_cfg_vout;
@@ -397,7 +412,7 @@ conf_entry      = cfg_exbranch;
 conf_entry.name = 'Entry';
 conf_entry.tag  = 'conf_entry';
 conf_entry.val  = {conf_class_entry, conf_name, conf_tag, conf_strtype, ...
-                   conf_extras, conf_num_any, conf_check, conf_help, conf_def};
+                   conf_extras, conf_num_any, conf_check, conf_rewrite_job, conf_help, conf_def};
 conf_entry.help = help2cell('cfg_entry');
 conf_entry.prog = @cfg_cfg_pass;
 conf_entry.vout = @cfg_cfg_vout;
@@ -408,7 +423,7 @@ conf_exbranch      = cfg_exbranch;
 conf_exbranch.name = 'Exbranch';
 conf_exbranch.tag  = 'conf_exbranch';
 conf_exbranch.val  = {conf_class_exbranch, conf_name, conf_tag, conf_val, ...
-                    conf_prog, conf_vout, conf_check, conf_help};
+                    conf_prog, conf_vout, conf_check, conf_rewrite_job, conf_help};
 conf_exbranch.help = help2cell('cfg_exbranch');
 conf_exbranch.prog = @cfg_cfg_pass;
 conf_exbranch.vout = @cfg_cfg_vout;
@@ -419,7 +434,7 @@ conf_files      = cfg_exbranch;
 conf_files.name = 'Files';
 conf_files.tag  = 'conf_files';
 conf_files.val  = {conf_class_files, conf_name, conf_tag, conf_filter, ...
-                   conf_ufilter, conf_dir, conf_num, conf_check, conf_help, conf_def};
+                   conf_ufilter, conf_dir, conf_num, conf_check, conf_rewrite_job, conf_help, conf_def};
 conf_files.help = help2cell('cfg_files');
 conf_files.prog = @cfg_cfg_pass;
 conf_files.vout = @cfg_cfg_vout;
@@ -430,7 +445,7 @@ conf_menu      = cfg_exbranch;
 conf_menu.name = 'Menu';
 conf_menu.tag  = 'conf_menu';
 conf_menu.val  = {conf_class_menu, conf_name, conf_tag, conf_labels, ...
-                  conf_values, conf_check, conf_help, conf_def};
+                  conf_values, conf_check, conf_rewrite_job, conf_help, conf_def};
 conf_menu.help = help2cell('cfg_menu');
 conf_menu.prog = @cfg_cfg_pass;
 conf_menu.vout = @cfg_cfg_vout;
@@ -442,7 +457,7 @@ conf_repeat      = cfg_exbranch;
 conf_repeat.name = 'Repeat';
 conf_repeat.tag  = 'conf_repeat';
 conf_repeat.val  = {conf_class_repeat, conf_name, conf_tag, conf_values, ...
-                    conf_num, conf_forcestruct, conf_check, conf_help};
+                    conf_num, conf_forcestruct, conf_check, conf_rewrite_job, conf_help};
 conf_repeat.help = help2cell('cfg_repeat');
 conf_repeat.prog = @cfg_cfg_pass;
 conf_repeat.vout = @cfg_cfg_vout;
