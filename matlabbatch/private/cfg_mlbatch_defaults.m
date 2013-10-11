@@ -11,9 +11,9 @@ function cfg_defaults = cfg_mlbatch_defaults
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_mlbatch_defaults.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: cfg_mlbatch_defaults.m 5689 2013-10-11 14:58:30Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5689 $'; %#ok
 
 try
     % Font definition for cfg_ui user interface
@@ -79,6 +79,10 @@ cfg_defaults.msgcfg(2).destination = 'none';
 cfg_defaults.msgcfg(3)             = cfg_defaults.msgdef;
 cfg_defaults.msgcfg(3).identifier  = 'matlabbatch:initialise:invalid';
 cfg_defaults.msgcfg(3).level       = 'error';
+cfg_defaults.msgcfg(4)             = cfg_defaults.msgdef;
+cfg_defaults.msgcfg(4).identifier  = 'matlabbatch:subsref:cfg_dep:multisubs';
+cfg_defaults.msgcfg(4).level       = 'warning';
+cfg_defaults.msgcfg(4).backtrace   = 'on';
 
 cfg_defaults.msgtpl( 1)             = cfg_defaults.msgdef;
 cfg_defaults.msgtpl( 1).identifier  = '^matlabbatch:subsasgn';
