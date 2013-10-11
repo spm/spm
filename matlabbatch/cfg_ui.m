@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5679 2013-10-11 14:58:14Z volkmar $
+% $Id: cfg_ui.m 5682 2013-10-11 14:58:19Z volkmar $
 
-rev = '$Rev: 5679 $'; %#ok
+rev = '$Rev: 5682 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -325,12 +325,14 @@ udmodlist = get(handles.modlist, 'userdata');
 if ~isempty(udmodlist.cmod)
     cmod = get(handles.modlist, 'value');
     % fill module box with module contents
+    dflag = isfield(udmodlist, 'defid');
     if isfield(udmodlist, 'defid')
         % list defaults
-        [id, namestr, datastr, contents] = cfg_ui_util('showmoddef', udmodlist.defid{cmod});
+        cmid = udmodlist.defid{cmod};
     else
-        [id, namestr, datastr, contents] = cfg_ui_util('showmod', udmodlist.cjob, udmodlist.id{cmod});
+        cmid = {udmodlist.cjob, udmodlist.id{cmod}};
     end;
+    [id, namestr, datastr, contents] = cfg_ui_util('showmod', cmid, dflag);
     str = cfg_textfill(handles.module,namestr,datastr,true);
     udmodule = get(handles.module, 'userdata');
     if isempty(udmodule)
@@ -383,7 +385,7 @@ else
 end;
 contents = cellfun(@(c)subsref(c, substruct('{}',{citem})), udmodule.contents, 'UniformOutput', false);
 sout = cat(2, udmodlist.sout{1:cmod-1});
-cfg_ui_util('showvaledit', fig, ciid, contents, sout, dflag, @()local_valedit_update(obj));
+cfg_ui_util('showvaledit', fig, ciid, contents, sout, dflag, [], @()local_valedit_update(obj));
 drawnow;
 
 %%% Value edit dialogues
@@ -402,8 +404,7 @@ else
     ciid = {udmodlist.cjob, udmodlist.id{cmod} udmodule.id{value}};
 end;
 itemname = udmodule.contents{1}{value};
-itemclass = udmodule.contents{5}{value};
-cfg_ui_util('valedit_EditValue', ciid, itemname, itemclass, val, dflag);
+cfg_ui_util('valedit_EditValue', ciid, itemname, val);
 
 % --------------------------------------------------------------------
 function local_valedit_update(hObject)
