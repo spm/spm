@@ -11,7 +11,7 @@ function [vX] = spm_vec(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_vec.m 3605 2009-12-01 13:29:43Z karl $
+% $Id: spm_vec.m 5691 2013-10-11 16:53:00Z karl $
 
 % initialise X and vX
 %--------------------------------------------------------------------------
@@ -20,31 +20,35 @@ if nargin == 1
 else
     X = varargin;
 end
-vX    = [];
+
 
 % vectorise numerical arrays
 %--------------------------------------------------------------------------
-if isnumeric(X) || islogical(X)
+if isnumeric(X)
     vX = X(:);
-    return
-end
+
+% vectorise logical arrays
+%--------------------------------------------------------------------------
+elseif islogical(X)
+    vX = X(:);
 
 % vectorise structure into cell arrays
 %--------------------------------------------------------------------------
-if isstruct(X)
-    f = fieldnames(X);
-    X = X(:);
-    for i = 1:length(f)
+elseif isstruct(X)
+    vX = [];
+    f   = fieldnames(X);
+    X    = X(:);
+    for i = 1:numel(f)
         vX = cat(1,vX,spm_vec({X.(f{i})}));
     end
-    return
-end
 
 % vectorise cells into numerical arrays
 %--------------------------------------------------------------------------
-if iscell(X)
+elseif iscell(X)
+    vX   = [];
     for i = 1:numel(X)
         vX = cat(1,vX,spm_vec(X{i}));
     end
-    return
+else
+    vX = [];
 end

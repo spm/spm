@@ -51,6 +51,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 
 % EM: spm_nlsi_GN
 %==========================================================================
+G.IS  =  'spm_int_J';
 G.f   =  inline('P.f*x + P.h*u','x','u','P','M');
 G.g   =  inline('P.g*x','x','u','P','M');
 G.m   =  DEM.M(1).m;
@@ -68,7 +69,7 @@ GU.dt = 1;
  
 % data and serial correlations
 %--------------------------------------------------------------------------
-t     = ([1:N] - 1);
+t     = ((1:N) - 1);
 K     = toeplitz(exp(-t.^2/(2*M(1).E.s^2)));
 Q     = K*K';
  

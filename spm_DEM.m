@@ -1,5 +1,5 @@
 function [DEM] = spm_DEM(DEM)
-% Dynamic expectation maxmisation
+% Dynamic expectation maxmisation (Variational Laplacian filtering)
 % FORMAT DEM   = spm_DEM(DEM)
 %
 % DEM.M  - hierarchical model
@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DEM.m 5691 2013-10-11 16:53:00Z karl $
 
 
 % check model, data, priors and confounds and unpack
@@ -400,7 +400,7 @@ for iE = 1:nE
             
             % conditional covariance [of states {u}]
             %--------------------------------------------------------------
-            qu.p   = dE.du'*iS*dE.du + Pu;
+            qu.p   = real(dE.du'*iS*dE.du) + Pu;
             qu.c   = diag(ju)*spm_inv(qu.p)*diag(ju);
             iqu.c  = iqu.c + spm_logdet(qu.c);
             
@@ -414,8 +414,8 @@ for iE = 1:nE
                 
                 % Evaluate objective function L(t) (for static models)
                 %----------------------------------------------------------
-                L = - trace(E'*iS*E)/2 ...           % states (u)
-                    - trace(iS*ECEp)/2;              % expectation q(p)
+                L = - trace(real(E'*iS*E))/2 ...      % states (u)
+                    - trace(real(iS*ECEp))/2;         % expectation q(p)
                 
                 % if F is increasing, save expansion point
                 %----------------------------------------------------------
@@ -454,8 +454,8 @@ for iE = 1:nE
                     CJp(:,i)   = spm_vec(qp.c(ip,ip)*dE.dpu{i}'*iS);
                     dEdpu(:,i) = spm_vec(dE.dpu{i}');
                 end
-                dWdu   = CJp'*spm_vec(dE.dp');
-                dWduu  = CJp'*dEdpu;
+                dWdu   = real(CJp'*spm_vec(dE.dp'));
+                dWduu  = real(CJp'*dEdpu);
             end
             
             
@@ -469,13 +469,13 @@ for iE = 1:nE
             
             % first-order derivatives
             %--------------------------------------------------------------
-            dVdu  = -dE.du'*iS*E     - dWdu/2  - Pu*u(1:nu);
+            dVdu  = -real(dE.du'*iS*E)     - dWdu/2  - Pu*u(1:nu);
             
             % and second-order derivatives
             %--------------------------------------------------------------
-            dVduu = -dE.du'*iS*dE.du - dWduu/2 - Pu;
-            dVduy = -dE.du'*iS*dE.dy;
-            dVduc = -dE.du'*iS*dE.dc;
+            dVduu = -real(dE.du'*iS*dE.du) - dWduu/2 - Pu;
+            dVduy = -real(dE.du'*iS*dE.dy);
+            dVduc = -real(dE.du'*iS*dE.dc);
             
             % gradient
             %--------------------------------------------------------------
@@ -502,8 +502,8 @@ for iE = 1:nE
                         
             % and save them
             %--------------------------------------------------------------
-            qu.x(1:n) = q([1:n]);
-            qu.v(1:d) = q([1:d] + n);
+            qu.x(1:n) = q((1:n));
+            qu.v(1:d) = q((1:d) + n);
             
             
             % D-Step: break if convergence (for static models)
@@ -531,13 +531,13 @@ for iE = 1:nE
         
         % Accumulate; dF/dP = <dL/dp>, dF/dpp = ...
         %------------------------------------------------------------------
-        dFdp  = dFdp  - dWdp/2  - dE.dP'*iS*E;
-        dFdpp = dFdpp - dWdpp/2 - dE.dP'*iS*dE.dP;
-        qp.ic = qp.ic           + dE.dP'*iS*dE.dP;
+        dFdp  = dFdp  - dWdp/2  - real(dE.dP'*iS*E);
+        dFdpp = dFdpp - dWdpp/2 - real(dE.dP'*iS*dE.dP);
+        qp.ic = qp.ic           + real(dE.dP'*iS*dE.dP);
         
         % and quantities for M-Step
         %------------------------------------------------------------------
-        EE    = E*E'+ EE;
+        EE    = real(E*E') + EE;
         ECE   = ECE + ECEu + ECEp;
 
         

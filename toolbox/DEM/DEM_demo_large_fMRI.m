@@ -22,19 +22,18 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5672 2013-10-06 13:30:54Z karl $
+% $Id: DEM_demo_large_fMRI.m 5691 2013-10-11 16:53:00Z karl $
 
 % Simulate timeseries
 %==========================================================================
 rng('default')
-global DCM
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-N  = 32;                              % number of runs
+N  = 8;                               % number of runs
 T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
-n  = 4;                               % number of regions or nodes
+n  = 8;                               % number of regions or nodes
 t  = (1:T)*TR;                        % observation times
 
 % priors
@@ -125,7 +124,6 @@ DCM.U.dt = TR;
 
 % provisional inversion
 %--------------------------------------------------------------------------
-%%%% DCM   = spm_dcm_fmri_csd_DEM(DCM); %%%%
 DCM   = spm_dcm_fmri_csd(DCM);
 
 
@@ -199,62 +197,3 @@ for i = 1:N
         
     end
 end
-
-return
-
-% illustrate the illposed nature of the problem
-%==========================================================================
-nA    = 32;
-pA    = linspace(-.4,.4,nA);
-Y     = [];
-P     = [];
-for i = 1:nA
-    for j = 1:nA
-        
-        % map from parameter space to data space
-        %------------------------------------------------------------------
-        pp           = pP;
-        pp.A(1,2)    = pA(i);
-        pp.A(2,1)    = pA(j);
-        Y(:,end + 1) = spm_vec(spm_csd_fmri_mtf(pp,DCM.M,DCM.U));
-        P(:,end + 1) = spm_vec(pp.A);
-    end
-end
-
-% distance measures
-%--------------------------------------------------------------------------
-Up      = P([2 (n + 1)],:)';
-[Uy Sy] = spm_svd(spm_detrend(Y'));
-Uy      = real(Uy);
-
-Cp    = Up;
-for i = 1:2
-    Cp(:,i) = Up(:,i) - min(Up(:,i));
-    Cp(:,i) = 0.001 + Cp(:,i)./(max(Cp(:,i))*1.1);
-end
-
-spm_figure('Getwin','Figure 2'); clf
-subplot(2,1,1), cla
-for  i = 1:nA*nA
-    plot(Up(i,1),Up(i,2),'.','Markersize',32,'Color',[1/2 Cp(i,1) Cp(i,2)]), hold on
-end
-axis square
-title('Parameter space','FontSize',16)
-xlabel('Forward connection')
-ylabel('Backward connection')
-axis square
-
-subplot(2,1,2), cla
-for  i = 1:nA*nA
-    plot3(Uy(i,1),Uy(i,2),Uy(i,3),'.','Markersize',32,'Color',[1/2 Cp(i,1) Cp(i,2)]), hold on
-end
-axis square
-title('Data space','FontSize',16)
-xlabel('1st PC')
-ylabel('2nd PC')
-ylabel('3rd PC')
-axis square
-
-return
-
-

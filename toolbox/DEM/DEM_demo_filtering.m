@@ -12,7 +12,6 @@ function DEM_demo_filtering
 
 % temporal correlations
 %--------------------------------------------------------------------------
-M         = struct;
 M(1).E.s  = 1/32;
 M(1).E.nD = 4;
 M(1).E.linear = 3;
@@ -35,7 +34,7 @@ M(2).V  = 2;
 % generate data (ouput)
 %--------------------------------------------------------------------------
 T       = 32;
-U       = 1/2 + sin(pi*[1:T]/16);
+U       = 1/2 + sin(pi*(1:T)/16);
 DEM     = spm_DEM_generate(M,U);
  
 % DEM
@@ -64,7 +63,7 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 spm_figure('GetWin','Figure 1');
 
 subplot(2,1,1)
-plot([1:T],t_x,'r-',[1:T],d_x,'k-',[1:T],p_x,'k-.',[1:T],e_x,'k:')
+plot((1:T),t_x,'r-',(1:T),d_x,'k-',[1:T],p_x,'k-.',(1:T),e_x,'k:')
 legend({'true','DEM','PF','EKF'})
 axis square
 xlabel('time')

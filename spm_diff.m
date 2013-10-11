@@ -13,7 +13,7 @@ function [varargout] = spm_diff(varargin)
 %
 % df/dy{i};    x = V{i}y{i};    V = dx(i)/dy(i)
 %
-% q      - flag to preclude default concatenation of dfdx
+% q      - (char) flag to preclude default concatenation of dfdx
 %
 % dfdx          - df/dx{i}                     ; n =  i
 % dfdx{p}...{q} - df/dx{i}dx{j}(q)...dx{k}(p)  ; n = [i j ... k]
@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 5665 2013-10-02 09:03:59Z karl $
+% $Id: spm_diff.m 5691 2013-10-11 16:53:00Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------

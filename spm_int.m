@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 5309 2013-03-07 14:13:10Z karl $
+% $Id: spm_int.m 5691 2013-10-11 16:53:00Z karl $
  
  
 % convert U to U.u if necessary
@@ -76,7 +76,7 @@ x = [1; spm_vec(M.x)];
 % add [0] states if not specified
 %--------------------------------------------------------------------------
 try
-    f   = str2func(M.f);
+    M.f   = spm_funcheck(M.f);
 catch
     M.f = @(x,u,P,M) sparse(0,1);
     M.n = 0;
@@ -87,7 +87,7 @@ end
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
 try
-    g   = str2func(M.g);
+    g   = spm_funcheck(M.f);
 catch
     g   = @(x,u,P,M) x;
     M.g = g;

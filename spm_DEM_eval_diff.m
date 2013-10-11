@@ -17,7 +17,7 @@ function [D] = spm_DEM_eval_diff(x,v,qp,M,bilinear)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_eval_diff.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_eval_diff.m 5691 2013-10-11 16:53:00Z karl $
 
 % check for evaluation of bilinear terms
 %--------------------------------------------------------------------------
@@ -33,9 +33,9 @@ end
 nl    = size(M,2);                       % number of levels
 ne    = sum(spm_vec(M.l));               % number of e (errors)
 nx    = sum(spm_vec(M.n));               % number of x (hidden states)
+np    = sum(spm_vec(M.p));               % number of p (parameters)
 ny    = M(1).l;                          % number of y (inputs)
 nc    = M(end).l;                        % number of c (prior causes)
-
 
 % initialise cell arrays for hierarchical structure
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ for i = 1:(nl - 1)
     
     % 1st and 2nd partial derivatives (states)
     %----------------------------------------------------------------------
-    if bilinear
+    if bilinear && np
         try
             [dgdxp dgdx] = spm_diff(h,M(i).gx,xvp{:},4,'q');
             [dgdvp dgdv] = spm_diff(h,M(i).gv,xvp{:},4,'q');
@@ -147,7 +147,7 @@ for i = 1:(nl - 1)
 
     % place 2nd derivatives in array
     %----------------------------------------------------------------------
-    if bilinear
+    if bilinear && np
         for j = 1:length(dgdxp)
             dg.dxp{i}{j}{i,i} = dgdxp{j};
             dg.dvp{i}{j}{i,i} = dgdvp{j};

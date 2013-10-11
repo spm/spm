@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_csd_fmri_mtf.m 5691 2013-10-11 16:53:00Z karl $
 
 
 % compute log-spectral density
@@ -114,15 +114,14 @@ S     = spm_dcm_mtf(P,M);
 %--------------------------------------------------------------------------
 G     = zeros(nw,nn,nn);
 for i = 1:nw
-    G(i,:,:) = squeeze(S(i,:,:))*squeeze(Gu(i,:,:))*conj(squeeze(S(i,:,:)));
+    G(i,:,:) = reshape(S(i,:,:),nn,nn)*reshape(Gu(i,:,:),nn,nn)*conj(reshape(S(i,:,:),nn,nn));
 end
 
-
-
-% and  channel noise
+% and channel noise
 %--------------------------------------------------------------------------
 if isfield(M,'g')
     y = G + Gn;
 else
     y = G;
 end
+

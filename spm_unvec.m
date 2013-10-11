@@ -1,5 +1,5 @@
 function [varargout] = spm_unvec(vX,varargin)
-% unvectorises a vectorised array 
+% unvectorises a vectorised array
 % FORMAT [varargout] = spm_unvec(vX,varargin);
 % varargin  - numeric, cell or structure array
 % vX        - spm_vec(X)
@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 4709 2012-04-05 19:42:50Z karl $
+% $Id: spm_unvec.m 5691 2013-10-11 16:53:00Z karl $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ end
 % reshape numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X) || islogical(X)
-    if ndims(X) > 2
+    if ~ismatrix(X)
         X(:)  = full(vX);
     else
         X(:)  = vX;
@@ -50,7 +50,11 @@ if isstruct(X)
     f = fieldnames(X);
     for i = 1:length(f)
         c          = {X.(f{i})};
-        n          = length(spm_vec(c));
+        if isnumeric(c)
+            n      = numel(c);
+        else
+            n      = length(spm_vec(c));
+        end
         c          = spm_unvec(vX(1:n),c);
         [X.(f{i})] = deal(c{:});
         vX         = vX(n + 1:end);
@@ -63,7 +67,11 @@ end
 %--------------------------------------------------------------------------
 if iscell(X)
     for i = 1:numel(X)
-        n     = length(spm_vec(X{i}));
+        if isnumeric(X{i})
+            n      = numel(X{i});
+        else
+            n      = length(spm_vec(X{i}));
+        end
         X{i}  = spm_unvec(vX(1:n),X{i});
         vX    = vX(n + 1:end);
     end

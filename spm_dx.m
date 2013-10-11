@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 3605 2009-12-01 13:29:43Z karl $
+% $Id: spm_dx.m 5691 2013-10-11 16:53:00Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -79,9 +79,9 @@ else
 
     % augment Jacobian and take matrix exponential
     %======================================================================
-    q  = sparse(1,1,1,length(dfdx) + 1,1);
-    dx = spm_expm((spm_cat({0 []; t*spm_vec(f) t*dfdx})),q);
-    dx = spm_unvec(dx(2:end),f);
+    J     = spm_cat({0 []; t*spm_vec(f) t*dfdx});
+    dx    = expm(full(J));
+    dx    = spm_unvec(dx(2:end,1),f);
     
 end
 dx     = real(dx);

@@ -38,7 +38,7 @@ function [E,dE,f,g] = spm_DEM_eval(M,qu,qp)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_eval.m 4804 2012-07-26 13:14:18Z karl $
+% $Id: spm_DEM_eval.m 5691 2013-10-11 16:53:00Z karl $
  
  
 % get dimensions
@@ -273,8 +273,8 @@ switch method
  
             % get high-order derivatives
             %--------------------------------------------------------------
-            [Dx D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,1);
-            [Dv D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2);
+            [Dx D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,1,'q');
+            [Dv D] = spm_diff('spm_DEM_eval_diff',x,v,qp,M,2,'q');
             
             for i = 1:nx, Dx{i} = spm_unvec(Dx{i},D); end
             for i = 1:nv, Dv{i} = spm_unvec(Dv{i},D); end

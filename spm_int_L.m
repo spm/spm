@@ -58,7 +58,7 @@ function [y] = spm_int_L(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int_L.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_int_L.m 5691 2013-10-11 16:53:00Z karl $
  
  
 % convert U to U.u if necessary
@@ -69,42 +69,37 @@ try, dt = U.dt;  catch, dt = 1;    end
 % Initial states and inputs
 %--------------------------------------------------------------------------
 try
-    u   = U.u(1,:);
-catch
-    u   = sparse(1,M.m);
-end
-try
     x   = M.x;
 catch
     x   = sparse(0,1);
     M.x = x;
 end
 
- 
-% state equation; add [0] states if not specified
+try
+    u   = U.u(1,:);
+catch
+    u   = sparse(1,M.m);
+end
+
+% add [0] states if not specified
 %--------------------------------------------------------------------------
 try
-    if isa(M.f,'function_handle')
-        f   = M.f;
-    else
-        f   = str2func(M.f);
-    end
+    f   = spm_funcheck(M.f);
 catch
     f   = @(x,u,P,M) sparse(0,1);
     M.n = 0;
     M.x = sparse(0,0);
+    M.f = f;
 end
 
-% and output nonlinearity
+ 
+% output nonlinearity, if specified
 %--------------------------------------------------------------------------
 try
-    if isa(M.g,'function_handle')
-        g   = M.g;
-    else
-        g   = str2func(M.g);
-    end
+    g   = spm_funcheck(M.f);
 catch
     g   = @(x,u,P,M) x;
+    M.g = g;
 end
 
 
