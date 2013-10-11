@@ -69,13 +69,13 @@ function item = cfg_files(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_files.m 4898 2012-09-05 13:40:16Z volkmar $
+% $Id: cfg_files.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4898 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
-[fn defs] = mysubs_fields;
+[fn, defs] = mysubs_fields;
 
 if nargin == 1
     if isstruct(varargin{1})

@@ -53,13 +53,13 @@ function item = cfg_exbranch(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_exbranch.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_exbranch.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
-[fn defs] = mysubs_fields;
+[fn, defs] = mysubs_fields;
 
 if nargin == 1
     if isstruct(varargin{1})

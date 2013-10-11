@@ -15,9 +15,9 @@ function [item, defaults] = val2def(item, defaults, funname, deftag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: val2def.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: val2def.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 csubs = substruct('.', treepart(item, true));
 citems = subsref(item, csubs);
@@ -25,6 +25,6 @@ if ~isempty(deftag)
     deftag = [deftag '.'];
 end
 for k = 1:numel(citems)
-    [citems{k} defaults] = val2def(citems{k}, defaults, funname, [deftag gettag(citems{k})]);
+    [citems{k}, defaults] = val2def(citems{k}, defaults, funname, [deftag gettag(citems{k})]);
 end
 item = subsasgn(item, csubs, citems);

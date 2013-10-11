@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5513 2013-05-22 12:00:27Z volkmar $
+% $Id: cfg_getfile.m 5678 2013-10-11 14:58:04Z volkmar $
 
 t = {};
 sts = false;
@@ -112,7 +112,7 @@ if nargin > 0 && ischar(varargin{1})
                 return;
             end
             t = cpath(t);
-            [unused n e] = cellfun(@fileparts,t,'UniformOutput',false);
+            [unused,n,e] = cellfun(@fileparts,t,'UniformOutput',false);
             t1           = strcat(n,e);
             filt         = mk_filter(varargin{3:end});
             [unused,sts] = do_filter_exp(t1,filt);
@@ -144,9 +144,9 @@ if nargin > 0 && ischar(varargin{1})
             sts     = cell(numel(direc),1);
             for k = 1:numel(t)
                 if regexpi(varargin{1},'rec')
-                    [t{k} sts{k}] = select_rec1(direc{k}, filt);
+                    [t{k}, sts{k}] = select_rec1(direc{k}, filt);
                 else
-                    [t{k} sts{k}] = listfiles(direc{k}, filt); % (sts is subdirs here)
+                    [t{k}, sts{k}] = listfiles(direc{k}, filt); % (sts is subdirs here)
                     sts{k} = sts{k}(~(strcmp(sts{k},'.')|strcmp(sts{k},'..'))); % remove '.' and '..' entries
                     if regexpi(varargin{1}, 'fplist') % return full pathnames
                         if ~isempty(t)
@@ -230,11 +230,11 @@ else
     % Canonicalise already selected paths
     already = cpath(already);
     % Filter already selected files by type, but not by user defined filter
-    [pd nam ext] = cellfun(@(a1)fileparts(a1), already, ...
+    [pd, nam, ext] = cellfun(@(a1)fileparts(a1), already, ...
         'UniformOutput',false);
     sfilt1      = sfilt;
     sfilt1.filt = '.*';
-    [unused ind] = do_filter_exp(strcat(nam,ext),sfilt1);
+    [unused, ind] = do_filter_exp(strcat(nam,ext),sfilt1);
     already = already(ind);
     % Add folders of already selected files to prevdirs list
     prevdirs(pd(ind));
@@ -276,7 +276,7 @@ set(fg,'Visible','on');
 
 sellines = min([max([n(2) numel(already)]), 4]);
 filtlines = sum(arrayfun(@(f)numel(f.prms.val), sfilt.tfilt));
-[pselp pfiltp pcntp pfdp pdirp] = panelpositions(fg, sellines+1, filtlines);
+[pselp, pfiltp, pcntp, pfdp, pdirp] = panelpositions(fg, sellines+1, filtlines);
 
 % Messages are displayed as title of Selected Files uipanel
 psel = uipanel(fg,...
@@ -319,7 +319,7 @@ if filtlines > 0
     filth = 1/filtlines;
     cfiltp = 0;
     for cf = 1:numel(sfilt.tfilt)
-        [id stop vals] = list(sfilt.tfilt(cf).prms,cfg_findspec({{'class','cfg_entry'}}),cfg_tropts(cfg_findspec,0,inf,0,inf,false),{'name','val'});
+        [id, stop, vals] = list(sfilt.tfilt(cf).prms,cfg_findspec({{'class','cfg_entry'}}),cfg_tropts(cfg_findspec,0,inf,0,inf,false),{'name','val'});
         for ci = 1:numel(id)
             % Label
             uicontrol(pfilt,...
@@ -692,7 +692,7 @@ if isempty(c) || isequal(c,char(13))
     pd  = get(sib('edit'),'String');
     sel = str{vl};
     if strcmp(sel,'..'),     % Parent directory
-        [dr odr] = fileparts(pd);
+        [dr, odr] = fileparts(pd);
     elseif strcmp(sel,'.'),  % Current directory
         dr = pd;
         odr = '';
@@ -756,7 +756,7 @@ function update_filt(dr)
 uid  = get(gcbo, 'Userdata');
 filt = get(sib('regexp'), 'Userdata');
 valstr = get(gcbo, 'String');
-[val sts] = cfg_eval_valedit(valstr);
+[val, sts] = cfg_eval_valedit(valstr);
 citem = subsref(filt.tfilt(uid.cf).prms, uid.id);
 if ~sts
     % Try with quotes/brackets
@@ -765,7 +765,7 @@ if ~sts
     else
         valstr1 = sprintf('[%s]', valstr);
     end
-    [val sts] = cfg_eval_valedit(valstr1);
+    [val, sts] = cfg_eval_valedit(valstr1);
 end
 if sts
     citem.val{1} = val;
@@ -866,7 +866,7 @@ end
 dsel = cellfun(@(d1)any(strcmp(d1,{'.','..'})),d);
 if any(~dsel)
     d       = strcat(cdir,filesep,d(~dsel));
-    [f1 d1] = cellfun(@(d1)select_rec1(d1,filt),d,'UniformOutput',false);
+    [f1,d1] = cellfun(@(d1)select_rec1(d1,filt),d,'UniformOutput',false);
     f       = [f(:);cat(1,f1{:})];
     d       = [d(:);cat(1,d1{:})];
 else
@@ -1088,7 +1088,7 @@ else
 end
 ind1 = cell(size(filt.tfilt));
 for k = 1:numel(filt.tfilt)
-    [f1 ind1{k}] = do_filter(f,filt.tfilt(k).regex);
+    [f1, ind1{k}] = do_filter(f,filt.tfilt(k).regex);
     if ~(isempty(f1) || isempty(filt.tfilt(k).fun))
         [unused,prms]         = harvest(filt.tfilt(k).prms, filt.tfilt(k).prms, false, false);
         [unused,ind2]         = filt.tfilt(k).fun('filter',f1,prms);
@@ -1187,8 +1187,8 @@ elseif nargin == 1
     if any(fsel)
         filt = lfilt(fsel);
         % sort filters into typ order
-        [unused st] = sort(ctyp(tsel));
-        [unused sf] = sort({filt.typ});
+        [unused, st] = sort(ctyp(tsel));
+        [unused, sf] = sort({filt.typ});
         filt = filt(st(sf));
     end
     if any(~tsel)
@@ -1278,7 +1278,7 @@ ob  = sib('EditWindow');
 str = get(ob, 'String');
 if isempty(str), return, end
 if ~isempty(str)
-    [out sts] = cfg_eval_valedit(char(str));
+    [out, sts] = cfg_eval_valedit(char(str));
     if sts && (iscellstr(out) || ischar(out))
         set(ob, 'String', cellstr(out));
     else
@@ -1310,9 +1310,9 @@ else
         end
     end
     filt = getfilt;
-    [p n e] = cellfun(@fileparts, str, 'uniformoutput',false);
+    [p, n, e] = cellfun(@fileparts, str, 'uniformoutput',false);
     fstr = strcat(n, e);
-    [fstr1 fsel] = do_filter_exp(fstr, filt);
+    [fstr1, fsel] = do_filter_exp(fstr, filt);
     str = str(fsel);
 end
 select(str,true);
@@ -1480,7 +1480,7 @@ pfdp   = [0 pselh+pfilth+pcnth 1 pfdh];
 
 %=======================================================================
 function resize_fun(fg,varargin)
-[pselp pfiltp pcntp pfdp pdirp] = panelpositions(fg);
+[pselp, pfiltp, pcntp, pfdp, pdirp] = panelpositions(fg);
 if pfdp(4) <= 0
     pfdp(4)=eps;
 end

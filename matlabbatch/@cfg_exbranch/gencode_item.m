@@ -25,9 +25,9 @@ function [str, tag, cind, ccnt] = gencode_item(item, tag, tagctx, stoptag, tropt
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_item.m 3355 2009-09-04 09:37:35Z volkmar $
+% $Id: gencode_item.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 3355 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 %% Parent object
 % if there are function handles in .prog, .vout, .vfiles add their names to
@@ -45,7 +45,7 @@ if ~isempty(item.vfiles) && isa(item.vfiles, 'function_handle')
 end
 tagctx = [tagctx functx];
 % Generate branch object
-[str tag cind ccnt] = gencode_item(item.cfg_branch, tag, tagctx, stoptag, tropts);
+[str, tag, cind, ccnt] = gencode_item(item.cfg_branch, tag, tagctx, stoptag, tropts);
 % Check whether to generate code - ccnt == 0 means that generic object did
 % not return code
 if (tropts.clvl > tropts.mlvl || (~isempty(tropts.stopspec) && match(item, tropts.stopspec))) || ccnt == 0

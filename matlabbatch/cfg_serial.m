@@ -119,9 +119,9 @@ function cfg_serial(guifcn, job, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_serial.m 1862 2008-06-30 14:12:49Z volkmar $
+% $Id: cfg_serial.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 1862 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 cfg_message('matlabbatch:deprecated:cfg_serial', '''cfg_serial'' is deprecated. Please use cfg_util(''filljob[ui]'',...) to fill a job in serial mode.');
 if ischar(job)
@@ -149,7 +149,7 @@ end;
 % varargin{:} is a list of input items
 in = varargin;
 % get job information
-[mod_job_idlist str sts dep sout] = cfg_util('showjob', cjob);
+[mod_job_idlist, str, sts, dep, sout] = cfg_util('showjob', cjob);
 for cm = 1:numel(mod_job_idlist)
     % loop over modules, enter missing inputs
     if ~sts(cm)
@@ -167,7 +167,7 @@ cfg_message('matlabbatch:cfg_serial:notimplemented', ...
       'Menu traversal not yet implemented.');
 
 function inputs = local_fillmod(guifcn, cjob, cm, inputs)
-[item_mod_idlist stop contents] = ...
+[item_mod_idlist, stop, contents] = ...
     cfg_util('listmod', cjob, cm, [], cfg_findspec({{'hidden',false}}), ...
              cfg_tropts({{'hidden', true}},1,Inf,1,Inf,false), ...
              {'class', 'all_set_item'});
@@ -242,15 +242,16 @@ fspec  = cfg_findspec({{'hidden',false}});
 tropts = cfg_tropts({{'hidden', true}},1,1,1,1,false);
 if isempty(citem)
     % we are not in a module
-    [u1 u2 contents] = cfg_util('listcfgall', cm, fspec, tropts, fnames);
+    [u1, u2, contents] = cfg_util('listcfgall', cm, fspec, tropts, fnames);
 else
-    [u1 u2 contents] = cfg_util('listmod', cjob, cm, citem, fspec, tropts, fnames);
+    [u1, u2, contents] = cfg_util('listmod', cjob, cm, citem, fspec, tropts, fnames);
 end;
 
 cmname = contents{1}{1};
 switch cmclass
     case {'cfg_choice', 'cfg_repeat'}
         % construct labels and values from 'values' field
+        labels = cell(size(contents{2}{1}));
         for k = 1:numel(contents{2}{1})
             labels{k} = contents{2}{1}{k}.name;
         end;
@@ -260,6 +261,7 @@ switch cmclass
             args{3} = contents{3}{1};
         end;
     case {'cfg_entry', 'cfg_files', 'cfg_menu'}
+        args = cell(1, numel(contents)-1);
         for k = 2:numel(contents)
             args{k-1} = contents{k}{1};
         end;

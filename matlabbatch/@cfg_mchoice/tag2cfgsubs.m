@@ -23,9 +23,9 @@ function [id, stop, rtaglist] = tag2cfgsubs(item, taglist, finalspec, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: tag2cfgsubs.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: tag2cfgsubs.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 if numel(taglist) == 1 || (~isempty(tropts.stopspec) ...
                            && match(item, tropts.stopspec))
     if strcmp(gettag(item), taglist{1}) && match(item, finalspec)
@@ -49,7 +49,7 @@ stop = true;
 rtaglist = taglist(2:end);
 for k = 1:numel(citems)
     if strcmp(gettag(citems{k}), taglist{2})
-        [id stop rtaglist] = tag2cfgsubs(citems{k}, taglist(2:end), ...
+        [id, stop, rtaglist] = tag2cfgsubs(citems{k}, taglist(2:end), ...
                                          finalspec, tropts);
         if isstruct(id)
             id = [substruct('.', tname, '{}', {k}) id];

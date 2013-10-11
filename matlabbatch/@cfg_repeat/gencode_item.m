@@ -23,9 +23,9 @@ function [str, tag, cind, ccnt] = gencode_item(item, tag, tagctx, stoptag, tropt
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_item.m 4864 2012-08-27 13:57:31Z volkmar $
+% $Id: gencode_item.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4864 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 %% Parent object
 % Generate generic object
@@ -37,7 +37,7 @@ if tropts.dflag
     itropts.mlvl = 1;
     istoptag     = '';
 end;
-[str tag cind ccnt] = gencode_item(item.cfg_item, tag, tagctx, istoptag, itropts);
+[str, tag, cind, ccnt] = gencode_item(item.cfg_item, tag, tagctx, istoptag, itropts);
 tagctx = [tagctx {tag}];
 % Check whether to generate code - ccnt == 0 means that generic object did
 % not return code
@@ -65,7 +65,7 @@ if numel(item.values) > 0
         % and the tags of its immediate children.
         ctag{k} = genvarname(subsref(item.values{k}, substruct('.','tag')), ...
                              tagctx);
-        [ccstr ctag{k} ccind cccnt] = gencode_item(item.values{k}, ctag{k}, ...
+        [ccstr, ctag{k}, ccind, cccnt] = gencode_item(item.values{k}, ctag{k}, ...
                                               tagctx, stoptag, ctropts);
         tagctx = [tagctx ctag(k)];
         if ~isempty(ccstr)

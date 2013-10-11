@@ -28,9 +28,9 @@ function [str, sts] = gencode_rvalue(item, cflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 5213 2013-01-28 13:08:24Z guillaume $
+% $Id: gencode_rvalue.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 5213 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if nargin < 2
     cflag = false;
@@ -79,7 +79,7 @@ switch class(item)
         elseif ndims(item) == 2 && any(size(item) == 1) %#ok<ISMAT>
             str1 = {};
             for k = 1:numel(item)
-                [str2 sts] = gencode_rvalue(item{k}, cflag);
+                [str2, sts] = gencode_rvalue(item{k}, cflag);
                 if ~sts
                     break;
                 end

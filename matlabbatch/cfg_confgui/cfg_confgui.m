@@ -12,9 +12,9 @@ function menu_cfg = cfg_confgui
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_confgui.m 3944 2010-06-23 08:53:40Z volkmar $
+% $Id: cfg_confgui.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 3944 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 %% Declaration of fields
 
@@ -572,7 +572,7 @@ else
     % Transform struct into class based tree
     out.c0 = cfg_struct2cfg(varargin{1}.genobj_var);
 end
-[u1 out.djob]  = harvest(out.c0, out.c0, true, true);
+[u1, out.djob]  = harvest(out.c0, out.c0, true, true);
 
 function out = cfg_cfg_gencode(varargin)
 if isa(varargin{1}.gencode_var, 'cfg_item')
@@ -583,8 +583,8 @@ else
     out.c0 = cfg_struct2cfg(varargin{1}.gencode_var);
 end
 % Generate code
-[str tag] = gencode(out.c0,'',{});
-[p n e] = fileparts(varargin{1}.gencode_fname);
+[str, tag] = gencode(out.c0,'',{});
+[p, n, e] = fileparts(varargin{1}.gencode_fname);
 out.cfg_file{1} = fullfile(varargin{1}.gencode_dir{1}, [n '.m']);
 fid = fopen(out.cfg_file{1}, 'wt');
 fprintf(fid, 'function %s = %s\n', tag, n);
@@ -605,8 +605,8 @@ end
 fclose(fid);
 if varargin{1}.gencode_opts.gencode_o_def
     % Generate defaults file
-    [u1 out.djob]  = harvest(out.c0, out.c0, true, true);
-    [str dtag] = gencode(out.djob, sprintf('%s_def', tag));
+    [u1, out.djob]  = harvest(out.c0, out.c0, true, true);
+    [str, dtag] = gencode(out.djob, sprintf('%s_def', tag));
     dn = sprintf('%s_def', n);
     out.def_file{1} = fullfile(varargin{1}.gencode_dir{1}, sprintf('%s.m', dn));
     fid = fopen(out.def_file{1}, 'wt');

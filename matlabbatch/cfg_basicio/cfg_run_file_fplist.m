@@ -12,8 +12,8 @@ function out = cfg_run_file_fplist(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_run_file_fplist.m 3434 2009-09-30 13:01:28Z volkmar $
+% $Id: cfg_run_file_fplist.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 3434 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
-[out.files out.dirs] = cfg_getfile(job.rec, job.dir{1}, job.filter);
+[out.files, out.dirs] = cfg_getfile(job.rec, job.dir{1}, job.filter);

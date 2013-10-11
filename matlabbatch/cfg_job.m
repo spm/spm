@@ -15,7 +15,7 @@ classdef cfg_job
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_job.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: cfg_job.m 5678 2013-10-11 14:58:04Z volkmar $
 
     properties (Access=private)
         c0;
@@ -68,7 +68,7 @@ classdef cfg_job
             obj.c0 = subsasgn_job(obj.c0, subs, val);
         end
         function varargout = subsref(obj, subs)
-            [ritem varargout{1:max(nargout,1)}] = subsref_job(obj.c0, subs, obj.c0);
+            [ritem, varargout{1:max(nargout,1)}] = subsref_job(obj.c0, subs, obj.c0);
             if obj.showhints || nargout == 0
                 str = showdetail(ritem);
                 fprintf('%s\n', str{:});

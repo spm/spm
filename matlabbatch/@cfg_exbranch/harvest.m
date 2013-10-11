@@ -44,11 +44,11 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 4978 2012-09-28 12:23:30Z volkmar $
+% $Id: harvest.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4978 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
-[tag val typ tdeps chk cj] = harvest(item.cfg_branch, cj, dflag, rflag);
+[tag, val, typ, tdeps, chk, cj] = harvest(item.cfg_branch, cj, dflag, rflag);
 if dflag
     dep = [];
 else
@@ -61,7 +61,7 @@ else
             cj = del_in_source(item.tdeps, cj);
         end;
         if ~isempty(tdeps)
-            [cj ntdeps cflag dflag] = add_to_source(tdeps, cj);
+            [cj, ntdeps, cflag, dflag] = add_to_source(tdeps, cj);
             item.tdeps = ntdeps;
             % need to update dependencies in this item (possibly a 2nd
             % time), otherwise changes might get lost

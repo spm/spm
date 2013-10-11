@@ -1,4 +1,4 @@
-function [newjobs uind] = cfg_load_jobs(job)
+function [newjobs, uind] = cfg_load_jobs(job)
 
 % function newjobs = cfg_load_jobs(job)
 %
@@ -11,26 +11,26 @@ function [newjobs uind] = cfg_load_jobs(job)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_load_jobs.m 4073 2010-09-24 12:07:57Z volkmar $
+% $Id: cfg_load_jobs.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4073 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if ischar(job)
     filenames = cellstr(job);
 else
     filenames = job;
 end;
-[ufilenames unused uind] = unique(filenames);
+[ufilenames, unused, uind] = unique(filenames);
 ujobs = cell(size(ufilenames));
 usts  = false(size(ufilenames));
 for cf = 1:numel(ufilenames)
-    [ujobs{cf} usts(cf)] = load_single_job(ufilenames{cf});
+    [ujobs{cf}, usts(cf)] = load_single_job(ufilenames{cf});
 end
 sts   = usts(uind);
 uind  = uind(sts);
 newjobs = ujobs(uind);
 
-function [matlabbatch sts] = load_single_job(filename)
+function [matlabbatch, sts] = load_single_job(filename)
 [p,nam,ext] = fileparts(filename);
 switch ext
     case '.xml',

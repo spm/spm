@@ -13,14 +13,14 @@ function item = setval(item, val, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: setval.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: setval.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if isempty(val)
     item = subsasgn(item, substruct('.','val'), {});
 else
-    if ~any(strcmp(gettag(item.values{val(1)}, tagnames(item, false))))
+    if ~any(strcmp(gettag(item.values{val(1)}), tagnames(item, false)))
         val = item.values{val(1)};
         item = subsasgn(item, substruct('.','val', '{}',{numel(item.cfg_item.val)+1}), val);
     end;

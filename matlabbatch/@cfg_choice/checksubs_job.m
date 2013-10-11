@@ -1,4 +1,4 @@
-function [sts vind] = checksubs_job(item, subs, dflag)
+function [sts, vind] = checksubs_job(item, subs, dflag)
 
 % function [sts vind] = checksubs_job(item, subs, dflag)
 % Check whether a subscript reference is a valid reference in a job
@@ -15,9 +15,9 @@ function [sts vind] = checksubs_job(item, subs, dflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: checksubs_job.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: checksubs_job.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if strcmp(subs(1).type, '.')
     vind = find(strcmp(subs(1).subs, tagnames(item, dflag)),1);

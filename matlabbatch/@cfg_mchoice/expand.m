@@ -34,9 +34,9 @@ function [item, sts] = expand(item, eflag, tropts)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: expand.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: expand.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 % Set expanded based on eflag in item
 if eflag >= 0 && eflag <= 2
@@ -63,7 +63,7 @@ citems = subsref(item, ntgt_input);
 tropts.clvl = tropts.clvl + 1;
 
 for k = 1:numel(citems)
-    [citems{k} sts1] = expand(citems{k}, eflag, tropts);
+    [citems{k}, sts1] = expand(citems{k}, eflag, tropts);
     sts = sts || sts1;
 end;
 

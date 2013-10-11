@@ -32,9 +32,9 @@ function item = subsasgn(item, subs, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: subsasgn.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 persistent local_mysubs_fields;
 persistent par_class;
@@ -77,7 +77,7 @@ switch subs(1).type,
                 % Field values to assign
                 val1 = varargin{1};
             end
-            [ok val] = subsasgn_check(item,subs,val1);
+            [ok, val] = subsasgn_check(item,subs,val1);
             if ok,
                 switch subs(1).subs
                     case par_fields,

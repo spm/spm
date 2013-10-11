@@ -19,21 +19,21 @@ function varargout = subsref_job(item, subs, c0)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsref_job.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: subsref_job.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if isempty(subs)
     varargout{1} = item;
-    [un varargout{2}] = harvest(item, c0, false, false);
+    [un, varargout{2}] = harvest(item, c0, false, false);
 else
-    [sts vind] = checksubs_job(item, subs, false);
+    [sts, vind] = checksubs_job(item, subs, false);
     if sts
         csubs = substruct('.', treepart(item, false));
         citems = subsref(item, csubs);
         [varargout{1:nargout}] = subsref_job(citems{vind}, subs(2:end), c0);
     else
-        [sts vind] = checksubs_job(item, subs, true);
+        [sts, vind] = checksubs_job(item, subs, true);
         if sts
             csubs = substruct('.', treepart(item, true));
             citems = subsref(item, csubs);

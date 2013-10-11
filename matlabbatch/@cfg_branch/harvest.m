@@ -26,9 +26,9 @@ function [tag, val, typ, dep, chk, cj] = harvest(item, cj, dflag, rflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: harvest.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: harvest.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 typ = class(item);
 tag = gettag(item);
@@ -46,7 +46,7 @@ njtsubs.type = '.';
 njtsubs.subs = '';
 
 for k = 1:numel(citems)
-    [ctag cval unused cdep cchk cj] = harvest(citems{k}, cj, dflag, rflag);
+    [ctag, cval, unused, cdep, cchk, cj] = harvest(citems{k}, cj, dflag, rflag);
     val(1).(ctag) = cval;
     if ~dflag && ~isempty(cdep)
         % augment cdep tsubs references

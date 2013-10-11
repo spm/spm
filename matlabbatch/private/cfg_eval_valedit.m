@@ -13,9 +13,9 @@ function [val, sts] = cfg_eval_valedit(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_eval_valedit.m 4656 2012-02-10 15:02:39Z volkmar $
+% $Id: cfg_eval_valedit.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4656 $'; 
+rev = '$Rev: 5678 $'; 
 
 val = [];
 sts = false;
@@ -23,7 +23,7 @@ try
     % 1st, try to convert into numeric matrix without evaluation
     % This converts expressions like '1 -1' into [1 -1] instead of
     % evaluating them
-    [val sts] = str2num(varargin{1}); %#ok<ST2NM>
+    [val, sts] = str2num(varargin{1}); %#ok<ST2NM>
     if ~sts
         % try to evaluate str as rvalue
         val = evalin('base', varargin{1});

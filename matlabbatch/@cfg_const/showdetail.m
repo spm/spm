@@ -10,9 +10,9 @@ function str = showdetail(item)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: showdetail.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: showdetail.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 str = showdetail(item.cfg_item);
-str{end+1} = ['This item has a constant value which can not be modified.'];
+str{end+1} = 'This item has a constant value which can not be modified.';

@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 4944 2012-09-21 14:08:06Z volkmar $
+% $Id: cfg_ui.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4944 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -166,7 +166,7 @@ local_showjob(gcbo);
 % --------------------------------------------------------------------
 function local_loaddefs(varargin)
 appid = get(gcbo, 'Userdata');
-[file sts] = cfg_getfile(1, '.*\.m$','Load Defaults from');
+[file, sts] = cfg_getfile(1, '.*\.m$','Load Defaults from');
 if sts
     cfg_util('initdef', appid, file{1});
 end;
@@ -174,7 +174,7 @@ end;
 function local_savedefs(varargin)
 appid = get(gcbo, 'Userdata');
 [tag, def] = cfg_util('harvestdef', appid);
-[file path] = uiputfile({'*.m','MATLAB .m file'}, 'Save Defaults as', ...
+[file, path] = uiputfile({'*.m','MATLAB .m file'}, 'Save Defaults as', ...
                         sprintf('%s_defaults.m', tag));
 if ~ischar(file)
     return;
@@ -186,8 +186,8 @@ if fid < 1
             fullfile(path, file));
     return;
 end;
-[defstr tagstr] = gencode(def, tag);
-[u1 funcname] = fileparts(file);
+[defstr, tagstr] = gencode(def, tag);
+[u1, funcname] = fileparts(file);
 fprintf(fid, 'function %s = %s\n', tagstr, funcname);
 for k = 1:numel(defstr)
     fprintf(fid, '%s\n', defstr{k});
@@ -248,7 +248,7 @@ else
     cfg_onscreen(obj);
     set(obj,'Visible','on');
 end;
-[id str sts dep sout] = cfg_util('showjob',cjob);
+[id, str, sts, dep, sout] = cfg_util('showjob',cjob);
 if isempty(str)
     str = {'No Modules in Batch'};
     cmod = 1;
@@ -298,7 +298,7 @@ if ~isempty(udmodlist.cmod)
         dflag = false;
         cid = {udmodlist.cjob, udmodlist.id{cmod}, []};
     end;
-    [id stop contents] = ...
+    [id, stop, contents] = ...
         cfg_util('listmod', cid{:}, ...
                  cfg_findspec({{'hidden',false}}), ...
                  cfg_tropts({{'hidden', true}},1,Inf,1,Inf,dflag), ...
@@ -307,7 +307,7 @@ if ~isempty(udmodlist.cmod)
     if isempty(id) || ~cfg_util('isitem_mod_id', id{1})
         % Module not found without hidden flag
         % Try to list top level entry of module anyway, but not module items.
-        [id stop contents] = ...
+        [id, stop, contents] = ...
             cfg_util('listmod', cid{:}, ...
                      cfg_findspec({}), ...
                      cfg_tropts({{'hidden', true}},1,1,1,1,dflag), ...
@@ -420,7 +420,7 @@ else
     set(handles.valshow, 'String','', 'Visible','off');
     set(handles.valshowLabel, 'Visible','off');
     % set help box to matlabbatch top node help
-    [id stop help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'showdoc'});
+    [id, stop, help] = cfg_util('listcfgall', [], cfg_findspec({{'tag','matlabbatch'}}), {'showdoc'});
     set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'String',cfg_justify(handles.helpbox, help{1}{1}));
 end;
 
@@ -623,7 +623,7 @@ if isfield(udmodlist, 'defid')
 else
     cmid = {udmodlist.cjob udmodlist.id{cmod}};
 end;
-[id stop help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
+[id, stop, help] = cfg_util('listmod', cmid{:}, udmodule.id{citem}, cfg_findspec, ...
                           cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
 set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
 drawnow;
@@ -662,7 +662,7 @@ if isfield(udmodlist, 'defid')
 else
     cmid = {udmodlist.cjob, udmodlist.id{cmod}};
 end;
-[id stop strtype] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
+[id, stop, strtype] = cfg_util('listmod', cmid{:}, udmodule.id{value}, cfg_findspec, ...
                              cfg_tropts(cfg_findspec,1,1,1,1,false), {'strtype'});
 if isempty(val) || isa(val{1}, 'cfg_dep')
     % silently clear cfg_deps
@@ -748,7 +748,7 @@ while ~sts
     % context - graphics handles are made invisible to avoid accidental
     % damage
     hv = local_disable(handles.cfg_ui,'HandleVisibility');
-    [val sts] = cfg_eval_valedit(str);
+    [val, sts] = cfg_eval_valedit(str);
     local_enable(handles.cfg_ui,'HandleVisibility',hv);
     % for strtype 's', val must be a string
     sts = sts && (~strcmp(strtype{1}{1},'s') || ischar(val));
@@ -770,7 +770,7 @@ while ~sts
             % context - graphics handles are made invisible to avoid accidental
             % damage
             hv = local_disable(handles.cfg_ui,'HandleVisibility');
-            [val sts] = cfg_eval_valedit(str);
+            [val, sts] = cfg_eval_valedit(str);
             local_enable(handles.cfg_ui,'HandleVisibility',hv);
         end;
         if ~sts % (Still) no valid input
@@ -947,13 +947,13 @@ if isfield(udmodlist,'defid')
 else
     cmid = {udmodlist.cjob, udmodlist.id{cmod}};
 end;
-[unused1 unused2 contents] = cfg_util('listmod', cmid{:}, udmodule.id{citem},{},cfg_tropts({},1,1,1,1,false),{'val','num','filter','name','dir','ufilter'});
+[unused1, unused2, contents] = cfg_util('listmod', cmid{:}, udmodule.id{citem},{},cfg_tropts({},1,1,1,1,false),{'val','num','filter','name','dir','ufilter'});
 if isempty(contents{1}{1}) || isa(contents{1}{1}{1}, 'cfg_dep')
     inifile = '';
 else
     inifile = contents{1}{1}{1};
 end;
-[val sts] = cfg_getfile(contents{2}{1}, contents{3}{1}, contents{4}{1}, inifile, contents{5}{1}, contents{6}{1});
+[val, sts] = cfg_getfile(contents{2}{1}, contents{3}{1}, contents{4}{1}, inifile, contents{5}{1}, contents{6}{1});
 if sts
     local_setvaledit(hObject, val);
 end;
@@ -983,7 +983,7 @@ udmodule = get(handles.module, 'Userdata');
 citem = get(handles.module, 'Value');
 sout = local_showvaledit_deps(hObject);
 str = {sout.sname};
-[val sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str);
+[val, sts] = listdlg('Name',udmodule.contents{1}{citem}, 'ListString',str);
 if sts
     local_setvaledit(hObject, sout(val));
 end;
@@ -1088,7 +1088,7 @@ else
     cmd = 'Continue';
 end;
 if strcmpi(cmd,'continue')
-    [files sts] = cfg_getfile([1 Inf], 'batch', 'Load Job File(s)', {}, udmodlist.wd);
+    [files, sts] = cfg_getfile([1 Inf], 'batch', 'Load Job File(s)', {}, udmodlist.wd);
     if sts
         local_pointer('watch');
         cfg_util('deljob',udmodlist(1).cjob);
@@ -1117,14 +1117,14 @@ opwd = pwd;
 if ~isempty(udmodlist.wd)
     cd(udmodlist.wd);
 end;
-[file pth idx] = uiputfile({'*.mat','Matlab .mat File';...
+[file, pth, idx] = uiputfile({'*.mat','Matlab .mat File';...
                     '*.m','Matlab .m Script File'}, 'Save Job');
 cd(opwd);
 if isnumeric(file) && file == 0
     return;
 end;
 local_pointer('watch');
-[p n e] = fileparts(file);
+[p, n, e] = fileparts(file);
 if isempty(e) || ~any(strcmp(e,{'.mat','.m'}))
     e1 = {'.mat','.m'};
     e2 = e1{idx};
@@ -1156,14 +1156,14 @@ opwd = pwd;
 if ~isempty(udmodlist.wd)
     cd(udmodlist.wd);
 end;
-[file pth idx] = uiputfile({'*.m','Matlab .m Script File'},...
+[file, pth, idx] = uiputfile({'*.m','Matlab .m Script File'},...
     'Script File name');
 cd(opwd);
 if isnumeric(file) && file == 0
     return;
 end;
 local_pointer('watch');
-[p n e] = fileparts(file);
+[p, n, e] = fileparts(file);
 try
     cfg_util('genscript', udmodlist.cjob, pth, [n '.m']);
     udmodlist.modified = false;
@@ -1193,15 +1193,15 @@ catch
         if ~isempty(udmodlist.wd)
             cd(udmodlist.wd);
         end;
-        [file pth idx] = uiputfile({'*.mat','Matlab .mat File'},...
+        [file, pth, idx] = uiputfile({'*.mat','Matlab .mat File'},...
             'Error .mat File name');
         cd(opwd);
         if ~(isnumeric(file) && file == 0)
-            [u1 ojob] = cfg_util('harvest',udmodlist(1).cjob);
-            [u1 rjob] = cfg_util('harvestrun',udmodlist(1).cjob);
+            [u1, ojob] = cfg_util('harvest',udmodlist(1).cjob);
+            [u1, rjob] = cfg_util('harvestrun',udmodlist(1).cjob);
             outputs   = cfg_util('getalloutputs', udmodlist(1).cjob);
             diarystr  = cfg_util('getdiary',udmodlist(1).cjob);
-            [p n e] = fileparts(file);
+            [p, n, e] = fileparts(file);
             save(fullfile(pth, [n '.mat']), 'ojob', 'rjob', 'outputs', 'diarystr');
         end;
     end
@@ -1233,13 +1233,13 @@ else
     cmd = 'Continue';
 end;
 if strcmpi(cmd,'continue')
-    [file sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
+    [file, sts] = cfg_getfile([1 1], '.*\.m$', 'Load Application Configuration');
     if sts
         udmodlist = get(handles.modlist, 'userdata');
         if ~isempty(udmodlist.cmod)
             cfg_util('deljob',udmodlist(1).cjob);
         end;
-        [p fun e] = fileparts(file{1});
+        [p, fun, e] = fileparts(file{1});
         addpath(p);
         cfg_util('addapp', fun);
         local_setmenu(handles.cfg_ui, [], @local_addtojob, true);
@@ -1663,7 +1663,7 @@ function MenuViewShowCode_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 udmodlist = get(handles.modlist, 'userdata');
-[un matlabbatch] = cfg_util('harvest', udmodlist.cjob);
+[un, matlabbatch] = cfg_util('harvest', udmodlist.cjob);
 str = gencode(matlabbatch);
 fg  = findobj(0,'Type','figure','Tag',[mfilename 'ShowCode']);
 if isempty(fg)
@@ -1674,20 +1674,23 @@ else
     ctxt = findobj(fg,'Tag',[mfilename 'ShowCodeList']); 
 end
 um = uicontextmenu;
-um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
-um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
-um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
+um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)local_ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
+um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)local_ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
+um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)local_ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
 set(ctxt, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1);
 set(ctxt, 'String',str);
 
-function ShowCode_Copy(ob, ev, ctxt)
+% --------------------------------------------------------------------
+function local_ShowCode_Copy(ob, ev, ctxt)
 str = get(ctxt,'String');
 sel = get(ctxt,'Value');
 str = str(sel);
 clipboard('copy',sprintf('%s\n',str{:}));
 
-function ShowCode_SelAll(ob, ev, ctxt)
+% --------------------------------------------------------------------
+function local_ShowCode_SelAll(ob, ev, ctxt)
 set(ctxt,'Value', 1:numel(get(ctxt, 'String')));
 
-function ShowCode_UnSelAll(ob, ev, ctxt)
+% --------------------------------------------------------------------
+function local_ShowCode_UnSelAll(ob, ev, ctxt)
 set(ctxt,'Value', []);

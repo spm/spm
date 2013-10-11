@@ -16,9 +16,9 @@ function item = subsasgn_job(item, subs, val)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: subsasgn_job.m 4867 2012-08-30 13:04:51Z volkmar $
+% $Id: subsasgn_job.m 5678 2013-10-11 14:58:04Z volkmar $
 
-rev = '$Rev: 4867 $'; %#ok
+rev = '$Rev: 5678 $'; %#ok
 
 if isempty(subs)
     item = initialise(item, '<DEFAULTS>', false);
@@ -103,7 +103,7 @@ elseif numel(subs) == 1
         cfg_message('matlabbatch:subsref_job', 'Item ''%s'': invalid subscript reference.', gettag(item));
     end
 else
-    [sts vind] = checksubs_job(item, subs, false);
+    [sts, vind] = checksubs_job(item, subs, false);
     if (numel(item.values) == 1) && ~item.forcestruct && isa(item.values{1}, 'cfg_branch')
         nsubs = subs(2:end);
     else
@@ -113,7 +113,7 @@ else
         citem = subsasgn_job(subsref(item, substruct('.', treepart(item, false),'{}',{vind})), nsubs, val);
         item  = subsasgn(item, substruct('.', treepart(item, false), '{}', subs(1).subs), citem);
     else
-        [sts vind] = checksubs_job(item, subs, true);
+        [sts, vind] = checksubs_job(item, subs, true);
         if sts
             if numel(item.values) == 1
                 if max(subs(1).subs{1}) > numel(item.cfg_item.val)
