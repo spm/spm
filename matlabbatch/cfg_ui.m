@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5682 2013-10-11 14:58:19Z volkmar $
+% $Id: cfg_ui.m 5684 2013-10-11 14:58:22Z volkmar $
 
-rev = '$Rev: 5682 $'; %#ok
+rev = '$Rev: 5684 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 03-Sep-2013 23:14:02
+% Last Modified by GUIDE v2.5 24-Sep-2013 15:41:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1027,3 +1027,17 @@ function CmValClearVal_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 local_clearvaledit(hObject);
+
+
+% --------------------------------------------------------------------
+function MenuFileMultiBatch_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuFileMultiBatch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+udmodlist = get(handles.modlist,'userdata');
+cjob = udmodlist.cjob;
+if cfg_util('isjob_id', cjob) 
+    njob = cfg_util('clonejob', cjob);
+    cfg_ui_multibatch(njob);
+end
