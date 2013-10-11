@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5686 2013-10-11 14:58:25Z volkmar $
+% $Id: cfg_ui.m 5687 2013-10-11 14:58:27Z volkmar $
 
-rev = '$Rev: 5686 $'; %#ok
+rev = '$Rev: 5687 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 24-Sep-2013 15:41:14
+% Last Modified by GUIDE v2.5 02-Oct-2013 11:11:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
