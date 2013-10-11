@@ -45,6 +45,10 @@ function varargout = cfg_util(cmd, varargin)
 % job_id. Returns a mod_job_id, which can be passed on to other cfg_util
 % callbacks that modify the module in the job.
 %
+%  [new_job_id] = cfg_util('clonejob', job_id)
+%
+% Clone an already initialised job. 
+%
 %  [mod_job_idlist, new2old_id] = cfg_util('compactjob', job_id)
 %
 % Modifies the internal representation of a job by removing deleted modules
@@ -405,9 +409,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5681 2013-10-11 14:58:17Z volkmar $
+% $Id: cfg_util.m 5683 2013-10-11 14:58:20Z volkmar $
 
-rev = '$Rev: 5681 $';
+rev = '$Rev: 5683 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -444,6 +448,13 @@ switch lower(cmd),
         if cfg_util('isjob_id', cjob) && cfg_util('ismod_cfg_id', mod_cfg_id)
             [jobs(cjob), mod_job_id] = local_addtojob(jobs(cjob), mod_cfg_id);
             varargout{1} = mod_job_id;
+        end
+    case 'clonejob'
+        cjob = varargin{1};
+        if cfg_util('isjob_id', cjob)
+            njob = numel(jobs)+1;
+            jobs(njob) = jobs(cjob);
+            varargout{1} = njob;
         end
     case 'compactjob',
         cjob = varargin{1};
