@@ -4,7 +4,7 @@ function cfg_basicio = cfg_cfg_basicio
 % by MATLABBATCH using ConfGUI. It describes menu structure, validity
 % constraints and links to run time code.
 % Changes to this file will be overwritten if the ConfGUI batch is executed again.
-% Created at 2012-09-04 16:45:44.
+% Created at 2013-09-25 15:26:19.
 % ---------------------------------------------------------------------
 % files Files
 % ---------------------------------------------------------------------
@@ -12,7 +12,7 @@ files         = cfg_files;
 files.tag     = 'files';
 files.name    = 'Files';
 files.help    = {'Enter file names.'};
-files.filter = {'any', 'dir'};
+files.filter = {'any'};
 files.ufilter = '.*';
 files.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -32,7 +32,7 @@ dir         = cfg_files;
 dir.tag     = 'dir';
 dir.name    = 'Directory';
 dir.help    = {'New working directory.'};
-dir.filter = 'dir';
+dir.filter = {'dir'};
 dir.ufilter = '.*';
 dir.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -51,7 +51,7 @@ parent         = cfg_files;
 parent.tag     = 'parent';
 parent.name    = 'Parent Directory';
 parent.help    = {'Directory where the new directory will be created.'};
-parent.filter = 'dir';
+parent.filter = {'dir'};
 parent.ufilter = '.*';
 parent.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -89,7 +89,7 @@ dirs1         = cfg_files;
 dirs1.tag     = 'dirs';
 dirs1.name    = 'Directory';
 dirs1.help    = {'Select a directory.'};
-dirs1.filter = 'dir';
+dirs1.filter = {'dir'};
 dirs1.ufilter = '.*';
 dirs1.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -126,7 +126,7 @@ files         = cfg_files;
 files.tag     = 'files';
 files.name    = 'Files to move/copy/delete';
 files.help    = {'These files will be moved, copied or deleted.'};
-files.filter = 'any';
+files.filter = {'any'};
 files.ufilter = '.*';
 files.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -136,7 +136,7 @@ moveto         = cfg_files;
 moveto.tag     = 'moveto';
 moveto.name    = 'Move to';
 moveto.help    = {'Files will be moved to the specified directory.'};
-moveto.filter = 'dir';
+moveto.filter = {'dir'};
 moveto.ufilter = '.*';
 moveto.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -146,7 +146,7 @@ copyto         = cfg_files;
 copyto.tag     = 'copyto';
 copyto.name    = 'Copy to';
 copyto.help    = {'Files will be moved to the specified directory.'};
-copyto.filter = 'dir';
+copyto.filter = {'dir'};
 copyto.ufilter = '.*';
 copyto.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -156,7 +156,7 @@ moveto1         = cfg_files;
 moveto1.tag     = 'moveto';
 moveto1.name    = 'Move to';
 moveto1.help    = {'Files will be moved to the specified directory.'};
-moveto1.filter = 'dir';
+moveto1.filter = {'dir'};
 moveto1.ufilter = '.*';
 moveto1.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -226,7 +226,7 @@ copyto1         = cfg_files;
 copyto1.tag     = 'copyto';
 copyto1.name    = 'Copy to';
 copyto1.help    = {'Files will be moved to the specified directory.'};
-copyto1.filter = 'dir';
+copyto1.filter = {'dir'};
 copyto1.ufilter = '.*';
 copyto1.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -315,6 +315,46 @@ file_move.help    = {'Move or delete files.'};
 file_move.prog = @cfg_run_file_move;
 file_move.vout = @cfg_vout_file_move;
 % ---------------------------------------------------------------------
+% files File Set
+% ---------------------------------------------------------------------
+files         = cfg_files;
+files.tag     = 'files';
+files.name    = 'File Set';
+files.help    = {'Select a set of files.'};
+files.filter = {'any'};
+files.ufilter = '.*';
+files.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% cfg_gzip_files GZip Files
+% ---------------------------------------------------------------------
+cfg_gzip_files         = cfg_exbranch;
+cfg_gzip_files.tag     = 'cfg_gzip_files';
+cfg_gzip_files.name    = 'GZip Files';
+cfg_gzip_files.val     = {files };
+cfg_gzip_files.help    = {'GZip each file in a set of files.'};
+cfg_gzip_files.prog = @(job)gzip(job.files);
+cfg_gzip_files.vout = @cfg_vout_gzip_files;
+% ---------------------------------------------------------------------
+% files File Set
+% ---------------------------------------------------------------------
+files         = cfg_files;
+files.tag     = 'files';
+files.name    = 'File Set';
+files.help    = {'Select a set of files.'};
+files.filter = {'\.gz$'};
+files.ufilter = '.*';
+files.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% cfg_gunzip_files GunZip Files
+% ---------------------------------------------------------------------
+cfg_gunzip_files         = cfg_exbranch;
+cfg_gunzip_files.tag     = 'cfg_gunzip_files';
+cfg_gunzip_files.name    = 'GunZip Files';
+cfg_gunzip_files.val     = {files };
+cfg_gunzip_files.help    = {'GunZip each file in a set of files.'};
+cfg_gunzip_files.prog = @(job)gunzip(job.files);
+cfg_gunzip_files.vout = @cfg_vout_gunzip_files;
+% ---------------------------------------------------------------------
 % name Input Name
 % ---------------------------------------------------------------------
 name         = cfg_entry;
@@ -330,7 +370,7 @@ files1         = cfg_files;
 files1.tag     = 'files';
 files1.name    = 'File Set';
 files1.help    = {'Select a set of files.'};
-files1.filter = 'any';
+files1.filter = {'any'};
 files1.ufilter = '.*';
 files1.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -362,7 +402,7 @@ dir         = cfg_files;
 dir.tag     = 'dir';
 dir.name    = 'Directory';
 dir.help    = {'Directory to select files from.'};
-dir.filter = 'dir';
+dir.filter = {'dir'};
 dir.ufilter = '.*';
 dir.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -406,7 +446,7 @@ files         = cfg_files;
 files.tag     = 'files';
 files.name    = 'Files';
 files.help    = {'Files to be filtered.'};
-files.filter = 'any';
+files.filter = {'any'};
 files.ufilter = '.*';
 files.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -462,7 +502,7 @@ files         = cfg_files;
 files.tag     = 'files';
 files.name    = 'Input File Set';
 files.help    = {'The input file set will be split at the indices given in the ''#files per set'' collection.'};
-files.filter = 'any';
+files.filter = {'any'};
 files.ufilter = '.*';
 files.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -506,7 +546,7 @@ file_ops         = cfg_choice;
 file_ops.tag     = 'file_ops';
 file_ops.name    = 'File Operations';
 file_ops.help    = {''};
-file_ops.values  = {file_move cfg_named_file file_fplist file_filter cfg_file_split };
+file_ops.values  = {file_move cfg_gzip_files cfg_gunzip_files cfg_named_file file_fplist file_filter cfg_file_split };
 % ---------------------------------------------------------------------
 % file_dir File/Dir Operations
 % ---------------------------------------------------------------------
@@ -550,7 +590,7 @@ matname         = cfg_files;
 matname.tag     = 'matname';
 matname.name    = '.mat Filename';
 matname.help    = {'The name of the .mat file to load.'};
-matname.filter = 'mat';
+matname.filter = {'mat'};
 matname.ufilter = '.*';
 matname.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -614,7 +654,7 @@ outdir         = cfg_files;
 outdir.tag     = 'outdir';
 outdir.name    = 'Output Directory';
 outdir.help    = {'Directory where the file will be saved. Any directory components in the output filename will be stripped off and only this directory determines the path to the file.'};
-outdir.filter = 'dir';
+outdir.filter = {'dir'};
 outdir.ufilter = '.*';
 outdir.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -897,7 +937,7 @@ jobs         = cfg_files;
 jobs.tag     = 'jobs';
 jobs.name    = 'Job File(s)';
 jobs.help    = {'Select the job template(s). If multiple files are selected, they will be concatenated in selection order to form one job.'};
-jobs.filter = 'batch';
+jobs.filter = {'batch'};
 jobs.ufilter = '.*';
 jobs.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -925,7 +965,7 @@ innifti         = cfg_files;
 innifti.tag     = 'innifti';
 innifti.name    = 'NIfTI Images';
 innifti.help    = {'Select NIfTI Images'};
-innifti.filter = 'image';
+innifti.filter = {'image'};
 innifti.ufilter = '.*';
 innifti.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -935,7 +975,7 @@ inmat         = cfg_files;
 inmat.tag     = 'inmat';
 inmat.name    = 'MATLAB .mat Files';
 inmat.help    = {'Select MATLAB .mat files.'};
-inmat.filter = 'mat';
+inmat.filter = {'mat'};
 inmat.ufilter = '.*';
 inmat.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -945,7 +985,7 @@ inany         = cfg_files;
 inany.tag     = 'inany';
 inany.name    = 'Any Files';
 inany.help    = {'Select any kind of files.'};
-inany.filter = 'any';
+inany.filter = {'any'};
 inany.ufilter = '.*';
 inany.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -955,7 +995,7 @@ indir         = cfg_files;
 indir.tag     = 'indir';
 indir.name    = 'Directory';
 indir.help    = {'Directory'};
-indir.filter = 'dir';
+indir.filter = {'dir'};
 indir.ufilter = '.*';
 indir.num     = [1 Inf];
 % ---------------------------------------------------------------------
@@ -992,7 +1032,7 @@ outdir         = cfg_files;
 outdir.tag     = 'outdir';
 outdir.name    = 'Batch Directory';
 outdir.help    = {'The generated batches will be saved into this folder.'};
-outdir.filter = 'dir';
+outdir.filter = {'dir'};
 outdir.ufilter = '.*';
 outdir.num     = [1 1];
 % ---------------------------------------------------------------------
@@ -1066,7 +1106,7 @@ string.num     = [];
 anyfile         = cfg_files;
 anyfile.tag     = 'anyfile';
 anyfile.name    = 'Any File';
-anyfile.filter = 'any';
+anyfile.filter = {'any'};
 anyfile.ufilter = '.*';
 anyfile.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -1075,7 +1115,7 @@ anyfile.num     = [0 Inf];
 images         = cfg_files;
 images.tag     = 'images';
 images.name    = 'NIfTI Image(s)';
-images.filter = 'image';
+images.filter = {'image'};
 images.ufilter = '.*';
 images.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -1084,7 +1124,7 @@ images.num     = [0 Inf];
 directory         = cfg_files;
 directory.tag     = 'directory';
 directory.name    = 'Directory';
-directory.filter = 'dir';
+directory.filter = {'dir'};
 directory.ufilter = '.*';
 directory.num     = [0 Inf];
 % ---------------------------------------------------------------------
@@ -1251,4 +1291,3 @@ cfg_basicio.tag     = 'cfg_basicio';
 cfg_basicio.name    = 'BasicIO';
 cfg_basicio.help    = {'This toolbox contains basic input and output functions. The "Named Input" functions can be used to enter values or file names. These inputs can then be passed on to multiple modules, thereby ensuring all of them use the same input value. Some basic file manipulation is implemented in "Change Directory", "Make Directory", "Move Files". Lists of files can be filtered or splitted into parts using "File Set Filter" and "File Set Split". Output values from other modules can be written out to disk or assigned to MATLAB workspace.'};
 cfg_basicio.values  = {file_dir var_ops run_ops };
-cfg_basicio.rewrite_job = @cfg_basicio_rewrite;
