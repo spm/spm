@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_unvec.m 5692 2013-10-13 13:44:05Z karl $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------
@@ -28,9 +28,7 @@ end
 
 % vectorise first argument
 %--------------------------------------------------------------------------
-if ~isvector(vX)
-    vX = spm_vec(vX);
-end
+vX = spm_vec(vX);
 
 % reshape numerical arrays
 %--------------------------------------------------------------------------

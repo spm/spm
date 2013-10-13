@@ -55,7 +55,7 @@ function [y] = spm_int(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_int.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_int.m 5692 2013-10-13 13:44:05Z karl $
  
  
 % convert U to U.u if necessary
@@ -87,7 +87,7 @@ end
 % output nonlinearity, if specified
 %--------------------------------------------------------------------------
 try
-    g   = spm_funcheck(M.f);
+    g   = spm_funcheck(M.g);
 catch
     g   = @(x,u,P,M) x;
     M.g = g;

@@ -12,11 +12,11 @@ function DEM_demo_DCM_LAP
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_DCM_LAP.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: DEM_demo_DCM_LAP.m 5692 2013-10-13 13:44:05Z karl $
  
 % Specify a DCM to generate synthetic data
 %==========================================================================
-
+rng('default')
 
 % DEM Structure: create inputs
 % -------------------------------------------------------------------------
@@ -24,7 +24,7 @@ T  = 256;
 TR = 3.22;
 t  = (1:T)*TR;
 n  = 4;
-U  = spm_conv(randn(n,T),0,2)/exp(4/2);
+U  = spm_conv(randn(n,T),0,2)/4;
  
 % set inversion parameters
 % -------------------------------------------------------------------------
@@ -91,7 +91,7 @@ DCM.M(2).v  = 0;
  
 % allow (only) neuronal [x, s, f, q, v] hidden states to fluctuate
 % -------------------------------------------------------------------------
-W           = ones(n,1)*exp([10 16 16 16 16]);
+W           = ones(n,1)*exp([12 16 16 16 16]);
 DCM.M(1).xP = exp(6);
 DCM.M(1).V  = exp(6);        % prior log precision (noise)
 DCM.M(1).W  = diag(W);       % fixed precision (hidden-state)
@@ -118,7 +118,15 @@ FULL        = spm_LAP(DCM);
 % Search model space with Savage-Dickey density ratio
 % =========================================================================
 [A K Nk]  = spm_dcm_sparse_priors(n);
- 
+
+% find true model
+% -------------------------------------------------------------------------
+for i = 1:length(A);
+    if ~any(spm_vec(~~(pP.A + eye(n,n)) - A{i}))
+        tA = i; break
+    end
+end
+
 % find candidate models based on full-connectivity
 % -------------------------------------------------------------------------
 pE    = FULL.M(1).pE.A;
@@ -134,13 +142,7 @@ for i = 1:length(A)
     P(i,1)  = spm_log_evidence(qE,qC,pE,pC,rE,rC);
 end
  
-% find true model
-% -------------------------------------------------------------------------
-for i = 1:length(A);
-    if ~any(spm_vec(~~SIM.pP.P{1}.A - A{i}))
-        tA = i; break
-    end
-end
+
  
 % log-posterior (model)
 % -------------------------------------------------------------------------

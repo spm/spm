@@ -2,6 +2,8 @@ function DEM_demo_factor_analysis
 % Demo for Probabilistic Factor Analysis; This uses a hierarchical model
 % under the constraint that the causes have a deterministic and stochastic
 % components.  The aim is to recover the true subspace of the real causes.
+
+rng('default')
  
 % non-hierarchical linear generative model (static)
 %==========================================================================

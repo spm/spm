@@ -51,7 +51,6 @@ spm_DEM_qU(DEM.qU,DEM.pU)
 
 % EM: spm_nlsi_GN
 %==========================================================================
-G.IS  =  'spm_int_J';
 G.f   =  inline('P.f*x + P.h*u','x','u','P','M');
 G.g   =  inline('P.g*x','x','u','P','M');
 G.m   =  DEM.M(1).m;

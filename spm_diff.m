@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_diff.m 5692 2013-10-13 13:44:05Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -105,7 +105,7 @@ if length(n) == 1
     
     % or differentiation of a vector
     %----------------------------------------------------------------------
-    if isvector(f0) && q
+    if isvector(f0) && isnumeric(f0) && q
         
         % concatenate into a matrix
         %------------------------------------------------------------------
