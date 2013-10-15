@@ -111,10 +111,10 @@ function varargout = spm_list(varargin)
 % extract the table data to the MATLAB workspace.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5615 2013-08-15 14:37:24Z spm $
+% $Id: spm_list.m 5695 2013-10-15 19:05:50Z guillaume $
 
 
 %==========================================================================
@@ -155,11 +155,13 @@ case 'table'                                                        %-Table
     
     %-Get number of maxima per cluster to be reported
     %----------------------------------------------------------------------
-    if length(varargin) > 2, Num = varargin{3}; else Num = spm_get_defaults('stats.results.volume.nbmax'); end
+    if length(varargin) > 2, Num = varargin{3};
+    else Num = spm_get_defaults('stats.results.volume.nbmax'); end
     
     %-Get minimum distance among clusters (mm) to be reported
     %----------------------------------------------------------------------
-    if length(varargin) > 3, Dis = varargin{4}; else Dis = spm_get_defaults('stats.results.volume.distmin'); end
+    if length(varargin) > 3, Dis = varargin{4}; 
+    else Dis = spm_get_defaults('stats.results.volume.distmin'); end
     
     %-Get header string
     %----------------------------------------------------------------------
@@ -301,9 +303,14 @@ case 'table'                                                        %-Table
         TabDat.ftr{1,1} = ...
             ['Height threshold: ' STAT ' = %0.2f, p = %0.3f (%0.3f)'];
         TabDat.ftr{1,2} = [u,Pz,Pu];
-        TabDat.ftr{2,1} = ...
-            ['Extent threshold: k = %0.0f ' vx ', p = %0.3f (%0.3f)'];
-        TabDat.ftr{2,2} = [k/V2R,Pn,P];
+        if k == 0
+            TabDat.ftr{2,1} = ['Extent threshold: k = %0.0f ' vx];
+            TabDat.ftr{2,2} = 0;
+        else
+            TabDat.ftr{2,1} = ...
+                ['Extent threshold: k = %0.0f ' vx ', p = %0.3f (%0.3f)'];
+            TabDat.ftr{2,2} = [k/V2R,Pn,P];
+        end
         TabDat.ftr{3,1} = ...
             ['Expected ' vx ' per cluster, <k> = %0.3f'];
         TabDat.ftr{3,2} = Ek/V2R;
@@ -407,7 +414,7 @@ case 'table'                                                        %-Table
         XYZmm = M(1:3,:)*[XYZ; ones(1,size(XYZ,2))];
     end
     
-    %-Set-level p-values {c} - do not display if reporting a single cluster
+    %-Set-level p values {c}
     %----------------------------------------------------------------------
     if STAT ~= 'P'
         Pc     = spm_P(c,k,u,df,STAT,R,n,S);            %-Set-level p-value
@@ -510,10 +517,10 @@ case 'table'                                                        %-Table
                         ws     = warning('off','SPM:outOfRangeNormal');
                         Ze_tmp = 1./(1+exp(-Z(d)));     
                         Ze     = spm_invNcdf(Ze_tmp); 
-                        %Ze     = spm_invNcdf(Z(d));
+                        %Ze    = spm_invNcdf(Z(d));
                         warning(ws);
                     end
-                    D     = [D d];
+                    D          = [D d];
                     if topoFDR
                     [TabDat.dat{TabLin,7:12}] = ...
                         deal(Pu,Qp,Z(d),Ze,Pz,XYZmm(:,d));
@@ -583,20 +590,20 @@ case 'table'                                                        %-Table
     set(hAx,'DefaultTextFontName',PF.helvetica,'DefaultTextFontSize',FS(8))
 
     Hs = []; Hc = []; Hp = [];
-    h  = text(0.01,y, [TabDat.hdr{1,1} '-level'],'FontSize',FS(9));
-    h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h  = text(0.01,y, [TabDat.hdr{1,1} '-level'],'FontSize',FS(9)); Hs = [Hs,h];
+    h  = line([0,0.11],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r'); Hs = [Hs,h];
     h  = text(0.02,y-9*dy/8,    TabDat.hdr{3,1});              Hs = [Hs,h];
     h  = text(0.08,y-9*dy/8,    TabDat.hdr{3,2});              Hs = [Hs,h];
     
-    text(0.22,y, [TabDat.hdr{1,3} '-level'],'FontSize',FS(9));
-    line([0.14,0.44],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h = text(0.22,y, [TabDat.hdr{1,3} '-level'],'FontSize',FS(9));    Hc = [Hc,h];
+    h = line([0.14,0.44],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r'); Hc = [Hc,h];
     h  = text(0.15,y-9*dy/8,    TabDat.hdr{3,3});              Hc = [Hc,h];
     h  = text(0.24,y-9*dy/8,    TabDat.hdr{3,4});              Hc = [Hc,h];
     h  = text(0.34,y-9*dy/8,    TabDat.hdr{3,5});              Hc = [Hc,h];
     h  = text(0.39,y-9*dy/8,    TabDat.hdr{3,6});              Hc = [Hc,h];
     
-    text(0.64,y, [TabDat.hdr{1,7} '-level'],'FontSize',FS(9));
-    line([0.48,0.88],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r');
+    h = text(0.64,y, [TabDat.hdr{1,7} '-level'],'FontSize',FS(9));    Hp = [Hp,h];
+    h = line([0.48,0.88],[1,1]*(y-dy/4),'LineWidth',0.5,'Color','r'); Hp = [Hp,h];
     h  = text(0.49,y-9*dy/8,    TabDat.hdr{3,7});              Hp = [Hp,h];
     h  = text(0.58,y-9*dy/8,    TabDat.hdr{3,8});              Hp = [Hp,h];
     h  = text(0.67,y-9*dy/8,    TabDat.hdr{3,9});              Hp = [Hp,h];
@@ -675,7 +682,7 @@ case 'table'                                                        %-Table
                     'ButtonDownFcn','get(gcbo,''UserData'')');
         hPage = [hPage, h];
     else
-        set(Hc,'Visible','off');
+        set(Hs,'Visible','off');
     end
     
     %-Cluster and local maxima p-values & statistics
@@ -784,11 +791,13 @@ case 'table'                                                        %-Table
 
         %-Get number of maxima per cluster to be reported
         %------------------------------------------------------------------
-        if nargin < 4, Num = spm_get_defaults('stats.results.svc.nbmax'); else Num = varargin{4}; end
+        if nargin < 4, Num = spm_get_defaults('stats.results.svc.nbmax');
+        else Num = varargin{4}; end
         
         %-Get minimum distance among clusters (mm) to be reported
         %------------------------------------------------------------------
-        if nargin < 5, Dis = spm_get_defaults('stats.results.svc.distmin'); else Dis = varargin{5}; end
+        if nargin < 5, Dis = spm_get_defaults('stats.results.svc.distmin');
+        else Dis = varargin{5}; end
 
         %-Get header string
         %------------------------------------------------------------------
