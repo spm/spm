@@ -10,7 +10,7 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 5034 2012-11-02 21:00:17Z karl $
+% $Id: spm_dcm_neural_x.m 5696 2013-10-15 19:10:26Z karl $
 
 
 % solve for fixed point
@@ -57,8 +57,8 @@ switch lower(model)
         % solve for fixed point using ode113
         %------------------------------------------------------------------
         M.g   = {};
-        U.u   = sparse(16,ns);
-        U.dt  = 32/1000;
+        U.u   = sparse(4,ns);
+        U.dt  = 64/1000;
         x     = spm_int_ode(P,M,U);
         x     = spm_unvec(x(end,:),M.x);
         M.x   = x;

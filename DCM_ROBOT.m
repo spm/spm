@@ -163,6 +163,7 @@ for i = 1:length(model)
         if isfield(DCM,'M')
             DCM  = rmfield(DCM,'M');
         end
+        DCM.M.Nmax = 1;
         DCM    = spm_dcm_csd(DCM);
         spm_figure('GetWin',['CSD model: ' model{i}]);
         spm_dcm_csd_results(DCM,'Cross-spectra (channels)',gcf)

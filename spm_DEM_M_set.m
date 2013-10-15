@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 5509 2013-05-20 17:12:12Z karl $
+% $Id: spm_DEM_M_set.m 5696 2013-10-15 19:10:26Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -62,7 +62,6 @@ g      = length(M);
 if isfield(M,'f') && ~isfield(M,'n') && ~isfield(M,'x')
     msgbox('please specify hidden states or their number')
 end
- 
  
 % check supra-ordinate level and add one (with flat priors) if necessary
 %--------------------------------------------------------------------------
