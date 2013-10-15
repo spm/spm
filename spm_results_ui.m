@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5673 2013-10-08 13:15:28Z guillaume $
+% $Id: spm_results_ui.m 5694 2013-10-15 18:25:53Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5673 $'; 
+SVNid = '$Rev: 5694 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -345,6 +345,10 @@ switch lower(Action), case 'setup'                         %-Set up results
     %----------------------------------------------------------------------
     hConUI    = spm_results_ui('SetupConMenu',xSPM,SPM,Finter);
     
+    %-Atlas menu
+    %----------------------------------------------------------------------
+    %hAtlasUI  = spm_results_ui('SetupAtlasMenu',Finter);
+    
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
     FS     = spm('FontSizes');
@@ -413,7 +417,8 @@ switch lower(Action), case 'setup'                         %-Set up results
     catch
         text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
     end
-    text(0,00,sprintf('Extent threshold k = %0.0f voxels',xSPM.k), 'Parent',hResAx)
+    if spm_mesh_detect(xSPM.Vspm), str = 'vertices'; else str = 'voxels'; end
+    text(0,00,sprintf('Extent threshold k = %0.0f %s',xSPM.k,str), 'Parent',hResAx)
  
  
     %-Plot design matrix
@@ -787,6 +792,16 @@ switch lower(Action), case 'setup'                         %-Set up results
     varargout = {hC};
     
         
+    %======================================================================
+    case 'setupatlasmenu'                                %-Setup Atlas Menu
+    %======================================================================
+        % spm_results_ui('SetupAtlasMenu',Finter)
+    
+        hC = spm_atlas('menu',varargin{2:end});
+    
+        varargout = {hC};
+    
+    
     %======================================================================
     case 'drawxyzgui'                                   %-Draw XYZ GUI area
     %======================================================================

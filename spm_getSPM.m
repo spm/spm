@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5224 2013-02-01 12:19:17Z guillaume $
+% $Id: spm_getSPM.m 5694 2013-10-15 18:25:53Z guillaume $
 
 
 %-GUI setup
@@ -373,6 +373,7 @@ try
     Mask = ~isempty(xSPM.Im) * (isnumeric(xSPM.Im) + 2*iscellstr(xSPM.Im));
 catch
     % Mask = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
+    % Mask = spm_input('apply masking','+1','b','none|contrast|image|atlas',[0,1,2,3],1);
     Mask = spm_input('apply masking','+1','b','none|contrast|image',[0,1,2],1);
 end
 if Mask == 1
@@ -410,6 +411,28 @@ elseif Mask == 2
         Im = xSPM.Im;
     catch
         Im = cellstr(spm_select([1 Inf],'image','Select mask image(s)'));
+    end
+    
+    %-Inclusive or exclusive masking
+    %----------------------------------------------------------------------
+    try
+        Ex = xSPM.Ex;
+    catch
+        Ex = spm_input('nature of mask','+1','b','inclusive|exclusive',[0,1],1);
+    end
+    
+    pm = [];
+    
+elseif Mask == 3 % unused
+    
+    %-Get mask from atlas
+    %----------------------------------------------------------------------
+    try
+        error('Im = xSPM.Im;');
+    catch
+        VM     = spm_atlas('mask');            % get atlas mask
+        VM     = spm_write_vol(VM,VM.dat);     % write mask
+        Im     = cellstr(VM.fname);
     end
     
     %-Inclusive or exclusive masking
@@ -775,6 +798,7 @@ end % (if STAT)
 
 %-Calculate height threshold filtering
 %--------------------------------------------------------------------------
+if spm_mesh_detect(xCon(Ic(1)).Vspm), str = 'vertices'; else str = 'voxels'; end
 Q      = find(Z > u);
 
 %-Apply height threshold
@@ -784,7 +808,7 @@ XYZ    = XYZ(:,Q);
 if isempty(Q)
     fprintf('\n');                                                      %-#
     sw = warning('off','backtrace');
-    warning('SPM:NoVoxels','No voxels survive height threshold at u=%0.2g',u);
+    warning('SPM:NoVoxels','No %s survive height threshold at u=%0.2g',str,u);
     warning(sw);
 end
 
@@ -800,7 +824,7 @@ if ~isempty(XYZ)
     try
         k = xSPM.k;
     catch
-        k = spm_input('& extent threshold {voxels}','+1','r',0,1,[0,Inf]);
+        k = spm_input(['& extent threshold {' str '}'],'+1','r',0,1,[0,Inf]);
     end
     
     %-Calculate extent threshold filtering
@@ -826,7 +850,7 @@ if ~isempty(XYZ)
     if isempty(Q)
         fprintf('\n');                                                  %-#
         sw = warning('off','backtrace');
-        warning('SPM:NoVoxels','No voxels survive extent threshold at k=%0.2g',k);
+        warning('SPM:NoVoxels','No %s survive extent threshold at k=%0.2g',str,k);
         warning(sw);
     end
     
