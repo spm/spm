@@ -19,14 +19,14 @@ Briefly, this is a 2$\times$2 factorial study with factors ``fame'' and ``repeti
 
 Images were acquired using continuous Echo-Planar Imaging (EPI) with TE=40ms, TR=2s and 24 descending slices (64$\times$64 3$\times$3 mm$^2$), 3mm thick with a 1.5mm gap.
 The data archive is available from the SPM website\footnote{Face Repetition dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/face_rep/}}.
-This contains 351 Analyze format functional images \texttt{sM03953\_0005\_*.img} of dimension 64$\times$64$\times$24 with 3$\times$3$\times$4.5 mm$^3$ voxels. A structural image is also provided  in Analyze format (\texttt{sM03953\_0007.img}).
+This contains 351 Analyze format functional images \texttt{sM03953\_0005\_*.\{hdr,img\}} of dimension 64$\times$64$\times$24 with 3$\times$3$\times$4.5 mm$^3$ voxels. A structural image is also provided  in Analyze format (\texttt{sM03953\_0007.\{hdr,img\}}).
 
 To analyse the data, first create a new directory \texttt{DIR} eg. \texttt{C:$\backslash$data$\backslash$face\_rep}, in which to place the results of your analysis. Then create 4 subdirectories (i) \texttt{jobs}, (ii) \texttt{categorical}, (iii)  \texttt{parametric} and (iv) \texttt{bayesian}. As the analysis proceeds these directories will be filled with job-specification files, design matrices and models estimated using classical or Bayesian methods. 
 
 As well as the classical/Bayesian distinction we will show how this data can be analysed from a parametric as well as a categorical perspective. We will look at the 
 main effects of fame and repetition and in the parameteric analysis we will look at responses as a function of ``lag'', that is, the number of faces intervening between repetition of a specific face.
 
-Start up matlab, enter your jobs directory and type \texttt{spm fmri} at the \matlab\ prompt. SPM will then open in fMRI mode with three windows (1) the top-left or ``Menu'' window, (2) the bottom-left or ``Interactive'' window and (3) the right-hand or ``Graphics'' window. 
+Start up \matlab\, enter your jobs directory and type \texttt{spm fmri} at the \matlab\ prompt. SPM will then open in fMRI mode with three windows (1) the top-left or ``Menu'' window, (2) the bottom-left or ``Interactive'' window and (3) the right-hand or ``Graphics'' window. 
 Analysis then takes place in three major stages (i) spatial pre-processing, (ii) model specification, review and estimation and (iii) inference. These stages organise the buttons in SPM's base window.
 \begin{figure}
 \begin{center}
@@ -39,7 +39,7 @@ Analysis then takes place in three major stages (i) spatial pre-processing, (ii)
 
 \subsection{Display}
 
-Display eg. the first functional image using the ``Display'' button. Note orbitofrontal and inferior temporal drop-out and ghosting. This can be seen more clearly by selecting ``brighten'' from the ``Effects'' tab in the ``Colours'' at the top of the Graphics window.
+Display eg. the first functional image using the ``Display'' button. Note orbitofrontal and inferior temporal drop-out and ghosting. This can be seen more clearly by selecting ``Brighten'' from the ``Effects'' menu in the ``Colours'' menu from the ``SPM Figure'' tab at the top of the Graphics window.
 
 \begin{figure}
 \begin{center}
@@ -54,13 +54,13 @@ Under the spatial pre-processing section of the SPM base window select \textsc{R
 Then
 \begin{itemize}
 \item Highlight data, select ``New Session'', then highlight the newly created ``Session'' option.
-\item Select ``Specify Files'' and use the SPM file selector to choose all of your functional images eg. \texttt{sM03953\_0005\_*.img}.
+\item Select ``Specify Files'' and use the SPM file selector to choose all of your functional images eg. \texttt{sM03953\_0005\_*.img}. You should select 351 files.
 \item Save the job file as eg. \texttt{DIR/jobs/realign.mat}.
 \item Press the \texttt{Run} button in the batch editor window (green triangle).
 \end{itemize}
-This will run the realign job which will write realigned images into the directory where the functional images are. These new images will be prefixed with the letter ``\texttt{r}''. SPM will then plot the estimated time series of translations and rotations shown in Figure~\ref{face_realign}. These data, the realignment parameters, are also saved to a file eg. \texttt{rp\_sM03953\_0005\_0006.txt}, so that these variables can be used as regressors when fitting GLMs. To prepare for this, copy the file into the \texttt{DIR/jobs} directory and rename it \texttt{movepars.txt}. This allows movements effects to be discounted when looking for brain activations.
+This will run the realign job which will write realigned images into the directory where the functional images are. These new images will be prefixed with the letter ``\texttt{r}''. SPM will then plot the estimated time series of translations and rotations shown in Figure~\ref{face_realign}. These data, the realignment parameters, are also saved to a file eg. \texttt{rp\_sM03953\_0005\_0006.txt}, so that these variables can be used as regressors when fitting GLMs. This allows movements effects to be discounted when looking for brain activations.
 
-SPM will also create a mean image eg. \texttt{meansM03953\_0005\_0006.img} which will be used in the next step of spatial processing - coregistration.
+SPM will also create a mean image eg. \texttt{meansM03953\_0005\_0006.\{hdr,img\}} which will be used in the next step of spatial processing - coregistration.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces/realign}
@@ -96,7 +96,7 @@ window.
 \item Then press the ``Run'' button.
 \end{itemize}
 
-SPM will then implement a coregistration between the structural and functional data that maximises the mutual information. The image in figure~\ref{face_coreg} should then appear in the graphics window. SPM will have changed the header of the source file which in this case is the structural image \texttt{sM03953\_0007.img}.
+SPM will then implement a coregistration between the structural and functional data that maximises the mutual information. The image in figure~\ref{face_coreg} should then appear in the Graphics window. SPM will have changed the header of the source file which in this case is the structural image \texttt{sM03953\_0007.hdr}.
 
 \begin{figure}
 \begin{center}
@@ -107,8 +107,8 @@ SPM will then implement a coregistration between the structural and functional d
 
 \subsection{Segmentation}
 
-Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor window. Highlight the ``Data'' field and then select the subjects coregistered anatomical image eg. \texttt{sM03953\_0007.img}. Save the job file as \texttt{segment.mat} and then press the \texttt{Run} button. SPM will segment the structural image using the default tissue probability maps as priors. 
-SPM will create, by default, gray and white matter images and bias-field corrected structral image. These can be viewed using the CheckReg facility as described in the previous section. Figure~\ref{face_gray} shows the gray matter image, \texttt{c1sM03953\_0007.img}, along with the original structural\footnote{Segmentation can sometimes fail if the source (structural) image is not close in orientation to the MNI templates. It is generally advisable to manually orient the structural to match the template (ie MNI space) as close as possible by using the ``Display'' button, adjusting x/y/z/pitch/roll/yaw, and then pressing the ``Reorient'' button.}.
+Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor window. Highlight the ``Volumes'' field in ``Data > Channels'' and then select the subjects coregistered anatomical image eg. \texttt{sM03953\_0007.img}. Change ``Save Bias Corrected'' so that it contains ``Save Bias Corrected'' instead of ``Save Nothing''. At the bottom of the list, select ``Forward'' in ``Deformation Fields''. Save the job file as \texttt{segment.mat} and then press the \texttt{Run} button. SPM will segment the structural image using the default tissue probability maps as priors. 
+SPM will create, by default, gray and white matter images and bias-field corrected structral image. These can be viewed using the CheckReg facility as described in the previous section. Figure~\ref{face_gray} shows the gray matter image, \texttt{c1sM03953\_0007.nii}, along with the original structural\footnote{Segmentation can sometimes fail if the source (structural) image is not close in orientation to the MNI templates. It is generally advisable to manually orient the structural to match the template (ie MNI space) as close as possible by using the ``Display'' button, adjusting x/y/z/pitch/roll/yaw, and then pressing the ``Reorient'' button.}.
 
 \begin{figure}
 \begin{center}
@@ -117,7 +117,7 @@ SPM will create, by default, gray and white matter images and bias-field correct
 \end{center}
 \end{figure}
 
-SPM will also write a spatial normalisation eg. \texttt{sM03953\_0007\_seg\_sn.mat} file in the original structural directory. This will be used in the next section to normalise the functional data. 
+SPM will also write a spatial normalisation deformation field file eg. \texttt{y\_sM03953\_0007.nii} file in the original structural directory. This will be used in the next section to normalise the functional data. 
 
 \subsection{Normalise}
 
@@ -125,8 +125,8 @@ Select \textsc{Normalise (Write)} from the \textsc{Normalise} pulldown menu. Thi
 
 \begin{itemize}
 \item Highlight ``Data'', select ``New Subject''.
-\item Open ``Subject'', highlight ``Parameter File'' and select the \texttt{sM03953\_0007\_seg\_sn.mat} file that you created in the previous section.
-\item Highlight images to write and select all of the slice-time corrected, realigned functional images \texttt{arsM*.img}. Note: This can be done efficiently by changing the filter in the SPM file selector to \texttt{\textasciicircum ar.*}. You can then right click over the listed files, choose ``Select all''. You might also want to select the mean functional image created during realignment (which would not be affected by slice-time correction), i.e, the \texttt{meansM03953\_0005\_006.img}. Then press ``Done''.
+\item Open ``Subject'', highlight ``Deformation field'' and select the \texttt{y\_sM03953\_0007.nii} file that you created in the previous section.
+\item Highlight ``Images to write'' and select all of the slice-time corrected, realigned functional images \texttt{arsM*.img}. Note: This can be done efficiently by changing the filter in the SPM file selector to \texttt{\textasciicircum ar.*}. You can then right click over the listed files, choose ``Select all''. You might also want to select the mean functional image created during realignment (which would not be affected by slice-time correction), i.e, the \texttt{meansM03953\_0005\_006.img}. Then press ``Done''.
 \item Open ``Writing Options'', and change ``Voxel sizes'' from [2 2 2] to [3 3 3]\footnote{This step is not strictly necessary. It will write images out at a resolution closer to that at which they were acquired. This will speed up subsequent analysis and is necessary, for example, to make Bayesian fMRI analysis computationally efficient.}.
 \item Press ``Save'', save the job as normalise.mat and then press the \texttt{Run} button.
 \end{itemize}
@@ -135,8 +135,8 @@ SPM will then write spatially normalised files to the functional data directory.
 If you wish to superimpose a subject's functional activations on their own anatomy\footnote{Beginners may wish to skip this step, and instead just superimpose functional activations on an ``canonical structural image''.} you will also need to apply the spatial normalisation parameters to their (bias-corrected) anatomical image. To do this
 \begin{itemize}
 \item Select \textsc{Normalise (Write)}, highlight `Data', select ``New Subject''.
-\item Highlight ``Parameter File'', select the \texttt{sM03953\_0007\_seg\_sn.mat} file that you created in the previous section, press ``Done''.
-\item Highlight ``Images to Write'', select the bias-corrected structural eg. \texttt{msM03953\_0007.img}, press ``Done''.
+\item Highlight ``Deformation field'', select the \texttt{y\_sM03953\_0007.nii} file that you created in the previous section, press ``Done''.
+\item Highlight ``Images to Write'', select the bias-corrected structural eg. \texttt{msM03953\_0007.nii}, press ``Done''.
 \item Open ``Writing Options'', select voxel sizes and change the default [2 2 2] to [1 1 1] which better matches the original resolution of the images [1 1 1.5].
 \item Save the job as \texttt{norm\_struct.mat} and press \texttt{Run} button.
 \end{itemize}
@@ -161,16 +161,16 @@ This will smooth the data by (the default) 8mm in each direction, the default sm
 
 \section{Modelling categorical responses}
 
-Before setting up the design matrix we must first load the Stimulus Onsets Times (SOTs) and movement parameters into matlab. SOTs are stored in the \texttt{sots.mat} file in a cell array such that eg. \texttt{sot\{1\}} contains stimulus onset times in TRs for event type 1, which is N1. Event-types 2, 3 and 4 are N2, F1 and F2.\footnote{Unlike previous analyses of these data in SPM99 and SPM2, we will not bother with extra event-types for the (rare) error trials.}
+Before setting up the design matrix we must first load the Stimulus Onsets Times (SOTs) into \matlab\. SOTs are stored in the \texttt{sots.mat} file in a cell array such that eg. \texttt{sot\{1\}} contains stimulus onset times in TRs for event type 1, which is N1. Event-types 2, 3 and 4 are N2, F1 and F2.\footnote{Unlike previous analyses of these data in SPM99 and SPM2, we will not bother with extra event-types for the (rare) error trials.}
 \begin{itemize}
 \item At the \matlab\ command prompt type \texttt{load sots}
-\item Then type \texttt{load movepars.txt}
 \end{itemize}
 
 Now press the \textsc{Specify 1st-level} button. This will call up the specification of a fMRI specification job in the batch editor window. Then
 
 \begin{itemize}
-\item In the ``Timing paramaters'' option,
+\item For ``Directory'', select the ``categorical'' folder you created earlier,
+\item In the ``Timing parameters'' option,
 \item Highlight ``Units for design'' and select ``Scans'',
 \item Highlight ``Interscan interval'' and enter 2,
 \item Highlight ``Microtime resolution'' and enter 24,
@@ -185,7 +185,7 @@ Now press the \textsc{Specify 1st-level} button. This will call up the specifica
 \item Open the newly created ``Condition'' option (the lowest one). Highlight ``Name'' and change to ``F1''. Highlight ``Onsets'' and enter \texttt{sot\{3\}}.
 \item Highlight ``Conditions'' and select ``Replicate condition''.
 \item Open the newly created ``Condition'' option (the lowest one). Highlight ``Name'' and change to ``F2''. Highlight ``Onsets'' and enter \texttt{sot\{4\}}.
-\item Highlight ``Multiple Regressors'' and select the \texttt{movepars.txt} file\footnote{It is also possible to enter regressors one by one by highlighting ``Regressors'' and selecting ``New Regressor'' for each one. Here, we benefit from the fact that the realignment stage produced a text file with the correct number of rows (351) and columns (6) for SPM to add 6 regressors to model (linear) rigid-body movement effects.}.
+\item Highlight ``Multiple Regressors'' and select the realignment parameter file \texttt{rp\_sM03953\_0005\_0006.txt} file that was saved during the realignment preprocessing step in the folder containing the fMRI data\footnote{It is also possible to enter regressors one by one by highlighting ``Regressors'' and selecting ``New Regressor'' for each one. Here, we benefit from the fact that the realignment stage produced a text file with the correct number of rows (351) and columns (6) for SPM to add 6 regressors to model (linear) rigid-body movement effects.}.
 \item Highlight ``Factorial Design'', select ``New Factor'', open the newly created ``Factor'' option, highlight ``Name'' and enter ``Fam'', highlight ``Levels'' and enter 2.
 \item Highlight ``Factorial Design'', select ``New Factor'', open the newly created ``Factor'' option, highlight ``Name'' and enter ``Rep'', highlight ``Levels'' and enter 2\footnote{The order of naming these factors is important - the factor to be specified first is the one that ``changes slowest'' ie. as we go through the list of conditions N1, N2, F1, F2 the factor ``repetition'' changes every condition and the factor ``fame'' changes every other condition. So ``Fam'' changes slowest and is entered first.}.
 \item Open ``Canonical HRF'' under ``Basis Functions''. Select ``Model derivatives'' and select ``Time and Dispersion derivatives''.
@@ -201,7 +201,7 @@ SPM will then write an \texttt{SPM.mat} file to the \texttt{DIR/categorical} dir
 \end{center}
 \end{figure}
 
-At this stage it is advisable to check your model specification using SPM's review facility which is accessed via the ``Review'' button. This brings up a ``design'' tab on the interactive window clicking on which produces a pulldown menu. If you select the first item ``Design Matrix'' SPM will produce the image shown in Figure~\ref{cat_design}. If you select ``Explore'' then ``Session 1'' then ``N1'', SPM will produce the plots shown in Figure~\ref{cat_explore}.
+At this stage it is advisable to check your model specification using SPM's review facility which is accessed via the ``Review'' button. This brings up a ``Design'' tab on the interactive window clicking on which produces a pulldown menu. If you select the first item ``Design Matrix'' SPM will produce the image shown in Figure~\ref{cat_design}. If you select ``Explore'' then ``Session 1'' then ``N1'', SPM will produce the plots shown in Figure~\ref{cat_explore}.
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces/cat_explore}
@@ -230,11 +230,9 @@ Press ``Results'' and select the SPM.mat file from \texttt{DIR/categorical}. Thi
 
 \begin{itemize}
 \item Select contrast number 5. This is a t-contrast \texttt{Positive effect of condition\_1} This will show regions where the average effect of presenting faces is significantly positive, as modelled by the first regressor (hence the \texttt{\_1}), the canonical HRF. Press `Done''.
-\item \emph{Mask with other contrast ? [Yes/No]}
-\item Specify No.
-\item \emph{Title for comparison ?}
-\item Enter ``Canonical HRF: Faces $>$ Baseline''
-\item \emph{p value adjustment to control: [FWE/FDR/none]}
+\item \emph{Apply masking ? [None/Contrast/Image]}
+\item Specify None.
+\item \emph{p value adjustment to control: [FWE/none]}
 \item Select FWE
 \item \emph{Corrected p value(family-wise error)}
 \item Accept the default value, 0.05
@@ -261,7 +259,7 @@ The columns in volume table show, from right to left:
 \item \textbf{set-level}: the chance (p) of finding this (c) or a greater number of clusters in the search volume.
 \end{itemize}
 
-Right-click on the MIP and select ``goto global maximum''. The cursor will move to [39 -70 -14]. You can view this activation on the subject's normalised, attenuation-corrected structural (\texttt{wmsM03953\_0007\.img}), which gives best anatomical precision, or on the normalised mean functional (\texttt{wmeansM03953\_0005\_0006.img}), which is closer to the true data and spatial resolution (including distortions in the functional EPI data). 
+Right-click on the MIP and select ``goto global maximum''. The cursor will move to [39 -70 -14]. You can view this activation on the subject's normalised, bias-corrected structural (\texttt{wmsM03953\_0007\.img}), which gives best anatomical precision, or on the normalised mean functional (\texttt{wmeansM03953\_0005\_0006.nii}), which is closer to the true data and spatial resolution (including distortions in the functional EPI data). 
 
 If you select ``plot'' and choose ``Contrast of estimates and 90\% C.I'' (confidence interval), and select the ``Average effect of condition'' contrast, you will see three bars corresponding to the parameter estimates for each basis function (summed across the 4 conditions). The BOLD impulse response in this voxel loads mainly on the canonical HRF, but also significantly (given that the error bars do not overlap zero) on the temporal and dispersion derivatives (see next Chapter).
 
@@ -272,15 +270,13 @@ To assess the main effect of repeating faces, as characterised by both the hrf \
 \begin{itemize}
 \item Press ``Results'' and select the \texttt{SPM.mat} file in the \texttt{DIR/categorical} directory.
 \item Select the ``F-contrast'' toggle and the contrast number 3, as shown in Figure~\ref{cat3_contrast}. Press ``Done''.
-\item \emph{Mask with other contrast ? [Yes/No]}.
-\item Specify ``Yes''.
+\item \emph{Apply masking ? [None/Contrast/Image]}.
+\item Specify ``Contrast''.
 \item Select contrast 5 - \texttt{Positive effect of condition\_1} (the T-contrast of activation versus baseline, collapsed across conditions, that we evaluated above)
 \item \emph{uncorrected mask p-value ?}
 \item Change to 0.001
 \item \emph{nature of mask?}
 \item Select 'inclusive'
-\item \emph{Title for comparison ?}
-\item Keep ``Main effect of Rep (masked with ...)''
 \item \emph{p value adjustment to control: [FWE/none]}
 \item Select none
 \item \emph{threshold (F or p value)}
@@ -318,8 +314,8 @@ To assess movement-related activation
 \begin{itemize}
 \item Press ``Results'', select the \texttt{SPM.mat} file, select ``F-contrast'' in the Contrast Manager. Specify e.g. ``Movement-related effects'' (name) and 
 in the ``contrasts weights matrix'' window, or ``1:12 19'' in the ``columns for reduced design'' window.
-\item Submit and select the contrast, specify ``mask with other contrasts?'' (no), ``title for comparison'' (accept default), ``corrected height threshold'' (FWE), and ``corrected p-value'' (accept default). 
-\item When the MIP appears, select ``sections'' from the ``overlays'' pulldown menu, and select the normalised structural image (\texttt{wmsM03953\_0007.img}).
+\item Submit and select the contrast, specify ``Apply masking?'' (none), ``corrected height threshold'' (FWE), and ``corrected p-value'' (accept default). 
+\item When the MIP appears, select ``sections'' from the ``overlays'' pulldown menu, and select the normalised structural image (\texttt{wmsM03953\_0007.nii}).
 \end{itemize}
 
 You will see there is a lot of residual movement-related artifact in the data (despite spatial realignment), which tends to be concentrated near the boundaries of tissue types (eg the edge of the brain; see Figure~\ref{movements}). (Note how the MIP can be misleading in this respect, since though it appears that the whole brain is affected, this reflects the nature of the (X-ray like) projections onto each orthogonal view; displaying the same datae as sections in 3D shows that not every voxel is suprathreshold.)  Even though we are not interested in such artifact, by including the realignment parameters in our design matrix, we ``covary out'' (linear components) of subject movement, reducing the residual error, and hence improve our statistics for the effects of interest.
@@ -379,13 +375,11 @@ We will look at the effect of lag (up to second order, ie using linear and quadr
 \item Press ``Results'' and select the \texttt{SPM.mat} file in the \texttt{DIR/parametric} directory.
 \item Press ``Define new contrast'', enter the name ``Famous Lag'', press the ``F-contrast'' radio button, enter ``1:6 9:15'' in the ``columns in reduced design'' window, press ``submit'', ``OK'' and ``Done''.
 \item Select the ``Famous Lag'' contrast.
-\item \emph{Mask with other contrast ? [Yes/No]}
-\item Specify ``Yes''.
+\item \emph{Apply masking ? [None/Contrast/Image]}
+\item Specify ``Contrast''.
 \item Select the ``Positive Effect of Condition 1'' T contrast.
 \item Change to an 0.05 uncorrected mask p-value.
 \item Nature of Mask ? inclusive.
-\item \emph{ Title for comparison ?}
-\item Accept what is offered
 \item \emph{p value adjustment to control: [FWE/none]}
 \item Select None
 \item \emph{Threshold \{F or p value\}}
@@ -394,7 +388,7 @@ We will look at the effect of lag (up to second order, ie using linear and quadr
 \item Accept the default value, 0.
 \end{itemize}
 
-Figure~\ref{famous_lag_mip} shows the MIP and an overlay of this parametric effect using overlays, sections and selecting the \texttt{wmsM03953\_0007.img} image. 
+Figure~\ref{famous_lag_mip} shows the MIP and an overlay of this parametric effect using overlays, sections and selecting the \texttt{wmsM03953\_0007.nii} image. 
 \begin{figure}
 \begin{center}
 \includegraphics[width=100mm]{faces/famous_lag_mip}
@@ -453,12 +447,12 @@ Press the \textsc{Estimate} button. This will call up the specification of an fM
 SPM will write a number of files into the output directory including 
 \begin{itemize}
 \item An \texttt{SPM.mat} file.
-\item Images \texttt{Cbeta\_k.img} where $k$ indexes the $k$th estimated regression coefficient. These filenames are prefixed with a ``\texttt{C}''' indicating that these are the mean values of the ``Conditional'' or ``Posterior'' density.
-\item Images of error bars/standard deviations on the regression coefficients \texttt{SDbeta\_k.img}.
-\item An image of the standard deviation of the error \texttt{Sess1\_SDerror.img}.
-\item An image \texttt{mask.img} indicating which voxels  were included in the analysis.
-\item Images \texttt{Sess1\_AR\_p.img} where $p$ indexes the $p$th AR coefficient. See eg. Figure~\ref{face_ar1}.
-\item Images \texttt{con\_i.img} and \texttt{con\_sd\_i.img} which are the mean and standard deviation of the $i$th pre-defined contrast.
+\item Images \texttt{Cbeta\_k.nii} where $k$ indexes the $k$th estimated regression coefficient. These filenames are prefixed with a ``\texttt{C}''' indicating that these are the mean values of the ``Conditional'' or ``Posterior'' density.
+\item Images of error bars/standard deviations on the regression coefficients \texttt{SDbeta\_k.nii}.
+\item An image of the standard deviation of the error \texttt{Sess1\_SDerror.nii}.
+\item An image \texttt{mask.nii} indicating which voxels  were included in the analysis.
+\item Images \texttt{Sess1\_AR\_p.nii} where $p$ indexes the $p$th AR coefficient. See eg. Figure~\ref{face_ar1}.
+\item Images \texttt{con\_i.nii} and \texttt{con\_sd\_i.nii} which are the mean and standard deviation of the $i$th pre-defined contrast.
 \end{itemize}
 
 \subsection{Inference}
@@ -475,10 +469,8 @@ Finally, if we want to ask where is there a signal greater than 1\% (with a cert
 \item Press ``Results''.
 \item Select the \texttt{SPM.mat} file created in the last section.
 \item Press ``Define new contrast'', enter the name ``AVERAGE Canonical HRF: Faces $>$ Baseline'', press the ``T-contrast'' radio button, enter the contrast [1 0 0 1 0 0 1 0 0 1 0 0]/4, press ``submit'', ``OK'' and ``Done''.
-\item \emph{Mask with other contrast ? [Yes/No]}
-\item Specify No
-\item \emph{Title for comparison}
-\item Enter ``AVERAGE Canonical HRF: Faces $>$ Baseline''
+\item \emph{Apply masking ? [None/Contrast/Image]}
+\item Specify None
 \item \emph{Effect size threshold for PPM}
 \item Enter the value
 \item \emph{Posterior probability threshold for PPM}
