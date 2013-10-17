@@ -12,7 +12,7 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,N)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5660 2013-09-28 21:39:11Z karl $
+% $Id: spm_csd2ccf.m 5701 2013-10-17 15:13:45Z guillaume $
  
 % unpack cells
 %--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ Hz    = ceil(Hz*dt);
 % Fourier transform cross-spectral density
 %==========================================================================
 for i = 1:size(csd,2)
-    if ismatrix(csd)
+    if ndims(csd) == 2
         g(Hz)      = csd(:,i);
         f          = ifft([0; g; flipud(conj(g))]);
         ccf(:,i)   = real(fftshift(f))*N/dt;

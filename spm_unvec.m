@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 5692 2013-10-13 13:44:05Z karl $
+% $Id: spm_unvec.m 5701 2013-10-17 15:13:45Z guillaume $
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------
@@ -33,7 +33,7 @@ vX = spm_vec(vX);
 % reshape numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X) || islogical(X)
-    if ~ismatrix(X)
+    if ndims(X) > 2
         X(:)  = full(vX);
     else
         X(:)  = vX;
