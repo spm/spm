@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5542 2013-06-11 17:31:00Z guillaume $
+% $Id: spm_orthviews.m 5700 2013-10-17 14:59:50Z guillaume $
 
 
 % The basic fields of st are:
@@ -275,6 +275,17 @@ switch lower(action)
         redraw_all
 
     case 'caption'
+        if ~isnumeric(varargin{1})
+            varargin{1} = cellstr(varargin{1});
+            xlh = NaN(numel(varargin{1}),1);
+            for i=1:numel(varargin{1})
+                h = spm_orthviews('Caption',i,varargin{1}{i},varargin{3:end});
+                if ~isempty(h), xlh(i) = h; end
+            end
+            varargout{1} = xlh;
+            return;
+        end
+        
         vh = valid_handles(varargin{1});
         nh = numel(vh);
         

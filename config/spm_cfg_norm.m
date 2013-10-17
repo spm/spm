@@ -1,15 +1,15 @@
 function normalise = spm_cfg_norm
-% MATLABBATCH Configuration file for Spatial Normalisation
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% SPM Configuration file for Spatial Normalisation
+%__________________________________________________________________________
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_norm.m 5700 2013-10-17 14:59:50Z guillaume $
 
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % biasreg Bias regularisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 biasreg         = cfg_menu;
 biasreg.tag     = 'biasreg';
 biasreg.name    = 'Bias regularisation';
@@ -40,13 +40,14 @@ biasreg.values = {
                   10
                   }';
 biasreg.val    = {0.0001};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % biasfwhm Bias FWHM
-% ---------------------------------------------------------------------
-biasfwhm         = cfg_menu;
-biasfwhm.tag     = 'biasfwhm';
-biasfwhm.name    = 'Bias FWHM';
-biasfwhm.help    = {'FWHM of Gaussian smoothness of bias. If your intensity non-uniformity is very smooth, then choose a large FWHM. This will prevent the algorithm from trying to model out intensity variation due to different tissue types. The model for intensity non-uniformity is one of i.i.d. Gaussian noise that has been smoothed by some amount, before taking the exponential. Note also that smoother bias fields need fewer parameters to describe them. This means that the algorithm is faster for smoother intensity non-uniformities.'};
+%--------------------------------------------------------------------------
+biasfwhm        = cfg_menu;
+biasfwhm.tag    = 'biasfwhm';
+biasfwhm.name   = 'Bias FWHM';
+biasfwhm.help   = {'FWHM of Gaussian smoothness of bias. If your intensity non-uniformity is very smooth, then choose a large FWHM. This will prevent the algorithm from trying to model out intensity variation due to different tissue types. The model for intensity non-uniformity is one of i.i.d. Gaussian noise that has been smoothed by some amount, before taking the exponential. Note also that smoother bias fields need fewer parameters to describe them. This means that the algorithm is faster for smoother intensity non-uniformities.'};
 biasfwhm.labels = {
                    '30mm cutoff'
                    '40mm cutoff'
@@ -81,13 +82,13 @@ biasfwhm.values = {
                    }';
 biasfwhm.val    = {60};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % write Save Bias Fields
-% ---------------------------------------------------------------------
-write         = cfg_menu;
-write.tag     = 'write';
-write.name    = 'Save Bias Fields';
-write.help    = {'This is the option concerns whether to save the estimated bias fields. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The bias corrected version should have more uniform intensities within the different types of tissues.'};
+%--------------------------------------------------------------------------
+write        = cfg_menu;
+write.tag    = 'write';
+write.name   = 'Save Bias Fields';
+write.help   = {'This is the option concerns whether to save the estimated bias fields. MR images are usually corrupted by a smooth, spatially varying artifact that modulates the intensity of the image (bias). These artifacts, although not usually a problem for visual inspection, can impede automated processing of the images.  The bias corrected version should have more uniform intensities within the different types of tissues.'};
 write.labels = {
                 'Save Nothing'
                 'Save Bias Field'
@@ -98,23 +99,23 @@ write.values = {
                 }';
 write.val    = {[0 0]};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % tpm Tissue probability map
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tpm         = cfg_files;
 tpm.tag     = 'tpm';
 tpm.name    = 'Tissue probability map';
 tpm.help    = {
                'Select the tissue probability atlas. These should contain probability maps of all the various tissues found in the image data (such that probabilities are greater than or equal to zero, and they sum to one at each voxel. A nonlinear deformation field is estimated that best overlays the atlas on the individual subjects'' image.'
                }';
-tpm.filter = 'nifti';
+tpm.filter  = 'nifti';
 tpm.ufilter = '.*';
 tpm.num     = [1 1];
 tpm.val     = {{fullfile(spm('dir'),'tpm','TPM.nii')}};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % reg Warping Regularisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 reg         = cfg_entry;
 reg.tag     = 'reg';
 reg.name    = 'Warping Regularisation';
@@ -123,13 +124,13 @@ reg.strtype = 'r';
 reg.num     = [1  5];
 reg.val     = {[0 0.001 0.5 0.05 0.2]};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % affreg Affine Regularisation
-% ---------------------------------------------------------------------
-affreg         = cfg_menu;
-affreg.tag     = 'affreg';
-affreg.name    = 'Affine Regularisation';
-affreg.help    = {
+%--------------------------------------------------------------------------
+affreg        = cfg_menu;
+affreg.tag    = 'affreg';
+affreg.name   = 'Affine Regularisation';
+affreg.help   = {
                   'The procedure is a local optimisation, so it needs reasonable initial starting estimates. Images should be placed in approximate alignment using the Display function of SPM before beginning. A Mutual Information affine registration with the tissue probability maps (D''Agostino et al, 2004) is used to achieve approximate alignment. Note that this step does not include any model for intensity non-uniformity. This means that if the procedure is to be initialised with the affine registration, then the data should not be too corrupted with this artifact.If there is a lot of intensity non-uniformity, then manually position your image in order to achieve closer starting estimates, and turn off the affine registration.'
                   ''
                   'Affine registration into a standard space can be made more robust by regularisation (penalising excessive stretching or shrinking).  The best solutions can be obtained by knowing the approximate amount of stretching that is needed (e.g. ICBM templates are slightly bigger than typical brains, so greater zooms are likely to be needed). For example, if registering to an image in ICBM/MNI space, then choose this option.  If registering to a template that is close in size, then select the appropriate option for this.'
@@ -150,9 +151,9 @@ affreg.values = {
                  }';
 affreg.val    = {'mni'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % samp Sampling distance
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
@@ -161,9 +162,9 @@ samp.strtype = 'r';
 samp.num     = [1  1];
 samp.val     = {3};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % smo Smoothness
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 smo         = cfg_entry;
 smo.tag     = 'fwhm';
 smo.name    = 'Smoothness';
@@ -172,13 +173,13 @@ smo.strtype = 'r';
 smo.num     = [1  1];
 smo.val     = {0};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % write Deformation Fields
-% ---------------------------------------------------------------------
-write         = cfg_menu;
-write.tag     = 'write';
-write.name    = 'Deformation Fields';
-write.help    = {'Deformation fields can be saved to disk, and used by the Deformations Utility. For spatially normalising images to MNI space, you will need the forward deformation, whereas for spatially normalising (eg) GIFTI surface files, you''ll need the inverse. It is also possible to transform data in MNI space on to the individual subject, which also requires the inverse transform. Deformations are saved as .nii files, which contain three volumes to encode the x, y and z coordinates.'};
+%--------------------------------------------------------------------------
+write        = cfg_menu;
+write.tag    = 'write';
+write.name   = 'Deformation Fields';
+write.help   = {'Deformation fields can be saved to disk, and used by the Deformations Utility. For spatially normalising images to MNI space, you will need the forward deformation, whereas for spatially normalising (eg) GIFTI surface files, you''ll need the inverse. It is also possible to transform data in MNI space on to the individual subject, which also requires the inverse transform. Deformations are saved as .nii files, which contain three volumes to encode the x, y and z coordinates.'};
 write.labels = {
                 'None'
                 'Inverse'
@@ -202,26 +203,23 @@ eoptions.name = 'Estimation Options';
 eoptions.val  = {biasreg biasfwhm tpm affreg reg smo samp};
 eoptions.help = {'Various settings for estimating deformations.'};
 
-
-
-
 %--------------------------------------------------------------------------
 % preserve Preserve
 %--------------------------------------------------------------------------
-preserve         = cfg_menu;
-preserve.tag     = 'preserve';
-preserve.name    = 'Preserve';
-preserve.help    = {
-                    'Preserve Concentrations: Spatially normalised images are not "modulated". The warped images preserve the intensities of the original images.'
-                    ''
-                    'Preserve Total: Spatially normalised images are "modulated" in order to preserve the total amount of signal in the images. Areas that are expanded during warping are correspondingly reduced in intensity.'
+preserve        = cfg_menu;
+preserve.tag    = 'preserve';
+preserve.name   = 'Preserve';
+preserve.help   = {
+                   'Preserve Concentrations: Spatially normalised images are not "modulated". The warped images preserve the intensities of the original images.'
+                   ''
+                   'Preserve Total: Spatially normalised images are "modulated" in order to preserve the total amount of signal in the images. Areas that are expanded during warping are correspondingly reduced in intensity.'
 }';
 preserve.labels = {
                    'Preserve Concentrations'
                    'Preserve Amount'
 }';
 preserve.values = {0 1};
-preserve.def     = @(val)spm_get_defaults('normalise.write.preserve', val{:});
+preserve.def    = @(val)spm_get_defaults('normalise.write.preserve', val{:});
 
 %--------------------------------------------------------------------------
 % bb Bounding box
@@ -278,7 +276,7 @@ interp.labels = {
                  '7th Degree B-Spline'
 }';
 interp.values = {0 1 2 3 4 5 6 7};
-interp.def     = @(val)spm_get_defaults('normalise.write.interp', val{:});
+interp.def    = @(val)spm_get_defaults('normalise.write.interp', val{:});
 
 %--------------------------------------------------------------------------
 % wrap Wrapping
@@ -325,7 +323,6 @@ woptions.name = 'Writing Options';
 woptions.val  = { bb vox interp};
 woptions.help = {'Various options for writing normalised images.'};
 
-
 %--------------------------------------------------------------------------
 % vol Image to Align
 %--------------------------------------------------------------------------
@@ -344,10 +341,10 @@ def         = cfg_files;
 def.tag     = 'def';
 def.name    = 'Deformation Field';
 def.help    = {[...
-'Deformations can be thought of as vector fields, and represented ',...
-'by three-volume images.  In SPM, deformation fields are saved in ',...
-'NIfTI format, with dimensions xdim x ydim x zdim x 1 x 3. ',...
-'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
+    'Deformations can be thought of as vector fields, and represented ',...
+    'by three-volume images.  In SPM, deformation fields are saved in ',...
+    'NIfTI format, with dimensions xdim x ydim x zdim x 1 x 3. ',...
+    'Each voxel contains the x, y and z mm coordinates of where the deformation points.']};
 def.filter  = 'nifti';
 def.ufilter = 'y_.*\.nii$';
 def.num     = [1 1];
@@ -363,125 +360,118 @@ resample.filter  = 'image';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
 
-
-
-
-
 %--------------------------------------------------------------------------
 % subj Subject
 %--------------------------------------------------------------------------
 subj         = cfg_branch;
 subj.tag     = 'subj';
 subj.name    = 'Subject';
-subj.val     = {vol };
+subj.val     = {vol};
 subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % esubjs Data
 %--------------------------------------------------------------------------
-esubjs         = cfg_repeat;
-esubjs.tag     = 'esubjs';
-esubjs.name    = 'Data';
-esubjs.help    = {'List of subjects. Images of each subject should be warped differently.'};
-esubjs.values  = {subj};
-esubjs.num     = [1 Inf];
-
+esubjs        = cfg_repeat;
+esubjs.tag    = 'esubjs';
+esubjs.name   = 'Data';
+esubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
+esubjs.values = {subj};
+esubjs.num    = [1 Inf];
 
 %--------------------------------------------------------------------------
 % subj Subject
 %--------------------------------------------------------------------------
-subj         = cfg_branch;
-subj.tag     = 'subj';
-subj.name    = 'Subject';
-subj.val     = {def resample};
-subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
+subj      = cfg_branch;
+subj.tag  = 'subj';
+subj.name = 'Subject';
+subj.val  = {def resample};
+subj.help = {'Data for this subject.  The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % wsubjs Data
 %--------------------------------------------------------------------------
-wsubjs         = cfg_repeat;
-wsubjs.tag     = 'wsubjs';
-wsubjs.name    = 'Data';
-wsubjs.help    = {'List of subjects. Images of each subject should be warped differently.'};
-wsubjs.values  = {subj};
-wsubjs.num     = [1 Inf];
-
+wsubjs        = cfg_repeat;
+wsubjs.tag    = 'wsubjs';
+wsubjs.name   = 'Data';
+wsubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
+wsubjs.values = {subj};
+wsubjs.num    = [1 Inf];
 
 %--------------------------------------------------------------------------
 % subj Subject
 %--------------------------------------------------------------------------
-subj         = cfg_branch;
-subj.tag     = 'subj';
-subj.name    = 'Subject';
-subj.val     = {vol resample};
-subj.help    = {'Data for this subject.  The same parameters are used within subject.'};
+subj      = cfg_branch;
+subj.tag  = 'subj';
+subj.name = 'Subject';
+subj.val  = {vol resample};
+subj.help = {'Data for this subject.  The same parameters are used within subject.'};
 
 %--------------------------------------------------------------------------
 % ewsubjs Data
 %--------------------------------------------------------------------------
-ewsubjs         = cfg_repeat;
-ewsubjs.tag     = 'ewsubjs';
-ewsubjs.name    = 'Data';
-ewsubjs.help    = {'List of subjects. Images of each subject should be warped differently.'};
-ewsubjs.values  = {subj};
-ewsubjs.num     = [1 Inf];
+ewsubjs        = cfg_repeat;
+ewsubjs.tag    = 'ewsubjs';
+ewsubjs.name   = 'Data';
+ewsubjs.help   = {'List of subjects. Images of each subject should be warped differently.'};
+ewsubjs.values = {subj};
+ewsubjs.num    = [1 Inf];
 
-
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % est Segment
-% ---------------------------------------------------------------------
-est         = cfg_exbranch;
-est.tag     = 'est';
-est.name    = 'Normalise: Estimate';
-est.val     = {esubjs eoptions };
-est.help    = {
-                    'Spatial normalisation is now done via the segmentation routine (which was known as ``New Segment'''' in SPM8).  The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
-                    ''
-                    'Note that on a 32 bit computer, the most memory that SPM or any other program can use at any time is 4Gbytes (or sometimes only 2Gbytes).  This is because the largest number that can be represented with 32 bits is 4,294,967,295, which limits how much memory may be addressed by any one process.  Out of memory errors may occasionally be experienced when trying to work with large images.  64-bit computers can usually handle such cases.'
-                    }';
+%--------------------------------------------------------------------------
+est      = cfg_exbranch;
+est.tag  = 'est';
+est.name = 'Normalise: Estimate';
+est.val  = {esubjs eoptions};
+est.help = {
+    'Spatial normalisation is now done via the segmentation routine (which was known as ``New Segment'''' in SPM8).  The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
+	''
+	'Note that on a 32 bit computer, the most memory that SPM or any other program can use at any time is 4Gbytes (or sometimes only 2Gbytes).  This is because the largest number that can be represented with 32 bits is 4,294,967,295, which limits how much memory may be addressed by any one process.  Out of memory errors may occasionally be experienced when trying to work with large images.  64-bit computers can usually handle such cases.'
+           }';
 est.prog = @spm_run_norm;
 est.vout = @vout_est;
 
 %--------------------------------------------------------------------------
 % write Normalise: Write
 %--------------------------------------------------------------------------
-write         = cfg_exbranch;
-write.tag     = 'write';
-write.name    = 'Normalise: Write';
-write.val     = {wsubjs woptions};
-write.help    = {'Allows previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to be applied to series of images.'};
-write.prog    = @spm_run_norm;
-write.vout    = @vout_write;
+write      = cfg_exbranch;
+write.tag  = 'write';
+write.name = 'Normalise: Write';
+write.val  = {wsubjs woptions};
+write.help = {'Allows previously estimated warps (stored in ``y_''''imagename``_sn.mat'''' files) to be applied to series of images.'};
+write.prog = @spm_run_norm;
+write.vout = @vout_write;
 
 %--------------------------------------------------------------------------
 % estwrite Normalise: Estimate & Write
 %--------------------------------------------------------------------------
-estwrite         = cfg_exbranch;
-estwrite.tag     = 'estwrite';
-estwrite.name    = 'Normalise: Estimate & Write';
-estwrite.val     = {ewsubjs eoptions woptions};
-estwrite.help    = {'Computes the warp that best aligns the template (atlas) to the individual''s image, inverting it and writing the result to the file `y_''imagename''.nii''. This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'};
-estwrite.prog    = @spm_run_norm;
-estwrite.vout    = @vout_estwrite;
+estwrite      = cfg_exbranch;
+estwrite.tag  = 'estwrite';
+estwrite.name = 'Normalise: Estimate & Write';
+estwrite.val  = {ewsubjs eoptions woptions};
+estwrite.help = {'Computes the warp that best aligns the template (atlas) to the individual''s image, inverting it and writing the result to the file `y_''imagename''.nii''. This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'};
+estwrite.prog = @spm_run_norm;
+estwrite.vout = @vout_estwrite;
 
 %--------------------------------------------------------------------------
 % normalise Normalise
 %--------------------------------------------------------------------------
-normalise         = cfg_choice;
-normalise.tag     = 'normalise';
-normalise.name    = 'Normalise';
-normalise.help    = {...
-'There are two components to spatial normalisation: There is the estimation part, ',...
-'whereby a deformation is estimated by deforming template data to match an ',...
-'individual scan; And there is the actual writing of the spatially normalised ',...
-'images, using the previously estimated deformation.',...
-'This is a vanilla approach to spatial normalisation.  ',...
-'It is not generally recommended for morphometric studies, or other studies of ',...
-'differences among populations. ',...
-'The reason is that the atlas data will differ systematically from the data under study, ',...
-'which is likely to lead to an inherently biased set of findings.' };
-normalise.values   = {est write estwrite};
-%----------------------------------------------------------------------
+normalise        = cfg_choice;
+normalise.tag    = 'normalise';
+normalise.name   = 'Normalise';
+normalise.help   = {...
+    'There are two components to spatial normalisation: There is the estimation part, ',...
+    'whereby a deformation is estimated by deforming template data to match an ',...
+    'individual scan; And there is the actual writing of the spatially normalised ',...
+    'images, using the previously estimated deformation.',...
+    'This is a vanilla approach to spatial normalisation.  ',...
+    'It is not generally recommended for morphometric studies, or other studies of ',...
+    'differences among populations. ',...
+    'The reason is that the atlas data will differ systematically from the data under study, ',...
+    'which is likely to lead to an inherently biased set of findings.' };
+normalise.values = {est write estwrite};
+
 
 %==========================================================================
 function dep = vout_est(job)
@@ -492,6 +482,7 @@ for k=1:numel(job.subj)
     dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
 
+
 %==========================================================================
 function dep = vout_write(job)
 for k=1:numel(job.subj)
@@ -500,6 +491,7 @@ for k=1:numel(job.subj)
     dep(k).src_output = substruct('()',{k},'.','files');
     dep(k).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 end
+
 
 %==========================================================================
 function dep = vout_estwrite(job)

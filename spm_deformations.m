@@ -8,10 +8,10 @@ function out = spm_deformations(job)
 %
 % See spm_cfg_deformations.m for more information.
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5668 2013-10-03 18:34:18Z guillaume $
+% $Id: spm_deformations.m 5700 2013-10-17 14:59:50Z guillaume $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -406,6 +406,7 @@ if job.mask
 end
 
 oM = zeros(4,4);
+spm_progress_bar('Init',numel(PI),'Resampling','volumes completed');
 for m=1:numel(PI)
 
     % Generate headers etc for output images
@@ -416,7 +417,7 @@ for m=1:numel(PI)
     j_range = 1:size(NI.dat,4);
     k_range = 1:size(NI.dat,5);
     l_range = 1:size(NI.dat,6);
-    if ~isempty(num),
+    if ~isempty(num)
         num = sscanf(num,',%d');
         if numel(num)>=1, j_range = num(1); end
         if numel(num)>=2, k_range = num(2); end
@@ -448,7 +449,7 @@ for m=1:numel(PI)
     NO.mat0        = mat;
     NO.mat_intent  = 'Aligned';
     NO.mat0_intent = 'Aligned';
-    if isempty(num),
+    if isempty(num)
         out{m}     = NO.dat.fname;
     else
         out{m}     = [NO.dat.fname, ',', num2str(num(1))]; 
@@ -462,8 +463,8 @@ for m=1:numel(PI)
 
     % Loop over volumes within the file
     %----------------------------------------------------------------------
-    fprintf('%s',nam);
-    for j=j_range,
+    %fprintf('%s',nam);
+    for j=j_range
 
         M0 = NI.mat;
         if ~isempty(NI.extras) && isstruct(NI.extras) && isfield(NI.extras,'mat')
@@ -472,16 +473,16 @@ for m=1:numel(PI)
                 M0 = M1(:,:,j);
             end
         end
-        M   = inv(M0);
+        M  = inv(M0);
         if ~all(M(:)==oM(:))
             % Generate new deformation (if needed)
             Y     = affine(Def,M);
         end
-        oM  = M;
+        oM = M;
         % Write the warped data for this time point
         %------------------------------------------------------------------
-        for k=k_range,
-            for l=l_range,
+        for k=k_range
+            for l=l_range
                 C   = spm_diffeo('bsplinc',single(NI.dat(:,:,:,j,k,l)),intrp);
                 dat = spm_diffeo('bsplins',C,Y,intrp);
                 if job.mask
@@ -491,12 +492,14 @@ for m=1:numel(PI)
                     spm_smooth(dat,dat,krn); % Side effects
                 end
                 NO.dat(:,:,:,j,k,l) = dat;
-                fprintf('\t%d,%d,%d', j,k,l);
+                %fprintf('\t%d,%d,%d', j,k,l);
             end
         end
     end
-    fprintf('\n');
+    %fprintf('\n');
+    spm_progress_bar('Set',m);
 end
+spm_progress_bar('Clear');
 
 
 %==========================================================================

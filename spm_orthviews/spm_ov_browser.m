@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5585 2013-07-19 15:50:44Z guillaume $
+% $Id: spm_ov_browser.m 5700 2013-10-17 14:59:50Z guillaume $
 
 
 cmd = lower(varargin{1});
@@ -199,6 +199,10 @@ if isempty(hAx) || ~ishandle(hAx)
 end
 
 plot(hAx,Y);
+hold(hAx,'on')
+i =round(get(hS,'value'));
+plot(hAx,i,Y(i),'r*');
+hold(hAx,'off');
 ylabel(hAx,sprintf('[%.2f %.2f %.2f]',pos));
 st.vols{hC}.browser.fun = @browser_profile;
 st.vols{hC}.browser.h = hObj;

@@ -7,9 +7,10 @@ function out = spm_run_norm(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_norm.m 5261 2013-02-19 16:37:37Z john $
+% $Id: spm_run_norm.m 5700 2013-10-17 14:59:50Z guillaume $
+
 
 for i=1:numel(job.subj)
 
@@ -85,20 +86,20 @@ defs.out{1}.pull.interp  = job.woptions.interp;
 defs.out{1}.pull.mask    = 1;
 defs.out{1}.pull.fwhm    = [0 0 0];
 
-for i=1:numel(job.subj),
+for i=1:numel(job.subj)
     defs.out{1}.pull.fnames = job.subj(i).resample;
     if ~isfield(job.subj(i),'def')
-        defs.comp{1}.def  = {spm_file(char(job.subj(i).vol), 'prefix','y_', 'ext','.nii')};
+        defs.comp{1}.def = {spm_file(char(job.subj(i).vol), 'prefix','y_', 'ext','.nii')};
     else
-        defs.comp{1}.def  = job.subj(i).def;
+        defs.comp{1}.def = job.subj(i).def;
     end
 
     Nii = nifti(defs.comp{1}.def);
-    vx = sqrt(sum(Nii.mat(1:3,1:3).^2));
-    o  = Nii.mat\[0 0 0 1]';
-    o  = o(1:3)';
-    dm = size(Nii.dat);
-    bb = [-vx.*(o-1) ; vx.*(dm(1:3)-o)];
+    vx  = sqrt(sum(Nii.mat(1:3,1:3).^2));
+    o   = Nii.mat\[0 0 0 1]';
+    o   = o(1:3)';
+    dm  = size(Nii.dat);
+    bb  = [-vx.*(o-1) ; vx.*(dm(1:3)-o)];
 
     defs.comp{2}.idbbvox.vox = job.woptions.vox;
     defs.comp{2}.idbbvox.bb  = job.woptions.bb;
@@ -106,4 +107,3 @@ for i=1:numel(job.subj),
     defs.comp{2}.idbbvox.bb(~isfinite(defs.comp{2}.idbbvox.bb)) = bb(~isfinite(defs.comp{2}.idbbvox.bb));
     spm_deformations(defs);
 end
-
