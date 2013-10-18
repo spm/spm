@@ -1,6 +1,6 @@
 function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Produce an aggregate DCM model using Bayesian FFX averaging
-% FORMAT [DCM] = spm_dcm_average(P,name,IND,graphics)
+% FORMAT [DCM] = spm_dcm_average(P,name,nocond,graphics)
 %
 % P         -  character/cell array of DCM filenames
 % name      -  name of DCM output file (will be prefixed by 'DCM_avg_')
@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_dcm_average.m 5702 2013-10-18 11:10:06Z karl $
 
 
 % Preiminaries

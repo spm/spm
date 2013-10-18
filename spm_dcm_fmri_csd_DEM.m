@@ -36,11 +36,12 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5696 2013-10-15 19:10:26Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5702 2013-10-18 11:10:06Z karl $
 
 
 % get DCM
 %--------------------------------------------------------------------------
+global DCM
 if ischar(DCM), load(DCM); end
 
 % DCM name

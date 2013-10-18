@@ -22,7 +22,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5696 2013-10-15 19:10:26Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5702 2013-10-18 11:10:06Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -37,7 +37,7 @@ TR  = 2;                               % repetition time or timing
 n   = 4;                               % number of regions or nodes
 t   = (1:T)*TR;                        % observation times
 v   = randn(3,n);                      % location
-xyz = v + randn(3,n)/8;                % location
+xyz = v*32 + randn(3,n)/8;                % location
 
 % priors
 % -------------------------------------------------------------------------
@@ -61,6 +61,7 @@ DCM.M.pE  = pP;
 % true parameters (reciprocal connectivity)
 % -------------------------------------------------------------------------
 pP         = spm_dcm_fmri_graph_gen([],v,[]);
+
 pP.C       = eye(n,n);
 pP.transit = randn(n,1)/16;
 
@@ -131,23 +132,23 @@ DCM.U.dt = TR;
 
 % provisional inversion
 %--------------------------------------------------------------------------
-DCM   = spm_dcm_fmri_csd(DCM);
+% DCM   = spm_dcm_fmri_csd(DCM);
 
 
-% replace original connectivty with posterior expectations
-%--------------------------------------------------------------------------
-pP.A  = DCM.Ep.A;
-M.g   = 'spm_gx_fmri';
-
-% re-integrate states and observation noise process
-%--------------------------------------------------------------------------
-U.u   = spm_rand_mar(T,n,1/2)/2;      % endogenous fluctuations
-y     = spm_int_J(pP,M,U);            % integrate with observer
-e     = spm_rand_mar(T,n,1/2)/8;
-
-% response
-% -----------------------------------------------------------------
-DCM.Y.y  = y + e;
+% % replace original connectivty with posterior expectations
+% %--------------------------------------------------------------------------
+% pP.A  = DCM.Ep.A;
+% M.g   = 'spm_gx_fmri';
+% 
+% % re-integrate states and observation noise process
+% %--------------------------------------------------------------------------
+% U.u   = spm_rand_mar(T,n,1/2)/2;      % endogenous fluctuations
+% y     = spm_int_J(pP,M,U);            % integrate with observer
+% e     = spm_rand_mar(T,n,1/2)/8;
+% 
+% % response
+% % -----------------------------------------------------------------
+% DCM.Y.y  = y + e;
 
 % nonlinear system identification (Variational Laplace)
 % =================================================================

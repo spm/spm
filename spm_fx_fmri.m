@@ -1,10 +1,10 @@
 function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
-% State equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
+% state equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
 % responses
 % FORMAT [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % x      - state vector
-%   x(:,1) - excitatory neuronal activity             ue
-%   x(:,2) - vascular signal                           s
+%   x(:,1) - excitatory neuronal activity            ue
+%   x(:,2) - vascular signal                          s
 %   x(:,3) - rCBF                                  ln(f)
 %   x(:,4) - venous volume                         ln(v)
 %   x(:,5) - deoyxHb                               ln(q)
@@ -15,12 +15,12 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % dfdu   - df/du
 % D      - delays
 %
-%__________________________________________________________________________
+%___________________________________________________________________________
 %
 % References for hemodynamic & neuronal state equations:
 % 1. Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
-%    changes during brain activation: The Balloon model.
-%    MRM 39:855-864, 1998.
+%    changes during brain activation: The Balloon model. MRM 39:855-864,
+%    1998.
 % 2. Friston KJ, Mechelli A, Turner R, Price CJ. Nonlinear responses in
 %    fMRI: the Balloon model, Volterra kernels, and other hemodynamics.
 %    Neuroimage 12:466-477, 2000.
@@ -31,15 +31,16 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 %    fMRI: a two-state model.
 %    Neuroimage. 2008 Jan 1;39(1):269-78.
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+
+% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5697 2013-10-16 11:12:09Z guillaume $
+% $Id: spm_fx_fmri.m 5702 2013-10-18 11:10:06Z karl $
 
 
 % Neuronal motion
 %==========================================================================
-P.A   = full(P.A);
+P.A   = full(P.A);                       %    linear parameters
 P.B   = full(P.B);                       % bi-linear parameters
 P.C   = P.C/16;                          % exogenous parameters
 P.D   = full(P.D);                       % nonlinear parameters
@@ -58,45 +59,45 @@ end
 
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
-f     = x;
+f    = x;
 if size(x,2) == 5
     
     % combine forward and backward connections if necessary
     %--------------------------------------------------------------------------
     if size(P.A,3) > 1
-        P.A = exp(P.A(:,:,1)) - exp(P.A(:,:,2));
+        P.A  = exp(P.A(:,:,1)) - exp(P.A(:,:,2));
     end
     
     % one neuronal state per region: diag(A) is a log self-inhibition
     %----------------------------------------------------------------------
-    SI      = diag(P.A);
-    P.A     = P.A - diag(exp(SI)/2 + SI);
+    SI     = diag(P.A);
+    P.A    = P.A - diag(exp(SI)/2 + SI);
     
     % flow
     %----------------------------------------------------------------------
-    f(:,1)  = P.A*x(:,1) + P.C*u(:);
+    f(:,1) = P.A*x(:,1) + P.C*u(:);
     
 else
     
     % extrinsic (two neuronal states): enforce positivity
     %----------------------------------------------------------------------
-    P.A     = exp(P.A(:,:,1))/8;
-    DA      = diag(diag(P.A));        % intrinsic connectivity
-    EE      = P.A - DA;               % excitatory to excitatory
-    n       = length(P.A);            % number of regions
-    IE      = eye(n,n);               % inhibitory to excitatory
-    EI      = eye(n,n);               % excitatory to inhibitory
-    SE      = eye(n,n);               % self-inhibition (excitatory)
-    SI      = eye(n,n);               % self-inhibition (inhibitory)
+    P.A   = exp(P.A(:,:,1))/8;
+    DA    = diag(diag(P.A));        % intrinsic connectivity
+    EE    = P.A - DA;               % excitatory to excitatory
+    n     = length(P.A);            % number of regions
+    IE    = eye(n,n);               % inhibitory to excitatory
+    EI    = eye(n,n);               % excitatory to inhibitory
+    SE    = eye(n,n);               % self-inhibition (excitatory)
+    SI    = eye(n,n);               % self-inhibition (inhibitory)
     
     
     % <<< intrinsic moduation >>>
     %----------------------------------------------------------------------
-    IE      = DA;                     % self-inhibition (inhibitory)
+    IE    = DA;                     % self-inhibition (inhibitory)
     
     % <<< switch excitatory to excitatory -> excitatory to inhibitory >>>
     %----------------------------------------------------------------------
-    in      = {};
+    in    = {};
     for i = 1:length(in)
         EI(in{i}(1),in{i}(2)) = EE(in{i}(1),in{i}(2));
         EE(in{i}(1),in{i}(2)) = 0;
@@ -104,8 +105,8 @@ else
     
     % motion - excitatory and inhibitory: f = dx/dt
     %----------------------------------------------------------------------
-    f(:,1)  = (EE - SE)*x(:,1) - IE*x(:,6) + P.C*u(:);
-    f(:,6)  = EI*x(:,1) - SI*x(:,6)*2;
+    f(:,1) = (EE - SE)*x(:,1) - IE*x(:,6) + P.C*u(:);
+    f(:,6) = EI*x(:,1) - SI*x(:,6)*2;
     
 end
 
@@ -159,7 +160,7 @@ if nargout < 2, return, end
 
 % Neuronal Jacobian
 %==========================================================================
-[n,m] = size(x);
+[n m] = size(x);
 if m == 5
     
     % one neuronal state per region
@@ -210,3 +211,10 @@ dfdx{5,5} = diag((x(:,3)./x(:,5)).*((1 - H(5)).^(1./x(:,3)) - 1)./(tt*H(5)));
 dfdx      = spm_cat(dfdx);
 dfdu      = spm_cat(dfdu);
 D         = 1;
+
+
+
+
+
+
+
