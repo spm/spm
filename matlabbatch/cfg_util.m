@@ -409,9 +409,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5683 2013-10-11 14:58:20Z volkmar $
+% $Id: cfg_util.m 5703 2013-10-18 11:28:36Z guillaume $
 
-rev = '$Rev: 5683 $';
+rev = '$Rev: 5703 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -552,7 +552,7 @@ switch lower(cmd),
             item_names = cell(1,numel(mod_job_idlist));
             % List modules with open inputs
             for cm = 1:numel(mod_job_idlist)
-                [item_mod_idlists1, ~, contents] = cfg_util('listmod', cjob, mod_job_idlist{cm}, [], fspec, tropts, {'name','all_set_item'});
+                [item_mod_idlists1, unused, contents] = cfg_util('listmod', cjob, mod_job_idlist{cm}, [], fspec, tropts, {'name','all_set_item'});
                 % module name is 1st in list
                 item_mod_idlists{cm} = item_mod_idlists1(~[contents{2}{:}]);
                 item_names{cm} = contents{1}(~[contents{2}{:}]);

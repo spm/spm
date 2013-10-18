@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 5682 2013-10-11 14:58:19Z volkmar $
+% $Id: cfg_ui_util.m 5703 2013-10-18 11:28:36Z guillaume $
 
-rev = '$Rev: 5682 $';  %#ok<NASGU>
+rev = '$Rev: 5703 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'showitemstr'}
@@ -395,7 +395,7 @@ switch lower(cmd)
         set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
     case 'valedit_editvalue'
         [ciid, itemname, val] = deal(varargin{1:3});
-        [~, ~, itemclass] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
+        [unused,unused, itemclass] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'class'});
         switch itemclass{1}{1}
             case {'cfg_entry'},
