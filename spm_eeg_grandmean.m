@@ -26,9 +26,9 @@ function Do = spm_eeg_grandmean(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_grandmean.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_eeg_grandmean.m 5704 2013-10-18 12:04:17Z vladimir $
 
-SVNrev = '$Rev: 5219 $';
+SVNrev = '$Rev: 5704 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -98,15 +98,15 @@ for i = 1:Nfiles
     end
     
     if ~isempty(D{i}.sensors('MEG'))
-        megsens = [megsens D{i}.sensors('MEG')];
+        megsens = spm_cat_struct(megsens, D{i}.sensors('MEG'));
     end
     
     if ~isempty(D{i}.sensors('EEG'))
-        eegsens = [eegsens D{i}.sensors('EEG')];
+        eegsens = spm_cat_struct(eegsens, D{i}.sensors('EEG'));
     end
     
     if ~isempty(megsens) || ~isempty(eegsens)
-        fid = [fid D{i}.fiducials];
+        fid = spm_cat_struct(fid, D{i}.fiducials);
     end
 end
 
