@@ -20,13 +20,13 @@ function spm_MDP_trust
 % We run an exemplar game, examine the distribution of time to acceptance
 % as a function of different beliefs (encoded by parameters of the
 % underlying Markov process) and demonstrate how the model can be used to
-% produce trial-specific changes in uncertainty – or how one can use
+% produce trial-specific changes in uncertainty ï¿½ or how one can use
 % behaviour to identify the parameters used by a subject.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5324 2013-03-13 22:04:55Z karl $
+% $Id: spm_MDP_trust.m 5705 2013-10-20 16:29:30Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
@@ -50,7 +50,7 @@ U{2} = [26 42;
          7 10]/8;                   % other payoff (utility)
     
          
-% initial state – encoding the actual type of trustee
+% initial state ï¿½ encoding the actual type of trustee
 %--------------------------------------------------------------------------
 S    = [0 1]';                    % indicator - [prosocial nonsocial]
 S    = kron(S,[1 0 0 0 0]');
@@ -59,7 +59,7 @@ S    = kron(S,[1 0 0 0 0]');
 % prior beliefs about initial state
 %--------------------------------------------------------------------------
 k    = [1 1];
-p    = softmax(k(:));
+p    = spm_softmax(k(:));
 k    = log(p);
 D    = kron(p,[1 0 0 0 0]');
 
@@ -112,7 +112,7 @@ B{2} = ...                        % defect:
 %--------------------------------------------------------------------------
 A    = kron([1 1],speye(5,5));
 
-% allowable policies – sequences of control (of depth T)
+% allowable policies ï¿½ sequences of control (of depth T)
 %--------------------------------------------------------------------------
 V    = [1 2;
         1 1];
@@ -149,7 +149,7 @@ for i = 1:NG
     % solve and marginalise over posterior beliefs about hidden states
     %----------------------------------------------------------------------
     MDP    = spm_MDP_game(MDP);
-    Q(:,i) = softmax(k);
+    Q(:,i) = spm_softmax(k);
     O(:,i) = MDP.O(:,end);
     P(:,i) = MDP.P(:,end);
     W(:,i) = MDP.W(:,end);
@@ -163,7 +163,7 @@ for i = 1:NG
     % update prior beliefs about initial state (context)
     %----------------------------------------------------------------------
     k      = k + log(p);
-    p      = softmax(k);
+    p      = spm_softmax(k);
     MDP.D  = kron(p,[1 0 0 0 0]');
     MDP.C  = [pp*p(1); pn*p(2)];
     

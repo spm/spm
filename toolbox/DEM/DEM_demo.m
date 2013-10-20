@@ -81,7 +81,11 @@ function varargout = DEM_demo_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 function run_demo_Callback(hObject, handles, file)
-h      = help(file);
+if isdeployed
+    h = sprintf('%s: MATLAB code and help are not available in SPM Standalone.',file);
+else
+    h  = help(file);
+end
 str{1} = [file ':'];
 str{2} = '__________________________________________________________________________ ';
 str{3} = ' ';
@@ -115,7 +119,12 @@ set(handles.pushbutton51,'String','run demo')
 % --- Executes on button press in pushbutton93.
 function pushbutton93_Callback(hObject, eventdata, handles)
 try
-    edit(handles.file);
+    if isdeployed
+        set(hObject,'String','MATLAB code (not available)');
+        set(hObject,'Enable','Off');
+    else
+        edit(handles.file);
+    end
 end
 
 
