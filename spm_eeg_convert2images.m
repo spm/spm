@@ -11,7 +11,7 @@ function images = spm_eeg_convert2images(S)
 %                'scalp x time'
 %                'scalp x frequency' (average over time)
 %                'scalp' (average over time and frequency)
-%                'time x frequency' (avrage over channels)
+%                'time x frequency' (average over channels)
 %                'time' (1D average over channels, frequency)
 %                'frequency' (1D average over channels, time)
 %                'average' (average over all dimensions to get a single
@@ -31,9 +31,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5389 2013-04-04 12:01:28Z vladimir $
+% $Id: spm_eeg_convert2images.m 5707 2013-10-21 15:46:48Z vladimir $
 
-SVNrev = '$Rev: 5389 $';
+SVNrev = '$Rev: 5707 $';
 
 %-Startup
 %--------------------------------------------------------------------------

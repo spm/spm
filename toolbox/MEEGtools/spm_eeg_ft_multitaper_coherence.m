@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 5707 2013-10-21 15:46:48Z vladimir $
 
 %%
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 5707 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -191,7 +191,7 @@ cfg.tapsmofrq(cfg.foi>50)                = 5;
 % half the time window from the start of the data. Otherwise your time
 % window will overlap a segment with no data and you will get NaNs in the
 % output. The same idea at the end.
-cfg.toi=(prestim+(timewin/2)):step:(poststim-(timewin/2)-1/data.fsample); % Time axis
+cfg.toi=(prestim+(timewin/2)):step:(poststim-(timewin/2)-1/D.fsample); % Time axis
 
 freq = ft_freqanalysis(cfg, data);
 
@@ -199,20 +199,20 @@ np = size(S.chancomb, 1);
 
 %-Generate new MEEG object with new files
 %--------------------------------------------------------------------------
-Dcoh = clone(D, ['COH' fnamedat(D)], [np length(freq.freq) length(freq.time) D.nconditions]);
-Dcoh = frequencies(Dcoh, [], freq.freq);
+Dcoh = clone(D, ['COH' fname(D)], [np length(freq.freq) length(freq.time) D.nconditions]);
+Dcoh = frequencies(Dcoh, ':', freq.freq);
 Dcoh = fsample(Dcoh, 1./mean(diff(freq.time)));
 Dcoh = timeonset(Dcoh, freq.time(1));
-[ok, Dcoh] = check(Dcoh);
+Dcoh = check(Dcoh);
 
 if robust && savew
     Dw = clone(Dcoh, ['WCOH' fnamedat(D)], [np length(freq.freq) 3*length(freq.time) D.ntrials]);
     Dw = frequencies(Dw, freq.freq);
     Dw = fsample(Dw, 1./mean(diff(freq.time)));
     Dw = timeonset(Dw, freq.time(1));
-    [ok, Dw] = check(Dw);
+    Dw = check(Dw);
 end
-
+%%
 %--------------------------------------------------------------------------
 cl = D.condlist;
 nc = length(cl);
@@ -221,14 +221,14 @@ spm_progress_bar('Init', np, 'Pairs completed');
 
 ni = zeros(1,D.nconditions);
 for i = 1:D.nconditions
-    w = indchantype(D, deblank(cl{i}), 'GOOD')';
+    w = indtrial(D, deblank(cl{i}), 'GOOD')';
     ni(i) = length(w);
     if ni(i) == 0
         warning('%s: No trials for trial type %d', D.fname, cl{i});
     end
 end
 
-goodtrials  =  indchantype(D, cl, 'GOOD');
+goodtrials  =  indtrial(D, cl, 'GOOD');
 
 for j = 1:np
     powind   = find(ismember(freq.label, S.chancomb(j, :)));
@@ -249,7 +249,7 @@ for j = 1:np
     end
 
     for i = 1:nc
-        w = D.indchantype(cl{i}, 'GOOD');
+        w = D.indtrial(cl{i}, 'GOOD');
 
         if isempty(w)
             continue;
@@ -317,12 +317,12 @@ for j = 1:np
     
     spm_progress_bar('Set', j);
 end
-
+%%
 
 %-Copy some additional information from the original file
 %--------------------------------------------------------------------------
-Dcoh  = conditions (Dcoh, [], cl);
-Dcoh  = repl(Dcoh, [], ni);
+Dcoh  = conditions (Dcoh, ':', cl);
+Dcoh  = repl(Dcoh, ':', ni);
 
 Dcoh = history(Dcoh, history(D));
 
