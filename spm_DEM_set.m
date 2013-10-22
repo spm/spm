@@ -10,16 +10,11 @@ function [varargout] = spm_DEM_set(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_set.m 3695 2010-01-22 14:18:14Z karl $
+% $Id: spm_DEM_set.m 5708 2013-10-22 09:20:59Z karl $
  
 % check recognition model
 % -------------------------------------------------------------------------
-try
-    DEM.M = spm_DEM_M_set(DEM.M);
-catch
-    errordlg('please check your model')
-end
-
+DEM.M = spm_DEM_M_set(DEM.M);
 
 % check format of inputs and data
 % -------------------------------------------------------------------------
@@ -36,7 +31,7 @@ catch
         DEM.G = spm_DEM_M_set(DEM.G);
         N     = size(DEM.C,2);
     catch
-        errordlg('please specify data or inputs')
+        error('please specify data or inputs')
     end
 end
 try
@@ -49,11 +44,11 @@ end
 % -------------------------------------------------------------------------
 try
     if size(DEM.Y,1) ~= DEM.M(1).l
-        errordlg('DCM and data are incompatible')
+        error('DCM and data are incompatible')
     end
 catch
     if size(DEM.C,1) ~= DEM.M(end).l
-        errordlg('DCM and causes are incompatible')
+        error('DCM and causes are incompatible')
     end
 end
 
@@ -80,25 +75,25 @@ if ~nnz(DEM.X), DEM.X = sparse(0,N); end
 % ensure inputs and cause dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.U,1) ~= DEM.M(end).l
-    errordlg('DCM inputs and priors are not compatible')
+    error('DCM inputs and priors are not compatible')
 end
  
 % ensure causes and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.U,2) < N
-    errordlg('priors and data have different lengths')
+    error('priors and data have different lengths')
 end
  
 % ensure confounds and data dimensions check
 % -------------------------------------------------------------------------
 if size(DEM.X,2) < N
-    errordlg('confounds and data have different lengths')
+    error('confounds and data have different lengths')
 end
 
 % check length of time-series
 %--------------------------------------------------------------------------
 if N < DEM.M(1).E.n
-    errordlg('Please ensure time-series is longer than embedding order')
+    error('Please ensure time-series is longer than embedding order')
     return
 end
 

@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_plot_ci.m 5708 2013-10-22 09:20:59Z karl $
 
 % unpack
 %--------------------------------------------------------------------------
@@ -97,17 +97,36 @@ else
     %======================================================================
     if N == 1
         
-        % conditional means
-        %------------------------------------------------------------------
-        bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8), hold on
+        if strcmpi(s,'exp')
+            
+            % conditional means
+            %--------------------------------------------------------------
+            bar(exp(E),width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+            hold on
+            
+            % conditional variances
+            %--------------------------------------------------------------
+            for k = 1:n
+                line([k k],exp([-1 1]*c(k) + E(k)),'LineWidth',4,'Color',col);
+            end
+            
+        else
+            
+            % conditional means
+            %--------------------------------------------------------------
+            bar(E,width,'Edgecolor',[1 1 1]/2,'Facecolor',[1 1 1]*.8)
+            hold on
+            
+            % conditional variances
+            %--------------------------------------------------------------
+            for k = 1:n
+                line([k k],[-1 1]*c(k) + E(k),'LineWidth',4,'Color',col);
+            end
+            
+        end
+        
         box off
         set(gca,'XLim',[0 n + 1])
-        
-        % conditional variances
-        %------------------------------------------------------------------
-        for k = 1:n
-            line([k k],[-1 1]*c(k) + E(k),'LineWidth',4,'Color',col);
-        end
         
     else
         

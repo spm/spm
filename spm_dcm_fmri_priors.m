@@ -26,7 +26,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5692 2013-10-13 13:44:05Z karl $
+% $Id: spm_dcm_fmri_priors.m 5708 2013-10-22 09:20:59Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -44,7 +44,13 @@ try, D;                  catch, D = zeros(n,n,0);       end
 % prior (initial) states and shrinkage priors on A for endogenous DCMs
 %--------------------------------------------------------------------------
 if options.two_state,  x = sparse(n,6); else, x = sparse(n,5); end
-if options.backwards,  A(:,:,2) = A;                           end
+if options.backwards,  A(:,:,2) = A(:,:,1);                    end
+
+% self-inhibition is a log scale parameter
+%----------------------------------------------------------------------
+for i = 1:size(A,3)
+    A(:,:,i) = logical(A(:,:,i) - diag(diag(A(:,:,i))));
+end
 
 % connectivity priors and intitial states
 %==========================================================================
@@ -54,23 +60,18 @@ if options.two_state
     %----------------------------------------------------------------------
     x     = sparse(n,6);
     
-    % enforce optimisation of intrinsic (I to E) connections
-    %----------------------------------------------------------------------
-    for i = 1:size(A,3)
-        A(:,:,i) = A(:,:,i) + eye(n,n);
-    end
-    A     =  A > 0;
-    
     % prior expectations and variances
     %----------------------------------------------------------------------
-    pE.A  =  A*32 - 32;
+    pE.A  =  (A + eye(n,n))*32 - 32;
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
     
     % prior covariances
     %----------------------------------------------------------------------
-    pC.A  =  A/4;
+    for i = 1:size(A,3)
+        pC.A(:,:,i) = A(:,:,i)/8 + eye(n,n)/64;
+    end
     pC.B  =  B/4;
     pC.C  =  C*4;
     pC.D  =  D/4;
@@ -80,13 +81,6 @@ else
     % (6 - 1) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,5);
-    
-    % self-inhibition is a log scale parameter
-    %----------------------------------------------------------------------
-    for i = 1:size(A,3)
-        A(:,:,i) = A(:,:,i) - diag(diag(A(:,:,i)));
-    end
-    A     =  A > 0;
     
     % prior expectations
     %----------------------------------------------------------------------

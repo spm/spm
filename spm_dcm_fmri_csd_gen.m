@@ -13,15 +13,15 @@ function [y] = spm_dcm_fmri_csd_gen(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_gen.m 5696 2013-10-15 19:10:26Z karl $
+% $Id: spm_dcm_fmri_csd_gen.m 5708 2013-10-22 09:20:59Z karl $
 
 
 % global DCM and evaluate orginal generative model
 %==========================================================================
-global DCM
+global GLOBAL_DCM
 
 % conditional prediction
 %--------------------------------------------------------------------------
-y   = feval(DCM.M.IS,v,DCM.M,DCM.U);
-y   = feval(DCM.M.FS,y,DCM.M);
+y   = feval(GLOBAL_DCM.M.IS,v,GLOBAL_DCM.M,GLOBAL_DCM.U);
+y   = feval(GLOBAL_DCM.M.FS,y,GLOBAL_DCM.M);
 y   = spm_vec(y);

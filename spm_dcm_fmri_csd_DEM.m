@@ -34,14 +34,13 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % see also: spm_dcm_estimate
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5702 2013-10-18 11:10:06Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5708 2013-10-22 09:20:59Z karl $
 
 
 % get DCM
 %--------------------------------------------------------------------------
-global DCM
 if ischar(DCM), load(DCM); end
 
 % DCM name
@@ -54,6 +53,7 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
+try, DCM.options.embedding;  catch, DCM.options.embedding  = 3;     end
 try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
 
 
@@ -71,6 +71,7 @@ try, DCM.v;   catch, DCM.v = size(DCM.Y.y,1); end
 
 % analysis and options
 %--------------------------------------------------------------------------
+DCM.options.two_state  = 1;
 DCM.options.induced    = 1;
 DCM.options.nonlinear  = 0;
 DCM.options.stochastic = 0;
@@ -105,6 +106,18 @@ end
 %==========================================================================
 [pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 
+% precision of effective connectivity (first level hidden causes)
+%--------------------------------------------------------------------------
+try
+    v     = exp(-DCM.options.v(1));
+catch
+    v     = exp(-4);
+end
+pC        = diag(pC);
+pC        = spm_unvec(pC,pE);
+pC.A      = v + pC.A - pC.A;
+pC        = diag(spm_vec(pC));
+
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
 if n > DCM.options.nmax
@@ -135,10 +148,10 @@ DCM.M.FS = 'spm_fs_fmri_csd';
 DCM.M.g  = @spm_gx_fmri;
 DCM.M.f  = @spm_fx_fmri;
 DCM.M.x  = x;
-DCM.M.pE = pE;
-DCM.M.pC = pC;
-DCM.M.hE = 4;
-DCM.M.hC = 1/128;
+% DCM.M.pE = pE;
+% DCM.M.pC = pC;
+% DCM.M.hE = 6;
+% DCM.M.hC = 1/128;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.m  = size(DCM.U.u,2);
 DCM.M.l  = n;
@@ -172,32 +185,46 @@ q        = spm_Q(1/2,size(y,1),1);
 Q        = kron(speye(m,m),q);
 DCM.Y.Q  = Q;
 DCM.Y.X0 = sparse(size(Q,1),0);
+
+
+% global DCM
+%==========================================================================
+global GLOBAL_DCM
+GLOBAL_DCM   = DCM;
+
+
+% log-precision of full priors
+%--------------------------------------------------------------------------
 try
-    v    = spm_cat({DCM.xY.xyz})/32;
+    V     = exp(DCM.options.v(2));
 catch
-    v    = randn(3,n);
+    V     = exp(-4);
 end
 
 % data (and priors)
 %--------------------------------------------------------------------------
-DEM.Y     = spm_vec(spm_fs_fmri_csd(DCM.Y.csd,DCM.M));
+DEM.Y        = spm_vec(spm_fs_fmri_csd(DCM.Y.csd,DCM.M));
+DEM.M.E.nD   = 4;
+DEM.M.E.nE   = 16;
 
 % generative model - for DEM
 %==========================================================================
-DEM.M(1).g  = 'spm_dcm_fmri_csd_gen';
-DEM.M(1).hE = DCM.M.hE;
-DEM.M(1).hC = DCM.M.hC;
-DEM.M(1).Q  = Q;
-DEM.M(1).m  = length(spm_vec(DCM.M.pE));
-DEM.M(1).n  = 0;
-DEM.M(1).l  = length(Q);
+DEM.M(1).g   = 'spm_dcm_fmri_csd_gen';
+DEM.M(1).hE  = 6;
+DEM.M(1).hC  = exp(-8);
+DEM.M(1).Q   = Q;
+DEM.M(1).m   = length(pC);
+DEM.M(1).n   = 0;
+DEM.M(1).l   = length(Q);
 
-DEM.M(2).g  = 'spm_dcm_fmri_graph_gen';
-DEM.M(2).V  = spm_inv(DCM.M.pC);
-DEM.M(2).v  = DCM.M.pE;
+DEM.M(2).g   = 'spm_dcm_fmri_graph_gen';
+DEM.M(2).V   = spm_inv(pC);
+DEM.M(2).v   = pE;
+DEM.M(2).pE  = pE;
 
-DEM.M(3).V  = 1;
-DEM.M(3).v  = v;
+DEM.M(3).V   = V;
+DEM.M(3).v.a = 0;
+DEM.M(3).v.x = zeros(DCM.options.embedding,n);
 
 % Varaitional Laplace
 %--------------------------------------------------------------------------
@@ -208,7 +235,7 @@ DEM    = spm_DEM(DEM);
 Ep     = DEM.qU.v{2};
 Cp     = DEM.qU.C{1}(1:length(Ep),1:length(Ep));
 Eh     = DEM.qH.h{1};
-F      = DEM.F(end);    
+F      = DEM.F(end);
 Ep     = spm_unvec(Ep,pE);
 
 % Bayesian inference {threshold = prior}
@@ -217,8 +244,8 @@ warning('off','SPM:negativeVariance');
 dp     = spm_vec(Ep) - spm_vec(pE);
 Pp     = spm_unvec(1 - spm_Ncdf(0,abs(dp),diag(Cp)),Ep);
 warning('on', 'SPM:negativeVariance');
- 
- 
+
+
 % predictions (csd) and error (haemodynamics)
 %==========================================================================
 Hc     = feval(DCM.M.IS,Ep,DCM.M,DCM.U);             % prediction
@@ -253,7 +280,7 @@ DCM.Hz      = Hz;
 DCM.H1      = H1;
 DCM.K1      = K1;
 DCM.DEM     = DEM;
- 
+
 % store estimates in DCM
 %--------------------------------------------------------------------------
 DCM.Ep = Ep;                   % conditional expectation

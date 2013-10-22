@@ -35,7 +35,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5702 2013-10-18 11:10:06Z karl $
+% $Id: spm_fx_fmri.m 5708 2013-10-22 09:20:59Z karl $
 
 
 % Neuronal motion
@@ -91,7 +91,7 @@ else
     SI    = eye(n,n);               % self-inhibition (inhibitory)
     
     
-    % <<< intrinsic moduation >>>
+    % <<< intrinsic connectivity >>>
     %----------------------------------------------------------------------
     IE    = DA;                     % self-inhibition (inhibitory)
     
@@ -106,7 +106,7 @@ else
     % motion - excitatory and inhibitory: f = dx/dt
     %----------------------------------------------------------------------
     f(:,1) = (EE - SE)*x(:,1) - IE*x(:,6) + P.C*u(:);
-    f(:,6) = EI*x(:,1) - SI*x(:,6)*2;
+    f(:,6) = EI*x(:,1) - SI*2*x(:,6);
     
 end
 

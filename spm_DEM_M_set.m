@@ -48,7 +48,7 @@ function [M] = spm_DEM_M_set(M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_M_set.m 5696 2013-10-15 19:10:26Z karl $
+% $Id: spm_DEM_M_set.m 5708 2013-10-22 09:20:59Z karl $
 
 % order
 %--------------------------------------------------------------------------
@@ -149,7 +149,7 @@ for i = 1:g
     % check size
     %----------------------------------------------------------------------
     if length(M(i).pC) ~= np
-        warndlg(sprintf('please check: M(%i).pC',i))
+        error('please check: M(%i).pC',i)
     end
  
 end
@@ -196,11 +196,12 @@ for i = (g - 1):-1:1
     try
         f       = feval(M(i).f,x,v,M(i).pE);
         if length(spm_vec(x)) ~= length(spm_vec(f))
-            warndlg(sprintf('please check: M(%i).f(x,v,P)',i));
+            error('please check: M(%i).f(x,v,P)',i)
         end
  
     catch
-        warndlg(sprintf('evaluation failure: M(%i).f(x,v,P)',i))
+        sprintf('??? evaluation failure: M(%i).f(x,v,P)',i)
+        error(lasterror)
     end
     try M(i).fx = fcnchk(M(i).fx,'x','v','P'); end
     try M(i).fv = fcnchk(M(i).fv,'x','v','P'); end
@@ -222,7 +223,8 @@ for i = (g - 1):-1:1
         M(i).x = x;
  
     catch
-        warndlg(sprintf('evaluation failure: M(%i).g(x,v,P)',i))
+        sprintf('??? evaluation failure: M(%i).g(x,v,P)',i)
+        error(lasterror)
     end
     try M(i).gx = fcnchk(M(i).gx,'x','v','P'); end
     try M(i).gv = fcnchk(M(i).gv,'x','v','P'); end
@@ -338,7 +340,7 @@ for i = 1:g
     %----------------------------------------------------------------------
     for j = 1:length(M(i).Q)
         if length(M(i).Q{j}) ~= M(i).l
-            warndlg(sprintf('wrong size; M(%d).Q{%d}',i,j))
+            error('wrong size; M(%d).Q{%d}',i,j)
         end
     end
     
@@ -346,7 +348,7 @@ for i = 1:g
     %----------------------------------------------------------------------
     for j = 1:length(M(i).R)
         if length(M(i).R{j}) ~= M(i).n
-            warndlg(sprintf('wrong size; M(%d).R{%d}',i,j))
+            error('wrong size; M(%d).R{%d}',i,j)
         end
     end
     
