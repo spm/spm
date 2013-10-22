@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: spm_eeg_convert.m 5710 2013-10-22 14:01:23Z guillaume $
 
-SVNrev = '$Rev: 5438 $';
+SVNrev = '$Rev: 5710 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -467,14 +467,18 @@ else
             D.sensors.eeg = [];
         end
     catch
+        sw = warning('off','backtrace');
         warning('Could not obtain electrode locations automatically.');
+        warning(sw);
     end
 end
 
 try
     D.fiducials = ft_convert_units(ft_read_headshape(S.dataset, 'fileformat', S.inputformat), 'mm');
 catch
+    sw = warning('off','backtrace');
     warning('Could not obtain fiducials automatically.');
+    warning(sw);
 end
 
 %--------- Create meeg object

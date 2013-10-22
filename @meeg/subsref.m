@@ -1,19 +1,19 @@
 function varargout=subsref(this,subs)
 % SUBSREF Subscripted reference
 % An overloaded function...
-% _________________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% _________________________________________________________________________
+% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Stefan Kiebel
-% $Id: subsref.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: subsref.m 5710 2013-10-22 14:01:23Z guillaume $
 
 if isempty(subs)
     return;
-end;
+end
 
 if this.Nsamples == 0
     error('Attempt to reference a field of an empty meeg object.');
-end;
+end
 
 switch subs(1).type
     case '()'
@@ -60,7 +60,7 @@ switch subs(1).type
             else
                 Ntb = length(subs.subs{2});
             end
-            if dat3D & ischar(subs.subs{3})
+            if dat3D && ischar(subs.subs{3})
                 if ~strcmp(subs.subs{3},':'), error('This shouldn''t happen....'); end
                 subs.subs{3} = 1:dim(3);
             end
@@ -129,5 +129,3 @@ switch subs(1).type
     otherwise
         error('Unfamiliar referencing type');
 end
-
-
