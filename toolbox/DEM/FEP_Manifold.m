@@ -1,7 +1,7 @@
 function FEP_Manifold
 % FORMAT FEP_Manifold
-% This demonstration routine simulates the emergence of life – as defined
-% in terms of active inference – using a synthetic primordial soup. The key
+% This demonstration routine simulates the emergence of life - as defined
+% in terms of active inference - using a synthetic primordial soup. The key
 % aspect of this dynamics is that there is a separation between dynamical
 % states and structural states; where the dynamical states of the
 % microsystem are equipped with a Lorentz attractor and the structural
@@ -11,7 +11,7 @@ function FEP_Manifold
 % versa; where the coupling among dynamics rests upon short range
 % (electrochemical) forces. This means that the dependencies among the
 % dynamics of each microsystem dependent on their positions. This induces a
-% dependency of the systems structural integrity on its internal dynamics –
+% dependency of the systems structural integrity on its internal dynamics -
 % which leads to biological self-organisation. This biological self-
 % organisation is illustrated in terms of the following:
 %
@@ -31,7 +31,7 @@ function FEP_Manifold
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: FEP_Manifold.m 5253 2013-02-18 14:31:49Z karl $
+% $Id: FEP_Manifold.m 5709 2013-10-22 11:07:29Z guillaume $
  
  
 % default settings (GRAPHICS sets movies)
@@ -93,7 +93,7 @@ L     = sparse(double(any(A(:,:,t),3)));
 B     = double((L + L' + L*L'));
 B     = B - diag(diag(B));
 v     = spm_svd(B*B',1);
-[v j] = sort(abs(v(:,1)),'descend');
+[v,j] = sort(abs(v(:,1)),'descend');
  
 % get Markov blanket and divide into sensory and active states
 %--------------------------------------------------------------------------
@@ -303,7 +303,7 @@ end
 % normalise and retain principal eigenvariates
 %--------------------------------------------------------------------------
 Xq        = spm_en(diff(spm_cat(XQ),1));
-[Xq,~,UX] = spm_svd(Xq,1);
+[Xq,S,UX] = spm_svd(Xq,1);
 Xq        = Xq(:,1:32);
 X0        = ones(size(Xq,1),1);
 
@@ -343,7 +343,7 @@ end
 % show results
 %--------------------------------------------------------------------------
 subplot(3,2,3)
-[k i] = max(SPM);
+[k,i] = max(SPM);
 CVA   = CVA(i);
 plot(CVA.v(:,1),'b:'), hold on
 plot(CVA.w(:,1),'b' ), hold off

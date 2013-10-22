@@ -1,4 +1,4 @@
-function Y = spm_ho_gm(P,M,U,~)
+function Y = spm_ho_gm(P,M,U,varargin)
 % General Gaussian mixture model with derivatives
 % FORMAT Y = spm_ho_poly(P,M,U)
 %
@@ -12,7 +12,7 @@ function Y = spm_ho_gm(P,M,U,~)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ho_gm.m 4989 2012-10-05 19:25:07Z karl $
+% $Id: spm_ho_gm.m 5709 2013-10-22 11:07:29Z guillaume $
 
 
 % evaluate

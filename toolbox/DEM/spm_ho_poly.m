@@ -1,4 +1,4 @@
-function Y = spm_ho_poly(P,M,U,~)
+function Y = spm_ho_poly(P,M,U,varargin)
 % General polynomial mapping with derivatives
 % FORMAT Y = spm_ho_poly(P,M,U)
 %
@@ -12,7 +12,7 @@ function Y = spm_ho_poly(P,M,U,~)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ho_poly.m 4989 2012-10-05 19:25:07Z karl $
+% $Id: spm_ho_poly.m 5709 2013-10-22 11:07:29Z guillaume $
 
 
 % evaluate

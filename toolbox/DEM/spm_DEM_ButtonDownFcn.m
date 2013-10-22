@@ -8,7 +8,7 @@ function spm_DEM_ButtonDownFcn
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_ButtonDownFcn.m 4170 2011-01-24 18:37:42Z karl $
+% $Id: spm_DEM_ButtonDownFcn.m 5709 2013-10-22 11:07:29Z guillaume $
  
 % default
 %--------------------------------------------------------------------------
@@ -41,11 +41,11 @@ else
         
         % save wav file
         %------------------------------------------------------------------
-        [FILENAME, PATHNAME] = uiputfile('*.wav','wave file');
-        NAME = fullfile(PATHNAME,FILENAME);
-        S{1} = S{1}/max(S{1}(:));
-        wavwrite(S{1},S{2},16,NAME)
+        [filename, pathname] = uiputfile('*.wav','wave file');
+        if ~(isequal(filename,0) || isequal(pathname,0))
+            name = fullfile(pathname,filename);
+            S{1} = S{1}/max(S{1}(:));
+            wavwrite(S{1},S{2},16,name);
+        end
     end
 end
- 
-

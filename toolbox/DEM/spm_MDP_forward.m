@@ -58,7 +58,7 @@ function [Q,R,S,E] = spm_MDP_forward(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_forward.m 5105 2012-12-10 12:31:22Z karl $
+% $Id: spm_MDP_forward.m 5709 2013-10-22 11:07:29Z guillaume $
 
 % set up and preliminaries
 %==========================================================================
@@ -198,13 +198,13 @@ for k = 1:(T - 1)
     %----------------------------------------------------------------------
     Pu       = exp(F(:) - max(F));
     Pu       = Pu/sum(Pu);
-    [~, i]   = max(Pu.*rand(Nu,1));
+    [Y, i]   = max(Pu.*rand(Nu,1));
     
     % next state (assuming G mediates uncertainty modelled the likelihood)
     %----------------------------------------------------------------------
     Ps       = G{k,i}(:,s);
     Ps       = Ps/sum(Ps);
-    [~, s]   = max(Ps.*rand(Ns,1));
+    [Y, s]   = max(Ps.*rand(Ns,1));
     
     
     % save action, state and posterior expectations (states Q, control R)
