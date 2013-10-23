@@ -9,9 +9,10 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_ov_browser.m 5711 2013-10-23 11:21:26Z guillaume $
 
 
+if ~nargin, varargin = {'ui'}; end
 cmd = lower(varargin{1});
 switch cmd
     % Context menu and callbacks
@@ -21,7 +22,7 @@ switch cmd
             'Tag',      'orthviews_browser', ...
             'Callback', @browser_ui);
     case 'ui'
-        if nargin == 1
+        if nargin <= 1
             browser_ui;
         else
             browser(varargin{2:end});
@@ -50,11 +51,13 @@ end
 hS = browser(f, Fgraph, hC);
 
 hM = getappdata(hS,'hM');
-set(hM,'Label','Browse','Callback','');
-h = uimenu('Parent',hM,'Label','Display profile','Callback',@browser_profile);
-setappdata(h,'hS',hS);
-h = uimenu('Parent',hM,'Label','Quit','Callback',@browser_quit_button);
-setappdata(h,'hS',hS);
+for i=1:numel(hM)
+    set(hM,'Label','Browse','Callback','');
+    h = uimenu('Parent',hM(i),'Label','Display profile','Callback',@browser_profile);
+    setappdata(h,'hS',hS);
+    h = uimenu('Parent',hM(i),'Label','Quit','Callback',@browser_quit_button);
+    setappdata(h,'hS',hS);
+end
 
 
 %==========================================================================
@@ -143,8 +146,10 @@ delete(getappdata(hS,'hT'));
 delete(getappdata(hS,'hB'));
 delete(getappdata(hS,'hP'));
 hM = getappdata(hS,'hM');
-set(hM,'Label','Browse...','Callback',@browser_ui);
-delete(get(hM,'Children'));
+for i=1:numel(hM)
+    set(hM(i),'Label','Browse...','Callback',@browser_ui);
+    delete(get(hM(i),'Children'));
+end
 delete(hS);
 try, st.vols{hC} = rmfield(st.vols{hC},'browser'); end % remove redraw callback
 
