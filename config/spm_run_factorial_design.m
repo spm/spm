@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5433 2013-04-22 15:43:48Z guillaume $
+% $Id: spm_run_factorial_design.m 5712 2013-10-28 18:24:49Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -798,6 +798,7 @@ switch iGMsca,
         g      = GM*ones(nScan,1);
     case {1,2,3,4,5,6,7}
         %-Grand mean scaling according to iGMsca
+        if iGXcalc==1, error('Global calculation option is not appropriate.'), end
         gSF    = GM./spm_meanby(g,eval(CCforms{iGMsca}));
         g      = g.*gSF;
     case 9
