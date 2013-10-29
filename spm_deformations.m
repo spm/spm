@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_deformations.m 5713 2013-10-29 15:23:18Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -445,6 +445,7 @@ for m=1:numel(PI)
     dim            = size(Def);
     dim            = dim(1:3);
     NO.dat.dim     = [dim NI.dat.dim(4:end)];
+    NO.dat.offset  = 0; % For situations where input .nii images have an extension.
     NO.mat         = mat;
     NO.mat0        = mat;
     NO.mat_intent  = 'Aligned';
@@ -588,6 +589,7 @@ for m=1:numel(PI)
         end
     end
     NO.dat.dim     = [dim NI.dat.dim(4:end)];
+    NO.dat.offset  = 0; % For situations where input .nii images have an extension.
     NO.mat         = mat0;
     NO.mat0        = mat0;
     NO.mat_intent  = 'Aligned';
