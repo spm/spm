@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 5703 2013-10-18 11:28:36Z guillaume $
+% $Id: cfg_ui_util.m 5714 2013-10-29 16:32:23Z volkmar $
 
-rev = '$Rev: 5703 $';  %#ok<NASGU>
+rev = '$Rev: 5714 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'showitemstr'}
@@ -324,7 +324,7 @@ switch lower(cmd)
                             uimenu(mdel(cm), ...
                                 'Label',sprintf('%s (%d)', ...
                                 contents{2}{k}.name, k), ...
-                                'Callback',@(ob,ev)local_setvaledit(ob,cmd3{k},ev), ...
+                                'Callback',@(ob,ev)local_setvaledit(ciid, cmd3{k}, false, updatecb, ob, ev), ...
                                 'Tag','ValDelItemDyn');
                         end
                     end
@@ -342,7 +342,7 @@ switch lower(cmd)
                             for cm = 1:numel(madd)
                                 uimenu(madd(cm), ...
                                     'Label',contents{4}{k}.name, ...
-                                    'Callback',@(ob,ev)local_setvaledit(ob,cmd1{k},ev), ...
+                                    'Callback',@(ob,ev)local_setvaledit(ciid, cmd1{k}, false, updatecb, ob, ev), ...
                                     'Tag','ValAddItemDyn');
                             end
                         end;
@@ -357,7 +357,7 @@ switch lower(cmd)
                                 uimenu(mrepl(cm), ...
                                     'Label',sprintf('%s (%d)', ...
                                     contents{2}{k}.name, k), ...
-                                    'Callback',@(ob,ev)local_setvaledit(ob,cmd2{k},ev), ...
+                                    'Callback',@(ob,ev)local_setvaledit(ciid, cmd2{k}, false, updatecb, ob, ev), ...
                                     'Tag','ValReplItemDyn');
                             end
                         end
@@ -599,13 +599,17 @@ else
 end;
 
 % --------------------------------------------------------------------
-function local_setvaledit(ciid, val, dflag)
+function local_setvaledit(ciid, val, dflag, varargin)
 if dflag
     cfg_util('setdef', ciid{:}, val);
 else
     cfg_util('setval', ciid{:}, val);
     cfg_util('harvest', ciid{1:end-1});
 end;
+if nargin > 3 && subsasgn_check_funhandle(varargin{1})
+    % update GUI
+    feval(varargin{1});
+end
 
 % --------------------------------------------------------------------
 function udvalshow = local_init_udvalshow
