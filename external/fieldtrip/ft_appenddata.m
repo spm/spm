@@ -55,9 +55,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_appenddata.m 8623 2013-10-22 12:39:51Z eelspa $
 
-revision = '$Id: ft_appenddata.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_appenddata.m 8623 2013-10-22 12:39:51Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -151,7 +151,7 @@ if haselec || hasgrad,
     if haselec, sens{j} = varargin{j}.elec; end
     if hasgrad, sens{j} = varargin{j}.grad; end
     if j>1,
-      if numel(sens{j}.chanpos) ~= numel(sens{1}.chanpos) || any(sens{j}.chanpos(:) ~= sens{1}.chanpos(:)),
+      if ~isequalwithequalnans(sens{j}, sens{1})
         removesens = 1;
         warning('sensor information does not seem to be consistent across the input arguments');
         break;

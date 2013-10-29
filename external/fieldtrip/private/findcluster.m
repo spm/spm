@@ -1,4 +1,4 @@
-function [cluster, num] = findcluster(onoff, spatdimneighbstructmat, varargin)
+function [cluster, total] = findcluster(onoff, spatdimneighbstructmat, varargin)
 
 % FINDCLUSTER returns all connected clusters in a 3 dimensional matrix
 % with a connectivity of 6.
@@ -43,7 +43,7 @@ function [cluster, num] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 7765 2013-04-05 15:10:56Z eelspa $
+% $Id: findcluster.m 8601 2013-10-10 13:28:53Z jansch $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);
@@ -108,3 +108,5 @@ cluster = combineClusters(uint32(labelmat), logical(spatdimneighbstructmat), uin
 % reshape the output to the original format of the data
 cluster = reshape(cluster, spatdimlength, nfreq, ntime);
 
+% update the total number
+total = numel(unique(cluster(:)))-1; % the value of 0 does not count

@@ -17,9 +17,6 @@ function [freq] = ft_freqanalysis(cfg, data)
 %                    'mtmconvol', implements multitaper time-frequency
 %                      transformation based on multiplication in the frequency
 %                      domain.
-%                    'mtmwelch', performs frequency analysis using Welch's
-%                      averaged modified periodogram method of spectral
-%                      estimation.
 %                    'wavelet', implements wavelet time frequency
 %                      transformation (using Morlet wavelets) based on
 %                      multiplication in the frequency domain.
@@ -188,7 +185,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 8573 2013-09-30 12:28:57Z roboos $';
+revision = '$Id: ft_freqanalysis.m 8625 2013-10-23 09:50:42Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -809,7 +806,7 @@ end;
 if strcmp(cfg.method,'mtmfft') && (keeprpt == 2 || keeprpt == 4)
   freq.cumsumcnt = trllength';
 end
-if exist('cumtapcnt','var')
+if exist('cumtapcnt','var') && (keeprpt == 2 || keeprpt == 4)
   freq.cumtapcnt = cumtapcnt;
 end
 

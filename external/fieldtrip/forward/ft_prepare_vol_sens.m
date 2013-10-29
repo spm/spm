@@ -56,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 8305 2013-07-02 09:59:57Z roboos $
+% $Id: ft_prepare_vol_sens.m 8612 2013-10-21 13:00:43Z sardal $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -294,7 +294,9 @@ elseif ismeg
       end
       
     case 'openmeeg'
-      error('MEG not yet supported with openmeeg');
+      if isfield(vol,'mat') & ~isempty(vol.mat)
+        warning('MEG with openmeeg only supported with NEMO lab pipeline. Please omit the mat matrix from the vol structure.');
+      end
       
     case 'simbio'
       error('MEG not yet supported with simbio');
@@ -418,7 +420,8 @@ elseif iseeg
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
       % project the electrodes on the skin and determine the bilinear interpolation matrix
-      if ~isfield(vol, 'tra')
+      % HACK - use NEMO lab pipeline if mat field is absent for openmeeg (i.e. don't do anything)
+      if ~isfield(vol, 'tra') && (isfield(vol, 'mat') && ~isempty(vol.mat))
         % determine boundary corresponding with skin and inner_skull_surface
         if ~isfield(vol, 'skin_surface')
           vol.skin_surface = find_outermost_boundary(vol.bnd);

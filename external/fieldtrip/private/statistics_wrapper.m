@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 7393 2013-01-23 14:33:27Z jorhor $
+% $Id: statistics_wrapper.m 8588 2013-10-08 06:33:31Z jansch $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -133,7 +133,7 @@ if issource
         tmpcfg.roi = cfg.roi{i};
         tmpcfg.inputcoord = cfg.inputcoord;
         tmpcfg.atlas = cfg.atlas;
-        tmp = volumelookup(tmpcfg, varargin{1});
+        tmp = ft_volumelookup(tmpcfg, varargin{1});
       end
       if strcmp(cfg.avgoverroi, 'no') && ~isfield(cfg, 'hemisphere')
         % no reason to deal with seperated left/right hemispheres

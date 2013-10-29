@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 8510 2013-09-24 13:28:25Z jorhor $
+% $Id: ft_read_event.m 8603 2013-10-13 18:48:56Z josdie $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -819,17 +819,50 @@ switch eventformat
               eventSample = eventOffset+1;
             end
            if ~isempty(eventSample) 
+              eventCount=eventCount+1;
               event(eventCount).type     = eventNames{iXml}(8:end);
               event(eventCount).sample   = eventSample;
               event(eventCount).offset   = 0;
               event(eventCount).duration = str2double(xml.(eventNames{iXml})(iEvent).event.duration)./1000000000*hdr.Fs;
               event(eventCount).value    = xml.(eventNames{iXml})(iEvent).event.code;
+              event(eventCount).orig    = xml.(eventNames{iXml})(iEvent).event;
             end;
           end  %if that takes care of non "-" events that are still out of range
         end %if that takes care of "-" events, which are out of range
       end %iEvent
     end
-    
+  
+    % add "trial" events for segmented data
+    if (hdr.nTrials >1) && (length(hdr.orig.epochdef)==hdr.nTrials) 
+        cellNames=cell(hdr.nTrials,1);
+        recTime=zeros(hdr.nTrials,1);
+        epochTimes=cell(hdr.nTrials,1);
+        for iEpoch=1:hdr.nTrials
+            epochTimes{iEpoch}=hdr.orig.xml.epochs(iEpoch).epoch.beginTime;
+            recTime(iEpoch)=((str2num(hdr.orig.xml.epochs(iEpoch).epoch.beginTime)/1000)/(1000/hdr.Fs))+1;
+        end;
+        for iCat=1:length(hdr.orig.xml.categories)
+            theTimes=cell(length(hdr.orig.xml.categories(iCat).cat.segments),1);
+            for i=1:length(hdr.orig.xml.categories(iCat).cat.segments)
+                theTimes{i}=hdr.orig.xml.categories(iCat).cat.segments(i).seg.beginTime;
+            end;
+            epochIndex=find(ismember(epochTimes,theTimes));
+            for i=1:length(epochIndex)
+                cellNames{epochIndex(i)}=hdr.orig.xml.categories(iCat).cat.name;
+            end;
+        end;
+        
+        eventCount=length(event);
+        for iEpoch=1:hdr.nTrials
+            eventCount=eventCount+1;
+            event(eventCount).type     = 'trial';
+            event(eventCount).sample   = hdr.orig.epochdef(iEpoch,1);
+            event(eventCount).offset   = -hdr.nSamplesPre;
+            event(eventCount).duration = hdr.nSamples;
+            event(eventCount).value    = cellNames{iEpoch};
+        end;
+    end;
+  
   case 'egi_mff_v2'
     % ensure that the EGI toolbox is on the path
     ft_hastoolbox('egi_mff', 1);

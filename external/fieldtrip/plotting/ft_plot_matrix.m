@@ -51,7 +51,7 @@ function ft_plot_matrix(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_matrix.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_plot_matrix.m 8610 2013-10-16 11:43:34Z jorhor $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -238,7 +238,20 @@ if ~isempty(highlight)
       set(h,'tag',tag);
     case 'outline'
       % the significant voxels could be outlined with a black contour
-      error('unsupported highlightstyle')
+      % plot outline
+      h = uimagesc(hdat, vdat, cdat, clim);
+      set(h,'tag',tag);
+      hold on;
+      [x,y] = meshgrid(hdat, vdat);
+      x = interp2(x, 2); % change to 4 for round corners
+      y = interp2(y, 2); % change to 4 for round corners
+      contourlines = highlight==1;
+      contourlines = interp2(contourlines, 2, 'nearest');  % change to 4 and remove 'nearest' for round corners
+      dx = mean(diff(x(1, :))); % remove for round corners
+      dy = mean(diff(y(:, 1))); % remove for round corners
+      contour(x+dx/2,y+dy/2,contourlines,1,'EdgeColor',[0 0 0],'LineWidth',2);
+      hold off;
+      
     otherwise
       error('unsupported highlightstyle')
   end % switch highlightstyle

@@ -47,8 +47,12 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 % but more consistent would be to specify a volume conduction model with
 %   cfg.vol           = structure with volume conduction model, see FT_PREPARE_HEADMODEL
 %   cfg.headshape     = name of file containing the volume conduction model, see FT_READ_VOL
+%
+% Undocumented options
+%   cfg.method = hexahedral, tetrahedral, isosurface
 
-% Copyrights (C) 2009-2012, Cristiano Micheli & Robert Oostenveld
+% Copyrights (C) 2009-2012, Robert Oostenveld & Cristiano Micheli
+% Copyrights (C) 2012-2013, Robert Oostenveld & Lilla Magyari
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -66,9 +70,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_prepare_mesh.m 8607 2013-10-14 21:46:39Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 8607 2013-10-14 21:46:39Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -92,8 +96,6 @@ if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   % convert the nested config-object back into a normal structure
   cfg.headshape = struct(cfg.headshape);
 end
-
-
 
 % here we cannot use nargin, because the data might have been loaded from cfg.inputfile
 hasdata = exist('mri', 'var');
@@ -234,7 +236,7 @@ end
 if ~isfield(bnd, 'unit') && hasdata
   for i=1:numel(bnd)
     bnd(i).unit = mri.unit;
-  end  
+  end
 elseif ~isfield(bnd, 'unit')
   bnd = ft_convert_units(bnd);
 end
@@ -243,6 +245,8 @@ end
 ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
+ft_postamble previous mri
+ft_postamble history bnd
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % HELPER FUNCTION

@@ -146,9 +146,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 8576 2013-09-30 13:49:25Z jansch $
+% $Id: ft_volumerealign.m 8619 2013-10-22 08:15:02Z eelspa $
 
-revision = '$Id: ft_volumerealign.m 8576 2013-09-30 13:49:25Z jansch $';
+revision = '$Id: ft_volumerealign.m 8619 2013-10-22 08:15:02Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -284,8 +284,8 @@ switch cfg.method
       '   d. additional control point for the landmarks can be a point along the\n',...
       '      positive x-axis (to the participant''s right), press r\n',...
       '3. To change the display:\n',...
-      '   a. press c or C on keyboard to show/hide crosshair\n',...
-      '   b. press m or M on keyboard to show/hide marked positions\n',...
+      '   a. press c on keyboard to toggle crosshair visibility\n',...
+      '   b. press m on keyboard to toggle marked positions visibility\n',...
       '   c. press + or - on (numeric) keyboard to change the color range''s upper limit\n',...
       '4. To finalize markers and quit interactive mode, press q on keyboard\n'));
     
@@ -362,13 +362,13 @@ switch cfg.method
           xzpoint = [xc yc zc];
           takesnapshot = true;
         case 99  % 'c'
-          showcrosshair = true;
-        case 67  % 'C'
-          showcrosshair = false;
+          showcrosshair = ~showcrosshair;
         case 109 % 'm'
-          showmarkers = 2;
-        case 77 % 'M'
-          showmarkers = 0;
+          if showmarkers > 0
+            showmarkers = 0;
+          else
+            showmarkers = 2;
+          end
         case 1 % left mouse click
           % update the view to a new position
           l1 = get(get(gca, 'xlabel'), 'string');
@@ -585,21 +585,27 @@ switch cfg.method
     end
     shape = ft_convert_units(shape, 'mm');
     
-    % extract skull surface from image
-    tmpcfg        = [];
-    tmpcfg.output = 'scalp';
-    tmpcfg.scalpsmooth    = cfg.scalpsmooth;
-    tmpcfg.scalpthreshold = cfg.scalpthreshold;
-    if isfield(cfg, 'template')
-     tmpcfg.template = cfg.template;
+    if ~isfield(mri, 'scalp') || ~islogical(mri.scalp)
+      % extract the scalp surface from the anatomical image
+      tmpcfg        = [];
+      tmpcfg.output = 'scalp';
+      tmpcfg.scalpsmooth    = cfg.scalpsmooth;
+      tmpcfg.scalpthreshold = cfg.scalpthreshold;
+      if isfield(cfg, 'template')
+        tmpcfg.template = cfg.template;
+      end
+      seg           = ft_volumesegment(tmpcfg, mri);
+    else
+      % use the scalp segmentation that is provided
+      seg = mri;
     end
-    seg           = ft_volumesegment(tmpcfg, mri);
     
     tmpcfg             = [];
-    tmpcfg.method      = 'singleshell';
-    tmpcfg.numvertices = 20000;
-    scalp           = ft_prepare_headmodel(tmpcfg, seg);
-    scalp           = ft_convert_units(scalp, 'mm');
+    tmpcfg.tissue      = 'scalp';
+    tmpcfg.method      = 'isosurface';
+    tmpcfg.numvertices = nan;
+    scalp              = ft_prepare_mesh(tmpcfg, seg);
+    scalp              = ft_convert_units(scalp, 'mm');
     
     % Here it is advisable to interactively realign the shape and scalp, in
     % order to get a good starting point for the icp-algorithm.
@@ -607,14 +613,14 @@ switch cfg.method
     tmpcfg                       = [];
     tmpcfg.template.elec         = shape;
     tmpcfg.template.elec.chanpos = shape.pnt;
-    tmpcfg.individual.headshape  = scalp.bnd;
+    tmpcfg.individual.headshape  = scalp;
     tmpcfg.individual.headshapestyle = 'surface';
     tmpcfg = ft_interactiverealign(tmpcfg);
     M      = tmpcfg.m;
     
     % update the relevant geometrical info
     mri.transform = M*mri.transform;
-    scalp.bnd     = ft_transform_geometry(M, scalp.bnd);
+    scalp     = ft_transform_geometry(M, scalp);
     
     if ~isfield(cfg, 'weights')
       w = ones(size(shape.pnt,1),1);
@@ -629,11 +635,11 @@ switch cfg.method
     weights = @(x)assignweights(x,w);
     
     % construct the coregistration matrix
-    nrm         = normals(scalp.bnd.pnt, scalp.bnd.tri, 'vertex');
-    [R, t, err,~,info] = icp(scalp.bnd.pnt', shape.pnt', 50, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true, 'WorstRejection', 0.05);
+    nrm = normals(scalp.pnt, scalp.tri, 'vertex');
+    [R, t, err, ~, info] = icp(scalp.pnt', shape.pnt', 50, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true, 'WorstRejection', 0.05);
     
     % smooth the distance function and use this for new weights
-    target        = scalp.bnd;
+    target        = scalp;
     target.pos    = target.pnt;
     target.inside = (1:size(target.pos,1))';
     
@@ -646,7 +652,7 @@ switch cfg.method
     tmpcfg.interpmethod = 'sphere_avg';
     tmpcfg.sphereradius = 10;
     smoothdist          = ft_sourceinterpolate(tmpcfg, functional, target);
-    scalp.bnd.distance  = smoothdist.pow(:);
+    scalp.distance  = smoothdist.pow(:);
     
 % A second iteration of the icp algorithm does not seem to improve things.
 % Code is kept just to consider investigating this in more detail.
@@ -655,20 +661,20 @@ switch cfg.method
 %     transform   = inv([R t;0 0 0 1]);
 %     
 %     % warp the extracted scalp points to the new positions
-%     scalp.bnd.pnt = warp_apply(transform, scalp.bnd.pnt);
+%     scalp.pnt = warp_apply(transform, scalp.pnt);
 %     
 %     % now the idea would be to do a second round where the points are
 %     % weighted with the (locally averaged) distance to the scalp
 %     newweights = abs(smoothdist.pow(info.q_idx));
 %     weights = @(x)assignweights(x,newweights(:)');
 %     
-%     [R2, t2, err2,~,info(2)] = icp(scalp.bnd.pnt', info.pin, 50, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true);
+%     [R2, t2, err2,~,info(2)] = icp(scalp.pnt', info.pin, 50, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true);
 %     
 %     % this one transforms from scalp 'headspace' to shape 'headspace'
 %     transform   = [R2 t2;0 0 0 1]\transform;
 %     
 %     % warp the extracted scalp points to the new positions
-%     scalp.bnd.pnt = warp_apply(inv([R2 t2;0 0 0 1]), scalp.bnd.pnt);
+%     scalp.pnt = warp_apply(inv([R2 t2;0 0 0 1]), scalp.pnt);
   
     % create headshape structure for mri-based surface point cloud
     if isfield(mri, 'coordsys')
@@ -1019,131 +1025,9 @@ colormap gray
 
 h = gca;
 
-function [R, t, corr, error, data2] = icp2(data1, data2, res, tri, weights)
-
-% [R, t, corr, error, data2] = icp2(data1, data2, res, tri)
-%
-% This is an implementation of the Iterative Closest Point (ICP) algorithm.
-% The function takes two data sets and registers data2 with data1. It is
-% assumed that data1 and data2 are in approximation registration. The code
-% iterates till no more correspondences can be found.
-%
-% This is a modified version (12 April, 2005). It is more accurate and has
-% less chances of getting stuck in a local minimum as opposed to my earlier
-% version icp.m
-%
-% Arguments: data1 - 3 x n matrix of the x, y and z coordinates of data set 1
-%            data2 - 3 x m matrix of the x, y and z coordinates of data set 2
-%            res   - the tolerance distance for establishing closest point
-%                     correspondences. Normally set equal to the resolution
-%                     of data1
-%            tri   - optional argument. obtained by tri = delaunayn(data1');
-%
-% Returns: R - 3 x 3 accumulative rotation matrix used to register data2
-%          t - 3 x 1 accumulative translation vector used to register data2
-%          corr - p x 3 matrix of the index no.s of the corresponding points of
-%                 data1 and data2 and their corresponding Euclidean distance
-%          error - the mean error between the corresponding points of data1
-%                  and data2 (normalized with res)
-%          data2 - 3 x m matrix of the registered data2
-%
-%
-% Copyright : This code is written by Ajmal Saeed Mian {ajmal@csse.uwa.edu.au}
-%              Computer Science, The University of Western Australia. The code
-%              may be used, modified and distributed for research purposes with
-%              acknowledgement of the author and inclusion of this copyright information.
-
-maxIter = 500;
-c1 = 0;
-c2 = 1;
-R = eye(3);
-t = zeros(3,1);
-if nargin < 4 || isempty(tri)
-    tri = delaunayn(data1');
-end
-n = 0;
-while c2 ~= c1
-  c1 = c2;
-  [corr, D] = dsearchn(data1', tri, data2');
-  corr(:,2:3)     = [(1 : length(corr))' D];
-  corr(D>2*res,:) = [];
-  
-  corr = -sortrows(-corr,3);
-  corr = sortrows(corr,1);
-  [B, Bi, Bj] = unique(corr(:,1));
-  corr = corr(Bi,:);
-  
-  [R1, t1] = reg(data1, data2, corr, weights);
-  data2 = R1*data2;
-  data2 = [data2(1,:)+t1(1); data2(2,:)+t1(2); data2(3,:)+t1(3)];
-  R = R1*R;
-  t = R1*t + t1;
-  c2 = length(corr);
-  n = n + 1;
-  if n > maxIter
-    break;
-  end
-end
-
-e1 = 1000001;
-e2 = 1000000;
-n = 0;
-noChangeCount = 0;
-while noChangeCount < 10
-  e1 = e2;
-  [corr, D] = dsearchn(data1', tri, data2');
-  corr(:,2:3) = [(1:length(corr))' D];
-  corr(D>2*res,:) = [];
-  
-  corr = -sortrows(-corr,3);
-  corr = sortrows(corr,1);
-  [B, Bi, Bj] = unique(corr(:,1));
-  corr = corr(Bi,:);
-  
-  [R1 t1] = reg(data1, data2, corr, weights);
-  data2 = R1*data2;
-  data2 = [data2(1,:)+t1(1); data2(2,:)+t1(2); data2(3,:)+t1(3)];
-  R = R1*R;
-  t = R1*t + t1;
-  e2 = sum(corr(:,3))/(length(corr)*res);
-  
-  n = n + 1;
-  if n > maxIter
-    break;
-  end
-  if abs(e2-e1)<res/10000
-    noChangeCount = noChangeCount + 1;
-  end
-end
-error = min(e1,e2);
-
-%-----------------------------------------------------------------
-function [R1, t1] = reg(data1, data2, corr, weights)
-
-n = length(corr);
-if nargin<4
-  weights = ones(n,1);
-end
-M = data1(:,corr(:,1));
-mm = mean(M,2);
-S = data2(:,corr(:,2));%*sparse(diag(weights(corr(:,2))));
-ms = mean(S,2);
-Sshifted = [S(1,:)-ms(1); S(2,:)-ms(2); S(3,:)-ms(3)];
-Mshifted = [M(1,:)-mm(1); M(2,:)-mm(2); M(3,:)-mm(3)];
-K = Sshifted*sparse(diag(weights(corr(:,2))))*Mshifted';
-K = K/n;
-[U A V] = svd(K);
-R1 = V*U';
-if det(R1)<0
-  B = eye(3);
-  B(3,3) = det(V*U');
-  R1 = V*B*U';
-end
-t1 = mm - R1*ms;
-
-
 %-------------------------------------------------------
 function y = assignweights(x, w)
 
 % x is an indexing vector with the same number of arguments as w
 y = w(:)';
+

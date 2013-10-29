@@ -42,7 +42,7 @@ function ft_plot_lay(lay, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_lay.m 7703 2013-03-25 16:39:37Z roevdmei $
+% $Id: ft_plot_lay.m 8591 2013-10-09 15:36:15Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -84,12 +84,12 @@ end
 % create a matrix with all coordinates
 % from positions, mask, and outline
 allCoords = lay.pos;
-if ~isempty(lay.mask)
+if isfield(lay, 'mask') && ~isempty(lay.mask)
   for k = 1:numel(lay.mask)
     allCoords = [allCoords; lay.mask{k}];
   end
 end
-if ~isempty(lay.outline)
+if isfield(lay, 'outline') &&~isempty(lay.outline)
   for k = 1:numel(lay.outline)
     allCoords = [allCoords; lay.outline{k}];
   end

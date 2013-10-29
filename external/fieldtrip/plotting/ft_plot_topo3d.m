@@ -12,11 +12,10 @@ function ft_plot_topo3d(pnt, val, varargin)
 % 'contourstyle'  false  (default), 'black', 'color' makes contours of b/w or colored lines
 % 'isocontour'    'auto' (default - and only - option)
 % 'topostyle'     'color'(default - and only - option)
-
 %
 % See also FT_PLOT_TOPO
-%
-% Copyright (C) 2009, Robert Oostenveld
+
+% Copyright (C) 2009-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -34,7 +33,7 @@ function ft_plot_topo3d(pnt, val, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo3d.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_plot_topo3d.m 8636 2013-10-24 14:05:58Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -47,6 +46,10 @@ topostyle     = ft_getopt(varargin, 'topostyle',    'color');
 holdflag = ishold;
 if ~holdflag
   hold on
+end
+
+if size(val,2)==size(pnt,1)
+  val = val';
 end
 
 % the interpolation requires a triangulation

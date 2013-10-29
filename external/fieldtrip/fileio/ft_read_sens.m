@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 8237 2013-06-11 14:43:50Z jimher $
+% $Id: ft_read_sens.m 8606 2013-10-14 21:11:25Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -146,10 +146,19 @@ switch fileformat
     sens.elecpos = sens.chanpos;
     
   case {'ctf_ds', 'ctf_res4', 'ctf_old', 'neuromag_fif', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'itab_raw' 'itab_mhd', 'netmeg'}
-    % gradiometer information is always stored in the header of the MEG dataset
-    % hence uses the standard fieldtrip/fileio read_header function
+    % gradiometer information is always stored in the header of the MEG dataset, hence uses the standard fieldtrip/fileio ft_read_header function
+    % sometimes there can also be electrode position information in the header
     hdr = ft_read_header(filename, 'headerformat', fileformat);
-    sens = hdr.grad;
+    if isfield(hdr, 'elec') && isfield(hdr, 'grad')
+      warning('both electrode and gradiometer information is present, returning the electrode information');
+      sens = hdr.elec;
+    elseif ~isfield(hdr, 'elec') && ~isfield(hdr, 'grad')
+      error('neither electrode nor gradiometer information is present');
+    elseif isfield(hdr, 'grad')
+      sens = hdr.grad;
+    elseif isfield(hdr, 'elec')
+      sens = hdr.elec;
+    end
     
   case 'neuromag_mne_grad'
     % the file can contain both, force reading the gradiometer info

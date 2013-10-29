@@ -74,7 +74,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 8358 2013-07-31 12:59:11Z arjsto $
+% $Id: ft_read_headshape.m 8667 2013-10-29 11:59:06Z arjsto $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -477,10 +477,6 @@ else
           error('incorrect coordinates specified');
       end
       
-    case {'fcdc_buffer'} % FIXME: this supports realtime neuromag only
-      
-      orig = read_neuromag_hc(filename);
-
     case {'yokogawa_mrk', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw' }
       if ft_hastoolbox('yokogawa_meg_reader')
         hdr = read_yokogawa_header_new(filename);

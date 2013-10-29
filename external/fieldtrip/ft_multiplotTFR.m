@@ -15,8 +15,8 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.parameter        = field to be represented as color (default depends on data.dimord)
 %                          'powspctrm' or 'cohspctrm' 
 %   cfg.maskparameter    = field in the data to be used for opacity masking of data
-%   cfg.maskstyle        = style used to masking, 'opacity' or 'saturation' (default = 'opacity')
-%                          use 'saturation' when saving to vector-format (like *.eps) to avoid all 
+%   cfg.maskstyle        = style used to masking, 'opacity', 'saturation' or 'outline' (default = 'opacity')
+%                          use 'saturation' or 'outline' when saving to vector-format (like *.eps) to avoid all 
 %                          sorts of image-problems (currently only possible with a white backgroud)
 %   cfg.maskalpha        = alpha value between 0 (transparant) and 1 (opaque) used for masking areas dictated by cfg.maskparameter (default = 1)
 %   cfg.masknans         = 'yes' or 'no' (default = 'yes')
@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 8466 2013-09-16 14:11:43Z jansch $
+% $Id: ft_multiplotTFR.m 8610 2013-10-16 11:43:34Z jorhor $
 
-revision = '$Id: ft_multiplotTFR.m 8466 2013-09-16 14:11:43Z jansch $';
+revision = '$Id: ft_multiplotTFR.m 8610 2013-10-16 11:43:34Z jorhor $';
 
 % do the general setup of the function
 ft_defaults

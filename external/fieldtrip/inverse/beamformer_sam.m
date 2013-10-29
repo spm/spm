@@ -32,7 +32,7 @@ function [dipout] = beamformer_sam(dip, sens, vol, dat, all_cov, varargin)
 % Copyright (C) 2005-2009, Arjan Hillebrand
 % Copyright (C) 2005-2009, Gareth Barnes
 %
-% $Id: beamformer_sam.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: beamformer_sam.m 8646 2013-10-27 11:15:34Z jansch $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -92,6 +92,14 @@ dip.inside  = 1:size(dip.pos,1);
 dip.outside = [];
 
 isrankdeficient = (rank(all_cov)<size(all_cov,1));
+
+% it is difficult to give a quantitative estimate of lambda, therefore also
+% support relative (percentage) measure that can be specified as string (i.e. '10%')
+if ~isempty(lambda) && ischar(lambda) && lambda(end)=='%'
+  ratio = sscanf(lambda, '%f%%');
+  ratio = ratio/100;
+  lambda = ratio * trace(all_cov)/size(all_cov,1);
+end
 
 % estimate the noise power, which is further assumed to be equal and uncorrelated over channels
 if isrankdeficient

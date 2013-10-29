@@ -82,9 +82,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8567 2013-09-30 12:15:07Z roboos $
+% $Id: ft_prepare_layout.m 8592 2013-10-09 15:37:27Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 8567 2013-09-30 12:15:07Z roboos $';
+revision = '$Id: ft_prepare_layout.m 8592 2013-10-09 15:37:27Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -184,12 +184,18 @@ elseif isequal(cfg.layout, 'vertical')
   if nargin>1 && ~isempty(data)
     % look at the data to determine the overlapping channels
     data = ft_checkdata(data);
-    cfg.channel = ft_channelselection(data.label, cfg.channel); % with this order order of channels stays the same
-    [dum chanindx] = match_str(cfg.channel, data.label); % order of channels according to cfg specified by user
-    nchan       = length(data.label(chanindx));
-    layout.label   = data.label(chanindx);
+    originalorder = cfg.channel;
+    cfg.channel = ft_channelselection(cfg.channel, data.label); 
+    if iscell(originalorder) && length(originalorder)==length(cfg.channel)
+      % try to keep the order identical to that specified in the configuration
+      [sel1, sel2] = match_str(originalorder, cfg.channel);
+      % re-order them according to the cfg specified by the user
+      cfg.channel  = cfg.channel(sel2);
+    end
+    nchan        = length(cfg.channel);
+    layout.label = cfg.channel;
   else
-    nchan     = length(cfg.channel);
+    nchan        = length(cfg.channel);
     layout.label = cfg.channel;
   end
   for i=1:(nchan+2)
@@ -206,6 +212,50 @@ elseif isequal(cfg.layout, 'vertical')
   end
   layout.mask    = {};
   layout.outline = {};
+
+elseif any(strcmp(cfg.layout, {'1column', '2column', '3column', '4column', '5column', '6column', '7column', '8column', '9column'}))
+  % it can be 2column, 3column, etcetera
+  % note that this code (in combination with the code further down) fails for 1column
+  if nargin>1 && ~isempty(data)
+    % look at the data to determine the overlapping channels
+    data = ft_checkdata(data);
+    originalorder = cfg.channel;
+    cfg.channel = ft_channelselection(cfg.channel, data.label); 
+    if iscell(originalorder) && length(originalorder)==length(cfg.channel)
+      % try to keep the order identical to that specified in the configuration
+      [sel1, sel2] = match_str(originalorder, cfg.channel);
+      % re-order them according to the cfg specified by the user
+      cfg.channel  = cfg.channel(sel2);
+    end
+    nchan        = length(cfg.channel);
+    layout.label = cfg.channel;
+  else
+    nchan        = length(cfg.channel);
+    layout.label = cfg.channel;
+  end
+  
+  ncol = find(strcmp(cfg.layout, {'1column', '2column', '3column', '4column', '5column', '6column', '7column', '8column', '9column'}));
+  nrow = ceil(nchan/ncol);
+  
+  k = 0;
+  for i=1:ncol
+    for j=1:nrow
+      k = k+1;
+      if k>nchan
+        continue
+      end
+      x = i/ncol - 1/(ncol*2); 
+      y = 1-j/(nrow+1);
+      layout.pos   (k,:) = [x y];
+      layout.width (k,1) = 0.85/ncol;
+      layout.height(k,1) = 0.9 * 1/(nrow+1);
+    end
+  end
+  
+  layout.mask    = {};
+  layout.outline = {};
+  skipscale = true; % a scale is not desired
+  skipcomnt = true; % a comment is initially not desired, or at least requires more thought
   
 elseif isequal(cfg.layout, 'ordered')
   if nargin>1 && ~isempty(data)
@@ -653,7 +703,6 @@ if ~strcmp(cfg.style, '3d')
     layout.mask{1} = [HeadX(:) HeadY(:)];
   end
 end
-
 
 % make the subset as specified in cfg.channel
 cfg.channel = ft_channelselection(cfg.channel, setdiff(layout.label, {'COMNT', 'SCALE'}));  % COMNT and SCALE are not really channels

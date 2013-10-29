@@ -31,7 +31,7 @@ function [dat] = ft_read_data(filename, varargin)
 %
 % See also FT_READ_HEADER, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT
 
-% Copyright (C) 2003-2012 Robert Oostenveld
+% Copyright (C) 2003-2013 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8519 2013-09-24 14:47:36Z roboos $
+% $Id: ft_read_data.m 8636 2013-10-24 14:05:58Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -424,6 +424,13 @@ switch dataformat
       hdr.orig = [];
     end
     dat = read_deymed_dat(datafile, hdr.orig, begsample, endsample);
+    dat = dat(chanindx, :);
+    
+  case 'emotiv_mat'
+    % This is a MATLAB *.mat file that is created using the Emotiv MATLAB
+    % example code. It contains a 25xNsamples matrix and some other stuff.
+    dat = hdr.orig.data_eeg';
+    dat = dat(chanindx, begsample:endsample);
     
   case 'gtec_mat'
     if isfield(hdr, 'orig')
@@ -653,18 +660,20 @@ switch dataformat
     % released as fieldtrip/external/egi_mff and referred further down in
     % this function as 'egi_mff_v2'.
     
-    % check if requested data contains multiple epochs. If so, give error
+    % check if requested data contains multiple epochs and not segmented. If so, give error
     if isfield(hdr.orig.xml,'epochs') && length(hdr.orig.xml.epochs) > 1
-      data_in_epoch = zeros(1,length(hdr.orig.xml.epochs));
-      for iEpoch = 1:length(hdr.orig.xml.epochs)
-        begsamp_epoch = hdr.orig.epochdef(iEpoch,1);
-        endsamp_epoch = hdr.orig.epochdef(iEpoch,2);
-        data_in_epoch(iEpoch) = length(intersect(begsamp_epoch:endsamp_epoch,begsample:endsample));
-      end
-      if sum(data_in_epoch>1) > 1
-        fprintf('Requested sample %i to %i. \n', begsample, endsample);
-        error('The requested data is spread out over multiple epochs with possibly discontinuous boundaries. This is not allowed. Adjust trl to request only data within a single epoch.');
-      end
+        if hdr.nTrials ==1
+            data_in_epoch = zeros(1,length(hdr.orig.xml.epochs));
+            for iEpoch = 1:length(hdr.orig.xml.epochs)
+                begsamp_epoch = hdr.orig.epochdef(iEpoch,1);
+                endsamp_epoch = hdr.orig.epochdef(iEpoch,2);
+                data_in_epoch(iEpoch) = length(intersect(begsamp_epoch:endsamp_epoch,begsample:endsample));
+            end
+            if sum(data_in_epoch>1) > 1
+                fprintf('Requested sample %i to %i. \n', begsample, endsample);
+                error('The requested data is spread out over multiple epochs with possibly discontinuous boundaries. This is not allowed. Adjust trl to request only data within a single epoch.');
+            end
+        end
     end
     
     % read in data in different signals
@@ -721,6 +730,14 @@ switch dataformat
     end
     % concat signals
     dat = cat(1,dat{:});
+
+    if hdr.nTrials > 1
+        dat2=zeros(hdr.nChans,hdr.nSamples,hdr.nTrials);
+        for i=1:hdr.nTrials
+            dat2(:,:,i)=dat(:,hdr.orig.epochdef(i,1):hdr.orig.epochdef(i,2));
+        end;
+        dat=dat2;
+    end
     
   case 'egi_mff_v2'
     % ensure that the EGI_MFF toolbox is on the path
