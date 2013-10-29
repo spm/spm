@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5711 2013-10-23 11:21:26Z guillaume $
+% $Id: spm_ov_browser.m 5717 2013-10-29 19:24:04Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -54,6 +54,8 @@ hM = getappdata(hS,'hM');
 for i=1:numel(hM)
     set(hM,'Label','Browse','Callback','');
     h = uimenu('Parent',hM(i),'Label','Display profile','Callback',@browser_profile);
+    setappdata(h,'hS',hS);
+    h = uimenu('Parent',hM(i),'Label','Save movie...','Callback',@browser_movie);
     setappdata(h,'hS',hS);
     h = uimenu('Parent',hM(i),'Label','Quit','Callback',@browser_quit_button);
     setappdata(h,'hS',hS);
@@ -185,6 +187,17 @@ feval(st.vols{i}.browser.fun,st.vols{i}.browser.h);
 %==========================================================================
 function browser_profile(hObj,event)
 global st
+if nargin > 1
+    if strcmpi(get(hObj,'Checked'),'off')
+        set(hObj,'Checked','on');
+    else
+        set(hObj,'Checked','off');
+        hS = getappdata(hObj,'hS');
+        hC = getappdata(hS,'hC');
+        try, st.vols{hC} = rmfield(st.vols{hC},'browser'); end % remove redraw callback
+        return;
+    end
+end
 hS  = getappdata(hObj,'hS');
 hC  = getappdata(hS,'hC');
 hV  = getappdata(hObj,'hV');
@@ -205,12 +218,60 @@ end
 
 plot(hAx,Y);
 hold(hAx,'on')
-i =round(get(hS,'value'));
+i = round(get(hS,'value'));
 plot(hAx,i,Y(i),'r*');
 hold(hAx,'off');
 ylabel(hAx,sprintf('[%.2f %.2f %.2f]',pos));
 st.vols{hC}.browser.fun = @browser_profile;
 st.vols{hC}.browser.h = hObj;
+
+
+%==========================================================================
+function browser_movie(hObj,event)
+global st
+hS = getappdata(hObj,'hS');
+hC = getappdata(hS,'hC');
+hS = getappdata(hObj,'hS');
+f  = getappdata(hS,'f');
+
+[filename, pathname] = uiputfile(...
+    {'*.png' 'PNG files (*.png)'; '*.avi' 'AVI files (*.avi)'}, 'Save as');
+if isequal(filename,0) || isequal(pathname,0), return; end
+
+file = fullfile(pathname,filename);
+
+p1 = get(st.vols{hC}.ax{1}.ax,'Position');
+p2 = get(st.vols{hC}.ax{3}.ax,'Position');
+a  = [p1(1) p1(2)  p2(1)+p2(3)-p1(1) p2(2)+p2(4)-p1(2)] + 0.005*[-1 -1 2 2];
+a  = max(min(a,1),0);
+
+if strcmp(spm_file(file,'ext'),'avi')
+    ismovie = true;
+    writerObj = VideoWriter(file);
+    open(writerObj);
+else
+    ismovie = false;
+end
+
+for i=1:numel(f)
+    set(hS,'Value',i);
+    browser_slider(hS);
+    
+    X  = frame2im(getframe(st.fig));
+    sz = size(X);
+    sz = [sz(1) sz(1) sz(2) sz(2)];
+    sz = ([1-a(2)-a(4),1-a(2),a(1),a(1)+a(3)] .* (sz-1)) + 1;
+    sz = round(sz);
+    X  = X(sz(1):sz(2),sz(3):sz(4),:);
+    
+    if ismovie
+        writeVideo(writerObj,X);
+    else
+        imwrite(X,spm_file(file,'suffix',sprintf('_%04d',i)),'png');
+    end
+end
+
+if ismovie, close(writerObj); end
 
 
 %==========================================================================
