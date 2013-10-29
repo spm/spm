@@ -4,7 +4,7 @@ function job = tbx_cfg_deface
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_deface.m 5713 2013-10-29 15:23:18Z john $
+% $Id: tbx_cfg_deface.m 5715 2013-10-29 16:42:56Z john $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','deface')); end
 
@@ -29,6 +29,7 @@ function dep = vout(varargin)
 % Output file names will be saved in a struct with field .files
 dep(1)            = cfg_dep;
 dep(1).sname      = 'De-faced images';
-dep(1).src_output = substruct('.','files');
+%dep(1).src_output = substruct('.','files');
+dep(1).src_output = substruct('()',{':'});
 dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
 
