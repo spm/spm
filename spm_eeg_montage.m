@@ -51,9 +51,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5180 2013-01-07 12:38:50Z christophe $
+% $Id: spm_eeg_montage.m 5719 2013-10-30 13:55:18Z vladimir $
 
-SVNrev = '$Rev: 5180 $';
+SVNrev = '$Rev: 5719 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -257,14 +257,16 @@ switch S.mode
                 
                 sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
                 
-                if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-                    balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
-                else
-                    balance = sensmontage;
+                if isequal(sensortypes{i}, 'MEG')
+                    if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
+                        balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
+                    else
+                        balance = sensmontage;
+                    end
+                                        
+                    sens.balance.custom = balance;
+                    sens.balance.current = 'custom';
                 end
-                
-                sens.balance.custom = balance;
-                sens.balance.current = 'custom';
             end
             
             if ~isempty(sens) && ~isempty(intersect(sens.label, Dnew.chanlabels))
