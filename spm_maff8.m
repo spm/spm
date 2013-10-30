@@ -1,27 +1,26 @@
 function [M,h] = spm_maff8(varargin)
 % Affine registration to MNI space using mutual information
-% FORMAT M = spm_maff8(P,samp,fwhm,x,tpm,M,regtyp,bg)
+% FORMAT M = spm_maff8(P,samp,fwhm,tpm,M,regtyp)
 % P       - filename or structure handle of image
-% x       - cell array of {x1,x2,x3}, where x1 and x2 are
-%           co-ordinates (from ndgrid), and x3 is a list of
-%           slice numbers to use
-% b0      - a cell array of belonging probability images
-%           (see spm_load_priors.m).
-% MF      - voxel-to-world transform of belonging probability
-%           images
-% M       - starting estimates
+% samp    - distance between sample points (mm).  Small values are
+%           better, but things run more slowly.
+% fwhm    - smoothness estimate for computing a fudge factor.  Estimate
+%           is a full width at half maximum of a Gaussian (in mm). 
+% tpm     - data structure encoding a tissue probability map, generated
+%           via spm_load_priors8.m.
+% M       - starting estimates for the affine transform (or [] to use
+%           default values).
 % regtype - regularisation type
-%           'mni'   - registration of European brains with MNI space
+%           'mni'     - registration of European brains with MNI space
 %           'eastern' - registration of East Asian brains with MNI space
-%           'rigid' - rigid(ish)-body registration
-%           'subj'  - inter-subject registration
-%           'none'  - no regularisation
-% fwhm    - smoothness estimate for computing a fudge factor 
+%           'rigid'   - rigid(ish)-body registration
+%           'subj'    - inter-subject registration
+%           'none'    - no regularisation
 %_______________________________________________________________________
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 5669 2013-10-03 19:51:35Z john $
+% $Id: spm_maff8.m 5718 2013-10-30 13:54:23Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});

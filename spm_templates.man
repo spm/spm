@@ -1,202 +1,70 @@
 
 % SPM templates and other images...
 % _________________________________________________________________________
+% _________________________________________________________________________
+%
 % /TPM/ DIRECTORY
-% Contains Tissue probability maps provided by the International
-% Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga.
-% http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html
-%
-% The 452 subjects were between 20 and 32 years old, and were
-% approximately 50-50 male/female.
-%
-% The original datasets were affine transformed to match the MNI152
-% space (by affine registration of the grey matter with the grey
-% matter image in the apriori directory: smosrc=8, smoref=0,
-% regtype=mni, cutoff=Inf).
+% Tissue probability maps used for segmentation/spatial normalisation.
 % _________________________________________________________________________
 %
-% /TEMPLATES/ DIRECTORY
-% This directory contains images for use as templates for spatially
-% normalising  images to the same stereotactic space.  The space is
-% based upon the Talairach system, but does  not  make  assumptions
-% about  brain  symmetry,  and  also  includes the cerebellum.  The
-% stereotactic  space   is  based  on  152   brains  from  Montr�al
-% Neurological  Institute,  and  will eventually be replaced in due
-% course by a 450-brain version for the entire ICBM consortium.
+% Contains Tissue probability maps generated from 549 of the subjects
+% from the IXI dataset (http://www.brain-development.org/).  The data
+% were collected as part of the project: IXI - Information eXtraction
+% from Images (EPSRC GR/S21533/02). T2-weighted and PD-weighted scans
+% were used.
+% The data were segmented using hidden options in SPM8's "New Segment"
+% procedure,  and the sufficient statistics manually edited to remove
+% obvious errors, before being smoothed slightly to greate  the TPMs.
+% Further manual adjustments were made such that the influence of the
+% priors on  the segmentation  was reduced slightly,  with the aim of
+% generalising them more easily to other populations.  This was a bit
+% ad hoc.
+% gm'   = gm   + 0.01 *wm   + 0.01 *csf
+% wm'   = wm   + 0.02 *gm
+% csf'  = csf  + 0.05 *gm   + 0.02 *wm
+% bone' = bone + 0.001*csf
+% tiss' = tiss + 0.05 *bone + 0.001*(gm+wm+air) + 0.01*csf
+% air'  = air
+% Then tissue probabilities were normalised to sum to 1.
 %
-% Subject details:
-%    Age: mean=25.0, median=24.0, mode=19.0, stdev=4.9, range=18-44
-%    Sex: female=66 (43.4%), male=86 (56.6%)
-%    Handedness: right=129 (90.2%), left=14 (9.8%), unknown=9
-% 
-% In SPM96, we released  a  single  subject  brain  for  use  as  a
-% template.   Although  the  MNI  gave  us  this  data,  they never
-% recommended that this brain  should  be  used  as  a  stereotaxic
-% standard.   This   is  something  that we at the FIL chose to do.
-% The official standard  for  the   ICBM   stereotactic  space   is
-% the   MNI305  brain  -  which  this was not.  This brain has many
-% merits for simulation but it  suffers   from   all   the   single
-% brain  criticisms  that apply to Talairach.  In this release, the
-% single subject T1 has been replaced by a 152 subject average.  We
-% (in  the  SPM  group)  chose  to  use the 152 subject T1-weighted
-% average rather than the 305 brain average because there are  also
-% T2-,  and  PD-weighted  images of the same subjects.  This should
-% allow  much  more  flexibility  in  the  range  of  different  MR
-% contrasts   that   can   be  spatially  normalised  to  the  same
-% stereotaxic space (by registering  to  a  linear  combination  of
-% template images).
+% Demographics for the entire IXI dataset may be found on the IXI web
+% site.  TPMs were computed from the following 549 subjects:
+% 002 013 015 016 017 019 020 021 022 023 024 025 026 027 028 029 030
+% 031 033 034 035 036 037 038 039 040 041 042 043 044 045 046 048 049
+% 051 052 053 054 055 056 057 058 059 060 061 062 063 064 065 066 067
+% 068 069 070 071 072 073 074 075 076 077 078 079 080 083 084 085 086
+% 087 089 090 091 092 093 094 095 096 097 098 099 100 101 102 103 104
+% 105 106 107 108 109 110 111 112 113 114 115 118 119 120 121 122 123
+% 126 127 128 129 130 131 132 134 135 136 137 138 139 140 141 142 143
+% 144 145 146 148 151 153 154 156 157 158 159 160 161 162 163 164 165
+% 166 167 168 169 170 172 173 174 175 176 177 178 179 180 181 183 184
+% 185 186 188 189 191 192 193 194 195 196 197 198 199 200 201 202 204
+% 205 206 207 208 209 210 211 212 214 216 217 218 221 222 223 224 226
+% 227 229 230 231 232 234 236 237 238 239 240 241 242 244 246 247 248
+% 249 250 251 252 253 254 256 257 258 259 260 261 262 263 264 265 266
+% 267 268 269 270 274 275 276 277 278 279 280 282 284 285 286 287 288
+% 289 290 291 292 293 294 295 296 297 298 299 300 303 304 305 306 307
+% 308 310 311 312 313 314 315 316 317 318 319 320 321 322 324 325 326
+% 327 329 330 331 332 334 335 336 338 341 342 344 348 350 351 353 354
+% 356 357 358 359 360 361 362 364 365 367 368 369 370 371 372 373 375
+% 376 377 378 379 380 381 382 383 384 385 386 387 388 389 390 391 392
+% 393 394 395 396 397 398 399 400 401 402 403 404 405 406 407 408 409
+% 410 411 412 413 414 415 416 417 418 419 420 422 423 424 425 426 427
+% 428 429 430 431 432 433 434 435 436 437 438 439 440 441 442 443 444
+% 445 446 447 448 449 450 451 452 453 454 455 456 458 459 460 461 462
+% 463 464 465 467 468 469 470 473 474 475 476 477 478 479 480 481 482
+% 483 484 485 486 487 488 489 490 491 492 493 494 495 496 497 498 499
+% 501 502 503 504 505 506 507 508 510 511 512 515 516 517 518 519 521
+% 522 523 524 525 526 527 528 531 532 533 534 535 536 537 538 539 541
+% 542 543 544 546 547 548 549 550 551 552 553 554 555 556 558 559 560
+% 561 562 563 565 566 567 568 569 571 572 573 574 575 576 577 579 580
+% 582 584 585 586 587 588 591 592 593 594 595 596 597 598 599 600 601
+% 603 605 606 607 608 609 610 611 612 613 614 616 617 618 619 621 622
+% 623 625 626 627 629 630 631 632 633 634 635 636 639 640 641 642 644
+% 646 648 652 653 662
 % _________________________________________________________________________
-% 
-% templates/T1.nii
-% ----------------
-% Image  derived  from   icbm_avg_152_t1_tal_lin.mnc,   which   was
-% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-% project, Principal Investigator John Mazziotta).  The  image  was
-% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-% Gaussian filter.
-% Sequence Details: Spoiled FLASH sequence, TE=10, TR=18, FA=30.
+% _________________________________________________________________________
 %
-% templates/T2.nii
-% ----------------
-% Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
-% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-% project, Principal Investigator John Mazziotta).  The  image  was
-% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-% Gaussian filter.
-% Sequence Details: Dual echo spin echo, TE=120ms, TR=3300ms, FA=90.
-% 
-% templates/PD.nii
-% ----------------
-% Image  derived  from   icbm_avg_152_pd_tal_lin.mnc,   which   was
-% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
-% project, Principal Investigator John Mazziotta).  The  image  was
-% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
-% Gaussian filter.
-% Sequence Details: Dual echo spin echo, TE=35ms, TR=3300ms, FA=90.
-% 
-% templates/EPI.nii
-% -------------
-% The image was created from the average of 13 subjects  mean  fMRI
-% images.   The  grey matter was segmented from the original images
-% using the segmentation in SPM.  This was spatially normalised  by
-% matching  to  the  apriori/grey.nii  file  using  a  12-parameter
-% affine  registration,  followed   by   a nonlinear   registration
-% (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
-% heavy   regularisation).     These    estimated  parameters  were
-% then  applied  to the functional images, which were then averaged
-% and smoothed with an 8mm FWHM Gaussian kernel.  The  EPI   images
-% were  acquired  on  a  Siemens Vision scanner working at 2T.  The
-% original resolution of the images was an  isotropic   3mm  (1.8mm
-% slice   thickness   +  1.2mm  gap).  A gradient echo sequence was
-% used with TE@ms and a TR of about 3s.  Inter echo spacing  is 800
-% micro   seconds   with   a   sinusoidal   gradient  waveform  and
-% nonlinear ADC sampling.  Nyquist ghost  suppression  is  achieved
-% using  a  2  echo  reference  scan  (only 0th and 1st order phase
-% correction implemented). Maximum  gradient  strength  is  approx.
-% 20mT/m.
-% Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479
-%                  1514 1589 1644 1646.
-% 
-% templates/filT1.nii (no longer exists)
-% -------------------
-% Average of images from 12  subjects  spatially  normalised  to  a
-% linear  combination  of  T1.nii,  T2.nii  and  PD.nii using a 12-
-% parameter  affine  transformation,   followed  by   a   nonlinear
-% registration  (using the 7x8x7 lowest frequency DCT coefficients,
-% and medium regularisation).  Images acquired on a 2 Tesla Siemens
-% Magnetom  Vision scanner at the FIL,  using a T1 weighted  MPRAGE
-% sequence  (TRel=9.7, TEch=4, TInv=600, Fang=12, SThi=1.5).   Same
-% subjects    were   also    used    for    templates/PET.nii   and
-% templates/Transm.nii.   This image is included  as   it  has  the
-% same  contrast as the T1 weighted images from the FIL  (so we can
-% use it for spatial normalisation).
-% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
-% 
-% templates/PET.nii
-% -----------------
-% Average of images from 12 subjects spatially normalised to  ICBM.
-% Images  were  first  registered to the T1-weighted MR images, and
-% spatially transformed using the same transformation.  Images were
-% acquired  on  a  Siemens  ECAT  HR+  at  the FIL, using Oxygen-15
-% labelled water. Averaged images smoothed using 8mm FWHM  Gaussian.
-% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
-% 
-% templates/Transm.nii
-% --------------------
-% Average transmission image of 11 subjects.  Template generated in
-% similar way to PET.nii.
-% Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
-%
-% templates/SPECT.nii
-% -------------------
-% The SPECT template was provided by Leighton Barnden. It is the
-% average of 90 normal Tc-99m HMPAO scans. Scatter was subtracted
-% using a lower 111-125 keV window. For spatial normalisation, scalp
-% was first masked (after an initial affine transformation to the
-% SPM2 SPECT template) by weighting with ../spm99/apriori/brainmask.
-% These scans were then spatially normalised to the (masked) SPM2
-% SPECT template. The same deformations were applied to the scans
-% with extra-cerebral activity and these were averaged. The result
-% was affine normalised to .../apriori/gray to correct for an
-% apparent midline offset in this and earlier SPECT and PET
-% templates.
-% Here are the ages (years) and sexes (1=F, 0=M) of the subjects...
-% age = [ ...
-% 46    24    27    42    45    56    51    53    41    44 ...
-% 44    46    28    24    30    58    43    45    24    29 ...
-% 20    42    47    27    54    21    32    19    19    43 ...
-% 29    43    20    28    59    21    60    46    37    23 ...
-% 40    50    50    81    48    47    22    79    24    44 ...
-% 74    47    54    78    43    35    54    60    57    55 ...
-% 59    57    18    52    67    62    57    47    58    67 ...
-% 62    67    61    64    38    37    31    48    60    30 ...
-% 31    36    32    25    66    40    38    31    37    39];
-% sex = [ ...
-% 1    1    0    1    0    1    1    0    1    1 ...
-% 1    0    1    0    0    1    0    1    1    0 ...
-% 0    1    0    0    1    1    0    1    1    0 ...
-% 1    0    0    1    1    0    1    1    1    0 ...
-% 0    1    1    0    0    1    0    0    1    0 ...
-% 1    0    0    0    1    0    1    1    0    0 ...
-% 1    0    1    0    1    1    0    1    0    1 ...
-% 0    0    1    1    0    1    1    0    1    0 ...
-% 1    1    0    1    1    1    1    1    1    1];
-%
-% _________________________________________________________________________
-% _________________________________________________________________________
-% /APRIORI/ DIRECTORY
-% Images in this directory represent the a priori probabilities of the
-% voxels in a spatially normalised (9-parameter affine) brain image
-% belonging to a particular tissue type.
-% _________________________________________________________________________
-% 
-% apriori/grey.nii, apriori/white.nii & apriori/csf.nii
-% ----------------  -----------------   ---------------
-% Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
-% project,  Principal  Investigator  John Mazziotta).  Original 1mm
-% resolution images were  icbm_avg_151_gm.mnc,  icbm_avg_151_wm.mnc
-% and    icbm_avg_151_csf.mnc.     Images    were    masked   using
-% average_305_mask_1mm.mnc, reduced to 2mm resolution and  smoothed
-% using   an   8mm  FWHM  Gaussian.   These  images  represent  the
-% probabilities of finding grey matter, white  matter  or  cerebro-
-% spinal  fluid  at  any  point. These volumes are used largely for
-% image segmentation, although they can be used  as  templates  for
-% spatial  normalisation.  151  subjects  were  used to create each
-% volume.
-% 
-% apriori/brainmask
-% -----------------
-% Image derived from average_305_mask_1mm.mnc, which was originally
-% supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
-% Principal  Investigator  John  Mazziotta).   The  original  image
-% contained ones and zeros, where ones represented voxels that were
-% part of the brain.  It was subsequently  smoothed  using  an  8mm
-% FWHM  Gaussian.   This  volume  can be used to weight the spatial
-% normalisation so that the final solution  is  not  influenced  by
-% voxels outside the brain.
-% 
-% _________________________________________________________________________
-% _________________________________________________________________________
 % /CANONICAL/ DIRECTORY
 % Images in this  directory are intended for superimposing results
 % on to.
@@ -242,6 +110,245 @@
 % Evans (June 1998) "Design and Construction of a Realistic Digital
 % Brain  Phantom"  IEEE  Transactions  on  Medical Imaging, vol.17,
 % No.3, p.463-468.
+%
+% Note that results superimposed on the brain of a single individual
+% can often give a mis-leading impression of how accurately the 
+% findings are actually localised.  It is far preferable to super-
+% impose results on an average - preferably the average of all
+% subjects' data in the study.  This is much less misleading.
+%
+% _________________________________________________________________________
+% _________________________________________________________________________
+%
+% /TOOLBOX/DARTEL/DIRECTORY
+% Contains a crisp tissue probability map for nonlinear alignment with.
+% _________________________________________________________________________
+%
+% toolbox/DARTEL/icbm152.nii
+% --------------------------
+% Based on the ICBM 2009c Nonlinear Asymmetric atlas.
+% The mni_icbm152_{gm,wm}_tal_nlin_asym_09c.nii  images were smoothed
+% by 2mm (isotropic) and resampled to 1.5mm isotropic resolution. The
+% original averages were created by Vladimir Fonov  of the  McConnell
+% Brain Imaging  Centre,   Montreal  Neurological Institute,   McGill
+% University.
+% See http://www.bic.mni.mcgill.ca/ServicesAtlases/ICBM152NLin2009
+%
+% According to the web page, the atlas is
+%    "Copyright (C) 1993–2004 Louis Collins, McConnell Brain Imaging
+%     Centre, Montreal Neurological Institute, McGill University.
+%     Permission to use, copy, modify, and distribute this software
+%     and its documentation for any purpose and without fee is hereby
+%     granted, provided that the above copyright notice appear in all
+%     copies. The authors and McGill University make no representations
+%     about the suitability of this software for any purpose. It is
+%     provided “as is” without express or implied warranty. The authors
+%     are not responsible for any data loss, equipment damage, property
+%     loss, or injury to subjects or patients resulting from the use or
+%     misuse of this software package."
+%
+% The following papers should be cited when using the atlas:
+% * VS Fonov, AC Evans, K Botteron, CR Almli, RC McKinstry, DL Collins
+%   and BDCG,  Unbiased average age-appropriate atlases for pediatric
+%   studies, NeuroImage,Volume 54, Issue 1, January 2011, ISSN 1053–8119,
+%   DOI: 10.1016/j.neuroimage.2010.07.033
+%
+% * VS Fonov,  AC Evans,  RC McKinstry,  CR Almli and DL Collins,
+%   Unbiased nonlinear average age-appropriate brain templates from birth
+%   to adulthood,  NeuroImage, Volume 47, Supplement 1, July 2009, Page
+%   S102 Organization for Human Brain Mapping 2009 Annual Meeting,
+%   DOI: http://dx.doi.org/10.1016/S1053-8119%2809%2970884-5 
+%
+% _________________________________________________________________________
+% _________________________________________________________________________
+%
+% /TOOLBOX/OLDNORM/ DIRECTORY
+% This directory contains images for use as templates for spatially
+% normalising  images to the same stereotactic space.  The space is
+% based upon the Talairach system, but does  not  make  assumptions
+% about  brain  symmetry,  and  also  includes the cerebellum.  The
+% stereotactic  space   is  based  on  152   brains  from  Montr�al
+% Neurological  Institute,  and  will eventually be replaced in due
+% course by a 450-brain version for the entire ICBM consortium.
+%
+% Subject details:
+%    Age: mean=25.0, median=24.0, mode=19.0, stdev=4.9, range=18-44
+%    Sex: female=66 (43.4%), male=86 (56.6%)
+%    Handedness: right=129 (90.2%), left=14 (9.8%), unknown=9
+% 
+% In SPM96, we released  a  single  subject  brain  for  use  as  a
+% template.   Although  the  MNI  gave  us  this  data,  they never
+% recommended that this brain  should  be  used  as  a  stereotaxic
+% standard.   This   is  something  that we at the FIL chose to do.
+% The official standard  for  the   ICBM   stereotactic  space   is
+% the   MNI305  brain  -  which  this was not.  This brain has many
+% merits for simulation but it  suffers   from   all   the   single
+% brain  criticisms  that apply to Talairach.  In this release, the
+% single subject T1 has been replaced by a 152 subject average.  We
+% (in  the  SPM  group)  chose  to  use the 152 subject T1-weighted
+% average rather than the 305 brain average because there are  also
+% T2-,  and  PD-weighted  images of the same subjects.  This should
+% allow  much  more  flexibility  in  the  range  of  different  MR
+% contrasts   that   can   be  spatially  normalised  to  the  same
+% stereotaxic space (by registering  to  a  linear  combination  of
+% template images).
+% _________________________________________________________________________
+% 
+% toolbox/OldNorm/T1.nii
+% ----------------------
+% Image  derived  from   icbm_avg_152_t1_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% Sequence Details: Spoiled FLASH sequence, TE=10, TR=18, FA=30.
+%
+% toolbox/OldNorm/T2.nii
+% ----------------------
+% Image  derived  from   icbm_avg_152_t2_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% Sequence Details: Dual echo spin echo, TE=120ms, TR=3300ms, FA=90.
+% 
+% toolbox/OldNorm/PD.nii
+% ----------------------
+% Image  derived  from   icbm_avg_152_pd_tal_lin.mnc,   which   was
+% originally  supplied  by  Alan Evans, MNI, Canada (ICBM, NIH P-20
+% project, Principal Investigator John Mazziotta).  The  image  was
+% reduced to 2mm isotropic resolution and smoothed with an 8mm FWHM
+% Gaussian filter.
+% Sequence Details: Dual echo spin echo, TE=35ms, TR=3300ms, FA=90.
+% 
+% toolbox/OldNorm/EPI.nii
+% -----------------------
+% The image was created from the average of 13 subjects  mean  fMRI
+% images.   The  grey matter was segmented from the original images
+% using the segmentation in SPM.  This was spatially normalised  by
+% matching  to  the  apriori/grey.nii  file  using  a  12-parameter
+% affine  registration,  followed   by   a nonlinear   registration
+% (using   the   7x8x7   lowest  frequency  DCT  coefficients,  and
+% heavy   regularisation).     These    estimated  parameters  were
+% then  applied  to the functional images, which were then averaged
+% and smoothed with an 8mm FWHM Gaussian kernel.  The  EPI   images
+% were  acquired  on  a  Siemens Vision scanner working at 2T.  The
+% original resolution of the images was an  isotropic   3mm  (1.8mm
+% slice   thickness   +  1.2mm  gap).  A gradient echo sequence was
+% used with TE@ms and a TR of about 3s.  Inter echo spacing  is 800
+% micro   seconds   with   a   sinusoidal   gradient  waveform  and
+% nonlinear ADC sampling.  Nyquist ghost  suppression  is  achieved
+% using  a  2  echo  reference  scan  (only 0th and 1st order phase
+% correction implemented). Maximum  gradient  strength  is  approx.
+% 20mT/m.
+% Subject numbers: 1285 1286 1287 1291 1314 1379 1381 1399 1479
+%                  1514 1589 1644 1646.
+% 
+% toolbox/OldNorm/PET.nii
+% -----------------------
+% Average of images from 12 subjects spatially normalised to  ICBM.
+% Images  were  first  registered to the T1-weighted MR images, and
+% spatially transformed using the same transformation.  Images were
+% acquired  on  a  Siemens  ECAT  HR+  at  the FIL, using Oxygen-15
+% labelled water. Averaged images smoothed using 8mm FWHM  Gaussian.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 826 827 828.
+% 
+% toolbox/OldNorm/Transm.nii
+% --------------------------
+% Average transmission image of 11 subjects.  Template generated in
+% similar way to PET.nii.
+% Subject numbers: 617 622 627 630 639 662 817 824 825 827 828.
+%
+% toolbox/OldNorm/SPECT.nii
+% -------------------------
+% The SPECT template was provided by Leighton Barnden. It is the
+% average of 90 normal Tc-99m HMPAO scans. Scatter was subtracted
+% using a lower 111-125 keV window. For spatial normalisation, scalp
+% was first masked (after an initial affine transformation to the
+% SPM2 SPECT template) by weighting with ../spm99/apriori/brainmask.
+% These scans were then spatially normalised to the (masked) SPM2
+% SPECT template. The same deformations were applied to the scans
+% with extra-cerebral activity and these were averaged. The result
+% was affine normalised to .../apriori/gray to correct for an
+% apparent midline offset in this and earlier SPECT and PET
+% templates.
+% Here are the ages (years) and sexes (1=F, 0=M) of the subjects...
+% age = [ ...
+% 46    24    27    42    45    56    51    53    41    44 ...
+% 44    46    28    24    30    58    43    45    24    29 ...
+% 20    42    47    27    54    21    32    19    19    43 ...
+% 29    43    20    28    59    21    60    46    37    23 ...
+% 40    50    50    81    48    47    22    79    24    44 ...
+% 74    47    54    78    43    35    54    60    57    55 ...
+% 59    57    18    52    67    62    57    47    58    67 ...
+% 62    67    61    64    38    37    31    48    60    30 ...
+% 31    36    32    25    66    40    38    31    37    39];
+% sex = [ ...
+% 1    1    0    1    0    1    1    0    1    1 ...
+% 1    0    1    0    0    1    0    1    1    0 ...
+% 0    1    0    0    1    1    0    1    1    0 ...
+% 1    0    0    1    1    0    1    1    1    0 ...
+% 0    1    1    0    0    1    0    0    1    0 ...
+% 1    0    0    0    1    0    1    1    0    0 ...
+% 1    0    1    0    1    1    0    1    0    1 ...
+% 0    0    1    1    0    1    1    0    1    0 ...
+% 1    1    0    1    1    1    1    1    1    1];
+%
+% _________________________________________________________________________
+% _________________________________________________________________________
+%
+% /TOOLBOX/OLDSEG/ DIRECTORY
+% Contains Tissue probability maps provided by the International
+% Consortium for Brain Mapping, John C. Mazziotta and Arthur W. Toga.
+% http://www.loni.ucla.edu/ICBM/ICBM_TissueProb.html
+%
+% The 452 subjects were between 20 and 32 years old, and were
+% approximately 50-50 male/female.
+%
+% The original datasets were affine transformed to match the MNI152
+% space (by affine registration of the grey matter with the grey
+% matter image in the apriori directory: smosrc=8, smoref=0,
+% regtype=mni, cutoff=Inf).
+%
+% _________________________________________________________________________
+% _________________________________________________________________________
+%
+% /TOOLBOX/FIELDMAP/ DIRECTORY
+% Images in this directory represent the a priori probabilities of the
+% voxels in a spatially normalised (9-parameter affine) brain image
+% belonging to a particular tissue type.  These data are all old,
+% and much of this toolbox now needs updating.
+% _________________________________________________________________________
+% 
+% toolbox/FieldMap/grey.nii, toolbox/Fieldmap/white.nii & toolbox/FieldMap/csf.nii
+% -------------------------  --------------------------   ------------------------
+% Images supplied by  Alan  Evans,  MNI,  Canada  (ICBM,  NIH  P-20
+% project,  Principal  Investigator  John Mazziotta).  Original 1mm
+% resolution images were  icbm_avg_151_gm.mnc,  icbm_avg_151_wm.mnc
+% and    icbm_avg_151_csf.mnc.     Images    were    masked   using
+% average_305_mask_1mm.mnc, reduced to 2mm resolution and  smoothed
+% using   an   8mm  FWHM  Gaussian.   These  images  represent  the
+% probabilities of finding grey matter, white  matter  or  cerebro-
+% spinal  fluid  at  any  point. These volumes are used largely for
+% image segmentation, although they can be used  as  templates  for
+% spatial  normalisation.  151  subjects  were  used to create each
+% volume.
+% 
+% toolbox/FieldMap/brainmask.nii
+% ------------------------------
+% Image derived from average_305_mask_1mm.mnc, which was originally
+% supplied  by  Alan  Evans,  MNI,  Canada (ICBM, NIH P-20 project,
+% Principal  Investigator  John  Mazziotta).   The  original  image
+% contained ones and zeros, where ones represented voxels that were
+% part of the brain.  It was subsequently  smoothed  using  an  8mm
+% FWHM  Gaussian.   This  volume  can be used to weight the spatial
+% normalisation so that the final solution  is  not  influenced  by
+% voxels outside the brain.
+%
+% toolbox/FieldMap/T1.nii
+% -----------------------
+% Same as toolbox/OldNorm/T1.nii.
+%
 % 
 % =========================================================================
 % Note that the images are in neurological orientation, whereby the
@@ -260,4 +367,4 @@
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_templates.man 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_templates.man 5718 2013-10-30 13:54:23Z john $
