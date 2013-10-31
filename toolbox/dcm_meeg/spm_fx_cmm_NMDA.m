@@ -1,4 +1,4 @@
-function [f,J,Q] = spm_fx_cmm(x,u,P,M)
+function [f,J,Q] = spm_fx_cmm_NMDA(x,u,P,M)
 % state equations for canonical neural-mass and mean-field models
 % FORMAT [f,J,Q] = spm_fx_cmm(x,u,P,M)
 %
@@ -151,12 +151,12 @@ Vx   = exp(P.S)*32;
 
 % mean population firing and afferent extrinsic input
 %--------------------------------------------------------------------------
- 
-m      = spm_Ncdf_jdw(x(:,:,1),VR,Vx);    % mean firing rate  
-a(:,1) = A{1}*m(:,2);                     % forward afference
-a(:,2) = A{2}*m(:,4);                     % backward afference
-an(:,1) = AN{1}*m(:,2);                     % forward afference
-an(:,2) = AN{2}*m(:,4);                     % backward afference
+  
+m       = spm_Ncdf_jdw(x(:,:,1),VR,Vx);     % mean firing rate  
+a(:,1)  = A{1}*m(:,2);                      % forward afference  AMPA
+a(:,2)  = A{2}*m(:,4);                      % backward afference AMPA 
+an(:,1) = AN{1}*m(:,2);                     % forward afference  NMDA
+an(:,2) = AN{2}*m(:,4);                     % backward afference NMDA
 
 % Averge background activity and exogenous input
 %==========================================================================

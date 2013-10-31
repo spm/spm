@@ -27,11 +27,11 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_csd_mtf.m 5369 2013-03-28 20:09:27Z karl $
- 
- 
+% $Id: spm_csd_mtf.m 5724 2013-10-31 14:56:12Z rosalyn $
+
+
 % between-trial (experimental) inputs
 %==========================================================================
 try
@@ -46,10 +46,11 @@ catch
     X = sparse(1,0);
     
 end
- 
+
+
 % compute log-spectral density
 %==========================================================================
- 
+
 % frequencies of interest
 %--------------------------------------------------------------------------
 try
@@ -58,13 +59,13 @@ catch
     w    = 1:64;
     M.Hz = w;
 end
- 
+
 % number of channels and exogenous (neuronal) inputs or sources
 %--------------------------------------------------------------------------
 nc   = M.l;
 ns   = length(M.u);
 nw   = length(M.Hz);
- 
+
 % spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
 if isfield(M,'g')
@@ -72,8 +73,8 @@ if isfield(M,'g')
 else
     Gu         = spm_csd_mtf_gu(P,w);
 end
- 
- 
+
+
 % cycle over trials (experimental conditions)
 %==========================================================================
 for  c = 1:size(X,1)
@@ -85,50 +86,53 @@ for  c = 1:size(X,1)
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-        
+  
         % extrinsic (forward and backwards) connections
         %------------------------------------------------------------------
         for j = 1:length(Q.A)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
+            try 
+                % -- for CMM-NMDA specific modulation on Extrinsic NMDA connections
+                Q.AN{j}   = Q.AN{j}   + X(c,i)*P.BN{i};
+           end
         end
         
         % intrinsic connections
         %------------------------------------------------------------------
-        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
         
+        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
     end
-    
-
-    % solve for steady-state - if exogenous inputs are specified
-    %----------------------------------------------------------------------
-    if nargin > 2
-        M.x = spm_dcm_neural_x(Q,M);
-    end
-
-    % transfer functions (FFT of kernel)
-    %----------------------------------------------------------------------
-    S     = spm_dcm_mtf(Q,M);
-    
-   
-    % [cross]-spectral density from neuronal innovations
-    %----------------------------------------------------------------------
-    G     = zeros(nw,nc,nc);
-    for i = 1:nc
-        for j = 1:nc
-            for k = 1:ns
-                Gij      = S(:,i,k).*conj(S(:,j,k));
-                G(:,i,j) = G(:,i,j) + Gij.*Gu(:,k);
+        
+        % solve for steady-state - if exogenous inputs are specified
+        %----------------------------------------------------------------------
+        if nargin > 2
+            M.x = spm_dcm_neural_x(Q,M);
+        end
+        
+        % transfer functions (FFT of kernel)
+        %----------------------------------------------------------------------
+        S     = spm_dcm_mtf(Q,M);
+        
+        
+        % [cross]-spectral density from neuronal innovations
+        %----------------------------------------------------------------------
+        G     = zeros(nw,nc,nc);
+        for i = 1:nc
+            for j = 1:nc
+                for k = 1:ns
+                    Gij      = S(:,i,k).*conj(S(:,j,k));
+                    G(:,i,j) = G(:,i,j) + Gij.*Gu(:,k);
+                end
             end
         end
-    end
-    
-    % save trial-specific frequencies of interest
-    %----------------------------------------------------------------------
-    g{c}  = G;
-    s{c}  = S;
-    
+        
+        % save trial-specific frequencies of interest
+        %----------------------------------------------------------------------
+        g{c}  = G;
+        s{c}  = S;
+        
+
 end
- 
 % and add channel noise
 %==========================================================================
 if isfield(M,'g')

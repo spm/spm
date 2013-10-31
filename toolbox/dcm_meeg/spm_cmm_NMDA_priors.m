@@ -60,14 +60,10 @@ p     = 4;                                        % number of populations
 pE.S      = 0;             pC.S    = 1/64;
 
  
-% intrinic [inhibitory] time constants (H   the effects of B)
+% intrinic [excitatory AMPA, inhibitory GABAa, and excitatory NMDA ] time constants (H the effects of B)
 %--------------------------------------------------------------------------
 pE.T  = zeros(n,3);        pC.T =  ones(n,3)/64;
 pE.G  = zeros(n,1);        pC.G = zeros(n,1)/16;
-
-% Time constant (rate open) (NMDA mediates the effects of diag BN(1,1)
-%--------------------------------------------------------------------------
-% pE.NMDA  = zeros(1,1);     pC.NMDA  = ones(1,1)/16;
 
 % Capacitance and backround activity
 %--------------------------------------------------------------------------

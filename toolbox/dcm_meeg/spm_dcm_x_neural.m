@@ -11,7 +11,8 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_dcm_x_neural.m 5724 2013-10-31 14:56:12Z rosalyn $
+
 
 
 % initial state and equation
