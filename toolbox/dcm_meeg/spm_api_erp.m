@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5537 2013-06-10 15:45:39Z vladimir $
+% $Id: spm_api_erp.m 5722 2013-10-31 14:36:13Z rosalyn $
  
 
 %-Launch GUI
@@ -115,6 +115,7 @@ handles = ERP_Callback(hObject, eventdata, handles);
 % 'CMM'    - (nonlinear second order NMM Canonical microcircuit)
 % 'DEM'    - (functional architecture based on a DEM scheme)
 % 'NMM'    - (nonlinear second order NMM first-order moments with NMDA receptors)
+% 'CMM_NMM'- (nonlinear first order Canonical microcircuit with NMDA receptors)
 
 try
     model = DCM.options.model;
@@ -132,6 +133,7 @@ switch model
     case{'MFM'}, set(handles.model,'Value',6);
     case{'CMM'}, set(handles.model,'Value',7);
     case{'NMDA'}, set(handles.model,'Value',8);
+    case{'CMM_NMDA'}, set(handles.model,'Value',9);
 
     otherwise
 end
