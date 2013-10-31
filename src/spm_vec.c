@@ -1,7 +1,6 @@
 /* 
- * $Id: spm_vec.c 4993 2012-10-08 17:13:46Z guillaume $
- * Copyright 2012 Eduardo Aponte
- * aponteeduardo@gmail.com
+ * $Id: spm_vec.c 5720 2013-10-31 13:46:05Z guillaume $
+ * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
 #include "mex.h"

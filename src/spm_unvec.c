@@ -1,7 +1,6 @@
 /* 
- * $Id: spm_unvec.c 4993 2012-10-08 17:13:46Z guillaume $
- * Copyright 2012 Eduardo Aponte
- * aponteeduardo@gmail.com
+ * $Id: spm_unvec.c 5720 2013-10-31 13:46:05Z guillaume $
+ * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
 #include "mex.h"
@@ -17,7 +16,7 @@
 /* Full to sparse */
 int full2sparse( const mxArray *iva, const mxArray *ia, mxArray **oa, int tt )
 {
-    /* Convert an array into a sparse matrix. */
+    /* Convert an array into a sparse matrix */
     mwIndex i, j, k = 0;
     double *opr, *opi, *pr, *pi, percent_sparse = 0.5;
     mwSize nzmax, *ojc, *oir;
@@ -127,7 +126,7 @@ int enterNode( mxArray *iva, const mxArray * ica, mxArray ** oca, int t)
         return t;
     } else if ( mxIsStruct(ica) ){
         const mwSize *d = mxGetDimensions(ica);
-        const int ne = mxGetNumberOfElements (ica);
+        const size_t ne = mxGetNumberOfElements (ica);
         const char **names;
         mwSize dn = mxGetNumberOfDimensions(ica);
         mwIndex i;
@@ -137,7 +136,7 @@ int enterNode( mxArray *iva, const mxArray * ica, mxArray ** oca, int t)
         names = mxMalloc ( fn * sizeof(char*));
 
         for ( i = 0; i < (mwIndex ) fn ; i ++){
-            names[i] = mxGetFieldNameByNumber(ica,i);
+            names[i] = mxGetFieldNameByNumber(ica,(int)i);
         }
         *oca = mxCreateStructArray(dn,d,fn,names);
         for ( j = 0 ; j < fn ; j++ ){
@@ -197,7 +196,7 @@ void mexFunction ( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
     mxArray *vX;
     int t;
 
-    /* Check for proper number of arguments. */
+    /* Check for proper number of arguments */
     if ( nrhs < 1 ){
         mexErrMsgTxt("vX is not defined");
     }
@@ -210,7 +209,7 @@ void mexFunction ( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
         mexErrMsgTxt("Error while vectorizing the input argument");
     }
         
-    if( nlhs == 1 && nrhs == 2 ) {
+    if ( nlhs == 1 && nrhs == 2 ) {
         enterNode(vX,prhs[1],plhs,0);
     } else if (nlhs == 1 && nrhs > 2) {
         int t = 0;
@@ -225,7 +224,7 @@ void mexFunction ( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
             t = enterNode(vX,prhs[i+1],&tcoa,t);
             mxSetCell(*plhs,i,tcoa);
         }
-    }else {
+    } else {
         int t = 0;
         mwIndex i;
         mwSize td[2] = {1};

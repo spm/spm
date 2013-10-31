@@ -1,7 +1,6 @@
 /*
- * $Id: spm_cat.c 4993 2012-10-08 17:13:46Z guillaume $
- * Copyright 2012 Eduardo Aponte
- * aponteeduardo@gmail.com
+ * $Id: spm_cat.c 5720 2013-10-31 13:46:05Z guillaume $
+ * Copyright 2012 Eduardo Aponte <aponteeduardo@gmail.com>
  */
 
 #include "mex.h"
@@ -22,7 +21,7 @@ struct s_m {
     mwSize nc;
     mwSize nr;
     mwSize nz;
-    int EMPTY ;
+    int EMPTY;
     int COMP;
 };
 
@@ -43,7 +42,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         }
         return;
     } else if ( id == mxINT8_CLASS ){
-        signed char *tdi = NULL;;
+        signed char *tdi = NULL;
         signed char *td = (signed char * ) mxGetData(iva);
         if ( fi ) tdi = (signed char * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
@@ -53,7 +52,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxUINT8_CLASS ){
         unsigned char *td = (unsigned char * ) mxGetData(iva);
-        unsigned char *tdi = NULL;;
+        unsigned char *tdi = NULL;
         if ( fi ) tdi = (unsigned char * ) mxGetImagData(iva);
         else tdi = NULL;
         for (i = 0; i < ts; i++){
@@ -63,7 +62,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxUINT16_CLASS ){
         unsigned short *td = (unsigned short * ) mxGetData(iva);
-        unsigned short *tdi = NULL;;
+        unsigned short *tdi = NULL;
         if ( fi ) tdi = (unsigned short * ) mxGetImagData(iva);
 
         for (i = 0; i < ts; i++){
@@ -73,7 +72,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxINT16_CLASS ){
         short *td = (short * ) mxGetData(iva);
-        short *tdi = NULL;;
+        short *tdi = NULL;
         if ( fi ) tdi = (short * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
             pr[i]  = (double ) td[i];
@@ -82,7 +81,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;        
     } else if ( id == mxUINT32_CLASS ){
         unsigned int *td = (unsigned int * ) mxGetData(iva);
-        unsigned int *tdi = NULL;;
+        unsigned int *tdi = NULL;
         if ( fi ) tdi = (unsigned int * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
             pr[i]  = (double ) td[i];
@@ -91,7 +90,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxINT32_CLASS ){
         int *td = (int * ) mxGetData(iva);
-        int *tdi = NULL;;
+        int *tdi = NULL;
         if ( fi ) tdi = (int * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
             pr[i]  = (double ) td[i];
@@ -109,7 +108,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxUINT64_CLASS ){
         unsigned long long * td = (unsigned long long * ) mxGetData(iva);
-        unsigned long long * tdi = NULL;;
+        unsigned long long * tdi = NULL;
         if ( fi ) tdi = (unsigned long long * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
             pr[i]  = (double ) td[i];
@@ -118,7 +117,7 @@ void cast2double( const mxArray *iva, double *pr, double *pi){
         return;
     } else if ( id == mxSINGLE_CLASS ){
         float * td = (float * ) mxGetData(iva);
-        float * tdi = NULL;;
+        float * tdi = NULL;
         if ( fi ) tdi = (float * ) mxGetImagData(iva);
         for (i = 0; i < ts; i++){
             pr[i]  = (double ) td[i];
@@ -139,7 +138,7 @@ void free_s_m( struct s_m ism )
 
 void e_s_m( struct s_m *ism )
 {
-    /* Starts an empty s_m structure. */
+    /* Starts an empty s_m structure */
     
     ism->nc   = 0;
     ism->nr   = 0;
@@ -156,14 +155,14 @@ void tmc_s_m( const int cf, const mwSize nr,
         mwSize *ijc, mwSize *iir, double *ipr, double *ipi,
         mwSize *ojc, mwSize *oir, double *opr, double *opi)
 {
-    /* Transfers the mememory contents from one sparse matrix to other.
+    /* Transfers the memory contents from one sparse matrix to other.
      * cf       Flag for complex matrices.
      * nr       Number of Rows
      * ijc      Input Jc
      * iir      Input Ir
      * ipr      Input real part
      * ipi      Input imaginary part
-    ¨* ojc      Output Jc
+     * ojc      Output Jc
      * oir      Output Ir
      * opr      Output real part
      * opi      Output imaginary part */
@@ -241,7 +240,7 @@ void sparse2s_m( const mxArray *mxs , struct s_m *osm )
 /* Full to sparse */
 void full2sparse( const mxArray *ia, struct s_m *osm )
 {
-    /* Convert an array into a sparse matrix. */
+    /* Convert an array into a sparse matrix */
     
     mwSize nzmax,dn;
     const mwSize *ds;
@@ -319,7 +318,7 @@ void full2sparse( const mxArray *ia, struct s_m *osm )
     osm->nz = (mwSize ) k;
     osm->COMP = cf;
     
-    /* If necessary free the memory used for casting types. */
+    /* If necessary free the memory used for casting types */
     if ( !mxIsDouble ( ia ) ){
         mxFree( pr );
         if ( cf ) mxFree( pi );
