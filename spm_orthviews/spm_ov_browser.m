@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5717 2013-10-29 19:24:04Z guillaume $
+% $Id: spm_ov_browser.m 5728 2013-11-01 13:43:03Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -235,7 +235,10 @@ hS = getappdata(hObj,'hS');
 f  = getappdata(hS,'f');
 
 [filename, pathname] = uiputfile(...
-    {'*.png' 'PNG files (*.png)'; '*.avi' 'AVI files (*.avi)'}, 'Save as');
+    {'*.gif' 'GIF files (*.gif)';...
+    '*.png' 'PNG files (*.png)'; ...
+    '*.avi' 'AVI files (*.avi)';...
+    }, 'Save as');
 if isequal(filename,0) || isequal(pathname,0), return; end
 
 file = fullfile(pathname,filename);
@@ -246,11 +249,15 @@ a  = [p1(1) p1(2)  p2(1)+p2(3)-p1(1) p2(2)+p2(4)-p1(2)] + 0.005*[-1 -1 2 2];
 a  = max(min(a,1),0);
 
 if strcmp(spm_file(file,'ext'),'avi')
-    ismovie = true;
-    writerObj = VideoWriter(file);
+    outputtype = 1;
+    writerObj  = VideoWriter(file);
     open(writerObj);
+elseif strcmp(spm_file(file,'ext'),'gif')
+    outputtype = 2;
+elseif strcmp(spm_file(file,'ext'),'png')
+    outputtype = 3;
 else
-    ismovie = false;
+    error('Unknown output file type.');
 end
 
 for i=1:numel(f)
@@ -264,14 +271,21 @@ for i=1:numel(f)
     sz = round(sz);
     X  = X(sz(1):sz(2),sz(3):sz(4),:);
     
-    if ismovie
+    if outputtype == 1
         writeVideo(writerObj,X);
-    else
+    elseif outputtype ==2
+        [A,map] = rgb2ind(X,256);
+        if i == 1
+            imwrite(A,map,file,'gif','DelayTime',0.05,'LoopCount',0);
+        else
+            imwrite(A,map,file,'gif','DelayTime',0.05,'WriteMode','append');
+        end
+    elseif outputtype ==3
         imwrite(X,spm_file(file,'suffix',sprintf('_%04d',i)),'png');
     end
 end
 
-if ismovie, close(writerObj); end
+if outputtype == 1, close(writerObj); end
 
 
 %==========================================================================
