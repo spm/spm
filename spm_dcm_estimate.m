@@ -53,10 +53,10 @@ function [DCM] = spm_dcm_estimate(P)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_estimate.m 5633 2013-09-10 13:58:03Z karl $
+% $Id: spm_dcm_estimate.m 5729 2013-11-01 17:18:49Z mohamed $
 
 
-SVNid = '$Rev: 5633 $';
+SVNid = '$Rev: 5729 $';
 
 %-Load DCM structure
 %--------------------------------------------------------------------------
@@ -329,7 +329,7 @@ L       = sparse(1:n,(1:n) + 1,1,n,length(M0));
 T       = full(spm_vec(pE));
 sw      = warning('off','SPM:negativeVariance');
 Pp      = spm_unvec(1 - spm_Ncdf(T,abs(spm_vec(Ep)),diag(Cp)),Ep);
-Vp      = spm_unvec(diag(Cp),Ep);
+Vp      = spm_unvec(full(diag(Cp)),Ep);
 warning(sw);
 
 try,  M = rmfield(M,'nograph'); end
