@@ -8,8 +8,8 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 % related to mri and are expressed in world coordinates.
 %
 % Use as
-%   bnd = ft_prepare_mesh(cfg, volume)
-%   bnd = ft_prepare_mesh(cfg, segmentation)
+%   bnd = ft_prepare_mesh(cfg, mri)
+%   bnd = ft_prepare_mesh(cfg, seg)
 %
 % Configuration options:
 %   cfg.interactive     = 'no' (default) or 'yes' (manual interaction)
@@ -70,9 +70,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 8607 2013-10-14 21:46:39Z roboos $
+% $Id: ft_prepare_mesh.m 8695 2013-11-01 13:29:49Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 8607 2013-10-14 21:46:39Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 8695 2013-11-01 13:29:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults

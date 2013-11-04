@@ -61,7 +61,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 7813 2013-04-15 13:34:30Z roboos $
+% $Id: ft_checkconfig.m 8692 2013-11-01 13:23:38Z roboos $
 
 global ft_default
 
@@ -323,6 +323,7 @@ if ~isempty(createsubcfg)
           'ygrid'
           'zgrid'
           'resolution'
+          'unit'
           'filter'
           'leadfield'
           'inside'
@@ -348,6 +349,16 @@ if ~isempty(createsubcfg)
           'reducerank'
           'realfilter'
           'subspace'
+          };
+      
+      case 'eloreta'
+        fieldname = {
+          'keepfilter'
+          'keepmom'
+          'lambda'
+          'normalize'
+          'normalizeparam'
+          'reducerank'
           };
         
       case 'lcmv'

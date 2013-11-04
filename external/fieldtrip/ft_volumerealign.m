@@ -24,11 +24,11 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %   cfg.coordsys       = 'ctf' (default when specifying cfg.method =
 %                         'interactive' or 'fiducial') or 'spm' (default
 %                         when specifying cfg.method = 'landmark').
-%                         Specifies the output coordinate system of the head. This
-%                         string specifies the origin and the axes of the
+%                         Specifies the output coordinate system of the head.
+%                         This string specifies the origin and the axes of the
 %                         coordinate system. supported coordinate systems
-%                         are: 'ctf', '4d', 'yokogawa', 'neuromag', 'itab'
-%                         'spm', 'tal'.
+%                         are 'ctf', '4d', 'yokogawa', 'neuromag', 'itab'
+%                         'spm' and 'tal'.
 %   cfg.clim           = [min max], scaling of the anatomy color (default
 %                        is to adjust to the minimum and maximum)
 %   cfg.parameter      = 'anatomy' the parameter which is used for the
@@ -146,9 +146,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 8619 2013-10-22 08:15:02Z eelspa $
+% $Id: ft_volumerealign.m 8695 2013-11-01 13:29:49Z roboos $
 
-revision = '$Id: ft_volumerealign.m 8619 2013-10-22 08:15:02Z eelspa $';
+revision = '$Id: ft_volumerealign.m 8695 2013-11-01 13:29:49Z roboos $';
 
 % do the general setup of the function
 ft_defaults

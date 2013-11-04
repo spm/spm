@@ -117,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 8540 2013-09-25 14:16:48Z roboos $
+% $Id: ft_multiplotER.m 8704 2013-11-02 13:19:43Z roboos $
 
-revision = '$Id: ft_multiplotER.m 8540 2013-09-25 14:16:48Z roboos $';
+revision = '$Id: ft_multiplotER.m 8704 2013-11-02 13:19:43Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -328,6 +328,12 @@ if strcmp(dtype, 'timelock') && hasrpt,
       tmpmask = varargin{i}.(cfg.maskparameter);
     end
     varargin{i} = ft_timelockanalysis(tmpcfg, varargin{i});
+    if ~strcmp(cfg.parameter, 'avg')
+      % rename avg back into its original parameter name
+      varargin{i}.(cfg.parameter) = varargin{i}.avg;
+      varargin{i} = rmfield(varargin{i}, 'avg');
+    end
+    
     % put back mask
     if ~isempty(cfg.maskparameter)
       varargin{i}.(cfg.maskparameter) = tmpmask;

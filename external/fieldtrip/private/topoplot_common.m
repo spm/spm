@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 8317 2013-07-16 11:44:40Z jorhor $
+% $Id: topoplot_common.m 8716 2013-11-04 14:55:40Z eelspa $
 
-revision = '$Id: topoplot_common.m 8317 2013-07-16 11:44:40Z jorhor $';
+revision = '$Id: topoplot_common.m 8716 2013-11-04 14:55:40Z eelspa $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -70,7 +70,7 @@ if Ndata>1 && ~isnumeric(varargin{end})
     % to have all data avalaible. at the moment I couldn't think of
     % anything better than using an additional indx variable and letting the 
     % function recursively call itself.
-    ft_topoplotTFR(cfg, varargin{1:Ndata}, indx);
+    topoplot_common(cfg, varargin{1:Ndata}, indx);
     indx = indx + 1;
   end
   return
@@ -281,6 +281,11 @@ if strcmp(dtype, 'timelock') && hasrpt,
   tmpcfg        = [];
   tmpcfg.trials = cfg.trials;
   data          = ft_timelockanalysis(tmpcfg, data);
+  if ~strcmp(cfg.parameter, 'avg')
+    % rename avg back into the parameter
+    data.(cfg.parameter) = data.avg;
+    data                 = rmfield(data, 'avg');
+  end
   dimord        = data.dimord;
   dimtok        = tokenize(dimord, '_');
 elseif strcmp(dtype, 'freq') && hasrpt,

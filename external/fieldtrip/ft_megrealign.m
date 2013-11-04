@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_megrealign.m 8701 2013-11-02 10:15:35Z roboos $
 
-revision = '$Id: ft_megrealign.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_megrealign.m 8701 2013-11-02 10:15:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -128,6 +128,8 @@ data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo',
 pertrial = all(ismember({'nasX';'nasY';'nasZ';'lpaX';'lpaY';'lpaZ';'rpaX';'rpaY';'rpaZ'}, data.label));
 
 % put the low-level options pertaining to the dipole grid in their own field
+cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'}); % this is moved to cfg.grid.tight by the subsequent createsubcfg
+cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved to cfg.grid.unit by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % select trials of interest
@@ -227,13 +229,11 @@ tmpcfg.grad = data.grad;
 try, tmpcfg.grid        = cfg.grid;         end
 try, tmpcfg.mri         = cfg.mri;          end
 try, tmpcfg.headshape   = cfg.headshape;    end
-try, tmpcfg.tightgrid   = cfg.tightgrid;    end
 try, tmpcfg.symmetry    = cfg.symmetry;     end
 try, tmpcfg.smooth      = cfg.smooth;       end
 try, tmpcfg.threshold   = cfg.threshold;    end
 try, tmpcfg.spheremesh  = cfg.spheremesh;   end
 try, tmpcfg.inwardshift = cfg.inwardshift;  end
-try, tmpcfg.sourceunits = cfg.sourceunits;  end
 grid = ft_prepare_sourcemodel(tmpcfg);
 pos = grid.pos;
 

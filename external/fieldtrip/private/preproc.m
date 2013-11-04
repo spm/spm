@@ -105,10 +105,10 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 8307 2013-07-02 14:59:22Z jimher $
+% $Id: preproc.m 8714 2013-11-04 13:43:22Z eelspa $
 
 % compute fsample
-fsample = 1./mean(diff(time));
+fsample = 1./nanmean(diff(time));
 
 if nargin<5 || isempty(begpadding)
   begpadding = 0;

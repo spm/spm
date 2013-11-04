@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8664 2013-10-29 10:22:02Z arjsto $
+% $Id: ft_read_header.m 8695 2013-11-01 13:29:49Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1827,11 +1827,12 @@ if ~isfield(hdr, 'chanunit')
   hdr.chanunit = ft_chanunit(hdr);
 end % for
 
-% ensure that the output grad/elec is according to the latest definition
-% allow both elec and sens to be present
+% ensure that the output grad is according to the latest definition
 if isfield(hdr, 'grad')
   hdr.grad = ft_datatype_sens(hdr.grad);
 end
+
+% ensure that the output elec is according to the latest definition
 if isfield(hdr, 'elec')
   hdr.elec = ft_datatype_sens(hdr.elec);
 end

@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 8503 2013-09-24 13:13:26Z nielam $
+% $Id: ft_singleplotER.m 8716 2013-11-04 14:55:40Z eelspa $
 
-revision = '$Id: ft_singleplotER.m 8503 2013-09-24 13:13:26Z nielam $';
+revision = '$Id: ft_singleplotER.m 8716 2013-11-04 14:55:40Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -270,6 +270,11 @@ if strcmp(dtype, 'timelock') && hasrpt,
   tmpcfg.trials = cfg.trials;
   for i=1:Ndata
     varargin{i} = ft_timelockanalysis(tmpcfg, varargin{i});
+  end
+  if ~strcmp(cfg.parameter, 'avg')
+    % rename avg back into the parameter
+    varargin{i}.(cfg.parameter) = varargin{i}.avg;
+    varargin{i}                 = rmfield(varargin{i}, 'avg');
   end
   dimord        = varargin{1}.dimord;
   dimtok        = tokenize(dimord, '_');
@@ -577,8 +582,10 @@ if isempty(get(gcf,'Name'))
     dataname = cfg.dataname;
   elseif nargin > 1
     dataname = inputname(2);
+    cfg.dataname = {inputname(2)};
     for k = 2:Ndata
       dataname = [dataname ', ' inputname(k+1)];
+      cfg.dataname{end+1} = inputname(k+1);
     end
   else
     dataname = cfg.inputfile;

@@ -61,7 +61,7 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 % cfg.lbex        = 'no' (default) or a number that corresponds with the radius
 % cfg.mollify     = 'no' (default) or a number that corresponds with the FWHM
 
-% Copyright (C) 2004-2006, Robert Oostenveld
+% Copyright (C) 2004-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -79,9 +79,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 8640 2013-10-25 10:06:47Z jansch $
+% $Id: ft_prepare_leadfield.m 8701 2013-11-02 10:15:35Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 8640 2013-10-25 10:06:47Z jansch $';
+revision = '$Id: ft_prepare_leadfield.m 8701 2013-11-02 10:15:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -108,9 +108,10 @@ cfg.feedback       = ft_getopt(cfg, 'feedback',       'no');
 cfg.mollify        = ft_getopt(cfg, 'mollify',        'no');
 cfg.patchsvd       = ft_getopt(cfg, 'patchsvd',       'no');
 % cfg.reducerank   = ft_getopt(cfg, 'reducerank', 'no');      % the default for this depends on EEG/MEG and is set below
-% cfg.sourceunits  = ft_getopt(cfg, 'sourceunits');           % the default for this is set inside prepare_headmodel
 
 % put the low-level options pertaining to the dipole grid in their own field
+cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'}); % this is moved to cfg.grid.tight by the subsequent createsubcfg
+cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved to cfg.grid.unit by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 if strcmp(cfg.sel50p, 'yes') && strcmp(cfg.lbex, 'yes')
@@ -139,13 +140,11 @@ tmpcfg.grad = sens; % this can be electrodes or gradiometers
 try, tmpcfg.grid        = cfg.grid;         end
 try, tmpcfg.mri         = cfg.mri;          end
 try, tmpcfg.headshape   = cfg.headshape;    end
-try, tmpcfg.tightgrid   = cfg.tightgrid;    end
 try, tmpcfg.symmetry    = cfg.symmetry;     end
 try, tmpcfg.smooth      = cfg.smooth;       end
 try, tmpcfg.threshold   = cfg.threshold;    end
 try, tmpcfg.spheremesh  = cfg.spheremesh;   end
 try, tmpcfg.inwardshift = cfg.inwardshift;  end
-try, tmpcfg.sourceunits = cfg.sourceunits;  end
 grid = ft_prepare_sourcemodel(tmpcfg);
 
 if ft_voltype(vol, 'openmeeg')

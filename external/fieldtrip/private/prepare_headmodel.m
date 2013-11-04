@@ -36,12 +36,11 @@ function [vol, sens, cfg] = prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_headmodel.m 8068 2013-04-23 21:15:12Z roboos $
+% $Id: prepare_headmodel.m 8700 2013-11-02 10:14:25Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),      cfg.channel = 'all';   end
 if ~isfield(cfg, 'order'),        cfg.order = 10;        end % order of expansion for Nolte method; 10 should be enough for real applications; in simulations it makes sense to go higher
-if ~isfield(cfg, 'sourceunits'),  cfg.sourceunits = 'cm';  end
 
 if nargin<2
   data = [];
@@ -53,9 +52,11 @@ vol = ft_fetch_vol(cfg, data);
 % get the gradiometer or electrode definition
 sens = ft_fetch_sens(cfg, data);
 
-% ensure that the units are the same
-vol  = ft_convert_units(vol, cfg.sourceunits);
-sens = ft_convert_units(sens, cfg.sourceunits);
+if ~strcmp(vol.unit, sens.unit)
+  % ensure that the geometrical units are the same
+  warning('convering the sensor array units to "%s"', vol.unit);
+  sens = ft_convert_units(sens, vol.unit);
+end
 
 if isfield(data, 'topolabel')
   % the data reflects a componentanalysis, where the topographic and the

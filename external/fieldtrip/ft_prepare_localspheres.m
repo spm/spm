@@ -23,11 +23,11 @@ function [vol, cfg] = ft_prepare_localspheres(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_localspheres.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_prepare_localspheres.m 8701 2013-11-02 10:15:35Z roboos $
 
 warning('FT_PREPARE_LOCALSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''localspheres'' instead.')
 
-revision = '$Id: ft_prepare_localspheres.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_prepare_localspheres.m 8701 2013-11-02 10:15:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -46,7 +46,6 @@ if ~isfield(cfg, 'maxradius'),     cfg.maxradius = 20;      end
 if ~isfield(cfg, 'baseline'),      cfg.baseline = 5;        end
 if ~isfield(cfg, 'feedback'),      cfg.feedback = 'yes';    end
 if ~isfield(cfg, 'smooth');        cfg.smooth    = 5;       end % in voxels
-if ~isfield(cfg, 'sourceunits'),   cfg.sourceunits = 'cm';  end
 if ~isfield(cfg, 'threshold'),     cfg.threshold = 0.5;     end % relative
 if ~isfield(cfg, 'numvertices'),   cfg.numvertices = [];    end
 if ~isfield(cfg, 'singlesphere'),  cfg.singlesphere = 'no'; end

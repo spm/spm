@@ -1,4 +1,4 @@
-function [inside] = bounding_mesh(pos, pnt, tri);
+function [inside] = bounding_mesh(pos, pnt, tri)
 
 % BOUNDING_MESH determines if a point is inside/outside a triangle mesh 
 % whereby the bounding triangle mesh should be closed.
@@ -30,7 +30,7 @@ function [inside] = bounding_mesh(pos, pnt, tri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: bounding_mesh.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: bounding_mesh.m 8696 2013-11-01 13:29:51Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;

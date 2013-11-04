@@ -39,7 +39,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 8306 2013-07-02 10:00:00Z roboos $
+% $Id: ft_convert_units.m 8699 2013-11-02 09:53:04Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -74,6 +74,14 @@ else
     siz = norm(idrange(obj.chanpos));
     unit = ft_estimate_units(siz);
     
+  elseif isfield(obj, 'elecpos') && ~isempty(obj.elecpos)
+    siz = norm(idrange(obj.elecpos));
+    unit = ft_estimate_units(siz);
+
+  elseif isfield(obj, 'coilpos') && ~isempty(obj.coilpos)
+    siz = norm(idrange(obj.coilpos));
+    unit = ft_estimate_units(siz);
+
   elseif isfield(obj, 'pnt') && ~isempty(obj.pnt)
     siz = norm(idrange(obj.pnt));
     unit = ft_estimate_units(siz);
@@ -164,12 +172,14 @@ if isfield(obj, 'tra') && isfield(obj, 'chanunit')
   % find the gradiometer channels that are expressed as unit of field strength divided by unit of distance, e.g. T/cm
   for i=1:length(obj.chanunit)
     tok = tokenize(obj.chanunit{i}, '/');
-    if length(tok)==1
-      % assume that it is T or so
-    elseif length(tok)==2
-      % assume that it is T/cm or so
+    if ~isempty(regexp(obj.chanunit{i}, 'm$', 'once'))
+      % assume that it is T/m or so
       obj.tra(i,:)    = obj.tra(i,:) / scale;
       obj.chanunit{i} = [tok{1} '/' target];
+    elseif ~isempty(regexp(obj.chanunit{i}, '[T|V]$', 'once'))
+      % assume that it is T or V, don't do anything
+    elseif strcmp(obj.chanunit{i}, 'unknown')
+      % assume that it is T or V, don't do anything
     else
       error('unexpected units %s', obj.chanunit{i});
     end

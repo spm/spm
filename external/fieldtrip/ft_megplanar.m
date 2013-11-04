@@ -70,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_megplanar.m 8701 2013-11-02 10:15:35Z roboos $
 
-revision = '$Id: ft_megplanar.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_megplanar.m 8701 2013-11-02 10:15:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -116,9 +116,12 @@ if isfield(cfg, 'headshape') && isa(cfg.headshape, 'config')
   cfg.headshape = struct(cfg.headshape);
 end
 
-% put the low-level options pertaining to the dipole grid in their own field
-cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 cfg = ft_checkconfig(cfg, 'renamedvalue',  {'headshape', 'headmodel', []});
+
+% put the low-level options pertaining to the dipole grid in their own field
+cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'}); % this is moved to cfg.grid.tight by the subsequent createsubcfg
+cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved to cfg.grid.unit by the subsequent createsubcfg
+cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')

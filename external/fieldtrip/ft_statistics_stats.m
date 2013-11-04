@@ -52,7 +52,7 @@ function [stat, cfg] = ft_statistics_stats(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_stats.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_statistics_stats.m 8702 2013-11-02 11:28:20Z jimher $
 
 % test for the presence of the statistics toolbox
 ft_hastoolbox('stats', 1);
@@ -89,7 +89,8 @@ case {'ttest', 'ttest_samples_vs_const'}
   ft_progress('init', cfg.feedback);
   for chan = 1:Nobs
     ft_progress(chan/Nobs, 'Processing observation %d/%d\n', chan, Nobs);
-    [h(chan), p(chan), ci(chan, :)] = ttest(dat(chan, :), cfg.constantvalue, cfg.alpha, cfg.tail);
+    [h(chan), p(chan), ci(chan, :), stats] = ttest(dat(chan, :), cfg.constantvalue, cfg.alpha, cfg.tail);
+    s(chan) = stats.tstat;
   end
   ft_progress('close');
 
@@ -157,7 +158,8 @@ case {'paired-ttest'}
   ft_progress('init', cfg.feedback);
   for chan = 1:Nobs
     ft_progress(chan/Nobs, 'Processing observation %d/%d\n', chan, Nobs);
-    [h(chan), p(chan), ci(chan, :)] = ttest(dat(chan, selA)-dat(chan, selB), 0, cfg.alpha, cfg.tail);
+    [h(chan), p(chan), ci(chan, :), stats] = ttest(dat(chan, selA)-dat(chan, selB), 0, cfg.alpha, cfg.tail);
+    s(chan) = stats.tstat;
   end
   ft_progress('close');
 

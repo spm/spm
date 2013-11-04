@@ -44,7 +44,7 @@ function vol = ft_headmodel_interpolate(filename, sens, grid, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_interpolate.m 8272 2013-06-18 09:50:03Z vlalit $
+% $Id: ft_headmodel_interpolate.m 8677 2013-10-30 12:32:07Z vlalit $
 
 % check the validity of the input arguments
 assert(ft_datatype(sens, 'sens'), 'the second input argument should be a sensor definition');
@@ -107,7 +107,7 @@ if isfield(grid, 'leadfield')
     end
     vol.filename{i} = sprintf('%s_%s.nii', filename, sens.label{i});
     fprintf('writing single channel leadfield to %s\n', vol.filename{i})
-    ft_write_mri(vol.filename{i}, dat, 'spmversion', 'SPM12');
+    ft_write_mri(vol.filename{i}, dat, 'spmversion', 'SPM12', 'dataformat', 'nifti_spm');
   end
   
   filename = sprintf('%s.mat', filename);
@@ -201,7 +201,7 @@ elseif isfield(grid, 'filename')
     end
     outputvol.filename{i} = sprintf('%s_%s.nii', filename, sens.label{i});
     fprintf('writing single channel leadfield to %s\n', outputvol.filename{i})
-    ft_write_mri(outputvol.filename{i}, dat, 'transform', outputvol.transform, 'spmversion', 'SPM12');
+    ft_write_mri(outputvol.filename{i}, dat, 'transform', outputvol.transform, 'spmversion', 'SPM12', 'dataformat', 'nifti_spm');
   end
   
   % update the volume conductor

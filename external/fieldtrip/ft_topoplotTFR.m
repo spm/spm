@@ -157,9 +157,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_topoplotTFR.m 8709 2013-11-03 11:31:34Z jansch $
 
-revision = '$Id: ft_topoplotTFR.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_topoplotTFR.m 8709 2013-11-03 11:31:34Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -185,7 +185,9 @@ cfg.funcname = mfilename;
 [cfg] = topoplot_common(cfg, varargin{:});
 
 % remove it again
-cfg = rmfield(cfg, 'funcname');
+if isfield(cfg, 'funcname'),
+  cfg = rmfield(cfg, 'funcname');
+end
 
 % do the general cleanup and bookkeeping at the end of the function
 % this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER
