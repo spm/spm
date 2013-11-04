@@ -11,17 +11,20 @@ function spm_progress_bar(action,varargin)
 % FORMAT spm_progress_bar('Set','ylabel',ylabel)
 % Set the progress bar labels.
 %
+% FORMAT spm_progress_bar('Set','height',height)
+% Set the height of the progress bar.
+%
 % FORMAT spm_progress_bar('Clear')
 % Clear the 'Interactive' window.
 %__________________________________________________________________________
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 5514 2013-05-22 14:56:12Z guillaume $
+% $Id: spm_progress_bar.m 5731 2013-11-04 18:11:44Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
-% Find the interactive window and exit if not
+% Find the Interactive window and exit if not
 %--------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 if isempty(Finter), return; end
@@ -75,7 +78,14 @@ switch lower(action)
             pb = get(br,'UserData');
             if ischar(value)
                 if nargin == 2, str = ''; else str = varargin{2}; end
-                set(get(pb.ax,value),'String',str);
+                switch lower(value)
+                    case {'xlabel','ylabel'}
+                        set(get(pb.ax,value),'String',str);
+                    case 'height'
+                        set(pb.ax,'YLim',[0 max([str eps])]);
+                    otherwise
+                        error('Unknown action.');
+                end
             else
                 set(br,'Ydata',[0 value]);
                 lim = get(get(br,'Parent'),'Ylim');lim=lim(2);

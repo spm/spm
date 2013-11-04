@@ -18,7 +18,7 @@ function varargout = spm_changepath(Sf, oldp, newp)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_changepath.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_changepath.m 5731 2013-11-04 18:11:44Z guillaume $
 
 
 %-Input arguments
@@ -67,6 +67,8 @@ end
 %==========================================================================
 function S = changepath(S,oldp,newp)
 
+check = false;
+
 switch class(S)
     case {'double','single','logical','int8','uint8','int16','uint16',...
             'int32','uint32','int64','uint64','function_handle'}
@@ -92,7 +94,16 @@ switch class(S)
             t = strrep(tmp{i},oldp,newp);
             if ~isequal(tmp{i},t)
                 t = strrep(t,f{1},f{2});
-                fprintf('%s\n',t);
+                if check
+                    if spm_existfile(t)
+                        sts = ' (OK) ';
+                    else
+                        sts = ' (NOT FOUND) ';
+                    end
+                else
+                    sts = '';
+                end
+                fprintf('%s%s\n',t,sts);
             end
             tmp{i} = t;
         end

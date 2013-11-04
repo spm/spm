@@ -15,7 +15,9 @@
 % Robert Oostenveld
 % Will Penny
 % Christophe Phillips
+% Dimitris Pinotsis
 % Ged Ridgway
+% Mohamed Seghier
 % Klaas Enno Stephan
 %
 % Jesper Andersson

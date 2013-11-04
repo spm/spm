@@ -1,18 +1,21 @@
 function [varargout] = spm_unvec(vX,varargin)
-% unvectorises a vectorised array
-% FORMAT [varargout] = spm_unvec(vX,varargin);
+% Unvectorise a vectorised array - a compiled routine
+% FORMAT [varargout] = spm_unvec(vX,varargin)
 % varargin  - numeric, cell or structure array
 % vX        - spm_vec(X)
 %
 % i.e. X           = spm_unvec(spm_vec(X),X)
 %      [X1,X2,...] = spm_unvec(spm_vec(X1,X2,...),X1,X2,...)
 %
-% see spm_vec
+% See spm_vec
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 5701 2013-10-17 15:13:45Z guillaume $
+% $Id: spm_unvec.m 5731 2013-11-04 18:11:44Z guillaume $
+
+
+%error('spm_unvec.c not compiled - see Makefile')
 
 % deal to multiple outputs if necessary
 %--------------------------------------------------------------------------

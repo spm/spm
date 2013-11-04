@@ -1,12 +1,11 @@
 function [x] = spm_cat(x,d)
-% Convert a cell array into a matrix
+% Convert a cell array into a matrix - a compiled routine
 % FORMAT [x] = spm_cat(x,d)
 % x - cell array
 % d - dimension over which to concatenate [default - both]
 %__________________________________________________________________________
-% Empty array elements are replaced by sparse zero partitions
-% and single 0 entries are expanded to conform to the non-empty
-% non zero elements.
+% Empty array elements are replaced by sparse zero partitions and single 0
+% entries are expanded to conform to the non-empty non zero elements.
 %
 % e.g.:
 % > x       = spm_cat({eye(2) []; 0 [1 1; 1 1]})
@@ -17,13 +16,15 @@ function [x] = spm_cat(x,d)
 %     0     0     1     1
 %     0     0     1     1
 %
-% If called with a dimension argument; a cell array is returned
+% If called with a dimension argument, a cell array is returned.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cat.m 5219 2013-01-29 17:07:07Z spm $
- 
+% $Id: spm_cat.m 5731 2013-11-04 18:11:44Z guillaume $
+
+
+%error('spm_cat.c not compiled - see Makefile')
 
 % check x is not already a matrix
 %--------------------------------------------------------------------------
