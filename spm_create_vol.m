@@ -6,7 +6,7 @@ function V = spm_create_vol(V)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 4996 2012-10-11 18:28:37Z guillaume $
+% $Id: spm_create_vol.m 5733 2013-11-06 14:30:22Z john $
 
 
 for i=1:numel(V)
@@ -148,7 +148,9 @@ if ~isempty(N0)
             N.extras.mat(:,:,V.n(1)) = V.mat;
         end
     else
-        N.extras.mat(:,:,V.n(1)) = V.mat;
+        if sum(sum((N0.mat-V.mat).^2))>1e-8,
+            N.extras.mat(:,:,V.n(1)) = V.mat;
+        end
     end
 
     if ~isempty(N0.extras) && isstruct(N0.extras) && isfield(N0.extras,'mat')
@@ -157,6 +159,18 @@ if ~isempty(N0)
     end
     if sum((V.mat(:)-N0.mat(:)).^2) > 1e-4
         N.extras.mat(:,:,V.n(1)) = V.mat;
+    end
+end
+
+if isfield(N.extras,'mat'),
+    M0 = N.mat;
+    for i=1:size(N.extras.mat,3),
+        if sum((MO-N.extras.mat(:,:,i)).^2) < 1e-8,
+            N.extras.mat(:,:,i) = 0;
+        end
+    end
+    if sum(N.extras.mat(:).^2) < 1e-8*size(N.extras.mat,3),
+        N.extras = [];
     end
 end
 
