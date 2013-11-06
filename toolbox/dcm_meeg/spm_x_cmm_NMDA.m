@@ -26,7 +26,8 @@ function [x,M] = spm_x_cmm_NMDA(P)
 
 % Karl Friston
 % $Id: spm_x_cmm.m 5019 2012-10-26 19:32:57Z karl $
- 
+
+
 
 
 % dimensions

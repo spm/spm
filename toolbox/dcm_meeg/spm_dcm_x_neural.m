@@ -3,7 +3,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % FORMAT [x,f] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
-% 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM' or 'MFM'
+% 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
 % f   - state euquation
@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 5724 2013-10-31 14:56:12Z rosalyn $
+% $Id: spm_dcm_x_neural.m 5732 2013-11-06 14:03:56Z rosalyn $
 
 
 

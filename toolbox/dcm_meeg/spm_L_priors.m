@@ -31,7 +31,8 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 5724 2013-10-31 14:56:12Z rosalyn $
+% $Id: spm_L_priors.m 5732 2013-11-06 14:03:56Z rosalyn $
+
 
 
 % defaults

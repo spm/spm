@@ -13,11 +13,12 @@ function [Q] = spm_gen_Q(P,X)
 % parameterisation follows a standard naming protocol where, for example,
 % X(1)*P.B{1} + X(2)*P.B{2}... adjusts P.A for all (input) effects encoded
 % in P.B.
+% P.BN and P.AN operate at NMDA receptors along extrinsic connections
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_Q.m 5724 2013-10-31 14:56:12Z rosalyn $
+% $Id: spm_gen_Q.m 5732 2013-11-06 14:03:56Z rosalyn $
 
 
 % condition or trial specific parameters

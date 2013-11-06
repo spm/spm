@@ -109,6 +109,7 @@ pE.C  = C*32 - 32;
 pC.C  = C/8;
 
 
+
 % intrinsic connectivity (p x p x n)
 %==========================================================================
 % 1 - excitatory spiny stellate cells (granular input cells)

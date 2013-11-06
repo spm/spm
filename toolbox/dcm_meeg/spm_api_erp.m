@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5722 2013-10-31 14:36:13Z rosalyn $
+% $Id: spm_api_erp.m 5732 2013-11-06 14:03:56Z rosalyn $
  
 
 %-Launch GUI
@@ -114,7 +114,7 @@ handles = ERP_Callback(hObject, eventdata, handles);
 % 'MFM'    - (nonlinear second order NMM second-order moments)
 % 'CMM'    - (nonlinear second order NMM Canonical microcircuit)
 % 'DEM'    - (functional architecture based on a DEM scheme)
-% 'NMM'    - (nonlinear second order NMM first-order moments with NMDA receptors)
+% 'NMDA'    - (nonlinear second order NMM first-order moments with NMDA receptors)
 % 'CMM_NMM'- (nonlinear first order Canonical microcircuit with NMDA receptors)
 
 try

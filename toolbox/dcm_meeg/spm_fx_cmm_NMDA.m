@@ -95,6 +95,7 @@ end
 % 3 - inhibitory interneurons         (intrisic interneuons)
 % 4 - deep pyramidal cells            (backward output cells)
 
+
 % extrinsic connections (F B) - from superficial and deep pyramidal cells
 %--------------------------------------------------------------------------
 SA   = [1   0 ;
@@ -102,6 +103,8 @@ SA   = [1   0 ;
         0   2 ;
         0   0]/8;
     
+% extrinsic NMDA-mediated connections (F B) - from superficial and deep pyramidal cells
+%--------------------------------------------------------------------------    
     
 SNMDA   = [1   0 ;
            0   1 ;

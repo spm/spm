@@ -29,7 +29,8 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5724 2013-10-31 14:56:12Z rosalyn $
+% $Id: spm_csd_mtf.m 5732 2013-11-06 14:03:56Z rosalyn $
+
 
 
 % between-trial (experimental) inputs
