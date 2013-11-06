@@ -6,7 +6,7 @@ function V = spm_create_vol(V)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 5733 2013-11-06 14:30:22Z john $
+% $Id: spm_create_vol.m 5734 2013-11-06 14:39:35Z vladimir $
 
 
 for i=1:numel(V)
@@ -165,7 +165,7 @@ end
 if isfield(N.extras,'mat'),
     M0 = N.mat;
     for i=1:size(N.extras.mat,3),
-        if sum((MO-N.extras.mat(:,:,i)).^2) < 1e-8,
+        if sum((M0-N.extras.mat(:,:,i)).^2) < 1e-8,
             N.extras.mat(:,:,i) = 0;
         end
     end
