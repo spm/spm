@@ -17,7 +17,7 @@ function out = spm_run_bms_dcm (varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_run_bms_dcm.m 5735 2013-11-07 18:51:28Z mohamed $
 
 % input
 % -------------------------------------------------------------------------
@@ -30,6 +30,20 @@ ld_msp  = ~isempty(job.model_sp{1});     % Model space file
 bma_do  = isfield(job.bma,'bma_yes');    % Compute BMA
 data_se = ~isempty(job.sess_dcm);        % DCM files
 
+% check whether a BMS.mat file exists in the selected directory
+if exist(fname,'file')
+    str = {'Current directory contains a BMS file:',...
+        'Continuing will overwrite existing file !!'};
+    if spm_input(str,1,'bd','stop|continue',[1,0],1,mfilename);
+        fprintf('%-40s: %30s\n\n',...
+            'BMS stoped...existing BMS file in the selected directory',...
+            spm('time'));
+        Fgraph  = spm_figure('GetWin','Graphics');
+        spm_clf(Fgraph);
+        out = [];
+        return
+    end
+end
 
 % method
 % -------------------------------------------------------------------------
@@ -350,13 +364,13 @@ if strcmp(method,'FFX');
         
     end
     
-    if exist(fullfile(job.dir{1},'BMS.mat'),'file')
-        load(fname);
-        if  isfield(BMS,'DCM') && isfield(BMS.DCM,'ffx')
-            spm('alert','Existing BMS.mat file has been over-written!',...
-                'Warning');
-        end
-    end
+%     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
+%         load(fname);
+%         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'ffx')
+%             spm('alert','Existing BMS.mat file has been over-written!',...
+%                 'Warning');
+%         end
+%     end
     BMS.DCM.ffx.data    = fname_msp;
     BMS.DCM.ffx.F_fname = f_fname;
     BMS.DCM.ffx.F       = F;
@@ -433,13 +447,13 @@ else
         
     end
     
-    if exist(fullfile(job.dir{1},'BMS.mat'),'file')
-        load(fname);
-        if  isfield(BMS,'DCM') && isfield(BMS.DCM,'rfx')
-            spm('alert','Existing BMS.mat file has been over-written!',...
-                'Warning');
-        end
-    end
+%     if exist(fullfile(job.dir{1},'BMS.mat'),'file')
+%         load(fname);
+%         if  isfield(BMS,'DCM') && isfield(BMS.DCM,'rfx')
+%             spm('alert','Existing BMS.mat file has been over-written!',...
+%                 'Warning');
+%         end
+%     end
     BMS.DCM.rfx.data    = fname_msp;
     BMS.DCM.rfx.F_fname = f_fname;
     BMS.DCM.rfx.F       = F;
