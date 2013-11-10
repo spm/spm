@@ -24,7 +24,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5737 2013-11-10 20:23:49Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -50,7 +50,7 @@ options.stochastic = 0;
 options.nonlinear  = 0;
 options.embedding  = 3;
 options.backwards  = 0;
-options.v          = 4;
+options.v          = 6;
 
 A   = ones(n,n);
 B   = zeros(n,n,0);
@@ -89,7 +89,7 @@ e    = spm_rand_mar(T,n,1/2)/4;
 
 % show simulated response
 %--------------------------------------------------------------------------
-i = 1:128;
+i = 1:512;
 spm_figure('Getwin','Figure 1'); clf
 subplot(2,2,1)
 plot(t(i),U.u(i,:))
@@ -143,31 +143,27 @@ DEM  = spm_dcm_fmri_csd_DEM(DCM);
 % -------------------------------------------------------------------------
 spm_figure('Getwin','Figure 2'); clf
 
-subplot(2,1,1); hold off
 j   = 1:numel(pP.A);
 Ep  = DEM.Ep.A(j);
 Qp  = DCM.Ep.A(j);
-Cp  = DCM.Cp(j,j);
+Cp  = DEM.Cp(j,j);
 Pp  = pP.A(:);
+
+subplot(2,1,1); hold off
 spm_plot_ci(Ep(:),Cp), hold on
-bar(Pp,1/2,'b'), hold off
+bar(Pp,1/2,'k'), hold off
 title('True and MAP connections','FontSize',16)
 axis square
 
-
-subplot(2,2,3); cla
-plot(Pp,Ep,'r.','MarkerSize',16), hold off
+subplot(2,1,2); cla
+plot(Pp,Ep,'r.',Pp,Qp,'ko','MarkerSize',8), hold on
+plot([-0.2 .5],[-0.2 .5],'k:'), hold off
 title('MAP vs. true','FontSize',16)
 xlabel('true')
 ylabel('estimate')
 axis square
+legend ('hierarchical','conventional')
 
-subplot(2,2,4); cla
-plot(Pp,Qp,'r.','MarkerSize',16), hold off
-title('classical vs. true ','FontSize',16)
-xlabel('true')
-ylabel('estimate')
-axis square
 
 
 % search over precision of hidden causes
@@ -185,7 +181,7 @@ for i = 1:length(V)
     
     % correlation
     % ---------------------------------------------------------------------
-    R(end + 1,1) = corr(DEM.Ep.A(:),pP.A(:));
+    R(end + 1,1) = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
     
     % free energy
     % ---------------------------------------------------------------------
@@ -199,7 +195,7 @@ for i = 1:length(V)
     
     % correlation
     % ---------------------------------------------------------------------
-    R(end,2)     = corr(DEM.Ep.A(:),pP.A(:));
+    R(end,2)     = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
     
     % free energy
     % ---------------------------------------------------------------------
@@ -212,9 +208,8 @@ end
 % -----------------------------------------------------------------
 spm_figure('Getwin','Figure 3'); clf
 
-subplot(2,2,1); cla
-bar(V,F), hold on
-plot([4 4],[min(F(:)) 1.2*max(F(:))],'r:','LineWidth',4), hold off
+subplot(2,2,1);
+bar(V,F - min(F(:)) + 16)
 title('log-evidence and precision','FontSize',16)
 xlabel('prior precision')
 ylabel('free energy')
@@ -222,11 +217,13 @@ axis square
 
 subplot(2,2,3);
 bar(V,R), hold on
-plot([1 length(V)],[0.05 0.05],'r:','LineWidth',4), hold off
-title('correlation','FontSize',16)
+plot(V,V*0 + 0.05,'r:'), hold off
+title('accuracy','FontSize',16)
 xlabel('prior precision')
-ylabel('rho')
+ylabel('root mean square error')
 axis square
+legend ('D > 0','D = 0')
+
 
 
 % search over embedding dimension
@@ -244,7 +241,7 @@ for i = 1:length(D)
         
     % correlation
     % ---------------------------------------------------------------------
-    DR(end + 1,1)   = corr(DEM.Ep.A(:),pP.A(:));
+    DR(end + 1,1)   = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
     
     % free energy
     % ---------------------------------------------------------------------
@@ -258,20 +255,20 @@ end
 spm_figure('Getwin','Figure 3');
 
 subplot(2,2,2); cla
-bar(D,DF), hold on
+bar(D,DF - min(DF(:)) + 16)
 title('log-evidence and embedding','FontSize',16)
 xlabel('embedding dimension')
 ylabel('free energy')
-set(gca,'YLim',[min(DF - 16) max(DF) + 16])
 axis square
 
 subplot(2,2,4);
 bar(D,DR), hold on
-title('correlation','FontSize',16)
+plot(D,D*0 + 0.05,'r:'), hold off
+title('accuracy','FontSize',16)
 xlabel('embedding dimension')
-ylabel('rho')
-set(gca,'YLim',[min(DR - std(DR)) max(DR) + std(DR)])
+ylabel('root mean square error')
 axis square
+
 
 
 % load empirical DCM for search over precision and embedding dimension
@@ -313,11 +310,11 @@ end
 
 
 % summary
-% -----------------------------------------------------------------
+% -------------------------------------------------------------------------
 spm_figure('Getwin','Figure 4'); clf
 
-subplot(2,2,1); cla
-bar(V,eF), hold on
+subplot(2,2,1);
+bar(V,eF - min(eF(:)) + 16)
 title('precision (empirical)','FontSize',16)
 xlabel('prior precision ')
 ylabel('free energy')
@@ -347,12 +344,21 @@ end
 spm_figure('Getwin','Figure 4');
 
 subplot(2,2,2); cla
-bar(D,eDF), hold on
+bar(D,eDF - min(eDF(:)) + 16), hold on
 title('embedding (empirical)','FontSize',16)
 xlabel('embedding dimension')
 ylabel('free energy')
-set(gca,'YLim',[min(eDF - 16) max(eDF) + 16])
 axis square
+
+% get functional space
+%==========================================================================
+spm_figure('Getwin','Figure 5');
+
+subplot(2,1,2)
+title('Anatomical and functional spaces','FontSize',16)
+FS = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
+spm_dcm_graph(DEM.xY,FS)
+
 
     
 % and save matlab file
@@ -407,7 +413,7 @@ end
 
 % graphics
 %--------------------------------------------------------------------------
-spm_figure('Getwin','Figure 5'); clf
+spm_figure('Getwin','Figure 6'); clf
 
 subplot(2,1,1), cla
 for  i = 1:nA*nA

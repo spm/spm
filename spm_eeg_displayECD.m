@@ -1,6 +1,6 @@
 function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Plot dipole positions onto the SPM canonical mesh
-% FORMAT [out] = spm_eeg_displayDipoles(Pos,Orient,Var,Names,options)
+% FORMAT [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 %
 % IN (admissible choices):
 %   - Pos: a 3xndip matrix containing the positions of the dipoles in
@@ -20,7 +20,7 @@ function [out] = spm_eeg_displayECD(Pos,Orient,Var,Names,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_displayECD.m 4054 2010-08-27 19:27:09Z karl $
+% $Id: spm_eeg_displayECD.m 5737 2013-11-10 20:23:49Z karl $
 
 
 % checks and defaults

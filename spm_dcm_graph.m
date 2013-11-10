@@ -6,11 +6,11 @@ function spm_dcm_graph(xY,A)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
- 
-% Karl Friston
-% $Id: spm_dcm_graph.m 5448 2013-04-25 11:08:52Z guillaume $
 
- 
+% Karl Friston
+% $Id: spm_dcm_graph.m 5737 2013-11-10 20:23:49Z karl $
+
+
 % get dimensions, locations and names
 %--------------------------------------------------------------------------
 try
@@ -46,11 +46,15 @@ options.query = [];
 options.hfig  = gcf;
 options.ParentAxes = gca;
 options.markersize = 32;
-h     = spm_eeg_displayECD(L,[],8,name,options);
+options.meshsurf = fullfile(spm('Dir'),'canonical','iskull_2562.surf.gii');
+spm_eeg_displayECD(L(:,1),[],0,[],options);
+options.meshsurf = fullfile(spm('Dir'),'canonical','cortex_8196.surf.gii');
+h     = spm_eeg_displayECD(L,[],6,name,options);
 for i = 1:m
     set(h.handles.ht(i),'FontWeight','bold')
 end
 set(h.handles.mesh,'FaceAlpha',1/16);
+
 
 % return if no connectivity
 %--------------------------------------------------------------------------
@@ -66,56 +70,73 @@ if iscell(A)
         W = W + max(C,C');
     end
     A = C;
-else
+    
+elseif isnumeric(A)
     W = max(abs(A),abs(A'));
+    
+else
+    W = [];
 end
- 
- 
-% Connections
+
+% Connections - if weights (W) are defined
 %--------------------------------------------------------------------------
-W     = W - diag(diag(W));
-W     = 3*W/max(W(:));
-W     = W.*(W > 1/128);
-for i = 1:length(A)
-    for j = (i + 1):length(A)
-        if W(i,j)
-            
-            % associate colour with the strongest influence
-            %--------------------------------------------------------------
-            if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
-            k   = rem(c - 1,length(col)) + 1;
-            line(L(1,[i j]),L(2,[i j]),L(3,[i j]),'Color',col{k},...
-                'LineStyle','-',...
-                'LineWidth',W(i,j));
+if numel(W)
+    
+    W     = W - diag(diag(W));
+    W     = 3*W/max(W(:));
+    W     = W.*(W > 1/128);
+    for i = 1:length(A)
+        for j = (i + 1):length(A)
+            if W(i,j)
+                
+                % associate colour with the strongest influence
+                %----------------------------------------------------------
+                if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
+                k   = rem(c - 1,length(col)) + 1;
+                line(L(1,[i j]),L(2,[i j]),L(3,[i j]),'Color',col{k},...
+                    'LineStyle','-',...
+                    'LineWidth',W(i,j));
+            end
         end
     end
 end
 
 
-%-Render graph in functional space
+%-Render graph in functional space (with the locations U)
 %==========================================================================
-if length(A) < 3, return; end
- 
-% Multidimensional scaling (with the Weighted Graph Laplacian)
-%--------------------------------------------------------------------------
-D      = diag(sum(W));
-G      = D - W;
-[U,V]  = eig(full(spm_pinv(G)));
-U      = U*sqrt(V);
-[V,i]  = sort(-diag(V));
-U      = U(:,i(1:3))';
- 
-% Procrustean transform to align with anatomy (not currently used)
-%--------------------------------------------------------------------------
+if length(A) < 3 && isnumeric(A), return; end
+
+if isstruct(A)
+    
+    P.A    = zeros(m,m);
+    P      = spm_dcm_fmri_graph_gen([],A,P);
+    W      = P.A;
+    
+    i      = 1:min(size(A.x,1),3);
+    U      = zeros(3,m);
+    U(i,:) = A.x(i,:);
+    A      = W;
+    W      = sign(W);
+    
+else
+      
+    % Multidimensional scaling (with the Weighted Graph Laplacian)
+    %----------------------------------------------------------------------
+    D      = diag(sum(W));
+    G      = D - W;
+    [U,V]  = eig(full(spm_pinv(G)));
+    U      = U*sqrt(V);
+    [V,i]  = sort(-diag(V));
+    U      = U(:,i(1:3))';
+    
+end
+
+% Procrustean transform
+%----------------------------------------------------------------------
 U      = spm_detrend(U')';
-L      = spm_detrend(L')';
-% [R V S] = spm_svd(U*L');
-% R       = R*S;
-% U       = R'*U;
-U      = diag(sign(diag(U*L')))*U;
 U      = real(U*80/max(abs(U(:))));
- 
- 
+
+
 subplot(2,1,2);cla
 set(gca,'position',[0 0 1 .5])
 options.ParentAxes = gca;
@@ -126,20 +147,25 @@ delete(findobj(get(gcf,'Children'),'Type','uicontrol'))
 for i = 1:m
     set(g.handles.ht(i),'FontWeight','bold')
 end
- 
+
 % Connections
 %--------------------------------------------------------------------------
 for i = 1:m
     for j = (i + 1):m
-        if W(i,j)
-            
-            % associate colour with the strongest influence
-            %--------------------------------------------------------------
-            if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
-            k   = rem(c - 1,length(col)) + 1;
+        
+        % associate colour with the strongest influence
+        %--------------------------------------------------------------
+        if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
+        k   = rem(c - 1,length(col)) + 1;
+        
+        if W(i,j) > 0
             line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
-                'LineWidth',W(i,j));
+                'LineWidth', W(i,j));
+        else
+            line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
+                'LineStyle','-.',...
+                'LineWidth',-W(i,j));  
         end
     end
 end
