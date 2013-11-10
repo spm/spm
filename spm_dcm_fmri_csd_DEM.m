@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5736 2013-11-10 13:17:10Z karl $
 
 
 % get DCM
@@ -71,11 +71,9 @@ try, DCM.v;   catch, DCM.v = size(DCM.Y.y,1); end
 
 % analysis and options
 %--------------------------------------------------------------------------
-DCM.options.two_state  = 1;
 DCM.options.induced    = 1;
 DCM.options.nonlinear  = 0;
 DCM.options.stochastic = 0;
-
 
 % organise response variables: detrend outputs (and inputs)
 %==========================================================================
@@ -106,17 +104,6 @@ end
 %==========================================================================
 [pE,pC,x] = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d,DCM.options);
 
-% precision of effective connectivity (first level hidden causes)
-%--------------------------------------------------------------------------
-try
-    v     = exp(-DCM.options.v(1));
-catch
-    v     = exp(-4);
-end
-pC        = diag(pC);
-pC        = spm_unvec(pC,pE);
-pC.A      = v + pC.A - pC.A;
-pC        = diag(spm_vec(pC));
 
 % eigenvector constraints on pC for large models
 %--------------------------------------------------------------------------
@@ -193,14 +180,6 @@ global GLOBAL_DCM
 GLOBAL_DCM   = DCM;
 
 
-% log-precision of full priors
-%--------------------------------------------------------------------------
-try
-    V     = exp(DCM.options.v(2));
-catch
-    V     = exp(-4);
-end
-
 % data (and priors)
 %--------------------------------------------------------------------------
 DEM.Y        = spm_vec(spm_fs_fmri_csd(DCM.Y.csd,DCM.M));
@@ -211,7 +190,7 @@ DEM.M.E.nE   = 16;
 %==========================================================================
 DEM.M(1).g   = 'spm_dcm_fmri_csd_gen';
 DEM.M(1).hE  = 6;
-DEM.M(1).hC  = exp(-8);
+DEM.M(1).hC  = exp(-6);
 DEM.M(1).Q   = Q;
 DEM.M(1).m   = length(pC);
 DEM.M(1).n   = 0;
@@ -222,8 +201,8 @@ DEM.M(2).V   = spm_inv(pC);
 DEM.M(2).v   = pE;
 DEM.M(2).pE  = pE;
 
-DEM.M(3).V   = V;
-DEM.M(3).v.a = 0;
+DEM.M(3).V   = exp(-2);
+DEM.M(3).v.a = [0; 0];
 DEM.M(3).v.x = zeros(DCM.options.embedding,n);
 
 % Varaitional Laplace

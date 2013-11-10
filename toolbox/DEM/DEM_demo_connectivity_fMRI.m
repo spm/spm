@@ -24,7 +24,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5736 2013-11-10 13:17:10Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -37,18 +37,20 @@ T   = 512;                             % number of observations (scans)
 TR  = 2;                               % repetition time or timing
 n   = 5;                               % number of regions or nodes
 t   = (1:T)*TR;                        % observation times
-v.a = 3;                               % log amplitude
-v.x = randn(D,n);                      % location
+v.a = [2; -1];                         % log amplitude
+v.x = randn(D,n)/2;                    % location
 
 % priors
 % -------------------------------------------------------------------------
 options.nmax       = 8;                % effective number of notes
 
-options.two_state  = 1;
+options.two_state  = 0;
 options.induced    = 1;
 options.stochastic = 0;
 options.nonlinear  = 0;
 options.embedding  = 3;
+options.backwards  = 0;
+options.v          = 4;
 
 A   = ones(n,n);
 B   = zeros(n,n,0);
@@ -60,16 +62,16 @@ D   = zeros(n,n,0);
 % -------------------------------------------------------------------------
 [pE,pC,x]  = spm_dcm_fmri_priors(A,B,C,D,options);
 pP         = spm_dcm_fmri_graph_gen([],v,pE);
-pP.A       = pP.A + randn(n,n)*exp(-2);
+pP.A       = pP.A + randn(size(pP.A))*exp(-4); disp(pP.A)
 pP.C       = eye(n,n);
-pP.transit = randn(n,1)/16;
+pP.transit = randn(n,1)*exp(-4);
 
 % simulate response to endogenous fluctuations
 %==========================================================================
 
 % integrate states
 % -------------------------------------------------------------------------
-U.u  = spm_rand_mar(T,n,1/2)/2;      % endogenous fluctuations
+U.u  = spm_rand_mar(T,n,1/2)/8;      % endogenous fluctuations
 U.dt = TR;
 M.f  = 'spm_fx_fmri';
 M.x  = x;
@@ -83,7 +85,7 @@ end
 
 % observation noise process
 % -------------------------------------------------------------------------
-e    = spm_rand_mar(T,n,1/2)/8;
+e    = spm_rand_mar(T,n,1/2)/4;
 
 % show simulated response
 %--------------------------------------------------------------------------
@@ -111,7 +113,6 @@ xlabel('Time (seconds)')
 ylabel('Amplitude')
 axis square
 
-
 % nonlinear system identification (DCM for CSD) over subjects
 %==========================================================================
 DCM.options = options;
@@ -125,7 +126,6 @@ DCM.Y.y  = y + e;
 DCM.Y.dt = TR;
 DCM.U.u  = zeros(T,1);
 DCM.U.dt = TR;
-
 
 % nonlinear system identification (Variational Laplace)
 % =========================================================================
@@ -144,85 +144,66 @@ DEM  = spm_dcm_fmri_csd_DEM(DCM);
 spm_figure('Getwin','Figure 2'); clf
 
 subplot(2,1,1); hold off
-j   = 1:numel(DCM.Ep.A);
-Ep  = exp(DEM.Ep.A(:))/8;
-Qp  = exp(DCM.Ep.A(:))/8;
-Cp  = exp(DCM.Cp(j,j)/64)/8;
-Pp  = exp(pP.A(:))/8;
-spm_plot_ci(Ep,Cp), hold on
-bar(Pp,1/2), hold off
+j   = 1:numel(pP.A);
+Ep  = DEM.Ep.A(j);
+Qp  = DCM.Ep.A(j);
+Cp  = DCM.Cp(j,j);
+Pp  = pP.A(:);
+spm_plot_ci(Ep(:),Cp), hold on
+bar(Pp,1/2,'b'), hold off
 title('True and MAP connections','FontSize',16)
 axis square
 
+
 subplot(2,2,3); cla
-plot(Pp,Ep,'.','MarkerSize',16), hold off
+plot(Pp,Ep,'r.','MarkerSize',16), hold off
 title('MAP vs. true','FontSize',16)
 xlabel('true')
 ylabel('estimate')
 axis square
 
 subplot(2,2,4); cla
-plot(Pp,Qp,'.','MarkerSize',16), hold off
+plot(Pp,Qp,'r.','MarkerSize',16), hold off
 title('classical vs. true ','FontSize',16)
 xlabel('true')
 ylabel('estimate')
 axis square
 
-% load empirical DCM for search over precision and embedding dimension
-%==========================================================================
-empirical = 1;
-if empirical
-    load DCM_ATT
-    
-    n     = DCM.n;
-    DCM.a = ones(n,n);
-    DCM.b = zeros(n,n,0);
-    DCM.d = zeros(n,n,0);
-    
-    pP.A  = zeros(n,n);
-end
-
 
 % search over precision of hidden causes
 %==========================================================================
-DCM.options = options;
-DCM.options.v = [4, -4];
-
-V     = linspace(1,8,8);
+V     = 4:8;
 F     = [];
-RMS   = [];
+R     = [];
 for i = 1:length(V)
-    
-    DCM.options.v(1) = V(i);
     
     % invert
     %======================================================================
-    DCM.options.v(2) = -4;
+    DCM.options.v         = V(i);
+    DCM.options.embedding = 3;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
-    % root mean square error
+    % correlation
     % ---------------------------------------------------------------------
-    dp             = (exp(DEM.Ep.A) - exp(pP.A))/8;
-    RMS(end + 1,1) = sqrt(mean(dp(~~dp).^2));
+    R(end + 1,1) = corr(DEM.Ep.A(:),pP.A(:));
     
     % free energy
     % ---------------------------------------------------------------------
-    F(end + 1,1)   = DEM.F;
+    F(end + 1,1) = DEM.F;
     
     
     % repeat with precise full priors
     %======================================================================
-    DCM.options.v(2) = 16;
+    DCM.options.embedding = 0;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
-    % root mean square error
+    % correlation
     % ---------------------------------------------------------------------
-    dp             = (exp(DEM.Ep.A) - exp(pP.A))/8;
-    RMS(end,2)     = sqrt(mean(dp(~~dp).^2));
+    R(end,2)     = corr(DEM.Ep.A(:),pP.A(:));
     
     % free energy
     % ---------------------------------------------------------------------
-    F(end,2)       = DEM.F;
+    F(end,2)     = DEM.F;
     
 end
 
@@ -232,40 +213,38 @@ end
 spm_figure('Getwin','Figure 3'); clf
 
 subplot(2,2,1); cla
-bar(F), hold on
+bar(V,F), hold on
 plot([4 4],[min(F(:)) 1.2*max(F(:))],'r:','LineWidth',4), hold off
 title('log-evidence and precision','FontSize',16)
 xlabel('prior precision')
 ylabel('free energy')
 axis square
 
-subplot(2,2,2);
-bar(RMS), hold on
+subplot(2,2,3);
+bar(V,R), hold on
 plot([1 length(V)],[0.05 0.05],'r:','LineWidth',4), hold off
-title('root mean square error','FontSize',16)
+title('correlation','FontSize',16)
 xlabel('prior precision')
-ylabel('RMS')
+ylabel('rho')
 axis square
 
 
 % search over embedding dimension
 %==========================================================================
-DCM.options.v = [4, -4];
-
-D     = 1:6;
+D     = 0:4;
 DF    = [];
-DRMS  = [];
+DR    = [];
 for i = 1:length(D)
 
     % invert
     %======================================================================
+    DCM.options.v         = 6;
     DCM.options.embedding = D(i);
     DEM = spm_dcm_fmri_csd_DEM(DCM);
         
-    % root mean square error
+    % correlation
     % ---------------------------------------------------------------------
-    dp              = (exp(DEM.Ep.A) - exp(pP.A))/8;
-    DRMS(end + 1,1) = sqrt(mean(dp(~~dp).^2));
+    DR(end + 1,1)   = corr(DEM.Ep.A(:),pP.A(:));
     
     % free energy
     % ---------------------------------------------------------------------
@@ -278,8 +257,8 @@ end
 % -----------------------------------------------------------------
 spm_figure('Getwin','Figure 3');
 
-subplot(2,2,3); cla
-bar(DF), hold on
+subplot(2,2,2); cla
+bar(D,DF), hold on
 title('log-evidence and embedding','FontSize',16)
 xlabel('embedding dimension')
 ylabel('free energy')
@@ -287,23 +266,107 @@ set(gca,'YLim',[min(DF - 16) max(DF) + 16])
 axis square
 
 subplot(2,2,4);
-bar(DRMS), hold on
-title('root mean square error','FontSize',16)
+bar(D,DR), hold on
+title('correlation','FontSize',16)
 xlabel('embedding dimension')
-ylabel('RMS')
-set(gca,'YLim',[min(DRMS - std(DRMS)) max(DRMS) + std(DRMS)])
+ylabel('rho')
+set(gca,'YLim',[min(DR - std(DR)) max(DR) + std(DR)])
 axis square
 
-% and save matlab file
-% -----------------------------------------------------------------
-if empirical
-    save empirical
-else
-    save simulations
+
+% load empirical DCM for search over precision and embedding dimension
+%==========================================================================
+load DCM_stochastic
+
+n     = DCM.n;
+DCM.a = ones(n,n);
+DCM.b = zeros(n,n,0);
+DCM.d = zeros(n,n,0);
+
+% search over precision of hidden causes
+%==========================================================================
+DCM.options   = options;
+eF    = [];
+for i = 1:length(V)
+    
+    % invert
+    %======================================================================
+    DCM.options.v         = V(i);
+    DCM.options.embedding = 1;
+    DEM = spm_dcm_fmri_csd_DEM(DCM);
+    
+    % free energy
+    % ---------------------------------------------------------------------
+    eF(end + 1,1) = DEM.F;
+    
+    
+    % repeat with precise full priors
+    %======================================================================
+    DCM.options.embedding = 0;
+    DEM = spm_dcm_fmri_csd_DEM(DCM);
+    
+    % free energy
+    % ---------------------------------------------------------------------
+    eF(end,2) = DEM.F;
+    
 end
 
 
+% summary
+% -----------------------------------------------------------------
+spm_figure('Getwin','Figure 4'); clf
+
+subplot(2,2,1); cla
+bar(V,eF), hold on
+title('precision (empirical)','FontSize',16)
+xlabel('prior precision ')
+ylabel('free energy')
+axis square
+
+
+% search over embedding dimension
+%==========================================================================
+eDF   = [];
+for i = 1:length(D)
+
+    % invert
+    %======================================================================
+    DCM.options.v         = 6;
+    DCM.options.embedding = D(i);
+    DEM = spm_dcm_fmri_csd_DEM(DCM);
+            
+    % free energy
+    % ---------------------------------------------------------------------
+    eDF(end + 1,1)   = DEM.F;
+    
+end
+    
+
+% summary
+% -------------------------------------------------------------------------
+spm_figure('Getwin','Figure 4');
+
+subplot(2,2,2); cla
+bar(D,eDF), hold on
+title('embedding (empirical)','FontSize',16)
+xlabel('embedding dimension')
+ylabel('free energy')
+set(gca,'YLim',[min(eDF - 16) max(eDF) + 16])
+axis square
+
+    
+% and save matlab file
+% -------------------------------------------------------------------------
+save paper
+
+
+
 return
+
+
+
+
+
 
 % NOTES: illustrate the ill-posed nature of the problem
 %==========================================================================
@@ -341,7 +404,11 @@ for i = 1:2
     Cp(:,i) = 0.001 + Cp(:,i)./(max(Cp(:,i))*1.1);
 end
 
-spm_figure('Getwin','Figure 4'); clf
+
+% graphics
+%--------------------------------------------------------------------------
+spm_figure('Getwin','Figure 5'); clf
+
 subplot(2,1,1), cla
 for  i = 1:nA*nA
     plot(Up(i,1),Up(i,2),'.','Markersize',32,'Color',[1/2 Cp(i,1) Cp(i,2)]), hold on

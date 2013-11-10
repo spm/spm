@@ -26,11 +26,12 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_dcm_fmri_priors.m 5736 2013-11-10 13:17:10Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
 n = length(A);
+A = logical(A - diag(diag(A)));
 
 % check options and D (for nonlinear coupling)
 %--------------------------------------------------------------------------
@@ -41,17 +42,6 @@ try, options.backwards;  catch, options.backwards  = 0; end
 try, D;                  catch, D = zeros(n,n,0);       end
 
 
-% prior (initial) states and shrinkage priors on A for endogenous DCMs
-%--------------------------------------------------------------------------
-if options.two_state,  x = sparse(n,6); else, x = sparse(n,5); end
-if options.backwards,  A(:,:,2) = A(:,:,1);                    end
-
-% self-inhibition is a log scale parameter
-%----------------------------------------------------------------------
-for i = 1:size(A,3)
-    A(:,:,i) = logical(A(:,:,i) - diag(diag(A(:,:,i))));
-end
-
 % connectivity priors and intitial states
 %==========================================================================
 if options.two_state
@@ -59,6 +49,10 @@ if options.two_state
     % (6) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,6);
+    
+    % precision of log-connections (two-state)
+    %---------------------------------------------------------------------
+    try, pA = exp(options.v); catch,  pA = 16;  end
     
     % prior expectations and variances
     %----------------------------------------------------------------------
@@ -70,17 +64,28 @@ if options.two_state
     % prior covariances
     %----------------------------------------------------------------------
     for i = 1:size(A,3)
-        pC.A(:,:,i) = A(:,:,i)/8 + eye(n,n)/64;
+        pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/pA;
     end
     pC.B  =  B/4;
     pC.C  =  C*4;
     pC.D  =  D/4;
     
+    % excitatory proportion
+    %----------------------------------------------------------------------
+    if options.backwards
+        pE.A(:,:,2) = A*0;
+        pC.A(:,:,2) = A/pA;
+    end
+
 else
     
     % (6 - 1) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,5);
+    
+    % precision of connections (one-state)
+    %---------------------------------------------------------------------
+    try, pA = exp(options.v); catch,  pA = 64;  end
     
     % prior expectations
     %----------------------------------------------------------------------
@@ -91,14 +96,8 @@ else
     
     % prior covariances
     %----------------------------------------------------------------------
-    if options.stochastic
-        for i = 1:size(A,3)
-            pC.A(:,:,i) = A(:,:,i)/64 + eye(n,n)/256;
-        end
-    else
-        for i = 1:size(A,3)
-            pC.A(:,:,i) = A(:,:,i)/64 + eye(n,n)/256;
-        end
+    for i = 1:size(A,3)
+        pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/(64*pA);
     end
     pC.B  =  B;
     pC.C  =  C;
@@ -125,6 +124,6 @@ end
 
 % prior covariance matrix
 %--------------------------------------------------------------------------
-pC         = diag(spm_vec(pC));
+pC  = diag(spm_vec(pC));
 
 return

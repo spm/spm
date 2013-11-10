@@ -35,7 +35,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_fx_fmri.m 5736 2013-11-10 13:17:10Z karl $
 
 
 % Neuronal motion
@@ -70,43 +70,40 @@ if size(x,2) == 5
     
     % one neuronal state per region: diag(A) is a log self-inhibition
     %----------------------------------------------------------------------
-    SI     = diag(P.A);
-    P.A    = P.A - diag(exp(SI)/2 + SI);
+    SE     = diag(P.A);
+    EE     = P.A - diag(exp(SE)/2 + SE);
     
     % flow
     %----------------------------------------------------------------------
-    f(:,1) = P.A*x(:,1) + P.C*u(:);
+    f(:,1) = EE*x(:,1) + P.C*u(:);
     
 else
     
     % extrinsic (two neuronal states): enforce positivity
     %----------------------------------------------------------------------
-    P.A   = exp(P.A(:,:,1))/8;
-    DA    = diag(diag(P.A));        % intrinsic connectivity
-    EE    = P.A - DA;               % excitatory to excitatory
-    n     = length(P.A);            % number of regions
-    IE    = eye(n,n);               % inhibitory to excitatory
-    EI    = eye(n,n);               % excitatory to inhibitory
-    SE    = eye(n,n);               % self-inhibition (excitatory)
-    SI    = eye(n,n);               % self-inhibition (inhibitory)
+    n     = size(P.A,1);            % number of regions
+    EE    = exp(P.A(:,:,1))/8;
+    IE    = diag(diag(EE));         % intrinsic inhibitory to excitatory
+    EE    = EE - IE;                % extrinsic excitatory to excitatory
+    EI    = eye(n,n);               % intrinsic excitatory to inhibitory
+    SE    = eye(n,n)/2;               % intrinsic self-inhibition (excitatory)
+    SI    = eye(n,n);             % intrinsic self-inhibition (inhibitory)
     
-    
-    % <<< intrinsic connectivity >>>
+    % excitatory proportion
     %----------------------------------------------------------------------
-    IE    = DA;                     % self-inhibition (inhibitory)
-    
-    % <<< switch excitatory to excitatory -> excitatory to inhibitory >>>
-    %----------------------------------------------------------------------
-    in    = {};
-    for i = 1:length(in)
-        EI(in{i}(1),in{i}(2)) = EE(in{i}(1),in{i}(2));
-        EE(in{i}(1),in{i}(2)) = 0;
+    if size(P.A,3) > 1
+        phi = spm_phi(P.A(:,:,2)*2);
+        EI  = EI + EE.*(1 - phi);
+        EE  = EE.*phi - SE;
+    else
+        EE  = EE - SE;
     end
+    
     
     % motion - excitatory and inhibitory: f = dx/dt
     %----------------------------------------------------------------------
-    f(:,1) = (EE - SE)*x(:,1) - IE*x(:,6) + P.C*u(:);
-    f(:,6) = EI*x(:,1) - SI*2*x(:,6);
+    f(:,1) = EE*x(:,1) - IE*x(:,6) + P.C*u(:);
+    f(:,6) = EI*x(:,1) - SI*x(:,6);
     
 end
 
@@ -165,9 +162,9 @@ if m == 5
     
     % one neuronal state per region
     %----------------------------------------------------------------------
-    dfdx{1,1} = P.A;
+    dfdx{1,1} = EE;
     for i = 1:size(P.D,3)
-        D  = P.D(:,:,i) + diag((diag(P.A) - 1).*diag(P.D(:,:,i)));
+        D  = P.D(:,:,i) + diag((diag(EE) - 1).*diag(P.D(:,:,i)));
         dfdx{1,1}(:,i) = dfdx{1,1}(:,i) + D*x(:,1);
     end
     
@@ -175,10 +172,10 @@ else
     
     % two neuronal states: NB nonlinear (D) effects not implemented)
     %----------------------------------------------------------------------
-    dfdx{1,1} = EE - SE;
+    dfdx{1,1} = EE;
     dfdx{1,6} = - IE;
     dfdx{6,1} = EI;
-    dfdx{6,6} = - SI*2;
+    dfdx{6,6} = - SI;
     
 end
 
@@ -186,7 +183,7 @@ end
 %==========================================================================
 dfdu{1,1} = P.C;
 for i = 1:size(P.B,3)
-    B  = P.B(:,:,i) + diag((diag(P.A) - 1).*diag(P.B(:,:,i)));
+    B  = P.B(:,:,i) + diag((diag(EE) - 1).*diag(P.B(:,:,i)));
     dfdu{1,1}(:,i) = dfdu{1,1}(:,i) + B*x(:,1);
 end
 dfdu{2,1} = sparse(n*(m - 1),length(u(:)));

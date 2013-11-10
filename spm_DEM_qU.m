@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 5672 2013-10-06 13:30:54Z karl $
+% $Id: spm_DEM_qU.m 5736 2013-11-10 13:17:10Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -47,7 +47,7 @@ end
 %--------------------------------------------------------------------------
 N     = size(V{1},2);                            % length of data sequence
 dt    = 1;                                       % time step
-t     = [1:N]*dt;                                % time
+t     = (1:N)*dt;                                % time
  
 % unpack conditional covariances
 %--------------------------------------------------------------------------
@@ -81,7 +81,7 @@ for i = 1:g
         %------------------------------------------------------------------
         if i > 1 && size(c,1)
             hold on
-            j      = [1:size(V{i},1)];
+            j      = 1:size(V{i},1);
             y      = ci*c(j,:);
             c(j,:) = [];
             fill([t fliplr(t)],[full(V{i} + y)' fliplr(full(V{i} - y)')],...
@@ -94,7 +94,7 @@ for i = 1:g
         %------------------------------------------------------------------
         title('hidden causes','FontSize',16);
         axis square
-        set(gca,'XLim',[t(1) t(end)])
+        try, set(gca,'XLim',[t(1) t(end)]), end
         box off
  
     else
