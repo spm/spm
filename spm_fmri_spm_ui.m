@@ -172,10 +172,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 5673 2013-10-08 13:15:28Z guillaume $
+% $Id: spm_fmri_spm_ui.m 5744 2013-11-13 19:55:18Z guillaume $
 
 
-SVNid = '$Rev: 5673 $';
+SVNid = '$Rev: 5744 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -241,6 +241,29 @@ else
             SPM.xVi.V  = speye(sum(nscan));
             cVi        = 'i.i.d';
 
+        case 'xxx'
+            %--------------------------------------------------------------
+            dt = SPM.xY.RT;
+            Q  = {};
+            l  = sum(nscan);
+            k  = 0;
+            for m=1:length(nscan)
+                T     = (0:(nscan(m) - 1))*dt;
+                d     = 2.^(floor(log2(dt/4)):log2(64));
+                for i = 1:length(d)
+                    for j = 0:2
+                        QQ = toeplitz((T.^j).*exp(-T/d(i)));
+                        [x,y,q] = find(QQ);
+                        x = x + k;
+                        y = y + k;
+                        Q{end + 1} = sparse(x,y,q,l,l);
+                    end
+                end
+                k = k + nscan(m);
+            end
+            SPM.xVi.Vi = Q;
+            cVi        = upper(cVi);
+            
         otherwise               % otherwise assume AR(0.2) in xVi.Vi
             %--------------------------------------------------------------
             SPM.xVi.Vi = spm_Ce(nscan,0.2);
