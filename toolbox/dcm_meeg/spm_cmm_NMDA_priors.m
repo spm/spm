@@ -42,7 +42,7 @@ function [pE,pC] = spm_cmm_NMDA_priors(A,B,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmm_priors.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_cmm_NMDA_priors.m 5741 2013-11-13 12:10:48Z guillaume $
  
  
 % disable log zero warning

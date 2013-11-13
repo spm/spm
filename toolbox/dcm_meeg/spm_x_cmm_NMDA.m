@@ -25,7 +25,7 @@ function [x,M] = spm_x_cmm_NMDA(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_x_cmm.m 5019 2012-10-26 19:32:57Z karl $
+% $Id: spm_x_cmm_NMDA.m 5741 2013-11-13 12:10:48Z guillaume $
 
 
 

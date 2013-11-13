@@ -45,7 +45,7 @@ function [f,J,Q] = spm_fx_cmm_NMDA(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmm.m 5082 2012-11-28 20:25:37Z karl $
+% $Id: spm_fx_cmm_NMDA.m 5741 2013-11-13 12:10:48Z guillaume $
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
