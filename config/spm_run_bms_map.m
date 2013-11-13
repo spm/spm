@@ -45,20 +45,20 @@ function out = spm_run_bms_map (job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_map.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_run_bms_map.m 5740 2013-11-13 12:00:04Z guillaume $
 
 % Input
 % -------------------------------------------------------------------------
 direct  = job.dir{1};
-fname   = [direct,'BMS.mat'];       % Output filename (including directory)
-mask    = length(job.mask{1});      % Mask image
+fname   = fullfile(direct,'BMS.mat'); % Output filename (with full path)
+mask    = length(job.mask{1});        % Mask image
 if mask
-   mask_image = spm_vol(job.mask);  % Mask image Vol
+   mask_image = spm_vol(job.mask);    % Mask image Vol
 end
-nsamps    = str2num(job.nsamp);     % Number of samples (nmodels > 3)
+nsamps    = str2num(job.nsamp);       % Number of samples (nmodels > 3)
 do_maps   = job.out_file;           
-do_ecp    = do_maps > 0;            % Compute Exceedance Probability
-do_alpha  = do_maps > 1;            % Compute Alpha Parameters
+do_ecp    = do_maps > 0;              % Compute Exceedance Probability
+do_alpha  = do_maps > 1;              % Compute Alpha Parameters
 
 % Nb. of subjects and models
 % -------------------------------------------------------------------------
@@ -139,8 +139,8 @@ switch method
         'descrip',  '');
 
         % Load Vols for all subjects/models 
-        for i = 1:nmodels,
-            model_ppm(i).fname   = [sprintf('%s%s_model_ppm',direct,names{i}) spm_file_ext];
+        for i = 1:nmodels
+            model_ppm(i).fname   = fullfile(direct,[sprintf('%s_model_ppm',names{i}) spm_file_ext]);
             model_ppm(i).descrip = sprintf('PPM: %s model',names{i});
             BMS.map.ffx.ppm{i}   = model_ppm(i).fname;
             
@@ -221,17 +221,17 @@ switch method
         end
         
         % Load Vols for all subjects/models
-        for i = 1:nmodels,
-            model_exp_r(i).fname   = [sprintf('%s%s_model_xppm',direct,names{i}) spm_file_ext];
+        for i = 1:nmodels
+            model_exp_r(i).fname   = fullfile(direct,[sprintf('%s_model_xppm',names{i}) spm_file_ext]);
             model_exp_r(i).descrip = sprintf('Exp_r: %s model',names{i});
             BMS.map.rfx.ppm{i}     = model_exp_r(i).fname;
             if do_ecp
-            model_xp(i).fname      = [sprintf('%s%s_model_epm',direct,names{i}) spm_file_ext];
+            model_xp(i).fname      = fullfile(direct,[sprintf('%s_model_epm',names{i}) spm_file_ext]);
             model_xp(i).descrip    = sprintf('XP: %s model',names{i});
             BMS.map.rfx.epm{i}     = model_xp(i).fname;
             end
             if do_alpha
-            model_alpha(i).fname   = [sprintf('%s%s_model_alpha',direct,names{i}) spm_file_ext];
+            model_alpha(i).fname   = fullfile(direct,[sprintf('%s_model_alpha',names{i}) spm_file_ext]);
             model_alpha(i).descrip = sprintf('Alpha: %s model',names{i});
             BMS.map.rfx.alpha{i}   = model_alpha(i).fname;
             end
