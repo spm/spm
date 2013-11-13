@@ -42,7 +42,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 8399 2013-08-15 10:57:15Z jansch $
+% $Id: ft_plot_headshape.m 8753 2013-11-11 12:45:48Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -82,7 +82,7 @@ if isfield(headshape, 'fid')
   if ~isempty(transform)
     % spatially transform the fiducials
     % FIXME what is the reason for this?
-    fid.pnt = warp_apply(transform, fid.pnt);
+    fid.pnt = ft_warp_apply(transform, fid.pnt);
   end
   
   % show the fiducial labels

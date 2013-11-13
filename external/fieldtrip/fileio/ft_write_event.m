@@ -50,7 +50,7 @@ function ft_write_event(filename, event, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_event.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_write_event.m 8770 2013-11-12 13:54:58Z roboos $
 
 global event_queue   % for fcdc_global
 global db_blob       % for fcdc_mysql
@@ -111,7 +111,7 @@ switch eventformat
 	% information here. Please explicitly use ft_create_buffer instead.
   
   case 'fcdc_serial'
-    % this code is moved to a seperate file
+    % this code is moved to a separate file
     write_serial_event(filename, event);
 
   case 'fcdc_mysql'

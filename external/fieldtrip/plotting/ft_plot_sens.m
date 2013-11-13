@@ -36,7 +36,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 8422 2013-08-23 10:11:06Z roboos $
+% $Id: ft_plot_sens.m 8753 2013-11-11 12:45:48Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -165,7 +165,7 @@ for i=1:size(pnt,1)
   r1 = rotate([0 th 0]);
   r2 = rotate([0 0 ph]);
   t  = translate(pnt(i,:));
-  rim = warp_apply(t*r2*r1*s, pos); % scale, rotate and translate the template coil vertices, skip the central vertex
+  rim = ft_warp_apply(t*r2*r1*s, pos); % scale, rotate and translate the template coil vertices, skip the central vertex
   rim(1,:) = rim(end,:);            % replace the first (central) point with the last, this closes the circle
   h = line(rim(:,1), rim(:,2), rim(:,3));
   set(h, 'color', 'k');

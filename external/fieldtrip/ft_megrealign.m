@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 8701 2013-11-02 10:15:35Z roboos $
+% $Id: ft_megrealign.m 8757 2013-11-11 13:14:30Z roboos $
 
-revision = '$Id: ft_megrealign.m 8701 2013-11-02 10:15:35Z roboos $';
+revision = '$Id: ft_megrealign.m 8757 2013-11-11 13:14:30Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -269,7 +269,7 @@ for i=1:Ntrials
       error('only one position per trial is at present allowed');
     else
       %M    = rigidbodyJM(hmdat(:,1))
-      M    = headcoordinates(hmdat(1:3,1),hmdat(4:6,1),hmdat(7:9,1));
+      M    = ft_headcoordinates(hmdat(1:3,1),hmdat(4:6,1),hmdat(7:9,1));
       grad = ft_transform_sens(M, data.grad);
     end
     

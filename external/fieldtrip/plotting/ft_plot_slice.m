@@ -49,7 +49,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 8361 2013-08-01 07:38:14Z roboos $
+% $Id: ft_plot_slice.m 8753 2013-11-11 12:45:48Z roboos $
 
 persistent previous_dim X Y Z
 
@@ -192,7 +192,7 @@ if dointerp
   
   if false
     % this is for debugging
-    ft_plot_mesh(warp_apply(T2, pos))
+    ft_plot_mesh(ft_warp_apply(T2, pos))
     ft_plot_mesh(corner_head)
     axis on
     grid on
@@ -212,7 +212,7 @@ if dointerp
   M = transform\T2;
   
   % get the positions of the pixels of the desires plane in voxel space
-  pos = warp_apply(M, pos);
+  pos = ft_warp_apply(M, pos);
   
   Xi              = reshape(pos(:, 1), siz);
   Yi              = reshape(pos(:, 2), siz);
@@ -279,7 +279,7 @@ end
 
 if isempty(h),
   % get positions of the plane in plotting space
-  posh = warp_apply(transform, [Xi(:) Yi(:) Zi(:)], 'homogeneous', 1e-8);
+  posh = ft_warp_apply(transform, [Xi(:) Yi(:) Zi(:)], 'homogeneous', 1e-8);
   if ~isempty(posh)
     Xh   = reshape(posh(:, 1), siz+1);
     Yh   = reshape(posh(:, 2), siz+1);

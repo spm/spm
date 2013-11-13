@@ -39,11 +39,17 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 8501 2013-09-24 12:56:40Z roevdmei $
+% $Id: printstruct.m 8722 2013-11-06 13:57:03Z roboos $
 
 if nargin==1
   val  = name;
   name = inputname(1);
+end
+
+if isa(val, 'config')
+  % this is fieldtrip specific: the @config object resembles a structure but tracks the
+  % access to each field.  In this case it is to be treated as a normal structure.
+  val = struct(val);
 end
 
 str = '';

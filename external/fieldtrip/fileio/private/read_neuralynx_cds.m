@@ -1,6 +1,6 @@
 function [dat] = read_neuralynx_cds(filename, hdr, begsample, endsample, chanindx);
 
-% READ_NEURALYNX_CDS reads selected samples and channels from a  combined Neuralynx dataset with seperate subdirectories for the LFP, MUA and spike channels
+% READ_NEURALYNX_CDS reads selected samples and channels from a  combined Neuralynx dataset with separate subdirectories for the LFP, MUA and spike channels
 %
 % Use as
 %    hdr = read_neuralynx_cds(parentdir)
@@ -24,7 +24,7 @@ function [dat] = read_neuralynx_cds(filename, hdr, begsample, endsample, chanind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_cds.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_neuralynx_cds.m 8770 2013-11-12 13:54:58Z roboos $
 
 needhdr = (nargin==1);
 needdat = (nargin>=2);
@@ -33,9 +33,9 @@ dirlist = dir(filename);
 haslfp   = any(filetype_check_extension({dirlist.name}, 'lfp'));
 hasmua   = any(filetype_check_extension({dirlist.name}, 'mua'));
 hasspike = any(filetype_check_extension({dirlist.name}, 'spike'));
-%hasttl  = any(filetype_check_extension({dirlist.name}, 'ttl'));   % seperate file with original Parallel_in
-%hastsl  = any(filetype_check_extension({dirlist.name}, 'tsl'));   % seperate file with original TimeStampLow
-%hastsh  = any(filetype_check_extension({dirlist.name}, 'tsh'));   % seperate file with original TimeStampHi
+%hasttl  = any(filetype_check_extension({dirlist.name}, 'ttl'));   % separate file with original Parallel_in
+%hastsl  = any(filetype_check_extension({dirlist.name}, 'tsl'));   % separate file with original TimeStampLow
+%hastsh  = any(filetype_check_extension({dirlist.name}, 'tsh'));   % separate file with original TimeStampHi
 
 if needhdr
   % read the header from the LFP dataset

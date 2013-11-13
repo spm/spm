@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8636 2013-10-24 14:05:58Z roboos $
+% $Id: ft_read_data.m 8770 2013-11-12 13:54:58Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -341,7 +341,7 @@ switch dataformat
     begsample = begsample - (begepoch-1)*epochlength;  % correct for the number of bytes that were skipped
     endsample = endsample - (begepoch-1)*epochlength;  % correct for the number of bytes that were skipped
     dat = dat(:, begsample:endsample);
-    % close the file between seperate read operations
+    % close the file between separate read operations
     fclose(orig.Head.FILE.FID);
     
   case {'biosig'}

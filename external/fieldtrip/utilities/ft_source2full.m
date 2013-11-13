@@ -29,7 +29,7 @@ function [source] = ft_source2full(source);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_source2full.m 7393 2013-01-23 14:33:27Z jorhor $
+% $Id: ft_source2full.m 8753 2013-11-11 12:45:48Z roboos $
 
 ft_defaults
 
@@ -100,7 +100,7 @@ else
   % recreate the positions of the dipole grid
   [X, Y, Z] = ndgrid(xgrid, ygrid, zgrid);
   pos = [X(:) Y(:) Z(:)];
-  pos = warp_apply(inv([M T(:);0 0 0 1]), pos);
+  pos = ft_warp_apply(inv([M T(:);0 0 0 1]), pos);
 end
 
 Nsparse = length(source.inside);
@@ -313,7 +313,7 @@ catch
   [st, i] = dbstack;
   cfg.version.name = st(i);
 end
-cfg.version.id = '$Id: ft_source2full.m 7393 2013-01-23 14:33:27Z jorhor $';
+cfg.version.id = '$Id: ft_source2full.m 8753 2013-11-11 12:45:48Z roboos $';
 % remember the configuration details of the input data
 try, cfg.previous = source.cfg; end
 % remember the exact configuration details in the output 

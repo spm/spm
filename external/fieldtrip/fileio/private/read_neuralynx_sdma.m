@@ -37,7 +37,7 @@ function [dat] = read_neuralynx_sdma(dataset, begsample, endsample, chanindx);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_sdma.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_neuralynx_sdma.m 8770 2013-11-12 13:54:58Z roboos $
 
 needhdr = (nargin==1);
 needdat = (nargin>=2);
@@ -440,7 +440,7 @@ else
   % allocate memory for all data
   dat = zeros(length(chanindx), endsample-begsample+1);
 
-  % read all channels, one small chunk at at time, and write it to seperate files
+  % read all channels, one small chunk at at time, and write it to separate files
   for i=1:length(chanindx)
     j = chanindx(i);
     dat(i,:) = double(read_neuralynx_bin(filelist{j}, begsample, endsample));

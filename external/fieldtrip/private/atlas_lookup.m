@@ -6,7 +6,7 @@ function [label] = atlas_lookup(atlas, pos, varargin)
 %   label = atlas_lookup(atlas, pos, ...);
 %
 % Optinal input arguments should come in key-value pairs and can include
-%   'queryrange'    = number, should be 1, 3, 5, 7, 9 or 11 (default = 3)
+%   'queryrange'   = number, should be 1, 3, 5, 7, 9 or 11 (default = 3)
 %   'inputcoord'   = 'mni' or 'tal' (default = [])
 % 
 % Dependent on the input coordinates and the coordinates of the atlas, the
@@ -31,7 +31,7 @@ function [label] = atlas_lookup(atlas, pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: atlas_lookup.m 8523 2013-09-24 14:52:06Z jansch $
+% $Id: atlas_lookup.m 8765 2013-11-12 11:15:09Z jansch $
 
 % get the optional input arguments
 queryrange  = ft_getopt(varargin, 'queryrange', 3);
@@ -82,6 +82,8 @@ elseif strcmp(inputcoord, 'tal') && strcmp(atlas.coordsys, 'tal')
   % nothing to do
 elseif strcmp(inputcoord, 'tal') && strcmp(atlas.coordsys, 'mni')
   pos = tal2mni(pos')'; % this function likes 3xN 
+elseif strcmp(inputcoord, 'spm') && strcmp(atlas.coordsys, 'mni')
+  %fprintf('coordinate system of input data ''spm'' is assume to represent the same coordinate system as the atlas, which is ''mni''\n');
 elseif ~strcmp(inputcoord, atlas.coordsys)
   error('there is a mismatch between the coordinate system in the atlas and the coordinate system in the data, which cannot be resolved');
 end
@@ -91,7 +93,7 @@ sel = cell(1,numel(fn));
 label = {};
 
 % convert the atlas head coordinates into voxel coordinates
-vox  = warp_apply(inv(atlas.transform), pos);
+vox  = ft_warp_apply(inv(atlas.transform), pos);
 
 for i=1:num
 

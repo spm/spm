@@ -1,16 +1,18 @@
-function [dist] = warp_error(M, input, target, varargin)
+function [dist] = ft_warp_error(M, input, target, varargin)
 
-% WARP_ERROR computes the mean distance after linear or non-linear warping
+% FT_WARP_ERROR computes the mean distance after linear or non-linear warping
 % and can be used as the goalfunction in a 3D warping minimalisation
 %
 % Use as
-%   [dist] = warp_error(M, input, target, 'method')
+%   [dist] = ft_warp_error(M, input, target, 'method')
 %
 % It returns the mean Euclidian distance (residu) when attempting to
 % transform the input towards the target using transformation M
 % and using the specified warping method.
+%
+% See also FT_WARP_OPTIM, FT_WARP_APPLY
 
-% Copyright (C) 2000-2005, Robert Oostenveld
+% Copyright (C) 2000-2013, Robert Oostenveld
 %
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -42,11 +44,11 @@ function [dist] = warp_error(M, input, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_error.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_warp_error.m 8756 2013-11-11 12:53:49Z roboos $
 
 if ~isempty(M)
   % apply the warp to the input positions
-  input = warp_apply(M, input, varargin{:});
+  input = ft_warp_apply(M, input, varargin{:});
 end
 
 if isstruct(target)

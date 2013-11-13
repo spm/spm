@@ -43,7 +43,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 7139 2012-12-11 12:25:35Z jansch $
+% $Id: ft_plot_montage.m 8753 2013-11-11 12:45:48Z roboos $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');
@@ -129,7 +129,7 @@ for k = 1:nslice
   
   % project the positions onto the xy-plane
   pos = [xtmp(:) ytmp(:) ztmp(:)];
-  pos = warp_apply(inv(T), pos);
+  pos = ft_warp_apply(inv(T), pos);
   
   xtmp = reshape(pos(:,1), siz);
   ytmp = reshape(pos(:,2), siz);
@@ -165,7 +165,7 @@ for k = 1:nslice
       siz2 = size(xtmp);
       
       pos = [xtmp(:) ytmp(:) ztmp(:)];
-      pos = warp_apply(inv(T), pos);
+      pos = ft_warp_apply(inv(T), pos);
   
       xtmp = reshape(pos(:,1), siz2);
       ytmp = reshape(pos(:,2), siz2);

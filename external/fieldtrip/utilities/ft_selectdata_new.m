@@ -41,7 +41,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 8670 2013-10-29 14:20:03Z jansch $
+% $Id: ft_selectdata_new.m 8719 2013-11-05 11:20:18Z eelspa $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -205,7 +205,10 @@ else
   fn  = fieldnames(varargin{1})';
   sel = false(size(fn));
   for i=1:numel(fn)
-    sel(i) = isequal(size(varargin{1}.(fn{i})), dimsiz) || isequal(size(varargin{1}.(fn{i})), [dimsiz 1]);
+    sel(i) = (isequal(size(varargin{1}.(fn{i})), dimsiz)...
+      || isequal(size(varargin{1}.(fn{i})), [dimsiz 1]))...
+      && ~strcmp(fn{i}, 'label') && ~strcmp(fn{i}, 'time')...
+      && ~strcmp(fn{i}, 'freq'); % make sure we do not treat a descriptive field as data
   end
   
   % select the fields that represent the data
@@ -237,7 +240,18 @@ else
         if ~any(isnan(selrpt))
           % FIXME could also be subject
           varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok,'rpt')), selrpt, avgoverrpt, datfields);
+          varargin{i} = makeselection_rpt(varargin{i}, selrpt); % avgoverrpt for the supporting fields is dealt with later
         end
+        
+        %shiftdim the datfields, because convention has it that this should
+        %be done
+        if avgoverrpt,
+          for k =1:numel(datfields)
+            varargin{i}.(datfields{k}) = shiftdim(varargin{i}.(datfields{k}),1);
+          end
+        end  
+          
+        
       end % varargin
       
       

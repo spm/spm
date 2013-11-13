@@ -9,9 +9,9 @@ function lf = leadfield_interpolate(pos, vol)
 
 % Copyright (C) 2013, Vladimir Litvak
 %
-% $Id: leadfield_interpolate.m 8682 2013-10-31 16:27:47Z vlalit $
+% $Id: leadfield_interpolate.m 8753 2013-11-11 12:45:48Z roboos $
 
-pos = warp_apply(inv(vol.transform), pos);
+pos = ft_warp_apply(inv(vol.transform), pos);
 
 lf = nan(length(vol.sens.label), 3*size(pos, 1));
 

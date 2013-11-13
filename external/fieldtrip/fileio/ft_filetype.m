@@ -54,8 +54,9 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - Yokogawa
 %  - nifti, gifti
 %  - Localite
+%  - Stanford *.ply
 
-% Copyright (C) 2003-2011 Robert Oostenveld
+% Copyright (C) 2003-2013 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -73,7 +74,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 8439 2013-08-29 17:39:09Z vlalit $
+% $Id: ft_filetype.m 8770 2013-11-12 13:54:58Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -643,11 +644,11 @@ elseif ~isdir(filename) && isdir(p) && exist(fullfile(p, 'info.xml'), 'file') &&
   
   % these are formally not Neuralynx file formats, but at the FCDC we use them together with Neuralynx
 elseif isdir(filename) && filetype_check_neuralynx_cds(filename)
-  % a downsampled Neuralynx DMA file can be split into three seperate lfp/mua/spike directories
+  % a downsampled Neuralynx DMA file can be split into three separate lfp/mua/spike directories
   % treat them as one combined dataset
   type = 'neuralynx_cds';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
-  content = 'dataset containing seperate lfp/mua/spike directories';
+  content = 'dataset containing separate lfp/mua/spike directories';
 elseif filetype_check_extension(filename, '.tsl') && filetype_check_header(filename, 'tsl')
   type = 'neuralynx_tsl';
   manufacturer = 'Donders Centre for Cognitive Neuroimaging';
@@ -747,7 +748,7 @@ elseif filetype_check_extension(filename, '.bsa')
 elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']), 'file') || exist(fullfile(p, [f '.generic']), 'file'))
   type = 'besa_sb';
   manufacturer = 'BESA';
-  content = 'simple binary channel data with a seperate generic ascii header';
+  content = 'simple binary channel data with a separate generic ascii header';
   
   % known Dataq file formats
 elseif filetype_check_extension(upper(filename), '.WDQ')
@@ -1130,7 +1131,7 @@ elseif filetype_check_extension(filename, 'trk')
   type = 'trackvis_trk';
   manufacturer = 'Martinos Center for Biomedical Imaging, see http://www.trackvis.org';
   content = 'fiber tracking data from diffusion MR imaging';
-elseif filetype_check_extension(filename, '.xml') &&  filetype_check_header(filename, '<EEGMarkerList', 39)
+elseif filetype_check_extension(filename, '.xml') && filetype_check_header(filename, '<EEGMarkerList', 39)
   type = 'localite_pos';
   manufacturer = 'Localite';
   content = 'EEG electrode positions';
@@ -1142,6 +1143,10 @@ elseif filetype_check_extension(filename, '.mb2')
   type = 'manscan_mb2';
   manufacturer = 'MANSCAN';
   content  = 'EEG data';    
+elseif filetype_check_header(filename, 'ply')
+  type = 'ply';
+  manufacturer = 'Stanford Triangle Format';
+  content = 'three dimensional data from 3D scanners, see http://en.wikipedia.org/wiki/PLY_(file_format)';
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

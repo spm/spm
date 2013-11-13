@@ -19,11 +19,8 @@ function [cluster, total] = findcluster(onoff, spatdimneighbstructmat, varargin)
 % to a channel (combination) along the first dimension and along that row/column, elements
 % with "1" define the neighbouring channel(s) (combinations). The first dimension of
 % onoff should correspond to the channel(s) (combinations).
-% The lower triangle of spatdimneighbstructmat, including the diagonal, is
-% assumed to be zero. 
 %
-% See also BWSELECT, BWLABELN (image processing toolbox) 
-% and SPM_CLUSTERS (spm2 toolbox).
+% See also SPM_BWLABEL (spm toolbox) 
 
 % Copyright (C) 2004, Robert Oostenveld
 %
@@ -43,7 +40,7 @@ function [cluster, total] = findcluster(onoff, spatdimneighbstructmat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: findcluster.m 8601 2013-10-10 13:28:53Z jansch $
+% $Id: findcluster.m 8729 2013-11-07 10:14:53Z jansch $
 
 spatdimlength = size(onoff, 1);
 nfreq = size(onoff, 2);

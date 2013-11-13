@@ -80,7 +80,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 8695 2013-11-01 13:29:49Z roboos $
+% $Id: ft_datatype_sens.m 8751 2013-11-11 12:02:12Z roboos $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'
@@ -101,7 +101,7 @@ end
 version   = ft_getopt(varargin, 'version', 'latest');
 amplitude = ft_getopt(varargin, 'amplitude'); % should be 'V' 'uV' 'T' 'mT' 'uT' 'nT' 'pT' 'fT'
 distance  = ft_getopt(varargin, 'distance');  % should be 'm' 'dm' 'cm' 'mm'
-scaling   = ft_getopt(varargin, 'scaling');   % should be 'amplitude' or 'amplitude/distance'
+scaling   = ft_getopt(varargin, 'scaling');   % should be 'amplitude' or 'amplitude/distance', the default depends on the senstype
 
 if strcmp(version, 'latest')
   % NOTE TO SELF: once finalized, the code for 2011v2 and 2013 has to be merged into a single latest version

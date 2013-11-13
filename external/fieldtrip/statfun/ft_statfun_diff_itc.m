@@ -18,13 +18,13 @@ function [s] = ft_statfun_diff_itc(cfg, dat, design)
 % Use this function by calling 
 %   [stat] = ft_freqstatistics(cfg, freq1, freq2, ...)
 % with the following configuration options
-%   cfg.statistic = 'diff_itc'
 %   cfg.method    = 'montecarlo'
-% and optionally (for use in the statfun) the option
-%  cfg.complex = 'diffabs' to compute the difference of the absolute ITC values, or
-%  cfg.complex = 'absdiff' to compute the absolute value of the difference in the complex ITC values
+%   cfg.statistic = 'diff_itc'
+% and optionally the options
+%  cfg.complex    = 'diffabs' to compute the difference of the absolute ITC values (default), or
+%                   'absdiff' to compute the absolute value of the difference in the complex ITC values.
 % 
-% See FT_FREQSTATISTICS and STATISTICS_MONTECARLO for more details
+% See FT_FREQSTATISTICS and FT_STATISTICS_MONTECARLO for more details
 
 % Copyright (C) 2008, Robert Oostenveld
 %
@@ -44,7 +44,7 @@ function [s] = ft_statfun_diff_itc(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff_itc.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_statfun_diff_itc.m 8736 2013-11-07 21:17:32Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'complex'), cfg.complex = 'diffabs';   end

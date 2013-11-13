@@ -175,9 +175,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 8710 2013-11-03 11:32:38Z jansch $
+% $Id: ft_sourceplot.m 8753 2013-11-11 12:45:48Z roboos $
 
-revision = '$Id: ft_sourceplot.m 8710 2013-11-03 11:32:38Z jansch $';
+revision = '$Id: ft_sourceplot.m 8753 2013-11-11 12:45:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -886,7 +886,7 @@ elseif isequal(cfg.method,'surface')
 
     if isfield(surf, 'transform'),
       % compute the surface vertices in head coordinates
-      surf.pnt = warp_apply(surf.transform, surf.pnt);
+      surf.pnt = ft_warp_apply(surf.transform, surf.pnt);
     end
     
     % downsample the cortical surface
@@ -914,7 +914,7 @@ elseif isequal(cfg.method,'surface')
       %convert projvec in mm to a factor, assume mean distance of 70mm
       cfg.projvec=(70-cfg.projvec)/70;
       for iproj = 1:length(cfg.projvec),
-        sub = round(warp_apply(inv(data.transform), surf.pnt*cfg.projvec(iproj), 'homogenous'));  % express
+        sub = round(ft_warp_apply(inv(data.transform), surf.pnt*cfg.projvec(iproj), 'homogenous'));  % express
         sub(sub(:)<1) = 1;
         sub(sub(:,1)>dim(1),1) = dim(1);
         sub(sub(:,2)>dim(2),2) = dim(2);
@@ -978,7 +978,7 @@ elseif isequal(cfg.method,'surface')
           surf = cfg.surfinflated;
           if isfield(surf, 'transform'),
               % compute the surface vertices in head coordinates
-              surf.pnt = warp_apply(surf.transform, surf.pnt);
+              surf.pnt = ft_warp_apply(surf.transform, surf.pnt);
           end
       end
   end

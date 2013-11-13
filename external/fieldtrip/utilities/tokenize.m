@@ -9,12 +9,12 @@ function [tok] = tokenize(str, sep, rep)
 % where
 %   str = the string that you want to cut into pieces
 %   sep = the separator at which to cut (default is whitespace)
-%   rep = whether to treat repeating seperator characters as one (default is false)
+%   rep = whether to treat repeating separator characters as one (default is false)
 %
 % With the optional boolean flag "rep" you can specify whether repeated
-% seperator characters should be squeezed together (e.g. multiple
+% separator characters should be squeezed together (e.g. multiple
 % spaces between two words). The default is rep=1, i.e. repeated
-% seperators are treated as one.
+% separators are treated as one.
 %
 % See also STRTOK, TEXTSCAN
 
@@ -36,7 +36,7 @@ function [tok] = tokenize(str, sep, rep)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: tokenize.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: tokenize.m 8771 2013-11-12 13:55:00Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

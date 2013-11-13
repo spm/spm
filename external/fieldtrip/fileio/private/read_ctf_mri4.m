@@ -24,7 +24,7 @@ function [mri, hdr, cpersist] = read_ctf_mri4(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri4.m 7781 2013-04-10 19:33:41Z roboos $
+% $Id: read_ctf_mri4.m 8753 2013-11-11 12:45:48Z roboos $
 
 fid = fopen(filename,'rb', 'ieee-be');
 
@@ -181,9 +181,9 @@ hdr.transformHead2MRI = transformMatrix*inv(scale);
 hdr.transformMRI2Head = scale*inv(transformMatrix);
 
 % compute location of fiducials in MRI and HEAD coordinates
-hdr.fiducial.head.nas = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.nas, 'homogenous');
-hdr.fiducial.head.lpa = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.lpa, 'homogenous');
-hdr.fiducial.head.rpa = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.rpa, 'homogenous');
+hdr.fiducial.head.nas = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.nas, 'homogenous');
+hdr.fiducial.head.lpa = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.lpa, 'homogenous');
+hdr.fiducial.head.rpa = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.rpa, 'homogenous');
 
 
 %

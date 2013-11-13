@@ -1,6 +1,6 @@
 function [stat] = ft_statfun_mean(cfg, dat, design)
 
-% FT_STATFUN_mean computes the mean over all replications for each of
+% FT_STATFUN_MEAN computes the mean over all replications for each of
 % the observations (i.e. channel-time-frequency points or voxels).
 %
 % This function does not depend on the experimental design and cannot
@@ -32,7 +32,7 @@ function [stat] = ft_statfun_mean(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_mean.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_statfun_mean.m 8736 2013-11-07 21:17:32Z roboos $
 
 stat = mean(dat,2);
 

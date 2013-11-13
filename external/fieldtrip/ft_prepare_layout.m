@@ -82,9 +82,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8592 2013-10-09 15:37:27Z roboos $
+% $Id: ft_prepare_layout.m 8766 2013-11-12 11:40:27Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 8592 2013-10-09 15:37:27Z roboos $';
+revision = '$Id: ft_prepare_layout.m 8766 2013-11-12 11:40:27Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -751,7 +751,6 @@ if ~any(strcmp('COMNT', layout.label)) && strcmpi(cfg.style, '2d') && ~skipcomnt
   layout.width(end+1)  = mean(layout.width);
   layout.height(end+1) = mean(layout.height);
   X                 = min(layout.pos(:,1));
-  Y                 = max(layout.pos(:,2));
   Y                 = min(layout.pos(:,2));
   layout.pos(end+1,:)  = [X Y];
 elseif any(strcmp('COMNT', layout.label)) && skipcomnt
@@ -864,7 +863,7 @@ if isempty(rz)
       rz = 0;
   end
 end
-sens.chanpos = warp_apply(rotate([0 0 rz]), sens.chanpos, 'homogenous');
+sens.chanpos = ft_warp_apply(rotate([0 0 rz]), sens.chanpos, 'homogenous');
 
 % determine the 3D channel positions
 pnt   = sens.chanpos;

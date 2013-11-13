@@ -1,6 +1,6 @@
 function [s] = ft_statfun_diff(cfg, dat, design)
 
-% FT_STATFUN_diff computes the difference of the mean in two conditions.
+% FT_STATFUN_DIFF computes the difference of the mean in two conditions.
 % Although it can be used for statistical testing, it is not very
 % usefull since it will have rather limited sensitivity.
 % 
@@ -31,7 +31,7 @@ function [s] = ft_statfun_diff(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_statfun_diff.m 8736 2013-11-07 21:17:32Z roboos $
 
 selA = find(design(cfg.ivar,:)==1); % selecton condition 1 or A
 selB = find(design(cfg.ivar,:)==2); % selecton condition 2 or B

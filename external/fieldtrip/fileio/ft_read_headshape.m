@@ -74,7 +74,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 8667 2013-10-29 11:59:06Z arjsto $
+% $Id: ft_read_headshape.m 8753 2013-11-11 12:45:48Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -281,7 +281,7 @@ else
       if ~isfield(g, 'vertices')
         error('%s does not contain a tesselated surface', filename);
       end
-      shape.pnt = warp_apply(g.mat, g.vertices);
+      shape.pnt = ft_warp_apply(g.mat, g.vertices);
       shape.tri = g.faces;
       if isfield(g, 'cdata')
         shape.mom = g.cdata;
@@ -294,12 +294,12 @@ else
         try
           % do a clever guess by replacing topo with coord
           g2 = gifti(strrep(filename, '.topo.', '.coord.'));
-          vertices  = warp_apply(g2.mat, g2.vertices);
+          vertices  = ft_warp_apply(g2.mat, g2.vertices);
         catch
           vertices  = [];
         end
       else
-        vertices  = warp_apply(g.mat, g.vertices);
+        vertices  = ft_warp_apply(g.mat, g.vertices);
       end
       if ~isfield(g, 'faces') && strcmp(fileformat, 'caret_coord')
         try
@@ -323,10 +323,12 @@ else
       filename    = strrep(filename, '.surf.', '.shape.');
       [p,f,e]     = fileparts(filename);
       tok         = tokenize(f, '.');
-      tmpfilename = strrep(filename, tok{3}, 'sulc');
-      if exist(tmpfilename, 'file'),  g = gifti(tmpfilename); shape.sulc = g.cdata; end
-      if exist(strrep(tmpfilename, 'sulc', 'curvature'), 'file'),  g = gifti(strrep(tmpfilename, 'sulc', 'curvature')); shape.curv = g.cdata; end
-      if exist(strrep(tmpfilename, 'sulc', 'thickness'), 'file'),  g = gifti(strrep(tmpfilename, 'sulc', 'thickness')); shape.thickness = g.cdata; end
+      if length(tok)>2
+        tmpfilename = strrep(filename, tok{3}, 'sulc');
+        if exist(tmpfilename, 'file'), g = gifti(tmpfilename); shape.sulc = g.cdata; end
+        if exist(strrep(tmpfilename, 'sulc', 'curvature'), 'file'),  g = gifti(strrep(tmpfilename, 'sulc', 'curvature')); shape.curv = g.cdata; end
+        if exist(strrep(tmpfilename, 'sulc', 'thickness'), 'file'),  g = gifti(strrep(tmpfilename, 'sulc', 'thickness')); shape.thickness = g.cdata; end
+      end
       
     case 'caret_spec'
       [spec, headerinfo] = read_caret_spec(filename);
@@ -590,6 +592,21 @@ else
       
       fclose(fid);
       
+    case 'ply'
+      [vert, face] = read_ply(filename);
+      shape.pnt = [vert.x vert.y vert.z];
+      if isfield(vert, 'red') && isfield(vert, 'green') && isfield(vert, 'blue')
+        shape.color = double([vert.red vert.green vert.blue])/255;
+      end
+      switch size(face,2)
+        case 3
+          shape.tri = face;
+        case 4
+          shape.tet = face;
+        case 8
+          shape.hex = face;
+      end
+      
     case 'polhemus_fil'
       [shape.fid.pnt, shape.pnt, shape.fid.label] = read_polhemus_fil(filename, 0);
       
@@ -658,6 +675,7 @@ else
       if exist(fullfile(path, [name,'.curv']), 'file'), shape.curv = read_curv(fullfile(path, [name,'.curv'])); end
       if exist(fullfile(path, [name,'.area']), 'file'), shape.area = read_curv(fullfile(path, [name,'.area'])); end
       if exist(fullfile(path, [name,'.thickness']), 'file'), shape.thickness = read_curv(fullfile(path, [name,'.thickness'])); end
+
     case 'stl'
       [pnt, tri, nrm] = read_stl(filename);
       shape.pnt = pnt;

@@ -26,7 +26,7 @@ function [mri, hdr] = read_ctf_mri(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_mri.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_ctf_mri.m 8753 2013-11-11 12:45:48Z roboos $
 
 % Some versions require specifying latin1 (ISO-8859-1) character encoding.
 fid = fopen(filename, 'rb', 'ieee-be', 'ISO-8859-1');
@@ -190,8 +190,8 @@ hdr.transformHead2MRI = transformMatrix*inv(scale);
 hdr.transformMRI2Head = scale*inv(transformMatrix);
 
 % compute location of fiducials in MRI and HEAD coordinates
-hdr.fiducial.head.nas = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.nas, 'homogenous');
-hdr.fiducial.head.lpa = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.lpa, 'homogenous');
-hdr.fiducial.head.rpa = warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.rpa, 'homogenous');
+hdr.fiducial.head.nas = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.nas, 'homogenous');
+hdr.fiducial.head.lpa = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.lpa, 'homogenous');
+hdr.fiducial.head.rpa = ft_warp_apply(hdr.transformMRI2Head, hdr.fiducial.mri.rpa, 'homogenous');
 
 

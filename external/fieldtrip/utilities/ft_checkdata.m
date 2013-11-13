@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 8680 2013-10-31 15:10:50Z roboos $
+% $Id: ft_checkdata.m 8753 2013-11-11 12:45:48Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -1623,7 +1623,7 @@ else
   ygrid = 1:data.dim(2);
   zgrid = 1:data.dim(3);
   [x y z] = ndgrid(xgrid, ygrid, zgrid);
-  data.pos = warp_apply(data.transform, [x(:) y(:) z(:)]);
+  data.pos = ft_warp_apply(data.transform, [x(:) y(:) z(:)]);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,11 +1,11 @@
-function [warped] = warp_apply(M, input, method, tol)
+function [warped] = ft_warp_apply(M, input, method, tol)
 
-% WARP_APPLY performs a 3D linear or nonlinear transformation on the input
+% FT_WARP_APPLY performs a 3D linear or nonlinear transformation on the input
 % coordinates, similar to those in AIR 3.08. You can find technical
 % documentation on warping in general at http://bishopw.loni.ucla.edu/AIR3
 %
 % Use as
-%   [warped] = warp_apply(M, input, method, tol)
+%   [warped] = ft_warp_apply(M, input, method, tol)
 % where
 %   M        vector or matrix with warping parameters
 %   input    Nx3 matrix with coordinates
@@ -38,8 +38,10 @@ function [warped] = warp_apply(M, input, method, tol)
 % matrix. Supplied functions in the warping toolbox are translate,
 % rotate, scale, rigidbody, globalrescale, traditional, affine,
 % perspective.
+%
+% See also FT_WARP_OPTIM, FT_WARP_ERROR
 
-% Copyright (C) 2000-2005, Robert Oostenveld
+% Copyright (C) 2000-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -57,7 +59,7 @@ function [warped] = warp_apply(M, input, method, tol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warp_apply.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_warp_apply.m 8755 2013-11-11 12:53:13Z roboos $
 
 if nargin<4
   tol = [];
@@ -163,7 +165,7 @@ elseif strcmp(method, 'homogenous') || strcmp(method, 'homogeneous')
 elseif exist(method, 'file') && ~isa(M, 'struct')
   % get the homogenous transformation matrix
   H = feval(method, M);
-  warped = warp_apply(H, input, 'homogeneous');
+  warped = ft_warp_apply(H, input, 'homogeneous');
 
 elseif strcmp(method, 'sn2individual') && isa(M, 'struct')
   % use SPM structure with parameters for an inverse warp

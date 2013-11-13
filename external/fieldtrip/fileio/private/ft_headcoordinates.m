@@ -1,16 +1,15 @@
-function [h, flag] = headcoordinates(nas, lpa, rpa, extrapoint, flag)
+function [h, flag] = ft_headcoordinates(nas, lpa, rpa, extrapoint, flag)
 
-% HEADCOORDINATES returns the homogeneous coordinate transformation matrix
+% FT_HEADCOORDINATES returns the homogeneous coordinate transformation matrix
 % that converts the specified fiducials in any coordinate system (e.g. MRI)
 % into the rotated and translated headcoordinate system.
 %
-% [h, coordsys] = headcoordinates(nas, lpa, rpa,    flag) or
-% [h, coordsys] = headcoordinates(pt1, pt2, pt3,    flag)
-% [h, coordsys] = headcoordinates(ac,  pc,  zpoint, flag)
-%
-% [h, coordsys] = headcoordinates(nas, lpa, rpa, extrapoint, flag)
-% 
-% [h, coordsys] = headcoordinates(nas, lpa, rpa, isrighthanded, flag)
+% Use as
+%   [h, coordsys] = ft_headcoordinates(nas, lpa, rpa,    flag)
+%   [h, coordsys] = ft_headcoordinates(pt1, pt2, pt3,    flag)
+%   [h, coordsys] = ft_headcoordinates(ac,  pc,  zpoint, flag)
+%   [h, coordsys] = ft_headcoordinates(nas, lpa, rpa, extrapoint, flag)
+%   [h, coordsys] = ft_headcoordinates(nas, lpa, rpa, isrighthanded, flag)
 %
 % The optional flag determines how the direction of the axes and the
 % location of the origin will be specified
@@ -85,7 +84,7 @@ function [h, flag] = headcoordinates(nas, lpa, rpa, extrapoint, flag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headcoordinates.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headcoordinates.m 8757 2013-11-11 13:14:30Z roboos $
 
 % check whether function call is old or new style
 if nargin<4

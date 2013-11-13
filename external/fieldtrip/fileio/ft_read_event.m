@@ -13,7 +13,7 @@ function [event] = ft_read_event(filename, varargin)
 %   'headerformat'  string
 %   'eventformat'   string
 %   'header'        structure, see FT_READ_HEADER
-%   'detectflank'   string, can be 'up', 'down', 'both' or 'auto' (default is system specific)
+%   'detectflank'   string, can be 'bit', 'up', 'down', 'both' or 'auto' (default is system specific)
 %   'trigshift'     integer, number of samples to shift from flank to detect trigger value (default = 0)
 %   'trigindx'      list with channel numbers for the trigger detection, only for Yokogawa (default is automatic)
 %   'threshold'     threshold for analog trigger channels (default is system specific)
@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 8603 2013-10-13 18:48:56Z josdie $
+% $Id: ft_read_event.m 8772 2013-11-12 13:56:55Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -177,15 +177,15 @@ switch eventformat
     % read the trigger channel and do flank detection
     trgindx = match_str(hdr.label, 'TRIGGER');
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'config_data') && (strcmp(hdr.orig.config_data.site_name, 'Glasgow') || strcmp(hdr.orig.config_data.site_name, 'Marseille')),
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4d8192',1, 'dataformat', '4d');
+      trigger = read_trigger(filename, 'header', hdr, 'dataformat', '4d', 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fix4d8192', true);
     else
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift,'fix4d8192',0, 'dataformat', '4d');
+      trigger = read_trigger(filename, 'header', hdr, 'dataformat', '4d', 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trgindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fix4d8192', false);
     end
     event   = appendevent(event, trigger);
     
     respindx = match_str(hdr.label, 'RESPONSE');
     if ~isempty(respindx)
-      response = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', respindx, 'detectflank', detectflank, 'trigshift', trigshift, 'dataformat', '4d');
+      response = read_trigger(filename, 'header', hdr, 'dataformat', '4d', 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', respindx, 'detectflank', detectflank, 'trigshift', trigshift);
       event    = appendevent(event, response);
     end
     
@@ -363,8 +363,7 @@ switch eventformat
     statusindx = find(strcmp(hdr.label, 'STATUS'));
     if length(statusindx)==1
       % represent the rising flanks in the STATUS channel as events
-      event = read_trigger(filename, 'header', hdr, 'chanindx', statusindx, ...
-        'detectflank', 'up', 'fixbiosemi', true, 'begsample', flt_minsample, 'endsample', flt_maxsample);
+      event = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', statusindx, 'detectflank', 'up', 'trigshift', trigshift, 'fixbiosemi', true);
     else
       warning('BIOSIG does not have a consistent event representation, skipping events')
       event = [];
@@ -381,13 +380,13 @@ switch eventformat
       if ~isempty(line) && ~(isnumeric(line) && line==-1)
         if strncmpi(line, 'Mk', 2)
           % this line contains a marker
-          tok = tokenize(line, '=', 0);    % do not squeeze repetitions of the seperator
+          tok = tokenize(line, '=', 0);    % do not squeeze repetitions of the separator
           if length(tok)~=2
             warning('skipping unexpected formatted line in BrainVision marker file');
           else
             % the line looks like "MkXXX=YYY", which is ok
             % the interesting part now is in the YYY, i.e. the second token
-            tok = tokenize(tok{2}, ',', 0);    % do not squeeze repetitions of the seperator
+            tok = tokenize(tok{2}, ',', 0);    % do not squeeze repetitions of the separator
             if isempty(tok{1})
               tok{1}  = [];
             end
@@ -478,10 +477,10 @@ switch eventformat
       origSensType = [];
     end
     % meg channels are 5, refmag 0, refgrad 1, adcs 18, trigger 11, eeg 9
-    trigchanindx = find(origSensType==11);
-    if ~isempty(trigchanindx)
+    trigindx = find(origSensType==11);
+    if ~isempty(trigindx)
       % read the trigger channel and do flank detection
-      trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigchanindx, 'dataformat', dataformat, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', 1);
+      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixctf', true);
       event   = appendevent(event, trigger);
     end
     
@@ -541,7 +540,7 @@ switch eventformat
       evt = read_edf(filename, hdr);
       % undo the faulty calibration
       evt = (evt - hdr.orig.Off(hdr.orig.annotation)) ./ hdr.orig.Cal(hdr.orig.annotation);
-      % convert the 16 bit format into the seperate bytes
+      % convert the 16 bit format into the separate bytes
       evt = typecast(int16(evt), 'uint8');
       % construct the Time-stamped Annotations Lists (TAL)
       tal  = tokenize(evt, char(0), true);
@@ -1043,7 +1042,7 @@ switch eventformat
     pnet(udp,'close');
     
   case 'fcdc_serial'
-    % this code is moved to a seperate file
+    % this code is moved to a separate file
     event = read_serial_event(filename);
     
   case 'fcdc_mysql'
@@ -1067,7 +1066,7 @@ switch eventformat
     end
     % use a helper function to read the trigger channels and detect the flanks
     % pass all the other users options to the read_trigger function
-    event = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'dataformat', dataformat, 'detectflank', detectflank, 'trigshift', trigshift);
+    event = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift);
     
   case {'itab_raw' 'itab_mhd'}
     if isempty(hdr)
@@ -1082,8 +1081,8 @@ switch eventformat
     end
     if isempty(event)
       warning('no events found in the event table, reading the trigger channel(s)');
-      trigsel = find(ft_chantype(hdr, 'flag'));
-      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigsel, 'detectflank', detectflank, 'trigshift', trigshift);
+      trigindx = find(ft_chantype(hdr, 'flag'));
+      trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift);
       event   = appendevent(event, trigger);
     end
     
@@ -1098,7 +1097,7 @@ switch eventformat
     end
     if isfield(hdr, 'orig') && isfield(hdr.orig, 'Trigger_Area') && isfield(hdr.orig, 'Tigger_Area_Length')
       if ~isempty(trigindx)
-        trigger = read_trigger(filename, 'header', hdr, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift,'dataformat', 'micromed_trc');
+        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', trigindx, 'detectflank', detectflank, 'trigshift', trigshift);
         event   = appendevent(event, trigger);
       else
         % routine that reads analog triggers in case no index is specified
@@ -1212,7 +1211,7 @@ switch eventformat
       end
       
       if ~isempty(binaryindx)
-        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 0);
+        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', binaryindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', false);
         event   = appendevent(event, trigger);
       end
       if ~isempty(analogindx)
@@ -1220,7 +1219,7 @@ switch eventformat
         % there are some issues with noise on these analog trigger
         % channels, on older systems only
         % read the trigger channel and do flank detection
-        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', 1);
+        trigger = read_trigger(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', flt_minsample, 'endsample', flt_maxsample, 'chanindx', analogindx, 'detectflank', detectflank, 'trigshift', trigshift, 'fixneuromag', true);
         event   = appendevent(event, trigger);
       end
       
@@ -1264,7 +1263,7 @@ switch eventformat
       % read the Parallel_in channel from the DMA log file
       ttl = read_neuralynx_dma(filename, begsample, endsample, 'ttl');
     elseif strcmp(eventformat, 'neuralynx_sdma')
-      % determine the seperate files with the trigger and timestamp information
+      % determine the separate files with the trigger and timestamp information
       [p, f, x] = fileparts(filename);
       ttlfile = fullfile(filename, [f '.ttl.bin']);
       tslfile = fullfile(filename, [f '.tsl.bin']);
@@ -1279,19 +1278,19 @@ switch eventformat
         % these files must be present in a splitted dma dataset
         error('could not locate the individual ttl, tsl and tsh files');
       end
-      % read the trigger values from the seperate file
+      % read the trigger values from the separate file
       ttl = read_neuralynx_bin(ttlfile, begsample, endsample);
     elseif strcmp(eventformat, 'neuralynx_ttl')
       % determine the optional files with timestamp information
       tslfile = [filename(1:(end-4)) '.tsl'];
       tshfile = [filename(1:(end-4)) '.tsh'];
-      % read the triggers from a seperate *.ttl file
+      % read the triggers from a separate *.ttl file
       ttl = read_neuralynx_ttl(filename, begsample, endsample);
     elseif strcmp(eventformat, 'neuralynx_bin')
       % determine the optional files with timestamp information
       tslfile = [filename(1:(end-8)) '.tsl.bin'];
       tshfile = [filename(1:(end-8)) '.tsh.bin'];
-      % read the triggers from a seperate *.ttl.bin file
+      % read the triggers from a separate *.ttl.bin file
       ttl = read_neuralynx_bin(filename, begsample, endsample);
     end
     
@@ -1409,14 +1408,14 @@ switch eventformat
     
   
   case 'neuralynx_cds'
-    % this is a combined Neuralynx dataset with seperate subdirectories for the LFP, MUA and spike channels
+    % this is a combined Neuralynx dataset with separate subdirectories for the LFP, MUA and spike channels
     dirlist   = dir(filename);
     %haslfp   = any(filetype_check_extension({dirlist.name}, 'lfp'));
     %hasmua   = any(filetype_check_extension({dirlist.name}, 'mua'));
     %hasspike = any(filetype_check_extension({dirlist.name}, 'spike'));
-    %hastsl   = any(filetype_check_extension({dirlist.name}, 'tsl'));   % seperate file with original TimeStampLow
-    %hastsh   = any(filetype_check_extension({dirlist.name}, 'tsh'));   % seperate file with original TimeStampHi
-    hasttl    = any(filetype_check_extension({dirlist.name}, 'ttl'));   % seperate file with original Parallel_in
+    %hastsl   = any(filetype_check_extension({dirlist.name}, 'tsl'));   % separate file with original TimeStampLow
+    %hastsh   = any(filetype_check_extension({dirlist.name}, 'tsh'));   % separate file with original TimeStampHi
+    hasttl    = any(filetype_check_extension({dirlist.name}, 'ttl'));   % separate file with original Parallel_in
     hasnev    = any(filetype_check_extension({dirlist.name}, 'nev'));   % original Events.Nev file
     hasmat    = 0;
     if hasttl

@@ -21,9 +21,9 @@ function elec = read_asa_elc(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_asa_elc.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_asa_elc.m 8770 2013-11-12 13:54:58Z roboos $
 
-% the older *.elc files have an Nx3 matrix with positions and seperate labels
+% the older *.elc files have an Nx3 matrix with positions and separate labels
 % the newer *.elc files are formatted like this
 %    Fp1:    94.9    30.7    14.0
 % and also include Positions2D

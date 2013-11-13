@@ -43,7 +43,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 8488 2013-09-24 12:12:44Z jorhor $
+% $Id: ft_read_atlas.m 8753 2013-11-11 12:45:48Z roboos $
 
 % deal with multiple filenames
 if isa(filename, 'cell')
@@ -1997,7 +1997,7 @@ switch atlasformat
     switch ft_filetype(filenamemesh)
       %case {'caret_surf' 'gifti'}
       %  tmp = gifti(filenamemesh);
-      %  bnd.pnt = warp_apply(tmp.mat, tmp.vertices);
+      %  bnd.pnt = ft_warp_apply(tmp.mat, tmp.vertices);
       %  bnd.tri = tmp.faces;
       %  reindex = false;
       case 'freesurfer_triangle_binary'

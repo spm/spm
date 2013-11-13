@@ -95,9 +95,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_sourceinterpolate.m 8753 2013-11-11 12:45:48Z roboos $
 
-revision = '$Id: ft_sourceinterpolate.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_sourceinterpolate.m 8753 2013-11-11 12:45:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -198,7 +198,7 @@ elseif (~is2Dana && is2Dfun) || (is2Dana && is2Dfun)
     % get voxel indices, convert to positions and use interp_ungridded
     dim     = anatomical.dim;
     [x,y,z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
-    pos     = warp_apply(anatomical.transform, [x(:) y(:) z(:)]);
+    pos     = ft_warp_apply(anatomical.transform, [x(:) y(:) z(:)]);
     clear x y z
   else
     anatomical = ft_checkdata(anatomical, 'hasunits', 'yes');
@@ -263,7 +263,7 @@ elseif is2Dana && ~is2Dfun
   dim       = functional.dim;
   %[X, Y, Z] = ndgrid(1:dim(1), 1:dim(2), 1:dim(3));
   
-  %interpmat  = interp_ungridded([X(:) Y(:) Z(:)], warp_apply(inv(functional.transform), anatomical.pnt), ...,
+  %interpmat  = interp_ungridded([X(:) Y(:) Z(:)], ft_warp_apply(inv(functional.transform), anatomical.pnt), ...,
   %  'projmethod', cfg.interpmethod, 'sphereradius', cfg.sphereradius);
   %clear X Y Z;
   interpmat = interp_ungridded(functional.pos, anatomical.pnt, 'projmethod', cfg.interpmethod, 'sphereradius', cfg.sphereradius, 'inside', functional.inside);
