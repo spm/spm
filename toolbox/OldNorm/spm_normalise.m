@@ -17,7 +17,7 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 %                       basis functions are used (default = 30mm).
 %             nits    - number of nonlinear iterations (default=16).
 %             reg     - amount of regularisation (default=0.1)
-% ___________________________________________________________________________
+% _________________________________________________________________________
 % 
 % This module spatially (stereotactically) normalizes MRI, PET or SPECT
 % images into a standard space defined by some ideal model or template
@@ -101,26 +101,26 @@ function params = spm_normalise(VG,VF,matname,VWG,VWF,flags)
 % of the transformations are displayed in the results window, and the
 % parameters are saved in the "*_sn.mat" file.
 % 
-% 
-%____________________________________________________________________________
-% Refs:
-% K.J. Friston, J. Ashburner, C.D. Frith, J.-B. Poline,
-% J.D. Heather, and R.S.J. Frackowiak
-% Spatial Registration and Normalization of Images.
-% Human Brain Mapping 2:165-189(1995)
-% 
-% J. Ashburner, P. Neelin, D.L. Collins, A.C. Evans and K. J. Friston
-% Incorporating Prior Knowledge into Image Registration.
-% NeuroImage 6:344-352 (1997)
+%__________________________________________________________________________
 %
-% J. Ashburner and K. J. Friston
-% Nonlinear Spatial Normalization using Basis Functions.
-% Human Brain Mapping 7(4):in press (1999)
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% References:
+% K.J. Friston, J. Ashburner, C.D. Frith, J.-B. Poline, J.D. Heather,
+% and R.S.J. Frackowiak
+% Spatial Registration and Normalization of Images.
+% Human Brain Mapping 2:165-189, 1995.
+% 
+% J. Ashburner, P. Neelin, D.L. Collins, A.C. Evans and K.J. Friston
+% Incorporating Prior Knowledge into Image Registration.
+% NeuroImage 6:344-352, 1997.
+%
+% J. Ashburner and K.J. Friston
+% Nonlinear spatial normalization using basis functions.
+% Human Brain Mapping, 7(4):254-266, 1999.
+%__________________________________________________________________________
+% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_normalise.m 5519 2013-05-23 17:13:32Z john $
+% $Id: spm_normalise.m 5745 2013-11-14 12:46:49Z guillaume $
 
 
 if nargin<2, error('Incorrect usage.'); end;
@@ -128,14 +128,14 @@ if ischar(VF), VF = spm_vol(VF); end;
 if ischar(VG), VG = spm_vol(VG); end;
 if nargin<3,
     if nargout==0,
-        [pth,nm,xt,vr] = spm_fileparts(deblank(VF(1).fname));
-        matname        = fullfile(pth,[nm '_sn.mat']);
+        [pth,nm]  = spm_fileparts(deblank(VF(1).fname));
+        matname   = fullfile(pth,[nm '_sn.mat']);
     else
-        matname = '';
+        matname   = '';
     end;
 end;
-if nargin<4, VWG = ''; end;
-if nargin<5, VWF = ''; end;
+if nargin<4, VWG  = ''; end;
+if nargin<5, VWF  = ''; end;
 if ischar(VWG), VWG=spm_vol(VWG); end;
 if ischar(VWF), VWF=spm_vol(VWF); end;                                                                     
 
@@ -164,7 +164,7 @@ for i=1:numel(VG),
 end;
 
 % Affine Normalisation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fprintf('Coarse Affine Registration..\n');
 aflags    = struct('sep',max(flags.smoref,flags.smosrc), 'regtype',flags.regtype,...
     'WG',[],'WF',[],'globnorm',0);
@@ -184,7 +184,7 @@ Affine     = inv(VG(1).mat\M*VF1(1).mat);
 spm_plot_convergence('Clear');
 
 % Basis function Normalisation
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fov = VF1(1).dim(1:3).*sqrt(sum(VF1(1).mat(1:3,1:3).^2));
 if any(fov<15*flags.smosrc/2 & VF1(1).dim(1:3)<15),
     fprintf('Field of view too small for nonlinear registration\n');
@@ -198,7 +198,7 @@ else
 end;
 clear VF1 VG1
 
-flags.version = '$Rev: 5519 $';
+flags.version = '$Rev: 5745 $';
 flags.date    = date;
 
 params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
@@ -206,7 +206,7 @@ params = struct('Affine',Affine, 'Tr',Tr, 'VF',VF, 'VG',VG, 'flags',flags);
 if flags.graphics, spm_normalise_disp(params,VF); end;
 
 % Remove dat fields before saving
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isfield(VF,'dat'), VF = rmfield(VF,'dat'); end;
 if isfield(VG,'dat'), VG = rmfield(VG,'dat'); end;
 if ~isempty(matname),
@@ -214,9 +214,11 @@ if ~isempty(matname),
     save(matname,'Affine','Tr','VF','VG','flags', spm_get_defaults('mat.format'));
 end;
 return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function Tr = snbasis(VG,VF,VWG,VWF,Affine,fwhm,cutoff,nits,reg)
+%==========================================================================
 function Tr = snbasis(VG,VF,VWG,VWF,Affine,fwhm,cutoff,nits,reg)
 % 3D Basis Function Normalization
 % FORMAT Tr = snbasis(VG,VF,VWG,VWF,Affine,fwhm,cutoff,nits,reg)
@@ -233,18 +235,17 @@ function Tr = snbasis(VG,VF,VWG,VWF,Affine,fwhm,cutoff,nits,reg)
 %
 % snbasis performs a spatial normalization based upon a 3D
 % discrete cosine transform.
-%
-%______________________________________________________________________
+%__________________________________________________________________________
 
 fwhm    = [fwhm 30];
 
 % Number of basis functions for x, y & z
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tmp  = sqrt(sum(VG(1).mat(1:3,1:3).^2));
 k    = max(round((VG(1).dim(1:3).*tmp)/cutoff),[1 1 1]);
 
 % Scaling is to improve stability.
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 stabilise = 8;
 basX = spm_dctmtx(VG(1).dim(1),k(1))*stabilise;
 basY = spm_dctmtx(VG(1).dim(2),k(2))*stabilise;
@@ -261,30 +262,30 @@ ky = (pi*((1:k(2))'-1)/VG(1).dim(2)/vx1(2)).^2; oy=ones(k(2),1);
 kz = (pi*((1:k(3))'-1)/VG(1).dim(3)/vx1(3)).^2; oz=ones(k(3),1);
 
 if 1,
-        % BENDING ENERGY REGULARIZATION
-        % Estimate a suitable sparse diagonal inverse covariance matrix for
-        % the parameters (IC0).
-        %-----------------------------------------------------------------------
+    % BENDING ENERGY REGULARIZATION
+    % Estimate a suitable sparse diagonal inverse covariance matrix for
+    % the parameters (IC0).
+    %----------------------------------------------------------------------
     IC0 = (1*kron(kz.^2,kron(ky.^0,kx.^0)) +...
-           1*kron(kz.^0,kron(ky.^2,kx.^0)) +...
-           1*kron(kz.^0,kron(ky.^0,kx.^2)) +...
-           2*kron(kz.^1,kron(ky.^1,kx.^0)) +...
-           2*kron(kz.^1,kron(ky.^0,kx.^1)) +...
-           2*kron(kz.^0,kron(ky.^1,kx.^1)) );
-        IC0 = reg*IC0*stabilise^6;
-        IC0 = [IC0*vx2(1)^4 ; IC0*vx2(2)^4 ; IC0*vx2(3)^4 ; zeros(prod(size(VG))*4,1)];
-        IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
+        1*kron(kz.^0,kron(ky.^2,kx.^0)) +...
+        1*kron(kz.^0,kron(ky.^0,kx.^2)) +...
+        2*kron(kz.^1,kron(ky.^1,kx.^0)) +...
+        2*kron(kz.^1,kron(ky.^0,kx.^1)) +...
+        2*kron(kz.^0,kron(ky.^1,kx.^1)) );
+    IC0 = reg*IC0*stabilise^6;
+    IC0 = [IC0*vx2(1)^4 ; IC0*vx2(2)^4 ; IC0*vx2(3)^4 ; zeros(prod(size(VG))*4,1)];
+    IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 else
-        % MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
-        %-----------------------------------------------------------------------
-        IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
-        IC0 = reg*IC0*stabilise^6;
-        IC0 = [IC0*vx2(1)^2 ; IC0*vx2(2)^2 ; IC0*vx2(3)^2 ; zeros(prod(size(VG))*4,1)];
-        IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
+    % MEMBRANE ENERGY (LAPLACIAN) REGULARIZATION
+    %----------------------------------------------------------------------
+    IC0 = kron(kron(oz,oy),kx) + kron(kron(oz,ky),ox) + kron(kron(kz,oy),ox);
+    IC0 = reg*IC0*stabilise^6;
+    IC0 = [IC0*vx2(1)^2 ; IC0*vx2(2)^2 ; IC0*vx2(3)^2 ; zeros(prod(size(VG))*4,1)];
+    IC0 = sparse(1:length(IC0),1:length(IC0),IC0,length(IC0),length(IC0));
 end;
 
 % Generate starting estimates.
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 s1 = 3*prod(k);
 s2 = s1 + numel(VG)*4;
 T  = zeros(s2,1);
@@ -303,9 +304,8 @@ end;
 
 % Values of the 3D-DCT - for some bizarre reason, this needs to be done
 % as two seperate statements in Matlab 6.5...
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 Tr = reshape(T(1:s1),[k 3]);
 drawnow;
 Tr = Tr*stabilise.^3;
 return;
-
