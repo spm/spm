@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5746 2013-11-14 20:28:50Z karl $
 
 
 % get DCM
@@ -201,7 +201,7 @@ DEM.M(2).V   = spm_inv(pC);
 DEM.M(2).v   = pE;
 DEM.M(2).pE  = pE;
 
-DEM.M(3).V   = exp(-2);
+DEM.M(3).V   = exp(0);
 DEM.M(3).v.a = [0; 0];
 DEM.M(3).v.x = zeros(DCM.options.embedding,n);
 

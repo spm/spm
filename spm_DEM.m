@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_DEM.m 5746 2013-11-14 20:28:50Z karl $
 
 
 % check model, data, priors and confounds and unpack
@@ -133,7 +133,7 @@ try, K  = M(1).E.K;  catch, K  = 1; end
 if nx
     td = 1/nD;                         % integration time for D-Step
 else
-    td = {8};
+    td = {2};
 end
 if M(1).E.linear == 1
     te = 4;                            % integration time for E-Step
@@ -420,7 +420,7 @@ for iE = 1:nE
                 % if F is increasing, save expansion point
                 %----------------------------------------------------------
                 if L > Fd
-                    td     = {min(td{1} + 1, 8)};
+                    td     = {min(td{1} + 1, 4)};
                     Fd     = L;
                     B.qu   = qu;
                     B.E    = E;

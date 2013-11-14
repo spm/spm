@@ -24,7 +24,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5737 2013-11-10 20:23:49Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5746 2013-11-14 20:28:50Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -37,7 +37,7 @@ T   = 512;                             % number of observations (scans)
 TR  = 2;                               % repetition time or timing
 n   = 5;                               % number of regions or nodes
 t   = (1:T)*TR;                        % observation times
-v.a = [2; -1];                         % log amplitude
+v.a = [log(8); -1/8];                         % log amplitude
 v.x = randn(D,n)/2;                    % location
 
 % priors
@@ -85,7 +85,7 @@ end
 
 % observation noise process
 % -------------------------------------------------------------------------
-e    = spm_rand_mar(T,n,1/2)/4;
+e    = spm_rand_mar(T,n,1/2)/8;
 
 % show simulated response
 %--------------------------------------------------------------------------

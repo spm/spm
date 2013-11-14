@@ -7,7 +7,7 @@ function [P] = spm_dcm_fmri_graph_gen(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: spm_dcm_fmri_graph_gen.m 5746 2013-11-14 20:28:50Z karl $
 
 
 % compute bias for log connectivity using functional space
@@ -45,7 +45,7 @@ elseif size(P.A,3) == 1 && numel(v.a) == 2
             % Euclidean distance
             %--------------------------------------------------------------
             D        = exp(-sum((v.x(:,i) - v.x(:,j)).^2)/2);
-            P.A(i,j) = (exp(v.a(1))*D - exp(v.a(2))*(1 - D))/16;
+            P.A(i,j) = exp(v.a(1))*D/16 + v.a(2);
             P.A(j,i) = P.A(i,j);
             
         end
