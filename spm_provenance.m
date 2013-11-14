@@ -32,7 +32,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5743 2013-11-13 18:19:47Z guillaume $
+% $Id: spm_provenance.m 5747 2013-11-14 22:08:24Z guillaume $
 
 % Todo:
 % - handle @xxx in attributes' literal
@@ -59,6 +59,14 @@ methods (Access='public')
     
     %-Namespaces
     %----------------------------------------------------------------------
+    function uri = get_default_namespace(obj)
+        i = obj.namespace;
+        if ~isempty(obj.namespace)
+            i = cellfun(@isnumeric,obj.namespace(:,1));
+        end
+        if isempty(i), uri = ''; else uri = obj.namespace{i,2}; end
+    end
+    
     function set_default_namespace(obj,uri)
         if ~isempty(obj.namespace)
             obj.namespace(cellfun(@isnumeric,obj.namespace(:,1)),:) = [];
@@ -81,6 +89,20 @@ methods (Access='public')
         if nargout
             ns = @(x) [prefix ':' x];
         end
+    end
+    
+    function prefix = get_namespace(obj,uri)
+        ns = obj.namespace;
+        ns = [ns;{...
+            'prov','http://www.w3.org/ns/prov#';...
+            'xsd','http://www.w3.org/2001/XMLSchema-datatypes#'}];
+        for i=1:size(ns,1)
+            if strcmp(uri,ns{i,2})
+                prefix = ns{i,1}; % will return NaN for default
+                return;
+            end
+        end
+        prefix = '';
     end
     
     %-Components
@@ -129,7 +151,7 @@ methods (Access='public')
         if numel(arg) < 2, time = '-'; else time = timestr(arg{2}); end
         
         n = numel(obj.stack) + 1;
-        obj.stack{n} = {'used',id,entity,activity,time,attributes};
+        obj.stack{n} = {'used',id,activity,entity,time,attributes};
     end
     
     %function wasInformedBy(obj,id,informed,informant,attributes)
@@ -222,7 +244,7 @@ methods (Access='public')
         if numel(arg) < 2, plan = '-'; else plan = arg{2}; end
         
         n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasAttributedTo',id,activity,agent,plan,attributes};
+        obj.stack{n} = {'wasAssociatedWith',id,activity,agent,plan,attributes};
     end
     
     %function actedOnBehalfOf(obj,id,delegate,responsible,activity,attributes)
@@ -277,9 +299,11 @@ methods (Access='public')
     end
     
     %function bundle(obj,id,p)
-    function bundle(obj,id,p)
+    function varargout = bundle(obj,id,p)
+        if nargin < 3, p = spm_provenance; end
         n = numel(obj.stack) + 1;
         obj.stack{n} = {'bundle',id,p};
+        if nargin < 3, varargout = {p}; end
     end
     
     %-Serialization
@@ -299,6 +323,11 @@ methods (Access='public')
                 fprintf('{\n');
                 serialize_json(obj);
                 fprintf('}\n');
+            case 'ttl'
+                %-Turtle
+                % http://www.w3.org/TR/turtle/
+                warning('Not implemented.');
+                serialize_ttl(obj);
             otherwise
                 error('Unknown format "%s".',fmt);
         end
@@ -320,7 +349,7 @@ methods (Access='private')
                     obj.namespace{i,1},obj.namespace{i,2});
             end
         end
-        fprintf('\n');
+        if ~isempty(obj.namespace), fprintf('\n'); end
         for i=1:numel(obj.stack)
             %-Components
             if ismember(obj.stack{i}{1},{'entity','agent'})
@@ -449,6 +478,28 @@ methods (Access='private')
         fprintf('\n');
     end
     
+    function serialize_ttl(obj,step)
+        if nargin < 2, step = 1; end
+        o = blanks(2*step);
+        %-Namespace
+        ns = obj.namespace;
+        for i=1:size(ns,1)
+            if i==1 && isnumeric(ns{i,1}) && isnan(ns{i,1}), 
+                ns{i,1} = '';
+            end
+            fprintf('@prefix %s: <%s> .\n',ns{i,1:2});
+        end
+        if ~isempty(ns), fprintf('\n'); end
+        %-Expressions
+        for i=1:numel(obj.stack)
+            if ismember(obj.stack{i}{1},{'entity','agent'})
+                fprintf('%s a prov:%s',obj.stack{i}{[2 1]});
+            else
+            end
+            fprintf(' .\n\n');
+        end
+    end
+    
     function s = sortprov(obj)
         expr = list_expressions;
         l = cellfun(@(x) x{1},obj.stack,'UniformOutput',false);
@@ -534,7 +585,7 @@ end
 function f = floatstr(f)
     if isnumeric(f)
         if size(f,1) == 1
-            f = strrep(mat2str(f),'  ',', ');
+            f = strrep(mat2str(f),' ',', ');
         else
             ff = '[';
             for i=1:size(f,1)
