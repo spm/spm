@@ -32,7 +32,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5747 2013-11-14 22:08:24Z guillaume $
+% $Id: spm_provenance.m 5754 2013-11-15 20:33:43Z guillaume $
 
 % Todo:
 % - handle @xxx in attributes' literal
@@ -64,7 +64,7 @@ methods (Access='public')
         if ~isempty(obj.namespace)
             i = cellfun(@isnumeric,obj.namespace(:,1));
         end
-        if isempty(i), uri = ''; else uri = obj.namespace{i,2}; end
+        if ~any(i), uri = ''; else uri = obj.namespace{i,2}; end
     end
     
     function set_default_namespace(obj,uri)
@@ -91,18 +91,22 @@ methods (Access='public')
         end
     end
     
-    function prefix = get_namespace(obj,uri)
+    function uri = get_namespace(obj,prefix)
         ns = obj.namespace;
         ns = [ns;{...
             'prov','http://www.w3.org/ns/prov#';...
             'xsd','http://www.w3.org/2001/XMLSchema-datatypes#'}];
+        if isempty(prefix)
+            uri = get_default_namespace(obj);
+            return;
+        end
         for i=1:size(ns,1)
-            if strcmp(uri,ns{i,2})
-                prefix = ns{i,1}; % will return NaN for default
+            if strcmp(prefix,ns{i,1})
+                uri = ns{i,2};
                 return;
             end
         end
-        prefix = '';
+        uri = '';
     end
     
     %-Components
@@ -328,6 +332,15 @@ methods (Access='public')
                 % http://www.w3.org/TR/turtle/
                 warning('Not implemented.');
                 serialize_ttl(obj);
+            case 'dot'
+                %-GraphViz
+                % http://www.graphviz.org/
+                warning('Partially implemented.');
+                s = sprintf('digraph "PROV" { size="16,12"; rankdir="BT";\n');
+                s = [s serialize_dot(obj)];
+                s = [s sprintf('}\n')];
+                disp(s);
+                %matlab.internal.strfun.dot2fig(s);
             otherwise
                 error('Unknown format "%s".',fmt);
         end
@@ -500,6 +513,52 @@ methods (Access='private')
         end
     end
     
+    function str = serialize_dot(obj)
+        s = sortprov(obj);
+        str = '';
+        expr = {'entity','activity','agent'};
+        strexpr = '[style="%s",shape="%s",color="#%s",fillcolor="#%s",sides="%d",label="%s",URL="%s"]\n';
+        style = {'filled','ellipse','808080','FFFC87',4;
+                 'filled','ellipse','0000FF','9FB1FC',4;
+                 'filled','house','000000','FDB266',4};
+        strrel = '[labeldistance="1.5",rotation="20",taillabel="%s",labelfontsize="8",labelangle="60.0"]\n';
+        strann = '[style="dashed",color="#C0C0C0",arrowhead="none"]';
+        for i=1:numel(s)
+            if ~isempty(s(i).idx)
+                if ismember(s(i).expr,expr)
+                    idx = ismember(expr,s(i).expr);
+                    for j=s(i).idx
+                        label = parseQN(obj.stack{j}{2},'local');
+                        url = get_url(obj,obj.stack{j}{2});
+                        str = [str sprintf('n%s ',get_valid_identifier(url))];
+                        str = [str sprintf(strexpr,style{idx,:},label,url)];
+                    end
+                    % handle prov:location / prov:atLocation
+                    if i==1
+                        for j=s(i).idx
+                            val = getattr(obj.stack{j}{end},'prov:atLocation');
+                            if ~isempty(val)
+                                A = ['n' get_valid_identifier(get_url(obj,val))];
+                                B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{2}))];
+                                str = [str sprintf('%s -> %s ',A,B)];
+                                str = [str sprintf(strann)];
+                            end
+                        end
+                    end
+                elseif ~ismember(s(i).expr,{'bundle','collection','emptyCollection','alternateOf','specializationOf'})
+                    for j=s(i).idx
+                        A = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{3}))];
+                        B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{4}))];
+                        str = [str sprintf('%s -> %s ',A,B)];
+                        str = [str sprintf(strrel,'')];
+                    end
+                else
+                    warning('not handled yet.');
+                end
+            end
+        end
+    end
+    
     function s = sortprov(obj)
         expr = list_expressions;
         l = cellfun(@(x) x{1},obj.stack,'UniformOutput',false);
@@ -509,6 +568,11 @@ methods (Access='private')
             s(i).props = expr{i,3};
             s(i).idx   = find(ismember(l,expr{i,1}));
         end
+    end
+    
+    function url = get_url(obj,id)
+        url = [obj.get_namespace(parseQN(id,'prefix')) ...
+                parseQN(id,'local')];
     end
     
 end
@@ -545,6 +609,32 @@ function [arg,attributes] = addAttr(vararg,attr)
     end
 end
 
+function varargout = parseQN(qn,ret)
+    [t,r] = strtok(qn,':');
+    if isempty(r), r = t; t = ''; else r(1) = []; end
+    if nargin == 1, ret = 'all'; end
+    switch lower(ret)
+        case 'all'
+            varargout = {t,r};
+        case 'prefix'
+            varargout = {t};
+        case 'local'
+            varargout = {r};
+        otherwise
+            error('Syntax error.');
+    end
+end
+
+function val = getattr(attr,key)
+    val = '';
+    for i=1:2:numel(attr)
+        if strcmp(attr{i},key)
+            val = attr{i+1};
+            return;
+        end
+    end
+end
+
 function attr = attrstr(attr)
     for i=2:2:numel(attr)
         if isnumeric(attr{i})
@@ -567,6 +657,13 @@ function id = esc(id)
     c = '=''(),-:;[].';
     for i=1:numel(c)
         id = strrep(id,c(i),['\' c(i)]);
+    end
+end
+
+function id = get_valid_identifier(id)
+    c = '/:#-.';
+    for i=1:numel(c)
+        id = strrep(id,c(i),'_');
     end
 end
 
