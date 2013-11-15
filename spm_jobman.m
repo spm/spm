@@ -20,7 +20,11 @@ function varargout = spm_jobman(varargin)
 %               list of arguments. Therefore, one can collect input
 %               arguments in the right order into a cell array named e.g.
 %               input_array and call spm_jobman('run',job,input_array{:})
-%               to run a job using the collected inputs.
+%               to run a job using the collected inputs. For files or text
+%               entry items, these inputs are the values one would specify
+%               in the GUI. For menus, the item number has to be entered
+%               (neither the GUI label nor the associated value that is
+%               saved in a batch).
 % output_list - cell array containing the output arguments from each
 %               module in the job. The format and contents of these
 %               outputs is defined in the configuration of each module
@@ -52,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 4917 2012-09-11 19:31:44Z guillaume $
+% $Id: spm_jobman.m 5748 2013-11-15 08:37:19Z volkmar $
 
 
 %__________________________________________________________________________
