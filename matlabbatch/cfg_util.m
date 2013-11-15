@@ -409,15 +409,16 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5703 2013-10-18 11:28:36Z guillaume $
+% $Id: cfg_util.m 5750 2013-11-15 15:02:24Z volkmar $
 
-rev = '$Rev: 5703 $';
+rev = '$Rev: 5750 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
 
-% generic configuration structure
-persistent c0;
+[c0, jobs] = cfg_util_persistent;
+
+% generic configuration structure c0
 % job specific configuration structure
 % This will be initialised to a struct (array) with fields cj and
 % id2subs. When initialising a new job, it will be appended to this
@@ -430,15 +431,18 @@ persistent c0;
 % ids do not change for a cfg_util life time, while the actual position
 % of a module in cj may change due to adding/removing modules. This would
 % also allow to reorder modules in cj without changing their id.
-persistent jobs;
 
 if isempty(c0) && ~strcmp(cmd,'initcfg')
     % init, if not yet done
     cfg_util('initcfg');
+    [c0, jobs] = cfg_util_persistent;
 end
 
 %% Callback switches
 % evaluate commands
+% no commands that modify c0 or jobs should return early. c0 and jobs
+% need to be stored back to persistent storage after the callback
+% switchyard.
 switch lower(cmd),
     case 'addapp',
         [c0, jobs] = local_addapp(c0, jobs, varargin{:});
@@ -717,49 +721,50 @@ switch lower(cmd),
             jobs(cjob).cjid2subsrun = {};
             varargout{1} = cjob;
             varargout{2} = {};
-            return;
-        elseif ischar(varargin{1}) || iscellstr(varargin{1})
-            [job, jobdedup] = cfg_load_jobs(varargin{1});
-        elseif iscell(varargin{1}) && iscell(varargin{1}{1})
-            % try to initialise cell array of jobs
-            job = varargin{1};
-            jobdedup = NaN; % Postpone duplicate detection
         else
-            % try to initialise single job
-            job{1} = varargin{1};
-            jobdedup = 1;
-        end
-        % job should be a cell array of job structures
-        isjob = true(size(job));
-        for k = 1:numel(job)
-            isjob(k) = iscell(job{k}) && all(cellfun('isclass', job{k}, 'struct'));
-        end
-        job = job(isjob);
-        if isempty(job)
-            cfg_message('matlabbatch:initialise:invalid','No valid job.');
-        else
-            if any(isnan(jobdedup))
-                % build up list of unique jobs
-                jobdedup = NaN*ones(size(job));
-                cu = 0;
-                for k = 1:numel(job)
-                    if isnan(jobdedup(k))
-                        % found new candidate
-                        cu = cu+1;
-                        jobdedup(k) = cu;
-                        % look for similar jobs under remaining candidates
-                        csel = find(isnan(jobdedup));
-                        eqind = cellfun(@(cjob)isequalwithequalnans(cjob,job{k}),job(csel));
-                        jobdedup(csel(eqind)) = cu;
-                    end
-                end
+            if ischar(varargin{1}) || iscellstr(varargin{1})
+                [job, jobdedup] = cfg_load_jobs(varargin{1});
+            elseif iscell(varargin{1}) && iscell(varargin{1}{1})
+                % try to initialise cell array of jobs
+                job = varargin{1};
+                jobdedup = NaN; % Postpone duplicate detection
             else
-                jobdedup = jobdedup(isjob);
+                % try to initialise single job
+                job{1} = varargin{1};
+                jobdedup = 1;
             end
-            jobs(cjob).c0 = c0;
-            [jobs(cjob), mod_job_idlist] = local_initjob(jobs(cjob), job, jobdedup);
-            varargout{1} = cjob;
-            varargout{2} = mod_job_idlist;
+            % job should be a cell array of job structures
+            isjob = true(size(job));
+            for k = 1:numel(job)
+                isjob(k) = iscell(job{k}) && all(cellfun('isclass', job{k}, 'struct'));
+            end
+            job = job(isjob);
+            if isempty(job)
+                cfg_message('matlabbatch:initialise:invalid','No valid job.');
+            else
+                if any(isnan(jobdedup))
+                    % build up list of unique jobs
+                    jobdedup = NaN*ones(size(job));
+                    cu = 0;
+                    for k = 1:numel(job)
+                        if isnan(jobdedup(k))
+                            % found new candidate
+                            cu = cu+1;
+                            jobdedup(k) = cu;
+                            % look for similar jobs under remaining candidates
+                            csel = find(isnan(jobdedup));
+                            eqind = cellfun(@(cjob)isequalwithequalnans(cjob,job{k}),job(csel));
+                            jobdedup(csel(eqind)) = cu;
+                        end
+                    end
+                else
+                    jobdedup = jobdedup(isjob);
+                end
+                jobs(cjob).c0 = c0;
+                [jobs(cjob), mod_job_idlist] = local_initjob(jobs(cjob), job, jobdedup);
+                varargout{1} = cjob;
+                varargout{2} = mod_job_idlist;
+            end
         end
     case 'isitem_mod_id'
         varargout{1} = isempty(varargin{1}) || ...
@@ -1020,6 +1025,8 @@ switch lower(cmd),
     otherwise
         cfg_message('matlabbatch:usage', '%s: Unknown command ''%s''.', mfilename, cmd);
 end
+% store c0 and jobs
+cfg_util_persistent(c0, jobs);
 return;
 
 %% Local functions
