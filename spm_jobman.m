@@ -56,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 5748 2013-11-15 08:37:19Z volkmar $
+% $Id: spm_jobman.m 5749 2013-11-15 08:37:30Z volkmar $
 
 
 %__________________________________________________________________________
@@ -220,8 +220,8 @@ switch action
             if nargout > 1
                 [un, varargout{2}] = cfg_util('harvestrun', cjob);
             end
+            cfg_util('deljob', cjob);
         end
-        cfg_util('deljob', cjob);
         
     case {'run'}
         if ~exist('mljob', 'var')
@@ -234,13 +234,10 @@ switch action
                 varargout{1} = cfg_util('getalloutputs', cjob);
             end
             if nargout > 1
-                varargout{2} = cfg_util('harvestrun', cjob);
+                [un, varargout{2}] = cfg_util('harvestrun', cjob);
             end
+            cfg_util('deljob', cjob);
         end
-        if nargout > 1
-            [un, varargout{2}] = cfg_util('harvestrun', cjob);
-        end
-        cfg_util('deljob', cjob);
         
     case {'convert'}
         varargout{1} = convert_jobs(varargin{2:end});
@@ -455,23 +452,11 @@ switch lower(action)
     case 'run'
         sts = cfg_util('filljob', cjob, varargin{:});
 end
-if sts || strcmpi(action,'run')
-%     try
-         cfg_util('run', cjob);
-%     catch
-%         le = lasterror;
-%         try
-%             errfile    = fullfile(pwd, sprintf('spm_error_%s.mat', datestr(now, 'yyyy-mm-dd_HH:MM:SS.FFF')));
-%             [u1, ojob] = cfg_util('harvest', cjob);
-%             [u1, rjob] = cfg_util('harvestrun', cjob);
-%             outputs    = cfg_util('getalloutputs', cjob);
-%             diarystr   = cfg_util('getdiary', cjob);
-%             save(errfile, 'ojob', 'rjob', 'outputs', 'diarystr');
-%             le.message = sprintf('%s\nError information has been saved to file:\n\n%s', le.message, errfile);
-%         end
-%         le.stack = struct('file','', 'name','SPM Job', 'line',0);
-%         rethrow(le);
-%     end
+if sts
+    cfg_util('run', cjob);
+else
+    cfg_util('deljob', cjob);
+    error('spm:spm_jobman:jobNotFilled', 'No executable modules, but still unresolved dependencies or incomplete module inputs.');
 end
 
 
