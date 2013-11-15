@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_getfile.m 5753 2013-11-15 15:02:28Z volkmar $
 
 t = {};
 sts = false;
@@ -149,7 +149,7 @@ if nargin > 0 && ischar(varargin{1})
                     [t{k}, sts{k}] = listfiles(direc{k}, filt); % (sts is subdirs here)
                     sts{k} = sts{k}(~(strcmp(sts{k},'.')|strcmp(sts{k},'..'))); % remove '.' and '..' entries
                     if regexpi(varargin{1}, 'fplist') % return full pathnames
-                        if ~isempty(t)
+                        if ~isempty(t{k})
                             t{k} = strcat(direc{k}, filesep, t{k});
                         end
                         if (nargout > 1) && ~isempty(sts{k})
