@@ -409,9 +409,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5750 2013-11-15 15:02:24Z volkmar $
+% $Id: cfg_util.m 5751 2013-11-15 15:02:25Z volkmar $
 
-rev = '$Rev: 5750 $';
+rev = '$Rev: 5751 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -702,7 +702,7 @@ switch lower(cmd),
         varargout{2} = val;
     case 'initcfg',
         [c0, jobs, cjob] = local_initcfg;
-        local_initapps;
+        [c0, jobs] = local_initapps(c0, jobs);
     case 'initdef',
         [cm, id] = local_getcm(c0, varargin{1});
         cm = local_initdef(cm, varargin{2});
@@ -1382,7 +1382,7 @@ end
 %-----------------------------------------------------------------------
 
 %-----------------------------------------------------------------------
-function local_initapps
+function [c0, jobs] = local_initapps(c0, jobs)
 % add application data
 if isdeployed
     cfg_mlbatch_appcfg_master;
@@ -1417,9 +1417,9 @@ else
             end
             if ests
                 if vsts
-                    cfg_util('addapp', cfg, def, ver);
+                    [c0, jobs] = local_addapp(c0, jobs, cfg, def, ver);
                 else
-                    cfg_util('addapp', cfg, def);
+                    [c0, jobs] = local_addapp(c0, jobs, cfg, def);
                 end
             end
         end
