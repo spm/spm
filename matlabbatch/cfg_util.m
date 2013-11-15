@@ -69,13 +69,16 @@ function varargout = cfg_util(cmd, varargin)
 %  sts = cfg_util('filljob', job_id, input1, ..., inputN)
 %  sts = cfg_util('filljobui', job_id, ui_fcn, input1, ..., inputN)
 %
-% Fill missing inputs in a job from a list of input items. If an can not be
-% filled by the specified input, this input will be discarded. If
-% cfg_util('filljobui'...) is called, [val sts] = ui_fcn(item) will be run
-% and should return a value which is suitable for setval(item, val,
-% false). sts should be set to true if input should continue with the
-% next item. This can result in an partially filled job. If ui_fcn is
-% interrupted, the job will stay unfilled.
+% Fill missing inputs in a job from a list of input items. For
+% cfg_entry/cfg_files, each input should be suitable to be assigned to
+% item.val{1}. For cfg_menu, input should be an index into the menu list as
+% displayed in the GUI, starting with 1. 
+% If an item can not be filled by the specified input, this input will be
+% discarded. If cfg_util('filljobui'...) is called, [val sts] =
+% ui_fcn(item) will be run and should return a value which is suitable for
+% setval(item, val, false). sts should be set to true if input should
+% continue with the next item. This can result in an partially filled job.
+% If ui_fcn is interrupted, the job will stay unfilled.
 % If cfg_util('filljob'...) is called, the current job can become partially
 % filled.
 % Returns the all_set status of the filled job, returns always false if
@@ -409,9 +412,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5751 2013-11-15 15:02:25Z volkmar $
+% $Id: cfg_util.m 5752 2013-11-15 15:02:27Z volkmar $
 
-rev = '$Rev: 5751 $';
+rev = '$Rev: 5752 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
