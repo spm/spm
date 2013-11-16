@@ -84,12 +84,14 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5657 2013-09-26 16:53:40Z karl $
+% $Id: spm_nlsi_N.m 5755 2013-11-16 17:02:44Z karl $
  
 % options
 %--------------------------------------------------------------------------
 try, M.nograph; catch, M.nograph = 0;  end
 try, M.Nmax;    catch, M.Nmax    = 64; end
+try, M.Gmax;    catch, M.Gmax    = 8;  end
+try, M.Hmax;    catch, M.Hmax    = 8;  end
 
 % figure (unless disabled)
 %--------------------------------------------------------------------------
@@ -149,7 +151,8 @@ if iscell(y)
 else
     ns = size(y,1);
 end
-nr   = length(spm_vec(y))/ns;            % number of samples and responses
+ny   = length(spm_vec(y));
+nr   = ny/ns;                            % number of samples and responses
 M.ns = ns;                               % store in M.ns for integrator
  
 % initial states
@@ -295,6 +298,7 @@ criterion       = [0 0 0 0];
 
 C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
+dgdg  = zeros(ny,ng);
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
 
@@ -315,15 +319,15 @@ for ip = 1:M.Nmax
     % check for dissipative dynamics
     %----------------------------------------------------------------------
     if all(isfinite(spm_vec(x)))
-        gi = 8;
+        Gmax = M.Gmax;
     else
-        gi = 0;
+        Gmax = 0;
     end
     
        
     % Optimize g: parameters of G(g)
     %======================================================================
-    for ig = 1:gi
+    for ig = 1:Gmax
         
         % prediction yp = G(g)*x
         %------------------------------------------------------------------
@@ -356,7 +360,7 @@ for ip = 1:M.Nmax
         % Optimize F(h): parameters of iS(h)
         %==================================================================
         dgdb   = [dgdp dgdg dgdu];           
-        for ih = 1:8
+        for ih = 1:M.Hmax
  
             % precision
             %--------------------------------------------------------------
