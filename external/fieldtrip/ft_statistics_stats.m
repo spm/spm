@@ -52,7 +52,7 @@ function [stat, cfg] = ft_statistics_stats(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_stats.m 8702 2013-11-02 11:28:20Z jimher $
+% $Id: ft_statistics_stats.m 8776 2013-11-14 09:04:48Z roboos $
 
 % test for the presence of the statistics toolbox
 ft_hastoolbox('stats', 1);

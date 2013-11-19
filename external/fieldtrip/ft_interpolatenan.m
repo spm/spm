@@ -44,13 +44,13 @@ function dataout = ft_interpolatenan(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interpolatenan.m 8394 2013-08-14 14:11:24Z jimher $
+% $Id: ft_interpolatenan.m 8776 2013-11-14 09:04:48Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_interpolatenan.m 8394 2013-08-14 14:11:24Z jimher $';
+revision = '$Id: ft_interpolatenan.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 

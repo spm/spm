@@ -36,7 +36,7 @@ function [H, Z, S, psi] = sfactorization_wilson(S,freq,Niterations,tol,fb,init)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson.m 8712 2013-11-04 09:04:19Z jansch $
+% $Id: sfactorization_wilson.m 8776 2013-11-14 09:04:48Z roboos $
 
 % number of channels
 m   = size(S,1);

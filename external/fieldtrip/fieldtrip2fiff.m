@@ -37,7 +37,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 8474 2013-09-19 13:31:46Z roboos $
+% $Id: fieldtrip2fiff.m 8776 2013-11-14 09:04:48Z roboos $
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults

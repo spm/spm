@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_redefinetrial.m 8776 2013-11-14 09:04:48Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_redefinetrial.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults

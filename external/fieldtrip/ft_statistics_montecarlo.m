@@ -98,13 +98,10 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 8729 2013-11-07 10:14:53Z jansch $
+% $Id: ft_statistics_montecarlo.m 8775 2013-11-14 08:27:10Z jansch $
 
 % deal with the user specified randomseed first, to mimick old behavior
 cfg.randomseed = ft_getopt(cfg, 'randomseed', 'yes');
-if istrue(cfg.randomseed)
-  cfg.randomseed = sum(100*clock);
-end
 
 % do the general initialization
 ft_defaults;

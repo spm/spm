@@ -23,7 +23,7 @@ function host = gethostname()
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: gethostname.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: gethostname.m 8776 2013-11-14 09:04:48Z roboos $
 
 % this is to speed up subsequent calls
 persistent previous_argout

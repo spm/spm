@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 8675 2013-10-30 10:19:58Z roboos $
+% $Id: ft_read_sens.m 8784 2013-11-15 10:28:54Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -146,7 +146,7 @@ switch fileformat
     sens.chanpos = [tmp{2:4}];
     sens.elecpos = sens.chanpos;
     
-  case {'ctf_ds', 'ctf_res4', 'ctf_old', 'neuromag_fif', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'itab_raw' 'itab_mhd', 'netmeg'}
+  case {'ctf_ds', 'ctf_res4', 'ctf_old', 'neuromag_fif', 'neuromag_mne', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'itab_raw' 'itab_mhd', 'netmeg'}
     % gradiometer information is always stored in the header of the MEG dataset, hence uses the standard fieldtrip/fileio ft_read_header function
     % sometimes there can also be electrode position information in the header
     hdr = ft_read_header(filename, 'headerformat', fileformat);

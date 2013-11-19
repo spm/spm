@@ -39,7 +39,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_plot_vol.m 8805 2013-11-18 13:24:36Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -47,20 +47,20 @@ ws = warning('on', 'MATLAB:divideByZero');
 vol = ft_datatype_headmodel(vol);
 
 % get the optional input arguments
-faceindex   = ft_getopt(varargin, 'faceindex',   'none');
+faceindex   = ft_getopt(varargin, 'faceindex', 'none');
 vertexindex = ft_getopt(varargin, 'vertexindex', 'none');
-vertexsize  = ft_getopt(varargin, 'vertexsize',  10);
-facecolor   = ft_getopt(varargin, 'facecolor',   'white');
+vertexsize  = ft_getopt(varargin, 'vertexsize', 10);
+facecolor   = ft_getopt(varargin, 'facecolor', 'white');
 vertexcolor = ft_getopt(varargin, 'vertexcolor', 'none');
-edgecolor   = ft_getopt(varargin, 'edgecolor',   'k');
-facealpha   = ft_getopt(varargin, 'facealpha',   1);
+edgecolor   = ft_getopt(varargin, 'edgecolor'); % the default for this is set below
+facealpha   = ft_getopt(varargin, 'facealpha', 1);
 surfaceonly = ft_getopt(varargin, 'surfaceonly');
 
 faceindex   = istrue(faceindex);   % yes=view the face number
 vertexindex = istrue(vertexindex); % yes=view the vertex number
 
 % we will probably need a sphere, so let's prepare one
-[pnt, tri] = icosahedron162;
+[pnt, tri] = icosahedron2562;
 
 % prepare a single or multiple triangulated boundaries
 switch ft_voltype(vol)
@@ -73,6 +73,9 @@ switch ft_voltype(vol)
       bnd(i).pnt(:,3) = pnt(:,3)*vol.r(i) + vol.o(3);
       bnd(i).tri = tri;
     end
+    if isempty(edgecolor)
+      edgecolor = 'none';
+    end
     
   case 'localspheres'
     bnd = [];
@@ -81,6 +84,9 @@ switch ft_voltype(vol)
       bnd(i).pnt(:,2) = pnt(:,2)*vol.r(i) + vol.o(i,2);
       bnd(i).pnt(:,3) = pnt(:,3)*vol.r(i) + vol.o(i,3);
       bnd(i).tri = tri;
+    end
+    if isempty(edgecolor)
+      edgecolor = 'none';
     end
     
   case {'bem', 'dipoli', 'asa', 'bemcp', 'singleshell' 'openmeeg'}
@@ -107,7 +113,7 @@ switch ft_voltype(vol)
     % there is no boundary to be displayed
     bnd = [];
     
-  case 'infinite'
+  case {'infinite' 'infinite_monopole' 'infinite_currentdipole' 'infinite_magneticdipole'}
     warning('there is nothing to plot for an infinite volume conductor')
     
     % there is no boundary to be displayed
@@ -115,6 +121,11 @@ switch ft_voltype(vol)
     
   otherwise
     error('unsupported voltype')
+end
+
+% all models except for the spherical ones
+if isempty(edgecolor)
+  edgecolor = 'k';
 end
 
 % plot the triangulated surfaces of the volume conduction model
@@ -125,6 +136,4 @@ for i=1:length(bnd)
 end
 
 % revert to original state
-warning(ws); 
-
-
+warning(ws);

@@ -37,7 +37,7 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rollback_provenance.m 8575 2013-09-30 12:30:12Z roboos $
+% $Id: rollback_provenance.m 8776 2013-11-14 09:04:48Z roboos $
 
 for i=1:(nargin-1)
   

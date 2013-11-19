@@ -36,7 +36,7 @@ function [c] = ft_connectivity_powcorr_ortho(mom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_powcorr_ortho.m 8545 2013-09-25 16:22:11Z jansch $
+% $Id: ft_connectivity_powcorr_ortho.m 8776 2013-11-14 09:04:48Z roboos $
 
 refindx = ft_getopt(varargin, 'refindx', 'all');
 tapvec  = ft_getopt(varargin, 'tapvec',  ones(1,size(mom,2)));

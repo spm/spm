@@ -94,7 +94,7 @@ function segmentation = ft_datatype_segmentation(segmentation, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_segmentation.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_datatype_segmentation.m 8776 2013-11-14 09:04:48Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version           = ft_getopt(varargin, 'version', 'latest');

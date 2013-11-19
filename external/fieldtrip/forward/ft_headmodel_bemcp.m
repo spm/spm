@@ -32,12 +32,11 @@ function vol = ft_headmodel_bemcp(geom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_bemcp.m 7310 2013-01-14 15:44:07Z roboos $
+% $Id: ft_headmodel_bemcp.m 8810 2013-11-18 13:30:30Z roboos $
 
 ft_hastoolbox('bemcp', 1);
 
 % get the optional input arguments
-hdmfile         = ft_getopt(varargin, 'hdmfile');
 conductivity    = ft_getopt(varargin, 'conductivity');
 
 if isfield(geom,'bnd')

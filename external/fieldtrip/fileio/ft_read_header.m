@@ -86,7 +86,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8770 2013-11-12 13:54:58Z roboos $
+% $Id: ft_read_header.m 8781 2013-11-14 15:43:21Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -350,7 +350,7 @@ switch headerformat
     % assign the channel type and units for the known channels
     hdr.chantype = repmat({'unknown'}, size(hdr.label));
     hdr.chanunit = repmat({'unknown'}, size(hdr.label));
-    chan = ~cellfun(@isempty, regexp(hdr.label, '^A.*$'));
+    chan = ~cellfun(@isempty, regexp(hdr.label, '^[A-D]\d*$'));
     hdr.chantype(chan) = {'eeg'};
     hdr.chanunit(chan) = {'uV'};
     

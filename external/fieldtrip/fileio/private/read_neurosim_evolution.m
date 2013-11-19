@@ -30,7 +30,7 @@ function [hdr, dat] = read_neurosim_evolution(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neurosim_evolution.m 7327 2013-01-16 08:26:23Z bargip $
+% $Id: read_neurosim_evolution.m 8776 2013-11-14 09:04:48Z roboos $
 
 if isdir(filename)
   filename = fullfile(filename, 'evolution');

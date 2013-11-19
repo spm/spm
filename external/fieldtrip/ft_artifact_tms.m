@@ -94,9 +94,9 @@ function [cfg, artifact] = ft_artifact_tms(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_tms.m 8394 2013-08-14 14:11:24Z jimher $
+% $Id: ft_artifact_tms.m 8776 2013-11-14 09:04:48Z roboos $
 
-revision = '$Id: ft_artifact_tms.m 8394 2013-08-14 14:11:24Z jimher $';
+revision = '$Id: ft_artifact_tms.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults

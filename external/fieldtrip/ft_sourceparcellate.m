@@ -45,9 +45,9 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceparcellate.m 8687 2013-11-01 11:41:01Z jansch $
+% $Id: ft_sourceparcellate.m 8776 2013-11-14 09:04:48Z roboos $
 
-revision = '$Id: ft_sourceparcellate.m 8687 2013-11-01 11:41:01Z jansch $';
+revision = '$Id: ft_sourceparcellate.m 8776 2013-11-14 09:04:48Z roboos $';
 
 ft_defaults
 ft_preamble init

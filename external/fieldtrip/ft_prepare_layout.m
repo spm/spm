@@ -59,12 +59,10 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %
 % See also FT_LAYOUTPLOT, FT_TOPOPLOTER, FT_TOPOPLOTTFR, FT_MULTIPLOTER, FT_MULTIPLOTTFR
 
-% TODO switch to using planarchannelset function
-
 % undocumented and non-recommended option (for SPM only)
 %   cfg.style       string, '2d' or '3d' (default = '2d')
 
-% Copyright (C) 2007-2009, Robert Oostenveld
+% Copyright (C) 2007-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -82,9 +80,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8766 2013-11-12 11:40:27Z roboos $
+% $Id: ft_prepare_layout.m 8796 2013-11-18 09:40:59Z roboos $
 
-revision = '$Id: ft_prepare_layout.m 8766 2013-11-12 11:40:27Z roboos $';
+revision = '$Id: ft_prepare_layout.m 8796 2013-11-18 09:40:59Z roboos $';
 
 % do the general setup of the function
 ft_defaults

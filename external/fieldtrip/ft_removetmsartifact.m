@@ -48,7 +48,7 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 8471 2013-09-19 08:41:10Z jimher $
+% $Id: ft_removetmsartifact.m 8776 2013-11-14 09:04:48Z roboos $
 
 % DEPRECATED by jimher on 19 September 2013
 % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1791 for more details
@@ -59,7 +59,7 @@ warning('FT_REMOVETMSARTIFACT is deprecated, please follow TMS-EEG tutorial inst
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 8471 2013-09-19 08:41:10Z jimher $';
+revision = '$Id: ft_removetmsartifact.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 

@@ -41,10 +41,10 @@ function dataout = ft_annotate(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_annotate.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_annotate.m 8776 2013-11-14 09:04:48Z roboos $
 
 
-revision = '$Id: ft_annotate.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_annotate.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available

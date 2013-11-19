@@ -32,7 +32,7 @@ function A = reorderdim(A, dim, inds)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: reorderdim.m 7695 2013-03-19 13:49:36Z eelspa $
+% $Id: reorderdim.m 8776 2013-11-14 09:04:48Z roboos $
 
 % the functionality is achieved through some ugly string manipulation
 

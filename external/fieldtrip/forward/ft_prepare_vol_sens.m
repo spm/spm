@@ -56,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 8612 2013-10-21 13:00:43Z sardal $
+% $Id: ft_prepare_vol_sens.m 8811 2013-11-18 13:32:08Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -150,7 +150,7 @@ elseif ismeg
   sens.tra     = sens.tra(:,selcoil);
   
   switch ft_voltype(vol)
-    case {'infinite' 'infinite_monopole'}
+    case {'infinite' 'infinite_monopole' 'infinite_currentdipole' 'infinite_magneticdipole'}
       % nothing to do
       
     case 'singlesphere'
@@ -328,8 +328,11 @@ elseif iseeg
     sens.label   = sens.label(selsens);
   end
   
+  % the electrodes will be projected onto the surface, hence the sensor positions need to be updated at the end
+  sens = rmfield(sens, 'chanpos');
+  
   switch ft_voltype(vol)
-    case {'infinite' 'infinite_monopole'}
+    case {'infinite' 'infinite_monopole' 'infinite_currentdipole'}
       % nothing to do
       
     case {'halfspace', 'halfspace_monopole'}
@@ -560,6 +563,11 @@ elseif iseeg
   % end
   
 end % if iseeg or ismeg
+
+% add/update the channel positions, this is needed if the electrodes are projected to the surface
+if ~isfield(sens, 'chanpos')
+  sens.chanpos = channelposition(sens);
+end
 
 if isfield(sens, 'tra')
   if issparse(sens.tra) && size(sens.tra, 1)==1

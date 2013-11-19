@@ -37,7 +37,7 @@ function [H, Z, S, psi] = sfactorization_wilson2x2(S,freq,Niterations,tol,cmbind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson2x2.m 8713 2013-11-04 11:38:42Z jansch $
+% $Id: sfactorization_wilson2x2.m 8776 2013-11-14 09:04:48Z roboos $
 
 m   = size(cmbindx,1);
 N   = length(freq)-1;

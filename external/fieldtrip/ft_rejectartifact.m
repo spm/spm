@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 8406 2013-08-20 11:39:13Z jimher $
+% $Id: ft_rejectartifact.m 8776 2013-11-14 09:04:48Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 8406 2013-08-20 11:39:13Z jimher $';
+revision = '$Id: ft_rejectartifact.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults

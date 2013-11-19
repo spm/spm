@@ -44,7 +44,7 @@ function [sens] = ft_fetch_sens(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_sens.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_fetch_sens.m 8776 2013-11-14 09:04:48Z roboos $
 
 % check input arguments
 if nargin > 1 && ~isempty(data)

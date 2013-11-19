@@ -37,7 +37,7 @@ function [dat] = ft_preproc_padding(dat, padtype, prepadlength, postpadlength)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_padding.m 8315 2013-07-15 10:28:55Z jorhor $
+% $Id: ft_preproc_padding.m 8776 2013-11-14 09:04:48Z roboos $
 
 if nargin < 4
   postpadlength = prepadlength;

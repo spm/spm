@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 8716 2013-11-04 14:55:40Z eelspa $
+% $Id: topoplot_common.m 8776 2013-11-14 09:04:48Z roboos $
 
-revision = '$Id: topoplot_common.m 8716 2013-11-04 14:55:40Z eelspa $';
+revision = '$Id: topoplot_common.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one

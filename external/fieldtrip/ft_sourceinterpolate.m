@@ -95,9 +95,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_sourceinterpolate.m 8776 2013-11-14 09:04:48Z roboos $
 
-revision = '$Id: ft_sourceinterpolate.m 8753 2013-11-11 12:45:48Z roboos $';
+revision = '$Id: ft_sourceinterpolate.m 8776 2013-11-14 09:04:48Z roboos $';
 
 % do the general setup of the function
 ft_defaults

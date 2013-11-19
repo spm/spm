@@ -52,7 +52,7 @@ function [dipout] = ft_eloreta(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id:$
+% $Id: ft_eloreta.m 8776 2013-11-14 09:04:48Z roboos $
 
 if mod(nargin-5,2)
     % the first 5 arguments are fixed, the other arguments should come in pairs

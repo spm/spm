@@ -21,7 +21,7 @@ function [funlist, deplist, depmat] = ft_dependencycheck
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dependencycheck.m 7676 2013-03-16 14:55:44Z roboos $
+% $Id: ft_dependencycheck.m 8776 2013-11-14 09:04:48Z roboos $
 
 ft_defaults
 

@@ -50,7 +50,7 @@ function [hs] = ft_plot_mesh(bnd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_mesh.m 8773 2013-11-12 15:09:09Z jansch $
+% $Id: ft_plot_mesh.m 8777 2013-11-14 10:34:00Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -209,24 +209,17 @@ end
 % the facecolor can be specified either as a RGB color for each triangle, or as a single value at each triangle
 % if there are triangles, the vertexcolor is used for linear interpolation over the patches
 vertexpotential = ~isempty(tri) && ~ischar(vertexcolor) && (size(pnt,1)==numel(vertexcolor) || size(pnt,1)==size(vertexcolor,1) && (size(vertexcolor,2)==1 || size(vertexcolor,2)==3));
-facepotential   = ~isempty(tri) && ~ischar(facecolor  ) && (size(tri,1)==numel(facecolor  ) || size(tri,1)==size(facecolor  ,1) && (size(facecolor  ,2)==1 || size(facecolor,2)==3));
+facepotential   = ~isempty(tri) && ~ischar(facecolor  ) && (size(tri,1)==numel(facecolor  ) || size(tri,1)==size(facecolor  ,1) && (size(facecolor  ,2)==1 || size(facecolor,  2)==3));
 
-if facepotential
-  set(hs, 'FaceVertexCData', facecolor, 'FaceColor', 'flat');
-else 
-  if ~ischar(facecolor) && size(facecolor,1)==size(tri,1)
-    set(hs, 'FaceColor', facecolor);
-  elseif ~ischar(facecolor) && size(facecolor,1)==1 && size(facecolor,2)==3
-    set(hs, 'FaceColor', facecolor);
-  elseif ~ischar(facecolor) && size(facecolor,1)==size(pnt,1)
-    set(hs, 'FaceVertexCData', facecolor, 'FaceColor', 'flat');
-  end
-end
-
+% if both vertexcolor and facecolor are numeric arrays, let the vertexcolor prevail
 if vertexpotential
   % vertexcolor is an array with number of elements equal to the number of vertices
-  % if both vertexcolor and facecolor are arrays, let the vertexcolor prevail
   set(hs, 'FaceVertexCData', vertexcolor, 'FaceColor', 'interp');
+elseif facepotential
+  set(hs, 'FaceVertexCData', facecolor, 'FaceColor', 'flat');
+else
+  % the color is indicated as a single character or as a single RGB triplet
+  set(hs, 'FaceColor', facecolor);
 end
 
 % if facealpha is an array with number of elements equal to the number of vertices

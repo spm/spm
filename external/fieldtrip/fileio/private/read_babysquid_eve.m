@@ -24,7 +24,7 @@ function [smp, tim, val3, val4] = read_babysquid_eve(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_babysquid_eve.m 7346 2013-01-17 16:38:12Z roboos $
+% $Id: read_babysquid_eve.m 8776 2013-11-14 09:04:48Z roboos $
 
 % TODO check sample indexing (1 or 0 based)
 % TODO clarify val3 and val4

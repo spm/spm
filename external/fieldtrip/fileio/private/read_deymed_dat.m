@@ -25,7 +25,7 @@ function dat = read_deymed_dat(filename, hdr, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_deymed_dat.m 7328 2013-01-16 08:47:40Z roboos $
+% $Id: read_deymed_dat.m 8776 2013-11-14 09:04:48Z roboos $
 
 [p, f, x] = fileparts(filename);
 headerfile = fullfile(p, [f '.ini']);

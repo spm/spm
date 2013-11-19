@@ -30,7 +30,7 @@ function [s] = rmsubfield(s, f, v);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rmsubfield.m 8267 2013-06-14 12:27:12Z roboos $
+% $Id: rmsubfield.m 8776 2013-11-14 09:04:48Z roboos $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');

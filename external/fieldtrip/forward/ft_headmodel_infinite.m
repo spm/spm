@@ -28,15 +28,21 @@ function vol = ft_headmodel_infinite(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_infinite.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_headmodel_infinite.m 8817 2013-11-19 14:23:29Z roboos $
 
-model = ft_getopt(varargin, 'sourcemodel', 'dipole');
+sourcemodel = ft_getopt(varargin, 'sourcemodel');
 
 % this is an easy one
 vol = [];
 
-if strcmp(model,'monopole')
+switch sourcemodel
+case 'monopole'
   vol.type = 'infinite_monopole';  
-else
+case 'magneticdipole'
+  vol.type = 'infinite_magneticdipole';  
+case 'currentdipole'
+  vol.type = 'infinite_currentdipole';  
+otherwise
   vol.type = 'infinite';
-end
+end % switch
+

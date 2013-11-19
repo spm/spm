@@ -29,7 +29,7 @@ function type = ft_chantype(input, desired)
 %
 % See also FT_READ_HEADER, FT_SENSTYPE, FT_CHANUNIT
 
-% Copyright (C) 2008-2011, Robert Oostenveld
+% Copyright (C) 2008-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 8706 2013-11-02 13:44:31Z roboos $
+% $Id: ft_chantype.m 8784 2013-11-15 10:28:54Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
