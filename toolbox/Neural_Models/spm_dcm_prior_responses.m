@@ -6,7 +6,7 @@ function spm_dcm_prior_responses(Ep)
 % assumptions for the suite of neural mass and mean field models used in
 % DCM. It characterises the steady-state responses – under prior
 % expectations – using spectral density and autocovariance functions
-% with and with out channel noise. it then proceeds to evaluate evoked 
+% with and with out channel noise. it then proceeds to evaluate evoked
 % responses to a canonical input.
 %
 % This function is used primarily to check the prior expectations to ensure
@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 5299 2013-03-04 18:19:35Z guillaume $
+% $Id: spm_dcm_prior_responses.m 5758 2013-11-20 21:04:01Z karl $
 
 
 % Model specification
@@ -37,12 +37,13 @@ M.dipfit.Nc    = 1;
 M.dipfit.Ns    = 1;
 
 
-    % within-trial effects: adjust onset relative to pst
-    %----------------------------------------------------------------------
-    M.ns   = 64;
-    M.ons  = 64;
-    M.dur  = 16;
-    U.dt   = 0.004;
+% within-trial effects: adjust onset relative to pst
+%----------------------------------------------------------------------
+M.ns   = 64;
+M.ons  = 64;
+M.dur  = 16;
+U.dt   = 0.004;
+U.X    = [];
 
 ifig  = 1;
 for i = 1:Nm
@@ -55,8 +56,8 @@ for i = 1:Nm
         spm_figure('GetWin',sprintf('stationary responses: %i',ifig));
         ifig = ifig + 1;
     end
-        
-        
+    
+    
     % set model option and priors
     %----------------------------------------------------------------------
     options.spatial = 'LFP';
@@ -88,7 +89,7 @@ for i = 1:Nm
     M.pC    = pC;
     M.m     = nu;
     M.l     = 1;
-
+    
     % solve for steady state
     %----------------------------------------------------------------------
     M.x     = spm_dcm_neural_x(pE,M);
@@ -111,11 +112,11 @@ for i = 1:Nm
     pst = 1000*pst;
     
     subplot(3,3,3*iplot + 2)
-    plot(Hz,csd{1}),  hold on   
+    plot(Hz,csd{1}),  hold on
     
     subplot(3,3,3*iplot + 3)
     plot(lag,ccf{1}), hold on
-
+    
     
     % now repeat with out channel noise
     %----------------------------------------------------------------------

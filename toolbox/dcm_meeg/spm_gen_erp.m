@@ -16,7 +16,7 @@ function [y,pst] = spm_gen_erp(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_erp.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_gen_erp.m 5758 2013-11-20 21:04:01Z karl $
 
 % default inputs - one trial (no between-trial effects)
 %--------------------------------------------------------------------------
@@ -54,7 +54,12 @@ end
 
 % between-trial (experimental) inputs
 %==========================================================================
-X = U.X;
+if isfield(U,'X')
+    X = U.X;
+else
+    X = sparse(1,0);
+end
+
 if ~size(X,1)
     X = sparse(1,0);
 end

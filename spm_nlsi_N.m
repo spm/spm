@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5755 2013-11-16 17:02:44Z karl $
+% $Id: spm_nlsi_N.m 5758 2013-11-20 21:04:01Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -180,13 +180,17 @@ end
 %--------------------------------------------------------------------------
 try
     spm_vec(M.P) - spm_vec(M.pE);
-    fprintf('\n(state) parameter initialisation successful\n')
+    if ~M.nograph
+        fprintf('\n(state) parameter initialisation successful\n')
+    end
 catch
     M.P = M.pE;
 end
 try
     spm_vec(M.Q) - spm_vec(M.gE);
-    fprintf('\n(observer) parameter initialisation successful\n')
+    if ~M.nograph
+        fprintf('\n(observer) parameter initialisation successful\n')
+    end
 catch
     M.Q = M.gE;
 end
@@ -457,7 +461,8 @@ for ip = 1:M.Nmax
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
     try
-        F0; fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(Ti))
+        F0;
+        fprintf(' actual: %.3e (%.2f sec)\n',full(F - C.F),toc(Ti))
     catch
         F0 = F;
     end
@@ -564,7 +569,6 @@ for ip = 1:M.Nmax
     dF  = dFdp'*dp;
     ig  = max([0 ig]);
     fprintf('%-6s: %-2i (%i,%i) %4s %-6.3e %6s %6.3e ',str,ip,ig,ih,'F:',full(C.F - F0),'dF predicted:',full(dF))
-    
     criterion = [(dF < 1e-1) criterion(1:end - 1)];
     if all(criterion), fprintf(' convergence\n'), break, end
     

@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5066 2012-11-16 21:34:00Z karl $
+% $Id: spm_induced_demo.m 5758 2013-11-20 21:04:01Z karl $
  
  
 % Model specification
@@ -99,10 +99,10 @@ U.dt  = 4/1000;
 t     = (1:N)'*U.dt;
 U.u   = sparse(N,M.m);
  
- 
+
 % exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*16,8);
+U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*128,8);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
