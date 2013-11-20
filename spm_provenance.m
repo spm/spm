@@ -32,7 +32,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5754 2013-11-15 20:33:43Z guillaume $
+% $Id: spm_provenance.m 5757 2013-11-20 18:07:58Z guillaume $
 
 % Todo:
 % - handle @xxx in attributes' literal
@@ -42,7 +42,7 @@ classdef spm_provenance < handle
 %-Properties
 %==========================================================================
 properties (SetAccess='private', GetAccess='private')
-    namespace = {};
+    namespace = struct('prefix','','uri','');
     stack = {};
 end
 
@@ -50,6 +50,8 @@ end
 %==========================================================================
 methods
     function obj = spm_provenance
+        add_namespace(obj,'prov','http://www.w3.org/ns/prov#');
+        add_namespace(obj,'xsd','http://www.w3.org/2001/XMLSchema-datatypes#');
     end
 end
 
@@ -60,31 +62,22 @@ methods (Access='public')
     %-Namespaces
     %----------------------------------------------------------------------
     function uri = get_default_namespace(obj)
-        i = obj.namespace;
-        if ~isempty(obj.namespace)
-            i = cellfun(@isnumeric,obj.namespace(:,1));
-        end
-        if ~any(i), uri = ''; else uri = obj.namespace{i,2}; end
+        uri = obj.namespace(1).uri;
     end
     
     function set_default_namespace(obj,uri)
-        if ~isempty(obj.namespace)
-            obj.namespace(cellfun(@isnumeric,obj.namespace(:,1)),:) = [];
-        end
-        obj.namespace = [{NaN,uri}; obj.namespace];
+        obj.namespace(1).uri = uri;
     end
     
     function ns = add_namespace(obj,prefix,uri)
-        if ismember(prefix,{'prov','xsd'})
-            error('Namespace MUST NOT declare prefix prov and xsd.');
+        n = ismember({obj.namespace.prefix},prefix);
+        if any(n(1:min(numel(n),3)))
+            error('Namespace MUST NOT declare prefixes prov and xsd or be empty.');
         end
-        if ~isempty(obj.namespace) && ismember(prefix,obj.namespace(:,1))
-            n = find(ismember(obj.namespace(:,1),prefix));
-        else
-            n = size(obj.namespace,1) + 1;
-        end
-        obj.namespace{n,1} = prefix;
-        obj.namespace{n,2} = uri;
+        if any(n), n = find(n);
+        else       n = numel(obj.namespace) + 1; end
+        obj.namespace(n).prefix = prefix;
+        obj.namespace(n).uri = uri;
         
         if nargout
             ns = @(x) [prefix ':' x];
@@ -92,21 +85,9 @@ methods (Access='public')
     end
     
     function uri = get_namespace(obj,prefix)
-        ns = obj.namespace;
-        ns = [ns;{...
-            'prov','http://www.w3.org/ns/prov#';...
-            'xsd','http://www.w3.org/2001/XMLSchema-datatypes#'}];
-        if isempty(prefix)
-            uri = get_default_namespace(obj);
-            return;
-        end
-        for i=1:size(ns,1)
-            if strcmp(prefix,ns{i,1})
-                uri = ns{i,2};
-                return;
-            end
-        end
-        uri = '';
+        n = ismember({obj.namespace.prefix},prefix);
+        if ~any(n), uri = '';
+        else        uri = obj.namespace(n).uri; end
     end
     
     %-Components
@@ -304,7 +285,7 @@ methods (Access='public')
     
     %function bundle(obj,id,p)
     function varargout = bundle(obj,id,p)
-        if nargin < 3, p = spm_provenance; end
+        if nargin < 3, p = eval(class(obj)); end
         n = numel(obj.stack) + 1;
         obj.stack{n} = {'bundle',id,p};
         if nargin < 3, varargout = {p}; end
@@ -330,12 +311,12 @@ methods (Access='public')
             case 'ttl'
                 %-Turtle
                 % http://www.w3.org/TR/turtle/
-                warning('Not implemented.');
+                %warning('Partially implemented.');
                 serialize_ttl(obj);
             case 'dot'
                 %-GraphViz
                 % http://www.graphviz.org/
-                warning('Partially implemented.');
+                %warning('Partially implemented.');
                 s = sprintf('digraph "PROV" { size="16,12"; rankdir="BT";\n');
                 s = [s serialize_dot(obj)];
                 s = [s sprintf('}\n')];
@@ -354,15 +335,16 @@ methods (Access='private')
         if nargin < 2, step = 1; end
         o = blanks(2*step);
         %-Namespace
-        for i=1:size(obj.namespace,1)
-            if i==1 && isnumeric(obj.namespace{i,1}) && isnan(obj.namespace{i,1})
-                fprintf([o 'default <%s>\n'],obj.namespace{i,2});
-            else
-                fprintf([o 'prefix %s <%s>\n'],...
-                    obj.namespace{i,1},obj.namespace{i,2});
-            end
+        if ~isempty(obj.namespace(1).uri)
+            fprintf([o 'default <%s>\n'],obj.namespace(1).uri);
         end
-        if ~isempty(obj.namespace), fprintf('\n'); end
+        for i=4:numel(obj.namespace)
+            fprintf([o 'prefix %s <%s>\n'],...
+                obj.namespace(i).prefix, obj.namespace(i).uri);
+        end
+        if ~isempty(obj.namespace(1).uri) || numel(obj.namespace) > 3
+            fprintf('\n');
+        end
         for i=1:numel(obj.stack)
             %-Components
             if ismember(obj.stack{i}{1},{'entity','agent'})
@@ -400,7 +382,7 @@ methods (Access='private')
                         if iscell(literal)
                             literal = sprintf('"%s" %%%% %s',literal{:});
                         else
-                            if isequal(attribute,'prov:type') || strncmp(literal,'prov:',5)
+                            if isequal(attribute,'prov:type') || strncmp(literal,'prov:',5) || ~isempty(parseQN(literal,'prefix'))
                                 % any literal that starts with xxxx: ?
                                 % or impose it with {literal}
                                 s = '''';
@@ -424,13 +406,13 @@ methods (Access='private')
         o = blanks(2*step);
         %-Namespace
         fprintf([o '"prefix": {\n']);
-        for i=1:size(obj.namespace,1)
-            if i==1 && isnumeric(obj.namespace{i,1}) && isnan(obj.namespace{i,1})
-                fprintf([o o '"default": "%s"'],obj.namespace{i,2});
-            else
-                fprintf([o o '"%s": "%s"'],obj.namespace{i,1:2});
-            end
-            if i~=size(obj.namespace,1), fprintf(','); end
+        if ~isempty(obj.namespace(1).uri)
+            fprintf([o o '"default": "%s"'],obj.namespace(1).uri);
+        end
+        for i=4:numel(obj.namespace)
+            fprintf([o o '"%s": "%s"'],...
+                obj.namespace(i).prefix,obj.namespace(i).uri);
+            if i~=numel(obj.namespace), fprintf(','); end
             fprintf('\n');
         end
         fprintf([o '}']);
@@ -496,18 +478,55 @@ methods (Access='private')
         o = blanks(2*step);
         %-Namespace
         ns = obj.namespace;
-        for i=1:size(ns,1)
-            if i==1 && isnumeric(ns{i,1}) && isnan(ns{i,1}), 
-                ns{i,1} = '';
-            end
-            fprintf('@prefix %s: <%s> .\n',ns{i,1:2});
+        ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
+        if ~isempty(ns(1).uri)
+            fprintf('@prefix : <%s> .\n',ns(1).uri);
         end
-        if ~isempty(ns), fprintf('\n'); end
+        for i=2:numel(ns)
+            fprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri);
+        end
+        if ~isempty(ns(1).uri) || numel(ns) > 3
+            fprintf('\n');
+        end
         %-Expressions
+        % optional entries for activity and relations are not saved
         for i=1:numel(obj.stack)
-            if ismember(obj.stack{i}{1},{'entity','agent'})
-                fprintf('%s a prov:%s',obj.stack{i}{[2 1]});
+            if ismember(obj.stack{i}{1},{'entity','activity','agent'})
+                fprintf('%s\n',obj.stack{i}{2});
+                attr = obj.stack{i}{end};
+                k = ismember(attr(1:2:end),'prov:type');
+                a_type = [{['prov:' obj.stack{i}{1}]} attr{2*find(k)}];
+                fprintf([o 'a']);
+                for j=1:numel(a_type)
+                    fprintf(' %s',a_type{j});
+                    if j~=numel(a_type), fprintf(','); end
+                end
+                if ~isempty(attr)
+                    fprintf(' ; \n');
+                    for j=1:2:numel(attr)
+                        attribute = attr{j};
+                        literal = attr{j+1};
+                        if strcmp(attribute,'prov:type'), continue; end
+                        if iscell(literal)
+                            %if ~strcmp(literal{2},'xsd:string')
+                                literal = sprintf('"%s"^^%s',literal{:});
+                            %else
+                            %    literal = sprintf('"%s"',literal{1});
+                            %end
+                        else
+                            if ~isempty(parseQN(literal,'prefix'))
+                                s = '';
+                            else
+                                s = '"';
+                            end
+                            literal = sprintf([s '%s' s],literal);
+                        end
+                        fprintf([o '%s %s'],attribute,literal);
+                        if j~=numel(attr)-1, fprintf(' ;\n'); end
+                    end
+                end
             else
+                fprintf('%s prov:%s %s',obj.stack{i}{[3 1 4]})
             end
             fprintf(' .\n\n');
         end
@@ -522,7 +541,11 @@ methods (Access='private')
                  'filled','ellipse','0000FF','9FB1FC',4;
                  'filled','house','000000','FDB266',4};
         strrel = '[labeldistance="1.5",rotation="20",taillabel="%s",labelfontsize="8",labelangle="60.0"]\n';
-        strann = '[style="dashed",color="#C0C0C0",arrowhead="none"]';
+        strannrel = '[style="dashed",color="#C0C0C0",arrowhead="none"]\n';
+        strann = '[color="gray",fontcolor="black",label=%s,shape="note",fontsize="10"]\n';
+        strannlab = '<<TABLE cellpadding="0" border="0">%s</TABLE>>';
+        strtr = '<TR><TD align="left">%s</TD><TD align="left">%s</TD></TR>';
+        annn = 0;
         for i=1:numel(s)
             if ~isempty(s(i).idx)
                 if ismember(s(i).expr,expr)
@@ -532,6 +555,26 @@ methods (Access='private')
                         url = get_url(obj,obj.stack{j}{2});
                         str = [str sprintf('n%s ',get_valid_identifier(url))];
                         str = [str sprintf(strexpr,style{idx,:},label,url)];
+                        attr = obj.stack{j}{end};
+                        if ~isempty(attr)
+                            url_ann = sprintf('http://annot/ann%d',annn);
+                            attrlist = [];
+                            for k=1:2:numel(attr)
+                                attribute = attr{k};
+                                literal = attr{k+1};
+                                if iscell(literal)
+                                    literal = literal{1};
+                                end
+                                attrlist = [attrlist sprintf(strtr,attribute,literal)];
+                            end
+                            ann_label = sprintf(strannlab,attrlist);
+                            A = ['n' get_valid_identifier(url_ann)];
+                            str = [str A ' ' sprintf(strann,ann_label)];
+                            B = ['n' get_valid_identifier(url)];
+                            str = [str sprintf('%s -> %s ',A,B)];
+                            str = [str sprintf(strannrel)];
+                            annn = annn + 1;
+                        end
                     end
                     % handle prov:location / prov:atLocation
                     if i==1
@@ -541,7 +584,7 @@ methods (Access='private')
                                 A = ['n' get_valid_identifier(get_url(obj,val))];
                                 B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{2}))];
                                 str = [str sprintf('%s -> %s ',A,B)];
-                                str = [str sprintf(strann)];
+                                str = [str sprintf(strannrel)];
                             end
                         end
                     end
