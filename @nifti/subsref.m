@@ -35,11 +35,11 @@ function varargout = subsref(opt,subs)
 % descrip     - a brief description of the image
 % cal         - a two-element vector containing cal_min and cal_max
 % aux_file    - name of an auxiliary file
-% _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% _________________________________________________________________________
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsref.m 4136 2010-12-09 22:22:28Z guillaume $
+% $Id: subsref.m 5759 2013-11-21 14:01:14Z guillaume $
 
 
 varargout = rec(opt,subs);
@@ -108,8 +108,10 @@ case {'.'},
             s = double(bitand(h.xyzt_units,7));
             if s
                 d = findindict(s,'units');
-                t = diag([d.rescale*[1 1 1] 1])*t;
-            end;
+                if ~isempty(d)
+                    t = diag([d.rescale*[1 1 1] 1])*t;
+                end
+            end
 
         case 'mat_intent',
             if h.sform_code>0,

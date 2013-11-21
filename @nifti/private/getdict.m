@@ -1,10 +1,10 @@
 function d = getdict
 % Dictionary of NIFTI stuff
 % _________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: getdict.m 4967 2012-09-26 18:19:23Z guillaume $
+% $Id: getdict.m 5759 2013-11-21 14:01:14Z guillaume $
 
 
 persistent dict;
@@ -87,15 +87,25 @@ table = {...
     24  ,'LOG10PVAL'    ,'Log_10 P-value',{}
     1001,'ESTIMATE'     ,'Estimate',{}
     1002,'LABEL'        ,'Label index',{}
-    1003,'NEURONAMES'   ,'NeuroNames index',{}
-    1004,'MATRIX'       ,'General matrix',{'M','N'}
-    1005,'MATRIX_SYM'   ,'Symmetric matrix',{}
-    1006,'DISPLACEMENT' ,'Displacement vector',{}
+    1003,'NEURONAME'    ,'NeuroNames index',{}
+    1004,'GENMATRIX'    ,'General matrix',{'M','N'}
+    1005,'SYMMATRIX'    ,'Symmetric matrix',{}
+    1006,'DISPVECT'     ,'Displacement vector',{}
     1007,'VECTOR'       ,'Vector',{}
-    1008,'POINTS'       ,'Pointset',{}
+    1008,'POINTSET'     ,'Pointset',{}
     1009,'TRIANGLE'     ,'Triangle',{}
     1010,'QUATERNION'   ,'Quaternion',{}
     1011,'DIMLESS'      ,'Dimensionless',{}
+    2001,'TIME_SERIES'  ,'Time series',{}
+    2002,'NODE_INDEX'   ,'Node index',{}
+    2003,'RGB_VECTOR'   ,'RGB triplet',{}
+    2004,'RGBA_VECTOR'  ,'RGBA vector',{}
+    2005,'SHAPE'        ,'Shape',{}
+    3001,'CONNECTIVITY_DENSE'                  ,'Dense connectivity',{}
+    3002,'CONNECTIVITY_DENSE_TIME'             ,'Dense time series',{}
+    3003,'CONNECTIVITY_PARCELLATED'            ,'Parcellated connectivity',{}
+    3004,'CONNECTIVITY_PARCELLATED_TIME'       ,'Parcellated time series',{}
+    3005,'CONNECTIVITY_CONNECTIVITY_TRAJECTORY','Trajectory connectivity',{}
 };
 intent = struct('code',table(:,1),'label',table(:,2),...
     'fullname',table(:,3),'param',table(:,4));
@@ -150,4 +160,4 @@ return;
 
 
 function varargout = crash(varargin)
-error('There is a NIFTI-1 data format problem (an invalid datatype).');
+error('There is a NIFTI data format problem (an invalid datatype).');
