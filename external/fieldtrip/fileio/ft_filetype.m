@@ -74,7 +74,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_filetype.m 8833 2013-11-22 08:40:58Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1060,6 +1060,10 @@ elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filen
   type = 'riff_wave';
   manufacturer = 'Microsoft';
   content = 'audio';
+elseif filetype_check_extension(filename, '.txt') && filetype_check_header(filename, 'Site')
+  type = 'easycap_txt';
+  manufacturer = 'Easycap';
+  content = 'electrode positions';
 elseif filetype_check_extension(filename, '.txt')
   type = 'ascii_txt';
   manufacturer = '';

@@ -39,7 +39,7 @@ function [obj] = ft_convert_units(obj, target, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_units.m 8807 2013-11-18 13:28:35Z roboos $
+% $Id: ft_convert_units.m 8836 2013-11-22 12:33:17Z roboos $
 
 % This function consists of three parts:
 %   1) determine the input units
@@ -52,7 +52,7 @@ if isstruct(obj) && numel(obj)>1
   % deal with a structure array
   for i=1:numel(obj)
     if nargin>1
-      tmp(i) = ft_convert_units(obj(i), target);
+      tmp(i) = ft_convert_units(obj(i), target, varargin{:});
     else
       tmp(i) = ft_convert_units(obj(i));
     end

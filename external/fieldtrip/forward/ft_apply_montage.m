@@ -54,7 +54,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 8268 2013-06-14 12:32:05Z roboos $
+% $Id: ft_apply_montage.m 8824 2013-11-20 22:00:15Z roboos $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -103,13 +103,18 @@ if strcmp(inverse, 'yes')
   montage = tmp;
 end
 
-% use default transfer from sensors to channels if not specified
-if isfield(input, 'pnt') && ~isfield(input, 'tra')
-  nchan = size(input.pnt,1);
-  input.tra = eye(nchan);
-elseif isfield(input, 'chanpos') && ~isfield(input, 'tra')
-  nchan = size(input.chanpos,1);
-  input.tra = eye(nchan);
+% use a default unit transfer from sensors to channels if not otherwise specified
+if ~isfield(input, 'tra') && isfield(input, 'label')
+  if     isfield(input, 'elecpos') && length(input.label)==size(input.elecpos, 1)
+    nchan = length(input.label);
+    input.tra = eye(nchan);
+  elseif isfield(input, 'coilpos') && length(input.label)==size(input.coilpos, 1)
+    nchan = length(input.label);
+    input.tra = eye(nchan);
+  elseif isfield(input, 'chanpos') && length(input.label)==size(input.chanpos, 1)
+    nchan = length(input.label);
+    input.tra = eye(nchan);
+  end
 end
 
 % select and keep the columns that are non-empty, i.e. remove the empty columns

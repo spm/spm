@@ -4,7 +4,7 @@ function vol = ft_headmodel_infinite(varargin)
 % volume conduction model. For EEG the volume conductor can be used
 % to compute the leadfield of electric current dipoles, for MEG it
 % can be used for computing the leadfield of magnmetic dipoles.
-% 
+%
 % Use as
 %   vol = ft_headmodel_infinite;
 %
@@ -28,21 +28,22 @@ function vol = ft_headmodel_infinite(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_infinite.m 8817 2013-11-19 14:23:29Z roboos $
+% $Id: ft_headmodel_infinite.m 8823 2013-11-20 20:19:43Z roboos $
 
-sourcemodel = ft_getopt(varargin, 'sourcemodel');
+sourcemodel = ft_getopt(varargin, 'sourcemodel', 'default');
 
 % this is an easy one
 vol = [];
 
 switch sourcemodel
-case 'monopole'
-  vol.type = 'infinite_monopole';  
-case 'magneticdipole'
-  vol.type = 'infinite_magneticdipole';  
-case 'currentdipole'
-  vol.type = 'infinite_currentdipole';  
-otherwise
-  vol.type = 'infinite';
+  case 'monopole'
+    vol.type = 'infinite_monopole';
+  case 'magneticdipole'
+    vol.type = 'infinite_magneticdipole';
+  case 'currentdipole'
+    vol.type = 'infinite_currentdipole';
+  case 'default'
+    % let the EEG or MEG leadfield code decide
+    vol.type = 'infinite';
 end % switch
 
