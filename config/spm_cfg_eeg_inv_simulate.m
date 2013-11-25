@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5630 2013-09-06 09:14:44Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 5764 2013-11-25 13:37:14Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -178,10 +178,8 @@ end;
 
 
 
-
-
-if ~strcmp(modality(D), 'MEG')
-    error('only suitable for pure MEG data at the moment');
+if size(modality(D),1)>1,
+    error('only suitable for single modality data at the moment');
 end;
 
 D = {};
