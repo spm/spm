@@ -3,8 +3,10 @@ classdef spm_provenance < handle
 %   http://www.w3.org/TR/prov-dm/
 %
 % p = spm_provenance;
+% p.get_default_namespace
 % p.set_default_namespace(uri)
 % p.add_namespace(prefix,uri)
+% p.get_namespace
 % p.entity(id,attributes)
 % p.activity(id,startTime,endTime,attributes)
 % p.agent(id,attributes)
@@ -32,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5757 2013-11-20 18:07:58Z guillaume $
+% $Id: spm_provenance.m 5763 2013-11-25 13:28:30Z guillaume $
 
 % Todo:
 % - handle @xxx in attributes' literal
@@ -293,26 +295,29 @@ methods (Access='public')
     
     %-Serialization
     %----------------------------------------------------------------------
-    function serialize(obj,fmt)
+    function varargout = serialize(obj,fmt)
         if nargin < 2, fmt = 'provn'; end
+        [p,n,e] = fileparts(fmt);
+        if ~isempty(e), fmt = e(2:end); end
+        
         switch lower(fmt)
             case 'provn'
                 %-PROV-N: the Provenance Notation
                 % http://www.w3.org/TR/prov-n/
-                fprintf('document\n');
-                serialize_provn(obj);
-                fprintf('endDocument\n');
+                s = sprintf('document\n');
+                s = [s serialize_provn(obj)];
+                s = [s sprintf('endDocument\n')];
             case 'json'
                 %-PROV-JSON
                 % http://www.w3.org/Submission/2013/SUBM-prov-json-20130424/
-                fprintf('{\n');
-                serialize_json(obj);
-                fprintf('}\n');
+                s = sprintf('{\n');
+                s = [s serialize_json(obj)];
+                s = [s sprintf('}\n')];
             case 'ttl'
                 %-Turtle
                 % http://www.w3.org/TR/turtle/
                 %warning('Partially implemented.');
-                serialize_ttl(obj);
+                s = serialize_ttl(obj);
             case 'dot'
                 %-GraphViz
                 % http://www.graphviz.org/
@@ -320,10 +325,30 @@ methods (Access='public')
                 s = sprintf('digraph "PROV" { size="16,12"; rankdir="BT";\n');
                 s = [s serialize_dot(obj)];
                 s = [s sprintf('}\n')];
-                disp(s);
                 %matlab.internal.strfun.dot2fig(s);
+            case {'pdf','svg','png'}
+                tmp = tempname;
+                dotfile = [tmp '.dot'];
+                if isempty(e), outfile = [tmp '.' fmt];
+                else outfile = fullfile(p,[n e]); end
+                serialize(obj,dotfile);
+                dotexe = 'dot';
+                system(['"' dotexe '" -T' fmt ' -o "' outfile '" "' dotfile '"']);
+                delete(dotfile);
+                open(outfile);
+                return;
             otherwise
                 error('Unknown format "%s".',fmt);
+        end
+        
+        if ~isempty(e)
+            filename = fullfile(p,[n e]);
+            fid = fopen(filename,'wt');
+            if fid == -1, error('Cannot write "%s%".',filename); end
+            fprintf(fid,'%s',s);
+            fclose(fid);
+        else
+            varargout = {s};
         end
     end
 end
@@ -331,34 +356,35 @@ end
 %-Private methods
 %==========================================================================
 methods (Access='private')
-    function serialize_provn(obj,step)
+    function str = serialize_provn(obj,step)
         if nargin < 2, step = 1; end
         o = blanks(2*step);
+        str = '';
         %-Namespace
         if ~isempty(obj.namespace(1).uri)
-            fprintf([o 'default <%s>\n'],obj.namespace(1).uri);
+            str = [str sprintf([o 'default <%s>\n'],obj.namespace(1).uri)];
         end
         for i=4:numel(obj.namespace)
-            fprintf([o 'prefix %s <%s>\n'],...
-                obj.namespace(i).prefix, obj.namespace(i).uri);
+            str = [str sprintf([o 'prefix %s <%s>\n'],...
+                obj.namespace(i).prefix, obj.namespace(i).uri)];
         end
         if ~isempty(obj.namespace(1).uri) || numel(obj.namespace) > 3
-            fprintf('\n');
+            str = [str sprintf('\n')];
         end
         for i=1:numel(obj.stack)
             %-Components
             if ismember(obj.stack{i}{1},{'entity','agent'})
-                fprintf([o '%s(%s'],obj.stack{i}{1:2});
+                str = [str sprintf([o '%s(%s'],obj.stack{i}{1:2})];
             elseif ismember(obj.stack{i}{1},{'activity'})
-                fprintf([o '%s(%s, %s, %s'],obj.stack{i}{1:4});
+                str = [str sprintf([o '%s(%s, %s, %s'],obj.stack{i}{1:4})];
             elseif ismember(obj.stack{i}{1},{'bundle'})
-                fprintf([o 'bundle %s\n'],obj.stack{i}{2});
-                serialize_provn(obj.stack{i}{3},2);
-                fprintf([o 'endBundle\n']);
+                str = [str sprintf([o 'bundle %s\n'],obj.stack{i}{2})];
+                str = [str serialize_provn(obj.stack{i}{3},2)];
+                str = [str sprintf([o 'endBundle\n'])];
             else
-                fprintf([o '%s('],obj.stack{i}{1});
+                str = [str sprintf([o '%s('],obj.stack{i}{1})];
                 if ~isempty(obj.stack{i}{2})
-                    fprintf('%s; ',obj.stack{i}{2});
+                    str = [str sprintf('%s; ',obj.stack{i}{2})];
                 end
                 k = find(cellfun(@(x) isequal(x,'-'),obj.stack{i}(3:end-1)));
                 if isempty(k)
@@ -367,15 +393,15 @@ methods (Access='private')
                     k = min(k) + 2; % remove optional '-'
                 end
                 for j=3:k-1
-                    fprintf('%s',obj.stack{i}{j});
-                    if j~=k-1, fprintf(', '); end
+                    str = [str sprintf('%s',obj.stack{i}{j})];
+                    if j~=k-1, str = [str sprintf(', ')]; end
                 end
             end
             %-Attributes
             if ~ismember(obj.stack{i}{1},{'alternateOf','specializationOf','hadMember','bundle'})
                 attr = obj.stack{i}{end};
                 if ~isempty(attr)
-                    fprintf([',\n' o o '[']);
+                    str = [str sprintf([',\n' o o '['])];
                     for j=1:2:numel(attr)
                         attribute = attr{j};
                         literal = attr{j+1};
@@ -391,49 +417,50 @@ methods (Access='private')
                             end
                             literal = sprintf([s '%s' s],literal);
                         end
-                        fprintf('%s = %s',attribute,literal);
-                        if j~=numel(attr)-1, fprintf([',\n' o o]); end
+                        str = [str sprintf('%s = %s',attribute,literal)];
+                        if j~=numel(attr)-1, str = [str sprintf([',\n' o o])]; end
                     end
-                    fprintf(']');
+                    str = [str sprintf(']')];
                 end
             end
-            if ~ismember(obj.stack{i}{1},{'bundle'}), fprintf(')\n'); end
+            if ~ismember(obj.stack{i}{1},{'bundle'}), str = [str sprintf(')\n')]; end
         end
     end
     
-    function serialize_json(obj,step)
+    function str = serialize_json(obj,step)
         if nargin < 2, step = 1; end
         o = blanks(2*step);
+        str = '';
         %-Namespace
-        fprintf([o '"prefix": {\n']);
+        str = [str sprintf([o '"prefix": {\n'])];
         if ~isempty(obj.namespace(1).uri)
-            fprintf([o o '"default": "%s"'],obj.namespace(1).uri);
+            str = [str sprintf([o o '"default": "%s"'],obj.namespace(1).uri)];
         end
         for i=4:numel(obj.namespace)
-            fprintf([o o '"%s": "%s"'],...
-                obj.namespace(i).prefix,obj.namespace(i).uri);
-            if i~=numel(obj.namespace), fprintf(','); end
-            fprintf('\n');
+            str = [str sprintf([o o '"%s": "%s"'],...
+                obj.namespace(i).prefix,obj.namespace(i).uri)];
+            if i~=numel(obj.namespace), str = [str sprintf(',')]; end
+            str = [str sprintf('\n')];
         end
-        fprintf([o '}']);
+        str = [str sprintf([o '}'])];
         %-Expressions
         s = sortprov(obj);
         for i=1:numel(s)
             if ~isempty(s(i).idx) && ~isequal(s(i).expr,'bundle')
-                fprintf(',\n');
-                fprintf([o '"%s": {\n'],s(i).expr);
+                str = [str sprintf(',\n')];
+                str = [str sprintf([o '"%s": {\n'],s(i).expr)];
                 for j=s(i).idx
                     id = obj.stack{j}{2};
                     if isempty(id)
                         id = ['_:' s(i).short int2str(j)]; % change counter to start from 1
                     end
-                    fprintf([o o '"%s": {\n'],id);
+                    str = [str sprintf([o o '"%s": {\n'],id)];
                     l = find(cellfun(@(x) ~isequal(x,'-'),obj.stack{j}(3:end-1)));
                     attr = obj.stack{j}{end};
                     for k=1:numel(l)
-                        fprintf([o o o '"prov:%s": "%s"'],s(i).props{k},obj.stack{j}{k+2});
-                        if k~=numel(l) || ~isempty(attr), fprintf(','); end
-                        fprintf('\n');
+                        str = [str sprintf([o o o '"prov:%s": "%s"'],s(i).props{k},obj.stack{j}{k+2})];
+                        if k~=numel(l) || ~isempty(attr), str = [str sprintf(',')]; end
+                        str = [str sprintf('\n')];
                     end
                     for k=1:2:numel(attr)
                         attribute = attr{k};
@@ -447,62 +474,63 @@ methods (Access='private')
                                 datatype = 'xsd:QName';
                             end
                         end
-                        fprintf([o o o '"%s": {\n'],attribute);
-                        fprintf([o o o o '"$": "%s",\n'],literal);
-                        fprintf([o o o o '"type": "%s"\n'],datatype);
-                        fprintf([o o o '}']);
-                        if k~=numel(attr)-1, fprintf(','); end
-                        fprintf('\n');
+                        str = [str sprintf([o o o '"%s": {\n'],attribute)];
+                        str = [str sprintf([o o o o '"$": "%s",\n'],literal)];
+                        str = [str sprintf([o o o o '"type": "%s"\n'],datatype)];
+                        str = [str sprintf([o o o '}'])];
+                        if k~=numel(attr)-1, str = [str sprintf(',')]; end
+                        str = [str sprintf('\n')];
                     end
-                    fprintf([o o '}']);
-                    if j~=s(i).idx(end), fprintf(','); end
-                    fprintf('\n');
+                    str = [str sprintf([o o '}'])];
+                    if j~=s(i).idx(end), str = [str sprintf(',')]; end
+                    str = [str sprintf('\n')];
                 end
-                fprintf([o '}']);
+                str = [str sprintf([o '}'])];
             end
         end
         %-Bundles
         if ~isempty(s(end).idx) %% assumes bundle is last in the list...
-            fprintf(',\n');
-            fprintf([o '"bundle": {\n']);
+            str = [str sprintf(',\n')];
+            str = [str sprintf([o '"bundle": {\n'])];
             for i=1:numel(s(end).idx)
-                serialize_json(obj.stack{s(end).idx(i)}{3},2);
+                str = [str serialize_json(obj.stack{s(end).idx(i)}{3},2)];
             end
-            fprintf([o '}']);
+            str = [str sprintf([o '}'])];
         end
-        fprintf('\n');
+        str = [str sprintf('\n')];
     end
     
-    function serialize_ttl(obj,step)
+    function str = serialize_ttl(obj,step)
         if nargin < 2, step = 1; end
         o = blanks(2*step);
+        str = '';
         %-Namespace
         ns = obj.namespace;
         ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
         if ~isempty(ns(1).uri)
-            fprintf('@prefix : <%s> .\n',ns(1).uri);
+            str = [str sprintf('@prefix : <%s> .\n',ns(1).uri)];
         end
         for i=2:numel(ns)
-            fprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri);
+            str = [str sprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri)];
         end
         if ~isempty(ns(1).uri) || numel(ns) > 3
-            fprintf('\n');
+            str = [str sprintf('\n')];
         end
         %-Expressions
         % optional entries for activity and relations are not saved
         for i=1:numel(obj.stack)
             if ismember(obj.stack{i}{1},{'entity','activity','agent'})
-                fprintf('%s\n',obj.stack{i}{2});
+                str = [str sprintf('%s\n',obj.stack{i}{2})];
                 attr = obj.stack{i}{end};
                 k = ismember(attr(1:2:end),'prov:type');
                 a_type = [{['prov:' obj.stack{i}{1}]} attr{2*find(k)}];
-                fprintf([o 'a']);
+                str = [str sprintf([o 'a'])];
                 for j=1:numel(a_type)
-                    fprintf(' %s',a_type{j});
-                    if j~=numel(a_type), fprintf(','); end
+                    str = [str sprintf(' %s',a_type{j})];
+                    if j~=numel(a_type), str = [str sprintf(',')]; end
                 end
                 if ~isempty(attr)
-                    fprintf(' ; \n');
+                    str = [str sprintf(' ; \n')];
                     for j=1:2:numel(attr)
                         attribute = attr{j};
                         literal = attr{j+1};
@@ -521,14 +549,14 @@ methods (Access='private')
                             end
                             literal = sprintf([s '%s' s],literal);
                         end
-                        fprintf([o '%s %s'],attribute,literal);
-                        if j~=numel(attr)-1, fprintf(' ;\n'); end
+                        str = [str sprintf([o '%s %s'],attribute,literal)];
+                        if j~=numel(attr)-1, str = [str sprintf(' ;\n')]; end
                     end
                 end
             else
-                fprintf('%s prov:%s %s',obj.stack{i}{[3 1 4]})
+                str = [str sprintf('%s prov:%s %s',obj.stack{i}{[3 1 4]})];
             end
-            fprintf(' .\n\n');
+            str = [str sprintf(' .\n\n')];
         end
     end
     
@@ -565,7 +593,7 @@ methods (Access='private')
                                 if iscell(literal)
                                     literal = literal{1};
                                 end
-                                attrlist = [attrlist sprintf(strtr,attribute,literal)];
+                                attrlist = [attrlist sprintf(strtr,attribute,literal)]; %htmlesc
                             end
                             ann_label = sprintf(strannlab,attrlist);
                             A = ['n' get_valid_identifier(url_ann)];
@@ -596,7 +624,7 @@ methods (Access='private')
                         str = [str sprintf(strrel,'')];
                     end
                 else
-                    warning('not handled yet.');
+                    warning('"%s" not handled yet.',s(i).expr);
                 end
             end
         end
@@ -701,6 +729,15 @@ function id = esc(id)
     for i=1:numel(c)
         id = strrep(id,c(i),['\' c(i)]);
     end
+end
+
+function str = htmlesc(str)
+    %-Escape
+    % See http://www.w3.org/TR/html4/charset.html#h-5.3.2
+    str = strrep(str,'&','&amp;');
+    str = strrep(str,'<','&lt;');
+    str = strrep(str,'>','&gt;');
+    str = strrep(str,'"','&quot;');
 end
 
 function id = get_valid_identifier(id)
