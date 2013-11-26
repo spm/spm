@@ -12,10 +12,10 @@ function cfg_ui_restore(en)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_restore.m 5679 2013-10-11 14:58:14Z volkmar $
+% $Id: cfg_ui_restore.m 5768 2013-11-26 12:29:11Z volkmar $
 
-rev = '$Rev: 5679 $'; %#ok<NASGU>
+rev = '$Rev: 5768 $'; %#ok<NASGU>
 if ~isempty(en) && isstruct(en)
     sel = ishandle(en.c);
-    set(en.c(sel),{en.property},en.en(sel));
+    set(en.c(sel), en.property, 'on');
 end

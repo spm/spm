@@ -4,6 +4,8 @@ function en = cfg_ui_disable(hObject, property)
 % of hObject, returning their handles in en.c and previous state in cell
 % list en.en. CFG_UI_RESTORE(en) can be used to restore the property to
 % their original setting.
+% Property must be a property that has the values 'on' (enabled) or 'off'
+% (disabled).
 %
 % See also CFG_UI_RESTORE.
 %
@@ -14,13 +16,10 @@ function en = cfg_ui_disable(hObject, property)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_disable.m 5679 2013-10-11 14:58:14Z volkmar $
+% $Id: cfg_ui_disable.m 5768 2013-11-26 12:29:11Z volkmar $
 
-rev = '$Rev: 5679 $';  %#ok<NASGU>
-c   = findall(hObject);
-sel = isprop(c,property);
-en.c        = c(sel);
+rev = '$Rev: 5768 $';  %#ok<NASGU>
+en.c        = findall(hObject, property, 'on');
 en.property = property;
-en.en       = get(en.c, en.property);
-set(en.c, en.property,'off');
+set(en.c, en.property, 'off');
 
