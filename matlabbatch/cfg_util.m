@@ -58,6 +58,12 @@ function varargout = cfg_util(cmd, varargin)
 %  mod_job_idlist = old_mod_job_idlist{new2old_id}
 % translates between an old id list and the compact new id list.
 %
+%  cfg_util('dbstop', job_id, mod_job_id)
+%
+% Set a breakpoint at the beginning of the function that executes the
+% module. If a module occurs more than once in a job or its .prog is a
+% multi-purpose function, execution will stop at all calls of that function.
+%
 %  cfg_util('delfromjob', job_id, mod_job_id)
 %
 % Delete a module from a job.
@@ -412,9 +418,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5752 2013-11-15 15:02:27Z volkmar $
+% $Id: cfg_util.m 5766 2013-11-26 12:29:08Z volkmar $
 
-rev = '$Rev: 5752 $';
+rev = '$Rev: 5766 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -469,6 +475,13 @@ switch lower(cmd),
             [jobs(cjob), n2oid] = local_compactjob(jobs(cjob));
             varargout{1} = num2cell(1:numel(jobs(cjob).cjid2subs));
             varargout{2} = n2oid;
+        end
+    case 'dbstop',
+        cjob = varargin{1};
+        mod_job_id = varargin{2};
+        if cfg_util('ismod_job_id', cjob, mod_job_id)
+            cmod = subsref(jobs(cjob).cj, jobs(cjob).cjid2subs{mod_job_id});
+            cfg_dbstop(cmod.prog);
         end
     case 'delfromjob',
         cjob = varargin{1};
