@@ -11,9 +11,9 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 5714 2013-10-29 16:32:23Z volkmar $
+% $Id: cfg_ui_util.m 5767 2013-11-26 12:29:10Z volkmar $
 
-rev = '$Rev: 5714 $';  %#ok<NASGU>
+rev = '$Rev: 5767 $';  %#ok<NASGU>
 
 switch lower(cmd)
     case {'showitemstr'}
@@ -407,6 +407,8 @@ switch lower(cmd)
                 % local_valedit_repeat as callback to update ui.
                 sts = false;
                 local_valedit_repeat(gcbf);
+            otherwise
+                sts = false;
         end;
         if sts
             handles = guidata(gcbf);
