@@ -35,7 +35,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: spm_fx_fmri.m 5770 2013-11-27 20:12:29Z karl $
 
 
 % Neuronal motion
@@ -86,8 +86,8 @@ else
     IE    = diag(diag(EE));         % intrinsic inhibitory to excitatory
     EE    = EE - IE;                % extrinsic excitatory to excitatory
     EI    = eye(n,n);               % intrinsic excitatory to inhibitory
-    SE    = eye(n,n)/2;               % intrinsic self-inhibition (excitatory)
-    SI    = eye(n,n);             % intrinsic self-inhibition (inhibitory)
+    SE    = eye(n,n)/2;             % intrinsic self-inhibition (excitatory)
+    SI    = eye(n,n);               % intrinsic self-inhibition (inhibitory)
     
     % excitatory proportion
     %----------------------------------------------------------------------

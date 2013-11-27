@@ -65,7 +65,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5658 2013-09-26 16:54:53Z karl $
+% $Id: spm_cva.m 5770 2013-11-27 20:12:29Z karl $
 
 
 if nargin < 3, X0 = [];             end
@@ -76,7 +76,9 @@ if isempty(c), c  = eye(size(X,2)); end
 %--------------------------------------------------------------------------
 X0    = [X0, X - X*c*pinv(c)];
 X     = full(X*c);
-X0    = spm_svd(X0);
+if any(X0)
+    X0 = spm_svd(X0);
+end
 
 
 %-Dimension reduction (if necessary)

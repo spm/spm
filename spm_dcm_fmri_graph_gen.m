@@ -7,7 +7,7 @@ function [P] = spm_dcm_fmri_graph_gen(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5746 2013-11-14 20:28:50Z karl $
+% $Id: spm_dcm_fmri_graph_gen.m 5770 2013-11-27 20:12:29Z karl $
 
 
 % compute bias for log connectivity using functional space
@@ -37,7 +37,7 @@ if size(P.A,3) == 1 && numel(v.a) == 1
     
 elseif size(P.A,3) == 1 && numel(v.a) == 2
     
-    % one-state model of (MoG) connectivity
+    % one-state model of centre-surround connectivity
     %======================================================================
     for i = 1:m
         for j = (i + 1):m

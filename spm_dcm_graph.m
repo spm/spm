@@ -8,7 +8,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph.m 5737 2013-11-10 20:23:49Z karl $
+% $Id: spm_dcm_graph.m 5770 2013-11-27 20:12:29Z karl $
 
 
 % get dimensions, locations and names
@@ -49,7 +49,7 @@ options.markersize = 32;
 options.meshsurf = fullfile(spm('Dir'),'canonical','iskull_2562.surf.gii');
 spm_eeg_displayECD(L(:,1),[],0,[],options);
 options.meshsurf = fullfile(spm('Dir'),'canonical','cortex_8196.surf.gii');
-h     = spm_eeg_displayECD(L,[],6,name,options);
+h     = spm_eeg_displayECD(L,[],8,name,options);
 for i = 1:m
     set(h.handles.ht(i),'FontWeight','bold')
 end
@@ -104,7 +104,6 @@ end
 
 %-Render graph in functional space (with the locations U)
 %==========================================================================
-if length(A) < 3 && isnumeric(A), return; end
 
 if isstruct(A)
     
@@ -134,7 +133,7 @@ end
 % Procrustean transform
 %----------------------------------------------------------------------
 U      = spm_detrend(U')';
-U      = real(U*80/max(abs(U(:))));
+U      = real(U*40/max(abs(U(:))));
 
 
 subplot(2,1,2);cla
@@ -154,7 +153,7 @@ for i = 1:m
     for j = (i + 1):m
         
         % associate colour with the strongest influence
-        %--------------------------------------------------------------
+        %------------------------------------------------------------------
         if abs(A(i,j)) > abs(A(j,i)), c = j; else c = i; end
         k   = rem(c - 1,length(col)) + 1;
         

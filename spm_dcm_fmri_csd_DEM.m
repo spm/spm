@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5746 2013-11-14 20:28:50Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5770 2013-11-27 20:12:29Z karl $
 
 
 % get DCM
@@ -183,8 +183,8 @@ GLOBAL_DCM   = DCM;
 % data (and priors)
 %--------------------------------------------------------------------------
 DEM.Y        = spm_vec(spm_fs_fmri_csd(DCM.Y.csd,DCM.M));
-DEM.M.E.nD   = 4;
-DEM.M.E.nE   = 16;
+DEM.M.E.nD   = 8;
+DEM.M.E.nE   = 8;
 
 % generative model - for DEM
 %==========================================================================
@@ -203,9 +203,11 @@ DEM.M(2).pE  = pE;
 
 DEM.M(3).V   = exp(0);
 DEM.M(3).v.a = [0; 0];
-DEM.M(3).v.x = zeros(DCM.options.embedding,n);
 
-% Varaitional Laplace
+v            = spm_svd(corr(DCM.Y.y));
+DEM.M(3).v.x = v(:,1:DCM.options.embedding)'*exp(-2);
+
+% Variational Laplace
 %--------------------------------------------------------------------------
 DEM    = spm_DEM(DEM);
 

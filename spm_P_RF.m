@@ -49,7 +49,7 @@ function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 % Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_P_RF.m 5544 2013-06-12 11:01:49Z guillaume $
+% $Id: spm_P_RF.m 5770 2013-11-27 20:12:29Z karl $
 
 
 %-Get expectations
@@ -59,7 +59,7 @@ function [P,p,Ec,Ek] = spm_P_RF(c,k,Z,df,STAT,R,n)
 %--------------------------------------------------------------------------
 D   = find(R,1,'last');
 R   = R(1:D);
-G   = sqrt(pi)./gamma(([1:D])/2);
+G   = sqrt(pi)./gamma((1:D)/2);
 EC  = spm_ECdensity(STAT,Z,df);
 EC  = max(EC(1:D),eps);
 

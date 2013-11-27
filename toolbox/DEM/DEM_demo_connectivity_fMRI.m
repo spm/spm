@@ -24,7 +24,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5746 2013-11-14 20:28:50Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5770 2013-11-27 20:12:29Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -32,13 +32,13 @@ rng('default')
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-D   = 3;                               % embedding dimensional
+ED  = 2;                               % embedding dimensional
 T   = 512;                             % number of observations (scans)
 TR  = 2;                               % repetition time or timing
-n   = 5;                               % number of regions or nodes
+n   = 6;                               % number of regions or nodes
 t   = (1:T)*TR;                        % observation times
-v.a = [log(8); -1/8];                         % log amplitude
-v.x = randn(D,n)/2;                    % location
+v.a = [log(6); -1/8];                  % log amplitude
+v.x = randn(ED,n)/2;                   % location
 
 % priors
 % -------------------------------------------------------------------------
@@ -143,7 +143,7 @@ DEM  = spm_dcm_fmri_csd_DEM(DCM);
 % -------------------------------------------------------------------------
 spm_figure('Getwin','Figure 2'); clf
 
-j   = 1:numel(pP.A);
+j   = find(pP.A);
 Ep  = DEM.Ep.A(j);
 Qp  = DCM.Ep.A(j);
 Cp  = DEM.Cp(j,j);
@@ -155,9 +155,12 @@ bar(Pp,1/2,'k'), hold off
 title('True and MAP connections','FontSize',16)
 axis square
 
+j   = find(eye(n,n));
+
 subplot(2,1,2); cla
 plot(Pp,Ep,'r.',Pp,Qp,'ko','MarkerSize',8), hold on
-plot([-0.2 .5],[-0.2 .5],'k:'), hold off
+plot(pP.A(j),DEM.Ep.A(j),'b.'),             hold on
+plot([-0.2 .3],[-0.2 .3],'k:'),             hold on
 title('MAP vs. true','FontSize',16)
 xlabel('true')
 ylabel('estimate')
@@ -165,6 +168,16 @@ axis square
 legend ('hierarchical','conventional')
 
 
+% proximity space
+%==========================================================================
+spm_figure('Getwin','Figure A'); clf
+DEM.xY.Lpos  = zeros(3,n);
+DEM.xY.Sname = {'1','2','3','4','5','6','7','8'};
+qV  = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
+spm_dcm_graph(DEM.xY,qV)
+
+spm_figure('Getwin','Figure B'); clf
+spm_dcm_graph(DEM.xY,v)
 
 % search over precision of hidden causes
 %==========================================================================
@@ -176,12 +189,12 @@ for i = 1:length(V)
     % invert
     %======================================================================
     DCM.options.v         = V(i);
-    DCM.options.embedding = 3;
+    DCM.options.embedding = ED;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
-    % correlation
+    % RMS
     % ---------------------------------------------------------------------
-    R(end + 1,1) = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
+    R(end + 1,1) = paper_rms(DEM.Ep.A,pP.A);
     
     % free energy
     % ---------------------------------------------------------------------
@@ -195,7 +208,7 @@ for i = 1:length(V)
     
     % correlation
     % ---------------------------------------------------------------------
-    R(end,2)     = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
+    R(end,2)     = paper_rms(DEM.Ep.A,pP.A);
     
     % free energy
     % ---------------------------------------------------------------------
@@ -211,7 +224,7 @@ spm_figure('Getwin','Figure 3'); clf
 subplot(2,2,1);
 bar(V,F - min(F(:)) + 16)
 title('log-evidence and precision','FontSize',16)
-xlabel('prior precision')
+xlabel('prior log-precision')
 ylabel('free energy')
 axis square
 
@@ -219,7 +232,7 @@ subplot(2,2,3);
 bar(V,R), hold on
 plot(V,V*0 + 0.05,'r:'), hold off
 title('accuracy','FontSize',16)
-xlabel('prior precision')
+xlabel('prior log-precision')
 ylabel('root mean square error')
 axis square
 legend ('D > 0','D = 0')
@@ -239,9 +252,9 @@ for i = 1:length(D)
     DCM.options.embedding = D(i);
     DEM = spm_dcm_fmri_csd_DEM(DCM);
         
-    % correlation
+    % RMS
     % ---------------------------------------------------------------------
-    DR(end + 1,1)   = sqrt(mean((DEM.Ep.A(:) - pP.A(:)).^2));
+    DR(end + 1,1)   = paper_rms(DEM.Ep.A,pP.A);
     
     % free energy
     % ---------------------------------------------------------------------
@@ -254,15 +267,18 @@ end
 % -----------------------------------------------------------------
 spm_figure('Getwin','Figure 3');
 
+RF  = DF - min(DF(:)) + 16;
+
 subplot(2,2,2); cla
-bar(D,DF - min(DF(:)) + 16)
+bar(D,RF),                                              hold on
+plot(D,D - D + max(RF),'r',D,D - D + max(RF) - 3,'r:'), hold off
 title('log-evidence and embedding','FontSize',16)
 xlabel('embedding dimension')
 ylabel('free energy')
 axis square
 
 subplot(2,2,4);
-bar(D,DR), hold on
+bar(D,DR),               hold on
 plot(D,D*0 + 0.05,'r:'), hold off
 title('accuracy','FontSize',16)
 xlabel('embedding dimension')
@@ -289,7 +305,7 @@ for i = 1:length(V)
     % invert
     %======================================================================
     DCM.options.v         = V(i);
-    DCM.options.embedding = 1;
+    DCM.options.embedding = 2;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
     % free energy
@@ -343,8 +359,11 @@ end
 % -------------------------------------------------------------------------
 spm_figure('Getwin','Figure 4');
 
+eRF  = eDF - min(eDF(:)) + 16;
+
 subplot(2,2,2); cla
-bar(D,eDF - min(eDF(:)) + 16), hold on
+bar(D,eRF),                                               hold on
+plot(D,D - D + max(eRF),'r',D,D - D + max(eRF) - 3,'r:'), hold off
 title('embedding (empirical)','FontSize',16)
 xlabel('embedding dimension')
 ylabel('free energy')
@@ -370,7 +389,15 @@ save paper
 return
 
 
+function rms = paper_rms(A,B);
+% Root mean square difference in (extrinsic connectivity)
+% -------------------------------------------------------------------------
+D   = A - B;
+D   = D - diag(diag(D));
+D   = D(find(D));
+rms = sqrt(mean(D.^2));
 
+return
 
 
 
