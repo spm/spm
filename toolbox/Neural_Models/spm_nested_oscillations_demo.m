@@ -6,7 +6,7 @@ function spm_nested_oscillations_demo
 % source that are caused by nonlinear interactions between voltage and
 % conductance. Put simply, a slow sinusoidal drive elicits periods of bursting
 % to produce phase-amplitude coupling in the ensuing dynamics.  We look at
-% this using both neural-mass and mean-field models .  See Marreiros et al:
+% this using both neural-mass and mean-field models.  See Marreiros et al:
 % 
 % Population dynamics under the Laplace assumption.
 % 
@@ -35,7 +35,7 @@ function spm_nested_oscillations_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nested_oscillations_demo.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_nested_oscillations_demo.m 5769 2013-11-27 19:37:01Z karl $
  
  
 % number of regions in coupled map lattice
@@ -70,9 +70,9 @@ C     = sparse(1,1,1,n,1);
 %==========================================================================
 W     = 4;                          % frequency of exogenous input (theta)
 dt    = 4;
-t     = [1:dt:1024]';
+t     = (1:dt:1024)';
 U.dt  = dt/1000;
-U.u   = 16*exp(sin(2*pi*W*t/1000));
+U.u   = 4*exp(sin(2*pi*W*t/1000));
  
 % responses to different inputs - spikes
 %==========================================================================
@@ -80,8 +80,8 @@ p     = 3;                                               % pyramidal cells
  
 % Integrate systems and plot
 %----------------------------------------------------------------------
-MFM   = spm_int_B(pE,MF,U);
-NMM   = spm_int_B(pE,NM,U);
+MFM   = spm_int_L(pE,MF,U);
+NMM   = spm_int_L(pE,NM,U);
 
 spm_figure('GetWin','Nested Oscillations')
  

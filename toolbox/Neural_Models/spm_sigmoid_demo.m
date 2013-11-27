@@ -1,6 +1,6 @@
 function spm_sigmoid_demo
 % Demo routine for neural mass models and the activation function
-% %========================================================================
+% =========================================================================
 %
 % This demo looks at the role of the sigmoid activation function in shaping
 % the impulse response of a neural-mass model. It uses Volterra kernels and
@@ -29,7 +29,7 @@ function spm_sigmoid_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_sigmoid_demo.m 5769 2013-11-27 19:37:01Z karl $
 
 % relating R amd the variance
 %==========================================================================

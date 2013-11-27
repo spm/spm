@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5392 2013-04-05 19:14:45Z karl $
+% $Id: spm_induced_optimise.m 5769 2013-11-27 19:37:01Z karl $
  
  
 % Model specification
@@ -178,10 +178,10 @@ for i = 1:size(x,1)
                 
                 % spectral decomposition
                 %----------------------------------------------------------
-                S        = spm_ssm2s(pE,M);
-                S        = S(1:M.Nm);
-                W(:,q)   = abs(imag(S)/(2*pi));
-                A(:,q)   = min(4, (exp(real(S)) - 1)./(real(S)) );
+                S         = spm_ssm2s(pE,M);
+                S         = S(1:M.Nm);
+                W(:,q)    = abs(imag(S)/(2*pi));
+                A(:,q)    = min(4, (exp(real(S)) - 1)./(real(S)) );
                   
             end
             

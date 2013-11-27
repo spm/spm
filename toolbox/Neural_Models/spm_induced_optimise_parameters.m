@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5273 2013-02-21 15:05:42Z karl $
+% $Id: spm_induced_optimise_parameters.m 5769 2013-11-27 19:37:01Z karl $
  
  
 % Model specification
@@ -185,7 +185,7 @@ Y.y   = [S; spm_vec(W)*32];
 % create generative model of the eigenspectrum (M) and invert
 %--------------------------------------------------------------------------
 M.IS    = 'spm_ssm2s';
-M.Nmax  = 12;
+M.Nmax  = 8;
 pC      = V*diag(spm_vec(pC))*V;
 M.pC    = pC;
 
@@ -236,8 +236,8 @@ hold off
 
 % change in parameters (and conditional confidence)
 %--------------------------------------------------------------------------
-E    = spm_vec(Ep) - spm_vec(pE);
-C    = diag(Cp);
+E     = spm_vec(Ep) - spm_vec(pE);
+C     = diag(Cp);
 
 
 

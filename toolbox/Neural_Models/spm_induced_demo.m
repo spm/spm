@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5758 2013-11-20 21:04:01Z karl $
+% $Id: spm_induced_demo.m 5769 2013-11-27 19:37:01Z karl $
  
  
 % Model specification
@@ -70,7 +70,7 @@ pE.J(1:4) = [0 1 0 0];
  
 % orders and model
 %==========================================================================
-nx    = length(spm_vec(x ));
+nx    = length(spm_vec(x));
 nu    = size(pE.C,2);
  
 % create forward model

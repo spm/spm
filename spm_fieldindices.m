@@ -12,7 +12,7 @@ function [ix] = spm_fieldindices(X,varargin)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fieldindices.m 5657 2013-09-26 16:53:40Z karl $
+% $Id: spm_fieldindices.m 5769 2013-11-27 19:37:01Z karl $
 
 
 % if varargin is a vector simply return fieldnames
@@ -21,7 +21,7 @@ if nargin == 2
    if isnumeric(varargin{1})
        if numel(varargin{1}) > 1
            for j = 1:length(varargin{1})
-               i{j} = spm_fieldindices(X,varargin{1}(j));
+               ix{j} = spm_fieldindices(X,varargin{1}(j));
            end
            return
        end
