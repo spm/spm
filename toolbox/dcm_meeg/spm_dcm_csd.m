@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_dcm_csd.m 5771 2013-11-30 16:55:24Z karl $
  
  
 % check options
@@ -67,6 +67,7 @@ if isempty(DCM.xU.X), DCM.C    = sparse(Ns,0); end
 try
     if length(spm_vec(DCM.M.pE)) == length(spm_vec(pE));
         pE = DCM.M.pE;
+        pC = DCM.M.pC;
         fprintf('Using existing priors\n')
     end
 end

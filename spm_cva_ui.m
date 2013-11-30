@@ -82,7 +82,7 @@ function [CVA] = spm_cva_ui(action,varargin)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cva_ui.m 5395 2013-04-08 18:51:14Z karl $
+% $Id: spm_cva_ui.m 5771 2013-11-30 16:55:24Z karl $
 
 
 %-Get figure handles
@@ -174,8 +174,8 @@ switch lower(action)
         %-Null-space
         %------------------------------------------------------------------
         X0  = [];
-        try, X0 = [X0 SPM.xX.K.X0]; end          %-drift terms
-        try, X0 = [X0 SPM.xGX.gSF]; end          %-global estimate
+        try, X0 = [X0 SPM.xX.K.X0]; end                   %-drift terms
+        try, X0 = [X0 spm_detrend(SPM.xGX.gSF)]; end      %-global estimate
         
         
         %-Canonical Variate Analysis
