@@ -104,9 +104,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 8763 2013-11-11 15:33:26Z roboos $
+% $Id: ft_electroderealign.m 8904 2013-11-28 20:23:14Z jansch $
 
-revision = '$Id: ft_electroderealign.m 8763 2013-11-11 15:33:26Z roboos $';
+revision = '$Id: ft_electroderealign.m 8904 2013-11-28 20:23:14Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -144,9 +144,9 @@ if nargin==1
   catch lasterr
     % start with an empty set of electrodes, this is useful for manual positioning
     elec = [];
-    elec.pnt    = zeros(0,3);
-    elec.label  = cell(0,1);
-    elec.unit   = 'mm';
+    elec.chanpos = zeros(0,3);
+    elec.label   = cell(0,1);
+    elec.unit    = 'mm';
     warning(lasterr.message, lasterr.identifier);
   end
 elseif nargin>1

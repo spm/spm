@@ -41,7 +41,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 8719 2013-11-05 11:20:18Z eelspa $
+% $Id: ft_selectdata_new.m 8872 2013-11-28 08:49:48Z jansch $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -237,10 +237,15 @@ else
         varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok,'time')), seltime, avgovertime, datfields);
         varargin{i} = makeselection_time(varargin{i}, seltime, avgovertime); % update the time field
         
-        if ~any(isnan(selrpt))
-          % FIXME could also be subject
-          varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok,'rpt')), selrpt, avgoverrpt, datfields);
-          varargin{i} = makeselection_rpt(varargin{i}, selrpt); % avgoverrpt for the supporting fields is dealt with later
+        % FIXME could also be subject
+        varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok,'rpt')), selrpt, avgoverrpt, datfields);
+        varargin{i} = makeselection_rpt(varargin{i}, selrpt); % avgoverrpt for the supporting fields is dealt with later
+        
+        % make an exception for the covariance here (JM 20131128)
+        if isfield(varargin{i}, 'cov') && (all(~isnan(selrpt)) || all(~isnan(selchan)))
+          varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok, 'chan'))+[0 1], selchan, avgoverchan, {'cov'});
+          varargin{i} = makeselection(varargin{i}, find(strcmp(dimtok, 'rpt')),        selrpt,  avgoverrpt,  {'cov'});
+          datfields   = [datfields {'cov'}];
         end
         
         %shiftdim the datfields, because convention has it that this should
@@ -394,8 +399,19 @@ varargout = varargin;
 ft_postamble debug              % this clears the onCleanup function used for debugging in case of an error
 ft_postamble trackconfig        % this converts the config object back into a struct and can report on the unused fields
 ft_postamble provenance         % this records the time and memory at the end of the function, prints them on screen and adds this information together with the function name and matlab version etc. to the output cfg
-ft_postamble previous varargin  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
-ft_postamble history varargout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
+% ft_postamble previous varargin  % this copies the datain.cfg structure into the cfg.previous field. You can also use it for multiple inputs, or for "varargin"
+% ft_postamble history varargout  % this adds the local cfg structure to the output data structure, i.e. dataout.cfg = cfg
+
+% note that the cfg.previous thingy does not work with the postamble,
+% because the postamble puts the cfgs of all input arguments in the (first)
+% output argument's xxx.cfg
+for k = 1:numel(varargout)
+  varargout{k}.cfg          = cfg;
+  if isfield(varargin{k}, 'cfg')
+    varargout{k}.cfg.previous = varargin{k}.cfg;
+  end
+end
+
 % ft_postamble savevar varargout  % this saves the output data structure to disk in case the user specified the cfg.outputfile option
 
 if nargout>numel(varargout)
@@ -420,8 +436,9 @@ function data = makeselection(data, seldim, selindx, avgoverdim, datfields)
 
 if numel(seldim) > 1
   for k = 1:numel(seldim)
-    data = makeselection(data, seldim(k), selindx, datfields);
+    data = makeselection(data, seldim(k), selindx, avgoverdim, datfields);
   end
+  return;
 end
 
 for i=1:numel(datfields)

@@ -43,7 +43,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_plot_montage.m 8900 2013-11-28 20:03:29Z jansch $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');
@@ -178,7 +178,9 @@ for k = 1:nslice
     end
     pprevious = [pprevious(:);p(:)];
   end
-  drawnow;
+  %drawnow; %this statement slows down the process big time on some file
+  %systems. I don't know what's going on there, but the statement is not
+  %really necessary, so commented out.
 end
 set(gcf, 'color', [0 0 0]);
 set(gca, 'zlim', [0 1]);

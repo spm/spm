@@ -36,9 +36,9 @@ function [timelock] = ft_appendtimelock(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendtimelock.m 8298 2013-07-01 18:00:40Z roboos $
+% $Id: ft_appendtimelock.m 8901 2013-11-28 20:08:24Z jansch $
 
-revision = '$Id: ft_appendtimelock.m 8298 2013-07-01 18:00:40Z roboos $';
+revision = '$Id: ft_appendtimelock.m 8901 2013-11-28 20:08:24Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -174,7 +174,9 @@ switch cfg.appenddim
           varargin{m}.trial = reorderdim(varargin{m}.trial, 2, b);
         else % .avg and .var will be recomputed anyway if .trial exists
           varargin{m}.avg = reorderdim(varargin{m}.avg, 1, b);
-          varargin{m}.var = reorderdim(varargin{m}.var, 1, b);
+          if isfield(varargin{m}, 'var')
+            varargin{m}.var = reorderdim(varargin{m}.var, 1, b);
+          end
         end
       end
     end

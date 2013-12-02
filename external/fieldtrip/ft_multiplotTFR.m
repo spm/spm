@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 8610 2013-10-16 11:43:34Z jorhor $
+% $Id: ft_multiplotTFR.m 8914 2013-11-29 11:31:18Z jansch $
 
-revision = '$Id: ft_multiplotTFR.m 8610 2013-10-16 11:43:34Z jorhor $';
+revision = '$Id: ft_multiplotTFR.m 8914 2013-11-29 11:31:18Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -297,6 +297,7 @@ if (isfull || haslabelcmb) && isfield(data, cfg.parameter)
     info.x     = lay.pos(:,1);
     info.y     = lay.pos(:,2);
     info.label = lay.label;
+    info.dataname = '';
     guidata(h, info);
     %set(gcf, 'WindowButtonUpFcn', {@ft_select_channel, 'callback', {@select_topoplotER, cfg, data}});
     set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_multiplotTFR, cfg, data}, 'event', 'WindowButtonUpFcn'});

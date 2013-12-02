@@ -42,9 +42,9 @@ function [downsample] = ft_volumedownsample(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumedownsample.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_volumedownsample.m 8937 2013-12-02 12:13:12Z roboos $
 
-revision = '$Id: ft_volumedownsample.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_volumedownsample.m 8937 2013-12-02 12:13:12Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -119,8 +119,7 @@ if isfield(cfg, 'smooth') && ~strcmp(cfg.smooth, 'no'),
       fprintf('not smoothing %s\n', cfg.parameter{j});
     else
       fprintf('smoothing %s with a kernel of %d voxels\n', cfg.parameter{j}, cfg.smooth);
-      tmp = double(getsubfield(source, cfg.parameter{j}));
-      spm_smooth(tmp, tmp, cfg.smooth);
+      tmp = volumesmooth(getsubfield(source, cfg.parameter{j}));
       setsubfield(source, cfg.parameter{j}, tmp);
     end
   end

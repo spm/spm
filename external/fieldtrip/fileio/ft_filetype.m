@@ -36,25 +36,27 @@ function [type] = ft_filetype(filename, desired, varargin)
 %  - Analyse
 %  - Analyze/SPM
 %  - BESA
+%  - BrainSuite
+%  - BrainVisa
 %  - BrainVision
 %  - Curry
 %  - Dataq
 %  - EDF
 %  - EEProbe
 %  - Elektra/Neuromag
-%  - LORETA
 %  - FreeSurfer
+%  - LORETA
+%  - Localite
 %  - MINC
 %  - Neuralynx
 %  - Neuroscan
 %  - Plexon
 %  - SR Research Eyelink
+%  - Stanford *.ply
 %  - Tucker Davis Technology
 %  - VSM-Medtech/CTF
 %  - Yokogawa
 %  - nifti, gifti
-%  - Localite
-%  - Stanford *.ply
 
 % Copyright (C) 2003-2013 Robert Oostenveld
 %
@@ -74,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 8833 2013-11-22 08:40:58Z roboos $
+% $Id: ft_filetype.m 8930 2013-12-02 09:34:15Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -276,16 +278,6 @@ elseif filetype_check_extension(filename, '.trc') && filetype_check_header(filen
   manufacturer = 'Micromed';
   content = 'Electrophysiological data';
   
-  % known BabySQUID file types, these should go before Neuromag
-elseif filetype_check_extension(filename, '.fif') && exist(fullfile(p, [f '.eve']), 'file')
-  type = 'babysquid_fif';
-  manufacturer = 'Tristan Technologies';
-  content = 'MEG data';
-elseif filetype_check_extension(filename, '.eve') && exist(fullfile(p, [f '.fif']), 'file')
-  type = 'babysquid_eve';
-  manufacturer = 'Tristan Technologies';
-  content = 'MEG data';
-  
   % known Neuromag file types
 elseif filetype_check_extension(filename, '.fif')
   type = 'neuromag_fif';
@@ -295,6 +287,10 @@ elseif filetype_check_extension(filename, '.bdip')
   type = 'neuromag_bdip';
   manufacturer = 'Neuromag';
   content = 'dipole model';
+elseif filetype_check_extension(filename, '.eve') && exist(fullfile(p, [f '.fif']), 'file')
+  type = 'neuromag_eve'; % these are being used by Tristan Technologies for the BabySQUID system
+  manufacturer = 'Neuromag';
+  content = 'events';
   
   % known Yokogawa file types
 elseif filetype_check_extension(filename, '.ave') || filetype_check_extension(filename, '.sqd')
@@ -1005,6 +1001,30 @@ elseif any(filetype_check_extension(filename, {'.node' '.poly' '.smesh' '.ele' '
   manufacturer = 'TetGen, see http://tetgen.berlios.de';
   content = 'geometrical data desribed with only nodes';
   
+  % some BrainSuite file formats, see http://brainsuite.bmap.ucla.edu/
+elseif filetype_check_extension(filename, '.dfs') && filetype_check_header(filename, 'DFS_LE v2.0')
+  type = 'brainsuite_dfs';
+  manufacturer = 'BrainSuite, see http://brainsuite.bmap.ucla.edu';
+  content = 'list of triangles and vertices';
+elseif filetype_check_extension(filename, '.bst') && filetype_check_ascii(filename)
+  type = 'brainsuite_dst';
+  manufacturer = 'BrainSuite, see http://brainsuite.bmap.ucla.edu';
+  content = 'a collection of files with geometrical data'; % it seems to be similar to a Caret *.spec file
+elseif filetype_check_extension(filename, '.dfc') && filetype_check_header(filename, 'LONIDFC')
+  type = 'loni_dfc';
+  manufacturer = 'LONI'; % it is used in BrainSuite
+  content = 'curvature information';
+  
+    % some BrainVISA file formats, see http://brainvisa.info
+elseif filetype_check_extension(filename, '.mesh') && (filetype_check_header(filename, 'ascii') || filetype_check_header(filename, 'binarABCD') || filetype_check_header(filename, 'binarDCBA'))  % http://brainvisa.info/doc/documents-4.4/formats/mesh.pdf
+  type = 'brainvisa_mesh';
+  manufacturer = 'BrainVISA';
+  content = 'vertices and triangles';
+elseif filetype_check_extension(filename, '.minf') && filetype_check_ascii(filename)
+  type = 'brainvisa_minf';
+  manufacturer = 'BrainVISA';
+  content = 'annotation/metadata';
+
   % some other known file types
 elseif length(filename)>4 && exist([filename(1:(end-4)) '.mat'], 'file') && exist([filename(1:(end-4)) '.bin'], 'file')
   % this is a self-defined FCDC data format, consisting of two files
@@ -1146,7 +1166,7 @@ elseif filetype_check_extension(filename, '.mbi')
 elseif filetype_check_extension(filename, '.mb2')
   type = 'manscan_mb2';
   manufacturer = 'MANSCAN';
-  content  = 'EEG data';    
+  content  = 'EEG data';
 elseif filetype_check_header(filename, 'ply')
   type = 'ply';
   manufacturer = 'Stanford Triangle Format';

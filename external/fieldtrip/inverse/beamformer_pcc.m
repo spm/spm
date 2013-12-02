@@ -21,7 +21,7 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_pcc.m 7537 2013-02-23 19:48:21Z jansch $
+% $Id: beamformer_pcc.m 8909 2013-11-29 08:58:43Z jansch $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -246,7 +246,8 @@ dipout.outside = dip.origoutside;
 dipout.pos     = dip.origpos;
 
 % remember how all components in the output csd should be interpreted
-scandiplabel = repmat({'scandip'}, 1, size(lf, 2));    % based on last leadfield
+%scandiplabel = repmat({'scandip'}, 1, size(lf, 2));    % based on last leadfield
+scandiplabel = repmat({'scandip'}, 1, size(filt, 1)-size(rf, 2)-size(sf, 2)-Nrefchan-Nsupchan); % robust if lf does not exist
 refdiplabel  = repmat({'refdip'},  1, size(rf, 2));
 supdiplabel  = repmat({'supdip'},  1, size(sf, 2));
 refchanlabel = repmat({'refchan'}, 1, Nrefchan);
@@ -281,7 +282,7 @@ end
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 7537 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 8909 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

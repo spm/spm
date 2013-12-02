@@ -32,6 +32,7 @@ function [type] = ft_senstype(input, desired)
 %   'ext1020' (this includes eeg1020, eeg1010 and eeg1005)
 %   'neuromag122'
 %   'neuromag306'
+%   'babysquid74'
 %   'egi32'
 %   'egi64'
 %   'egi128'
@@ -88,7 +89,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 8825 2013-11-20 22:00:17Z roboos $
+% $Id: ft_senstype.m 8933 2013-12-02 10:01:27Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout

@@ -12,7 +12,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %  - a volume conduction model of the head
 % or most other FieldTrip structures that represent geometrical information.
 %
-% Additional optional input arguments should be specified as key-value pairs 
+% Additional optional input arguments should be specified as key-value pairs
 % and can include
 %   interactive  = string, 'yes' or 'no' (default = 'yes')
 %   axisscale    = scaling factor for the reference axes and sphere (default = 1)
@@ -45,7 +45,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 8082 2013-04-27 10:44:00Z roboos $
+% $Id: ft_determine_coordsys.m 8912 2013-11-29 11:03:43Z roboos $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -200,7 +200,7 @@ switch dtype
   case 'mesh'
     ft_plot_mesh(data);
     camlight;
-
+    
   case 'headmodel'
     ft_plot_vol(data);
     camlight;
@@ -219,6 +219,12 @@ switch dtype
     
   case 'unknown'
 end % switch dtype{k}
+
+if isfield(data, 'tri')
+  % this makes the 3-D object easier to understand
+  camlight
+  lighting gouraud
+end
 
 % get the xyz-axes
 xdat  = [-axmax 0 0; axmax 0 0];

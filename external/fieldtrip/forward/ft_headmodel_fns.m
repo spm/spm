@@ -47,7 +47,7 @@ function vol = ft_headmodel_fns(seg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_fns.m 8817 2013-11-19 14:23:29Z roboos $
+% $Id: ft_headmodel_fns.m 8918 2013-11-29 12:46:24Z roboos $
 
 ft_hastoolbox('fns', 1);
 
@@ -120,7 +120,7 @@ try
   
   % write the positions of the electrodes on disk
   disp('writing the electrodes file...')
-  pos = ft_warp_apply(inv(transform),sens.chanpos); % in voxel coordinates!
+  pos = ft_warp_apply(inv(transform),sens.elecpos); % in voxel coordinates!
   
   % convert pos into int32 datatype.
   hdf5write(elecfile, '/electrodes/gridlocs', int32(pos));

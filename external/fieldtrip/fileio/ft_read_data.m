@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8770 2013-11-12 13:54:58Z roboos $
+% $Id: ft_read_data.m 8932 2013-12-02 10:01:25Z roboos $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -899,7 +899,7 @@ switch dataformat
     dat       = dat(:,chanindx,:);      % select channels
     dimord    = 'trials_chans_samples'; % selection using begsample and endsample will be done later
     
-  case {'neuromag_fif' 'neuromag_mne' 'babysquid_fif'}
+  case {'neuromag_fif' 'neuromag_mne'}
     % check that the required low-level toolbox is available
     ft_hastoolbox('mne', 1);
     if (hdr.orig.iscontinuous)

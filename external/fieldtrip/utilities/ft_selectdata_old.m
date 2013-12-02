@@ -48,7 +48,7 @@ function [data] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_old.m 8665 2013-10-29 10:56:56Z jansch $
+% $Id: ft_selectdata_old.m 8940 2013-12-02 13:35:13Z jansch $
 
 % FIXME ROI selection is not yet implemented
 
@@ -126,6 +126,12 @@ end
 if length(data)>1 && selectrpt,
   error('multiple data structures as input is not supported in combination with subselection of trials');
 end
+
+% a quick check to ensure the user does not use this function in cases
+% where it is known to contain a bug
+%if selectrpt && (isempty(selrpt) || ~any(selrpt))
+%  error('ft_selectdata_old does not work when selecting 0 trials; please use ft_selectdata_new instead (use a cfg input, instead of key-value pairs, to ft_selectdata)');
+%end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % concatenate the data
@@ -615,8 +621,12 @@ elseif istlck,
   if selectchan, data = seloverdim(data, 'chan', selchan, fb); end
   if selectfoi,  data = seloverdim(data, 'freq', selfoi,  fb); end
   if selecttoi,  data = seloverdim(data, 'time', seltoi,  fb); end
-  if isfield(data,'trial') && isfield(data,'avg') && size(data.trial,3)~=size(data.avg,2)
-    warning('Warning: .avg, .var, .dof and .cov not updated. Please use ft_selectdata_new for this to work correctly on .trial timelock data.');
+  if isfield(data,'trial') && isfield(data,'avg') %&& size(data.trial,3)~=size(data.avg,2)
+    warning('Warning: .avg, .var, .dof and .cov not updated.');
+    if isfield(data, 'avg'), data = rmfield(data, 'avg'); end
+    if isfield(data, 'cov'), data = rmfield(data, 'cov'); end
+    if isfield(data, 'dof'), data = rmfield(data, 'dof'); end
+    if isfield(data, 'var'), data = rmfield(data, 'var'); end
   end
   % average over dimensions
   if avgoverrpt,  data = avgoverdim(data, 'rpt',  fb); end

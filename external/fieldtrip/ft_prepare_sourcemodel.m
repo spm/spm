@@ -107,9 +107,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_prepare_sourcemodel.m 8936 2013-12-02 12:09:14Z roboos $
 
-revision = '$Id: ft_prepare_sourcemodel.m 8753 2013-11-11 12:45:48Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 8936 2013-12-02 12:09:14Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -301,8 +301,9 @@ if basedonauto
   % or gradiometer coils, this will typically also cover the complete brain
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if isempty(sens)
-    error('creating a 3D-grid sourcemodel based on automatic detection requires sensor position information');
+    error('creating a 3D-grid sourcemodel this way requires sensor position information to estimate the extent of the brain');
   end
+  fprintf('creating dipole grid with %g %s resolution\n', cfg.grid.resolution, cfg.grid.unit);
   % FIXME there is a potential problem here with the use of "floor", as it will
   % behave differently depending on the units of the source model
   if ischar(cfg.grid.xgrid) && strcmp(cfg.grid.xgrid, 'auto')

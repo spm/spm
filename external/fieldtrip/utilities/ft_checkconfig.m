@@ -61,7 +61,7 @@ function [cfg] = ft_checkconfig(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkconfig.m 8692 2013-11-01 13:23:38Z roboos $
+% $Id: ft_checkconfig.m 8891 2013-11-28 19:20:14Z jansch $
 
 global ft_default
 
@@ -442,6 +442,7 @@ if ~isempty(createsubcfg)
           'sfmethod'
           'svd'
           'init'
+          'checkconvergence'
           };
         
       otherwise

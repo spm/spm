@@ -27,7 +27,7 @@ function [pnt, ori, lab] = channelposition(sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: channelposition.m 8793 2013-11-15 19:59:10Z roboos $
+% $Id: channelposition.m 8919 2013-11-29 13:20:49Z roboos $
 
 % remove the balancing from the sensor definition, e.g. planar gradients, 3rd-order gradients, PCA-cleaned data or ICA projections
 if isfield(sens, 'balance') && ~strcmp(sens.balance.current, 'none')
@@ -254,11 +254,41 @@ switch ft_senstype(sens)
     
   otherwise
     % compute the position for each gradiometer or electrode
+    nchan = length(sens.label);
+    if isfield(sens, 'elecpos')
+      nelec = size(sens.elecpos,1); % these are the electrodes
+    elseif isfield(sens, 'coilpos')
+      ncoil = size(sens.coilpos,1); % these are the coils
+    end
     
-    if isfield(sens, 'tra')
-      % each channel depends on multiple sensors (electrodes or coils)
-      % compute a weighted position for the channel
-      [nchan, ncoil] = size(sens.tra); % ncoil might also be nelec
+    if ~isfield(sens, 'tra') && isfield(sens, 'elecpos') && nchan==nelec
+      % there is one electrode per channel, which means that the channel position is identical to the electrode position
+      pnt = sens.elecpos;
+      ori = nan(size(pnt));
+      lab = sens.label;
+      
+    elseif isfield(sens, 'tra') && isfield(sens, 'elecpos') && isequal(sens.tra, eye(nelec))
+      % there is one electrode per channel, which means that the channel position is identical to the electrode position
+      pnt = sens.elecpos;
+      ori = nan(size(pnt));
+      lab = sens.label;
+      
+    elseif isfield(sens, 'tra') && isfield(sens, 'elecpos') && isequal(sens.tra, eye(nelec)-1/nelec)
+      % there is one electrode per channel, channels are average referenced
+      pnt = sens.elecpos;
+      ori = nan(size(pnt));
+      lab = sens.label;
+      
+    elseif ~isfield(sens, 'tra') && isfield(sens, 'coilpos') && nchan==ncoil
+      % there is one coil per channel, which means that the channel position is identical to the coil position
+      pnt = sens.coilpos;
+      ori = sens.coilori;
+      lab = sens.label;
+      
+    elseif isfield(sens, 'tra')
+      % each channel depends on multiple sensors (electrodes or coils), compute a weighted position for the channel
+      % for MEG gradiometer channels this means that the position is in between the two coils
+      % for bipolar EEG channels this means that the position is in between the two electrodes
       pnt = nan(nchan,3);
       ori = nan(nchan,3);
       if isfield(sens, 'coilpos')
@@ -275,18 +305,6 @@ switch ft_senstype(sens)
           pnt(i,:) = weight * sens.elecpos;
         end
       end
-      lab = sens.label;
-      
-    elseif isfield(sens, 'coilpos')
-      % there is one sensor per channel, which means that the channel position is identical to the sensor position
-      pnt = sens.coilpos;
-      ori = sens.coilori;
-      lab = sens.label;
-      
-    elseif isfield(sens, 'elecpos')
-      % there is one sensor per channel, which means that the channel position is identical to the sensor position
-      pnt = sens.elecpos;
-      ori = nan(size(sens.elecpos));
       lab = sens.label;
       
     end
@@ -314,4 +332,3 @@ nchan = numel(sens.label);
 if length(lab)~=nchan || size(pnt,1)~=nchan || size(ori,1)~=nchan
   warning('the positions were not determined for all channels');
 end
-

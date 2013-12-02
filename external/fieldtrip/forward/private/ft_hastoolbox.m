@@ -33,7 +33,7 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_hastoolbox.m 8637 2013-10-24 14:06:01Z roboos $
+% $Id: ft_hastoolbox.m 8916 2013-11-29 11:50:02Z roboos $
 
 % this function is called many times in FieldTrip and associated toolboxes
 % use efficient handling if the same toolbox has been investigated before
@@ -137,6 +137,8 @@ url = {
   '29046-MUTUAL-INFORMATION'              'see http://www.mathworks.com/matlabcentral/fileexchange/35625-information-theory-toolbox'
   '14888-MUTUAL-INFORMATION-COMPUTATION'  'see http://www.mathworks.com/matlabcentral/fileexchange/14888-mutual-information-computation'
   'PLOT2SVG'    'see http://www.mathworks.com/matlabcentral/fileexchange/7401-scalable-vector-graphics-svg-export-of-figures'
+  'BRAINSUITE'  'see http://brainsuite.bmap.ucla.edu/processing/additional-tools/'
+  'BRAINVISA'   'see http://brainvisa.info'
   };
 
 if nargin<2
@@ -318,6 +320,12 @@ switch toolbox
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
   case 'PLOT2SVG'
     filelist = {'plot2svg.m' 'simulink2svg.m'};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
+  case 'BRAINSUITE'
+    filelist = {'readdfs.m' 'writedfc.m'};
+    status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
+  case 'BRAINVISA'
+    filelist = {'loadmesh.m' 'plotmesh.m' 'savemesh.m'};
     status = all(cellfun(@exist, filelist, repmat({'file'}, size(filelist))));
     
     % the following are fieldtrip modules/toolboxes

@@ -43,7 +43,7 @@ function [data] = fixdimord(data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixdimord.m 8251 2013-06-12 15:09:57Z jorhor $
+% $Id: fixdimord.m 8899 2013-11-28 19:49:24Z jansch $
 
 % if nargin<2, keepsourcedimord = 0; end
 %
@@ -148,7 +148,7 @@ for i=1:length(dimtok)
     case {'pos'}
       % this is for source data on a 3-d grid, a cortical sheet, or unstructured positions
       
-    case {'{pos}'}
+    case {'{pos}' '{pos}_rpt' '{pos}_rpttap'}
       % this is for source data on a 3-d grid, a cortical sheet, or unstructured positions
       % the data itself is represented in a cell-array, e.g. source.mom or source.leadfield
 

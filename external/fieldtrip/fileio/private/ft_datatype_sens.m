@@ -81,7 +81,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 8825 2013-11-20 22:00:17Z roboos $
+% $Id: ft_datatype_sens.m 8863 2013-11-26 21:59:30Z roboos $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'
@@ -152,9 +152,9 @@ switch version
       distance = sens.unit;
     end
     
-    if ~isempty(amplitude)
-      % update the tra matrix for the units of amplitude
-      % FIXME this fails if there is no tra matrix
+    if ~isempty(amplitude) && isfield(sens, 'tra')
+      % update the tra matrix for the units of amplitude, this ensures that
+      % the leadfield values remain consistent with the units
       for i=1:nchan
         if ~isempty(regexp(sens.chanunit{i}, 'm$', 'once'))
           % this channel is expressed as amplitude per distance

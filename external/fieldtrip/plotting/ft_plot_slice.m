@@ -49,7 +49,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_plot_slice.m 8896 2013-11-28 19:32:03Z jansch $
 
 persistent previous_dim X Y Z
 
@@ -325,7 +325,7 @@ if dointersect
       if ~isempty(intersectcolor),     set(p(k), 'EdgeColor', intersectcolor(k)); end
       if ~isempty(intersectlinewidth), set(p(k), 'LineWidth', intersectlinewidth); end
       if ~isempty(intersectlinestyle), set(p(k), 'LineStyle', intersectlinestyle); end
-  end
+    end
   end
 end
 

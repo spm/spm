@@ -56,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 8811 2013-11-18 13:32:08Z roboos $
+% $Id: ft_prepare_vol_sens.m 8928 2013-12-02 08:10:04Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -119,9 +119,6 @@ elseif ~ismeg && ~iseeg
   
 elseif ismeg
   
-  % keep a copy of the original sensor array, this is needed for the MEG localspheres model
-  sens_orig = sens;
-  
   % always ensure that there is a linear transfer matrix for combining the coils into gradiometers
   if ~isfield(sens, 'tra');
     Nchans = length(sens.label);
@@ -132,18 +129,21 @@ elseif ismeg
     sens.tra = eye(Nchans, Ncoils);
   end
   
-  % select the desired channels from the gradiometer array
-  % order them according to the users specification
-  [selchan, selsens] = match_str(channel, sens.label);
+  if ~ft_voltype(vol, 'localspheres')
+    % select the desired channels from the gradiometer array
+    [selchan, selsens] = match_str(channel, sens.label);
+    % only keep the desired channels, order them according to the users specification
+    try, sens.chantype = sens.chantype(selsens,:); end
+    try, sens.chanunit = sens.chanunit(selsens,:); end
+    try, sens.chanpos  = sens.chanpos (selsens,:); end
+    try, sens.chanori  = sens.chanori (selsens,:); end
+    sens.label    = sens.label(selsens);
+    sens.tra      = sens.tra(selsens,:);
+  else
+    % for the localspheres model it is done further down
+  end
   
-  % first only modify the linear combination of coils into channels
-  try, sens.chantype = sens.chantype(selsens,:); end
-  try, sens.chanunit = sens.chanunit(selsens,:); end
-  sens.chanpos  = sens.chanpos(selsens,:);
-  sens.chanori  = sens.chanori(selsens,:);
-  sens.label    = sens.label(selsens);
-  sens.tra      = sens.tra(selsens,:);
-  % subsequently remove the coils that do not contribute to any channel output
+  % remove the coils that do not contribute to any channel output
   selcoil      = any(sens.tra~=0,1);
   sens.coilpos = sens.coilpos(selcoil,:);
   sens.coilori = sens.coilori(selcoil,:);
@@ -174,17 +174,6 @@ elseif ismeg
       % have to match the channels in the gradiometer array and the volume
       % conduction model.
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      
-      % use the original sensor array instead of the one with a subset of
-      % channels, because we need the complete mapping of coils to channels
-      sens = sens_orig;
-      
-      % remove the coils that do not contribute to any channel output
-      % since these do not have a corresponding sphere
-      selcoil      = find(sum(sens.tra,1)~=0);
-      sens.coilpos = sens.coilpos(selcoil,:);
-      sens.coilori = sens.coilori(selcoil,:);
-      sens.tra     = sens.tra(:,selcoil);
       
       % the initial localspheres volume conductor has a local sphere per
       % channel, whereas it should have a local sphere for each coil
@@ -233,7 +222,11 @@ elseif ismeg
         end
       end
       
+      % make a new structure that only holds the local spheres, one per coil
       localspheres = [];
+      localspheres.type = vol.type;
+      localspheres.unit = vol.unit;
+      
       % for each coil in the MEG helmet, determine the corresponding channel and from that the corresponding local sphere
       for i=1:Ncoils
         coilindex = find(sens.tra(:,i)~=0); % to which channel does this coil belong
@@ -257,8 +250,8 @@ elseif ismeg
       % first only modify the linear combination of coils into channels
       try, sens.chantype = sens.chantype(selsens,:); end
       try, sens.chanunit = sens.chanunit(selsens,:); end
-      sens.chanpos = sens.chanpos(selsens,:);
-      sens.chanori = sens.chanori(selsens,:);
+      try, sens.chanpos  = sens.chanpos (selsens,:); end
+      try, sens.chanori  = sens.chanori (selsens,:); end
       sens.label   = sens.label(selsens);
       sens.tra     = sens.tra(selsens,:);
       % subsequently remove the coils that do not contribute to any sensor output
@@ -307,15 +300,21 @@ elseif ismeg
   
 elseif iseeg
   
+  % the electrodes are used, the channel positions are not relevant any more
+  % channel positinos need to be recomputed after projecting the electrodes on the skin
+  if isfield(sens, 'chanpos'); sens = rmfield(sens, 'chanpos'); end
+  
   % select the desired channels from the electrode array
   % order them according to the users specification
   [selchan, selsens] = match_str(channel, sens.label);
   Nchans = length(sens.label);
   
+  sens.label     = sens.label(selsens);
+  try, sens.chantype  = sens.chantype(selsens); end;
+  try, sens.chanunit  = sens.chanunit(selsens); end;
+  
   if isfield(sens, 'tra')
     % first only modify the linear combination of electrodes into channels
-    sens.chanpos = sens.chanpos(selsens,:);
-    sens.label   = sens.label(selsens);
     sens.tra     = sens.tra(selsens,:);
     % subsequently remove the electrodes that do not contribute to any channel output
     selelec      = any(sens.tra~=0,1);
@@ -323,13 +322,8 @@ elseif iseeg
     sens.tra     = sens.tra(:,selelec);
   else
     % the electrodes and channels are identical
-    sens.chanpos = sens.chanpos(selsens,:);
     sens.elecpos = sens.elecpos(selsens,:);
-    sens.label   = sens.label(selsens);
   end
-  
-  % the electrodes will be projected onto the surface, hence the sensor positions need to be updated at the end
-  sens = rmfield(sens, 'chanpos');
   
   switch ft_voltype(vol)
     case {'infinite' 'infinite_monopole' 'infinite_currentdipole'}
@@ -503,35 +497,29 @@ elseif iseeg
         sens.elecpos(j,:) = bnd.pnt(i,:);
       end
       
-      if isfield(sens, 'chanpos')
-        % this is invalid after the projection to the surface
-        sens = rmfield(sens, 'chanpos');
-      end
-      
       vol.transfer = sb_transfer(vol,sens);
       
     case 'interpolate'
       % this is to allow moving leadfield files
       if ~exist(vol.filename{1}, 'file')
-         for i = 1:length(vol.filename)
-             [p, f, x] = fileparts(vol.filename{i});
-             vol.filename{i} = fullfile(vpath, [f x]);
-         end
-      end
-       
-      if ~isfield(sens, 'tra') && isequal(sens.chanpos, sens.elecpos)
-        sens.tra = eye(size(sens.chanpos,1));
+        for i = 1:length(vol.filename)
+          [p, f, x] = fileparts(vol.filename{i});
+          vol.filename{i} = fullfile(vpath, [f x]);
+        end
       end
       
-      if ~isfield(vol.sens, 'tra') && isequal(vol.sens.chanpos, vol.sens.elecpos)
-        vol.sens.tra = eye(size(vol.sens.chanpos,1));
+      if ~isfield(sens, 'tra')
+        sens.tra = eye(length(vol.label));
+      end
+      
+      if ~isfield(vol.sens, 'tra')
+        vol.sens.tra = eye(length(vol.sens.label));
       end
       
       % the channel positions can be nan, for example for a bipolar montage
-      match = isequal(sens.label, vol.sens.label)    & ...
-        isequalwithequalnans(sens.tra, vol.sens.tra) & ...
-        isequal(sens.elecpos, vol.sens.elecpos)      & ...
-        isequalwithequalnans(sens.chanpos, vol.sens.chanpos);
+      match = isequal(sens.label, vol.sens.label) & ...
+        isequal(sens.tra, vol.sens.tra)           & ...
+        isequal(sens.elecpos, vol.sens.elecpos);
       
       if match
         % the input sensor array matches precisely with the forward model
@@ -562,12 +550,13 @@ elseif iseeg
   %   sens.tra = eye(length(sens.label));
   % end
   
-end % if iseeg or ismeg
+  % update the channel positions as the electrodes were projected to the skin surface
+  [pos, ori, lab] = channelposition(sens);
+  [selsens, selpos] = match_str(sens.label, lab);
+  sens.chanpos = nan(length(sens.label),3);
+  sens.chanpos(selsens,:) = pos(selpos,:);
 
-% add/update the channel positions, this is needed if the electrodes are projected to the surface
-if ~isfield(sens, 'chanpos')
-  sens.chanpos = channelposition(sens);
-end
+end % if iseeg or ismeg
 
 if isfield(sens, 'tra')
   if issparse(sens.tra) && size(sens.tra, 1)==1

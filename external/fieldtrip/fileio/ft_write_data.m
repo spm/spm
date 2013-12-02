@@ -6,7 +6,7 @@ function ft_write_data(filename, dat, varargin)
 % Use as
 %   ft_write_data(filename, dat, ...)
 %
-% The specified filename can already contain the filename extention,
+% The specified filename can already contain the filename extension,
 % but that is not required since it will be added automatically.
 %
 % Additional options should be specified in key-value pairs and can be
@@ -48,7 +48,7 @@ function ft_write_data(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_write_data.m 8895 2013-11-28 19:30:44Z jansch $
 
 global data_queue    % for fcdc_global
 global header_queue  % for fcdc_global
@@ -82,7 +82,7 @@ switch dataformat
     % just pretend that we are writing the data, this is only for debugging
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     [numC, numS] = size(dat);
-    fprintf(1,'Pretending to write %i samples from %i channes...\n',numS,numC);
+    fprintf(1,'Pretending to write %i samples from %i channels...\n',numS,numC);
     % Insert a small delay to make this more realitic for testing purposes
     % The time for writing to an actual location will differ and depend on
     % the amount of data
