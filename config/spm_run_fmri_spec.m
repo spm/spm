@@ -8,9 +8,9 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 5607 2013-08-13 11:00:29Z guillaume $
+% $Id: spm_run_fmri_spec.m 5774 2013-12-03 19:17:27Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -112,6 +112,9 @@ for i = 1:numel(job.sess)
     else
         SPM.nscan(i) = numel(sess.scans);
         SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
+    end
+    if SPM.nscan(i) == 1
+        error('Not enough scans in session %d.',i);
     end
 
     %-Multiple conditions (structure from a MAT-file)
