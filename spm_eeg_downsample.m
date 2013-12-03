@@ -15,12 +15,12 @@ function D = spm_eeg_downsample(S)
 %               http://www.mathworks.com/products/signal/
 % (function resample.m) if present and an homebrew version otherwise
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: spm_eeg_downsample.m 5773 2013-12-03 18:05:14Z guillaume $
 
-SVNrev = '$Rev: 5438 $';
+SVNrev = '$Rev: 5773 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -29,7 +29,7 @@ spm('FigName','M/EEG downsampling'); spm('Pointer','Watch');
 
 %-Test for the presence of Signal Processing Matlab toolbox
 %--------------------------------------------------------------------------
-flag_tbx = license('checkout','signal_toolbox');
+flag_tbx = license('checkout','signal_toolbox') && ~isempty(ver('signal'));
 if ~flag_tbx
     disp(['warning: using homemade resampling routine ' ...
           'as signal toolbox is not available.']);
