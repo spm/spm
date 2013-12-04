@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_dcm_erp_dipfit.m 5779 2013-12-04 20:23:10Z rosalyn $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ DCM.M.dipfit.type     = spatial;
 DCM.M.dipfit.location = location;
 DCM.M.dipfit.symmetry = symmetry;
 
- 
+
 % Get source locations if MEG or EEG
 %--------------------------------------------------------------------------
 switch DCM.xY.modality
@@ -104,7 +104,11 @@ switch DCM.xY.modality
         DCM.M.dipfit.Nc       = length(DCM.xY.Ic);
         return
 end
- 
+
+% Detect silent sources for non-LFP type from GUI source name text
+%--------------------------------------------------------------------------
+DCM.M.dipfit.silent_source  = strfind(DCM.Sname,'silent');
+
 % If not LFP, get electromagnetic forward model
 %==========================================================================
 if ~isfield(D, 'val'), D.val = 1; end
