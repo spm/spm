@@ -25,6 +25,7 @@ function [D, montage] = spm_eeg_montage(S)
 %   S.keepothers       - keep (1) or discard (0) the channels not
 %                        involved in the montage [default: 1]
 %                        ignored when switching between online montages
+%   S.keepsensors      - keep (1) or discard (0) the sensor representations
 %   S.blocksize        - size of blocks used internally to split large
 %                        continuous files [default ~20Mb]
 %   S.updatehistory    - if 0 the history is not updated (use1ful for
@@ -51,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5719 2013-10-30 13:55:18Z vladimir $
+% $Id: spm_eeg_montage.m 5775 2013-12-04 13:03:55Z vladimir $
 
-SVNrev = '$Rev: 5719 $';
+SVNrev = '$Rev: 5775 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -68,6 +69,7 @@ elseif ~isfield(S, 'mode')
 end
 if ~isfield(S, 'blocksize'),     S.blocksize     = 655360;          end   %20 Mb
 if ~isfield(S, 'keepothers'),    S.keepothers    = 1;               end
+if ~isfield(S, 'keepsensors'),   S.keepsensors   = 1;               end
 if ~isfield(S, 'updatehistory'), S.updatehistory = 1;               end
 if ~isfield(S, 'prefix'),        S.prefix = 'M';                    end
 
@@ -183,7 +185,7 @@ switch S.mode
         else Ibar = [1:D.ntrials]; end
         
         spm_progress_bar('Init', Ibar(end), 'applying montage');
-                
+        
         for i = 1:D.ntrials
             for j = 1:nblocks
                 if isTF
@@ -191,7 +193,7 @@ switch S.mode
                         temp = montage.tra * spm_squeeze(D(:, f, ((j-1)*nblocksamples +1) : (j*nblocksamples), i), [2, 4]);
                         Dnew(:, f, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = permute(shiftdim(temp, -1), [2, 1, 3]);
                     end
-                else                    
+                else
                     Dnew(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i) = ...
                         montage.tra * squeeze(D(:, ((j-1)*nblocksamples +1) : (j*nblocksamples), i));
                 end
@@ -229,6 +231,18 @@ switch S.mode
             end
         end
         
+        % If all the original channels contributing to a new channel have
+        % the same units, transfer them to the new channel. This might be
+        % wrong if the montage itself changes the units by scaling the data.
+        unitlist = repmat({'unknown'}, m, 1);
+        for i = 1:m
+            unit = unique(units(D, D.indchannel(montage.labelorg(~~montage.tra(i, :)))));
+            if numel(unit)==1
+                unitlist(i) = unit;
+            end
+        end
+        Dnew = units(Dnew, ':', unitlist);
+        
         % Set channel types to default
         S1 = [];
         S1.task = 'defaulttype';
@@ -240,37 +254,41 @@ switch S.mode
         %----------------------------------------------------------------------
         sensortypes = {'MEG', 'EEG'};
         for i = 1:length(sensortypes)
-            sens = D.sensors(sensortypes{i});
-            if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
-                sensmontage = montage;
-                sel1 = spm_match_str(sensmontage.labelorg, sens.label);
-                sensmontage.labelorg = sensmontage.labelorg(sel1);
-                sensmontage.tra = sensmontage.tra(:, sel1);
-                selempty  = find(all(sensmontage.tra == 0, 2));
-                sensmontage.tra(selempty, :) = [];
-                sensmontage.labelnew(selempty) = [];
-                if S.keepothers
-                    keepunused = 'yes';
-                else
-                    keepunused = 'no';
-                end
-                
-                sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
-                
-                if isequal(sensortypes{i}, 'MEG')
-                    if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
-                        balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
+            if S.keepsensors
+                sens = D.sensors(sensortypes{i});
+                if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
+                    sensmontage = montage;
+                    sel1 = spm_match_str(sensmontage.labelorg, sens.label);
+                    sensmontage.labelorg = sensmontage.labelorg(sel1);
+                    sensmontage.tra = sensmontage.tra(:, sel1);
+                    selempty  = find(all(sensmontage.tra == 0, 2));
+                    sensmontage.tra(selempty, :) = [];
+                    sensmontage.labelnew(selempty) = [];
+                    if S.keepothers
+                        keepunused = 'yes';
                     else
-                        balance = sensmontage;
+                        keepunused = 'no';
                     end
-                                        
-                    sens.balance.custom = balance;
-                    sens.balance.current = 'custom';
+                    
+                    sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
+                    
+                    if isequal(sensortypes{i}, 'MEG')
+                        if isfield(sens, 'balance') && ~isequal(sens.balance.current, 'none')
+                            balance = ft_apply_montage(getfield(sens.balance, sens.balance.current), sensmontage, 'keepunused', keepunused);
+                        else
+                            balance = sensmontage;
+                        end
+                        
+                        sens.balance.custom = balance;
+                        sens.balance.current = 'custom';
+                    end
                 end
-            end
-            
-            if ~isempty(sens) && ~isempty(intersect(sens.label, Dnew.chanlabels))
-                Dnew = sensors(Dnew, sensortypes{i}, sens);
+                
+                if ~isempty(sens) && ~isempty(intersect(sens.label, Dnew.chanlabels))
+                    Dnew = sensors(Dnew, sensortypes{i}, sens);
+                else
+                    Dnew = sensors(Dnew, sensortypes{i}, []);
+                end
             else
                 Dnew = sensors(Dnew, sensortypes{i}, []);
             end

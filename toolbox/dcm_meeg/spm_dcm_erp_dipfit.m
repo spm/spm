@@ -34,7 +34,7 @@ function DCM = spm_dcm_erp_dipfit(DCM, save_vol_sens)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_dipfit.m 5454 2013-04-27 10:46:41Z karl $
+% $Id: spm_dcm_erp_dipfit.m 5775 2013-12-04 13:03:55Z vladimir $
  
 % Get data filename and good channels
 %--------------------------------------------------------------------------
@@ -126,6 +126,13 @@ for m = 1:numel(D.inv{D.val}.forward)
     if strncmp(DCM.xY.modality, D.inv{D.val}.forward(m).modality, 3)
         DCM.M.dipfit.vol      = D.inv{D.val}.forward(m).vol;
         DCM.M.dipfit.datareg  = D.inv{D.val}.datareg(m);
+        if isfield(D.inv{D.val}.forward(m), 'siunits') && D.inv{D.val}.forward(m).siunits
+            DCM.M.dipfit.sens     = D.inv{D.val}.forward(m).sensors;
+            DCM.M.dipfit.siunits  = true;
+        else            
+            DCM.M.dipfit.sens     = DCM.M.dipfit.datareg.sensors;
+            DCM.M.dipfit.siunits  = false;
+        end
     end
 end
 
@@ -138,7 +145,7 @@ if save_vol_sens
     end
 
     [DCM.M.dipfit.vol, DCM.M.dipfit.sens] = ft_prepare_vol_sens(DCM.M.dipfit.vol, ...
-        DCM.M.dipfit.datareg.sensors, 'channel', D.chanlabels(DCM.xY.Ic));
+        DCM.M.dipfit.sens, 'channel', D.chanlabels(DCM.xY.Ic));
 end
 
 switch DCM.options.spatial

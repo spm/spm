@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5775 2013-12-04 13:03:55Z vladimir $
 
 
 %-Initialisation
@@ -29,20 +29,27 @@ spm('Pointer', 'Watch');
 if isempty(Fgraph) || spm('CmdLine'), graph = 'no'; else graph = 'yes'; end
 
 for i = 1:numel(D.inv{val}.forward)
-    mesh = spm_eeg_inv_transform_mesh(D.inv{val}.datareg(i).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
+    M    = D.inv{val}.datareg(i).fromMNI*D.inv{val}.mesh.Affine;
+    
+    M    = diag([1e-3 1e-3 1e-3 1])*M; % convert to m
+    
+    mesh = spm_eeg_inv_transform_mesh(M, D.inv{val}.mesh);
+    
+    mesh_correction = [];
     
     switch D.inv{val}.forward(i).voltype
         case 'EEG interpolated'
             vol = D.inv{val}.forward(i).vol;
             modality = 'EEG';
-        case '3-Shell Sphere (experimental)'
+        case '3-Shell Sphere'
             cfg              = [];
             cfg.feedback     = graph;
-            cfg.showcallinfo           = 'no';
-            cfg.sourceunits            = 'mm';
-            cfg.headshape(1) = export(gifti(mesh.tess_scalp),  'ft');
-            cfg.headshape(2) = export(gifti(mesh.tess_oskull), 'ft');
-            cfg.headshape(3) = export(gifti(mesh.tess_iskull), 'ft');
+            cfg.siunits      = 'yes';
+            cfg.showcallinfo = 'no';
+          
+            headshape(1) = export(gifti(mesh.tess_scalp),  'ft');
+            headshape(2) = export(gifti(mesh.tess_oskull), 'ft');
+            headshape(3) = export(gifti(mesh.tess_iskull), 'ft');
             
             % determine the convex hull of the brain, to determine the support points
             pnt  = mesh.tess_ctx.vert;
@@ -50,37 +57,46 @@ for i = 1:numel(D.inv{val}.forward)
             sel  = unique(tric(:));
             
             % create a triangulation for only the support points
-            cfg.headshape(4).pnt = pnt(sel, :);
-            cfg.headshape(4).tri = convhulln(pnt(sel, :));
+            headshape(4).pnt = pnt(sel, :);
+            headshape(4).tri = convhulln(pnt(sel, :));
             
             cfg.method = 'concentricspheres';
             
-            vol  = ft_prepare_headmodel(cfg);
-            vert = spm_eeg_inv_mesh_spherify(mesh.tess_ctx.vert, mesh.tess_ctx.face, 'shift', 'no');
-            mesh.tess_ctx.vert = vol.r(1)*vert + repmat(vol.o, size(vert, 1), 1);
+            vol  = ft_prepare_headmodel(cfg, headshape);
+            
+            cfg = [];
+            cfg.vol      = vol;
+            cfg.grid.pos = mesh.tess_ctx.vert;
+            cfg.spherify = 'yes';
+            gridsphere = ft_prepare_sourcemodel(cfg);
+            
+            mesh_correction    = rmfield(cfg, {'vol', 'grid'});
+            
+            mesh.tess_ctx.vert = gridsphere.pos;
             modality = 'EEG';
             
-        case 'EEG BEM'
+        case 'EEG BEM'                        
             volfile = spm_file(mesh.sMRI, 'suffix','_EEG_BEM', 'ext','mat');
-            if ~exist(volfile, 'file')
-                spm_progress_bar('Init', 1, 'preparing EEG BEM model');
+            if ~exist(volfile, 'file') || ...
+                ~isequal(getfield(getfield(load(volfile), 'vol'), 'unit'), 'm')
+                spm_progress_bar('Init', 1, 'preparing EEG BEM model');                 
                 
                 vol        = [];
                 vol.cond   = [0.3300 0.0041 0.3300];
                 vol.source = 1; % index of source compartment
                 vol.skin   = 3; % index of skin surface
                 % brain
-                vol.bnd(1) = export(gifti(D.inv{val}.mesh.tess_iskull), 'ft');
+                vol.bnd(1) = export(gifti(mesh.tess_iskull), 'ft');
                 % skull
-                vol.bnd(2) = export(gifti(D.inv{val}.mesh.tess_oskull), 'ft');
+                vol.bnd(2) = export(gifti(mesh.tess_oskull), 'ft');
                 % skin
-                vol.bnd(3) = export(gifti(D.inv{val}.mesh.tess_scalp),  'ft');
+                vol.bnd(3) = export(gifti(mesh.tess_scalp),  'ft');
                 
                 % create the BEM system matrix
                 cfg        = [];
                 cfg.method = 'bemcp';
                 cfg.showcallinfo = 'no';
-                cfg.sourceunits  = 'mm';
+                cfg.siunits      = 'yes';
                 vol = ft_prepare_headmodel(cfg, vol);
 
                 spm_progress_bar('Set', 1); drawnow;
@@ -90,6 +106,17 @@ for i = 1:numel(D.inv{val}.forward)
                 spm_progress_bar('Clear');
                 spm('Pointer', 'Arrow');
             end
+            
+            cfg = [];
+            cfg.vol = ft_read_vol(volfile);
+            cfg.grid.pos = mesh.tess_ctx.vert;         
+            cfg.moveinward = 6e-3; %move to empirically determined BEM safe zone
+            gridcorrect = ft_prepare_sourcemodel(cfg);
+            
+            mesh_correction    = rmfield(cfg, {'vol', 'grid'});
+            
+            mesh.tess_ctx.vert = gridcorrect.pos;
+            
             vol = volfile;
             modality = 'EEG';
             
@@ -99,54 +126,86 @@ for i = 1:numel(D.inv{val}.forward)
             vol.source = 1; % index of source compartment
             vol.skin   = 3; % index of skin surface
             % brain
-            vol.bnd(1) = export(gifti(D.inv{val}.mesh.tess_iskull), 'ft');
+            vol.bnd(1) = export(gifti(mesh.tess_iskull), 'ft');
             % skull
-            vol.bnd(2) = export(gifti(D.inv{val}.mesh.tess_oskull), 'ft');
+            vol.bnd(2) = export(gifti(mesh.tess_oskull), 'ft');
             % skin
-            vol.bnd(3) = export(gifti(D.inv{val}.mesh.tess_scalp),  'ft');
+            vol.bnd(3) = export(gifti(mesh.tess_scalp),  'ft');
             
-            cfg        = [];
-            cfg.method = 'openmeeg';
-            cfg.showcallinfo = 'no';
-            cfg.sourceunits  = 'mm';
-            vol = ft_prepare_headmodel(cfg, vol);
+            cfg                         = [];
+            cfg.method                 = 'openmeeg';
+            cfg.siunits                = 'yes';
+            cfg.showcallinfo           = 'no';         
+            vol                        = ft_prepare_headmodel(cfg, vol);
+            
+            cfg                        = [];
+            cfg.vol                    = vol;
+            cfg.grid.pos               = mesh.tess_ctx.vert;          
+            cfg.moveinward             = 6e-3; % smaller shift might suffice for OpenMEEG
+            gridcorrect                = ft_prepare_sourcemodel(cfg);
+            
+            mesh_correction            = rmfield(cfg, {'vol', 'grid'});
+            
+            mesh.tess_ctx.vert         = gridcorrect.pos;            
+            
             modality = 'EEG';
         case 'Single Sphere'
             cfg                        = [];
             cfg.feedback               = 'yes';
             cfg.showcallinfo           = 'no';
-            cfg.grad                   = D.inv{val}.datareg(i).sensors;
-            cfg.headshape              = export(gifti(mesh.tess_scalp), 'ft');
+            cfg.grad                   = D.inv{val}.datareg(i).sensors;            
             cfg.method                 = 'singlesphere';
-            cfg.sourceunits            = 'mm';
-            vol                        = ft_prepare_headmodel(cfg);
+            cfg.siunits                = 'yes';
+            
+            headshape                  = export(gifti(mesh.tess_scalp), 'ft');
+            
+            vol                        = ft_prepare_headmodel(cfg, headshape);
             modality                   = 'MEG';
         case 'MEG Local Spheres'
             cfg                        = [];
             cfg.feedback               = 'yes';
             cfg.showcallinfo           = 'no';
-            cfg.grad                   = D.inv{val}.datareg(i).sensors;
-            cfg.headshape              = export(gifti(mesh.tess_scalp), 'ft');
-            cfg.radius                 = 85;
-            cfg.maxradius              = 200;
+            cfg.grad                   = D.inv{val}.datareg(i).sensors;           
             cfg.method                 = 'localspheres';
-            cfg.sourceunits            = 'mm';
-            vol  = ft_prepare_headmodel(cfg);
-            modality = 'MEG';
+            cfg.siunits                = 'yes';
+            
+            headshape                  = export(gifti(mesh.tess_scalp), 'ft');
+            vol                        = ft_prepare_headmodel(cfg, headshape);
+            modality                   = 'MEG';
         case  'Single Shell'
-            vol              = [];
-            vol.bnd          = export(gifti(mesh.tess_iskull), 'ft');
-            vol.type         = 'singleshell';
-            vol              = ft_convert_units(vol, 'mm');
-            modality         = 'MEG';
+            cfg                        = [];
+            cfg.feedback               = 'yes';
+            cfg.showcallinfo           = 'no';
+            cfg.method                 = 'singleshell';
+            cfg.siunits                = 'yes';
+            
+            headshape                  = export(gifti(mesh.tess_iskull), 'ft');
+            
+            vol                        = ft_prepare_headmodel(cfg, headshape);
+            modality                   = 'MEG';
             
         otherwise
             error('Unsupported volume model type');
     end
     
-    D.inv{val}.forward(i).vol      = vol;
-    D.inv{val}.forward(i).mesh     = mesh.tess_ctx;
-    D.inv{val}.forward(i).modality = modality;
+    D.inv{val}.forward(i).vol             = vol;
+    D.inv{val}.forward(i).mesh            = mesh.tess_ctx;
+    D.inv{val}.forward(i).mesh_correction = mesh_correction;
+    D.inv{val}.forward(i).modality        = modality;   
+    D.inv{val}.forward(i).siunits         = 1;
+    
+    sens = D.inv{val}.datareg(i).sensors;
+    
+    if isequal(modality, 'MEG')
+        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'm');
+    else
+        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'm');
+    end
+    
+    D.inv{val}.forward(i).sensors  = sens;  
+        
+    D.inv{val}.forward(i).toMNI    = D.inv{val}.datareg(i).toMNI*diag([1e3 1e3 1e3 1]);
+    D.inv{val}.forward(i).fromMNI  = diag([1e-3 1e-3 1e-3 1])*D.inv{val}.datareg(i).fromMNI;
     
     spm_figure('Clear',Fgraph);
 end

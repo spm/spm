@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5649 2013-09-23 15:13:32Z vladimir $
+% $Id: checkmeeg.m 5775 2013-12-04 13:03:55Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -347,26 +347,14 @@ else
         if isempty(this.sensors.eeg)
             this.sensors = rmfield(this.sensors, 'eeg');
         else
-            this.sensors.eeg = ft_datatype_sens(this.sensors.eeg);
-            
-            if isfield(this.sensors.eeg, 'chanunit')
-                chanunit = this.sensors.eeg.chanunit;
-                chanunit(strcmp('V',   chanunit)) = {'uV'};
-                this.sensors.eeg.chanunit = chanunit;
-            end
+            this.sensors.eeg = ft_datatype_sens(this.sensors.eeg, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'mm');        
         end
     end
     if isfield(this.sensors, 'meg')
         if isempty(this.sensors.meg)
             this.sensors = rmfield(this.sensors, 'meg');
         else
-            this.sensors.meg = ft_datatype_sens(this.sensors.meg);
-            if isfield(this.sensors.meg, 'chanunit')
-                chanunit = this.sensors.meg.chanunit;
-                chanunit(strcmp('T',   chanunit)) = {'fT'};
-                chanunit(strcmp('T/mm', chanunit)) = {'fT/mm'};
-                this.sensors.meg.chanunit = chanunit;
-            end
+            this.sensors.meg = ft_datatype_sens(this.sensors.meg, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'mm');
         end
     end
 end

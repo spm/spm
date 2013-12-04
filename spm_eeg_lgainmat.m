@@ -9,7 +9,7 @@ function [L,D] = spm_eeg_lgainmat(D,Is, channels)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_eeg_lgainmat.m 5436 2013-04-23 15:03:45Z vladimir $
+% $Id: spm_eeg_lgainmat.m 5775 2013-12-04 13:03:55Z vladimir $
 
 
 % get gain or lead-field matrix
@@ -55,68 +55,93 @@ catch
     for ind = 1:numel(forward)
         % create a new lead-field matrix
         %------------------------------------------------------------------
-
+        
         % Head Geometry (create tesselation file)
         %------------------------------------------------------------------
         vert = forward(ind).mesh.vert;
-        face = forward(ind).mesh.face;
-
+        face = forward(ind).mesh.face;          
+        
         % normals
         %------------------------------------------------------------------
         norm = spm_mesh_normals(struct('faces',face,'vertices',vert),true);
-
+        
         vol  = forward(ind).vol;
         
         if ischar(vol)
             vol = ft_read_vol(vol);
         end
+                
+        modality = forward(ind).modality;
         
-        sens = D.inv{val}.datareg(ind).sensors;
-        modality = forward(ind).modality;     
-
+        if isfield(forward, 'siunits') && forward(ind).siunits
+            units = D.units(D.indchannel(forward(ind).channels));
+            sens  = forward(ind).sensors;
+            siunits = isempty(strmatch('unknown', units));           
+        else
+            siunits = false;
+            sens = D.inv{val}.datareg(ind).sensors;
+        end            
+        
         % Forward computation
         %------------------------------------------------------------------
         [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', forward(ind).channels);
         nvert = size(vert, 1);
-
+        
         spm('Pointer', 'Watch');drawnow;
         spm_progress_bar('Init', nvert, ['Computing ' modality ' leadfields']); drawnow;
         if nvert > 100, Ibar = floor(linspace(1, nvert,100));
         else Ibar = [1:nvert]; end
-
-        Gxyz = zeros(length(forward(ind).channels), 3*nvert);
-        for i = 1:nvert
-
-            Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
-
-            if ismember(i, Ibar)
-                spm_progress_bar('Set', i); drawnow;
+        
+        if ~isequal(ft_voltype(vol), 'interpolate')
+            Gxyz = zeros(length(forward(ind).channels), 3*nvert);
+            for i = 1:nvert
+                
+                if siunits
+                    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol,...
+                        'dipoleunit', 'nA*m', 'chanunit', units);
+                else
+                    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(vert(i, :), sens, vol);
+                end
+                
+                if ismember(i, Ibar)
+                    spm_progress_bar('Set', i); drawnow;
+                end
+                
             end
-
-        end
-
-        spm_progress_bar('Clear');
-        spm_progress_bar('Init', nvert, ['Orienting ' modality ' leadfields']); drawnow;
-
-        G{ind} = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
-        for i = 1:nvert
-
-            G{ind}(:, i) = Gxyz(:, (3*i- 2):(3*i))*norm(i, :)';
-
-            if ismember(i, Ibar)
-                spm_progress_bar('Set', i); drawnow;
+        else
+            if siunits
+                Gxyz = ft_compute_leadfield(vert, sens, vol, 'dipoleunit', 'nA*m', 'chanunit', units);
+            else
+                Gxyz = ft_compute_leadfield(vert, sens, vol);
             end
-
         end
-
-        % condition the scaling of the lead-field
-        %--------------------------------------------------------------------------
-        [G{ind}, scale] = spm_cond_units(G{ind}, 1);
         
         spm_progress_bar('Clear');
-
+        spm_progress_bar('Init', nvert, ['Orienting ' modality ' leadfields']); drawnow;
+        
+        G{ind} = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
+        for i = 1:nvert
+            
+            G{ind}(:, i) = Gxyz(:, (3*i- 2):(3*i))*norm(i, :)';
+            
+            if ismember(i, Ibar)
+                spm_progress_bar('Set', i); drawnow;
+            end
+            
+        end
+        
+        % condition the scaling of the lead-field
+        %--------------------------------------------------------------------------        
+        [G{ind}, scale] = spm_cond_units(G{ind});
+     
+        if siunits && scale~=1
+            warning(['Scaling expected to be 1 for SI units, actual scaling ' num2str(scale)]);
+        end
+        
+        spm_progress_bar('Clear');
+        
         spm('Pointer', 'Arrow');drawnow;
-                
+        
         label = [label; forward(ind).channels(:)];
         
         forward(ind).scale = scale;

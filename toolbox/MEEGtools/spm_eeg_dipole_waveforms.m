@@ -14,7 +14,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 % Output:
 % sD                   - MEEG object (also written on disk)
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 %
 % Disclaimer: this code is provided as an example and is not guaranteed to work
 % with data on which it was not tested. If it does not work for you, feel
@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 5775 2013-12-04 13:03:55Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -40,7 +40,7 @@ end
 
 D = spm_eeg_load(D);
 
-[ok, D] = check(D, 'sensfid');
+[D, ok] = check(D, 'sensfid');
 
 if ~ok
     if check(D, 'basic')
@@ -60,13 +60,9 @@ if ~(isfield(S, 'dipoles') && isfield(S.dipoles, 'pnt') && isfield(S.dipoles, 'o
     S.dipoles = spm_eeg_dipoles_ui;
 end
 
-pnt = S.dipoles.pnt;
-ori = S.dipoles.ori;
-label = S.dipoles.label;
-
 modality = spm_eeg_modality_ui(D, 1, 1);
 
-if isequal(modality, 'MEG')
+if strncmp(modality, 'MEG', 3)
     reducerank = 2;
 else
     reducerank = 3;
@@ -86,26 +82,30 @@ if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
     D = spm_eeg_inv_forward_ui(D, D.val);
 end
 
-for m = 1:numel(D.inv{D.val}.forward)
-    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
-        vol  = D.inv{D.val}.forward(m).vol;
-        if isa(vol, 'char')
-            vol = ft_read_vol(vol);
-        end
-        datareg  = D.inv{D.val}.datareg(m);
-    end
+data = spm_eeg_inv_get_vol_sens(D, [], [], [], modality);
+
+vol  = data.(modality).vol;
+sens = data.(modality).sens;
+
+if isa(vol, 'char')
+    vol = ft_read_vol(vol);
 end
 
-sens = datareg.sensors;
-
-M1 = datareg.toMNI;
-[U, L, V] = svd(M1(1:3, 1:3));
-M1(1:3,1:3) =U*V';
-
-vol = ft_transform_vol(M1, vol);
-sens = ft_transform_sens(M1, sens);
-
 chanind = indchantype(D, modality, 'GOOD');
+
+dipoles = [];
+dipoles.pos = S.dipoles.pnt;
+dipoles.ori = S.dipoles.ori;
+
+
+dipoles = ft_transform_geometry(data.transforms.fromMNI, dipoles);
+pnt = dipoles.pos;
+label = S.dipoles.label;
+
+ori = dipoles.ori;
+for i = 1:numel(label)
+    ori(i, :) = ori(i, :)/norm(ori(i, :));
+end
 
 [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
@@ -113,39 +113,12 @@ chanind = indchantype(D, modality, 'GOOD');
 
 nvert = numel(label);
 
-spm('Pointer', 'Watch');drawnow;
-spm_progress_bar('Init', nvert, ['Computing ' modality ' leadfields']); drawnow;
-if nvert > 100, Ibar = floor(linspace(1, nvert,100));
-else Ibar = [1:nvert]; end
-
-Gxyz = zeros(length(chanind), 3*nvert);
-for i = 1:nvert
-
-    Gxyz(:, (3*i- 2):(3*i))  = ft_compute_leadfield(pnt(i, :), sens, vol, 'reducerank', reducerank);
-
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
-    end
-
-end
-
-spm_progress_bar('Clear');
-spm_progress_bar('Init', nvert, ['Orienting ' modality ' leadfields']); drawnow;
+Gxyz = ft_compute_leadfield(pnt, sens, vol, 'reducerank', reducerank, 'dipoleunit', 'nA*m', 'chanunit', D.units(chanind));
 
 G = zeros(size(Gxyz, 1), size(Gxyz, 2)/3);
 for i = 1:nvert
-
     G(:, i) = Gxyz(:, (3*i- 2):(3*i))*ori(i, :)';
-
-    if ismember(i, Ibar)
-        spm_progress_bar('Set', i); drawnow;
-    end
-
 end
-
-spm_progress_bar('Clear');
-
-spm('Pointer', 'Arrow');drawnow;
 
 %% ============  Use the montage functionality to compute source activity.
 
@@ -159,10 +132,12 @@ montage.labelnew = label;
 
 S.montage  = montage;
 
-S.keepothers = 'no';
+S.keepothers = false;
+S.keepsensors = false;
 
 sD = spm_eeg_montage(S);
 
-sD = chantype(sD, [], 'LFP');
+sD = chantype(sD, ':', 'LFP');
+sD = chanunit(sD, ':', 'nA*m');
 
 sD.save;

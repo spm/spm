@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5535 2013-06-10 14:18:34Z vladimir $
+% $Id: spm_eeg_prep.m 5775 2013-12-04 13:03:55Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -333,8 +333,8 @@ switch lower(S.task)
         %----------------------------------------------------------------------
     case 'loadmegsens'
         %----------------------------------------------------------------------        
-        hdr = ft_read_header(S.source);                
-        D = sensors(D, 'MEG', ft_convert_units(hdr.grad, 'mm'));
+        hdr  = ft_read_header(S.source);        
+        D = sensors(D, 'MEG', hdr.grad);
         D = fiducials(D, ft_convert_units(ft_read_headshape(S.source), 'mm'));
         
         if ~isempty(D.indchantype('MEG')) && ~isempty(D.sensors('MEG'))

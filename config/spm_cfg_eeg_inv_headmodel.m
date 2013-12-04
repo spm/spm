@@ -5,7 +5,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 5775 2013-12-04 13:03:55Z vladimir $
 
 D = cfg_files;
 D.tag = 'D';
@@ -175,8 +175,8 @@ eeg = cfg_menu;
 eeg.tag = 'eeg';
 eeg.name = 'EEG head model';
 eeg.help = {'Select the head model type to use for EEG (if present)'};
-eeg.labels = {'EEG BEM', '3-Shell Sphere (experimental)'};
-eeg.values = {'EEG BEM', '3-Shell Sphere (experimental)'};
+eeg.labels = {'EEG BEM', '3-Shell Sphere'};
+eeg.values = {'EEG BEM', '3-Shell Sphere'};
 eeg.val = {'EEG BEM'};
 
 meg = cfg_menu;

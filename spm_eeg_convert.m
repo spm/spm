@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5710 2013-10-22 14:01:23Z guillaume $
+% $Id: spm_eeg_convert.m 5775 2013-12-04 13:03:55Z vladimir $
 
-SVNrev = '$Rev: 5710 $';
+SVNrev = '$Rev: 5775 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -451,27 +451,31 @@ end
 
 % Specify sensor positions and fiducials
 if isfield(hdr, 'grad')
-    grad = ft_convert_units(hdr.grad, 'mm');
-%     try
-%         grad = ft_convert_grad(grad, 'fT', 'mm',  'fieldstrength/distance');
-%     end
-    D.sensors.meg = grad;
+    D.sensors.meg = hdr.grad;
 end
+
 if isfield(hdr, 'elec')
-    D.sensors.eeg = ft_convert_units(hdr.elec, 'mm');
+    elec = hdr.elec;
 else
     try
-        D.sensors.eeg = ft_convert_units(ft_read_sens(S.dataset, 'fileformat', S.inputformat), 'mm');
+        elec = ft_read_sens(S.dataset, 'fileformat', S.inputformat);
         % It might be that read_sens will return the grad for MEG datasets
-        if any(ismember({'ori', 'coilori', 'coilpos'}, fieldnames(D.sensors.eeg))) 
-            D.sensors.eeg = [];
+        if any(ismember({'ori', 'coilori', 'coilpos'}, fieldnames(elec)))
+            elec = [];
         end
     catch
-        sw = warning('off','backtrace');
-        warning('Could not obtain electrode locations automatically.');
-        warning(sw);
+        elec = [];
     end
 end
+
+if ~isempty(elec)   
+    D.sensors.eeg = elec;
+else
+    sw = warning('off','backtrace');
+    warning('Could not obtain electrode locations automatically.');
+    warning(sw);
+end
+
 
 try
     D.fiducials = ft_convert_units(ft_read_headshape(S.dataset, 'fileformat', S.inputformat), 'mm');

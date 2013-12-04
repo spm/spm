@@ -5,7 +5,7 @@ function spm_eeg_inv_checkforward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 5775 2013-12-04 13:03:55Z vladimir $
 
 
 %-SPM data structure
@@ -26,7 +26,11 @@ end
 try
     vol      = forward(ind).vol;
     modality = forward(ind).modality;
-    sens     = D.inv{val}.datareg(ind).sensors;    
+    if isfield(forward(ind), 'siunits') && forward(ind).siunits
+        sens     = forward(ind).sensors;
+    else %backward compatibility
+        sens     = D.inv{val}.datareg(ind).sensors;
+    end
     Mcortex  = forward(ind).mesh;
 catch
     warndlg('please coregister and create forward model')
@@ -60,9 +64,11 @@ h_ctx   = patch('vertices',vert,'faces',face,'EdgeColor','b','FaceColor','b');
 
 hold on
 
+[volp, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
+
 ft_plot_vol(vol, 'edgecolor', [0 0 0], 'facealpha', 0);
 
-ft_plot_sens(sens, 'style', '*b');
+ft_plot_sens(sens, 'style', '*g');
 
 rotate3d on;
 

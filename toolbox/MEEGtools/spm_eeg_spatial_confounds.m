@@ -10,10 +10,10 @@ function D = spm_eeg_spatial_confounds(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 5775 2013-12-04 13:03:55Z vladimir $
 
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 5775 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -77,34 +77,21 @@ switch upper(S.method)
         [junk, modalities] = modality(D, 1, 1);
         
         for k = 1:numel(modalities)
-            
-            for i = 1:numel(D.inv{D.val}.forward)
-                if strncmp(modalities{k}, D.inv{D.val}.forward(i).modality, 3)
-                    m = i;
-                end
-            end
-            
-            
-            vol  = D.inv{D.val}.forward(m).vol;
-            if isa(vol, 'char')
-                vol = ft_read_vol(vol);
-            end
-            datareg  = D.inv{D.val}.datareg(m);
-            
-            sens = datareg.sensors;
-            
-            M1 = datareg.toMNI;
-            [U, L, V] = svd(M1(1:3, 1:3));
-            M1(1:3,1:3) =U*V';
-            
-            vol = ft_transform_vol(M1, vol);
-            sens = ft_transform_sens(M1, sens);
-            
             chanind = indchantype(D, modalities{k}, 'GOOD');
             
             if isempty(chanind)
                 continue;
             end
+            
+            data = spm_eeg_inv_get_vol_sens(D, [], [], [], modalities{k});
+            
+           
+            vol  = data.(modalities{k}).vol;
+            sens = data.(modalities{k}).sens;
+            
+            if isa(vol, 'char')
+                vol = ft_read_vol(vol);
+            end            
             
             [vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
             

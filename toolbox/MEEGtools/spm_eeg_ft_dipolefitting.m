@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 5775 2013-12-04 13:03:55Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -32,6 +32,9 @@ end
 
 modality = spm_eeg_modality_ui(D, 1, 1);
 
+chanind = indchantype(D, modality, 'GOOD');
+
+modality = modality(1:3);
 
 %% ============ Find or prepare head model
 
@@ -47,54 +50,33 @@ if ~isfield(D, 'inv') || ~iscell(D.inv) ||...
     D = spm_eeg_inv_forward_ui(D, D.val);
 end
 
-for m = 1:numel(D.inv{D.val}.forward)
-    if strncmp(modality, D.inv{D.val}.forward(m).modality, 3)
-        vol  = D.inv{D.val}.forward(m).vol;
-        if isa(vol, 'char')
-            vol = ft_read_vol(vol);
-        end
-        datareg  = D.inv{D.val}.datareg(m);
-    end
+volsens = spm_eeg_inv_get_vol_sens(D, [], [], [], modality);
+
+vol  = volsens.(modality).vol;
+sens = volsens.(modality).sens;
+
+if isa(vol, 'char')
+    vol = ft_read_vol(vol);
 end
 
-sens = datareg.sensors;
 
-M1 = datareg.toMNI;
-[U, L, V] = svd(M1(1:3, 1:3));
-M1(1:3,1:3) =U*V';
-
-vol = ft_transform_vol(M1, vol);
-sens = ft_transform_sens(M1, sens);
-
-chanind = indchantype(D, modality, 'GOOD');
-
-%[vol, sens] = ft_prepare_vol_sens(vol, sens, 'channel', D.chanlabels(chanind));
 
 
 %% ============ Select the data and convert to Fieldtrip struct
-
-data = D.ftraw(0); % Convert to Fieldtrip without memory mapping
-
 if D.ntrials > 1
     clb = D.conditions;
-    ind = spm_input('Select trial',1, 'm', sprintf('%s|', clb{:}),1:D.ntrials);
-    
-    data.trial = data.trial(ind);
-    data.time =  data.time(ind);
+    ind = spm_input('Select trial',1, 'm', sprintf('%s|', clb{:}),1:D.ntrials);    
 end
 
-cfg = [];
-cfg.channel = D.chanlabels(chanind);
+data = D.fttimelock(chanind, ':',  ind);
 
-data = ft_timelockanalysis(cfg, data);
-
-
+try, data = rmfield(data, 'elec'); end
+try, data = rmfield(data, 'grad'); end
 %% =========== Configure and run Fieldtrip dipolefitting
 
 cfg=[];
 cfg.vol = vol;
-cfg.inwardshift = 0;
-cfg.grid.resolution=20;
+cfg.grid.resolution=20*1e-3;
 
 if strcmp('EEG', modality)
     cfg.elec = sens;
@@ -142,7 +124,7 @@ title('Model');
 %% =========== Convert dipole position to MNI coordinates
 Slocation = source.dip.pos;
 Slocation(:,4) = 1;
-Slocation = Slocation * (datareg.toMNI * inv(M1))';
+Slocation = Slocation * (volsens.transforms.toMNI)';
 Slocation = Slocation(:,1:3);
 
 
