@@ -12,11 +12,12 @@ function spm_eeg_inv_vbecd_disp(action,varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Christophe Phillips
-% $Id: spm_eeg_inv_vbecd_disp.m 5021 2012-10-29 15:49:09Z guillaume $
+% $Id: spm_eeg_inv_vbecd_disp.m 5776 2013-12-04 15:20:18Z gareth $
 
 % Note:
 % unfortunately I cannot see how to ensure that when zooming in the image
 % the dipole location stays in place...
+
 
 global st
 
@@ -85,6 +86,7 @@ st.callback = 'spm_image(''shopos'');';
 for ii=1:3,
     set(st.vols{1}.ax{ii}.ax,'ButtonDownFcn',';');
 end
+
 WS = spm('WinScale');
 
 % Build GUI
@@ -175,6 +177,8 @@ case 'drawdip'
 % e.g. spm_eeg_inv_vbecd_disp('DrawDip',[1:5],1,sdip)
 %--------------------------------------------------------------------------
 
+
+
 if nargin < 2
     i_seed = 1;
 else
@@ -229,7 +233,10 @@ if length(i_dip)>1
 end
 
 % Place the underlying image at right cuts
-spm_orthviews('Reposition',loc_mm);
+
+%% GRB FIX- removing the line below July 2013
+%spm_orthviews('Reposition',loc_mm);
+
 
 if length(i_dip)>1
     tabl_seed_dip = [kron(ones(length(i_dip),1),i_seed') ...
@@ -248,6 +255,8 @@ for ii = 1:length(i_seed)
     end
 end
 st.vols{1}.sdip.tabl_seed_dip = tabl_seed_dip;
+
+
 
 % Display all dipoles, the 1st one + the ones close enough.
 % Run through the 6 colors and 9 markers to differentiate the dipoles.
@@ -275,6 +284,7 @@ if isempty(pi_dip)
 
         loc_pl = sdip.mniloc{tabl_seed_dip(ii,1)}(:,tabl_seed_dip(ii,2));
         js = sdip.jmni{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,sdip.Mtb);
+        
         vloc = sdip.cov_loc{tabl_seed_dip(ii,1)}(tabl_seed_dip(ii,2)*3+l3,tabl_seed_dip(ii,2)*3+l3);
         dip_h(:,ii) = add1dip(loc_pl,js/Mn_j*20,vloc, ...
                             marker{im},colors{ic},st.vols{1}.ax,Fig,st.bb);
@@ -522,6 +532,7 @@ function dh = add1dip(loc,js,vloc,mark,col,ax,Fig,bb)
 % Then returns the handle to the plots
 
 global st
+
 is = inv(st.Space);
 loc = is(1:3,1:3)*loc(:) + is(1:3,4);
 % taking into account the zooming/scaling only for the location
