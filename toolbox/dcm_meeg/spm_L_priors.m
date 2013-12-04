@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 5732 2013-11-06 14:03:56Z rosalyn $
+% $Id: spm_L_priors.m 5778 2013-12-04 20:20:40Z rosalyn $
 
 
 
@@ -67,11 +67,17 @@ switch type
         pE.Lpos = dipfit.Lpos;   pC.Lpos = ones(3,n)*V;    % positions
         pE.L    = zeros(3,n);    pC.L    = ones(3,n)*64;   % orientations
         
+       Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD 
+       if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
+        
     case{'IMG'}
         %------------------------------------------------------------------
         m       = dipfit.Nm;                               % number modes
         pE.Lpos = sparse(3,0);   pC.Lpos = sparse(3,0);    % positions
         pE.L    = zeros(m,n);    pC.L    = ones(m,n)*64;   % modes
+        
+       Sc = find(~cellfun(@isempty,dipfit.silent_source)); % silence sources for CSD 
+       if(Sc); pC.L(:,Sc) = pC.L(:,Sc)*0; end
         
     case{'LFP'}
         %------------------------------------------------------------------
