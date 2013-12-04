@@ -7,7 +7,7 @@ function D = spm_eeg_inv_vbecd_gui(D,val)
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: spm_eeg_inv_vbecd_gui.m 5504 2013-05-14 14:30:44Z gareth $
+% $Id: spm_eeg_inv_vbecd_gui.m 5777 2013-12-04 16:18:12Z vladimir $
 
 %%
 % Load data, if necessary
@@ -79,33 +79,26 @@ P = [];
 
 P.modality = spm_eeg_modality_ui(D, 1, 1);
 
-if isfield(D.inv{val}, 'forward') && isfield(D.inv{val}, 'datareg')
-    for m = 1:numel(D.inv{val}.forward)
-        if strncmp(P.modality, D.inv{val}.forward(m).modality, 3)
-            P.forward.vol  = D.inv{val}.forward(m).vol;
-            if ischar(P.forward.vol)
-                P.forward.vol = ft_read_vol(P.forward.vol);
-            end
-            P.forward.sens = D.inv{val}.datareg(m).sensors;
-            % Channels to use
-            P.Ic = indchantype(D, P.modality, 'GOOD');
-            
-            
-            M1 = D.inv{val}.datareg.toMNI;
-            
-            [U, L, V] = svd(M1(1:3, 1:3));
-            orM1(1:3,1:3) =U*V'; %% for switching orientation between meg and mni space
-          
-            % disp('Undoing transformation to Tal space !');
-         
-            %disp('Fixing sphere centre !');
-            %P.forward.vol.o=[0 0 28]; P.forward.vol.r=100;
-            %mnivol = ft_transform_vol(M1, P.forward.vol); %% used for inside head calculation
-            
-            
-        end
+for m = 1:numel(D.inv{val}.datareg)
+    if strncmp(D.inv{val}.datareg(m).modality, P.modality, 3)
+        modind = m;
     end
 end
+
+data = spm_eeg_inv_get_vol_sens(D, val, [], 'inv', P.modality);
+
+P.forward.vol     = data.(P.modality(1:3)).vol;
+if ischar(P.forward.vol)
+    P.forward.vol = ft_read_vol(P.forward.vol);
+end
+
+P.forward.sens    = data.(P.modality(1:3)).sens;
+P.forward.siunits = data.siunits;
+M1 = data.transforms.toMNI;
+[U, L, V] = svd(M1(1:3, 1:3));
+orM1(1:3,1:3) =U*V'; %% for switching orientation between meg and mni space
+
+P.Ic = indchantype(D, P.modality, 'GOOD');
 
 if isempty(P.Ic)
     error(['The specified modality (' P.modality ') is missing from file ' D.fname]);
@@ -113,7 +106,8 @@ else
     P.channels = D.chanlabels(P.Ic);
 end
 
- 
+P.forward.chanunits = D.units(P.Ic);
+
 [P.forward.vol, P.forward.sens] =  ft_prepare_vol_sens( ...
     P.forward.vol, P.forward.sens, 'channel', P.channels);
 
@@ -167,7 +161,7 @@ EEGscale=1;
 %% SORT OUT EEG UNITS AND CONVERT VALUES TO VOLTS
 if strcmpi(P.modality,'EEG')
     allunits  = strvcat('uV','mV','V');   
-    allscales = [1e-6, 1e-3, 1]; %% 
+    allscales = [1, 1e3, 1e6]; %% 
     EEGscale  = 0;
     eegunits  = unique(D.units(D.indchantype('EEG')));
     Neegchans = numel(D.units(D.indchantype('EEG')));
@@ -200,10 +194,6 @@ end % if eeg data
 
 
 dat_y = squeeze(mean(D(P.Ic,ltb,ltr)*EEGscale,2));
-if strcmp(upper(P.modality),'MEGPLANAR'),
-    disp('Changing DATA magnitude - this is a temporary fix !!');
-    dat_y=dat_y./50;
-end;
 
 
 %%
@@ -265,7 +255,7 @@ while adding_dips
                 distcentre=sqrt(dot(s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert),s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert))); %% 
                 outside=(distcentre>DISTTHRESH);
                     
-                s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
+                s0=D.inv{val}.datareg(modind).fromMNI*[s0mni' 1]';
                 s0=s0(1:3);
                 
                 str2='Prior location variance (mm2)';
@@ -334,9 +324,9 @@ while adding_dips
                 distcentre=sqrt(dot(s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert),s0mni'-mean(D.inv{D.val}.mesh.tess_mni.vert))); %% 
                 outside=(distcentre>DISTTHRESH);
                 
-                s0=D.inv{val}.datareg.fromMNI*[s0mni' 1]';
+                s0=D.inv{val}.datareg(modind).fromMNI*[s0mni' 1]';
                 
-                s0sym=D.inv{val}.datareg.fromMNI*[syms0mni' 1]';
+                s0sym=D.inv{val}.datareg(modind).fromMNI*[syms0mni' 1]';
                 
                 
                 str2='Prior location variance (mm2)';
@@ -489,7 +479,7 @@ for ii=1:length(ltr)
      dip_amp(j,:)=sqrt(dot(dip_mom,dip_mom));
     % display
      megloc=reshape(Pout(j).post_mu_s,3,length(Pout(j).post_mu_s)/3); % loc of dip (3 x n_dip)
-     mniloc=D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
+     mniloc=D.inv{val}.datareg(modind).toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
      megmom=reshape(Pout(j).post_mu_w,3,length(Pout(j).post_mu_w)/3); % moments of dip (3 x n_dip)
      megposvar=reshape(diag(Pout(j).post_S_s),3,length(Pout(j).post_mu_s)/3); %% estimate of positional uncertainty in three principal axes
      mnimom=orM1*megmom; %% convert moments into mni coordinates through a rotation (no scaling or translation)
@@ -510,7 +500,7 @@ for ii=1:length(ltr)
      megloc=reshape(P.post_mu_s,3,length(P.post_mu_s)/3); % loc of dip (3 x n_dip)
      meg_w=reshape(P.post_mu_w,3,length(P.post_mu_w)/3); % moments of dip (3 x n_dip)
      mni_w=orM1*meg_w; %% orientation in mni space
-     mniloc=D.inv{val}.datareg.toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
+     mniloc=D.inv{val}.datareg(modind).toMNI*[megloc;ones(1,size(megloc,2))]; %% actual MNI location (with scaling)
      inverse.mniloc{ii}=mniloc(1:3,:);
     inverse.loc{ii} = megloc;
     

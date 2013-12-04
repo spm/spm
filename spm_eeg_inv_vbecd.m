@@ -31,7 +31,7 @@ function P = spm_eeg_inv_vbecd(P)
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_eeg_inv_vbecd.m 5481 2013-05-08 15:43:18Z gareth $
+% $Id: spm_eeg_inv_vbecd.m 5777 2013-12-04 16:18:12Z vladimir $
 
 
 
@@ -46,7 +46,8 @@ S_s0  = P.priors.S_s0;
 % subtracting mean level from eeg data
 %--------------------------------------------------------------------------
 if strcmp(upper(P.modality),'EEG')
-    P.y = P.y-mean(P.y);
+    warning('Not mean correcting EEG data');
+    %P.y = P.y-mean(P.y);
 end
 
 % rescale data to fit into minimisation routine (same magnitude for EEG and
@@ -81,7 +82,11 @@ while outsideflag==1, %% don't use sources which end up outside the head
         mu_s = mu_s0 + u*diag(sqrt(diag(s+eps)))*v'*randn(size(mu_s0)); %
         for i=1:3:length(mu_s), %% check each dipole is inside the head
             pos     = mu_s(i:i+2);
-            outside = outside+ ~ft_inside_vol(pos',P.forward.vol);
+            if P.forward.siunits
+                outside = outside+ ~ft_inside_vol(1e-3*pos',P.forward.vol);
+            else
+                outside = outside+ ~ft_inside_vol(pos',P.forward.vol);
+            end
         end;
     end;
     

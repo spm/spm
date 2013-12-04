@@ -12,7 +12,7 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_inv_get_vol_sens.m 5777 2013-12-04 16:18:12Z vladimir $
 
 data   = [];
 
@@ -30,8 +30,8 @@ if nargin < 4 || isempty(gradsource)
     gradsource = 'inv';
 end  
 
-if nargin < 3 || isempty(space)
-    space = 'MNI-aligned';
+if nargin < 3
+    space = [];
 end
 
 if nargin < 2 || isempty(val)
@@ -100,6 +100,10 @@ if megind > 0 && ~isequal(modality, 'EEG')
     M          = to_mm\toMNI;
     [U, L, V]  = svd(M(1:3, 1:3));
     M(1:3,1:3) = U*V';    
+    
+    if isempty(space)
+        space = 'Head';
+    end
     
     switch space
         case 'MNI-aligned'            
@@ -173,6 +177,10 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
         M          = to_mm\toMNI;
         [U, L, V]  = svd(M(1:3, 1:3));
         M(1:3,1:3) = U*V';
+        
+        if isempty(space)
+            space = 'Native';
+        end
         
         switch space
             case 'Native'

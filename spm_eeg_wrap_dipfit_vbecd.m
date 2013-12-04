@@ -13,13 +13,18 @@ function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 %% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 5480 2013-05-08 15:42:59Z gareth $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 5777 2013-12-04 16:18:12Z vladimir $
 
 x=U.u; %% input , unused
 
 
 sens=M.Setup.forward.sens;
 vol=M.Setup.forward.vol;
+
+siunits = M.Setup.forward.siunits;
+
+chanunits = M.Setup.forward.chanunits;
+
 posandmom=P;
 
 Pospars=3;
@@ -32,7 +37,11 @@ end; % if
 allpos=reshape(P(1:Ndips*Pospars),Pospars,Ndips)';
 allmom=reshape(P(Ndips*Pospars+1:Ndips*Ndippars),Mompars,Ndips)';
 
-MEGRANK=2; %% restricting rank of MEG data, could change this in future
+if ft_senstype(sens, 'meg')
+    RANK=2; %% restricting rank of MEG data, could change this in future
+else
+    RANK = 3;
+end
 
 y=0;
 outside=0;
@@ -43,17 +52,24 @@ for i=1:Ndips,
     %%mom=allmom(i,:)./1000; %% SCALE BACK FROM SIMILAR UNITS TO LOCATION;
     mom=allmom(i,:); %% in nAm
     % mean correction of LF, only for EEG data.
-    if ft_senstype(sens, 'eeg')
-        [tmp] = ft_compute_leadfield(pos, sens, vol);
-        %tmp = tmp - repmat(mean(tmp), size(tmp,1), 1); %% should this be here ?
-    else %% reduce rank of leadfield for MEG- assume one direction (radial) is silent
-        [tmp] = ft_compute_leadfield(pos, sens, vol,'reducerank',MEGRANK);
+    
+    if siunits
+        [tmp] = ft_compute_leadfield(1e-3*pos, sens, vol, 'reducerank',RANK,  'dipoleunit', 'nA*m', 'chanunit', chanunits);
+        outside = outside+ ~ft_inside_vol(1e-3*pos,vol);
+    else
+        [tmp] = ft_compute_leadfield(pos, sens, vol, 'reducerank',RANK);
+        outside = outside+ ~ft_inside_vol(pos,vol);
     end
+    
     gmn=tmp;
     leads(i,:,:)=gmn';
-    rescale=1e3*1e9; %%%% NEED TO DO THIS PROPERLY -GRB MAY 2013
+    if siunits
+        rescale = 1;
+    else
+        rescale=1e3*1e9; %%%% NEED TO DO THIS PROPERLY -GRB MAY 2013
+    end
     y=y+gmn*mom'.*rescale;
-    outside = outside+ ~ft_inside_vol(pos,vol);
+    
 end; % for i
 
 
