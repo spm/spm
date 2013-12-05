@@ -57,11 +57,13 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % specifying a likelihood (as part of a generative model) and absorbing any
 % probabilistic mapping between (isomorphic) hidden states and outcomes
 % into the transition probabilities G.
+%
+% See also spm_MDP_game
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5174 2013-01-03 20:13:12Z karl $
+% $Id: spm_MDP.m 5784 2013-12-05 17:41:58Z karl $
 
 % set up and preliminaries
 %==========================================================================

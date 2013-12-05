@@ -21,7 +21,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 %
 % MDP.B{T,M}(N,N) - model transition probabilities for each time point
 % MDP.G{T,M}(N,N) - true  transition probabilities for each time point
-%                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M} = )
+%                   (default: MDP.G{T,M} = MDP.G{M} = MDP.B{M})
 %
 % MDP.plot        - switch to suppress graphics: (default: [0])
 % MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
@@ -55,7 +55,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % the numerics or combinatorics considerable. For example, situations in 
 % which one action can be selected at one time can be reduced to T polices
 % – with one (shift) control being emitted at all possible time points.
-% This specification of polices simplifiesthe generative model, allowing a
+% This specification of polices simplifies the generative model, allowing a
 % fairly exhaustive model of potential outcomes – eschewing a mean field 
 % approximation over successive control states. In brief, the agent simply
 % represents the current state and states in the immediate and distant 
@@ -75,14 +75,16 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % probabilistic mapping between (isomorphic) hidden states and outcomes
 % into the transition probabilities G.
 %
-% See also spm_MDP which uses multiple future states and a the mean
-% field, approximation for control states – but allows for different actions
+% See spm_MDP, which uses multiple future states and a mean field 
+% approximation for control states – but allows for different actions
 % at all times (as in control problems).
+%
+% See also spm_MDP
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 5324 2013-03-13 22:04:55Z karl $
+% $Id: spm_MDP_game.m 5784 2013-12-05 17:41:58Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -353,8 +355,11 @@ for t  = 1:T
         % posterior beliefs about hidden states
         %------------------------------------------------------------------
         subplot(4,2,1)
-        imagesc(1 - [x C])
-        title('Inferred states','FontSize',16)
+        imagesc(1 - [x C*max(max(x))/max(C)])
+        if size(x,1) > 128
+            hold on, spm_spy(x,16,1), hold off
+        end
+        title('Inferred states (and utility)','FontSize',14)
         xlabel('Time','FontSize',12)
         ylabel('Hidden state','FontSize',12)
         
@@ -371,14 +376,14 @@ for t  = 1:T
                 set(h(i),'LineStyle',':');
             end
             plot(P')
-            title('Inferred policy','FontSize',16)
+            title('Inferred policy','FontSize',14)
             xlabel('Time','FontSize',12)
             ylabel('Control state','FontSize',12)
             spm_axis tight
             legend({'Stay','Shift'}), hold off
         else
             bar(P)
-            title('Inferred policy','FontSize',16)
+            title('Inferred policy','FontSize',14)
             xlabel('Contol state','FontSize',12)
             ylabel('Posterior expectation','FontSize',12)
         end
@@ -388,7 +393,7 @@ for t  = 1:T
         %------------------------------------------------------------------
         subplot(4,2,3)
         imagesc(MDP.V')
-        title('Policies','FontSize',16)
+        title('Allowable policies','FontSize',14)
         ylabel('Policy','FontSize',12)
         xlabel('Time','FontSize',12)
         
@@ -396,30 +401,30 @@ for t  = 1:T
         %------------------------------------------------------------------
         subplot(4,2,4)
         imagesc(E')
-        title('Posterior probability','FontSize',16)
+        title('Posterior probability','FontSize',14)
         ylabel('Policy','FontSize',12)
         xlabel('Time','FontSize',12)
         
         % true state (outcome)
         %------------------------------------------------------------------
         subplot(4,2,5)
-        if size(S,1) > 512
-            spy(S,16)
+        if size(S,1) > 128
+            spm_spy(S,16)
         else
             imagesc(1 - S)
         end
-        title('True states','FontSize',16)
+        title('True states','FontSize',14)
         ylabel('State','FontSize',12)
         
         % sample (observation)
         %------------------------------------------------------------------
         subplot(4,2,7)
-        if size(O,1) > 512
-            spy(O,16)
+        if size(O,1) > 128
+            spm_spy(O,16,1)
         else
             imagesc(1 - O)
         end
-        title('Observed states','FontSize',16)
+        title('Observed states','FontSize',14)
         xlabel('Time','FontSize',12)
         ylabel('State','FontSize',12)
         
@@ -427,19 +432,19 @@ for t  = 1:T
         % action sampled (selected)
         %------------------------------------------------------------------
         subplot(4,2,6)
-        if size(U,1) > 512
-            spy(U,16)
+        if size(U,1) > 128
+            spm_spy(U,16,1)
         else
             imagesc(1 - U)
         end
-        title('Selected action','FontSize',16)
+        title('Selected action','FontSize',14)
         ylabel('Action','FontSize',12)
         
         % expected action
         %------------------------------------------------------------------
         subplot(4,2,8)
         plot((1:length(gamma))/N,gamma)
-        title('Expected precision','FontSize',16)
+        title('Expected precision (confidence)','FontSize',14)
         xlabel('Time','FontSize',12)
         ylabel('Precision','FontSize',12)
         spm_axis tight
