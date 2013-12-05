@@ -1,18 +1,27 @@
 /*
- * $Id: spm_mapping.c 5598 2013-08-07 12:01:03Z john $
+ * $Id: spm_mapping.c 5783 2013-12-05 16:45:55Z guillaume $
  * John Ashburner
  */
 
 /* Matlab dependent high level data access and map manipulation routines */
+
+#define _FILE_OFFSET_BITS 64
 
 #include <stdio.h>
 #include <math.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
 #ifdef SPM_WIN32
 #include <windows.h>
 #include <memory.h>
+#if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
+#define stat _stati64
+#define fstat _fstati64
+#define open _open
+#define close _close
+#endif
 #else
 #include <unistd.h>
 #include <sys/mman.h>
