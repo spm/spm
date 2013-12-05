@@ -14,7 +14,7 @@ function out = spm_shoot_template(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_template.m 5248 2013-02-13 20:21:04Z john $
+% $Id: spm_shoot_template.m 5782 2013-12-05 16:11:14Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -28,6 +28,7 @@ nits    = numel(sched)-1;
 rparam  = d.rparam;  % Regularisation parameters for deformation
 sparam  = d.sparam;  % Regularisation parameters for blurring
 eul_its = d.eul_its; % Start with fewer steps
+scale   = d.scale;   % Fraction of Gauss-Newton update step to use
 
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
@@ -206,7 +207,7 @@ for it=1:nits,
             drawnow
 
             % Gauss-Newton iteration to re-estimate deformations for this subject
-            u = spm_shoot_update(g,f,u,y,dt,prm,bs_args);
+            u = spm_shoot_update(g,f,u,y,dt,prm,bs_args,scale);
             clear f y
 
             drawnow

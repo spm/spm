@@ -20,7 +20,7 @@ function [M,h] = spm_maff8(varargin)
 % Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
 
 % John Ashburner
-% $Id: spm_maff8.m 5718 2013-10-30 13:54:23Z john $
+% $Id: spm_maff8.m 5782 2013-12-05 16:11:14Z john $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
@@ -120,7 +120,7 @@ ll   = -Inf;
 krn  = spm_smoothkern(4,(-256:256)',0);
 
 spm_plot_convergence('Init','Registering','Log-likelihood','Iteration');
-
+stepsize = 1;
 h1 = ones(256,numel(tpm.dat));
 for iter=1:200
     penalty = 0.5*(sol1-mu)'*Alpha0*(sol1-mu);
@@ -174,10 +174,10 @@ for iter=1:200
             end
         end;
         if ~rem(subit,4) && (ll0-ll1)/sum(h0(:)) < 1e-5, break; end
-        h1 = conv2((h0+eps)/sum(h0(:)),krn,'same');
+        h1  = conv2((h0+eps)/sum(h0(:)),krn,'same');
        %figure(9); plot(log(h0+1)); drawnow;
 
-        h1 = h1./(sum(h1,2)*sum(h1,1));
+        h1  = h1./(sum(h1,2)*sum(h1,1));
     end
     for i=1:length(x3),
         buf(i).b    = [];
@@ -189,8 +189,18 @@ for iter=1:200
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_plot_convergence('Set',ll1);
     if abs(ll1-ll)<1e-5, break; end;
-    ll    = ll1;
-    sol   = sol1;
+    if (ll1<ll),
+        stepsize = stepsize*0.5;
+        h1       = oh1;
+        R        = derivs(tpm.M,sol,MG);
+        if stepsize<0.5^8, break; end;
+    else
+        stepsize = min(stepsize*1.1,1);
+        oh1      = h1;
+        ll       = ll1;
+        sol      = sol1;
+       %spm_plot_convergence('Set',ll1);
+    end
     Alpha = zeros(12);
     Beta  = zeros(12,1);
     for i=1:length(x3),
@@ -241,7 +251,7 @@ for iter=1:200
     Beta  = R'*Beta;
 
     % Gauss-Newton update
-    sol1  = sol - (Alpha+Alpha0)\(Beta+Alpha0*(sol-mu));
+    sol1  = sol - stepsize*((Alpha+Alpha0)\(Beta+Alpha0*(sol-mu)));
 end;
 
 spm_plot_convergence('Clear');

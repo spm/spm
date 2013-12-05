@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 5278 2013-02-21 18:08:11Z john $
+% $Id: spm_shoot_warp.m 5782 2013-12-05 16:11:14Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -25,6 +25,7 @@ sched   = d.sched;   % Schedule for coarse to fine
 nits    = numel(sched)-1;
 rparam  = d.rparam;  % Regularisation parameters for deformation
 eul_its = d.eul_its; % Start with fewer steps
+scale   = d.scale;   % Fraction of Gauss-Newton update step to use
 
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
@@ -114,7 +115,7 @@ for i=1:n2, % Loop over subjects
         fprintf(' %-5d %-3d\t| ',i,it);
 
         % Gauss-Newton iteration to re-estimate deformations for this subject
-        u     = spm_shoot_update(g,f,u,y,dt,prm,bs_args); drawnow
+        u     = spm_shoot_update(g,f,u,y,dt,prm,bs_args,scale); drawnow
         [y,J] = spm_shoot3d(u,prm,int_args); drawnow
         dt    = spm_diffeo('det',J); clear J
         clear J

@@ -1,4 +1,4 @@
-function [u0,ll1, ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
+function [u0,ll1,ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,scale)
 % Shooting Of Diffeomorphisms (Spawn Of Dartel).
 % FORMAT u0 = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args)
 % g        - template
@@ -20,9 +20,9 @@ function [u0,ll1, ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,s
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot_update.m 5782 2013-12-05 16:11:14Z john $
 
-if nargin<9, scale = 1.0; end
+if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
 
 d = [size(g{1}),1,1];
@@ -34,16 +34,16 @@ end
 
 [ll1,b,A] = mnom_derivs(g,f,phi,dt, bs_args);
 
-m0      = spm_diffeo('vel2mom',u0,prm);
-ll2     = 0.5*sum(sum(sum(sum(m0.*u0))));
-var1    = sum(sum(sum(sum(b.^2))));
-b       = b + m0;
-var2    = sum(sum(sum(sum(b.^2))));
+m0       = spm_diffeo('vel2mom',u0,prm);
+ll2      = 0.5*sum(sum(sum(sum(m0.*u0))));
+var1     = sum(sum(sum(sum(b.^2))));
+b        = b + m0;
+var2     = sum(sum(sum(sum(b.^2))));
 grad_norm = sqrt(var2/prod(d));
 fprintf('%-10.5g %-10.5g %-10.5g %-10.5g %-10.5g\n',...
                             ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d),...
                             var2/(var1+eps), grad_norm);
-u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 2 2]);
+u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 3 2]);
 clear A b
 %=======================================================================
 
@@ -54,7 +54,7 @@ function [ll,b,A] = mnom_derivs(g,f,phi,dt, bs_args)
 % g       - cell array of template B-spline coefficients
 % f       - cell array of individual subject data
 % phi     - deformation field
-% dt       - Jacobian determinants
+% dt      - Jacobian determinants
 % bs_args - B-spline arguments for sampling g.  Defaults to [2 2 2  1 1 1] if
 %           not supplied.
 %
