@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5781 2013-12-05 14:02:32Z vladimir $
 
 
 %-Initialisation
@@ -77,11 +77,17 @@ for i = 1:numel(D.inv{val}.forward)
             
         case 'EEG BEM'                        
             volfile = spm_file(mesh.sMRI, 'suffix','_EEG_BEM', 'ext','mat');
-            if ~exist(volfile, 'file') || ...
-                ~isequal(getfield(getfield(load(volfile), 'vol'), 'unit'), 'm')
-                spm_progress_bar('Init', 1, 'preparing EEG BEM model');                 
+            vol = [];
+            
+            if exist(volfile, 'file')
+                vol = ft_read_vol(volfile);
+                if ~isfield(vol, 'unit') || ~isequal(vol.unit, 'm')
+                    vol = [];
+                end
+            end
                 
-                vol        = [];
+            if isempty(vol)
+                
                 vol.cond   = [0.3300 0.0041 0.3300];
                 vol.source = 1; % index of source compartment
                 vol.skin   = 3; % index of skin surface
@@ -98,9 +104,9 @@ for i = 1:numel(D.inv{val}.forward)
                 cfg.showcallinfo = 'no';
                 cfg.siunits      = 'yes';
                 vol = ft_prepare_headmodel(cfg, vol);
-
+                
                 spm_progress_bar('Set', 1); drawnow;
-
+                
                 save(volfile, 'vol');
                 
                 spm_progress_bar('Clear');
@@ -108,7 +114,7 @@ for i = 1:numel(D.inv{val}.forward)
             end
             
             cfg = [];
-            cfg.vol = ft_read_vol(volfile);
+            cfg.vol = vol;
             cfg.grid.pos = mesh.tess_ctx.vert;         
             cfg.moveinward = 6e-3; %move to empirically determined BEM safe zone
             gridcorrect = ft_prepare_sourcemodel(cfg);
