@@ -59,13 +59,14 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Vieth J, Keber H, Hunter K, Frackowiak RS. NeuroImage. 1996 Jun;
 % 3(3):167-174.
 %
-% Population level inference for multivariate MEG analysis. Jafarpour et
-% al. (2013)
+% Population level inference for multivariate MEG analysis. Jafarpour A,
+% Barnes G, Fuentemilla Lluis, Duzel E, Penny WD. PLoS One. 2013.
+% 8(8): e71305
 %__________________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: spm_cva.m 5780 2013-12-05 11:36:03Z guillaume $
 
 
 if nargin < 3, X0 = [];             end
@@ -76,7 +77,7 @@ if isempty(c), c  = eye(size(X,2)); end
 %--------------------------------------------------------------------------
 X0    = [X0, X - X*c*pinv(c)];
 X     = full(X*c);
-if any(X0)
+if any(any(X0))
     X0 = spm_svd(X0);
 end
 
@@ -84,7 +85,7 @@ end
 %-Dimension reduction (if necessary)
 %==========================================================================
 if nargin < 5
-    [n m] = size(Y);
+    [n,m] = size(Y);
     n     = fix(n/4);
     if m > n
         U = spm_svd(Y');
@@ -146,7 +147,7 @@ C     = c*W;                       % canonical contrast (design)
 %-Inference on dimensionality - p(i) test of D >= i; Wilks' Lambda := p(1)
 %--------------------------------------------------------------------------
 cval  = d.*(d > 0);
-[chi, df, p, r] = deal(zeros(1,h));
+[chi, df, p, r, bic, aic] = deal(zeros(1,h));
 for i = 1:h
     
     % Chi-squared approximation
