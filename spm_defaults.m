@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 5639 2013-09-17 17:43:03Z guillaume $
+% $Id: spm_defaults.m 5786 2013-12-06 18:25:00Z guillaume $
 
 
 global defaults
@@ -210,13 +210,15 @@ if exist(user_defaults,'file')
             warning(lr.message);
         end
     end
-    if ~isequalwithequalnans(def,defaults)
+    if spm_check_version('matlab','8.0') >= 0, my_isequaln = @isequaln;
+    else my_isequaln = @isequalwithequalnans; end
+    if ~my_isequaln(def,defaults)
         fprintf('Defaults settings have been modified by file(s):\n');
         for i=1:numel(user_defaults_file)
             fprintf('  %s\n',user_defaults_file{i});
         end
         fn0 = fieldnames(def);
-        mf = fn0(~cellfun(@(x) isequalwithequalnans(def.(x),defaults.(x)),fn0));
+        mf = fn0(~cellfun(@(x) my_isequaln(def.(x),defaults.(x)),fn0));
         if ~isempty(mf)
             fprintf('Modified fields: ');
             for i=1:numel(mf)
