@@ -54,7 +54,7 @@ function DCM = spm_meta_model(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_meta_model.m 5047 2012-11-09 20:48:20Z karl $
+% $Id: spm_meta_model.m 5788 2013-12-06 20:08:57Z karl $
  
  
  
@@ -94,9 +94,11 @@ catch
     %----------------------------------------------------------------------
     w  = 2*pi/32;
     
-    % sensory mappings with and without occlusion
+    
+    % occlusion and visual mapping functions
     %----------------------------------------------------------------------
-    g  = '[x.o; exp(-([-8:8]'' - x.x + x.o(1)).^2)*(x.x < 1/2)]';
+    occ = @(x) x < 1/2;
+    vis = @(x) exp(-((-8:8)' - x.x(1) + x.o(1)).^2)*occ(x.x);
     
     
     % Generative model (M) (sinusoidal movement)
@@ -112,8 +114,8 @@ catch
     
     % level 1: Displacement dynamics and mapping to sensory/proprioception
     %----------------------------------------------------------------------
-    M(1).f = '[x.o(2); (v - x.o(1))/4 - x.o(2)/2; v - x.x]';
-    M(1).g = g;
+    M(1).f = @(x,v,P) [x.o(2); (v - x.o(1))/4 - x.o(2)/2; v - x.x];
+    M(1).g = @(x,v,P) [x.o; vis(x)];
     M(1).x = x;                                   % hidden states
     M(1).V = exp(4);                              % error precision
     M(1).W = exp(4);                              % error precision
@@ -121,8 +123,8 @@ catch
     
     % level 2: With hidden (memory) states
     %----------------------------------------------------------------------
-    M(2).f  = '[x(2); -x(1)]*v';
-    M(2).g  = 'x(1)';
+    M(2).f  = @(x,v,P)[x(2); -x(1)]*v;
+    M(2).g  = @(x,v,P) x(1);
     M(2).x  = [0; 0];                             % hidden states
     M(2).V  = exp(4);                             % error precision
     M(2).W  = exp(4);                             % error precision
@@ -138,8 +140,8 @@ catch
     
     % first level
     %----------------------------------------------------------------------
-    G(1).f = '[x.o(2); a/4 - x.o(2)/8; v - x.x]';
-    G(1).g = g;
+    G(1).f = @(x,v,a,P) [x.o(2); a/4 - x.o(2)/8; v - x.x];
+    G(1).g = @(x,v,a,P) [x.o; vis(x)];
     G(1).x = x;                                  % hidden states
     G(1).U = sparse(1,[1 2],[1 1],1,19)*exp(4);  % motor gain
     
@@ -262,7 +264,7 @@ MM.U   = U;
  
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
-hE     = 8 - log(var(spm_vec(xY.y)));
+hE     = 6 - log(var(spm_vec(xY.y)));
 hC     = exp(-4);
  
 % Meta-model
@@ -276,6 +278,7 @@ MM.hC  = hC;
  
 % model inversion
 %==========================================================================
+MM.Nmax      = 16;
 [Ep,Cp,Eh,F] = spm_nlsi_GN(MM,xU,xY);
  
  
@@ -309,12 +312,12 @@ subplot(2,1,1)
 spm_plot_ci(Ep,Cp), hold on
 Pp       = spm_vec(P);
 pE       = spm_vec(pE);
-plot(Pp(1),Pp(2),'.' ,'MarkerSize',32), hold on
-plot(pE(1),pE(2),'.r','MarkerSize',32), hold off
-axis([0 4 0 6])
+plot(Pp(1),Pp(2),'.r' ,'MarkerSize',32), hold on
+plot(pE(1),pE(2),'.g','MarkerSize',32), hold off
+axis([0 4 0 8])
 xlabel('Gain','FontSize',12)
 ylabel('Precision','FontSize',12)
-title('Posterior (and true) estimates','FontSize',16)
+title('Posterior (blue), prior (green) and true (red) value','FontSize',16)
 
  
 return
