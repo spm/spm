@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 5782 2013-12-05 16:11:14Z john $
+% $Id: spm_shoot_warp.m 5787 2013-12-06 19:47:00Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -55,9 +55,19 @@ dm = dm(1:3);
 
 g  = cell(n1+1,1);
 NG = nifti(job.templates{end});
-for j=1:n1+1,
-    g{j} = spm_bsplinc(log(NG.dat(:,:,:,j)), bs_args);
+if size(NG.dat,4) < n2+1,
+    error('Not enough tissues in template (%d < %d+1).', size(NG.dat,4),n2);
 end
+
+bg = ones([size(NG.dat,1), size(NG.dat,2), size(NG.dat,3)]);
+for j=1:n1,
+    tmp  = NG.dat(:,:,:,j);
+    g{j} = spm_bsplinc(log(tmp), bs_args);
+    bg   = bg - tmp;
+    clear tmp;
+end
+g{n1+1}  = log(max(bg,eps));
+clear bg
 
 vx = sqrt(sum(NG.mat(1:3,1:3).^2));
 ok = true(n2,1);

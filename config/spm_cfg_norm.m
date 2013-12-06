@@ -4,7 +4,7 @@ function normalise = spm_cfg_norm
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_cfg_norm.m 5787 2013-12-06 19:47:00Z john $
 
 
 %--------------------------------------------------------------------------
@@ -428,6 +428,8 @@ est.help = {
     'Spatial normalisation is now done via the segmentation routine (which was known as ``New Segment'''' in SPM8).  The algorithm is essentially the same as that described in the Unified Segmentation paper /* \cite{ashburner05}*/, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain.'
 	''
 	'Note that on a 32 bit computer, the most memory that SPM or any other program can use at any time is 4Gbytes (or sometimes only 2Gbytes).  This is because the largest number that can be represented with 32 bits is 4,294,967,295, which limits how much memory may be addressed by any one process.  Out of memory errors may occasionally be experienced when trying to work with large images.  64-bit computers can usually handle such cases.'
+        ''
+        'If you encounter problems with spatial normalisation, it is advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images prior to attempting to align them.  This may be done using the Display button.'
            }';
 est.prog = @spm_run_norm;
 est.vout = @vout_est;
@@ -450,7 +452,9 @@ estwrite      = cfg_exbranch;
 estwrite.tag  = 'estwrite';
 estwrite.name = 'Normalise: Estimate & Write';
 estwrite.val  = {ewsubjs eoptions woptions};
-estwrite.help = {'Computes the warp that best aligns the template (atlas) to the individual''s image, inverting it and writing the result to the file `y_''imagename''.nii''. This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'};
+estwrite.help = {'Computes the warp that best aligns the template (atlas) to the individual''s image, inverting it and writing the result to the file `y_''imagename''.nii''. This option also allows the contents of the `y_''imagename''.nii'' files to be applied to a series of images.'
+''
+'Note that if you encounter problems with spatial normalisation, it is often advisable to use the Check reg button to see how well aligned the original data are with the MNI-space templates released with SPM.  If mis-alignment is greater than about 3cm and 15 degrees, you could try to manually re-position the images.  This may be done using the Display button.'};
 estwrite.prog = @spm_run_norm;
 estwrite.vout = @vout_estwrite;
 
