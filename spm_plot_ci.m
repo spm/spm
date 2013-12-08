@@ -10,12 +10,12 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_plot_ci.m 5789 2013-12-08 14:36:51Z karl $
 
-% unpack
+% unpack expectations into a matrix
 %--------------------------------------------------------------------------
-if iscell(E),         E = spm_cat(E(:)); end
 if isstruct(E),       E = spm_vec(E);    end
+if iscell(E),         E = spm_vec(E);    end
 
 if ~exist('x','var'), x = 1:size(E,2);   end
 if ~exist('j','var'), j = 1:size(E,1);   end
@@ -35,21 +35,42 @@ E     = E(j,:);
 ci    = spm_invNcdf(1 - 0.05);
 
 if iscell(C)
+    
+    % try cell array of covariances (from spm_DEM amd spm_LAP)
+    %----------------------------------------------------------------------
     try
         for i = 1:N
             c(:,i) = ci*sqrt(diag(C{i}(j,j)));
         end
     catch
-        c = ci*sqrt(spm_vec(C));
-        c = c(j);
+        
+        % try cell array of variances
+        %------------------------------------------------------------------
+        c = ci*sqrt(spm_unvec(spm_vec(C),E));
+        c = c(j,:);
     end
-else
+    
+elseif isstruct(C)
+    
+    % try structure of variances
+    %----------------------------------------------------------------------
+    c = ci*sqrt(spm_unvec(spm_vec(C),E));
+    c = c(j,:);
+    
+elseif isnumeric(C)
+    
+    % try matrix of variances
+    %----------------------------------------------------------------------
     if all(size(C) == size(E))
         c = ci*sqrt(C(j,:));
     else
+        
+        % try covariance matrix
+        %------------------------------------------------------------------
         C = diag(C);
         c = ci*sqrt(C(j,:));
     end
+    
 end
 
 % set plot parameters
@@ -84,7 +105,8 @@ if N >= 8
 elseif n == 2
     
     % plot in state-space
-    %======================================================================    try,  C = C{1};  end
+    %======================================================================
+    try,  C = C{1};  end
     [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
     fill(x(16,:)',y(16,:)',[1 1 1]*.9,'EdgeColor',[1 1 1]*.8),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)

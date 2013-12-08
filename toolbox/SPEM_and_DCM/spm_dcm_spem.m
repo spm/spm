@@ -24,7 +24,7 @@ function DCM = spm_dcm_spem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_spem.m 5788 2013-12-06 20:08:57Z karl $
+% $Id: spm_dcm_spem.m 5789 2013-12-08 14:36:51Z karl $
 
 % name
 %--------------------------------------------------------------------------
@@ -87,7 +87,7 @@ DCM.DEM = DEM;                  % inference model
 %--------------------------------------------------------------------------
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));
 
-% and report predictions over condition
+% and report predictions over conditions
 %--------------------------------------------------------------------------
 spm_figure('GetWin','DCM for SPEM');
 spm_dcm_spem_results(DCM)

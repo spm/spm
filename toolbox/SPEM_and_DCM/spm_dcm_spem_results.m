@@ -19,7 +19,7 @@ function DCM = spm_dcm_spem_results(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_spem_results.m 5788 2013-12-06 20:08:57Z karl $
+% $Id: spm_dcm_spem_results.m 5789 2013-12-08 14:36:51Z karl $
  
 % model specification
 %--------------------------------------------------------------------------
@@ -94,10 +94,10 @@ end
 %--------------------------------------------------------------------------
 subplot(3,2,3)
 plot(t,u,'-.k'), hold on
-for i = 1:numel(y)
+for i = 1:length(y)
     plot(t,y{i} + u,col{i}), hold on
 end
-for i = 1:numel(o)
+for i = 1:length(o)
     plot(t(o(i))*[1 1],[-1 1],':')
 end
 xlabel('Time (sec)')
@@ -109,10 +109,10 @@ spm_axis tight
  
 subplot(3,2,4)
 plot(t,t - t,'-.k'), hold on
-for i = 1:numel(y)
+for i = 1:length(y)
     plot(t,y{i},col{i})
 end
-for i = 1:numel(o)
+for i = 1:length(o)
     plot(t(o(i))*[1 1],[-1 1]/4,':')
 end
 xlabel('Time (sec)')
