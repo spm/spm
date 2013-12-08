@@ -24,7 +24,7 @@ function DCM = spm_dcm_spem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_spem.m 5789 2013-12-08 14:36:51Z karl $
+% $Id: spm_dcm_spem.m 5791 2013-12-08 14:42:34Z karl $
 
 % name
 %--------------------------------------------------------------------------
@@ -34,7 +34,7 @@ end
 
 % check data
 %--------------------------------------------------------------------------
-DCM.xY  = spm_dcm_spem_data(DCM.xY);
+DCM.xY = spm_dcm_spem_data(DCM.xY);
 
 % check occluder function
 %--------------------------------------------------------------------------

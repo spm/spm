@@ -13,11 +13,13 @@ function [y,DEM] = spm_SEM_gen_full(P,MM,U)
 % hierarchical level to infer the phase of underlying target motion. this
 % sort of generative model is required when characterising violation or
 % omission responses due to departures from the expected trajectory.
+%
+% see also: spm_SEM_gen
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_SEM_gen_full.m 5788 2013-12-06 20:08:57Z karl $
+% $Id: spm_SEM_gen_full.m 5791 2013-12-08 14:42:34Z karl $
  
 % trial-specific initial states and parameters
 %==========================================================================
