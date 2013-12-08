@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5324 2013-03-13 22:04:55Z karl $
+% $Id: spm_MDP_offer.m 5790 2013-12-08 14:42:01Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -136,14 +136,13 @@ title('Simulated dopamine responses','FontSize',16)
 axis([1 nd 0 4])
 
  
- 
 % Illustrate dependency parameters
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf
  
 % probability distribution over time: P(1,:) is no action
 %--------------------------------------------------------------------------
-PrT      = @(P)[1 cumprod(P(1,:))].*[P(2,:) 1];
+PrT      = @(P) [1 cumprod(P(1,1:end - 1))].*(1 - P(1,:));
 MDP.plot = 0;                        % plot convergence
 MDP.N    = 4;                        % number of variational iterations
 MDP.s    = ones(1,T);                % suppress withdrawal of low offer

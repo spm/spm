@@ -1,35 +1,40 @@
 function spm_MDP_trust
-% Demo for active inference with limited offer game
+% Demo of active inference for trust games
 %__________________________________________________________________________
 %
-% This demonstration routine uses variational Bayes to minimise the free
-% energy to model decision-making. The particular focus here is on
-% decisions that are time-sensitive, requiring an explicit representation
-% of future states. The example considered here represents a limited offer
-% game, where a low offer can be converted to a high offer, which may or
-% may not occur. Furthermore, offers may be withdrawn. The objective is
-% to understand model choices about accepting or declining the current
-% offer in terms of active inference, under prior beliefs about future
-% states. The model is specified in a fairly general way in terms of
-% probability transition matrices and beliefs about future states. The
-% particular inversion scheme used here is spm_MDP_select, which uses a
-% mean-field approximation between hidden control and hidden states. It is
-% assumed that the agent believes that it will select a particular action
-% (accept or decline) at a particular time.
+% This routine uses the Markov decision process formulation of active
+% inference (with variational Bayes) to model a simple trust game. In trust
+% games, one plays an opponent who can either cooperate or defect. The
+% payoff contingencies depend upon the joint choices of you and your
+% opponent, which in turn depend upon your inferences about the nature of
+% the opponent (pro-social or non-social). This example illustrates single
+% round games with a special focus on Bayesian belief updating between
+% games. This is illustrated in terms of evidence accumulation about
+% the nature of the opponent by using the posterior marginal distributions
+% following one game as the prior distribution over beliefs about the
+% opponent in the next. This accumulation is shown in the final figures.
 %
-% We run an exemplar game, examine the distribution of time to acceptance
-% as a function of different beliefs (encoded by parameters of the
-% underlying Markov process) and demonstrate how the model can be used to
-% produce trial-specific changes in uncertainty � or how one can use
-% behaviour to identify the parameters used by a subject.
+% In this example, there are nine states. The first is a starting state
+% and the subsequent eight states model the four combinations of
+% cooperation and defection (between you and your opponent) under the
+% prior beliefs that the opponent is either pro-social or non-social. 
+% Initially, these prior beliefs are uninformative but are subsequently 
+% informed through experience. prior beliefs about behaviour are based on
+% relative entropy or KL divergence in the usual way - which requires the
+% specification of utility functions over states based upon standard payoff
+% tables in these sorts of games. It is interesting to see how precision
+% or confidence in beliefs about choices, fluctuates with beliefs about
+% the nature of one's opponent.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5705 2013-10-20 16:29:30Z guillaume $
+% $Id: spm_MDP_trust.m 5790 2013-12-08 14:42:01Z karl $
 
 % set up and preliminaries
 %==========================================================================
+rng('default')
+%
 % Payoffs (reward):
 % _________________________________________________________________________
 %                                 Trustee
@@ -50,9 +55,9 @@ U{2} = [26 42;
          7 10]/8;                   % other payoff (utility)
     
          
-% initial state � encoding the actual type of trustee
+% initial state - encoding the actual type of trustee
 %--------------------------------------------------------------------------
-S    = [0 1]';                    % indicator - [prosocial nonsocial]
+S    = [0 1]';                      % indicator - [prosocial nonsocial]
 S    = kron(S,[1 0 0 0 0]');
 
 
@@ -112,7 +117,7 @@ B{2} = ...                        % defect:
 %--------------------------------------------------------------------------
 A    = kron([1 1],speye(5,5));
 
-% allowable policies � sequences of control (of depth T)
+% allowable policies - (of depth T); here, simply defect will cooperate
 %--------------------------------------------------------------------------
 V    = [1 2;
         1 1];
@@ -151,17 +156,15 @@ for i = 1:NG
     MDP    = spm_MDP_game(MDP);
     Q(:,i) = spm_softmax(k);
     O(:,i) = MDP.O(:,end);
-    P(:,i) = MDP.P(:,end);
     W(:,i) = MDP.W(:,end);
+    P(:,i) = MDP.P(:,1);
     
-    % update prior beliefs about initial state (context)
+    % update prior beliefs about initial state (pro-social for
+    % non-social) and associated utility functions
     %----------------------------------------------------------------------
-    a      = find(MDP.U);
+    a      = find(MDP.U(:,1));
     p      = MDP.O(:,2)'*MDP.A*MDP.B{a}(:,[1 6]);
     p      = p(:)/sum(p);
-    
-    % update prior beliefs about initial state (context)
-    %----------------------------------------------------------------------
     k      = k + log(p);
     p      = spm_softmax(k);
     MDP.D  = kron(p,[1 0 0 0 0]');
@@ -182,7 +185,7 @@ title('Beliefs about other','FontSize',16)
 xlabel('Number of games','FontSize',12)
 ylabel('True and posterior expectations','FontSize',12)
 spm_axis tight, axis square
-legend({'prosocial','nnonsocial'})
+legend({'prosocial','nonsocial'})
 
 subplot(2,2,2)
 plot(1:NG,P)

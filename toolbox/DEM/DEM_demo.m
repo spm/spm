@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 05-Sep-2013 14:20:31
+% Last Modified by GUIDE v2.5 07-Dec-2013 17:01:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -396,7 +396,7 @@ run_demo_Callback(hObject, handles, 'DEM_demo_ALAP')
 
 % --- Executes on button press in pushbutton127.
 function pushbutton127_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20sensory%20attenuation%20and%20illusions.pdf';
 run_demo_Callback(hObject, handles, 'ALAP_demo_attenuation')
 
 % --- Executes on button press in pushbutton128.
@@ -416,15 +416,32 @@ run_demo_Callback(hObject, handles, 'spm_MDP_offer')
 
 % --- Executes on button press in pushbutton132.
 function pushbutton132_Callback(hObject, eventdata, handles)
-handles.web = '';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Life%20as%20we%20know%20it.pdf';
 run_demo_Callback(hObject, handles, 'FEP_Manifold')
 
 % --- Executes on button press in pushbutton133.
 function pushbutton133_Callback(hObject, eventdata, handles)
-handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Active%20inference%20and%20agency%20optimal%20control%20without%20cost%20functions.pdf';
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/The%20anatomy%20of%20choice%20active%20inference%20and%20agency.pdf';
 run_demo_Callback(hObject, handles, 'spm_MDP_trust')
 
 % --- Executes on button press in pushbutton134.
 function pushbutton134_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'DEM_demo_induced_fMRI')
+
+% --- Executes on button press in pushbutton142.
+function pushbutton142_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/The%20anatomy%20of%20choice%20active%20inference%20and%20agency.pdf';
+run_demo_Callback(hObject, handles, 'spm_MDP_urn')
+
+% --- Executes on button press in pushbutton143.
+function pushbutton143_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEM_demo_large_fMRI')
+
+% --- Executes on button press in pushbutton144.
+function pushbutton144_Callback(hObject, eventdata, handles)
+handles.web = '';
+run_demo_Callback(hObject, handles, 'DEM_demo_connectivity_fMRI')
+
+return

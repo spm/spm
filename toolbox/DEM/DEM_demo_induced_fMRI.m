@@ -11,10 +11,7 @@ function DEM_demo_induced_fMRI
 % second order data features through minimisation of variational free
 % energy. For comparison, the same data are inverted (in timeseries form)
 % using generalised filtering. This example uses a particularly difficult
-% problem – with limited data - to emphasise the differences. The
-% generalised filtering uses the posteriors from the deterministic scheme
-% as priors. This is equivalent to Bayesian parameter averaging using
-% (orthogonal) second and first order data features.
+% problem – with limited data - to emphasise the differences.
 %
 % NB - the generalised filtering trakes much longer than the deterministic
 % scheme
@@ -22,7 +19,7 @@ function DEM_demo_induced_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 5633 2013-09-10 13:58:03Z karl $
+% $Id: DEM_demo_induced_fMRI.m 5790 2013-12-08 14:42:01Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -30,11 +27,11 @@ rng('default')
  
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-T  = 512;                             % number of observations (scans)
+T  = 256;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 t  = (1:T)*TR;                        % observation times
 n  = 3;                               % number of regions or nodes
-u  = spm_conv(randn(T,n),2,0)/2;      % endogenous fluctuations
+u  = spm_rand_mar(T,n,1/2)/4;         % endogenous fluctuations
  
 % experimental inputs (Cu = 0 to suppress)
 % -------------------------------------------------------------------------
@@ -59,11 +56,11 @@ pP  = spm_dcm_fmri_priors(A,B,C,D,options);
  
 % true parameters (reciprocal connectivity)
 % -------------------------------------------------------------------------
-pP.A = [  0   .2    0;
-         .4    0  -.3
-          0   .2    0];
+pP.A = [  0   .3  -.1;
+         .3    0  -.2
+        -.1  -.2    0];
 pP.C = eye(n,n);
-pP.transit = randn(n,1)/16;
+pP.transit = randn(n,1)/8;
  
 % simulate response to endogenous fluctuations
 %==========================================================================
@@ -84,7 +81,7 @@ end
  
 % observation noise process
 % -------------------------------------------------------------------------
-e    = spm_conv(randn(T,n),2,0)/16;
+e    = spm_rand_mar(T,n,1/2)/8;
  
 % show simulated response
 %--------------------------------------------------------------------------
@@ -117,10 +114,10 @@ axis square
 %==========================================================================
 DCM.options = options;
  
-DCM.a       = logical(pP.A);
-DCM.b       = zeros(n,n,0);
-DCM.c       = logical(Cu);
-DCM.d       = zeros(n,n,0);
+DCM.a    = ones(n,n,1);
+DCM.b    = zeros(n,n,0);
+DCM.c    = logical(Cu);
+DCM.d    = zeros(n,n,0);
  
 % response
 % -------------------------------------------------------------------------
@@ -147,7 +144,7 @@ axis square
 % Bayesian deconvolution (Generalised filtering) - stochastic DCM
 % =========================================================================
 
-% initialise parameters using deterministic estimates (not used here)
+% initialise parameters using deterministic estimates
 % -------------------------------------------------------------------------
 % DCM.options.P = rmfield(CSD.Ep,{'a','b','c'});
 

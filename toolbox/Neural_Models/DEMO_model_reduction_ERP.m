@@ -1,4 +1,6 @@
-% function DEMO_model_reduction_ERP
+function DEMO_model_reduction_ERP
+% Illustration of (post hoc)the neuronal mass model optimisation
+%__________________________________________________________________________
 % This demonstration routine illustrates the post-hoc optimisation of
 % dynamic causal models for event related responses. To assess performance
 % in relation to ground truth, it uses simulated data. We will simulate a
@@ -19,15 +21,14 @@
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEMO_model_reduction_ERP.m 5785 2013-12-05 17:42:43Z karl $
+% $Id: DEMO_model_reduction_ERP.m 5790 2013-12-08 14:42:01Z karl $
 
-%% model specification – a simple two source model with two electrodes
+% model specification – a simple two source model with two electrodes
 % =========================================================================
-
 rng('default')
 
-Nc    = 2;
-Ns    = 2;
+Nc    = 2;                                        % number of channels
+Ns    = 2;                                        % number of sources
 
 options.spatial  = 'LFP';
 options.model    = 'ERP';
@@ -124,7 +125,7 @@ title('Observed response','FontSize',16)
 
 
 
-%% Invert model under increasing shrinkage priors on the condition specific
+% Invert model under increasing shrinkage priors on the condition specific
 % change in the intrinsic (B) parameter of the first source. This range
 % specified by alpha. Because the true value is non-zero, we expect  free-
 % energy to decrease when the prior covariance falls to 0 and this
@@ -213,7 +214,7 @@ set(gca,'XTickLabel',log(alpha))
 return
 
 
-%% free energy landscape:
+% free energy landscape:
 % Here, we evaluate the free energy, which is a functional of the data and
 % conditional or posterior expectations (noting that posterior precisions
 % are functions of the expectations). The free energy can be computed in a

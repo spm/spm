@@ -1,28 +1,19 @@
 function DEM_demo_large_fMRI
 % Demonstration of DCM for CSD (fMRI) with simulated responses
 %__________________________________________________________________________
-% This demonstration compares generalised filtering and deterministic DCM
-% (generating complex cross spectra) in the context of a nonlinear
-% convolution (fMRI) model using simulated data. Here, the dynamic
-% convolution model for fMRI responses is converted into a static
-% non-linear model by generating not the timeseries per se but their
-% second-order statistics – in the form of cross spectra and covariance
-% functions. This enables model parameters to the estimated using the
-% second order data features through minimisation of variational free
-% energy. For comparison, the same data are inverted (in timeseries form)
-% using generalised filtering. This example uses a particularly difficult
-% problem – with limited data - to emphasise the differences. The
-% generalised filtering uses the posteriors from the deterministic scheme
-% as priors. This is equivalent to Bayesian parameter averaging using
-% (orthogonal) second and first order data features.
-%
-% NB - the generalised filtering trakes much longer than the deterministic
-% scheme
+% This routine demonstrates Bayesian parameter averaging using the
+% variational inversion of spectral DCMs for fMRI. A random connectivity
+% matrix is generated and inverted. The posterior estimates are then used
+% to create new data, that are used to invert a series of DCMs. After each
+% inversion, basing parameter averaging is used to illustrate convergence
+% to the true values. In principle, this routine can handle large DCMs.
+% We illustrate (for time convenience) the inversion of eight nodes and 64
+% connections.
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010 Wellcome Trust Centrea for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: DEM_demo_large_fMRI.m 5790 2013-12-08 14:42:01Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -30,8 +21,8 @@ rng('default')
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-N  = 8;                               % number of runs
-T  = 512;                             % number of observations (scans)
+N  = 4;                               % number of runs
+T  = 256;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 n  = 8;                               % number of regions or nodes
 t  = (1:T)*TR;                        % observation times
@@ -83,7 +74,7 @@ e    = spm_rand_mar(T,n,1/2)/8;
 
 % show simulated response
 %--------------------------------------------------------------------------
-i = 1:128;
+i = 1:256;
 spm_figure('Getwin','Figure 1'); clf
 subplot(2,2,1)
 plot(t(i),U.u(i,:))
@@ -127,8 +118,9 @@ DCM.U.dt = TR;
 DCM   = spm_dcm_fmri_csd(DCM);
 
 
-% replace original connectivty with posterior expectations
-%--------------------------------------------------------------------------
+% replace original connectivty with posterior expectations and generating
+% new data for Bayesian parameter averaging
+%==========================================================================
 pP.A  = DCM.Ep.A;
 
 M.g   = 'spm_gx_fmri';
@@ -155,17 +147,17 @@ for i = 1:N
         % nonlinear system identification (Variational Laplace)
         % =================================================================
         CSD{end + 1} = spm_dcm_fmri_csd(DCM);
-        BPA    = spm_dcm_average(CSD,'simulation',1);
+        BPA  = spm_dcm_average(CSD,'simulation',1);
         
         % MAP estimates
         % -----------------------------------------------------------------
-        qp     = CSD{end}.Ep.A;
+        qp   = CSD{end}.Ep.A;
         Qp(:,end + 1) = spm_vec(qp - diag(diag(qp)));
                 
         % root mean square error
         % -----------------------------------------------------------------
-        dp     = BPA.Ep.A - pP.A;
-        dp     = dp - diag(diag(dp));
+        dp   = BPA.Ep.A - pP.A;
+        dp   = dp - diag(diag(dp));
         RMS(end + 1) = sqrt(mean(dp(~~dp).^2));
         
         

@@ -84,7 +84,7 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 5784 2013-12-05 17:41:58Z karl $
+% $Id: spm_MDP_game.m 5790 2013-12-08 14:42:01Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -198,10 +198,10 @@ s      = find( MDP.S(:,1));        % initial state   (index)
 o      = sparse(1,1,q,1,T);        % observations    (index)
 S      = sparse(s,1,1,Ns,T);       % states sampled  (1 in K vector)
 O      = sparse(q,1,1,No,T);       % states observed (1 in K vector)
-a      = sparse(1, T - 1);         % action (index)
-U      = sparse(Nu,T - 1);         % action selected (1 in K vector)
-P      = sparse(Nu,T - 1);         % posterior beliefs about control
-E      = sparse(T - 1,Np);         % posterior beliefs about policies
+a      = sparse(1, T);             % action (index)
+U      = sparse(Nu,T);             % action selected (1 in K vector)
+P      = sparse(Nu,T);             % posterior beliefs about control
+E      = sparse(T,Np);             % posterior beliefs about policies
 W      = sparse(1,T);              % posterior precision
 
 
@@ -283,8 +283,9 @@ for t  = 1:T
         
         % policy (u)
         %------------------------------------------------------------------
-        v    = - W(t)*KL*x(:,t);
-        u    = spm_softmax(v);
+        v      = - W(t)*KL*x(:,t);
+        u      = spm_softmax(v);
+        E(t,w) = u;
         
         
         % re-compute precision for first iteration
@@ -304,24 +305,32 @@ for t  = 1:T
     % posterior expectations (control)
     %======================================================================
     for j = 1:Nu
-        for k = t:(T - 1)
+        for k = t:T
             P(j,k) = sum(u(ismember(V(k,:),j)));
         end
     end
+ 
+    % next action (the action that minimises expected free energy)
+    %------------------------------------------------------------------
+    try
+        a(t) = MDP.a(t);
+    catch
+        try
+            a(t) = find(rand < cumsum(P(:,t)),1);
+        catch
+            error('there are no more allowable policies')
+        end
+    end
+    
+    % save action
+    %------------------------------------------------------------------
+    U(a(t),t) = 1;
+    
     
     % sampling of next state (outcome)
-    %======================================================================
+    %======================================================================  
     if t < T
-        
-        % next action (the action that minimises expected free energy)
-        %------------------------------------------------------------------
-        try
-            a(t) = MDP.a(t);
-        catch
-            a(t) = find(rand < cumsum(P(:,t)),1);
-        end
-        
-        
+         
         % next sampled state
         %------------------------------------------------------------------
         try
@@ -338,10 +347,9 @@ for t  = 1:T
             o(t + 1) = find(rand < cumsum(A(:,s(t + 1))),1);
         end
         
-        % save action and state sampled
+        % save outcome and state sampled
         %------------------------------------------------------------------
         W(1,t + 1)        = W(t);
-        U(a(t)    ,t    ) = 1;
         O(o(t + 1),t + 1) = 1;
         S(s(t + 1),t + 1) = 1;
         

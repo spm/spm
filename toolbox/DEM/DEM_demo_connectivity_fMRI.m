@@ -11,7 +11,7 @@ function DEM_demo_connectivity_fMRI
 % hidden causes at the first level are the effective connectivity and the
 % hidden causes at the second level are the locations in embedding states.
 %
-% simulated timeseries are generated and inverted under typical priors.
+% Simulated timeseries are generated and inverted under typical priors.
 % This routine that performs a model space search over precisions on the
 % hierarchical constraints and the dimensionality of the embedding space.
 % This illustrates: (i) the increase in model evidence afforded by
@@ -20,11 +20,14 @@ function DEM_demo_connectivity_fMRI
 % connectivity about the constraints. (iii) Finally,the search over moral
 % dimension illustrates how Bayesian model comparison can identify the
 % dimensionality of the metric space generating hierarchical connectivity.
+% 
+% The model space search can take about 20 min and is enabled by deleting
+% the return command in the script.
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5790 2013-12-08 14:42:01Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -179,6 +182,9 @@ spm_dcm_graph(DEM.xY,qV)
 spm_figure('Getwin','Figure B'); clf
 spm_dcm_graph(DEM.xY,v)
 
+
+return
+
 % search over precision of hidden causes
 %==========================================================================
 V     = 4:8;
@@ -238,7 +244,6 @@ axis square
 legend ('D > 0','D = 0')
 
 
-
 % search over embedding dimension
 %==========================================================================
 D     = 0:4;
@@ -286,10 +291,13 @@ ylabel('root mean square error')
 axis square
 
 
-
 % load empirical DCM for search over precision and embedding dimension
 %==========================================================================
-load DCM_stochastic
+try
+    load DCM_stochastic
+catch
+    return
+end
 
 n     = DCM.n;
 DCM.a = ones(n,n);

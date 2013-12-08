@@ -1,49 +1,60 @@
 function spm_MDP_urn
-% Demo for active inference with limited offer game
+% Demo for active inference with the urn task
 %__________________________________________________________________________
 %
-% This demonstration routine uses variational Bayes to minimise the free
-% energy to model decision-making. The particular focus here is on
-% decisions that are time-sensitive, requiring an explicit representation
-% of future states. The example considered here represents a limited offer
-% game, where a low offer can be converted to a high offer, which may or
-% may not occur. Furthermore, offers may be withdrawn. The objective is
-% to understand model choices about accepting or declining the current
-% offer in terms of active inference, under prior beliefs about future
-% states. The model is specified in a fairly general way in terms of
-% probability transition matrices and beliefs about future states. The
-% particular inversion scheme used here is spm_MDP_game, which uses a
-% mean-field approximation between hidden control and hidden states. It is
-% assumed that the agent believes that it will select a particular action
-% (accept or decline) at a particular time.
+% This demonstration uses the Urn or Beads Task to illustrate how choice
+% behaviour can be simulated using active inference – in the context of
+% Markov decision processes. In the urn task, a succession of draws
+% from one of two urns are made and the agent has to decide whether the
+% balls are being drawn from an urn with predominantly red or green balls.
+% We model this in terms of a state-space with four dimensions: number of
+% balls drawn (n),  number of green balls drawn (k), choice (undecided, red 
+% or green)and the true (hidden) state of the urn (red or green). With
+% this relatively simple state-space, the utility of any hidden state is
+% simply quantified by the log-odds ratio of making a correct
+% decision. From binomial theory this is (2k - n)*log(p/(1 - p)), where p
+% is the proportion of red or green balls. Having defined the utility
+% function of states, we can then use the MDP formulation of active
+% inference using variational Bayes to simulate choice behaviour. 
 %
-% We run an exemplar game, examine the distribution of time to acceptance
-% as a function of different beliefs (encoded by parameters of the
-% underlying Markov process) and demonstrate how the model can be used to
-% produce trial-specific changes in uncertainty – or how one can use
-% behaviour to identify the parameters used by a subject.
+% This routine first provides an illustration of a game in which a decision
+% is delayed until the last draw to look at inferences during successive
+% draws  – with a special focus on precision. The illustration here shows
+% a decrease in precision when an unexpected (green ball) is drawn during a
+% sequence of red balls.
+%
+% We then characterise changes in choice probability (and latency to the
+% decision) in terms of its dependency on threshold criteria (on the odds
+% ratio) and hyperpriors about precision (alpha or the scale parameter of a 
+% standard gamma distribution). The routine concludes with an illustration 
+% of how to estimate model parameters using the likelihood of observed
+% (simulated) choices.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 5784 2013-12-05 17:41:58Z karl $
+% $Id: spm_MDP_urn.m 5790 2013-12-08 14:42:01Z karl $
  
 % set up and preliminaries
 %==========================================================================
-T     = 8;                         % number of trials
-Pa    = .9;                        % probability red ball | red urn
+rng('default')
+
+T     = 8;                         % number of trials in each game
+Pa    = .9;                        % pproportion of red or green goals
  
-% hidden (and initial) states
+% hidden (and initial) states (a red urn with no drawers)
 %--------------------------------------------------------------------------
 D          = zeros(T,T,3,2);       % #balls - 1 x #green - 1 x #u x #urns
 D(1,1,1,1) = 1;
 S          = spm_vec(D);
 D(1,1,1,2) = 1;
 D          = spm_vec(D);
+
  
-% likelihood
+% likelihood – everything is seen  apart from the hidden states of the urn
 %--------------------------------------------------------------------------
 A     = kron([1 1],eye(3*T*T));
+
  
 % transition probabilities (B{1} - wait; B{2} - red; B{3} - green)
 %--------------------------------------------------------------------------
@@ -58,7 +69,8 @@ Bn{4,4} = kron(Bg,spm_speye(T,T,-1));
 B{1}    = spm_cat(Bn);
 B{2}    = kron(eye(2),kron([0 0 0;1 1 0;0 0 1],eye(T*T)));
 B{3}    = kron(eye(2),kron([0 0 0;0 1 0;1 0 1],eye(T*T)));
- 
+
+
 % priors over final state (exp(utility))
 %--------------------------------------------------------------------------
 L     = zeros(T,T,3,2);
@@ -70,12 +82,14 @@ for n = 0:(T - 1)
     end
 end
 C     = spm_softmax((spm_vec(L) > 3)*3);
+
  
-% allowable policies (one choice at different times)
+% allowable policies (one decision before the game ends)
 %--------------------------------------------------------------------------
-V     = [ones(T,T - 1) + eye(T,T - 1), ones(T,T - 1) + 2*eye(T,T - 1)];
+V     = [ones(T,T) + eye(T,T), ones(T,T) + 2*eye(T,T)];
  
  
+
 % MDP Structure
 %==========================================================================
 MDP.T = T;                          % process depth (the horizon)
@@ -90,7 +104,7 @@ MDP.V = V;                          % allowable policies
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
-% create a sequence of outcomes
+% create a sequence of draws (outcomes)
 %--------------------------------------------------------------------------
 k     = cumsum([0 0 0 1 0 0 0]);
 o     = zeros(1,length(k));
@@ -98,10 +112,10 @@ for n = 1:length(k)
     o(n) = sub2ind([T,T,3],n,k(n) + 1,1);
 end
  
-% Active inference
+% Active inference (precluding a decision until the last trial)
 %--------------------------------------------------------------------------
 MDP.o    = o; 
-MDP.a    = ones(1,T - 2);
+MDP.a    = ones(1,T - 1);
 MDP.plot = gcf;
 MDP.N    = 8;
 MDP      = spm_MDP_game(MDP);
@@ -110,7 +124,7 @@ MDP      = spm_MDP_game(MDP);
 %--------------------------------------------------------------------------
 subplot(4,2,7)
 plot(MDP.d)
-xlabel('Latency (offers)','FontSize',12)
+xlabel('Latency (updates)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Expected precision','FontSize',16)
 spm_axis tight
@@ -122,20 +136,19 @@ K   = tril(toeplitz(exp(-((1:nd) - 1)'/8)));
  
 subplot(4,2,8)
 plot(pinv(K)*MDP.d'), hold on
-xlabel('Latency (iterations)','FontSize',12)
+xlabel('Latency (updates)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
 axis([1 nd 0 4])
  
- 
- 
+
 % Illustrate dependency parameters
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
  
 % probability distribution over time: P(1,:) is no action
 %--------------------------------------------------------------------------
-PrT      = @(P)[1 cumprod(P(1,:))].*[(1 - P(1,:)) 1];
+PrT      = @(P) [1 cumprod(P(1,1:end - 1))].*(1 - P(1,:));
 MDP.plot = 0;                        % plot convergence
 MDP.N    = 4;                        % number of variational iterations
 MDP.a    = ones(1,T);                % and action
@@ -157,7 +170,7 @@ end
 %--------------------------------------------------------------------------
 subplot(2,2,1)
 plot(PF')
-xlabel('Latency)','FontSize',12)
+xlabel('Latency (trials)','FontSize',12)
 ylabel('Probability of deciding','FontSize',12)
 title('Increasing decision threshold','FontSize',16)
 axis square xy
@@ -166,7 +179,7 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(2,2,2)
 plot(DF')
-xlabel('Latency','FontSize',12)
+xlabel('Latency (trials)','FontSize',12)
 ylabel('Latency of decision','FontSize',12)
 title('Latency of decision','FontSize',16)
 axis square xy
@@ -189,7 +202,7 @@ end
 %--------------------------------------------------------------------------
 subplot(2,2,3)
 plot(PF')
-xlabel('Latency)','FontSize',12)
+xlabel('Latency (trials)','FontSize',12)
 ylabel('Probability of deciding','FontSize',12)
 title('Increasing prior precision','FontSize',16)
 axis square xy
@@ -198,13 +211,13 @@ axis square xy
 %--------------------------------------------------------------------------
 subplot(2,2,4)
 plot(DF')
-xlabel('Latency','FontSize',12)
+xlabel('Latency (trials)','FontSize',12)
 ylabel('Latency of decision','FontSize',12)
 title('Latency of decision','FontSize',16)
 axis square xy
  
  
-% Simulate multiple trials and record when an offer was accepted
+% Simulate multiple trials and try to infer prior precision (alpha)
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf
  
@@ -252,6 +265,7 @@ dLdpp = diff(Lp,2)/(dp^2);
 Cp    = inv(-dLdpp(i));
 Ep    = p(i + 1);
  
+
 % plot responses
 %--------------------------------------------------------------------------
 subplot(2,2,1)
@@ -260,7 +274,7 @@ xlabel('Latency','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Distribution of responses','FontSize',16)
 axis square
-    
+  
 % plot log likelihood over trials
 %--------------------------------------------------------------------------
 subplot(2,2,2)
@@ -269,7 +283,6 @@ xlabel('Parameter','FontSize',12)
 ylabel('Probability','FontSize',12)
 title('Log-likelihood over games','FontSize',16)
 axis square
- 
  
 % plot likelihood
 %--------------------------------------------------------------------------
