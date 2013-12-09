@@ -375,9 +375,9 @@ end
 % connectivity matrices
 %==========================================================================
 pE      = handles.DCM.M.pE;
-try, SA = pE.SA; catch SA = []; end
-try, GE = pE.GE; catch GE = []; end
-try, GI = pE.GI; catch GI = []; end
+try, SA = pE.SA; catch, SA = []; end
+try, GE = pE.GE; catch, GE = []; end
+try, GI = pE.GI; catch, GI = []; end
 
 % SA matrix
 %--------------------------------------------------------------------------

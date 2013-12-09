@@ -1,4 +1,4 @@
-function [D] = spm_eeg_invert_classic(D,val);
+function [D] = spm_eeg_invert_classic(D,val)
 %
 %% A trimmed down version of the spm_eeg_invert() routine
 % ReML inversion of multiple forward models for EEG-MEG
@@ -73,7 +73,7 @@ function [D] = spm_eeg_invert_classic(D,val);
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5676 2013-10-10 12:05:59Z gareth $
+% $Id: spm_eeg_invert_classic.m 5796 2013-12-09 19:46:10Z guillaume $
 
 
 
@@ -111,15 +111,15 @@ try, Np   = inverse.Np;     catch, Np   = 256;      end
 try, Nr   = inverse.Nr;     catch, Nr   = 16;       end %% requested number of temporal modes, could be changed depending on svd
 try, xyz  = inverse.xyz;    catch, xyz  = [0 0 0];  end
 try, rad  = inverse.rad;    catch, rad  = 128;      end
-try, hpf  = inverse.hpf;    catch, hpf  = 48;        end %% need to one day put these the correct way round
-try, lpf  = inverse.lpf;    catch, lpf  = 0;       end
+try, hpf  = inverse.hpf;    catch, hpf  = 48;       end %% need to one day put these the correct way round
+try, lpf  = inverse.lpf;    catch, lpf  = 0;        end
 try, sdv  = inverse.sdv;    catch, sdv  = 4;        end
 try, Han  = inverse.Han;    catch, Han  = 1;        end
 try, woi  = inverse.woi;    catch, woi  = [];       end
-try, Nm=inverse.Nm; catch, Nm=[];end;
-try, Nt=inverse.Nt; catch, Nt=[];end; %% fixed number of temporal modes
-try, Ip=inverse.Ip; catch Ip=[]; end;%
-try SHUFFLELEADS=inverse.SHUFFLELEADS;catch SHUFFLELEADS=[];end;
+try, Nm   = inverse.Nm;     catch, Nm   = [];       end
+try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of temporal modes
+try, Ip   = inverse.Ip;     catch, Ip   = [];       end
+try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
 
 
@@ -139,7 +139,7 @@ Nmax  = 16;         % max number of temporal modes
 %==========================================================================
 
 fprintf('Checking leadfields')
-[L D] = spm_eeg_lgainmat(D);    % Generate/load lead field
+[L,D] = spm_eeg_lgainmat(D);    % Generate/load lead field
 Nd=size(L,2);
 if ~isempty(Ip)
     Np   = length(Ip);              % Number of priors/3 for GS, ARD, MSP
