@@ -6,7 +6,7 @@ function B = spm_squeeze(A, dim)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_squeeze.m 3722 2010-02-11 16:23:28Z vladimir $
+% $Id: spm_squeeze.m 5794 2013-12-09 12:41:52Z vladimir $
 
 if nargin == 1
     B = squeeze(A);
@@ -15,6 +15,9 @@ else
     dim = intersect(dim, find(siz == 1));
     if ~isempty(dim)
         siz(dim) = [];
+        if size(siz) == 1
+            siz = [siz 1];
+        end
         B = reshape(A, siz);
     else
         B = A;
