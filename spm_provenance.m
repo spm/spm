@@ -34,12 +34,8 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5763 2013-11-25 13:28:30Z guillaume $
+% $Id: spm_provenance.m 5795 2013-12-09 13:56:49Z guillaume $
 
-% Todo:
-% - handle @xxx in attributes' literal
-% - handle attributes values such as "['mm', 'mm', 'mm']"
-% - escape qualified names
 
 %-Properties
 %==========================================================================
@@ -94,104 +90,56 @@ methods (Access='public')
     
     %-Components
     %----------------------------------------------------------------------
-    function entity(obj,id,attributes)
-        if nargin < 3 || isempty(attributes), attributes = {}; end
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'entity',id,attrstr(attributes)};
-    end
-     
-    function activity(obj,id,varargin)
-        if numel(varargin) && iscell(varargin{end})
-            attributes = varargin{end};
-            varargin(end) = [];
-        else
-            attributes = {};
-        end
-        if numel(varargin) < 1, startTime = '-'; else startTime = timestr(varargin{1}); end
-        if numel(varargin) < 2, endTime = '-'; else endTime = timestr(varargin{2}); end
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'activity',id,startTime,endTime,attrstr(attributes)};
+    %function entity(obj,id,attributes)
+    function entity(obj,varargin)
+        parseArg(obj,'entity',varargin{:});
     end
     
-    function agent(obj,id,attributes)
-        if nargin < 3 || isempty(attributes), attributes = {}; end
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'agent',id,attrstr(attributes)};
+    %function activity(obj,id,startTime,endTime,attributes)
+    function activity(obj,varargin)
+        parseArg(obj,'activity',varargin{:});
+    end
+    
+    %function agent(obj,id,attributes)
+    function agent(obj,varargin)
+        parseArg(obj,'agent',varargin{:});
     end
     
     %-Relations
     %----------------------------------------------------------------------
     %function wasGeneratedBy(obj,id,entity,activity,time,attributes)
     function wasGeneratedBy(obj,varargin)
-        [id,entity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, activity = '-'; else activity = arg{1}; end
-        if numel(arg) < 2, time = '-'; else time = timestr(arg{2}); end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasGeneratedBy',id,entity,activity,time,attributes};
+        parseArg(obj,'wasGeneratedBy',varargin{:});
     end
     
     %function used(obj,id,activity,entity,time,attributes)
     function used(obj,varargin)
-        [id,activity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, entity = '-'; else entity = arg{1}; end
-        if numel(arg) < 2, time = '-'; else time = timestr(arg{2}); end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'used',id,activity,entity,time,attributes};
+        parseArg(obj,'used',varargin{:});
     end
     
     %function wasInformedBy(obj,id,informed,informant,attributes)
     function wasInformedBy(obj,varargin)
-        [id,informed,arg,attributes] = parseArg(varargin{:});
-        informant = arg{1};
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasInformedBy',id,informed,informant,attributes};
+        parseArg(obj,'wasInformedBy',varargin{:});
     end
     
     %function wasStartedBy(obj,id,activity,trigger,starter,time,attributes)
     function wasStartedBy(obj,varargin)
-        [id,activity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, trigger = '-'; else trigger = arg{1}; end
-        if numel(arg) < 2, starter = '-'; else starter = arg{2}; end
-        if numel(arg) < 3, time = '-'; else time = timestr(arg{3}); end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasStartedBy',id,activity,trigger,starter,time,attributes};
+        parseArg(obj,'wasStartedBy',varargin{:});
     end
     
     %function wasEndedBy(obj,id,activity,trigger,ender,time,attributes)
     function wasEndedBy(obj,varargin)
-        [id,activity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, trigger = '-'; else trigger = arg{1}; end
-        if numel(arg) < 2, ender = '-'; else ender = arg{2}; end
-        if numel(arg) < 3, time = '-'; else time = timestr(arg{3}); end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasEndedBy',id,activity,trigger,ender,time,attributes};
+        parseArg(obj,'wasEndedBy',varargin{:});
     end
     
     %function wasInvalidatedBy(obj,id,entity,activity,time,attributes)
     function wasInvalidatedBy(obj,varargin)
-        [id,entity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, activity = '-'; else activity = arg{1}; end
-        if numel(arg) < 2, time = '-'; else time = timestr(arg{2}); end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasInvalidatedBy',id,entity,activity,time,attributes};
+        parseArg(obj,'wasInvalidatedBy',varargin{:});
     end
     
     %function wasDerivedFrom(obj,id,generatedEntity,usedEntity,activity,generation,usage,attributes)
     function wasDerivedFrom(obj,varargin)
-        [id,generatedEntity,arg,attributes] = parseArg(varargin{:});
-        usedEntity = arg{1};
-        if numel(arg) < 2, activity = '-'; else activity = arg{2}; end
-        if numel(arg) < 3, generation = '-'; else generation = arg{3}; end
-        if numel(arg) < 4, usage = '-'; else usage = arg{4}; end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasDerivedFrom',id,generatedEntity,usedEntity,activity,generation,usage,attributes};
+        parseArg(obj,'wasDerivedFrom',varargin{:});
     end
     
     %function revision(obj,id,generatedEntity,usedEntity,activity,generation,usage,attributes)
@@ -217,52 +165,32 @@ methods (Access='public')
     
     %function wasAttributedTo(obj,id,entity,agent,attributes)
     function wasAttributedTo(obj,varargin)
-        [id,entity,arg,attributes] = parseArg(varargin{:});
-        agent = arg{1};
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasAttributedTo',id,entity,agent,attributes};
+        parseArg(obj,'wasAttributedTo',varargin{:});
     end
     
     %function wasAssociatedWith(obj,id,activity,agent,plan,attributes)
     function wasAssociatedWith(obj,varargin)
-        [id,activity,arg,attributes] = parseArg(varargin{:});
-        if numel(arg) < 1, agent = '-'; else agent = arg{1}; end
-        if numel(arg) < 2, plan = '-'; else plan = arg{2}; end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasAssociatedWith',id,activity,agent,plan,attributes};
+        parseArg(obj,'wasAssociatedWith',varargin{:});
     end
     
     %function actedOnBehalfOf(obj,id,delegate,responsible,activity,attributes)
     function actedOnBehalfOf(obj,varargin)
-        [id,delegate,arg,attributes] = parseArg(varargin{:});
-        responsible = arg{1};
-        if numel(arg) < 2, activity = '-'; else activity = arg{2}; end
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'actedOnBehalfOf',id,delegate,responsible,activity,attributes};
+        parseArg(obj,'actedOnBehalfOf',varargin{:});
     end
     
     %function wasInfluencedBy(obj,id,influencee,influencer,attributes)
     function wasInfluencedBy(obj,varargin)
-        [id,influencee,arg,attributes] = parseArg(varargin{:});
-        influencer = arg{1};
-        
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'wasInfluencedBy',id,influencee,influencer,attributes};
+        parseArg(obj,'wasInfluencedBy',varargin{:});
     end
     
     %function alternateOf(obj,alternate1,alternate2)
     function alternateOf(obj,alternate1,alternate2)
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'alternateOf','',alternate1,alternate2,{}};
+        addItem(obj,'alternateOf','',alternate1,alternate2,{});
     end
     
     %function specializationOf(obj,specificEntity,generalEntity)
     function specializationOf(obj,specificEntity,generalEntity)
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'specializationOf','',specificEntity,generalEntity,{}};
+        addItem(obj,'specializationOf','',specificEntity,generalEntity,{});
     end
     
     %function collection(obj,id,attributes)
@@ -281,15 +209,13 @@ methods (Access='public')
     
     %function hadMember(obj,collection,entity)
     function hadMember(obj,collection,entity)
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'hadMember','',collection,entity,{}};
+        addItem(obj,'hadMember','',collection,entity,{});
     end
     
     %function bundle(obj,id,p)
     function varargout = bundle(obj,id,p)
         if nargin < 3, p = eval(class(obj)); end
-        n = numel(obj.stack) + 1;
-        obj.stack{n} = {'bundle',id,p};
+        addItem(obj,'bundle',id,p);
         if nargin < 3, varargout = {p}; end
     end
     
@@ -356,6 +282,47 @@ end
 %-Private methods
 %==========================================================================
 methods (Access='private')
+    function [id,identifier,arg,attributes] = parseArg(obj,comp,varargin)
+        if isempty(varargin), error('Invalid syntax.'); end
+        if isstruct(varargin{1})
+            id = varargin{1}.id;
+            varargin = varargin(2:end);
+        else
+            id = '';
+        end
+        identifier = varargin{1};
+        if iscell(varargin{end})
+            attributes = attrstr(varargin{end});
+            varargin = varargin(1:end-1);
+        else
+            attributes = {};
+        end
+        arg = varargin(2:end);
+        
+        l = list_expressions;
+        i = ismember(l(:,1),comp);
+        argconv = l{i,4};
+        if numel(arg) > numel(argconv)
+            error('Too many input arguments.');
+        end
+        for j=1:numel(argconv)
+            if numel(arg) < j, arg{j} = '-';
+            else               arg{j} = argconv{j}(arg{j}); end
+        end
+        
+        if ismember(comp,{'entity','activity','agent'})
+            if ~isempty(id), error('Invalid syntax.'); end
+            addItem(obj,comp,identifier,arg{:},attributes);
+        else
+            addItem(obj,comp,id,identifier,arg{:},attributes);
+        end
+    end
+    
+    function addItem(obj,varargin)
+        n = numel(obj.stack) + 1;
+        obj.stack{n} = varargin;
+    end
+    
     function str = serialize_provn(obj,step)
         if nargin < 2, step = 1; end
         o = blanks(2*step);
@@ -376,7 +343,13 @@ methods (Access='private')
             if ismember(obj.stack{i}{1},{'entity','agent'})
                 str = [str sprintf([o '%s(%s'],obj.stack{i}{1:2})];
             elseif ismember(obj.stack{i}{1},{'activity'})
-                str = [str sprintf([o '%s(%s, %s, %s'],obj.stack{i}{1:4})];
+                if isequal(obj.stack{i}{4},'-') && isequal(obj.stack{i}{3},'-')
+                    str = [str sprintf([o '%s(%s'],obj.stack{i}{1:2})];
+                elseif isequal(obj.stack{i}{4},'-')
+                    str = [str sprintf([o '%s(%s, %s'],obj.stack{i}{1:3})];
+                else
+                    str = [str sprintf([o '%s(%s, %s, %s'],obj.stack{i}{1:4})];
+                end
             elseif ismember(obj.stack{i}{1},{'bundle'})
                 str = [str sprintf([o 'bundle %s\n'],obj.stack{i}{2})];
                 str = [str serialize_provn(obj.stack{i}{3},2)];
@@ -408,9 +381,7 @@ methods (Access='private')
                         if iscell(literal)
                             literal = sprintf('"%s" %%%% %s',literal{:});
                         else
-                            if isequal(attribute,'prov:type') || strncmp(literal,'prov:',5) || ~isempty(parseQN(literal,'prefix'))
-                                % any literal that starts with xxxx: ?
-                                % or impose it with {literal}
+                            if ~isempty(parseQN(literal,'prefix'))
                                 s = '''';
                             else
                                 s = '"';
@@ -566,7 +537,7 @@ methods (Access='private')
         expr = {'entity','activity','agent'};
         strexpr = '[style="%s",shape="%s",color="#%s",fillcolor="#%s",sides="%d",label="%s",URL="%s"]\n';
         style = {'filled','ellipse','808080','FFFC87',4;
-                 'filled','ellipse','0000FF','9FB1FC',4;
+                 'filled','polygon','0000FF','9FB1FC',4;
                  'filled','house','000000','FDB266',4};
         strrel = '[labeldistance="1.5",rotation="20",taillabel="%s",labelfontsize="8",labelangle="60.0"]\n';
         strannrel = '[style="dashed",color="#C0C0C0",arrowhead="none"]\n';
@@ -593,7 +564,7 @@ methods (Access='private')
                                 if iscell(literal)
                                     literal = literal{1};
                                 end
-                                attrlist = [attrlist sprintf(strtr,attribute,literal)]; %htmlesc
+                                attrlist = [attrlist sprintf(strtr,attribute,htmlesc(literal))]; %htmlesc
                             end
                             ann_label = sprintf(strannlab,attrlist);
                             A = ['n' get_valid_identifier(url_ann)];
@@ -652,24 +623,6 @@ end
 
 %-Helper functions
 %==========================================================================
-function [id,identifier,arg,attributes] = parseArg(varargin)
-    if isempty(varargin), error('Invalid syntax.'); end
-    if isstruct(varargin{1})
-        id = varargin{1}.id;
-        varargin = varargin(2:end);
-    else
-        id = '';
-    end
-    identifier = varargin{1};
-    if iscell(varargin{end})
-        attributes = attrstr(varargin{end});
-        varargin = varargin(1:end-1);
-    else
-        attributes = {};
-    end
-    arg = varargin(2:end);
-end
-
 function [arg,attributes] = addAttr(vararg,attr)
     if iscell(vararg{end})
         arg = vararg(1:end-1);
@@ -713,6 +666,12 @@ function attr = attrstr(attr)
                 attr{i} = intstr(attr{i});
             else
                 attr{i} = floatstr(attr{i});
+            end
+        elseif iscell(attr{i}) && iscell(attr{i}{1})
+            if numel(attr{i}) == 1
+                attr{i} = cell2str(attr{i}{1});
+            else
+                attr{i}{1} = cell2str(attr{i}{1});
             end
         elseif iscell(attr{i})
             if isinteger(attr{i}{1})
@@ -775,26 +734,31 @@ function f = floatstr(f)
     end
 end
 
+function s = cell2str(s)
+    s = ['[' sprintf('''%s'', ',s{:}) ']']; s(end-2:end-1) = [];
+end
+
 function l = list_expressions
-% {expression, short_name, {property_name,...}}
+% {expression, short_name, {property_names}, {convert_fcn}}
+n = @(x) x;
 l = {
-    'entity',            '',      {};...
-    'activity',          '',      {'startTime','endTime'};...
-    'agent',             '',      {};...
-    'wasGeneratedBy',    'wGB',   {'entity','activity','time'};...
-    'used',              'u',     {'activity','entity','time'};...
-    'wasInformedBy',     'wInfm', {'informed','informant'};...
-    'wasStartedBy',      'wSB',   {'activity','trigger','starter','time'};...
-    'wasEndedBy',        'wEB',   {'activity','trigger','ender','time'};...
-    'wasInvalidatedBy',  'wIB',   {'entity','activity','time'};...
-    'wasDerivedFrom',    'wDF',   {'generatedEntity','usedEntity','activity','generation','usage'};...
-    'wasAttributedTo',   'wAT',   {'entity','agent'};...
-    'wasAssociatedWith', 'wAW',   {'activity','agent','plan'};...
-    'actedOnBehalfOf',   'aOBO',  {'delegate','responsible','activity'};...
-    'wasInfluencedBy',   'wInf',  {'influencee','influencer'};...
-    'alternateOf',       'aO',    {'alternate1','alternate2'};...
-    'specializationOf',  'sO',    {'specificEntity','generalEntity'};...
-    'hadMember',         'hM',    {'collection','entity'};...
-    'bundle',            '',      {};...
+    'entity',            '',      {},                                      {};...
+    'activity',          '',      {'startTime','endTime'},                 {@timestr,@timestr};...
+    'agent',             '',      {},                                      {};...
+    'wasGeneratedBy',    'wGB',   {'entity','activity','time'},            {n,n,@timestr};...
+    'used',              'u',     {'activity','entity','time'},            {n,n,@timestr};...
+    'wasInformedBy',     'wInfm', {'informed','informant'},                {n,n};...
+    'wasStartedBy',      'wSB',   {'activity','trigger','starter','time'}, {n,n,n,@timestr};...
+    'wasEndedBy',        'wEB',   {'activity','trigger','ender','time'},   {n,n,n,@timestr};...
+    'wasInvalidatedBy',  'wIB',   {'entity','activity','time'},            {n,n,@timestr};...
+    'wasDerivedFrom',    'wDF',   {'generatedEntity','usedEntity','activity','generation','usage'}, {n,n,n,n,n};...
+    'wasAttributedTo',   'wAT',   {'entity','agent'},                      {n,n};...
+    'wasAssociatedWith', 'wAW',   {'activity','agent','plan'},             {n,n,n};...
+    'actedOnBehalfOf',   'aOBO',  {'delegate','responsible','activity'},   {n,n,n};...
+    'wasInfluencedBy',   'wInf',  {'influencee','influencer'},             {n,n};...
+    'alternateOf',       'aO',    {'alternate1','alternate2'},             {n,n};...
+    'specializationOf',  'sO',    {'specificEntity','generalEntity'},      {n,n};...
+    'hadMember',         'hM',    {'collection','entity'},                 {n,n};...
+    'bundle',            '',      {},                                      {};...
     };
 end
