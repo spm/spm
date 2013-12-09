@@ -1,11 +1,11 @@
 function headmodel = spm_cfg_eeg_inv_headmodel
-% configuration file for specifying the head model for source
-% reconstruction
+% Configuration file for specifying the head model for source reconstruction
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 5792 2013-12-09 12:09:33Z guillaume $
+
 
 D = cfg_files;
 D.tag = 'D';
@@ -116,8 +116,10 @@ type.strtype = 'r';
 type.num = [1 3];
 type.help = {'Type the coordinates corresponding to the fiducial in the structural image.'};
 
-fid = fopen(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp') ,'rt');
-fidtable =textscan(fid ,'%s %f %f %f');
+fiducials_filename = fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp');
+fid = fopen(fiducials_filename ,'rt');
+if fid == -1, error('Cannot open "%s".',fiducials_filename); end
+fidtable = textscan(fid ,'%s %f %f %f');
 fclose(fid);
 
 select = cfg_menu;
@@ -272,7 +274,7 @@ for i = 1:numel(job.D)
     end
     
     %-Coregistration
-    %--------------------------------------------------------------------------
+    %----------------------------------------------------------------------
     if isfield(job.coregistration, 'coregdefault')
         D = spm_eeg_inv_datareg_ui(D);
     else
@@ -330,4 +332,3 @@ dep.sname = 'M/EEG dataset(s) with a forward model';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-

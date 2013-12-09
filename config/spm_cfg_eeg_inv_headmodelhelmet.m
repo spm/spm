@@ -1,12 +1,12 @@
 function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
-% configuration file for specifying the head model for source
-% reconstruction. THis is for registration using new helmet design. GRB
-% 2012
-%_______________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Configuration file for specifying the head model for source reconstruction
+% This is for registration using new helmet design.
+%__________________________________________________________________________
+% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5286 2013-02-27 17:26:52Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5792 2013-12-09 12:09:33Z guillaume $
+
 
 D = cfg_files;
 D.tag = 'D';
@@ -117,8 +117,10 @@ type.strtype = 'r';
 type.num = [1 3];
 type.help = {'Type the coordinates corresponding to the fiducial in the structural image.'};
 
-fid = fopen(fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp') ,'rt');
-fidtable =textscan(fid ,'%s %f %f %f');
+fiducials_filename = fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp');
+fid = fopen(fiducials_filename ,'rt');
+if fid == -1, error('Cannot open "%s".',fiducials_filename); end
+fidtable = textscan(fid ,'%s %f %f %f');
 fclose(fid);
 
 select = cfg_menu;
@@ -265,7 +267,7 @@ for i = 1:numel(job.D)
     
     %sMRI='D:\Luzia\MQ0342.3_bakup2\wmsMQ0342-0003-00001-000001-01.img'
     D = spm_eeg_inv_mesh_ui(D, val, sMRI, job.meshing.meshres); %% the mesh on the custom (or template) mri
-    %% writes out new cortex mesh in native mri space
+    % writes out new cortex mesh in native mri space
     spm_eeg_inv_checkmeshes(D);
 
     if isfield(job.meshing.meshes, 'custom')
@@ -303,20 +305,20 @@ for i = 1:numel(job.D)
     %--------------------------------------------------------------------------
     
     if isfield(job.coregistration, 'coregdefault')
-        %% register using the Troebinger helmet system
+        % register using the Troebinger helmet system
         H1=load(job.coregistration.coregdefault{1}); %%
-        %% a number of coordinate systems to reconcile here:
-        %% the helmet coregistration was made in dewar space (a ctf dewar based coordinate system)
-        %% the transformation from dewar space to the native MRI is given by dewDEFAULT2NATIVE
-        %% when not using fiducial coils one also has a default ctf head based coordinate system
-        %% to get from the default head centered coordinate system to dewar space use H1.defaultHead2MEGdewar
-        %%  to get from the default head centered coordinate system to the current (coil defined) head centered
-        %% coordinate system use defaultHead2currentHead
+        % a number of coordinate systems to reconcile here:
+        % the helmet coregistration was made in dewar space (a ctf dewar based coordinate system)
+        % the transformation from dewar space to the native MRI is given by dewDEFAULT2NATIVE
+        % when not using fiducial coils one also has a default ctf head based coordinate system
+        % to get from the default head centered coordinate system to dewar space use H1.defaultHead2MEGdewar
+        %  to get from the default head centered coordinate system to the current (coil defined) head centered
+        % coordinate system use defaultHead2currentHead
         
         dewDEFAULT2NATIVE=H1.MEGdewar2MRI'; % H1.MEG2MRI transforms from MEG default dewar space to native MRI
         
         
-        try, %% need to fix this- spm object changed since calibration
+        try, % need to fix this- spm object changed since calibration
             nocoilpos=H1.Dnocoils.sensors('MEG').coilpos;
             nocoilfids=H1.Dnocoils.fiducials;
         catch
@@ -326,7 +328,7 @@ for i = 1:numel(job.D)
         
         if max(max(abs(D.fiducials.fid.pnt-nocoilfids.fid.pnt)))>1e-3,
             error('Both fiducial and headcast info: reset with ''changeHeadPos -nominal'' on Acq machine'); %% NEED TO WORK ON THIS
-            %% changeHeadpos -nominal resets to default coil positions
+            % changeHeadpos -nominal resets to default coil positions
             
         end;
         defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',nocoilpos');
@@ -341,15 +343,15 @@ for i = 1:numel(job.D)
         
 
         megpts=meegfid.fid.pnt; %% fiducials in head (dewar/sensor) space
-        %% first convert these to points in default head centred space
+        % first convert these to points in default head centred space
         megpts_defaulthead=pinv(defaultHead2currentHead)*[megpts';ones(1,size(megpts,2))];
-        %% now convert these default-head centred points to dewar space
+        % now convert these default-head centred points to dewar space
         megpts_dewar=H1.defaultHead2MEGdewar*megpts_defaulthead;
-        %% now from dewar points to native
+        % now from dewar points to native
         megpts_native=dewDEFAULT2NATIVE*megpts_dewar;
 
         
-        %% put all transforms into one big one: current head centred coordinates to native space
+        % put all transforms into one big one: current head centred coordinates to native space
         currenthead2NATIVE=dewDEFAULT2NATIVE*H1.defaultHead2MEGdewar*pinv(defaultHead2currentHead);
         nativepts=currenthead2NATIVE*[megpts';ones(1,size(megpts,2))]
         
@@ -434,4 +436,3 @@ dep.sname = 'M/EEG dataset(s) with a forward model';
 dep.src_output = substruct('.','D');
 % this can be entered into any evaluated input
 dep.tgt_spec   = cfg_findspec({{'filter','mat'}});
-
