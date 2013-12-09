@@ -23,13 +23,13 @@ function [vol] = ama2vol(ama)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ama2vol.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ama2vol.m 8962 2013-12-05 07:48:46Z roboos $
 
 vol  = [];
 ngeo = length(ama.geo);
 for i=1:ngeo
   vol.bnd(i).pnt = ama.geo(i).pnt;
-  vol.bnd(i).tri = ama.geo(i).dhk;
+  vol.bnd(i).tri = ama.geo(i).tri;
   vol.cond(i) = ama.geo(i).sigmam;
 end
 vol.mat = ama.bi;

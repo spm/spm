@@ -1,9 +1,9 @@
-function [pnt, dhk] = cylinder(Naz, Nel)
+function [pnt, tri] = cylinder(Naz, Nel)
 
 % CYLINDER creates a triangulated cylinder
 % 
 % Use as
-%   [pnt, dhk] = cylinder(Naz, Nel)
+%   [pnt, tri] = cylinder(Naz, Nel)
 
 % Copyright (C) 2002, Robert Oostenveld
 %
@@ -23,13 +23,13 @@ function [pnt, dhk] = cylinder(Naz, Nel)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: cylinder.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: cylinder.m 8962 2013-12-05 07:48:46Z roboos $
 
 az = (2*pi*(0:(Naz-1))/Naz)';
 el = (linspace(-1,1,Nel))';
 
 pnt = zeros(Naz*Nel+2, 3);
-dhk = zeros(2*Naz*(Nel-1)+2*Naz,3);
+tri = zeros(2*Naz*(Nel-1)+2*Naz,3);
 
 for i=1:Nel
   pnt(((i-1)*Naz+1):(i*Naz), :) = [cos(az) sin(az) el(i)*ones(Naz,1)];
@@ -38,32 +38,32 @@ end
 pnt(Naz*Nel+1,:) = [0 0 -1];
 pnt(Naz*Nel+2,:) = [0 0  1];
 
-ndhk = 1;
+ntri = 1;
 for i=1:(Nel-1)
   for j=1:(Naz-1)
-    dhk(ndhk, :) = [(i-1)*Naz+j (i-1)*Naz+j+1 i*Naz+j+1];
-    ndhk = ndhk+1;
-    dhk(ndhk, :) = [(i-1)*Naz+j i*Naz+j+1 i*Naz+j];
-    ndhk = ndhk+1;
+    tri(ntri, :) = [(i-1)*Naz+j (i-1)*Naz+j+1 i*Naz+j+1];
+    ntri = ntri+1;
+    tri(ntri, :) = [(i-1)*Naz+j i*Naz+j+1 i*Naz+j];
+    ntri = ntri+1;
   end
-  dhk(ndhk, :) = [i*Naz (i-1)*Naz+1 i*Naz+1];
-  ndhk = ndhk+1;
-  dhk(ndhk, :) = [i*Naz i*Naz+1 (i+1)*Naz];
-  ndhk = ndhk+1;
+  tri(ntri, :) = [i*Naz (i-1)*Naz+1 i*Naz+1];
+  ntri = ntri+1;
+  tri(ntri, :) = [i*Naz i*Naz+1 (i+1)*Naz];
+  ntri = ntri+1;
 end
 
 % connect the bottom point to the cylinder edge
 for i=1:(Naz-1)
-  dhk(ndhk, :) = [Naz*Nel+1 i+1 i];
-  ndhk = ndhk+1;
+  tri(ntri, :) = [Naz*Nel+1 i+1 i];
+  ntri = ntri+1;
 end
-dhk(ndhk, :) = [Naz*Nel+1 1 Naz];
-ndhk = ndhk+1;
+tri(ntri, :) = [Naz*Nel+1 1 Naz];
+ntri = ntri+1;
 
 % connect the top point to the cylinder edge
 for i=1:(Naz-1)
-  dhk(ndhk, :) = [Naz*Nel+2 Naz*(Nel-1)+i Naz*(Nel-1)+i+1];
-  ndhk = ndhk+1;
+  tri(ntri, :) = [Naz*Nel+2 Naz*(Nel-1)+i Naz*(Nel-1)+i+1];
+  ntri = ntri+1;
 end
-dhk(ndhk, :) = [Naz*Nel+2 Naz*Nel Naz*(Nel-1)+1];
+tri(ntri, :) = [Naz*Nel+2 Naz*Nel Naz*(Nel-1)+1];
 

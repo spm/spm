@@ -54,7 +54,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 8926 2013-11-29 20:14:17Z roboos $
+% $Id: ft_apply_montage.m 8990 2013-12-09 10:19:45Z eelspa $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -178,7 +178,9 @@ montage.labelorg        = montage.labelorg(selmontage);
 
 % making the tra matrix sparse will speed up subsequent multiplications
 % but should not result in a sparse matrix
-if size(montage.tra,1)>1
+% note that this only makes sense for matrices with a lot of zero elements,
+% for dense matrices keeping it full will be much quicker
+if size(montage.tra,1)>1 && nnz(montage.tra)/numel(montage.tra) < 0.3
   montage.tra = sparse(montage.tra);
 end
 

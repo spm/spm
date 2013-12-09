@@ -36,7 +36,7 @@ function vol = ft_headmodel_singlesphere(geometry, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_singlesphere.m 8817 2013-11-19 14:23:29Z roboos $
+% $Id: ft_headmodel_singlesphere.m 8963 2013-12-05 08:41:12Z roboos $
 
 % get the optional arguments
 conductivity = ft_getopt(varargin, 'conductivity', 1);
@@ -81,7 +81,7 @@ vol.unit = geometry.unit;
 
 vol.r    = single_r;
 vol.o    = single_o;
-vol.c    = conductivity;
+vol.cond = conductivity;
 vol.type = 'singlesphere';
 
-fprintf('single sphere: radius = %.1f, conductivity = %f\n', vol.r, vol.c);
+fprintf('single sphere: radius = %.1f, conductivity = %f\n', vol.r, vol.cond);

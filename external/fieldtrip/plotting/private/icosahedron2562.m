@@ -1,4 +1,4 @@
-function [pnt, dhk] = icosahedron();
+function [pnt, tri] = icosahedron();
 
 % ICOSAHEDRON2562 creates a 4-fold refined icosahedron
 
@@ -22,10 +22,10 @@ function [pnt, dhk] = icosahedron();
 %
 % $Id: icosahedron2562.m 8779 2013-11-14 10:57:06Z roboos $
 
-[pnt, dhk] = icosahedron;
-[pnt, dhk] = refine(pnt, dhk);
-[pnt, dhk] = refine(pnt, dhk);
-[pnt, dhk] = refine(pnt, dhk);
-[pnt, dhk] = refine(pnt, dhk);
+[pnt, tri] = icosahedron;
+[pnt, tri] = refine(pnt, tri);
+[pnt, tri] = refine(pnt, tri);
+[pnt, tri] = refine(pnt, tri);
+[pnt, tri] = refine(pnt, tri);
 
 pnt = pnt ./ repmat(sqrt(sum(pnt.^2,2)), 1,3);

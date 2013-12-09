@@ -22,7 +22,7 @@ function [vol] = read_ctf_hdm(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_hdm.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_ctf_hdm.m 8950 2013-12-04 10:34:50Z roboos $
 
 vol   = [];
 ascii = read_ctf_ascii(filename);
@@ -40,8 +40,8 @@ if isfield(ascii, 'MultiSphere_Data')
   for i=1:length(chans)
     tmp = getfield(ascii.MultiSphere_Data, chans{i});
     vol.label{i} = chans{i};
-    vol.r(i) = tmp(4);
-    vol.o(i, :) = tmp(1:3);
+    vol.r(i)     = tmp(4);
+    vol.o(i, :)  = tmp(1:3);
   end
   vol.r = vol.r(:); % ensure column vector
 elseif isfield(ascii, 'MEG_Sphere')

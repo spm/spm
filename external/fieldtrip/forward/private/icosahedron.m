@@ -1,8 +1,8 @@
-function [pnt, dhk] = icosahedron();
+function [pnt, tri] = icosahedron();
 
 % ICOSAHEDRON creates an icosahedron
 %
-% [pnt, dhk] = icosahedron
+% [pnt, tri] = icosahedron
 % creates an icosahedron with 12 vertices and 20 triangles
 % 
 % See also OCTAHEDRON, ICOSAHEDRON42, ICOSAHEDRON162, ICOSAHEDRON642, ICOSAHEDRON2562
@@ -25,9 +25,9 @@ function [pnt, dhk] = icosahedron();
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron.m 8743 2013-11-08 09:57:32Z roboos $
+% $Id: icosahedron.m 8961 2013-12-05 07:43:05Z roboos $
 
-dhk = [
+tri = [
    1   2   3
    1   3   4
    1   4   5

@@ -1,8 +1,8 @@
-function [pnt, line] = find_mesh_edge(pnt, dhk);
+function [pnt, line] = find_mesh_edge(pnt, tri);
 
 % FIND_MESH_EDGE returns the edge of a triangulated mesh
 %
-% [pnt, line] = find_mesh_edge(pnt, dhk), where
+% [pnt, line] = find_mesh_edge(pnt, tri), where
 %
 % pnt   contains the vertex locations and 
 % line  contains the indices of the linepieces connecting the vertices
@@ -25,23 +25,23 @@ function [pnt, line] = find_mesh_edge(pnt, dhk);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_mesh_edge.m 8743 2013-11-08 09:57:32Z roboos $
+% $Id: find_mesh_edge.m 8961 2013-12-05 07:43:05Z roboos $
 
 npnt = size(pnt,1);
-ndhk = size(dhk,1);
+ntri = size(tri,1);
 
 line = zeros(0,2);
-nb   = find_triangle_neighbours(pnt, dhk);
+nb   = find_triangle_neighbours(pnt, tri);
 edge = isnan(nb);
 indx = any(edge, 2);
 for i=find(indx)'
   if isnan(nb(i,1))
-    line(end+1, :) = dhk(i,[1 2]);
+    line(end+1, :) = tri(i,[1 2]);
   end
   if isnan(nb(i,2))
-    line(end+1, :) = dhk(i,[2 3]);
+    line(end+1, :) = tri(i,[2 3]);
   end
   if isnan(nb(i,3))
-    line(end+1, :) = dhk(i,[3 1]);
+    line(end+1, :) = tri(i,[3 1]);
   end
 end

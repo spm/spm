@@ -16,7 +16,7 @@ function segmentation = ft_datatype_segmentation(segmentation, varargin)
 %
 %              dim: [161 191 141]        the size of the 3D volume in voxels
 %        transform: [4x4 double]         affine transformation matrix for mapping the voxel coordinates to head coordinate system
-%            coord: 'tal'                the transformation matrix maps the voxels into this (head) coordinate system
+%         coordsys: 'tal'                the transformation matrix maps the voxels into this (head) coordinate system
 %             unit: 'mm'                 the units in which the coordinate system is expressed
 %           brick0: [161x191x141 uint8]  integer values from 1 to N, the value 0 means unknown
 %           brick1: [161x191x141 uint8]  integer values from 1 to M, the value 0 means unknown
@@ -94,7 +94,7 @@ function segmentation = ft_datatype_segmentation(segmentation, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_segmentation.m 8892 2013-11-28 19:20:56Z jansch $
+% $Id: ft_datatype_segmentation.m 8953 2013-12-04 10:43:37Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version           = ft_getopt(varargin, 'version', 'latest');
@@ -170,7 +170,10 @@ switch segversion
     % convert the segmentation to the desired style
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    if probabilistic && strcmp(segmentationstyle, 'indexed')
+    if isempty(segmentationstyle)
+      % keep it as is
+      clear fn % to avoid any potential confusion
+    elseif probabilistic && strcmp(segmentationstyle, 'indexed')
       segmentation  = convert_segmentationstyle(segmentation, fn, segmentation.dim, 'indexed');
       indexed       = true;
       probabilistic = false;

@@ -54,21 +54,24 @@ function [hdr] = ft_read_header(filename, varargin)
 %   NeuroScan (*.eeg, *.cnt, *.avg)
 %   Nexstim (*.nxe)
 %
-% The following spike and LFP dataformats are supported (with some limitations)
-%   Neuralynx (*.ncs, *.nse, *.nts, *.nev, DMA log files)
+% The following spike and LFP dataformats are supported
+%   Neuralynx (*.ncs, *.nse, *.nts, *.nev, *.nrd, *.dma, *.log)
 %   Plextor (*.nex, *.plx, *.ddt)
 %   CED - Cambridge Electronic Design (*.smr)
 %   MPI - Max Planck Institute (*.dap)
-%   neurosim_spikes
-%   neurosim_signals, Neurosim_ds
+%   Neurosim  (neurosim_spikes, neurosim_signals, neurosim_ds)
+%   Windaq (*.wdq)
 %
 % The following NIRS dataformats are supported
-%   BUCN (*.txt)
+%   BUCN - Birkbeck college, London (*.txt)
+%
+% The following Eyetracker dataformats are supported
+%   EyeLink - SR Research (*.asc)
 %
 % See also FT_READ_DATA, FT_READ_EVENT, FT_WRITE_DATA, FT_WRITE_EVENT,
 % FT_CHANTYPE, FT_CHANUNIT
 
-% Copyright (C) 2003-2012 Robert Oostenveld
+% Copyright (C) 2003-2013 Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -86,7 +89,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 8932 2013-12-02 10:01:25Z roboos $
+% $Id: ft_read_header.m 8975 2013-12-05 13:18:26Z roboos $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 

@@ -23,11 +23,11 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_prepare_concentricspheres.m 8963 2013-12-05 08:41:12Z roboos $
 
 warning('FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''concentricspheres'' instead.')
 
-revision = '$Id: ft_prepare_concentricspheres.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_prepare_concentricspheres.m 8963 2013-12-05 08:41:12Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -127,7 +127,7 @@ for i = 1:numel(headshape)
 end
 
 if numel(cfg.conductivity)==numel(headshape)
-  vol.c = cfg.conductivity;
+  vol.cond = cfg.conductivity;
 else
   error('incorrect specification of cfg.conductivity');
 end

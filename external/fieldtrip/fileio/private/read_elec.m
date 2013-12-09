@@ -5,7 +5,7 @@ function [el, lab] = read_elec(fn);
 %
 % [el, lab] = read_elec(filename)
 %
-% where el = [dhk, la, mu]
+% where el = [tri, la, mu]
 % and lab contains the electrode labels (if present)
 %
 % See also READ_TRI, TRANSFER_ELEC
@@ -28,7 +28,7 @@ function [el, lab] = read_elec(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_elec.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_elec.m 8962 2013-12-05 07:48:46Z roboos $
 
 fid = fopen(fn, 'rt');
 if fid~=-1

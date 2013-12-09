@@ -1,8 +1,8 @@
-function [pnt, dhk] = read_off(fn);
+function [pnt, tri] = read_off(fn);
 
 % READ_OFF reads vertices and triangles from a OFF format triangulation file
 %
-% [pnt, dhk] = read_off(filename)
+% [pnt, tri] = read_off(filename)
 %
 % See also READ_TRI, READ_BND
 
@@ -24,7 +24,7 @@ function [pnt, dhk] = read_off(fn);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_off.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_off.m 8962 2013-12-05 07:48:46Z roboos $
 
 fid = fopen(fn, 'rt');
 if fid~=-1
@@ -39,15 +39,15 @@ if fid~=-1
   % read the number of vertex points and triangles
   [val, count] = fscanf(fid, '%d', 3);
   Npnt = val(1)
-  Ndhk = val(2)
+  Ntri = val(2)
 
   % read the vertex points
   pnt  = fscanf(fid, '%f', [3, Npnt]);
   pnt  = pnt(1:3,:)';
 
   % read the triangles
-  dhk = fscanf(fid, '%d', [4, Ndhk]);
-  dhk = (dhk(2:4,:)+1)';
+  tri = fscanf(fid, '%d', [4, Ntri]);
+  tri = (tri(2:4,:)+1)';
   fclose(fid);
 
 else

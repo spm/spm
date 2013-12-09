@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 8917 2013-11-29 11:53:25Z roboos $
+% $Id: ft_read_headshape.m 8955 2013-12-04 11:01:37Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -205,10 +205,6 @@ else
   % start with an empty structure
   shape           = [];
   shape.pnt       = [];
-  % FIXME is it required that it has an empty fiducial substructure? -> perhaps for SPM
-  shape.fid.pnt   = [];
-  shape.fid.label = {};
-  
   
   switch fileformat
     case {'ctf_ds', 'ctf_hc', 'ctf_meg4', 'ctf_res4', 'ctf_old'}
@@ -243,9 +239,9 @@ else
       orig = read_ctf_shape(filename);
       shape.pnt = orig.pnt;
       shape.fid.label = {'NASION', 'LEFT_EAR', 'RIGHT_EAR'};
+      shape.fid.pnt = zeros(0,3); % start with an empty array
       for i = 1:numel(shape.fid.label)
-        shape.fid.pnt = cat(1, shape.fid.pnt, ...
-          getfield(orig.MRI_Info, shape.fid.label{i}));
+        shape.fid.pnt = cat(1, shape.fid.pnt, getfield(orig.MRI_Info, shape.fid.label{i}));
       end
       
     case {'4d_xyz', '4d_m4d', '4d_hs', '4d', '4d_pdf'}
@@ -443,7 +439,7 @@ else
         shape.ctable = c.table;
       end
       
-    case {'neuromag_mne', 'neuromag_fif' 'babysquid_fif'}
+    case {'neuromag_fif' 'neuromag_mne'}
       
       orig = read_neuromag_hc(filename);
       switch coordsys
@@ -651,8 +647,6 @@ else
       end
       shape.pnt = pnt;
       shape.tri = tri;
-      shape = rmfield(shape, 'fid');
-      
       
       % for the left and right
       [path,name,ext] = fileparts(filename);
@@ -759,8 +753,6 @@ else
       end
       IMPORT = importdata([filename '.node'],' ',1);
       shape.pnt = IMPORT.data(:,2:4);
-      % the fiducials don't apply to this format
-      shape = rmfield(shape,'fid');
       
     case 'brainsuite_dfs'
       % this requires the readdfs function from the BrainSuite MATLAB utilities
@@ -778,16 +770,20 @@ else
       while ~isempty(x)
         [junk, f, x] = fileparts(f);
       end
-      
+
       if exist(fullfile(p, [f '.nii']), 'file')
         fprintf('reading accompanying MRI file "%s"\n', fullfile(p, [f '.nii']));
         mri = ft_read_mri(fullfile(p, [f '.nii']));
-        shape.pnt  = ft_warp_apply(mri.transform, shape.pnt);
+        transform = eye(4);
+        transform(1:3,4) = mri.transform(1:3,4); % only use the translation
+        shape.pnt  = ft_warp_apply(transform, shape.pnt);
         shape.unit = mri.unit;
       elseif exist(fullfile(p, [f '.nii.gz']), 'file')
         fprintf('reading accompanying MRI file "%s"\n', fullfile(p, [f '.nii']));
         mri = ft_read_mri(fullfile(p, [f '.nii.gz']));
-        shape.pnt  = ft_warp_apply(mri.transform, shape.pnt);
+        transform = eye(4);
+        transform(1:3,4) = mri.transform(1:3,4); % only use the translation
+        shape.pnt  = ft_warp_apply(transform, shape.pnt);
         shape.unit = mri.unit;
       else
         warning('could not find accompanying MRI file, returning vertices in voxel coordinates');
