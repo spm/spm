@@ -1,15 +1,15 @@
 function DCM = spm_dcm_erp_update(DCM,oldDCM,fields)
-% sets priors over DCM model parameters for Bayesian updating
+% Set priors over DCM model parameters for Bayesian updating
 % FORMAT DCM = spm_dcm_erp_update(DCM,oldDCM,fields)
 %
 % DCM    - DCM structure to be updated
 % oldDCM - inverted DCM with posterior moments
 % fields - character array of fields to be updated: e.g.,{'A','B'}
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_sensitivity.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp_update.m 5801 2013-12-10 18:45:20Z guillaume $
 
 % get prior structure for the sort of model
 %==========================================================================
@@ -28,8 +28,8 @@ Cp      = spm_unvec(diag(oldDCM.Cp),Ep);
 %--------------------------------------------------------------------------
 for i = 1:length(fields)
     
-    pE = setfield(pE,fields{i},getfield(Ep,fields{i}));
-    pC = setfield(pC,fields{i},getfield(Cp,fields{i}));
+    pE.(fields{i}) = Ep.(fields{i});
+    pC.(fields{i}) = Cp.(fields{i});
     
 end
 
