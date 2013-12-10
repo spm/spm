@@ -6,7 +6,7 @@ function out = spm_run_tissue_volumes(cmd, job)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: spm_run_tissue_volumes.m 5670 2013-10-04 16:48:38Z ged $
+% $Id: spm_run_tissue_volumes.m 5800 2013-12-10 18:33:15Z guillaume $
 
 switch lower(cmd)
     %----------------------------------------------------------------------    
@@ -49,7 +49,7 @@ switch lower(cmd)
             end
             mwc = cell(T, 1);
             for t = 1:T
-                mwc{t} = spm_file(fnm, 'prefix', ['mwc' num2str(t)]);
+                mwc{t} = spm_file(fnm, 'prefix', ['mwc' num2str(t)],'ext','nii');
                 if ~exist(mwc{t}, 'file')
                     tc(t, 4) = true; % i.e. need to produce this mwc
                 end
