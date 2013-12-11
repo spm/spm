@@ -12,7 +12,7 @@ function data = spm_eeg_inv_get_vol_sens(D, val, space, gradsource, modality)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_get_vol_sens.m 5777 2013-12-04 16:18:12Z vladimir $
+% $Id: spm_eeg_inv_get_vol_sens.m 5803 2013-12-11 16:18:12Z vladimir $
 
 data   = [];
 
@@ -164,11 +164,7 @@ if eegind > 0 && ~strncmp(modality, 'MEG', 3)
                 vol = ft_read_vol(vol);
             end
             
-            fromNative = inv(data.transforms.toNative);
-            
-            if siunits
-                fromNative = to_mm\fromNative;
-            end
+            fromNative = data.transforms.toNative\to_mm;
             
             data.EEG.vol  = ft_transform_vol(fromNative, vol);
             data.EEG.sens = ft_transform_sens(fromNative, sens);
