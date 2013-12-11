@@ -33,14 +33,14 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: spm_MDP_urn.m 5802 2013-12-11 14:29:39Z karl $
  
 % set up and preliminaries
 %==========================================================================
 rng('default')
 
 T     = 8;                         % number of trials in each game
-Pa    = .9;                        % pproportion of red or green goals
+Pa    = .85;                       % proportion of red or green goals
  
 % hidden (and initial) states (a red urn with no drawers)
 %--------------------------------------------------------------------------
@@ -74,14 +74,16 @@ B{3}    = kron(eye(2),kron([0 0 0;0 1 0;1 0 1],eye(T*T)));
 % priors over final state (exp(utility))
 %--------------------------------------------------------------------------
 L     = zeros(T,T,3,2);
+W     = zeros(T,T,3,2);
 rho   = log(Pa/(1 - Pa));
 for n = 0:(T - 1)
+    W(n + 1,:,:,:) = - n/8;
     for k = 0:n
         L(n + 1,k + 1,2,1) = (n - 2*k)*rho;
         L(n + 1,k + 1,3,2) = (2*k - n)*rho;
     end
 end
-C     = spm_softmax((spm_vec(L) > 3)*3);
+C     = spm_softmax(spm_vec((L > 3) + W)*4);
 
  
 % allowable policies (one decision before the game ends)
@@ -89,7 +91,6 @@ C     = spm_softmax((spm_vec(L) > 3)*3);
 V     = [ones(T,T) + eye(T,T), ones(T,T) + 2*eye(T,T)];
  
  
-
 % MDP Structure
 %==========================================================================
 MDP.T = T;                          % process depth (the horizon)
@@ -104,18 +105,19 @@ MDP.V = V;                          % allowable policies
 %==========================================================================
 spm_figure('GetWin','Figure 1'); clf
  
-% create a sequence of draws (outcomes)
+% create a sequence of draws (outcomes) - with and oddball on the 4th
 %--------------------------------------------------------------------------
-k     = cumsum([0 0 0 1 0 0 0]);
-o     = zeros(1,length(k));
-for n = 1:length(k)
+k     = cumsum([0 0 0 1 0 0 0 0]);
+a     = [1 1 1 1 1 1 2];
+o     = zeros(1,length(a) - 1);
+for n = 1:length(o)
     o(n) = sub2ind([T,T,3],n,k(n) + 1,1);
 end
  
 % Active inference (precluding a decision until the last trial)
 %--------------------------------------------------------------------------
 MDP.o    = o; 
-MDP.a    = ones(1,T - 1);
+MDP.a    = a;
 MDP.plot = gcf;
 MDP.N    = 8;
 MDP      = spm_MDP_game(MDP);
@@ -145,6 +147,15 @@ axis([1 nd 0 4])
 % Illustrate dependency parameters
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
+
+% create a sequence of draws (outcomes) - no oddballs
+%--------------------------------------------------------------------------
+k     = cumsum([0 0 0 0 0 0 0 0]);
+o     = zeros(1,length(k));
+for n = 1:length(k)
+    o(n) = sub2ind([T,T,3],n,k(n) + 1,1);
+end
+
  
 % probability distribution over time: P(1,:) is no action
 %--------------------------------------------------------------------------
@@ -152,7 +163,8 @@ PrT      = @(P) [1 cumprod(P(1,1:end - 1))].*(1 - P(1,:));
 MDP.plot = 0;                        % plot convergence
 MDP.N    = 4;                        % number of variational iterations
 MDP.a    = ones(1,T);                % and action
- 
+MDP.o    = o;                        % and outcomes
+
 % beliefs about final state - decision threshold (log likelihood)
 %--------------------------------------------------------------------------
 DP    = MDP;
@@ -160,7 +172,7 @@ PF    = [];
 DF    = [];
 p     = linspace(0,8,8);
 for i = 1:length(p)
-    DP.C    = spm_softmax((spm_vec(L) > p(i))*3);
+    DP.C    = spm_softmax(spm_vec((L > p(i)) + W)*4);
     DP      = spm_MDP_game(DP);
     PF(i,:) = 1 - DP.P(1,:);
     DF(i,:) = PrT(DP.P);
@@ -289,7 +301,7 @@ axis square
 subplot(2,2,3)
 plot(p,Lp - min(Lp))
 xlabel('Parameter','FontSize',12)
-ylabel('Probability','FontSize',12)
+ylabel('Log-likelihood','FontSize',12)
 title('Log-likelihood','FontSize',16)
 axis square
     
