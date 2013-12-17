@@ -56,7 +56,7 @@ function [vol, sens] = ft_prepare_vol_sens(vol, sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_vol_sens.m 8928 2013-12-02 08:10:04Z roboos $
+% $Id: ft_prepare_vol_sens.m 8997 2013-12-09 13:23:21Z roboos $
 
 % get the optional input arguments
 % fileformat = ft_getopt(varargin, 'fileformat');
@@ -508,20 +508,11 @@ elseif iseeg
         end
       end
       
-      if ~isfield(sens, 'tra')
-        sens.tra = eye(length(vol.label));
-      end
-      
-      if ~isfield(vol.sens, 'tra')
-        vol.sens.tra = eye(length(vol.sens.label));
-      end
-      
-      % the channel positions can be nan, for example for a bipolar montage
-      match = isequal(sens.label, vol.sens.label) & ...
-        isequal(sens.tra, vol.sens.tra)           & ...
-        isequal(sens.elecpos, vol.sens.elecpos);
-      
-      if match
+      matchlab = isequal(sens.label, vol.sens.label);
+      matchpos = isequal(sens.elecpos, vol.sens.elecpos);
+      matchtra = (~isfield(sens, 'tra') && ~isfield(vol.sens, 'tra')) || isequal(sens.tra, vol.sens.tra); 
+
+      if matchlab && matchpos && matchtra
         % the input sensor array matches precisely with the forward model
         % no further interpolation is needed
       else

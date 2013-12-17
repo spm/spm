@@ -128,9 +128,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 8690 2013-11-01 13:18:35Z roboos $
+% $Id: ft_volumesegment.m 9006 2013-12-10 11:24:56Z roboos $
 
-revision = '$Id: ft_volumesegment.m 8690 2013-11-01 13:18:35Z roboos $';
+revision = '$Id: ft_volumesegment.m 9006 2013-12-10 11:24:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -155,7 +155,7 @@ if isfield(cfg, 'coordsys') && ~isfield(mri, 'coordsys')
 end
 
 % check if the input data is valid for this function
-mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunits', 'yes', 'hascoordsys', 'yes');
+mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunit', 'yes', 'hascoordsys', 'yes');
 
 % set the defaults
 cfg.output           = ft_getopt(cfg, 'output',           'tpm');

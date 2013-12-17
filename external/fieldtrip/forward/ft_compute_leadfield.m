@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 8963 2013-12-05 08:41:12Z roboos $
+% $Id: ft_compute_leadfield.m 8997 2013-12-09 13:23:21Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -482,7 +482,7 @@ elseif iseeg
       lf = leadfield_fns(pos, vol);
       
     case 'interpolate'
-      % note that the electrode information is contained within the vol structure
+      % note that the electrode information is contained in the vol structure
       lf = leadfield_interpolate(pos, vol);
       % the leadfield is already correctly referenced, i.e. it represents the
       % channel values rather than the electrode values. Prevent that the

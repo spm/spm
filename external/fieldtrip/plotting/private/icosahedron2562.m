@@ -20,7 +20,7 @@ function [pnt, tri] = icosahedron();
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron2562.m 8779 2013-11-14 10:57:06Z roboos $
+% $Id: icosahedron2562.m 8961 2013-12-05 07:43:05Z roboos $
 
 [pnt, tri] = icosahedron;
 [pnt, tri] = refine(pnt, tri);

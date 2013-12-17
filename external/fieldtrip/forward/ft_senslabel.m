@@ -44,8 +44,11 @@ function label = ft_senslabel(type, varargin)
 %  'yokogawa160_planar'
 %  'yokogawa440'
 %  'yokogawa440_planar'
+%
+% It is also possible to specify 
 %  'eeg'
 %  'electrode'
+% although for these an empty set of labels (i.e. {}) will be returned.
 %
 % See also FT_SENSTYPE, FT_CHANNELSELECTION
 
@@ -68,7 +71,7 @@ function label = ft_senslabel(type, varargin)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 8826 2013-11-20 22:28:33Z roboos $
+% $Id: ft_senslabel.m 9009 2013-12-10 14:31:11Z roboos $
 
 % these are for speeding up subsequent calls with the same input arguments
 persistent eeg electrode ant128 btiref bti148 bti148_planar bti148_planar_combined bti248 bti248_planar bti248_planar_combined ctfref ctfheadloc ctf64 ctf151 ctf151_planar ctf151_planar_combined ctf275 ctf275_planar ctf275_planar_combined neuromag122 neuromag122_combined neuromag122alt neuromag122alt_combined neuromag306 neuromag306_combined neuromag306alt neuromag306alt_combined eeg1020 eeg1010 eeg1005 ext1020 biosemi64 biosemi128 biosemi256 egi32 egi64 egi128 egi256 itab28 itab153 itab153_planar itab153_planar_combined yokogawa9 yokogawa64 yokogawa64_planar yokogawa64_planar_combined yokogawa160 yokogawa160_planar yokogawa160_planar_combined yokogawa440 yokogawa440_planar yokogawa440_planar_combined
@@ -80,7 +83,6 @@ end
 
 % get the optional input arguments
 output  = ft_getopt(varargin, 'output', 'normal'); % 'normal' or 'planarcombined'
-
 
 if ~exist(type, 'var')
   error('the requested sensor type "%s" is not supported', type);

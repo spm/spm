@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 8930 2013-12-02 09:34:15Z roboos $
+% $Id: ft_filetype.m 9037 2013-12-17 11:46:44Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -745,7 +745,11 @@ elseif exist(fullfile(p, [f '.dat']), 'file') && (exist(fullfile(p, [f '.gen']),
   type = 'besa_sb';
   manufacturer = 'BESA';
   content = 'simple binary channel data with a separate generic ascii header';
-  
+elseif filetype_check_extension(filename, '.sfh') && filetype_check_header(filename, 'NrOfPoints')
+  type = 'besa_sfh';
+  manufacturer = 'BESA';
+  content = 'electrode and fiducial information';
+    
   % known Dataq file formats
 elseif filetype_check_extension(upper(filename), '.WDQ')
   type         = 'dataq_wdq';

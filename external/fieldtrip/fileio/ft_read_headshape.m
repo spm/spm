@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 8955 2013-12-04 11:01:37Z roboos $
+% $Id: ft_read_headshape.m 9030 2013-12-12 14:54:09Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -196,11 +196,6 @@ if iscell(filename)
   end
   
 else
-  
-  % test whether the file exists (unless it's streamed in realtime)
-  if ~exist(filename) && ~strcmp(fileformat,'fcdc_buffer')
-    error('file ''%s'' does not exist', filename);
-  end
   
   % start with an empty structure
   shape           = [];

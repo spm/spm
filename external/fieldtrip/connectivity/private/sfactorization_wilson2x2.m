@@ -39,7 +39,7 @@ function [H, Z, S, psi] = sfactorization_wilson2x2(S,freq,Niterations,tol,cmbind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson2x2.m 8929 2013-12-02 08:19:56Z jansch $
+% $Id: sfactorization_wilson2x2.m 9016 2013-12-11 11:47:43Z jansch $
 
 if nargin<8, checkflag = true;   end
 if nargin<7, init      = 'chol'; end
@@ -98,7 +98,7 @@ for c = 1:m
   
   for f_ind = 2:N
     Sarr(:,:,c,       f_ind) = Stmp(:,:,f_ind);
-    Sarr(:,:,c,(N2+1)-f_ind) = Stmp(:,:,f_ind).';
+    Sarr(:,:,c,(N2+2)-f_ind) = Stmp(:,:,f_ind).';
   end
 end
 

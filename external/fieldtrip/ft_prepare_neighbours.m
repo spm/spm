@@ -63,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 8186 2013-06-05 08:49:12Z roevdmei $
+% $Id: ft_prepare_neighbours.m 9006 2013-12-10 11:24:56Z roboos $
 
-revision = '$Id: ft_prepare_neighbours.m 8186 2013-06-05 08:49:12Z roevdmei $';
+revision = '$Id: ft_prepare_neighbours.m 9006 2013-12-10 11:24:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -164,7 +164,7 @@ else
     case 'distance'
       % use a smart default for the distance
       if ~isfield(cfg, 'neighbourdist')
-        sens = ft_checkdata(sens, 'hasunits', 'yes');
+        sens = ft_checkdata(sens, 'hasunit', 'yes');
         if isfield(sens, 'unit') && strcmp(sens.unit, 'm')
           cfg.neighbourdist = 0.04;
         elseif isfield(sens, 'unit') && strcmp(sens.unit, 'dm')

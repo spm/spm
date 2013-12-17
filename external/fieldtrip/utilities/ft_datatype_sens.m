@@ -14,6 +14,13 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    sens.coilori  = Nx3 matrix with coil orientations
 %    sens.balance  = structure containing info about the balancing, See FT_APPLY_MONTAGE
 %
+% and optionally
+%    sens.chanposorg = Mx3 matrix with original channel positions (in case
+%                      sens.chanpos has been updated to contain NaNs, e.g.
+%                      after ft_componentanalysis)
+%    sens.chanoriorg = Mx3 matrix with original channel orientations
+%    sens.labelorg   = Mx1 cell-array with original channel labels
+%
 % The structure for EEG or ECoG channels contains
 %    sens.label    = Mx1 cell-array with channel labels
 %    sens.chanpos  = Mx3 matrix with channel positions
@@ -81,7 +88,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 8862 2013-11-26 21:59:28Z roboos $
+% $Id: ft_datatype_sens.m 9013 2013-12-11 09:02:59Z eelspa $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'

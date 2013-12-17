@@ -22,11 +22,11 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_segmentation.m 8970 2013-12-05 10:40:01Z roboos $
+% $Id: prepare_mesh_segmentation.m 9006 2013-12-10 11:24:56Z roboos $
 
 
-% ensure that the input data is consistent with what this function expects
-mri = ft_checkdata(mri, 'datatype', {'volume', 'segmentation'}, 'hasunits', 'yes');
+% ensure that the input is consistent with what this function expects
+mri = ft_checkdata(mri, 'datatype', {'volume', 'segmentation'}, 'hasunit', 'yes');
 
 % get the default options
 cfg.spmversion    = ft_getopt(cfg, 'spmversion', 'spm8');

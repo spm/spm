@@ -31,13 +31,15 @@ function bnd = prepare_mesh_manual(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_manual.m 8350 2013-07-30 12:04:32Z jorhor $
+% $Id: prepare_mesh_manual.m 9006 2013-12-10 11:24:56Z roboos $
 
 % FIXME: control slice's cmap referred to abs values
 % FIXME: clean structure slicedata
 % FIXME: check function assign3dpoints
 
 global obj
+
+mri = ft_checkdata(mri, 'datatype', {'volume', 'segmentation'}, 'hasunit', 'yes');
 
 bnd.pnt = [];
 bnd.tri = [];

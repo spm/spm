@@ -68,9 +68,9 @@ function [simulated] = ft_dipolesimulation(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolesimulation.m 8377 2013-08-02 16:19:13Z roboos $
+% $Id: ft_dipolesimulation.m 9015 2013-12-11 10:15:02Z vlalit $
 
-revision = '$Id: ft_dipolesimulation.m 8377 2013-08-02 16:19:13Z roboos $';
+revision = '$Id: ft_dipolesimulation.m 9015 2013-12-11 10:15:02Z vlalit $';
 
 % do the general setup of the function
 ft_defaults

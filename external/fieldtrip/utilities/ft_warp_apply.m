@@ -26,7 +26,7 @@ function [warped] = ft_warp_apply(M, input, method, tol)
 %   fifth  order : 56 parameters per coordinate (total 168)
 % The size of M should be 3xP, where P is the number of parameters
 % per coordinate. Alternatively, you can specify the method to be
-% 'nonlinear', where the order will be determined from teh size of
+% 'nonlinear', where the order will be determined from the size of
 % the matrix M.
 %
 % If the method 'homogeneous' is selected, the input matrix M should be
@@ -59,7 +59,7 @@ function [warped] = ft_warp_apply(M, input, method, tol)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_warp_apply.m 8754 2013-11-11 12:53:12Z roboos $
+% $Id: ft_warp_apply.m 9000 2013-12-10 08:24:03Z jansch $
 
 if nargin<4
   tol = [];
@@ -175,8 +175,8 @@ elseif strcmp(method, 'sn2individual') && isa(M, 'struct')
 elseif strcmp(method, 'individual2sn') && isa(M, 'struct')
   % use SPM structure with parameters for a warp from
   % individual space to normalized space, can be non-linear
-  error('individual2sn is not yet implemented');
-  
+  %error('individual2sn is not yet implemented');
+  warped = individual2sn(M, input);
 else
   error('unrecognized transformation method');
 end

@@ -53,9 +53,9 @@ function [reslice] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_volumereslice.m 9006 2013-12-10 11:24:56Z roboos $
 
-revision = '$Id: ft_volumereslice.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_volumereslice.m 9006 2013-12-10 11:24:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -67,9 +67,9 @@ ft_preamble loadvar mri
 
 % check if the input data is valid for this function and ensure that the structures correctly describes a volume
 if isfield(mri, 'inside')
-  mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunits', 'yes', 'inside', 'logical');
+  mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunit', 'yes', 'inside', 'logical');
 else
-  mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunits', 'yes');
+  mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunit', 'yes');
 end
 
 % set the defaults

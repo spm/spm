@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 8932 2013-12-02 10:01:25Z roboos $
+% $Id: ft_read_sens.m 9038 2013-12-17 12:34:58Z roboos $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -138,13 +138,25 @@ switch fileformat
       end
     end
     
+  case 'besa_sfh'
+    sfh = readBESAsfh(filename);
+    sens.label   = sfh.SurfacePointsLabels(:);
+    sens.elecpos = sfh.SurfacePointsCoordinates(:,1:3);
+    sel = true(sfh.NrOfPoints, 1);
+    for i=1:sfh.NrOfPoints
+      tok = tokenize(sens.label{i}, '_');
+      sens.label{i} = tok{2};
+      sel(i) = ~strcmp(tok{1}, 'Fid');
+    end
+    sens.label   = sens.label(sel);
+    sens.elecpos = sens.elecpos(sel,:);
+    
   case 'besa_sfp'
     fid = fopen(filename);
     tmp = textscan(fid, ' %[^ \t]%n%n%n');
     fclose(fid);
     sens.label   = tmp{1};
-    sens.chanpos = [tmp{2:4}];
-    sens.elecpos = sens.chanpos;
+    sens.elecpos = [tmp{2:4}];
     
   case {'ctf_ds', 'ctf_res4', 'ctf_old', 'neuromag_fif', 'neuromag_mne', '4d', '4d_pdf', '4d_m4d', '4d_xyz', 'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw', 'itab_raw' 'itab_mhd', 'netmeg'}
     % gradiometer information is always stored in the header of the MEG dataset, hence uses the standard fieldtrip/fileio ft_read_header function
@@ -178,7 +190,7 @@ switch fileformat
     % note that this functionality overlaps with senstype=eeg/meg
     hdr = ft_read_header(filename,'headerformat','neuromag_mne');
     sens = hdr.elec;
-        
+    
   case {'spmeeg_mat', 'eeglab_set'}
     % this is for EEG formats where electrode positions can be stored with the data
     hdr = ft_read_header(filename);

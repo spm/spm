@@ -38,7 +38,7 @@ function [H, Z, S, psi] = sfactorization_wilson(S,freq,Niterations,tol,fb,init,c
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson.m 8929 2013-12-02 08:19:56Z jansch $
+% $Id: sfactorization_wilson.m 9016 2013-12-11 11:47:43Z jansch $
 
 if nargin<7, checkflag = true;   end
 if nargin<6, init      = 'chol'; end
@@ -48,7 +48,7 @@ if nargin<3, Niterations = 1000; end
 
 dfreq = diff(freq);
 if ~all(dfreq==dfreq(1))
-  error('FieldTrip:connectivity:sfactorization_wilson2x2', 'frequency axis is not evenly spaced');
+  error('FieldTrip:connectivity:sfactorization_wilson', 'frequency axis is not evenly spaced');
 end
 
 if freq(1)~=0
@@ -94,13 +94,13 @@ I      = eye(m); % Defining m x m identity matrix
 Sarr(:,:,1) = S(:,:,1).*2;
 for f_ind = 2:N
   Sarr(:,:,       f_ind) = S(:,:,f_ind);
-  Sarr(:,:,(N2+1)-f_ind) = S(:,:,f_ind).';
+  Sarr(:,:,(N2+2)-f_ind) = S(:,:,f_ind).';
 end
 
 % the input cross-spectral density is assumed to be weighted with a
 % factor of 2 in all non-DC and Nyquist bins, therefore weight the 
 % Nyquist bin with a factor of 2 to get a correct two-sided representation
-if mod(size(Sarr,4),2)==0
+if mod(size(Sarr,3),2)==0
   Sarr(:,:,:,N) = Sarr(:,:,:,N).*2;
 end
 

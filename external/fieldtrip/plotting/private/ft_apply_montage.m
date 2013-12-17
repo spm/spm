@@ -54,7 +54,7 @@ function [input] = ft_apply_montage(input, montage, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_apply_montage.m 8990 2013-12-09 10:19:45Z eelspa $
+% $Id: ft_apply_montage.m 9014 2013-12-11 09:03:02Z eelspa $
 
 % get optional input arguments
 keepunused  = ft_getopt(varargin, 'keepunused',  'no');
@@ -230,6 +230,10 @@ switch inputtype
       if keepchans
         sens.chanpos = sens.chanpos(sel2,:);
       else
+        if ~isfield(sens, 'chanposorg')
+          % add a chanposorg only if it is not there yet
+          sens.chanposorg = sens.chanpos;
+        end
         sens.chanpos = nan(numel(montage.labelnew),3);
       end
     end
@@ -238,6 +242,9 @@ switch inputtype
       if keepchans
         sens.chanori = sens.chanori(sel2,:);
       else
+        if ~isfield(sens, 'chanoriorg')
+          sens.chanoriorg = sens.chanori;
+        end
         sens.chanori = nan(numel(montage.labelnew),3);
       end
     end
@@ -261,6 +268,10 @@ switch inputtype
     end
     
     sens.label = montage.labelnew;
+    
+    if ~isfield(sens, 'labelorg')
+      sens.labelorg = inputlabel;
+    end
     
     % keep track of the order of the balancing and which one is the current one
     if strcmp(inverse, 'yes')

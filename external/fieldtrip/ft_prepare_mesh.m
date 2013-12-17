@@ -71,9 +71,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 8971 2013-12-05 10:44:56Z roboos $
+% $Id: ft_prepare_mesh.m 9006 2013-12-10 11:24:56Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 8971 2013-12-05 10:44:56Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 9006 2013-12-10 11:24:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -90,7 +90,8 @@ hasdata = exist('mri', 'var');
 cfg = ft_checkconfig(cfg, 'forbidden', {'numcompartments', 'outputfile', 'sourceunits', 'mriunits'});
 
 % get the options
-cfg.downsample = ft_getopt(cfg, 'downsample', 1); % default is no downsampling
+cfg.downsample  = ft_getopt(cfg, 'downsample', 1); % default is no downsampling
+cfg.numvertices = ft_getopt(cfg, 'numvertices');   % no default
 
 % This was changed on 3 December 2013, this backward compatibility can be removed in 6 months from now.
 if isfield(cfg, 'interactive')
@@ -150,7 +151,6 @@ switch cfg.method
     % call the corresponding helper function
     bnd = prepare_mesh_tetrahedral(cfg, mri);
     
-    
   case {'singlesphere' 'concentricspheres' 'localspheres'}
     % FIXME for localspheres it should be replaced by an outline of the head, see private/headsurface
     fprintf('triangulating the sphere in the volume conductor\n');
@@ -170,7 +170,7 @@ switch cfg.method
 end
 
 % copy the geometrical units from the input to the output
-if ~isfield(bnd, 'unit') && hasdata
+if ~isfield(bnd, 'unit') && hasdata && isfield(mri, 'unit')
   for i=1:numel(bnd)
     bnd(i).unit = mri.unit;
   end

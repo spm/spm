@@ -64,7 +64,7 @@ function [freq] = ft_freqdescriptives(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqdescriptives.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_freqdescriptives.m 8999 2013-12-09 15:20:07Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -122,6 +122,9 @@ if hasrpt, if ~strcmp(cfg.trials,  'all'), freq = ft_selectdata(freq, 'rpt',    
 
 if ~strcmp(cfg.channel, 'all'),
   channel = ft_channelselection(cfg.channel, freq.label);
+  if isempty(channel)
+      error('no channels selected');
+  end
   freq    = ft_selectdata(freq, 'channel', channel);
 end
 

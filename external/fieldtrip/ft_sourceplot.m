@@ -175,9 +175,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_sourceplot.m 9031 2013-12-13 11:22:04Z jansch $
 
-revision = '$Id: ft_sourceplot.m 8753 2013-11-11 12:45:48Z roboos $';
+revision = '$Id: ft_sourceplot.m 9031 2013-12-13 11:22:04Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -201,7 +201,7 @@ if isfield(cfg, 'coordsys') && ~isfield(data, 'coordsys')
 end
 
 % check if the input data is valid for this function
-data     = ft_checkdata(data, 'datatype', {'volume' 'source'}, 'feedback', 'yes', 'hasunits', 'yes');
+data     = ft_checkdata(data, 'datatype', {'volume' 'source'}, 'feedback', 'yes', 'hasunit', 'yes');
 
 % determine the type of data
 issource = ft_datatype(data, 'source');
@@ -261,7 +261,7 @@ cfg.slicerange = ft_getopt(cfg, 'slicerange', 'auto');
 % surface
 cfg.downsample     = ft_getopt(cfg, 'downsample',     1);
 cfg.surfdownsample = ft_getopt(cfg, 'surfdownsample', 1);
-cfg.surffile       = ft_getopt(cfg, 'surffile',       'single_subj_T1.mat');% use a triangulation that corresponds with the collin27 anatomical template in MNI coordinates
+cfg.surffile       = ft_getopt(cfg, 'surffile', 'surface_white_both.mat');% use a triangulation that corresponds with the collin27 anatomical template in MNI coordinates
 cfg.surfinflated   = ft_getopt(cfg, 'surfinflated',  []);
 cfg.sphereradius   = ft_getopt(cfg, 'sphereradius',  []);
 cfg.projvec        = ft_getopt(cfg, 'projvec',       1);

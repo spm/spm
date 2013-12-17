@@ -61,9 +61,9 @@ function [stat] = ft_networkanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_networkanalysis.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_networkanalysis.m 9011 2013-12-10 15:34:15Z jansch $
 
-revision = '$Id: ft_networkanalysis.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_networkanalysis.m 9011 2013-12-10 15:34:15Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -166,7 +166,7 @@ switch cfg.method
     elseif strcmp(data.dimord(1:4), 'chan')
       dimord = data.dimord(6:end);
     end
-  case {'distance' 'edge_betweennness'}
+  case {'distance' 'edge_betweenness'}
     % 1 value per node pair
     outsiz = [size(input) 1];
     output = zeros(outsiz);

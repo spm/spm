@@ -61,9 +61,9 @@ function [normalise] = ft_volumenormalise(cfg, interp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumenormalise.m 8690 2013-11-01 13:18:35Z roboos $
+% $Id: ft_volumenormalise.m 9006 2013-12-10 11:24:56Z roboos $
 
-revision = '$Id: ft_volumenormalise.m 8690 2013-11-01 13:18:35Z roboos $';
+revision = '$Id: ft_volumenormalise.m 9006 2013-12-10 11:24:56Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -88,7 +88,7 @@ if isfield(cfg, 'coordsys') && ~isfield(interp, 'coordsys')
 end
 
 % check if the input data is valid for this function
-interp = ft_checkdata(interp, 'datatype', 'volume', 'feedback', 'yes', 'hasunits', 'yes', 'hascoordsys', 'yes');
+interp = ft_checkdata(interp, 'datatype', 'volume', 'feedback', 'yes', 'hasunit', 'yes', 'hascoordsys', 'yes');
 
 % set the defaults
 cfg.spmversion       = ft_getopt(cfg, 'spmversion',       'spm8');
