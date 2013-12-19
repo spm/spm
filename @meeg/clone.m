@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5438 2013-04-24 10:38:47Z vladimir $
+% $Id: clone.m 5808 2013-12-19 14:48:54Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -68,10 +68,11 @@ elseif length(dim) == 4
     
     if ~strncmpi(transformtype(new), 'TF',2)
         new = transformtype(new, 'TF');
-        % This assumes that the frequency axis will be set correctly after
-        % cloning and is neccesary to avoid an inconsistent state
-        new.transform.frequencies =  1:dim(2);
     end        
+    
+    % This assumes that the frequency axis will be set correctly after
+    % cloning and is neccesary to avoid an inconsistent state
+    new.transform.frequencies =  1:dim(2);    
 else
    error('Dimensions different from 3 or 4 are not supported.');
 end
