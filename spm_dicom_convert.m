@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5669 2013-10-03 19:51:35Z john $
+% $Id: spm_dicom_convert.m 5806 2013-12-19 11:32:03Z volkmar $
 
 
 if nargin<2, opts     = 'all'; end
@@ -107,15 +107,17 @@ for i=1:length(hdr),
 
     mosaic = read_image_data(hdr{i});
     volume = zeros(dim);
+    snnz   = zeros(dim(3), 1);
     for j=1:dim(3),
         img = mosaic((1:np(1))+np(1)*rem(j-1,nc/np(1)), (np(2):-1:1)+np(2)*floor((j-1)/(nc/np(1))));
-        if ~any(img(:)),
-            volume = volume(:,:,1:(j-1));
-            break;
-        end;
+        snnz(j) = nnz(img) > 0;
         volume(:,:,j) = img;
     end;
-    dim = size(volume);
+    d3 = find(snnz, 1, 'last');
+    if ~isempty(d3)
+        dim(3) = d3;
+        volume = volume(:,:,1:dim(3));
+    end
     dt  = determine_datatype(hdr{1});
 
     % Orientation information
