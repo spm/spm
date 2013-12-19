@@ -27,9 +27,9 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5687 2013-10-11 14:58:27Z volkmar $
+% $Id: cfg_ui.m 5807 2013-12-19 11:43:44Z volkmar $
 
-rev = '$Rev: 5687 $'; %#ok
+rev = '$Rev: 5807 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
@@ -871,7 +871,7 @@ um = uicontextmenu;
 um1 = uimenu('Label','Copy', 'Callback',@(ob,ev)local_ShowCode_Copy(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Select all', 'Callback',@(ob,ev)local_ShowCode_SelAll(ob,ev,ctxt), 'Parent',um);
 um1 = uimenu('Label','Unselect all', 'Callback',@(ob,ev)local_ShowCode_UnSelAll(ob,ev,ctxt), 'Parent',um);
-set(ctxt, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1);
+set(ctxt, 'Min',-1, 'Max',numel(str), 'UIContextMenu',um, 'Value',[], 'ListboxTop',1);
 set(ctxt, 'String',str);
 
 %%% Module List Callbacks
