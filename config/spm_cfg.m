@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 5813 2013-12-20 18:54:10Z guillaume $
+% $Id: spm_cfg.m 5814 2013-12-20 18:56:04Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -118,5 +118,5 @@ spmjobs.help   = {
     'The current release is designed for the analysis of fMRI, PET, SPECT, EEG and MEG.'
     ''
     }';
-spmjobs.values = { temporal spatial stats spm_cfg_eeg util tools pipeline };
+spmjobs.values = { temporal spatial stats spm_cfg_eeg util tools };
 spmjobs.rewrite_job = @spm_rewrite_job;
