@@ -6,7 +6,7 @@ function spm_srender(job)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_srender.m 5011 2012-10-19 13:11:12Z john $
+% $Id: spm_srender.m 5812 2013-12-20 17:52:07Z john $
 
 
 fg  = spm_figure('GetWin','Graphics');
@@ -36,7 +36,9 @@ for i=1:numel(job.Object),
              'AmbientStrength', obj.AmbientStrength,...
              'DiffuseStrength', obj.DiffuseStrength,...
              'SpecularExponent', obj.SpecularExponent,...
-             'FaceAlpha',obj.FaceAlpha);
+             'FaceAlpha',obj.FaceAlpha,...
+             'FaceLighting','phong',...
+             'EdgeLighting','phong');
     end
 end
 for i=1:numel(job.Light),
@@ -49,6 +51,5 @@ end
 %set(0,'CurrentFigure',fg);
 set(fg,'CurrentAxes',ax);
 axis image equal off;
-lighting phong;
 drawnow;
 

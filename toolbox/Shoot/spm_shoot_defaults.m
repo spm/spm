@@ -10,7 +10,7 @@ function d = spm_shoot_defaults
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_defaults.m 5787 2013-12-06 19:47:00Z john $
+% $Id: spm_shoot_defaults.m 5812 2013-12-20 17:52:07Z john $
 
 
 %_______________________________________________________________________
@@ -27,8 +27,8 @@ d.cyc_its = [2 2];      % No. multigrid cycles and iterations
 nits      = 24;         % No. iterations of Gauss-Newton
 
 % Schedule for coarse to fine
-lam     = 0.8;          % Decay of coarse to fine schedule
-inter   = 8;            % Scaling of parameters at first iteration
+lam     = 0.5;          % Decay of coarse to fine schedule
+inter   = 32;           % Scaling of parameters at first iteration
 d.sched = (inter-1)*exp(-lam*((1:(nits+1))-1))+1;
 d.sched = d.sched/d.sched(end);
 
@@ -39,7 +39,7 @@ d.rparam  = [1e-4 0.001 0.2 0.05 0.2];  % Regularisation parameters for deformat
 d.sparam  = [0.0001 0.08 0.8];          % Regularisation parameters for blurring
 d.smits   = 16;                         % No. smoothing iterations
 
-d.scale   = 0.9;                        % Fraction of Gauss-Newton update step to use
+d.scale   = 0.8;                        % Fraction of Gauss-Newton update step to use
 
 d.bs_args = [2 2 2  1 1 1];             % B-spline settings for interpolation
 %_______________________________________________________________________
