@@ -10,7 +10,7 @@ function out = spm_run_fmri_est(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_est.m 5575 2013-07-08 16:38:51Z guillaume $
+% $Id: spm_run_fmri_est.m 5809 2013-12-20 14:30:22Z guillaume $
 
 %-Load SPM.mat file
 %--------------------------------------------------------------------------
@@ -91,7 +91,7 @@ if isfield(job.method,'Classical')
     end
     
     if job.write_residuals
-        spm_write_residuals(SPM,NaN);
+        VRes = spm_write_residuals(SPM,NaN);
     end
     
     %-Computation results
@@ -100,6 +100,9 @@ if isfield(job.method,'Classical')
     out.beta  = spm_file({SPM.Vbeta(:).fname}','path',SPM.swd);
     out.mask  = {fullfile(SPM.swd,SPM.VM.fname)};
     out.resms = {fullfile(SPM.swd,SPM.VResMS.fname)};
+    if job.write_residuals
+        out.res = spm_file({VRes(:).fname}','path',SPM.swd);
+    end
     cd(original_dir);
     fprintf('Done\n');
     return

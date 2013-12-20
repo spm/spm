@@ -37,7 +37,7 @@ function [u, Ps, ue] = spm_uc_clusterFDR(q,df,STAT,R,n,Z,XYZ,V2R,ui,G)
 % Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 
 % Justin Chumbley & Guillaume Flandin
-% $Id: spm_uc_clusterFDR.m 5224 2013-02-01 12:19:17Z guillaume $
+% $Id: spm_uc_clusterFDR.m 5809 2013-12-20 14:30:22Z guillaume $
 
 
 % Read statistical value from disk if needed
@@ -117,10 +117,10 @@ end
 %--------------------------------------------------------------------------
 if nargout == 3
     [Pk, J] = sort(Pk, 'ascend');
-    I       = find(Pk <= q, 1, 'last');
+    I       = find(Pk <= q);
     if isempty(I)
         ue  = Inf;
     else
-        ue  = N(J(I)) / V2R;
+        ue  = min(N(J(I))) / V2R;
     end
 end

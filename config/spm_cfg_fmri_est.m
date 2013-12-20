@@ -3,7 +3,7 @@ function fmri_est = spm_cfg_fmri_est
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_fmri_est.m 5809 2013-12-20 14:30:22Z guillaume $
 
 
 %==========================================================================
@@ -435,6 +435,12 @@ if isfield(job.method, 'Classical')
     dep(4).sname      = 'ResMS Image';
     dep(4).src_output = substruct('.','resms');
     dep(4).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    if job.write_residuals
+        dep(4)            = cfg_dep;
+        dep(4).sname      = 'Residual Images';
+        dep(4).src_output = substruct('.','res');
+        dep(4).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+    end
     % can't check whether auto-generated contrasts are generated this is
     % specified in input SPM.mat, not this job
 end
