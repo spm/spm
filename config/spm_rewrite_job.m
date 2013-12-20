@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 5566 2013-06-25 19:03:54Z guillaume $
+% $Id: spm_rewrite_job.m 5813 2013-12-20 18:54:10Z guillaume $
 
 
 try
@@ -70,6 +70,24 @@ end
 try
     job.tools.sendmail;
     job = struct('util', job.tools);
+end
+
+try
+    job.util.spm_surf;
+    job = struct('util', struct('render', struct('extract',job.util.spm_surf)));
+end
+
+try
+    job.util.dicom;
+    job.util = struct('import', job.util);
+end
+try
+    job.util.minc;
+    job.util = struct('import', job.util);
+end
+try
+    job.util.ecat;
+    job.util = struct('import', job.util);
 end
 
 try
