@@ -12,7 +12,7 @@ function D = spm_eeg_inv_forward(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5781 2013-12-05 14:02:32Z vladimir $
+% $Id: spm_eeg_inv_forward.m 5810 2013-12-20 14:37:40Z vladimir $
 
 
 %-Initialisation
@@ -37,6 +37,14 @@ for i = 1:numel(D.inv{val}.forward)
     
     mesh_correction = [];
     
+    sens = D.inv{val}.datareg(i).sensors;
+    
+    if isequal(D.inv{val}.datareg(i).modality, 'MEG')
+        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'm');
+    else
+        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'm');
+    end
+        
     switch D.inv{val}.forward(i).voltype
         case 'EEG interpolated'
             vol = D.inv{val}.forward(i).vol;
@@ -171,7 +179,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg                        = [];
             cfg.feedback               = 'yes';
             cfg.showcallinfo           = 'no';
-            cfg.grad                   = D.inv{val}.datareg(i).sensors;           
+            cfg.grad                   = sens;           
             cfg.method                 = 'localspheres';
             cfg.siunits                = 'yes';
             
@@ -182,6 +190,7 @@ for i = 1:numel(D.inv{val}.forward)
             cfg                        = [];
             cfg.feedback               = 'yes';
             cfg.showcallinfo           = 'no';
+            cfg.grad                   = sens;           
             cfg.method                 = 'singleshell';
             cfg.siunits                = 'yes';
             
@@ -198,15 +207,7 @@ for i = 1:numel(D.inv{val}.forward)
     D.inv{val}.forward(i).mesh            = mesh.tess_ctx;
     D.inv{val}.forward(i).mesh_correction = mesh_correction;
     D.inv{val}.forward(i).modality        = modality;   
-    D.inv{val}.forward(i).siunits         = 1;
-    
-    sens = D.inv{val}.datareg(i).sensors;
-    
-    if isequal(modality, 'MEG')
-        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'T', 'distance', 'm');
-    else
-        sens = ft_datatype_sens(sens, 'version', 'upcoming', 'amplitude', 'V', 'distance', 'm');
-    end
+    D.inv{val}.forward(i).siunits         = 1;    
     
     D.inv{val}.forward(i).sensors  = sens;  
         

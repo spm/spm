@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_montage.m 5810 2013-12-20 14:37:40Z vladimir $
 
-SVNrev = '$Rev: 5775 $';
+SVNrev = '$Rev: 5810 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -256,11 +256,11 @@ switch S.mode
         for i = 1:length(sensortypes)
             if S.keepsensors
                 sens = D.sensors(sensortypes{i});
-                if ~isempty(sens) && length(intersect(sens.label, montage.labelorg))==length(sens.label)
+                if ~isempty(sens) && ~isempty(intersect(sens.label, montage.labelorg))
                     sensmontage = montage;
-                    sel1 = spm_match_str(sensmontage.labelorg, sens.label);
-                    sensmontage.labelorg = sensmontage.labelorg(sel1);
-                    sensmontage.tra = sensmontage.tra(:, sel1);
+                    [sel1, sel2] = spm_match_str(sens.label, sensmontage.labelorg);
+                    sensmontage.labelorg = sensmontage.labelorg(sel2);
+                    sensmontage.tra = sensmontage.tra(:, sel2);
                     selempty  = find(all(sensmontage.tra == 0, 2));
                     sensmontage.tra(selempty, :) = [];
                     sensmontage.labelnew(selempty) = [];
@@ -269,6 +269,8 @@ switch S.mode
                     else
                         keepunused = 'no';
                     end
+                    
+                    chanunitorig = sens.chanunit(sel1);
                     
                     sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
                     
@@ -282,6 +284,20 @@ switch S.mode
                         sens.balance.custom = balance;
                         sens.balance.current = 'custom';
                     end
+                    
+                    
+                    % If all the original channels contributing to a new channel have
+                    % the same units, transfer them to the new channel. This might be
+                    % wrong if the montage itself changes the units by scaling the data.
+                    chanunit = repmat({'unknown'}, numel(sens.label), 1);
+                    for j = 1:numel(chanunit)
+                        unit = unique(chanunitorig(~~montage.tra(j, :)));
+                        if numel(unit)==1
+                           chanunit(j) = unit;
+                        end
+                    end
+                    
+                    sens.chanunit = chanunit;
                 end
                 
                 if ~isempty(sens) && ~isempty(intersect(sens.label, Dnew.chanlabels))
