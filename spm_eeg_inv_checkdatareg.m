@@ -8,7 +8,7 @@ function spm_eeg_inv_checkdatareg(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 3731 2010-02-17 14:45:18Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 5811 2013-12-20 15:42:16Z vladimir $
 
 % SPM graphics figure
 %--------------------------------------------------------------------------
@@ -65,8 +65,7 @@ h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor',
 
 % --- DISPLAY SETUP ---
 %==========================================================================
-try
-    [Lsens, Llabel]   = spm_eeg_layout3D(sensors, modality);
+try   
     Lhsp    = meegfid.pnt;
     Lfidmri = mrifid.fid.pnt;
     Lfid    = meegfid.fid.pnt(1:size(Lfidmri, 1), :);
@@ -84,8 +83,12 @@ end
 
 % Sensors (coreg.)
 %--------------------------------------------------------------------------
-h_sens  = plot3(Lsens(:,1),Lsens(:,2),Lsens(:,3),'og');
-set(h_sens,'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
+h_sens  = ft_plot_sens(sensors, 'chantype', lower(D.chantype(D.indchantype(modality))));
+if isempty(h_sens)
+    h_sens  = ft_plot_sens(sensors, 'coil', 'yes');
+end
+set(h_sens, 'Marker', 'o', 'MarkerFaceColor','g','MarkerSize', 12,'MarkerEdgeColor','k');
+axis normal;
 % 
 
 % EEG fiducials or MEG coils (coreg.)
@@ -110,12 +113,19 @@ zoom(5/3)
 %==========================================================================
 subplot(2,1,2)
 
-[xy, label] = spm_eeg_project3D(sensors, modality);
+try
+    [xy, label] = spm_eeg_project3D(sensors, modality);
+    FontSize = 8;
+catch
+    xy = [0.25; 0.5];
+    label = {'2D layout not available'};
+    FontSize = 20;
+end
 
 % Channel names
 %--------------------------------------------------------------------------
 text(xy(1, :), xy(2, :), label,...
-     'FontSize',8,...
+     'FontSize',FontSize,...
      'Color','r',...
      'FontWeight','bold')
   

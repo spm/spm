@@ -16,7 +16,7 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 5810 2013-12-20 14:37:40Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 5811 2013-12-20 15:42:16Z vladimir $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -185,11 +185,9 @@ end
 if interactive
     spm_eeg_inv_checkdatareg(D);
 else
-   for i = 1:numel(D.inv{val}.datareg)
-       try
-           spm_eeg_inv_checkdatareg(D, val, i);
-       end
-   end
+    for i = 1:numel(D.inv{val}.datareg)
+        spm_eeg_inv_checkdatareg(D, val, i);
+    end
 end
 
 
