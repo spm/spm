@@ -33,7 +33,7 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 5802 2013-12-11 14:29:39Z karl $
+% $Id: spm_MDP_urn.m 5818 2013-12-23 19:02:20Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -263,7 +263,7 @@ for t = 1:8
     for i = 1:length(p);
         DP.alpha = p(i);
         DP       = spm_MDP_game(DP);
-        LL(i,t)  = sum(log(DP.P(find(MDP.U))));
+        LL(i,t)  = sum(log(DP.P(find(DP.U))));
     end
     
 end
