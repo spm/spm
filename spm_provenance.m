@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5795 2013-12-09 13:56:49Z guillaume $
+% $Id: spm_provenance.m 5815 2013-12-23 16:53:01Z guillaume $
 
 
 %-Properties
@@ -535,13 +535,19 @@ methods (Access='private')
         s = sortprov(obj);
         str = '';
         expr = {'entity','activity','agent'};
-        strexpr = '[style="%s",shape="%s",color="#%s",fillcolor="#%s",sides="%d",label="%s",URL="%s"]\n';
-        style = {'filled','ellipse','808080','FFFC87',4;
-                 'filled','polygon','0000FF','9FB1FC',4;
-                 'filled','house','000000','FDB266',4};
-        strrel = '[labeldistance="1.5",rotation="20",taillabel="%s",labelfontsize="8",labelangle="60.0"]\n';
-        strannrel = '[style="dashed",color="#C0C0C0",arrowhead="none"]\n';
-        strann = '[color="gray",fontcolor="black",label=%s,shape="note",fontsize="10"]\n';
+        dot_style.entity   = {'style','filled','shape','ellipse','color','#808080','fillcolor','#FFFC87','sides','4'};
+        dot_style.activity = {'style','filled','shape','polygon','color','#0000FF','fillcolor','#9FB1FC','sides','4'};
+        dot_style.agent    = {'style','filled','shape','house',  'color','#000000','fillcolor','#FED37F','sides','4'};
+        dot_style.default  = {'labeldistance','1.5','rotation','20','labelfontsize','8','labelangle','60.0'};
+        dot_style.wasGeneratedBy    = [dot_style.default ,'color','darkgreen','fontcolor','darkgreen'];
+        dot_style.used              = [dot_style.default,'color','red4','fontcolor','red'];
+        dot_style.wasAttributedTo   = [dot_style.default,'color','#FED37F'];
+        dot_style.wasAssociatedWith = [dot_style.default,'color','#FED37F'];
+        dot_style.actedOnBehalfOf   = [dot_style.default,'color','#FED37F'];
+        dot_style.wasInfluencedBy   = [dot_style.default,'color','grey'];
+        dot_style.atLocation        = [dot_style.default,'color','blue','fontcolor','blue'];
+        dot_style.annotationLink = {'style','dashed','color','#C0C0C0','arrowhead','none'};
+        dot_style.annotation     = {'shape','note','color','gray','fontcolor','black','fontsize','10'};
         strannlab = '<<TABLE cellpadding="0" border="0">%s</TABLE>>';
         strtr = '<TR><TD align="left">%s</TD><TD align="left">%s</TD></TR>';
         annn = 0;
@@ -553,7 +559,7 @@ methods (Access='private')
                         label = parseQN(obj.stack{j}{2},'local');
                         url = get_url(obj,obj.stack{j}{2});
                         str = [str sprintf('n%s ',get_valid_identifier(url))];
-                        str = [str sprintf(strexpr,style{idx,:},label,url)];
+                        str = [str dotlist([dot_style.(s(i).expr),'label',label,'URL',url])];
                         attr = obj.stack{j}{end};
                         if ~isempty(attr)
                             url_ann = sprintf('http://annot/ann%d',annn);
@@ -568,10 +574,10 @@ methods (Access='private')
                             end
                             ann_label = sprintf(strannlab,attrlist);
                             A = ['n' get_valid_identifier(url_ann)];
-                            str = [str A ' ' sprintf(strann,ann_label)];
+                            str = [str A ' ' dotlist([dot_style.annotation,'label',ann_label])];
                             B = ['n' get_valid_identifier(url)];
                             str = [str sprintf('%s -> %s ',A,B)];
-                            str = [str sprintf(strannrel)];
+                            str = [str dotlist(dot_style.annotationLink)];
                             annn = annn + 1;
                         end
                     end
@@ -583,7 +589,7 @@ methods (Access='private')
                                 A = ['n' get_valid_identifier(get_url(obj,val))];
                                 B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{2}))];
                                 str = [str sprintf('%s -> %s ',A,B)];
-                                str = [str sprintf(strannrel)];
+                                str = [str dotlist([dot_style.atLocation,'label','locationOf'])];
                             end
                         end
                     end
@@ -592,7 +598,11 @@ methods (Access='private')
                         A = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{3}))];
                         B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{4}))];
                         str = [str sprintf('%s -> %s ',A,B)];
-                        str = [str sprintf(strrel,'')];
+                        try
+                            str = [str dotlist([dot_style.(s(i).expr),'label',s(i).expr])];
+                        catch
+                            str = [str dotlist([dot_style.default,'label',s(i).expr])];
+                        end
                     end
                 else
                     warning('"%s" not handled yet.',s(i).expr);
@@ -732,6 +742,19 @@ function f = floatstr(f)
             f = ff;
         end
     end
+end
+
+function s = dotlist(l)
+    s = '[';
+    for i=1:2:numel(l)
+        c = '"';
+        if strncmp(l{i+1},'<<',2), c = ''; end
+        s = [s sprintf('%s=%c%s%c',l{i},c,l{i+1},c)];
+        if i~=numel(l)-1
+            s = [s ','];
+        end
+    end
+    s = [s ']' sprintf('\n')];
 end
 
 function s = cell2str(s)
