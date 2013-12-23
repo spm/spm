@@ -4,6 +4,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 %
 %   options.two_state:  (0 or 1) one or two states per region
 %   options.stochastic: (0 or 1) exogenous or endogenous fluctuations
+%   options.precision:           log precision on connection rates
 %
 % INPUT:
 %    A,B,C,D - constraints on connections (1 - present, 0 - absent)
@@ -26,7 +27,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5746 2013-11-14 20:28:50Z karl $
+% $Id: spm_dcm_fmri_priors.m 5817 2013-12-23 19:01:36Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -52,7 +53,7 @@ if options.two_state
     
     % precision of log-connections (two-state)
     %---------------------------------------------------------------------
-    try, pA = exp(options.v); catch,  pA = 16;  end
+    try, pA = exp(options.precision); catch,  pA = 16;  end
     
     % prior expectations and variances
     %----------------------------------------------------------------------
@@ -85,7 +86,7 @@ else
     
     % precision of connections (one-state)
     %---------------------------------------------------------------------
-    try, pA = exp(options.v); catch,  pA = 64;  end
+    try, pA = exp(options.precision); catch,  pA = 64;  end
     
     % prior expectations
     %----------------------------------------------------------------------

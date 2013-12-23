@@ -27,7 +27,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5817 2013-12-23 19:01:36Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -35,13 +35,25 @@ rng('default')
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-ED  = 2;                               % embedding dimensional
-T   = 512;                             % number of observations (scans)
-TR  = 2;                               % repetition time or timing
-n   = 6;                               % number of regions or nodes
-t   = (1:T)*TR;                        % observation times
-v.a = [log(6); -1/8];                  % log amplitude
-v.x = randn(ED,n)/2;                   % location
+ED    = 3;                               % embedding dimensional
+T     = 1024;                            % number of observations (scans)
+TR    = 2;                               % repetition time or timing
+n     = 6;                               % number of regions or nodes
+t     = (1:T)*TR;                        % observation times
+% v     = randn(ED,n)/8;                 % location in scaling space
+% [u s] = spm_svd(v'*v);                 % in orthogonal coordinates
+% v     = sqrt(s)*u';
+
+
+% emprical (MAP) esimates
+% -------------------------------------------------------------------------
+v = [
+   -0.1906    0.2706    0.3484   -0.3860   -0.5534   -0.4246
+    0.1577   -0.1542   -0.6075   -0.1325   -0.3871   -0.2227
+   -0.0865   -0.0811    0.4158    0.1186    0.0111   -0.1946
+    0.1530   -0.1626   -0.0782   -0.2557    0.6035   -0.2670];
+
+v = v(1:ED,1:n);
 
 % priors
 % -------------------------------------------------------------------------
@@ -51,9 +63,10 @@ options.two_state  = 0;
 options.induced    = 1;
 options.stochastic = 0;
 options.nonlinear  = 0;
-options.embedding  = 3;
+options.embedding  = ED;
 options.backwards  = 0;
-options.v          = 6;
+options.precision  = 6;
+options.Nmax       = 64;
 
 A   = ones(n,n);
 B   = zeros(n,n,0);
@@ -74,7 +87,7 @@ pP.transit = randn(n,1)*exp(-4);
 
 % integrate states
 % -------------------------------------------------------------------------
-U.u  = spm_rand_mar(T,n,1/2)/8;      % endogenous fluctuations
+U.u  = spm_rand_mar(T,n,1/2)/4;      % endogenous fluctuations
 U.dt = TR;
 M.f  = 'spm_fx_fmri';
 M.x  = x;
@@ -92,7 +105,7 @@ e    = spm_rand_mar(T,n,1/2)/8;
 
 % show simulated response
 %--------------------------------------------------------------------------
-i = 1:512;
+i = 1:256;
 spm_figure('Getwin','Figure 1'); clf
 subplot(2,2,1)
 plot(t(i),U.u(i,:))
@@ -137,6 +150,12 @@ DCM.U.dt = TR;
 % -------------------------------------------------------------------------
 DCM  = spm_dcm_fmri_csd(DCM);
 
+
+% post hoc esimatation of scaling space
+% -------------------------------------------------------------------------
+% [u s]         = spm_svd(DCM.Ep.A);
+% DCM.options.v = sqrt(s)*u';
+
 % hierarchical
 % -------------------------------------------------------------------------
 DEM  = spm_dcm_fmri_csd_DEM(DCM);
@@ -161,9 +180,11 @@ axis square
 j   = find(eye(n,n));
 
 subplot(2,1,2); cla
-plot(Pp,Ep,'r.',Pp,Qp,'ko','MarkerSize',8), hold on
-plot(pP.A(j),DEM.Ep.A(j),'b.'),             hold on
-plot([-0.2 .3],[-0.2 .3],'k:'),             hold on
+plot(pP.A(:),DEM.Ep.A(:),'b.','MarkerSize',32),    hold on
+plot(pP.A(:),DCM.Ep.A(:),'c.','MarkerSize',16),    hold on
+plot(pP.A(j),DEM.Ep.A(j),'r.','MarkerSize',32), hold on
+plot(pP.A(j),DCM.Ep.A(j),'m.','MarkerSize',16), hold on
+plot([-0.2 .3],[-0.2 .3],'k:'), hold on
 title('MAP vs. true','FontSize',16)
 xlabel('true')
 ylabel('estimate')
@@ -173,17 +194,23 @@ legend ('hierarchical','conventional')
 
 % proximity space
 %==========================================================================
-spm_figure('Getwin','Figure A'); clf
-DEM.xY.Lpos  = zeros(3,n);
-DEM.xY.Sname = {'1','2','3','4','5','6','7','8'};
-qV  = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
-spm_dcm_graph(DEM.xY,qV)
+spm_figure('Getwin','Figure (MAP)'); clf
+u      = spm_unvec(DEM.DEM.qU.v{3},v);
 
-spm_figure('Getwin','Figure B'); clf
-spm_dcm_graph(DEM.xY,v)
+subplot(2,1,1)
+spm_dcm_graph_functional(u)
+title('Estimated','FontSize',16)
 
+subplot(2,1,2)
+spm_dcm_graph_functional(v)
+title('True','FontSize',16)
 
-return
+% eturn if called as a demo - otherwise perform model search
+%--------------------------------------------------------------------------
+if ~exist('DCM_stochastic.mat','file')
+    return
+end
+
 
 % search over precision of hidden causes
 %==========================================================================
@@ -194,7 +221,7 @@ for i = 1:length(V)
     
     % invert
     %======================================================================
-    DCM.options.v         = V(i);
+    DCM.options.precision = V(i);
     DCM.options.embedding = ED;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
@@ -253,7 +280,7 @@ for i = 1:length(D)
 
     % invert
     %======================================================================
-    DCM.options.v         = 6;
+    DCM.options.precision = 6;
     DCM.options.embedding = D(i);
     DEM = spm_dcm_fmri_csd_DEM(DCM);
         
@@ -303,16 +330,23 @@ n     = DCM.n;
 DCM.a = ones(n,n);
 DCM.b = zeros(n,n,0);
 DCM.d = zeros(n,n,0);
+DCM.options = options;
+
+% classical esimatation of scaling space
+% -------------------------------------------------------------------------
+% DCM           = spm_dcm_fmri_csd(DCM);
+% [u s]         = spm_svd(DCM.Ep.A);
+% DCM.options.v = sqrt(s)*u';
+
 
 % search over precision of hidden causes
 %==========================================================================
-DCM.options   = options;
 eF    = [];
 for i = 1:length(V)
     
     % invert
     %======================================================================
-    DCM.options.v         = V(i);
+    DCM.options.precision = V(i);
     DCM.options.embedding = 2;
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
@@ -352,7 +386,7 @@ for i = 1:length(D)
 
     % invert
     %======================================================================
-    DCM.options.v         = 6;
+    DCM.options.precision = 6;
     DCM.options.embedding = D(i);
     DEM = spm_dcm_fmri_csd_DEM(DCM);
             
@@ -379,12 +413,12 @@ axis square
 
 % get functional space
 %==========================================================================
-spm_figure('Getwin','Figure 5');
+spm_figure('Getwin','Figure 5'); clf
 
-subplot(2,1,2)
-title('Anatomical and functional spaces','FontSize',16)
-FS = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
-spm_dcm_graph(DEM.xY,FS)
+subplot(2,1,1)
+title('Scaling spaces','FontSize',16)
+u = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
+spm_dcm_graph_functional(u)
 
 
     
@@ -397,11 +431,11 @@ save paper
 return
 
 
-function rms = paper_rms(A,B);
-% Root mean square difference in (extrinsic connectivity)
+function rms = paper_rms(A,B)
+% Root mean square difference in (% extrinsic connectivity)
 % -------------------------------------------------------------------------
 D   = A - B;
-D   = D - diag(diag(D));
+% D   = D - diag(diag(D));
 D   = D(find(D));
 rms = sqrt(mean(D.^2));
 

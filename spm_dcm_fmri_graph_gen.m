@@ -7,17 +7,27 @@ function [P] = spm_dcm_fmri_graph_gen(x,v,P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: spm_dcm_fmri_graph_gen.m 5817 2013-12-23 19:01:36Z karl $
 
 
 % compute bias for log connectivity using functional space
 %==========================================================================
 
+% spectral deomposition
+%--------------------------------------------------------------------------
+P.A   = full(P.A);
+if isnumeric(v)
+    
+    % outer product
+    %======================================================================;
+    P.A   = v'*v;
+    return
+    
+end
+
 % Distance-based bias on (empirical) prior mean of log connectivity
 %--------------------------------------------------------------------------
-[n m] = size(v.x);
-P.A   = full(P.A);
-
+[n m]          = size(v.x);    
 if size(P.A,3) == 1 && numel(v.a) == 1
     
     % one-state model of (MoG) connectivity

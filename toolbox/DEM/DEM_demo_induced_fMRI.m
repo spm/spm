@@ -19,7 +19,7 @@ function DEM_demo_induced_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: DEM_demo_induced_fMRI.m 5817 2013-12-23 19:01:36Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -27,7 +27,7 @@ rng('default')
  
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
-T  = 256;                             % number of observations (scans)
+T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 t  = (1:T)*TR;                        % observation times
 n  = 3;                               % number of regions or nodes
@@ -56,11 +56,11 @@ pP  = spm_dcm_fmri_priors(A,B,C,D,options);
  
 % true parameters (reciprocal connectivity)
 % -------------------------------------------------------------------------
-pP.A = [  0   .3  -.1;
-         .3    0  -.2
-        -.1  -.2    0];
+pP.A = [  0  -.2    0;
+        -.3    0   .3
+          0   .2    0];
 pP.C = eye(n,n);
-pP.transit = randn(n,1)/8;
+pP.transit = randn(n,1)/16;
  
 % simulate response to endogenous fluctuations
 %==========================================================================
@@ -114,7 +114,7 @@ axis square
 %==========================================================================
 DCM.options = options;
  
-DCM.a    = ones(n,n,1);
+DCM.a    = logical(pP.A);
 DCM.b    = zeros(n,n,0);
 DCM.c    = logical(Cu);
 DCM.d    = zeros(n,n,0);
@@ -141,16 +141,13 @@ bar(pP.A(:),1/4), hold off
 title('True and MAP connections (Deterministic)','FontSize',16)
 axis square
  
+
 % Bayesian deconvolution (Generalised filtering) - stochastic DCM
 % =========================================================================
 
 % initialise parameters using deterministic estimates
 % -------------------------------------------------------------------------
-% DCM.options.P = rmfield(CSD.Ep,{'a','b','c'});
-
-% Implement Bayesian parameter averaging by using the posteriors
-% -------------------------------------------------------------------------
-% DCM.options.pE = rmfield(CSD.Ep,{'a','b','c'});
+DCM.options.P = rmfield(CSD.Ep,{'a','b','c'});
 
 % invert
 % -------------------------------------------------------------------------

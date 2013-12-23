@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5817 2013-12-23 19:01:36Z karl $
 
 
 % get DCM
@@ -202,10 +202,14 @@ DEM.M(2).v   = pE;
 DEM.M(2).pE  = pE;
 
 DEM.M(3).V   = exp(0);
-DEM.M(3).v.a = [0; 0];
 
-v            = spm_svd(corr(DCM.Y.y));
-DEM.M(3).v.x = v(:,1:DCM.options.embedding)'*exp(-2);
+try
+    v        = DCM.options.v;
+catch
+    v        = spm_svd(corr(DCM.Y.y));
+    v        = v'/64;
+end
+DEM.M(3).v   = v(1:DCM.options.embedding,:);
 
 % Variational Laplace
 %--------------------------------------------------------------------------

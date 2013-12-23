@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5708 2013-10-22 09:20:59Z karl $
+% $Id: spm_dcm_fmri_csd.m 5817 2013-12-23 19:01:36Z karl $
 
 
 % get DCM
@@ -58,8 +58,8 @@ try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  en
 
 % parameter initialisation
 %--------------------------------------------------------------------------
-try, DCM.M.P = DCM.options.P;  end
-
+try, DCM.M.P    = DCM.options.P;                            end
+try, DCM.M.Nmax = DCM.options.Nmax; catch, DCM.M.Nmax = 32; end
 
 % sizes
 %--------------------------------------------------------------------------

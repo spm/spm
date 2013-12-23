@@ -13,7 +13,7 @@ function DEM_demo_large_fMRI
 % Copyright (C) 2010 Wellcome Trust Centrea for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_large_fMRI.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: DEM_demo_large_fMRI.m 5817 2013-12-23 19:01:36Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -22,7 +22,7 @@ rng('default')
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
 N  = 4;                               % number of runs
-T  = 256;                             % number of observations (scans)
+T  = 512;                             % number of observations (scans)
 TR = 2;                               % repetition time or timing
 n  = 8;                               % number of regions or nodes
 t  = (1:T)*TR;                        % observation times
@@ -46,7 +46,7 @@ pP  = spm_dcm_fmri_priors(A,B,C,D,options);
 
 % true parameters (reciprocal connectivity)
 % -------------------------------------------------------------------------
-pP.A = randn(n,n)/8;
+pP.A = randn(n,n)/12;
 pP.A = pP.A - diag(diag(pP.A));
 pP.C = eye(n,n);
 pP.transit = randn(n,1)/16;
@@ -56,7 +56,7 @@ pP.transit = randn(n,1)/16;
 
 % integrate states
 % -------------------------------------------------------------------------
-U.u  = spm_rand_mar(T,n,1/2)/2;      % endogenous fluctuations
+U.u  = spm_rand_mar(T,n,1/2)/8;      % endogenous fluctuations
 U.dt = TR;
 M.f  = 'spm_fx_fmri';
 M.x  = sparse(n,5);
@@ -133,7 +133,7 @@ for i = 1:N
 
         % integrate states
         % -----------------------------------------------------------------
-        U.u  = spm_rand_mar(T,n,1/2)/2;      % endogenous fluctuations
+        U.u  = spm_rand_mar(T,n,1/2)/8;      % endogenous fluctuations
         y    = spm_int_J(pP,M,U);            % integrate with observer
         
         % observation noise process
@@ -147,7 +147,8 @@ for i = 1:N
         % nonlinear system identification (Variational Laplace)
         % =================================================================
         CSD{end + 1} = spm_dcm_fmri_csd(DCM);
-        BPA  = spm_dcm_average(CSD,'simulation',1);
+        BPA          = spm_dcm_average(CSD,'simulation',1);
+        DCM.M.P      = BPA.Ep;
         
         % MAP estimates
         % -----------------------------------------------------------------
@@ -173,7 +174,7 @@ for i = 1:N
         
         subplot(2,2,3); cla
         plot(Pp(:),Qp,'cd','MarkerSize',8),hold on
-        plot(Pp,BPA.Ep.A - diag(diag(BPA.Ep.A)),'.','MarkerSize',16), hold off
+        plot(Pp,BPA.Ep.A - diag(diag(BPA.Ep.A)),'b.','MarkerSize',16), hold off
         title('True and MAP connections (Extrinsic)','FontSize',16)
         xlabel('True')
         ylabel('Estimated')

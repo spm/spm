@@ -28,7 +28,7 @@ function [Q,J] = spm_dcm_delay(M,P,D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_delay.m 5263 2013-02-20 11:42:19Z karl $
+% $Id: spm_dcm_delay.m 5817 2013-12-23 19:01:36Z karl $
 
 
 % evaluate delay matrix D from parameters
@@ -51,7 +51,6 @@ if nargin < 3
         else
             di = 1;
             de = 16;
-            
         end
         
         % delay matrix D
