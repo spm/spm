@@ -12,7 +12,7 @@ function [coh,fsd] = spm_csd2coh(csd,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2coh.m 4095 2010-10-22 19:37:51Z karl $
+% $Id: spm_csd2coh.m 5816 2013-12-23 18:52:56Z karl $
  
 
 % unpack cells
@@ -35,7 +35,6 @@ Hz    = spm_vec(Hz);
 for i = 1:size(csd,2)
     for j = 1:size(csd,2)
         coh(:,i,j) = abs(csd(:,i,j).*conj(csd(:,i,j)))./abs(csd(:,i,i).*csd(:,j,j));
-      % coh(:,i,j) = abs(csd(:,i,j));
         fsd(:,i,j) = unwrap(angle(csd(:,i,j)))./(2*pi*Hz);
     end
 end

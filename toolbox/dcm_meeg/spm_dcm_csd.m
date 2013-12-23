@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5771 2013-11-30 16:55:24Z karl $
+% $Id: spm_dcm_csd.m 5816 2013-12-23 18:52:56Z karl $
  
  
 % check options
@@ -31,11 +31,11 @@ drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
 DCM.options.analysis  = 'CSD';
+DATA = 1;
  
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                      catch, DCM.name = name;      end
-try, DCM.name;                      catch, DCM.name = 'DCM_SSR'; end
 try, model   = DCM.options.model;   catch, model    = 'NMM';     end
 try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
  
@@ -44,8 +44,10 @@ try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
 DCM.options.Nmodes = Nm;
 DCM.M.dipfit.model = model;
 
-DCM  = spm_dcm_erp_data(DCM);                       % data
-DCM  = spm_dcm_erp_dipfit(DCM, 1);                  % spatial model
+if DATA
+    DCM  = spm_dcm_erp_data(DCM);                   % data
+    DCM  = spm_dcm_erp_dipfit(DCM, 1);              % spatial model
+end
 Ns   = length(DCM.A{1});                            % number of sources
 
 
@@ -111,7 +113,9 @@ DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
  
 % get data-features (in reduced eigenspace)
 %==========================================================================
-DCM      = spm_dcm_csd_data(DCM);
+if DATA
+    DCM  = spm_dcm_csd_data(DCM);
+end
  
 % scale data features (to a variance of about 8)
 %--------------------------------------------------------------------------

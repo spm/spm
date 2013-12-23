@@ -29,7 +29,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5732 2013-11-06 14:03:56Z rosalyn $
+% $Id: spm_csd_mtf.m 5816 2013-12-23 18:52:56Z karl $
 
 
 
@@ -87,52 +87,49 @@ for  c = 1:size(X,1)
     % trial-specific effective connectivity
     %----------------------------------------------------------------------
     for i = 1:size(X,2)
-  
+        
         % extrinsic (forward and backwards) connections
         %------------------------------------------------------------------
         for j = 1:length(Q.A)
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
-            try 
-                % -- for CMM-NMDA specific modulation on Extrinsic NMDA connections
-                Q.AN{j}   = Q.AN{j}   + X(c,i)*P.BN{i};
-           end
+            
+            % CMM-NMDA specific modulation on Extrinsic NMDA connections
+            %--------------------------------------------------------------
+            try
+                Q.AN{j} = Q.AN{j} + X(c,i)*P.BN{i};
+            end
         end
         
         % intrinsic connections
         %------------------------------------------------------------------
-        
         Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
+        
     end
-        
-        % solve for steady-state - if exogenous inputs are specified
-        %----------------------------------------------------------------------
-        if nargin > 2
-            M.x = spm_dcm_neural_x(Q,M);
-        end
-        
-        % transfer functions (FFT of kernel)
-        %----------------------------------------------------------------------
-        S     = spm_dcm_mtf(Q,M);
-        
-        
-        % [cross]-spectral density from neuronal innovations
-        %----------------------------------------------------------------------
-        G     = zeros(nw,nc,nc);
-        for i = 1:nc
-            for j = 1:nc
-                for k = 1:ns
-                    Gij      = S(:,i,k).*conj(S(:,j,k));
-                    G(:,i,j) = G(:,i,j) + Gij.*Gu(:,k);
-                end
-            end
-        end
-        
-        % save trial-specific frequencies of interest
-        %----------------------------------------------------------------------
-        g{c}  = G;
-        s{c}  = S;
-        
+    
+    % solve for steady-state - if exogenous inputs are specified
+    %----------------------------------------------------------------------
+    if nargin > 2
+        M.x = spm_dcm_neural_x(Q,M);
+    end
+    
+    % transfer functions (FFT of kernel)
+    %----------------------------------------------------------------------
+    S     = spm_dcm_mtf(Q,M);
+    
 
+    % predicted cross-spectral density
+    %----------------------------------------------------------------------
+    G     = zeros(nw,nc,nc);
+    for i = 1:nw
+        G(i,:,:) = squeeze(S(i,:,:))*diag(Gu(i,:))*squeeze(S(i,:,:))';
+    end
+    
+    % save trial-specific frequencies of interest
+    %----------------------------------------------------------------------
+    g{c}  = G;
+    s{c}  = S;
+    
+    
 end
 % and add channel noise
 %==========================================================================

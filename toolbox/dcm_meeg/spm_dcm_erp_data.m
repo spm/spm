@@ -32,7 +32,7 @@ function DCM = spm_dcm_erp_data(DCM,h)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 5201 2013-01-22 14:19:01Z vladimir $
+% $Id: spm_dcm_erp_data.m 5816 2013-12-23 18:52:56Z karl $
  
  
 % Set defaults and Get D filename
@@ -54,7 +54,7 @@ try
     D = spm_eeg_load(Dfile);
 catch
     try
-        [dum,f]        = fileparts(Dfile);
+        [dum,f]      = fileparts(Dfile);
         D            = spm_eeg_load(f);
         DCM.xY.Dfile = fullfile(pwd,f);
     catch
@@ -106,7 +106,7 @@ end
  
 % good channels
 %--------------------------------------------------------------------------
-Ic        = D.indchantype(DCM.xY.modality,'GOOD');
+Ic = D.indchantype(DCM.xY.modality,'GOOD');
 if isempty(Ic)
     warndlg('No good channels in these data');
     return
@@ -145,12 +145,12 @@ try
     %----------------------------------------------------------------------
     T1          = DCM.options.Tdcm(1);
     T2          = DCM.options.Tdcm(2);
-    [dum, T1]     = min(abs(DCM.xY.Time - T1));
-    [dum, T2]     = min(abs(DCM.xY.Time - T2));
+    [dum, T1]   = min(abs(DCM.xY.Time - T1));
+    [dum, T2]   = min(abs(DCM.xY.Time - T2));
  
     % Time [ms] of down-sampled data
     %----------------------------------------------------------------------
-    It          = [T1:DT:T2]';
+    It          = (T1:DT:T2)';
     Ns          = length(It);                % number of samples
     DCM.xY.pst  = DCM.xY.Time(It);           % Down-sampled PST
     DCM.xY.dt   = DT/D.fsample;              % sampling in seconds

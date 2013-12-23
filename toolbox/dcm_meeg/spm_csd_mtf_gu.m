@@ -17,7 +17,7 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_csd_mtf_gu.m 5816 2013-12-23 18:52:56Z karl $
 
  
 % frequencies of interest
@@ -61,10 +61,10 @@ if nargout < 2, return, end
 %==========================================================================
 Gn  = exp(P.b(1) - 2)*f.^(-exp(P.b(2))); 
 
-% and spectrum of channel noise (specific)
+% and spectrum of channel noise (specific: with the same exponent)
 %--------------------------------------------------------------------------
 for i = 1:size(P.c,2)
-    Gs(:,i) = exp(P.c(1,i) - 2)*f.^(-exp(P.c(2,i)));
+    Gs(:,i) = exp(P.c(1,i) - 2)*f.^(-exp(P.c(2,1)));
 end
 
 

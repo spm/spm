@@ -30,7 +30,7 @@ function [pE,pC] = spm_ssr_priors(pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssr_priors.m 5252 2013-02-17 14:24:35Z karl $
+% $Id: spm_ssr_priors.m 5816 2013-12-23 18:52:56Z karl $
  
 % catch
 %--------------------------------------------------------------------------
@@ -47,16 +47,10 @@ pE.a = sparse(2,m); pC.a = sparse(2,m) + 1/128; % neuronal fluctuations
 pE.b = sparse(2,1); pC.b = sparse(2,1) + 1/128; % channel noise non-specific
 pE.c = sparse(2,n); pC.c = sparse(2,n) + 1/128; % channel noise specific
  
-% relax priors on amplitude
-%--------------------------------------------------------------------------
-pC.a(1,:) = pC.a(1,:) + 1/32;
-pC.b(1,:) = pC.b(1,:) + 1/32;
-pC.c(1,:) = pC.c(1,:) + 1/32;
- 
 % neuronal innovations (DCT coefficients for structured spectra)
 %--------------------------------------------------------------------------
 d    = 8;
-pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/32; 
+pE.d = sparse(d,m); pC.d = sparse(d,m) + 1/128; 
 
 
 

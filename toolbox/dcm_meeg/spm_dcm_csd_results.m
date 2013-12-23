@@ -33,17 +33,18 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_csd_results.m 5816 2013-12-23 18:52:56Z karl $
  
  
 % get figure
 %--------------------------------------------------------------------------
 if nargin < 3
     spm_figure('GetWin','Graphics');
+    colormap(gray), clf
 else
     figure(fig)
-end,
-colormap(gray), clf
+end
+
  
 % get action if neccessary
 %--------------------------------------------------------------------------
@@ -89,7 +90,8 @@ case{lower('spectral data')}
     
     % spm_dcm_csd_results(DCM,'Data');
     %----------------------------------------------------------------------
-    co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
+    co    = {'b', 'r', 'g', 'm', 'y', 'k', 'c', 'b', 'r', 'g', 'm', 'y', 'k', 'c'};
+    lt    = {'-', ':', '-.', '-', ':', '-.','-', ':', '-.','-', ':', '-.'};
     Hz    = xY.Hz;
     nm    = min(nm,4);
     try
@@ -98,7 +100,19 @@ case{lower('spectral data')}
         name = DCM.Sname;
     end
     
-    str   = {};
+    tstr = {};
+    mstr = {};
+    for k = 1:nt
+        tstr{end + 1} = sprintf('trial %i: real', k);
+        tstr{end + 1} = sprintf('trial %i: image',k);
+        tstr{end + 1} = sprintf('trial %i: abs',  k);
+    end
+    for i = 1:nm
+        for k = 1:nt
+            mstr{end + 1} = sprintf('mode %i trial %i',i,k);
+        end
+    end
+    
     for i = 1:nm
         for j = i:nm
  
@@ -106,8 +120,9 @@ case{lower('spectral data')}
             %--------------------------------------------------------------
             subplot(nm,nm,(i - 1)*nm + j),cla
             for k = 1:nt
-                plot(Hz,real(xY.y{k}(:,i,j)),'color',co{k}), hold on
-                plot(Hz,imag(xY.y{k}(:,i,j)),':','color',co{k}), hold on
+                plot(Hz,real(xY.y{k}(:,i,j)),'-.','color',co{k}), hold on
+                plot(Hz,imag(xY.y{k}(:,i,j)),':', 'color',co{k}), hold on
+                plot(Hz, abs(xY.y{k}(:,i,j)),     'color',co{k}), hold on
                 title(sprintf('%s to %s',name{j},name{i}))
                 axis square, spm_axis tight
             end
@@ -117,9 +132,8 @@ case{lower('spectral data')}
         %------------------------------------------------------------------
         subplot(2,2,3)
         for k = 1:nt
-            plot(Hz,abs(xY.y{k}(:,i,i)),'color',co{i}), hold on
+            plot(Hz,abs(xY.y{k}(:,i,i)),'color',co{i},'LineStyle',lt{k}), hold on
             axis square, spm_axis tight
-            str{end + 1} = sprintf('%s: condition %i',name{i},k);
         end
     end
     
@@ -127,10 +141,10 @@ case{lower('spectral data')}
     xlabel('Frequency (Hz)')
     ylabel('CSD')
     axis square, spm_axis tight
-    legend(str)
+    legend(mstr)
     
     subplot(nm,nm,nm)
-    legend('real','imag')
+    legend(tstr)
     return
     
 end
@@ -314,7 +328,7 @@ case{lower('Input')}
     plot(Hz,Gu)
     xlabel('frequency (Hz)')
     title('Spectrum of innovations','FontSize',16)
-    axis square, grid on
+    axis square, grid on, spm_axis scale
     legend(DCM.Sname)
  
     % plot spectral density of noise
@@ -323,7 +337,7 @@ case{lower('Input')}
     plot(Hz,Gs)
     xlabel('frequency (Hz)')
     title('Channel-specific noise')
-    axis square, grid on
+    axis square, grid on, spm_axis scale
     legend(xY.name)
  
     % plot spectral density of noise
@@ -332,7 +346,7 @@ case{lower('Input')}
     plot(Hz,Gn)
     xlabel('frequency (Hz)')
     title('Non-specific noise')
-    axis square, grid on
+    axis square, grid on, spm_axis scale
     
     
     
@@ -341,7 +355,7 @@ case{lower('Transfer functions')}
     % spm_dcm_csd_results(DCM,'Cross-spectral density');
     %----------------------------------------------------------------------
     co   = {'b', 'r', 'g', 'm', 'y', 'k', 'c'};
-    Hz   = DCM.Hz;
+    Hz   = DCM.Hz(:);
     name = DCM.Sname;
     nm   = length(name);
     
@@ -353,7 +367,8 @@ case{lower('Transfer functions')}
     
     tstr = {};
     for k = 1:nt
-        tstr{end + 1} = sprintf('trial %i',k);
+        tstr{end + 1} = sprintf('trial %i: abs',k);
+        tstr{end + 1} = sprintf('trial %i: phase (sec) ',k);
     end
     
     for i = 1:nm
@@ -364,11 +379,12 @@ case{lower('Transfer functions')}
             subplot(nm,nm,(i - 1)*nm + j)
             for k = 1:nt
                 
-                dtf = abs(DCM.dtf{k}(:,i,j));
-                dtf = dtf.*sqrt(Gu(:,j));
-                dtf = dtf/sum(dtf);
+                dtf = DCM.dtf{k}(:,i,j);
+                fsd = unwrap(angle(dtf))./(2*pi*Hz);
+                dtf = abs(dtf.*sqrt(Gu(:,j)));
                 
-                plot(Hz,dtf,'color',co{k}), hold on
+                plot(Hz,dtf,    'color',co{k}), hold on
+                plot(Hz,fsd,':','color',co{k}), hold on
                 title(sprintf('Spectral transfer: %s to %s',name{j},name{i}))
                 xlabel('frequency Hz')
                 axis square, spm_axis tight
@@ -449,9 +465,11 @@ case{lower('Cross-spectra (channels)')}
         tstr{end + 1} = sprintf('predicted: trial %i',k);
         tstr{end + 1} = sprintf('observed: trial %i',k);
     end
-    for k = 1:nm
-        mstr{end + 1} = sprintf('predicted: mode %i',k);
-        mstr{end + 1} = sprintf('observed: mode %i',k);
+    for i = 1:nm
+        for k = 1:nt
+            mstr{end + 1} = sprintf('predicted: mode %i trial %i',i,k);
+            mstr{end + 1} = sprintf( 'observed: mode %i trial %i',i,k);
+        end
     end
     
     for i = 1:nm
