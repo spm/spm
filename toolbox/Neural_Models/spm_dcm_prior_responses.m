@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 5758 2013-11-20 21:04:01Z karl $
+% $Id: spm_dcm_prior_responses.m 5819 2013-12-26 13:04:10Z karl $
 
 
 % Model specification
@@ -112,13 +112,13 @@ for i = 1:Nm
     pst = 1000*pst;
     
     subplot(3,3,3*iplot + 2)
-    plot(Hz,csd{1}),  hold on
+    plot(Hz,abs(csd{1})),  hold on
     
     subplot(3,3,3*iplot + 3)
     plot(lag,ccf{1}), hold on
     
     
-    % now repeat with out channel noise
+    % now repeat without channel noise
     %----------------------------------------------------------------------
     pE.b = pE.b - 32;
     pE.c = pE.c - 32;
@@ -128,11 +128,11 @@ for i = 1:Nm
     % plot
     %----------------------------------------------------------------------
     subplot(3,3,3*iplot + 2)
-    plot(Hz,csd{1},'b--'), hold off
+    plot(Hz,abs(csd{1}),'b--'), hold off
     xlabel('frequency {Hz}')
     title('autospectrum','FontSize',16)
     
-    subplot(3,3,3*iplot +3)
+    subplot(3,3,3*iplot + 3)
     plot(lag,ccf{1},'b--'), hold off
     title('autocovariance','FontSize',16)
     
