@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5821 2013-12-31 14:26:41Z karl $
+% $Id: spm_dcm_fmri_csd.m 5822 2013-12-31 15:02:04Z karl $
 
 
 % get DCM
@@ -58,7 +58,6 @@ try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  en
 
 % parameter initialisation
 %--------------------------------------------------------------------------
-try, DCM.M.modes = DCM.options.modes;                        end
 try, DCM.M.P     = DCM.options.P;                            end
 try, DCM.M.Nmax  = DCM.options.Nmax; catch, DCM.M.Nmax = 32; end
 
@@ -127,6 +126,11 @@ if n > DCM.options.nmax
     
 end
 
+% place eigenmodes in model if DCM.a is a vector (of eigenvalues)
+%--------------------------------------------------------------------------
+if isvector(DCM.a)
+    DCM.M.modes = spm_svd(DCM.Y.y);
+end
 
 % create DCM
 %--------------------------------------------------------------------------
