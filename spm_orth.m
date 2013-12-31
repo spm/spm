@@ -15,7 +15,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 5820 2013-12-31 12:47:25Z karl $
+% $Id: spm_orth.m 5821 2013-12-31 14:26:41Z karl $
  
 
 %-Default
@@ -31,7 +31,7 @@ end
 sw    = warning('off','all');
 [n,m] = size(X);
 X     = X(:, any(X));
-rankX = rank(X);
+rankX = rank(full(X));
 try
     x     = X(:,1);
     j     = 1;

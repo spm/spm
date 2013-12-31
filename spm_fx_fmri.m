@@ -35,7 +35,11 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: spm_fx_fmri.m 5821 2013-12-31 14:26:41Z karl $
+
+% options
+%--------------------------------------------------------------------------
+if isfield(M,'symmetry'), symmetry = M.symmetry; else, symmetry = 0; end
 
 
 % Neuronal motion
@@ -45,39 +49,80 @@ P.B   = full(P.B);                       % bi-linear parameters
 P.C   = P.C/16;                          % exogenous parameters
 P.D   = full(P.D);                       % nonlinear parameters
 
-% excitatory connections
-%--------------------------------------------------------------------------
-for i = 1:size(P.B,3)
-    P.A(:,:,1) = P.A(:,:,1) + u(i)*P.B(:,:,i);
-end
-
-% and nonlinear (state) terms
-%--------------------------------------------------------------------------
-for i = 1:size(P.D,3)
-    P.A(:,:,1) = P.A(:,:,1) + x(i,1)*P.D(:,:,i);
-end
 
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
 f    = x;
 if size(x,2) == 5
     
-    % combine forward and backward connections if necessary
-    %--------------------------------------------------------------------------
-    if size(P.A,3) > 1
-        P.A  = exp(P.A(:,:,1)) - exp(P.A(:,:,2));
+    if isvector(P.A)
+        
+        % excitatory connections
+        %------------------------------------------------------------------
+        EE = spm_dcm_fmri_mode_gen(P.A,M.modes);
+        
+        % input dependent modulation
+        %------------------------------------------------------------------
+        for i = 1:size(P.B,3)
+            EE = EE + u(i)*P.B(:,:,i);
+        end
+        
+        % and nonlinear (state) terms
+        %------------------------------------------------------------------
+        for i = 1:size(P.D,3)
+            EE = EE + x(i,1)*P.D(:,:,i);
+        end
+        
+    else
+        
+        % input dependent modulation
+        %------------------------------------------------------------------
+        for i = 1:size(P.B,3)
+            P.A(:,:,1) = P.A(:,:,1) + u(i)*P.B(:,:,i);
+        end
+        
+        % and nonlinear (state) terms
+        %------------------------------------------------------------------
+        for i = 1:size(P.D,3)
+            P.A(:,:,1) = P.A(:,:,1) + x(i,1)*P.D(:,:,i);
+        end
+        
+        % combine forward and backward connections if necessary
+        %------------------------------------------------------------------
+        if size(P.A,3) > 1
+            P.A  = exp(P.A(:,:,1)) - exp(P.A(:,:,2));
+        end
+        
+        % one neuronal state per region: diag(A) is a log self-inhibition
+        %------------------------------------------------------------------
+        SE     = diag(P.A);
+        EE     = P.A - diag(exp(SE)/2 + SE);
+        
+        % symmetry constraints for demonstration purposes
+        %------------------------------------------------------------------
+        if symmetry, EE = (EE + EE')/2; end
+        
     end
-    
-    % one neuronal state per region: diag(A) is a log self-inhibition
-    %----------------------------------------------------------------------
-    SE     = diag(P.A);
-    EE     = P.A - diag(exp(SE)/2 + SE);
-    
+        
     % flow
     %----------------------------------------------------------------------
     f(:,1) = EE*x(:,1) + P.C*u(:);
+        
+
     
 else
+    
+    % input dependent modulation
+    %----------------------------------------------------------------------
+    for i = 1:size(P.B,3)
+        P.A(:,:,1) = P.A(:,:,1) + u(i)*P.B(:,:,i);
+    end
+    
+    % and nonlinear (state) terms
+    %----------------------------------------------------------------------
+    for i = 1:size(P.D,3)
+        P.A(:,:,1) = P.A(:,:,1) + x(i,1)*P.D(:,:,i);
+    end
     
     % extrinsic (two neuronal states): enforce positivity
     %----------------------------------------------------------------------

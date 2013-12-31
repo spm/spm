@@ -3,13 +3,15 @@ function DEM_demo_connectivity_fMRI
 %__________________________________________________________________________
 % This demonstration routine illustrates the inversion of resting state
 % fMRI timeseries using a generative model of the adjacency matrix. This
-% model is based upon an embedding space of dimensions the in which the
+% model is based upon an embedding space of dimension ED in which the
 % (log) connectivity among nodes is a (radial basis) function of their
 % metric separation. This generative model of connectivity requires a
-% hierarchical constraints on the edges and therefore uses the expectation
-% aand maximisation step of dynamic expectationmaximisation. Here, the
+% hierarchical constraint on the edges and therefore uses the expectation
+% and maximisation stepits of dynamic expectation maximisation. Here, the
 % hidden causes at the first level are the effective connectivity and the
-% hidden causes at the second level are the locations in embedding states.
+% hidden causes at the second level are the Lyapunov exponents or 
+% eigenvalues of a symmetrical Jacobian or effective connectivity matrix:
+% see DEM_demo_modes_fMRI.m
 %
 % Simulated timeseries are generated and inverted under typical priors.
 % This routine that performs a model space search over precisions on the
@@ -17,21 +19,22 @@ function DEM_demo_connectivity_fMRI
 % This illustrates: (i) the increase in model evidence afforded by
 % hierarchical constraints (when they are true) and (ii) the optimal
 % prior precision that reflects the amplitude of random variations in
-% connectivity about the constraints. (iii) Finally,the search over moral
+% connectivity about the constraints. (iii) Finally,the search over model
 % dimension illustrates how Bayesian model comparison can identify the
 % dimensionality of the metric space generating hierarchical connectivity.
 % 
-% The model space search can take about 20 min and is enabled by deleting
-% the return command in the script.
+% see also: DEM_demo_modes_fMRI.m
+%           spm_dcm_fmri_csd_DEM.m
+%           spm_dcm_fmri_graph_gen.m
+%           spm_dcm_fmri_mode_gen
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5821 2013-12-31 14:26:41Z karl $
 
 % Simulate timeseries
 %==========================================================================
-rng('default')
 
 % DEM Structure: create random inputs
 % -------------------------------------------------------------------------
@@ -40,33 +43,36 @@ T     = 1024;                            % number of observations (scans)
 TR    = 2;                               % repetition time or timing
 n     = 6;                               % number of regions or nodes
 t     = (1:T)*TR;                        % observation times
-% v     = randn(ED,n)/8;                 % location in scaling space
-% [u s] = spm_svd(v'*v);                 % in orthogonal coordinates
-% v     = sqrt(s)*u';
 
 
-% emprical (MAP) esimates
+% empirical covariance matrix
 % -------------------------------------------------------------------------
-v = [
-   -0.1906    0.2706    0.3484   -0.3860   -0.5534   -0.4246
-    0.1577   -0.1542   -0.6075   -0.1325   -0.3871   -0.2227
-   -0.0865   -0.0811    0.4158    0.1186    0.0111   -0.1946
-    0.1530   -0.1626   -0.0782   -0.2557    0.6035   -0.2670];
+Cy    = [
+    1.0073   -0.4669   -0.3647    0.5984    0.4378    0.6177
+   -0.4669    0.8979    0.2469   -0.4208   -0.2764   -0.4382
+   -0.3647    0.2469    0.4027   -0.2821   -0.1795   -0.2702
+    0.5984   -0.4208   -0.2821    0.7553    0.4419    0.6125
+    0.4378   -0.2764   -0.1795    0.4419    0.4634    0.3947
+    0.6177   -0.4382   -0.2702    0.6125    0.3947    0.9421];
 
-v = v(1:ED,1:n);
+
+% modes and exponents
+% -------------------------------------------------------------------------
+u     = spm_svd(Cy);
+v     = linspace(2,0,ED)';
+v     = v(1:ED);
 
 % priors
 % -------------------------------------------------------------------------
-options.nmax       = 8;                % effective number of notes
-
+options.nmax       = 8;                % effective number of nodes
+options.Nmax       = 64;               % maximum number of iterationsno
 options.two_state  = 0;
 options.induced    = 1;
 options.stochastic = 0;
 options.nonlinear  = 0;
 options.embedding  = ED;
 options.backwards  = 0;
-options.precision  = 6;
-options.Nmax       = 64;
+
 
 A   = ones(n,n);
 B   = zeros(n,n,0);
@@ -76,11 +82,12 @@ D   = zeros(n,n,0);
 
 % true parameters (reciprocal connectivity)
 % -------------------------------------------------------------------------
-[pE,pC,x]  = spm_dcm_fmri_priors(A,B,C,D,options);
-pP         = spm_dcm_fmri_graph_gen([],v,pE);
-pP.A       = pP.A + randn(size(pP.A))*exp(-4); disp(pP.A)
+[pP,pC,x]  = spm_dcm_fmri_priors(A,B,C,D,options);
+pP.modes   = u;
+pP         = spm_dcm_fmri_graph_gen([],v,pP); disp(pP.A)
 pP.C       = eye(n,n);
 pP.transit = randn(n,1)*exp(-4);
+
 
 % simulate response to endogenous fluctuations
 %==========================================================================
@@ -148,16 +155,13 @@ DCM.U.dt = TR;
 
 % classical
 % -------------------------------------------------------------------------
+DCM.options.precision  = 4;
+DCM.M.symmetry         = 1;
 DCM  = spm_dcm_fmri_csd(DCM);
-
-
-% post hoc esimatation of scaling space
-% -------------------------------------------------------------------------
-% [u s]         = spm_svd(DCM.Ep.A);
-% DCM.options.v = sqrt(s)*u';
 
 % hierarchical
 % -------------------------------------------------------------------------
+DCM.options.precision  = 8;
 DEM  = spm_dcm_fmri_csd_DEM(DCM);
 
 
@@ -167,7 +171,6 @@ spm_figure('Getwin','Figure 2'); clf
 
 j   = find(pP.A);
 Ep  = DEM.Ep.A(j);
-Qp  = DCM.Ep.A(j);
 Cp  = DEM.Cp(j,j);
 Pp  = pP.A(:);
 
@@ -184,7 +187,7 @@ plot(pP.A(:),DEM.Ep.A(:),'b.','MarkerSize',32),    hold on
 plot(pP.A(:),DCM.Ep.A(:),'c.','MarkerSize',16),    hold on
 plot(pP.A(j),DEM.Ep.A(j),'r.','MarkerSize',32), hold on
 plot(pP.A(j),DCM.Ep.A(j),'m.','MarkerSize',16), hold on
-plot([-0.2 .3],[-0.2 .3],'k:'), hold on
+plot([-1 1],[-1 1],'k--'), hold on
 title('MAP vs. true','FontSize',16)
 xlabel('true')
 ylabel('estimate')
@@ -195,15 +198,22 @@ legend ('hierarchical','conventional')
 % proximity space
 %==========================================================================
 spm_figure('Getwin','Figure (MAP)'); clf
-u      = spm_unvec(DEM.DEM.qU.v{3},v);
+
+qv   = [DEM.DEM.qU.v{3}; -ones(n - ED,1)];
+qu   = u*diag(sqrt(exp(qv)/2));
 
 subplot(2,1,1)
-spm_dcm_graph_functional(u)
+spm_dcm_graph_functional(qu)
 title('Estimated','FontSize',16)
 
+qv   = [v(1:ED); -ones(n - ED,1)];
+qu   = u*diag(sqrt(exp(qv)/2));
+
 subplot(2,1,2)
-spm_dcm_graph_functional(v)
+spm_dcm_graph_functional(qu)
 title('True','FontSize',16)
+
+
 
 % eturn if called as a demo - otherwise perform model search
 %--------------------------------------------------------------------------
@@ -214,7 +224,7 @@ end
 
 % search over precision of hidden causes
 %==========================================================================
-V     = 4:8;
+V     = 2:8;
 F     = [];
 R     = [];
 for i = 1:length(V)
@@ -256,17 +266,17 @@ spm_figure('Getwin','Figure 3'); clf
 
 subplot(2,2,1);
 bar(V,F - min(F(:)) + 16)
-title('log-evidence and precision','FontSize',16)
-xlabel('prior log-precision')
-ylabel('free energy')
+title('Log-evidence and embedding','FontSize',16)
+xlabel('Precision')
+ylabel('Free energy')
 axis square
 
 subplot(2,2,3);
 bar(V,R), hold on
 plot(V,V*0 + 0.05,'r:'), hold off
-title('accuracy','FontSize',16)
-xlabel('prior log-precision')
-ylabel('root mean square error')
+title('RMS error','FontSize',16)
+xlabel('Precision')
+ylabel('Root mean square error')
 axis square
 legend ('D > 0','D = 0')
 
@@ -304,17 +314,17 @@ RF  = DF - min(DF(:)) + 16;
 subplot(2,2,2); cla
 bar(D,RF),                                              hold on
 plot(D,D - D + max(RF),'r',D,D - D + max(RF) - 3,'r:'), hold off
-title('log-evidence and embedding','FontSize',16)
-xlabel('embedding dimension')
-ylabel('free energy')
+title('Log-evidence and embedding','FontSize',16)
+xlabel('Embedding dimension')
+ylabel('Free energy')
 axis square
 
 subplot(2,2,4);
 bar(D,DR),               hold on
 plot(D,D*0 + 0.05,'r:'), hold off
-title('accuracy','FontSize',16)
-xlabel('embedding dimension')
-ylabel('root mean square error')
+title('RMS error','FontSize',16)
+xlabel('Embedding dimension')
+ylabel('Root mean square error')
 axis square
 
 
@@ -332,12 +342,26 @@ DCM.b = zeros(n,n,0);
 DCM.d = zeros(n,n,0);
 DCM.options = options;
 
-% classical esimatation of scaling space
-% -------------------------------------------------------------------------
-% DCM           = spm_dcm_fmri_csd(DCM);
-% [u s]         = spm_svd(DCM.Ep.A);
-% DCM.options.v = sqrt(s)*u';
+% search over embedding dimension
+%==========================================================================
+eDF   = [];
+for i = 1:length(D)
 
+    % invert
+    %======================================================================
+    DCM.options.precision = 6;
+    DCM.options.embedding = D(i);
+    DEM = spm_dcm_fmri_csd_DEM(DCM);
+            
+    % free energy
+    % ---------------------------------------------------------------------
+    eDF(end + 1,1)   = DEM.F;
+    
+end
+
+% dimension that maximises free energy
+% ---------------------------------------------------------------------
+[f j] = max(eDF);
 
 % search over precision of hidden causes
 %==========================================================================
@@ -347,7 +371,7 @@ for i = 1:length(V)
     % invert
     %======================================================================
     DCM.options.precision = V(i);
-    DCM.options.embedding = 2;
+    DCM.options.embedding = D(j);
     DEM = spm_dcm_fmri_csd_DEM(DCM);
     
     % free energy
@@ -373,29 +397,11 @@ spm_figure('Getwin','Figure 4'); clf
 
 subplot(2,2,1);
 bar(V,eF - min(eF(:)) + 16)
-title('precision (empirical)','FontSize',16)
-xlabel('prior precision ')
-ylabel('free energy')
+title('Precision (empirical)','FontSize',16)
+xlabel('Prior precision ')
+ylabel('Free energy')
 axis square
 
-
-% search over embedding dimension
-%==========================================================================
-eDF   = [];
-for i = 1:length(D)
-
-    % invert
-    %======================================================================
-    DCM.options.precision = 6;
-    DCM.options.embedding = D(i);
-    DEM = spm_dcm_fmri_csd_DEM(DCM);
-            
-    % free energy
-    % ---------------------------------------------------------------------
-    eDF(end + 1,1)   = DEM.F;
-    
-end
-    
 
 % summary
 % -------------------------------------------------------------------------
@@ -406,36 +412,44 @@ eRF  = eDF - min(eDF(:)) + 16;
 subplot(2,2,2); cla
 bar(D,eRF),                                               hold on
 plot(D,D - D + max(eRF),'r',D,D - D + max(eRF) - 3,'r:'), hold off
-title('embedding (empirical)','FontSize',16)
-xlabel('embedding dimension')
-ylabel('free energy')
+title('Embedding (empirical)','FontSize',16)
+xlabel('Embedding dimension')
+ylabel('Free energy')
 axis square
+
+
+% and save matlab file
+% -------------------------------------------------------------------------
+save paper
 
 % get functional space
 %==========================================================================
 spm_figure('Getwin','Figure 5'); clf
 
 subplot(2,1,1)
-title('Scaling spaces','FontSize',16)
-u = spm_unvec(DEM.DEM.qU.v{3},DEM.DEM.M(3).v);
-spm_dcm_graph_functional(u)
 
+qv   = [DEM.DEM.qU.v{3}; -ones(n - length(DEM.DEM.qU.v{3}),1)];
+qu   = u*diag(sqrt(exp(qv)/2));
+spm_dcm_graph_functional(qu)
+title('Scaling space','FontSize',16)
 
     
-% and save matlab file
-% -------------------------------------------------------------------------
-save paper
-
-
 
 return
+
+
+
+
+
+
+
+
 
 
 function rms = paper_rms(A,B)
 % Root mean square difference in (% extrinsic connectivity)
 % -------------------------------------------------------------------------
 D   = A - B;
-% D   = D - diag(diag(D));
 D   = D(find(D));
 rms = sqrt(mean(D.^2));
 

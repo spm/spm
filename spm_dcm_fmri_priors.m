@@ -27,12 +27,11 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_dcm_fmri_priors.m 5821 2013-12-31 14:26:41Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
 n = length(A);
-A = logical(A - diag(diag(A)));
 
 % check options and D (for nonlinear coupling)
 %--------------------------------------------------------------------------
@@ -50,6 +49,7 @@ if options.two_state
     % (6) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,6);
+    A     = logical(A - diag(diag(A)));
     
     % precision of log-connections (two-state)
     %---------------------------------------------------------------------
@@ -80,6 +80,9 @@ if options.two_state
 
 else
     
+    % one hidden state per node
+    %======================================================================
+    
     % (6 - 1) initial states
     %----------------------------------------------------------------------
     x     = sparse(n,5);
@@ -87,18 +90,29 @@ else
     % precision of connections (one-state)
     %---------------------------------------------------------------------
     try, pA = exp(options.precision); catch,  pA = 64;  end
+    try, dA = options.decay;          catch,  dA = 1;   end
     
     % prior expectations
     %----------------------------------------------------------------------
-    pE.A  =  A/128;
+    if isvector(A)
+        A     = logical(A);
+        pE.A  = (A(:) - 1)*dA;
+    else
+        A     = logical(A - diag(diag(A)));
+        pE.A  =  A/128;
+    end
     pE.B  =  B*0;
     pE.C  =  C*0;
     pE.D  =  D*0;
     
     % prior covariances
     %----------------------------------------------------------------------
-    for i = 1:size(A,3)
-        pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/1024;
+    if isvector(A)
+        pC.A  = A(:);
+    else
+        for i = 1:size(A,3)
+            pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/pA;
+        end
     end
     pC.B  =  B;
     pC.C  =  C;

@@ -14,7 +14,7 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % DCM.n                              % number of regions
 % DCM.v                              % number of scans
 %
-% This routine estimates the (A and C) parameters of a dynamic causal model
+% This routine estimates the parameters of a hierarchical model
 % of fMRI responses, using the complex cross spectra under stationarity
 % assumptions. The cross spectra are estimated from regional timeseries
 % (the nodes of the DCM graph) using a Bayesian multivariate autoregressive
@@ -26,17 +26,21 @@ function DCM = spm_dcm_fmri_csd_DEM(DCM)
 % crosscorrelation functions at the neuronal level – having accounted for
 % variations in haemodynamics at each node.
 %
-% note that neuronal fluctuations are not changes in synaptic activity or
-% depolarisation per se but the fluctuations in the power of underlying
-% neuronal dynamics. As such, they have much slower time constants than the
-% neuronal dynamics.
+% This scheming uses a hierarchical generative model of connectivity with
+% hierarchical constraints on the edges and therefore uses the expectation
+% and maximisation stepits of dynamic expectation maximisation. Here, the
+% hidden causes at the first level are the effective connectivity and the
+% hidden causes at the second level are the Lyapunov exponents or 
+% eigenvalues of a symmetrical Jacobian or effective connectivity matrix:
+% see DEM_demo_modes_fMRI.m
 %
 % see also: spm_dcm_estimate
+%           spm_dcm_fmri_csd
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_DEM.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_dcm_fmri_csd_DEM.m 5821 2013-12-31 14:26:41Z karl $
 
 
 % get DCM
@@ -186,6 +190,34 @@ DEM.Y        = spm_vec(spm_fs_fmri_csd(DCM.Y.csd,DCM.M));
 DEM.M.E.nD   = 8;
 DEM.M.E.nE   = 8;
 
+% functional modes and eigenvalues
+%--------------------------------------------------------------------------
+if 1
+    
+    % hidden causes as Lyapunov exponents or eigenvalues
+    %----------------------------------------------------------------------
+    P        = pE;
+    P.modes  = spm_svd(cov(DCM.Y.y));
+    try
+        v    = DCM.options.v(1:DCM.options.embedding);
+    catch
+        v    = zeros(DCM.options.embedding,1);
+    end
+    
+else
+    
+    % hidden causes as scaled eigenvectors
+    %----------------------------------------------------------------------
+    P        = pE;
+    try
+        v    = DCM.options.v(1:DCM.options.embedding,:);
+    catch
+        v    = spm_svd(corr(DCM.Y.y));
+        v    = v(:,1:DCM.options.embedding)'/64;
+    end
+    
+end
+
 % generative model - for DEM
 %==========================================================================
 DEM.M(1).g   = 'spm_dcm_fmri_csd_gen';
@@ -199,17 +231,10 @@ DEM.M(1).l   = length(Q);
 DEM.M(2).g   = 'spm_dcm_fmri_graph_gen';
 DEM.M(2).V   = spm_inv(pC);
 DEM.M(2).v   = pE;
-DEM.M(2).pE  = pE;
+DEM.M(2).pE  = P;
 
 DEM.M(3).V   = exp(0);
-
-try
-    v        = DCM.options.v;
-catch
-    v        = spm_svd(corr(DCM.Y.y));
-    v        = v'/64;
-end
-DEM.M(3).v   = v(1:DCM.options.embedding,:);
+DEM.M(3).v   = v;
 
 % Variational Laplace
 %--------------------------------------------------------------------------

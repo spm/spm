@@ -1,13 +1,15 @@
 function [P] = spm_dcm_fmri_graph_gen(x,v,P)
-% Generates adjacency graph for DCM for CSD (fMRI)
+% Generates adjacency graph for spectral DCM for fMRI
 % FORMAT [g] = spm_dcm_fmri_graph_gen(x,v,P)
 %
-% This routine computes the connecivity graph for DCM
+% This routine computes the adjacency matrix (A) for spm_fx_fmri
+%
+% see also: spm_fx_fmri
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_dcm_fmri_graph_gen.m 5821 2013-12-31 14:26:41Z karl $
 
 
 % compute bias for log connectivity using functional space
@@ -16,11 +18,34 @@ function [P] = spm_dcm_fmri_graph_gen(x,v,P)
 % spectral deomposition
 %--------------------------------------------------------------------------
 P.A   = full(P.A);
-if isnumeric(v)
+
+if isfield(P,'modes')
     
     % outer product
-    %======================================================================;
-    P.A   = v'*v;
+    %======================================================================
+    n     = length(P.A);                          % number of nodes
+    m     = length(v);                            % number of modes
+    s     = [-exp(-v); (zeros(n - m,1) - 1)];
+    P.A   = P.modes*diag(s)*P.modes';
+    P.A   = full(P.A + diag(log(-2*diag(P.A)) - diag(P.A)));
+    P     = rmfield(P,'modes');
+
+    return
+    
+end
+
+
+if isnumeric(v)
+    
+    % static modes (explicit negativity constraints on self excitation)
+    %======================================================================
+    % P.A   = v'*v;
+    
+    % dynamical modes (implicit negative definite constraints)
+    %======================================================================
+    P.A   = logm(v'*v + eye(size(v,2),size(v,2))*exp(-16))/16;
+    P.A   = P.A + diag(log(-2*diag(P.A)) - diag(P.A));
+
     return
     
 end
