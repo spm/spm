@@ -15,7 +15,7 @@ function X = spm_orth(X,OPT)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_orth.m 4707 2012-04-02 11:26:50Z guillaume $
+% $Id: spm_orth.m 5820 2013-12-31 12:47:25Z karl $
  
 
 %-Default
@@ -28,8 +28,8 @@ end
  
 %-Recursive Gram-Schmidt orthogonalisation
 %--------------------------------------------------------------------------
-sw = warning('off','all');
-[n, m] = size(X);
+sw    = warning('off','all');
+[n,m] = size(X);
 X     = X(:, any(X));
 rankX = rank(X);
 try
@@ -56,6 +56,8 @@ switch OPT
     case{'pad'}
         X      = zeros(n,m);
         X(:,j) = x;
-    otherwise
+    case{'norm'}
         X      = spm_en(x);
+    otherwise
+        X      = x;
 end
