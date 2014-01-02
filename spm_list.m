@@ -111,10 +111,10 @@ function varargout = spm_list(varargin)
 % extract the table data to the MATLAB workspace.
 %
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5695 2013-10-15 19:05:50Z guillaume $
+% $Id: spm_list.m 5825 2014-01-02 15:09:05Z guillaume $
 
 
 %==========================================================================
@@ -127,6 +127,7 @@ switch lower(varargin{1}), case 'list'                               %-List
     if nargin < 2, error('Not enough input arguments.'); end
     if nargin < 3, hReg = []; else  hReg = varargin{3};  end
     xSPM = varargin{2};
+    if isempty(xSPM), varargout = {{}}; return;          end
     
     %-Extract results table and display it
     %----------------------------------------------------------------------
