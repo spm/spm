@@ -28,7 +28,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %
 % The Benjamini & Hochberch (1995) False Discovery Rate (FDR) procedure
 % finds a threshold u such that the expected FDR is at most q.
-% spm_uc_FDR returns this critical threshold u. 
+% spm_uc_FDR returns this critical threshold u.
 %
 % For repeated use of a given statistic image, return Ps in the place
 % of Vs:
@@ -58,7 +58,7 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 % false positives anywhere (whereas FDR is a *proportion* of false
 % positives).  A FWER adjusted p-value for a voxel is the smallest alpha
 % such that the voxel would be suprathreshold.
-% 
+%
 % If there is truely no signal in the image anywhere, then a FDR
 % proceedure controls FWER, just as Bonferroni and random field methods
 % do. (Precisely, controlling E(FDR) yeilds weak control of FWE).  If
@@ -74,57 +74,49 @@ function [u,Ps,Ts] = spm_uc_FDR(q,df,STAT,n,Vs,Vm)
 %
 % Benjamini & Yekutieli (2001), "The Control of the false discovery rate
 % in multiple testing under dependency". To appear, Annals of Statistics.
-% Available at http://www.math.tau.ac.il/~benja 
+% Available at http://www.math.tau.ac.il/~benja
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols
-% $Id: spm_uc_FDR.m 2690 2009-02-04 21:44:28Z guillaume $
+% $Id: spm_uc_FDR.m 5824 2014-01-02 14:50:13Z guillaume $
 
 
 if (nargin<6), Vm = []; end
 
 % Set Benjamini & Yeuketeli cV for independence/PosRegDep case
 %--------------------------------------------------------------------------
-cV = 1; 
+cV = 1;
 
 
 % Load, mask & sort statistic image (if needed)
 %--------------------------------------------------------------------------
 if isstruct(Vs)
-  Ts = spm_read_vols(Vs(1));
-  for i = 2:length(Vs)
-    Ts = min(Ts,spm_read_vols(Vs(i)));
-  end
-  if ~isempty(Vm)
-    if isstruct(Vm)
-      Ts(spm_read_vols(Vm)==0) = [];
-    elseif (numel(Vm)==1)
-      Ts(Ts==Vm) = [];
-    else 
-      Ts = Ts(Vm);
+    Ts = spm_read_vols(Vs(1));
+    for i = 2:length(Vs)
+        Ts = min(Ts,spm_read_vols(Vs(i)));
     end
-  end
-  Ts(isnan(Ts)) = [];
-  Ts = sort(Ts(:));
-  if STAT ~= 'P', Ts = flipud(Ts); end
+    if ~isempty(Vm)
+        if isstruct(Vm)
+            Ts(spm_read_vols(Vm)==0) = [];
+        elseif (numel(Vm)==1)
+            Ts(Ts==Vm) = [];
+        else
+            Ts = Ts(Vm);
+        end
+    end
+    Ts(isnan(Ts)) = [];
+    Ts = sort(Ts(:));
+    if STAT ~= 'P', Ts = flipud(Ts); end
 end
 
 
 % Calculate p values of image (if needed)
 %--------------------------------------------------------------------------
 if isstruct(Vs)
-  if      STAT == 'Z'
-    Ps = (1-spm_Ncdf(Ts)).^n;
-  elseif  STAT == 'T'
-    Ps = (1-spm_Tcdf(Ts,df(2))).^n;
-  elseif  STAT == 'X'
-    Ps = (1-spm_Xcdf(Ts,df(2))).^n;
-  elseif  STAT == 'F'
-    Ps = (1-spm_Fcdf(Ts,df)).^n;
-  end
+    Ps = spm_z2p(Ts,df,STAT,n);
 else
-  Ps = Vs;
+    Ps = Vs;
 end
 
 S = length(Ps);
@@ -139,28 +131,27 @@ Fi  = (1:S)'/S*q/cV;
 %--------------------------------------------------------------------------
 I = find(Ps<=Fi, 1, 'last' );
 if isempty(I)
-  if STAT == 'P'
-    u = 0;
-  else    
-    u = Inf;
-  end    
-else
-  if isstruct(Vs)
-    u = Ts(I);
-  else 
-    % We don't have original statistic values; determine from p-value...
-    if      STAT == 'Z'
-      u = spm_invNcdf(1-Ps(I).^(1/n));
-    elseif  STAT == 'T'
-      u = spm_invTcdf(1-Ps(I).^(1/n),df(2));
-    elseif  STAT == 'X'
-      u = spm_invXcdf(1-Ps(I).^(1/n),df(2));
-    elseif  STAT == 'F'
-      u = spm_invFcdf(1-Ps(I).^(1/n),df);
-    % ... except in case when we want a P-value
-    elseif  STAT == 'P'
-      u = Ps(I);
+    if STAT == 'P'
+        u = 0;
+    else
+        u = Inf;
     end
-  end
+else
+    if isstruct(Vs)
+        u = Ts(I);
+    else
+        % We don't have original statistic values; determine from p-value...
+        if      STAT == 'Z'
+            u = spm_invNcdf(1-Ps(I).^(1/n));
+        elseif  STAT == 'T'
+            u = spm_invTcdf(1-Ps(I).^(1/n),df(2));
+        elseif  STAT == 'X'
+            u = spm_invXcdf(1-Ps(I).^(1/n),df(2));
+        elseif  STAT == 'F'
+            u = spm_invFcdf(1-Ps(I).^(1/n),df);
+            % ... except in case when we want a P-value
+        elseif  STAT == 'P'
+            u = Ps(I);
+        end
+    end
 end
-

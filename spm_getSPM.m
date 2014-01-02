@@ -179,10 +179,10 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % see spm_results_ui.m for further details of the SPM results section.
 % see also spm_contrasts.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5694 2013-10-15 18:25:53Z guillaume $
+% $Id: spm_getSPM.m 5824 2014-01-02 14:50:13Z guillaume $
 
 
 %-GUI setup
@@ -735,16 +735,7 @@ if STAT ~= 'P'
     %----------------------------------------------------------------------
     if ~topoFDR
         fprintf('%s%30s',repmat(sprintf('\b'),1,30),'...for voxelFDR')  %-#
-        switch STAT
-            case 'Z'
-                Ps = (1-spm_Ncdf(Zum)).^n;
-            case 'T'
-                Ps = (1 - spm_Tcdf(Zum,df(2))).^n;
-            case 'X'
-                Ps = (1-spm_Xcdf(Zum,df(2))).^n;
-            case 'F'
-                Ps = (1 - spm_Fcdf(Zum,df)).^n;
-        end
+        Ps = spm_z2p(Zum,df,STAT,n);
     end
     
     %-Peak FDR

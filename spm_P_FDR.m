@@ -74,10 +74,10 @@ function [P] = spm_P_FDR(Z,df,STAT,n,Ps)
 % controlling multiple test procedures for correlated test
 % statistics".  J of Statistical Planning and Inference, 82:171-196.
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Thomas Nichols and Ged Ridgway
-% $Id: spm_P_FDR.m 5266 2013-02-20 13:23:54Z ged $
+% $Id: spm_P_FDR.m 5824 2014-01-02 14:50:13Z guillaume $
 
 %-Set Benjamini & Yeuketeli cV for independence/PosRegDep case
 %--------------------------------------------------------------------------
@@ -120,17 +120,7 @@ end
 
 %-Calculate p-value of Z
 %--------------------------------------------------------------------------
-if      STAT == 'Z'
-  PZ = (1 - spm_Ncdf(Z)).^n;
-elseif  STAT == 'T'
-  PZ = (1 - spm_Tcdf(Z,df(2))).^n;
-elseif  STAT == 'X'
-  PZ = (1 - spm_Xcdf(Z,df(2))).^n;
-elseif  STAT == 'F'
-  PZ = (1-spm_Fcdf(Z,df)).^n;
-elseif  STAT == 'P'
-  PZ = Z;
-end
+PZ   = spm_z2p(Z,df,STAT,n);
 
 %-Calculate FDR p-values
 %--------------------------------------------------------------------------
