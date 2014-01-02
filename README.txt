@@ -61,7 +61,7 @@
 % Later versions of MATLAB (released after SPM12), will probably need
 % additional patches in order to run.  Once developed, these will be made
 % available from:
-%              ftp://ftp.fil.ion.ucl.ac.uk/spm/spm12_updates/ 
+%        http://www.fil.ion.ucl.ac.uk/spm/download/spm12_updates/
 % 
 % Although SPM12 will read image files from previous versions of SPM, there
 % are differences in the algorithms, templates and models used.  Therefore,
@@ -140,6 +140,6 @@
 % as is.  No formal support or maintenance is provided or implied.
 % 
 %__________________________________________________________________________
-% % Copyright (C) 1991,1994-2013 Wellcome Trust Centre for Neuroimaging
+% % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: README.txt 5176 2013-01-04 15:31:37Z guillaume $
+% $Id: README.txt 5826 2014-01-02 15:30:25Z guillaume $
