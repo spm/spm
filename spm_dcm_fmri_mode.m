@@ -4,16 +4,16 @@ function [U,E,F] = spm_dcm_fmri_mode(Ev,modes)
 % Ev    - (log of negative) Lyapunov exponents or eigenvalues of Jacobian
 % modes - modes or eigenvectors
 %
-% U     - wweighted modes; such that U*U' = F
+% U     - weighted modes; such that U*U' = F
 % E     - (neuronal) effective  connectivity matrix
 % F     - (neuronal) functional connectivity matrix E = -inv(F)/2
 %
-% This routine computes the connecivity graph for spectral DCM (modes)
+% This routine computes the connecivity graph for spectral DCM (modes).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_graph_gen.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_dcm_fmri_mode.m 5823 2014-01-02 14:01:10Z guillaume $
 
     
 % outer product
@@ -21,5 +21,3 @@ function [U,E,F] = spm_dcm_fmri_mode(Ev,modes)
 U    = modes*diag(sqrt(exp(Ev)/2));
 E    = modes*diag(-exp(-Ev))*modes';
 F    = modes*diag(exp(Ev)/2)*modes';
-
-

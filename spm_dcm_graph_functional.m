@@ -5,13 +5,13 @@ function spm_dcm_graph_functional(A,V)
 % A     - (m x m) weighted adjacency matrix
 % V     - (n x m) locations in (nD) Multidimensional Scaling (MDS) Space 
 %
-% if V is not specified the Weighted Graph Laplacian of A is used with
+% If V is not specified the Weighted Graph Laplacian of A is used with
 % metric MDS to define the functional space.
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph_functional.m 5820 2013-12-31 12:47:25Z karl $
+% $Id: spm_dcm_graph_functional.m 5823 2014-01-02 14:01:10Z guillaume $
 
 
 % colours and number of nodes
@@ -19,7 +19,7 @@ function spm_dcm_graph_functional(A,V)
 col   = {'b','g','r','c','m','y','k','w'};
 m     = size(A,2);
 
-% mertic MDS
+% metric MDS
 %--------------------------------------------------------------------------
 if nargin == 1
     

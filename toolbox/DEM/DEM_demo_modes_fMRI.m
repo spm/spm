@@ -5,8 +5,8 @@ function DEM_demo_modes_fMRI
 % fMRI timeseries using a generative model of the adjacency matrix. This
 % model is based upon the eigenmodes of the functional connectivity matrix,
 % which are the eigenvectors of the effective connectivity matrix or
-% Jacobian – assuming the effective connectivity is symmetrical. This means
-% it is only necessary to estimate the eigenvalues – in other words, one
+% Jacobian ï¿½ assuming the effective connectivity is symmetrical. This means
+% it is only necessary to estimate the eigenvalues ï¿½ in other words, one
 % unknown parameter per node.
 %
 % Simulated timeseries are generated and inverted under typical priors.
@@ -22,10 +22,11 @@ function DEM_demo_modes_fMRI
 %           spm_dcm_fmri_mode_gen
 %           spm_dcm_fmri_mode
 %__________________________________________________________________________
-% Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: DEM_demo_modes_fMRI.m 5823 2014-01-02 14:01:10Z guillaume $
+
 
 % Simulate timeseries
 %==========================================================================

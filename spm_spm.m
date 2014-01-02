@@ -265,13 +265,13 @@ function SPM = spm_spm(SPM)
 % Analysis of fMRI Time-Series Revisited - Again. Worsley KJ, Friston KJ.
 % (1995) NeuroImage 2:173-181.
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5489 2013-05-10 14:35:05Z guillaume $
+% $Id: spm_spm.m 5823 2014-01-02 14:01:10Z guillaume $
 
 
-SVNid = '$Rev: 5489 $';
+SVNid = '$Rev: 5823 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -616,6 +616,10 @@ end
 
 fprintf('\n');                                                          %-#
 spm_progress_bar('Clear');
+
+if ~any(mask(:))
+    error('Please check your data: There are no inmask voxels.');
+end
 
 
 %==========================================================================
