@@ -4,7 +4,7 @@ function cat = spm_cfg_cat
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_cat.m 3613 2009-12-04 18:47:59Z guillaume $
+% $Id: spm_cfg_cat.m 5828 2014-01-03 18:38:35Z guillaume $
 
 %--------------------------------------------------------------------------
 % vols 3D Volumes
@@ -48,18 +48,29 @@ name.val     = {'4D.nii'};
 %--------------------------------------------------------------------------
 % cat 3D to 4D File Conversion
 %--------------------------------------------------------------------------
-cat         = cfg_exbranch;
-cat.tag     = 'cat';
-cat.name    = '3D to 4D File Conversion';
-cat.val     = {vols name dtype};
-cat.help    = {'Concatenate a number of 3D volumes into a single 4D file.'};
-cat.prog = @spm_run_cat;
-cat.vout = @vout;
+cat      = cfg_exbranch;
+cat.tag  = 'cat';
+cat.name = '3D to 4D File Conversion';
+cat.val  = {vols name dtype};
+cat.help = {'Concatenate a number of 3D volumes into a single 4D file.'};
+cat.prog = @(job)spm_run_cat('run',job);
+cat.vout = @(job)spm_run_cat('vout',job);
+
 
 %==========================================================================
-function dep = vout(varargin)
-% 4D output file will be saved in a struct with field .mergedfile
-dep(1)            = cfg_dep;
-dep(1).sname      = 'Concatenated 4D Volume';
-dep(1).src_output = substruct('.','mergedfile');
-dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+function out = spm_run_cat(cmd, job)
+
+switch lower(cmd)
+    case 'run'
+        V                 = char(job.vols{:});
+        dt                = job.dtype;
+        fname             = job.name;
+        V4                = spm_file_merge(V,fname,dt);
+        out.mergedfile    = {V4(1).fname};
+        
+    case 'vout'
+        out(1)            = cfg_dep;
+        out(1).sname      = 'Concatenated 4D Volume';
+        out(1).src_output = substruct('.','mergedfile');
+        out(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
+end
