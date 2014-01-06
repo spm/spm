@@ -20,7 +20,7 @@ function [u0,ll1,ll2,grad_norm] = spm_shoot_update(g,f,u0,phi,dt,prm, bs_args,sc
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_update.m 5787 2013-12-06 19:47:00Z john $
+% $Id: spm_shoot_update.m 5829 2014-01-06 20:02:09Z john $
 
 if nargin<8, scale = 1.0; end
 scale = max(min(scale,1.0),0.0);
@@ -43,7 +43,7 @@ grad_norm = sqrt(var2/prod(d));
 fprintf('%-10.5g %-10.5g %-10.5g %-10.5g %-10.5g\n',...
                             ll1/prod(d), ll2/prod(d), (ll1+ll2)/prod(d),...
                             var2/(var1+eps), grad_norm);
-u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 2 2]);
+u0      = u0 - scale*spm_diffeo('fmg',A, b, [prm 3 2]);
 clear A b
 %=======================================================================
 
