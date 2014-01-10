@@ -31,7 +31,7 @@ function DEM_demo_connectivity_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_connectivity_fMRI.m 5821 2013-12-31 14:26:41Z karl $
+% $Id: DEM_demo_connectivity_fMRI.m 5831 2014-01-10 16:49:55Z karl $
 
 % Simulate timeseries
 %==========================================================================
@@ -362,6 +362,7 @@ end
 % dimension that maximises free energy
 % ---------------------------------------------------------------------
 [f j] = max(eDF);
+qv    = [DEM.DEM.qU.v{3}; -ones(n - length(DEM.DEM.qU.v{3}),1)];
 
 % search over precision of hidden causes
 %==========================================================================
@@ -427,8 +428,6 @@ save paper
 spm_figure('Getwin','Figure 5'); clf
 
 subplot(2,1,1)
-
-qv   = [DEM.DEM.qU.v{3}; -ones(n - length(DEM.DEM.qU.v{3}),1)];
 qu   = u*diag(sqrt(exp(qv)/2));
 spm_dcm_graph_functional(qu)
 title('Scaling space','FontSize',16)

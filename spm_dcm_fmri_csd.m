@@ -36,7 +36,7 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5822 2013-12-31 15:02:04Z karl $
+% $Id: spm_dcm_fmri_csd.m 5831 2014-01-10 16:49:55Z karl $
 
 
 % get DCM
@@ -129,7 +129,7 @@ end
 % place eigenmodes in model if DCM.a is a vector (of eigenvalues)
 %--------------------------------------------------------------------------
 if isvector(DCM.a)
-    DCM.M.modes = spm_svd(DCM.Y.y);
+    DCM.M.modes = spm_svd(cov(DCM.Y.y));
 end
 
 % create DCM

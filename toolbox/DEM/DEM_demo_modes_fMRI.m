@@ -25,7 +25,7 @@ function DEM_demo_modes_fMRI
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_modes_fMRI.m 5830 2014-01-10 11:38:49Z karl $
+% $Id: DEM_demo_modes_fMRI.m 5831 2014-01-10 16:49:55Z karl $
 
 
 % Simulate timeseries
@@ -66,7 +66,6 @@ options.two_state  = 0;
 options.induced    = 1;
 options.stochastic = 0;
 options.nonlinear  = 0;
-options.modes      = u;
 options.decay      = DE;
 options.precision  = 0;
 
@@ -451,4 +450,65 @@ D   = A - B;
 rms = sqrt(mean(D(:).^2));
 
 return
+
+
+% notes for power law scaling
+%==========================================================================
+
+spm_figure('Getwin','Figure 7'); clf
+
+% frequencies
+%--------------------------------------------------------------------------
+dw   = 1/32;
+w    = (-32:32)*dw;
+
+% time constants
+%--------------------------------------------------------------------------
+t    = [128 64 32 16]/64;
+
+% plot Lorentzian functions
+%--------------------------------------------------------------------------
+G    = 0;
+for i = 1:length(t)
+    g(:,i) = 1./((2*pi*w).^2 + t(i)^(-2));
+end
+
+subplot(2,1,1)
+plot(w,g);
+xlabel('Frequencies')
+ylabel('Spectral density')
+title('Lorentzian functions','FontSize',16);
+
+% time constants
+%--------------------------------------------------------------------------
+a    = 2;
+t    = (1:1024)/256;
+p    = t.^-a;
+p    = p/sum(p);
+
+% plot Lorentzian functions
+%--------------------------------------------------------------------------
+w    = (1:256)*dw;
+G    = 0;
+for i = 1:length(t)
+    G      = G + p(i)*1./((2*pi*w).^2 + t(i)^(-2));
+end
+
+subplot(2,2,3)
+plot(w,G);
+xlabel('Frequencies')
+ylabel('Spectral density')
+title('Mixture of Lorentzians','FontSize',16);
+
+LG   =  log(G);
+PL   = -log(w);
+PL   = PL - PL(end) + LG(end);
+
+subplot(2,2,4)
+plot(log(w),LG,log(w),PL);
+xlabel('Frequencies')
+ylabel('Spectral density')
+title('Power law scaling','FontSize',16);
+
+
 
