@@ -25,7 +25,7 @@ function DEM_demo_modes_fMRI
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_modes_fMRI.m 5831 2014-01-10 16:49:55Z karl $
+% $Id: DEM_demo_modes_fMRI.m 5832 2014-01-11 11:03:04Z karl $
 
 
 % Simulate timeseries
@@ -197,15 +197,28 @@ legend ('hierarchical','conventional')
 %==========================================================================
 spm_figure('Getwin','Figure (MAP)'); clf
 
-subplot(2,1,1)
-qu   = spm_dcm_fmri_mode(DEM.Ep.A,u);
-spm_dcm_graph_functional(qu)
+Ep   = DEM.Ep;
+Cp   = spm_unvec(spm_vec(diag(DEM.Cp)),Ep);
+
+subplot(2,2,1)
+spm_dcm_graph_functional(u')
+title('True','FontSize',16)
+
+subplot(2,2,2)
+bar(exp(pP.A)),axis square
+xlabel('Mode')
+ylabel('Time Constants (secs)')
+title('True','FontSize',16)
+
+subplot(2,2,3)
+spm_dcm_graph_functional(DEM.M.modes')
 title('Estimated','FontSize',16)
 
-subplot(2,1,2)
-qu   = spm_dcm_fmri_mode(pP.A,u);
-spm_dcm_graph_functional(qu)
-title('True','FontSize',16)
+subplot(2,2,4)
+spm_plot_ci(Ep.A,Cp.A,[],[],'exp'),axis square
+xlabel('Mode')
+ylabel('Time Constants (secs)')
+title('Estimated','FontSize',16)
 
 
 
@@ -342,6 +355,7 @@ end
 % save parameter estimates and get dimension that maximises free energy
 % -------------------------------------------------------------------------
 Ep    = DEM.Ep;
+Cp    = spm_unvec(spm_vec(diag(DEM.Cp)),Ep);
 [f j] = max(eDF);
 
 % search over precision of hidden causes
@@ -397,6 +411,20 @@ save paper
 %==========================================================================
 spm_figure('Getwin','Figure 5'); clf
 
+subplot(2,2,1)
+spm_dcm_graph_functional(DEM.M.modes')
+title('Scaling space','FontSize',16)
+
+subplot(2,2,2)
+spm_plot_ci(Ep.A,Cp.A,[],[],'exp'),axis square
+xlabel('Mode')
+ylabel('Time Constants (secs)')
+title('Time Constants','FontSize',16)
+
+
+% and compare functional and effective connectivity matrices
+%--------------------------------------------------------------------------
+spm_figure('Getwin','Figure 6'); clf
 
 [qu,E,F] = spm_dcm_fmri_mode(Ep.A,u);
 F        = spm_cov2corr(F);
@@ -404,13 +432,6 @@ EC       = spm_vec(E - diag(diag(E)));
 FC       = spm_vec(F - diag(diag(F)));
 EC       = EC(~~EC);
 FC       = FC(~~FC);
-
-subplot(2,1,1)
-spm_dcm_graph_functional(qu)
-title('Scaling space','FontSize',16)
-
-
-spm_figure('Getwin','Figure 6'); clf
 
 subplot(3,2,1), imagesc(E)
 xlabel('Node'), ylabel('Node'), axis square

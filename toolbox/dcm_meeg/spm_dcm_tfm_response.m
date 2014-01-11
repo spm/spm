@@ -19,7 +19,7 @@ function spm_dcm_tfm_response(xY,pst,hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_tfm_response.m 5832 2014-01-11 11:03:04Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -42,7 +42,7 @@ for i = 1:nc
             erp = xY.erp{e}(:,i)';
             csd = xY.csd{e}(:,:,i,i)';
             
-            spm_plot_ci(erp,mean(csd),pst)
+            spm_plot_ci(erp,mean(abs(csd)),pst)
             str = sprintf('evoked: channel/source %i',i);
             title(str,'FontSize',16)
             xlabel('peristimulus time (ms)')
