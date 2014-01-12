@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_2014.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_fx_cmc_2014.m 5833 2014-01-12 20:25:39Z karl $
  
  
 % get dimensions and configure state variables
@@ -150,7 +150,14 @@ j     = [1 2 3 4];
 for i = 1:size(P.T,2)
     T(:,j(i)) = T(:,j(i)).*exp(P.T(:,i));
 end
-j     = [12 9 7 4   1 2 3 5 6 8 10 11]; 
+
+% intrinsic connections to be optimised (only the first is modulated)
+%--------------------------------------------------------------------------
+if isfield(M,'cmcj')
+    j = M.cmcj;
+else
+    j = [12 9 7 4   1 2 3 5 6 8 10 11];
+end
 for i = 1:size(P.G,2)
     G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end

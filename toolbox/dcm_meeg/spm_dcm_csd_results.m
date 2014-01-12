@@ -33,7 +33,7 @@ function spm_dcm_csd_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_results.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_dcm_csd_results.m 5833 2014-01-12 20:25:39Z karl $
  
  
 % get figure
@@ -73,6 +73,7 @@ end
  
 % place spectral features in xY.y
 %--------------------------------------------------------------------------
+if ischar(DCM), load(DCM); end
 DCM.xY.y  = spm_cond_units(DCM.xY.csd,'csd');
  
 % trial data
