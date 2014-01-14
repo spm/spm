@@ -67,13 +67,14 @@ function [D] = spm_eeg_invert_classic(D,val)
 % contains none of the associated scaling factors.
 % No symmetric priors are used in this implementation (just single patches)
 % There is an option for a Beamforming prior : inversion type 'EBB'
+% also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
 
 %%The code was used in
 %% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5796 2013-12-09 19:46:10Z guillaume $
+% $Id: spm_eeg_invert_classic.m 5834 2014-01-14 10:26:28Z gareth $
 
 
 
@@ -121,7 +122,7 @@ try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of tempo
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
 try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
-
+SHUFFLELEADS=0;
 
 % defaults
 %--------------------------------------------------------------------------
@@ -320,8 +321,11 @@ YTY   = sparse(0);                           % accumulator
 YY    = 0;
 %    MY{m} = 0;
 N=0;
+badtrialind=D.badtrials;
 for j = 1:Ntrialtypes,                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
+    c=setxor(c,badtrialind);
+    length(c)
     Nk    = length(c);
     for k = 1:Nk
         Y     = A*D(Ic,It,c(k));
@@ -370,6 +374,7 @@ else
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
+
 V      = U(:,1:Nr);						% temporal modes
 VE     = sum(E(1:Nr));					% variance explained
 
@@ -394,6 +399,7 @@ UYYU = 0;
 AYYA=0;
 Nn    =0;                             % number of samples
 AY={};
+Ntrials=0;
 for j = 1:Ntrialtypes,
     
     UY{j} = sparse(0);
@@ -417,6 +423,8 @@ for j = 1:Ntrialtypes,
         Nn       = Nn + Nr;         % number of samples
         %Y           = spm_cat(MY);           % contribution to ERP, Y and MY are the same for 1 modality
         YY          = Y*Y';                  % and covariance
+        Ntrials=Ntrials+1; 
+        YYep{k}=YY;%% one for each trial and condition
         
         % accumulate statistics (subject-specific)
         %--------------------------------------------------------------
@@ -503,6 +511,23 @@ switch(type)
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';
         
+    case {'EBBgs'}	% NEW BEAMFORMER PRIOR!!
+        % create beamforming prior- Juan David- Martinez Vargas
+        %------------------------------------------------------------------
+        allsource = zeros(Ntrials,Ns);
+        for ii = 1:Ntrials
+            InvCov = spm_inv(YYep{ii});
+            Sourcepower = zeros(Ns,1);
+            for bk = 1:Ns
+                normpower = 1/(UL(:,bk)'*UL(:,bk));
+                Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
+                allsource(ii,bk) = Sourcepower(bk)./normpower;
+            end
+
+            Qp{ii}.q = allsource(ii,:);
+        end
+    
+        
     case {'LOR','COH'}
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -534,7 +559,7 @@ LQPL   = {};
 %--------------------------------------------------------------------------
 switch(type)
     
-    case {'MSP','GS'}
+    case {'MSP','GS','EBBgs'}
         % Greedy search over MSPs
         %------------------------------------------------------------------
         Np    = length(Qp);
@@ -691,6 +716,7 @@ Cq    = Cp - sum(LCp.*M')';
 SSR   = 0;
 SST   = 0;
 J     = {};
+
 for j = 1:Ntrialtypes
     
     % trial-type specific source reconstruction
@@ -699,8 +725,8 @@ for j = 1:Ntrialtypes
     
     % sum of squares
     %------------------------------------------------------------------
-    SSR  = SSR + sum(var((UY{j} - UL*J{j}),0,2));
-    SST  = SST + sum(var( UY{j},0,2));
+    SSR  = SSR + sum(var((UY{j} - UL*J{j}))); %% changed variance calculation
+    SST  = SST + sum(var( UY{j}));
     
 end
 
@@ -732,7 +758,11 @@ inverse.T      = S;                    % temporal projector
 inverse.U      = {A};                    % spatial projector
 inverse.Is     = Is;                   % Indices of active dipoles
 inverse.It     = It;                   % Indices of time bins
-inverse.Ic     = Ic;                   % Indices of good channels
+try
+inverse.Ic{1}     = Ic;                   % Indices of good channels
+catch
+    inverse.Ic    = Ic;                   % Indices of good channels
+end;
 inverse.Nd     = Nd;                   % number of dipoles
 inverse.pst    = pst;                  % peristimulus time
 inverse.dct    = dct;                  % frequency range
