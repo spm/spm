@@ -1,6 +1,6 @@
-function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
+function [alpha,exp_r,xp,pxp,bor] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % Bayesian model selection for group studies
-% FORMAT [alpha, exp_r, xp] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp, alpha0)
+% FORMAT [alpha,exp_r,xp,pxp,bor] = spm_BMS (lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % 
 % INPUT:
 % lme      - array of log model evidences 
@@ -17,15 +17,23 @@ function [alpha,exp_r,xp] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, alpha0)
 % alpha   - vector of model probabilities
 % exp_r   - expectation of the posterior p(r|y)
 % xp      - exceedance probabilities
+% pxp     - protected exceedance probabilities
+% bor     - Bayes Omnibus Risk (probability that model frequencies 
+%           are equal)
 % 
-% REFERENCE:
+% REFERENCES:
+%
 % Stephan KE, Penny WD, Daunizeau J, Moran RJ, Friston KJ (2009)
 % Bayesian Model Selection for Group Studies. NeuroImage 46:1004-1017
+%
+% Rigoux, L, Stephan, KE, Friston, KJ and Daunizeau, J. (2014)
+% Bayesian model selection for group studies—Revisited. 
+% NeuroImage 84:971-85. doi: 10.1016/j.neuroimage.2013.08.065
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
-% Klaas Enno Stephan & Will Penny
-% $Id: spm_BMS.m 5000 2012-10-12 12:46:58Z vladimir $
+% Klaas Enno Stephan, Will Penny, Lionel Rigoux and J. Daunizeau
+% $Id: spm_BMS.m 5835 2014-01-15 18:17:13Z will $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -119,6 +127,22 @@ else
         xp = [];
 end
 
+% Compute Bayes Omnibus Risk - use functions from VBA toolbox
+posterior.a=alpha;
+posterior.r=g';
+priors.a=alpha0;
+
+F1 = FE(lme',posterior,priors); % Evidence of alternative
+
+options.families=[];
+F0 = FE_null(lme',options); % Evidence of null (equal model freqs)
+
+% Implied by Eq 5 (see also p39) in Rigoux et al.
+% See also, last equation in Appendix 2
+bor=1/(1+exp(F1-F0)); 
+
+% Compute protected exceedance probs - Eq 7 in Rigoux et al.
+pxp=(1-bor)*xp;
 
 % Graphics output (currently for 2 models only)
 %--------------------------------------------------------------------------
@@ -188,5 +212,60 @@ if sampling
     else
         fprintf('\n%s\n','Verification of alpha estimates by sampling not available.')
         fprintf('%s\n','This approach is currently only implemented for comparison of 2 models.');
+    end
+end
+
+
+
+function [F,ELJ,Sqf,Sqm] = FE(L,posterior,priors)
+% derives the free energy for the current approximate posterior
+% This routine has been copied from the VBA_groupBMC function
+% of the VBA toolbox http://code.google.com/p/mbb-vb-toolbox/ 
+% and was written by Lionel Rigoux and J. Daunizeau
+%
+% See equation A.20 in Rigoux et al. (should be F1 on LHS)
+
+[K,n] = size(L);
+a0 = sum(posterior.a);
+Elogr = psi(posterior.a) - psi(sum(posterior.a));
+Sqf = sum(gammaln(posterior.a)) - gammaln(a0) - sum((posterior.a-1).*Elogr);
+Sqm = 0;
+for i=1:n
+    Sqm = Sqm - sum(posterior.r(:,i).*log(posterior.r(:,i)+eps));
+end
+ELJ = gammaln(sum(priors.a)) - sum(gammaln(priors.a)) + sum((priors.a-1).*Elogr);
+for i=1:n
+    for k=1:K
+        ELJ = ELJ + posterior.r(k,i).*(Elogr(k)+L(k,i));
+    end
+end
+F = ELJ + Sqf + Sqm;
+
+
+
+function [F0m,F0f] = FE_null(L,options)
+% derives the free energy of the 'null' (H0: equal model frequencies)
+% This routine has been copied from the VBA_groupBMC function
+% of the VBA toolbox http://code.google.com/p/mbb-vb-toolbox/ 
+% and was written by Lionel Rigoux and J. Daunizeau
+%
+% See Equation A.17 in Rigoux et al.
+
+[K,n] = size(L);
+if ~isempty(options.families)
+    f0 = options.C*sum(options.C,1)'.^-1/size(options.C,2);
+    F0f = 0;
+else
+    F0f = [];
+end
+F0m = 0;
+for i=1:n
+    tmp = L(:,i) - max(L(:,i));
+    g = exp(tmp)./sum(exp(tmp));
+    for k=1:K
+        F0m = F0m + g(k).*(L(k,i)-log(K)-log(g(k)+eps));
+        if ~isempty(options.families)
+            F0f = F0f + g(k).*(L(k,i)-log(g(k))+log(f0(k)));
+        end
     end
 end
