@@ -74,7 +74,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5834 2014-01-14 10:26:28Z gareth $
+% $Id: spm_eeg_invert_classic.m 5836 2014-01-17 16:14:46Z gareth $
 
 
 
@@ -170,28 +170,70 @@ Nd    = size(L,2);      % Number of dipoles
 
 fprintf(' - done\n')
 
-
-% Compute spatial coherence: Diffusion on a normalised graph Laplacian GL
-%==========================================================================
-
-fprintf('Computing Green function from graph Laplacian:')
-%--------------------------------------------------------------------------
+if s>=1,
+    smoothtype='mesh_smooth',
+else
+    smoothtype='msp_smooth'
+end;
 vert  = D.inv{val}.mesh.tess_mni.vert;
 face  = D.inv{val}.mesh.tess_mni.face;
-A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
-GL    = A - spdiags(sum(A,2),0,Nd,Nd);
-GL    = GL*s/2;             % Smoother
-Qi    = speye(Nd,Nd);
-QG    = sparse(Nd,Nd);
-for i = 1:8                 % Taylor series approximation
-    QG = QG + Qi;
-    Qi = Qi*GL/i;
-end
-QG    = QG.*(QG > exp(-8));     % Eliminate small values
-QG    = QG*QG;              % Guarantee positive semidefinite matrix
-%%QG=QG./sum(sum(QG)); %% normalise area
+M1.faces=face;
+M1.vertices=vert;
+
+switch smoothtype,
+    case 'mesh_smooth',
+        fprintf('Using SPM smoothing for priors:')
+        %--------------------------------------------------------------------------
+        
+        Qi    = speye(Nd,Nd);
+        [QG]=spm_mesh_smooth(M1,Qi,round(s));
+        QG    = QG.*(QG > exp(-8));     % Eliminate small values
+        
+        QG    = QG*QG;              % Guarantee positive semidefinite matrix
+        disp('Normalising smoother');
+        QG=QG./repmat(sum(QG,2),1,size(QG,1));
+        
+        
+        
+    case 'msp_smooth'
+        fprintf('Computing Green function from graph Laplacian to smooth priors:')
+        %--------------------------------------------------------------------------
+        A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
+        GL    = A - spdiags(sum(A,2),0,Nd,Nd);
+        GL    = GL*s/2;
+        Qi    = speye(Nd,Nd);
+        QG    = sparse(Nd,Nd);
+        for i = 1:8
+            QG = QG + Qi;
+            Qi = Qi*GL/i;
+        end
+        QG    = QG.*(QG > exp(-8));
+        QG    = QG*QG;
+end;
+
+fwhmest=0;
+
+vertind=1:500:Nd; %% sample the mesh
+
+%% get estimate of FWHM in mm
+
+for i=1:length(vertind),
+    dum=zeros(1,Nd);
+    dum(vertind(i))=1;
+    newvert=dum*QG;
+    ind=find(newvert>=max(newvert)/2); %% vertices above half max
+    dist1 = spm_mesh_geodesic(M1,vertind-1,1)'; %% distances to these vertices
+    fwhmest(i)=max(dist1(ind))*2; %% take max distance (and double as it is one sided)
+end; % for i
+
+smoothmm=mean(fwhmest);
+disp(sprintf('Patch FWHM is %3.2f mm ',smoothmm));
+
 clear Qi A GL
 fprintf(' - done\n')
+
+
+
 
 
 % check for (e.g., empty-room) sensor components (in Qe)
@@ -423,7 +465,7 @@ for j = 1:Ntrialtypes,
         Nn       = Nn + Nr;         % number of samples
         %Y           = spm_cat(MY);           % contribution to ERP, Y and MY are the same for 1 modality
         YY          = Y*Y';                  % and covariance
-        Ntrials=Ntrials+1; 
+        Ntrials=Ntrials+1;
         YYep{k}=YY;%% one for each trial and condition
         
         % accumulate statistics (subject-specific)
@@ -523,10 +565,10 @@ switch(type)
                 Sourcepower(bk) = 1/(UL(:,bk)'*InvCov*UL(:,bk));
                 allsource(ii,bk) = Sourcepower(bk)./normpower;
             end
-
+            
             Qp{ii}.q = allsource(ii,:);
         end
-    
+        
         
     case {'LOR','COH'}
         % create minimum norm prior
@@ -747,7 +789,8 @@ fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE));
 %                those generated in the SPM8
 %======================================================================
 inverse.type   = type;                 % inverse model
-inverse.smooth = s;                    % smoothness (0 - 1)
+inverse.smooth = s;                    % smoothing coefficient
+inverse.smoothmm=smoothmm;             %% smoothness in mm
 inverse.M      = M;                    % MAP projector (reduced)
 inverse.J   = J;                    % Conditional expectation
 inverse.Y      = Y;                    % ERP data (reduced)
@@ -759,7 +802,7 @@ inverse.U      = {A};                    % spatial projector
 inverse.Is     = Is;                   % Indices of active dipoles
 inverse.It     = It;                   % Indices of time bins
 try
-inverse.Ic{1}     = Ic;                   % Indices of good channels
+    inverse.Ic{1}     = Ic;                   % Indices of good channels
 catch
     inverse.Ic    = Ic;                   % Indices of good channels
 end;

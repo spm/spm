@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5487 2013-05-10 11:59:07Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5836 2014-01-17 16:14:46Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -93,13 +93,21 @@ hanning.labels = {'yes', 'no'};
 hanning.values = {1, 0};
 hanning.val = {1};
 
+patchfwhm = cfg_entry;
+patchfwhm.tag = 'patchfwhm';
+patchfwhm.name = 'Patch smoothness';
+patchfwhm.strtype = 'r';
+patchfwhm.num = [1 1];
+patchfwhm.val = {[0.6]};
+patchfwhm.help = {'Width of priors in cortex arb units (see inverse.smoothmm to see FWHM mm'};
+
 npatches = cfg_entry;
 npatches.tag = 'npatches';
-npatches.name = 'Number of patches';
+npatches.name = 'Number of randomly selected patches';
 npatches.strtype = 'i';
 npatches.num = [1 1];
 npatches.val = {[512]};
-npatches.help = {'Number of randomly centred patches'};
+npatches.help = {'Number of randomly centred patches (priors) on each iteration'};
 
 niter = cfg_entry;
 niter.tag = 'niter';
@@ -107,7 +115,31 @@ niter.name = 'Number of iterations';
 niter.strtype = 'i';
 niter.num = [1 1];
 niter.val = {[8]};
-niter.help = {'Number of times the inversion will be run using a random set of patches each time'};
+niter.help = {'Number of iterations'};
+
+
+randpatch = cfg_branch;
+randpatch.tag = 'randpatch';
+randpatch.name = 'Random Patches';
+randpatch.help = {'Define random patches'};
+randpatch.val  = {npatches,niter};
+
+
+fixedpatch = cfg_entry;
+fixedpatch.tag = 'fixedpatch';
+fixedpatch.name = 'Vertex indices for patch centres';
+fixedpatch.strtype = 'i';
+fixedpatch.num = [Inf Inf];
+fixedpatch.val = {[1 3 5 7 9;2 4 6 8 10]};
+fixedpatch.help = {'Array containing rows of iterations and columns of indices (patch centres for each iteration)'};
+
+
+isfixedpatch = cfg_choice;
+isfixedpatch.tag = 'isfixedpatch';
+isfixedpatch.name = 'Patch definition';
+isfixedpatch.help = {'Choose whether to use random or fixed patch centres.'};
+isfixedpatch.values = {randpatch, fixedpatch};
+isfixedpatch.val = {randpatch};
 
 
 mselect = cfg_menu;
@@ -182,7 +214,7 @@ custom = cfg_branch;
 custom.tag = 'custom';
 custom.name = 'Custom';
 custom.help = {'Define custom settings for the inversion'};
-custom.val  = {invfunc,invtype, woi, foi, hanning,npatches,niter,mselect,nsmodes,ntmodes, priors, restrict};
+custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,ntmodes, priors, restrict};
 
 isstandard = cfg_choice;
 isstandard.tag = 'isstandard';
@@ -237,11 +269,26 @@ if isfield(job.isstandard, 'custom')
     inverse.Han  = job.isstandard.custom.hanning;
     inverse.lpf  =  fix(min(job.isstandard.custom.foi)); %% hpf and lpf are the wrong way round at the moment but leave for now
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
-    inverse.Np =  fix(max(job.isstandard.custom.npatches));
-    Npatchiter =  fix(max(job.isstandard.custom.niter));
-    inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
-    inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     
+    if ~isfield(job.isstandard.custom.isfixedpatch,'fixedpatch'), % fixed or random patch
+        inverse.Np =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.npatches));
+        Npatchiter =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.niter));
+        allIp=[];
+    else
+        allIp=job.isstandard.custom.isfixedpatch.fixedpatch;
+        inverse.Np =  size(allIp,2);
+        Npatchiter =  size(allIp,1);
+    end;
+    inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
+    
+    inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
+    inverse.smooth=job.isstandard.custom.patchfwhm;
+    
+
+    if inverse.Nt==0,
+        disp('Getting number of temporal modes from data');
+        inverse.Nt=[];
+    end;
     BMAflag=strncmp('BMA',job.isstandard.custom.mselect,3);
     
     
@@ -328,11 +375,19 @@ for i = 1:numel(job.D)
 %         D{i}.inv{iterval+val}=D{i}.inv{val}; %% copy inverse to all iterations which will be stored in the same file in higher vals
 %     end;
     D{i}.inv{D{i}.val}.inverse.PostMax=zeros(  length(D{i}.inv{D{i}.val}.forward.mesh.vert),1);
+    
+    
+    M1.vertices  = D{i}.inv{val}.mesh.tess_mni.vert;
+    M1.faces  = D{i}.inv{val}.mesh.tess_mni.face;
+    
+    
+    
+
 end
 
 
 
-[D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall);
+[D,allmodels,allF] = spm_eeg_invertiter(D,Npatchiter,funccall,allIp);
 
 
 
