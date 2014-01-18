@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 5837 2014-01-18 18:38:07Z karl $
 
 % add sspectral toolbox
 %--------------------------------------------------------------------------
@@ -120,7 +120,7 @@ if any(diff(DCM.U.u))
     %----------------------------------------------------------------------
     Hz        = (1:64)/DCM.Y.dt/256;
     csd       = spm_mar2csd(mar.lag,Hz,1/DCM.Y.dt);
-    [ccf,pst] = spm_csd2ccf(csd,Hz,128);
+    [ccf,pst] = spm_csd2ccf(csd,Hz,DCM.Y.dt);
     i         = 128 + (1:128);
     DCM.U.ccf = ccf(i,:,:)/max(abs(spm_vec(ccf)));
     DCM.U.pst = pst(i);

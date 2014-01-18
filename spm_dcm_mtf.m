@@ -6,8 +6,8 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % M - model (with flow M.f and expansion point M.x and M.u)
 % U - induces expansion around steady state (from spm_dcm_neural_x(P,M))
 %
-% S - directed transfer functions (complex)
-% K - directed kernels (real)
+% S - modulation transfer functions (complex)
+% K - Volterra kernels (real)
 % s - eigenspectrum (complex)
 % w - frequencies (Hz) = M.Hz
 % t - time (seconds)   = M.pst
@@ -24,7 +24,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5830 2014-01-10 11:38:49Z karl $
+% $Id: spm_dcm_mtf.m 5837 2014-01-18 18:38:07Z karl $
 
 
 % get local linear approximation
@@ -134,24 +134,26 @@ end
 
 return
 
+% NOTES: internal consisitency with explcict Fourier transform of kernels
+%==========================================================================
 
 % augment and bi-linearise (with intrinsic delays)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 M.D       = D;
 [M0,M1,L] = spm_bireduce(M,P);
 
 % project onto spatial modes
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 try,    L = M.U'*L; end
 
 % kernels
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 N         = length(t);
 dt        = (t(2) - t(1));
 [K0,K1]   = spm_kernels(M0,M1,L,N*8,dt);
 
 % Transfer functions (FFT of kernel)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 S1        = fft(K1);
 S1        = S1((1:N) + 1,:,:)*dt;
 K1        = K1((1:N)    ,:,:);

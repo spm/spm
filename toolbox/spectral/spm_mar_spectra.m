@@ -34,50 +34,70 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % (Baccala, personal communication).
 %
 % Also note that PVE and GEW are only valid for d=2 time series
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 4096 2010-10-22 19:40:34Z karl $
+% $Id: spm_mar_spectra.m 5837 2014-01-18 18:38:07Z karl $
 
+% options
+%--------------------------------------------------------------------------
 if nargin < 4  || isempty(show)
-    show=0;
+    show = 0;
 end
 
-p=mar.p;
-d=mar.d;
+% dimensions (from mar.lag)
+%--------------------------------------------------------------------------
+p     = length(mar.lag);
+d     = length(mar.lag(1).a);
 
-Nf=length(freqs);
-mar.f=freqs;
-w=2*pi*freqs/ns;
+Nf    = length(freqs);
+mar.f = freqs;
+w     = 2*pi*freqs/ns;
 
-prec=diag(1./diag(mar.noise_cov));
+% precision of innovation
+%--------------------------------------------------------------------------
+if isfield(mar,'noise_cov');
+    noise_cov = mar.noise_cov;
+    prec      = diag(1./diag(noise_cov));
+else
+    noise_cov = eye(d,d);
+    prec      = eye(d,d);
+end
+
 % Get Power Spectral Density matrix and DTF
+%==========================================================================
 for ff=1:Nf,
-  af_tmp=eye(d);
-  for k=1:p,
-    af_tmp=af_tmp+mar.lag(k).a*exp(-1i*w(ff)*k);
+    
+  % transfer function (H) and CSSD (P)
+  %------------------------------------------------------------------------
+  af_tmp = eye(d);
+  for k = 1:p,
+    af_tmp = af_tmp + mar.lag(k).a*exp(-1i*w(ff)*k);
   end
   iaf_tmp=inv(af_tmp);
-  H(ff,:,:)=iaf_tmp;  % transfer function
-  mar.P(ff,:,:) = iaf_tmp * mar.noise_cov * iaf_tmp';
+  H(ff,:,:)     = iaf_tmp;
+  mar.P(ff,:,:) = iaf_tmp * noise_cov * iaf_tmp';
   
   % Get DTF and PDC
+  %------------------------------------------------------------------------
   for ii=1:d,
-      prec_ii=1/sqrt(mar.noise_cov(ii,ii));
+      prec_ii=1/sqrt(noise_cov(ii,ii));
       for j=1:d,
           
           % DTF uses iaf_tmp and normalises wrt rows (to=sink)
-          mar.dtf(ff,ii,j)=abs(iaf_tmp(ii,j))/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
+          %----------------------------------------------------------------
+          mar.dtf(ff,ii,j) = abs(iaf_tmp(ii,j))/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
           
           % PDC uses af_tmp and normalises wrt columns (from=source)
-          %mar.pdc(ff,ii,j) = real(prec_ii*af_tmp(ii,j)/sqrt(a_j'*prec*a_j));
+          %----------------------------------------------------------------
           mar.pdc(ff,ii,j) = abs(af_tmp(ii,j))/sqrt(abs(af_tmp(:,j)'*prec*af_tmp(:,j)));
       end
   end
 end
 
 % Get Coherence and Phase
+%--------------------------------------------------------------------------
 for k=1:d,
     for j=1:d,
         rkj=mar.P(:,k,j)./(sqrt(mar.P(:,k,k)).*sqrt(mar.P(:,j,j)));
@@ -88,8 +108,9 @@ for k=1:d,
 end
 
 % Get Geweke's formulation of Granger Causality in the Frequency domain
-C=mar.noise_cov;
-for j=1:d,
+%--------------------------------------------------------------------------
+C     = noise_cov;
+for j = 1:d,
     for k=1:d,
         rkj=C(j,j)-(C(j,k)^2)/C(k,k);
         sk=abs(mar.P(:,k,k));
@@ -99,6 +120,9 @@ for j=1:d,
     end
 end
 
+
+% plot results if requested
+%==========================================================================
 if show
     % Plot spectral estimates 
     h=figure;

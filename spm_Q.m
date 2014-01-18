@@ -21,7 +21,7 @@ function [Q] = spm_Q(a,n,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Q.m 4836 2012-08-10 15:55:21Z karl $
+% $Id: spm_Q.m 5837 2014-01-18 18:38:07Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -32,14 +32,15 @@ if q
     % compute P (precision)
     %----------------------------------------------------------------------
     A    = [-a(1) (1 + a(1)^2) -a(1)];
-    Q    = spdiags(ones(n,1)*A,[-1:1],n,n);
+    Q    = spdiags(ones(n,1)*A,(-1:1),n,n);
+    
 else
  
     % compute Q (covariance)
     %----------------------------------------------------------------------
     p    = length(a);
     A    = [1 -a(:)'];
-    P    = spdiags(ones(n,1)*A,-[0:p],n,n);
+    P    = spdiags(ones(n,1)*A,-(0:p),n,n);
     K    = inv(P);
     K    = K.*(abs(K) > 1e-4);
     Q    = K*K';

@@ -10,7 +10,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % y - {y(N,nc,nc}} - cross-spectral density for nc channels {trials}
 %                  - for N frequencies in M.Hz [default 1:64Hz]
 % w - frequencies
-% s - directed transfer functions (complex)
+% s - modulation transfer functions (complex)
 %
 % When called with U this function will return a cross-spectral response
 % for each of the condition-specific parameters specified in U.X; otherwise
@@ -29,7 +29,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_csd_mtf.m 5837 2014-01-18 18:38:07Z karl $
 
 
 
@@ -64,7 +64,6 @@ end
 % number of channels and exogenous (neuronal) inputs or sources
 %--------------------------------------------------------------------------
 nc   = M.l;
-ns   = length(M.u);
 nw   = length(M.Hz);
 
 % spectrum of innovations (Gu) and noise (Gs and Gn)

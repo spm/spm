@@ -1,18 +1,24 @@
-function [ccf,pst] = spm_csd2ccf(csd,Hz,N)
+function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 % Converts cross spectral density to cross covariance function
-% FORMAT [ccf,pst] = spm_csd2ccf(csd,Hz,N)
+% FORMAT [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 %
 % csd  (n,:,:)          - cross spectral density (cf, mar.P)
 % Hz   (n x 1)          - vector of frequencies (Hz)
-% N                     - number of (positive) time bins (default: 256)
+% dt                    - samping interval (default = 1/(2*Hz(end)))
 %
 % ccf                   - cross covariance functions
 % pst  (N,1)            - vector of lags for evaluation (seconds)
+%
+% Note that because this scheme uses FFT one can only change dt.
+%
+% See also: 
+%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
+%  spm_csd2coh.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5701 2013-10-17 15:13:45Z guillaume $
+% $Id: spm_csd2ccf.m 5837 2014-01-18 18:38:07Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------
@@ -37,30 +43,33 @@ end
 
 % Nyquist
 %--------------------------------------------------------------------------
-if nargin < 3
-    N = 256;
-end
-N     = max(length(Hz),N);
+if nargin < 3, dt  = 1/max(Hz)/2; end
+
+ds    = Hz(2) - Hz(1);
+N     = ceil(1/dt/2/ds);
+gi    = ceil(Hz/ds);
+gj    = 1:length(gi);
+j     = gi > 1 & gi <= N;
+gi    = gi(j);
+gj    = gj(j);
 g     = zeros(N,1);
-dt    = 1/(Hz(2) - Hz(1));
-Hz    = ceil(Hz*dt);
- 
+
 % Fourier transform cross-spectral density
 %==========================================================================
 for i = 1:size(csd,2)
-    if ndims(csd) == 2
-        g(Hz)      = csd(:,i);
+    if ismatrix(csd)
+        g(gi)      = csd(gj,i);
         f          = ifft([0; g; flipud(conj(g))]);
-        ccf(:,i)   = real(fftshift(f))*N/dt;
+        ccf(:,i)   = real(fftshift(f))*N*ds;
     else
         for j = 1:size(csd,3)
-            g(Hz)      = csd(:,i,j);
+            g(gi)      = csd(gj,i,j);
             f          = ifft([0; g; flipud(conj(g))]);
-            ccf(:,i,j) = real(fftshift(f))*N/dt;
+            ccf(:,i,j) = real(fftshift(f))*N*ds;
         end
     end
 end
  
 % Compute time bins
 %--------------------------------------------------------------------------
-pst = dt*(-N:N)/N/2;
+pst = dt*(-N:N);

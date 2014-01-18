@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_dcm_csd.m 5837 2014-01-18 18:38:07Z karl $
  
  
 % check options
@@ -129,6 +129,7 @@ DCM.xY.y = spm_unvec(8*spm_vec(DCM.xY.y)/scale,DCM.xY.y);
 Nm       = size(DCM.M.U,2);                    % number of spatial modes
 DCM.M.l  = Nm;
 DCM.M.Hz = DCM.xY.Hz;
+DCM.M.dt = DCM.xY.dt;
  
 % precision of noise: AR(1/2)
 %--------------------------------------------------------------------------

@@ -11,18 +11,22 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % pha   - phase
 % dtf   - directed transfer function
 %
-% tthe man coefficients are either specified  as a cell array (as per
+% The mar coefficients are either specified  as a cell array (as per
 % spm_mar) or as a vector of (positive) coefficients as per spm_Q. The
 % former are the negative values of the latter. If mar is a matrix of size
 % d*p x d - it is assumed that the (positive) coefficients  run fast over 
 % lag = p, as per the DCM routines.
+%
+% see also:
+%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
+%  spm_csd2coh.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5627 2013-09-02 18:17:05Z spm $
+% $Id: spm_mar2csd.m 5837 2014-01-18 18:38:07Z karl $
 
-% format coefficients
+% format coefficients into an array of negative coeficients (cf lag.a)
 %--------------------------------------------------------------------------
 if isvector(mar)
     mar = mar(:);
@@ -33,11 +37,11 @@ if isnumeric(mar)
     for i = 1:d
         for j = 1:d
             for k = 1:p
-                a(k).a(i,j) = -mar((i - 1)*p + k,j);
+                lag(k).a(i,j) = -mar((i - 1)*p + k,j);
             end
         end
     end
-    mar = a;
+    mar = lag;
 else
     d  = length(mar(1).a);
     p  = length(mar);
