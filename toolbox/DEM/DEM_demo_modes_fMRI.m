@@ -25,7 +25,7 @@ function DEM_demo_modes_fMRI
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: DEM_demo_modes_fMRI.m 5832 2014-01-11 11:03:04Z karl $
+% $Id: DEM_demo_modes_fMRI.m 5838 2014-01-18 18:40:37Z karl $
 
 
 % Simulate timeseries
@@ -210,8 +210,11 @@ xlabel('Mode')
 ylabel('Time Constants (secs)')
 title('True','FontSize',16)
 
+qu = DEM.M.modes;
+qu = qu*diag(diag(sign(qu'*u)));
+
 subplot(2,2,3)
-spm_dcm_graph_functional(DEM.M.modes')
+spm_dcm_graph_functional(qu')
 title('Estimated','FontSize',16)
 
 subplot(2,2,4)

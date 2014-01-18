@@ -21,7 +21,7 @@ function [Q] = spm_Q(a,n,q)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Q.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_Q.m 5838 2014-01-18 18:40:37Z karl $
  
 % default
 %--------------------------------------------------------------------------
@@ -45,5 +45,6 @@ else
     K    = K.*(abs(K) > 1e-4);
     Q    = K*K';
     Q    = toeplitz(Q(:,1));
+    
 end
 
