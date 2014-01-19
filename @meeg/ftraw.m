@@ -5,7 +5,7 @@ function raw = ftraw(this, chanind, timeind, trialind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 5648 2013-09-23 12:40:40Z vladimir $
+% $Id: ftraw.m 5839 2014-01-19 11:09:18Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
@@ -17,7 +17,7 @@ if ~isequal(transformtype(this), 'time')
 end
 
 % chanind == 0 is accepted for backward compatibility
-if nargin < 2 || ~isnumeric(chanind) || chanind == 0
+if nargin < 2 || ~isnumeric(chanind) || isequal(chanind, 0)
     chanind = 1:nchannels(this);
 end
 
