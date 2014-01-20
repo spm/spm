@@ -22,14 +22,14 @@ function [timelock, cfg] = comp2timelock(cfg, comp);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: comp2timelock.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: comp2timelock.m 9092 2014-01-13 10:23:36Z jansch $
 
 % only convert, do not perform channel or component selection
 timelock        = [];
 timelock.avg    = comp.topo;
 timelock.label  = comp.topolabel;
 timelock.time   = 1:size(timelock.avg,2);
-timelock.cfg    = comp.cfg;
+if isfield(comp, 'cfg'), timelock.cfg = comp.cfg; end
 timelock.dimord = 'chan_time';
 
 if isfield(comp, 'grad')

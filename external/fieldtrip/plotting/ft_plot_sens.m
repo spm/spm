@@ -36,7 +36,7 @@ function hs = ft_plot_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_sens.m 8753 2013-11-11 12:45:48Z roboos $
+% $Id: ft_plot_sens.m 9050 2013-12-20 15:44:04Z vlalit $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

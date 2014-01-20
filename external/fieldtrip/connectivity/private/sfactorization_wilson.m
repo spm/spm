@@ -38,7 +38,7 @@ function [H, Z, S, psi] = sfactorization_wilson(S,freq,Niterations,tol,fb,init,c
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson.m 9016 2013-12-11 11:47:43Z jansch $
+% $Id: sfactorization_wilson.m 9072 2014-01-04 19:24:29Z jansch $
 
 if nargin<7, checkflag = true;   end
 if nargin<6, init      = 'chol'; end
@@ -46,7 +46,7 @@ if nargin<5, fb        = 'none'; end
 if nargin<4, tol       = 1e-8;   end
 if nargin<3, Niterations = 1000; end
 
-dfreq = diff(freq);
+dfreq = round(diff(freq)*1e5)./1e5; % allow for some numeric issues
 if ~all(dfreq==dfreq(1))
   error('FieldTrip:connectivity:sfactorization_wilson', 'frequency axis is not evenly spaced');
 end
@@ -101,7 +101,7 @@ end
 % factor of 2 in all non-DC and Nyquist bins, therefore weight the 
 % Nyquist bin with a factor of 2 to get a correct two-sided representation
 if mod(size(Sarr,3),2)==0
-  Sarr(:,:,:,N) = Sarr(:,:,:,N).*2;
+  Sarr(:,:,N) = Sarr(:,:,N).*2;
 end
 
 %Step 2: Computing covariance matrices

@@ -107,9 +107,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 8936 2013-12-02 12:09:14Z roboos $
+% $Id: ft_prepare_sourcemodel.m 9065 2014-01-02 13:19:38Z jansch $
 
-revision = '$Id: ft_prepare_sourcemodel.m 8936 2013-12-02 12:09:14Z roboos $';
+revision = '$Id: ft_prepare_sourcemodel.m 9065 2014-01-02 13:19:38Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -642,6 +642,7 @@ if basedonmni
   grid.inside  = mnigrid.inside;
   grid.outside = mnigrid.outside;
   grid.params  = normalise.params;
+  grid.initial = normalise.initial;
   if ft_datatype(mnigrid, 'parcellation')
     fn = booleanfields(mnigrid);
     for i=1:numel(fn)

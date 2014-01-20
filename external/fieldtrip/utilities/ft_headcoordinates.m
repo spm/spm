@@ -84,7 +84,7 @@ function [h, flag] = ft_headcoordinates(nas, lpa, rpa, extrapoint, flag)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headcoordinates.m 8758 2013-11-11 13:15:22Z roboos $
+% $Id: ft_headcoordinates.m 9058 2013-12-23 11:43:11Z jansch $
 
 % check whether function call is old or new style
 if nargin<4
@@ -183,6 +183,7 @@ if numel(extrapoint)==3
     phi = dirq(:)'*dirx(:);
     if sign(phi)<0
       warning('the input coordinate system seems left-handed, flipping x-axis to keep the transformation matrix consistent');
+      dirx = -dirx;
     end
   else
     warning('the extra input coordinate is not used');

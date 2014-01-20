@@ -30,7 +30,7 @@ function [event] = read_trigger(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_trigger.m 8772 2013-11-12 13:56:55Z roboos $
+% $Id: read_trigger.m 9077 2014-01-08 09:10:15Z roboos $
 
 % get the optional input arguments
 hdr         = ft_getopt(varargin, 'header'             );
@@ -38,7 +38,7 @@ dataformat  = ft_getopt(varargin, 'dataformat'         );
 begsample   = ft_getopt(varargin, 'begsample'          );
 endsample   = ft_getopt(varargin, 'endsample'          );
 chanindx    = ft_getopt(varargin, 'chanindx'           );
-detectflank = ft_getopt(varargin, 'detectflank'        ); % can be up, down, both, auto
+detectflank = ft_getopt(varargin, 'detectflank'        ); % can be bit, up, down, both, auto
 denoise     = ft_getopt(varargin, 'denoise',      true );
 trigshift   = ft_getopt(varargin, 'trigshift',    false); % causes the value of the trigger to be obtained from a sample that is shifted N samples away from the actual flank
 trigpadding = ft_getopt(varargin, 'trigpadding',  true );

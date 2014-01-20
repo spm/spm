@@ -37,7 +37,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: fieldtrip2fiff.m 9091 2014-01-13 10:15:03Z jansch $
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults
@@ -126,7 +126,11 @@ if israw
   fiff_finish_writing_raw(outfid);
   
   % write events, if they exists
-  event = ft_findcfg(data.cfg, 'event');
+  if isfield(data, 'cfg')
+    event = ft_findcfg(data.cfg, 'event');
+  else
+    event = [];
+  end
   if ~isempty(event)
     eve = convertevent(event);
     mne_write_events(eventfile, eve);

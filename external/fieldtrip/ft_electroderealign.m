@@ -104,9 +104,9 @@ function [norm] = ft_electroderealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_electroderealign.m 8904 2013-11-28 20:23:14Z jansch $
+% $Id: ft_electroderealign.m 9074 2014-01-07 16:32:29Z roboos $
 
-revision = '$Id: ft_electroderealign.m 8904 2013-11-28 20:23:14Z jansch $';
+revision = '$Id: ft_electroderealign.m 9074 2014-01-07 16:32:29Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -158,8 +158,7 @@ elec = ft_convert_units(elec); % ensure that the units are specified
 elec = ft_datatype_sens(elec);
 
 % ensure that channel and electrode positions are the same
-assert(isequal(elec.elecpos,elec.chanpos),'This function requires same electrode and channel positions.'); 
-
+assert(isequalwithequalnans(elec.elecpos,elec.chanpos),'This function requires same electrode and channel positions.'); 
 
 usetemplate  = isfield(cfg, 'template')  && ~isempty(cfg.template);
 useheadshape = isfield(cfg, 'headshape') && ~isempty(cfg.headshape);

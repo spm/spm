@@ -62,7 +62,7 @@ function [granger, v, n] = ft_connectivity_granger(H, Z, S, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_granger.m 8383 2013-08-07 14:26:42Z jansch $
+% $Id: ft_connectivity_granger.m 9095 2014-01-13 13:08:33Z jorhor $
 
 method  = ft_getopt(varargin, 'method',  'granger');
 hasjack = ft_getopt(varargin, 'hasjack', 0);
@@ -277,8 +277,8 @@ case 'instantaneous'
           %iauto1=k;iauto2=k;icross1=k;icross2=k;
         end
         
-        zc1     = Z(j,iauto1,:) - Z(j,icross2,:).^2./Z(j,iauto2,:);
-        zc2     = Z(j,iauto2,:) - Z(j,icross1,:).^2./Z(j,iauto1,:);
+        zc1     = Z(j,iauto1,:, :) - Z(j,icross2,:, :).^2./Z(j,iauto2,:, :);
+        zc2     = Z(j,iauto2,:, :) - Z(j,icross1,:, :).^2./Z(j,iauto1,:, :);
         term1   = abs(S(j,iauto2,:,:)) - zc1(:,:,ones(1,size(H,3)),:).*abs(H(j,icross2,:,:)).^2;
         term2   = abs(S(j,iauto1,:,:)) - zc2(:,:,ones(1,size(H,3)),:).*abs(H(j,icross1,:,:)).^2;
         numer   = term1.*term2;

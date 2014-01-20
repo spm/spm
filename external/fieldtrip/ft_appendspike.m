@@ -34,9 +34,9 @@ function [data] = ft_appendspike(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_appendspike.m 9091 2014-01-13 10:15:03Z jansch $
 
-revision = '$Id: ft_appendspike.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_appendspike.m 9091 2014-01-13 10:15:03Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -93,7 +93,12 @@ else
     error('not all channel labels are unique');
   end
   
-  trl = ft_findcfg(data.cfg, 'trl');
+  if isfield(data, 'cfg')
+    trl = ft_findcfg(data.cfg, 'trl');
+  else
+    trl = [];
+  end
+
   if isempty(trl);
     error('could not find the trial information in the continuous data');
   end

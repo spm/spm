@@ -25,7 +25,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %
 % See also FT_READ_MRI, FT_READ_HEADSHAPE
 
-% Copyright (C) 2005-2012, Robert Oostenveld, Ingrid Nieuwenhuis
+% Copyright (C) 2005-2014, Robert Oostenveld, Ingrid Nieuwenhuis, Jan-Mathijs Schoffelen
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -43,7 +43,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 8843 2013-11-25 10:33:02Z jansch $
+% $Id: ft_read_atlas.m 9070 2014-01-03 10:13:01Z jansch $
 
 % deal with multiple filenames
 if isa(filename, 'cell')
@@ -82,7 +82,7 @@ elseif strcmp(x, '.nii') && exist(fullfile(p, [f '.txt']))
     defaultformat = 'aal';
   end
   fclose(fid);  
-elseif strcmp(x, '.mgz') && ~isempty(strfind(f, 'aparc')) && ~isempty(strfind(f, '+aseg'))
+elseif strcmp(x, '.mgz') && ~isempty(strfind(f, 'aparc')) && ~isempty(strfind(f, 'aseg'))
   % individual volume based segmentation from freesurfer
   defaultformat = 'freesurfer_volume';
 elseif ft_filetype(filename, 'caret_label')
@@ -92,8 +92,13 @@ elseif ft_filetype(filename, 'caret_label')
 elseif ~isempty(strfind(filename, 'MPM'))
   % assume to be from the spm_anatomy toolbox
   defaultformat = 'spm_anatomy';
+elseif strcmp(x, '.xml') && (isdir(strtok(fullfile(p,f), '_')) || isdir(strtok(fullfile(p,f), '-')))
+  % fsl-format atlas, this is assumed to consist of an .xml file that
+  % specifies the labels, as well as the filenames of the files with the actual data stored
+  % in a directory with the of the strtok'ed (with '-' or '_') file name.
+  defaultformat = 'fsl';
 else
-  defaultformat  = 'wfu';
+  defaultformat = 'wfu';
 end
 
 % get the optional input arguments
@@ -2111,6 +2116,24 @@ switch atlasformat
     
     clear tissue newtissue;
     
+  case 'fsl'  
+    ft_hastoolbox('gifti', 1);
+    hdr = xmltree(filename);
+    hdr = convert(hdr);
+    
+    % get the full path
+     [p,f,e]  = fileparts(filename);
+    
+    % this uses the thresholded image
+    mrifilename = fullfile(p, [hdr.header.images{1}.summaryimagefile,'.nii.gz']);
+    atlas       = ft_read_mri(mrifilename);
+    tissue      = atlas.anatomy;
+    atlas       = rmfield(atlas, 'anatomy');
+    label       = hdr.data.label(:);
+    
+    atlas.tissue      = tissue;
+    atlas.tissuelabel = label;
+    atlas.coordsys    = 'mni';
     
   otherwise
     error('unsupported atlas format %s', atlasformat);

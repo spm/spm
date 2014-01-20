@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 8914 2013-11-29 11:31:18Z jansch $
+% $Id: ft_multiplotTFR.m 9091 2014-01-13 10:15:03Z jansch $
 
-revision = '$Id: ft_multiplotTFR.m 8914 2013-11-29 11:31:18Z jansch $';
+revision = '$Id: ft_multiplotTFR.m 9091 2014-01-13 10:15:03Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -223,7 +223,7 @@ if hasrpt,
     tempdata.freq      = data.freq;
     tempdata.label     = data.label;
     tempdata.powspctrm = data.(cfg.parameter);
-    tempdata.cfg       = data.cfg;
+    if isfield(data, 'cfg') tempdata.cfg = data.cfg; end
     tempdata           = ft_freqdescriptives(tmpcfg, tempdata);
     data.(cfg.parameter)  = tempdata.powspctrm;
     clear tempdata

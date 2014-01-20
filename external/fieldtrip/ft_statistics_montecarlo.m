@@ -50,14 +50,14 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %
 % The statistic that is computed for each sample in each random reshuffling
 % of the data is specified as
-%   cfg.statistic       = 'indepsamplesT'     independent samples T-statistic,
-%                         'indepsamplesF'     independent samples F-statistic,
-%                         'indepsamplesregrT' independent samples regression coefficient T-statistic,
-%                         'indepsamplesZcoh'  independent samples Z-statistic for coherence,
-%                         'depsamplesT'       dependent samples T-statistic,
-%                         'depsamplesF'       dependent samples F-statistic,
-%                         'depsamplesregrT'   dependent samples regression coefficient T-statistic,
-%                         'actvsblT'          activation versus baseline T-statistic.
+%   cfg.statistic       = 'indepsamplesT'           independent samples T-statistic,
+%                         'indepsamplesF'           independent samples F-statistic,
+%                         'indepsamplesregrT'       independent samples regression coefficient T-statistic,
+%                         'indepsamplesZcoh'        independent samples Z-statistic for coherence,
+%                         'depsamplesT'             dependent samples T-statistic,
+%                         'depsamplesFmultivariate' dependent samples F-statistic MANOVA,
+%                         'depsamplesregrT'         dependent samples regression coefficient T-statistic,
+%                         'actvsblT'                activation versus baseline T-statistic.
 % or you can specify your own low-level statistical function.
 %
 % You can also use a custom statistic of your choise that is sensitive
@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 8775 2013-11-14 08:27:10Z jansch $
+% $Id: ft_statistics_montecarlo.m 9110 2014-01-19 13:04:38Z dieloz $
 
 % deal with the user specified randomseed first, to mimick old behavior
 cfg.randomseed = ft_getopt(cfg, 'randomseed', 'yes');

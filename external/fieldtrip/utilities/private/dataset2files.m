@@ -24,9 +24,13 @@ function [filename, headerfile, datafile] = dataset2files(filename, format)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dataset2files.m 8366 2013-08-01 10:21:42Z roboos $
+% $Id: dataset2files.m 9102 2014-01-15 14:10:53Z jimher $
 
 persistent previous_argin previous_argout
+
+if isempty(format)
+  format = ft_filetype(filename);
+end
 
 current_argin = {filename, format};
 if isequal(current_argin, previous_argin)
@@ -35,10 +39,6 @@ if isequal(current_argin, previous_argin)
   headerfile = previous_argout{2};
   datafile   = previous_argout{3};
   return
-end
-
-if isempty(format)
-  format = ft_filetype(filename);
 end
 
 switch format

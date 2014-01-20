@@ -85,7 +85,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %   cfg.layout             = specify the channel layout for plotting using one of
 %                            the supported ways (see below).
 %   cfg.interpolatenan     = string 'yes', 'no' (default = 'yes')
-%                            interpolate over channels containing NaNs 
+%                            interpolate over channels containing NaNs
 %
 % For the plotting of directional connectivity data the cfg.directionality
 % option determines what is plotted. The default value and the supported
@@ -141,9 +141,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 8716 2013-11-04 14:55:40Z eelspa $
+% $Id: ft_topoplotER.m 9078 2014-01-08 09:50:46Z roboos $
 
-revision = '$Id: ft_topoplotER.m 8716 2013-11-04 14:55:40Z eelspa $';
+revision = '$Id: ft_topoplotER.m 9078 2014-01-08 09:50:46Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -169,7 +169,7 @@ cfg.funcname = mfilename;
 cfg = topoplot_common(cfg, varargin{:});
 
 % remove it again
-cfg = rmfield(cfg, 'funcname');
+if isfield(cfg, 'funcname'), cfg = rmfield(cfg, 'funcname'); end
 
 % do the general cleanup and bookkeeping at the end of the function
 % this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER

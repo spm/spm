@@ -70,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 9013 2013-12-11 09:02:59Z eelspa $
+% $Id: ft_megplanar.m 9071 2014-01-04 19:20:06Z jansch $
 
-revision = '$Id: ft_megplanar.m 9013 2013-12-11 09:02:59Z eelspa $';
+revision = '$Id: ft_megplanar.m 9071 2014-01-04 19:20:06Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -288,6 +288,9 @@ else
     case 'sincos'
       planarmontage = megplanar_sincos(cfg, sens);
     case 'orig'
+      % method specific info that is needed
+      cfg.distance  = distance;
+      
       planarmontage = megplanar_orig(cfg, sens);
     case 'fitplane'
       planarmontage = megplanar_fitplane(cfg, sens);

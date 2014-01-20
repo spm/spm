@@ -33,7 +33,7 @@ function [data, powindx, hasrpt] = univariate2bivariate(data, inparam, outparam,
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: univariate2bivariate.m 7289 2013-01-09 17:04:27Z roboos $
+% $Id: univariate2bivariate.m 9092 2014-01-13 10:23:36Z jansch $
 
 cmb         = ft_getopt(varargin, 'cmb');
 demeanflag  = ft_getopt(varargin, 'demeanflag', false);
@@ -306,7 +306,7 @@ switch dtype
       timelock.elec = data.elec;
     end
     timelock.label = data.label;
-    timelock.cfg   = data.cfg;
+    if isfield(data, 'cfg'), timelock.cfg = data.cfg; end
     
     tmpcov   = zeros(nrpt, nchan, nchan);
     nsamples = zeros(1,nrpt);

@@ -28,7 +28,7 @@ function [timelock, cfg] = freq2timelock(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: freq2timelock.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: freq2timelock.m 9092 2014-01-13 10:23:36Z jansch $
 
 if isfield(freq, 'fourierspctrm')
   fprintf('constructing real/imag data representation from single trial fourier representation\n');
@@ -72,7 +72,7 @@ timelock        = [];
 timelock.avg    = avg;
 timelock.label  = cfg.channel;
 timelock.time   = 1:size(timelock.avg,2);
-timelock.cfg    = freq.cfg;
+if isfield(freq, 'cfg'), timelock.cfg = freq.cfg; end
 timelock.dimord = 'chan_time';
 
 if isfield(freq, 'grad')

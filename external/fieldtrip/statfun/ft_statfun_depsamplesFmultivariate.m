@@ -65,7 +65,7 @@ function [s,cfg] = ft_statfun_depsamplesFmultivariate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_depsamplesF.m 9108 2014-01-17 14:01:33Z dieloz $
+% $Id: ft_statfun_depsamplesFmultivariate.m 9109 2014-01-17 14:21:20Z dieloz $
 
 
 % set defaults

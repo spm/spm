@@ -26,14 +26,14 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 % The parametric statistic that is computed for each sample (and for
 % which the analytic probability of the null-hypothesis is computed) is
 % specified as
-%   cfg.statistic       = 'indepsamplesT'     independent samples T-statistic,
-%                         'indepsamplesF'     independent samples F-statistic,
-%                         'indepsamplesregrT' independent samples regression coefficient T-statistic,
-%                         'indepsamplesZcoh'  independent samples Z-statistic for coherence,
-%                         'depsamplesT'       dependent samples T-statistic,
-%                         'depsamplesF'       dependent samples F-statistic,
-%                         'depsamplesregrT'   dependent samples regression coefficient T-statistic,
-%                         'actvsblT'          activation versus baseline T-statistic.
+%   cfg.statistic       = 'indepsamplesT'           independent samples T-statistic,
+%                         'indepsamplesF'           independent samples F-statistic,
+%                         'indepsamplesregrT'       independent samples regression coefficient T-statistic,
+%                         'indepsamplesZcoh'        independent samples Z-statistic for coherence,
+%                         'depsamplesT'             dependent samples T-statistic,
+%                         'depsamplesFmultivariate' dependent samples F-statistic MANOVA,
+%                         'depsamplesregrT'         dependent samples regression coefficient T-statistic,
+%                         'actvsblT'                activation versus baseline T-statistic.
 % or you can specify your own low-level statistical function.
 %
 % See also FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS, FT_SOURCESTATISTICS
@@ -56,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 7431 2013-01-31 11:24:37Z jorhor $
+% $Id: ft_statistics_analytic.m 9110 2014-01-19 13:04:38Z dieloz $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'bonferoni', 'bonferroni'});
