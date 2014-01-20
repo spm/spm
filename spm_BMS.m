@@ -33,7 +33,7 @@ function [alpha,exp_r,xp,pxp,bor] = spm_BMS(lme, Nsamp, do_plot, sampling, ecp, 
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Klaas Enno Stephan, Will Penny, Lionel Rigoux and J. Daunizeau
-% $Id: spm_BMS.m 5835 2014-01-15 18:17:13Z will $
+% $Id: spm_BMS.m 5842 2014-01-20 10:53:17Z will $
 
 if nargin < 2 || isempty(Nsamp)
     Nsamp = 1e6;
@@ -142,7 +142,7 @@ F0 = FE_null(lme',options); % Evidence of null (equal model freqs)
 bor=1/(1+exp(F1-F0)); 
 
 % Compute protected exceedance probs - Eq 7 in Rigoux et al.
-pxp=(1-bor)*xp;
+pxp=(1-bor)*xp+bor/Nk;
 
 % Graphics output (currently for 2 models only)
 %--------------------------------------------------------------------------
