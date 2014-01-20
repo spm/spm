@@ -11,22 +11,22 @@ function [y] = spm_rand_power_law(G,Hz,dt,N)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_rand_power_law.m 5841 2014-01-20 10:19:25Z karl $
  
 
 % create random process
 %--------------------------------------------------------------------------
 [m n] = size(G);
-y     = randn(N,n)*sqrt(m);
-s     = fft(y);
 w     = (0:(N - 1))/dt/N;
+dHz   = Hz(2) - Hz(1);
 g     = zeros(N,n);
 for i = 1:m
     j      = find(w > Hz(i),1);
-    g(j,:) = G(i,:);
+    s      = sqrt(G(i,:)).*(randn(1,n) + 1j*randn(1,n));
+    g(j,:) = s;
+    j      = N - j + 2;
+    g(j,:) = conj(s);
+    
 end
-y     = real(ifft(s.*sqrt(g)));
-
-
-
- 
+y     = real(ifft(g));
+y     = y*sqrt(mean(sum(G)*dHz)/mean(var(y)));

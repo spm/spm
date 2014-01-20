@@ -32,7 +32,7 @@ function spm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Granger_demo.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_Granger_demo.m 5841 2014-01-20 10:19:25Z karl $
  
  
 % Model specification
@@ -40,14 +40,14 @@ function spm_Granger_demo
  
 % number of regions
 %--------------------------------------------------------------------------
-N     = 1024;                                    % unmber of time bins
+N     = 2048;                                    % unmber of time bins
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
 Hz    = 4:128;                                   % frequency
 dt    = 4/1000;                                  % time bins
-p     = 8;                                      % autoregression order
+p     = 8;                                       % autoregression order
 options.spatial  = 'LFP';
-options.model    = 'CMM';
+options.model    = 'CMC';
 options.analysis = 'CSD';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
@@ -56,8 +56,8 @@ M.dipfit.Ns    = Ns;
  
 % extrinsic connections (forward an backward)
 %--------------------------------------------------------------------------
-A{1} = [0 0; 1 0];
-A{2} = [0 1; 0 0];
+A{1} = [0 0; 0 0];
+A{2} = [0 0; 0 0];
 A{3} = [0 0; 0 0];
 C    = sparse(2,0);
  
@@ -69,11 +69,15 @@ pE    = spm_L_priors(M.dipfit,pE);
 pE    = spm_ssr_priors(pE);
 [x,f] = spm_dcm_x_neural(pE,options.model);
 
-pE.J(1:4) = [0 1 0 0];
 
-pE.a(2,:) = -1;
-pE.b(1,:) = 0;
-pE.c(1,:) = 0;
+pE.A{1}(2,1) = -2;
+pE.A{2}(1,2) = -4;
+
+pE.S      = 0.5;
+pE.a(1,:) = -1;
+pE.a(2,:) = -4;
+pE.b(1,:) = -2;
+pE.c(1,:) = -2;
  
  
 % orders and model
@@ -111,16 +115,9 @@ M.x   = spm_dcm_neural_x(pE,M);
 csd          = csd{1};
 mtf          = mtf{1};
 ccf          = spm_csd2ccf(csd,Hz,dt);
-[mar,lag]    = spm_ccf2mar(ccf,p);
+mar          = spm_ccf2mar(ccf,p);
+mar          = spm_mar_spectra(mar,Hz,1/dt);
 
-xmar.lag       = lag;
-xmar.noise_cov = eye(Ns,Ns);
-xmar           = spm_mar_spectra(xmar,Hz,1/dt);
-for i = 1:Ns
-    C(i,i) = real(sum(csd(:,i,i))/sum(xmar.P(:,i,i)));
-end
-xmar.noise_cov = C;
-xmar           = spm_mar_spectra(xmar,Hz,1/dt);
 
 % Numerical spectral chararacterisation
 %==========================================================================
@@ -144,12 +141,12 @@ E     = Es + En*ones(1,Ns);
 
 % and estimate spectral features under a MAR model
 %--------------------------------------------------------------------------
-XMAR           = spm_mar(LFP + E,p);
-XMAR           = spm_mar_spectra(XMAR,Hz,1/dt);
-XMAR.noise_cov = C;
-XMAR           = spm_mar_spectra(XMAR,Hz,1/dt);
-CSD = XMAR.P;
-CSP = xmar.P;
+MAR           = spm_mar(LFP + E,p);
+MAR.noise_cov = mar.noise_cov;
+MAR           = spm_mar_spectra(MAR,Hz,1/dt);
+
+CSD = MAR.P/length(Hz);
+CSP = mar.P/length(Hz);
 
 
 % Graphics
@@ -165,7 +162,7 @@ title('LFP','FontSize',16)
 axis square
 
 subplot(2,2,2)
-plot([spm_vec(xmar.lag),spm_vec(XMAR.lag)])
+plot([spm_vec(mar.lag),spm_vec(MAR.lag)])
 xlabel('expected')
 ylabel('estimated')
 title('auto-regression coefficients','FontSize',16)
@@ -186,16 +183,17 @@ title('cross-spectral density','FontSize',16)
 axis square
 legend('expected','estimated','expected (MAR)')
 
+
 %  comparison of expected and numerical results
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
 
 % compare analytic and numerical spctral densities
 %--------------------------------------------------------------------------
-dtf  = xmar.dtf;
-gew  = xmar.gew;
-DTF  = XMAR.dtf;
-GEW  = XMAR.gew;
+dtf  = mar.dtf;
+gew  = mar.gew;
+DTF  = MAR.dtf;
+GEW  = MAR.gew;
 spm_spectral_plot(Hz,mtf,'b',  'frequency','density')
 spm_spectral_plot(Hz,dtf,'g',  'frequency','density')
 spm_spectral_plot(Hz,DTF,'g-.','frequency','density')
@@ -205,5 +203,32 @@ spm_spectral_plot(Hz,GEW,'r-.','frequency','density')
 legend('modulation transfer function','directed transfer function','estimate','Granger causality','estimate')
 
 
+% effects of changing various model parameters
+%==========================================================================
+pE.A{1}(2,1) = -2;
+pE.A{2}(1,2) = -4;
+
+pE.S      = 0.5;
+pE.a(1,:) = -1;
+pE.a(2,:) = -4;
+pE.b(1,:) = -2;
+pE.c(1,:) = -2;
+ 
+
+% create forward model and solve for steady state
+%--------------------------------------------------------------------------
+M.pE  = pE;
+M.x   = spm_dcm_neural_x(pE,M);
+
+
+% Integrate system to see response (time-series)
+%==========================================================================
+
+% Analytic spectral chararacterisation
+%==========================================================================
+[csd,Hz,mtf] = spm_csd_mtf(pE,M);
+ccf          = spm_csd2ccf(csd{1},Hz,dt);
+mar          = spm_ccf2mar(ccf,p);
+mar          = spm_mar_spectra(mar,Hz,1/dt);
 
  

@@ -1,12 +1,14 @@
-function [mar,lag] = spm_ccf2mar(ccf,p)
+function [mar] = spm_ccf2mar(ccf,p)
 % Converts cross covariance function to cross spectral density
 % FORMAT [mar] = spm_ccf2mar(ccf,p)
 %
-% ccf  (N,m,m)          - cross covariance functions
-% p                     - AR(p) order
+% ccf  (N,m,m)   - cross covariance functions
+% p              - AR(p) order
 %
-% mar  (p*m,m)          - MAR coeficients (matrix format - positive)
-% lag  lag(p).a(m,m)    - MAR coeficients (array format  - c.f., lag.a)
+% mar.noise_cov  - (m,m)         covariance of innovations   
+% mar.mean       - (p*m,m)       MAR coeficients (matrix format - positive)
+% mar.lag        - lag(p).a(m,m) MAR coeficients (array format  - negative)
+% mar.p          - order of a AR(p) model
 %
 % See also:
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
@@ -16,7 +18,7 @@ function [mar,lag] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_ccf2mar.m 5841 2014-01-20 10:19:25Z karl $
 
 
 % MAR coeficients
@@ -33,7 +35,7 @@ B     = cell(m,m);
 for i = 1:m
     for j = 1:m
         A{i,j} = ccf((1:p) + 1,i,j);
-        B{i,j} = toeplitz(ccf((1:p),i,j));
+        B{i,j} = toeplitz(ccf((1:p),i,j),ccf((1:p),j,i));
     end
 end
 
@@ -41,13 +43,15 @@ end
 %--------------------------------------------------------------------------
 A    = spm_cat(A);
 B    = spm_cat(B);
-mar  = full(B\A);
+C    = eye(m*p,m*p);
+a    = full((B + C)\A);
 
 % convert mar (positive matrix) format to lag (negative array) format
 %==========================================================================
-if nargout > 1
-    lag = spm_mar2lag(mar);
-end
+mar.noise_cov   = squeeze(ccf(1,:,:)) - A'*a;
+mar.mean        = a;
+mar.lag         = spm_mar2lag(a);     
+mar.p           = p;
 
 function lag = spm_mar2lag(mar)
 %--------------------------------------------------------------------------

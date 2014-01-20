@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_induced_optimise.m 5841 2014-01-20 10:19:25Z karl $
  
  
 % Model specification
@@ -48,8 +48,7 @@ if nargin, pE = Ep; end
  
 % hidden neuronal states of interest
 %--------------------------------------------------------------------------
-[x,f]     = spm_dcm_x_neural(pE,options.model);
-pE.J(1:4) = [0 1 0 0];
+[x,f]   = spm_dcm_x_neural(pE,options.model);
  
  
 % orders and model
@@ -77,7 +76,7 @@ M.x     = spm_dcm_neural_x(pE,M);
 % Dependency on parameters in terms of Modulation transfer functions
 %==========================================================================
 M.u     = u;
-M.Hz    = 4:64;
+M.Hz    = 4:128;
  
 % compute transfer functions for different parameters
 %--------------------------------------------------------------------------
