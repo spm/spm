@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5836 2014-01-17 16:14:46Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5846 2014-01-21 10:29:53Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -125,13 +125,22 @@ randpatch.help = {'Define random patches'};
 randpatch.val  = {npatches,niter};
 
 
-fixedpatch = cfg_entry;
+% fixedpatch = cfg_entry;
+% fixedpatch.tag = 'fixedpatch';
+% fixedpatch.name = 'File with vertex indices for patch centres';
+% fixedpatch.strtype = 's';
+% %fixedpatch.num = [1 1];
+% fixedpatch.val = {''};
+% fixedpatch.help = {'Mat file with array Ip containing rows of iterations and columns of indices (patch centres for each iteration)'};
+
+fixedpatch = cfg_files;
 fixedpatch.tag = 'fixedpatch';
-fixedpatch.name = 'Vertex indices for patch centres';
-fixedpatch.strtype = 'i';
-fixedpatch.num = [Inf Inf];
-fixedpatch.val = {[1 3 5 7 9;2 4 6 8 10]};
-fixedpatch.help = {'Array containing rows of iterations and columns of indices (patch centres for each iteration)'};
+fixedpatch.name = 'Patch definition file ';
+fixedpatch.filter = 'mat';
+fixedpatch.num = [1 1];
+fixedpatch.help = {'Select patch definition file (mat file with variable Ip: rows are iterations columns are patch indices '};
+
+
 
 
 isfixedpatch = cfg_choice;
@@ -275,9 +284,17 @@ if isfield(job.isstandard, 'custom')
         Npatchiter =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.niter));
         allIp=[];
     else
-        allIp=job.isstandard.custom.isfixedpatch.fixedpatch;
+        
+        %% load in patch file
+            
+        dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch));
+        if ~isfield(dum,'Ip'),
+            error('Need to have patch indices in structure Ip');
+        end;
+        allIp=dum.Ip;
         inverse.Np =  size(allIp,2);
         Npatchiter =  size(allIp,1);
+        disp(sprintf('Using %d iterations of %d patches',Npatchiter,inverse.Np));
     end;
     inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
     
