@@ -1,5 +1,5 @@
 function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
-% state equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
+% State equation for a dynamic [bilinear/nonlinear/Balloon] model of fMRI
 % responses
 % FORMAT [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % x      - state vector
@@ -15,7 +15,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % dfdu   - df/du
 % D      - delays
 %
-%___________________________________________________________________________
+%__________________________________________________________________________
 %
 % References for hemodynamic & neuronal state equations:
 % 1. Buxton RB, Wong EC & Frank LR. Dynamics of blood flow and oxygenation
@@ -31,15 +31,15 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 %    fMRI: a two-state model.
 %    Neuroimage. 2008 Jan 1;39(1):269-78.
 %__________________________________________________________________________
-
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5821 2013-12-31 14:26:41Z karl $
+% $Id: spm_fx_fmri.m 5847 2014-01-21 11:19:16Z guillaume $
 
 % options
 %--------------------------------------------------------------------------
-if isfield(M,'symmetry'), symmetry = M.symmetry; else, symmetry = 0; end
+if nargin < 4, M = struct([]); end
+if isfield(M,'symmetry'), symmetry = M.symmetry; else symmetry = 0; end
 
 
 % Neuronal motion
@@ -108,8 +108,6 @@ if size(x,2) == 5
     %----------------------------------------------------------------------
     f(:,1) = EE*x(:,1) + P.C*u(:);
         
-
-    
 else
     
     % input dependent modulation
@@ -143,7 +141,6 @@ else
     else
         EE  = EE - SE;
     end
-    
     
     % motion - excitatory and inhibitory: f = dx/dt
     %----------------------------------------------------------------------
@@ -202,7 +199,7 @@ if nargout < 2, return, end
 
 % Neuronal Jacobian
 %==========================================================================
-[n m] = size(x);
+[n,m] = size(x);
 if m == 5
     
     % one neuronal state per region
@@ -253,10 +250,3 @@ dfdx{5,5} = diag((x(:,3)./x(:,5)).*((1 - H(5)).^(1./x(:,3)) - 1)./(tt*H(5)));
 dfdx      = spm_cat(dfdx);
 dfdu      = spm_cat(dfdu);
 D         = 1;
-
-
-
-
-
-
-
