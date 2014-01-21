@@ -18,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 5773 2013-12-03 18:05:14Z guillaume $
+% $Id: spm_eeg_downsample.m 5848 2014-01-21 17:54:05Z christophe $
 
-SVNrev = '$Rev: 5773 $';
+SVNrev = '$Rev: 5848 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -75,6 +75,7 @@ if strcmp(D.type, 'continuous')
     datasz = nchannels(D)*nsamples(D)*8; % datapoints x 8 bytes per double value
     blknum = ceil(datasz/memsz);
     blksz  = ceil(nchannels(D)/blknum);
+    blknum = ceil(nchannels(D)/blksz);
     
     % now downsample blocks of channels
     chncnt=1;
