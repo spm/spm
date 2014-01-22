@@ -13,7 +13,7 @@ function [this, ok] = check(this, option)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: check.m 5850 2014-01-22 13:15:30Z vladimir $
 
 if nargin == 1
     option = 'basic';
@@ -38,11 +38,12 @@ if this.montage.Mind~=0
     this.montage.Mind = 0;
 end
 
-eegind = indchantype(this, 'EEG');
-megind = indchantype(this, {'MEG', 'MEGPLANAR'});
-lfpind = indchantype(this, 'LFP');
+eegind    = indchantype(this, 'EEG');
+megind    = indchantype(this, {'MEG'});
+planarind = indchantype(this, {'MEGPLANAR'});
+lfpind    = indchantype(this, 'LFP');
 
-if  ~isempty([eegind(:); megind(:)])         
+if  ~isempty([eegind(:); megind(:); planarind(:)])              
     if ~isempty(eegind)
         if ~isfield(this.sensors, 'eeg') || isempty(this.sensors.eeg)
             ok = 0;
@@ -53,9 +54,15 @@ if  ~isempty([eegind(:); megind(:)])
                 disp('Not all EEG channel locations are specified');               
             end
         end
+        
+        if ~isempty(strmatch('unknown', units(this, eegind)))
+            this = units(this, eegind, 'uV');
+            
+            warning_flexible('EEG channel units are missing. Assuming uV, source scaling might be wrong');
+        end
     end
     
-    if ~isempty(megind)
+    if ~isempty([megind(:); planarind(:)])
         if ~isfield(this.sensors, 'meg') || isempty(this.sensors.meg)
             ok = 0;
             disp('MEG sensor locations are not specified');
@@ -63,6 +70,18 @@ if  ~isempty([eegind(:); megind(:)])
             if ~isempty(setdiff({this.channels(megind).label}, this.sensors.meg.label))                
                 disp('Not all MEG sensor locations are specified');         
             end
+        end
+        
+        if ~isempty(strmatch('unknown', units(this, megind)))
+            this = units(this,  megind, 'fT');
+            
+             warning_flexible('MEG channel units are missing. Assuming fT, source scaling might be wrong');
+        end
+        
+        if ~isempty(strmatch('unknown', units(this, planarind)))
+            this = units(this,  planarind, 'fT/mm');
+            
+            warning_flexible('MEGPLANAR channel units are missing. Assuming fT/mm, source scaling might be wrong');
         end
     end
     
@@ -117,6 +136,7 @@ if  ~isempty([eegind(:); megind(:)])
     
     this.fiducials.fid.label = this.fiducials.fid.label([nzind(:)', leind(:)', reind(:)', restind(:)']);
     this.fiducials.fid.pnt = this.fiducials.fid.pnt([nzind(:)', leind(:)', reind(:)', restind(:)'], :);
+    
 end
 
 if isequal(option, '3d')
