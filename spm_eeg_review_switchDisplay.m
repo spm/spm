@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 5541 2013-06-11 15:21:56Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 5851 2014-01-22 13:33:48Z vladimir $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -505,7 +505,7 @@ switch D.PSD.VIZU.uitable
                     else
                         table{i,4} = 'no';
                     end
-                    table{i,5} = units(D,i);
+                    table{i,5} = char(units(D,i));
                 end
                 colnames = {'label','type','bad','position','units'};
                 [ht,hc] = spm_uitable(table,colnames);
