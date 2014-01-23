@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5846 2014-01-21 10:29:53Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5852 2014-01-23 10:21:33Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -133,13 +133,27 @@ randpatch.val  = {npatches,niter};
 % fixedpatch.val = {''};
 % fixedpatch.help = {'Mat file with array Ip containing rows of iterations and columns of indices (patch centres for each iteration)'};
 
-fixedpatch = cfg_files;
-fixedpatch.tag = 'fixedpatch';
-fixedpatch.name = 'Patch definition file ';
-fixedpatch.filter = 'mat';
-fixedpatch.num = [1 1];
-fixedpatch.help = {'Select patch definition file (mat file with variable Ip: rows are iterations columns are patch indices '};
+fixedfile = cfg_files;
+fixedfile.tag = 'fixedfile';
+fixedfile.name = 'Patch definition file ';
+fixedfile.filter = 'mat';
+fixedfile.num = [1 1];
+fixedfile.help = {'Select patch definition file (mat file with variable Ip: rows are iterations columns are patch indices '};
 
+fixedrows = cfg_entry;
+fixedrows.tag = 'fixedrows';
+fixedrows.name = 'Rows from fixed patch file';
+fixedrows.strtype = 'i';
+fixedrows.num = [1 2];
+fixedrows.val = {[1 Inf]};
+fixedrows.help = {'Select first and last row of patch sets to use from file'};
+
+
+fixedpatch = cfg_branch;
+fixedpatch.tag = 'fixedpatch';
+fixedpatch.name = 'Fixed Patches';
+fixedpatch.help = {'Define fixed patches'};
+fixedpatch.val  = {fixedfile,fixedrows};
 
 
 
@@ -287,11 +301,15 @@ if isfield(job.isstandard, 'custom')
         
         %% load in patch file
             
-        dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch));
+        dum=load(char(job.isstandard.custom.isfixedpatch.fixedpatch.fixedfile));
         if ~isfield(dum,'Ip'),
             error('Need to have patch indices in structure Ip');
         end;
         allIp=dum.Ip;
+        lastrow=min(job.isstandard.custom.isfixedpatch.fixedpatch.fixedrows(2),size(allIp,1));
+        rowind=[job.isstandard.custom.isfixedpatch.fixedpatch.fixedrows(1):lastrow];
+        
+        allIp=allIp(rowind,:);
         inverse.Np =  size(allIp,2);
         Npatchiter =  size(allIp,1);
         disp(sprintf('Using %d iterations of %d patches',Npatchiter,inverse.Np));
