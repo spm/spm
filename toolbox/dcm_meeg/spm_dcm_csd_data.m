@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5589 2013-07-22 08:47:31Z karl $
+% $Id: spm_dcm_csd_data.m 5853 2014-01-24 20:38:11Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -173,19 +173,6 @@ end
 DCM.xY.Hz  = fix(Hz1:Hz2);             % Frequencies
 Nf         = length(DCM.xY.Hz);        % number of frequencies
 Ne         = length(trial);            % number of trial types
- 
-% get induced responses (use previous CSD results if possible) 
-%==========================================================================
-try
-    if size(DCM.xY.csd,2) == Ne;
-        if size(DCM.xY.csd{1},1) == Nf;
-            if size(DCM.xY.csd{1},2) == Nm;
-                DCM.xY.y  = DCM.xY.csd;
-                % return
-            end
-        end
-    end
-end
 
 
 % Cross spectral density for each trial type

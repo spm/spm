@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 07-Dec-2013 21:15:54
+% Last Modified by GUIDE v2.5 24-Jan-2014 20:22:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -174,3 +174,8 @@ run_demo_Callback(hObject, handles, 'spm_dcm_prior_responses')
 function pushbutton29_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Post%20hoc%20Bayesian%20model%20selection.pdf';
 run_demo_Callback(hObject, handles, 'DEMO_model_reduction_ERP')
+
+% --- Executes on button press in pushbutton30.
+function pushbutton30_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Analysing%20connectivity%20with%20Granger%20causality%20and%20dynamic%20causal%20modelling.pdf';
+run_demo_Callback(hObject, handles, 'spm_Granger_demo')

@@ -25,11 +25,15 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % the expansion point for subsequent linear systems analysis (if trial
 % specific effects are specified).
 %
+% See also:
+%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
+%  spm_csd2coh.m, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_csd_mtf.m 5853 2014-01-24 20:38:11Z karl $
 
 
 

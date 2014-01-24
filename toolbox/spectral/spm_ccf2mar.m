@@ -18,7 +18,7 @@ function [mar] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 5841 2014-01-20 10:19:25Z karl $
+% $Id: spm_ccf2mar.m 5853 2014-01-24 20:38:11Z karl $
 
 
 % MAR coeficients
@@ -30,6 +30,7 @@ ccf   = ccf((1:n) + n,:,:);
 
 % create ccf matrices
 %--------------------------------------------------------------------------
+warning('off','MATLAB:toeplitz:DiagonalConflict')
 A     = cell(m,m);
 B     = cell(m,m);
 for i = 1:m
@@ -38,6 +39,7 @@ for i = 1:m
         B{i,j} = toeplitz(ccf((1:p),i,j),ccf((1:p),j,i));
     end
 end
+warning('on','MATLAB:toeplitz:DiagonalConflict')
 
 % least squares solution
 %--------------------------------------------------------------------------
@@ -48,10 +50,11 @@ a    = full((B + C)\A);
 
 % convert mar (positive matrix) format to lag (negative array) format
 %==========================================================================
-mar.noise_cov   = squeeze(ccf(1,:,:)) - A'*a;
-mar.mean        = a;
-mar.lag         = spm_mar2lag(a);     
-mar.p           = p;
+mar.noise_cov  = squeeze(ccf(1,:,:)) - A'*a;
+mar.lag        = spm_mar2lag(a); 
+mar.a          = a;
+mar.p          = p;
+mar.d          = m;
 
 function lag = spm_mar2lag(mar)
 %--------------------------------------------------------------------------

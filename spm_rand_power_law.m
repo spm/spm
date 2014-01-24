@@ -1,21 +1,37 @@
-function [y] = spm_rand_power_law(G,Hz,dt,N)
+function [y] = spm_rand_power_law(csd,Hz,dt,N)
 % generates random variates with a power law spectral density
-% FORMAT [y] = spm_rand_power_law(G,Hz,dt,N)
+% FORMAT [y] = spm_rand_power_law(csd,Hz,dt,N)
 % G   - spectral densities (one per row)
 % Hz  - frequencies
 % dt  - sampling interval
 % N   - number of time bins
 %
-% see also: spm_rand_mar
+% see also: spm_rand_mar; spm_Q
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 5841 2014-01-20 10:19:25Z karl $
+% $Id: spm_rand_power_law.m 5853 2014-01-24 20:38:11Z karl $
  
 
 % create random process
+%==========================================================================
+
+% create AR representation
 %--------------------------------------------------------------------------
+p     = ceil(length(Hz)/2);
+for i = 1:size(csd,2);
+    ccf    = spm_csd2ccf(csd(:,i),Hz,dt);
+    mar    = spm_ccf2mar(ccf,p);
+    A      = [1 -mar.a'];
+    P      = spdiags(ones(N,1)*A,-(0:p),N,N);
+    y(:,i) = P\randn(N,1)*sqrt(max(ccf));    
+end
+
+return
+
+% cNB: alternative scheme -create random process
+%==========================================================================
 [m n] = size(G);
 w     = (0:(N - 1))/dt/N;
 dHz   = Hz(2) - Hz(1);

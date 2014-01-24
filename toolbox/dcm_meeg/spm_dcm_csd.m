@@ -22,7 +22,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_dcm_csd.m 5853 2014-01-24 20:38:11Z karl $
  
  
 % check options
@@ -31,18 +31,20 @@ drawnow
 clear spm_erp_L
 name = sprintf('DCM_%s',date);
 DCM.options.analysis  = 'CSD';
-DATA = 1;
  
 % Filename and options
 %--------------------------------------------------------------------------
 try, DCM.name;                      catch, DCM.name = name;      end
 try, model   = DCM.options.model;   catch, model    = 'NMM';     end
-try, Nm      = DCM.options.Nmodes;  catch, Nm = 8;               end
+try, spatial = DCM.options.spatial; catch, spatial  = 'LFP';     end
+try, Nm      = DCM.options.Nmodes;  catch, Nm       = 8;         end
+try, DATA    = DCM.options.DATA;    catch, DATA     = 1;         end
  
 % Spatial model
 %==========================================================================
 DCM.options.Nmodes = Nm;
 DCM.M.dipfit.model = model;
+DCM.M.dipfit.type  = spatial;
 
 if DATA
     DCM  = spm_dcm_erp_data(DCM);                   % data
@@ -53,9 +55,10 @@ Ns   = length(DCM.A{1});                            % number of sources
 
 % Design model and exogenous inputs
 %==========================================================================
-if isempty(DCM.xU.X), DCM.xU.X = sparse(1 ,0); end
-if ~isfield(DCM,'C'), DCM.C    = sparse(Ns,0); end
-if isempty(DCM.xU.X), DCM.C    = sparse(Ns,0); end
+if ~isfield(DCM.xU,'X'), DCM.xU.X = sparse(1 ,0); end
+if ~isfield(DCM,'C'),    DCM.C    = sparse(Ns,0); end
+if isempty(DCM.xU.X),    DCM.xU.X = sparse(1 ,0); end
+if isempty(DCM.xU.X),    DCM.C    = sparse(Ns,0); end
 
 % Neural mass model
 %==========================================================================

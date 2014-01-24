@@ -31,13 +31,13 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 5778 2013-12-04 20:20:40Z rosalyn $
+% $Id: spm_L_priors.m 5853 2014-01-24 20:38:11Z karl $
 
 
 
 % defaults
 %--------------------------------------------------------------------------
-try, model    = dipfit.model;    catch, model    = 'LFP'; end
+try, model    = dipfit.model;    catch, model    = 'CMC'; end
 try, type     = dipfit.type;     catch, type     = 'LFP'; end
 try, location = dipfit.location; catch, location = 0;     end
 try, symmetry = dipfit.symmetry; catch, symmetry = 0;     end

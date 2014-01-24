@@ -38,7 +38,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5841 2014-01-20 10:19:25Z karl $
+% $Id: spm_mar_spectra.m 5853 2014-01-24 20:38:11Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -68,11 +68,11 @@ end
 
 % Get Power Spectral Density matrix and DTF
 %==========================================================================
-for ff=1:Nf,
+for ff = 1:Nf,
     
   % transfer function (H) and CSSD (P)
   %------------------------------------------------------------------------
-  af_tmp = eye(d);
+  af_tmp = eye(d,d);
   for k = 1:p
     af_tmp = af_tmp + mar.lag(k).a*exp(-1i*w(ff)*k);
   end
