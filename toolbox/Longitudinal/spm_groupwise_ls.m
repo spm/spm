@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 5485 2013-05-09 15:51:24Z john $
+% $Id: spm_groupwise_ls.m 5855 2014-01-28 17:24:30Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -551,7 +551,7 @@ if need_avg,
         [pth,nam]   = fileparts(Nii(1).dat.fname);
         nam         = fullfile(pth,['avg_' nam '.nii']);
         Nio         = nifti;
-        Nio.dat     = file_array(nam,size(mu),'uint8',0,max(mu(:))/255,0);
+        Nio.dat     = file_array(nam,size(mu),'int16',0,max(max(mu(:))/32767,-min(mu(:))/32768),0);
         Nio.mat     = M_avg;
         Nio.mat0    = Nio.mat;
         Nio.mat_intent  = 'Aligned';
