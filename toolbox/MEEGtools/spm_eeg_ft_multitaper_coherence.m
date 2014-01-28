@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 5707 2013-10-21 15:46:48Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 5854 2014-01-28 15:31:13Z vladimir $
 
 %%
-SVNrev = '$Rev: 5707 $';
+SVNrev = '$Rev: 5854 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -251,7 +251,7 @@ for j = 1:np
     for i = 1:nc
         w = D.indtrial(cl{i}, 'GOOD');
 
-        if isempty(w)
+        if length(w)<2
             continue;
         end
 

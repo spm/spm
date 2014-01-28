@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_flat(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_flat.m 5594 2013-07-29 16:10:40Z vladimir $
+% $Id: spm_eeg_artefact_flat.m 5854 2014-01-28 15:31:13Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -51,7 +51,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5594 $';
+SVNrev = '$Rev: 5854 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -102,7 +102,7 @@ elseif isequal(S.mode, 'mark')
         res = [];
         for j = 1:length(chanind)
             dat  = abs(diff(squeeze(D(chanind(j), :, i)), [], 2))>threshold;
-            if   sum(dat)/length(dat)<S.badchanthresh
+            if  sum(dat)/length(dat)<S.badchanthresh
                 res(end+1).type   = 'artefact_flat';
                 res(end).value    = char(D.chanlabels(chanind(j)));
                 res(end).time     = D.trialonset(i);
@@ -117,6 +117,9 @@ elseif isequal(S.mode, 'mark')
                     if m <= length(onsets)
                         ind1 = onsets(k);
                         ind2 = onsets(m) + diffs(onsets(m));
+                        if ind2 > length(dat)
+                            ind2 = length(dat);
+                        end
                         if (sum(dat(ind1:ind2))/(ind2-ind1+1))<0.5 
                             m = m+1;
                         else

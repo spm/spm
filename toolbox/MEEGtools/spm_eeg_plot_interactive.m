@@ -8,7 +8,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_plot_interactive.m 4373 2011-06-21 21:43:27Z vladimir $
+% $Id: spm_eeg_plot_interactive.m 5854 2014-01-28 15:31:13Z vladimir $
 
 D = spm_eeg_load;
 
@@ -21,27 +21,29 @@ else
     ind = 1;
 end
 
+modality = spm_eeg_modality_ui(D, 1, 1);
+
 cfg = [];
 cfg.interactive = 'yes';
 
-switch D.modality
-    case 'EEG'
-        chanind = strmatch('EEG', D.chantype);
+switch modality
+    case 'EEG'    
         cfg.elec = D.sensors('EEG');
         cfg.rotate = 0;
         data.elec = cfg.elec;
     case 'MEG'
-        chanind = strmatch('MEG', D.chantype);
         cfg.grad = D.sensors('MEG');
         data.grad = cfg.grad;
 end
 
-cfg.channel = data.label(chanind);
+cfg.channel = data.label(D.indchantype(modality));
 %%
 figure;
 
 if isfield(data, 'trial')
     data.trial = data.trial(ind, :, :);
+    ft_multiplotER(cfg, data);
+elseif isfield(data, 'avg')
     ft_multiplotER(cfg, data);
 elseif isfield(data, 'powspctrm')
     data.powspctrm = data.powspctrm(ind, :, :, :);
