@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 5854 2014-01-28 15:31:13Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 5856 2014-01-29 14:28:33Z vladimir $
 
 %%
-SVNrev = '$Rev: 5854 $';
+SVNrev = '$Rev: 5856 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -161,7 +161,7 @@ cfg.output ='powandcsd';
 cfg.taper = 'dpss';
 cfg.channel = unique(S.chancomb(:));
 cfg.channelcmb = S.chancomb;
-cfg.method          = 'mtmconvol';
+cfg.method          = 'mtmfft';
 cfg.keeptrials = 'yes';
 cfg.keeptapers = 'no';
 
@@ -185,6 +185,8 @@ cfg.tapsmofrq(:)    = 1/timewin; % Set initial resolution to 1/timewin (i.e. 2.5
 % time resolution for all frequencies.
 cfg.tapsmofrq(cfg.foi>10*(1/timewin))    = 0.1*cfg.foi(cfg.foi>10*(1/timewin));
 cfg.tapsmofrq(cfg.foi>50)                = 5;
+%%***
+cfg.tapsmofrq(:)                         = 2.5;
 % figure; plot(cfg.foi, cfg.tapsmofrq);xlabel('frequency (Hz)');ylabel('frequency resolution (Hz)')
 % This is the time axis. The window with the width defined above (400 msec)
 % is moved every time by 'step' (100 ms). The earliest you can start is
@@ -194,6 +196,11 @@ cfg.tapsmofrq(cfg.foi>50)                = 5;
 cfg.toi=(prestim+(timewin/2)):step:(poststim-(timewin/2)-1/D.fsample); % Time axis
 
 freq = ft_freqanalysis(cfg, data);
+
+if ~isfield(freq, 'time')
+    freq.time = cfg.toi;
+    freq.dimord = [freq.dimord '_time'];
+end
 
 np = size(S.chancomb, 1);
 
@@ -236,8 +243,8 @@ for j = 1:np
 
     if robust && ~bycondition
         w = goodtrials;
-        [Y, W1] = spm_robust_average(permute(cat(4, squeeze(abs(freq.crsspctrm(w, crossind , :, :))),...
-            squeeze(freq.powspctrm(w, powind(1), :, :)), squeeze(freq.powspctrm(w, powind(2), :, :))), ...
+        [Y, W1] = spm_robust_average(permute(cat(4, spm_squeeze(abs(freq.crsspctrm(w, crossind , :, :)), 2),...
+            spm_squeeze(freq.powspctrm(w, powind(1), :, :), 2), spm_squeeze(freq.powspctrm(w, powind(2), :, :), 2)), ...
             [2 3 1 4]), 3, ks);
 
         if savew
@@ -256,28 +263,28 @@ for j = 1:np
         end
 
         if ~robust
-            Dcoh(j, :, :, i) = shiftdim(squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
-                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :))))), -1);
+            Dcoh(j, :, :, i) = shiftdim(spm_squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
+                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :)))), 2), -1);
         else
             if bycondition
-                [Y, W] = spm_robust_average(permute(cat(4, squeeze(abs(freq.crsspctrm(w, crossind , :, :))),...
-                    squeeze(freq.powspctrm(w, powind(1), :, :)), squeeze(freq.powspctrm(w, powind(2), :, :))), ...
+                [Y, W] = spm_robust_average(permute(cat(4, spm_squeeze(abs(freq.crsspctrm(w, crossind , :, :)), 2),...
+                    spm_squeeze(freq.powspctrm(w, powind(1), :, :), 2), spm_squeeze(freq.powspctrm(w, powind(2), :, :), 2)), ...
                     [2 3 1 4]), 3, ks);
                 
-                cross = squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]));
-                WW =  squeeze(W(:, :, :, 1));
+                cross = spm_squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]), 1);
+                WW =  spm_squeeze(W(:, :, :, 1), 4);
                 cross(WW == 0) = 0; % This is to get rid of NaNs because NaN*0 == NaN
-                cross = abs(sum(cross.*WW, 3))./squeeze(sum(WW, 3));
+                cross = abs(sum(cross.*WW, 3))./spm_squeeze(sum(WW, 3), 3);
                 
-                pow1 = squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]));
-                WW = squeeze(W(:, :, :, 2));
+                pow1 = spm_squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]), 1);
+                WW = spm_squeeze(W(:, :, :, 2), 4);
                 pow1(WW == 0) = 0;
-                pow1 = sum(pow1.*WW, 3)./squeeze(sum(WW, 3));
+                pow1 = sum(pow1.*WW, 3)./spm_squeeze(sum(WW, 3), 3);
                 
-                pow2 = squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]));
-                WW = squeeze(W(:, :, :, 3));
+                pow2 = spm_squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]), 1);
+                WW = spm_squeeze(W(:, :, :, 3), 4);
                 pow2(WW == 0) = 0;
-                pow2 = sum(pow2.*WW, 3)./squeeze(sum(WW, 3));
+                pow2 = sum(pow2.*WW, 3)./spm_squeeze(sum(WW, 3), 3);
                                
                 Dcoh(j, :, :, i) = shiftdim(cross./sqrt(pow1.*pow2), -1);
 
@@ -287,20 +294,20 @@ for j = 1:np
                 end
             else
                 
-                cross = squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]));
-                WW =  squeeze(W(:, :, w, 1));
+                cross = spm_squeeze(permute(freq.crsspctrm(w, crossind, :, :), [2 3 4 1]), 1);
+                WW =  spm_squeeze(W(:, :, w, 1), 4);
                 cross(WW == 0) = 0;
-                cross = abs(sum(cross.*WW, 3))./squeeze(sum(WW, 3));
+                cross = abs(sum(cross.*WW, 3))./spm_squeeze(sum(WW, 3), 3);
                 
-                pow1 = squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]));
-                WW = squeeze(W(:, :, w, 2));
+                pow1 = spm_squeeze(permute(freq.powspctrm(w, powind(1), :, :), [2 3 4 1]), 1);
+                WW = spm_squeeze(W(:, :, w, 2), 4);
                 pow1(WW == 0) = 0;
-                pow1 = sum(pow1.*WW, 3)./squeeze(sum(WW, 3));
+                pow1 = sum(pow1.*WW, 3)./spm_squeeze(sum(WW, 3), 3);
                 
-                pow2 = squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]));
-                WW = squeeze(W(:, :, w, 3));
+                pow2 = spm_squeeze(permute(freq.powspctrm(w, powind(2), :, :), [2 3 4 1]), 1);
+                WW = spm_squeeze(W(:, :, w, 3), 4);
                 pow2(WW == 0) = 0;
-                pow2 = sum(pow2.*WW, 3)./squeeze(sum(WW, 3));               
+                pow2 = sum(pow2.*WW, 3)./spm_squeeze(sum(WW, 3), 3);               
                 
                 Dcoh(j, :, :, i) = shiftdim(cross./sqrt(pow1.*pow2), -1);
             end

@@ -10,7 +10,7 @@ function [Y,W] = spm_robust_average(X, dim, ks)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % James Kilner
-% $Id: spm_robust_average.m 5624 2013-08-30 11:06:38Z vladimir $
+% $Id: spm_robust_average.m 5856 2014-01-29 14:28:33Z vladimir $
 
 if nargin < 3 || isempty(ks)
     ks = 3;
@@ -114,7 +114,12 @@ end
 if dim > 1
     Y  = shiftdim(Y, length(origsize)-dim+1);
     W  = shiftdim(W, length(origsize)-dim+1);
+    
+    % This is helpful when there are singleton dimensions
+    Y  = reshape(Y, morigsize);
+    W  = reshape(W, origsize);
 end
+
 
 %-Helper function
 %--------------------------------------------------------------------------
