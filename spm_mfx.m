@@ -1,5 +1,5 @@
 function [SPM] = spm_mfx(SPM,c)
-% converts a 1st-level design specification into a MFX specification
+% Convert a 1st-level design specification into a MFX specification
 % FORMAT [SPM] = spm_mfx(SPM,c)
 % SPM {in} - design and estimation structure after a 1st-level analysis
 % c        - contrast used to define 2nd level design matrix. If this is
@@ -75,12 +75,12 @@ function [SPM] = spm_mfx(SPM,c)
 % See spm_reml.m
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 4552 2011-11-08 17:33:58Z will $
+% $Id: spm_mfx.m 5857 2014-01-29 16:36:20Z guillaume $
 
-SVNid = '$Rev: 4552 $';
+SVNid = '$Rev: 5857 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -126,10 +126,8 @@ nP       = nY/n;                     % number of B2
 
 %-Change relative filenames to full
 %--------------------------------------------------------------------------
-S.xY.VY  = SPM.Vbeta(iX1);
-for i = 1:nY
-    S.xY.VY(i).fname = fullfile(swd,S.xY.VY(i).fname);
-end
+S.xY.P   = spm_file(char(SPM.Vbeta(iX1).fname),'path',swd);
+S.xY.VY  = spm_vol(S.xY.P);
 
 %-Design matrices
 %==========================================================================
@@ -248,7 +246,7 @@ end
 % 1st-level non-sphericity - ReML estimates, restricted to the Null
 % space of 'fixed' effects X1*X2 and X0
 %--------------------------------------------------------------------------
-[V1 h]    = spm_reml(SPM.xVi.Cy,[X1*X2 X0],Q);
+[V1,h]    = spm_reml(SPM.xVi.Cy,[X1*X2 X0],Q);
 
 % 2nd-level non-sphericity (including original whitening and filtering)
 %--------------------------------------------------------------------------
