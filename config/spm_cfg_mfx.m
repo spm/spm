@@ -4,7 +4,7 @@ function mfx = spm_cfg_mfx
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_mfx.m 5570 2013-07-03 11:38:05Z guillaume $
+% $Id: spm_cfg_mfx.m 5859 2014-01-30 15:12:14Z guillaume $
 
 % ---------------------------------------------------------------------
 % dir Directory
@@ -50,10 +50,23 @@ spmmat         = cfg_files;
 spmmat.tag     = 'spmmat';
 spmmat.name    = 'Select SPM.mat';
 spmmat.help    = {...
-    'Design and estimation structure after a 1st-level analysis'};
+    'Design and estimation structure after a 1st-level analysis.'};
 spmmat.filter  = 'mat';
 spmmat.ufilter = '^SPM\.mat$';
 spmmat.num     = [1 1];
+
+%--------------------------------------------------------------------------
+% con F-contrast weights matrix
+%--------------------------------------------------------------------------
+con         = cfg_entry;
+con.tag     = 'contrast';
+con.name    = 'F-contrast';
+con.help    = {
+    'F-contrast used to define 2nd level design matrix.'
+    'E.g. ones(n,1) contrast where n is the number of sessions/subjects.'
+    };
+con.strtype = 'r';
+con.num     = [Inf Inf];
 
 % ---------------------------------------------------------------------
 % spec MFX Specification
@@ -61,7 +74,7 @@ spmmat.num     = [1 1];
 spec       = cfg_exbranch;
 spec.tag   = 'spec';
 spec.name  = 'MFX Specification';
-spec.val   = {spmmat};
+spec.val   = {spmmat}; % con
 spec.help  = {'MFX Specification'};
 spec.prog  = @spm_local_mfx;
 spec.vout  = @vout_mfx;

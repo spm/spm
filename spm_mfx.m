@@ -78,9 +78,9 @@ function [SPM] = spm_mfx(SPM,c)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_mfx.m 5857 2014-01-29 16:36:20Z guillaume $
+% $Id: spm_mfx.m 5859 2014-01-30 15:12:14Z guillaume $
 
-SVNid = '$Rev: 5857 $';
+SVNid = '$Rev: 5859 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -161,7 +161,15 @@ if nargin < 2
     for    i  = 1:n
         SPM2.xX.name{i} = sprintf('Session %i',i);
     end
-    [I,xCon]  = spm_conman(SPM2,'F',1,'2nd-level contrast','',1);
+    tmpdir = tempname;
+    try
+        mkdir(tmpdir);
+        cd(tmpdir);
+        [I,xCon]  = spm_conman(SPM2,'F',1,'2nd-level contrast','',1);
+    end
+    try, cd(swd); end
+    try, spm_unlink(fullfile(tmpdir,'SPM.mat')); end
+    try, rmdir(tmpdir); end
 else
     I=1;
     xCon(I).c=c;
