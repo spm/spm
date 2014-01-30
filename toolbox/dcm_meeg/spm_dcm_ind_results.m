@@ -13,7 +13,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 %     'Input (u - ms)'
 %     'Input (C x u)'
 %     'Dipoles'
-%     'Saveimg'           
+%     'Save results as img'           
 %__________________________________________________________________________
 %
 % DCM is a causal modelling procedure for dynamical systems in which
@@ -32,22 +32,28 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 5654 2013-09-25 17:26:36Z guillaume $
+% $Id: spm_dcm_ind_results.m 5863 2014-01-30 20:58:36Z karl $
  
  
 % set up
 %--------------------------------------------------------------------------
-if nargin < 3, spm_figure('GetWin','Graphics'); end, colormap(gray), clf
- 
+if nargin < 3
+    spm_figure('GetWin','Graphics');
+else
+    figure(fig);
+end
+colormap(gray), clf
+
 xY     = DCM.xY;
 xU     = DCM.xU;
 nt     = length(xY.y);           % Nr of trial types
 nr     = size(xY.xf,2);          % Nr of sources
 nu     = size(xU.X, 2);          % Nr of experimental effects
-nf     = size(xY.U,2);           % Nr of frequency modes
+nf     = DCM.options.Nmodes;     % Nr of frequency modes explained
 ns     = size(xY.y{1},1);        % Nr of time bins
 pst    = xY.pst;                 % peri-stmulus time
 Hz     = xY.Hz;                  % frequencies
+xY.U   = xY.U(:,1:nf);           % remove unmodelled frequency modes
  
     
 % switch
@@ -106,7 +112,7 @@ case{lower('Frequency modes')}
     
     % spm_dcm_ind_results(DCM,'Frequency modes')
     %----------------------------------------------------------------------
-    plot(DCM.xY.Hz,DCM.xY.U)
+    plot(xY.Hz,xY.U)
     xlabel('Frequnecy (Hz)')
     xlabel('modes')
     title('Frequency modes modelled at each source','FontSize',16)
@@ -298,7 +304,7 @@ case{lower('Coupling (B - Hz)')}
     
     axes('position', [0.4, 0.95, 0.2, 0.01]);
     axis off;
-    title({'changes in coupling (B)';DCM.xU.name{k}});
+    title({'changes in coupling (B)';xU.name{k}});
     colormap(jet);
     
 case{lower('Coupling (A - modes)')}
@@ -463,17 +469,17 @@ case{lower('Dipoles')}
 case{lower('Save results as img')}
  
     fprintf('Saving the Time-frequency representation at sources\n');
-    DCM.saveInd='TFR';
+    DCM.saveInd = 'TFR';
     spm_dcm_ind_results(DCM,'Wavelet');
  
     fprintf('Saving the coupling matrix A\n');
-    DCM.saveInd='Amatrix';
+    DCM.saveInd ='Amatrix';
     spm_dcm_ind_results(DCM,'Coupling (A - Hz)');
  
     fprintf('Saving the coupling matrix B\n');
-    DCM.saveInd='Bmatrix';
+    DCM.saveInd = 'Bmatrix';
     spm_dcm_ind_results(DCM,'Coupling (B - Hz)');
-    DCM=rmfield(DCM,'saveInd');
+    DCM = rmfield(DCM,'saveInd');
  
 end
 drawnow

@@ -12,7 +12,7 @@ function [y] = spm_gen_ind(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_ind.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_gen_ind.m 5863 2014-01-30 20:58:36Z karl $
 
 
 % within-trial inputs
@@ -28,7 +28,7 @@ end
 
 % peri-stimulus time inputs
 %--------------------------------------------------------------------------
-t   = [1:M.ns]*U.dt;
+t   = (1:M.ns)*U.dt;
 U.u = feval(fu,t,P,M);
 
 

@@ -22,7 +22,7 @@ function DCM = spm_dcm_ind(DCM)
 %   options.onset        - stimulus onset (ms)
 %   options.dur          - and dispersion (sd)
 %______________________________________________________________________
-% This routine inverts dynamic causal modeld (DCM) for induced or spectral 
+% This routine inverts dynamic causal models (DCM) of induced or spectral 
 % responses as measured with the electroencephalogram (EEG) or the 
 % magnetoencephalogram (MEG). It models the time-varying power, over a 
 % range of frequencies, as the response of a distributed system of coupled 
@@ -33,7 +33,17 @@ function DCM = spm_dcm_ind(DCM)
 % and allows one to compare different models, or hypotheses. One key aspect 
 % of the model is that it differentiates between linear and non-linear 
 % coupling; which correspond to within and between frequency coupling 
-% respectively. 
+% respectively.
+% 
+% the number of notes can be optimised using Bayesian model selection. The
+% data are reduced to a fixed number of principal components that capture
+% the greatest variation inspection responses never peristimulus time. The
+% number of nodes specified by the user tries to reconstruct the response
+% in the space of the principle components or eigenmodes using a reduced
+% set of eigenmodes. The number of modes corresponding to data features can
+% be changed (from Nf = 8) by editing spm_dcm_ind_data.m
+%
+% see also: spm_dcm_ind_data; spm_gen_ind; spm_fx_ind and spm_lx_ind
 % 
 % See: Chen CC, Kiebel SJ, Friston KJ.
 % Dynamic causal modelling of induced responses.
@@ -42,7 +52,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_ind.m 5863 2014-01-30 20:58:36Z karl $
  
  
 % check options 
@@ -54,7 +64,6 @@ DCM.options.analysis  = 'IND';
 %--------------------------------------------------------------------------
 try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
-try, h     = DCM.options.h;     catch, h                  = 1;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
 try, dur   = DCM.options.dur;   catch, dur                = 32;        end
  
@@ -71,13 +80,14 @@ xU.dt  = xY.dt;
  
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.y);                  % number of trials
-Nr     = size(DCM.C,1);                 % number of sources
-nu     = size(DCM.C,2);                 % number of neuronal inputs
-Nf     = size(xY.U,2);                  % number of frequency modes
-Ns     = size(xY.y{1},1);               % number of samples
-Nu     = size(xU.X,2);                  % number of trial-specific effects
-nx     = Nr*Nf;                         % number of states
+Nm     = DCM.options.Nmodes;          % number of frequency modes modelled
+Nf     = size(xY.U,2);                % number of frequency modes explained
+Nt     = length(xY.y);                % number of trials
+Nr     = size(DCM.C,1);               % number of sources
+nu     = size(DCM.C,2);               % number of neuronal inputs
+Ns     = size(xY.y{1},1);             % number of samples
+Nu     = size(xU.X,2);                % number of trial-specific effects
+nx     = Nr*Nm;                       % number of states
  
  
 % assume noise precision is the same over modes:
@@ -109,7 +119,7 @@ try, M = rmfield(M,'FS'); end
  
 % prior moments
 %--------------------------------------------------------------------------
-[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
+[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nm);
  
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
@@ -178,8 +188,8 @@ for i = 1:Nt
     
     % parse frequency modes
     %----------------------------------------------------------------------
-    for j = 1:Nf
-        f      = [1:Nr] + (j - 1)*Nr;
+    for j = 1:Nm
+        f      = (1:Nr) + (j - 1)*Nr;
         H{i,j} = y(:,f);
         R{i,j} = r(:,f);
         K{i,j} = s(:,f);
