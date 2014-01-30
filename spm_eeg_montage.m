@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5861 2014-01-30 16:21:56Z vladimir $
+% $Id: spm_eeg_montage.m 5862 2014-01-30 16:42:08Z vladimir $
 
-SVNrev = '$Rev: 5861 $';
+SVNrev = '$Rev: 5862 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -292,14 +292,14 @@ switch S.mode
                     % wrong if the montage itself changes the units by scaling the data.
                     chanunit = repmat({'unknown'}, numel(sens.label), 1);
                     for j = 1:numel(chanunit)
-                        k = strmatch(sens.label{j}, sensmontage.labelnew);
+                        k = strmatch(sens.label{j}, sensmontage.labelnew, 'exact');
                         if ~isempty(k)
                             unit = unique(chanunitorig(~~sensmontage.tra(k, :)));
                             if numel(unit)==1
                                 chanunit(j) = unit;
                             end
                         else %channel was not in the montage, but just copied
-                            k = strmatch(sens.label{j}, labelorg);
+                            k = strmatch(sens.label{j}, labelorg, 'exact');
                             chanunit(j) = chanunitorig(k);
                         end
                     end
