@@ -28,12 +28,12 @@ function D = spm_eeg_remove_jumps(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Dominik R Bach
-% $Id: spm_eeg_remove_jumps.m 5856 2014-01-29 14:28:33Z vladimir $
+% $Id: spm_eeg_remove_jumps.m 5865 2014-01-31 11:48:30Z vladimir $
 
 % Input parameters
 %==========================================================================
 
-SVNrev = '$Rev: 5856 $';
+SVNrev = '$Rev: 5865 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -79,8 +79,8 @@ win = round(0.05*D.fsample);
 % filter blocks of channels
 %--------------------------------------------------------------------------
 chncnt = 1;
-for blk = 1:blknum
-
+alljumps = 0;
+for blk = 1:blknum 
     if isequal(D.type, 'continuous')
         % load original data blockwise into workspace
         %----------------------------------------------------------------------
@@ -106,8 +106,9 @@ for blk = 1:blknum
         else
             jumps = find(abs(ddat) > S.stdthreshold*std(ddat));
         end
+      
         while  ~isempty(jumps)
-
+%%
             % collapse jumps than are closer than 10 timepoints apart
             %--------------------------------------------------------------
             if numel(jumps)>2, jumps(find(diff(jumps) < 10) + 1) = []; end;
@@ -122,7 +123,12 @@ for blk = 1:blknum
                 if ind(end) > length(ddat)
                     ind = ind - (ind(end) - length(ddat));
                 end
-                ddat(ind) = median(ddat(ind));
+                
+                if abs(median(ddat(ind)))<max(abs(ddat(ind)))
+                    ddat(ind) = median(ddat(ind));
+                else %Just make it flat
+                    ddat(ind) = 0;
+                end
                 
                 jumps_fixed       = jumps_fixed + 1;
             end
@@ -166,6 +172,8 @@ for blk = 1:blknum
         end
     end
 
+    alljumps = alljumps + jumps_fixed;
+    
     if ~isequal(D.type, 'continuous')
         spm_progress_bar('Set', blk);
     end
@@ -182,6 +190,6 @@ save(D);
 
 % report
 %--------------------------------------------------------------------------
-fprintf('%s: Found %d jumps.\n', fname(D), jumps_fixed);            %-#
+fprintf('%s: Found %d jumps.\n', fname(D), alljumps);            %-#
 
 spm('Pointer', 'Arrow');
