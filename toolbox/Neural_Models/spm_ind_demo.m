@@ -37,7 +37,7 @@ function spm_ind_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_ind_demo.m 5864 2014-01-31 11:46:52Z karl $
 
 
 % number of regions in coupled map lattice
@@ -47,23 +47,26 @@ n     = 1;
 % specify network (connections)
 %--------------------------------------------------------------------------
 if n > 1
-A{1}  = diag(ones(n - 1,1),-1);
+    A{1} = diag(ones(n - 1,1),-1);
 else
-    A{1}  = 0;
+    A{1} = 0;
 end
 A{2}  = A{1}';
 A{3}  = sparse(n,n);
 B     = {};
 C     = sparse(1,1,1,n,1);
  
+% create LFP model
+%--------------------------------------------------------------------------
+M.dipfit.type  = 'LFP';
+M.dipfit.model = 'LFP' 
+M.dipfit.Ns    = n;
+M.dipfit.Nc    = n;
+
 % get priors
 %--------------------------------------------------------------------------
 [pE,pC] = spm_lfp_priors(A,B,C);
-[pE,pC] = spm_L_priors(n,pE,pC);
- 
-% create LFP model
-%--------------------------------------------------------------------------
-M.dipfit.type = 'LFP';
+[pE,pC] = spm_L_priors(M.dipfit,pE,pC);
 
 M.f   = 'spm_fx_lfp';
 M.g   = 'spm_gx_erp';
@@ -78,7 +81,7 @@ M.l   = size(pE.L,1);
 %--------------------------------------------------------------------------
 N     = 256;                          % number of samples
 U.dt  = 8/1000;                       % sampling interval
-pst   = [1:N]*U.dt;                   % peristimulus time
+pst   = (1:N)*U.dt;                   % peristimulus time
 t     = 64;                           % sample window for WFT
 cpt   = 1:1/8:16;                     % cycles per window         
 w     = cpt./(t*U.dt);                % Hz

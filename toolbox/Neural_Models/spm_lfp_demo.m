@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_lfp_demo.m 5864 2014-01-31 11:46:52Z karl $
 
 
 % Model specification
@@ -38,21 +38,26 @@ A{3}  = sparse(n,n);
 B     = {};
 C     = sparse(1,1,1,n,1);
 
+M.dipfit.model = 'LFP';
+M.dipfit.type  = 'LFP';
+M.dipfit.Nc    = n;
+M.dipfit.Ns    = n;
+
 % get priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_lfp_priors(A,B,C);           % neuronal priors
-[pE,pC] = spm_ssr_priors(pE,pC);           % spectral priors
-[pE,pC] = spm_L_priors(n,pE,pC);           % spatial  priors
+pE    = spm_dcm_neural_priors(A,B,C,M.dipfit.model);  % neuronal priors
+pE    = spm_L_priors(M.dipfit,pE);                    % spatial  priors
+pE    = spm_ssr_priors(pE);                           % spectral priors
+
+[x,f]   = spm_dcm_x_neural(pE,M.dipfit.model);
+
 
 % create LFP model
 %--------------------------------------------------------------------------
-M.dipfit.type = 'LFP';
-
-M.f    = 'spm_fx_lfp';
+M.f    = f;
 M.g    = 'spm_gx_erp';
-M.x    = sparse(n,13);
+M.x    = x;
 M.pE   = pE;
-M.pC   = pC;
 M.m    = size(C,2);
 M.n    = n*13;
 M.l    = size(pE.L,1);
