@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5753 2013-11-15 15:02:28Z volkmar $
+% $Id: cfg_getfile.m 5867 2014-02-04 12:33:59Z volkmar $
 
 t = {};
 sts = false;
@@ -1310,6 +1310,7 @@ else
         end
     end
     filt = getfilt;
+    filt.filt = {};
     [p, n, e] = cellfun(@fileparts, str, 'uniformoutput',false);
     fstr = strcat(n, e);
     [fstr1, fsel] = do_filter_exp(fstr, filt);
