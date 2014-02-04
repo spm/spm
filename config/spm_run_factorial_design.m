@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5712 2013-10-28 18:24:49Z guillaume $
+% $Id: spm_run_factorial_design.m 5868 2014-02-04 15:25:29Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -339,6 +339,11 @@ switch char(fieldnames(job.des))
         factor(1).variance = job.des.t2.variance;
         factor(1).dept     = job.des.t2.dept;
 
+        if any([n1 n2]==1) && factor(1).variance == 1
+            warning('Imposing equal variance between groups for 1 vs N comparison.');
+            factor(1).variance = 0;
+        end
+        
     %-Paired t-test
     %======================================================================
     case 'pt',
