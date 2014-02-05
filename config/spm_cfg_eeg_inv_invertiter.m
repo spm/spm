@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5852 2014-01-23 10:21:33Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5869 2014-02-05 16:13:06Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -19,6 +19,13 @@ val.name = 'Inversion index';
 val.strtype = 'n';
 val.help = {'Index of the cell in D.inv where the forward model can be found and the results will be stored.'};
 val.val = {1};
+
+outinv = cfg_entry;
+outinv.tag = 'outinv';
+outinv.name = 'Output prefix to save just inv structure';
+outinv.strtype = 's';
+outinv.help = {'If this is supplied the original data file will not be written to, but a new inverse structure with this name created'};
+outinv.val = {''};
 
 all = cfg_const;
 all.tag = 'all';
@@ -169,9 +176,9 @@ mselect = cfg_menu;
 mselect.tag = 'mselect';
 mselect.name = 'Selction of winning model';
 mselect.help = {'How to get the final current density estimate from multiple iterations'};
-mselect.labels = {'MaxF'}; %% removed BMA option for now
-mselect.values = {'MaxF'};
-mselect.val = {'MaxF'};
+mselect.labels = {'MaxF','Merge'}; 
+mselect.values = {0,1};
+mselect.val = {0};
 
 nsmodes = cfg_entry;
 nsmodes.tag = 'nsmodes';
@@ -237,7 +244,7 @@ custom = cfg_branch;
 custom.tag = 'custom';
 custom.name = 'Custom';
 custom.help = {'Define custom settings for the inversion'};
-custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,ntmodes, priors, restrict};
+custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,ntmodes, priors, restrict,outinv};
 
 isstandard = cfg_choice;
 isstandard.tag = 'isstandard';
@@ -284,7 +291,7 @@ if numel(job.D)>1,
     error('iterative routine only meant for single subjects');
 end;
 
-
+savejustinv=0; %% by default update dataset 
 if isfield(job.isstandard, 'custom')
     funccall=job.isstandard.custom.invfunc;
     inverse.type = job.isstandard.custom.invtype;
@@ -292,6 +299,9 @@ if isfield(job.isstandard, 'custom')
     inverse.Han  = job.isstandard.custom.hanning;
     inverse.lpf  =  fix(min(job.isstandard.custom.foi)); %% hpf and lpf are the wrong way round at the moment but leave for now
     inverse.hpf  =  fix(max(job.isstandard.custom.foi));
+    inverse.mergeflag=job.isstandard.custom.mselect;
+    
+    savejustinv = ~isempty(job.isstandard.custom.outinv);
     
     if ~isfield(job.isstandard.custom.isfixedpatch,'fixedpatch'), % fixed or random patch
         inverse.Np =  fix(max(job.isstandard.custom.isfixedpatch.randpatch.npatches));
@@ -324,7 +334,7 @@ if isfield(job.isstandard, 'custom')
         disp('Getting number of temporal modes from data');
         inverse.Nt=[];
     end;
-    BMAflag=strncmp('BMA',job.isstandard.custom.mselect,3);
+    
     
     
     P = char(job.isstandard.custom.priors.priorsmask);
@@ -403,7 +413,7 @@ for i = 1:numel(job.D)
     
     D{i}.inv{val}.inverse.allF=zeros(1,Npatchiter);
     
-    D{i}.inv{val}.inverse.BMAflag=BMAflag;
+    
 %% commented out section will add an inversion at new indices
     
 %     for iterval=1:Npatchiter-1,
@@ -432,7 +442,15 @@ if ~iscell(D)
 end
 
 for i = 1:numel(D)
-    save(D{i});
+    if ~savejustinv,
+        save(D{i});
+    else
+        keyboard
+        outinvname=[D{i}.path filesep job.isstandard.custom.outinv '_' D{i}.fname];
+        warning(sprintf('Data file is not being updated- inversion results written to %s',outinvname));
+        inv=D{i}.inv{val};
+        save(outinvname,'inv');
+    end;       
 end
 
 out.D = job.D;

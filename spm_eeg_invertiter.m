@@ -8,11 +8,13 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 % allIp is an optional list of indices of vertices which will be patch
 % centres. allIp will have size Npatchiter*Np (where Np is number of patches set in
 % inverse.Np )
+% if  Dtest{1}.inv{val}.inverse.mergeflag==1 then merges Npatchiter posterior current
+% distributions, else replaces posterior with best of the iterations.
 % __________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5836 2014-01-17 16:14:46Z gareth $
+% $Id: spm_eeg_invertiter.m 5869 2014-02-05 16:13:06Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -83,14 +85,16 @@ for patchiter=1:Npatchiter,
             Dout.inv{val}.inverse.Ip=Ip;
     end;
     modelF(patchiter).inverse=Dout.inv{val}.inverse;
+    
 end; % for patchiter
 
 
+%% will use these to merge posteriors or take best one
 
-
+Qpriors=sparse(zeros(Npatchiter,size(modelF(patchiter).inverse.qC,1)));
 for patchiter=1:Npatchiter,
     allF(patchiter)=modelF(patchiter).inverse.F;
-    manyinverse{patchiter}=modelF(patchiter).inverse;
+    Qpriors(patchiter,:)=modelF(patchiter).inverse.qC;
 end;
 
 [bestF,bestind]=max(allF);
@@ -100,26 +104,25 @@ sort(allF-bestF)
 
 Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
 if Npatchiter>1, %% keep iterations if more than 1
-    %% commented out section for storing all iterations in dataset
-    %     for f=1:Npatchiter,
-    %         Dtest{1}.inv{f+val}.inverse=modelF(f).inverse; %% set fields in inversion to specific iterations
-    %         Dtest{1}.inv{f+val}.comment=sprintf('Iteration %d of %d',f,Npatchiter);
-    %     end;
-    %
-    if (Dtest{1}.inv{val}.inverse.BMAflag==1)
-        disp('Running BMA to get current estimate');
-        [Jbma,qCbma]=spm_eeg_invert_bma(manyinverse,allF); %% onlt the mean is calculated using BMA (but could extend to covariance)
-        %Dtest{1}.inv{val}.inverse.T=1; %% Jbma is the sum of all modes
-        Dtest{1}.inv{val}.inverse.J={Jbma};
-        Dtest{1}.inv{val}.inverse.qC=qCbma;
+ 
+    if (Dtest{1}.inv{val}.inverse.mergeflag==1)
+        disp('Merging posterior distributions..');
+        ugainfiles=Dout.inv{val}.gainmat;
+        surfind=ones(Npatchiter,1);
+        [Dtest{1}] = spm_eeg_invert_classic_mix(Dtest{1},val,Qpriors,surfind,ugainfiles);
+        
         Dtest{1}.inv{val}.inverse.allF=allF;
-        %Dtest{1}.inv{val}.comment={sprintf('BMA of %d solutions',Npatchiter)};
-    else % NOT BMA- just take the best
+        Dtest{1}.inv{val}.comment{1}=sprintf('Merged posterior of %d solutions',Npatchiter);
+        mixF=Dtest{1}.inv{val}.inverse.F;
+        if mixF-bestF<0
+            warning('Merged solution is worse than the best');
+        end;
+        disp(sprintf('Improvement (when +ve) over best iteration %3.2f',mixF-bestF));
+        
+    else % NO merge - just take the best
         disp('Using best patch set to current estimate');
         
         Dtest{1}.inv{val}.comment{1}=sprintf('Best F of %d solutions',Npatchiter);
-        % keyboard
-        %  [Dtest{1}.inv{1}.comment{1}]
         
         Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
         Dtest{1}.inv{val}.inverse.allF=allF;

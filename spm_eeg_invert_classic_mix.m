@@ -1,80 +1,27 @@
 function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
-%
-%% A trimmed down version of the spm_eeg_invert() routine
-% ReML inversion of multiple forward models for EEG-MEG
-% FORMAT [D] = spm_eeg_invert(D)
+%function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
+%%
+% ReML inversion of multiple posterior current variances from previous
+% iterations spm_eeg_invert_classic or spm_eeg_invert
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG/MEG data
 %
-% Requires:
-% D{i}.inv{val}.inverse:
+% D contains the data and inversion parameters (see
+% spm_eeg_invert.m/spm_eeg_invert_classic.m)
+% val the inversion index 
+% Qpriors is N solutions of rows by Nd variance estimates
+% surfind is N solutions long and contains indices into ugainfiles to these priors with different lead field structures
+%% ugainfiles are the SPMgain matrices for the different surfaces
 %
-%     inverse.modality - modality to use in case of multimodal datasets
+% Output D will have a solution which is optimal REML mixture of Qpriors
 %
-%     inverse.trials - D.events.types to invert
-%     inverse.type   - 'GS' Greedy search on MSPs
-%                      'ARD' ARD search on MSPs
-%                      'MSP' GS and ARD multiple sparse priors
-%                      'LOR' LORETA-like model
-%                      'IID' minimum norm
-%     inverse.woi    - time window of interest ([start stop] in ms)
-%     inverse.lpf    - band-pass filter - low frequency cut-off (Hz)
-%     inverse.hpf    - band-pass filter - high frequency cut-off (Hz)
-%     inverse.Han    - switch for Hanning window
-%     inverse.xyz    - (n x 3) locations of spherical VOIs
-%     inverse.rad    - radius (mm) of VOIs
-%
-%     inverse.Nm     - maximum number of channel modes
-%     inverse.Nr     - maximum number of temporal modes
-%     inverse.Np     - number of sparse priors per hemisphere
-%     inverse.smooth - smoothness of source priors (0 to 1)
-%     inverse.Na     - number of most energetic dipoles
-%     inverse.sdv    - standard deviations of Gaussian temporal correlation
-%     inverse.pQ     - any source priors (e.g. from fMRI); vector or matrix
-%     inverse.Qe     - any sensor error components (e.g. empty-room data)
-%     inverse.dplot  - make diagnostics plots (0 or 1)
-%     inverse.STAT   - flag for stationarity assumption, which invokes a
-%                      full DCT temporal projector (from lpf to hpf Hz)
-%
-% Evaluates:
-%
-%     inverse.M      - MAP projector (reduced)
-%     inverse.J{i}   - Conditional expectation (i conditions) J = M*U*Y
-%     inverse.L      - Lead field (reduced UL := U*L)
-%     inverse.qC     - spatial covariance
-%     inverse.qV     - temporal correlations
-%     inverse.T      - temporal projector
-%     inverse.U(j)   - spatial projector (j modalities)
-%     inverse.Y{i}   - reduced data (i conditions) UY = UL*J + UE
-%     inverse.Is     - Indices of active dipoles
-%     inverse.It     - Indices of time bins
-%     inverse.Ic{j}  - Indices of good channels (j modalities)
-%     inverse.Nd     - number of dipoles
-%     inverse.pst    - peristimulus time
-%     inverse.dct    - frequency range
-%     inverse.F      - log-evidence
-%     inverse.VE     - variance explained in spatial/temporal subspaces (%)
-%     inverse.R2     - variance in subspaces accounted for by model (%)
-%     inverse.scale  - scaling of data for each of j modalities
-%__________________________________________________________________________
-%
-% Created by:   Jose David Lopez - ralph82co@gmail.com
-%               Gareth Barnes - g.barnes@fil.ion.ucl.ac.uk
-%               Vladimir Litvak - litvak.vladimir@gmail.com
-%
+% Created by:   
+%               Gareth Barnes - g.barnes@ucl.ac.uk
 %
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
-% No symmetric priors are used in this implementation (just single patches)
-% There is an option for a Beamforming prior : inversion type 'EBB'
-% also added new beamforming method- using GS rather than ARD- from Juan David Martinez Vargas 'EBBgs'
-
-%%The code was used in
-%% L�pez, J. D., Penny, W. D., Espinosa, J. J., Barnes, G. R. (2012).
-% A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
-% Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
-
-% $Id: spm_eeg_invert_classic_mix.m 5860 2014-01-30 16:02:31Z gareth $
+%
+% $Id: spm_eeg_invert_classic_mix.m 5869 2014-02-05 16:13:06Z gareth $
 
 
 
@@ -122,7 +69,8 @@ try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of tempo
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
 try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
-SHUFFLELEADS=0;
+
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -138,6 +86,19 @@ Nmax  = 16;         % max number of temporal modes
 
 % check lead fields and get number of dipoles (Nd) and channels (Nc)
 %==========================================================================
+
+if inverse.Nm~=length(inverse.Ic),
+    disp('Using reduced spatial modes');
+    if length(unique(surfind))>1,
+        error('Cannot merge different surface files with reduced spatial modes at the moment');
+    end;
+    U=inverse.U{1};
+else
+    disp('Using all spatial modes');
+    U=eye(size(L,1));
+end;
+
+    
 
 fprintf('Checking leadfields')
 
@@ -187,10 +148,10 @@ QE = 1;                     % No empty room noise measurement
 % Spatial projectors - keep these to map directly to channels for now
 %==========================================================================
 
-fprintf('Using all spatial modes\n')
-U=eye(size(L,1));
-A=U';
-UL=L;
+
+
+A=U;
+UL=U*L;
 
 clear L
 
