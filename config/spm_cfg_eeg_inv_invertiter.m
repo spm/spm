@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5869 2014-02-05 16:13:06Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5870 2014-02-06 10:23:31Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -445,7 +445,6 @@ for i = 1:numel(D)
     if ~savejustinv,
         save(D{i});
     else
-        keyboard
         outinvname=[D{i}.path filesep job.isstandard.custom.outinv '_' D{i}.fname];
         warning(sprintf('Data file is not being updated- inversion results written to %s',outinvname));
         inv=D{i}.inv{val};
