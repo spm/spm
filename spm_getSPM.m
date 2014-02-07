@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5824 2014-01-02 14:50:13Z guillaume $
+% $Id: spm_getSPM.m 5871 2014-02-07 18:25:06Z guillaume $
 
 
 %-GUI setup
@@ -527,8 +527,12 @@ if isfield(SPM,'PPM')
             
             % For VB - set default effect size 
             %--------------------------------------------------------------
-            Gamma = 0.1;
-            xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+            try
+                xCon(Ic).eidf = xSPM.gamma;
+            catch
+                Gamma = 0.1;
+                xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+            end
             
         elseif nc == 1 && isempty(xCon(Ic).Vcon) % 2nd level Bayes
             % con image not yet written
@@ -538,8 +542,12 @@ if isfield(SPM,'PPM')
                 %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
                 % The default is one conditional s.d. of the contrast
                 %----------------------------------------------------------
-                Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
-                xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+                try
+                    xCon(Ic).eidf = xSPM.gamma;
+                catch
+                    Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+                    xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+                end
                 xCon(Ic).STAT = 'P';
             end
         end
