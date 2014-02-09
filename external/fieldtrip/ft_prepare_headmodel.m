@@ -134,9 +134,9 @@ function [vol, cfg] = ft_prepare_headmodel(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_headmodel.m 9038 2013-12-17 12:34:58Z roboos $
+% $Id: ft_prepare_headmodel.m 9113 2014-01-20 16:51:10Z vlalit $
 
-revision = '$Id: ft_prepare_headmodel.m 9038 2013-12-17 12:34:58Z roboos $';
+revision = '$Id: ft_prepare_headmodel.m 9113 2014-01-20 16:51:10Z vlalit $';
 
 % do the general setup of the function
 ft_defaults

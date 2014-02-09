@@ -56,7 +56,7 @@ function [stat, cfg] = ft_statistics_analytic(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_analytic.m 9110 2014-01-19 13:04:38Z dieloz $
+% $Id: ft_statistics_analytic.m 9130 2014-01-26 11:02:42Z dieloz $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamedval',  {'correctm', 'bonferoni', 'bonferroni'});
@@ -69,6 +69,9 @@ if ~isfield(cfg, 'tail'),     cfg.tail = 0;        end
 
 % fetch function handle to the low-level statistics function
 statfun = ft_getuserfun(cfg.statistic, 'statfun');
+if isempty(statfun) && (strcmp(cfg.statistic,'depsamplesF') || strcmp(cfg.statistic,'ft_statfun_depsamplesF'));
+  error(['statistic function ' cfg.statistic ' has recently changed its name to ft_statfun_depsamplesFmultivariate']);
+end
 if isempty(statfun)
   error('could not locate the appropriate statistics function');
 else

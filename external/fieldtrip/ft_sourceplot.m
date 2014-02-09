@@ -56,8 +56,8 @@ function [cfg] = ft_sourceplot(cfg, data)
 %   cfg.funcolorlim   = color range of the functional data (default = 'auto')
 %                        [min max]
 %                        'maxabs', from -max(abs(funparameter)) to +max(abs(funparameter))
-%                        'zeromax', from 0 to max(abs(funparameter))
-%                        'minzero', from min(abs(funparameter)) to 0
+%                        'zeromax', from 0 to max(funparameter)
+%                        'minzero', from min(funparameter) to 0
 %                        'auto', if funparameter values are all positive: 'zeromax',
 %                          all negative: 'minzero', both possitive and negative: 'maxabs'
 %   cfg.colorbar      = 'yes' or 'no' (default = 'yes')
@@ -91,8 +91,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %                              'voxel', voxelcoordinates as indices
 %   cfg.crosshair     = 'yes' or 'no' (default = 'yes')
 %   cfg.axis          = 'on' or 'off' (default = 'on')
-%   cfg.interactive   = 'yes' or 'no' (default = 'no')
-%                        in interactive mode cursor click determines location of cut
+%   cfg.interactive   = 'yes' or 'no' (default = 'no' if no nargout is desired, 'yes' otherwise)
+%                        in interactive mode the function returns the 
+%                        fiducials when closing the figure in the cfg
 %   cfg.queryrange    = number, in atlas voxels (default 3)
 %
 %
@@ -175,9 +176,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9031 2013-12-13 11:22:04Z jansch $
+% $Id: ft_sourceplot.m 9165 2014-01-29 15:35:10Z jorhor $
 
-revision = '$Id: ft_sourceplot.m 9031 2013-12-13 11:22:04Z jansch $';
+revision = '$Id: ft_sourceplot.m 9165 2014-01-29 15:35:10Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -246,8 +247,12 @@ cfg.locationcoordinates = ft_getopt(cfg, 'locationcoordinates', 'head');
 cfg.crosshair           = ft_getopt(cfg, 'crosshair',           'yes');
 cfg.colorbar            = ft_getopt(cfg, 'colorbar',            'yes');
 cfg.axis                = ft_getopt(cfg, 'axis',                'on');
-cfg.interactive         = ft_getopt(cfg, 'interactive',         'no');
 cfg.queryrange          = ft_getopt(cfg, 'queryrange',          3);
+if nargout
+  cfg.interactive         = ft_getopt(cfg, 'interactive',         'yes');
+else
+  cfg.interactive         = ft_getopt(cfg, 'interactive',         'no');
+end
 
 if isfield(cfg, 'TTlookup'),
   error('TTlookup is old; now specify cfg.atlas, see help!');

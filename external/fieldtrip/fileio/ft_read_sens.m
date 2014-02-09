@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 9038 2013-12-17 12:34:58Z roboos $
+% $Id: ft_read_sens.m 9123 2014-01-22 15:51:08Z jimher $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -347,7 +347,7 @@ switch fileformat
     sens = [];
     if all(cellfun(@isempty, tmp{4}))
       % it contains theta and phi
-      sens.label   = cellfun(@str2double, tmp{1}(2:end));
+      sens.label = tmp{1}(2:end);
       theta = cellfun(@str2double, tmp{2}(2:end));
       phi   = cellfun(@str2double, tmp{3}(2:end));
       radians = @(x) pi*x/180;

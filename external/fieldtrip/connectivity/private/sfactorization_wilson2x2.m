@@ -39,7 +39,7 @@ function [H, Z, S, psi] = sfactorization_wilson2x2(S,freq,Niterations,tol,cmbind
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: sfactorization_wilson2x2.m 9072 2014-01-04 19:24:29Z jansch $
+% $Id: sfactorization_wilson2x2.m 9175 2014-01-30 11:45:09Z eelspa $
 
 if nargin<8, checkflag = true;   end
 if nargin<7, init      = 'chol'; end
@@ -68,6 +68,9 @@ if freq(1)~=0
 else
   selfreq  = 1:numel(freq);
 end
+
+% ensure input S is double (mex-files don't work with single)
+S = double(S);
 
 % check whether the last frequency bin is strictly real-valued.
 % if that's the case, then it is assumed to be the Nyquist frequency

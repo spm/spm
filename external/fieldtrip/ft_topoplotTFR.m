@@ -17,7 +17,7 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %                            data. Values between 0 and 1, 0 = transparent 
 %   cfg.xlim               = selection boundaries over first dimension in data (e.g., time)
 %                            'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.zlim               = plotting limits for color dimension, 'maxmin', 'maxabs' or [zmin zmax] (default = 'maxmin')
+%   cfg.zlim               = plotting limits for color dimension, 'maxmin', 'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %   cfg.channel            = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel         = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline           = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
@@ -157,9 +157,9 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 8709 2013-11-03 11:31:34Z jansch $
+% $Id: ft_topoplotTFR.m 9132 2014-01-27 10:51:30Z jimher $
 
-revision = '$Id: ft_topoplotTFR.m 8709 2013-11-03 11:31:34Z jansch $';
+revision = '$Id: ft_topoplotTFR.m 9132 2014-01-27 10:51:30Z jimher $';
 
 % do the general setup of the function
 ft_defaults

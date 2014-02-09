@@ -37,9 +37,9 @@ function [source] = loreta2fieldtrip(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: loreta2fieldtrip.m 8117 2013-05-08 21:30:22Z ingnie $
+% $Id: loreta2fieldtrip.m 9155 2014-01-29 14:43:29Z eelspa $
 
-revision = '$Id: loreta2fieldtrip.m 8117 2013-05-08 21:30:22Z ingnie $';
+revision = '$Id: loreta2fieldtrip.m 9155 2014-01-29 14:43:29Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -95,11 +95,11 @@ if ~is_txt
   if isempty(timeframe)
     % read the complete timecourses
     fseek(fid, 0, 'bof');
-    activity = fread(fid, [voxnumber Ntime], 'float = >single');
+    activity = fread(fid, [voxnumber Ntime], 'float=>single');
   elseif length(timeframe)==1
     % read only a single timeframe
     fseek(fid, 4*voxnumber*(timeframe-1), 'bof');
-    activity = fread(fid, [voxnumber 1], 'float = >single');
+    activity = fread(fid, [voxnumber 1], 'float=>single');
   else
     error('you can read either one timeframe, or the complete timecourse');
   end  

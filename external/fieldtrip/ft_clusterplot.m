@@ -55,9 +55,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 8589 2013-10-09 10:03:26Z eelspa $
+% $Id: ft_clusterplot.m 9177 2014-01-31 14:44:44Z nielam $
 
-revision = '$Id: ft_clusterplot.m 8589 2013-10-09 10:03:26Z eelspa $';
+revision = '$Id: ft_clusterplot.m 9177 2014-01-31 14:44:44Z nielam $';
 
 % do the general setup of the function
 ft_defaults
@@ -221,7 +221,14 @@ else
     possum = sum(possum,1);
     negsum = sum(signegCLM,3);
     negsum = sum(negsum,1);
-    allsum = possum + negsum;
+    
+    if haspos && hasneg
+      allsum = possum + negsum;
+    elseif haspos
+      allsum = possum;
+    else
+      allsum = negsum;
+    end
     
     ind_timewin_min = min(find(allsum~=0));
     ind_timewin_max = max(find(allsum~=0));

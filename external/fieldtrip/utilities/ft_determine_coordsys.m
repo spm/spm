@@ -45,7 +45,7 @@ function [data] = ft_determine_coordsys(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_determine_coordsys.m 8912 2013-11-29 11:03:43Z roboos $
+% $Id: ft_determine_coordsys.m 9145 2014-01-29 13:04:00Z jansch $
 
 dointeractive = ft_getopt(varargin, 'interactive', 'yes');
 axisscale     = ft_getopt(varargin, 'axisscale', 1); % this is used to scale the axmax and rbol
@@ -121,6 +121,10 @@ if isfield(data, 'coordsys') && ~isempty(data.coordsys)
     label{1} = 'the right';
     label{2} = 'anterior';
     label{3} = 'superior';
+  elseif strcmpi(data.coordsys, 'unknown')
+    label{1} = 'unknown';
+    label{2} = 'unknown';
+    label{3} = 'unknown';
   else
     error('unsupported coordsys');
   end

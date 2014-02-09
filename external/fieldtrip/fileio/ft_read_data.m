@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 8932 2013-12-02 10:01:25Z roboos $
+% $Id: ft_read_data.m 9149 2014-01-29 13:59:29Z eelspa $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -107,6 +107,12 @@ end
 if ~isempty(endtrial) && mod(endtrial, 1)
   warning('rounding "endtrial" to the nearest integer');
   endtrial = round(endtrial);
+end
+
+% if we are dealing with a compressed dataset, inflate it first
+if strcmp(dataformat, 'compressed')
+  filename = inflate_file(filename);
+  dataformat = ft_filetype(filename);
 end
 
 % ensure that the headerfile and datafile are defined, which are sometimes different than the name of the dataset

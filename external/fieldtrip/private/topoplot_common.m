@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9092 2014-01-13 10:23:36Z jansch $
+% $Id: topoplot_common.m 9164 2014-01-29 15:29:50Z roevdmei $
 
-revision = '$Id: topoplot_common.m 9092 2014-01-13 10:23:36Z jansch $';
+revision = '$Id: topoplot_common.m 9164 2014-01-29 15:29:50Z roevdmei $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -366,7 +366,7 @@ isfull  = length(selchan)>1;
 % Check for bivariate metric with a labelcmb field:
 haslabelcmb = isfield(data, 'labelcmb');
 
-if (isfull || haslabelcmb) && isfield(data, cfg.parameter)
+if (isfull || haslabelcmb) && (isfield(data, cfg.parameter) && ~strcmp(cfg.parameter, 'powspctrm'))
   % A reference channel is required:
   if ~isfield(cfg, 'refchannel')
     error('no reference channel is specified');
@@ -397,10 +397,15 @@ if (isfull || haslabelcmb) && isfield(data, cfg.parameter)
     info.y     = lay.pos(:,2);
     info.label = lay.label;
     guidata(h, info);
+    % attach data to the figure with the current axis handle as a name
+    dataname = num2str(gca);
+    dotpos   = findstr(dataname,'.');
+    dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+    setappdata(gcf,dataname,data);
     %set(gcf, 'WindowButtonUpFcn', {@ft_select_channel, 'callback', {@select_topoplotER, cfg, data}});
-    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg, data}, 'event', 'WindowButtonUpFcn'});
-    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg, data}, 'event', 'WindowButtonDownFcn'});
-    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg, data}, 'event', 'WindowButtonMotionFcn'});
+    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg}, 'event', 'WindowButtonUpFcn'});
+    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg}, 'event', 'WindowButtonDownFcn'});
+    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_topoplotER, cfg}, 'event', 'WindowButtonMotionFcn'});
     return
   end
   
@@ -593,6 +598,12 @@ if strcmp(cfg.zlim,'maxmin')
 elseif strcmp(cfg.zlim,'maxabs')
   zmin = -max(max(abs(datavector)));
   zmax = max(max(abs(datavector)));
+elseif strcmp(cfg.zlim,'zeromax')
+  zmin = 0;
+  zmax = max(datavector);
+elseif strcmp(cfg.zlim,'minzero')
+  zmin = min(datavector);
+  zmax = 0;
 else
   zmin = cfg.zlim(1);
   zmax = cfg.zlim(2);
@@ -605,14 +616,14 @@ if strcmp(cfg.comment, 'auto')
     if strcmp(cfg.xlim,'maxmin')
       comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, xparam, data.(xparam)(xmin), data.(xparam)(xmax));
     else
-      comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, xparam, cfg.xlim(1), cfg.xlim(2));
+      comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, xparam, data.(xparam)(xmin), data.(xparam)(xmax));
     end
   end
   if ~isempty(yparam)
     if strcmp(cfg.ylim,'maxmin')
       comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, yparam, data.(yparam)(ymin), data.(yparam)(ymax));
     else
-      comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, yparam, cfg.ylim(1), cfg.ylim(2));
+      comment = sprintf('%0s\n%0s=[%.3g %.3g]', comment, yparam, data.(yparam)(ymin), data.(yparam)(ymax));
     end
   end
   if ~isempty(cfg.parameter)
@@ -623,7 +634,7 @@ elseif strcmp(cfg.comment, 'xlim')
   if strcmp(cfg.xlim,'maxmin')
     comment = sprintf('%0s=[%.3g %.3g]', xparam, data.(xparam)(xmin), data.(xparam)(xmax));
   else
-    comment = sprintf('%0s=[%.3g %.3g]', xparam, cfg.xlim(1), cfg.xlim(2));
+    comment = sprintf('%0s=[%.3g %.3g]', xparam, data.(xparam)(xmin), data.(xparam)(xmax));
   end
   cfg.comment = comment;
 elseif ~ischar(cfg.comment)
@@ -827,15 +838,19 @@ if strcmp(cfg.interactive, 'yes')
   info.y     = lay.pos(:,2);
   info.label = lay.label;
   guidata(gcf, info);
-  
+  % attach data to the figure with the current axis handle as a name
+  dataname = num2str(gca);
+  dotpos   = findstr(dataname,'.');
+  dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+  setappdata(gcf,dataname,varargin(1:Ndata));
   if any(strcmp(data.dimord, {'chan_time', 'chan_freq', 'subj_chan_time', 'rpt_chan_time', 'chan_chan_freq', 'chancmb_freq', 'rpt_chancmb_freq', 'subj_chancmb_freq'}))
-    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonUpFcn'});
-    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonDownFcn'});
-    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonMotionFcn'});
+    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg}, 'event', 'WindowButtonUpFcn'});
+    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg}, 'event', 'WindowButtonDownFcn'});
+    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotER, cfg}, 'event', 'WindowButtonMotionFcn'});
   elseif any(strcmp(data.dimord, {'chan_freq_time', 'subj_chan_freq_time', 'rpt_chan_freq_time', 'rpttap_chan_freq_time', 'chan_chan_freq_time', 'chancmb_freq_time', 'rpt_chancmb_freq_time', 'subj_chancmb_freq_time'}))
-    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonUpFcn'});
-    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonDownFcn'});
-    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg, varargin{1:Ndata}}, 'event', 'WindowButtonMotionFcn'});
+    set(gcf, 'WindowButtonUpFcn',     {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg}, 'event', 'WindowButtonUpFcn'});
+    set(gcf, 'WindowButtonDownFcn',   {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg}, 'event', 'WindowButtonDownFcn'});
+    set(gcf, 'WindowButtonMotionFcn', {@ft_select_channel, 'multiple', true, 'callback', {@select_singleplotTFR, cfg}, 'event', 'WindowButtonMotionFcn'});
   else
     warning('unsupported dimord "%s" for interactive plotting', data.dimord);
   end
@@ -893,6 +908,12 @@ ft_postamble trackconfig
 % SUBFUNCTION which is called after selecting channels in case of cfg.refchannel='gui'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function select_topoplotER(label, cfg, varargin)
+% get appdata belonging to current axis
+dataname = num2str(gca);
+dotpos   = findstr(dataname,'.');
+dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+data = getappdata(gcf, dataname);
+
 if isfield(cfg, 'inputfile')
   % the reading has already been done and varargin contains the data
   cfg = rmfield(cfg, 'inputfile');
@@ -907,13 +928,19 @@ cfg.highlightsymbol  = '.';
 cfg.highlightcolor   = 'r';
 cfg.highlightsize = 20;
 cfg.highlightchannel =  cfg.refchannel;
-ft_topoplotER(cfg, varargin{:});
+ft_topoplotER(cfg, data);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting channels in case of cfg.interactive='yes'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_singleplotER(label, cfg, varargin)
+function select_singleplotER(label, cfg)
 if ~isempty(label)
+  % get appdata belonging to current axis
+  dataname = num2str(gca);
+  dotpos   = findstr(dataname,'.');
+  dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+  data = getappdata(gcf, dataname);
+  
   if isfield(cfg, 'inputfile')
     % the reading has already been done and varargin contains the data
     cfg = rmfield(cfg, 'inputfile');
@@ -928,14 +955,20 @@ if ~isempty(label)
   p = get(gcf, 'Position');
   f = figure;
   set(f, 'Position', p);
-  ft_singleplotER(cfg, varargin{:});
+  ft_singleplotER(cfg, data{:});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which is called after selecting channels in case of cfg.interactive='yes'
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function select_singleplotTFR(label, cfg, varargin)
+function select_singleplotTFR(label, cfg)
 if ~isempty(label)
+  % get appdata belonging to current axis
+  dataname = num2str(gca);
+  dotpos   = findstr(dataname,'.');
+  dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+  data = getappdata(gcf, dataname);
+  
   if isfield(cfg, 'inputfile')
     % the reading has already been done and varargin contains the data
     cfg = rmfield(cfg, 'inputfile');
@@ -951,7 +984,7 @@ if ~isempty(label)
   p = get(gcf, 'Position');
   f = figure;
   set(f, 'Position', p);
-  ft_singleplotTFR(cfg, varargin{:});
+  ft_singleplotTFR(cfg, data{:});
 end
 
 

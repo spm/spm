@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 8335 2013-07-29 10:09:23Z arjsto $
+% $Id: dipole_fit.m 9183 2014-02-04 09:54:35Z roboos $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -237,6 +237,7 @@ elseif constr.rigidbody
   transform = rigidbody(param);                   % this is a 4x4 homogenous transformation matrix
   pos       = transform * pos;                    % apply the homogenous transformation matrix
   param     = reshape(pos(1:3,:), 1, 3*numdip);
+  clear pos                                       % the actual pos will be constructed from param further down 
 end
 
 if constr.fixedori
@@ -247,10 +248,10 @@ if constr.fixedori
     phi = param(end-(2*i)+2);
     [ori(1,i), ori(2,i), ori(3,i)] = sph2cart(th, phi, 1);
   end
-  pos = reshape(param(1:(numdip*3)), 3, numdip)'; % convert into a Nx3 matrix
+  pos = reshape(param(1:(numdip*3)), 3, numdip)'; % convert into a Ndip*3 matrix
 else
   numdip = numel(param)/3;
-  pos = reshape(param, 3, numdip)'; % convert into a Nx3 matrix
+  pos = reshape(param, 3, numdip)'; % convert into a Ndip*3 matrix
   ori = [];
 end
 

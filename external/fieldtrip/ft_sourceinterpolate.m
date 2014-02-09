@@ -95,9 +95,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: ft_sourceinterpolate.m 9158 2014-01-29 15:04:18Z jansch $
 
-revision = '$Id: ft_sourceinterpolate.m 9006 2013-12-10 11:24:56Z roboos $';
+revision = '$Id: ft_sourceinterpolate.m 9158 2014-01-29 15:04:18Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -128,6 +128,19 @@ cfg.feedback   = ft_getopt(cfg, 'feedback',   'text');
 
 if ~isa(cfg.parameter, 'cell')
   cfg.parameter = {cfg.parameter};
+end
+
+if any(strcmp(cfg.parameter, 'all'))
+  cfg.parameter = parameterselection('all', functional);
+  for k = numel(cfg.parameter):-1:1
+    % check whether the field is numeric 
+    tmp = getsubfield(functional, cfg.parameter{k});
+    if iscell(tmp)
+      cfg.parameter(k) = [];
+    elseif strcmp(cfg.parameter{k}, 'pos')
+      cfg.parameter(k) = [];
+    end
+  end
 end
 
 if isfield(anatomical, 'transform') && isfield(anatomical, 'dim')
@@ -262,7 +275,7 @@ elseif is2Dana && ~is2Dfun
     funpos    = ft_warp_apply(functional.transform, [X(:) Y(:) Z(:)]);
     clear X Y Z;
   end
-   
+  
   % ensure to keep the fields if these exist (will be lost in ft_checkdata)
   if isfield(functional, 'time'), time = functional.time; end
   if isfield(functional, 'freq'), freq = functional.freq; end

@@ -23,7 +23,7 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %                            'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim               = selection boundaries over second dimension in data (e.g., freq)
 %                            'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.zlim               = plotting limits for color dimension, 'maxmin', 'maxabs' or [zmin zmax] (default = 'maxmin')
+%   cfg.zlim               = plotting limits for color dimension, 'maxmin', 'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %   cfg.channel            = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel         = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline           = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
@@ -141,9 +141,9 @@ function [cfg] = ft_topoplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotER.m 9078 2014-01-08 09:50:46Z roboos $
+% $Id: ft_topoplotER.m 9132 2014-01-27 10:51:30Z jimher $
 
-revision = '$Id: ft_topoplotER.m 9078 2014-01-08 09:50:46Z roboos $';
+revision = '$Id: ft_topoplotER.m 9132 2014-01-27 10:51:30Z jimher $';
 
 % do the general setup of the function
 ft_defaults

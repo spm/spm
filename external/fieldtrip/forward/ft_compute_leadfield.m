@@ -9,7 +9,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 % Use as
 %   [lf] = ft_compute_leadfield(pos, sens, vol, ...)
 % with input arguments
-%   pos    position dipole (1x3 or Nx3)
+%   pos    position dipole (1*3 or Ndip*3)
 %   sens   structure with gradiometer or electrode definition
 %   vol    structure with volume conductor definition
 %
@@ -78,7 +78,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 8997 2013-12-09 13:23:21Z roboos $
+% $Id: ft_compute_leadfield.m 9183 2014-02-04 09:54:35Z roboos $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -270,7 +270,7 @@ elseif ismeg
         end
       else
         warning('No system matrix is present, Calling the Nemo Lab pipeline')
-        lf = ft_om_compute_lead(pos, vol, sens);
+        lf = ft_leadfield_openmeeg(pos, vol, sens);
       end
       
     case {'infinite_magneticdipole', 'infinite'}

@@ -21,7 +21,7 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %                       or trials)
 %   cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
 %   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.ylim          = 'maxmin' or [ymin ymax] (default = 'maxmin')
+%   cfg.ylim          = 'maxmin', 'maxabs', 'zeromax', 'minzero', or [ymin ymax] (default = 'maxmin')
 %   cfg.channel       = nx1 cell-array with selection of channels (default = 'all'),
 %                       see ft_channelselection for details
 %   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 9091 2014-01-13 10:15:03Z jansch $
+% $Id: ft_singleplotER.m 9152 2014-01-29 14:34:29Z roevdmei $
 
-revision = '$Id: ft_singleplotER.m 9091 2014-01-13 10:15:03Z jansch $';
+revision = '$Id: ft_singleplotER.m 9152 2014-01-29 14:34:29Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -335,7 +335,7 @@ isfull  = length(selchan)>1;
 % check for bivariate metric with a labelcmb
 haslabelcmb = isfield(varargin{1}, 'labelcmb');
 
-if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
+if (isfull || haslabelcmb) && (isfield(varargin{1}, cfg.parameter) && ~strcmp(cfg.parameter, 'powspctrm'))
   % a reference channel is required:
   if ~isfield(cfg, 'refchannel')
     error('no reference channel is specified');
@@ -525,14 +525,25 @@ for i=1:Ndata
   end
   
   % update ymin and ymax for the current data set:
-  if strcmp(cfg.ylim,'maxmin')
+  if ischar(cfg.ylim)
     if i==1
       ymin = [];
       ymax = [];
     end
-    % select the channels in the data that match with the layout:
-    ymin = min([ymin min(datavector)]);
-    ymax = max([ymax max(datavector)]);
+    if strcmp(cfg.ylim,'maxmin')
+      % select the channels in the data that match with the layout:
+      ymin = min([ymin min(datavector)]);
+      ymax = max([ymax max(datavector)]);
+    elseif strcmp(cfg.ylim,'maxabs')
+      ymax = max([ymax max(abs(datavector))]);
+      ymin = -ymax;
+    elseif strcmp(cfg.ylim,'zeromax')
+      ymin = 0;
+      ymax = max([ymax max(datavector)]);
+    elseif strcmp(cfg.ylim,'minzero')
+      ymin = min([ymin min(datavector)]);
+      ymax = 0;
+    end;
   else
     ymin = cfg.ylim(1);
     ymax = cfg.ylim(2);
@@ -607,10 +618,14 @@ if strcmp(cfg.interactive, 'yes')
   info          = guidata(gcf);
   info.dataname = dataname;
   guidata(gcf, info);
-  
-  set(gcf, 'windowbuttonupfcn',     {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg, varargin{:}}, 'event', 'windowbuttonupfcn'});
-  set(gcf, 'windowbuttondownfcn',   {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg, varargin{:}}, 'event', 'windowbuttondownfcn'});
-  set(gcf, 'windowbuttonmotionfcn', {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg, varargin{:}}, 'event', 'windowbuttonmotionfcn'});
+  % attach data to the figure with the current axis handle as a name
+  dataname = num2str(gca);
+  dotpos   = findstr(dataname,'.');
+  dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+  setappdata(gcf,dataname,varargin);
+  set(gcf, 'windowbuttonupfcn',     {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg}, 'event', 'windowbuttonupfcn'});
+  set(gcf, 'windowbuttondownfcn',   {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg}, 'event', 'windowbuttondownfcn'});
+  set(gcf, 'windowbuttonmotionfcn', {@ft_select_range, 'multiple', false, 'yrange', false, 'callback', {@select_topoplotER, cfg}, 'event', 'windowbuttonmotionfcn'});
 end
 
 % create title text containing channel name(s) and channel number(s):
@@ -665,6 +680,13 @@ function select_topoplotER(cfg, varargin)
 % last callback-input of ft_select_range is contextmenu label, if used
 range = varargin{end-1};
 varargin = varargin(1:end-2); % remove range and last
+
+% get appdata belonging to current axis
+dataname = num2str(gca);
+dotpos   = findstr(dataname,'.');
+dataname = ['DATA' dataname(1:dotpos-1) 'DOT' dataname(dotpos+1:end)];
+data = getappdata(gcf, dataname);
+
 if isfield(cfg, 'inputfile')
   % the reading has already been done and varargin contains the data
   cfg = rmfield(cfg, 'inputfile');
@@ -689,7 +711,7 @@ fprintf('selected cfg.xlim = [%f %f]\n', cfg.xlim(1), cfg.xlim(2));
 p = get(gcf, 'position');
 f = figure;
 set(f, 'position', p);
-ft_topoplotER(cfg, varargin{:});
+ft_topoplotER(cfg, data{:});
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION which handles hot keys in the current plot

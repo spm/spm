@@ -80,9 +80,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 8847 2013-11-25 15:53:50Z jansch $
+% $Id: ft_prepare_layout.m 9146 2014-01-29 13:17:45Z jansch $
 
-revision = '$Id: ft_prepare_layout.m 8847 2013-11-25 15:53:50Z jansch $';
+revision = '$Id: ft_prepare_layout.m 9146 2014-01-29 13:17:45Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -309,9 +309,11 @@ elseif ischar(cfg.layout)
     if exist(cfg.layout, 'file')
       fprintf('layout file without .mat (or .lay) extension specified, appending .mat\n');
       layout = ft_prepare_layout(cfg);
+      return;
     else
       cfg.layout = [cfg.layout(1:end-3) 'lay'];
       layout = ft_prepare_layout(cfg);
+      return;
     end
     
   elseif ft_filetype(cfg.layout, 'matlab')
@@ -338,6 +340,7 @@ elseif ischar(cfg.layout)
       warning_once(sprintf('layout file %s was not found on your path, attempting to use a similarly named .mat file instead',cfg.layout));
       cfg.layout = [cfg.layout(1:end-3) 'mat'];
       layout = ft_prepare_layout(cfg);
+      return;
     end
     
   elseif ~ft_filetype(cfg.layout, 'layout')
@@ -380,9 +383,13 @@ elseif (~isempty(cfg.image) || ~isempty(cfg.mesh)) && isempty(cfg.layout)
     [p,f,e] = fileparts(cfg.image);
     switch e
       case '.mat'
-        tmp = whos('-file', cfg.image);
-        load(cfg.image, tmp.name);
-        eval(['img = ',tmp.name,';']);
+        tmp    = load(cfg.image);
+        fnames = fieldnames(tmp);
+        if numel(fnames)~=1
+          error('there is not just a single variable in %s', cfg.image);
+        else
+          img = tmp.(fname{1});
+        end
       otherwise
         img = imread(cfg.image);
     end

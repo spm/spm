@@ -20,7 +20,7 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %   cfg.maskparameter = field in the first dataset to be used for marking significant data
 %   cfg.maskstyle     = style used for masking of data, 'box', 'thickness' or 'saturation' (default = 'box')
 %   cfg.xlim          = 'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.ylim          = 'maxmin', 'maxabs', or [ymin ymax] (default = 'maxmin')
+%   cfg.ylim          = 'maxmin', 'maxabs', 'zeromax', 'minzero', or [ymin ymax] (default = 'maxmin')
 %   cfg.channel       = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
 %   cfg.refchannel    = name of reference channel for visualising connectivity, can be 'gui'
 %   cfg.baseline      = 'yes','no' or [time1 time2] (default = 'no'), see FT_TIMELOCKBASELINE or FT_FREQBASELINE
@@ -117,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 9091 2014-01-13 10:15:03Z jansch $
+% $Id: ft_multiplotER.m 9160 2014-01-29 15:05:45Z roevdmei $
 
-revision = '$Id: ft_multiplotER.m 9091 2014-01-13 10:15:03Z jansch $';
+revision = '$Id: ft_multiplotER.m 9160 2014-01-29 15:05:45Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -167,6 +167,10 @@ cfg.directionality  = ft_getopt(cfg, 'directionality',  '');
 cfg.figurename      = ft_getopt(cfg, 'figurename',   []);
 cfg.preproc         = ft_getopt(cfg, 'preproc', []);
 cfg.tolerance       = ft_getopt(cfg, 'tolerance',  1e-5);
+if numel(findobj(gcf, 'type', 'axes', '-not', 'tag', 'ft-colorbar')) > 1 && strcmp(cfg.interactive,'yes')
+  warning('using cfg.interactive = ''yes'' in subplots is not supported, setting cfg.interactive = ''no''')
+  cfg.interactive = 'no';
+end
 
 Ndata = length(varargin);
 
@@ -404,7 +408,7 @@ isfull  = length(selchan)>1;
 % Check for bivariate metric with a labelcmb
 haslabelcmb = isfield(varargin{1}, 'labelcmb');
 
-if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
+if (isfull || haslabelcmb) && (isfield(varargin{1}, cfg.parameter) && ~strcmp(cfg.parameter, 'powspctrm'))
   % A reference channel is required:
   if ~isfield(cfg, 'refchannel')
     error('no reference channel is specified');
@@ -462,7 +466,7 @@ if (isfull || haslabelcmb) && isfield(varargin{1}, cfg.parameter)
       varargin{i}.(cfg.parameter) = varargin{i}.(cfg.parameter)([sel1;sel2],:,:);
       varargin{i}.label     = [varargin{i}.labelcmb(sel1,1);varargin{i}.labelcmb(sel2,2)];
       varargin{i}.labelcmb  = varargin{i}.labelcmb([sel1;sel2],:);
-      varargin{i}           = rmfield(varargin{i}, 'labelcmb');
+      %varargin{i}           = rmfield(varargin{i}, 'labelcmb');
     else
       % General case
       sel               = match_str(varargin{i}.label, cfg.refchannel);
@@ -540,10 +544,13 @@ if strcmp(cfg.ylim, 'maxmin') || strcmp(cfg.ylim, 'maxabs')
     ymax = max([ymax max(max(max(data)))]);
   end
   
-  % handle maxabs, make y-axis center on 0
-  if strcmp(cfg.ylim, 'maxabs')
+  if strcmp(cfg.ylim, 'maxabs') % handle maxabs, make y-axis center on 0
     ymax = max([abs(ymax) abs(ymin)]);
     ymin = -ymax;
+  elseif strcmp(cfg.ylim, 'zeromax') 
+    ymin = 0;
+  elseif strcmp(cfg.ylim, 'minzero')
+    ymax = 0;
   end
   
 else

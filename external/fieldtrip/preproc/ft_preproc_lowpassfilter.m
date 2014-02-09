@@ -9,7 +9,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir,instabilityfix)
 %   dat        data matrix (Nchans X Ntime)
 %   Fsample    sampling frequency in Hz
 %   Flp        filter frequency
-%   N          optional filter order, default is 4 (but) or dependent upon
+%   N          optional filter order, default is 6 (but) or dependent upon
 %              frequency band and data length (fir/firls)
 %   type       optional filter type, can be
 %                'but' Butterworth IIR filter (default)
@@ -56,7 +56,7 @@ function [filt] = ft_preproc_lowpassfilter(dat,Fs,Flp,N,type,dir,instabilityfix)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_lowpassfilter.m 8335 2013-07-29 10:09:23Z arjsto $
+% $Id: ft_preproc_lowpassfilter.m 9124 2014-01-23 10:39:32Z dieloz $
 
 % determine the size of the data
 [nchans, nsamples] = size(dat);

@@ -70,7 +70,7 @@ function [mri] = ft_read_mri(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_mri.m 9061 2013-12-23 18:22:26Z jansch $
+% $Id: ft_read_mri.m 9149 2014-01-29 13:59:29Z eelspa $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -89,6 +89,12 @@ end
 
 if isempty(mriformat)
   % only do the autodetection if the format was not specified
+  mriformat = ft_filetype(filename);
+end
+
+% extract if needed
+if strcmp(mriformat, 'compressed')
+  filename = inflate_file(filename);
   mriformat = ft_filetype(filename);
 end
 

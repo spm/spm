@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 8932 2013-12-02 10:01:25Z roboos $
+% $Id: ft_chantype.m 9136 2014-01-28 17:35:50Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -583,6 +583,7 @@ label2type = {
   {'eog', 'heog', 'veog'};
   {'lfp'};
   {'eeg'};
+  {'trigger', 'trig', 'dtrig'};
   };
 for i = 1:numel(label2type)
   for j = 1:numel(label2type{i})
