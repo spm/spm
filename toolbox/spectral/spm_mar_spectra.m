@@ -10,6 +10,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % The returned mar will have the following fields specified:
 %
 % .P     [Nf x d x d] Power Spectral Density matrix
+% .H     [Nf x d x d] Transfer Function matrix
 % .C     [Nf x d x d] Coherence matrix
 % .dtf   [Nf x d x d] Kaminski's Directed Transfer Function matrix
 % .pve   [Nf x d x d] Geweke's proportion of variance explained
@@ -38,7 +39,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_mar_spectra.m 5873 2014-02-09 14:40:52Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -58,7 +59,7 @@ w     = 2*pi*freqs/ns;
 % precision of innovation
 %--------------------------------------------------------------------------
 if isfield(mar,'noise_cov');
-    noise_cov = mar.noise_cov;
+    noise_cov = diag(diag(mar.noise_cov));
     prec      = inv(noise_cov);
     prec      = diag(diag(prec));
 else
@@ -77,20 +78,19 @@ for ff = 1:Nf,
     af_tmp = af_tmp + mar.lag(k).a*exp(-1i*w(ff)*k);
   end
   iaf_tmp       = inv(af_tmp);
-  H(ff,:,:)     = iaf_tmp;
+  mar.H(ff,:,:) = iaf_tmp;
   mar.P(ff,:,:) = iaf_tmp * noise_cov * iaf_tmp';
   
   % Get DTF and PDC
   %------------------------------------------------------------------------
   for ii=1:d
-      prec_ii=1/sqrt(noise_cov(ii,ii));
-      for j=1:d
+      for j = 1:d
           
-          % DTF uses iaf_tmp and normalises wrt rows (to=sink)
+          % DTF uses iaf_tmp and normalises wrt rows (to = sink)
           %----------------------------------------------------------------
           mar.dtf(ff,ii,j) = abs(iaf_tmp(ii,j))/sqrt(iaf_tmp(ii,:)*iaf_tmp(ii,:)');
           
-          % PDC uses af_tmp and normalises wrt columns (from=source)
+          % PDC uses af_tmp and normalises wrt columns (from = source)
           %----------------------------------------------------------------
           mar.pdc(ff,ii,j) = abs(af_tmp(ii,j))/sqrt(abs(af_tmp(:,j)'*prec*af_tmp(:,j)));
       end
@@ -101,10 +101,9 @@ end
 %--------------------------------------------------------------------------
 for k = 1:d
     for j = 1:d
-        rkj = mar.P(:,k,j)./(sqrt(mar.P(:,k,k)).*sqrt(mar.P(:,j,j)));
+        rkj          = mar.P(:,k,j)./(sqrt(mar.P(:,k,k)).*sqrt(mar.P(:,j,j)));
         mar.C(:,k,j) = abs(rkj);
-        l = atan(imag(rkj)./real(rkj));
-        mar.L(:,k,j)=atan(imag(rkj)./real(rkj));
+        mar.L(:,k,j) = atan(imag(rkj)./real(rkj));
     end
 end
 
@@ -113,11 +112,11 @@ end
 C     = noise_cov;
 for j = 1:d
     for k = 1:d
-        rkj=C(j,j)-(C(j,k)^2)/C(k,k);
-        sk=abs(mar.P(:,k,k));
-        hkj=abs(H(:,k,j)).^2;
-        mar.pve(:,k,j)=rkj*hkj./sk;
-        mar.gew(:,k,j)=-log(1-mar.pve(:,k,j));
+        rkj = C(j,j)-(C(j,k)^2)/C(k,k);
+        sk  = abs(mar.P(:,k,k));
+        hkj = abs(mar.H(:,k,j)).^2;
+        mar.pve(:,k,j) = rkj*hkj./sk;
+        mar.gew(:,k,j) = -log(1-mar.pve(:,k,j));
     end
 end
 

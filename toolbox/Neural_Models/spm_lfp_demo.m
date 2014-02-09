@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 5864 2014-01-31 11:46:52Z karl $
+% $Id: spm_lfp_demo.m 5873 2014-02-09 14:40:52Z karl $
 
 
 % Model specification
@@ -91,22 +91,35 @@ spm_figure('GetWin','Volterra kernels');
 
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
-N          = 64;
-dt         = 1/1000;
-t          = [1:N]*dt*1000;
+N          = 128;
+dt         = 1/2000;
+t          = (1:N)*dt*1000;
+w          = ((1:N) - 1)/N/dt;
 [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
+G1         = fft(K1);
+G2         = fft2(K2);
+i          = 1:(N/8);
 
-subplot(2,1,1)
+subplot(2,2,1)
 plot(t,K1)
-title('1st-order Volterra kernel')
+title('1st-order Volterra kernel','FontSize',16)
+axis square, xlabel('time (ms)')
+
+subplot(2,2,2)
+plot(w(i),abs(G1(i)).^2)
+title('1st-order transfer function','FontSize',16)
+axis square, xlabel('frequency (Hz)')
+
+subplot(2,2,3)
+imagesc(t,t,K2)
+title('2nd-order Volterra kernel','FontSize',16)
 axis square
 xlabel('time (ms)')
 
-subplot(2,1,2)
-imagesc(t,t,K2(1:64,1:64,1))
-title('2nd-order Volterra kernel')
-axis square
-xlabel('time (ms)')
+subplot(2,2,4)
+imagesc(w(i),w(i),abs(G2(i,i)).^2)
+title('2nd-order transfer function','FontSize',16)
+axis square, xlabel('frequency (Hz)')
 drawnow
 
 
@@ -166,7 +179,7 @@ drawnow
 % Stability analysis (over excitatory and inhibitory time constants)
 %==========================================================================
 fprintf('Stability analysis - please wait\n')
-p     = [-16:16]/8;
+p     = (-16:16)/8;
 np    = length(p);
 HZ    = sparse(np,np);
 for i = 1:np
@@ -269,7 +282,7 @@ spm_figure('GetWin','Time frequency analysis');
 pE.T(2) = log(2);
 N     = 1024;
 U.dt  = 1/1000;
-U.u   = 8*(exp(-([1:N]' - N/4).^2/(2*32^2)) + randn(N,1)/4);
+U.u   = 8*(exp(-((1:N)' - N/4).^2/(2*32^2)) + randn(N,1)/4);
 t     = [1:N]*U.dt;
 LFP   = spm_int_L(pE,M,U);
 

@@ -1,16 +1,24 @@
 function spm_spectral_plot(Hz,csd,str,xlab,ylab)
 % subplot for spectral arrays
 % FORMAT spm_spectral_plot(Hz,csd,str,xlab,ylab)
+%
+% str  - format (default: '-')
+% xlab - xlabel (default: 'Hz')
+% ylab - ylabel (default: 'power')
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spectral_plot.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_spectral_plot.m 5873 2014-02-09 14:40:52Z karl $
 
 
 % order
 %==========================================================================
 m     = size(csd,2);
+
+if nargin < 3, str  = '-'; end
+if nargin < 4, xlab = 'Frequency'; end
+if nargin < 5, ylab = 'Power'; end
 
 % plot
 %--------------------------------------------------------------------------
