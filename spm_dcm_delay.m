@@ -23,12 +23,12 @@ function [Q,J] = spm_dcm_delay(M,P,D)
 % J     - Jacobian  = df/dt = (where delayed Jacobian = Q*J)
 %
 % If the delay martix is not specifed it is computed from its parameters in
-% P.D
+% P.D (and M.pF.D if specified)
 %__________________________________________________________________________
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
- 
+
 % Karl Friston
-% $Id: spm_dcm_delay.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_dcm_delay.m 5874 2014-02-09 14:48:33Z karl $
 
 
 % evaluate delay matrix D from parameters
@@ -77,7 +77,7 @@ if nargin < 3
     end
 end
 
- 
+
 % create inline functions
 %--------------------------------------------------------------------------
 try
@@ -88,7 +88,7 @@ catch
     M.x  = sparse(0,0);
     funx = fcnchk(M.f,'x','u','P','M');
 end
- 
+
 % expansion point
 %--------------------------------------------------------------------------
 try, x = spm_vec(M.x); catch,  x = sparse(M.n,1); end
@@ -97,26 +97,56 @@ try, u = spm_vec(M.u); catch,  u = sparse(M.m,1); end
 
 % Jacobian and delay operator
 %==========================================================================
- 
+
 % derivatives
 %--------------------------------------------------------------------------
-J     = spm_diff(funx,x,u,P,M,1);
- 
-% delay operator
-%--------------------------------------------------------------------------
-D     = -D;
-QJ    = (speye(length(J)) - D.*J)\J;
-Q     = J;
-for n = 1:128
-    
-    % n-th order Taylor term
-    %----------------------------------------------------------------------
-    dQ = ((D.^n).*J)*(QJ^n)/factorial(n);
-    Q  = Q + dQ;
-    
-    % break if convergence
-    %----------------------------------------------------------------------
-    if norm(dQ,'inf') < 1e-6;     break, end
+J     = full(spm_diff(funx,x,u,P,M,1));
 
+% delay operator:  estimated using a Robbins–Monro algorithm
+%--------------------------------------------------------------------------
+N     = 256;
+D     = -D;
+QJ    = (eye(length(J)) - D.*J)\J;
+a     = 1/2;
+TOL   = norm(QJ,'inf')*1e-6;
+dn    = 1;
+Dn    = cell(N,1);
+for n = 1:N
+    dn    = dn.*D;
+    Dn{n} = dn.*J;
+end
+
+
+% initialise (solve matrix polynomial for Q = QJ)
+% Q = sum( ((D.^n).*J)*(Q^n)/factorial(n) ): n = 0,1,...
+%==========================================================================
+for i = 1:N
+    
+    QJn   = 1;
+    Q     = J;
+    for n = 1:N
+        
+        % n-th order Taylor term
+        %------------------------------------------------------------------
+        QJn = QJn*QJ/n;
+        dQ  = Dn{n}*QJn;
+        Q   = Q + dQ;
+        
+        % break if convergence
+        %------------------------------------------------------------------
+        if norm(dQ,'inf') < TOL; break, end
+        
+    end
+    
+    % break if unstable
+    %----------------------------------------------------------------------
+    if any(any(isnan(Q))), Q = QJ; break, end
+    
+    % Robbins–Monro update and break if convergence
+    %----------------------------------------------------------------------
+    QJ = QJ*(1 - a) + Q*a;
+    
+    if norm((QJ - Q),'inf') < TOL; break, end
+    
 end
 Q      = Q*spm_inv(J);

@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5841 2014-01-20 10:19:25Z karl $
+% $Id: spm_induced_optimise.m 5874 2014-02-09 14:48:33Z karl $
  
  
 % Model specification
@@ -112,6 +112,7 @@ for k = 1:length(P)
                 plot(w,abs(GW))
                 xlabel('frequency {Hz}')
                 title(sprintf('Param: %s(%i,%i)',P{k},i,j),'FontSize',16)
+                set(gca,'XLim',[0 w(end)]);
                 
                 
                 subplot(4,2,2*iplot - 0)
@@ -190,7 +191,7 @@ for i = 1:size(x,1)
             plot(w,abs(GW))
             xlabel('frequency {Hz}')
             title(sprintf('Hidden State: (%i,%i,%i)',i,j,k),'FontSize',16)
-            
+            set(gca,'XLim',[0 w(end)]);            
             
             subplot(4,3,3*iplot - 1)
             imagesc(x(i,j,k) + dQ,w,log(abs(GW)))

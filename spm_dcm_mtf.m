@@ -24,7 +24,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_dcm_mtf.m 5874 2014-02-09 14:48:33Z karl $
 
 
 % get local linear approximation
@@ -150,22 +150,23 @@ try,    L = M.U'*L; end
 %--------------------------------------------------------------------------
 N         = length(t);
 dt        = (t(2) - t(1));
-[K0,K1]   = spm_kernels(M0,M1,L,N*8,dt);
+[K0,K1]   = spm_kernels(M0,M1,L,N,dt);
 
 % Transfer functions (FFT of kernel)
 %--------------------------------------------------------------------------
-S1        = fft(K1);
-S1        = S1((1:N) + 1,:,:)*dt;
-K1        = K1((1:N)    ,:,:);
-
+S1        = fft(K1)*dt;
+w1        = ((1:N) - 1)/(N*dt);
+j         = w1 < max(w);
+S1        = S1(j,1,1);
+w1        = w1(j);
 
 subplot(2,2,1), plot(t,K(:,1,1),t,K1(:,1,1));
 title('kernels','fontsize',16)
 xlabel('peristimulus time')
 
 
-subplot(2,2,2), plot(t,real(S(:,1,1)),    t,real(S1(:,1,1))); hold on
-subplot(2,2,2), plot(t,imag(S(:,1,1)),':',t,imag(S1(:,1,1)),':'); hold off
+subplot(2,2,2), plot(w,real(S(:,1,1)),    w1,real(S1(:,1,1))); hold on
+subplot(2,2,2), plot(w,imag(S(:,1,1)),':',w1,imag(S1(:,1,1)),':'); hold off
 title('transfer functions','fontsize',16)
 xlabel('frequency');
 

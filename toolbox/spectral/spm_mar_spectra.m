@@ -39,7 +39,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5873 2014-02-09 14:40:52Z karl $
+% $Id: spm_mar_spectra.m 5874 2014-02-09 14:48:33Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -60,8 +60,7 @@ w     = 2*pi*freqs/ns;
 %--------------------------------------------------------------------------
 if isfield(mar,'noise_cov');
     noise_cov = diag(diag(mar.noise_cov));
-    prec      = inv(noise_cov);
-    prec      = diag(diag(prec));
+    prec      = diag(1./diag(noise_cov));
 else
     noise_cov = eye(d,d);
     prec      = eye(d,d);
@@ -119,6 +118,10 @@ for j = 1:d
         mar.gew(:,k,j) = -log(1-mar.pve(:,k,j));
     end
 end
+
+% Normalise cross spectral density 
+%--------------------------------------------------------------------------
+mar.P = mar.P/Nf;
 
 
 % plot results if requested

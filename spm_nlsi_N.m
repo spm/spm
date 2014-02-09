@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5758 2013-11-20 21:04:01Z karl $
+% $Id: spm_nlsi_N.m 5874 2014-02-09 14:48:33Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -579,8 +579,10 @@ end
 
 % outputs
 %--------------------------------------------------------------------------
-Cp     = Vp*Cb((1:np),     (1:np)     )*Vp';
-Cg     = Vg*Cb((1:ng) + np,(1:ng) + np)*Vg';
+Ep     = C.Ep;
+Eg     = C.Eg;
+Cp     = Vp*C.Cb((1:np),     (1:np)     )*Vp';
+Cg     = Vg*C.Cb((1:ng) + np,(1:ng) + np)*Vg';
 F      = C.F;
 L      = C.L;
 warning(sw);

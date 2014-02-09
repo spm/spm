@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5702 2013-10-18 11:10:06Z karl $
+% $Id: spm_dcm_average.m 5874 2014-02-09 14:48:33Z karl $
 
 
 % Preiminaries
@@ -137,8 +137,8 @@ end
 
 % averaged posterior covariance
 %--------------------------------------------------------------------------
-ipC   = inv(U'*pC*U);
-Cp    = inv(sum(miCp,3) - (N - 1)*ipC);
+ipC = inv(U'*pC*U);
+Cp  = inv(sum(miCp,3) - (N - 1)*ipC);
 
 % averaged posterior mean
 %--------------------------------------------------------------------------

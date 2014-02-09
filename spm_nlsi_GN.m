@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_nlsi_GN.m 5874 2014-02-09 14:48:33Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -302,6 +302,8 @@ for k = 1:M.Nmax
     %======================================================================
     try
         
+        % gradients
+        %------------------------------------------------------------------
         [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
         dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
         
@@ -314,27 +316,41 @@ for k = 1:M.Nmax
         revert   = true;
     end
     
-    if revert
-        try
+    if revert && k > 1
+        for i = 1:4
+            
             % reset expansion point and increase regularization
             %--------------------------------------------------------------
-            p        = C.p;
             v        = min(v - 2,-4);
             
             % E-Step: update
             %--------------------------------------------------------------
-            p        = p + spm_dx(dFdpp,dFdp,{v});
+            p        = C.p + spm_dx(dFdpp,dFdp,{v});
             Ep       = spm_unvec(spm_vec(pE) + V*p(ip),pE);
-            [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
-            dfdp     =  reshape(spm_vec(dfdp),ns*nr,np);
             
-        catch
-            
-            % convergence failure
+            % try again
             %--------------------------------------------------------------
-            warning('MATLAB:spm_nsli_GN','Convergence failure on first iteration - please check priors or data scaling');
-            return
+            [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
+            dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
+            
+            % check for stability
+            %--------------------------------------------------------------
+            normdfdp = norm(dfdp,'inf');
+            revert   = isnan(normdfdp) || normdfdp > exp(32);
+            
+            % break
+            %--------------------------------------------------------------
+            if ~revert, break, end
+            
         end
+    end
+    
+    if revert
+        % convergence failure
+        %------------------------------------------------------------------
+        msgstr = 'Convergence failure - please check priors or data scaling';
+        warning('MATLAB:spm_nsli_GN',msgstr);
+        return
     end
     
     
@@ -496,18 +512,14 @@ for k = 1:M.Nmax
         % plot real or complex predictions
         %------------------------------------------------------------------
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
-        
         if isreal(e)
-            
             subplot(2,1,1)
             plot(x,f), hold on
             plot(x,f + e,':'), hold off
             xlabel(xLab)
             title(tstr,'FontSize',16)
             grid on
-            
-        else
-            
+        else 
             subplot(2,2,1)
             plot(x,real(f)), hold on
             plot(x,real(f + e),':'), hold off
@@ -523,9 +535,7 @@ for k = 1:M.Nmax
             ylabel('imaginary')
             title(tstr,'FontSize',16)
             grid on
-            
         end
-        
         
         % subplot parameters
         %--------------------------------------------------------------

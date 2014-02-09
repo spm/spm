@@ -14,7 +14,8 @@ function spm_Granger_demo
 % manipulations. However, when we introduce realistic levels of (power law) 
 % measurement noise, GC fails. The simulations conclude by showing that DCM 
 % recovery of the underlying model parameters can furnish  (analytic) GC 
-% among sources (in the absence of measurement noise).
+% among sources (in the absence of measurement noise). [delete the 'return'
+% below to see these simulations].
 % 
 % See also:
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m, 
@@ -25,11 +26,12 @@ function spm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Granger_demo.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_Granger_demo.m 5874 2014-02-09 14:48:33Z karl $
  
  
 % Model specification
 %==========================================================================
+rng('default')
  
 % number of regions
 %--------------------------------------------------------------------------
@@ -38,7 +40,7 @@ Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
 Hz    = 4:128;                                   % frequency
 dt    = 4/1000;                                  % time bins
-p     = 8;                                       % autoregression order
+p     = 16;                                      % autoregression order
 options.spatial  = 'LFP';
 options.model    = 'CMC';
 options.analysis = 'CSD';
@@ -46,6 +48,7 @@ M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
 M.dipfit.Ns    = Ns;
+M.pF.D         = [1 4];
  
 % extrinsic connections (forward an backward)
 %--------------------------------------------------------------------------
@@ -65,18 +68,14 @@ pE    = spm_ssr_priors(pE);
 
 % (log) connectivity parameters
 %--------------------------------------------------------------------------
-pE.A{1}(2,1) = -2;
+pE.A{1}(2,1) = 2;
 pE.S         = 1/8;
 
 % (log) amplitude of fluctations and noise
 %--------------------------------------------------------------------------
 pE.a(1,:) =  2;
-pE.b(1,:) = -8;
-pE.c(1,:) = -8;
-
-% (log) power law exponent (serial correlations)
-%--------------------------------------------------------------------------
-pE.a(2,:) = -8; 
+pE.b(1,:) = -4;
+pE.c(1,:) = -4;
 
  
 % orders and model
@@ -142,8 +141,8 @@ MAR           = spm_mar(LFP + E,p);
 MAR.noise_cov = mar.noise_cov;
 MAR           = spm_mar_spectra(MAR,Hz,1/dt);
 
-CSD = MAR.P/length(Hz);
-CSP = mar.P/length(Hz);
+CSD = MAR.P;
+CSP = mar.P;
 
 
 % Graphics
@@ -156,28 +155,28 @@ subplot(2,2,1)
 plot((1:512)*dt,LFP(1:512,:))
 xlabel('time')
 title('LFP','FontSize',16)
-axis square
+axis square, spm_axis tight
 
 subplot(2,2,2)
 plot([spm_vec(mar.lag),spm_vec(MAR.lag)])
 xlabel('expected')
 ylabel('estimated')
 title('auto-regression coefficients','FontSize',16)
-axis square
+axis square, spm_axis tight
 
 subplot(2,2,3)
 plot(Hz,abs(csd(:,1,1)),Hz,abs(CSD(:,1,1)),'--',Hz,abs(CSP(:,1,1)),':')
 xlabel('frequency')
 ylabel('absolute value')
 title('auto-spectral density','FontSize',16)
-axis square
+axis square, set(gca,'XLim',[0 Hz(end)])
 
 subplot(2,2,4)
 plot(Hz,abs(csd(:,2,1)),Hz,abs(CSD(:,2,1)),'--',Hz,abs(CSP(:,2,1)),':')
 xlabel('frequency')
 ylabel('absolute value')
 title('cross-spectral density','FontSize',16)
-axis square
+axis square, set(gca,'XLim',[0 Hz(end)])
 legend('expected','estimated','expected (MAR)')
 
 
@@ -197,6 +196,8 @@ spm_spectral_plot(Hz,DTF,'g-.','frequency','density')
 spm_spectral_plot(Hz,gew,'r',  'frequency','density')
 spm_spectral_plot(Hz,GEW,'r-.','frequency','density')
 
+subplot(2,2,3), a = axis; subplot(2,2,2), axis(a);
+
 legend('modulation transfer function','directed transfer function','estimate','Granger causality','estimate')
 
 
@@ -205,23 +206,19 @@ legend('modulation transfer function','directed transfer function','estimate','G
 
 % (log) connectivity parameters
 %--------------------------------------------------------------------------
-pE.A{1}(2,1) = -2;
+pE.A{1}(2,1) = 2;
 pE.S         = 1/8;
 
 % (log) amplitude of fluctations and noise
 %--------------------------------------------------------------------------
-pE.a(1,:) =  2;
+pE.a(1,:) =  0;
 pE.b(1,:) = -4;
 pE.c(1,:) = -4;
-
-% (log) power law exponent (serial correlations)
-%--------------------------------------------------------------------------
-pE.a(2,:) = -4; 
 
 
 % (log) scaling, and parameters
 %--------------------------------------------------------------------------
-logs  = [ ((1:4)/4 - 2);
+logs  = [ ((1:4)/1 - 2);
           ((1:4)/1 - 2);
           ((1:4)/8 + 0);
           ((1:4)*2 - 4)];
@@ -263,14 +260,16 @@ for i = 1:size(logs,1)
         xlabel('frequency')
         ylabel('absolute value')
         title(sprintf('%s',str{i}),'FontSize',16)
-        axis square, hold on
+        axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+        a = axis;
         
         subplot(4,2,ca + 2)
         plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
         xlabel('frequency')
         ylabel('absolute value')
         title(sprintf('backward'),'FontSize',16)
-        axis square, hold on
+        axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+        axis(a);
 
     end
     ca  = ca + 2;
@@ -278,22 +277,20 @@ for i = 1:size(logs,1)
 end
 
 % a more careful examination of fluctuations
-%--------------------------------------------------------------------------
+%==========================================================================
 spm_figure('GetWin','Figure 4'); clf
-k     = -4:4;
+k     = (-16:0)/4;
 for j = 1:length(k)
     
     
     % keep total power of fluctuations constant
     %----------------------------------------------------------------------
     P        = pE;
-    P.a(1,:) = 0;
-    P.b(1,:) = 0;
-    P.a(2,:) = k(j);
-
+    P.b(1,:) = k(j);
+       
     % create forward model and solve for steady state
     %----------------------------------------------------------------------
-    M.x      = spm_dcm_neural_x(P,M);
+    M.x          = spm_dcm_neural_x(P,M);
     
     % Analytic spectral chararacterisation
     %======================================================================
@@ -312,14 +309,16 @@ for j = 1:length(k)
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
-    axis square, hold on
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    a  = axis;
     
     subplot(2,2,2)
     plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
-    axis square, hold on
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
     
 end
 
@@ -338,8 +337,13 @@ title('backward','FontSize',16)
 axis square
 
 
+
+return
+
+
 % DCM estimates of coupling
 %==========================================================================
+rng('default')
 
 % get priors and generate data
 %--------------------------------------------------------------------------
@@ -349,14 +353,8 @@ pE    = spm_ssr_priors(pE);
 
 % (log) connectivity parameters (forward connection only)
 %--------------------------------------------------------------------------
-pE.A{1}(2,1) =  -2;
+pE.A{1}(2,1) = 2;
 pE.S         = 1/8;
-
-% (log) amplitude of fluctations and noise (sipress observation noise)
-%--------------------------------------------------------------------------
-pE.a(1,:) =  2;
-pE.b(1,:) = -2;
-pE.c(1,:) = -2;
 
 % Get spectral profile of fluctuations and noise
 %--------------------------------------------------------------------------
@@ -404,7 +402,7 @@ DCM       = spm_dcm_csd(DCM);
 
 % show results in terms of transfer functions and Granger causality
 %==========================================================================
-spm_figure('GetWin','Figure 5'); clf
+spm_figure('GetWin','Figure 6'); clf
 
 % transfer functions and Granger causality among sources
 %--------------------------------------------------------------------------
@@ -416,12 +414,13 @@ spm_spectral_plot(Hz,mtf,'b',  'frequency','density')
 spm_spectral_plot(Hz,gew,'r',  'frequency','density')
 
 % Granger causality among channels
-%==========================================================================
-csd = spm_csd_mtf(DCM.Ep,DCM.M);
+%--------------------------------------------------------------------------
+P   = DCM.Ep;
+csd = spm_csd_mtf(P,DCM.M);
 ccf = spm_csd2ccf(csd{1},Hz,dt);
 gew = spm_ccf2gwe(ccf,Hz,dt,p);
 
-spm_spectral_plot(Hz,gew,'r--',  'frequency','density')
+spm_spectral_plot(Hz,gew,'g--',  'frequency','density')
 legend('modulation transfer function','Granger causality (source)','Granger causality (channel)')
 
 

@@ -1,4 +1,4 @@
-function spm_spectral_plot(Hz,csd,str,xlab,ylab)
+function spm_spectral_plot(Hz,csd,str,xlab,ylab,r)
 % subplot for spectral arrays
 % FORMAT spm_spectral_plot(Hz,csd,str,xlab,ylab)
 %
@@ -9,7 +9,7 @@ function spm_spectral_plot(Hz,csd,str,xlab,ylab)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spectral_plot.m 5873 2014-02-09 14:40:52Z karl $
+% $Id: spm_spectral_plot.m 5874 2014-02-09 14:48:33Z karl $
 
 
 % order
@@ -25,7 +25,11 @@ if nargin < 5, ylab = 'Power'; end
 for i = 1:m
     for j = 1:m
         subplot(m,m,(i - 1)*m + j)
-        plot(Hz,abs(csd(:,i,j)),str), hold on
+        if nargin > 5
+            plot(Hz,real(csd(:,i,j)),str), hold on
+        else
+            plot(Hz,abs(csd(:,i,j)),str), hold on
+        end
         xlabel(xlab)
         ylabel(ylab)
         if i == j
@@ -35,7 +39,7 @@ for i = 1:m
         elseif j < i
             title('forward','FontSize',16)
         end
-        axis square
+        axis square, set(gca,'XLim',[0 Hz(end)])
     end
 end
 

@@ -11,7 +11,7 @@ function [y] = spm_rand_power_law(csd,Hz,dt,N)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_rand_power_law.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_rand_power_law.m 5874 2014-02-09 14:48:33Z karl $
  
 
 % create random process
@@ -19,7 +19,7 @@ function [y] = spm_rand_power_law(csd,Hz,dt,N)
 
 % create AR representation
 %--------------------------------------------------------------------------
-p     = ceil(length(Hz)/2);
+p     = fix(length(Hz)/2);
 for i = 1:size(csd,2);
     ccf    = spm_csd2ccf(csd(:,i),Hz,dt);
     mar    = spm_ccf2mar(ccf,p);
