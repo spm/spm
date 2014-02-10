@@ -252,7 +252,8 @@ switch version
               % this is a magnetometer channel, no conversion needed
               continue
             elseif length(coil)~=2
-              error('unexpected number of coils (%d) contributing to channel %s (%d)', length(coil), sens.label{i}, i);
+              warning('unexpected number of coils (%d) contributing to channel %s (%d)', length(coil), sens.label{i}, i);
+              continue;
             end
             baseline         = norm(sens.coilpos(coil(1),:) - sens.coilpos(coil(2),:));
             sens.tra(i,:)    = sens.tra(i,:)/baseline; % scale with the baseline distance
