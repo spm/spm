@@ -26,7 +26,7 @@ function spm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Granger_demo.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_Granger_demo.m 5877 2014-02-11 20:03:34Z karl $
  
  
 % Model specification
@@ -38,7 +38,7 @@ rng('default')
 N     = 2048;                                    % unmber of time bins
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
-Hz    = 4:128;                                   % frequency
+Hz    = 1:128;                                   % frequency
 dt    = 4/1000;                                  % time bins
 p     = 16;                                      % autoregression order
 options.spatial  = 'LFP';
@@ -102,7 +102,6 @@ M.u   = sparse(Ns,1);
 % solve for steady state
 %--------------------------------------------------------------------------
 M.x   = spm_dcm_neural_x(pE,M);
-
 
 
 % Analytic spectral chararacterisation
@@ -221,7 +220,7 @@ pE.c(1,:) = -4;
 logs  = [ ((1:4)/1 - 2);
           ((1:4)/1 - 2);
           ((1:4)/8 + 0);
-          ((1:4)*2 - 4)];
+          ((1:4)*2 - 8)];
 
 
 param = {'A{1}(2,1)','A{3}(1,2)','S','b(1,:)'};
@@ -234,6 +233,7 @@ str   = {     'forward connectivity',
 % expected transfer function and Gramger causality
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 3'); clf
+a     = [0 Hz(end) 0 .35];
 ca    = 0;
 for i = 1:size(logs,1)
     for j = 1:size(logs,2)
@@ -261,7 +261,7 @@ for i = 1:size(logs,1)
         ylabel('absolute value')
         title(sprintf('%s',str{i}),'FontSize',16)
         axis square, hold on, set(gca,'XLim',[0 Hz(end)])
-        a = axis;
+        axis(a);
         
         subplot(4,2,ca + 2)
         plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
@@ -279,11 +279,11 @@ end
 % a more careful examination of fluctuations
 %==========================================================================
 spm_figure('GetWin','Figure 4'); clf
-k     = (-16:0)/4;
+k     = linspace(-4,-1,8);
 for j = 1:length(k)
     
     
-    % keep total power of fluctuations constant
+    % amplitude of observation noise
     %----------------------------------------------------------------------
     P        = pE;
     P.b(1,:) = k(j);
@@ -292,19 +292,25 @@ for j = 1:length(k)
     %----------------------------------------------------------------------
     M.x          = spm_dcm_neural_x(P,M);
     
-    % Analytic spectral chararacterisation
+    % Analytic spectral chararacterisation (parametric)
     %======================================================================
     [csd,Hz,mtf] = spm_csd_mtf(P,M);
     ccf          = spm_csd2ccf(csd{1},Hz,dt);
     mar          = spm_ccf2mar(ccf,p);
     mar          = spm_mar_spectra(mar,Hz,1/dt);
     
-    GCF(:,j)     = abs(mar.gew(:,2,1));
-    GCB(:,j)     = abs(mar.gew(:,1,2));
+    % and non-parametric)
+    %======================================================================
+    gew          = spm_csd2gwe(csd{1},Hz);
+    
+    % save forwards and backwards functions
+    %----------------------------------------------------------------------
+    GCF(:,j)     = abs(gew(:,2,1));
+    GCB(:,j)     = abs(gew(:,1,2));
     
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
-    subplot(2,2,1)
+    subplot(3,2,1)
     plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
     xlabel('frequency')
     ylabel('absolute value')
@@ -312,8 +318,27 @@ for j = 1:length(k)
     axis square, hold on, set(gca,'XLim',[0 Hz(end)])
     a  = axis;
     
-    subplot(2,2,2)
+    subplot(3,2,2)
     plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('backward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+
+    
+    % plot forwards and backwards functions
+    %----------------------------------------------------------------------
+    subplot(3,2,3)
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('forward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+    
+    subplot(3,2,4)
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -322,19 +347,95 @@ for j = 1:length(k)
     
 end
 
-subplot(2,2,3)
-imagesc(Hz,k,GCF')
+a = .2;
+subplot(3,2,5)
+image(Hz,k,GCF'*64/a)
 xlabel('frequency')
 ylabel('log(exponent)')
 title('forward','FontSize',16)
 axis square
 
-subplot(2,2,4)
-imagesc(Hz,k,GCB')
+subplot(3,2,6)
+image(Hz,k,GCB'*64/a)
 xlabel('frequency')
 ylabel('log(exponent)')
 title('backward','FontSize',16)
 axis square
+
+
+% a more careful examination of delays
+%==========================================================================
+spm_figure('GetWin','Figure 5'); clf
+
+% (log) amplitude of fluctations and noise
+%--------------------------------------------------------------------------
+pE.a(1,:) =  0;
+pE.b(1,:) = -4;
+pE.c(1,:) = -4;
+
+
+k     = linspace(8,12,8);
+for j = 1:length(k)
+    
+    
+    % keep total power of fluctuations constant
+    %----------------------------------------------------------------------
+    M.pF.D         = [1 k(j)];
+       
+    % create forward model and solve for steady state
+    %----------------------------------------------------------------------
+    M.x          = spm_dcm_neural_x(pE,M);
+    
+    % Analytic spectral chararacterisation (parametric)
+    %======================================================================
+    [csd,Hz,mtf] = spm_csd_mtf(pE,M);
+    ccf          = spm_csd2ccf(csd{1},Hz,dt);
+    mar          = spm_ccf2mar(ccf,p);
+    mar          = spm_mar_spectra(mar,Hz,1/dt);
+    
+    % and non-parametric)
+    %======================================================================
+    gew          = spm_csd2gwe(csd{1},Hz);
+    
+    
+    % plot forwards and backwards functions
+    %----------------------------------------------------------------------
+    subplot(3,2,1)
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('forward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    a  = axis;
+    
+    subplot(3,2,2)
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('backward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+
+    
+    % plot forwards and backwards functions
+    %----------------------------------------------------------------------
+    subplot(3,2,3)
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('forward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+    
+    subplot(3,2,4)
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('backward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+    
+end
 
 
 

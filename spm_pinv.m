@@ -9,7 +9,7 @@ function X = spm_pinv(A,TOL)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_pinv.m 4729 2012-05-03 16:29:45Z karl $
+% $Id: spm_pinv.m 5877 2014-02-11 20:03:34Z karl $
  
 % check A
 %--------------------------------------------------------------------------
@@ -26,7 +26,7 @@ if nargin < 2
     warning(sw);
     
     
-    % check everything is finitie
+    % check everything is finite
     %----------------------------------------------------------------------
     if all(isfinite(X(:)))
         X = X*A';
