@@ -25,9 +25,9 @@ function D = spm_eeg_filter(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_filter.m 5621 2013-08-27 11:00:34Z vladimir $
+% $Id: spm_eeg_filter.m 5876 2014-02-11 15:53:28Z vladimir $
 
-SVNrev = '$Rev: 5621 $';
+SVNrev = '$Rev: 5876 $';
 
 
 %-Startup
@@ -76,105 +76,108 @@ end
 %==========================================================================
 
 %-Generate new meeg object with new filenames
-Dnew = clone(D, [S.prefix fname(D)]);
+Dnew = copy(D, [S.prefix fname(D)]);
 
 %-Determine channels for filtering
 Fchannels = D.indchantype('Filtered');
 
-Fs = D.fsample;
-
-isTF  = strncmpi(D.transformtype,'TF',2);
-if isTF
-    nfreq = D.nfrequencies;
+if isempty(Fchannels)
+    warning('No channels suitable for filterning found. Please check your channel type specification.');
 else
-    nfreq = 1;
-end
-
-
-ignoreWarnings = false;
-
-if strcmp(D.type, 'continuous')
-    %-Continuous data
-    %----------------------------------------------------------------------
-    spm_progress_bar('Init', nchannels(D), 'Channels filtered');
-    if nchannels(D) > 100, Ibar = floor(linspace(1, nchannels(D),100));
-    else Ibar = [1:nchannels(D)]; end
     
-    % work on blocks of channels
-    % determine blocksize
-    % determine block size, dependent on memory
-    memsz  = spm('Memory');
-    datasz = nchannels(D)*nsamples(D)*nfreq*8; % datapoints x 8 bytes per double value
-    blknum = ceil(datasz/memsz);
-    blksz  = ceil(nchannels(D)/blknum);
-    blknum = ceil(nchannels(D)/blksz);
+    Fs = D.fsample;
     
-    % now filter blocks of channels
-    chncnt=1;
-    for blk=1:blknum
-        % load meeg object blockwise into workspace
-        blkchan=chncnt:(min(nchannels(D), chncnt+blksz-1));
-        if isempty(blkchan), break, end
-        spm_progress_bar('Set','ylabel','reading...');
-        if isTF
-            Dtemp=D(blkchan,:,:,1);            
-        else
-            Dtemp=D(blkchan,:,1);
-        end
-        spm_progress_bar('Set','ylabel','filtering...');
-        chncnt=chncnt+blksz;
-        %loop through channels
-        for j = 1:numel(blkchan)
-            
-            if any(blkchan(j) == Fchannels)
+    isTF  = strncmpi(D.transformtype,'TF',2);
+    if isTF
+        nfreq = D.nfrequencies;
+    else
+        nfreq = 1;
+    end
+    
+    
+    ignoreWarnings = false;
+    
+    if strcmp(D.type, 'continuous')
+        %-Continuous data
+        %----------------------------------------------------------------------
+        spm_progress_bar('Init', nchannels(D), 'Channels filtered');
+        if nchannels(D) > 100, Ibar = floor(linspace(1, nchannels(D),100));
+        else Ibar = [1:nchannels(D)]; end
+        
+        % work on blocks of channels
+        % determine blocksize
+        % determine block size, dependent on memory
+        memsz  = spm('Memory');
+        datasz = nchannels(D)*nsamples(D)*nfreq*8; % datapoints x 8 bytes per double value
+        blknum = ceil(datasz/memsz);
+        blksz  = ceil(nchannels(D)/blknum);
+        blknum = ceil(nchannels(D)/blksz);
+        
+        % now filter blocks of channels
+        chncnt=1;
+        for blk=1:blknum
+            % load meeg object blockwise into workspace
+            blkchan=chncnt:(min(length(Fchannels), chncnt+blksz-1));
+            if isempty(blkchan), break, end
+            spm_progress_bar('Set','ylabel','reading...');
+            if isTF
+                Dtemp=D(Fchannels(blkchan), :, :, 1);
+            else
+                Dtemp=D(Fchannels(blkchan), :, 1);
+            end
+            spm_progress_bar('Set','ylabel','filtering...');
+            chncnt=chncnt+blksz;
+            %loop through channels
+            for j = 1:numel(blkchan)
                 if isTF
                     Dtemp(j, :, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(j, :, :), 1), Fs, ignoreWarnings);
                 else
                     Dtemp(j, :) = spm_eeg_preproc_filter(S, Dtemp(j,:), Fs, ignoreWarnings);
                 end
+                
+                ignoreWarnings = true;
+                
+                if any(Ibar == j), spm_progress_bar('Set', blkchan(j)); end
+                
+            end
+            
+            % write Dtemp to Dnew
+            spm_progress_bar('Set','ylabel','writing...');
+            if isTF
+                Dnew(Fchannels(blkchan),:,:,1)=Dtemp;
+            else
+                Dnew(Fchannels(blkchan),:,1)=Dtemp;
+            end
+            clear Dtemp;
+        end
+        
+    else
+        %-Single trial or epoched
+        %----------------------------------------------------------------------
+        spm_progress_bar('Init', D.ntrials, 'Trials filtered');
+        if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
+        else Ibar = 1:D.ntrials; end
+        
+        for i=1:D.ntrials
+            if isTF
+                Dtemp = D(Fchannels, :, :, i);
+                for j = 1:nfreq
+                    Dtemp(:, j, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(:, j, :), 2), Fs, ignoreWarnings);
+                    Dnew(Fchannels, 1:nfreq, 1:Dnew.nsamples, i) = Dtemp;
+                end
+            else
+                Dtemp = D(Fchannels, :, i);
+                Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs, ignoreWarnings);
+                Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
             end
             ignoreWarnings = true;
             
-            if any(Ibar == j), spm_progress_bar('Set', blkchan(j)); end
-            
+            if any(Ibar == i), spm_progress_bar('Set', i); end
         end
-        
-        % write Dtemp to Dnew
-        spm_progress_bar('Set','ylabel','writing...');
-        if isTF
-             Dnew(blkchan,:,:,1)=Dtemp;
-        else
-            Dnew(blkchan,:,1)=Dtemp;
-        end
-        clear Dtemp;
     end
     
-else
-    %-Single trial or epoched
-    %----------------------------------------------------------------------
-    spm_progress_bar('Init', D.ntrials, 'Trials filtered');
-    if D.ntrials > 100, Ibar = floor(linspace(1, D.ntrials,100));
-    else Ibar = 1:D.ntrials; end
-    
-    for i=1:D.ntrials
-        if isTF
-            Dtemp = D(Fchannels, :, :, i);
-            for j = 1:nfreq
-                Dtemp(:, j, :) = spm_eeg_preproc_filter(S, spm_squeeze(Dtemp(:, j, :), 2), Fs, ignoreWarnings);
-                Dnew(Fchannels, 1:nfreq, 1:Dnew.nsamples, i) = Dtemp;
-            end
-        else
-            Dtemp = D(Fchannels, :, i);
-            Dtemp = spm_eeg_preproc_filter(S, Dtemp, Fs, ignoreWarnings);
-            Dnew(Fchannels, 1:Dnew.nsamples, i) = Dtemp;
-        end
-        ignoreWarnings = true;
-        
-        if any(Ibar == i), spm_progress_bar('Set', i); end
-    end
+    spm_progress_bar('Clear');
 end
-
-spm_progress_bar('Clear');
 
 %-Save new evoked M/EEG dataset
 %--------------------------------------------------------------------------
@@ -207,7 +210,7 @@ instabilityfix = 'reduce';
 
 if nargin < 4, ignoreWarnings = false; end
 if ignoreWarnings, ws = warning('off'); end
-    
+
 switch S.band
     case 'low'
         dat = ft_preproc_lowpassfilter(dat,Fs,Fp,N,type,dir,instabilityfix);
