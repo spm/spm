@@ -32,10 +32,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 5856 2014-01-29 14:28:33Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 5879 2014-02-14 13:11:45Z vladimir $
 
 %%
-SVNrev = '$Rev: 5856 $';
+SVNrev = '$Rev: 5879 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -144,7 +144,7 @@ end
 
 spm('Pointer','Watch');
 
-data = D.ftraw;
+data = D.ftraw(D.indchantype('ALL', 'GOOD'), ':', ':');
 
 
 prestim = 1e-3*S.pretrig;
@@ -201,6 +201,8 @@ if ~isfield(freq, 'time')
     freq.time = cfg.toi;
     freq.dimord = [freq.dimord '_time'];
 end
+
+S.chancomb = ft_channelcombination(S.chancomb, freq.label);
 
 np = size(S.chancomb, 1);
 
