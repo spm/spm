@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 5456 2013-04-29 15:49:22Z guillaume $
+% $Id: subsasgn.m 5878 2014-02-14 12:28:28Z john $
 
 
 switch subs(1).type,
@@ -360,7 +360,7 @@ if isa(val,'file_array')
     sval = struct(val);
     d    = findindict(sval.dtype,'dtype');
     if isempty(d)
-        error(['Unknown datatype (' num2str(double(sval.datatype)) ').']);
+        error(['Unknown datatype (' num2str(double(sval.dtype)) ').']);
     end
 
     [pth,nam,suf] = fileparts(sval.fname);
