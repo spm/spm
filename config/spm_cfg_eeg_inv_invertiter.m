@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5870 2014-02-06 10:23:31Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5881 2014-02-17 13:26:35Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -26,6 +26,8 @@ outinv.name = 'Output prefix to save just inv structure';
 outinv.strtype = 's';
 outinv.help = {'If this is supplied the original data file will not be written to, but a new inverse structure with this name created'};
 outinv.val = {''};
+
+
 
 all = cfg_const;
 all.tag = 'all';
@@ -188,6 +190,15 @@ nsmodes.num = [1 1];
 nsmodes.val = {[100]};
 nsmodes.help = {'Number of spatial modes'};
 
+umodes = cfg_files;
+umodes.tag = 'umodes';
+umodes.name = 'File containing spatial mode definition';
+umodes.filter = 'mat';
+umodes.num=[1 1];
+umodes.val={''};
+umodes.help = {'File (SPMU..) containing spatail mode definition, if no file is supplied bases these modes on lead fields'};
+
+
 ntmodes = cfg_entry;
 ntmodes.tag = 'ntmodes';
 ntmodes.name = 'Number of temporal modes';
@@ -244,7 +255,7 @@ custom = cfg_branch;
 custom.tag = 'custom';
 custom.name = 'Custom';
 custom.help = {'Define custom settings for the inversion'};
-custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,ntmodes, priors, restrict,outinv};
+custom.val  = {invfunc,invtype, woi, foi, hanning,isfixedpatch,patchfwhm,mselect,nsmodes,umodes,ntmodes, priors, restrict,outinv};
 
 isstandard = cfg_choice;
 isstandard.tag = 'isstandard';
@@ -328,7 +339,18 @@ if isfield(job.isstandard, 'custom')
     
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
     inverse.smooth=job.isstandard.custom.patchfwhm;
+    if ~isempty(job.isstandard.custom.umodes),
+        disp('Loading spatial modes from file');
+        
+        a=load(cell2mat(job.isstandard.custom.umodes),'U');
+        U=a.U;
+    else
+        U=[];
+    end;
     
+    inverse.U{1}=U;
+        
+        
 
     if inverse.Nt==0,
         disp('Getting number of temporal modes from data');

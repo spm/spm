@@ -14,7 +14,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5869 2014-02-05 16:13:06Z gareth $
+% $Id: spm_eeg_invertiter.m 5881 2014-02-17 13:26:35Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -40,6 +40,7 @@ end;
 val=Dtest{1}.val;
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
 Np=Dtest{1}.inv{val}.inverse.Np;
+
 
 allF=zeros(Npatchiter,1);
 
@@ -83,6 +84,8 @@ for patchiter=1:Npatchiter,
             warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
             Dout    = spm_eeg_invert(Din); %
             Dout.inv{val}.inverse.Ip=Ip;
+        otherwise 
+            error('unknown function');
     end;
     modelF(patchiter).inverse=Dout.inv{val}.inverse;
     

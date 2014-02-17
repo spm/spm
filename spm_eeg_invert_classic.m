@@ -74,7 +74,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5836 2014-01-17 16:14:46Z gareth $
+% $Id: spm_eeg_invert_classic.m 5881 2014-02-17 13:26:35Z gareth $
 
 
 
@@ -120,6 +120,7 @@ try, woi  = inverse.woi;    catch, woi  = [];       end
 try, Nm   = inverse.Nm;     catch, Nm   = [];       end
 try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of temporal modes
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
+try, U    = inverse.U{1};      catch, U=[]; end
 try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
 SHUFFLELEADS=0;
@@ -142,6 +143,7 @@ Nmax  = 16;         % max number of temporal modes
 fprintf('Checking leadfields')
 [L,D] = spm_eeg_lgainmat(D);    % Generate/load lead field
 Nd=size(L,2);
+
 if ~isempty(Ip)
     Np   = length(Ip);              % Number of priors/3 for GS, ARD, MSP
 else
@@ -250,23 +252,32 @@ fprintf('Optimising and aligning spatial modes ...\n')
 % eliminate low SNR spatial modes
 %------------------------------------------------------------------
 
-if isempty(Nm),
-    [U,ss,vv]    = spm_svd((L*L'),exp(-16));
-    A     = U';                 % spatial projector A
-    UL    = A*L;
-    
-else
-    [U,ss,vv]    = spm_svd((L*L'),0);
-    if length(ss)<Nm,
-        error('Not this many spatial modes in lead fields');
-        disp('number available');
-        length(ss)
+if isempty(U), % no spatial modes prespecified
+    if isempty(Nm), %% number of modes not specifiedd
+        [U,ss,vv]    = spm_svd((L*L'),exp(-16));
+        A     = U';                 % spatial projector A
+        UL    = A*L;
+        
+    else % number of modes pre-specified
+        [U,ss,vv]    = spm_svd((L*L'),0);
+        if length(ss)<Nm,
+            error('Not this many spatial modes in lead fields');
+            disp('number available');
+            length(ss)
+        end;
+        
+        ss=ss(1:Nm);
+        disp('using preselected number spatial modes !');
+        A     = U(:,1:Nm)';                 % spatial projector A
+        UL    = A*L;
     end;
-    
-    ss=ss(1:Nm);
-    disp('using preselected number spatial modes !');
-    A     = U(:,1:Nm)';                 % spatial projector A
-    UL    = A*L;
+else %% U was specified in input
+    disp('Using pre-specified spatial modes');
+    if isempty(Nm),
+        error('Need to specify number of spatial modes if U is prespecified');
+    end;
+    A=U(:,1:Nm)';
+    UL=A*L;
 end;
 
 Nm    = size(UL,1);         % Number of spatial projectors
@@ -367,7 +378,6 @@ badtrialind=D.badtrials;
 for j = 1:Ntrialtypes,                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
     c=setxor(c,badtrialind);
-    length(c)
     Nk    = length(c);
     for k = 1:Nk
         Y     = A*D(Ic,It,c(k));
@@ -814,6 +824,7 @@ inverse.ID     = ID;                   % data ID
 inverse.R2     = R2;                   % variance explained (reduced)
 inverse.VE     = R2*VE;                % variance explained
 inverse.woi    = w;                    % time-window inverted
+inverse.Ip=Ip;                          %% patch locations
 
 inverse.modality = modalities;         % modalities inverted
 
