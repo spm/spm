@@ -39,7 +39,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_mar_spectra.m 5883 2014-02-18 10:32:23Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -70,7 +70,7 @@ end
 %==========================================================================
 for ff = 1:Nf,
     
-  % transfer function (H) and CSSD (P)
+  % transfer function (H) and CSD (P)
   %------------------------------------------------------------------------
   af_tmp = eye(d,d);
   for k = 1:p

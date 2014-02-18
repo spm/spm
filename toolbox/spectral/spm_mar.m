@@ -22,7 +22,7 @@ function [mar,y,y_pred] = spm_mar (X,p,prior,verbose)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_mar.m 5883 2014-02-18 10:32:23Z karl $
 
 if nargin < 4 || isempty(verbose)
     verbose=0;
@@ -79,9 +79,7 @@ inv_xtx=vx(:,1:rank_X)*ddxm2*vx(:,1:rank_X)'; % approx to inv(x'*x)
 
 % Compute terms that will be used many times
 xtx=x'*x;
-yty=y'*y;
 xty=x'*y;
-vec_xty=xty(:);
 
 % Get maximum likelihood solution
 %w_ml = pinv(-1*x)*y;
@@ -98,7 +96,6 @@ sigma_ml=kron(noise_cov,inv_xtx);
 % Priors on alpha(s)
 b_alpha_prior=1000;
 c_alpha_prior=0.001;
-mean_alpha_prior=b_alpha_prior*c_alpha_prior;
 
 % Initialise 
 w_mean=w_ml;

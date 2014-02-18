@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 5873 2014-02-09 14:40:52Z karl $
+% $Id: spm_lfp_demo.m 5883 2014-02-18 10:32:23Z karl $
 
 
 % Model specification
@@ -49,18 +49,18 @@ pE    = spm_dcm_neural_priors(A,B,C,M.dipfit.model);  % neuronal priors
 pE    = spm_L_priors(M.dipfit,pE);                    % spatial  priors
 pE    = spm_ssr_priors(pE);                           % spectral priors
 
-[x,f]   = spm_dcm_x_neural(pE,M.dipfit.model);
+[x,f] = spm_dcm_x_neural(pE,M.dipfit.model);
 
 
 % create LFP model
 %--------------------------------------------------------------------------
-M.f    = f;
-M.g    = 'spm_gx_erp';
-M.x    = x;
-M.pE   = pE;
-M.m    = size(C,2);
-M.n    = n*13;
-M.l    = size(pE.L,1);
+M.f   = f;
+M.g   = 'spm_gx_erp';
+M.x   = x;
+M.pE  = pE;
+M.m   = size(C,2);
+M.n   = n*13;
+M.l   = size(pE.L,1);
 
 
 

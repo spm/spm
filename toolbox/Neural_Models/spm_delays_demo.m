@@ -14,7 +14,7 @@ function spm_delays_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_delays_demo.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_delays_demo.m 5883 2014-02-18 10:32:23Z karl $
  
 
 % Notes: analysis of delay operator
@@ -29,7 +29,7 @@ rng('default')
 %--------------------------------------------------------------------------
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
-Hz    = 4:128;                                   % frequency
+Hz    = 1:64;                                    % frequency
 options.spatial  = 'LFP';
 options.model    = 'CMC';
 M.dipfit.model = options.model;
@@ -76,7 +76,7 @@ M.x   = spm_dcm_neural_x(pE,M);
 
 % delays
 %--------------------------------------------------------------------------
-D      = 8;
+D      = 12;
 k      = log((1:8)/8);
 M.pst  = (1:128)/1000;
 M.pF.D = [1 D];
