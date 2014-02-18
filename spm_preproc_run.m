@@ -26,7 +26,7 @@ function varargout = spm_preproc_run(job,arg)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 5669 2013-10-03 19:51:35Z john $
+% $Id: spm_preproc_run.m 5886 2014-02-18 18:39:46Z mohamed $
 
 if nargin == 1, arg = 'run'; end
 
@@ -110,6 +110,11 @@ for iter=1:nit,
                 obj.mn     = res.mn;
                 obj.vr     = res.vr;
             end
+        end
+        
+        % in case masking is needed (e.g. CFM for lesions)
+        if isfield(job,'msk')
+            obj.msk = job.msk ;
         end
 
         res = spm_preproc8(obj);
