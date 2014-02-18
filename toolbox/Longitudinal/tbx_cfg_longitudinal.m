@@ -4,7 +4,7 @@ function cfg = tbx_cfg_longitudinal
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_longitudinal.m 5430 2013-04-19 17:03:52Z john $
+% $Id: tbx_cfg_longitudinal.m 5885 2014-02-18 11:53:55Z john $
 
 if ~isdeployed,
     addpath(fullfile(spm('Dir'),'toolbox','Longitudinal'));
@@ -94,7 +94,7 @@ wparam.val     = {[0 0 100 25 100]};
 write_avg         = cfg_menu;
 write_avg.tag     = 'write_avg';
 write_avg.name    = 'Save Mid-point average';
-write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``ave_'''' and written out in the same directory of the first time point data.'};
+write_avg.help    = {'Do you want to save the mid-point average template image? This is likely to be useful for groupwise alignment, and is prefixed by ``avg_'''' and written out in the same directory of the first time point data.'};
 write_avg.labels = {
                 'Save'
                 'Dont save'

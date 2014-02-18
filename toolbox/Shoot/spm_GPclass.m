@@ -21,7 +21,7 @@ function [p,F,K,theta] = spm_GPclass(XX,t,lab,cov_fun,fun_args)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_GPclass.m 5044 2012-11-09 13:40:35Z john $
+% $Id: spm_GPclass.m 5885 2014-02-18 11:53:55Z john $
 
 if nargin==3
     p = gp_pred_ep_binclass(XX,t,lab);
@@ -307,7 +307,7 @@ for it=1:128
     L   = chol(eye(N)+K.*(s*s')); % (eq 3.67)
     V   = L'\(repmat(s,1,N).*K);  % (eq 3.68)
     Sig = K - V'*V;               % (eq 3.68)
-    if sqrt(sum((nut-prev_nut).^2)/sum(nut.^2)) < 1e-8
+    if sqrt(sum((nut-prev_nut).^2)/sum(nut.^2)) < 1e-6
         break;
     end
 end
