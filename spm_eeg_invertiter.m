@@ -5,8 +5,8 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 %
 % Npatchiter: number of iterations
 % funcname is name of MSP alogorithm: current (spm_eeg_invert) or classic (spm_eeg_invert_classic)
-% allIp is an optional list of indices of vertices which will be patch
-% centres. allIp will have size Npatchiter*Np (where Np is number of patches set in
+% patchind is an optional list of indices of vertices which will be patch
+% centres. patchind will have size Npatchiter*Np (where Np is number of patches set in
 % inverse.Np )
 % if  Dtest{1}.inv{val}.inverse.mergeflag==1 then merges Npatchiter posterior current
 % distributions, else replaces posterior with best of the iterations.
@@ -14,7 +14,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5881 2014-02-17 13:26:35Z gareth $
+% $Id: spm_eeg_invertiter.m 5882 2014-02-18 10:30:05Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -71,6 +71,8 @@ else
 end;
 
 
+modelF=[];
+bestF=-Inf;
 for patchiter=1:Npatchiter,
     Din=Dtest{1};
     Dout=Din;
@@ -87,34 +89,43 @@ for patchiter=1:Npatchiter,
         otherwise 
             error('unknown function');
     end;
-    modelF(patchiter).inverse=Dout.inv{val}.inverse;
-    
+    if (Dtest{1}.inv{val}.inverse.mergeflag==1), %% will need all posteriors to merge them (could consider getting rid of worst ones here to save memory
+            modelF(patchiter).inverse=Dout.inv{val}.inverse;
+    else %% just keep track of best inversion
+        if Dout.inv{val}.inverse.F>bestF,
+            modelF(1).inverse=Dout.inv{val}.inverse;
+            bestF=Dout.inv{val}.inverse.F;
+        end;
+    end;
+    allF(patchiter)=Dout.inv{val}.inverse.F;
 end; % for patchiter
 
 
 %% will use these to merge posteriors or take best one
 
-Qpriors=sparse(zeros(Npatchiter,size(modelF(patchiter).inverse.qC,1)));
-for patchiter=1:Npatchiter,
-    allF(patchiter)=modelF(patchiter).inverse.F;
-    Qpriors(patchiter,:)=modelF(patchiter).inverse.qC;
-end;
+
 
 [bestF,bestind]=max(allF);
 disp('model evidences relative to maximum:')
 
 sort(allF-bestF)
 
-Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
+
 if Npatchiter>1, %% keep iterations if more than 1
  
     if (Dtest{1}.inv{val}.inverse.mergeflag==1)
+        Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; % start with best model so far
+        Qpriors=sparse(zeros(Npatchiter,size(modelF(1).inverse.qC,1)));
+        for patchiter=1:Npatchiter,    
+            Qpriors(patchiter,:)=modelF(patchiter).inverse.qC;
+        end;
         disp('Merging posterior distributions..');
         ugainfiles=Dout.inv{val}.gainmat;
         surfind=ones(Npatchiter,1);
+        %% now mix the posteriors 
         [Dtest{1}] = spm_eeg_invert_classic_mix(Dtest{1},val,Qpriors,surfind,ugainfiles);
         
-        Dtest{1}.inv{val}.inverse.allF=allF;
+        
         Dtest{1}.inv{val}.comment{1}=sprintf('Merged posterior of %d solutions',Npatchiter);
         mixF=Dtest{1}.inv{val}.inverse.F;
         if mixF-bestF<0
@@ -125,11 +136,14 @@ if Npatchiter>1, %% keep iterations if more than 1
     else % NO merge - just take the best
         disp('Using best patch set to current estimate');
         
+        Dtest{1}.inv{val}.inverse=modelF(1).inverse; %% return best model (only 1 model saved in this option)
         Dtest{1}.inv{val}.comment{1}=sprintf('Best F of %d solutions',Npatchiter);
         
-        Dtest{1}.inv{val}.inverse=modelF(bestind).inverse; %% return best model for now
-        Dtest{1}.inv{val}.inverse.allF=allF;
+        
+
     end; % if BMA
+    
+    Dtest{1}.inv{val}.inverse.allF=allF;
 end;
 
 
