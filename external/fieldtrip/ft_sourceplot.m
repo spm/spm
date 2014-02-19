@@ -176,9 +176,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9165 2014-01-29 15:35:10Z jorhor $
+% $Id: ft_sourceplot.m 9195 2014-02-12 09:14:49Z jansch $
 
-revision = '$Id: ft_sourceplot.m 9165 2014-01-29 15:35:10Z jorhor $';
+revision = '$Id: ft_sourceplot.m 9195 2014-02-12 09:14:49Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -1641,7 +1641,7 @@ if ~isempty(tag) && ~opt.init
     % timefreq
     opt.qi(2) = nearest(opt.data.time, pos(1));
     opt.qi(1) = nearest(opt.data.freq, pos(2));
-    opt.update = [1 1 0];
+    opt.update = [1 1 1];
   elseif strcmp(tag, 'TF2')
     % freq only
     opt.qi  = nearest(opt.data.freq, pos(1));

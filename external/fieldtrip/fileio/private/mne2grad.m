@@ -39,7 +39,7 @@ function [grad, elec] = mne2grad(hdr, dewar)
 % You should have received a copy of the GNU General Public License
 % along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mne2grad.m 8880 2013-11-28 15:12:00Z vlalit $
+% $Id: mne2grad.m 9194 2014-02-11 20:39:09Z arjsto $
 
 if nargin<2 || isempty(dewar)
   dewar = false;
@@ -103,6 +103,12 @@ nEEG = 0;
 for i = 1:orig.nchan;
   nEEG = nEEG +(orig.chs(i).kind==2);
 end
+
+% % how many IAS (internal active shielding) channels?
+% nIAS = 0;
+% for i = 1:orig.nchan;
+%   nIAS = nIAS + ~isempty(strmatch('IAS', orig.chs(i).ch_name));
+% end
 
 % how many sensors in total?
 nSensors = nPlaGrad + nMag + nAxGrad;
@@ -185,7 +191,7 @@ for n = 1:orig.nchan
     grad.label{kChan}=deblank(orig.ch_names{n});
     grad.chantype{kChan,1}='megaxial';
     kChan=kChan+1;
-    
+        
   else
     % do nothing - either an EEG channel or something else such as a stim channel
   end

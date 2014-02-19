@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 9183 2014-02-04 09:54:35Z roboos $
+% $Id: dipole_fit.m 9194 2014-02-11 20:39:09Z arjsto $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -255,7 +255,6 @@ else
   ori = [];
 end
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % DIPFIT_ERROR computes the error between measured and model data
 % and can be used for non-linear fitting of dipole position
@@ -280,20 +279,6 @@ if checkinside
     error('Dipole is outside the source compartment');
   end
 end
-
-% % FIXME: not yet implemented, rigid body constraint
-% if isfield(constr, 'rigidbody') 
-%   param = []; % something to obtain [Tx Ty Tz Rx Ry Rz]
-%   H = translate(param(1:3)); % rotation before translation
-%   H = rotate(param(4:6));
-%   pos = ft_warp_apply(pos,H);
-%   %lf = ft_compute_leadfield(pos1, sens, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);
-% end
-
-% % FIXME: not yet implemented, one-to-one mapping constraint
-% if isfield(constr, 'onetoone') 
-%   param = []; % something to enforce each dipole to each coil identity
-% end
 
 % construct the leadfield matrix for all dipoles
 lf = ft_compute_leadfield(pos, sens, vol, 'reducerank', reducerank, 'normalize', normalize, 'normalizeparam', normalizeparam);

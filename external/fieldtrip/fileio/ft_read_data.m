@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 9149 2014-01-29 13:59:29Z eelspa $
+% $Id: ft_read_data.m 9188 2014-02-10 00:24:01Z giopia $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -911,6 +911,13 @@ switch dataformat
     if (hdr.orig.iscontinuous)
       dat = fiff_read_raw_segment(hdr.orig.raw,begsample+hdr.orig.raw.first_samp-1,endsample+hdr.orig.raw.first_samp-1,chanindx);
       dimord = 'chans_samples';
+    elseif (hdr.orig.isepoched)
+      data = permute(hdr.orig.epochs.data, [2 3 1]);  % Chan X Sample X Trials
+      if requesttrials
+        dat = data(chanindx, :, begtrial:endtrial);
+      else
+        dat = data(chanindx, begsample:endsample);  % reading over boundaries
+      end
     elseif (hdr.orig.isaverage)
       dat = cat(2, hdr.orig.evoked.epochs);            % concatenate all epochs, this works both when they are of constant or variable length
       if checkboundary
@@ -924,8 +931,6 @@ switch dataformat
       end
       dat = dat(chanindx, begsample:endsample);        % select the desired channels and samples
       dimord = 'chans_samples';
-    elseif (hdr.orig.isepoched)
-      error('Support for epoched *.fif data is not yet implemented.')
     end
     
   case 'neuromag_mex'

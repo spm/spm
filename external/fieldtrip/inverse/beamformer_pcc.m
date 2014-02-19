@@ -21,7 +21,7 @@ function [dipout] = beamformer_pcc(dip, grad, vol, dat, Cf, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: beamformer_pcc.m 8909 2013-11-29 08:58:43Z jansch $
+% $Id: beamformer_pcc.m 9193 2014-02-11 16:01:19Z jansch $
 
 if mod(nargin-5,2)
   % the first 5 arguments are fixed, the other arguments should come in pairs
@@ -237,6 +237,16 @@ for i=1:size(dip.pos,1)
   end
   
   ft_progress(i/size(dip.pos,1), 'beaming source %d from %d\n', i, size(dip.pos,1));
+  
+  % remember how all components in the output csd should be interpreted
+  %scandiplabel = repmat({'scandip'}, 1, size(lf, 2));    % based on last leadfield
+  scandiplabel = repmat({'scandip'}, 1, size(filt, 1)-size(rf, 2)-size(sf, 2)-Nrefchan-Nsupchan); % robust if lf does not exist
+  refdiplabel  = repmat({'refdip'},  1, size(rf, 2));
+  supdiplabel  = repmat({'supdip'},  1, size(sf, 2));
+  refchanlabel = repmat({'refchan'}, 1, Nrefchan);
+  supchanlabel = repmat({'supchan'}, 1, Nsupchan);
+  % concatenate all the labels
+  dipout.csdlabel{i} = [scandiplabel refdiplabel supdiplabel refchanlabel supchanlabel];
 end % for all dipoles
 
 ft_progress('close');
@@ -244,16 +254,6 @@ ft_progress('close');
 dipout.inside  = dip.originside;
 dipout.outside = dip.origoutside;
 dipout.pos     = dip.origpos;
-
-% remember how all components in the output csd should be interpreted
-%scandiplabel = repmat({'scandip'}, 1, size(lf, 2));    % based on last leadfield
-scandiplabel = repmat({'scandip'}, 1, size(filt, 1)-size(rf, 2)-size(sf, 2)-Nrefchan-Nsupchan); % robust if lf does not exist
-refdiplabel  = repmat({'refdip'},  1, size(rf, 2));
-supdiplabel  = repmat({'supdip'},  1, size(sf, 2));
-refchanlabel = repmat({'refchan'}, 1, Nrefchan);
-supchanlabel = repmat({'supchan'}, 1, Nsupchan);
-% concatenate all the labels
-dipout.csdlabel = [scandiplabel refdiplabel supdiplabel refchanlabel supchanlabel];
 
 % reassign the scan values over the inside and outside grid positions
 if isfield(dipout, 'leadfield')
@@ -276,13 +276,17 @@ if isfield(dipout, 'noisecsd')
   dipout.noisecsd(dipout.inside)  = dipout.noisecsd;
   dipout.noisecsd(dipout.outside) = {[]};
 end
+if isfield(dipout, 'csdlabel')
+  dipout.csdlabel(dipout.inside)  = dipout.csdlabel;
+  dipout.csdlabel(dipout.outside) = {[]};
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function to compute the pseudo inverse. This is the same as the
 % standard Matlab function, except that the default tolerance is twice as
 % high.
 %   Copyright 1984-2004 The MathWorks, Inc.
-%   $Revision: 8909 $  $Date: 2009/01/07 13:12:03 $
+%   $Revision: 9193 $  $Date: 2009/01/07 13:12:03 $
 %   default tolerance increased by factor 2 (Robert Oostenveld, 7 Feb 2004)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function X = pinv(A,varargin)

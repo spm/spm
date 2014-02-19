@@ -43,10 +43,7 @@ function ft_uilayout(h, varargin)
 %                                  elements to the left
 %                    'right'     : aligns the horizontal position of 
 %                                  elements to the right
-%   'valign'         'top'       : aligns the vertical position of 
-%                                  elements to the top
-%                    'bottom'    : aligns the vertical position of 
-%                                  elements to the bottom
+
 
 % Copyright (C) 2009, Robert Oostenveld
 %
@@ -66,7 +63,7 @@ function ft_uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_uilayout.m 8332 2013-07-25 13:10:55Z jorhor $
+% $Id: ft_uilayout.m 9197 2014-02-12 16:02:29Z jorhor $
 
 % these are used to make a selection of uicontrol elements
 tag    = ft_getopt(varargin, 'tag');
@@ -190,9 +187,9 @@ if ~isempty(hpos)
     
   elseif isequal(hpos, 'align')
     if isequal(halign, 'right')
-      hpos = pos(1,2); % the position of the last element
+      hpos = pos(end,1); % the position of the last element
     else % default behaviour
-      hpos = pos(1,2); % the position of the first element
+      hpos = pos(1,1); % the position of the first element
     end
   elseif isequal(hpos, 'distribute')
     minpos = min(pos(:,1));
