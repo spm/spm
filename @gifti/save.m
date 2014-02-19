@@ -10,7 +10,7 @@ function save(this,filename,encoding)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: save.m 5101 2012-12-07 18:23:20Z guillaume $
+% $Id: save.m 5888 2014-02-19 19:54:12Z guillaume $
 
 
 % Check filename and file format
@@ -216,7 +216,7 @@ for i=1:length(this.data)
         fprintf(fid,'%s<TransformedSpace><![CDATA[%s]]></TransformedSpace>\n',o(3),...
             this.data{i}.space(j).TransformedSpace);
         fprintf(fid,'%s<MatrixData>%s</MatrixData>\n',o(3),...
-            sprintf('%f ',this.data{i}.space(j).MatrixData));
+            sprintf('%f ',this.data{i}.space(j).MatrixData'));
         fprintf(fid,'%s</CoordinateSystemTransformMatrix>\n',o(2));
     end
     
