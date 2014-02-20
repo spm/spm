@@ -13,7 +13,7 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 5889 2014-02-20 11:42:20Z karl $
 
 % add sspectral toolbox
 %--------------------------------------------------------------------------
@@ -36,7 +36,7 @@ try
     Hz2   = DCM.options.Fdcm(2);          % upper frequency
 catch
     Hz1   = 1/128;
-    Hz2   = min(1/(2*DCM.Y.dt),1);
+    Hz2   = 1/(2*DCM.Y.dt);
 end
 
 % Frequencies
@@ -82,7 +82,7 @@ DCM.Y.mar = spm_cat(A);
 % DCM.Y.mar = spm_csd_fmri_mar(pP,DCM.M,DCM.U);
 % 
 % % Cross spectral density
-% % -------------------------------------------------------------------------
+% % -----------------------------------------------------------------------
 % DCM.M.Hz  = DCM.Y.Hz;
 % DCM.M.dt  = 1;
 % DCM.M.N   = 32;
@@ -90,7 +90,7 @@ DCM.Y.mar = spm_cat(A);
 % DCM.Y.csd = spm_csd_fmri_mtf(pP,DCM.M,DCM.U);
 % 
 % % or generate CSD from simulated coefficients
-% % -------------------------------------------------------------------------
+% % -----------------------------------------------------------------------
 % DCM.M.p   = 4;
 % mar       = spm_csd_fmri_mar(pP,DCM.M,DCM.U);
 % csd       = spm_mar2csd(mar,DCM.Y.Hz,1/DCM.M.dt);

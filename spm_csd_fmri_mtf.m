@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: spm_csd_fmri_mtf.m 5889 2014-02-20 11:42:20Z karl $
 
 
 % compute log-spectral density
@@ -63,8 +63,7 @@ end
 
 % amplitude scaling constant
 %--------------------------------------------------------------------------
-C     = 1/(log(w(end)) - log(w(1)));
-C     = C/256;
+C     = 1/256;
 
 % neuronal fluctuations (Gu)
 %--------------------------------------------------------------------------

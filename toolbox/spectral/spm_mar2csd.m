@@ -24,7 +24,12 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_mar2csd.m 5889 2014-02-20 11:42:20Z karl $
+
+
+% Nyquist
+%--------------------------------------------------------------------------
+if nargin < 3, ns = 2*freqs(end); end
 
 % format coefficients into an array of negative coeficients (cf lag.a)
 %--------------------------------------------------------------------------
@@ -63,6 +68,10 @@ for ff = 1:Nf,
     dtf(ff,:,:) = iaf_tmp;                            % transfer function
     csd(ff,:,:) = iaf_tmp*iaf_tmp';                   % and csd
 end
+
+% Normalise cross spectral density 
+%--------------------------------------------------------------------------
+csd = 2*csd/ns;
 
 if nargout < 3, return, end
 

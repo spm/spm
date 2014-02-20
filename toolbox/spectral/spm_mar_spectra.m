@@ -39,13 +39,16 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5883 2014-02-18 10:32:23Z karl $
+% $Id: spm_mar_spectra.m 5889 2014-02-20 11:42:20Z karl $
 
 % options
 %--------------------------------------------------------------------------
-if nargin < 4  || isempty(show)
-    show = 0;
-end
+if nargin < 4  || isempty(show), show = 0; end
+
+% Nyquist
+%--------------------------------------------------------------------------
+if nargin < 3, ns = 2*freqs(end); end
+
 
 % dimensions (from mar.lag)
 %--------------------------------------------------------------------------
@@ -59,7 +62,7 @@ w     = 2*pi*freqs/ns;
 % precision of innovation
 %--------------------------------------------------------------------------
 if isfield(mar,'noise_cov');
-    noise_cov = diag(diag(mar.noise_cov));
+    noise_cov = mar.noise_cov;
     prec      = diag(1./diag(noise_cov));
 else
     noise_cov = eye(d,d);
@@ -121,7 +124,7 @@ end
 
 % Normalise cross spectral density 
 %--------------------------------------------------------------------------
-mar.P = mar.P/Nf;
+mar.P = 2*mar.P/ns;
 
 
 % plot results if requested
