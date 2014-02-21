@@ -6,7 +6,7 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % freqs - [Nf x 1] vector of frequencies to evaluate spectra at
 % ns    - samples per second
 %
-% csd   - cross spectral density (assuming unit normal innovations)
+% csd   - cross spectral density
 % coh   - coherence
 % pha   - phase
 % dtf   - directed transfer function
@@ -24,7 +24,7 @@ function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5889 2014-02-20 11:42:20Z karl $
+% $Id: spm_mar2csd.m 5891 2014-02-21 12:14:00Z karl $
 
 
 % Nyquist
