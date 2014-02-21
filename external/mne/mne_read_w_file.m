@@ -13,7 +13,7 @@ function [w] = mne_read_w_file(filename)
 %   License : BSD 3-clause
 %
 %
-%     $Id: mne_read_w_file.m 4624 2011-10-29 10:10:49Z roboos $
+%     $Id: mne_read_w_file.m 8776 2013-11-14 09:04:48Z roboos $
 %     
 %     Revision 1.6  2006/04/23 15:29:41  msh
 %     Added MGH to the copyright

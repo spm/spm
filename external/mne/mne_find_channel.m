@@ -18,7 +18,7 @@ function [which] = mne_find_channel(info,name)
 %   License : BSD 3-clause
 %
 %
-%     $Id: mne_find_channel.m 4624 2011-10-29 10:10:49Z roboos $
+%     $Id: mne_find_channel.m 8776 2013-11-14 09:04:48Z roboos $
 %     
 %     Revision 1.4  2006/04/23 15:29:40  msh
 %     Added MGH to the copyright
