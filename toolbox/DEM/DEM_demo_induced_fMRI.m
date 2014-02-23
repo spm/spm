@@ -19,7 +19,7 @@ function DEM_demo_induced_fMRI
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_induced_fMRI.m 5817 2013-12-23 19:01:36Z karl $
+% $Id: DEM_demo_induced_fMRI.m 5892 2014-02-23 11:00:16Z karl $
  
 % Simulate timeseries
 %==========================================================================
@@ -140,7 +140,9 @@ spm_plot_ci(CSD.Ep.A(:),CSD.Cp(1:n*n,1:n*n)), hold on
 bar(pP.A(:),1/4), hold off
 title('True and MAP connections (Deterministic)','FontSize',16)
 axis square
- 
+
+
+return
 
 % Bayesian deconvolution (Generalised filtering) - stochastic DCM
 % =========================================================================

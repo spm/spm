@@ -18,11 +18,30 @@ function DCM = spm_dcm_csd(DCM)
 %   options.D            - time bin decimation       (usually 1 or 2)
 %   options.spatial      - 'ECD', 'LFP' or 'IMG'     (see spm_erp_L)
 %   options.model        - 'ERP', 'SEP', 'CMC', 'LFP', 'NMM' or 'MFM'
+%
+% Esimates:
+%--------------------------------------------------------------------------
+% DCM.dtf                   - directed transfer functions (source space)
+% DCM.ccf                   - cross covariance functions (source space)
+% DCM.coh                   - cross coherence functions (source space)
+% DCM.fsd                   - specific delay functions (source space)
+% DCM.pst                   - peristimulus time
+% DCM.Hz                    - frequency
+%
+% DCM.Ep                    - conditional expectation
+% DCM.Cp                    - conditional covariance
+% DCM.Pp                    - conditional probability
+% DCM.Hc                    - conditional responses (y), channel space
+% DCM.Rc                    - conditional residuals (y), channel space
+% DCM.Hs                    - conditional responses (y), source space
+% DCM.Ce                    - eML error covariance
+% DCM.F                     - Laplace log evidence
+% DCM.ID                    -  data ID
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_dcm_csd.m 5892 2014-02-23 11:00:16Z karl $
  
  
 % check options
@@ -55,6 +74,7 @@ Ns   = length(DCM.A{1});                            % number of sources
 
 % Design model and exogenous inputs
 %==========================================================================
+if ~isfield(DCM,'xU'),   DCM.xU.X = sparse(1 ,0); end
 if ~isfield(DCM.xU,'X'), DCM.xU.X = sparse(1 ,0); end
 if ~isfield(DCM,'C'),    DCM.C    = sparse(Ns,0); end
 if isempty(DCM.xU.X),    DCM.xU.X = sparse(1 ,0); end

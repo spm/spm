@@ -11,7 +11,7 @@ M      = spm_DEM_M('ssm');
 % generate data (output)
 %--------------------------------------------------------------------------
 T      = 64;
-U      = 8*sin(pi*[1:T]/16);
+U      = 8*sin(pi*(1:T)/16);
 DEM    = spm_DEM_generate(M,U);
 
 % EKF
@@ -53,6 +53,6 @@ axis square
 % Sample density
 %--------------------------------------------------------------------------
 subplot(2,2,3)
-imagesc([1:T],xQ,Q)
+imagesc((1:T),xQ,Q)
 axis xy square
 title('sample density','FontSize',16)

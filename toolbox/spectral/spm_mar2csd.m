@@ -1,30 +1,30 @@
-function [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
+function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Get spectral estimates from MAR model
 % FORMAT [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 %
-% mar   - MAR coefficients (see spm_mar.m)
+% mar   - MAR coefficients or sturture (see spm_mar.m)
 % freqs - [Nf x 1] vector of frequencies to evaluate spectra at
 % ns    - samples per second
 %
 % csd   - cross spectral density
 % coh   - coherence
 % pha   - phase
-% dtf   - directed transfer function
+% mtf   - modulation transfer function
 %
-% The mar coefficients are either specified  as a cell array (as per
+% The mar coefficients are either specified in a cell array (as per
 % spm_mar) or as a vector of (positive) coefficients as per spm_Q. The
 % former are the negative values of the latter. If mar is a matrix of size
 % d*p x d - it is assumed that the (positive) coefficients  run fast over 
 % lag = p, as per the DCM routines.
 %
 % see also:
-%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
+%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2ccf.m,
 %  spm_csd2coh.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5891 2014-02-21 12:14:00Z karl $
+% $Id: spm_mar2csd.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % Nyquist
@@ -33,12 +33,13 @@ if nargin < 3, ns = 2*freqs(end); end
 
 % format coefficients into an array of negative coeficients (cf lag.a)
 %--------------------------------------------------------------------------
-if isvector(mar)
+if isvector(mar) && isnumeric(mar)
     mar = mar(:);
 end
 if isnumeric(mar)
     d  = size(mar,2);
     p  = size(mar,1)/d;
+    lag   = cell(p,1);
     for i = 1:d
         for j = 1:d
             for k = 1:p
@@ -46,11 +47,21 @@ if isnumeric(mar)
             end
         end
     end
-    mar = lag;
+    mar.lag = lag;
 else
-    d  = length(mar(1).a);
-    p  = length(mar);
+    d  = length(mar.lag(1).a);
+    p  = length(mar.lag);
 end
+
+
+% precision of innovation
+%--------------------------------------------------------------------------
+if isfield(mar,'noise_cov');
+    C = mar.noise_cov;
+else
+    C = eye(d,d);
+end
+
 
 % frequencies
 %--------------------------------------------------------------------------
@@ -62,11 +73,11 @@ w  = 2*pi*freqs/ns;
 for ff = 1:Nf,
     af_tmp = eye(d,d);
     for k = 1:p,
-        af_tmp = af_tmp + mar(k).a*exp(-1i*w(ff)*k);
+        af_tmp = af_tmp + mar.lag(k).a*exp(-1i*w(ff)*k);
     end
     iaf_tmp     = inv(af_tmp);
-    dtf(ff,:,:) = iaf_tmp;                            % transfer function
-    csd(ff,:,:) = iaf_tmp*iaf_tmp';                   % and csd
+    mtf(ff,:,:) = iaf_tmp;                            % transfer function
+    csd(ff,:,:) = iaf_tmp*C*iaf_tmp';                 % and csd
 end
 
 % Normalise cross spectral density 

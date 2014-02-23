@@ -88,7 +88,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 5635 2013-09-16 14:06:23Z guillaume $
+% $Id: spm_LAP.m 5892 2014-02-23 11:00:16Z karl $
  
  
 % find or create a DEM figure
@@ -223,10 +223,10 @@ for i = 1:(nl - 1)
  
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
-    qp.u{i}   = spm_svd(M(i).pC,exp(-32));           % basis for parameters
-    M(i).p    = size(qp.u{i},2);                     % number of qp.p
-    qp.p{i}   = sparse(M(i).p,1);                    % initial deviates
-    pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
+    qp.u{i}   = spm_svd(M(i).pC,0);          % basis for parameters
+    M(i).p    = size(qp.u{i},2);             % number of qp.p
+    qp.p{i}   = sparse(M(i).p,1);            % initial deviates
+    pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};    % prior covariance
  
 end
 Up    = spm_cat(spm_diag(qp.u));

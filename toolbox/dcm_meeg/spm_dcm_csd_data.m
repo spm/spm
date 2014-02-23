@@ -26,7 +26,7 @@ function DCM = spm_dcm_csd_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd_data.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_dcm_csd_data.m 5892 2014-02-23 11:00:16Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -198,7 +198,7 @@ for i = 1:Ne;
     % Get data
     %----------------------------------------------------------------------
     Nw    = max(8*(fix(Nb/w) - 1),1);
-    K     = zeros(Nw,Nf*Nm*Nm);
+    K     = zeros(Nf*Nm*Nm,Nw);
     for k = 1:Nw
         P     = zeros(Nf,Nm,Nm);
         for j = 1:Nt
@@ -211,13 +211,13 @@ for i = 1:Ne;
         
         % store
         %------------------------------------------------------------------
-        K(k,:) = spm_vec(P/Nt)';
+        K(:,k) = spm_vec(P/Nt);
     end
     
     % retain principal eigenmode
     %----------------------------------------------------------------------
     [u s v]       = spm_svd(K,1);
-    P             = mean(u(:,m))*s(m,m)*conj(v(:,m)');
+    P             = u(:,m)*s(m,m)*mean(v(:,m));
     DCM.xY.csd{i} = spm_unvec(P,mar.P);
    
 end

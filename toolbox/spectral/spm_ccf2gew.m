@@ -1,6 +1,6 @@
-function [gew] = spm_ccf2gwe(ccf,Hz,dt,p)
+function [gew] = spm_ccf2gew(ccf,Hz,dt,p)
 % Converts cross covariance function to Geweke Granger causality
-% FORMAT [gew] = spm_ccf2gwe(ccf,Hz,dt,p)
+% FORMAT [gew] = spm_ccf2gew(ccf,Hz,dt,p)
 %
 % ccf  (N,m,m)   - cross covariance functions
 % Hz   (n x 1)   - vector of frequencies (Hz)
@@ -17,7 +17,7 @@ function [gew] = spm_ccf2gwe(ccf,Hz,dt,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2gwe.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_ccf2gew.m 5892 2014-02-23 11:00:16Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -25,6 +25,6 @@ if nargin < 4, p = 8; end
 
 % Granger causality
 %==========================================================================
-mar          = spm_ccf2mar(ccf,p);
-mar          = spm_mar_spectra(mar,Hz,1/dt);
-gew          = mar.gew;
+mar  = spm_ccf2mar(ccf,p);
+mar  = spm_mar_spectra(mar,Hz,1/dt);
+gew  = mar.gew;

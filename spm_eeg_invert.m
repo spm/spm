@@ -122,7 +122,7 @@ function [D] = spm_eeg_invert(D, val)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 5615 2013-08-15 14:37:24Z spm $
+% $Id: spm_eeg_invert.m 5892 2014-02-23 11:00:16Z karl $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -298,7 +298,7 @@ for m = 1:Nmod
         
         % eliminate low SNR spatial modes
         %------------------------------------------------------------------
-        U     = spm_svd((UL{m}*UL{m}'),exp(-16));
+        U     = spm_svd((UL{m}*UL{m}'));
         UL{m} = U'*UL{m};
         Nm(m) = size(UL{m},1);
         

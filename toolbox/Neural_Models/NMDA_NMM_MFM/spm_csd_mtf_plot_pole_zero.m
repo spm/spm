@@ -14,7 +14,7 @@ function [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rosalyn Moran
-% $Id: spm_csd_mtf_plot_pole_zero.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_csd_mtf_plot_pole_zero.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % compute log-spectral density
@@ -99,25 +99,10 @@ for  c = 1:size(X,1)
     end
     
     
-    % delays
+    % get delay operator
     %----------------------------------------------------------------------
     try
-        
-        % evaluate delay matrix
-        %------------------------------------------------------------------
-        De  = exp(P.D);
-        Di  = diag(diag(De));
-        De  = De - Di;
-        De  = De*de/1000;
-        Di  = Di*di/1000;
-        De  = kron(ones(nx,nx),De);
-        Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
-        D   = Di + De;
-        
-        % get delay operator
-        %------------------------------------------------------------------
-        M.D = spm_dcm_delay(M,Q,D);
-        
+        M.D = spm_dcm_delay(M,Q);
     catch
         M.D = 1;
     end

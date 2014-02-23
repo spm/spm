@@ -1,6 +1,5 @@
-function [Q,J] = spm_dcm_delay(M,P,D)
+function [Q,J] = spm_dcm_delay(M,P)
 % returns the delay operator for flow and Jacobians of dynamical systems
-% FORMAT [Q,J] = spm_dcm_delay(M,P,D)
 % FORMAT [Q,J] = spm_dcm_delay(M,P)
 %
 % M   - model specification structure
@@ -28,54 +27,49 @@ function [Q,J] = spm_dcm_delay(M,P,D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_dcm_delay.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % evaluate delay matrix D from parameters
 %==========================================================================
-if nargin < 3
+
+% paramterised delays
+%--------------------------------------------------------------------------
+if isfield(P,'D')
     
-    % paramterised delays
+    % number of states per sources
     %----------------------------------------------------------------------
-    if isfield(P,'D')
-        
-        % number of states per sources
-        %------------------------------------------------------------------
-        nx  = size(M.x,2);
-        
-        % get prior means (log-delays)
-        %------------------------------------------------------------------
-        if isfield(M,'pF')
-            di = M.pF.D(1);                    % intrinsic delays (ms)
-            de = M.pF.D(2);                    % extrinsic delays (ms)
-        else
-            di = 1;
-            de = 16;
-        end
-        
-        % delay matrix D
-        %------------------------------------------------------------------
-        De  = exp(P.D);
-        Di  = diag(diag(De));
-        De  = De - Di;
-        De  = De*de/1000;
-        Di  = Di*di/1000;
-        De  = kron(ones(nx,nx),De);
-        Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
-        D   = Di + De;
-        
+    nx  = size(M.x,2);
+    
+    % get prior means (log-delays)
+    %----------------------------------------------------------------------
+    if isfield(M,'pF')
+        di = M.pF.D(1);                    % intrinsic delays (ms)
+        de = M.pF.D(2);                    % extrinsic delays (ms)
     else
-        
-        % no delays
-        %------------------------------------------------------------------
-        if nargout < 2
-            Q = sparse(1);
-            return
-        else
-            D = sparse(0);
-        end
+        di = 1;
+        de = 8;
     end
+    
+    % delay matrix D
+    %----------------------------------------------------------------------
+    De  = exp(P.D);
+    Di  = diag(diag(De));
+    De  = De - Di;
+    De  = De*de/1000;
+    Di  = Di*di/1000;
+    De  = kron(ones(nx,nx),De);
+    Di  = kron(ones(nx,nx) - speye(nx,nx),Di);
+    D   = Di + De;
+    
+else
+    
+    % no delays
+    %----------------------------------------------------------------------
+    D = sparse(0);
+    
 end
+
 
 
 % create inline functions

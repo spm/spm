@@ -18,7 +18,7 @@ function [mar] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_ccf2mar.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % MAR coeficients
@@ -45,8 +45,7 @@ warning('on','MATLAB:toeplitz:DiagonalConflict')
 %--------------------------------------------------------------------------
 A    = spm_cat(A);
 B    = spm_cat(B);
-C    = eye(m*p,m*p)/128;
-a    = full((B + C)\A);
+a    = full(B\A);
 
 % convert mar (positive matrix) format to lag (negative array) format
 %==========================================================================

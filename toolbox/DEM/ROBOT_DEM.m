@@ -1,4 +1,4 @@
-function E = DEM_ROBOT
+function E = ROBOT_DEM
 % Tests routines in DEM GUI
 %__________________________________________________________________________
 

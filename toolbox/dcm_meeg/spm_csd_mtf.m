@@ -33,7 +33,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_csd_mtf.m 5892 2014-02-23 11:00:16Z karl $
 
 
 
@@ -58,9 +58,9 @@ end
 
 % frequencies of interest
 %--------------------------------------------------------------------------
-try
-    w    = round(linspace(M.Hz(1),M.Hz(end),length(M.Hz)));
-catch
+if isfield(M,'Hz')
+    w    = M.Hz;
+else
     w    = 1:64;
     M.Hz = w;
 end
@@ -73,9 +73,9 @@ nw   = length(M.Hz);
 % spectrum of innovations (Gu) and noise (Gs and Gn)
 %--------------------------------------------------------------------------
 if isfield(M,'g')
-    [Gu,Gs,Gn] = spm_csd_mtf_gu(P,w);
+    [Gu,Gs,Gn] = spm_csd_mtf_gu(P,M.Hz);
 else
-    Gu         = spm_csd_mtf_gu(P,w);
+    Gu         = spm_csd_mtf_gu(P,M.Hz);
 end
 
 

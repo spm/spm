@@ -90,7 +90,7 @@ function [DEM] = spm_DEM(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM.m 5746 2013-11-14 20:28:50Z karl $
+% $Id: spm_DEM.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % check model, data, priors and confounds and unpack
@@ -204,11 +204,11 @@ Pu    = Pu + speye(nu,nu)*nu*eps;
  
 % hyperpriors
 %--------------------------------------------------------------------------
-ph.h  = spm_vec({M.hE M.gE});              % prior expectation of h
-ph.c  = spm_cat(spm_diag({M.hC M.gC}));    % prior covariances of h
-qh.h  = ph.h;                              % conditional expectation
-qh.c  = ph.c;                              % conditional covariance
-ph.ic = spm_pinv(ph.c);                    % prior precision
+ph.h  = spm_vec({M.hE M.gE});               % prior expectation of h
+ph.c  = spm_cat(spm_diag({M.hC M.gC}));     % prior covariances of h
+qh.h  = ph.h;                               % conditional expectation
+qh.c  = ph.c;                               % conditional covariance
+ph.ic = spm_pinv(ph.c);                     % prior precision
  
 % priors on parameters (in reduced parameter space)
 %==========================================================================
@@ -218,10 +218,10 @@ for i = 1:(nl - 1)
     
     % eigenvector reduction: p <- pE + qp.u*qp.p
     %----------------------------------------------------------------------
-    qp.u{i}   = spm_svd(M(i).pC,exp(-32));           % basis for parameters
-    M(i).p    = size(qp.u{i},2);                     % number of qp.p
-    qp.p{i}   = sparse(M(i).p,1);                    % initial qp.p
-    pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};            % prior covariance
+    qp.u{i}   = spm_svd(M(i).pC,0);         % basis for parameters
+    M(i).p    = size(qp.u{i},2);            % number of qp.p
+    qp.p{i}   = sparse(M(i).p,1);           % initial qp.p
+    pp.c{i,i} = qp.u{i}'*M(i).pC*qp.u{i};   % prior covariance
     
 end
 Up    = spm_cat(spm_diag(qp.u));

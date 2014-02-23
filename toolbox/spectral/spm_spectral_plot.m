@@ -9,7 +9,7 @@ function spm_spectral_plot(Hz,csd,str,xlab,ylab,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spectral_plot.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_spectral_plot.m 5892 2014-02-23 11:00:16Z karl $
 
 
 % order
@@ -39,7 +39,7 @@ for i = 1:m
         elseif j < i
             title('forward','FontSize',16)
         end
-        axis square, set(gca,'XLim',[0 Hz(end)])
+        axis square, set(gca,'XLim',[min(Hz(1),0) Hz(end)])
     end
 end
 

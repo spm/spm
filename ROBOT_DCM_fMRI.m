@@ -1,4 +1,4 @@
-function E = DCM_fMRI_ROBOT
+function E = ROBOT_DCM_fMRI
 % test routine to check current implementations of DCM for fMRI
 %==========================================================================
 %
@@ -12,7 +12,7 @@ function E = DCM_fMRI_ROBOT
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: DCM_fMRI_ROBOT.m 5615 2013-08-15 14:37:24Z spm $
+% $Id: ROBOT_DCM_fMRI.m 5892 2014-02-23 11:00:16Z karl $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================

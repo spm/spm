@@ -1,4 +1,4 @@
-function E = NMM_ROBOT
+function E = ROBOT_NMM
 % Tests rotines in neural mass model (NMM) GUI
 %__________________________________________________________________________
 

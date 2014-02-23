@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_nlsi_N.m 5892 2014-02-23 11:00:16Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -256,8 +256,8 @@ if isstruct(M.gC); M.gC = spm_diag(spm_vec(M.gC)); end
 
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
-Vp    = spm_svd(M.pC,exp(-32));
-Vg    = spm_svd(M.gC,exp(-32));
+Vp    = spm_svd(M.pC,0);
+Vg    = spm_svd(M.gC,0);
 np    = size(Vp,2);                   % number of parameters (f)
 ng    = size(Vg,2);                   % number of parameters (g)
 nu    = size(dgdu,2);                 % number of parameters (u)

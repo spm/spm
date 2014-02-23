@@ -2,10 +2,10 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Get spectral estimates from MAR model
 % FORMAT [mar] = spm_mar_spectra (mar,freqs,ns,show)
 %
-% mar   MAR data structure (see spm_mar.m)
-% freqs [Nf x 1] vector of frequencies to evaluate spectra at
-% ns    samples per second
-% show  1 if you wish to plot estimates (default is 0)
+% mar   - MAR data structure (see spm_mar.m)
+% freqs - [Nf x 1] vector of frequencies to evaluate spectra at
+% ns    - samples per second (default: ns = 2*freqs(end))
+% show  - 1 if you wish to plot estimates (default is 0)
 %
 % The returned mar will have the following fields specified:
 %
@@ -39,7 +39,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5889 2014-02-20 11:42:20Z karl $
+% $Id: spm_mar_spectra.m 5892 2014-02-23 11:00:16Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -64,6 +64,8 @@ w     = 2*pi*freqs/ns;
 if isfield(mar,'noise_cov');
     noise_cov = mar.noise_cov;
     prec      = diag(1./diag(noise_cov));
+    noise_cov = mar.noise_cov;
+    prec      = diag(diag(inv(noise_cov)));
 else
     noise_cov = eye(d,d);
     prec      = eye(d,d);
@@ -85,7 +87,7 @@ for ff = 1:Nf,
   
   % Get DTF and PDC
   %------------------------------------------------------------------------
-  for ii=1:d
+  for ii = 1:d
       for j = 1:d
           
           % DTF uses iaf_tmp and normalises wrt rows (to = sink)
@@ -118,7 +120,7 @@ for j = 1:d
         sk  = abs(mar.P(:,k,k));
         hkj = abs(mar.H(:,k,j)).^2;
         mar.pve(:,k,j) = rkj*hkj./sk;
-        mar.gew(:,k,j) = -log(1-mar.pve(:,k,j));
+        mar.gew(:,k,j) = -log(1 - mar.pve(:,k,j));
     end
 end
 

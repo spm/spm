@@ -59,7 +59,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN_H.m 5448 2013-04-25 11:08:52Z guillaume $
+% $Id: spm_nlsi_GN_H.m 5892 2014-02-23 11:00:16Z karl $
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
@@ -71,7 +71,7 @@ end
 if isvector(pC);
     pC = diag(pC);
 end
-V     = spm_svd(pC,exp(-16));
+V     = spm_svd(pC);
 pC    = V'*pC*V;
 pE    = V'*pE;
 np    = size(V,2);

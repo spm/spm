@@ -26,7 +26,7 @@ function spm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Granger_demo.m 5877 2014-02-11 20:03:34Z karl $
+% $Id: spm_Granger_demo.m 5892 2014-02-23 11:00:16Z karl $
  
  
 % Model specification
@@ -35,11 +35,11 @@ rng('default')
  
 % number of regions
 %--------------------------------------------------------------------------
-N     = 2048;                                    % unmber of time bins
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
+ns    = 2*128;                                   % sampling frequency
+dt    = 1/ns;                                    % time bins
 Hz    = 1:128;                                   % frequency
-dt    = 4/1000;                                  % time bins
 p     = 16;                                      % autoregression order
 options.spatial  = 'LFP';
 options.model    = 'CMC';
@@ -58,7 +58,6 @@ A{3} = [0 0; 0 0];
 B    = {};
 C    = sparse(2,0);
  
- 
 % get priors
 %--------------------------------------------------------------------------
 pE    = spm_dcm_neural_priors(A,B,C,options.model);
@@ -73,9 +72,9 @@ pE.S         = 1/8;
 
 % (log) amplitude of fluctations and noise
 %--------------------------------------------------------------------------
-pE.a(1,:) =  2;
-pE.b(1,:) = -4;
-pE.c(1,:) = -4;
+pE.a(1,:) = -2;
+pE.b(1,:) = -8;
+pE.c(1,:) = -8;
 
  
 % orders and model
@@ -106,114 +105,63 @@ M.x   = spm_dcm_neural_x(pE,M);
 
 % Analytic spectral chararacterisation
 %==========================================================================
+spm_figure('GetWin','Figure 1'); clf
+
 [csd,Hz,mtf] = spm_csd_mtf(pE,M);
 csd          = csd{1};
 mtf          = mtf{1};
 ccf          = spm_csd2ccf(csd,Hz,dt);
 mar          = spm_ccf2mar(ccf,p);
-mar          = spm_mar_spectra(mar,Hz,1/dt);
+mar          = spm_mar_spectra(mar,Hz,ns);
 
-
-% Numerical spectral chararacterisation
-%==========================================================================
-
-% Get spectral profile of fluctuations and noise
-%--------------------------------------------------------------------------
-[Gu,Gs,Gn]   = spm_csd_mtf_gu(pE,M.Hz);
-
-
-% Integrate with pink noise process
-%--------------------------------------------------------------------------
-U.dt  = dt;
-U.u   = spm_rand_power_law(Gu,Hz,dt,N);
-LFP   = spm_int_L(pE,M,U);
-
-% and measurement noise
-%--------------------------------------------------------------------------
-En    = spm_rand_power_law(Gn,Hz,dt,N);
-Es    = spm_rand_power_law(Gs,Hz,dt,N);
-E     = Es + En*ones(1,Ns);
-
-% and estimate spectral features under a MAR model
-%--------------------------------------------------------------------------
-MAR           = spm_mar(LFP + E,p);
-MAR.noise_cov = mar.noise_cov;
-MAR           = spm_mar_spectra(MAR,Hz,1/dt);
-
-CSD = MAR.P;
-CSP = mar.P;
-
-
-% Graphics
-%==========================================================================
 spm_figure('GetWin','Figure 1'); clf
+spm_spectral_plot(Hz,csd,  'b', 'frequency','density')
+spm_spectral_plot(Hz,mar.P,'r', 'frequency','density')
 
-% compare analytic and numerical spctral densities
+legend('cross spectral density',...
+       'autoregressive model')
+
+% return
+
+
+% The effect of delays
+%==========================================================================
+
+
+
+
+
+% iterative check on transformations
 %--------------------------------------------------------------------------
-subplot(2,2,1)
-plot((1:512)*dt,LFP(1:512,:))
-xlabel('time')
-title('LFP','FontSize',16)
-axis square, spm_axis tight
-
-subplot(2,2,2)
-plot([spm_vec(mar.lag),spm_vec(MAR.lag)])
-xlabel('expected')
-ylabel('estimated')
-title('auto-regression coefficients','FontSize',16)
-axis square, spm_axis tight
-
-subplot(2,2,3)
-plot(Hz,abs(csd(:,1,1)),Hz,abs(CSD(:,1,1)),'--',Hz,abs(CSP(:,1,1)),':')
-xlabel('frequency')
-ylabel('absolute value')
-title('auto-spectral density','FontSize',16)
-axis square, set(gca,'XLim',[0 Hz(end)])
-
-subplot(2,2,4)
-plot(Hz,abs(csd(:,2,1)),Hz,abs(CSD(:,2,1)),'--',Hz,abs(CSP(:,2,1)),':')
-xlabel('frequency')
-ylabel('absolute value')
-title('cross-spectral density','FontSize',16)
-axis square, set(gca,'XLim',[0 Hz(end)])
-legend('expected','estimated','expected (MAR)')
+% spm_figure('GetWin','Figure 1'); clf
+% n     = size(ccf,1);
+% for i = 1:4
+%     ccf           = spm_mar2ccf(mar,n);
+%     mar           = spm_ccf2mar(ccf,p);
+%     mar           = spm_mar_spectra(mar,Hz,ns);
+%     spm_spectral_plot(1:n,ccf,'b','frequency','density')
+% end
 
 
-%  comparison of expected and numerical results
+%  comparison of expected results
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
 
-% compare analytic and numerical spctral densities
-%--------------------------------------------------------------------------
 dtf  = mar.dtf;
 gew  = mar.gew;
-DTF  = MAR.dtf;
-GEW  = MAR.gew;
-spm_spectral_plot(Hz,mtf,'b',  'frequency','density')
-spm_spectral_plot(Hz,dtf,'g',  'frequency','density')
-spm_spectral_plot(Hz,DTF,'g-.','frequency','density')
-spm_spectral_plot(Hz,gew,'r',  'frequency','density')
-spm_spectral_plot(Hz,GEW,'r-.','frequency','density')
+spm_spectral_plot(Hz,mtf,'b', 'frequency','density')
+spm_spectral_plot(Hz,dtf,'g', 'frequency','density')
+spm_spectral_plot(Hz,gew,'r', 'frequency','density')
 
 subplot(2,2,3), a = axis; subplot(2,2,2), axis(a);
 
-legend('modulation transfer function','directed transfer function','estimate','Granger causality','estimate')
+legend('modulation transfer function',...
+       'directed transfer function',...
+       'Granger causality')
 
 
 % effects of changing various model parameters
 %==========================================================================
-
-% (log) connectivity parameters
-%--------------------------------------------------------------------------
-pE.A{1}(2,1) = 2;
-pE.S         = 1/8;
-
-% (log) amplitude of fluctations and noise
-%--------------------------------------------------------------------------
-pE.a(1,:) =  0;
-pE.b(1,:) = -4;
-pE.c(1,:) = -4;
-
 
 % (log) scaling, and parameters
 %--------------------------------------------------------------------------
@@ -221,7 +169,6 @@ logs  = [ ((1:4)/1 - 2);
           ((1:4)/1 - 2);
           ((1:4)/8 + 0);
           ((1:4)*2 - 8)];
-
 
 param = {'A{1}(2,1)','A{3}(1,2)','S','b(1,:)'};
 str   = {     'forward connectivity',
@@ -250,7 +197,7 @@ for i = 1:size(logs,1)
         [csd,Hz,mtf] = spm_csd_mtf(P,M);
         ccf          = spm_csd2ccf(csd{1},Hz,dt);
         mar          = spm_ccf2mar(ccf,p);
-        mar          = spm_mar_spectra(mar,Hz,1/dt);
+        mar          = spm_mar_spectra(mar,Hz,ns);
         
         
         % plot forwards and backwards functions
@@ -279,7 +226,7 @@ end
 % a more careful examination of fluctuations
 %==========================================================================
 spm_figure('GetWin','Figure 4'); clf
-k     = linspace(-4,-1,8);
+k     = linspace(-8,-2,8);
 for j = 1:length(k)
     
     
@@ -297,11 +244,11 @@ for j = 1:length(k)
     [csd,Hz,mtf] = spm_csd_mtf(P,M);
     ccf          = spm_csd2ccf(csd{1},Hz,dt);
     mar          = spm_ccf2mar(ccf,p);
-    mar          = spm_mar_spectra(mar,Hz,1/dt);
+    mar          = spm_mar_spectra(mar,Hz,ns);
     
     % and non-parametric)
     %======================================================================
-    gew          = spm_csd2gwe(csd{1},Hz);
+    gew          = spm_csd2gew(csd{1},Hz);
     
     % save forwards and backwards functions
     %----------------------------------------------------------------------
@@ -363,18 +310,171 @@ title('backward','FontSize',16)
 axis square
 
 
-% a more careful examination of delays
+
+% return if in demonstration mode
+%--------------------------------------------------------------------------
+DEMO = 1;
+if DEMO, return, end
+
+
+% DCM estimates of coupling
 %==========================================================================
-spm_figure('GetWin','Figure 5'); clf
+rng('default')
+
+% get priors and generate data
+%--------------------------------------------------------------------------
+pE    = spm_dcm_neural_priors(A,B,C,options.model);
+pE    = spm_L_priors(M.dipfit,pE);
+pE    = spm_ssr_priors(pE);
+
+% (log) connectivity parameters (forward connection only)
+%--------------------------------------------------------------------------
+pE.A{1}(2,1) = 2;
+pE.S         = 1/8;
 
 % (log) amplitude of fluctations and noise
 %--------------------------------------------------------------------------
-pE.a(1,:) =  0;
+pE.a(1,:) = -2;
+pE.b(1,:) = -8;
+pE.c(1,:) = -8;
+
+
+% expected cross spectral density
+%--------------------------------------------------------------------------
+csd       = spm_csd_mtf(pE,M);
+
+% Get spectral profile of fluctuations and noise
+%--------------------------------------------------------------------------
+[Gu,Gs,Gn] = spm_csd_mtf_gu(pE,Hz);
+
+% Integrate with power law process (simulate multiple trials)
+%--------------------------------------------------------------------------
+PSD   = 0;
+CSD   = 0;
+N     = 1024;
+U.dt  = dt;
+for t = 1:16
+    
+    % neuronal fluctuations
+    %----------------------------------------------------------------------
+    U.u      = spm_rand_power_law(Gu,Hz,dt,N);
+    LFP      = spm_int_L(pE,M,U);
+    
+    % and measurement noise
+    %----------------------------------------------------------------------
+    En       = spm_rand_power_law(Gn,Hz,dt,N);
+    Es       = spm_rand_power_law(Gs,Hz,dt,N);
+    E        = Es + En*ones(1,Ns);
+    
+    % and estimate spectral features under a MAR model
+    %----------------------------------------------------------------------
+    MAR      = spm_mar(LFP + E,p);
+    MAR      = spm_mar_spectra(MAR,Hz,ns);
+    CSD      = CSD + MAR.P;
+    
+    % and using Welch's method
+    %----------------------------------------------------------------------
+    PSD      = PSD + spm_csd(LFP + E,Hz,ns);
+    
+    CCD(:,t) = abs(CSD(:,1,2)/t);
+    PCD(:,t) = abs(CSD(:,1,1)/t);
+   
+    % plot
+    %----------------------------------------------------------------------
+    spm_figure('GetWin','Figure 5'); clf
+    spm_spectral_plot(Hz,csd{1},'r',  'frequency','density')
+    spm_spectral_plot(Hz,CSD/t, 'b',  'frequency','density')
+    spm_spectral_plot(Hz,PSD/t, 'g',  'frequency','density')
+    legend('real','estimated (AR)','estimated (CSD)')
+    drawnow
+    
+end
+
+%  show convergence of spectral estimators
+%--------------------------------------------------------------------------
+subplot(2,2,3), hold off
+imagesc(Hz,1:t,log(PCD'))
+xlabel('frequency')
+ylabel('trial number')
+title('log auto spectra','FontSize',16)
+axis square
+
+subplot(2,2,4), hold off
+imagesc(Hz,1:t,log(CCD'))
+xlabel('frequency')
+ylabel('trial number')
+title('log cross spectra','FontSize',16)
+axis square
+
+% DCM set up (allow for both forward and backward connections)
+%==========================================================================
+
+% (log) connectivity parameters (forward connection only)
+%--------------------------------------------------------------------------
+pE.A{1}(2,1) = 2;
+pE.S         = 1/8;
+
+% (log) amplitude of fluctations and noise
+%--------------------------------------------------------------------------
+pE.a(1,:) = -2;
 pE.b(1,:) = -4;
 pE.c(1,:) = -4;
 
+% expected cross spectral density
+%--------------------------------------------------------------------------
+[csd,Hz,mtf] = spm_csd_mtf(pE,M);
 
-k     = linspace(8,12,8);
+DCM.options.model   = 'CMC';
+DCM.options.spatial = 'LFP';
+DCM.options.DATA    = 0;
+
+DCM.A      = {[0 0; 1 0],[0 1; 0 0],[0 0; 0 0]};
+DCM.B      = {};
+DCM.C      = sparse(Ns,0);
+
+DCM.M      = M;
+DCM.M.Nmax = 32;
+
+
+% place in data structure
+%--------------------------------------------------------------------------
+DCM.xY.y  = csd;
+DCM.xY.dt = dt;
+DCM.xY.Hz = Hz;
+
+% estimate
+%--------------------------------------------------------------------------
+DCM  = spm_dcm_csd(DCM);
+
+% show results in terms of transfer functions and Granger causality
+%==========================================================================
+spm_figure('GetWin','Figure 6'); clf
+
+% transfer functions and Granger causality among sources and channels
+%--------------------------------------------------------------------------
+gew  = spm_csd2gew(DCM.Hs{1},Hz);
+GEW  = spm_csd2gew(DCM.xY.y{1},Hz);
+
+spm_spectral_plot(Hz,DCM.dtf{1},'b',  'frequency','density')
+spm_spectral_plot(Hz,mtf{1},    'b:', 'frequency','density')
+spm_spectral_plot(Hz,gew,       'r',  'frequency','density')
+spm_spectral_plot(Hz,GEW,       'g',  'frequency','density')
+legend('modulation transfer function',...
+       'true transfer function',...
+       'Granger causality (source)',...
+       'Granger causality (channel)')
+
+subplot(2,2,3), a = axis; subplot(2,2,2), axis(a);
+
+return
+
+
+   
+% NOTES: a more careful examination of delays
+%==========================================================================
+spm_figure('GetWin','Figure 7'); clf
+
+k     = linspace(8,11,8);
 for j = 1:length(k)
     
     
@@ -391,11 +491,11 @@ for j = 1:length(k)
     [csd,Hz,mtf] = spm_csd_mtf(pE,M);
     ccf          = spm_csd2ccf(csd{1},Hz,dt);
     mar          = spm_ccf2mar(ccf,p);
-    mar          = spm_mar_spectra(mar,Hz,1/dt);
+    mar          = spm_mar_spectra(mar,Hz,ns);
     
     % and non-parametric)
     %======================================================================
-    gew          = spm_csd2gwe(csd{1},Hz);
+    gew          = spm_csd2gew(csd{1},Hz);
     
     
     % plot forwards and backwards functions
@@ -437,91 +537,5 @@ for j = 1:length(k)
     
 end
 
-
-
-return
-
-
-% DCM estimates of coupling
-%==========================================================================
-rng('default')
-
-% get priors and generate data
-%--------------------------------------------------------------------------
-pE    = spm_dcm_neural_priors(A,B,C,options.model);
-pE    = spm_L_priors(M.dipfit,pE);
-pE    = spm_ssr_priors(pE);
-
-% (log) connectivity parameters (forward connection only)
-%--------------------------------------------------------------------------
-pE.A{1}(2,1) = 2;
-pE.S         = 1/8;
-
-% Get spectral profile of fluctuations and noise
-%--------------------------------------------------------------------------
-[Gu,Gs,Gn] = spm_csd_mtf_gu(pE,M.Hz);
-
-% Integrate with power law process
-%--------------------------------------------------------------------------
-U.dt  = dt;
-U.u   = spm_rand_power_law(Gu,Hz,dt,N);
-LFP   = spm_int_L(pE,M,U);
-
-% and measurement noise
-%--------------------------------------------------------------------------
-En    = spm_rand_power_law(Gn,Hz,dt,N);
-Es    = spm_rand_power_law(Gs,Hz,dt,N);
-E     = Es + En*ones(1,Ns);
-
-% and estimate spectral features under a MAR model
-%--------------------------------------------------------------------------
-MAR   = spm_mar(LFP + E,p);
-MAR   = spm_mar_spectra(MAR,Hz,1/dt);
-CSD   = MAR.P;
-
-
-% DCM set up (allow for both forward and backward connections)
-%==========================================================================
-DCM.A     = {[0 0; 1 0],[0 1; 0 0],[0 0; 0 0]};
-DCM.B     = {};
-DCM.C     = sparse(Ns,0);
-DCM.xU    = U;
-DCM.xY.y  = {CSD};
-DCM.xY.dt = dt;
-DCM.xY.Hz = Hz;
-
-DCM.options.model   = 'CMC';
-DCM.options.spatial = 'LFP';
-
-DCM.M.dipfit.Nc     = Nc;
-DCM.M.dipfit.Ns     = Ns;
-
-% estimate
-%--------------------------------------------------------------------------
-DCM.options.DATA = 0;
-DCM       = spm_dcm_csd(DCM);
-
-% show results in terms of transfer functions and Granger causality
-%==========================================================================
-spm_figure('GetWin','Figure 6'); clf
-
-% transfer functions and Granger causality among sources
-%--------------------------------------------------------------------------
-mtf = DCM.dtf{1};
-ccf = DCM.ccf{1};
-gew = spm_ccf2gwe(ccf,Hz,dt,p);
-
-spm_spectral_plot(Hz,mtf,'b',  'frequency','density')
-spm_spectral_plot(Hz,gew,'r',  'frequency','density')
-
-% Granger causality among channels
-%--------------------------------------------------------------------------
-P   = DCM.Ep;
-csd = spm_csd_mtf(P,DCM.M);
-ccf = spm_csd2ccf(csd{1},Hz,dt);
-gew = spm_ccf2gwe(ccf,Hz,dt,p);
-
-spm_spectral_plot(Hz,gew,'g--',  'frequency','density')
-legend('modulation transfer function','Granger causality (source)','Granger causality (channel)')
 
 

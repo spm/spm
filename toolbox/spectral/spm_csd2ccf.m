@@ -18,13 +18,17 @@ function [ccf,pst] = spm_csd2ccf(csd,Hz,dt)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd2ccf.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_csd2ccf.m 5892 2014-02-23 11:00:16Z karl $
+
+% Nyquist
+%--------------------------------------------------------------------------
+if nargin < 3, dt  = 1/(2*Hz(end)); end
  
 % unpack cells
 %--------------------------------------------------------------------------
 if iscell(csd)
     for i = 1:length(csd)
-       [ccfi,pst] = spm_csd2ccf(csd{i},Hz);
+       [ccfi,pst] = spm_csd2ccf(csd{i},Hz,dt);
        ccf{i}     = ccfi;
     end
     return
@@ -34,24 +38,21 @@ end
 %--------------------------------------------------------------------------
 if ndims(csd) == 4
     for i = 1:size(csd,1)
-       [ccfi,pst]   = spm_csd2ccf(squeeze(csd(i,:,:,:)),Hz);
+       [ccfi,pst]   = spm_csd2ccf(squeeze(csd(i,:,:,:)),Hz,dt);
        ccf(i,:,:,:) = ccfi;
     end
     return
 end
 
 
-% Nyquist
+% indices for FFT
 %--------------------------------------------------------------------------
-if nargin < 3, dt  = 1/max(Hz)/2; end
-
-ds    = Hz(2) - Hz(1);
-N     = ceil(1/dt/2/ds);
-gi    = ceil(Hz/ds);
-gj    = 1:length(gi);
-j     = gi > 1 & gi <= N;
-gi    = gi(j);
-gj    = gj(j);
+dw    = Hz(2) - Hz(1);
+Hz    = Hz/dw;
+ns    = 1/dt;
+N     = round(ns/2/dw);
+gj    = find(Hz > 0 & Hz < (N + 1));
+gi    = gj + round(Hz(1)) - 1;
 g     = zeros(N,1);
 
 % Fourier transform cross-spectral density
@@ -60,12 +61,12 @@ for i = 1:size(csd,2)
     if ismatrix(csd)
         g(gi)      = csd(gj,i);
         f          = ifft([0; g; flipud(conj(g))]);
-        ccf(:,i)   = real(fftshift(f))*N*ds;
+        ccf(:,i)   = real(fftshift(f))*N*dw;
     else
         for j = 1:size(csd,3)
             g(gi)      = csd(gj,i,j);
             f          = ifft([0; g; flipud(conj(g))]);
-            ccf(:,i,j) = real(fftshift(f))*N*ds;
+            ccf(:,i,j) = real(fftshift(f))*N*dw;
         end
     end
 end
@@ -73,3 +74,4 @@ end
 % Compute time bins
 %--------------------------------------------------------------------------
 pst = dt*(-N:N);
+

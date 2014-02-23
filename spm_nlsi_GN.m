@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_nlsi_GN.m 5892 2014-02-23 11:00:16Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -264,7 +264,7 @@ end
 
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
-V     = spm_svd(pC,exp(-32));
+V     = spm_svd(pC,0);
 nu    = size(dfdu,2);                 % number of parameters (confounds)
 np    = size(V,2);                    % number of parameters (effective)
 ip    = (1:np)';

@@ -2,13 +2,12 @@ function [ccf] = spm_mar2ccf(mar,n)
 % gets the cross covariance function from MAR coefficients or structure
 % FORMAT [ccf] = spm_mar2ccf(mar)
 %
-% mar   - MAR coefficients (see spm_mar.m)
+% mar   - MAR coefficients or structure (see spm_mar.m)
 % n     - number of time bins
 %
 % ccf   - (2*n + 1,i,j) cross covariance functions between I and J
-
 %
-% The mar coefficients are either specified as a cell array (as per
+% The mar coefficients are either specified in a cell array (as per
 % spm_mar) or as a vector of (positive) coefficients as per spm_Q. The
 % former are the negative values of the latter. If mar is a matrix of size
 % d*p x d - it is assumed that the (positive) coefficients  run fast over 
@@ -28,9 +27,10 @@ function [ccf] = spm_mar2ccf(mar,n)
 %--------------------------------------------------------------------------
 if nargin < 2, n = 128; end
 
+
 % format coefficients into an array of negative coeficients (cf lag.a)
 %--------------------------------------------------------------------------
-if isvector(mar)
+if isvector(mar) && isnumeric(mar)
     mar = mar(:);
 end
 if isnumeric(mar)
@@ -45,42 +45,44 @@ if isnumeric(mar)
     end
     mar = lag;
 else
-    d  = length(mar(1).a);
-    p  = length(mar);
+    d  = length(mar.lag(1).a);
+    p  = length(mar.lag);
 end
 
-% covariance innovations
+% covariance of innovations
 %--------------------------------------------------------------------------
 try
-    C  = mar.noise_cov;
+    c = mar.noise_cov;
 catch
-    C  = eye(d,d);
+    c = eye(d,d);
 end
 
-% transfer function and complex cross spectral density
+% create AR representation and associated convolution kernels
 %--------------------------------------------------------------------------
-for ff = 1:Nf,
-    af_tmp = eye(d,d);
-    for k = 1:p,
-        af_tmp = af_tmp + mar(k).a*exp(-1i*w(ff)*k);
-    end
-    iaf_tmp     = inv(af_tmp);
-    dtf(ff,:,:) = iaf_tmp;                            % transfer function
-    csd(ff,:,:) = iaf_tmp*iaf_tmp';                   % and csd
-end
-
-% Normalise cross spectral density 
-%--------------------------------------------------------------------------
-csd = 2*csd/ns;
-
-if nargout < 3, return, end
-
-% Coherence and Phase
-%--------------------------------------------------------------------------
-for k = 1:d
+A     = cell(d,d);
+B     = cell(d,d);
+C     = cell(d,d);
+for i = 1:d
     for j = 1:d
-        rkj        = csd(:,k,j)./(sqrt(csd(:,k,k)).*sqrt(csd(:,j,j)));
-        coh(:,k,j) = abs(rkj);
-        pha(:,k,j) = atan(imag(rkj)./real(rkj));
+        a      = [0; mar.a((1:p) + (i - 1)*p,j)];
+        A{i,j} = spdiags(ones(n,1)*a',-(0:p),n,n);
+        C{i,j} = speye(n,n)*c(i,j);
+    end
+    B{i,i}     = speye(n,n);
+end
+A     = spm_cat(A);
+B     = spm_cat(B);
+C     = spm_cat(C);
+K     = inv(B - A);
+
+% compute crosscovariance matrices and reduces to an array of vectors
+%--------------------------------------------------------------------------
+CCF   = K*C*K';
+ccf   = zeros(n,d,d);
+for i = 1:d
+    for j = 1:d        
+        ccf(:,i,j) = full(CCF((1:n) + (i - 1)*n,ceil(n/2) + (j - 1)*n));
     end
 end
+
+

@@ -74,7 +74,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5881 2014-02-17 13:26:35Z gareth $
+% $Id: spm_eeg_invert_classic.m 5892 2014-02-23 11:00:16Z karl $
 
 
 
@@ -254,7 +254,7 @@ fprintf('Optimising and aligning spatial modes ...\n')
 
 if isempty(U), % no spatial modes prespecified
     if isempty(Nm), %% number of modes not specifiedd
-        [U,ss,vv]    = spm_svd((L*L'),exp(-16));
+        [U,ss,vv]    = spm_svd((L*L'));
         A     = U';                 % spatial projector A
         UL    = A*L;
         

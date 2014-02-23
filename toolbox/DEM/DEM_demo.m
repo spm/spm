@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 31-Dec-2013 13:39:38
+% Last Modified by GUIDE v2.5 20-Feb-2014 17:29:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -448,3 +448,24 @@ run_demo_Callback(hObject, handles, 'DEM_demo_connectivity_fMRI')
 function pushbutton145_Callback(hObject, eventdata, handles)
 handles.web = '';
 run_demo_Callback(hObject, handles, 'DEM_demo_modes_fMRI')
+
+% --- Executes on button press in pushbutton146.
+function pushbutton146_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20modeling%20of%20neuronal%20responses%20in%20fMRI%20using%20cubature%20Kalman%20filtering.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_hdm_SCK')
+
+% --- Executes on button press in pushbutton147.
+function pushbutton147_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Generalised%20Filtering.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_convolution_LAP')
+
+% --- Executes on button press in pushbutton148.
+function pushbutton148_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20modeling%20of%20neuronal%20responses%20in%20fMRI%20using%20cubature%20Kalman%20filtering.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_lorenz_LAP')
+
+% --- Executes on button press in pushbutton149.
+function pushbutton149_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20modeling%20of%20neuronal%20responses%20in%20fMRI%20using%20cubature%20Kalman%20filtering.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_doublewell_LAP')
+

@@ -1,6 +1,6 @@
-function [gew,pve,H] = spm_csd2gwe(csd,Hz,u)
+function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 % Converts cross sspectral density to Geweke Granger causality
-% FORMAT [gew,pve,H] = spm_csd2gwe(csd,Hz)
+% FORMAT [gew,pve,H] = spm_csd2gew(csd,Hz)
 %
 % ccf  (N,m,m)   - cross covariance functions
 % Hz   (n x 1)   - vector of frequencies (Hz)
@@ -29,10 +29,10 @@ function [gew,pve,H] = spm_csd2gwe(csd,Hz,u)
 %--------------------------------------------------------------------------
 if nargin < 3
     try
-        [gew,pve,H] = spm_csd2gwe(csd,Hz,2);
+        [gew,pve,H] = spm_csd2gew(csd,Hz,2);
         return
     catch
-        [gew,pve,H] = spm_csd2gwe(csd,Hz,8);
+        [gew,pve,H] = spm_csd2gew(csd,Hz,16);
         return
     end
 end
@@ -52,7 +52,7 @@ is    = ceil(nw/2):nw;
 H     = zeros(nw,n,n);
 P     = zeros(nw,n,n);
 e     = norm(squeeze(max(csd,[],1)))/128;
-E     = eye(n,n)*e*1e-6;
+E     = eye(n,n)*e/128;
 
 P(iw,:,:) = csd;
 for i = 1:n
@@ -112,6 +112,8 @@ end
 
 % Geweke Granger Causality in the Frequency domain
 %--------------------------------------------------------------------------
+pve   = zeros(nw,n,n);
+gew   = zeros(nw,n,n);
 for j = 1:n
     for k = 1:n
         rkj        = C(j,j) - (C(j,k)^2)/C(k,k);
