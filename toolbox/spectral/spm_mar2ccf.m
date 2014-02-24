@@ -1,6 +1,6 @@
 function [ccf] = spm_mar2ccf(mar,n)
-% gets the cross covariance function from MAR coefficients or structure
-% FORMAT [ccf] = spm_mar2ccf(mar)
+% Get the cross covariance function from MAR coefficients or structure
+% FORMAT [ccf] = spm_mar2ccf(mar,n)
 %
 % mar   - MAR coefficients or structure (see spm_mar.m)
 % n     - number of time bins
@@ -17,10 +17,10 @@ function [ccf] = spm_mar2ccf(mar,n)
 %  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m,
 %  spm_csd2coh.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5889 2014-02-20 11:42:20Z karl $
+% $Id: spm_mar2ccf.m 5893 2014-02-24 12:44:17Z guillaume $
 
 
 % Nyquist
@@ -84,5 +84,3 @@ for i = 1:d
         ccf(:,i,j) = full(CCF((1:n) + (i - 1)*n,ceil(n/2) + (j - 1)*n));
     end
 end
-
-

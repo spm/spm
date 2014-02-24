@@ -1,5 +1,5 @@
 function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
-% Converts cross sspectral density to Geweke Granger causality
+% Convert cross sspectral density to Geweke Granger causality
 % FORMAT [gew,pve,H] = spm_csd2gew(csd,Hz)
 %
 % ccf  (N,m,m)   - cross covariance functions
@@ -20,10 +20,10 @@ function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 %  spm_csd2coh.m, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and spm_mar_spectral.m
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2gwe.m 5853 2014-01-24 20:38:11Z karl $
+% $Id: spm_csd2gew.m 5893 2014-02-24 12:44:17Z guillaume $
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ for i = 1:n
     H(:,i,i) = sqrt(P(:,i,i));
 end
 
-% iiterate until convergence
+% iterate until convergence
 %--------------------------------------------------------------------------
 for t = 1:128
     
@@ -129,7 +129,3 @@ end
 gew = gew(iw,:,:);
 pve = pve(iw,:,:);
 H   = H(iw,:,:);
-
-
-
-
