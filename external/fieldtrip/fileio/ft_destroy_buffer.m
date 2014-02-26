@@ -1,7 +1,7 @@
 function ft_destroy_buffer
 
 % FT_DESTROY_BUFFER stops the thread with the TCP server attached to
-% the local Matlab instance and removes all data from memory.
+% the local MATLAB instance and removes all data from memory.
 %
 % Use as
 %   ft_destroy_buffer
@@ -26,7 +26,7 @@ function ft_destroy_buffer
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_destroy_buffer.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_destroy_buffer.m 9226 2014-02-23 13:12:06Z roboos $
 
 % clearing the mex file from memory will cause the function registered with
 % mexAtExit to be executed. This function will then stop the threads and

@@ -85,7 +85,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 9171 2014-01-30 01:22:57Z josdie $
+% $Id: ft_read_event.m 9226 2014-02-23 13:12:06Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -838,25 +838,38 @@ switch eventformat
         end;
     end
  
-    % add "trial" events for segmented data
-    if (hdr.nTrials >1) && (length(hdr.orig.epochdef)==hdr.nTrials)
+    % add "epoch" events for epoched data, i.e. data with variable length segments
+    if (hdr.nTrials==1)
+      eventCount=length(event);
+      for iEpoch=1:size(hdr.orig.epochdef,1)
+        eventCount=eventCount+1;
+        event(eventCount).type     = 'epoch';
+        event(eventCount).sample   = hdr.orig.epochdef(iEpoch,1);
+        event(eventCount).duration = hdr.orig.epochdef(iEpoch,2)-hdr.orig.epochdef(iEpoch,1)+1;
+        event(eventCount).offset   = hdr.orig.epochdef(iEpoch,3);
+        event(eventCount).value    = [];
+      end % for
+    end % if
+    
+    % add "trial" events for segmented data, i.e. data with constant length segments
+    if (hdr.nTrials >1) && (size(hdr.orig.epochdef,1)==hdr.nTrials)
       cellNames=cell(hdr.nTrials,1);
       recTime=zeros(hdr.nTrials,1);
       epochTimes=cell(hdr.nTrials,1);
       for iEpoch=1:hdr.nTrials
         epochTimes{iEpoch}=hdr.orig.xml.epochs(iEpoch).epoch.beginTime;
         recTime(iEpoch)=((str2num(hdr.orig.xml.epochs(iEpoch).epoch.beginTime)/1000)/(1000/hdr.Fs))+1;
-      end;
+      end
       for iCat=1:length(hdr.orig.xml.categories)
         theTimes=cell(length(hdr.orig.xml.categories(iCat).cat.segments),1);
         for i=1:length(hdr.orig.xml.categories(iCat).cat.segments)
           theTimes{i}=hdr.orig.xml.categories(iCat).cat.segments(i).seg.beginTime;
-        end;
+        end
         epochIndex=find(ismember(epochTimes,theTimes));
         for i=1:length(epochIndex)
           cellNames{epochIndex(i)}=hdr.orig.xml.categories(iCat).cat.name;
-        end;
-      end;
+        end
+      end
       
       eventCount=length(event);
       for iEpoch=1:hdr.nTrials
@@ -866,8 +879,8 @@ switch eventformat
         event(eventCount).offset   = -hdr.nSamplesPre;
         event(eventCount).duration = hdr.nSamples;
         event(eventCount).value    = cellNames{iEpoch};
-      end;
-    end;
+      end
+    end
     
   case 'egi_mff_v2'
     % ensure that the EGI toolbox is on the path
@@ -980,7 +993,7 @@ switch eventformat
     % this is multiplexed data in a *.bin file, accompanied by a matlab file containing the header and event
     [path, file, ext] = fileparts(filename);
     filename = fullfile(path, [file '.mat']);
-    % read the events from the Matlab file
+    % read the events from the MATLAB file
     tmp   = load(filename, 'event');
     event = tmp.event;
     
@@ -1094,7 +1107,7 @@ switch eventformat
     end
     
   case 'matlab'
-    % read the events from a normal Matlab file
+    % read the events from a normal MATLAB file
     tmp   = load(filename, 'event');
     event = tmp.event;
     

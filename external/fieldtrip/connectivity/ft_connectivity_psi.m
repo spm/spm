@@ -1,4 +1,4 @@
-function [p, v, n] = ft_connectivity_psi(input, varargin)
+function [c, v, n] = ft_connectivity_psi(input, varargin)
 
 % FT_CONNECTIVITY_PSI computes the phase slope index from a data-matrix
 % containing the cross-spectral density. It implements the method described
@@ -57,7 +57,7 @@ function [p, v, n] = ft_connectivity_psi(input, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_psi.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_connectivity_psi.m 9212 2014-02-21 06:41:31Z jansch $
 
 % FIXME: interpretation of the slope
 

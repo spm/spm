@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 9107 2014-01-17 10:05:52Z robspa $
+% $Id: ft_filetype.m 9226 2014-02-23 13:12:06Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1082,8 +1082,8 @@ elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filen
   content = 'electrophysiological data';
 elseif filetype_check_extension(filename, '.mat') && filetype_check_header(filename, 'MATLAB')
   type = 'matlab';
-  manufacturer = 'Matlab';
-  content = 'Matlab binary data';
+  manufacturer = 'MATLAB';
+  content = 'MATLAB binary data';
 elseif filetype_check_header(filename, 'RIFF', 0) && filetype_check_header(filename, 'WAVE', 8)
   type = 'riff_wave';
   manufacturer = 'Microsoft';

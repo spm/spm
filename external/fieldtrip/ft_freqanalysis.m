@@ -185,7 +185,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 8625 2013-10-23 09:50:42Z roevdmei $';
+revision = '$Id: ft_freqanalysis.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -453,6 +453,7 @@ end
 
 ft_progress('init', cfg.feedback, 'processing trials');
 for itrial = 1:ntrials
+    
   %disp(['processing trial ' num2str(itrial) ': ' num2str(size(data.trial{itrial},2)) ' samples']);
   fbopt.i = itrial;
   fbopt.n = ntrials;

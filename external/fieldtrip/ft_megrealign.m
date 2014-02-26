@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 8757 2013-11-11 13:14:30Z roboos $
+% $Id: ft_megrealign.m 9249 2014-02-26 16:47:58Z roboos $
 
-revision = '$Id: ft_megrealign.m 8757 2013-11-11 13:14:30Z roboos $';
+revision = '$Id: ft_megrealign.m 9249 2014-02-26 16:47:58Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -131,6 +131,11 @@ pertrial = all(ismember({'nasX';'nasY';'nasZ';'lpaX';'lpaY';'lpaZ';'rpaX';'rpaY'
 cfg = ft_checkconfig(cfg, 'renamed', {'tightgrid', 'tight'}); % this is moved to cfg.grid.tight by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved to cfg.grid.unit by the subsequent createsubcfg
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
+
+if isstruct(cfg.template)
+  % this should be a cell-array
+  cfg.template = {cfg.template};
+end
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')

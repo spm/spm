@@ -20,7 +20,7 @@ function ft_compile_mex(force)
 % procedure for setting up the MEX environment.
 %
 % The logic in this script is to first build a list of files that actually
-% need compilation for the particular platform that Matlab is running on,
+% need compilation for the particular platform that MATLAB is running on,
 % and then to go through that list. Functions are added to the list by
 % giving their destination directory and (relative to that) the name of the
 % source file (without the .c). Optionally, you can specify a list of
@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 8636 2013-10-24 14:05:58Z roboos $
+% $Id: ft_compile_mex.m 9226 2014-02-23 13:12:06Z roboos $
 
 if nargin<1
   force=false;

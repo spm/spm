@@ -18,7 +18,7 @@ function [cfg] = ft_definetrial(cfg)
 % A call to FT_DEFINETRIAL results in the trial definition "trl" being
 % added to the output configuration structure. The trials are defined
 % according to the triggers, trials or other events in the data, or
-% from a user-specified Matlab function (subsequently referred to as
+% from a user-specified MATLAB function (subsequently referred to as
 % the trial function) which returns "trl". The user can specify the
 % name of his/her custom trial function that is tailored to the
 % experimental paradigm, or use the default trial function
@@ -110,9 +110,9 @@ function [cfg] = ft_definetrial(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_definetrial.m 8841 2013-11-24 10:51:59Z jansch $
+% $Id: ft_definetrial.m 9226 2014-02-23 13:12:06Z roboos $
 
-revision = '$Id: ft_definetrial.m 8841 2013-11-24 10:51:59Z jansch $';
+revision = '$Id: ft_definetrial.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -154,7 +154,7 @@ elseif isfield(cfg, 'trialfun')
   
   % determine the number of outpout arguments of the user-supplied trial function
   try
-    % the nargout function in Matlab 6.5 and older does not work on function handles
+    % the nargout function in MATLAB 6.5 and older does not work on function handles
     num = nargout(cfg.trialfun);
   catch
     num = 1;

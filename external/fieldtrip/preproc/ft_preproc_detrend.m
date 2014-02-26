@@ -4,18 +4,18 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 % data using using a General Linear Modeling approach.
 %
 % Use as
-%   [dat] = ft_preproc_detrend(dat, begin, end, order)
+%   [dat] = ft_preproc_detrend(dat, begin, end)
 % where
-%   dat        data matrix (Nchans X Ntime)
-%   begsample  index of the begin sample for the trend estimate
-%   endsample  index of the end sample for the trend estimate
+%   dat        = data matrix (Nchans X Ntime)
+%   begsample  = index of the begin sample for the trend estimate
+%   endsample  = index of the end sample for the trend estimate
 %
 % If no begin and end sample are specified for the trend estimate, it
 % will be estimated on the complete data.
 %
-% See also FT_PREPROC_POLYREMOVAL
+% See also FT_PREPROC_BASELINECORRECT, FT_PREPROC_POLYREMOVAL
 
-% Copyright (C) 2008-2012, Robert Oostenveld
+% Copyright (C) 2008-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -33,14 +33,14 @@ function [dat,beta,x] = ft_preproc_detrend(dat, begsample, endsample)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_detrend.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preproc_detrend.m 9236 2014-02-24 10:34:59Z roboos $
 
 % take the whole segment if begsample and endsample are not specified
-if nargin<2
+if nargin<2 || isempty(begsample)
   begsample = 1;
 end
-if nargin<3
+if nargin<3|| isempty(endsample)
   endsample = size(dat,2);
 end
 
-[dat,beta,x] = ft_preproc_polyremoval(dat,1,begsample,endsample);
+[dat,beta,x] = ft_preproc_polyremoval(dat, 1, begsample, endsample);

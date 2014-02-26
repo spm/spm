@@ -1,7 +1,7 @@
 function ft_create_buffer(port)
 
 % FT_CREATE_BUFFER starts the thread with the TCP server attached to the local
-% Matlab instance. The TCP server will listen to the specified network
+% MATLAB instance. The TCP server will listen to the specified network
 % port, and accept incoming read and write requests.
 %
 % Use as
@@ -29,7 +29,7 @@ function ft_create_buffer(port)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_create_buffer.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_create_buffer.m 9226 2014-02-23 13:12:06Z roboos $
 
 if nargin<1
   port = 1972;

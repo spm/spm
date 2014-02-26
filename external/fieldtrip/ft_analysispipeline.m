@@ -42,7 +42,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % This function uses the nested cfg and cfg.previous that are present in
 % the data structure. It will use the configuration and the nested previous
 % configurations to climb all the way back into the tree. This funtction
-% will print a complete Matlab script to screen (and optionally to file).
+% will print a complete MATLAB script to screen (and optionally to file).
 % Furthermore, it will show an interactive graphical flowchart
 % representation of the steps taken during the pipeline(i). In the flowchart
 % you can click on one of the steps to see the configuration details of
@@ -55,7 +55,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-revision = '$Id: ft_analysispipeline.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_analysispipeline.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting

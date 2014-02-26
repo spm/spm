@@ -110,9 +110,9 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 8757 2013-11-11 13:14:30Z roboos $
+% $Id: ft_sensorrealign.m 9244 2014-02-26 09:49:03Z roboos $
 
-revision = '$Id: ft_sensorrealign.m 8757 2013-11-11 13:14:30Z roboos $';
+revision = '$Id: ft_sensorrealign.m 9244 2014-02-26 09:49:03Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -176,13 +176,15 @@ end % switch cfg.method
 if nargin==1
   try % try to get the description from the cfg
     elec_original = ft_fetch_sens(cfg);
-  catch lasterr
+  catch
+    % the "catch me" syntax is broken on MATLAB74, this fixes it
+    me = lasterror;
     % start with an empty set of electrodes, this is useful for manual positioning
     elec_original = [];
     elec_original.pnt    = zeros(0,3);
     elec_original.label  = cell(0,1);
     elec_original.unit   = 'mm';
-    warning(lasterr.message, lasterr.identifier);
+    warning(me.message, me.identifier);
   end
 elseif nargin>1
   % the input electrodes were specified as second input argument

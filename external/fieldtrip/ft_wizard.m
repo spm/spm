@@ -14,7 +14,7 @@ function varargout = ft_wizard(wizard_filename)
 % the name of the script is stored in a string, when an output argument is
 % requested, or if the name of the script contains spaces. If you do not
 % specify an output argument, the results will be stored as variables in
-% the main Matlab workspace. 
+% the main MATLAB workspace. 
 % 
 % Besides the buttons, you can use the following key combinations
 %   Ctrl-O        load a new script from a file
@@ -45,7 +45,7 @@ function varargout = ft_wizard(wizard_filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_wizard.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_wizard.m 9226 2014-02-23 13:12:06Z roboos $
 
 % this function is a wrapper around the actual GUI function
 % the main purpose of this function is to provide a workspace where the

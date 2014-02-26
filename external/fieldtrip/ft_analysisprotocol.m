@@ -2,7 +2,7 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 
 % FT_ANALYSISPROTOCOL tries to reconstruct the complete analysis protocol that
 % was used to create an arbitrary FieldTrip data structure. It will create
-% a Matlab script (as text file) and a flowchart with a graphical
+% a MATLAB script (as text file) and a flowchart with a graphical
 % representation.
 %
 % Use as
@@ -43,7 +43,7 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 % This function uses the nested cfg and cfg.previous that are present in
 % the data structure. It will use the configuration and the nested previous
 % configurations to climb all the way back into the tree. This funtction
-% will print a complete Matlab script to screen (and optionally to file).
+% will print a complete MATLAB script to screen (and optionally to file).
 % Furthermore, it will show an interactive graphical flowchart
 % representation of the steps taken during the analysis. In the flowchart
 % you can click on one of the steps to see the configuration details of
@@ -75,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_analysisprotocol.m 9226 2014-02-23 13:12:06Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_analysisprotocol.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -175,7 +175,7 @@ script = '';
 try
   thisname = getsubfield(datacfg, 'version.name');
   if isstruct(thisname)
-    % I think that this was needed for Matlab 6.5
+    % I think that this was needed for MATLAB 6.5
     thisname = thisname.name;
   end
   [p, f] = fileparts(thisname);

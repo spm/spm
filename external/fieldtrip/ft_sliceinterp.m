@@ -101,9 +101,9 @@ function [outim]=ft_sliceinterp(cfg, ininterp)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sliceinterp.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_sliceinterp.m 9226 2014-02-23 13:12:06Z roboos $
 
-revision = '$Id: ft_sliceinterp.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_sliceinterp.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -361,7 +361,7 @@ end
 % merge anatomy, functional data and mask
 fprintf('constructing overlay...');
 if ischar(cfg.colormap)
-  % replace string by colormap using standard Matlab function
+  % replace string by colormap using standard MATLAB function
   cfg.colormap = colormap(cfg.colormap);
 end
 cmap = cfg.colormap;

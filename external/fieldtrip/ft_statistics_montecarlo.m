@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 9130 2014-01-26 11:02:42Z dieloz $
+% $Id: ft_statistics_montecarlo.m 9226 2014-02-23 13:12:06Z roboos $
 
 % deal with the user specified randomseed first, to mimick old behavior
 cfg.randomseed = ft_getopt(cfg, 'randomseed', 'yes');
@@ -272,7 +272,7 @@ ft_progress('init', cfg.feedback, 'computing statistic');
 time_pre = cputime;
 
 try
-  % the nargout function in Matlab 6.5 and older does not work on function handles
+  % the nargout function in MATLAB 6.5 and older does not work on function handles
   num = nargout(statfun);
 catch
   num = 1;

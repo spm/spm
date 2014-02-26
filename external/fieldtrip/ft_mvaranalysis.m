@@ -89,9 +89,9 @@ function [mvardata] = ft_mvaranalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_mvaranalysis.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_mvaranalysis.m 9226 2014-02-23 13:12:06Z roboos $
 
-revision = '$Id: ft_mvaranalysis.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_mvaranalysis.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -480,6 +480,6 @@ end
 %------------------------------------------------------
 %---subfunction to ensure that the first two input arguments are of double
 % precision this prevents an instability (bug) in the computation of the
-% tapers for Matlab 6.5 and 7.0
+% tapers for MATLAB 6.5 and 7.0
 function [tap] = double_dpss(a, b, varargin)
 tap = dpss(double(a), double(b), varargin{:});

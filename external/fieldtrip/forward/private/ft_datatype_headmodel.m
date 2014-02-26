@@ -65,7 +65,7 @@ function vol = ft_datatype_headmodel(vol, varargin)
 
 % Copyright (C) 2011-2012, Cristiano Micheli, Robert Oostenveld
 %
-% $Id: ft_datatype_headmodel.m 9208 2014-02-18 08:57:38Z roboos $
+% $Id: ft_datatype_headmodel.m 9216 2014-02-21 13:04:39Z dieloz $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -81,8 +81,9 @@ end
 switch version
   
   case '2014'
-    % first make it consistent with the 2012 version
-    vol = ft_datatype_headmodel(vol, 'version', '2012');
+    % first make it consistent with the 2013 version that makes a
+    % consistency check with 2012 first
+    vol = ft_datatype_headmodel(vol, 'version', '2013');
     
     % ensure that all numbers are represented in double precision
     vol = ft_struct2double(vol);

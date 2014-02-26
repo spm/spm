@@ -20,7 +20,7 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %   cfg.method       = different methods for calculating the significance probability and/or critical value
 %                    'montecarlo'    get Monte-Carlo estimates of the significance probabilities and/or critical values from the permutation distribution,
 %                    'analytic'      get significance probabilities and/or critical values from the analytic reference distribution (typically, the sampling distribution under the null hypothesis),
-%                    'stats'         use a parametric test from the Matlab statistics toolbox,
+%                    'stats'         use a parametric test from the MATLAB statistics toolbox,
 %                    'crossvalidate' use crossvalidation to compute predictive performance
 %
 % The other cfg options depend on the method that you select. You
@@ -56,9 +56,9 @@ function [stat] = ft_timelockstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockstatistics.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_timelockstatistics.m 9226 2014-02-23 13:12:06Z roboos $
 
-revision = '$Id: ft_timelockstatistics.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_timelockstatistics.m 9226 2014-02-23 13:12:06Z roboos $';
 
 % do the general setup of the function
 ft_defaults

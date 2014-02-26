@@ -37,7 +37,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 9189 2014-02-10 03:11:53Z giopia $
+% $Id: fieldtrip2fiff.m 9226 2014-02-23 13:12:06Z roboos $
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults
@@ -188,7 +188,7 @@ end
 
 % otherwise reconstruct it
 fprintf('Reconstructing channel locations, it might be inaccurate\n')
-FIFF = fiff_define_constants; % some constants are not defined in the Matlab function
+FIFF = fiff_define_constants; % some constants are not defined in the MATLAB function
 
 if isfield(data, 'grad')
   hasgrad = true;
