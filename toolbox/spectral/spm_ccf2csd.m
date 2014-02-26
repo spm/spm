@@ -15,14 +15,13 @@ function [csd,Hz] = spm_ccf2csd(ccf,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ccf2csd.m 5837 2014-01-18 18:38:07Z karl $
+% $Id: spm_ccf2csd.m 5895 2014-02-26 14:28:23Z karl $
  
 % unpack cells
 %--------------------------------------------------------------------------
 if iscell(ccf)
     for i = 1:length(ccf)
-       [csdi,Hz] = spm_ccf2csd(ccf{i},pst);
-       csd{i}    = csdi;
+       csd{i}    = spm_ccf2csd(ccf{i},Hz);
     end
     return
 end
@@ -31,8 +30,7 @@ end
 %--------------------------------------------------------------------------
 if ndims(ccf) == 4
     for i = 1:size(ccf,1)
-       [csdi,Hz]    = spm_ccf2csd(squeeze(ccf(i,:,:,:)),pst);
-       csd(i,:,:,:) = csdi;
+       csd(i,:,:,:) = spm_ccf2csd(squeeze(ccf(i,:,:,:)),Hz);
     end
     return
 end
@@ -41,7 +39,7 @@ end
 %--------------------------------------------------------------------------
 ds    = Hz(2) - Hz(1);
 gi    = ceil(Hz/ds) + 1;
-N     = max(Hz);
+N     = Hz(end);
 
 % Fourier transform cross-spectral density
 %==========================================================================

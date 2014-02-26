@@ -1,4 +1,4 @@
-function spm_Granger_demo
+function spm_dcm_Granger_demo
 % Demo routine for induced responses
 %==========================================================================
 %
@@ -26,7 +26,7 @@ function spm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_Granger_demo.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_dcm_Granger_demo.m 5895 2014-02-26 14:28:23Z karl $
  
  
 % Model specification
@@ -121,27 +121,6 @@ spm_spectral_plot(Hz,mar.P,'r', 'frequency','density')
 legend('cross spectral density',...
        'autoregressive model')
 
-% return
-
-
-% The effect of delays
-%==========================================================================
-
-
-
-
-
-% iterative check on transformations
-%--------------------------------------------------------------------------
-% spm_figure('GetWin','Figure 1'); clf
-% n     = size(ccf,1);
-% for i = 1:4
-%     ccf           = spm_mar2ccf(mar,n);
-%     mar           = spm_ccf2mar(ccf,p);
-%     mar           = spm_mar_spectra(mar,Hz,ns);
-%     spm_spectral_plot(1:n,ccf,'b','frequency','density')
-% end
-
 
 %  comparison of expected results
 %==========================================================================
@@ -167,7 +146,7 @@ legend('modulation transfer function',...
 %--------------------------------------------------------------------------
 logs  = [ ((1:4)/1 - 2);
           ((1:4)/1 - 2);
-          ((1:4)/8 + 0);
+          ((1:4)/6 + 0);
           ((1:4)*2 - 8)];
 
 param = {'A{1}(2,1)','A{3}(1,2)','S','b(1,:)'};
@@ -223,9 +202,191 @@ for i = 1:size(logs,1)
 
 end
 
-% a more careful examination of fluctuations
+% Lyapunov functions
 %==========================================================================
+
+% (log) scaling, and parameters
+%--------------------------------------------------------------------------
+logs  = [ ((1:4)/1 - 2);
+          ((1:4)/1 - 2);
+          ((1:4)/6 + 0);
+          ((1:4)*2 - 8)];
+
+param = {'A{1}(2,1)','A{3}(1,2)','S','D(1,:)'};
+str   = {     'forward connectivity',
+              'backward connectivity',
+              'intrinsic gain',
+              'intrinsic delays'};
+
+
+%  changing parameters are Lyapunov functions
+%--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
+k     = linspace(0,1,32);
+for i = 1:length(param)
+    for j = 1:length(k)
+        
+        P     = pE;
+        eval(sprintf('P.%s = %i;',param{i},k(j)));
+        
+        % create forward model and solve for steady state
+        %------------------------------------------------------------------
+        M.x   = spm_dcm_neural_x(P,M);
+        
+        % Analytic spectral chararacterisation
+        %==================================================================
+        [f,dfdx,D] = feval(M.f,M.x,M.u,P,M);
+        dfdx       = D*dfdx;
+        S(i,j)     = max(real(eig(full(dfdx),'nobalance')));
+        
+    end
+end
+
+% plot
+%--------------------------------------------------------------------------
+subplot(2,1,1)
+plot(k,S),hold on
+xlabel('parameter (log) scaling')
+ylabel('principal eigenvalue')
+title('Lyapunov exponents','FontSize',16)
+axis square; spm_axis tight
+legend(str)
+
+plot(k,k*0,':',k,k*0 - 1/(dt*p),'-.'),hold off
+
+% MAR approximation
+%==========================================================================
+param = {'S'};
+for i = 1:length(param)
+    for j = 1:length(k)
+        
+        P     = pE;
+        eval(sprintf('P.%s = %i;',param{i},k(j)));
+        
+        % create forward model and solve for steady state
+        %------------------------------------------------------------------
+        M.x   = spm_dcm_neural_x(P,M);
+        
+        % recursive check on MAR approximation
+        %------------------------------------------------------------------
+        csd   = spm_csd_mtf(P,M);
+        mar   = spm_csd2mar(csd{1},Hz,16);
+        mar   = spm_mar_spectra(mar,Hz);
+        
+        CSD(:,j) = csd{1}(:,2,2);
+        PSD(:,j) = mar.P(:,2,2);
+        
+    end
+end
+
+DSD = abs(PSD) - abs(CSD);
+CSD = log(abs(CSD));
+
+
+subplot(2,2,3)
+imagesc(k,Hz,CSD)
+xlabel('parameter (log) scaling')
+ylabel('frequency')
+title('(log) spectral density','FontSize',16)
+
+subplot(2,2,4)
+imagesc(k,Hz,abs(DSD).^(1/4))
+xlabel('parameter (log) scaling')
+ylabel('frequency')
+title('MAR approximation error','FontSize',16)
+
+
+% a more careful examination of [in]stability on Granger causality
+%==========================================================================
+spm_figure('GetWin','Figure 5'); clf
+k     = linspace(0,2/3,8);
+for j = 1:length(k)
+    
+    
+    % amplitude of observation noise
+    %----------------------------------------------------------------------
+    P        = pE;
+    P.S      = k(j);
+       
+    % create forward model and solve for steady state
+    %----------------------------------------------------------------------
+    M.x          = spm_dcm_neural_x(P,M);
+    
+    % Analytic spectral chararacterisation (parametric)
+    %======================================================================
+    [csd,Hz,mtf] = spm_csd_mtf(P,M);
+    ccf          = spm_csd2ccf(csd{1},Hz,dt);
+    mar          = spm_ccf2mar(ccf,p);
+    mar          = spm_mar_spectra(mar,Hz,ns);
+    
+    % and non-parametric
+    %======================================================================
+    gew          = spm_csd2gew(csd{1},Hz);
+    
+    % save forwards and backwards functions
+    %----------------------------------------------------------------------
+    GCF(:,j)     = abs(gew(:,2,1));
+    GCB(:,j)     = abs(gew(:,1,2));
+    
+    % plot forwards and backwards functions
+    %----------------------------------------------------------------------
+    subplot(3,2,1)
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('forward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    a  = axis;
+    
+    subplot(3,2,2)
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('backward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+
+    
+    % plot forwards and backwards functions
+    %----------------------------------------------------------------------
+    subplot(3,2,3)
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('forward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+    
+    subplot(3,2,4)
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    xlabel('frequency')
+    ylabel('absolute value')
+    title('backward','FontSize',16)
+    axis square, hold on, set(gca,'XLim',[0 Hz(end)])
+    axis(a);
+    
+end
+
+a = .2;
+subplot(3,2,5)
+image(Hz,k,GCF'*64/a)
+xlabel('frequency')
+ylabel('log(exponent)')
+title('forward','FontSize',16)
+axis square
+
+subplot(3,2,6)
+image(Hz,k,GCB'*64/a)
+xlabel('frequency')
+ylabel('log(exponent)')
+title('backward','FontSize',16)
+
+
+axis square
+
+% a more careful examination of measurement noise
+%==========================================================================
+spm_figure('GetWin','Figure 6'); clf
 k     = linspace(-8,-2,8);
 for j = 1:length(k)
     
@@ -246,7 +407,7 @@ for j = 1:length(k)
     mar          = spm_ccf2mar(ccf,p);
     mar          = spm_mar_spectra(mar,Hz,ns);
     
-    % and non-parametric)
+    % and non-parametric
     %======================================================================
     gew          = spm_csd2gew(csd{1},Hz);
     
@@ -313,7 +474,7 @@ axis square
 
 % return if in demonstration mode
 %--------------------------------------------------------------------------
-DEMO = 1;
+DEMO = 0;
 if DEMO, return, end
 
 
@@ -381,7 +542,7 @@ for t = 1:16
    
     % plot
     %----------------------------------------------------------------------
-    spm_figure('GetWin','Figure 5'); clf
+    spm_figure('GetWin','Figure 7'); clf
     spm_spectral_plot(Hz,csd{1},'r',  'frequency','density')
     spm_spectral_plot(Hz,CSD/t, 'b',  'frequency','density')
     spm_spectral_plot(Hz,PSD/t, 'g',  'frequency','density')
@@ -448,7 +609,7 @@ DCM  = spm_dcm_csd(DCM);
 
 % show results in terms of transfer functions and Granger causality
 %==========================================================================
-spm_figure('GetWin','Figure 6'); clf
+spm_figure('GetWin','Figure 8'); clf
 
 % transfer functions and Granger causality among sources and channels
 %--------------------------------------------------------------------------
@@ -472,7 +633,7 @@ return
    
 % NOTES: a more careful examination of delays
 %==========================================================================
-spm_figure('GetWin','Figure 7'); clf
+spm_figure('GetWin','Figure 9'); clf
 
 k     = linspace(8,11,8);
 for j = 1:length(k)

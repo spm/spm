@@ -178,4 +178,4 @@ run_demo_Callback(hObject, handles, 'DEMO_model_reduction_ERP')
 % --- Executes on button press in pushbutton30.
 function pushbutton30_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Analysing%20connectivity%20with%20Granger%20causality%20and%20dynamic%20causal%20modelling.pdf';
-run_demo_Callback(hObject, handles, 'spm_Granger_demo')
+run_demo_Callback(hObject, handles, 'spm_dcm_Granger_demo')
