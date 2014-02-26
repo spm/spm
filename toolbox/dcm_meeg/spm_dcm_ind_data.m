@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5863 2014-01-30 20:58:36Z karl $
+% $Id: spm_dcm_ind_data.m 5894 2014-02-26 14:27:01Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -92,16 +92,12 @@ end
 Ic   = DCM.xY.Ic;
 Nc   = length(DCM.xY.Ic);
  
-% options
+% options: use a high number of modes to enable Bayesian model comparison
 %--------------------------------------------------------------------------
-try, Nm  = DCM.options.Nmodes; catch, Nm  = 4; DCM.options.Nmodes = Nm; end
+try, Nm  = DCM.options.Fmodes; catch, Nm  = 8; DCM.options.Fmodes = Nm; end
 try, h   = DCM.options.h;      catch, h   = 1; DCM.options.h      = h;  end
 try, DT  = DCM.options.D;      catch, DT  = 2; DCM.options.D      = DT; end
 try, Rft = DCM.options.Rft;    catch, Rft = 6; DCM.options.Rft    = Rft;end
-
-% enforce a high number of modes to enable Bayesian model comparison
-%--------------------------------------------------------------------------
-Nm       = 8;
 
 try
     trial = DCM.options.trials;

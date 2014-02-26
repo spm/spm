@@ -52,7 +52,7 @@ function DCM = spm_dcm_ind(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind.m 5863 2014-01-30 20:58:36Z karl $
+% $Id: spm_dcm_ind.m 5894 2014-02-26 14:27:01Z karl $
  
  
 % check options 
@@ -66,14 +66,16 @@ try, DCM.name;                  catch, DCM.name           = 'DCM_IND'; end
 try, DCM.options.Nmodes;        catch, DCM.options.Nmodes = 4;         end
 try, onset = DCM.options.onset; catch, onset              = 80;        end
 try, dur   = DCM.options.dur;   catch, dur                = 32;        end
+try, DATA  = DCM.options.DATA;  catch, DATA               = 1;         end
  
 % Data and spatial model
 %==========================================================================
-DCM      = spm_dcm_erp_dipfit(DCM, 1);
-if ~isfield(DCM.xY,'source')   
-    DCM  = spm_dcm_ind_data(DCM);
+if DATA
+    DCM      = spm_dcm_erp_dipfit(DCM, 1);
+    if ~isfield(DCM.xY,'source')
+        DCM  = spm_dcm_ind_data(DCM);
+    end
 end
- 
 xY     = DCM.xY;
 xU     = DCM.xU;
 xU.dt  = xY.dt;
@@ -87,7 +89,7 @@ Nr     = size(DCM.C,1);               % number of sources
 nu     = size(DCM.C,2);               % number of neuronal inputs
 Ns     = size(xY.y{1},1);             % number of samples
 Nu     = size(xU.X,2);                % number of trial-specific effects
-nx     = Nr*Nm;                       % number of states
+nx     = Nr*Nf;                       % number of states
  
  
 % assume noise precision is the same over modes:
@@ -95,8 +97,7 @@ nx     = Nr*Nm;                       % number of states
 xY.Q   = {spm_Q(1/2,Ns,1)};
 xY.X0  = sparse(Ns,0);
  
- 
- 
+
 % Inputs
 %==========================================================================
  
@@ -119,7 +120,7 @@ try, M = rmfield(M,'FS'); end
  
 % prior moments
 %--------------------------------------------------------------------------
-[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nm);
+[pE,gE,pC,gC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nm,Nf);
  
 % hyperpriors (assuming about 99% signal to noise)
 %--------------------------------------------------------------------------
@@ -154,7 +155,7 @@ M.dur = dur;
  
 % Data ID
 %==========================================================================
-if isfield(M,'FS')
+if isfield(M,'FS') && DATA
     try
         ID  = spm_data_id(feval(M.FS,xY.y,M));
     catch
@@ -212,6 +213,7 @@ DCM.R  = R;                    % conditional residuals (y), channel space
 DCM.Ce = Ce;                   % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 DCM.ID = ID;                   % data ID
+DCM.L  = [];
  
  
 % and save
