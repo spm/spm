@@ -93,6 +93,8 @@ SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The 
 
 \section{Temporal processing}
 
+\subsection{Slice-timing correction}
+
 \section{Spatial processing}
 There have been changes to much of the functionality for spatially transforming images -- particularly with respect to inter-subject registration.
 This is a small step towards reducing SPM to a more manageable size \cite{ashburner2011spm}.
@@ -115,7 +117,7 @@ The aim, however, is to try to simplify SPM and eventually remove the older func
 Both implementations are based on the algorithm presented in \cite{ashburner05}, although the newer version makes use of additional tissue classes, allows multi-channel segmentation (of eg T2-weighted and PD-weighted images), and incorporates a more flexible image registration component.
 
 Changes to the SPM8 version of ``New Segment'' include different regularisation for the deformations, some different default settings, as well as re-introducing the re-scaling of the tissue probability maps (which was in the old segment, but not the new).  In addition, the tissue probability maps were re-generated using the T2-weighted and PD-weighted scans from the IXI dataset\footnote{\url{http://www.brain-development.org/}}.
-This was initially done in an automated way (by enabling a hidden feature in spm\_preproc\_run.m, which allows the necessary sufficient statistics for re-generating the templates to be computed), with some manual editing of the results to tidy them up.
+This was initially done in an automated way (by enabling a hidden feature in \texttt{spm\_preproc\_run.m}, which allows the necessary sufficient statistics for re-generating the templates to be computed), with some manual editing of the results to tidy them up.
 Note that eyeballs are now included within the same class as CSF.
 Separating eyeballs from other non-brain tissue allows the nonlinear registration part to be made more flexible, but the disadvantage is that intra-cranial volumes are now fractionally more difficult to compute.
 However, the cleanup step (re-introduced from the old segmentation routine, and extended slightly) should allow eyeballs to be removed from the fluid tissue class.
@@ -124,53 +126,66 @@ However, the cleanup step (re-introduced from the old segmentation routine, and 
 
 \subsection{Canonical Variates Analysis}
 
-SPM's Canonical Variates Analysis (CVA) function, \verb!spm_cva.m!, has been updated so that it also computes Log Bayes Factors to make inferences about the number of significantly non-zero canonical vectors. It computes AIC and BIC approximations to these Log Bayes Factors. These quantities can be used in second-level analysis to make inferences about a group of subjects/sessions using the SPM's random effects model selection tool (\verb!spm_BMS.m!). 
+SPM's Canonical Variates Analysis (CVA) function, \texttt{spm\_cva.m}, has been updated so that it also computes Log Bayes Factors to make inferences about the number of significantly non-zero canonical vectors. It computes AIC and BIC approximations to these Log Bayes Factors. These quantities can be used in second-level analysis to make inferences about a group of subjects/sessions using the SPM's random effects model selection tool (\texttt{spm\_BMS.m}). 
 
 \subsection{Regional Bayesian model comparison - first level}
 
-The function \verb!spm_vb_regionF.m! now provides approximation of the log model evidence for a first level fMRI model. If you call this function multiple times with different design matrices it will allow you to implement Bayesian model comparison. This is useful for example for comparing non-nested GLMs with, for example, different (sets of) parametric modulators. The approach can be applied to first level fMRI data from a local region. This is the recommended method for Bayesian comparison of General Linear Models of first level fMRI data.
+The function \texttt{spm\_vb\_regionF.m} now provides approximation of the log model evidence for a first level fMRI model. If you call this function multiple times with different design matrices it will allow you to implement Bayesian model comparison. This is useful for example for comparing non-nested GLMs with, for example, different (sets of) parametric modulators. The approach can be applied to first level fMRI data from a local region. This is the recommended method for Bayesian comparison of General Linear Models of first level fMRI data.
 
 \subsection{Interactive Bayesian model comparison - second level}
 
-Multidimensional (or two-sided) inferences about GLM parameters 
- are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
+Multidimensional (or two-sided) inferences about GLM parameters  are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
 This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG) .
 
+\subsection{Mixed-effects models}
+
+The approach described in \cite{karl_mixed} and implemented in \texttt{spm\_mfx.m} is now available via the batch interface. A new chapter in the SPM manual is devoted to this new option.
+
+\subsection{Set-level threshold-free tests}
+
+See \cite{Barnes2013}.
+
 \subsection{DCM}
+
+\subsubsection{Reparametrisation of the bilinear model}
 
 The bilinear model used by (single-state) DCM for fMRI has been upgraded. To summarise, a number of people have observed that Bayesian parameter averages (BPA) of self (intrinsic) connections can be positive, despite being negative for each subject or session. This is perfectly plausible behaviour -- in the sense that their prior expectation is $-1/2$ and each subject can provide evidence that the posterior is less than the prior mean (but still negative). When this evidence is accumulated by BPA, the posterior can be `pushed' into positive values. The anomalous aspect of this behaviour rests on the fact that there is no negativity constraint on the self-connections.  In the revised code, the self-connections -- in the leading diagonal of the $A$ matrix -- now specify log scaling parameters. This means that these (and only these) parameters encode a self-connections of $-1/2*exp(A)$; where $A$ has a prior mean of $0$ and $-1/2*exp(0) = -1/2$. 
 
 This re-parameterisation does not affect model inversion very much but guarantees the BPA is always negative because $-1/2*exp(A) < 0$ has to be less than one. The parameterisation of connection strengths in terms of log scale parameters is already used by two-state models for fMRI and all EEG (and MEG) DCMs.
 
+\subsubsection{Bayesian model selection for group studies}
+
+\texttt{spm\_BMS.m} now also returns also return ''Protected Exceedance Probabilities'' \cite{Rigoux2014}.
+
 \section{EEG/MEG}
 
-\subsection{@meeg object}
+\subsection{\texttt{@meeg} object}
 
-The following @meeg methods have been removed to simplify and rationalise the object interface
+The following \texttt{@meeg} methods have been removed to simplify and rationalise the object interface
 \begin{itemize}
-\item   'pickconditions' - replaced with 'indtrial'
-\item   'meegchannels', 'ecgchannels', 'emgchannels',  'eogchannels' - replaced with 'indchantype'
-\item 'reject' - replaced with 'badtrials'
+\item \texttt{`pickconditions'} - replaced with \texttt{`indtrial'}
+\item \texttt{`meegchannels'}, \texttt{`ecgchannels'}, \texttt{`emgchannels'},  \texttt{`eogchannels'} - replaced with \texttt{`indchantype'}
+\item \texttt{`reject'} - replaced with {`badtrials'}
 \end{itemize}
 
-It is now possible to have @meeg objects without a linked data file. This was useful to simplify the conversion code. Also in 'Prepare' one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion).
+It is now possible to have \texttt{@meeg} objects without a linked data file. This was useful to simplify the conversion code. Also in \textsc{Prepare} one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion).
 
 
 \subsection{Preprocessing}
 
-The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the 'Prepare' tool under 'Batch inputs' menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch.
+The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the \textsc{Prepare} tool under \textsc{Batch inputs} menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch.
 
-It is still also possible to call the preprocessing function via scripts and scripts can be generated using History2script functionality as in SPM8. The inputs structures and parameters names of preprocessing function have been standardised so that e.g. time window is always called S.timewin and units of peristimulus time are always ms. Also substructures of S have been removed except for where they are functionally essential.
+It is still also possible to call the preprocessing function via scripts and scripts can be generated using \texttt{History2script} functionality as in SPM8. The inputs structures and parameters names of preprocessing function have been standardised so that e.g. time window is always called \texttt{S.timewin} and units of peristimulus time are always ms. Also substructures of \texttt{S} have been removed except for where they are functionally essential.
 
-Simple GUI functionality for converting a variable in the workspace into SPM M/EEG dataset was added to 'Prepare' (File/Import from workspace).
+Simple GUI functionality for converting a variable in the workspace into SPM M/EEG dataset was added to \textsc{Prepare} (File/Import from workspace).
 
 For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling.
 
 Conversion to images was completely rewritten. It is now possible to easily create 1D images and average across any set of dimensions to reduce the number of multiple comparisons.
 
 \subsection{Convolution modelling}
-An implementation of recently published (Litvak et al. 2012) convolution modelling method for M/EEG power has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool.
 
+An implementation of recently published convolution modelling method for M/EEG power \cite{Litvak_ConvModel_2013} has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool.
 
 \subsection{DCM}
 
@@ -217,6 +232,9 @@ The default spatial normalisation approach in SPM12 is now based on what was kno
 This toolbox keeps the old normalisation approach available to those who wish to continue using it, although we plan to eventually phase out the older approach.
 See \cite{klein_evaluation} to see how poorly the old normalisation approach works.
 It was definitely time for it to go.
+
+\subsection{De-face Images}
+A simple utility is available for attempting to strip the face from images, so individuals are more difficult to identify from surface renderings.
 
 \section{Batch Interface}
 
