@@ -1,17 +1,29 @@
-function s = spm_cat_struct(s1, s2)
-% Concatenates two structure arrays with possibly different fields
-% FORMAT s = spm_cat_struct(s1, s2)
+function s = spm_cat_struct(varargin)
+% Concatenates structure arrays with possibly different fields
+% FORMAT s = spm_cat_struct(s1, s2, ...)
 %__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cat_struct.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_cat_struct.m 5898 2014-02-27 14:11:09Z vladimir $
+
+if nargin < 2
+    error('At least two arguments are required');
+end
+
+s1 = varargin{1};
+
+if nargin > 2
+    s2 = spm_cat_struct(varargin{2:end});
+else
+    s2 = varargin{2};
+end
 
 if isempty(s1)
     s = s2;
 elseif isempty(s2)
     s = s1;
-else    
+else
     addfields1 = setdiff(fieldnames(s2), fieldnames(s1));
     for i = 1:numel(addfields1)
         [s1(:).(addfields1{i})] = deal([]);
