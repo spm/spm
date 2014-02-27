@@ -170,7 +170,6 @@ The following \texttt{@meeg} methods have been removed to simplify and rationali
 
 It is now possible to have \texttt{@meeg} objects without a linked data file. This was useful to simplify the conversion code. Also in \textsc{Prepare} one can just load a header of a raw data file and use it to prepare inputs for the full conversion batch (e.g. select channels or prepare trial definition for epoching during conversion).
 
-
 \subsection{Preprocessing}
 
 The preprocessing functions now use the SPM batch system and the interactive GUI elements have been removed. This should make it easy to build processing pipelines for performing complete complicated data analyses without programming. The use of batch has many advantages but can also complicate some of the operations because a batch must be configured in advance and cannot rely on information available in the input file. For instance, the batch tool cannot know the channel names for a particular dataset and thus cannot generate a dialog box for the user to choose the channels. To facilitate the processing steps requiring this kind of information additional functionalities have been added to the \textsc{Prepare} tool under \textsc{Batch inputs} menu. One can now make the necessary choices for a particular dataset using an unteractive GUI and then save the results in a mat file and use this file as an input to batch.
@@ -182,6 +181,10 @@ Simple GUI functionality for converting a variable in the workspace into SPM M/E
 For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling.
 
 Conversion to images was completely rewritten. It is now possible to easily create 1D images and average across any set of dimensions to reduce the number of multiple comparisons.
+
+\subsection{Online montage}
+
+The ``online montage'' let you apply any type of channel montage (re-referencing, subsampling of channels, mixing as in ICA, etc.) to your data without having to write them explicitly on disk. A series of such ``montages'' can be added to your data and switched on/off at will. This can be particularly useful to visually review your data (e.g. on a subset of channels), visualize the effect of a applying such montage (e.g. 2 types of re-referencing) or perform specific operations on mixed data (e.g. feature detection).
 
 \subsection{Convolution modelling}
 
