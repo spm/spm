@@ -47,7 +47,7 @@ function DCM = spm_dcm_search_eeg(P,SAVE_DCM)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_search_eeg.m 5894 2014-02-26 14:27:01Z karl $
+% $Id: spm_dcm_search_eeg.m 5900 2014-02-27 21:54:51Z karl $
 
 % get filenames and set up
 %--------------------------------------------------------------------------
@@ -65,7 +65,20 @@ N = numel(P);
 
 %-Check models are compatible in terms of their data
 %==========================================================================
+
+
+% establish whether reduced models are specifed in term of pE,pC or A.B.C
+%--------------------------------------------------------------------------
 try
+    
+    % number of free parameters
+    %----------------------------------------------------------------------
+    for j = 1:N
+        try, load(P{j}); catch, DCM = P{j}; end
+        par(:,j) = logical(diag(DCM.M.pC));
+    end
+    
+catch
     
     % number of free parameters
     %----------------------------------------------------------------------
@@ -74,29 +87,18 @@ try
         par(:,j) = logical(spm_vec(DCM.A,DCM.B,DCM.C));
         
     end
-    
-    %-load full model
-    %======================================================================
-    [i j] = max(sum(par));
-    try, load(P{j}); catch, DCM = P{j}; end
-    
-    % check this is a full model and that is has been inverted
-    % ---------------------------------------------------------------------
-    if any(any(par,2) > par(:,j))
-        fprintf('\nPlease ensure your models are nested\n')
-        return
-    end
-   
-catch
-    
-    % assume on model has been inverted
-    %---------------------------------------------------------------------- 
-    for j = 1:N
-        try, load(P{j}); catch, DCM = P{j}; end
-        if all(isfield(DCM,{'Ep','Cp'}))
-            break
-        end
-    end
+end
+
+%-load full model
+%==========================================================================
+[i j] = max(sum(par));
+try, load(P{j}); catch, DCM = P{j}; end
+
+% check this is a full model and that is has been inverted
+% -------------------------------------------------------------------------
+if any(any(par,2) > par(:,j))
+    fprintf('\nPlease ensure your models are nested\n')
+    return
 end
 
 if ~all(isfield(DCM,{'Ep','Cp'}))
@@ -132,13 +134,13 @@ for j = 1:N
     try, load(P{j}); catch, DCM = P{j}; end
     
     % Get model (priors)
-    % -----------------------------------------------------------------
+    % ---------------------------------------------------------------------
     try
         rE   = DCM.M.pE;
         rC   = DCM.M.pC;
     catch
         if strcmpi(options.analysis,'IND')
-            [rE,gE,rC,gC]  = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
+            [rE,gE,rC] = spm_ind_priors(DCM.A,DCM.B,DCM.C,Nf);
         else
             [rE,rC] = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,options.model);
         end

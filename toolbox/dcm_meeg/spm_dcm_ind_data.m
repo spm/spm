@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5894 2014-02-26 14:27:01Z karl $
+% $Id: spm_dcm_ind_data.m 5900 2014-02-27 21:54:51Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -243,10 +243,10 @@ if ~TFinput
         
         fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
         
-        C      = spm_convmtx(W{i}',Ns,'square');
-        C      = C(:,It + 1 - T1);
-        C      = P*C'*T;
-        M{i}   = C(Id,:);
+        C    = spm_convmtx(W{i}',Ns,'square');
+        C    = C(:,It + 1 - T1);
+        C    = P*C'*T;
+        M{i} = C(Id,:);
     end
 end
  
@@ -275,8 +275,8 @@ if strcmp(DCM.options.spatial, 'ECD')
         
         % add (spatial filtering) re-referencing to MAP projector
         %--------------------------------------------------------------------------
-        R     = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
-        MAP   = MAP*R;
+        R      = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
+        MAP    = MAP*R;
         
     else
         
@@ -302,24 +302,24 @@ end
 % Wavelet amplitudes for each (projected) source
 %==========================================================================
 condlabels = D.condlist;
+Yz    = cell(Ne,Nr);
 for i = 1:Ne;
     
     % trial indices
     %----------------------------------------------------------------------
-    c = D.indtrial(condlabels(trial(i)), 'GOOD');
+    c  = D.indtrial(condlabels(trial(i)), 'GOOD');
     
     % use only the first 512 trials
     %----------------------------------------------------------------------
-    try, c = c(1:512); end
+    c     = c(1:min(end,512));
     Nt    = length(c);
-            
     Ny    = Nb*Ng*Nr;
     Y     = zeros(Ny*Nf,Nt);
     
     % Get data: spectral magnitude
     %----------------------------------------------------------------------
     for j = 1:Nf
-        f     = [1:Ny] + (j - 1)*Ny;
+        f     = (1:Ny) + (j - 1)*Ny;
         for k = 1:Nt
             if TFinput
                 y      = squeeze(D(Ic, D.indfrequency(DCM.xY.Hz(j)), Ib, c(k)))';
@@ -344,7 +344,8 @@ for i = 1:Ne;
     n     = fix(Nb/8);
     for j = 1:Nr
         Yk      = squeeze(sum(Y(:,:,j,:),2))/Nt;
-        Yz{i,j} = Yk - ones(Nb,n)*Yk(1:n,:)/n;
+        Yb      = ones(Nb,n)*Yk(1:n,:)/n;
+        Yz{i,j} = Yk - Yb;
     end
 end
 

@@ -26,12 +26,10 @@ function M = spm_eeg_morlet(Rtf, ST, f, ff)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_morlet.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: spm_eeg_morlet.m 5900 2014-02-27 21:54:51Z karl $
 
 
-M = {};
-scaling = [];
-ctb = [];
+M      = {};
 for f0 = f
     
     % fixed or scale-dependent window
@@ -45,7 +43,7 @@ for f0 = f
     % this scaling factor is proportional to (Tallon-Baudry 98): 
     % (sigma_t*sqrt(pi))^(-1/2);
     %----------------------------------------------------------------------
-    t = [0:ST*0.001:5*sigma_t];
+    t = 0:ST*0.001:5*sigma_t;
     t = [-t(end:-1:2) t];
     M{end+1} = exp(-t.^2/(2*sigma_t^2)) .* exp(2 * 1i * pi * f0 *t);    
     M{end}   = M{end}./(sqrt(0.5*sum(real(M{end}).^2 + imag(M{end}).^2)));

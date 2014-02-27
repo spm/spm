@@ -23,7 +23,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % the average DCM in order to avoid any false impression that averaged
 % models could be used for model comparison or contained averaged time series.
 % Neither operation is valid and will be prevented by the DCM interface.
-% Finally, note that only models with exactly the same A,B,C(,D) structure
+% Finally, note that only models with exactly the same A,B,C,(D) structure
 % and the same brain regions can be averaged.
 %
 % A Bayesian random effects analysis can be implemented for a particular
@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_average(P,name,nocond,graphics)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_average.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_dcm_average.m 5900 2014-02-27 21:54:51Z karl $
 
 
 % Preiminaries

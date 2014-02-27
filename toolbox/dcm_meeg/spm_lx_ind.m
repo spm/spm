@@ -12,13 +12,10 @@ function [G] = spm_lx_ind(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_ind.m 5863 2014-01-30 20:58:36Z karl $
+% $Id: spm_lx_ind.m 5900 2014-02-27 21:54:51Z karl $
 
 % get lead field
 %==========================================================================
-Nr         = length(P.L);           % number of sources
-Nm         = M.n/Nr;                % number of frequency modes modelled
-Nf         = M.l/Nr;                % number of frequency modes explained
-G          = kron(speye(Nf,Nm),128*diag(exp(P.L)));
+G  = speye(M.l,M.l);
 
 

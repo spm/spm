@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5895 2014-02-26 14:28:23Z karl $
+% $Id: spm_dcm_Granger_demo.m 5900 2014-02-27 21:54:51Z karl $
  
  
 % Model specification
@@ -182,7 +182,7 @@ for i = 1:size(logs,1)
         % plot forwards and backwards functions
         %------------------------------------------------------------------
         subplot(4,2,ca + 1)
-        plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+        plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
         xlabel('frequency')
         ylabel('absolute value')
         title(sprintf('%s',str{i}),'FontSize',16)
@@ -190,7 +190,7 @@ for i = 1:size(logs,1)
         axis(a);
         
         subplot(4,2,ca + 2)
-        plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+        plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
         xlabel('frequency')
         ylabel('absolute value')
         title(sprintf('backward'),'FontSize',16)
@@ -219,7 +219,7 @@ str   = {     'forward connectivity',
               'intrinsic delays'};
 
 
-%  changing parameters are Lyapunov functions
+%  changing parameters and Lyapunov functions
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 k     = linspace(0,1,32);
@@ -325,13 +325,13 @@ for j = 1:length(k)
     
     % save forwards and backwards functions
     %----------------------------------------------------------------------
-    GCF(:,j)     = abs(gew(:,2,1));
-    GCB(:,j)     = abs(gew(:,1,2));
+    GCF(:,j)     = abs(mar.gew(:,2,1));
+    GCB(:,j)     = abs(mar.gew(:,1,2));
     
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,1)
-    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -339,7 +339,7 @@ for j = 1:length(k)
     a  = axis;
     
     subplot(3,2,2)
-    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -350,7 +350,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,3)
-    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -358,7 +358,7 @@ for j = 1:length(k)
     axis(a);
     
     subplot(3,2,4)
-    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -419,7 +419,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,1)
-    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -427,7 +427,7 @@ for j = 1:length(k)
     a  = axis;
     
     subplot(3,2,2)
-    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -438,7 +438,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,3)
-    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -446,7 +446,7 @@ for j = 1:length(k)
     axis(a);
     
     subplot(3,2,4)
-    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -474,7 +474,7 @@ axis square
 
 % return if in demonstration mode
 %--------------------------------------------------------------------------
-DEMO = 0;
+DEMO = 1;
 if DEMO, return, end
 
 
@@ -662,7 +662,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,1)
-    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -670,7 +670,7 @@ for j = 1:length(k)
     a  = axis;
     
     subplot(3,2,2)
-    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -681,7 +681,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,3)
-    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)),'--')
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -689,7 +689,7 @@ for j = 1:length(k)
     axis(a);
     
     subplot(3,2,4)
-    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)),'--')
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
