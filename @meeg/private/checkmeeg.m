@@ -6,7 +6,7 @@ function this = checkmeeg(this)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5810 2013-12-20 14:37:40Z vladimir $
+% $Id: checkmeeg.m 5901 2014-02-28 10:01:08Z vladimir $
 
 %-Initialise data dimentions
 %-----------------------------------------------------------------------
@@ -374,7 +374,9 @@ end
 %-Check other fields
 %-----------------------------------------------------------------------
 if ~isfield(this, 'fiducials')
-    this.fiducials = struct([]);
+   this.fiducials = struct([]);
+else
+   this.fiducials  = ft_struct2double(this.fiducials);
 end
 
 if ~isfield(this, 'artifacts')
