@@ -1,4 +1,4 @@
-function [mar] = spm_ccf2mar(ccf,p)
+function [mar,pcond] = spm_ccf2mar(ccf,p)
 % Converts cross covariance function to cross spectral density
 % FORMAT [mar] = spm_ccf2mar(ccf,p)
 %
@@ -18,7 +18,7 @@ function [mar] = spm_ccf2mar(ccf,p)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ccf2mar.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_ccf2mar.m 5902 2014-03-02 18:26:06Z karl $
 
 
 % MAR coeficients
@@ -41,6 +41,8 @@ for i = 1:m
 end
 warning('on','MATLAB:toeplitz:DiagonalConflict')
 
+
+
 % least squares solution
 %--------------------------------------------------------------------------
 A    = spm_cat(A);
@@ -54,6 +56,12 @@ mar.lag        = spm_mar2lag(a);
 mar.a          = a;
 mar.p          = p;
 mar.d          = m;
+
+% condition number of ccf matrix
+%--------------------------------------------------------------------------
+if nargout > 1
+    pcond = cond(full(B));
+end
 
 function lag = spm_mar2lag(mar)
 %--------------------------------------------------------------------------

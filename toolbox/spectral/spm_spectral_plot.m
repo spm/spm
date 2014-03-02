@@ -9,7 +9,7 @@ function spm_spectral_plot(Hz,csd,str,xlab,ylab,r)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_spectral_plot.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_spectral_plot.m 5902 2014-03-02 18:26:06Z karl $
 
 
 % order
@@ -27,6 +27,7 @@ for i = 1:m
         subplot(m,m,(i - 1)*m + j)
         if nargin > 5
             plot(Hz,real(csd(:,i,j)),str), hold on
+            plot(Hz,imag(csd(:,i,j)),':'), hold on
         else
             plot(Hz,abs(csd(:,i,j)),str), hold on
         end

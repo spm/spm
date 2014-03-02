@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_dcm_Granger_demo.m 5902 2014-03-02 18:26:06Z karl $
  
  
 % Model specification
@@ -212,14 +212,14 @@ logs  = [ ((1:4)/1 - 2);
           ((1:4)/6 + 0);
           ((1:4)*2 - 8)];
 
-param = {'A{1}(2,1)','A{3}(1,2)','S','D(1,:)'};
+param = {'A{1}(2,1)','A{3}(1,2)','S','D(1,1)'};
 str   = {     'forward connectivity',
               'backward connectivity',
               'intrinsic gain',
               'intrinsic delays'};
 
 
-%  changing parameters and Lyapunov functions
+% changing parameters and Lyapunov functions
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 4'); clf
 k     = linspace(0,1,32);
@@ -239,20 +239,35 @@ for i = 1:length(param)
         dfdx       = D*dfdx;
         S(i,j)     = max(real(eig(full(dfdx),'nobalance')));
         
+               % recursive check on MAR approximation
+        %------------------------------------------------------------------
+        csd        = spm_csd_mtf(P,M);
+        ccf        = spm_csd2ccf(csd{1},Hz);
+        [mar,c]    = spm_ccf2mar(ccf,p);
+        pcond(i,j) = c;
+        
     end
 end
 
 % plot
 %--------------------------------------------------------------------------
-subplot(2,1,1)
+subplot(2,2,1)
 plot(k,S),hold on
 xlabel('parameter (log) scaling')
 ylabel('principal eigenvalue')
 title('Lyapunov exponents','FontSize',16)
 axis square; spm_axis tight
+plot(k,k*0,'k:',k,k*0 - 1/(dt*p),'k-.'),hold off
+
+subplot(2,2,2)
+semilogy(k,pcond),hold on
+xlabel('parameter (log) scaling')
+ylabel('condition number')
+title('condition of cross covariance','FontSize',16)
+axis square;
 legend(str)
 
-plot(k,k*0,':',k,k*0 - 1/(dt*p),'-.'),hold off
+plot(k,k*0 + 1e4,'k:'),hold off
 
 % MAR approximation
 %==========================================================================
@@ -267,10 +282,10 @@ for i = 1:length(param)
         %------------------------------------------------------------------
         M.x   = spm_dcm_neural_x(P,M);
         
-        % recursive check on MAR approximation
+        % check on MAR approximation
         %------------------------------------------------------------------
         csd   = spm_csd_mtf(P,M);
-        mar   = spm_csd2mar(csd{1},Hz,16);
+        mar   = spm_csd2mar(csd{1},Hz,p);
         mar   = spm_mar_spectra(mar,Hz);
         
         CSD(:,j) = csd{1}(:,2,2);
@@ -279,22 +294,19 @@ for i = 1:length(param)
     end
 end
 
-DSD = abs(PSD) - abs(CSD);
-CSD = log(abs(CSD));
-
-
 subplot(2,2,3)
-imagesc(k,Hz,CSD)
+imagesc(k,Hz,log(abs(CSD)))
 xlabel('parameter (log) scaling')
 ylabel('frequency')
 title('(log) spectral density','FontSize',16)
+axis square
 
 subplot(2,2,4)
-imagesc(k,Hz,abs(DSD).^(1/4))
+imagesc(k,Hz,abs(PSD - CSD).^(1/4))
 xlabel('parameter (log) scaling')
 ylabel('frequency')
 title('MAR approximation error','FontSize',16)
-
+axis square
 
 % a more careful examination of [in]stability on Granger causality
 %==========================================================================
@@ -641,7 +653,7 @@ for j = 1:length(k)
     
     % keep total power of fluctuations constant
     %----------------------------------------------------------------------
-    M.pF.D         = [1 k(j)];
+    M.pF.D(2,1)  = k(j);
        
     % create forward model and solve for steady state
     %----------------------------------------------------------------------
