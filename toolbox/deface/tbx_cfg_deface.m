@@ -1,10 +1,10 @@
 function job = tbx_cfg_deface
 % SPM Configuration file for toolbox 'De-Face'
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: tbx_cfg_deface.m 5715 2013-10-29 16:42:56Z john $
+% $Id: tbx_cfg_deface.m 5904 2014-03-03 17:06:17Z guillaume $
 
 if ~isdeployed, addpath(fullfile(spm('dir'),'toolbox','deface')); end
 
@@ -32,4 +32,3 @@ dep(1).sname      = 'De-faced images';
 %dep(1).src_output = substruct('.','files');
 dep(1).src_output = substruct('()',{':'});
 dep(1).tgt_spec   = cfg_findspec({{'filter','image','strtype','e'}});
-

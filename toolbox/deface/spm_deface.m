@@ -7,13 +7,22 @@ function names = spm_deface(job)
 %
 % This is a little routine for attempting to strip the face from images,
 % so individuals are more difficult to identify from surface renderings.
-% ___________________________________________________________________________
-% 
+%__________________________________________________________________________
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deface.m 5713 2013-10-29 15:23:18Z john $ 
+% $Id: spm_deface.m 5904 2014-03-03 17:06:17Z guillaume $ 
 
-P = job.images;
+
+if ~nargin
+    [P, sts] = spm_select(Inf,'image','Select images to strip the face from');
+    if ~sts, return; end
+elseif isstruct(job)
+    P = job.images;
+else
+    P = job;
+end
+P = cellstr(P);
 names = cell(size(P));
 tpm = spm_load_priors8(spm_vol(fullfile(spm('Dir'),'tpm','TPM.nii')));
 for i=1:numel(P)
@@ -43,4 +52,3 @@ for k=1:size(Noo.dat,6),
         end
     end
 end
-
