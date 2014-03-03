@@ -115,10 +115,10 @@ function varargout = spm_DesRep(varargin)
 % Double clicking on a contrast depiction extracts the contrast weights
 % into the base workspace.
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DesRep.m 5903 2014-03-03 14:56:10Z guillaume $
 
 
 %==========================================================================
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 5219 $'; 
+SVNid = '$Rev: 5903 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -591,7 +591,7 @@ line('Parent',hTax,...
 hCovMtx(1) = axes('Position',[.07 .4 .6 .4]);
 hCovMtxSc  = [];
 if isfield(varargin{2},'V')
-  clim = [-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]; % scale 0 to gray
+  clim = full([-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]); % scale 0 to gray
   hCovMtxIm(1) = imagesc(varargin{2}.V, clim);
   hCovMtxSc = colorbar('vert');
   set(hCovMtxSc,'Ylim',[0 clim(2)]); % cut colorbar at 0

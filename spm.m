@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5604 2013-08-12 15:06:41Z vladimir $
+% $Id: spm.m 5903 2014-03-03 14:56:10Z guillaume $
 
 
 %=======================================================================
@@ -294,16 +294,10 @@ if isfield(defaults,'modality')
     return
 end
 
-%-Open startup window, set window defaults
+%-Open welcome splash screen
 %-----------------------------------------------------------------------
-Fwelcome = openfig(fullfile(spm('Dir'),'spm_Welcome.fig'),'new','invisible');
-set(Fwelcome,'name',spm('Version'));
-set(get(findobj(Fwelcome,'Type','axes'),'children'),'FontName',spm_platform('Font','Times'));
-set(findobj(Fwelcome,'Tag','SPM_VER'),'String',spm('Ver'));
-RectW = spm('WinSize','W',1); Rect0 = spm('WinSize','0',1);
-set(Fwelcome,'Units','pixels', 'Position',...
-    [Rect0(1)+(Rect0(3)-RectW(3))/2, Rect0(2)+(Rect0(4)-RectW(4))/2, RectW(3), RectW(4)]);
-set(Fwelcome,'Visible','on');
+spm_Welcome;
+
 
 %=======================================================================
 case 'asciiwelcome'                           %-ASCII SPM banner welcome

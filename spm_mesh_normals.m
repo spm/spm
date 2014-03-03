@@ -9,20 +9,23 @@ function N = spm_mesh_normals(M, unit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_mesh_normals.m 3135 2009-05-19 14:49:42Z guillaume $
+% $Id: spm_mesh_normals.m 5903 2014-03-03 14:56:10Z guillaume $
 
 if nargin < 2, unit = false; end
 
-if ishandle(M)
-    N = get(M,'VertexNormals');
-else
+if ~ishandle(M)
     f = figure('visible','off');
-    p = patch(M, 'parent',axes('parent',f), 'visible', 'off');
-
-    N = get(p,'VertexNormals');
-
-    close(f);
+    M = patch(M, 'parent',axes('parent',f), 'visible', 'off');
 end
+
+N = double(get(M,'VertexNormals'));
+
+if isempty(N)
+    t = triangulation(double(get(M,'Faces')),double(get(M,'Vertices')));
+    N = -double(t.vertexNormal);
+end
+
+try, close(f); end
 
 if unit
     normN = sqrt(sum(N.^2,2));
