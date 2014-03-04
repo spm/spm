@@ -32,10 +32,10 @@ function spm_transverse(varargin)
 % Although the SPM{.} adopts the neurological convention (left = left)
 % the rendered images follow the same convention as the original data.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & John Ashburner
-% $Id: spm_transverse.m 3348 2009-09-03 10:32:01Z guillaume $
+% $Id: spm_transverse.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 switch lower(varargin{1})
@@ -70,7 +70,8 @@ Fgraph = spm_figure('GetWin','Graphics');
 
 %-Get the image on which to render
 %--------------------------------------------------------------------------
-spms   = spm_select(1,'image','Select image for rendering on');
+[spms, sts]   = spm_select(1,'image','Select image for rendering on');
+if ~sts, return; end
 spm('Pointer','Watch');
 
 %-Delete previous axis and their pagination controls (if any)

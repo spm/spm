@@ -5,10 +5,10 @@ function spm_dcm_graph(xY,A)
 %         or ECD locations xY.Lpos and xY.Sname (EEG)
 % A     - connections of weighted directed graph
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph.m 5770 2013-11-27 20:12:29Z karl $
+% $Id: spm_dcm_graph.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 % get dimensions, locations and names
@@ -40,19 +40,17 @@ m     = size(L,2);
 
 %-Render graph in anatomical space
 %==========================================================================
-subplot(2,1,1); cla
-set(gca,'position',[0 .5 1 .5])
+ax = subplot(2,1,1); cla(ax);
+set(ax,'position',[0 .5 1 .5])
 options.query = [];
-options.hfig  = gcf;
-options.ParentAxes = gca;
+options.hfig  = ancestor(ax,'figure');
+options.ParentAxes = ax;
 options.markersize = 32;
 options.meshsurf = fullfile(spm('Dir'),'canonical','iskull_2562.surf.gii');
 spm_eeg_displayECD(L(:,1),[],0,[],options);
 options.meshsurf = fullfile(spm('Dir'),'canonical','cortex_8196.surf.gii');
-h     = spm_eeg_displayECD(L,[],8,name,options);
-for i = 1:m
-    set(h.handles.ht(i),'FontWeight','bold')
-end
+h = spm_eeg_displayECD(L,[],8,name,options);
+set(h.handles.ht,'FontWeight','bold')
 set(h.handles.mesh,'FaceAlpha',1/16);
 
 
@@ -136,9 +134,9 @@ U      = spm_detrend(U')';
 U      = real(U*40/max(abs(U(:))));
 
 
-subplot(2,1,2);cla
-set(gca,'position',[0 0 1 .5])
-options.ParentAxes = gca;
+ax = subplot(2,1,2); cla(ax);
+set(ax,'position',[0 0 1 .5])
+options.ParentAxes = ax;
 if m > 8; i = 8; else i = 16; end
 g     = spm_eeg_displayECD(U,[],i,name,options);
 delete(g.handles.mesh)

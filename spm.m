@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5903 2014-03-03 14:56:10Z guillaume $
+% $Id: spm.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 %=======================================================================
@@ -505,6 +505,7 @@ set(Fmenu,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] + SM);
 %-Set SPM colour
 %-----------------------------------------------------------------------
 set(findobj(Fmenu,'Tag', 'frame'),'backgroundColor',spm('colour'));
+set(Fmenu,'Color',[1 1 1]*.8);
 try
     if ismac
         b = findobj(Fmenu,'Style','pushbutton');

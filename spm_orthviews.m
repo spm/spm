@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_orthviews.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 % The basic fields of st are:
@@ -561,7 +561,7 @@ while ~isempty(st.vols{ii}), ii = ii + 1; end
 DeleteFcn = ['spm_orthviews(''Delete'',' num2str(ii) ');'];
 V.ax = cell(3,1);
 for i=1:3
-    ax = axes('Visible','off', 'DrawMode','fast', 'Parent',st.fig, ...
+    ax = axes('Visible','off', 'Parent',st.fig, ...
         'YDir','normal', 'DeleteFcn',DeleteFcn, 'ButtonDownFcn',@repos_start);
     d  = image(0, 'Tag','Transverse', 'Parent',ax, 'DeleteFcn',DeleteFcn);
     set(ax, 'Ydir','normal', 'ButtonDownFcn',@repos_start);

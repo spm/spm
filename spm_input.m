@@ -171,7 +171,7 @@ function varargout = spm_input(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_input.m 5514 2013-05-22 14:56:12Z guillaume $
+% $Id: spm_input.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 %=======================================================================
@@ -1779,10 +1779,12 @@ case '!getwin'
 if nargin<2, F='Interactive'; else F=varargin{2}; end
 Finter = spm_figure('FindWin',F);
 if isempty(Finter)
-    if any(get(0,'Children'))
+    if ~isempty(get(0,'Children'))
         if isempty(get(gcf,'Tag')), Finter = gcf;
         else Finter = spm('CreateIntWin'); end
-    else Finter = spm('CreateIntWin'); end
+    else
+        Finter = spm('CreateIntWin');
+    end
 end
 varargout = {Finter};
 

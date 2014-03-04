@@ -6,7 +6,7 @@ function F = spm_Welcome
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_Welcome.m 5903 2014-03-03 14:56:10Z guillaume $
+% $Id: spm_Welcome.m 5906 2014-03-04 18:03:44Z guillaume $
 
 
 %-Open startup window, set window defaults
@@ -20,6 +20,7 @@ Pos   = [Rect0(1)+(Rect0(3)-RectW(3))/2,...
 WS    = [1 1 1 1]; % spm('WinScale')
 
 PF = spm_platform('fonts');
+PF.helvetica = 'helvetica';
 
 F = figure('IntegerHandle','off',...
 	'Name',spm('Version'),...
