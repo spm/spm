@@ -4,7 +4,7 @@ function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 %
 % ccf  (N,m,m)   - cross covariance functions
 % Hz   (n x 1)   - vector of frequencies (Hz)
-% u    (1)       - regluarizer (default: 1);
+% u    (1)       - regularizer (default: 1);
 %
 % gwe  (N,m,m)   - Geweke's frequency domain Granger causality
 % pve  (N,m,m)   - proportion of variance explained
@@ -23,7 +23,7 @@ function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd2gew.m 5907 2014-03-05 20:30:06Z karl $
+% $Id: spm_csd2gew.m 5908 2014-03-05 20:31:57Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------

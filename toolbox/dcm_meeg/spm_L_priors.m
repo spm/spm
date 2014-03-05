@@ -31,7 +31,7 @@ function [pE,pC] = spm_L_priors(dipfit,pE,pC)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_L_priors.m 5864 2014-01-31 11:46:52Z karl $
+% $Id: spm_L_priors.m 5908 2014-03-05 20:31:57Z karl $
 
 
 
@@ -138,6 +138,11 @@ switch upper(model)
         pE.J = [];                              % null
         pC.J = [];
         
+    case{'NULL'}
+        %------------------------------------------------------------------
+        nx   = size(pE.A,1)/m;
+        pE.J = ones(1,nx);                      % nx states
+        pC.J = ones(1,nx);
         
     otherwise
         warndlg('Unknown neural model')

@@ -10,23 +10,19 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 5696 2013-10-15 19:10:26Z karl $
+% $Id: spm_dcm_neural_x.m 5908 2014-03-05 20:31:57Z karl $
 
-
-% solve for fixed point
-%--------------------------------------------------------------------------
-model = M.f;                        % neural mass model
-ns    = size(P.A{1},1);             % number of sources (endogenous inputs)
-a     = 2;                          % regulariser
-M.u   = sparse(ns,1);
-
-
-switch lower(model)
+switch lower(M.f)
     
     % conductance based models
     %----------------------------------------------------------------------
     case lower({'spm_fx_cmm'})
         
+        % solve for fixed point
+        %------------------------------------------------------------------
+        ns    = size(P.A{1},1);     % number of sources (endogenous inputs)
+        a     = 2;                  % regulariser
+        M.u   = sparse(ns,1);
         dnx   = 0;
         for i = 1:128
             
@@ -53,6 +49,11 @@ switch lower(model)
     % conductance based models (rank deficient)
     %----------------------------------------------------------------------
     case lower({'spm_fx_mfm'})
+        
+        % solve for fixed point
+        %------------------------------------------------------------------
+        ns    = size(P.A{1},1);
+        M.u   = sparse(ns,1);
         
         % solve for fixed point using ode113
         %------------------------------------------------------------------

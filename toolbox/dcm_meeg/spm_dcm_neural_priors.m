@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 5289 2013-02-28 18:43:43Z rosalyn $
+% $Id: spm_dcm_neural_priors.m 5908 2014-03-05 20:31:57Z karl $
  
 % check options
 %==========================================================================
@@ -116,6 +116,15 @@ switch lower(model)
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_nfm_priors(A,B,C); 
+        
+        
+    % Null model - of Jacabian (linear in states)
+    %======================================================================
+    case{'null'}
+
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_null_priors(A,B,C);
         
         
     otherwise

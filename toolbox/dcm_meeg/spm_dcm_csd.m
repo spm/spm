@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_dcm_csd.m 5908 2014-03-05 20:31:57Z karl $
  
  
 % check options
@@ -132,7 +132,9 @@ DCM.M.u  = sparse(Ns,1);
  
 % Spatial modes
 %--------------------------------------------------------------------------
-DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
+try
+    DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
+end
  
 % get data-features (in reduced eigenspace)
 %==========================================================================

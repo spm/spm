@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5907 2014-03-05 20:30:06Z karl $
+% $Id: spm_dcm_Granger_demo.m 5908 2014-03-05 20:31:57Z karl $
  
  
 % Model specification
@@ -218,7 +218,6 @@ str   = {     'forward connectivity',
               'backward connectivity',
               'intrinsic gain',
               'intrinsic delays'};
-
 
 % changing parameters and Lyapunov functions
 %--------------------------------------------------------------------------
@@ -606,13 +605,14 @@ DCM.options.model   = 'CMC';
 DCM.options.spatial = 'LFP';
 DCM.options.DATA    = 0;
 
+DCM.M.dipfit.Nc  = Nc;
+DCM.M.dipfit.Ns  = Ns;
+DCM.M.Nmax = 32;
+DCM.M.U    = eye(Nc,Nc);
+
 DCM.A      = {[0 0; 1 0],[0 1; 0 0],[0 0; 0 0]};
 DCM.B      = {};
 DCM.C      = sparse(Ns,0);
-
-DCM.M      = M;
-DCM.M.Nmax = 32;
-
 
 % place in data structure
 %--------------------------------------------------------------------------
@@ -622,23 +622,37 @@ DCM.xY.Hz = Hz;
 
 % estimate
 %--------------------------------------------------------------------------
-DCM  = spm_dcm_csd(DCM);
+DCM       = spm_dcm_csd(DCM);
 
 % show results in terms of transfer functions and Granger causality
 %==========================================================================
 spm_figure('GetWin','Figure 8'); clf
 
+% transfer functions in the absence of measurement noise
+%--------------------------------------------------------------------------
+Ep    = DCM.Ep; 
+Ep.b  = Ep.b - 32;              % and suppress non-specific and
+Ep.c  = Ep.c - 32;              % specific channel noise
+
+Gu           = spm_csd_mtf_gu(Ep,Hz);
+[psd Hz dtf] = spm_csd_mtf(Ep,DCM.M);
+
+mtf   = mtf{1};
+csd   = csd{1};
+dtf   = dtf{1};
+
 % transfer functions and Granger causality among sources and channels
 %--------------------------------------------------------------------------
-gew  = spm_csd2gew(DCM.Hs{1},Hz);
-GEW  = spm_csd2gew(DCM.xY.y{1},Hz);
+gwe  = spm_dtf2gew(mtf,Gu);
+qew  = spm_dtf2gew(dtf,Gu);
+gew  = spm_csd2gew(csd,Hz);
 
-spm_spectral_plot(Hz,DCM.dtf{1},'b',  'frequency','density')
-spm_spectral_plot(Hz,mtf{1},    'b:', 'frequency','density')
-spm_spectral_plot(Hz,gew,       'r',  'frequency','density')
-spm_spectral_plot(Hz,GEW,       'g',  'frequency','density')
+spm_spectral_plot(Hz,mtf,'b:',  'frequency','density')
+spm_spectral_plot(Hz,gwe,'b', 'frequency','density')
+spm_spectral_plot(Hz,qew,'r',  'frequency','density')
+spm_spectral_plot(Hz,gew,'g',  'frequency','density')
 legend('modulation transfer function',...
-       'true transfer function',...
+       'Granger causality (true)',...
        'Granger causality (source)',...
        'Granger causality (channel)')
 

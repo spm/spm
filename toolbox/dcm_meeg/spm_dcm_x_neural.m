@@ -11,7 +11,7 @@ function [x,f] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 5877 2014-02-11 20:03:34Z karl $
+% $Id: spm_dcm_x_neural.m 5908 2014-03-05 20:31:57Z karl $
 
 
 
@@ -125,6 +125,15 @@ switch lower(model)
         %------------------------------------------------------------------
         x  = spm_x_mfm(P);
         f  = 'spm_fx_mfm';
+        
+            % Mean field model (nonlinear in states) - with covariance
+    %======================================================================
+    case{'null'}
+        
+        % inital states and model
+        %------------------------------------------------------------------
+        x  = sparse(size(P.A,1),1);
+        f  = 'spm_fx_null';
         
         
     otherwise
