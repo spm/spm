@@ -13,11 +13,18 @@ function [Gu,Gs,Gn,f] = spm_csd_mtf_gu(P,M)
 %
 % f   - frequency
 %
+% fluctuations and noise parameters: for n regions and c channels
+%--------------------------------------------------------------------------
+%    pE.a(2,n) - neuronal fluctuations        - amplitude and exponent
+%    pE.b(2,c) - channel noise (non-specific) - amplitude and exponent
+%    pE.c(2,c) - channel noise (specific)     - amplitude and exponent
+%    pE.d(8,n) - neuronal fluctuations        - basis set coefficients
+%
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_mtf_gu.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_csd_mtf_gu.m 5907 2014-03-05 20:30:06Z karl $
 
  
 % frequencies of interest

@@ -23,7 +23,7 @@ function [gew,pve,H] = spm_csd2gew(csd,Hz,u)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd2gew.m 5893 2014-02-24 12:44:17Z guillaume $
+% $Id: spm_csd2gew.m 5907 2014-03-05 20:30:06Z karl $
 
 % preliminaries
 %--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ is    = ceil(nw/2):nw;
 H     = zeros(nw,n,n);
 P     = zeros(nw,n,n);
 e     = norm(squeeze(max(csd,[],1)))/128;
-E     = eye(n,n)*e/128;
+E     = eye(n,n)*e;
 
 P(iw,:,:) = csd;
 for i = 1:n
@@ -60,7 +60,7 @@ for i = 1:n
     H(:,i,i) = sqrt(P(:,i,i));
 end
 
-% iterate until convergence
+% iterate until convergence: solve for H*H' = P
 %--------------------------------------------------------------------------
 for t = 1:128
     
@@ -100,14 +100,16 @@ end
 
 % get noise covariance
 %--------------------------------------------------------------------------
-S     = ifft(A);
+S     = ifft(H);
 R     = squeeze(S(1,:,:));
 C     = real(R*R');
+c     = sqrtm(C);
 
 % recover transfer function
 %--------------------------------------------------------------------------
 for w = 1:nw
-    H(w,:,:) = squeeze(H(w,:,:))/C;
+    H(w,:,:) = squeeze(H(w,:,:))/c;
+    P(w,:,:) = squeeze(H(w,:,:))*C*squeeze(H(w,:,:))';
 end
 
 % Geweke Granger Causality in the Frequency domain

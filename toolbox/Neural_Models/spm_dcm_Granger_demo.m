@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5902 2014-03-02 18:26:06Z karl $
+% $Id: spm_dcm_Granger_demo.m 5907 2014-03-05 20:30:06Z karl $
  
  
 % Model specification
@@ -128,15 +128,20 @@ spm_figure('GetWin','Figure 2'); clf
 
 dtf  = mar.dtf;
 gew  = mar.gew;
+new  = spm_csd2gew(csd,Hz);
+
 spm_spectral_plot(Hz,mtf,'b', 'frequency','density')
 spm_spectral_plot(Hz,dtf,'g', 'frequency','density')
 spm_spectral_plot(Hz,gew,'r', 'frequency','density')
+spm_spectral_plot(Hz,new,'r:','frequency','density')
+
 
 subplot(2,2,3), a = axis; subplot(2,2,2), axis(a);
 
 legend('modulation transfer function',...
        'directed transfer function',...
-       'Granger causality')
+       'Granger causality (parametric)',...
+       'Granger causality (non-parametric)')
 
 
 % effects of changing various model parameters
@@ -147,9 +152,9 @@ legend('modulation transfer function',...
 logs  = [ ((1:4)/1 - 2);
           ((1:4)/1 - 2);
           ((1:4)/6 + 0);
-          ((1:4)*2 - 8)];
+          ((1:4)/1 - 6)];
 
-param = {'A{1}(2,1)','A{3}(1,2)','S','b(1,:)'};
+param = {'A{1}(2,1)','A{3}(1,2)','S','c(1,2)'};
 str   = {     'forward connectivity',
               'backward connectivity',
               'intrinsic gain',
@@ -202,16 +207,12 @@ for i = 1:size(logs,1)
 
 end
 
+
 % Lyapunov functions
 %==========================================================================
 
 % (log) scaling, and parameters
 %--------------------------------------------------------------------------
-logs  = [ ((1:4)/1 - 2);
-          ((1:4)/1 - 2);
-          ((1:4)/6 + 0);
-          ((1:4)*2 - 8)];
-
 param = {'A{1}(2,1)','A{3}(1,2)','S','D(1,1)'};
 str   = {     'forward connectivity',
               'backward connectivity',
@@ -392,21 +393,20 @@ image(Hz,k,GCB'*64/a)
 xlabel('frequency')
 ylabel('log(exponent)')
 title('backward','FontSize',16)
-
-
 axis square
 
 % a more careful examination of measurement noise
 %==========================================================================
 spm_figure('GetWin','Figure 6'); clf
-k     = linspace(-8,-2,8);
+k     = linspace(0,4,8);
 for j = 1:length(k)
     
     
     % amplitude of observation noise
     %----------------------------------------------------------------------
     P        = pE;
-    P.b(1,:) = k(j);
+    P.b(2)   = -k(j);
+    P.c(1,:) = -4;
        
     % create forward model and solve for steady state
     %----------------------------------------------------------------------
@@ -418,6 +418,11 @@ for j = 1:length(k)
     ccf          = spm_csd2ccf(csd{1},Hz,dt);
     mar          = spm_ccf2mar(ccf,p);
     mar          = spm_mar_spectra(mar,Hz,ns);
+    
+    spm_figure('GetWin','Figure 7'); clf
+    spm_spectral_plot(Hz,spm_csd2coh(csd{1},Hz),'r','frequency','density')
+    pause;spm_figure('GetWin','Figure 6');
+    mtf          = mtf{1}/4;
     
     % and non-parametric
     %======================================================================
@@ -431,7 +436,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,1)
-    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
+    plot(Hz,abs(mar.gew(:,2,1)),Hz,abs(mtf(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -439,7 +444,7 @@ for j = 1:length(k)
     a  = axis;
     
     subplot(3,2,2)
-    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
+    plot(Hz,abs(mar.gew(:,1,2)),Hz,abs(mtf(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -450,7 +455,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions
     %----------------------------------------------------------------------
     subplot(3,2,3)
-    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -458,7 +463,7 @@ for j = 1:length(k)
     axis(a);
     
     subplot(3,2,4)
-    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -467,7 +472,7 @@ for j = 1:length(k)
     
 end
 
-a = .2;
+a = 0.1;
 subplot(3,2,5)
 image(Hz,k,GCF'*64/a)
 xlabel('frequency')
