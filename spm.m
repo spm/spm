@@ -50,10 +50,10 @@ function varargout=spm(varargin)
 % FORMAT & help in the main body of spm.m
 %
 %_______________________________________________________________________
-% Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5906 2014-03-04 18:03:44Z guillaume $
+% $Id: spm.m 5909 2014-03-06 16:21:09Z guillaume $
 
 
 %=======================================================================
@@ -691,22 +691,46 @@ elseif upper(Win(1))=='W'
     %-Welcome window
     Rect = Rect(4,:);
 elseif Win(1)=='0'
+    units = get(0,'Units');
+    set(0,'Units','pixels');
     %-Root workspace
     Rect = get(0, 'MonitorPosition');
     if all(ismember(Rect(:),[0 1]))
         warning('SPM:noDisplay','Unable to open display.');
     end
     if size(Rect,1) > 1 % Multiple Monitors
-        %-Use Monitor containing the Pointer
-        pl = get(0,'PointerLocation');
-        Rect(:,[3 4]) = Rect(:,[3 4]) + Rect(:,[1 2]);
-        w  = find(pl(1)>=Rect(:,1) & pl(1)<=Rect(:,3) &...
-                  pl(2)>=Rect(:,2) & pl(2)<=Rect(:,4));
-        if numel(w)~=1, w = 1; end
+        %-The MonitorPosition property depends on the architecture
+        if ~ispc
+            Rect(:,[3 4]) = Rect(:,[3 4]) + Rect(:,[1 2]);
+        end
+        monitor = spm_get_defaults('ui.monitor');
+        if isnan(monitor)
+            %-Use Monitor containing the Pointer
+            pl = get(0,'PointerLocation');
+            w = find(pl(1)>=Rect(:,1) & pl(1)<=Rect(:,3));
+            if numel(w) > 1, Rect = Rect(w,:); end
+            if numel(w)~=1
+                w = find(pl(2)>=Rect(:,2) & pl(2)<=Rect(:,4));
+            end
+            if numel(w)~=1
+                if ispc
+                    w = size(Rect,1);
+                else
+                    w = 1;
+                end
+            end
+        else
+            if ispc
+                w = size(Rect,1) - monitor + 1;
+            else
+                w = monitor;
+            end
+        end
         Rect = Rect(w,:);
         %-Make sure that the format is [x y width height]
         Rect(1,[3 4]) = Rect(1,[3 4]) - Rect(1,[1 2]) + 1;
     end
+    set(0,'Units',units);
 else
     error('Unknown Win type');
 end
