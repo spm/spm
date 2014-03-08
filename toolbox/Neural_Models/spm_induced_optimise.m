@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_induced_optimise.m 5911 2014-03-08 14:52:39Z karl $
  
  
 % Model specification
@@ -32,6 +32,15 @@ M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
 M.dipfit.Ns    = Ns;
+
+% within-trial effects: adjust onset relative to pst
+%----------------------------------------------------------------------
+M.ns   = 64;
+M.ons  = 64;
+M.dur  = 16;
+U.dt   = 0.004;
+U.X    = [];
+
  
  
 % get priors
@@ -157,13 +166,22 @@ x     = full(M.x);
  
 % MTF, expanding around perturbed states
 %==========================================================================
+
+% evoked flucutations in hidden states
+%--------------------------------------------------------------------------
+G    = M;
+G.g  = @(x,u,P,M) x;
+erp  = spm_gen_erp(pE,G,U);
+xmax = spm_unvec(max(erp{1}),x);
+xmin = spm_unvec(min(erp{1}),x);
+    
 for i = 1:size(x,1)
     for j = 1:size(x,2);
         for k = 1:size(x,3);
             
             % line search
             %--------------------------------------------------------------
-            dQ    = linspace(-D,D,32);
+            dQ    = linspace(xmin(i,j,k),xmax(i,j,k),32);
             for q = 1:length(dQ)
                 
                 
@@ -171,7 +189,6 @@ for i = 1:size(x,1)
                 %----------------------------------------------------------
                 qx        = x;
                 qx(i,j,k) = qx(i,j,k) + dQ(q);
-                QX(q)     = qx(i,j,k);
                 M.x       = qx;
                 [G w]     = spm_csd_mtf(pE,M);
                 GW(:,q)   = G{1};

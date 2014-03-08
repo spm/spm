@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5769 2013-11-27 19:37:01Z karl $
+% $Id: spm_induced_optimise_parameters.m 5911 2014-03-08 14:52:39Z karl $
  
  
 % Model specification
@@ -23,7 +23,7 @@ Nm    = 3;                    % number of (complex) eigenmodes to consider
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMM';
+options.model    = 'CMC';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
@@ -185,7 +185,7 @@ Y.y   = [S; spm_vec(W)*32];
 % create generative model of the eigenspectrum (M) and invert
 %--------------------------------------------------------------------------
 M.IS    = 'spm_ssm2s';
-M.Nmax  = 8;
+M.Nmax  = 32;
 pC      = V*diag(spm_vec(pC))*V;
 M.pC    = pC;
 

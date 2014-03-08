@@ -1,7 +1,7 @@
-function [y,w,s] = spm_csd_mtf(P,M,U)
+function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Spectral response of a NMM (transfer function x noise spectrum)
-% FORMAT [y,w,s] = spm_csd_mtf(P,M,U)
-% FORMAT [y,w,s] = spm_csd_mtf(P,M)
+% FORMAT [y,w,s,g] = spm_csd_mtf(P,M,U)
+% FORMAT [y,w,s,g] = spm_csd_mtf(P,M)
 %
 % P - parameters
 % M - neural mass model structure
@@ -14,7 +14,8 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 %
 % When called with U this function will return a cross-spectral response
 % for each of the condition-specific parameters specified in U.X; otherwise
-% it returns the complex CSD for the parameters in P.
+% it returns the complex CSD for the parameters in P (using the expansion
+% point supplied in M.x)
 %
 % When the observer function M.g is specified the CSD response is
 % supplemented with channel noise in sensor space; otherwise the CSD
@@ -33,7 +34,7 @@ function [y,w,s] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_csd_mtf.m 5911 2014-03-08 14:52:39Z karl $
 
 
 
@@ -94,6 +95,7 @@ for  c = 1:size(X,1)
         % extrinsic (forward and backwards) connections
         %------------------------------------------------------------------
         for j = 1:length(Q.A)
+            
             Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
             
             % CMM-NMDA specific modulation on Extrinsic NMDA connections
@@ -134,6 +136,7 @@ for  c = 1:size(X,1)
     
     
 end
+
 % and add channel noise
 %==========================================================================
 if isfield(M,'g')
@@ -162,3 +165,17 @@ if isfield(M,'g')
 else
     y = g;
 end
+
+% Granger causality if requested
+%==========================================================================
+if nargout > 3
+    for c = 1:length(s)
+        g{c} = spm_dtf2gew(s{c},Gu);
+    end
+end
+
+
+
+
+
+

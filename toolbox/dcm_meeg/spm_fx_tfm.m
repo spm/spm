@@ -1,5 +1,5 @@
 function [f,J,Q] = spm_fx_tfm(x,u,P,M)
-% state equations - time frequency model with state-dependent parameters
+% state equations - time-frequency model with state-dependent parameters
 % FORMAT [f,J,D] = spm_fx_tfm(x,u,P,M)
 % FORMAT [f,J]   = spm_fx_tfm(x,u,P,M)
 % FORMAT [f]     = spm_fx_tfm(x,u,P,M)
@@ -22,17 +22,18 @@ function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_tfm.m 4718 2012-04-19 15:34:45Z karl $
+% $Id: spm_fx_tfm.m 5911 2014-03-08 14:52:39Z karl $
  
 % input and state-dependent parameters
 %==========================================================================
 if isfield(M,'u')
     
-    % endogenous importance
+    % endogenous inputs
     %----------------------------------------------------------------------
     P   = rmfield(P,{'X','Y'});
     
 else
+    
     % exogenous inputs
     %----------------------------------------------------------------------
     dP  = P.X*u(:) + P.Y*x(:);

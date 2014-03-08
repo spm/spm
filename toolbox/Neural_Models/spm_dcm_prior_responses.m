@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 5819 2013-12-26 13:04:10Z karl $
+% $Id: spm_dcm_prior_responses.m 5911 2014-03-08 14:52:39Z karl $
 
 
 % Model specification
@@ -104,7 +104,8 @@ for i = 1:Nm
     %----------------------------------------------------------------------
     [csd, Hz ] = spm_csd_mtf(pE,M,[]);
     [ccf, lag] = spm_csd2ccf(csd,Hz);
-    [erp, pst] = spm_gen_erp(pE,M,U);
+    [erp, pst] = spm_gen_erp(pE,M,U);  
+    
     
     % plot
     %----------------------------------------------------------------------
@@ -136,9 +137,15 @@ for i = 1:Nm
     plot(lag,ccf{1},'b--'), hold off
     title('autocovariance','FontSize',16)
     
-    subplot(3,3,3*iplot + 1)
-    plot(pst,erp{1},'b'), hold off
+    subplot(3,3,3*iplot + 1), hold off
+    plot(pst,erp{1},'b'), hold on
     title(sprintf('ERP: %s',model{i}),'FontSize',16)
+    
+    % hidden states
+    %----------------------------------------------------------------------
+    M.g  = @(x,u,P,M) x;
+    erp  = spm_gen_erp(pE,M,U);
+    plot(pst,erp{1}/32,'r:'), hold off
     
 end
 
