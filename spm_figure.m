@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 5699 2013-10-17 12:21:28Z guillaume $
+% $Id: spm_figure.m 5912 2014-03-10 16:59:31Z guillaume $
 
 
 %==========================================================================
@@ -803,7 +803,7 @@ uimenu(t0,'Label','&About MATLAB',...
     'CallBack','helpmenufcn(gcbf,''HelpAbout'')');
 
 %-Figure Menu
-t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myisresults);
+t0=uimenu(F, 'Position',pos, 'Label','&SPM Figure', 'HandleVisibility','off', 'Callback',@myfigmenu);
 
 %-Show All Figures
 uimenu(t0, 'Label','Show All &Windows', 'HandleVisibility','off',...
@@ -854,6 +854,12 @@ uimenu(t2,    'Label','Darken',    'CallBack','spm_figure(''ColorMap'',''darken'
 t1=uimenu(t0, 'Label','&Font Size', 'HandleVisibility','off');
 uimenu(t1, 'Label','&Increase', 'CallBack','spm_figure(''FontSize'',1)',  'Accelerator', '=');
 uimenu(t1, 'Label','&Decrease', 'CallBack','spm_figure(''FontSize'',-1)', 'Accelerator', '-');
+
+%-Renderer Menu
+t1=uimenu(t0, 'Label','Renderer', 'HandleVisibility','off');
+uimenu(t1, 'Label', 'painters', 'CallBack','spm_get_defaults(''renderer'',''painters'');set(gcf,''Renderer'',''painters'');');
+uimenu(t1, 'Label', 'zbuffer',  'CallBack','spm_get_defaults(''renderer'',''zbuffer'');set(gcf,''Renderer'',''zbuffer'');');
+uimenu(t1, 'Label', 'OpenGL',   'CallBack','spm_get_defaults(''renderer'',''opengl'');set(gcf,''Renderer'',''opengl'');');
 
 %-Satellite Table
 uimenu(t0,    'Label','&Results Table', 'HandleVisibility','off', ...
@@ -938,7 +944,7 @@ return;
 
 
 %==========================================================================
-function myisresults(obj,evt)
+function myfigmenu(obj,evt)
 %==========================================================================
 hr = findall(obj,'Label','&Results Table');
 try
@@ -953,6 +959,11 @@ if ~isempty(SatWindow)
 else
     set(hr,'Checked','off');
 end
+rend = get(ancestor(obj,'figure'),'Renderer');
+hr   = get(findall(obj,'Label','Renderer'),'Children');
+set(hr,'Checked','off');
+set(hr(ismember(lower(get(hr,'Label')),rend)),'Checked','on');
+
 
 %==========================================================================
 function mydockspm(obj,evt)
