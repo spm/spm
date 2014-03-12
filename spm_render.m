@@ -1,4 +1,4 @@
-function spm_render(dat,brt,rendfile)
+function varargout = spm_render(dat,brt,rendfile)
 % Render blobs on surface of a 'standard' brain
 % FORMAT spm_render(dat,brt,rendfile)
 %
@@ -30,17 +30,19 @@ function spm_render(dat,brt,rendfile)
 % are 10mm behind the surface have half the intensity of ones at the
 % surface.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 5906 2014-03-04 18:03:44Z guillaume $
+% $Id: spm_render.m 5915 2014-03-12 18:32:06Z guillaume $
 
-SVNrev = '$Rev: 5906 $';
+SVNrev = '$Rev: 5915 $';
 
 global prevrend
 if ~isstruct(prevrend)
     prevrend = struct('rendfile','', 'brt',[], 'col',[]);
 end
+
+varargout = {};
 
 %-Parse arguments, get data if not passed as parameters
 %==========================================================================
@@ -273,37 +275,52 @@ mxmx = max(mx);
 mnmn = min(mn);
 
 if showbar, spm_progress_bar('Clear'); end
-Fgraph = spm_figure('GetWin','Graphics');
-spm_results_ui('Clear',Fgraph);
 
-nrow = ceil(length(rend)/2);
-if showbar, hght = 0.95; else hght = 0.5; end
-% subplot('Position',[0, 0, 1, hght]);
-ax=axes('Parent',Fgraph,'units','normalized','Position',[0, 0, 1, hght],'Visible','off');
-image(0,'Parent',ax);
-set(ax,'YTick',[],'XTick',[]);
+%-Display
+%==========================================================================
+if ~spm('CmdLine')
+    Fgraph = spm_figure('GetWin','Graphics');
+    spm_results_ui('Clear',Fgraph);
+    
+    nrow = ceil(length(rend)/2);
+    if showbar, hght = 0.95; else hght = 0.5; end
+    % subplot('Position',[0, 0, 1, hght]);
+    ax = axes('Parent',Fgraph,...
+        'units','normalized',...
+        'Position',[0, 0, 1, hght],...
+        'Visible','off');
+    image(0,'Parent',ax);
+    set(ax,'YTick',[],'XTick',[]);
+end
+
+rgb = cell(1,length(rend));
 
 if ~isfinite(brt)
-    % Old style split colourmap display.
+    % Old style split colourmap display
     %----------------------------------------------------------------------
-    load Split;
-    colormap(split);
-    for i=1:length(rend),
+    load(fullfile(spm('Dir'),'Split.mat'));
+    if ~spm('CmdLine'), colormap(split); end
+    for i=1:length(rend)
         ren = rend{i}.ren;
         X   = (rend{i}.data{1}-mnmn)/(mxmx-mnmn);
         msk = find(X);
         ren(msk) = X(msk)+(1+1.51/64);
-        ax=axes('Parent',Fgraph,'units','normalized',...
-            'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
-            'Visible','off');
-        image(ren*64,'Parent',ax);
-        set(ax,'DataAspectRatio',[1 1 1], ...
-            'PlotBoxAspectRatioMode','auto',...
-            'YTick',[],'XTick',[],'XDir','normal','YDir','normal');
+        rgb{i} = flipdim(ind2rgb(round(ren*64),split),1);
+        if ~spm('CmdLine')
+            ax = axes('Parent',Fgraph,...
+                'units','normalized',...
+                'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+                'Visible','off');
+            image(ren*64,'Parent',ax);
+            set(ax,'DataAspectRatio',[1 1 1],...
+                'PlotBoxAspectRatioMode','auto',...
+                'YTick',[],'XTick',[],...
+                'XDir','normal','YDir','normal');
+        end
     end
 else
-    % Combine the brain surface renderings with the blobs, and display using
-    % 24 bit colour.
+    % Combine the brain surface renderings with the blobs, and display
+    % using 24 bit colour
     %----------------------------------------------------------------------
     for i=1:length(rend)
         ren = rend{i}.ren;
@@ -315,26 +332,32 @@ else
             X{j}=zeros(size(X{1}));
         end
 
-        rgb = zeros([size(ren) 3]);
+        rgb{i} = zeros([size(ren) 3]);
         tmp = ren.*max(1-X{1}-X{2}-X{3},0);
         for k = 1:3
-            rgb(:,:,k) = tmp + X{1}*col(1,k) + X{2}*col(2,k) +X{3}*col(3,k);
+            rgb{i}(:,:,k) = tmp + X{1}*col(1,k) + X{2}*col(2,k) +X{3}*col(3,k);
         end
-        rgb(rgb>1) = 1;         
-        
-        ax=axes('Parent',Fgraph,'units','normalized',...
-            'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
-            'nextplot','add', ...
-            'Visible','off');
-        image(rgb,'Parent',ax);
-        set(ax,'DataAspectRatio',[1 1 1], ...
-            'PlotBoxAspectRatioMode','auto',...
-            'YTick',[],'XTick',[],...
-            'XDir','normal','YDir','normal');
+        rgb{i}(rgb{i}>1) = 1;
+        if ~spm('CmdLine')
+            ax = axes('Parent',Fgraph,...
+                'units','normalized',...
+                'Position',[rem(i-1,2)*0.5, floor((i-1)/2)*hght/nrow, 0.5, hght/nrow],...
+                'nextplot','add', ...
+                'Visible','off');
+            image(rgb{i},'Parent',ax);
+            set(ax,'DataAspectRatio',[1 1 1],...
+                'PlotBoxAspectRatioMode','auto',...
+                'YTick',[],'XTick',[],...
+                'XDir','normal','YDir','normal');
+        end
+        rgb{i} = flipdim(rgb{i},1);
     end
 end
 
 spm('Pointer','Arrow');
+
+if nargout, varargout = { rgb }; end
+
 
 %==========================================================================
 % function surf_rend(dat,rend,col)
