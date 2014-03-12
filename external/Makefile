@@ -3,22 +3,21 @@
 #
 # Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5459 2013-05-01 17:51:59Z guillaume $
+# $Id: Makefile 5914 2014-03-12 12:17:21Z guillaume $
 
 include ../src/Makefile.var
 
-all: fieldtrip-all bemcp-all #engine-all
+all: fieldtrip-all bemcp-all
 
-clean: fieldtrip-clean bemcp-clean #engine-clean
+clean: fieldtrip-clean bemcp-clean
 
-distclean: clean fieldtrip-distclean bemcp-distclean #engine-distclean
+distclean: clean fieldtrip-distclean bemcp-distclean
 
-install: fieldtrip-install bemcp-install #engine-install
+install: fieldtrip-install bemcp-install
 
-tarball: fieldtrip-tarball bemcp-tarball #engine-tarball
+tarball: fieldtrip-tarball bemcp-tarball
 	$(TAR) Af spm_mex.tar fieldtrip_mex.tar
 	$(TAR) Af spm_mex.tar bemcp/spm_mex.tar
-#	$(TAR) Af spm_mex.tar engine_mex.tar
 
 ###############################################################################
 # FIELDTRIP
@@ -35,11 +34,3 @@ fieldtrip fieldtrip-all fieldtrip-clean fieldtrip-distclean fieldtrip-install fi
 bemcp bemcp-all bemcp-clean bemcp-distclean bemcp-install bemcp-tarball:
 	@ $(call verb,bemcp)
 	@ $(MAKE) -C bemcp --no-print-directory $(subst bemcp,,$(subst -,,$@))
-        
-###############################################################################
-# ENGINE
-###############################################################################
-.PHONY: engine
-engine engine-all engine-clean engine-distclean engine-install engine-tarball:
-	@ $(call verb,engine)
-	@ $(MAKE) -f Makefile.engine --no-print-directory $(subst engine,,$(subst -,,$@))

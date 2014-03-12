@@ -4,7 +4,7 @@
 # Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
 #
 # Guillaume Flandin
-# $Id: Makefile.fieldtrip 5629 2013-09-03 10:58:17Z guillaume $
+# $Id: Makefile.fieldtrip 5914 2014-03-12 12:17:21Z guillaume $
 
 include ../src/Makefile.var
 
@@ -15,7 +15,6 @@ FIELDTRIP =\
 	fieldtrip/fileio/@uint64/abs.$(SUF) \
 	\
 	fieldtrip/src/read_24bit.$(SUF) fieldtrip/src/read_16bit.$(SUF) \
-	fieldtrip/src/mxSerialize.$(SUF) fieldtrip/src/mxDeserialize.$(SUF) \
 	fieldtrip/src/ft_getopt.$(SUF) \
 	\
 	fieldtrip/src/nanmean.$(SUF) fieldtrip/src/nanstd.$(SUF) \
@@ -36,8 +35,6 @@ distclean: clean
         
 install:
 	$(COPY) fieldtrip/src/read_24bit.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/fileio/private/
-	$(COPY) fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/read_16bit.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/fileio/private/
 	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/fileio/private/
@@ -58,11 +55,8 @@ install:
 	$(COPY) fieldtrip/src/plgndr.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/routlm.$(SUF) fieldtrip/private/
 	$(COPY) fieldtrip/src/solid_angle.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/private/
-	$(COPY) fieldtrip/src/mxDeserialize.$(SUF) fieldtrip/private/
 
 	$(COPY) fieldtrip/src/ft_getopt.$(SUF) fieldtrip/utilities/
-	$(COPY) fieldtrip/src/mxSerialize.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/ptriproj.$(SUF) fieldtrip/utilities/private/
 	$(COPY) fieldtrip/src/lmoutr.$(SUF) fieldtrip/utilities/private/
 
