@@ -45,7 +45,7 @@ function [Zi, h] = ft_plot_topo(chanX, chanY, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_plot_topo.m 9286 2014-03-12 08:57:11Z roboos $
 
 % these are for speeding up the plotting on subsequent calls
 persistent previous_argin previous_maskimage
@@ -233,18 +233,8 @@ for i=1:length(outline)
   ft_plot_vector(xval, yval, 'Color','k', 'LineWidth',2, 'tag', tag, 'parent', parent);
 end
 
-% Create isolines
-if strcmp(style,'iso') || strcmp(style,'surfiso')
-  if ~isempty(isolines)
-    [cont, h] = contour(Xi,Yi,Zi,isolines,'k');
-    set(h, 'tag', tag);
-    if ~isempty(parent)
-      set(h, 'Parent', parent);
-    end
-  end
-end
-
 % Plot surface
+% this should be done prior to the isolines to ensure that it is exported correctly, see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2496
 if strcmp(style,'surf') || strcmp(style,'surfiso')
   deltax = xi(2)-xi(1); % length of grid entry
   deltay = yi(2)-yi(1); % length of grid entry
@@ -258,6 +248,17 @@ if strcmp(style,'surf') || strcmp(style,'surfiso')
   %  set(h, 'alphadatamapping', 'scaled');
   %  set(h, 'alphadata', maskimagetmp);
   %end
+end
+
+% Create isolines
+if strcmp(style,'iso') || strcmp(style,'surfiso')
+  if ~isempty(isolines)
+    [cont, h] = contour(Xi,Yi,Zi,isolines,'k');
+    set(h, 'tag', tag);
+    if ~isempty(parent)
+      set(h, 'Parent', parent);
+    end
+  end
 end
 
 % Plot filled contours

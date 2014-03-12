@@ -1,12 +1,17 @@
-function [argout] = mxSerialize(argin)
+function [s] = getsubfield(s, f);
 
-% MXSERIALIZE converts any MATLAB object into a uint8 array suitable
-% for passing down a comms channel to be reconstructed at the other end.
+% GETSUBFIELD returns a field from a structure just like the standard
+% Matlab GETFIELD function, except that you can also specify nested fields
+% using a '.' in the fieldname. The nesting can be arbitrary deep.
 %
-% See also MXDESERIALIZE
+% Use as
+%   f = getsubfield(s, 'fieldname')
+% or as
+%   f = getsubfield(s, 'fieldname.subfieldname')
+%
+% See also GETFIELD, ISSUBFIELD, SETSUBFIELD
 
-% Copyright (C) 2005, Brad Phelan         http://xtargets.com
-% Copyright (C) 2007, Robert Oostenveld   http://www.fcdonders.ru.nl
+% Copyright (C) 2005-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -24,14 +29,20 @@ function [argout] = mxSerialize(argin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mxSerialize.m 9277 2014-03-11 12:07:54Z roboos $
+% $Id: getsubfield.m 9253 2014-03-04 08:55:56Z jorhor $
 
-if verLessThan('matlab', '8.3')
-  % use the original implementation of the mex file
-  argout = mxSerialize_c(argin);
-else
-  % use the C++ implementation of the mex file
-  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2452
-  argout = mxSerialize_cpp(argin);
+if iscell(f)
+  f = f{1};
 end
 
+if ~ischar(f)
+  error('incorrect input argument for fieldname');
+end
+
+while (1)
+  [t, f] = strtok(f, '.');
+  s = getfield(s, t);
+  if isempty(f)
+    break
+  end
+end

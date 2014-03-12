@@ -61,9 +61,9 @@ function [grandavg] = ft_timelockgrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockgrandaverage.m 9204 2014-02-14 15:42:54Z dieloz $
+% $Id: ft_timelockgrandaverage.m 9285 2014-03-12 08:56:39Z dieloz $
 
-revision = '$Id: ft_timelockgrandaverage.m 9204 2014-02-14 15:42:54Z dieloz $';
+revision = '$Id: ft_timelockgrandaverage.m 9285 2014-03-12 08:56:39Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -158,7 +158,7 @@ for i=1:Nsubj
       varargin{i}.(cfg.parameter) = varargin{i}.(cfg.parameter)(chansel);
       varargin{i}.dimord = 'chan';
     case {'rpt_chan_time' 'subj_chan_time'}
-      varargin{i}.(cfg.parameter) = varargin{i}.(cfg.parameter)(chansel,timesel);
+      varargin{i}.(cfg.parameter) = varargin{i}.(cfg.parameter)(:,chansel,timesel);
       varargin{i}.dimord = 'chan_time';
     otherwise
       error('unsupported dimord');

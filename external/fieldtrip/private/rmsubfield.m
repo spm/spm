@@ -1,12 +1,18 @@
-function [argout] = mxSerialize(argin)
+function [s] = rmsubfield(s, f, v);
 
-% MXSERIALIZE converts any MATLAB object into a uint8 array suitable
-% for passing down a comms channel to be reconstructed at the other end.
+% RMSUBFIELD removes the contents of the specified field from a structure
+% just like the standard Matlab RMFIELD function, except that you can also
+% specify nested fields using a '.' in the fieldname. The nesting can be
+% arbitrary deep.
 %
-% See also MXDESERIALIZE
+% Use as
+%   s = rmsubfield(s, 'fieldname')
+% or as
+%   s = rmsubfield(s, 'fieldname.subfieldname')
+%
+% See also SETFIELD, GETSUBFIELD, ISSUBFIELD
 
-% Copyright (C) 2005, Brad Phelan         http://xtargets.com
-% Copyright (C) 2007, Robert Oostenveld   http://www.fcdonders.ru.nl
+% Copyright (C) 2006-2013, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -24,14 +30,17 @@ function [argout] = mxSerialize(argin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: mxSerialize.m 9277 2014-03-11 12:07:54Z roboos $
+% $Id: rmsubfield.m 9254 2014-03-04 08:56:37Z jorhor $
 
-if verLessThan('matlab', '8.3')
-  % use the original implementation of the mex file
-  argout = mxSerialize_c(argin);
-else
-  % use the C++ implementation of the mex file
-  % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2452
-  argout = mxSerialize_cpp(argin);
+if ~ischar(f)
+  error('incorrect input argument for fieldname');
 end
 
+% remove the nested subfield using recursion
+[t, f] = strtok(f, '.');
+if any(f=='.')
+  u = rmsubfield(getfield(s, t), f);
+  s = setfield(s, t, u);
+else
+  s = rmfield(s, t);
+end

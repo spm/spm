@@ -146,9 +146,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_volumerealign.m 9259 2014-03-07 08:33:19Z jansch $
 
-revision = '$Id: ft_volumerealign.m 9226 2014-02-23 13:12:06Z roboos $';
+revision = '$Id: ft_volumerealign.m 9259 2014-03-07 08:33:19Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -607,6 +607,7 @@ switch cfg.method
     scalp              = ft_prepare_mesh(tmpcfg, seg);
     scalp              = ft_convert_units(scalp, 'mm');
     
+    if 1,
     % Here it is advisable to interactively realign the shape and scalp, in
     % order to get a good starting point for the icp-algorithm.
     % We will use ft_interactiverealign for this.
@@ -621,7 +622,7 @@ switch cfg.method
     % update the relevant geometrical info
     mri.transform = M*mri.transform;
     scalp     = ft_transform_geometry(M, scalp);
-
+    end
     
     if ~isfield(cfg, 'weights')
       w = ones(size(shape.pnt,1),1);

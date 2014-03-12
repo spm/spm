@@ -33,7 +33,7 @@ function ft_compile_mex(force)
 
 % Copyright (C) 2010, Stefan Klanke
 %
-% $Id: ft_compile_mex.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_compile_mex.m 9276 2014-03-11 12:05:06Z roboos $
 
 if nargin<1
   force=false;
@@ -95,8 +95,8 @@ L = add_mex_source(L,'src','inv2x2');
 L = add_mex_source(L,'src','mtimes2x2');
 L = add_mex_source(L,'src','sandwich2x2');
 
-L = add_mex_source(L,'src','mxSerialize');
-L = add_mex_source(L,'src','mxDeserialize');
+L = add_mex_source(L,'src','mxSerialize_c');
+L = add_mex_source(L,'src','mxDeserialize_c');
 L = add_mex_source(L,'src','CalcMD5');
 
 L = add_mex_source(L,'src','combineClusters');

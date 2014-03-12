@@ -46,9 +46,9 @@ function [data, mri, grid]=nutmeg2fieldtrip(cfg,fileorstruct)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nutmeg2fieldtrip.m 7188 2012-12-13 21:26:34Z roboos $
+% $Id: nutmeg2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $
 
-revision = '$Id: nutmeg2fieldtrip.m 7188 2012-12-13 21:26:34Z roboos $';
+revision = '$Id: nutmeg2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults

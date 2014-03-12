@@ -41,9 +41,9 @@ function fieldtrip2spss(filename, labels, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2spss.m 8335 2013-07-29 10:09:23Z arjsto $
+% $Id: fieldtrip2spss.m 9273 2014-03-07 16:38:42Z jansch $
 
-revision = '$Id: fieldtrip2spss.m 8335 2013-07-29 10:09:23Z arjsto $';
+revision = '$Id: fieldtrip2spss.m 9273 2014-03-07 16:38:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults

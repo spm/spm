@@ -10,7 +10,7 @@ function [data] = spm2fieldtrip(D)
 %
 % See also FT_PREPROCESSING, SPM_EEG_LOAD
 
-revision = '$Id: spm2fieldtrip.m 7123 2012-12-06 21:21:38Z roboos $';
+revision = '$Id: spm2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults

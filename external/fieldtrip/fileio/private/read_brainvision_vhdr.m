@@ -26,7 +26,7 @@ function [hdr] = read_brainvision_vhdr(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_brainvision_vhdr.m 9187 2014-02-05 16:10:12Z jimher $
+% $Id: read_brainvision_vhdr.m 9252 2014-03-03 10:49:12Z eelspa $
 
 hdr.DataFile         = read_asa(filename, 'DataFile=', '%s');
 hdr.MarkerFile       = read_asa(filename, 'MarkerFile=', '%s');
@@ -47,7 +47,7 @@ if ~isempty(hdr.NumberOfChannels)
     if ~isempty(resolution)
       hdr.resolution(i) = resolution;
     else
-      warning('Unknown resolution for channel %d in %s!', i, filename);
+      warning('unknown resolution (i.e. recording units) for channel %d in %s', i, filename);
       hdr.resolution(i) = 1;
     end
   end

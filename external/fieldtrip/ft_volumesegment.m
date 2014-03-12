@@ -128,9 +128,9 @@ function [segment] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: ft_volumesegment.m 9273 2014-03-07 16:38:42Z jansch $
 
-revision = '$Id: ft_volumesegment.m 9006 2013-12-10 11:24:56Z roboos $';
+revision = '$Id: ft_volumesegment.m 9273 2014-03-07 16:38:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults

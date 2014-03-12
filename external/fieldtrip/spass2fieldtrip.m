@@ -36,9 +36,9 @@ function [lfp, spike, stm, bhv] = spass2fieldtrip(dirname, varargin)
 
 % Copyright (C) 2007, Robert Oostenveld
 %
-% $Id: spass2fieldtrip.m 7374 2013-01-23 12:21:21Z jorhor $
+% $Id: spass2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $
 
-revision = '$Id: spass2fieldtrip.m 7374 2013-01-23 12:21:21Z jorhor $';
+revision = '$Id: spass2fieldtrip.m 9273 2014-03-07 16:38:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults

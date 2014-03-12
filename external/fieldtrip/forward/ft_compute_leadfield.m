@@ -31,6 +31,9 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %   'normalize'       = 'no', 'yes' or 'column'
 %   'normalizeparam'  = parameter for depth normalization (default = 0.5)
 %   'weight'          = number or 1xN vector, weight for each dipole position (default = 1)
+%   'backproject'     = 'yes' (default) or 'no', in the case of a rank reduction
+%                       this parameter determines whether the result will be 
+%                       backprojected onto the original subspace 
 %
 % The leadfield weight may be used to specify a (normalized)
 % corresponding surface area for each dipole, e.g. when the dipoles
@@ -78,7 +81,7 @@ function [lf] = ft_compute_leadfield(pos, sens, vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_compute_leadfield.m 9183 2014-02-04 09:54:35Z roboos $
+% $Id: ft_compute_leadfield.m 9255 2014-03-07 08:22:07Z jansch $
 
 if iscell(sens) && iscell(vol) && numel(sens)==numel(vol)
   % this represents combined EEG and MEG sensors, where each modality has its own volume conduction model
@@ -92,6 +95,7 @@ end
 
 % get the optional input arguments
 reducerank      = ft_getopt(varargin, 'reducerank', 'no');
+backproject     = ft_getopt(varargin, 'backproject', 'yes');
 normalize       = ft_getopt(varargin, 'normalize' , 'no');
 normalizeparam  = ft_getopt(varargin, 'normalizeparam', 0.5);
 weight          = ft_getopt(varargin, 'weight');
@@ -524,9 +528,24 @@ if ~strcmp(reducerank, 'no') && reducerank<3
     for j=1:reducerank
       s(j, j) = r(j);
     end
-    % recompose the leadfield with reduced rank
-    lf(:, (3*ii-2):(3*ii)) = u * s * v';
+    
+    if istrue(backproject)
+      % recompose the leadfield with reduced rank
+      lf(:, (3*ii-2):(3*ii)) = u * s * v';
+    else
+      % if not backprojected, the new leadfield has a different dimension
+      if ii==1, 
+        newlf    = zeros(size(lf,1), Ndipoles*reducerank);
+        origrank = size(lf,2)./Ndipoles; 
+      end
+      newlf(:, reducerank*(ii-1) + (1:reducerank)) = lf(:, origrank*(ii-1) + (1:origrank))*v(:,1:reducerank);
+    end
   end
+  
+  if ~istrue(backproject),
+    lf = newlf;
+  end
+  clear newlf;
 end
 
 % optionally apply leadfield normalization

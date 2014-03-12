@@ -7,9 +7,14 @@ function str = fixname(str)
 % Use as
 %   str = fixname(str)
 %
+%
+% MATLAB 2014a introduces the matlab.lang.makeValidName and 
+% matlab.lang.makeUniqueStrings functions for constructing unique MATLAB identifiers,
+% but this particular implementation also works with older MATLAB versions.
+%
 % See also DEBLANK
 
-% Copyright (C) 2012, Robert Oostenveld
+% Copyright (C) 2012-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -27,7 +32,7 @@ function str = fixname(str)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixname.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fixname.m 9282 2014-03-11 14:14:20Z roboos $
 
 str = lower(str);
 str(regexp(str,'\W')) = '_';

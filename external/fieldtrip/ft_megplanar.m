@@ -70,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 9071 2014-01-04 19:20:06Z jansch $
+% $Id: ft_megplanar.m 9279 2014-03-11 12:45:55Z eelspa $
 
-revision = '$Id: ft_megplanar.m 9071 2014-01-04 19:20:06Z jansch $';
+revision = '$Id: ft_megplanar.m 9279 2014-03-11 12:45:55Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -234,7 +234,7 @@ if strcmp(cfg.planarmethod, 'sourceproject')
 else
   
   sens = ft_convert_units(data.grad);
-  chanposnans = any(isnan(sens.chanpos(:)));
+  chanposnans = any(isnan(sens.chanpos(:))) || any(isnan(sens.chanori(:)));
   if chanposnans
     if isfield(sens, 'chanposorg')
       % temporarily replace chanpos and chanorig with the original values
@@ -243,7 +243,7 @@ else
       sens.label = sens.labelorg;
       sens = rmfield(sens, {'chanposorg', 'chanoriorg', 'labelorg'});
     else
-      error('The channel positions contain NaNs; this prohibits correct behavior of the function. Please replace the input channel definition with one that contains valid channel positions');
+      error('The channel positions (and/or orientations) contain NaNs; this prohibits correct behavior of the function. Please replace the input channel definition with one that contains valid channel positions');
     end
   end
   cfg.channel = ft_channelselection(cfg.channel, sens.label);
