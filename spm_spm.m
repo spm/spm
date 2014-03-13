@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5823 2014-01-02 14:01:10Z guillaume $
+% $Id: spm_spm.m 5916 2014-03-13 13:15:02Z guillaume $
 
 
-SVNid = '$Rev: 5823 $';
+SVNid = '$Rev: 5916 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -492,6 +492,7 @@ VResMS = spm_data_hdr_write(VResMS);
 %-Initialise standardised residual images
 %--------------------------------------------------------------------------
 nSres = min(nScan, spm_get_defaults('stats.maxres'));
+resInMem = spm_get_defaults('stats.resmem');
 VResI(1:nSres) = deal(struct(...
     'fname',   [],...
     'dim',     DIM,...
@@ -499,6 +500,7 @@ VResI(1:nSres) = deal(struct(...
     'mat',     M,...
     'pinfo',   [1 0 0]',...
     'descrip', 'spm_spm:StandardisedResiduals'));
+if resInMem, for i=1:nSres, VResI(i).dat = zeros(VResI(i).dim); end; end
 
 for i = 1:nSres
     VResI(i).fname   = [sprintf('ResI_%04d', i) file_ext];

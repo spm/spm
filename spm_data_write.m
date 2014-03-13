@@ -9,13 +9,21 @@ function V = spm_data_write(V,Y,varargin)
 % Y        - an array of data values
 % I        - linear index to data values
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_write.m 4940 2012-09-20 17:27:54Z guillaume $
+% $Id: spm_data_write.m 5916 2014-03-13 13:15:02Z guillaume $
 
 
-switch class(V(1).private)
+if isfield(V,'private')
+    cl = class(V.private);
+elseif isfield(V,'dat')
+    cl = 'struct';
+else
+    error('Unkwown data type.');
+end
+
+switch cl
     case 'nifti'
         if isempty(varargin)
             V = spm_write_vol(V,Y);
@@ -28,6 +36,16 @@ switch class(V(1).private)
                 catch
                     V.private.dat(varargin{1}) = reshape(Y,size(varargin{1}))';
                 end
+            else
+                error('not implemented yet');
+            end
+        end
+    case 'struct'
+        if isempty(varargin)
+            V.dat = Y;
+        else
+            if numel(varargin) == 1
+                V.dat(varargin{1}) = reshape(Y,size(varargin{1}));
             else
                 error('not implemented yet');
             end

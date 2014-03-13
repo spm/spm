@@ -22,14 +22,17 @@ function Y = spm_data_read(V,varargin)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_data_read.m 5097 2012-12-06 16:08:16Z guillaume $
+% $Id: spm_data_read.m 5916 2014-03-13 13:15:02Z guillaume $
 
 
 if ~isstruct(V)
     V = spm_data_hdr_read(V);
 end
 
-switch class(V(1).private)
+cl = class(V(1).private);
+if isfield(V(1),'dat'), cl = 'nifti'; end
+
+switch cl
     case 'nifti'
         if isempty(varargin)
             % Y = V.private.dat(); % if numel(V)==1, is faster
