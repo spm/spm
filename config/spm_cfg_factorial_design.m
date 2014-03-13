@@ -1,10 +1,10 @@
 function factorial_design = spm_cfg_factorial_design
 % SPM Configuration file for second-level models
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_factorial_design.m 5917 2014-03-13 16:27:04Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -441,9 +441,9 @@ fac.val     = {name dept variance gmsca ancova };
 fac.help    = {
                'Add a new factor to your design.'
                ''
-               'If you are using the ''Subjects'' option to specify your scans and conditions, you may wish to make use of the following facility. There are two reserved words for the names of factors. These are ''subject'' and ''repl'' (standing for replication). If you use these factor names then SPM can automatically create replication and/or subject factors without you having to type in an extra entry in the condition vector.'
+               'If you are using the ''Subjects'' option to specify your scans and conditions, you may wish to make use of the following facility. There are two reserved words for the names of factors. These are ''subject'' and ''repl'' (standing for replication). If you use these factor names then SPM will automatically create replication and/or subject factors without you having to type in an extra entry in the condition vector.'
                ''
-               'For example, if you wish to model Subject and Task effects (two factors), under Subjects->Subject->Conditions you can type in simply [1 2 1 2] to specify eg. just the ''Task'' factor level. You do not need to eg. for the 4th subject enter the matrix [1 4; 2 4; 1 4; 2 4]. '
+               'For example, if you wish to model Subject and Task effects (two factors), under Subjects->Subject->Conditions you should simply type in eg. [1 2 1 2] to specify just the ''Task'' factor level, instead of, eg. for the 4th subject the matrix [4 1;4 2;4 1;4 2].'
 }';
 
 %--------------------------------------------------------------------------
