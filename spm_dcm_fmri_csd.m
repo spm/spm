@@ -1,4 +1,4 @@
-function DCM = spm_dcm_fmri_csd(DCM)
+function DCM = spm_dcm_fmri_csd(P)
 % Estimates parameters of a DCM using cross spectral fMRI densities
 % FORMAT DCM = spm_dcm_fmri_csd(DCM)
 %   DCM - DCM structure
@@ -36,16 +36,21 @@ function DCM = spm_dcm_fmri_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5831 2014-01-10 16:49:55Z karl $
+% $Id: spm_dcm_fmri_csd.m 5919 2014-03-14 13:19:21Z adeel $
 
+SVNid = '$Rev: 5919 $';
 
-% get DCM
+% Load DCM structure
 %--------------------------------------------------------------------------
-if ischar(DCM), load(DCM); end
 
-% DCM name
-%--------------------------------------------------------------------------
-try, DCM.name; catch, DCM.name = sprintf('DCM_%s',date); end
+if isstruct(P)
+    DCM = P;
+    try, DCM.name; catch, DCM.name = sprintf('DCM_%s',date); end
+    P   = DCM.name;
+else
+    load(P)
+end
+
 
 % check options and specification
 %==========================================================================
@@ -242,6 +247,12 @@ DCM.Hs = Hs;                   % conditional responses (y), neural space
 DCM.Ce = exp(-Eh);             % ReML error covariance
 DCM.F  = F;                    % Laplace log evidence
 
+% Save SPM version and revision number of code used
+%--------------------------------------------------------------------------
+[DCM.version.SPM.version, DCM.version.SPM.revision] = spm('Ver');
+DCM.version.DCM.version  = spm_dcm_ui('Version');
+DCM.version.DCM.revision = SVNid;
+
 % and save
 %--------------------------------------------------------------------------
-save(DCM.name,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
+save(P,'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
