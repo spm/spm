@@ -21,7 +21,7 @@ function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 %
-% $Id: spm_eeg_invert_classic_mix.m 5869 2014-02-05 16:13:06Z gareth $
+% $Id: spm_eeg_invert_classic_mix.m 5918 2014-03-14 12:19:08Z gareth $
 
 
 
@@ -87,7 +87,7 @@ Nmax  = 16;         % max number of temporal modes
 % check lead fields and get number of dipoles (Nd) and channels (Nc)
 %==========================================================================
 
-if inverse.Nm~=length(inverse.Ic),
+if inverse.Nm~=length(inverse.Ic{1}),
     disp('Using reduced spatial modes');
     if length(unique(surfind))>1,
         error('Cannot merge different surface files with reduced spatial modes at the moment');
@@ -95,7 +95,7 @@ if inverse.Nm~=length(inverse.Ic),
     U=inverse.U{1};
 else
     disp('Using all spatial modes');
-    U=eye(size(L,1));
+    U=eye(inverse.Nm);
 end;
 
     
