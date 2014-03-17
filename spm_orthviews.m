@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5906 2014-03-04 18:03:44Z guillaume $
+% $Id: spm_orthviews.m 5920 2014-03-17 13:06:59Z guillaume $
 
 
 % The basic fields of st are:
@@ -1247,55 +1247,73 @@ for i = valid_handles(arg1)
                 
                 % colourmaps
                 gryc = (0:63)'*ones(1,3)/63;
-                actc = st.vols{1}.blobs{1}.colour.cmap;
-                actp = st.vols{1}.blobs{1}.colour.prop;
                 
                 % scale grayscale image, not isfinite -> black
-                imgt = scaletocmap(imgt,mn,mx,gryc,65);
-                imgc = scaletocmap(imgc,mn,mx,gryc,65);
-                imgs = scaletocmap(imgs,mn,mx,gryc,65);
-                gryc = [gryc; 0 0 0];
+                gimgt = scaletocmap(imgt,mn,mx,gryc,65);
+                gimgc = scaletocmap(imgc,mn,mx,gryc,65);
+                gimgs = scaletocmap(imgs,mn,mx,gryc,65);
+                gryc  = [gryc; 0 0 0];
+                cactp = 0;
                 
-                % get max for blob image
-                if isfield(st.vols{i}.blobs{1},'max')
-                    cmx = st.vols{i}.blobs{1}.max;
-                else
-                    cmx = max([eps maxval(st.vols{i}.blobs{1}.vol)]);
+                for j=1:numel(st.vols{i}.blobs)
+                    % colourmaps
+                    actc = st.vols{i}.blobs{j}.colour.cmap;
+                    actp = st.vols{i}.blobs{j}.colour.prop;
+                    
+                    % get min/max for blob image
+                    if isfield(st.vols{i}.blobs{j},'max')
+                        cmx = st.vols{i}.blobs{j}.max;
+                    else
+                        cmx = max([eps maxval(st.vols{i}.blobs{j}.vol)]);
+                    end
+                    if isfield(st.vols{i}.blobs{j},'min')
+                        cmn = st.vols{i}.blobs{j}.min;
+                    else
+                        cmn = -cmx;
+                    end
+                    
+                    % get blob data
+                    vol  = st.vols{i}.blobs{j}.vol;
+                    M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{j}.mat;
+                    tmpt = spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])';
+                    tmpc = spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])';
+                    tmps = spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])';
+                    
+                    % actimg scaled round 0, black NaNs
+                    topc = size(actc,1)+1;
+                    tmpt = scaletocmap(tmpt,cmn,cmx,actc,topc);
+                    tmpc = scaletocmap(tmpc,cmn,cmx,actc,topc);
+                    tmps = scaletocmap(tmps,cmn,cmx,actc,topc);
+                    actc = [actc; 0 0 0];
+                    
+                    % combine gray and blob data to truecolour
+                    if isnan(actp)
+                        if j==1, imgt = gryc(gimgt(:),:); end
+                        imgt(tmpt~=size(actc,1),:) = actc(tmpt(tmpt~=size(actc,1)),:);
+                        if j==1, imgc = gryc(gimgc(:),:); end
+                        imgc(tmpc~=size(actc,1),:) = actc(tmpc(tmpc~=size(actc,1)),:);
+                        if j==1, imgs = gryc(gimgs(:),:); end
+                        imgs(tmps~=size(actc,1),:) = actc(tmps(tmps~=size(actc,1)),:);
+                    else
+                        cactp = cactp + actp;
+                        if j==1, imgt = actc(tmpt(:),:)*actp; else imgt = imgt + actc(tmpt(:),:)*actp; end
+                        if j==numel(st.vols{i}.blobs), imgt = imgt + gryc(gimgt(:),:)*(1-cactp); end
+                        if j==1, imgc = actc(tmpc(:),:)*actp; else imgc = imgc + actc(tmpc(:),:)*actp; end
+                        if j==numel(st.vols{i}.blobs), imgc = imgc + gryc(gimgc(:),:)*(1-cactp); end
+                        if j==1, imgs = actc(tmps(:),:)*actp; else imgs = imgs + actc(tmps(:),:)*actp; end
+                        if j==numel(st.vols{i}.blobs), imgs = imgs + gryc(gimgs(:),:)*(1-cactp); end
+                    end
+                    if j==numel(st.vols{i}.blobs)
+                        imgt = reshape(imgt,[size(gimgt) 3]);
+                    	imgc = reshape(imgc,[size(gimgc) 3]);
+                    	imgs = reshape(imgs,[size(gimgs) 3]);
+                    end
+                    
+                     % colourbar
+                    csz   = size(st.vols{i}.blobs{j}.colour.cmap);
+                    cdata = reshape(st.vols{i}.blobs{j}.colour.cmap, [csz(1) 1 csz(2)]);
+                    redraw_colourbar(i,j,[cmn cmx],cdata);
                 end
-                if isfield(st.vols{i}.blobs{1},'min')
-                    cmn = st.vols{i}.blobs{1}.min;
-                else
-                    cmn = -cmx;
-                end
-                
-                % get blob data
-                vol  = st.vols{i}.blobs{1}.vol;
-                M    = st.Space\st.vols{i}.premul*st.vols{i}.blobs{1}.mat;
-                tmpt = spm_slice_vol(vol,inv(TM0*M),TD,[0 NaN])';
-                tmpc = spm_slice_vol(vol,inv(CM0*M),CD,[0 NaN])';
-                tmps = spm_slice_vol(vol,inv(SM0*M),SD,[0 NaN])';
-                
-                % actimg scaled round 0, black NaNs
-                topc = size(actc,1)+1;
-                tmpt = scaletocmap(tmpt,cmn,cmx,actc,topc);
-                tmpc = scaletocmap(tmpc,cmn,cmx,actc,topc);
-                tmps = scaletocmap(tmps,cmn,cmx,actc,topc);
-                actc = [actc; 0 0 0];
-                
-                % combine gray and blob data to
-                % truecolour
-                imgt = reshape(actc(tmpt(:),:)*actp+ ...
-                    gryc(imgt(:),:)*(1-actp), ...
-                    [size(imgt) 3]);
-                imgc = reshape(actc(tmpc(:),:)*actp+ ...
-                    gryc(imgc(:),:)*(1-actp), ...
-                    [size(imgc) 3]);
-                imgs = reshape(actc(tmps(:),:)*actp+ ...
-                    gryc(imgs(:),:)*(1-actp), ...
-                    [size(imgs) 3]);
-                csz   = size(st.vols{i}.blobs{1}.colour.cmap);
-                cdata = reshape(st.vols{i}.blobs{1}.colour.cmap, [csz(1) 1 csz(2)]);
-                redraw_colourbar(i,1,[cmn cmx],cdata);
                 
             else
                 % Add full colour blobs - several sets at once
