@@ -29,11 +29,11 @@ function spm_sigmoid_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_sigmoid_demo.m 5769 2013-11-27 19:37:01Z karl $
+% $Id: spm_sigmoid_demo.m 5922 2014-03-18 20:10:17Z karl $
 
 % relating R amd the variance
 %==========================================================================
-r     = [1:32]/8;
+r     = (1:32)/8;
 w     = 0;
 X     = -64:1/32:64;
 for i = 1:length(r)
@@ -48,6 +48,7 @@ subplot(2,1,1)
 plot(r,sqrt(V))
 xlabel('slope parameter')
 ylabel('standard deviation')
+title('Slope and dispersion','FontSize',16)
 axis square
 drawnow
 
@@ -92,6 +93,8 @@ M.l   = size(pE.L,1);
 
 % Volterra Kernels
 %==========================================================================
+spm_figure('GetWin','Figure 2'); clf
+
 
 % kernels
 %--------------------------------------------------------------------------
@@ -100,26 +103,26 @@ m = length(r);
 for i = 1:m
     
     pE            = M.pE;
-    pE.R          = log([r(i) 2]);
+    pE.R(1)       = log(r(i));
     [M0,M1,L1,L2] = spm_bireduce(M,pE);
     
     % compute kernels (over 128ms)
     %----------------------------------------------------------------------
     N          = 128;
     dt         = 1/1000;
-    t          = [1:N]*dt*1000;
+    t          = (1:N)*dt*1000;
     [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
     
     subplot(2,m,(i - 1) + 1)
     plot(t,K1)
-    title(sprintf('1st-order Volterra kernel: slope = %.1f',r(i)))
+    title(sprintf('1st-order Volterra kernel: slope = %.1f',r(i)),'FontSize',16)
     axis square
     set(gca,'XLim',[t(1) t(end)])
     xlabel('time (ms)')
     
     subplot(2,m,(i - 1) + m + 1)
     imagesc(t,t,K2(1:N,1:N,1))
-    title(sprintf('2nd-order Volterra kernel: slope = %.1f',r(i)))
+    title(sprintf('2nd-order Volterra kernel: slope = %.1f',r(i)),'FontSize',16)
     axis square
     xlabel('time (ms)')
     
@@ -127,14 +130,14 @@ end
 
 % transfer functions
 %==========================================================================
-spm_figure('GetWin','Figure 2'); clf
+spm_figure('GetWin','Figure 3'); clf
 
 % compute transfer functions for different slope parameters
 %--------------------------------------------------------------------------
 clear GW
-r     = [1:32]/16;
+r     = (1:32)/16;
 for i = 1:length(r)
-    pE.R    = log([r(i) 2]);
+    pE.R(1) = log(r(i));
     [G w]   = spm_lfp_mtf(pE,M);
     GW(:,i) = G{1};
 end
@@ -156,12 +159,12 @@ drawnow
 
 % Integrate system to see transient
 %==========================================================================
-spm_figure('GetWin','Figure 3'); clf
+spm_figure('GetWin','Figure 4'); clf
 
 N     = 256;
 U.dt  = 1/1000;
-U.u   = 8*(exp(-([1:N]' - N/8).^2/(2*1^2)) + rand(N,1)/8);
-t     = [1:N]*U.dt;
+U.u   = 32*(exp(-((1:N)' - N/8).^2/(2*1^2)) + rand(N,1)/8);
+t     = (1:N)*U.dt;
 r     = [.8 1.6];
 m     = length(r);
 for i = 1:m
@@ -173,8 +176,7 @@ for i = 1:m
     %----------------------------------------------------------------------
     subplot(2,m,(i - 1) + 1)
     plot(t*1000,LFP)
-    title(sprintf('depolarization: slope = %.1f',r(i)))
-    
+    title(sprintf('depolarization: slope = %.1f',r(i)),'FontSize',16)
     axis square
     xlabel('time (ms)')
     
@@ -186,7 +188,7 @@ for i = 1:m
     
     subplot(2,m,(i - 1) + m + 1)
     imagesc(t*1000,w,abs(spm_wft(LFP(:,1),cpW,W)).^2);
-    title(sprintf('time-frequency response: slope = %.1f',r(i)))
+    title(sprintf('time-frequency response: slope = %.1f',r(i)),'FontSize',16)
     axis square xy
     xlabel('time (ms)')
     ylabel('frequency')

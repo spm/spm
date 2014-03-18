@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_fx_cmc_tfm.m 5922 2014-03-18 20:10:17Z karl $
  
  
 % get dimensions and configure state variables
@@ -46,7 +46,7 @@ n  = size(x,1);                       % number of sources
 %--------------------------------------------------------------------------
 E  = [1 1/8 1/4 1/2]*200;             % extrinsic (forward and backward)  
 G  = [4 4 8 4 4 2 4 4 2 2 2 4]*200;   % intrinsic connections
-T  = [2 2 16 28];                     % synaptic time constants
+T  = [2 2 16 28]/1000;                % synaptic time constants
 R  = 1;                               % slope of sigmoid activation function
 
 % NB for more pronounced state dependent transfer functions use R  = 3/2; 
@@ -107,7 +107,7 @@ end
  
 % time constants and intrinsic connections
 %==========================================================================
-T    = ones(n,1)*T/1000;
+T    = ones(n,1)*T;
 G    = ones(n,1)*G;
 
 % extrinsic connections
@@ -164,8 +164,9 @@ end
 
 % Modulatory effects of sp depolarisation on recurrent inhibition
 %--------------------------------------------------------------------------
+G(:,7)     = G(:,7).*exp(32*S(:,3));
 if isfield(P,'M')
-    G(:,7) = G(:,7).*exp((1 - P.M)*32*S(:,3));
+    G(:,7) = G(:,7).*exp(-P.M*32*S(:,3));
 end
 
  

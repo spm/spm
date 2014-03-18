@@ -18,7 +18,7 @@ function [Q] = spm_gen_Q(P,X)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_gen_Q.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_gen_Q.m 5922 2014-03-18 20:10:17Z karl $
 
 
 % condition or trial specific parameters
@@ -34,7 +34,7 @@ end
 
 % trial-specific effects on A (connections)
 %--------------------------------------------------------------------------
-for i = 1:size(X,2)
+for i = 1:length(X)
     
     % extrinsic (driving) connections
     %----------------------------------------------------------------------
@@ -42,10 +42,10 @@ for i = 1:size(X,2)
         
         Q.A{j} = Q.A{j} + X(i)*P.B{i};
         
-        % for CMM-NMDA specific modulation on Extrinsic NMDA connections
+        % CMM-NMDA specific modulation on extrinsic NMDA connections
         %------------------------------------------------------------------
         try
-            Q.AN{j}   = Q.AN{j}   + X(i)*P.BN{i};
+            Q.AN{j} = Q.AN{j} + X(i)*P.BN{i};
         end
         
     end

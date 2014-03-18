@@ -49,7 +49,7 @@ function spm_csd_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_csd_demo.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_csd_demo.m 5922 2014-03-18 20:10:17Z karl $
  
 clear global
  
@@ -84,24 +84,24 @@ pE.c  = pE.c - 16;
 %--------------------------------------------------------------------------
 M.dipfit.type = 'LFP';
 
-M.IS  = 'spm_lfp_mtf';
-M.FS  = 'spm_lfp_sqrt';
-M.f   = 'spm_fx_lfp';
-M.g   = 'spm_gx_erp';
-M.x   = sparse(n,13);
-M.n   = n*13;
-M.pE  = pE;
-M.pC  = pC;
-M.m   = n;
-M.l   = nc;
-M.Hz  = (1:64)';
+M.IS = 'spm_csd_mtf';
+M.FS = 'spm_fs_csd';
+M.g  = 'spm_gx_erp';
+M.f  = 'spm_fx_lfp';
+M.x  = sparse(n,13);
+M.n  = n*13;
+M.pE = pE;
+M.pC = pC;
+M.m  = n;
+M.l  = nc;
+M.Hz = (1:64)';
  
  
 % simulate spectral data directly
 %==========================================================================
 P           = pE;
 P.A{1}(2,1) = 1/2;                          % strong forward connections
-CSD         = spm_lfp_mtf(P,M);
+CSD         = spm_csd_mtf(P,M);
 CSD         = CSD{1};
  
 % or generate data and use the sample CSD
@@ -133,7 +133,7 @@ xlabel('time')
 title('LFP')
  
 subplot(2,1,2)
-plot(M.Hz,abs(CSD(:,1,1)),M.Hz,abs(CSD(:,1,2)),':')
+plot(M.Hz,real(CSD(:,1,1)),M.Hz,real(CSD(:,1,2)),':')
 xlabel('frequency')
 title('[cross]-spectral density')
 axis square
@@ -145,8 +145,6 @@ axis square
 % data and confounds
 %--------------------------------------------------------------------------
 Y.y   = {CSD};
-nf    = size(Y.y{1},1);                  % number of frequency bins
-Y.Q   = spm_Q(1/2,nf,1);                 % precision of noise AR(1/2)
  
 % invert
 %--------------------------------------------------------------------------
@@ -167,12 +165,12 @@ for i = 1:nc
     for j = 1:nc
         
         subplot(3,2,(i - 1)*nc + j)
-        plot(w,g(:,i,j),w,y(:,i,j),':')
+        plot(w,real(g(:,i,j)),w,real(y(:,i,j)),':')
         title(sprintf('cross-spectral density %d,%d',i,j))
         xlabel('Power')
         axis square
         
-        try axis(a),catch, a = axis; end
+        try axis(a), catch, a = axis; end
  
     end
 end

@@ -1,35 +1,29 @@
-function [S] = spm_ssm2s(P,M,U)
+function [s,u] = spm_ssm2s(P,M)
 % Converts state-space (M) representation to eigenspectrum
-% FORMAT [S] = spm_ssm2s(P,M,U)
+% FORMAT [s,u] = spm_ssm2s(P,M)
 %
 % P    - model parameters
 % M    - model (with flow M.f and expansion point M.x and M.u)
-% U    - induces expansion about steady state
 %
-% S    - (SPM) eigenspectrum
-% Hz   - vector of frequencies (Hz)
+% S    - (sorted) eigenspectrum or Lyapunov exponents
+% V    - associated eigenvectors
 %
 % csd  - cross spectral density
 %__________________________________________________________________________
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_ssm2s.m 5922 2014-03-18 20:10:17Z karl $
 
 
 % Steady state solution
 %--------------------------------------------------------------------------
+M.x = spm_dcm_neural_x(P,M);
+
 try
-    J  = M.J;
+    M.u;
 catch
-    J  = [2; 4];
-end
-
-
-% Steady state solution
-%--------------------------------------------------------------------------
-if nargin > 2
-    M.x = spm_dcm_neural_x(P,M);
+    M.u = zeros(M.l,1);
 end
 
 % Jacobian and delay operator - if not specified already
@@ -45,58 +39,31 @@ else
     D          = 1;
 end
 
-
 dfdx   = D*dfdx;
 dfdu   = D*spm_diff(M.f,M.x,M.u,P,M,2);
-[u,s]  = eig(full(dfdx));
+[u,s]  = eig(full(dfdx),'nobalance');
 s      = diag(s);
 
-% alert to unstable eigenmodes
+% eigenvectors
 %--------------------------------------------------------------------------
-if any(real(s) > 0)
-    disp('warning unstable modes')
-end
-
-% remove unstable eigenmodes
-%--------------------------------------------------------------------------
-i     = find(real(s) < 0);
-s     = s(i);
-u     = u(:,i);
+u      = u*diag(pinv(u)*dfdu);
 
 % condition slow eigenmodes
 %--------------------------------------------------------------------------
-s     = 1j*imag(s) - log(32 + exp(real(-s)));
-
-
-% number of imaginary eigenmodes
-%--------------------------------------------------------------------------
-try
-    m = M.Nm;
-catch
-    m = sum(imag(s) > 0);
-end
+s      = 1j*imag(s) + min(real(s),-4);
 
 % principal eigenmodes (highest imaginary value)
 %--------------------------------------------------------------------------
-[q,i]  = sort(imag(s),'descend');
+[d,i]  = sort(imag(s),'descend');
 u      = u(:,i);
 s      = s(i);
 
 % principal eigenmodes (highest real value)
 %--------------------------------------------------------------------------
 j      = find(~imag(s));
-
-[r,i]  = sort(real(s(j)),'descend');
+[d,i]  = sort(real(s(j)),'descend');
 u(:,j) = u(:,j(i));
 s(j)   = s(j(i));
 
-% weights
-%--------------------------------------------------------------------------
-w      = u*diag(pinv(u)*dfdu);
-w      = abs(w(J,1:m));
-w      = w*32/max(w(:));
 
 
-% principal eigenmodes (most unstable)
-%--------------------------------------------------------------------------
-S      =  [s(1:m); spm_vec(w)];

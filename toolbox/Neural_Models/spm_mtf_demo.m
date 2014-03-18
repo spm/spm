@@ -41,23 +41,23 @@ function spm_mtf_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 5013 2012-10-23 19:26:01Z karl $
+% $Id: spm_mtf_demo.m 5922 2014-03-18 20:10:17Z karl $
  
  
 % empirical data - sort and decimate
 %--------------------------------------------------------------------------
 load  'ten_minute_average_control.mat';
 y     = G_control(:);
-f     = f_Control(:);
-[f i] = sort(f);
+w     = f_Control(:);
+[w i] = sort(w);
 y     = y(i);
  
 for i = 1:64
-    [d j] = min(abs(f - i));
+    [d j] = min(abs(w - i));
     k(i)  = j;
 end
-k     = k(f(k) > 2 & f(k) < 64);
-f     = f(k);                  % frequency
+k     = k(w(k) > 2 & w(k) < 64);
+w     = w(k);                  % frequency
 y     = y(k);                  % power
  
  
@@ -90,26 +90,26 @@ C     = sparse(n,1,1,n,1);
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,fx]  = spm_dcm_x_neural(pE,'LFP');
+[x,f ]  = spm_dcm_x_neural(pE,'LFP');
 
 
 % create LFP model
 %--------------------------------------------------------------------------
 M.dipfit.type = 'LFP';
 
-M.FS  = 'spm_lfp_sqrt';
-M.IS  = 'spm_lfp_mtf';
-M.f   = fx;
+M.IS  = 'spm_csd_mtf';
+M.FS  = 'spm_fs_csd';
 M.g   = 'spm_gx_erp';
+M.f   = f;
 M.x   = x;
-M.n   = length(M.x(:));
+M.n   = length(x);
 M.pE  = pE;
 M.pC  = pC;
 M.hE  = 8;
-M.hC  = exp(-8);
+M.hC  = 1/128;
 M.m   = n;
 M.l   = 1;
-M.Hz  = f;
+M.Hz  = w;
  
  
 % inversion (in frequency space)
@@ -119,7 +119,6 @@ M.Hz  = f;
 %--------------------------------------------------------------------------
 y     = spm_cond_units(y);
 Y.y   = {y}; 
-Y.Q   = {spm_Q(1/2,length(f),1)};
  
 % invert
 %--------------------------------------------------------------------------
@@ -127,13 +126,14 @@ Ep    = spm_nlsi_GN(M,[],Y);
  
 % plot spectral density 
 %--------------------------------------------------------------------------
-[G w]  = spm_lfp_mtf(Ep,M);
+[G w]  = spm_csd_mtf(Ep,M);
  
 subplot(2,1,1)
 plot(w,G{1},w,y,':')
 xlabel('frequency (Hz)')
 xlabel('Power')
 legend({'predicted','observed'})
+title('Spectral inversion','FontSize',16)
 axis square
 grid on
 

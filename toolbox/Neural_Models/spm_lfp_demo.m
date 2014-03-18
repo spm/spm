@@ -16,7 +16,7 @@ function spm_lfp_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_lfp_demo.m 5883 2014-02-18 10:32:23Z karl $
+% $Id: spm_lfp_demo.m 5922 2014-03-18 20:10:17Z karl $
 
 
 % Model specification
@@ -92,7 +92,7 @@ spm_figure('GetWin','Volterra kernels');
 % compute kernels (over 64 ms)
 %--------------------------------------------------------------------------
 N          = 128;
-dt         = 1/2000;
+dt         = 1/1000;
 t          = (1:N)*dt*1000;
 w          = ((1:N) - 1)/N/dt;
 [K0,K1,K2] = spm_kernels(M0,M1,L1,L2,N,dt);
@@ -130,7 +130,7 @@ spm_figure('GetWin','induced and haemodynamic responses');
 N     = 2048;
 U.dt  = 8/1000;
 U.u   = 32*(sparse(128:512,1,1,N,M.m) + randn(N,M.m)/16);
-t     = [1:N]*U.dt;
+t     = (1:N)*U.dt;
 LFP   = spm_int_L(pE,M,U);
 
 % input
@@ -179,26 +179,25 @@ drawnow
 % Stability analysis (over excitatory and inhibitory time constants)
 %==========================================================================
 fprintf('Stability analysis - please wait\n')
-p     = (-16:16)/8;
-np    = length(p);
-HZ    = sparse(np,np);
-for i = 1:np
-    for j = 1:np
+P1    = linspace(-4,2,32);
+P2    = linspace(-2,1,32);
+for i = 1:length(P1)
+    for j = 1:length(P2)
         P        = M.pE;
-        P.T(:,1) = P.T(:,1) + p(i);
-        P.T(:,2) = P.T(:,2) + p(j);
-        S        = eig(full(spm_bireduce(M,P)));
-        LE(i,j)  = max(real(S));
+        P.T(:,1) = P.T(:,1) + P1(i);
+        P.T(:,2) = P.T(:,2) + P2(j);
+        S        = spm_ssm2s(P,M);
         S        = S(abs(imag(S)) > 2*2*pi & abs(imag(S)) < 64*2*pi);
         try
-            [k l]    = max(real(S));
-            HZ(i,j)  = imag(S(l))/(2*pi);
+            [s k]   = max(real(S));
+            HZ(i,j) = abs(imag(S(k)))/(2*pi);
+            LE(i,j) = s;
         end
     end
 end
 
-p1  = 4*exp(p);
-p2  = 16*exp(p);
+p1  = 4*exp(P1);
+p2  = 16*exp(P2);
 
 % graphics
 %--------------------------------------------------------------------------
@@ -210,14 +209,14 @@ shading interp
 axis square
 ylabel('inhibitory time constant (ms)')
 xlabel('excitatory time constant (ms)')
-title('stability')
+title('stability','FontSize',16)
 
 subplot(2,2,2)
-contour(p2,p1,LE,[0 0])
+contour(p2,p1,LE)
 axis square
 xlabel('inhibitory time constant')
 ylabel('excitatory time constant')
-title('stability')
+title('stability','FontSize',16)
 
 subplot(2,2,3)
 surf(p1,p2,HZ')
@@ -225,15 +224,16 @@ shading interp
 axis square
 ylabel('inhibitory time constant')
 xlabel('excitatory time constant')
-title('Frequency')
+title('Frequency','FontSize',16)
 
 subplot(2,2,4)
 contour(p2,p1,full(HZ),[8 12 16 30],'k');
 axis square
 xlabel('inhibitory time constant')
 ylabel('excitatory time constant')
-title('Frequency')
+title('Frequency','FontSize',16)
 drawnow
+
 
 
 % transfer functions
@@ -256,7 +256,7 @@ drawnow
 
 % compute transfer functions for different inhibitory time constants
 %--------------------------------------------------------------------------
-p     = log([1:64]/32);
+p     = log((1:64)/32);
 for i = 1:length(p)
     pE.T(2) = p(i);
     G       = spm_lfp_mtf(pE,M);

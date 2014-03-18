@@ -10,16 +10,28 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_induced_optimise_parameters.m 5922 2014-03-18 20:10:17Z karl $
  
+
+% spectral specification
+%==========================================================================
+J      = [3 7];                % indices of hidden states producing outputs
+Np     = length(J);
+
+% Target spectrum - gamma, beta and alpha
+%--------------------------------------------------------------------------
+Hz     = 1:128;
+s(:,1) = -[32 64 32 16]' + 1j*2*pi*[8 16 32 64]';
+s(:,2) = -[16 32 64 64]' + 1j*2*pi*[8 16 32 64]';
+
+% Parameters to optimise
+%--------------------------------------------------------------------------
+
+PARAMS = {'G','T','S','L'};
+
  
 % Model specification
 %==========================================================================
- 
-% options
-%--------------------------------------------------------------------------
-J     = [2 4];                % indices of hidden states producing outputs
-Nm    = 3;                    % number of (complex) eigenmodes to consider
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
@@ -29,207 +41,111 @@ M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
 M.dipfit.Ns    = Ns;
 M.J            = J;
-M.Nm           = Nm;
- 
- 
+M.Hz           = Hz;
+
 % get priors
 %--------------------------------------------------------------------------
 [pE pC] = spm_dcm_neural_priors({0 0 0},{},1,options.model);
 [pE pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE pC] = spm_ssr_priors(pE,pC);
 [x,f]   = spm_dcm_x_neural(pE,options.model);
-Ep      = pE;
- 
+
+
+% suppress measurement noise
+%--------------------------------------------------------------------------
+pE.a(2) =      - 2;
+pE.b    = pE.b - 16;
+pE.c    = pE.c - 16;
+
+
+% a target data
+%--------------------------------------------------------------------------
+Gu    = spm_csd_mtf_gu(pE,M.Hz);
+for i = 1:Np
+    csd(:,i,i) = 512*full(Gu.*sum(spm_s2csd(s(:,i),Hz),2));
+end
  
 % orders and model
 %==========================================================================
-nx      = length(spm_vec(x ));
-np      = length(spm_vec(pE));
+nx      = length(spm_vec(x));
 nu      = Ns;
 u       = sparse(1,nu);
- 
  
 % fix priors if a subset of parameters are specified
 %--------------------------------------------------------------------------
 try
-    V = [];
+    pV    = spm_vec(pC);
+    V     = pV - pV;
     for i = 1:length(PARAMS)
-        V = [V; spm_fieldindices(pE,PARAMS{i})];
+        V(spm_fieldindices(pE,PARAMS{i})) = 1;
     end
-    V   = sort(V);
-catch
-    V   = 1:np;
+    pC    = spm_unvec(V.*pV,pC);
 end
-V   = sparse(V,V,1,np,np);
- 
- 
+
+
 % create LFP model
 %--------------------------------------------------------------------------
+M.IS   = 'spm_csd_mtf';
+M.FS   = 'spm_diag_array';
+M.g    = @(x,u,P,M) P.L*x(M.J(:));
+
 M.f    = f;
-M.g    = 'spm_gx_erp';
 M.x    = x;
 M.n    = nx;
 M.pE   = pE;
 M.pC   = pC;
 M.hE   = 8;
-M.hC   = exp(-16);
+M.hC   = 1/128;
 M.m    = nu;
-M.l    = Nc;
+M.l    = Np;
  
 % solve for steady state
 %--------------------------------------------------------------------------
 M.x    = spm_dcm_neural_x(pE,M);
 M.u    = u;
-M.Hz   = 4:64;
 M.Nmax = 32;
- 
- 
+
+% Optimisation: Target (Y)
+%==========================================================================
+[Ep Cp] = spm_nlsi_GN(M,[],{csd});
+
+
 % Characterise contributions of parameters to spectral representation
 %==========================================================================
-[dSdp,s] = spm_diff('spm_ssm2s',pE,M,[],1);
- 
-% number of complex (oscillatory) eigenmodes
-%--------------------------------------------------------------------------
-m      = M.Nm;
-n      = numel(J);
- 
  
 % Show results with current (prior) parameters
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Spectral responses'); clf
-set(gcf,'UserData',pE);
  
 % and plot spectra
 %--------------------------------------------------------------------------
-subplot(4,2,1)
-[g,w]  = spm_s2csd(s,M.Hz);
-plot(w,g)
-title('Spectral modes','FontSize',16)
-xlabel('Frequency')
-ylabel('Power')
- 
-subplot(4,2,3), cla
-for i = 1:n
-    pE.J       = sparse(1,J(i),1,1,nx);
-    G          = spm_csd_mtf(pE,M,[]);
-    plot(w,G{1}), hold on
-end
+subplot(2,2,1)
+Gp    = spm_csd_mtf(pE,M);
+Gq    = spm_csd_mtf(Ep,M);
+plot(Hz,abs(spm_diag_array(Gp{1})),'--'), hold on
+plot(Hz,abs(spm_diag_array(Gq{1})),'-'),  hold on
+plot(Hz,abs(spm_diag_array(csd)),  ':'),  hold off
+
 title('Spectral respones','FontSize',16)
 xlabel('Frequency')
 ylabel('Spectral density')
-hold off
- 
-% roots
-%--------------------------------------------------------------------------
-subplot(4,2,2)
-plot(s(1:m),'o'), hold on
-title('Spectral density','FontSize',16)
-xlabel('Real (amplitude)')
-ylabel('Imaginary (frequency)')
- 
-% wiegths
-%--------------------------------------------------------------------------
-subplot(4,2,4)
-bar(reshape(s(m + 1:end),n,m)')
-title('Wiegths','FontSize',16)
-xlabel('Relative weight')
-xlabel('Mode')
- 
- 
-% and partial derivataives
-%--------------------------------------------------------------------------
-subplot(4,2,5)
-imagesc(real(dSdp(1:m,:)))
-title('Contribution (real) (right click)','FontSize',16)
-xlabel('Parameter')
-ylabel('Mode')
-set(get(gca,'Children'),'ButtonDownFcn','spm_opt_bfun')
- 
-subplot(4,2,7)
-imagesc(imag(dSdp(1:m,:)))
-title('(Imaginary)','FontSize',16)
-xlabel('Parameter')
-ylabel('Mode')
-set(get(gca,'Children'),'ButtonDownFcn','spm_opt_bfun')
- 
-subplot(2,2,4)
-imagesc(real(dSdp(m + 1:end,:)))
-title('Weights','FontSize',16)
-xlabel('Parameter')
-ylabel('Mode')
-set(get(gca,'Children'),'ButtonDownFcn','spm_opt_bfun')
- 
- 
-% Ep = pE; return
- 
-% Optimisation: Target (Y)
-%==========================================================================
- 
-% weights (W): coupling between modes and hidden states (for 4 modes)
-%--------------------------------------------------------------------------
-W     = [1 0 1/4 1;
-         1/8 1 1 1];
- 
-% Target spectrum - gamma, beta and alpha
-%--------------------------------------------------------------------------
-S     = -[32 32 32 128]' + 1i*2*pi*[40 16 8 4]';
-S     = S(1:M.Nm);
-W     = W(:,1:M.Nm);
-W     = W/max(W(:));
-Y.y   = [S; spm_vec(W)*32];
- 
- 
-% Optimise using Gauss Newton
-%==========================================================================
- 
-% create generative model of the eigenspectrum (M) and invert
-%--------------------------------------------------------------------------
-M.IS    = 'spm_ssm2s';
-M.Nmax  = 32;
-pC      = V*diag(spm_vec(pC))*V;
-M.pC    = pC;
+axis square
 
-[Ep Cp] = spm_nlsi_GN(M,[],Y);
-M.pE    = Ep;
-M.pC    = pC/2;
-M.x     = spm_dcm_neural_x(Ep,M);
-
- 
  
 % Show results with optimised parameters
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Optimisation');
-subplot(2,2,1)
-sp      = spm_ssm2s(pE,M,[]);
-sq      = spm_ssm2s(Ep,M,[]);
-gp  = spm_s2csd(sp,w);
-gq  = spm_s2csd(sq,w);
-plot(w,gp,'r',w,gq,'b')
-title('Before (red) and after (blue)','FontSize',16)
+subplot(2,2,2)
+sp  = spm_ssm2s(pE,M);
+sq  = spm_ssm2s(Ep,M);
+gp  = spm_s2csd(sp,Hz);
+gq  = spm_s2csd(sq,Hz);
+plot(Hz,gp,'r',Hz,gq,'b')
+
+title({'Eigenmodes';'Before (red) and after (blue)'},'FontSize',16)
 xlabel('Frequency')
 ylabel('Spectral density of modes')
 axis square
- 
- 
-% show results with optimised parameters (measured)
-%--------------------------------------------------------------------------
-subplot(2,2,2), cla
-for i = 1:numel(J)
-    
-    Ep.J  = sparse(1,J(i),1,1,nx);
-    pE.J  = Ep.J;
-    Gp    = spm_csd_mtf(pE,M,[]);
-    Gq    = spm_csd_mtf(Ep,M,[]);
-    
-    plot(w,Gp{1},'r',w,Gq{1},'b'),hold on
-    
-end
-title('Before (red) and after (blue)','FontSize',16)
-xlabel('Frequency')
-ylabel('Spectral responses')
-axis square
-hold off
- 
+
  
 % Show old and new priors
 %==========================================================================
@@ -238,8 +154,6 @@ hold off
 %--------------------------------------------------------------------------
 E     = spm_vec(Ep) - spm_vec(pE);
 C     = diag(Cp);
-
-
 
 % eliminate an interesting parameters and sought on basis of contribution
 %--------------------------------------------------------------------------
@@ -262,45 +176,24 @@ ylabel('log precision')
 set(gca,'XTick',1:length(j))
 set(gca,'XLim',[0 (length(j) + 1)])
 set(gca,'XTickLabel',spm_fieldindices(pE,j))
- 
- 
+
 return
- 
- 
- 
-% Multi-start scheme
+
+% examine Jacobian
 %==========================================================================
-np    = length(spm_vec(M.pE));
-ppC   = spm_sqrtm(diag(spm_vec(M.pC)));
-for j = 1:8
-    
-    % use model inversion with a small number of iterations
-    %----------------------------------------------------------------------
-    M.Nmax = 16;
-    M.nograph = 0;
-    for i = 1:256
-        M.P        = spm_vec(M.pE) + ppC*randn(np,1);
-        [Ep,~,~,F] = spm_nlsi_GN(M,[],Y);
-        FF(i)      = F;
-        PP(:,i)    = spm_vec(Ep);
-    end
-    
-    % get approximate Bayesian model average
-    %----------------------------------------------------------------------
-    [~, i] = max(FF);
-    Ep     = spm_unvec(PP(:,i),M.pE);
-    M.pE   = Ep;
-    ppC    = ppC/2;
-    
-    % show progress
-    %----------------------------------------------------------------------
-    M.Nmax    = 32;
-    M.nograph = 0;
-    M.P       = Ep;
-    Ep        = spm_nlsi_GN(M,[],Y);
-    
-    subplot(2,1,2);
-    title(sprintf('Parameter updates: Multi-start - %i/8',j),'FontSize',16)
-    drawnow
-    
-end
+spm_figure('GetWin','Jacobian'); clf
+
+% get transfer functions and Jacobian
+%--------------------------------------------------------------------------
+[S,K,s,w,t,dfdx] = spm_dcm_mtf(Ep,M,[]);
+ 
+% and plot
+%--------------------------------------------------------------------------
+subplot(2,2,1)
+imagesc(dfdx)
+title('Jacobian','FontSize',16)
+xlabel('hidden state')
+ylabel('hidden state')
+axis square
+
+

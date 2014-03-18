@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 5863 2014-01-30 20:58:36Z karl $
+% $Id: spm_dcm_ind_results.m 5922 2014-03-18 20:10:17Z karl $
  
  
 % set up
@@ -85,13 +85,16 @@ switch(lower(Action))
     for i = 1:nt
         for j = 1:nr
            
-            %subplot(2*nt,nr,(i - 1)*nr + j)
-            figure;imagesc(pst,Hz,TF{i,j}')
+            subplot(2*nt,nr,(i - 1)*nr + j)
+            imagesc(pst,Hz,TF{i,j}')
             axis xy
             xlabel('pst (ms)')
             ylabel('frequency')
             title(sprintf('trial %i: %s ',i,DCM.Sname{j}));
             
+            
+            % write images if requested
+            %--------------------------------------------------------------
             if isfield(DCM,'saveInd')&& strcmp(DCM.saveInd,'TFR')
                 V.dt    = [spm_type('float64') spm_platform('bigend')];
                 V.mat   = [Hz(2)-Hz(1)  0              0  min(Hz);...
@@ -184,7 +187,7 @@ case{lower('Time-frequency')}
             xlabel('pst (ms)')
             ylabel('frequency')
             title({sprintf('trial %i: %s ',i,DCM.Sname{j});
-                  'observed (adjusted for confounds)'})
+                  'observed (adjusted)'})
               
             clim = caxis;
             cmax(i, j) = max(clim);  
@@ -194,13 +197,11 @@ case{lower('Time-frequency')}
             axis xy
             xlabel('pst (ms)')
             ylabel('frequency')
-            title({sprintf('trial %i',i);
-                  'predicted'})
+            title({sprintf('trial %i',i); 'predicted'})
         end
     end
  
-    cmax = mean(cmax, 1);
- 
+    cmax  = mean(cmax, 1);
     for i = 1:nt
         for j = 1:nr
             subplot(nt*2,nr,(i - 1)*2*nr + j)
@@ -271,8 +272,8 @@ case{lower('Coupling (B - Hz)')}
     for i = 1:nr
         for j = 1:nr
             subplot(nr,nr,j + nr*(i - 1))
-            ii = [1:nf]*nr - nr + i;
-            jj = [1:nf]*nr - nr + j; 
+            ii = (1:nf)*nr - nr + i;
+            jj = (1:nf)*nr - nr + j; 
             B  = xY.U*DCM.Ep.B{k}(ii,jj)*xY.U';
             
             imagesc(Hz,Hz,B)
@@ -312,48 +313,38 @@ case{lower('Coupling (A - modes)')}
         
     % images
     %----------------------------------------------------------------------
-    subplot(3,2,1)
+    subplot(3,1,1)
     imagesc(DCM.Ep.A)
-    title('Coupling','FontSize',10)
-    set(gca,'YTick',[1:nr],'YTickLabel',DCM.Sname,'FontSize',8)
+
+    set(gca,'YTick',(1:nr),'YTickLabel',DCM.Sname,'FontSize',8)
     set(gca,'XTick',[])
     xlabel('from','FontSize',10)
     ylabel('to','FontSize',10)
+    title('Coupling (Hz)','FontSize',16)
     axis square
- 
-    % table
-    %----------------------------------------------------------------------
-    subplot(3,2,2)
-    text(-1/8,1/2,num2str(DCM.Ep.A,' %-8.2f'),'FontSize',8)
-    axis off,axis square
+    colorbar
  
  
     % PPM
     %----------------------------------------------------------------------
-    subplot(3,2,3)
-    image(64*DCM.Pp.A)
-    set(gca,'YTick',[1:nr],'YTickLabel',DCM.Sname,'FontSize',8)
+    subplot(3,1,2)
+    imagesc(DCM.Pp.A)
+    set(gca,'YTick',(1:nr),'YTickLabel',DCM.Sname,'FontSize',8)
     set(gca,'XTick',[])
-    title('Conditional probabilities')
+    title('Conditional probabilities','FontSize',16)
     axis square
- 
-    % table
-    %----------------------------------------------------------------------
-    subplot(3,2,4)
-    text(-1/8,1/2,num2str(DCM.Pp.A,' %-8.2f'),'FontSize',8)
-    axis off, axis square
-    
+    colorbar   
     
     % Guide
     %----------------------------------------------------------------------
     subplot(3,2,5)
     image(48*(kron(eye(nf,nf),ones(nr,nr)) - speye(nr*nf,nr*nf)))
-    title('Within frequency (linear)')
+    title('Within frequency (linear)','FontSize',12)
     axis square
     
     subplot(3,2,6)
     image(48*(kron(1 - eye(nf,nf),ones(nr,nr))))
-    title('Between frequency (non-linear)')
+    title('Between frequency (non-linear)','FontSize',12)
     axis square
  
  
@@ -361,42 +352,31 @@ case{lower('Coupling (B - modes)')}
     
     % spm_dcm_erp_results(DCM,'coupling (B)');
     %----------------------------------------------------------------------
-    for i = 1:nu
+    for i = 1:min(nu,4)
         
         % images
         %------------------------------------------------------------------
-        subplot(4,nu,i)
+        subplot(4,2,2*(i - 1) + 1)
         imagesc(DCM.Ep.B{i})
-        title(DCM.xU.name{i},'FontSize',10)
-        set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
+        set(gca,'YTick',(1:nr),'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
-        xlabel('from','FontSize',8)
-        ylabel('to','FontSize',8)
+        xlabel('from')
+        ylabel('to')
+        title([DCM.xU.name{i} ' (Hz)'],'FontSize',16)
         axis square
+        colorbar
  
-        % tables
-        %------------------------------------------------------------------
-        subplot(4,nu,i + nu)
-        text(-1/8,1/2,num2str(full(DCM.Ep.B{i}),' %-8.2f'),'FontSize',8)
-        axis off
-        axis square
         
         % PPM
         %------------------------------------------------------------------
-        subplot(4,nu,i + 2*nu)
-        image(64*DCM.Pp.B{i})
-        set(gca,'YTick',[1:ns],'YTickLabel',DCM.Sname,'FontSize',8)
+        subplot(4,2,2*(i - 1) + 2)
+        imagesc(DCM.Pp.B{i})
+        set(gca,'YTick',(1:nr),'YTickLabel',DCM.Sname,'FontSize',8)
         set(gca,'XTick',[])
-        title('PPM')
+        title('Conditional probabilities','FontSize',16)
         axis square
+        colorbar
  
-        % tables
-        %------------------------------------------------------------------
-        subplot(4,nu,i + 3*nu)
-        text(-1/8,1/2,num2str(DCM.Pp.B{i},' %-8.2f'),'FontSize',8)
-        axis off
-        axis square
-        
     end
  
  

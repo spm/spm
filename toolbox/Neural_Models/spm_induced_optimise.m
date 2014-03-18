@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_induced_optimise.m 5922 2014-03-18 20:10:17Z karl $
  
  
 % Model specification
@@ -38,7 +38,7 @@ M.dipfit.Ns    = Ns;
 M.ns   = 64;
 M.ons  = 64;
 M.dur  = 16;
-U.dt   = 0.004;
+U.dt   = 1/256;
 U.X    = [];
 
  

@@ -92,7 +92,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_nlsi_GN.m 5922 2014-03-18 20:10:17Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -512,13 +512,15 @@ for k = 1:M.Nmax
         % plot real or complex predictions
         %------------------------------------------------------------------
         tstr = sprintf('%s: %i','prediction and response: E-Step',k);
-        if isreal(e)
+        if isreal(spm_vec(y))
+            
             subplot(2,1,1)
-            plot(x,f), hold on
-            plot(x,f + e,':'), hold off
+            plot(x,real(f)), hold on
+            plot(x,real(f + e),':'), hold off
             xlabel(xLab)
             title(tstr,'FontSize',16)
             grid on
+            
         else 
             subplot(2,2,1)
             plot(x,real(f)), hold on

@@ -1,16 +1,17 @@
-function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
+function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % computes transfer functions using the system's eigenspectrum
-% FORMAT [S,K,s,w,t] = spm_dcm_mtf(P,M,[U])
+% FORMAT [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,[U])
 %
 % P - model parameters
 % M - model (with flow M.f and expansion point M.x and M.u)
 % U - induces expansion around steady state (from spm_dcm_neural_x(P,M))
 %
-% S - modulation transfer functions (complex)
-% K - Volterra kernels (real)
-% s - eigenspectrum (complex)
-% w - frequencies (Hz) = M.Hz
-% t - time (seconds)   = M.pst
+% S    - modulation transfer functions (complex)
+% K    - Volterra kernels (real)
+% s    - eigenspectrum (complex)
+% w    - frequencies (Hz) = M.Hz
+% t    - time (seconds)   = M.pst
+% dfdx - Jacobian
 %
 % This routine uses the eigensolution of a dynamical systems Jacobian to
 % complete the first-order Volterra terminals and transfer functions  in
@@ -24,7 +25,7 @@ function [S,K,s,w,t] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5874 2014-02-09 14:48:33Z karl $
+% $Id: spm_dcm_mtf.m 5922 2014-03-18 20:10:17Z karl $
 
 
 % get local linear approximation

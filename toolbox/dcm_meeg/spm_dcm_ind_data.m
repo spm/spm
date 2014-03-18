@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_dcm_ind_data.m 5922 2014-03-18 20:10:17Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -192,11 +192,11 @@ DCM.xY.Nm = Nm;                        % number of frequency modes
 if isequal(DCM.xY.modality,'LFP')
     Nr = Nc;
 else
-    Nr = size(DCM.C,1);                % number of sources
+    Nr = size(DCM.C,1);                % number of sources (regions)
 end
 dt     = 1000/D.fsample;               % sampling interval (ms)
 Nf     = length(DCM.xY.Hz);            % number of frequencies
-Ne     = length(trial);                % number of ERPs
+Ne     = length(trial);                % number of ERPs (event types)
 Nm     = DCM.xY.Nm;                    % number of frequency modes
  
 if ~TFinput
@@ -232,9 +232,9 @@ if ~TFinput
         T = 1;
     end
     
-    % precision of Transform coefficients (assuming an AR process over time)
+    % smoothing of Transform coefficients (assuming an AR process over time)
     %----------------------------------------------------------------------
-    P     = spm_Q(1/2,Nt);
+    P     = spm_Q(1 - 1/16,Nt);
      
     % create convolution matrices
     %----------------------------------------------------------------------
@@ -242,11 +242,11 @@ if ~TFinput
     for i = 1:length(W)
         
         fprintf('\nCreating wavelet projector (%i Hz),',DCM.xY.Hz(i))
-        
         C    = spm_convmtx(W{i}',Ns,'square');
         C    = C(:,It + 1 - T1);
         C    = P*C'*T;
         M{i} = C(Id,:);
+        
     end
 end
  
@@ -274,17 +274,21 @@ if strcmp(DCM.options.spatial, 'ECD')
         
         
         % add (spatial filtering) re-referencing to MAP projector
-        %--------------------------------------------------------------------------
+        %------------------------------------------------------------------
         R      = speye(Nc,Nc) - ones(Nc,1)*pinv(ones(Nc,1));
         MAP    = MAP*R;
         
     else
         
+        % check
+        %------------------------------------------------------------------
         warndlg('ECD option can only be used with EEG/MEG/MEGPLANAR channels');
         return;
         
     end
+    
 elseif strcmp(DCM.options.spatial, 'LFP')
+    
     if strcmp(DCM.xY.modality, 'LFP')
         Ng        = 1;
         MAP       = speye(Nr,Nr);
@@ -294,6 +298,9 @@ elseif strcmp(DCM.options.spatial, 'LFP')
         return;
     end
 else
+    
+    % check
+    %----------------------------------------------------------------------
     warndlg('Invalid spatial model specification.')
     return;
 end

@@ -34,7 +34,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_csd_mtf.m 5922 2014-03-18 20:10:17Z karl $
 
 
 
@@ -84,32 +84,10 @@ end
 %==========================================================================
 for  c = 1:size(X,1)
     
-    % baseline parameters
+
+    % condition-specific parameters
     %----------------------------------------------------------------------
-    Q  = P;
-    
-    % trial-specific effective connectivity
-    %----------------------------------------------------------------------
-    for i = 1:size(X,2)
-        
-        % extrinsic (forward and backwards) connections
-        %------------------------------------------------------------------
-        for j = 1:length(Q.A)
-            
-            Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
-            
-            % CMM-NMDA specific modulation on Extrinsic NMDA connections
-            %--------------------------------------------------------------
-            try
-                Q.AN{j} = Q.AN{j} + X(c,i)*P.BN{i};
-            end
-        end
-        
-        % intrinsic connections
-        %------------------------------------------------------------------
-        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        
-    end
+    Q   = spm_gen_Q(P,X(c,:));
     
     % solve for steady-state - if exogenous inputs are specified
     %----------------------------------------------------------------------
@@ -126,7 +104,7 @@ for  c = 1:size(X,1)
     %----------------------------------------------------------------------
     G     = zeros(nw,nc,nc);
     for i = 1:nw
-        G(i,:,:) = squeeze(S(i,:,:))*diag(Gu(i,:))*squeeze(S(i,:,:))';
+        G(i,:,:) = sq(S(i,:,:))*diag(Gu(i,:))*sq(S(i,:,:))';
     end
     
     % save trial-specific frequencies of interest
@@ -174,8 +152,10 @@ if nargout > 3
     end
 end
 
-
-
+% squeeze but ensure second dimension is returned as a common vector
+%--------------------------------------------------------------------------
+function [x] = sq(x)
+if size(x,3) > 1, x = squeeze(x); else, x = x(:); end
 
 
 
