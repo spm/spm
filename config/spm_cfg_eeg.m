@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 5866 2014-01-31 12:05:43Z vladimir $
+% $Id: spm_cfg_eeg.m 5924 2014-03-19 14:59:12Z gareth $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -50,7 +50,7 @@ source        = cfg_choice;
 source.tag    = 'source';
 source.name   = 'Source reconstruction';
 source.help   = {'M/EEG source reconstruction.'};
-source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift }; 
+source.values = { spm_cfg_eeg_inv_headmodel, spm_cfg_eeg_inv_headmodelhelmet, spm_cfg_eeg_inv_invert, spm_cfg_eeg_inv_invertiter ,spm_cfg_eeg_inv_simulate,spm_cfg_eeg_inv_mix, spm_cfg_eeg_inv_results, spm_cfg_eeg_inv_extract,spm_cfg_eeg_inv_coregshift }; 
 
 %--------------------------------------------------------------------------
 % M/EEG Modelling

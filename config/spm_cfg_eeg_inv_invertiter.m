@@ -4,7 +4,7 @@ function invert = spm_cfg_eeg_inv_invertiter
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_invertiter.m 5881 2014-02-17 13:26:35Z gareth $
+% $Id: spm_cfg_eeg_inv_invertiter.m 5924 2014-03-19 14:59:12Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -338,17 +338,21 @@ if isfield(job.isstandard, 'custom')
     inverse.Nm =  fix(max(job.isstandard.custom.nsmodes));
     
     inverse.Nt =  fix(max(job.isstandard.custom.ntmodes));
+    if inverse.Nt==0,
+        inverse.Nt=[];
+        disp('Auto selecting number of modes');
+    end;
     inverse.smooth=job.isstandard.custom.patchfwhm;
     if ~isempty(job.isstandard.custom.umodes),
         disp('Loading spatial modes from file');
         
         a=load(cell2mat(job.isstandard.custom.umodes),'U');
-        U=a.U;
+        A=a.U(:,1:inverse.Nm)';
     else
-        U=[];
+        A=[];
     end;
     
-    inverse.U{1}=U;
+    inverse.A=A;
         
         
 
@@ -470,7 +474,8 @@ for i = 1:numel(D)
         outinvname=[D{i}.path filesep job.isstandard.custom.outinv '_' D{i}.fname];
         warning(sprintf('Data file is not being updated- inversion results written to %s',outinvname));
         inv=D{i}.inv{val};
-        save(outinvname,'inv');
+        spmfilename=D{i}.fname;
+        save(outinvname,'inv','spmfilename');
     end;       
 end
 

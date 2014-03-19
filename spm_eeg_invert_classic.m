@@ -74,7 +74,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_eeg_invert_classic.m 5924 2014-03-19 14:59:12Z gareth $
 
 
 
@@ -120,7 +120,6 @@ try, woi  = inverse.woi;    catch, woi  = [];       end
 try, Nm   = inverse.Nm;     catch, Nm   = [];       end
 try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of temporal modes
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
-try, U    = inverse.U{1};      catch, U=[]; end
 try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
 SHUFFLELEADS=0;
@@ -200,37 +199,42 @@ switch smoothtype,
     case 'msp_smooth'
         fprintf('Computing Green function from graph Laplacian to smooth priors:')
         %--------------------------------------------------------------------------
+        disp('distmtx');
         A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
+        disp('end distmtx');
         GL    = A - spdiags(sum(A,2),0,Nd,Nd);
         GL    = GL*s/2;
         Qi    = speye(Nd,Nd);
         QG    = sparse(Nd,Nd);
+        disp('start loop');
         for i = 1:8
             QG = QG + Qi;
             Qi = Qi*GL/i;
         end
+        disp('end loop');
         QG    = QG.*(QG > exp(-8));
         QG    = QG*QG;
 end;
 
 fwhmest=0;
 
-vertind=1:500:Nd; %% sample the mesh
+%vertind=1:500:Nd; %% sample the mesh
 
 %% get estimate of FWHM in mm
-
-for i=1:length(vertind),
-    dum=zeros(1,Nd);
-    dum(vertind(i))=1;
-    newvert=dum*QG;
-    ind=find(newvert>=max(newvert)/2); %% vertices above half max
-    dist1 = spm_mesh_geodesic(M1,vertind-1,1)'; %% distances to these vertices
-    fwhmest(i)=max(dist1(ind))*2; %% take max distance (and double as it is one sided)
-end; % for i
-
-smoothmm=mean(fwhmest);
-disp(sprintf('Patch FWHM is %3.2f mm ',smoothmm));
-
+% disp('start gb bit');
+% 
+% for i=1:length(vertind),
+%     dum=zeros(1,Nd);
+%     dum(vertind(i))=1;
+%     newvert=dum*QG;
+%     ind=find(newvert>=max(newvert)/2); %% vertices above half max
+%     dist1 = spm_mesh_geodesic(M1,vertind-1,1)'; %% distances to these vertices
+%     fwhmest(i)=max(dist1(ind))*2; %% take max distance (and double as it is one sided)
+% end; % for i
+% 
+% smoothmm=mean(fwhmest);
+% disp(sprintf('Patch FWHM is %3.2f mm ',smoothmm));
+smoothmm=0;
 clear Qi A GL
 fprintf(' - done\n')
 
@@ -252,9 +256,9 @@ fprintf('Optimising and aligning spatial modes ...\n')
 % eliminate low SNR spatial modes
 %------------------------------------------------------------------
 
-if isempty(U), % no spatial modes prespecified
+if isempty(inverse.A), % no spatial modes prespecified
     if isempty(Nm), %% number of modes not specifiedd
-        [U,ss,vv]    = spm_svd((L*L'));
+        [U,ss,vv]    = spm_svd((L*L'),exp(-16));
         A     = U';                 % spatial projector A
         UL    = A*L;
         
@@ -276,7 +280,8 @@ else %% U was specified in input
     if isempty(Nm),
         error('Need to specify number of spatial modes if U is prespecified');
     end;
-    A=U(:,1:Nm)';
+    %
+    A=inverse.A;
     UL=A*L;
 end;
 

@@ -14,7 +14,7 @@ function [Dtest,modelF,allF]=spm_eeg_invertiter(Dtest,Npatchiter,funcname,patchi
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 %
 % Gareth Barnes
-% $Id: spm_eeg_invertiter.m 5884 2014-02-18 11:12:45Z gareth $
+% $Id: spm_eeg_invertiter.m 5924 2014-03-19 14:59:12Z gareth $
 
 if nargin<2,
     Npatchiter=[];
@@ -40,6 +40,7 @@ end;
 val=Dtest{1}.val;
 Nvert=size(Dtest{1}.inv{val}.mesh.tess_mni.vert,1);
 Np=Dtest{1}.inv{val}.inverse.Np;
+%U=Dtest{1}.inv{val}.inverse.U{1};
 
 
 allF=zeros(Npatchiter,1);
@@ -74,30 +75,30 @@ end;
 modelF=[];
 bestF=-Inf;
 for patchiter=1:Npatchiter,
-    Din=Dtest{1};
-    Dout=Din;
+    %Din=Dtest{1};
+    %Dout=Din;
     Ip=allIp(patchiter).Ip;
-    
+    disp(sprintf('patchiter %d/%d',patchiter,Npatchiter));
     switch funcname,
         case 'Classic',
-            Din.inv{val}.inverse.Ip=Ip;
-            Dout    = spm_eeg_invert_classic(Din);
+            Dtest{1}.inv{val}.inverse.Ip=Ip;
+            Dtest{1}    = spm_eeg_invert_classic(Dtest{1});
         case 'Current',
             warning('Patch centres are currently fixed for this algorithm (iteration will have no effect!)');
-            Dout    = spm_eeg_invert(Din); %
-            Dout.inv{val}.inverse.Ip=Ip;
+            Dtest{1}   = spm_eeg_invert(Dtest{1}); %
+            %Dout.inv{val}.inverse.Ip=Ip;
         otherwise
             error('unknown function');
     end;
     if (Dtest{1}.inv{val}.inverse.mergeflag==1), %% will need all posteriors to merge them (could consider getting rid of worst ones here to save memory
-        modelF(patchiter).inverse=Dout.inv{val}.inverse;
+        modelF(patchiter).inverse=Dtest{1}.inv{val}.inverse;
     else %% just keep track of best inversion
-        if Dout.inv{val}.inverse.F>bestF,
-            modelF(1).inverse=Dout.inv{val}.inverse;
-            bestF=Dout.inv{val}.inverse.F;
+        if Dtest{1}.inv{val}.inverse.F>bestF,
+            modelF(1).inverse=Dtest{1}.inv{val}.inverse;
+            bestF=Dtest{1}.inv{val}.inverse.F;
         end;
     end;
-    allF(patchiter)=Dout.inv{val}.inverse.F;
+    allF(patchiter)=Dtest{1}.inv{val}.inverse.F;
 end; % for patchiter
 
 
@@ -124,7 +125,7 @@ if Npatchiter>1, %% keep iterations if more than 1
             Qpriors(patchiter,:)=modelF(patchiter).inverse.qC;
         end;
         disp('Merging posterior distributions..');
-        ugainfiles=Dout.inv{val}.gainmat;
+        ugainfiles=Dtest{1}.inv{val}.gainmat;
         surfind=ones(Npatchiter,1);
         %% now mix the posteriors
         [Dtest{1}] = spm_eeg_invert_classic_mix(Dtest{1},val,Qpriors,surfind,ugainfiles);
