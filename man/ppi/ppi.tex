@@ -334,7 +334,7 @@ This saves the extracted VOI data in the file \texttt{VOI\_V2\_1.mat} in the wor
 \end{figure}
 
 \item Select VOI: Choose \texttt{VOI\_V2\_1.mat}
-\item Input variables and contrast weights: Must be specified as an n x 3 matrix, where n is the number of conditions included in the PPI. The first column of the matrix indexes SPM.Sess.U(i). The second column indexes SPM.Sess.U(i).name{ii}. It will generally be a 1 unless there are parametric effects. The third column is the contrast weight. In order to include Attention - No-attention in the PPI, recall that the conditions were entered as: Stationary, No-attention, Attention, therefore the matrix should be.
+\item Input variables and contrast weights: Must be specified as an n x 3 matrix, where n is the number of conditions included in the PPI. The first column of the matrix indexes \texttt{SPM.Sess.U(i)}. The second column indexes \texttt{SPM.Sess.U(i).name\{ii\}}. It will generally be a 1 unless there are parametric effects. The third column is the contrast weight. In order to include Attention - No-attention in the PPI, recall that the conditions were entered as: Stationary, No-attention, Attention, therefore the matrix should be.
 \begin{verbatim}
 [2 1 -1; 3 1 1]
 \end{verbatim}

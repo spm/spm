@@ -157,6 +157,16 @@ This re-parameterisation does not affect model inversion very much but guarantee
 
 \texttt{spm\_BMS.m} now also returns also return ''Protected Exceedance Probabilities'' \cite{Rigoux2014}.
 
+\subsubsection{Spectral DCM for resting state fMRI}
+
+Spectral DCM is a new method developed with the intention of modelling BOLD sessions where there are no exogenous inputs (driving or modulatory), i.e. "resting state" sessions \cite{rsDCM2014}. That being said, the scheme is able to invert models that include driving inputs (e.g. sensory stimulation). This new DCM follows the previous framework by offering a mechanistic description of how distributed neural populations produce observed data. The use of resting state fMRI is now widespread; particularly in attempts to characterise differences in functional connectivity between cohorts. This DCM attempts to quantify the effective connectivity in endogenous brain networks.
+
+Stochastic DCM for fMRI is similarly well suited for modelling resting state data but makes limited assumptions about the neuronal fluctuations driving the system, creating a difficult inversion problem that is computationally intensive. Furthermore, when comparing groups of subjects, cohorts could potentially differ in coupling and/or the form of endogenous fluctuations.
+
+Spectral DCM overcomes these problems by making stationarity assumptions, and considering the cross-spectra of the observed BOLD data, as opposed to the original time series. This reduces the inversion to an estimation of the spectral density of the neuronal fluctuations 'driving' the system (and observation noise). This permits a more efficient estimation (inversion taking seconds to minutes), yielding estimates of coupling (as with all DCMs), as well as potentially useful parameters describing the endogenous neuronal fluctuations. Stationarity assumptions preclude the inclusion of modulatory inputs, i.e. changes in coupling caused by experimental manipulation. For this, investigators should explore stochastic DCM for fMRI.
+
+In summary, this DCM is suited for investigators looking to compare the coupling in an endogenous (or "resting state") network between two groups of subjects (e.g. patients and controls). 
+
 \section{EEG/MEG}
 
 \subsection{\texttt{@meeg} object}
