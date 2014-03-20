@@ -1,5 +1,5 @@
 function T = spm_type(x, arg)
-% Translates data type specifiers between SPM & MATLAB representations
+% Translate data type specifiers between SPM & MATLAB representations
 % FORMAT T = spm_type(x, arg)
 % x    - specifier
 % T    - type
@@ -20,12 +20,13 @@ function T = spm_type(x, arg)
 %
 % With no arguments, a list of data types is returned.
 %__________________________________________________________________________
-% Copyright (C) 1996-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_type.m 4311 2011-04-19 14:27:08Z guillaume $
+% $Id: spm_type.m 5925 2014-03-20 16:47:44Z guillaume $
 
 prec   = {'uint8','int16','int32','float32','float64','int8','uint16','uint32'};
+conv   = {@uint8,@int16,@int32,@single,@double,@int8,@uint16,@uint32};
 types  = [    2      4      8   16   64   256    512    768];
 maxval = [2^8-1 2^15-1 2^31-1  Inf  Inf 2^7-1 2^16-1 2^32-1];
 minval = [    0  -2^15  -2^31 -Inf -Inf  -2^7      0      0];
@@ -60,6 +61,7 @@ else
         case 'nanrep', T = nanrep(sel);
         case 'bits',   T = bits(sel);
         case 'intt',   T = intt(sel);
+        case 'conv',   T = conv(sel);
         otherwise,     T = NaN;
     end
 end

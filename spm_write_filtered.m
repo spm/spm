@@ -23,11 +23,13 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % It is intended for writing out filtered SPM's from the results section
 % of SPM, but can be used freestanding.
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 5662 2013-10-01 17:49:48Z guillaume $
+% $Id: spm_write_filtered.m 5925 2014-03-20 16:47:44Z guillaume $
 
+
+SVNid = '$Rev: 5925 $';
 
 %-Parse arguments
 %--------------------------------------------------------------------------
@@ -56,7 +58,6 @@ if isempty(F), F = 'output'; end
 if isempty(spm_file(F,'ext'))
     F = spm_file(F,'ext',spm_file_ext);
 end
-spm('Pointer','Watch')
 
 %-Set up header information
 %--------------------------------------------------------------------------
@@ -82,8 +83,14 @@ Y(OFF) = Z.*(Z > 0);
 %-Write the reconstructed volume
 %--------------------------------------------------------------------------
 Vo = spm_write_vol(Vo,Y);
-spm('alert"',{'Written:',['    ',spm_file(F,'CPath')]},mfilename,1);
 
-%-End
+%-Report
 %--------------------------------------------------------------------------
-spm('Pointer','Arrow');
+if desktop('-inuse')
+    dispf = @(f) ...
+        sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
+else
+    dispf = @(f) f;
+end
+spm('FnBanner',mfilename,SVNid);                                        %-#
+fprintf('Written %s\n',dispf(spm_file(F,'CPath')));                     %-#

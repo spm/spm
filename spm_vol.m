@@ -28,10 +28,10 @@ function V = spm_vol(P)
 % volumes. In that case, the elements of V will point to a series of 3-dim
 % images.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 4495 2011-09-20 18:30:22Z guillaume $
+% $Id: spm_vol.m 5925 2014-03-20 16:47:44Z guillaume $
 
 
 if ~nargin
@@ -95,6 +95,31 @@ switch ext
             error('File "%s" does not exist.', p);
         end
 
+    case {'.gz','.GZ'}
+        fprintf('Compressed NIfTI files are not supported.\n');
+        tmpname = tempname;
+        try
+            tmpname = char(gunzip(p,tmpname));
+        catch
+            error('Cannot uncompress "%s".',p);
+        end
+        try
+            if isempty(n), n = ''; else n = [',' num2str(n)]; end
+            V = spm_vol_hdr([tmpname n]);
+            for i=1:numel(V)
+                V(i).dat   = spm_read_vols(V(i));
+                V(i).private.dat.fname = spm_file(p,'ext','');
+                V(i).fname = p;
+                V(i).dt(1) = 64;
+                V(i).pinfo = [1 0 0]';
+            end
+        catch
+            warning('Cannot read uncompressed file "%s".',p);
+        end
+        spm_unlink(tmpname);
+        rmdir(fileparts(tmpname));
+        return
+        
     otherwise
         error('File "%s" is not of a recognised type.', p);
 end
