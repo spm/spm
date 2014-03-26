@@ -44,7 +44,8 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.qC     - spatial covariance
 %     inverse.qV     - temporal correlations
 %     inverse.T      - temporal projector
-%     inverse.U(j)   - spatial projector (j modalities)
+%     inverse.U(j)   - spatial projector (j modalities) - derived from data
+%     inverse.A      - pre-specified spatial projector
 %     inverse.Y{i}   - reduced data (i conditions) UY = UL*J + UE
 %     inverse.Is     - Indices of active dipoles
 %     inverse.It     - Indices of time bins
@@ -74,7 +75,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5924 2014-03-19 14:59:12Z gareth $
+% $Id: spm_eeg_invert_classic.m 5927 2014-03-26 16:02:56Z gareth $
 
 
 
@@ -120,6 +121,7 @@ try, woi  = inverse.woi;    catch, woi  = [];       end
 try, Nm   = inverse.Nm;     catch, Nm   = [];       end
 try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of temporal modes
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
+try, inverse.A;     catch, inverse.A   = [];       end %% orthogonal channel modes
 try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
 SHUFFLELEADS=0;
@@ -199,19 +201,19 @@ switch smoothtype,
     case 'msp_smooth'
         fprintf('Computing Green function from graph Laplacian to smooth priors:')
         %--------------------------------------------------------------------------
-        disp('distmtx');
+        
         A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
-        disp('end distmtx');
+        
         GL    = A - spdiags(sum(A,2),0,Nd,Nd);
         GL    = GL*s/2;
         Qi    = speye(Nd,Nd);
         QG    = sparse(Nd,Nd);
-        disp('start loop');
+        
         for i = 1:8
             QG = QG + Qi;
             Qi = Qi*GL/i;
         end
-        disp('end loop');
+        
         QG    = QG.*(QG > exp(-8));
         QG    = QG*QG;
 end;
@@ -323,6 +325,9 @@ end;
 It     = (w/1000 - D.timeonset)*D.fsample + 1;
 It     = max(1,It(1)):min(It(end), length(D.time));
 It     = fix(It);
+disp(sprintf('Number of samples %d',length(It)));
+
+    
 
 % Peristimulus time
 %----------------------------------------------------------------------

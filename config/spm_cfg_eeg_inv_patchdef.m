@@ -1,11 +1,11 @@
-function inv_post = spm_cfg_eeg_inv_patchdef
+function inv_patchdef = spm_cfg_eeg_inv_patchdef
 % Configuration file for taking a number of previous inversion results (maybe based on different data), smoothing and creating an approximate posterior
 %
 %__________________________________________________________________________
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Gareth Barnes
-% $Id: spm_cfg_eeg_inv_patchdef.m 5926 2014-03-25 11:55:25Z gareth $
+% $Id: spm_cfg_eeg_inv_patchdef.m 5927 2014-03-26 16:02:56Z gareth $
 
 D = cfg_files;
 D.tag = 'D';
@@ -32,14 +32,14 @@ niter.val = {32};
 
 
 
-inv_post = cfg_exbranch;
-inv_post.tag = 'inv_post';
-inv_post.name = 'Set prior sampling';
-inv_post.val = {D,npatch,niter};
-inv_post.help = {'Use to make up a patch definition file'};
-inv_post.prog = @run_inv_patchdef;
-inv_post.vout = @vout_inv_patchdef;
-inv_post.modality = {'MEG'};
+inv_patchdef = cfg_exbranch;
+inv_patchdef.tag = 'inv_patchdef';
+inv_patchdef.name = 'Set prior sampling';
+inv_patchdef.val = {D,npatch,niter};
+inv_patchdef.help = {'Use to make up a patch definition file'};
+inv_patchdef.prog = @run_inv_patchdef;
+inv_patchdef.vout = @vout_inv_patchdef;
+inv_patchdef.modality = {'MEG'};
 
 function  out = run_inv_patchdef(job)
 
