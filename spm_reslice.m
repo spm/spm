@@ -59,7 +59,7 @@ function spm_reslice(P,flags)
 % Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_reslice.m 4490 2011-09-14 16:22:27Z guillaume $
+% $Id: spm_reslice.m 5929 2014-03-27 14:47:40Z guillaume $
 
 %__________________________________________________________________________
 %
@@ -96,7 +96,7 @@ function spm_reslice(P,flags)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 4490 $';
+SVNid = '$Rev: 5929 $';
  
 %-Say hello
 %--------------------------------------------------------------------------
@@ -254,9 +254,10 @@ if flags.mean
     %----------------------------------------------------------------------
     Integral    = Integral./Count;
     PO          = P(1);
-    PO          = rmfield(PO,'pinfo');
     PO.fname    = spm_file(P(1).fname, 'prefix','mean');
+    PO          = rmfield(PO,'pinfo');
     PO.pinfo    = [max(max(max(Integral)))/32767 0 0]';
+    PO.n        = [1 1];
     PO.descrip  = 'spm - mean image';
     PO.dt       = [spm_type('int16') spm_platform('bigend')];
     spm_write_vol(PO,Integral);
