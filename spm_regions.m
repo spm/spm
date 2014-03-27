@@ -1,6 +1,6 @@
 function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % VOI time-series extraction of adjusted data (& local eigenimage analysis)
-% FORMAT [Y xY] = spm_regions(xSPM,SPM,hReg,[xY]);
+% FORMAT [Y,xY] = spm_regions(xSPM,SPM,hReg,[xY])
 %
 % xSPM   - structure containing specific SPM, distribution & filtering details
 % SPM    - structure containing generic analysis details
@@ -22,9 +22,12 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 %       xY.s            - eigenvalues
 %       xY.X0           - [whitened] confounds (including drift terms)
 %
-% Y and xY are also saved in VOI_*.mat in the SPM working directory
+% Y and xY are also saved in VOI_*.mat in the SPM working directory.
+% (See spm_getSPM for details on the SPM & xSPM structures)
 %
-% (See spm_getSPM for details on the SPM & xSPM structures.)
+% FORMAT [Y,xY] = spm_regions('Display',[xY])
+%
+% xY     - VOI structure or filename
 %
 %__________________________________________________________________________
 %
@@ -33,7 +36,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % all suprathreshold voxels within a specified VOI centred on the current
 % MIP cursor location. Responses are adjusted by removing variance that
 % can be predicted by the null space of the F contrast specified (usually 
-% an F-contrast testing for all effects of interest),
+% an F-contrast testing for all effects of interest).
 %
 % If temporal filtering has been specified, then the data will be filtered.
 % Similarly for whitening. Adjustment is with respect to the null space of
@@ -44,20 +47,35 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % be extracted from xY.y, and will be the same as the [adjusted] data 
 % returned by the plotting routine (spm_graph.m) for the same contrast.
 %__________________________________________________________________________
-% Copyright (C) 1999-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 5539 2013-06-11 13:43:26Z guillaume $
- 
+% $Id: spm_regions.m 5931 2014-03-27 19:45:53Z guillaume $
+
+
+%-Shortcut for VOI display
+%--------------------------------------------------------------------------
+if nargin && ischar(xSPM) && strcmpi(xSPM,'display')
+    if nargin > 1
+        xY = SPM;
+    else
+        [xY, sts] = spm_select(1,'^VOI.*\.mat$');
+        if ~sts, return; end
+    end
+    if ischar(xY), load(xY); else Y = xY.u; end
+    display_VOI(xY);
+    return;
+end
+
 if nargin < 4, xY = []; end
- 
+
 %-Get figure handles
 %--------------------------------------------------------------------------
 Finter = spm_figure('FindWin','Interactive');
 if isempty(Finter), noGraph = 1; else noGraph = 0; end
 header = get(Finter,'Name');
 set(Finter,'Name','VOI time-series extraction');
-if ~noGraph, Fgraph = spm_figure('GetWin','Graphics'); end
+if ~noGraph, spm_figure('GetWin','Graphics'); end
  
 %-Find nearest voxel [Euclidean distance] in point list
 %--------------------------------------------------------------------------
@@ -236,36 +254,7 @@ xY.s    = s;
 %-Display VOI weighting and eigenvariate
 %==========================================================================
 if ~noGraph
-    
-    % show position
-    %----------------------------------------------------------------------
-    spm_results_ui('Clear',Fgraph);
-    figure(Fgraph);
-    subplot(2,2,3)
-    spm_dcm_display(xY)
- 
-    % show dynamics
-    %----------------------------------------------------------------------
-    subplot(2,2,4)
-    try
-        plot(SPM.xY.RT*[1:length(xY.u)],Y)
-        str = 'time (seconds}';
-    catch
-        plot(Y)
-        str = 'scan';
-    end
-    title(['1st eigenvariate: ' xY.name],'FontSize',10)
-    if strcmpi(xY.def,'mask')
-        [p,n,e] = fileparts(xY.spec.fname);
-        posstr  = sprintf('from mask %s', [n e]);
-    else
-        posstr  = sprintf('at [%3.0f %3.0f %3.0f]',xY.xyz);
-    end
-    str = { str;' ';...
-        sprintf('%d voxels in VOI %s',length(Q),posstr);...
-        sprintf('Variance: %0.2f%%',s(1)*100/sum(s))};
-    xlabel(str)
-    axis tight square
+    display_VOI(xY, SPM.xY.RT);
 end
  
 %-Save
@@ -275,10 +264,53 @@ if isfield(xY,'Sess') && isfield(SPM,'Sess')
     str = sprintf('VOI_%s_%i.mat',xY.name,xY.Sess);
 end
 save(fullfile(SPM.swd,str),'Y','xY', spm_get_defaults('mat.format'))
- 
-fprintf('   VOI saved as %s\n',spm_file(fullfile(SPM.swd,str),'short55'));
+
+if desktop('-inuse')
+    dispf = @(f) ...
+        sprintf('<a href="matlab:spm_regions(''display'',''%s'');">%s</a>',f,f);
+else
+    dispf = @(f) f;
+end
+
+fprintf('   VOI saved as %s\n',dispf(fullfile(SPM.swd,str)));
  
 %-Reset title
 %--------------------------------------------------------------------------
 set(Finter,'Name',header);
 spm('Pointer','Arrow')
+
+
+%==========================================================================
+% function display_VOI(xY,TR)
+%==========================================================================
+function display_VOI(xY,TR)
+Fgraph = spm_figure('GetWin','Graphics');
+spm_results_ui('Clear',Fgraph);
+figure(Fgraph);
+
+% show position
+%--------------------------------------------------------------------------
+subplot(2,2,3)
+spm_dcm_display(xY)
+
+% show dynamics
+%--------------------------------------------------------------------------
+subplot(2,2,4)
+try
+    plot(TR*[1:length(xY.u)],xY.u)
+    str = 'time (seconds}';
+catch
+    plot(xY.u)
+    str = 'scan';
+end
+title(['1st eigenvariate: ' xY.name],'FontSize',10)
+if strcmpi(xY.def,'mask')
+    posstr = sprintf('from mask %s', spm_file(xY.spec.fname,'filename'));
+else
+    posstr = sprintf('at [%3.0f %3.0f %3.0f]',xY.xyz);
+end
+str = { str;' ';...
+    sprintf('%d voxels in VOI %s',size(xY.y,2),posstr);...
+    sprintf('Variance: %0.2f%%',100*xY.s(1)/sum(xY.s))};
+xlabel(str)
+axis tight square

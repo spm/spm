@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 5858 2014-01-30 11:45:46Z guillaume $
+% $Id: spm_peb_ppi.m 5931 2014-03-27 19:45:53Z guillaume $
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
 % =========================================================================
@@ -597,8 +597,9 @@ str    = ['PPI_' PPI.name '.mat'];
 
 save(fullfile(SPM.swd,str),'PPI', spm_get_defaults('mat.format'))
 
+fprintf('   PPI saved as %s\n',fullfile(SPM.swd,str));
+
 % Clean up
 %--------------------------------------------------------------------------
 spm('Pointer','arrow'); set(Finter,'name',header);
-fprintf('\nCompleted PPI: %s\n',ppiFilename);
 cd(cwd);
