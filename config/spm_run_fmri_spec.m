@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 5774 2013-12-03 19:17:27Z guillaume $
+% $Id: spm_run_fmri_spec.m 5928 2014-03-27 13:18:40Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -264,6 +264,8 @@ for i = 1:numel(job.sess)
             if isstruct(tmp) % .mat
                 if isfield(tmp,'R')
                     R = tmp.R;
+                elseif isfield(tmp,'PPI')
+                    R = [tmp.PPI.ppi tmp.PPI.Y tmp.PPI.P];
                 else
                     error(['Variable ''R'' not found in multiple ' ...
                         'regressor file ''%s''.'], sess.multi_reg{q});
@@ -281,8 +283,14 @@ for i = 1:numel(job.sess)
             else
                 nb_mult = sprintf('_%d',q);
             end
-            for j=1:size(R,2)
-                Cname{end+1} = sprintf('R%d%s',j,nb_mult);
+            if isstruct(tmp) && isfield(tmp,'PPI')
+                Cname{end+1} = ['PPI Interaction: ' tmp.PPI.name];
+                Cname{end+1} = ['Main Effect: ' tmp.PPI.xY.name ' BOLD'];
+                Cname{end+1} = 'Main Effect: "psych" condition';
+            else
+                for j=1:size(R,2)
+                    Cname{end+1} = sprintf('R%d%s',j,nb_mult);
+                end
             end
         end
     end
