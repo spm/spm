@@ -2,7 +2,7 @@
 
 
 \section{Theoretical background}
-Dynamic Causal Modelling (DCM) is a method for making inferences about neural processes that underlie measured time series, e.g. fMRI data.  The general idea is to estimate the parameters of a reasonably realistic neuronal system model such that the predicted blood oxygen level dependent (BOLD) signal, which results from converting the modeled neural dynamics into hemodynamic responses, corresponds as closely as possible to the observed BOLD time series.  This section gives a short introduction to the theoretical background of DCM for fMRI; details can be found in \cite{dcm}.  Note that DCMs can be formulated, in principle, for any measurement technique.  Depending on the spatio-temporal properties of a given measurement technique, one needs to define an adequate state equation and an observation model. See Fig~\ref{dcm_fig1} for a summary of the differences between DCM implementations for fMRI and Event-Related Potentials (ERPs).
+Dynamic Causal Modelling (DCM) is a method for making inferences about neural processes that underlie measured time series, e.g. fMRI data.  The general idea is to estimate the parameters of a reasonably realistic neuronal system model such that the predicted blood oxygen level dependent (BOLD) signal, which results from converting the modeled neural dynamics into hemodynamic responses, corresponds as closely as possible to the observed BOLD time series.  This section gives a short introduction to the theoretical background of DCM for fMRI; details can be found in \cite{dcm}.  Note that DCMs can be formulated, in principle, for any measurement technique.  Depending on the spatio-temporal properties of a given measurement technique, one needs to define an adequate state equation and an observation model. See Fig~\ref{dcm_fig1} for a summary of the differences between DCM implementations for fMRI and Event-Related Potentials (ERPs). For a gentle introduction to DCM, written for non-technical imaging researchers, see \cite{Kahan2013}.
 
 \begin{figure}[ht]
 \begin{center}
@@ -38,7 +38,7 @@ These parameter matrices describe the nature of the three causal components whic
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[width=130mm]{dcm/Fig2}
-\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of ``external'' or ``driving'' inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the intrinsic connections.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning).\label{dcm_fig2}}
+\caption{\em Schematic summary of the conceptual basis of DCM.  The dynamics in a system of interacting neuronal populations (orange boxes), which are not directly observable by fMRI, is modeled using a bilinear state equation (grey box).  Integrating the state equation gives predicted neural dynamics ($z$) that enter a model of the hemodynamic response ($\lambda$) to give predicted BOLD responses ($y$) (green boxes).  The parameters at both neural and hemodynamic levels are adjusted such that the differences between predicted and measured BOLD series are minimized.  Critically, the neural dynamics are determined by experimental manipulations.  These enter the model in the form of ``external'' or ``driving'' inputs.  Driving inputs ($u_1$; e.g. sensory stimuli) elicit local responses directly that are propagated through the system according to the endogenous (or latent) coupling.  The strengths of these connections can be changed by modulatory inputs ($u_2$; e.g. changes in cognitive set, attention, or learning).\label{dcm_fig2}}
 \end{center}
 \end{figure}
 
@@ -54,7 +54,7 @@ y = h(u,\theta) + X \beta + e
 \end{equation}
 This formulation is the basis for estimating the neural and hemodynamic parameters from the measured BOLD data, using a fully Bayesian approach with empirical priors for the hemodynamic parameters and conservative shrinkage priors for the neural coupling parameters.
 
-Details of the parameter estimation scheme, which rests on a Fisher scoring gradient ascent scheme with Levenburg-Marquardt regularisation, embedded in an expectation maximization (EM) algorithm, can be found in the original DCM publication (Friston et al. 2003).  In brief, under Gaussian assumptions about the posterior distributions, this scheme returns the posterior expectations $\eta_{\theta | y}$ and posterior covariance  $C_{\theta | y}$ for the parameters as well as hyperparameters for the covariance of the observation noise, $C_e$.
+Details of the parameter estimation scheme, which rests on a Fisher scoring gradient ascent scheme with Levenburg-Marquardt regularisation, embedded in an expectation maximization (EM) algorithm, can be found in the original DCM publication \cite{dcm}.  In brief, under Gaussian assumptions about the posterior distributions, this scheme returns the posterior expectations $\eta_{\theta | y}$ and posterior covariance  $C_{\theta | y}$ for the parameters as well as hyperparameters for the covariance of the observation noise, $C_e$.
 
 After fitting the model to measured BOLD data, the posterior distributions of the parameters can be used to test hypotheses about the size and nature of effects at the neural level.  Although inferences could be made about any of the parameters in the model, hypothesis testing usually concerns context-dependent changes in coupling (i.e. specific parameters from the $B$ matrices; see Fig.~\ref{dcm_fig4}).  As will be demonstrated below, at the single-subject level, these inferences concern the question of how certain one can be that a particular parameter or, more generally, a contrast of parameters, $c^T \eta_{\theta | y}$, exceeds a particular threshold  $\gamma$ (e.g. zero).
 
@@ -102,7 +102,7 @@ BF_{ij} = \frac{p(y|m_i)}{p(y|m_j)}
 \end{equation}
 Given uniform priors over models, the posterior probability for model $i$ is greater 0.95 if $BF_{ij}$ is greater than twenty.
 
-This results in a robust procedure for deciding between competing hypotheses represented by different DCMs. These hypotheses can concern any part of the structure of the modeled system, e.g. the pattern of intrinsic connections or which inputs affect the system and where they enter. Note, however, that this comparison is only valid if the data $y$ are identical in all models.  This means that in DCM for fMRI, where the data vector results from a concatenation of the time series of all areas in the model, only models can be compared that contain the same areas. Therefore, model selection cannot be used to address whether or not to include a particular area in the model.  In contrast, in DCM for ERPs, the data measured at the sensor level are independent of how many neuronal sources are assumed in a given model.  Here, model selection could also be used to decide which sources should be included.
+This results in a robust procedure for deciding between competing hypotheses represented by different DCMs. These hypotheses can concern any part of the structure of the modeled system, e.g. the pattern of endogenous connections (A-matrix) or which inputs affect the system and where they enter (C-matrix). Note, however, that this comparison is only valid if the data $y$ are identical in all models.  This means that in DCM for fMRI, where the data vector results from a concatenation of the time series of all areas in the model, only models can be compared that contain the same areas. Therefore, model selection cannot be used to address whether or not to include a particular area in the model.  In contrast, in DCM for ERPs, the data measured at the sensor level are independent of how many neuronal sources are assumed in a given model.  Here, model selection could also be used to decide which sources should be included.
 
 \section{Practical example}
 
@@ -231,7 +231,7 @@ as follows:
 \item Modulatory effects: \texttt{bilinear}
 \item States per region: \texttt{one}
 \item Stochastic effects: \texttt{no}
-\item Define the following intrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{dcm_fig4}.
+\item Define the following extrinsic connections: V1 to V5, V5 to V1, V5 to SPC, SPC to V5, i.e. a hierarchy with reciprocal connections between neighbouring areas. Note that the columns specify the source of the connection and the rows specify its target. Your connectivity matrix should look like the one in Fig.~\ref{dcm_fig4}.
 \item Specify Photic as a driving input into V1.  See Fig.~\ref{dcm_fig4}
 \item Specify Motion to modulate the connection from V1 to V5.  See Fig.~\ref{dcm_fig4}
 \item Specify Attention to modulate the connection from SPC to V5.  See Fig.~\ref{dcm_fig4}
@@ -244,7 +244,7 @@ A polite ``Thank you'' completes the model specification process. A file called 
 \includegraphics[width=70mm]{dcm/Fig5}
 \includegraphics[width=70mm]{dcm/Fig6}
 \includegraphics[width=70mm]{dcm/Fig7}
-\caption{\em Specification of model depicted in Fig~\ref{bwd}. \textbf{Top left:} Filled circles define the structure of the intrinsic connections $A$ such that eg. there are no connections from V1 to SPC or from SPC to V1. \textbf{Top right:} The filled circle specifies that the input \texttt{Photic} connects to region V1. \textbf{Bottom left:} The filled circle indicates that the input \texttt{Motion} can modulate the connection from V1 to V5. This specifies a ``modulatory'' connection. \textbf{Bottom right:} The filled circle indicates that \texttt{Attention} can modulate the connection from SPC to V5. \label{dcm_fig4}}
+\caption{\em Specification of model depicted in Fig~\ref{bwd}. \textbf{Top left:} Filled circles define the structure of the extrinsic connections $A$ such that eg. there are no connections from V1 to SPC or from SPC to V1. \textbf{Top right:} The filled circle specifies that the input \texttt{Photic} connects to region V1. \textbf{Bottom left:} The filled circle indicates that the input \texttt{Motion} can modulate the connection from V1 to V5. This specifies a ``modulatory'' connection. \textbf{Bottom right:} The filled circle indicates that \texttt{Attention} can modulate the connection from SPC to V5. \label{dcm_fig4}}
 \end{center}
 \end{figure}
 
@@ -275,10 +275,10 @@ Once this is completed, you can review the results as follows:
 \item Select \texttt{DCM\_mod\_bwd.mat}
 \item Threshold: \texttt{0}
 \end{enumerate}
-Now you have multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the intrinsic connections (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
+Now you have multiple options, e.g. you can revisit the fit of the model (``Outputs'') or look at the parameter estimates for the endogenous coupling (``Intrinsic connections'') or for the parameters associated with the driving or modulatory inputs (``Effects of Photic'', ``Effects of Motion'', ``Effects of Attention'').
 
 Also, you can use the ``Contrasts'' option to determine how confident you can be that a contrast of certain parameter estimates exceeds the threshold you chose in step 4.
-Of course, you can also explore the model results at the level of the \matlab\ command line by loading the model and inspecting the parameter estimates directly. These can be found in \texttt{DCM.Ep.A} (intrinsic connections), \texttt{DCM.Ep.B} (modulatory inputs) and \texttt{DCM.Ep.C} (driving inputs).
+Of course, you can also explore the model results at the level of the \matlab\ command line by loading the model and inspecting the parameter estimates directly. These can be found in \texttt{DCM.Ep.A} (endogenous coupling), \texttt{DCM.Ep.B} (modulatory inputs) and \texttt{DCM.Ep.C} (driving inputs).
 
 \subsection{Comparing models}
 
