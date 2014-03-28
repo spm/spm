@@ -5,7 +5,7 @@ function res = getset(this, parent, fieldname, ind, values)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: getset.m 5933 2014-03-28 13:22:28Z vladimir $
+% $Id: getset.m 5935 2014-03-28 15:59:57Z vladimir $
 
 this = struct(this);
 
@@ -58,7 +58,7 @@ if nargin == 5
     end
     % getset is sometimes used on subfields of meeg then checkmeeg should
     % not be used
-    if all(isfield(this, fieldnames(struct(meeg))))
+    if all(isfield(this, {'type', 'Nsamples', 'Fsample', 'timeOnset'}))
         res = meeg(this);
     else
         res = this;
