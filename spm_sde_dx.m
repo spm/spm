@@ -21,14 +21,15 @@ function [dx] = spm_sde_dx(dfdx,dfdw,f,t)
 %
 % for the SDE:  dx = dfdx*x*dt + sqrt(2)*dfdw*dw
 %
-% where w is a standard Wiener process
+% where w is a standard Wiener process. Unstable modes are removed using
+% the systems eigenmodes.
 %
 % see also spm_dx
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_sde_dx.m 1703 2008-05-21 13:59:23Z karl $
+% $Id: spm_sde_dx.m 5932 2014-03-28 10:04:32Z karl $
  
 % defaults
 %--------------------------------------------------------------------------
@@ -36,10 +37,22 @@ if nargin < 3, t = 1; end
  
 % compute stochastic terms {E = exp(dfdx*t), e = exp(dfdx*dt)}
 %--------------------------------------------------------------------------
+dfdx  = full(dfdx);
 m     = length(dfdx);
 N     = 256;
 dt    = t/N;
-eJdt  = expm(full(dfdx*dt));
+
+% condition unstable eigenmodes
+%--------------------------------------------------------------------------
+[v,s] = eig(full(dfdx),'nobalance');
+s     = diag(s);
+u     = pinv(v);
+s     = 1j*imag(s) + min(real(s),-4);
+eJdt  = real(v*diag(exp(s*dt))*u);
+dfdx  = real(v*diag(s)*u);
+
+% flow operators
+%--------------------------------------------------------------------------
 eJt   = eJdt;
 Q     = sparse(m,m);
 R     = dfdw*dfdw'*2;

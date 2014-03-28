@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 5911 2014-03-08 14:52:39Z karl $ 
+% $Id: spm_seizure_demo.m 5932 2014-03-28 10:04:32Z karl $ 
  
 
 % Model specification
@@ -121,7 +121,7 @@ subplot(2,2,3)
 plot(w,GW)
 xlabel('frequency {Hz}')
 title('transfer function','FontSize',16)
-drawnow
+axis square
 
 subplot(2,2,4)
 imagesc(p,w,GW)
@@ -129,7 +129,7 @@ title('transfer functions','FontSize',16)
 ylabel('Frequency')
 xlabel('Inhibitory connection','FontSize',16)
 axis xy
-
+axis square
 
 % Integrate system to see response (time-frequency)
 %==========================================================================
@@ -146,8 +146,8 @@ U.u   = sparse(N,M.m);
 
 % exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = tanh((t - 1/2)*8)*B;                 % modulatory input
-M.W      = inv(diag(sparse(1,1,exp(-1),1,M.n) + exp(-32)));
+U.u(:,1) = tanh((t - 1/2)*32)*B;                 % modulatory input
+M.W      = inv(diag(sparse(1,1,1/32,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  
 % plot
@@ -180,9 +180,8 @@ drawnow
 
 % now integrate a generative model to simulate a time frequency response
 %==========================================================================
-% prediction
-%--------------------------------------------------------------------------
-[y,w,t,x] = spm_csd_tfm(pE,M,U);
+
+[y,w,t] = spm_csd_tfm(pE,M,U);
 
 % predicted time frequency response
 %--------------------------------------------------------------------------

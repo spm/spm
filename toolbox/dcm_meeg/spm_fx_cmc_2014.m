@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_2014.m 5833 2014-01-12 20:25:39Z karl $
+% $Id: spm_fx_cmc_2014.m 5932 2014-03-28 10:04:32Z karl $
  
  
 % get dimensions and configure state variables
@@ -162,7 +162,7 @@ for i = 1:size(P.G,2)
     G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
 end
 
-% Modulatory effects of sp depolarisation on intrinsic connection j(1)
+% Modulatory effects of dp depolarisation on intrinsic connection
 %--------------------------------------------------------------------------
 if isfield(P,'M')
     G(:,7) = G(:,7).*exp(-P.M*32*S(:,7));
