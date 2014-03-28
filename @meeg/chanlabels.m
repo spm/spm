@@ -5,7 +5,7 @@ function res = chanlabels(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: chanlabels.m 5079 2012-11-25 18:38:18Z vladimir $
+% $Id: chanlabels.m 5933 2014-03-28 13:22:28Z vladimir $
 
 if this.montage.Mind == 0
     if nargin == 3
@@ -53,8 +53,11 @@ else
             end
 
         end
+        
+        this.montage.M(this.montage.Mind) = getset(this.montage.M(this.montage.Mind), 'channels', 'label', varargin{:});
+        res = this;
+    else
+        res = getset(this.montage.M(this.montage.Mind), 'channels', 'label', varargin{:});
     end
-
-    res = getset(this.montage.M(this.montage.Mind), 'channels', 'label', varargin{:});
     
 end

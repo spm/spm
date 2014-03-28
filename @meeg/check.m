@@ -13,7 +13,7 @@ function [this, ok] = check(this, option)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: check.m 5850 2014-01-22 13:15:30Z vladimir $
+% $Id: check.m 5933 2014-03-28 13:22:28Z vladimir $
 
 if nargin == 1
     option = 'basic';
@@ -34,8 +34,7 @@ if ~isequal(transformtype(this), 'time')
 end
 
 if this.montage.Mind~=0
-    disp('Resetting to original montage')
-    this.montage.Mind = 0;
+    disp('Virtual montage is applied. Make sure this is what you want.')    
 end
 
 eegind    = indchantype(this, 'EEG');

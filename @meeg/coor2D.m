@@ -5,7 +5,7 @@ function [res, plotind] = coor2D(this, ind, val, mindist)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Laurence Hunt
-% $Id: coor2D.m 5576 2013-07-11 12:24:56Z vladimir $
+% $Id: coor2D.m 5933 2014-03-28 13:22:28Z vladimir $
 
 
 megind = indchantype(this, {'MEG', 'MEGPLANAR', 'MEGCOMB'});
@@ -107,8 +107,8 @@ else
         this = getset(this, 'channels', 'X_plot2D', ind, val(1, :));
         this = getset(this, 'channels', 'Y_plot2D', ind, val(2, :));
     else
-        this = getset(this.montage.M(this.montage.Mind), 'channels', 'X_plot2D', ind, val(1, :));
-        this = getset(this.montage.M(this.montage.Mind), 'channels', 'Y_plot2D', ind, val(2, :));
+        this.montage.M(this.montage.Mind) = getset(this.montage.M(this.montage.Mind), 'channels', 'X_plot2D', ind, val(1, :));
+        this.montage.M(this.montage.Mind) = getset(this.montage.M(this.montage.Mind), 'channels', 'Y_plot2D', ind, val(2, :));
     end
     res = this;
 end

@@ -5,10 +5,15 @@ function res = units(this, varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: units.m 5025 2012-10-31 14:44:13Z vladimir $
+% $Id: units.m 5933 2014-03-28 13:22:28Z vladimir $
 
 if this.montage.Mind == 0
     res = getset(this, 'channels', 'units', varargin{:});
 else
-    res = getset(this.montage.M(this.montage.Mind), 'channels', 'units', varargin{:});
+    if nargin == 3
+        this.montage.M(this.montage.Mind) = getset(this.montage.M(this.montage.Mind), 'channels', 'units', varargin{:});
+        res = this;
+    else
+        res = getset(this.montage.M(this.montage.Mind), 'channels', 'units', varargin{:});
+    end
 end
