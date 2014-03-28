@@ -28,13 +28,13 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5667 2013-10-02 18:26:06Z karl $
+% $Id: spm_csd_int.m 5934 2014-03-28 15:03:00Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
 %--------------------------------------------------------------------------
 if nargin < 3
-    U.dt = 0.004;
+    U.dt = 1/256;
     U.u  = sparse(1,M.m);
     U.X  = sparse(1,0);
 end
@@ -49,7 +49,7 @@ f   = fcnchk(M.f);
 try, fu  = M.fu;    catch, fu  = 'spm_erp_u'; end
 try, ns  = M.ns;    catch, ns  = 128;         end
 try, Rft = M.Rft;   catch, Rft = 4;           end
-try, dt  = U.dt;    catch, dt  = 0.004;       end
+try, dt  = U.dt;    catch, dt  = 1/256;       end
 
 
 % within-trial (exogenous) inputs
@@ -85,35 +85,18 @@ nx    = M.n;
 %--------------------------------------------------------------------------
 for c = 1:size(X,1)
     
-    % baseline parameters
+    % condition-specific parameters
     %----------------------------------------------------------------------
-    Q = P;
-    
-    % trial-specific effects
-    %----------------------------------------------------------------------
-    for i = 1:size(X,2)
-        
-        % extrinsic (forward and backwards) connections
-        %------------------------------------------------------------------
-        for j = 1:length(P.A)
-            Q.A{j} = Q.A{j} + X(c,i)*P.B{i};
-        end
-        
-        % intrinsic connections or gain (encoded by G)
-        %------------------------------------------------------------------
-        Q.G(:,1) = Q.G(:,1) + X(c,i)*diag(P.B{i});
-        
-    end
+    Q   = spm_gen_Q(P,X(c,:));
     
     % initialise hidden states
     %----------------------------------------------------------------------
-    x = spm_vec(spm_dcm_neural_x(Q,M));
+    x   = spm_vec(spm_dcm_neural_x(Q,M));
     
     % remove state (X) and input (Y) dependent parameter from Q
     %----------------------------------------------------------------------
     if isfield(Q,'X'), Q = rmfield(Q,'X'); end
     if isfield(Q,'Y'), Q = rmfield(Q,'Y'); end
-    
     
     
     % get local linear operator LL and delay operator D

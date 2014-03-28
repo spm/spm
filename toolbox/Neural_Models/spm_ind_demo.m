@@ -37,7 +37,7 @@ function spm_ind_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ind_demo.m 5864 2014-01-31 11:46:52Z karl $
+% $Id: spm_ind_demo.m 5934 2014-03-28 15:03:00Z karl $
 
 
 % number of regions in coupled map lattice
@@ -59,7 +59,7 @@ C     = sparse(1,1,1,n,1);
 % create LFP model
 %--------------------------------------------------------------------------
 M.dipfit.type  = 'LFP';
-M.dipfit.model = 'LFP' 
+M.dipfit.model = 'LFP';
 M.dipfit.Ns    = n;
 M.dipfit.Nc    = n;
 

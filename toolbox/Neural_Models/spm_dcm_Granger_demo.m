@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_dcm_Granger_demo.m 5934 2014-03-28 15:03:00Z karl $
  
  
 % Model specification
@@ -63,7 +63,7 @@ C    = sparse(2,0);
 pE    = spm_dcm_neural_priors(A,B,C,options.model);
 pE    = spm_L_priors(M.dipfit,pE);
 pE    = spm_ssr_priors(pE);
-[x,f] = spm_dcm_x_neural(pE,options.model);
+x     = spm_dcm_x_neural(pE,options.model);
 
 % (log) connectivity parameters
 %--------------------------------------------------------------------------
@@ -83,7 +83,7 @@ nx    = length(spm_vec(x));
  
 % create forward model
 %--------------------------------------------------------------------------
-M.f   = f;
+M.f   = 'spm_fx_cmc';
 M.g   = 'spm_gx_erp';
 M.x   = x;
 M.n   = nx;

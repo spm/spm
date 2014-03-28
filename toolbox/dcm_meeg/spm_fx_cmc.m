@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5932 2014-03-28 10:04:32Z karl $
+% $Id: spm_fx_cmc.m 5934 2014-03-28 15:03:00Z karl $
  
  
 % get dimensions and configure state variables
@@ -47,7 +47,7 @@ n  = size(x,1);                   % number of sources
 E  = [1 1/2 1 1/2]*200;           % extrinsic (forward and backward)  
 G  = [4 4 8 4 4 2 4 4 2 1]*200;   % intrinsic connections
 T  = [2 2 16 28];                 % synaptic time constants
-R  = 1;                           % slope of sigmoid activation function
+R  = 2/3;                         % slope of sigmoid activation function
  
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
@@ -84,7 +84,7 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-B    = 2;                     % bias or background (sigmoid)
+B    = 0;                        % bias or background (sigmoid)
 R    = R.*exp(P.S);              % gain of activation function
 F    = 1./(1 + exp(-R*x + B));   % firing rate
 S    = F - 1/(1 + exp(B));       % deviation from baseline firing

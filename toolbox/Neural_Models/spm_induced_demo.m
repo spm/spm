@@ -18,7 +18,7 @@ function spm_induced_demo
 % therefore change with the expected hidden states over peristimulus time.
 %
 % This routine first creates a simple – two source – generative model using
-% a canonical microcircuit architecture and conductance based dynamics. It
+% a canonical microcircuit architecture and convolution based dynamics. It
 % then produces predictions of induced responses to a short and sustained
 % input to the first source – as measured by two local field potential
 % recordings at each source. Exactly the same model is then integrated in
@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5769 2013-11-27 19:37:01Z karl $
+% $Id: spm_induced_demo.m 5934 2014-03-28 15:03:00Z karl $
  
  
 % Model specification
@@ -43,7 +43,7 @@ function spm_induced_demo
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
 options.spatial  = 'LFP';
-options.model    = 'CMM';
+options.model    = 'CMC';
 options.analysis = 'TFM';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
@@ -64,15 +64,13 @@ pE    = spm_dcm_neural_priors(A,{},C,options.model);
 pE    = spm_L_priors(M.dipfit,pE);
 pE    = spm_ssr_priors(pE);
 [x,f] = spm_dcm_x_neural(pE,options.model);
-
-pE.J(1:4) = [0 1 0 0];
- 
  
 % orders and model
 %==========================================================================
 nx    = length(spm_vec(x));
 nu    = size(pE.C,2);
- 
+
+
 % create forward model
 %--------------------------------------------------------------------------
 M.f   = f;
@@ -82,7 +80,7 @@ M.n   = nx;
 M.pE  = pE;
 M.m   = nu;
 M.l   = Nc;
-M.Hz  = 4:64;
+M.Hz  = 4:128;
 M.Rft = 4;
  
 % solve for steady state
@@ -95,14 +93,14 @@ M.x   = spm_dcm_neural_x(pE,M);
 % remove M.u to invoke exogenous inputs
 %--------------------------------------------------------------------------
 N     = 128;
-U.dt  = 4/1000;
+U.dt  = 2/1000;
 t     = (1:N)'*U.dt;
 U.u   = sparse(N,M.m);
  
 
 % exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = spm_conv((t > 128/1000 & t < 256/1000)*128,8);
+U.u(:,1)  = spm_conv((t > 64/1000 & t < 198/1000)*12,8);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------

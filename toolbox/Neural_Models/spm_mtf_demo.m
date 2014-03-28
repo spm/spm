@@ -41,7 +41,7 @@ function spm_mtf_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mtf_demo.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_mtf_demo.m 5934 2014-03-28 15:03:00Z karl $
  
  
 % empirical data - sort and decimate
@@ -129,7 +129,7 @@ Ep    = spm_nlsi_GN(M,[],Y);
 [G w]  = spm_csd_mtf(Ep,M);
  
 subplot(2,1,1)
-plot(w,G{1},w,y,':')
+plot(w,real(G{1}),w,y,':')
 xlabel('frequency (Hz)')
 xlabel('Power')
 legend({'predicted','observed'})
