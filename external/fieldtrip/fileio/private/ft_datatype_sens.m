@@ -37,6 +37,10 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    sens.type     = string with the MEG or EEG acquisition system, see FT_SENSTYPE
 %    sens.fid      = structure with fiducial information
 %
+% Historical fields:
+%    - balance, chanori, chanpos, chantype, chanunit, coilori, coilpos,
+%    coordsys elecpos label, labelorg, tra, type, unit, see bug2513
+%
 % Revision history:
 %
 % (upcoming) The chantype and chanunit have become required fields. It is possible
@@ -89,7 +93,7 @@ function [sens] = ft_datatype_sens(sens, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_sens.m 9209 2014-02-18 08:57:40Z roboos $
+% $Id: ft_datatype_sens.m 9316 2014-03-26 15:40:46Z dieloz $
 
 % undocumented options for the upcoming (2013?) format
 %   amplitude     = string, can be 'T' or 'fT'

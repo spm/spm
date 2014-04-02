@@ -115,8 +115,8 @@ function [cfg] = ft_sourceplot(cfg, data)
 %
 % The following parameters apply to surface-plotting when an interpolation
 % is required
-%   cfg.surffile       = string, file that contains the surface (default = 'single_subj_T1.mat')
-%                        'single_subj_T1.mat' contains a triangulation that corresponds with the
+%   cfg.surffile       = string, file that contains the surface (default = 'surface_white_both.mat')
+%                        'surface_white_both.mat' contains a triangulation that corresponds with the
 %                         SPM anatomical template in MNI coordinates
 %   cfg.surfinflated   = string, file that contains the inflated surface (default = [])
 %   cfg.surfdownsample = number (default = 1, i.e. no downsampling)
@@ -176,9 +176,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9244 2014-02-26 09:49:03Z roboos $
+% $Id: ft_sourceplot.m 9325 2014-03-27 15:03:53Z jansch $
 
-revision = '$Id: ft_sourceplot.m 9244 2014-02-26 09:49:03Z roboos $';
+revision = '$Id: ft_sourceplot.m 9325 2014-03-27 15:03:53Z jansch $';
 
 % do the general setup of the function
 ft_defaults

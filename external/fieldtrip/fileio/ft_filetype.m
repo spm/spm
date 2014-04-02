@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_filetype.m 9312 2014-03-25 14:31:17Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -1186,7 +1186,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if strcmp(type, 'unknown')
-  warning_once(sprintf('could not determine filetype of %s', filename));
+  if ~exist(filename, 'file') || ~exist(filename, 'dir')
+    warning('file or directory "%s" does not exist, could not determine fileformat', filename);
+  else
+    warning('could not determine filetype of %s', filename);
+  end
 end
 
 if ~isempty(desired)

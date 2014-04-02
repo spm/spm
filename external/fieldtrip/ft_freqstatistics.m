@@ -69,9 +69,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_freqstatistics.m 9298 2014-03-18 19:34:50Z jansch $
 
-revision = '$Id: ft_freqstatistics.m 9226 2014-02-23 13:12:06Z roboos $';
+revision = '$Id: ft_freqstatistics.m 9298 2014-03-18 19:34:50Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -221,37 +221,26 @@ if ~ischar(cfg.trials)
   end
 end
 
+% concatenate into one data structure
+data = ft_appendfreq(cfg, varargin{:});
+
 % intersect the data and combine it into one structure
 tmpcfg = [];
-tmpcfg.parameter = cfg.parameter;
+tmpcfg.parameter  = cfg.parameter;
+tmpcfg.avgoverrpt = false;
+tmpcfg.frequency  = cfg.frequency;
+tmpcfg.avgoverfreq = cfg.avgoverfreq;
 
+% specify some additional stuff
 if hastime
-  if haschan
-    data = ft_appendfreq(cfg, varargin{:});
-    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
-      'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
-      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-      'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
-  else
-    data = ft_appendfreq(cfg, varargin{:});
-    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
-    'toilim', cfg.latency, 'avgovertime', cfg.avgovertime, ...
-    'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-    'avgoverchan', cfg.avgoverchan);
-  end
-else
-  if haschan
-    data = ft_appendfreq(cfg, varargin{:});
-    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
-      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-      'channel', cfg.channel, 'avgoverchan', cfg.avgoverchan);
-  else
-    data = ft_appendfreq(cfg, varargin{:});
-    data =  ft_selectdata(data, 'param', cfg.parameter, 'avgoverrpt', false, ...
-      'foilim',  cfg.frequency, 'avgoverfreq', cfg.avgoverfreq, ...
-      'avgoverchan', cfg.avgoverchan);
-  end
+  tmpcfg.latency     = cfg.latency;
+  tmpcfg.avgovertime = cfg.avgovertime;
+end  
+if haschan
+  tmpcfg.channel     = cfg.channel;
+  tmpcfg.avgoverchan = cfg.avgoverchan;
 end
+data = ft_selectdata(tmpcfg, data);
 
 % after the append step above, make sure cfg.channel is in the order of our
 % appended data structure (this is used by the lower-level functions to

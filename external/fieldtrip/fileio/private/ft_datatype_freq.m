@@ -38,6 +38,11 @@ function freq = ft_datatype_freq(freq, varargin)
 % Obsoleted fields:
 %   - <none>
 %
+% Historical fields:
+%   - cfg, crsspctrm, cumsumcnt, cumtapcnt, dimord, elec, foi,
+%   fourierspctrm, freq, grad, label, labelcmb, powspctrm, time, toi, see
+%   bug2513
+%
 % Revision history:
 %
 % (2011/latest) The description of the sensors has changed, see FT_DATATYPE_SENS
@@ -75,7 +80,7 @@ function freq = ft_datatype_freq(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_freq.m 8154 2013-05-24 11:42:42Z dieloz $
+% $Id: ft_datatype_freq.m 9316 2014-03-26 15:40:46Z dieloz $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');

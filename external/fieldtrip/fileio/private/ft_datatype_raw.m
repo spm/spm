@@ -29,6 +29,10 @@ function data = ft_datatype_raw(data, varargin)
 %
 % Obsoleted fields:
 %   - offset
+% 
+% Historical fields:
+%   - cfg, elec, fsample, grad, hdr, label, offset, sampleinfo, time,
+%   trial, trialdef, see bug2513
 %
 % Revision history:
 %
@@ -69,7 +73,7 @@ function data = ft_datatype_raw(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_raw.m 7498 2013-02-19 09:38:14Z roboos $
+% $Id: ft_datatype_raw.m 9318 2014-03-26 15:43:16Z dieloz $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');

@@ -5,7 +5,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % Use as
 %  outdata = ft_examplefunction(cfg, indata) 
 % where indata is <<describe the type of data or where it comes from>> 
-% and cfg is a configuratioun structure that should contain 
+% and cfg is a configuration structure that should contain 
 %
 % <<note that the cfg list should be indented with two spaces
 %
@@ -29,13 +29,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_examplefunction.m 9295 2014-03-18 11:30:44Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_examplefunction.m 9295 2014-03-18 11:30:44Z roboos $';
 
 % do the general setup of the function
 

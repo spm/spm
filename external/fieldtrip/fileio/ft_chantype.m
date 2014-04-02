@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 9136 2014-01-28 17:35:50Z roboos $
+% $Id: ft_chantype.m 9322 2014-03-26 16:36:14Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -543,7 +543,9 @@ elseif ft_senstype(input, 'itab') && islabel
   
 elseif ft_senstype(input, 'eeg') && islabel
   % use an external helper function to define the list with EEG channel names
-  type(match_str(label, ft_senslabel(ft_senstype(label)))) = {'eeg'};
+  type(match_str(label, ft_senslabel('eeg1005'))) = {'eeg'};
+  type(match_str(label, ft_senslabel('eeg1010'))) = {'eeg'};
+  type(match_str(label, ft_senslabel('eeg1020'))) = {'eeg'};
 
 elseif ft_senstype(input, 'eeg') && iselec
   % all channels in an electrode definition must be eeg channels

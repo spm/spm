@@ -1,4 +1,4 @@
-function [newval, change] = smartinput(question, oldval);
+function [newval, change] = smartinput(question, oldval)
 
 % SMARTINPUT helper function for smart interactive input from the command line
 %
@@ -7,7 +7,7 @@ function [newval, change] = smartinput(question, oldval);
 %
 % See also INPUT, PAUSE
 
-% Copyright (C) 2006, Robert Oostenveld
+% Copyright (C) 2006-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -25,7 +25,7 @@ function [newval, change] = smartinput(question, oldval);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: smartinput.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: smartinput.m 9295 2014-03-18 11:30:44Z roboos $
 
 if ischar(oldval)
   newval = input(question, 's');

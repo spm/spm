@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9164 2014-01-29 15:29:50Z roevdmei $
+% $Id: topoplot_common.m 9303 2014-03-20 13:45:34Z eelspa $
 
-revision = '$Id: topoplot_common.m 9164 2014-01-29 15:29:50Z roevdmei $';
+revision = '$Id: topoplot_common.m 9303 2014-03-20 13:45:34Z eelspa $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -332,7 +332,7 @@ lay = ft_prepare_layout(cfg, data);
 cfg.layout = lay;
 
 % Create time-series of small topoplots:
-if ~ischar(cfg.xlim) && length(cfg.xlim)>2 && any(ismember(dimtok, 'time'))
+if ~ischar(cfg.xlim) && length(cfg.xlim)>2 %&& any(ismember(dimtok, 'time'))
   % Switch off interactive mode:
   cfg.interactive = 'no';
   xlims = cfg.xlim;
@@ -947,6 +947,11 @@ if ~isempty(label)
   end
   cfg.xlim = 'maxmin';
   cfg.channel = label;
+  % if user specified a zlim, copy it over to the ylim of singleplot
+  if isfield(cfg, 'zlim')
+    cfg.ylim = cfg.zlim;
+    cfg = rmfield(cfg, 'zlim');
+  end
   fprintf('selected cfg.channel = {');
   for i=1:(length(cfg.channel)-1)
     fprintf('''%s'', ', cfg.channel{i});

@@ -35,6 +35,10 @@ function comp = ft_datatype_comp(comp, varargin)
 %
 % Obsoleted fields:
 %   - offset
+% 
+% Historical fields:
+%   - cfg, fsample, grad, label, sampleinfo, time, topo, topolabel, trial,
+%   unmixing, see bug2513
 %
 % Revision history:
 % (2011/latest) The unmixing matrix has been added to the component data
@@ -64,7 +68,7 @@ function comp = ft_datatype_comp(comp, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_comp.m 7294 2013-01-11 10:15:00Z roboos $
+% $Id: ft_datatype_comp.m 9316 2014-03-26 15:40:46Z dieloz $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version       = ft_getopt(varargin, 'version', 'latest');

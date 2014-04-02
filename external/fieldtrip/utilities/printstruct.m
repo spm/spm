@@ -39,7 +39,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 8722 2013-11-06 13:57:03Z roboos $
+% $Id: printstruct.m 9326 2014-04-01 11:46:29Z roboos $
 
 if nargin==1
   val  = name;
@@ -137,8 +137,14 @@ if prod(siz)==0
   str = sprintf('%s = [];\n', name);
 elseif prod(siz)==1
   str = sprintf('%s = %s;\n', name, printval(val));
+elseif numel(siz)==2 && siz(1)==1
+    str = '';
+    for col=1:siz(2)
+      str = sprintf('%s %s', str, printval(val(1,col)));
+    end
+   str = sprintf('%s = [%s ];\n', name, str);
 elseif numel(siz)==2
-  str = sprintf('%s = [\n', name);
+    str = sprintf('%s = [\n', name);
   for row=1:siz(1)
     for col=1:siz(2)
       str = sprintf('%s %s', str, printval(val(row,col)));
