@@ -1,4 +1,4 @@
-function spm_induced_demo
+% function spm_induced_demo
 % Demo routine for induced responses
 %==========================================================================
 %
@@ -32,7 +32,7 @@ function spm_induced_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_induced_demo.m 5939 2014-04-06 17:13:50Z karl $
  
  
 % Model specification
@@ -43,7 +43,7 @@ function spm_induced_demo
 Nc    = 2;                                       % number of channels
 Ns    = 2;                                       % number of sources
 options.spatial  = 'LFP';
-options.model    = 'CMC';
+options.model    = 'TFM';
 options.analysis = 'TFM';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
@@ -56,14 +56,18 @@ A{1} = [0 0; 1 0];
 A{2} = [0 1; 0 0];
 A{3} = [0 0; 0 0];
 C    = [1; 0];
- 
- 
+
 % get priors
 %--------------------------------------------------------------------------
 pE    = spm_dcm_neural_priors(A,{},C,options.model);
 pE    = spm_L_priors(M.dipfit,pE);
 pE    = spm_ssr_priors(pE);
-[x,f] = spm_dcm_x_neural(pE,options.model);
+x     = spm_dcm_x_neural(pE,options.model);
+
+% supress noise
+%--------------------------------------------------------------------------
+pE.b(1,:) = -4;
+pE.c(1,:) = -4;
  
 % orders and model
 %==========================================================================
@@ -73,14 +77,15 @@ nu    = size(pE.C,2);
 
 % create forward model
 %--------------------------------------------------------------------------
-M.f   = f;
 M.g   = 'spm_gx_erp';
+M.f   = 'spm_fx_cmc_tfm';
+M.h   = 'spm_fp_cmc_tfm';
 M.x   = x;
 M.n   = nx;
 M.pE  = pE;
 M.m   = nu;
 M.l   = Nc;
-M.Hz  = 4:128;
+M.Hz  = 4:98;
 M.Rft = 4;
  
 % solve for steady state
@@ -93,14 +98,15 @@ M.x   = spm_dcm_neural_x(pE,M);
 % remove M.u to invoke exogenous inputs
 %--------------------------------------------------------------------------
 N     = 128;
-U.dt  = 2/1000;
-t     = (1:N)'*U.dt;
+U.dt  = 4/1000;
+b     = (1:N)';
+pst   = b*U.dt;
 U.u   = sparse(N,M.m);
  
 
 % exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = spm_conv((t > 64/1000 & t < 198/1000)*12,8);
+U.u(:,1)  = spm_conv((b > N/4 & b < 2*N/4)*16,8);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
@@ -111,10 +117,8 @@ U.u(:,1)  = spm_conv((t > 64/1000 & t < 198/1000)*12,8);
 %==========================================================================
 spm_figure('GetWin','Simulated time-frequency responses');
  
-pst   = t*1000;
- 
 subplot(4,1,1)
-plot(pst,U.u)
+plot(pst*1000,U.u)
 xlabel('peristimulus time (ms)')
 title('Exogenous input','FontSize',16)
 spm_axis tight
@@ -122,7 +126,7 @@ spm_axis tight
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,1,2)
-plot(pst,x)
+plot(pst*1000,x)
 xlabel('peristimulus time (ms)')
 title('Hidden neuronal states (conductance and depolarisation)','FontSize',16)
 spm_axis tight
@@ -131,11 +135,10 @@ spm_axis tight
 % expected time frequency response (coherence and cross-covariance)
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(y{1},pst,w,1)
- 
 
 % expected time frequency response
 %--------------------------------------------------------------------------
-spm_figure('GetWin','tansfer functions');
+spm_figure('GetWin','transfer functions');
 
 spm_dcm_tfm_transfer(s{1},pst,w)
 
@@ -149,8 +152,8 @@ xY.erp = erp;
 xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
 
-return
 
+return
 
 % Integrate system to simulate responses
 %==========================================================================
@@ -161,7 +164,7 @@ spm_figure('GetWin','Simulated trials');
 %--------------------------------------------------------------------------
 Hz        = 1:M.Hz(end);
 Gu        = spm_csd_mtf_gu(pE,Hz);
-[ccf,lag] = spm_csd2ccf(full(Gu),Hz);
+[ccf,lag] = spm_csd2ccf(full(Gu),Hz,U.dt);
 ccf       = ccf((length(ccf) + 1)/2:fix(U.dt/(lag(2) - lag(1))):end,1);
 ccf       = ccf(1:N)/max(ccf);
 ccf       = spm_sqrtm(toeplitz(ccf));
@@ -187,7 +190,7 @@ end
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,1,1)
-plot(pst,erp{1})
+plot(pst*1000,erp{1})
 xlabel('time (s)')
 title('LFP response – expectation','FontSize',16)
 spm_axis tight
@@ -197,9 +200,9 @@ set(gca,'YLim',[-8 8])
 %--------------------------------------------------------------------------
 subplot(4,1,2)
 for i = 1:size(D,3)
-    plot(pst,D(:,:,i),':'), hold on
+    plot(pst*1000,D(:,:,i),':'), hold on
 end
-plot(pst,mean(D,3),'Linewidth',2)
+plot(pst*1000,mean(D,3),'Linewidth',2)
 hold off
 xlabel('time (s)')
 title('simulated response and ERP','FontSize',16)

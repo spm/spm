@@ -6,8 +6,8 @@ function spm_dcm_tfm_response(xY,pst,hz)
 %                              condition i
 % xY.csd{i} - (t x w x n x n): an array over t time bins, w frequency bins
 %                              and n times n channels
-%    pst - peristimulus time (for plotting)
-%    Hz  - frequency range   (for plotting)
+%    pst - peristimulus time (seconds)
+%    Hz  - frequency range   (Hz)
 %__________________________________________________________________________
 %
 % This routine displays complex evoked and induced responses over peri-
@@ -19,7 +19,7 @@ function spm_dcm_tfm_response(xY,pst,hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 5832 2014-01-11 11:03:04Z karl $
+% $Id: spm_dcm_tfm_response.m 5939 2014-04-06 17:13:50Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -29,6 +29,7 @@ if nargin < 3, hz  = 1:size(xY.csd{1},2); end
  
 % plot time frequency responses
 %==========================================================================
+pst   = pst(:)'*1000;                              % pst in ms
 ne    = length(xY.csd);                            % number of event types
 nc    = size(xY.csd{1},3);                         % number of channels
 bands = kron([8; 13; 32],[1 1]);

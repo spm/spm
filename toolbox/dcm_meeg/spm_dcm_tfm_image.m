@@ -18,7 +18,7 @@ function spm_dcm_tfm_image(csd,pst,hz,top)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_image.m 4852 2012-08-20 15:04:49Z karl $
+% $Id: spm_dcm_tfm_image.m 5939 2014-04-06 17:13:50Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -27,33 +27,35 @@ if nargin < 2, pst = 1:size(csd,1); end
 if nargin < 3, hz  = 1:size(csd,2); end
 if nargin < 4, top = 0; two = 1;    end
 
+
 % plot time frequency responses
 %==========================================================================
+dt    = pst(2) - pst(1);
+pst   = pst*1000;
 nc    = size(csd,3);
 bands = kron([8; 13; 32],[1 1]);
-for i = 1:nc
-    
-    % evaluate cross covariance function
-    %----------------------------------------------------------------------
-    g         = abs(csd);
-    [ccf,lag] = spm_csd2ccf(csd,hz);
-    lag       = lag*1000;
-    j         = find(-64 < lag & lag < 64);
-    lag       = lag(j);
-    ccf       = ccf(:,j,:,:);
-    
+
+
+% evaluate cross covariance function
+%--------------------------------------------------------------------------
+[ccf,lag] = spm_csd2ccf(csd,hz,dt);
+lag       = lag*1000;
+j         = find(-128 < lag & lag < 128);
+lag       = lag(j);
+ccf       = ccf(:,j,:,:);
+
+
+for i = 1:nc    
     
     % spectral power
     %----------------------------------------------------------------------
     for j = i:i
         
         subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
-    
-        imagesc(pst,hz,abs(g(:,:,i,j)).^2');
+        imagesc(pst,hz,abs(csd(:,:,i,j)).^2');
         title('Spectral density','FontSize',16)
         xlabel('peristimulus time (ms)')
         ylabel('Hz'), axis xy
-        
         hold on; plot([pst(1) pst(end)],bands,':w'), hold off
         
     end
@@ -61,13 +63,12 @@ for i = 1:nc
     % coherence functions
     %----------------------------------------------------------------------
     for j = (i + 1):nc
-        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
         
-        imagesc(pst,hz,abs(g(:,:,i,j)).^2');
+        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
+        imagesc(pst,hz,abs(csd(:,:,i,j)).^2');
         title('Coherence','FontSize',16)
         xlabel('peristimulus time (ms)')
         ylabel('Hz'), axis xy
-        
         hold on; plot([pst(1) pst(end)],bands,':w'), hold off
         
     end
@@ -75,13 +76,12 @@ for i = 1:nc
     % cross covariance functions
     %----------------------------------------------------------------------
     for j = 1:(i - 1)
-        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
         
+        subplot(two*nc,nc,top*nc*nc + (i - 1)*nc + j)
         imagesc(pst,lag,ccf(:,:,i,j)');
         title('Cross-covariance','FontSize',16)
         xlabel('peristimulus (ms)')
-        ylabel('lag (ms)'), axis xy
-        
+        ylabel('lag (ms)'), axis xy     
         hold on; plot([pst(1) pst(end)],[0 0],'-.w'), hold off
         
     end

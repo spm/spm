@@ -15,11 +15,12 @@ function [L] = spm_lx_erp(P,dipfit)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_lx_erp.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_lx_erp.m 5939 2014-04-06 17:13:50Z karl $
 
 % extract dipfit from model if necessary
 %--------------------------------------------------------------------------
-if isfield(dipfit,'dipfit'), dipfit = dipfit.dipfit; end
+if  isfield(dipfit,'dipfit'), dipfit = dipfit.dipfit; end
+if ~isfield(dipfit,'type'),   dipfit = 'LFP';         end
 
 % parameterised lead field times source contribution to ECD
 %--------------------------------------------------------------------------

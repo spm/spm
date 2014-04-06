@@ -1,17 +1,18 @@
-function [x,f] = spm_dcm_x_neural(P,model)
+function [x,f,h] = spm_dcm_x_neural(P,model)
 % Returns the state and equation of neural mass models
-% FORMAT [x,f] = spm_dcm_x_neural(P,'model')
+% FORMAT [x,f,h] = spm_dcm_x_neural(P,'model')
 %
 %  P      - parameter structure
 % 'model'   - 'ERP','SEP','CMC','LFP','CMM','NNM', 'MFM' or 'CMM NMDA'
 %
 % x   - initial states
-% f   - state euquation
+% f   - state euquation dxdt = f(x,u,P,M)  - synaptic activity
+% h   - state euquation dPdt = f(x,u,P,M)  - synaptic plasticity
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_dcm_x_neural.m 5939 2014-04-06 17:13:50Z karl $
 
 
 
@@ -56,6 +57,19 @@ switch lower(model)
         
         f  = 'spm_fx_cmc';
         %%% f  = 'spm_fx_cmc_2014'; %%%
+        
+    % Linear in states – canonical microcircuit with plasticity
+    %======================================================================
+    case{'tfm'}
+        
+        % inital states
+        %------------------------------------------------------------------
+        n  = length(P.A{1});                          % number of sources
+        m  = 8;                                       % number of states
+        x  = sparse(n,m);
+        
+        f  = 'spm_fx_cmc_tfm';
+        h  = 'spm_fp_cmc_tfm';
         
     % linear David et al model (linear in states) - with self-inhibition
     %======================================================================

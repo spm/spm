@@ -1,6 +1,6 @@
-function [E,V] = spm_cmc_priors(A,B,C)
-% prior moments for a canonical microcircuit model
-% FORMAT [pE,pC] = spm_cmc_priors(A,B,C)
+function [E,V] = spm_tfm_priors(A,B,C)
+% prior moments for a canonical microcircuit model (with plasticity)
+% FORMAT [pE,pC] = spm_tfm_priors(A,B,C)
 %
 % A{3},B{m},C  - binary constraints on extrinsic connections
 %
@@ -16,9 +16,14 @@ function [E,V] = spm_cmc_priors(A,B,C)
 %--------------------------------------------------------------------------
 %    pE.A - extrinsic
 %    pE.B - trial-dependent (driving)
-%    pE.N - trial-dependent (modulatory)
 %    pE.C - stimulus input
 %    pE.D - delays
+%    pE.N - trial-dependent (modulatory)
+%
+% plasticity parameters
+%--------------------------------------------------------------------------
+%    pE.E - voltage-dependent potentiation
+%    pE.F - decay
 %
 % stimulus and noise parameters
 %--------------------------------------------------------------------------
@@ -30,7 +35,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % parameters are simply scaling coefficients with a prior expectation
 % and variance of one.  After log transform this renders pE = 0 and
 % pC = 1;  The prior expectations of what they scale are specified in
-% spm_fx_cmc
+% spm_fx_cmc_tfm
 %__________________________________________________________________________
 %
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -39,7 +44,7 @@ function [E,V] = spm_cmc_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cmc_priors.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_tfm_priors.m 5939 2014-04-06 17:13:50Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -92,6 +97,13 @@ for i = 1:length(B)
     E.B{i} = 0*B{i};
     V.B{i} = (B{i} & Q & ~V.M)/8;   
 end
+
+% plasticity parameters
+%--------------------------------------------------------------------------
+m    = 2;                                         % number of plastic
+E.E  = sparse(n,m);   V.E  = sparse(n,m) + 1/16;  % potentiation                                             % potentiation
+E.F  = sparse(n,m);   V.F  = sparse(n,m) + 1/16;  % decay
+
 
 % modulatory connectivity - input-dependent scaling
 %--------------------------------------------------------------------------

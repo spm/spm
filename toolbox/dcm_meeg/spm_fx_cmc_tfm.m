@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_fx_cmc_tfm.m 5939 2014-04-06 17:13:50Z karl $
  
  
 % get dimensions and configure state variables
@@ -146,25 +146,19 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-j     = [1 2 3 4];
 for i = 1:size(P.T,2)
-    T(:,j(i)) = T(:,j(i)).*exp(P.T(:,i));
+    T(:,i) = T(:,i).*exp(P.T(:,i));
 end
 
 % intrinsic connections to be optimised (only the first is modulated)
 %--------------------------------------------------------------------------
-if isfield(M,'cmcj')
-    j = M.cmcj;
-else
-    j = [12 9 7 4   1 2 3 5 6 8 10 11];
-end
-for i = 1:size(P.G,2)
-    G(:,j(i)) = G(:,j(i)).*exp(P.G(:,i));
-end
+j          = [7 10 4 1];
+i          = 1:size(P.G,2);
+G(:,j(i))  = G(:,j(i)).*exp(P.G);
+
 
 % Modulatory effects of sp depolarisation on recurrent inhibition
 %--------------------------------------------------------------------------
-G(:,7)     = G(:,7).*exp(32*S(:,3));
 if isfield(P,'M')
     G(:,7) = G(:,7).*exp(-P.M*32*S(:,3));
 end

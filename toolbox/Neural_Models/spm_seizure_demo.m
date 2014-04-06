@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 5934 2014-03-28 15:03:00Z karl $ 
+% $Id: spm_seizure_demo.m 5939 2014-04-06 17:13:50Z karl $ 
  
 
 % Model specification
@@ -66,7 +66,7 @@ u       = sparse(1,nu);
 %--------------------------------------------------------------------------
 M.f     = 'spm_fx_tfm';
 M.g     = 'spm_gx_erp';
-M.h     = 'spm_fx_cmc_tfm';
+M.h     = 'spm_fx_cmc_2014';
 M.x     = x;
 M.n     = nx;
 M.pE    = pE;

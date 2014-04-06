@@ -43,11 +43,12 @@ function spm_mfm_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_mfm_demo.m 4812 2012-07-30 19:54:59Z karl $
+% $Id: spm_mfm_demo.m 5939 2014-04-06 17:13:50Z karl $
  
  
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
+rng('default')
 n     = 1;
  
 % extrinsic network connections
@@ -65,7 +66,7 @@ C     = sparse(1,1,1,n,1);
  
 % get connectivity and other priors
 %--------------------------------------------------------------------------
-[pE,pC] = spm_nmm_priors(A,B,C);
+pE    = spm_nmm_priors(A,B,C);
  
 % initialise states
 %--------------------------------------------------------------------------
@@ -75,7 +76,7 @@ C     = sparse(1,1,1,n,1);
 % create exogenous inputs
 %==========================================================================
 dt    = 2;
-t     = [1:dt:256]';
+t     = (1:dt:256)';
 N     = length(t);
 U.dt  = dt/1000;
 U.u   = 128*(exp(-(t - 64).^2/8) + rand(N,1)/exp(32));
@@ -226,7 +227,7 @@ drawnow
 % create exogenous inputs for responses to transient and sustained input
 %==========================================================================
 dt    = 2;
-t     = [1:dt:512]';
+t     = (1:dt:512)';
 N     = length(t);
 U.dt  = dt/1000;
  

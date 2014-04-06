@@ -40,7 +40,7 @@ function [pE,pC] = spm_dcm_neural_priors(A,B,C,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_neural_priors.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_dcm_neural_priors.m 5939 2014-04-06 17:13:50Z karl $
  
 % check options
 %==========================================================================
@@ -65,6 +65,14 @@ switch lower(model)
         % prior moments on parameters
         %------------------------------------------------------------------
         [pE,pC] = spm_cmc_priors(A,B,C);
+        
+    % linear David et al model (Canonical microcircuit with plasticity)
+    %======================================================================        
+    case{'tfm'}
+ 
+        % prior moments on parameters
+        %------------------------------------------------------------------
+        [pE,pC] = spm_tfm_priors(A,B,C);
         
  
     % linear David et al model (linear in states)  - with self-inhibition

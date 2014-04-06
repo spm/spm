@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_csd_int.m 5939 2014-04-06 17:13:50Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -62,7 +62,7 @@ end
 
 % peristimulus time
 %--------------------------------------------------------------------------
-t   = (1:size(u,2))*U.dt;
+t   = (1:ns)*U.dt;
 
 % between-trial (experimental) inputs
 %==========================================================================
@@ -79,6 +79,10 @@ end
 %==========================================================================
 nu    = length(P.A{1});
 nx    = M.n;
+
+% paramter update eqation
+%--------------------------------------------------------------------------
+if isfield(M,'h'), h = spm_funcheck(M.h);  end
 
 
 % cycle over trials or conditions
@@ -113,35 +117,34 @@ for c = 1:size(X,1)
         D           = 1;
     end
     
-    % get local linear operator LL
+    % get local linear (Lie) operator L
     %------------------------------------------------------------------
     p     = max(abs(real(eig(full(dfdx)))));
     N     = ceil(max(1,dt*p*2));
-    LL    = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
-    
+    L     = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
     
     % cycle over time - expanding around expected states and input
     %======================================================================
+    dQ    = spm_vec(Q)*0;
     for i = 1:length(t)
         
         % hidden states
         %------------------------------------------------------------------
-        if i > 1, x(:,i) = x(:,i - 1);  end
+        if i > 1, x(:,i) = x(:,i - 1); end
         
         
         % state-dependent parameters
         %==================================================================
         
-        % update state-dependent parameters (first order)
+        % update state-dependent parameters
         %------------------------------------------------------------------
-        dQ  = 0;
-        if isfield(P,'X'), dQ  = dQ + P.X*u(:,i);  end
-        if isfield(P,'Y'), dQ  = dQ + P.Y*x(:,i);  end
+        if isfield(P,'X'), dQ  = dQ + P.X*u(:,i);                end
+        if isfield(P,'Y'), dQ  = dQ + P.Y*x(:,i);                end
+        if isfield(M,'h'), dQ  = dQ + h(x(:,i),u(:,i),dQ,M)*U.dt; end
         
-        % update state-dependent parameters (second order)
+        % update
         %------------------------------------------------------------------
-        % dQ = dQ + spm_csd_cch(Q,M); dQ
-        R       = spm_unvec(spm_vec(Q) + dQ,Q);
+        R       = spm_unvec(spm_vec(Q) + spm_vec(dQ),Q);
         
         % compute complex cross spectral density
         %==================================================================
@@ -166,9 +169,8 @@ for c = 1:size(X,1)
         %------------------------------------------------------------------
         M     = rmfield(M,'u');
         M.x   = spm_unvec(x(:,1),M.x); 
-        
         for j = 1:N
-            x(:,i) = x(:,i) + LL*f(x(:,i),u(:,i),R,M);
+            x(:,i) = x(:,i) + L*f(x(:,i),u(:,i),R,M);
         end
         
         % and ERP response

@@ -11,12 +11,12 @@ function [y] = spm_gx_erp(x,u,P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_gx_erp.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_gx_erp.m 5939 2014-04-06 17:13:50Z karl $
 
 % parameterised lead field times [perturbations] of states
 %--------------------------------------------------------------------------
-L  = spm_lx_erp(P,M.dipfit);
- 
+L           = spm_lx_erp(P,M.dipfit);
+
 % project onto spatial modes
 %--------------------------------------------------------------------------
 if isfield(M,'U')
