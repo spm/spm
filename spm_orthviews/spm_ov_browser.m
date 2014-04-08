@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5728 2013-11-01 13:43:03Z guillaume $
+% $Id: spm_ov_browser.m 5942 2014-04-08 15:59:19Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -286,6 +286,8 @@ for i=1:numel(f)
 end
 
 if outputtype == 1, close(writerObj); end
+
+fprintf('Movie saved in %s\n',file);                                    %-#
 
 
 %==========================================================================

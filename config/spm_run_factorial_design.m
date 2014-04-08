@@ -5,10 +5,10 @@ function out = spm_run_factorial_design(job)
 % Output:
 % out    - struct variable containing the path of the saved SPM.mat
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5868 2014-02-04 15:25:29Z guillaume $
+% $Id: spm_run_factorial_design.m 5942 2014-04-08 15:59:19Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -506,24 +506,20 @@ switch char(fieldnames(job.des))
         
         if isfield(job.des.fblock.fsuball,'fsubject')
             % Data has been entered subject by subject
-            nf=length(job.des.fblock.fac);
+            nf = length(job.des.fblock.fac);
             [I,P,job.cov] = spm_design_within_subject(job.des.fblock,job.cov);
         else
             % Specify all scans and factor matrix
-            [ns,nc]=size(job.des.fblock.fsuball.specall.imatrix);
-            if nc~=4
-                error('Factor matrix must have four columns');
-            end
-            I=job.des.fblock.fsuball.specall.imatrix;
+            I = job.des.fblock.fsuball.specall.imatrix;
+            [ns,nI] = size(I);
             % Pad out factorial matrix to cover the four canonical factors
-            [ns,nI]=size(I);
             if nI < 4
+                warning('Padding factor matrix to have four columns.');
                 I = [I, ones(ns,4-nI)];
             end
             % Get number of factors
-            nf=length(job.des.fblock.fac);
-            P=job.des.fblock.fsuball.specall.scans;
-            
+            nf = length(job.des.fblock.fac);
+            P  = job.des.fblock.fsuball.specall.scans;
         end
 
         if isempty(job.des.fblock.maininters)
@@ -543,7 +539,6 @@ switch char(fieldnames(job.des))
             % Nonsphericity options
             factor(i).variance = job.des.fblock.fac(i).variance;
             factor(i).dept     = job.des.fblock.fac(i).dept;
-
         end
 
 end
