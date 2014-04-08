@@ -1,8 +1,10 @@
 function [D] = spm_eeg_invert_classic(D,val)
 %
 %% A trimmed down version of the spm_eeg_invert() routine
+%% this version only handles single subject single modality data
+%% the removal of many scaling factors makes it easier to compare between forward models
 % ReML inversion of multiple forward models for EEG-MEG
-% FORMAT [D] = spm_eeg_invert(D)
+% FORMAT [D] = spm_eeg_invert_classic(D)
 % ReML estimation of regularisation hyperparameters using the
 % spatiotemporal hierarchy implicit in EEG/MEG data
 %
@@ -17,6 +19,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 %                      'MSP' GS and ARD multiple sparse priors
 %                      'LOR' LORETA-like model
 %                      'IID' minimum norm
+%                       'EBB' for empirical bayes beamformer
 %     inverse.woi    - time window of interest ([start stop] in ms)
 %     inverse.lpf    - band-pass filter - low frequency cut-off (Hz)
 %     inverse.hpf    - band-pass filter - high frequency cut-off (Hz)
@@ -30,11 +33,11 @@ function [D] = spm_eeg_invert_classic(D,val)
 %     inverse.smooth - smoothness of source priors (0 to 1)
 %     inverse.Na     - number of most energetic dipoles
 %     inverse.sdv    - standard deviations of Gaussian temporal correlation
-%     inverse.pQ     - any source priors (e.g. from fMRI); vector or matrix
 %     inverse.Qe     - any sensor error components (e.g. empty-room data)
-%     inverse.dplot  - make diagnostics plots (0 or 1)
-%     inverse.STAT   - flag for stationarity assumption, which invokes a
-%                      full DCT temporal projector (from lpf to hpf Hz)
+%     inverse.Qe0     - minimum amount of sensor noise power relative to
+%                        signal eg 0.1 would correspond to power SNR of 10.0
+%     inverse.A       - predefined spatial modes (Nchans*Nmodes) to project
+%                       sensor data through
 %
 % Evaluates:
 %
@@ -75,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 5927 2014-03-26 16:02:56Z gareth $
+% $Id: spm_eeg_invert_classic.m 5941 2014-04-08 14:32:11Z gareth $
 
 
 
@@ -121,10 +124,12 @@ try, woi  = inverse.woi;    catch, woi  = [];       end
 try, Nm   = inverse.Nm;     catch, Nm   = [];       end
 try, Nt   = inverse.Nt;     catch, Nt   = [];       end %% fixed number of temporal modes
 try, Ip   = inverse.Ip;     catch, Ip   = [];       end
+try, QE    = inverse.QE;     catch,  QE=1;          end         %  empty room noise measurement
+try, Qe0   = inverse.Qe0;     catch, Qe0   = exp(-5);       end  %% set noise floor at 1/100th signal power i.e. assume amplitude SNR of 10
 try, inverse.A;     catch, inverse.A   = [];       end %% orthogonal channel modes
-try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=[];end
 
-SHUFFLELEADS=0;
+try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TESTING - destroyes correspondence between geometry and data
+
 
 % defaults
 %--------------------------------------------------------------------------
@@ -218,35 +223,15 @@ switch smoothtype,
         QG    = QG*QG;
 end;
 
-fwhmest=0;
 
-%vertind=1:500:Nd; %% sample the mesh
-
-%% get estimate of FWHM in mm
-% disp('start gb bit');
-% 
-% for i=1:length(vertind),
-%     dum=zeros(1,Nd);
-%     dum(vertind(i))=1;
-%     newvert=dum*QG;
-%     ind=find(newvert>=max(newvert)/2); %% vertices above half max
-%     dist1 = spm_mesh_geodesic(M1,vertind-1,1)'; %% distances to these vertices
-%     fwhmest(i)=max(dist1(ind))*2; %% take max distance (and double as it is one sided)
-% end; % for i
-% 
-% smoothmm=mean(fwhmest);
-% disp(sprintf('Patch FWHM is %3.2f mm ',smoothmm));
-smoothmm=0;
 clear Qi A GL
 fprintf(' - done\n')
 
 
 
 
-
 % check for (e.g., empty-room) sensor components (in Qe)
 %==========================================================================
-QE = 1;                     % No empty room noise measurement
 
 
 %==========================================================================
@@ -267,9 +252,10 @@ if isempty(inverse.A), % no spatial modes prespecified
     else % number of modes pre-specified
         [U,ss,vv]    = spm_svd((L*L'),0);
         if length(ss)<Nm,
-            error('Not this many spatial modes in lead fields');
             disp('number available');
             length(ss)
+            error('Not this many spatial modes in lead fields');
+            
         end;
         
         ss=ss(1:Nm);
@@ -288,13 +274,7 @@ else %% U was specified in input
 end;
 
 Nm    = size(UL,1);         % Number of spatial projectors
-% Plot spatial projectors
-%------------------------------------------------------------------
-% figure
-% loglog(ss);                   % Plot of singular values
-% title('Spatial projector');
-% xlabel('Eigenvalues');
-% ylabel('Amplitude');
+
 clear ss vv
 
 % Report
@@ -339,9 +319,9 @@ Nb     = length(It);                    % number of time bins
 
 % Serial correlations
 %----------------------------------------------------------------------
-K      = exp(-(pst - pst(1)).^2/(2*sdv^2));
+K      = exp(-(pst - pst(1)).^2/(2*sdv^2)); %% sdv set to 4 by default
 K      = toeplitz(K);
-qV     = sparse(K*K');
+qV     = sparse(K*K'); %% Samples* samples covariance matrix- assumes smooth iid
 
 % Confounds and temporal subspace
 %----------------------------------------------------------------------
@@ -363,7 +343,6 @@ end;
 
 
 
-
 % get trials or conditions
 %----------------------------------------------------------------------
 try
@@ -374,20 +353,14 @@ end
 Ntrialtypes=length(trial);
 % get temporal covariance (Y'*Y) to find temporal modes
 %======================================================================
-%MY    = cell(Nmod,1);                        % mean response
-YTY   = sparse(0);                           % accumulator
-
-
-% get (spatially aligned) data
-%------------------------------------------------------------------
 
 YY    = 0;
-%    MY{m} = 0;
+
 N=0;
 badtrialind=D.badtrials;
 for j = 1:Ntrialtypes,                          % pool over conditions
     c     = D.indtrial(trial{j});     % and trials
-    c=setxor(c,badtrialind);
+    c=setxor(c,badtrialind); %% ignore bad trials
     Nk    = length(c);
     for k = 1:Nk
         Y     = A*D(Ic,It,c(k));
@@ -399,39 +372,25 @@ end
 YY=YY./N;
 
 
-
-
-
 % Apply any Hanning and filtering
 %------------------------------------------------------------------
 YY         = W'*YY*W;     % Hanning
 YTY         = T'*YY*T;     % Filter
 
-% Plot temporal projectors
-%------------------------------------------------------------------
-% figure
-% imagesc(YTY);     % Plot of frequency map
-% title('Temporal projector');
-% xlabel('Frequency (Hz)');
-% ylabel('Frequency (Hz)');
-
-% temporal projector (at most Nrmax modes) S = T*V
 
 %======================================================================
 
-if isempty(Nt),
-    
+if isempty(Nt), %% automatically assign appropriate number of temporal modes    
     [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
-    if isempty(U),
+    if isempty(U), %% fallback
         warning('nothing found using spm svd, using svd');
         [U E]  = svd(YTY);			% get temporal modes
     end;
     E      = diag(E)/trace(YTY);			% normalise variance
     Nr     = min(length(E),Nmax);			% number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
-else
+else %% use predefined number of modes
     [U E]  = svd(YTY);			% get temporal modes
-    
     E      = diag(E)/trace(YTY);			% normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
@@ -451,23 +410,21 @@ Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
 
 % get spatial covariance (Y*Y') for Gaussian process model
 %======================================================================
-
-%======================================================================
-%======================================================================
-
-% loop over Ntrialtypes trial types
+% loop over Ntrialtypes trial types 
 %----------------------------------------------------------------------
 UYYU = 0;
 AYYA=0;
 Nn    =0;                             % number of samples
 AY={};
 Ntrials=0;
+
 for j = 1:Ntrialtypes,
     
     UY{j} = sparse(0);
     c       = D.indtrial(trial{j});
-    Nk      = length(c);
-    
+    c=setxor(c,badtrialind); %% ignore bad trials
+    Nk    = length(c);
+       
     % loop over epochs
     %------------------------------------------------------------------
     for k = 1:Nk
@@ -475,18 +432,16 @@ for j = 1:Ntrialtypes,
         % stack (scaled aligned data) over modalities
         %--------------------------------------------------------------
         
-        Y       = D(Ic,It,c(k))*S;
-        Y=A*Y; %% CHANGE
-        
-        
+        Y       = D(Ic,It,c(k))*S; %% in temporal subspace
+        Y=A*Y; %%  in spatial subspace
+  
         
         % accumulate first & second-order responses
         %--------------------------------------------------------------
         Nn       = Nn + Nr;         % number of samples
-        %Y           = spm_cat(MY);           % contribution to ERP, Y and MY are the same for 1 modality
+        
         YY          = Y*Y';                  % and covariance
         Ntrials=Ntrials+1;
-        YYep{k}=YY;%% one for each trial and condition
         
         % accumulate statistics (subject-specific)
         %--------------------------------------------------------------
@@ -501,16 +456,17 @@ for j = 1:Ntrialtypes,
     end
 end
 
-AYYA=AYYA./Nn;
-AY=spm_cat(AY);
+AY=spm_cat(AY); %% goes to MVB/GS algorithm
 
+ID    = spm_data_id(AY); %% get a unique ID for these filtered data
 
 % assuming equal noise over subjects (Qe) and modalities AQ
 %--------------------------------------------------------------------------
 AQeA   = A*QE*A';			% Note that here it is A*A'
 Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
 
-
+%Q0          = Qe0*trace(AYYA)*Qe{1}*Nr; %% fixed (min) level of sensor space variance- this is divided by Nr later in spm_reml_sc
+Q0          = Qe0*trace(AYYA)*Qe{1}; %% fixed (min) level of sensor space variance
 
 
 %==========================================================================
@@ -533,26 +489,7 @@ switch(type)
             %--------------------------------------------------------------
             q               = QG(:,Ip(i));
             Qp{end + 1}.q   = q;
-            LQpL{end + 1}.q = UL*q;
-            
-            %           % Extended set (add 256 priors)
-            %           %--------------------------------------------------------------
-            %           [dum,j] = min(sum([vert(:,1) + vert(Ip(i),1), ...
-            %               vert(:,2) - vert(Ip(i),2), ...
-            %               vert(:,3) - vert(Ip(i),3)].^2,2));
-            %           q               = QG(:,j);
-            %           Qp{end + 1}.q   = q;
-            %           LQpL{end + 1}.q = UL*q;
-            %
-            %           % bilateral (add another 256 priors)
-            %           %--------------------------------------------------------------
-            %           % The bilateral patches are important with temporal
-            %           % lobe activity (synchronous sources)
-            %           q               = QG(:,Ip(i)) + QG(:,j);
-            %           Qp{end + 1}.q   = q;
-            %           LQpL{end + 1}.q = UL*q;
-            
-            
+            LQpL{end + 1}.q = UL*q;     
         end
         
     case {'EBB'}
@@ -588,8 +525,7 @@ switch(type)
             
             Qp{ii}.q = allsource(ii,:);
         end
-        
-        
+             
     case {'LOR','COH'}
         % create minimum norm prior
         %------------------------------------------------------------------
@@ -609,6 +545,8 @@ switch(type)
 end
 
 fprintf('Using %d spatial source priors provided\n',length(Qp));
+
+
 
 
 % Inverse solution
@@ -634,8 +572,7 @@ switch(type)
         % Multivariate Bayes (Here is performed the inversion)
         %------------------------------------------------------------------
         
-        MVB   = spm_mvb(AY,UL,[],Q,Qe,16);
-        
+        MVB   = spm_mvb(AY,UL,[],Q,Qe,16); %% Qe is identity with unit trace 
         
         % Accumulate empirical priors (New set of patches for the second inversion)
         %------------------------------------------------------------------
@@ -644,15 +581,14 @@ switch(type)
         QP{end + 1}   = sum(Qcp.*Q,2);
         LQP{end + 1}  = (UL*Qcp)*Q';
         LQPL{end + 1} = LQP{end}*UL';
-        
-        
+       
 end
 
 switch(type)
     
     case {'MSP','ARD'}
         
-        % ReML - ARD (Here is performed the inversion)
+        % ReML / ARD   inversion
         %------------------------------------------------------------------
         
         
@@ -689,7 +625,7 @@ switch(type)
         %------------------------------------------------------------------
         
         
-        Q0          = exp(-2)*trace(AYYA)*Qe{1}/trace(Qe{1});
+        
         [Cy,h,Ph,F] = spm_reml_sc(AYYA,[],[Qe LQpL],1,-4,16,Q0);
         
         % Spatial priors (QP)
@@ -718,40 +654,29 @@ end
 
 fprintf('Inverting subject 1\n')
 
-% generate sensor component (Qe) per modality
-%----------------------------------------------------------------------
-AQeA  = A*QE*A';				% Again it is A*A'
-AQ    = AQeA/(trace(AQeA));
-
-
-% using spatial priors
-%----------------------------------------------------------------------
-Np    = length(LQPL);       % Final number of priors
-Ne    = length(Qe);         % Sensor noise prior
-Q     = [Qe LQPL];
 
 
 % re-do ReML (with informative hyperpriors)
-% Here is performed the second inversion
-%======================================================================
-
-Q0          = exp(-2)*trace(AYYA)*AQ/trace(AQ);
-[Cy,h,Ph,F] = spm_reml_sc(AYYA,[],Q,1,-4,16,Q0);
-
-
-% Data ID
 %----------------------------------------------------------------------
-% When should I use the data ID?
-% For comparison purposes it is necessary to guarantee that the IDs have
-% the same value.
-%
-% When using the same dataset but different lead field matrices is a good
-% example of fail, because the spatial projector will generate different
-% virtual sensors, and therefore different data for the inversion.
-ID    = spm_data_id(YY);
+Np    = length(LQPL);       % Final number of priors
+Ne    = length(Qe);         % Sensor noise prior
 
-% Covariance: sensor space - Ce and source space - L*Cp
-%----------------------------------------------------------------------
+
+Q     = [{Q0} LQPL]; %% sensor corvariance prior:  Qe is identity with unit trace, LQPL is in the units of data
+
+if rank(AYYA)~=size(A,1),
+    rank(AYYA)
+    size(AYYA,1)
+    warning('AYYA IS RANK DEFICIENT');
+end;
+
+
+[Cy,h,Ph,F]= spm_reml_sc(AYYA,[],Q,1,-4,16,Q0);
+
+
+
+%% recalculate F here
+
 Cp    = sparse(0);
 LCp   = sparse(0);
 hp    = h(Ne + (1:Np));
@@ -792,12 +717,6 @@ for j = 1:Ntrialtypes
     
 end
 
-% J = M*Y;
-%
-% % sum of squares
-% %------------------------------------------------------------------
-% SSR  = sum(var((Y - UL*J),0,2));
-% SST  = sum(var(Y,0,2));
 
 % accuracy; signal to noise (over sources)
 %======================================================================
@@ -810,7 +729,6 @@ fprintf('Percent variance explained %.2f (%.2f)\n',full(R2),full(R2*VE));
 %======================================================================
 inverse.type   = type;                 % inverse model
 inverse.smooth = s;                    % smoothing coefficient
-inverse.smoothmm=smoothmm;             %% smoothness in mm
 inverse.M      = M;                    % MAP projector (reduced)
 inverse.J   = J;                    % Conditional expectation
 inverse.Y      = Y;                    % ERP data (reduced)
