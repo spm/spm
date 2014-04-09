@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 5937 2014-04-01 17:41:20Z guillaume $
+% $Id: spm_peb_ppi.m 5944 2014-04-09 17:10:08Z guillaume $
 
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
@@ -308,6 +308,13 @@ N       = length(xY(1).u);
 k       = 1:NT:N*NT;                       % microtime to scan time indices
 
 
+% Setup other output variables
+%--------------------------------------------------------------------------
+PPI.xY = xY;
+PPI.RT = RT;
+PPI.dt = dt;
+
+
 % Create basis functions and hrf in scan time and microtime
 %--------------------------------------------------------------------------
 hrf = spm_hrf(dt);
@@ -424,7 +431,7 @@ switch ppiflag
     %----------------------------------------------------------------------
     PSY = zeros(N*NT,1);
     for i = 1:size(U.u,2)
-        PSY = PSY + full(U.u(:,i)*U.w(:,i));
+        PSY = PSY + full(U.u(:,i) * U.w(i));
     end
     % PSY = spm_detrend(PSY);  % removed centering of psych variable prior
                                % to multiplication with xn in r3271.
@@ -453,12 +460,6 @@ switch ppiflag
     
 end % (switch)
 
-% Setup other output variables
-%--------------------------------------------------------------------------
-PPI.xY = xY;
-PPI.RT = RT;
-PPI.dt = dt;
-
 % Display
 %--------------------------------------------------------------------------
 if showGraphics
@@ -471,14 +472,8 @@ str    = ['PPI_' PPI.name '.mat'];
 
 save(fullfile(SPM.swd,str),'PPI', spm_get_defaults('mat.format'))
 
-if desktop('-inuse')
-    dispf = @(f) ...
-        sprintf('<a href="matlab:spm_peb_ppi(''display'',''%s'');">%s</a>',f,f);
-else
-    dispf = @(f) f;
-end
-
-fprintf('   PPI saved as %s\n',dispf(fullfile(SPM.swd,str)));
+cmd = 'spm_peb_ppi(''display'',''%s'')';
+fprintf('   PPI saved as %s\n',spm_file(fullfile(SPM.swd,str),'link',cmd));
 
 % Clean up
 %--------------------------------------------------------------------------

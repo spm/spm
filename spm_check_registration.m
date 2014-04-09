@@ -9,12 +9,12 @@ function spm_check_registration(varargin)
 % the bottom right. The fastest increment is in the left-to-right
 % direction (the same as you are reading this).
 %__________________________________________________________________________
-% Copyright (C) 1997-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1997-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 5700 2013-10-17 14:59:50Z guillaume $
+% $Id: spm_check_registration.m 5944 2014-04-09 17:10:08Z guillaume $
 
-SVNid = '$Rev: 5700 $';
+SVNid = '$Rev: 5944 $';
 
 %-Get input
 %--------------------------------------------------------------------------
@@ -38,25 +38,22 @@ images = images(1:min(numel(images),24));
 %--------------------------------------------------------------------------
 spm('FnBanner',mfilename,SVNid);                                        %-#
 exactfname  = @(f) [f.fname ',' num2str(f.n(1))];
+cmddispone  = 'spm_image(''display'',''%s'')';
+cmddispall  = 'spm_check_registration(''%s'')';
 if desktop('-inuse')
-    href    = '<a href="matlab:%s;">%s</a>';
-    cmd     = 'spm_image(''display'',''%s'')';
-    dispone = @(f) sprintf(href,sprintf(cmd,f),f);
-    cmd     = 'spm_check_registration(%s)';
-    str     = [];
+    str     = '';
     for i=1:numel(images)
         str = [str sprintf('''%s'',',exactfname(images(i)))];
     end
-    dispall = @(f) sprintf([' (' href ')  '],sprintf(cmd,str(1:end-1)),'all');
+    dispall = [' (' spm_file('all','link',sprintf(cmddispall,str(2:end-2))) ')  '];
 else
-    dispone = @(f) f;
-    dispall = @(f) '        ';
+    dispall = '        ';
 end
 for i=1:numel(images)
     if i==1,     fprintf('Display ');                                   %-#
-    elseif i==2, fprintf('%s',dispall(images));
+    elseif i==2, fprintf('%s',dispall);
     else         fprintf('        '); end
-    fprintf('%s\n',dispone(exactfname(images(i))));                     %-#
+    fprintf('%s\n',spm_file(exactfname(images(i)),'link',cmddispone));  %-#
 end
 
 %-Display

@@ -26,10 +26,10 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 5925 2014-03-20 16:47:44Z guillaume $
+% $Id: spm_write_filtered.m 5944 2014-04-09 17:10:08Z guillaume $
 
 
-SVNid = '$Rev: 5925 $';
+SVNid = '$Rev: 5944 $';
 
 %-Parse arguments
 %--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ elseif nargin < 3
 end
 if nargin<4, M = spm_matrix(-(DIM+1)/2); end
 if nargin<5, descrip = 'SPM-filtered'; end
-if nargin<6, F = spm_input('Output filename',1,'s'); end
+if nargin<6 || isempty(F), F = spm_input('Output filename',1,'s'); end
 
 %-Get filename
 %--------------------------------------------------------------------------
@@ -86,11 +86,6 @@ Vo = spm_write_vol(Vo,Y);
 
 %-Report
 %--------------------------------------------------------------------------
-if desktop('-inuse')
-    dispf = @(f) ...
-        sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
-else
-    dispf = @(f) f;
-end
+cmd = 'spm_image(''display'',''%s'')';
 spm('FnBanner',mfilename,SVNid);                                        %-#
-fprintf('Written %s\n',dispf(spm_file(F,'CPath')));                     %-#
+fprintf('Written %s\n',spm_file(spm_file(F,'CPath'),'link',cmd));       %-#

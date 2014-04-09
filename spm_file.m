@@ -10,7 +10,7 @@ function str = spm_file(str,varargin)
 % str        - character array, or cell array of strings
 % opt_key    - string of targeted item - one among:
 %              {'path', 'basename', 'ext', 'filename', 'number', 'prefix',
-%              'suffix'}
+%              'suffix','link'}
 % opt_val    - string of new value for feature
 %__________________________________________________________________________
 %
@@ -51,10 +51,10 @@ function str = spm_file(str,varargin)
 %
 % See also: spm_fileparts, spm_select, spm_file_ext, spm_existfile
 %__________________________________________________________________________
-% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 5543 2013-06-11 17:48:18Z guillaume $
+% $Id: spm_file.m 5944 2014-04-09 17:10:08Z guillaume $
 
 
 needchar = ischar(str);
@@ -150,10 +150,19 @@ while ~isempty(options)
                 nam = [options{2} nam];
             case 'suffix'
                 nam = [nam options{2}];
+            case 'link'
+                if desktop('-inuse')
+                    cmd = ['<a href="matlab:' options{2} ';">%s</a>'];
+                    p   = numel(setxor(strfind(cmd,'%'),strfind(cmd,'%%')));
+                    m   = repmat(str(n),1,p);
+                    str{n} = sprintf(cmd,m{:});
+                end
             otherwise
                 warning('Unknown item ''%s'': ignored.',lower(options{1}));
         end
-        str{n} = fullfile(pth,[nam ext num]);
+        if ~strcmpi(options{1},'link')
+            str{n} = fullfile(pth,[nam ext num]);
+        end
     end
     options([1 2]) = [];
 end

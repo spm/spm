@@ -45,13 +45,13 @@ function spm_image(action,varargin)
 % or images can be superimposed and the intensity windowing can also be
 % changed.
 %__________________________________________________________________________
-% Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5615 2013-08-15 14:37:24Z spm $
+% $Id: spm_image.m 5944 2014-04-09 17:10:08Z guillaume $
 
 
-SVNid = '$Rev: 5615 $';
+SVNid = '$Rev: 5944 $';
 
 global st
 
@@ -79,13 +79,9 @@ switch lower(action)
     if ischar(P), P = spm_vol(P); end
     P = P(1);
 
-    if desktop('-inuse')
-        dispf = @(f) ...
-            sprintf('<a href="matlab:spm_image(''display'',''%s'');">%s</a>',f,f);
-    else
-        dispf = @(f) f;
-    end
-    fprintf('Display %s\n',dispf([P.fname ',' num2str(P.n(1))]));       %-#
+    cmd = 'spm_image(''display'',''%s'')';
+    exactfname = @(f) [f.fname ',' num2str(f.n(1))];
+    fprintf('Display %s\n',spm_file(exactfname(P),'link',cmd));
     
     init_display(P);
     

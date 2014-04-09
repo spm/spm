@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 5931 2014-03-27 19:45:53Z guillaume $
+% $Id: spm_regions.m 5944 2014-04-09 17:10:08Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -265,14 +265,8 @@ if isfield(xY,'Sess') && isfield(SPM,'Sess')
 end
 save(fullfile(SPM.swd,str),'Y','xY', spm_get_defaults('mat.format'))
 
-if desktop('-inuse')
-    dispf = @(f) ...
-        sprintf('<a href="matlab:spm_regions(''display'',''%s'');">%s</a>',f,f);
-else
-    dispf = @(f) f;
-end
-
-fprintf('   VOI saved as %s\n',dispf(fullfile(SPM.swd,str)));
+cmd = 'spm_regions(''display'',''%s'')';
+fprintf('   VOI saved as %s\n',spm_file(fullfile(SPM.swd,str),'link',cmd));
  
 %-Reset title
 %--------------------------------------------------------------------------
@@ -287,15 +281,17 @@ function display_VOI(xY,TR)
 Fgraph = spm_figure('GetWin','Graphics');
 spm_results_ui('Clear',Fgraph);
 figure(Fgraph);
+fullsize = isempty(get(Fgraph,'children'));
 
-% show position
+%-Show position
 %--------------------------------------------------------------------------
-subplot(2,2,3)
+if fullsize, subplot(2,1,1); else subplot(2,2,3); end
 spm_dcm_display(xY)
+if fullsize, title(['Region: ' xY.name]); end
 
-% show dynamics
+%-Show dynamics
 %--------------------------------------------------------------------------
-subplot(2,2,4)
+if fullsize, subplot(2,1,2); else subplot(2,2,4); end
 try
     plot(TR*[1:length(xY.u)],xY.u)
     str = 'time (seconds}';
