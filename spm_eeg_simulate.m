@@ -1,4 +1,4 @@
-function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
+function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 %function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 %% Simulate a number of MSP patches at specified locations on existing mesh
 %
@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,w
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 5765 2013-11-25 13:53:02Z gareth $
+% $Id: spm_eeg_simulate.m 5947 2014-04-10 15:32:42Z gareth $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -36,29 +36,33 @@ if nargin<4,
     simsignal=[];
 end;
 if nargin<5,
+    ormni=[];
+end;
+
+if nargin<6,
     woi=[];
 end;
 
 
-if nargin<6,
+if nargin<7,
     whitenoise=[];
 end;
 
-if nargin<7,
+if nargin<8,
     SNRdB=[];
 end;
 
-if nargin<8,
+if nargin<9,
     trialind=[];
 end;
 
-if nargin<9,
+if nargin<10,
     mnimesh=[];
 end;
 
 
 
-if nargin<10
+if nargin<11
     SmthInit=[]; %% number of iterations used to smooth patch out (more iterations, larger patch)
 end;
 
@@ -92,10 +96,6 @@ if ~xor(isempty(whitenoise),isempty(SNRdB))
     error('Must specify either white noise level or sensor level SNR');
 end;
 
-% keyboard
-% if ~isempty(SNRdB),
-%     dipmoment=ones(size(patchmni,1),1).*20e-9; %% set to 20nAm
-% end;
 
 
 
@@ -121,7 +121,6 @@ if ~isempty(mnimesh),
     Dnew.inv{val}.mesh.tess_mni.face=mnimesh.face;
     Dnew.inv{val}.forward.mesh.vert=spm_eeg_inv_transform_points(Dnew.inv{val}.datareg.fromMNI,mnimesh.vert);
     Dnew.inv{val}.forward.mesh.face=mnimesh.face;
-    
 end; % if
 
 % Two synchronous sources
@@ -150,19 +149,9 @@ if max(mnidist)>0.1
 end;
 
 
-Ndip = size(meshsourceind,2);		% Number of dipoles
+Ndip = size(simsignal,1);		% Number of dipoles
 
 
-%% some default noise levels
-%
-% if isempty(whitenoise)&&isempty(SNRdB),
-%     sensor_noise_TrtHz=10e-15; %% Sensor noise in Tesla per root Hz; default 10 fT/rtHz
-%     sensor_bw_Hz=80; %% recording bandwith in Hz
-%     whitenoise=sqrt(sensor_bw_Hz)*sensor_noise_TrtHz;
-%     disp('setting default 10ftrtHz white noise in 80Hz BW');
-% else
-%     whitenoise=1;
-% end;
 
 
 try Dnew.inv{val}.forward.vol.unit
@@ -173,8 +162,12 @@ try Dnew.inv{val}.forward.vol.unit
         case 'cm'
             
             Lscale=100*100;
+        case 'm'
+            Lscale=1.0;
+            
         otherwise
-            error('unknown volume unit')
+            error('unknown volume unit');
+            
     end;
 catch
     disp('No units found');
@@ -195,71 +188,117 @@ if length(f1ind)~=size(simsignal,2),
     error('Signal does not fit in time window');
 end;
 
-% % Create the waveform for each source
-% signal = zeros(Ndip,length(Dnew.time));
-% for j=1:Ndip				% For each source
-%     for i=1:Ntrials			% and trial
-%         f1 = dipfreq(j);	% Frequency depends on stim condition
-%         amp1 = dipmoment(j);	% also the amplitude
-%         phase1 = pi/2;
-%         signal(j,f1ind) = signal(j,f1ind)...
-%             + amp1*sin((Dnew.time(f1ind)...
-%             - Dnew.time(min(f1ind)))*f1*2*pi + phase1);
-%     end
-% end
-%
-%% CREATE A NEW FORWARD PROBLEM
 
-fprintf('Computing Gain Matrix: ')
-spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
-
-[L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
-
-Nd    = size(L,2);							% number of dipoles
-X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
-fprintf(' - done\n')
-
-
-% Green function for smoothing sources with the same distribution than SPM8
-fprintf('Computing Green function from graph Laplacian:')
-
-vert  = Dnew.inv{val}.mesh.tess_mni.vert;
-face  = Dnew.inv{val}.mesh.tess_mni.face;
-A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
-GL    = A - spdiags(sum(A,2),0,Nd,Nd);
-GL    = GL*SmthInit/2;
-Qi    = speye(Nd,Nd);
-QG    = sparse(Nd,Nd);
-for i = 1:8,
-    QG = QG + Qi;
-    Qi = Qi*GL/i;
-end
-QG    = QG.*(QG > exp(-8));
-QG    = QG*QG;
-%QG=QG./sum(sum(QG));
-clear Qi A GL
-fprintf(' - done\n')
-
-
-% Add waveform of all smoothed sources to their equivalent dipoles
-% QGs add up to 0.9854
-fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
-fullsignal(1:Ndip,f1ind)=simsignal;
-for j=1:Ndip
-    for i=1:Dnew.nsamples,
-        X(:,i) = X(:,i) + fullsignal(j,i)*QG(:,meshsourceind(j)); %% this will be in Am
-    end
-end
-
-
-% Copy same data to all trials
-tmp=L*X;
-if isfield(Dnew.inv{val}.forward,'scale'),
-    tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale; %% account for rescaling of lead fields
+if isequal(modstr, 'MEG')
+    chanind = Dnew.indchantype({'MEG', 'MEGPLANAR'}, 'GOOD');
 else
-    tmp=Lscale.*tmp; %% no rescaling
-end;
+    chanind = Dnew.indchantype(modality, 'GOOD');
+end
 
+units = Dnew.units;
+indunits=Dnew.indchannel(Dnew.inv{val}.forward.sensors.label);
+units=units(indunits);
+
+labels=Dnew.chanlabels(chanind);
+
+
+chans = Dnew.indchantype(modstr, 'GOOD');
+
+
+
+if ~isempty(ormni), %%%% DIPOLE SIMULATION
+    disp('SIMULATING DIPOLE SOURCES');
+    if size(ormni)~=size(patchmni),
+        error('A 3D orientation must be specified for each source location');
+    end;
+    
+    posdipmm=Dnew.inv{val}.datareg.fromMNI*[patchmni ones(size(ormni,1),1)]'; %% put into MEG space
+    posdipmm=posdipmm(1:3)';
+    %% need to make a pure rotation for orientation transform to native space
+    M1 = Dnew.inv{val}.datareg.fromMNI;
+    [U, L, V] = svd(M1(1:3, 1:3)); 
+    ordip=ormni*(U*V');
+    ordip=ordip./sqrt(dot(ordip,ordip)); %% make sure it is unit vector
+    
+    %% NB COULD ADD A PURE DIPOLE SIMULATION IN FUTURE
+    sens=Dnew.inv{val}.forward.sensors;
+    vol=Dnew.inv{val}.forward.vol;
+    
+    
+    
+    
+    ftchans=Dnew.inv{val}.forward.sensors.label;
+    for j=1:numel(chans),
+        usedind(j)=strmatch(labels{j},ftchans);
+    end;
+    
+    
+    tmp=zeros(length(chanind),Dnew.nsamples);
+    for i=1:Ndip,
+        gmn = ft_compute_leadfield(posdipmm(i,:)*1e-3, sens, vol,  'dipoleunit', 'nA*m','chanunit',units);
+        gain=gmn*ordip';
+        tmp(:,f1ind)=tmp(:,f1ind)+gain(usedind,:)*simsignal(i,:);
+    end; % for i
+    
+    
+else %%% CURRENT DENSITY ON SURFACE SIMULATION
+    disp('SIMULATING CURRENT DISTRIBUTIONS ON MESH');
+    %% CREATE A NEW FORWARD model for e mesh
+    fprintf('Computing Gain Matrix: ')
+    spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
+    
+    [L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
+    
+    Nd    = size(L,2);							% number of dipoles
+    X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
+    fprintf(' - done\n')
+    
+    
+    
+    % Green function for smoothing sources with the same distribution than SPM8
+    fprintf('Computing Green function from graph Laplacian:')
+    
+    
+    vert  = Dnew.inv{val}.mesh.tess_mni.vert;
+    face  = Dnew.inv{val}.mesh.tess_mni.face;
+    A     = spm_mesh_distmtx(struct('vertices',vert,'faces',face),0);
+    GL    = A - spdiags(sum(A,2),0,Nd,Nd);
+    GL    = GL*SmthInit/2;
+    Qi    = speye(Nd,Nd);
+    QG    = sparse(Nd,Nd);
+    for i = 1:8,
+        QG = QG + Qi;
+        Qi = Qi*GL/i;
+    end
+    QG    = QG.*(QG > exp(-8));
+    QG    = QG*QG;
+    %QG=QG./sum(sum(QG));
+    clear Qi A GL
+    fprintf(' - done\n')
+    
+    
+    % Add waveform of all smoothed sources to their equivalent dipoles
+    % QGs add up to 0.9854
+    fullsignal=zeros(Ndip,Dnew.nsamples); %% simulation padded with zeros
+    fullsignal(1:Ndip,f1ind)=simsignal;
+    for j=1:Ndip
+        for i=1:Dnew.nsamples,
+            X(:,i) = X(:,i) + fullsignal(j,i)*QG(:,meshsourceind(j)); %% this will be in Am
+        end
+    end
+   
+    % Copy same data to all trials
+    tmp=L*X;
+    
+end; % if ori
+
+if isfield(Dnew.inv{val}.forward,'scale'),
+        tmp=Lscale.*tmp./Dnew.inv{val}.forward.scale; %% account for rescaling of lead fields
+    else
+        tmp=Lscale.*tmp; %% no rescaling
+    end;
+    
+    
 try
     
     switch Dnew.sensors(modstr).chanunit{1}
@@ -296,7 +335,8 @@ if ~isempty(SNRdB),
     disp(sprintf('Setting white noise to give sensor level SNR of %dB',SNRdB));
 end;
 
-chans = Dnew.indchantype(modstr, 'GOOD');
+
+
 for i=1:Ntrials
     if any(i == trialind), %% only add signal to specific trials
         Dnew(chans,:,i) = tmp;
@@ -310,32 +350,34 @@ end
 
 
 %% Plot and save
-[dum,plotind]=sort(allchanstd);
+[dum,tmpind]=sort(allchanstd);
+dnewind=chans(tmpind);
 
-
-Nj		= size(vert,1);
-M		= mean(X(:,f1ind)'.^2,1);
-G		= sqrt(sparse(1:Nj,1,M,Nj,1));
-Fgraph	= spm_figure('GetWin','Graphics');
-j		= find(G);
-
-clf(Fgraph)
-figure(Fgraph)
-spm_mip(G(j),vert(j,:)',6);
-axis image
-title({sprintf('Generated source activity')});
-drawnow
-
+if isempty(ormni)
+    Nj		= size(vert,1);
+    M		= mean(X(:,f1ind)'.^2,1);
+    G		= sqrt(sparse(1:Nj,1,M,Nj,1));
+    Fgraph	= spm_figure('GetWin','Graphics');
+    j		= find(G);
+    
+    clf(Fgraph)
+    figure(Fgraph)
+    spm_mip(G(j),vert(j,:)',6);
+    axis image
+    title({sprintf('Generated source activity')});
+    drawnow
+end;
 figure
 hold on
-aux = tmp(plotind(end),:);
+
+aux = tmp(tmpind(end),:);
 subplot(2,1,1);
-plot(Dnew.time,Dnew(plotind(end),:,1),Dnew.time,aux,'r');
+plot(Dnew.time,Dnew(dnewind(end),:,1),Dnew.time,aux,'r');
 title('Measured activity over max sensor');
 legend('Noisy','Noiseless');
 subplot(2,1,2);
-aux = tmp(plotind(floor(length(plotind)/2)),:);
-plot(Dnew.time,Dnew(plotind(floor(length(plotind)/2)),:,1),Dnew.time,aux,'r');
+aux = tmp(tmpind(floor(length(tmpind)/2)),:);
+plot(Dnew.time,Dnew(dnewind(floor(length(tmpind)/2)),:,1),Dnew.time,aux,'r');
 title('Measured activity over median sensor');
 legend('Noisy','Noiseless');
 
