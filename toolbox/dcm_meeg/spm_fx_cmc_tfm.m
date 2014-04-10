@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_fx_cmc_tfm.m 5945 2014-04-10 09:29:15Z karl $
  
  
 % get dimensions and configure state variables
@@ -44,9 +44,9 @@ n  = size(x,1);                       % number of sources
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1/8 1/4 1/2]*200;             % extrinsic (forward and backward)  
-G  = [4 4 8 4 4 2 4 4 2 2 2 4]*200;   % intrinsic connections
-T  = [2 2 16 28]/1000;                % synaptic time constants
+E  = [200 25 50 100];                 % extrinsic (forward and backward)  
+G  = [1400 800 1600 80 800 400 1200 400 400 20 400 800];  % intrinsic connections
+T  = [4 8 12 16]/1000;                % synaptic time constants
 R  = 1;                               % slope of sigmoid activation function
 
 % NB for more pronounced state dependent transfer functions use R  = 3/2; 

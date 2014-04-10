@@ -10,7 +10,7 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_induced_optimise_parameters.m 5945 2014-04-10 09:29:15Z karl $
  
 
 % spectral specification
@@ -21,13 +21,13 @@ Np     = length(J);
 % Target spectrum - gamma, beta and alpha
 %--------------------------------------------------------------------------
 Hz     = 1:128;
-s(:,1) = -[128 128 64 32]' + 1j*2*pi*[8 16 32 64]';
+s(:,1) = -[128 128 64 32]' + 1j*2*pi*[4 8 32 48]';
 s(:,2) = -[64 32 64 128]' + 1j*2*pi*[8 16 32 64]';
 
 % Parameters to optimise
 %--------------------------------------------------------------------------
 
-PARAMS = {'G','T','S','L'};
+PARAMS = {'G','T','L'};
 
  
 % Model specification
@@ -35,7 +35,7 @@ PARAMS = {'G','T','S','L'};
 Nc    = 1;
 Ns    = 1;
 options.spatial  = 'LFP';
-options.model    = 'CMC';
+options.model    = 'TFM';
 M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;

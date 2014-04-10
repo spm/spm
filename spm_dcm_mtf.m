@@ -25,7 +25,7 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_dcm_mtf.m 5945 2014-04-10 09:29:15Z karl $
 
 
 % get local linear approximation
@@ -110,7 +110,6 @@ K     = zeros(nt,ng,nu);
 %--------------------------------------------------------------------------
 dgdv  = dgdx*v;
 dvdu  = pinv(v)*dfdu;
-
 for j = 1:nu
     for i = 1:ng
         for k = 1:nk

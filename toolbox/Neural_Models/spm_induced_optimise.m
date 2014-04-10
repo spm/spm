@@ -13,13 +13,13 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_induced_optimise.m 5945 2014-04-10 09:29:15Z karl $
  
  
 % Model specification
 %==========================================================================
 if nargin < 2
-    model = 'CMC';
+    model = 'TFM';
 end
 
 % number of regions in coupled map lattice
@@ -45,10 +45,14 @@ U.X    = [];
  
 % get priors
 %--------------------------------------------------------------------------
-[pE pC] = spm_dcm_neural_priors({0 0 0},{},1,options.model);
-P       = fieldnames(pE);
-[pE pC] = spm_L_priors(M.dipfit,pE,pC);
-[pE pC] = spm_ssr_priors(pE,pC);
+pE  = spm_dcm_neural_priors({0 0 0},{},1,options.model);
+P   = fieldnames(pE);
+pE  = spm_L_priors(M.dipfit,pE);
+pE  = spm_ssr_priors(pE);
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+P = {'G','T','S'};
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  
 % use input argument if specified
 %--------------------------------------------------------------------------
@@ -73,7 +77,6 @@ M.g     = 'spm_gx_erp';
 M.x     = x;
 M.n     = nx;
 M.pE    = pE;
-M.pC    = pC;
 M.m     = nu;
 M.l     = Nc;
  
@@ -85,7 +88,7 @@ M.x     = spm_dcm_neural_x(pE,M);
 % Dependency on parameters in terms of Modulation transfer functions
 %==========================================================================
 M.u     = u;
-M.Hz    = 4:128;
+M.Hz    = 4:96;
  
 % compute transfer functions for different parameters
 %--------------------------------------------------------------------------
@@ -146,6 +149,8 @@ for k = 1:length(P)
     end
 end
  
+return
+
 % Dependency on hidden states in terms of Modulation transfer functions
 %==========================================================================
  
