@@ -8,12 +8,11 @@ function [y,outside,leads]=spm_eeg_wrap_dipfit_vbecd(P,M,U)
 %   parameters come first (in triplets) followed by all moment paameters
 %   (also in triplets)
 % U is unused
-% At the moment this removes the mean level from EEG data
-% and reduces the rank of the MEG leadfield 2 dimensions.
+% At the momnent reduces the rank of the MEG leadfield 2 dimensions.
 %% leads are the lead fields of the dipoles fit
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 %
-% $Id: spm_eeg_wrap_dipfit_vbecd.m 5777 2013-12-04 16:18:12Z vladimir $
+% $Id: spm_eeg_wrap_dipfit_vbecd.m 5950 2014-04-11 13:27:42Z gareth $
 
 x=U.u; %% input , unused
 
@@ -22,7 +21,9 @@ sens=M.Setup.forward.sens;
 vol=M.Setup.forward.vol;
 
 siunits = M.Setup.forward.siunits;
-
+if ~siunits,
+    warning('Data not in SI units, scaling (and therefore priors) maybe wrong');
+end;
 chanunits = M.Setup.forward.chanunits;
 
 posandmom=P;
@@ -49,9 +50,8 @@ leads=zeros(Ndips,3,numel(sens.label));
 for i=1:Ndips,
     
     pos=allpos(i,:);
-    %%mom=allmom(i,:)./1000; %% SCALE BACK FROM SIMILAR UNITS TO LOCATION;
+    
     mom=allmom(i,:); %% in nAm
-    % mean correction of LF, only for EEG data.
     
     if siunits
         [tmp] = ft_compute_leadfield(1e-3*pos, sens, vol, 'reducerank',RANK,  'dipoleunit', 'nA*m', 'chanunit', chanunits);
@@ -63,12 +63,8 @@ for i=1:Ndips,
     
     gmn=tmp;
     leads(i,:,:)=gmn';
-    if siunits
-        rescale = 1;
-    else
-        rescale=1e3*1e9; %%%% NEED TO DO THIS PROPERLY -GRB MAY 2013
-    end
-    y=y+gmn*mom'.*rescale;
+    
+    y=y+gmn*mom';
     
 end; % for i
 
