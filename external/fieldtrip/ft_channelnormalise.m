@@ -37,9 +37,9 @@ function [dataout] = ft_channelnormalise(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelnormalise.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_channelnormalise.m 9336 2014-04-02 19:59:44Z roboos $
 
-revision = '$Id: ft_channelnormalise.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_channelnormalise.m 9336 2014-04-02 19:59:44Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -74,11 +74,16 @@ datssq = zeros(nchan,1);
 % FIXME this can be kept, provided the scaling is built in appropriately
 dataout         = [];
 dataout.label   = data.label;
-if isfield(data, 'fsample'); dataout.fsample = data.fsample; end;
 dataout.trial   = cell(1,ntrl);
 dataout.time    = data.time;
-if isfield(data, 'sampleinfo'),  dataout.sampleinfo  = data.sampleinfo;  end
-if isfield(data, 'trialinfo'), dataout.trialinfo = data.trialinfo; end
+
+% some fields from the input should be copied over in the output
+copyfield = {'fsample', 'sampleinfo', 'trialinfo'};
+for i=1:length(copyfield)
+  if isfield(data, copyfield{i})
+    dataout.(copyfield{i}) = data.(copyfield{i});
+  end
+end
 
 % compute the mean and std
 for k = 1:ntrl

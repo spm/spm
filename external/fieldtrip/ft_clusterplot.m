@@ -55,9 +55,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 9287 2014-03-12 09:53:19Z dieloz $
+% $Id: ft_clusterplot.m 9387 2014-04-09 18:39:36Z nielam $
 
-revision = '$Id: ft_clusterplot.m 9287 2014-03-12 09:53:19Z dieloz $';
+revision = '$Id: ft_clusterplot.m 9387 2014-04-09 18:39:36Z nielam $';
 
 % do the general setup of the function
 ft_defaults
@@ -137,7 +137,7 @@ if ~is2D
   stat.time = 0; %doesn't matter what it is, so just choose 0
 end;
 
-if (strcmp(stat.cfg.correcttail,'alpha') || strcmp(stat.cfg.correcttail,'prob')) && (stat.cfg.tail == 0);
+if exist('stat.cfg.correcttail') && ((strcmp(stat.cfg.correcttail,'alpha') || strcmp(stat.cfg.correcttail,'prob')) && (stat.cfg.tail == 0));
   if ~(cfg.alpha >= stat.cfg.alpha);
     warning(['the pvalue you plot: cfg.alpha = ' num2str(cfg.alpha) ' is higher than the correcttail option you tested: stat.cfg.alpha = ' num2str(stat.cfg.alpha)]);
   end

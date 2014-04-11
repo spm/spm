@@ -64,9 +64,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 9328 2014-04-01 21:22:27Z roboos $
+% $Id: ft_sourcegrandaverage.m 9352 2014-04-04 12:00:53Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 9328 2014-04-01 21:22:27Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 9352 2014-04-04 12:00:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -78,7 +78,7 @@ ft_preamble loadvar varargin
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source'}, 'feedback', 'no', 'sourcerepresentation', 'new');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'source'}, 'feedback', 'no', 'inside', 'logical', 'sourcerepresentation', 'new');
   varargin{i} = ft_datatype_source(varargin{i}, 'version', 'upcoming');
 end
 
@@ -101,51 +101,133 @@ for k = 1:numel(checkfields)
         error('the input sources vary in the field %s', tmpstr);
       end
     end
-    grandavg.(tmpstr) = varargin{1}.(tmpstr);
   end
 end
 
 % ensure a consistent selection of the data over all inputs
 [varargin{:}] = ft_selectdata(cfg, varargin{:});
 
-% deal with the fields that are always present
-grandavg.pos = varargin{1}.pos;
-if isfield(varargin{1}, 'inside')
-  grandavg.inside = varargin{1}.inside;
-end
-if isfield(varargin{1}, 'outside')
-  grandavg.outside = varargin{1}.outside;
-end
-if isfield(varargin{1}, 'dim')
-  grandavg.dim = varargin{1}.dim;
-end
+% start with an empty output structure
 
-if strcmp(cfg.keepindividual, 'yes')
-  olddim = size(varargin{i}.(cfg.parameter));
-  newdim = [1 olddim];
-  dat = cell(size(varargin));
-  for i=1:length(varargin)
-    dat{i} = reshape(varargin{i}.(cfg.parameter), newdim);
-  end
-  grandavg.(cfg.parameter) = cat(1, dat{:});
-  if isfield(varargin{1}, [cfg.parameter 'dimord'])
-    grandavg.([cfg.parameter 'dimord']) = ['rpt_' varargin{1}.([cfg.parameter 'dimord'])];
-  elseif isfield(varargin{1}, 'dimord')
-    grandavg.dimord = ['rpt_' varargin{1}.dimord];
+if iscell(varargin{1}.(cfg.parameter))
+  
+  % collect the data
+  dat = cellfun(@getfield, varargin, repmat({cfg.parameter}, size(varargin)), 'UniformOutput', false);
+  
+  npos = numel(dat{1});
+  nrpt = numel(dat);
+  dat  = cat(2, dat{:}); % make it {pos_rpt}
+  
+  if isfield(varargin{1}, 'inside')
+    % it is logically indexed, take the first inside source location
+    probe = find(varargin{1}.inside, 1, 'first');
+  else
+    % just take the first source position
+    probe = 1;
   end
   
+  olddim = size(dat{probe,1});
+  newdim = [1 olddim];
+  
+  if strcmp(cfg.keepindividual, 'yes')
+    dat = cellfun(@reshape,  dat, repmat({newdim}, size(dat)), 'UniformOutput', false);
+    for i=1:npos
+      dat{i,1} = cat(1, dat{i,:}); % concatenate them into the first one
+    end
+    grandavg.(cfg.parameter) = dat(:,1);
+    
+    if ~isequal(size(grandavg.(cfg.parameter)), size(varargin{1}.(cfg.parameter)))
+      % this is a bit unexpected, but let's reshape it back into the original size
+      grandavg.(cfg.parameter) = reshape(grandavg.(cfg.parameter), size(varargin{1}.(cfg.parameter)));
+    end
+    
+    if isfield(varargin{1}, [cfg.parameter 'dimord'])
+      dimord = varargin{1}.([cfg.parameter 'dimord']);
+      dimtok = tokenize(dimord, '_');
+      dimtok = {dimtok{1} 'rpt' dimtok{2:end}};
+      dimord = sprintf('%s_', dimtok{:});
+      dimord = dimord(1:end-1); % remove the trailing '_'
+      grandavg.([cfg.parameter 'dimord']) = dimord;
+      
+    elseif isfield(varargin{1}, 'dimord')
+      dimord = varargin{1}.dimord;
+      dimtok = tokenize(dimord, '_');
+      dimtok = {dimtok{1} 'rpt' dimtok{2:end}};
+      dimord = sprintf('%s_', dimtok{:});
+      dimord = dimord(1:end-1); % remove the trailing '_'
+      grandavg.dimord = dimord;
+    end
+    
+  else
+    for i=1:npos
+      for j=2:nrpt
+        dat{i,1} = dat{i,1} + dat{i,j}; % add them all to the first one
+      end
+      dat{i,1} = dat{i,1}/nrpt;
+    end
+    grandavg.(cfg.parameter) = dat(:,1);
+    
+    if isfield(varargin{1}, [cfg.parameter 'dimord'])
+      grandavg.([cfg.parameter 'dimord']) = varargin{1}.([cfg.parameter 'dimord']);
+    elseif isfield(varargin{1}, 'dimord')
+      grandavg.dimord = varargin{1}.dimord;
+    end
+    
+  end % if keepindividual
+  clear dat
+  
 else
-  dat = varargin{1}.(cfg.parameter);
-  for i=2:length(varargin)
-    dat = dat + varargin{i}.(cfg.parameter);
+  % determine the dimensions, include the new repetition dimension
+  olddim = size(varargin{1}.(cfg.parameter));
+  newdim = [1 olddim];
+  
+  % collect and reshape the data
+  dat = cellfun(@getfield, varargin, repmat({cfg.parameter}, size(varargin)), 'UniformOutput', false);
+  
+  if strcmp(cfg.keepindividual, 'yes')
+    % concatenate the data into a single array
+    dat = cellfun(@reshape,  dat, repmat({newdim}, size(dat)), 'UniformOutput', false);
+    grandavg.(cfg.parameter) = cat(1, dat{:});
+    if isfield(varargin{1}, [cfg.parameter 'dimord'])
+      grandavg.([cfg.parameter 'dimord']) = ['rpt_' varargin{1}.([cfg.parameter 'dimord'])];
+    elseif isfield(varargin{1}, 'dimord')
+      grandavg.dimord = ['rpt_' varargin{1}.dimord];
+    end
+    
+  else
+    % sum the data in a single array
+    for i=2:length(dat)
+      dat{1} = dat{1} + dat{i};
+    end
+    grandavg.(cfg.parameter) = dat{1}/length(varargin);
+    if isfield(varargin{1}, [cfg.parameter 'dimord'])
+      grandavg.([cfg.parameter 'dimord']) = varargin{1}.([cfg.parameter 'dimord']);
+    elseif isfield(varargin{1}, 'dimord')
+      grandavg.dimord = varargin{1}.('dimord');
+    end
+  end % if keepindividual
+  clear dat
+  
+end % if iscell
+
+% the fields that describe the actual data need to be copied over from the input to the output
+if isfield(grandavg, [cfg.parameter 'dimord'])
+  dimord = grandavg.([cfg.parameter 'dimord']);
+elseif isfield(grandavg, 'dimord')
+  dimord = grandavg.('dimord');
+else
+  dimord = [];
+end
+
+% some standard fields from the input should be copied over in the output
+copyfield = {'pos', 'inside', 'outside', 'dim'};
+if ~isempty(strfind(dimord, 'time')), copyfield{end+1} = 'time'; end
+if ~isempty(strfind(dimord, 'freq')), copyfield{end+1} = 'freq'; end
+for i=1:length(copyfield)
+  if isfield(varargin{1}, copyfield{i})
+    grandavg.(copyfield{i}) = varargin{1}.(copyfield{i});
   end
-  grandavg.(cfg.parameter) = dat/length(varargin);
-  if isfield(varargin{1}, [cfg.parameter 'dimord'])
-    grandavg.([cfg.parameter 'dimord']) = varargin{1}.([cfg.parameter 'dimord']);
-  elseif isfield(varargin{1}, 'dimord')
-    grandavg.dimord = varargin{1}.('dimord');
-  end
-end % if keepindividual
+end
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug

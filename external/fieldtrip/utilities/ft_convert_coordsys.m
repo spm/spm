@@ -52,11 +52,18 @@ function [obj] = ft_convert_coordsys(obj, target, opt, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_convert_coordsys.m 7474 2013-02-15 08:24:08Z jansch $
+% $Id: ft_convert_coordsys.m 9364 2014-04-07 08:43:48Z roboos $
 
 if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
   % determine the coordinate system of the input object
   obj = ft_determine_coordsys(obj, 'interactive', 'yes');
+end
+
+if ~isfield(obj, 'coordsys') || isempty(obj.coordsys)
+  % the call to ft_determine_coordsys should have taken care of this, but
+  % it is possible that the user aborted the coordinate system
+  % determination. See http://bugzilla.fcdonders.nl/show_bug.cgi?id=2526
+  error('the coordinate system of the geometrical object is not specified');
 end
 
 % set default behavior to use an approximate alignment, followed by a call

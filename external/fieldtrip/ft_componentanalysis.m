@@ -146,14 +146,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 8883 2013-11-28 18:40:45Z jansch $
+% $Id: ft_componentanalysis.m 9389 2014-04-10 09:52:37Z roevdmei $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods. 
 
-revision = '$Id: ft_componentanalysis.m 8883 2013-11-28 18:40:45Z jansch $';
+revision = '$Id: ft_componentanalysis.m 9389 2014-04-10 09:52:37Z roevdmei $';
 
 % do the general setup of the function
 ft_defaults
@@ -451,10 +451,13 @@ switch cfg.method
       rethrow(me);
     end
     
-  case 'runica'
+  case 'runica'  
     % check whether the required low-level toolboxes are installed
     % see http://www.sccn.ucsd.edu/eeglab
     ft_hastoolbox('eeglab', 1);
+    
+    % set the number of components to be estimated
+    cfg.runica.pca = cfg.numcomponent;
     
     % construct key-value pairs for the optional arguments
     optarg = ft_cfg2keyval(cfg.runica);

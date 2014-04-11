@@ -4,20 +4,37 @@ function value = loadvar(filename, varname)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: loadvar.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: loadvar.m 9380 2014-04-08 16:07:45Z roboos $
+
+assert(ischar(filename), 'file name should be a string');
 
 if nargin<2
   fprintf('reading variable from file ''%s''\n', filename);
 else
+  assert(ischar(varname), 'variable name should be a string');
   fprintf('reading ''%s'' from file ''%s''\n', varname, filename);
 end
 
+% note that this sometimes fails, returning an empty var
+% this is probably due to matlab filename and matlab version issues
 var = whos('-file', filename);
 
-if length(var)==1
+if length(var)==0 && nargin==1
+  filecontent = load(filename); % read everything from the file, regardless of how the variables are called
+  varname = fieldnames(filecontent);
+  if length(varname)==1
+    % the one variable in the file will be returned
+    value = filecontent.(varname{i});
+    clear filecontent
+  else
+    error('cannot read an unspecified variable in case of a file containing multiple variables');
+  end
+
+elseif length(var)==1
   filecontent = load(filename); % read the one variable in the file, regardless of how it is called
   value       = filecontent.(var.name);
   clear filecontent
+
 else
   filecontent = load(filename, varname);
   value       = filecontent.(varname);  % read the variable named according to the input specification

@@ -55,7 +55,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-revision = '$Id: ft_analysispipeline.m 9226 2014-02-23 13:12:06Z roboos $';
+revision = '$Id: ft_analysispipeline.m 9375 2014-04-07 20:52:30Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -498,18 +498,20 @@ end % for numel(info)
 set(fig, 'WindowButtonUpFcn', @button);
 % set(fig, 'KeyPressFcn', @key);
 
-% add a menu to the figure
+% add a context menu to the figure
 % ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
+
+% add a regular menu item to the figure
 ftmenu  = uimenu(fig, 'Label', 'FieldTrip');
-ftmenu1 = uimenu(ftmenu, 'Label', 'Save pipeline');
-ftmenu2 = uimenu(ftmenu, 'Label', 'Share pipeline');
+% ftmenu1 = uimenu(ftmenu, 'Label', 'Save pipeline');
+% ftmenu2 = uimenu(ftmenu, 'Label', 'Share pipeline');
 uimenu(ftmenu, 'Label', 'About',  'Separator', 'on', 'Callback', @menu_about);
-uimenu(ftmenu1, 'Label', 'Save as MATLAB script');
-uimenu(ftmenu1, 'Label', 'Save as PSOM pipeline');
-uimenu(ftmenu1, 'Label', 'Save as HTML page');
-uimenu(ftmenu2, 'Label', 'Share within DCCN');
-uimenu(ftmenu2, 'Label', 'Share on PasteBin.com');
-uimenu(ftmenu2, 'Label', 'Share on MyExperiment.org');
+% uimenu(ftmenu1, 'Label', 'Save as MATLAB script');
+% uimenu(ftmenu1, 'Label', 'Save as PSOM pipeline');
+% uimenu(ftmenu1, 'Label', 'Save as HTML page');
+% uimenu(ftmenu2, 'Label', 'Share within DCCN');
+% uimenu(ftmenu2, 'Label', 'Share on PasteBin.com');
+% uimenu(ftmenu2, 'Label', 'Share on MyExperiment.org');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

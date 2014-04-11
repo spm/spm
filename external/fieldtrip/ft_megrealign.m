@@ -1,9 +1,9 @@
 function [data] = ft_megrealign(cfg, data)
 
-% FT_MEGREALIGN interpolates MEG data towards standard gradiometer locations
-% by projecting the individual timelocked data towards a coarse source
-% reconstructed representation and computing the magnetic field on
-% the standard gradiometer locations.
+% FT_MEGREALIGN interpolates MEG data towards standard gradiometer locations by
+% projecting the individual timelocked data towards a coarse source reconstructed
+% representation and computing the magnetic field on the standard gradiometer
+% locations.
 %
 % Use as
 %   [interp] = ft_megrealign(cfg, data)
@@ -73,7 +73,7 @@ function [data] = ft_megrealign(cfg, data)
 %
 % See also FT_PREPARE_LOCALSPHERES, FT_PREPARE_SINGLESHELL
 
-% Copyright (C) 2004-2007, Robert Oostenveld
+% Copyright (C) 2004-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 9249 2014-02-26 16:47:58Z roboos $
+% $Id: ft_megrealign.m 9336 2014-04-02 19:59:44Z roboos $
 
-revision = '$Id: ft_megrealign.m 9249 2014-02-26 16:47:58Z roboos $';
+revision = '$Id: ft_megrealign.m 9336 2014-04-02 19:59:44Z roboos $';
 
 % do the general setup of the function
 ft_defaults

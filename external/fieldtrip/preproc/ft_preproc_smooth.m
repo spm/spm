@@ -28,7 +28,7 @@ function [datsmooth] = ft_preproc_smooth(dat, n)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_smooth.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_preproc_smooth.m 9346 2014-04-03 18:17:32Z jansch $
 
 % deal with padding
 pad       = ceil(n/2);
@@ -38,7 +38,14 @@ dat       = ft_preproc_padding(dat, 'localmean', pad);
 krn       = ones(1,n)/n;
 
 % do the smoothing
-datsmooth = convn(dat, krn, 'same');
+if n<100
+  % heuristic: for large kernel the convolution is faster when done along
+  % the columns, weighing against the costs of doing the transposition.
+  % the threshold of 100 is a bit ad hoc.
+  datsmooth = convn(dat,   krn,   'same');
+else
+  datsmooth = convn(dat.', krn.', 'same').';
+end
 
 % cut the eges
 datsmooth = ft_preproc_padding(datsmooth, 'remove', pad);

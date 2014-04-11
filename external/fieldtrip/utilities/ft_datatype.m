@@ -31,7 +31,11 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 8997 2013-12-09 13:23:21Z roboos $
+% $Id: ft_datatype.m 9360 2014-04-06 11:52:44Z roboos $
+
+if nargin<2
+  desired = [];
+end
 
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip, segmentation, parcellation
 israw          =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
@@ -62,8 +66,25 @@ isspike           = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials
 isgrad = isfield(data, 'label') && isfield(data, 'coilpos') && isfield(data, 'coilori');
 iselec = isfield(data, 'label') && isfield(data, 'elecpos');
 
-if iscomp
-  % comp should conditionally go before raw, otherwise the returned ft_datatype will be raw
+if iscomp && israw
+  if strcmp(desired, 'raw')
+    type = 'raw';
+  else
+    type = 'comp'; % this is the default
+  end
+elseif iscomp && istimelock
+  if strcmp(desired, 'comp')
+    type = 'comp';
+  else
+    type = 'timelock'; % this is the default
+  end
+elseif iscomp && isfreq
+  if strcmp(desired, 'comp')
+    type = 'comp';
+  else
+    type = 'freq'; % this is the default
+  end
+elseif iscomp
   type = 'comp';
 elseif israw
   type = 'raw';

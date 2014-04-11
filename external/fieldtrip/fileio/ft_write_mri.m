@@ -42,7 +42,7 @@ function [V] = ft_write_mri(filename, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_mri.m 8289 2013-06-28 14:55:03Z jansch $
+% $Id: ft_write_mri.m 9343 2014-04-03 17:48:03Z jansch $
 
 % get the options
 transform     = ft_getopt(varargin, 'transform', eye(4));
@@ -114,6 +114,7 @@ switch dataformat
     mri          = [];
     mri.vol      = dat;
     mri.vox2ras0 = vox2ras_1to0(transform);
+    mri.volres   = sqrt(sum(transform(:,1:3).^2));
     MRIwrite(mri, filename, datatype);
     
   case {'vista'}

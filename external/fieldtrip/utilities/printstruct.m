@@ -1,6 +1,6 @@
 function str = printstruct(name, val)
 
-% PRINTSTRUCT converts a MATLAB structure int a multi-line string that can be
+% PRINTSTRUCT converts a MATLAB structure into a multi-line string that can be
 % interpreted by MATLAB, resulting in the original structure.
 %
 % Use as
@@ -39,7 +39,7 @@ function str = printstruct(name, val)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: printstruct.m 9326 2014-04-01 11:46:29Z roboos $
+% $Id: printstruct.m 9374 2014-04-07 12:45:37Z roboos $
 
 if nargin==1
   val  = name;

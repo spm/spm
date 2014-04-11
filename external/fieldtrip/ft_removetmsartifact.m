@@ -1,11 +1,10 @@
 function data = ft_removetmsartifact(cfg, data)
 
 % FT_REMOVETMSARTIFACT removes TMS artifacts from EEG data
-% %% NOTE: Please be aware that this function is part of a project in its early stages and
-% therefore may not yet function as well as other functions in FieldTrip.
-% Please see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1791 for progress
-% on this project.
-% %
+% %% NOTE: Please be aware that this function is deprecated. Please follow
+%          the TMS-EEG tutorial instead
+%          (http://fieldtrip.fcdonders.nl/tutorial/tms-eeg).
+% %%
 %
 % Use as
 %  data = ft_removetmsartifact(cfg, data)
@@ -48,7 +47,7 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_removetmsartifact.m 9338 2014-04-03 08:02:40Z jimher $
 
 % DEPRECATED by jimher on 19 September 2013
 % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1791 for more details
@@ -59,7 +58,7 @@ warning('FT_REMOVETMSARTIFACT is deprecated, please follow TMS-EEG tutorial inst
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_removetmsartifact.m 9338 2014-04-03 08:02:40Z jimher $';
 
 % do the general setup of the function
 

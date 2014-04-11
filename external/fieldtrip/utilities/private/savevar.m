@@ -4,7 +4,10 @@ function savevar(filename, varname, value)
 
 % Copyright (C) 2010, Robert Oostenveld
 %
-% $Id: savevar.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: savevar.m 9381 2014-04-08 16:07:47Z roboos $
+
+assert(ischar(filename), 'file name should be a string');
+assert(ischar(varname), 'variable name should be a string');
 
 fprintf('writing ''%s'' to file ''%s''\n', varname, filename);
 

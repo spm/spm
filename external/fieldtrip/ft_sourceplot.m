@@ -176,9 +176,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9325 2014-03-27 15:03:53Z jansch $
+% $Id: ft_sourceplot.m 9365 2014-04-07 09:24:59Z arjsto $
 
-revision = '$Id: ft_sourceplot.m 9325 2014-03-27 15:03:53Z jansch $';
+revision = '$Id: ft_sourceplot.m 9365 2014-04-07 09:24:59Z arjsto $';
 
 % do the general setup of the function
 ft_defaults
@@ -900,7 +900,22 @@ elseif isequal(cfg.method,'surface')
         error('downsampling the surface is not possible in combination with an inflated surface');
       end
       fprintf('downsampling surface from %d vertices\n', size(surf.pnt,1));
-      [surf.tri, surf.pnt] = reducepatch(surf.tri, surf.pnt, 1/cfg.surfdownsample);
+      [temp.tri, temp.pnt] = reducepatch(surf.tri, surf.pnt, 1/cfg.surfdownsample);
+      % find indices of retained patch faces
+      [~, idx] = ismember(temp.pnt, surf.pnt, 'rows');
+      surf.tri = temp.tri;
+      surf.pnt = temp.pnt;
+      clear temp
+      % downsample other fields
+      if isfield(surf, 'curv')
+        surf.curv = surf.curv(idx);
+      end
+      if isfield(surf, 'sulc')
+        surf.sulc = surf.sulc(idx);
+      end
+      if isfield(surf, 'hemisphere')
+        surf.hemisphere = surf.hemisphere(idx);
+      end
     end
     
     % these are required
@@ -994,6 +1009,7 @@ elseif isequal(cfg.method,'surface')
   if isfield(surf, 'curv')
     % the curvature determines the color of gyri and sulci
     color = surf.curv(:) * cortex_light + (1-surf.curv(:)) * cortex_dark;
+    color = repmat(cortex_light, size(surf.pnt,1), 1);
   else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end

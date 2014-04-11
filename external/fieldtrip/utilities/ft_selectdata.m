@@ -17,7 +17,7 @@ function [varargout] = ft_selectdata(varargin)
 %
 % See also FT_SELECTDATA_OLD, FT_SELECTDATA_NEW
 
-% Copyright (C) 2009-2011, Jan-Mathijs Schoffelen, Robert Oostenveld
+% Copyright (C) 2009-2014, Jan-Mathijs Schoffelen, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -35,7 +35,9 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_selectdata.m 9393 2014-04-10 15:59:33Z roboos $
+
+% HACK, determine whether this is run by Robert
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -43,6 +45,12 @@ if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) 
   % or with multiple input data structures like this
   %   data = ft_selectdata(data1, data2, 'key1', value1, 'key2', value2, ...)
   [varargout{1:nargout}] = ft_selectdata_old(varargin{:});
+elseif strcmp(getenv('USER'), 'roboos')
+  % this is the NEW calling style, like this
+  %  [data, cfg] = ft_selectdata(cfg, data)
+  % or with multiple input data structures like this
+  %  [data1, data2, ..., cfg] = ft_selectdata(cfg, data1, data2, ...)
+  [varargout{1:nargout}] = ft_selectdata_newer(varargin{:});
 else
   % this is the NEW calling style, like this
   %  [data, cfg] = ft_selectdata(cfg, data)
