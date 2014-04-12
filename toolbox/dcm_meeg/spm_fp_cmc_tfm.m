@@ -25,11 +25,11 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_fp_cmc_tfm.m 5951 2014-04-12 11:38:44Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -52,13 +52,12 @@ P  = spm_unvec(P,M.pE);               % neuronal parameters
 
 % neuronal populations with Voltage-dependent connectivity V
 %--------------------------------------------------------------------------
-V        = 64*exp(P.E);
-i        = 1:size(V,2);
-j        = [3 7];
-f.G(:,i) = exp(V.*x(:,j(i))) - 4*exp(P.E).*P.G(:,i) - 1;
+f.G(:,1) = 12*exp(P.E(:,1)).*spm_phi((x(:,4) - 2)) - 8*exp(P.F(:,1)).*P.G(:,1);
+f.G(:,2) = 1*exp(P.E(:,2)).*spm_phi((x(:,2) - 2)) - 8*exp(P.F(:,2)).*P.G(:,2);
+
 
 % vectorise
 %--------------------------------------------------------------------------
-f         = spm_vec(f);
+f        = spm_vec(f);
 
 

@@ -1,8 +1,6 @@
 function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 % state equations - time-frequency model with state-dependent parameters
 % FORMAT [f,J,D] = spm_fx_tfm(x,u,P,M)
-% FORMAT [f,J]   = spm_fx_tfm(x,u,P,M)
-% FORMAT [f]     = spm_fx_tfm(x,u,P,M)
 % x      - hidden states
 % u      - exogenous input
 %
@@ -22,7 +20,7 @@ function [f,J,Q] = spm_fx_tfm(x,u,P,M)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_tfm.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_fx_tfm.m 5951 2014-04-12 11:38:44Z karl $
  
 % input and state-dependent parameters
 %==========================================================================

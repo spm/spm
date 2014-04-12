@@ -13,7 +13,7 @@ function spm_induced_optimise(Ep,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise.m 5945 2014-04-10 09:29:15Z karl $
+% $Id: spm_induced_optimise.m 5951 2014-04-12 11:38:44Z karl $
  
  
 % Model specification
@@ -39,7 +39,6 @@ M.ns   = 64;
 M.ons  = 64;
 M.dur  = 16;
 U.dt   = 1/256;
-U.X    = [];
 
  
  
@@ -49,6 +48,13 @@ pE  = spm_dcm_neural_priors({0 0 0},{},1,options.model);
 P   = fieldnames(pE);
 pE  = spm_L_priors(M.dipfit,pE);
 pE  = spm_ssr_priors(pE);
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+% specify hidden state
+%--------------------------------------------------------------------------
+% pE.J    = pE.J*0;
+% pE.J(3) = 1;
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 P = {'G','T','S'};

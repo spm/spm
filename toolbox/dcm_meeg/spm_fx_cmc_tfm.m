@@ -29,11 +29,11 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
 % neuronal dynamics. NeuroImage 20: 1743-1755
-%___________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 5945 2014-04-10 09:29:15Z karl $
+% $Id: spm_fx_cmc_tfm.m 5951 2014-04-12 11:38:44Z karl $
  
  
 % get dimensions and configure state variables
@@ -44,13 +44,11 @@ n  = size(x,1);                       % number of sources
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [200 25 50 100];                 % extrinsic (forward and backward)  
-G  = [1400 800 1600 80 800 400 1200 400 400 20 400 800];  % intrinsic connections
-T  = [4 8 12 16]/1000;                % synaptic time constants
+E  = [1 1/8 1/4 1/2]*200;             % extrinsic (forward and backward)  
+G  = [4 4 8 4 4 2 4 4 2 2 1 4]*200;   % intrinsic connections
+T  = [400 340 34 26];                 % synaptic time constants
 R  = 1;                               % slope of sigmoid activation function
 
-% NB for more pronounced state dependent transfer functions use R  = 3/2; 
- 
 % [specified] fixed parameters
 %--------------------------------------------------------------------------
 if isfield(M,'pF')
@@ -86,9 +84,9 @@ C    = exp(P.C);
  
 % pre-synaptic inputs: s(V)
 %--------------------------------------------------------------------------
-R    = R.*exp(P.S);              % gain of activation function
-F    = 1./(1 + exp(-R*x + 0));   % firing rate
-S    = F - 1/(1 + exp(0));       % deviation from baseline firing (0)
+R    = R.*exp(P.S);               % gain of activation function
+F    = 1./(1 + exp(-R*x + 0));    % firing rate
+S    = F - 1/(1 + exp(0));        % deviation from baseline firing (0)
 
 % input
 %==========================================================================
@@ -96,7 +94,7 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)*512;
+    U = u(:)*256;
     
 else
     % exogenous input
@@ -146,15 +144,15 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-for i = 1:size(P.T,2)
-    T(:,i) = T(:,i).*exp(P.T(:,i));
-end
+i          = 1:size(P.T,2);
+T(:,i)     = T(:,i).*exp(P.T);
+
 
 % intrinsic connections to be optimised (only the first is modulated)
 %--------------------------------------------------------------------------
-j          = [7 10 4 1];
-i          = 1:size(P.G,2);
-G(:,j(i))  = G(:,j(i)).*exp(P.G);
+j       = [7 4 12 1 2 3 5 6 8 9 10 11];
+i       = j(1:size(P.G,2));
+G(:,i)  = G(:,i).*exp(P.G);
 
 
 % Modulatory effects of sp depolarisation on recurrent inhibition
@@ -174,25 +172,25 @@ end
 %--------------------------------------------------------------------------
 u      =   A{1}*S(:,3) + U;
 u      = - G(:,1).*S(:,1) - G(:,3).*S(:,5) - G(:,2).*S(:,3) + u;
-f(:,2) =  (u - 2*x(:,2) - x(:,1)./T(:,1))./T(:,1);
+f(:,2) =  (u - 2*x(:,2) - x(:,1).*T(:,1)).*T(:,1);
  
 % Supra-granular layer (superficial pyramidal cells): Hidden causes - error
 %--------------------------------------------------------------------------
 u      = - A{3}*S(:,7);
 u      =   G(:,8).*S(:,1) - G(:,7).*S(:,3) - G(:,12).*S(:,5) + u;
-f(:,4) =  (u - 2*x(:,4) - x(:,3)./T(:,2))./T(:,2);
+f(:,4) =  (u - 2*x(:,4) - x(:,3).*T(:,2)).*T(:,2);
  
 % Supra-granular layer (inhibitory interneurons): Hidden states - error
 %--------------------------------------------------------------------------
 u      = - A{4}*S(:,7);
 u      =   G(:,5).*S(:,1) + G(:,6).*S(:,7) - G(:,4).*S(:,5) + G(:,11).*S(:,3) + u;
-f(:,6) =  (u - 2*x(:,6) - x(:,5)./T(:,3))./T(:,3);
+f(:,6) =  (u - 2*x(:,6) - x(:,5).*T(:,3)).*T(:,3);
  
 % Infra-granular layer (deep pyramidal cells): Hidden states
 %--------------------------------------------------------------------------
 u      =   A{2}*S(:,3);
 u      = - G(:,10).*S(:,7) - G(:,9).*S(:,5) + u;
-f(:,8) =  (u - 2*x(:,8) - x(:,7)./T(:,4))./T(:,4);
+f(:,8) =  (u - 2*x(:,8) - x(:,7).*T(:,4)).*T(:,4);
  
 % Voltage
 %==========================================================================

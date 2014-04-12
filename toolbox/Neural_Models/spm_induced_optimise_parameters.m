@@ -10,8 +10,12 @@ function [Ep M] = spm_induced_optimise_parameters(PARAMS)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_optimise_parameters.m 5945 2014-04-10 09:29:15Z karl $
+% $Id: spm_induced_optimise_parameters.m 5951 2014-04-12 11:38:44Z karl $
  
+% Parameters to optimise
+%--------------------------------------------------------------------------
+if ~nargin, PARAMS = {'G','T','L'}; end
+
 
 % spectral specification
 %==========================================================================
@@ -21,15 +25,11 @@ Np     = length(J);
 % Target spectrum - gamma, beta and alpha
 %--------------------------------------------------------------------------
 Hz     = 1:128;
-s(:,1) = -[128 128 64 32]' + 1j*2*pi*[4 8 32 48]';
-s(:,2) = -[64 32 64 128]' + 1j*2*pi*[8 16 32 64]';
+s(:,1) = -[128 64 32 64]'   + 1j*2*pi*[4 12 48 64]';
+s(:,2) = -[128 64 256 256]' + 1j*2*pi*[8 16 48 64]';
 
-% Parameters to optimise
-%--------------------------------------------------------------------------
 
-PARAMS = {'G','T','L'};
 
- 
 % Model specification
 %==========================================================================
 Nc    = 1;
@@ -49,7 +49,6 @@ M.Hz           = Hz;
 [pE pC] = spm_L_priors(M.dipfit,pE,pC);
 [pE pC] = spm_ssr_priors(pE,pC);
 [x,f]   = spm_dcm_x_neural(pE,options.model);
-
 
 % suppress measurement noise
 %--------------------------------------------------------------------------
@@ -73,14 +72,13 @@ u       = sparse(1,nu);
  
 % fix priors if a subset of parameters are specified
 %--------------------------------------------------------------------------
-try
-    pV    = spm_vec(pC);
-    V     = pV - pV;
-    for i = 1:length(PARAMS)
-        V(spm_fieldindices(pE,PARAMS{i})) = 1;
-    end
-    pC    = spm_unvec(V.*pV,pC);
+pV    = spm_vec(pC);
+V     = pV - pV;
+for i = 1:length(PARAMS)
+    V(spm_fieldindices(pE,PARAMS{i})) = 1;
 end
+pC    = spm_unvec(V.*pV,pC);
+
 
 
 % create LFP model

@@ -28,7 +28,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_csd_int.m 5951 2014-04-12 11:38:44Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -62,7 +62,8 @@ end
 
 % peristimulus time
 %--------------------------------------------------------------------------
-t   = (1:ns)*U.dt;
+ns   = size(u,2);
+t    = (1:ns)*U.dt;
 
 % between-trial (experimental) inputs
 %==========================================================================
@@ -126,6 +127,8 @@ for c = 1:size(X,1)
     % cycle over time - expanding around expected states and input
     %======================================================================
     dQ    = spm_vec(Q)*0;
+    dU    = dQ;
+    dX    = dQ;
     for i = 1:length(t)
         
         % hidden states
@@ -133,18 +136,16 @@ for c = 1:size(X,1)
         if i > 1, x(:,i) = x(:,i - 1); end
         
         
-        % state-dependent parameters
+        % state-dependent parameters (and plasticity)
         %==================================================================
-        
-        % update state-dependent parameters
-        %------------------------------------------------------------------
-        if isfield(P,'X'), dQ  = dQ + P.X*u(:,i);                end
-        if isfield(P,'Y'), dQ  = dQ + P.Y*x(:,i);                end
+        if isfield(P,'X'), dU  = P.X*u(:,i);                      end
+        if isfield(P,'Y'), dX  = P.Y*x(:,i);                      end
         if isfield(M,'h'), dQ  = dQ + h(x(:,i),u(:,i),dQ,M)*U.dt; end
         
         % update
         %------------------------------------------------------------------
-        R       = spm_unvec(spm_vec(Q) + spm_vec(dQ),Q);
+        R       = spm_unvec(spm_vec(Q) + spm_vec(dQ + dU + dX),Q);
+        
         
         % compute complex cross spectral density
         %==================================================================
@@ -154,7 +155,7 @@ for c = 1:size(X,1)
         M.x     = spm_unvec(x(:,i),M.x);
         M.u     = sparse(nu,1);
         [g,w,s] = spm_csd_mtf(R,M);
-        
+ 
         
         % place CSD and transfer functions in response
         %------------------------------------------------------------------

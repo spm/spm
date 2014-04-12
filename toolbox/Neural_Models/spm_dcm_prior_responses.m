@@ -17,7 +17,7 @@ function spm_dcm_prior_responses(Ep)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_prior_responses.m 5911 2014-03-08 14:52:39Z karl $
+% $Id: spm_dcm_prior_responses.m 5951 2014-04-12 11:38:44Z karl $
 
 
 % Model specification
@@ -26,7 +26,7 @@ function spm_dcm_prior_responses(Ep)
 
 % models
 %--------------------------------------------------------------------------
-model = {'ERP','SEP','LFP','CMC','CMM','NMM','MFM'};
+model = {'ERP','SEP','LFP','CMC','TFM','CMM','NMM','MFM'};
 model = model(:);
 Nm    = length(model);
 
