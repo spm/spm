@@ -1,19 +1,20 @@
-function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
+function [Y,w,t,x,G,S,E,dP] = spm_csd_int(P,M,U)
 % Time frequency response of a neural mass model
-% FORMAT [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
+% FORMAT [Y,w,t,x,G,S,E,dP] = spm_csd_int(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
 % U - time-dependent input
 %
-% Y - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
+% Y  - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
 %                    - for w frequencies over time t in M.Hz
-% w - frequencies
-% t - peristimulus time
-% x - expectation of hidden (neuronal) states (for last trial)
-% G - {G(t,w,nc,nc}} - cross spectrum density before dispersion
-% S - {S(t,w,nc,nu}} - transfer functions
-% E - {E(t,nc}}      - event-related average (sensor space)
+% w  - frequencies
+% t  - peristimulus time
+% x  - expectation of hidden (neuronal) states (for last trial)
+% G  - {G(t,w,nc,nc}} - cross spectrum density before dispersion
+% S  - {S(t,w,nc,nu}} - transfer functions
+% E  - {E(t,nc}}      - event-related average (sensor space)
+% dP - {dP(t,np)}     - parameter fluctuations (plasticity)
 %__________________________________________________________________________
 %
 % This integration routine evaluates the responses of a neural mass model
@@ -28,7 +29,7 @@ function [Y,w,t,x,G,S,E] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_csd_int.m 5952 2014-04-13 20:58:59Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -129,6 +130,7 @@ for c = 1:size(X,1)
     dQ    = spm_vec(Q)*0;
     dU    = dQ;
     dX    = dQ;
+    dP{c} = dQ;
     for i = 1:length(t)
         
         % hidden states
@@ -144,7 +146,8 @@ for c = 1:size(X,1)
         
         % update
         %------------------------------------------------------------------
-        R       = spm_unvec(spm_vec(Q) + spm_vec(dQ + dU + dX),Q);
+        dP{c}(:,i) = dQ + dU + dX;
+        R          = spm_unvec(spm_vec(Q) + dP{c}(:,i),Q);
         
         
         % compute complex cross spectral density

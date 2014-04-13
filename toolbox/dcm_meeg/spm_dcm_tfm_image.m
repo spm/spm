@@ -18,7 +18,7 @@ function spm_dcm_tfm_image(csd,pst,hz,top)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_image.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_dcm_tfm_image.m 5952 2014-04-13 20:58:59Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -30,7 +30,6 @@ if nargin < 4, top = 0; two = 1;    end
 
 % plot time frequency responses
 %==========================================================================
-dt    = pst(2) - pst(1);
 pst   = pst*1000;
 nc    = size(csd,3);
 bands = kron([8; 13; 32],[1 1]);
@@ -38,9 +37,9 @@ bands = kron([8; 13; 32],[1 1]);
 
 % evaluate cross covariance function
 %--------------------------------------------------------------------------
-[ccf,lag] = spm_csd2ccf(csd,hz,dt);
+[ccf,lag] = spm_csd2ccf(csd,hz,1/1024);
 lag       = lag*1000;
-j         = find(-128 < lag & lag < 128);
+j         = find(-64 < lag & lag < 64);
 lag       = lag(j);
 ccf       = ccf(:,j,:,:);
 
@@ -82,7 +81,7 @@ for i = 1:nc
         title('Cross-covariance','FontSize',16)
         xlabel('peristimulus (ms)')
         ylabel('lag (ms)'), axis xy     
-        hold on; plot([pst(1) pst(end)],[0 0],'-.w'), hold off
+        hold on; plot([pst(1) pst(end)],[0 0],'-.k'), hold off
         
     end
 end

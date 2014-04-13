@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 5951 2014-04-12 11:38:44Z karl $ 
+% $Id: spm_seizure_demo.m 5952 2014-04-13 20:58:59Z karl $ 
  
 
 % Model specification
@@ -144,7 +144,7 @@ U.u   = sparse(N,M.m);
 % exogenous input
 %--------------------------------------------------------------------------
 U.u(:,1) = tanh((t - 1/2)*32)*3/2;                 % modulatory input
-M.W      = inv(diag(sparse(1,1,1/2,1,M.n) + exp(-32)));
+M.W      = inv(diag(sparse(1,1,8,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  
 % plot
@@ -168,7 +168,7 @@ spm_axis tight
 W     = 128;
 TFR   = spm_wft(LFP,w*W*U.dt,W);
 subplot(4,1,3)
-imagesc(t,w,abs(TFR));
+imagesc(t,w,log(abs(TFR) + 1/32));
 title('time-frequency response','FontSize',16)
 axis  xy
 xlabel('time (s)')
@@ -184,7 +184,7 @@ M       = rmfield(M,'h');
 % predicted time frequency response
 %--------------------------------------------------------------------------
 subplot(4,1,4)
-imagesc(t,w,spm_conv(abs(y{1}'),8,8));
+imagesc(t,w,log(spm_conv(abs(y{1}'),4,4) + 1/32));
 title('Predicted response','FontSize',16)
 axis  xy
 xlabel('time (s)')

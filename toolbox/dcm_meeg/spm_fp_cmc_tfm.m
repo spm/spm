@@ -29,7 +29,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 5951 2014-04-12 11:38:44Z karl $
+% $Id: spm_fp_cmc_tfm.m 5952 2014-04-13 20:58:59Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -52,9 +52,7 @@ P  = spm_unvec(P,M.pE);               % neuronal parameters
 
 % neuronal populations with Voltage-dependent connectivity V
 %--------------------------------------------------------------------------
-f.G(:,1) = 12*exp(P.E(:,1)).*spm_phi((x(:,4) - 2)) - 8*exp(P.F(:,1)).*P.G(:,1);
-f.G(:,2) = 1*exp(P.E(:,2)).*spm_phi((x(:,2) - 2)) - 8*exp(P.F(:,2)).*P.G(:,2);
-
+f.G(:,1) = exp(32*exp(P.E(:,1)).*x(:,3)) - 1 - 8*exp(P.F(:,1)).*P.G(:,1);
 
 % vectorise
 %--------------------------------------------------------------------------
