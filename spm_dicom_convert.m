@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5806 2013-12-19 11:32:03Z volkmar $
+% $Id: spm_dicom_convert.m 5954 2014-04-14 19:10:37Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -907,9 +907,9 @@ for i=1:length(hdr),
         % NumberOfImagesInMosaic seems to be set to zero for pseudo images
         % containing e.g. online-fMRI design matrices, don't treat them as
         % mosaics
-        standard = {standard{:}, hdr{i}};
+        standard = [standard, hdr(i)];
     else
-        mosaic = {mosaic{:},hdr{i}};
+        mosaic   = [mosaic,   hdr(i)];
     end;
 end;
 return;
@@ -1092,7 +1092,7 @@ for i=1:length(str),
     if strcmp(deblank(str(i).name),name),
         for j=1:str(i).nitems,
             if  str(i).item(j).xx(1),
-                val = {val{:} str(i).item(j).val};
+                val = [val {str(i).item(j).val}];
             end;
         end;
         break;
@@ -1131,8 +1131,11 @@ if strncmp(root_dir,'ice',3)
     prefix = [prefix imtype get_numaris4_val(hdr.CSAImageHeaderInfo,'ICE_Dims')];
 end;
 
-PatientID = 'anon';
-if checkfields(hdr,'PatientID'), PatientID = deblank(hdr.PatientID); end
+if isfield(hdr,'PatientID'),         PatientID         = deblank(hdr.PatientID);         else PatientID         = 'anon';    end
+if isfield(hdr,'EchoNumbers'),       EchoNumbers       = hdr.EchoNumbers;                else EchoNumbers       = 0;         end
+if isfield(hdr,'SeriesNumber'),      SeriesNumber      = hdr.SeriesNumber;               else SeriesNumber      = 0;         end
+if isfield(hdr,'AcquisitionNumber'), AcquisitionNumber = hdr.AcquisitionNumber;          else AcquisitionNumber = 0;         end
+if isfield(hdr,'InstanceNumber'),    InstanceNumber    = hdr.InstanceNumber;             else InstanceNumber    = 0;         end
 
 if strcmp(root_dir, 'flat')
     % Standard SPM file conversion
@@ -1140,16 +1143,14 @@ if strcmp(root_dir, 'flat')
     if checkfields(hdr,'SeriesNumber','AcquisitionNumber')
         if checkfields(hdr,'EchoNumbers')
             fname = sprintf('%s%s-%.4d-%.5d-%.6d-%.2d.%s', prefix, strip_unwanted(PatientID),...
-                hdr.SeriesNumber, hdr.AcquisitionNumber, hdr.InstanceNumber,...
-                hdr.EchoNumbers, format);
+                SeriesNumber, AcquisitionNumber, InstanceNumber, EchoNumbers, format);
         else
             fname = sprintf('%s%s-%.4d-%.5d-%.6d.%s', prefix, strip_unwanted(PatientID),...
-                hdr.SeriesNumber, hdr.AcquisitionNumber, ...
-                hdr.InstanceNumber, format);
+                SeriesNumber, AcquisitionNumber, InstanceNumber, format);
         end;
     else
         fname = sprintf('%s%s-%.6d.%s',prefix, ...
-            strip_unwanted(PatientID),hdr.InstanceNumber, format);
+            strip_unwanted(PatientID),InstanceNumber, format);
     end;
 
     fname = fullfile(pwd,fname);
@@ -1157,34 +1158,36 @@ if strcmp(root_dir, 'flat')
 end;
 
 % more fancy stuff - sort images into subdirectories
-if ~isfield(hdr,'ProtocolName')
+if isfield(hdr,'StudyTime'),
+    m = sprintf('%02d', floor(rem(hdr.StudyTime/60,60)));
+    h = sprintf('%02d', floor(hdr.StudyTime/3600));
+else
+    m = '00';
+    h = '00';
+end;
+if isfield(hdr,'AcquisitionTime'),   AcquisitionTime   = hdr.AcquisitionTime;            else AcquisitionTime   = 100;       end;
+if isfield(hdr,'StudyDate'),         StudyDate         = hdr.StudyDate;                  else StudyDate         = 100;       end; % Obscure Easter Egg
+if isfield(hdr,'PatientsName'),      PatientsName      = deblank(hdr.PatientsName);      else PatientsName      = 'anon';    end
+if isfield(hdr,'SeriesDescription'), SeriesDescription = deblank(hdr.SeriesDescription); else SeriesDescription = 'unknown'; end
+if isfield(hdr,'ProtocolName'),
+    ProtocolName = deblank(hdr.ProtocolName);
+else
     if isfield(hdr,'SequenceName')
-        hdr.ProtocolName = hdr.SequenceName;
+        ProtocolName = deblank(hdr.SequenceName);
     else
-        hdr.ProtocolName='unknown';
+        ProtocolName='unknown';
     end;
-end;
-if ~isfield(hdr,'SeriesDescription')
-    hdr.SeriesDescription = 'unknown';
-end;
-if ~isfield(hdr,'EchoNumbers')
-    hdr.EchoNumbers = 0;
-end;
+end
 
-m = sprintf('%02d', floor(rem(hdr.StudyTime/60,60)));
-h = sprintf('%02d', floor(hdr.StudyTime/3600));
-studydate = sprintf('%s_%s-%s', datestr(hdr.StudyDate,'yyyy-mm-dd'), ...
-    h,m);
+studydate = sprintf('%s_%s-%s', datestr(StudyDate,'yyyy-mm-dd'), h,m);
 switch root_dir
     case {'date_time','series'}
     id = studydate;
     case {'patid', 'patid_date', 'patname'},
     id = strip_unwanted(PatientID);
 end;
-serdes = strrep(strip_unwanted(hdr.SeriesDescription),...
-    strip_unwanted(hdr.ProtocolName),'');
-protname = sprintf('%s%s_%.4d',strip_unwanted(hdr.ProtocolName), ...
-    serdes, hdr.SeriesNumber);
+serdes   = strrep(strip_unwanted(SeriesDescription), strip_unwanted(ProtocolName),'');
+protname = sprintf('%s%s_%.4d',strip_unwanted(ProtocolName), serdes, SeriesNumber);
 switch root_dir
     case 'date_time',
         dname = fullfile(pwd, id, protname);
@@ -1193,8 +1196,7 @@ switch root_dir
     case 'patid_date',
         dname = fullfile(pwd, id, studydate, protname);
     case 'patname',
-        dname = fullfile(pwd, strip_unwanted(hdr.PatientsName), ...
-            id, protname);
+        dname = fullfile(pwd, strip_unwanted(PatientsName), id, protname);
     case 'series',
         dname = fullfile(pwd, protname);
     otherwise
@@ -1207,13 +1209,11 @@ end;
 % some non-product sequences on SIEMENS scanners seem to have problems
 % with image numbering in MOSAICs - doublettes, unreliable ordering
 % etc. To distinguish, always include Acquisition time in image name
-sa = sprintf('%02d', floor(rem(hdr.AcquisitionTime,60)));
-ma = sprintf('%02d', floor(rem(hdr.AcquisitionTime/60,60)));
-ha = sprintf('%02d', floor(hdr.AcquisitionTime/3600));
+sa    = sprintf('%02d', floor(rem(AcquisitionTime,60)));
+ma    = sprintf('%02d', floor(rem(AcquisitionTime/60,60)));
+ha    = sprintf('%02d', floor(AcquisitionTime/3600));
 fname = sprintf('%s%s-%s%s%s-%.5d-%.5d-%d.%s', prefix, id, ha, ma, sa, ...
-        hdr.AcquisitionNumber,hdr.InstanceNumber, ...
-        hdr.EchoNumbers,format);
-
+        AcquisitionNumber, InstanceNumber, EchoNumbers, format);
 fname = fullfile(dname, fname);
 
 %_______________________________________________________________________
