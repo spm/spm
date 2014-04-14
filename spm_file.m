@@ -54,7 +54,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_file.m 5953 2014-04-14 12:03:38Z guillaume $
 
 
 needchar = ischar(str);
@@ -89,6 +89,12 @@ if numel(options) == 1
                     if ~spm_existfile(str{n}), break; else i = i + 1; end
                 end
                 str{n} = [str{n} num];
+            case 'uniquedir'
+                i = 1;
+                while true
+                    str{n} = fullfile(pth,sprintf('%s_%03d',nam,i));
+                    if ~exist(str{n},'dir'), break; else i = i + 1; end
+                end
             otherwise
                 if strncmpi(options{1},'short',5)
                     c = str2num(options{1}(6:end));

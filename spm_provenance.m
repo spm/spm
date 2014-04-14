@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5815 2013-12-23 16:53:01Z guillaume $
+% $Id: spm_provenance.m 5953 2014-04-14 12:03:38Z guillaume $
 
 
 %-Properties
@@ -259,7 +259,7 @@ methods (Access='public')
                 else outfile = fullfile(p,[n e]); end
                 serialize(obj,dotfile);
                 dotexe = 'dot';
-                system(['"' dotexe '" -T' fmt ' -o "' outfile '" "' dotfile '"']);
+                system(['"' dotexe '" -T' fmt ' -Gdpi=350 -o "' outfile '" "' dotfile '"']);
                 delete(dotfile);
                 open(outfile);
                 return;
@@ -556,7 +556,14 @@ methods (Access='private')
                 if ismember(s(i).expr,expr)
                     idx = ismember(expr,s(i).expr);
                     for j=s(i).idx
-                        label = parseQN(obj.stack{j}{2},'local');
+                        label = getattr(obj.stack{j}{end},'prov:label');
+                        if ~isempty(label)
+                            if iscell(label)
+                                label = label{1};
+                            end
+                        else
+                            label = parseQN(obj.stack{j}{2},'local');
+                        end
                         url = get_url(obj,obj.stack{j}{2});
                         str = [str sprintf('n%s ',get_valid_identifier(url))];
                         str = [str dotlist([dot_style.(s(i).expr),'label',label,'URL',url])];
@@ -584,8 +591,8 @@ methods (Access='private')
                     % handle prov:location / prov:atLocation
                     if i==1
                         for j=s(i).idx
-                            val = getattr(obj.stack{j}{end},'prov:atLocation');
-                            if ~isempty(val)
+                            val = getattr(obj.stack{j}{end},'prov:location');
+                            if ~isempty(val) && ~iscell(val)
                                 A = ['n' get_valid_identifier(get_url(obj,val))];
                                 B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{2}))];
                                 str = [str sprintf('%s -> %s ',A,B)];
