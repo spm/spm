@@ -53,15 +53,14 @@ function varargout = spm_select(varargin)
 % As above, but return files with full paths (i.e. prefixes 'direc' to each)
 % and search through sub directories recursively.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 5662 2013-10-01 17:49:48Z guillaume $
+% $Id: spm_select.m 5956 2014-04-16 14:34:25Z guillaume $
 
 
 % For developers:
 %--------------------------------------------------------------------------
-%
 % FORMAT cpath = spm_select('CPath',path,cwd)
 % Canonicalise paths: prepend cwd to relative paths, process '..' & '.'
 % directories embedded in path.
@@ -79,11 +78,13 @@ function varargout = spm_select(varargin)
 % t returns the filtered list (cell or char array, depending on input),
 % ind an index array, such that t = files{ind}, or t = files(ind,:).
 %
-% FORMAT spm_select('prevdirs',dir)
+% FORMAT spm_select('PrevDirs',dir)
 % Add directory dir to list of previous directories.
-% FORMAT dirs = spm_select('prevdirs')
+% FORMAT dirs = spm_select('PrevDirs')
 % Retrieve list of previous directories.
-
+%
+% FORMAT files = spm_select('Expand',files)
+% Return a list of image filenames with appended frame numbers.
 
 persistent isInitSelect;
 if isempty(isInitSelect)
@@ -93,7 +94,7 @@ if isempty(isInitSelect)
 end
 
 %-Commands that are not passed to cfg_getfile
-local_cmds = {'regfilter', 'init'};
+local_cmds = {'regfilter', 'init', 'expand'};
 
 if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
     switch lower(varargin{1})
@@ -119,6 +120,10 @@ if nargin && ischar(varargin{1}) && any(strcmpi(varargin{1},local_cmds))
             cfg_getfile('regfilter', 'image',...
                 {'.*\.nii(,\d+){0,2}$','.*\.img(,\d+){0,2}$'},...
                 false, @spm_select_image, {frames});
+            
+        case 'expand'
+            varargout{1} = spm_select_expand(varargin{2});
+            if ischar(varargin{2}), varargout{1} = char(varargout{1}); end
     end
 else
     needchar = false;
@@ -182,9 +187,8 @@ switch lower(cmd)
             % end
             for i=1:numel(files)
                 try
-                    ni = nifti(fullfile(dr,files{i}));
-                    dm = [ni.dat.dim 1 1 1 1 1];
-                    d4 = (1:dm(4))';
+                    n = spm_select_get_nbframes(fullfile(dr,files{i}));
+                    d4 = (1:n)';
                 catch
                     d4 = 1;
                 end
@@ -221,3 +225,74 @@ switch lower(cmd)
         varargout{1} = varargin{1};
         varargout{2} = 1:numel(varargout{1});
 end
+
+
+%==========================================================================
+% FUNCTION ofiles = spm_select_expand(ifiles)
+%==========================================================================
+function ofiles = spm_select_expand(ifiles)
+ifiles = cellstr(ifiles);
+ofiles = {};
+for i=1:numel(ifiles)
+    [p,f,e,n] = spm_fileparts(ifiles{i});
+    if ~isempty(n)
+        ofiles = [ofiles; ifiles{i}];
+    else
+        n = spm_select_get_nbframes(ifiles{i});
+        vfiles = cell(n,1);
+        for j=1:n
+            vfiles{j} = [ifiles{i} ',' num2str(j)];
+        end
+        ofiles = [ofiles; vfiles];
+    end
+end
+
+
+%==========================================================================
+% FUNCTION n = spm_select_get_nbframes(file)
+%==========================================================================
+function n = spm_select_get_nbframes(file)
+N   = nifti(file);
+dim = [N.dat.dim 1 1 1 1 1];
+n   = dim(4);
+
+% % A faster, direct implementation
+% [p,f,e] = fileparts(file);
+% unchanged = true;
+% ind = find(e==',');
+% if ~isempty(ind)
+%     unchanged = false;
+%     e = e(1:(ind(1)-1));
+% end
+% switch e
+%     case {'.img'}
+%         unchanged = false;
+%         e = '.hdr';
+%     case {'.IMG'}
+%         unchanged = false;
+%         e = '.HDR';
+% end
+% if ~unchanged
+%     file = fullfile(p,[f e]);
+% end
+% 
+% n = [];
+% 
+% fp  = fopen(file,'r','native');
+% if fp==-1, return; end
+% 
+% %sts = fseek(fp,344,'bof');
+% %if sts==-1, fclose(fp); return; end
+% %mgc = deblank(char(fread(fp,4,'uint8')'));
+% 
+% sts = fseek(fp,40,'bof');
+% if sts==-1, fclose(fp); return; end
+% dim = fread(fp,8,'*int16');
+% fclose(fp);
+% if isempty(dim), return; end
+% if dim(1)<1 || dim(1)>7
+%     dim = swapbytes(dim);
+% end
+% dim = double(dim(2:(dim(1)+1)))';
+% dim = [dim 1 1 1 1 1];
+% n   = dim(4);
