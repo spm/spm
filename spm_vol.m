@@ -31,7 +31,7 @@ function V = spm_vol(P)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol.m 5925 2014-03-20 16:47:44Z guillaume $
+% $Id: spm_vol.m 5958 2014-04-16 17:13:41Z guillaume $
 
 
 if ~nargin
@@ -55,6 +55,7 @@ elseif iscell(P)
     V = cellfun(@spm_vol,P, 'UniformOutput',false);
     
 else
+    V = spm_vol;
     cnt = 0;
     for i=1:size(P,1)
         v = spm_vol_hdr(deblank(P(i,:)));

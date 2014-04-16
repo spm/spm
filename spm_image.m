@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_image.m 5958 2014-04-16 17:13:41Z guillaume $
 
 
-SVNid = '$Rev: 5944 $';
+SVNid = '$Rev: 5958 $';
 
 global st
 
@@ -77,6 +77,7 @@ switch lower(action)
         P = varargin{1};
     end
     if ischar(P), P = spm_vol(P); end
+    if isempty(P), return; end
     P = P(1);
 
     cmd = 'spm_image(''display'',''%s'')';

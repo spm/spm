@@ -5,10 +5,10 @@ function V = spm_vol_nifti(P,n)
 %  n - volume id (a 1x2 array, e.g. [3,1])
 %  V - a structure containing the image volume information
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_vol_nifti.m 4495 2011-09-20 18:30:22Z guillaume $
+% $Id: spm_vol_nifti.m 5958 2014-04-16 17:13:41Z guillaume $
 
 
 if nargin<2,  n = [1 1];      end
@@ -22,7 +22,7 @@ end
 n  = [n 1 1];
 n  = n(1:2);
 dm = [N.dat.dim 1 1 1 1];
-if any(n>dm(4:5)), V = []; return; end
+if any(n>dm(4:5)), V = struct([]); return; end
 
 dt = struct(N.dat);
 dt = double([dt.dtype dt.be]);
