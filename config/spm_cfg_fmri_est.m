@@ -3,7 +3,7 @@ function fmri_est = spm_cfg_fmri_est
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_est.m 5809 2013-12-20 14:30:22Z guillaume $
+% $Id: spm_cfg_fmri_est.m 5959 2014-04-16 17:14:33Z will $
 
 
 %==========================================================================
@@ -380,7 +380,7 @@ method.tag     = 'method';
 method.name    = 'Method';
 method.val     = {Classical};
 method.help    = {
-                  'There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses a Variational Bayes (VB) algorithm that is new to SPM5. Option (3) uses the Empirical Bayes algorithm with global shrinkage priors that was also in SPM2. '
+                  'There are three possible estimation procedures for fMRI models (1) classical (ReML) estimation of first or second level models, (2) Bayesian estimation of first level models and (3) Bayesian estimation of second level models. Option (2) uses spatial or global shrinkage priors. Option (3) uses global shrinkage priors. '
                   ''
                   'To use option (3) you must have already estimated the model using option (1). That is, for second-level models you must run a ReML estimation before running a Bayesian estimation. This is not necessary for option (2). Bayesian estimation of 1st-level models using VB does not require a prior ReML estimation.'
 }';

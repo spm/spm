@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5871 2014-02-07 18:25:06Z guillaume $
+% $Id: spm_getSPM.m 5959 2014-04-16 17:14:33Z will $
 
 
 %-GUI setup
@@ -513,10 +513,6 @@ if isfield(SPM,'PPM')
         SPM.PPM.xCon(Ic).PSTAT = xCon(Ic).STAT;
     end
     
-    % Make all new contrasts Bayesian contrasts 
-    %----------------------------------------------------------------------
-    [xCon(Ic).STAT] = deal('P');
-    
     if all(strcmp([SPM.PPM.xCon(Ic).PSTAT],'T'))
         
         % Simple contrast
@@ -533,29 +529,36 @@ if isfield(SPM,'PPM')
                 Gamma = 0.1;
                 xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
             end
+            xCon(Ic).STAT='P';
             
-        elseif nc == 1 && isempty(xCon(Ic).Vcon) % 2nd level Bayes
-            % con image not yet written
+        else % 2nd level Bayes
             %--------------------------------------------------------------
-            if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
-                
-                %-Get Bayesian threshold (Gamma) stored in xCon(Ic).eidf
-                % The default is one conditional s.d. of the contrast
-                %----------------------------------------------------------
-                try
-                    xCon(Ic).eidf = xSPM.gamma;
-                catch
-                    Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
-                    xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
+            if isempty(xCon(Ic).Vcon)
+                % If this is first time contrast is specified then
+                % ask user if it will be Bayesian or Classical
+                if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
+                    xCon(Ic).STAT = 'P';
                 end
-                xCon(Ic).STAT = 'P';
+            end
+            % If Bayesian then get effect size threshold (Gamma) stored in xCon(Ic).eidf
+            % The default is one conditional s.d. of the contrast
+            %----------------------------------------------------------
+            if strcmp(xCon(Ic).STAT,'P')
+                Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+                xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
             end
         end
     else
-        % Compound contrast using Chi^2 statistic
-        %------------------------------------------------------------------
-        if ~isfield(xCon(Ic),'eidf') || isempty(xCon(Ic).eidf)
-            xCon(Ic).eidf = 0; % temporarily
+        if isempty(xCon(Ic).Vcon)
+            % If this is first time contrast is specified then
+            % ask user if it will be Bayesian or Classical
+            %--------------------------------------------------------------
+            if spm_input('Inference',1,'b',{'Bayesian','classical'},[1 0]);
+                % Chi^2 statistic - 1st Level Bayes
+                % Savage-Dickey - 2nd Level Bayes
+                xCon(Ic).eidf = 0; % temporarily
+                xCon(Ic).STAT='P';
+            end
         end
     end
 end
@@ -600,7 +603,11 @@ switch STAT
     case 'F'
         STATstr = sprintf('%c%s_{%.0f,%.0f}','F',str,df(1),df(2));
     case 'P'
-        STATstr = sprintf('%s^{%0.2f}','PPM',df(1));
+        if strcmp(SPM.PPM.xCon(Ic).PSTAT,'T')
+            STATstr = sprintf('%s^{%0.2f}','PPM',df(1));
+        else
+            STATstr='PPM';
+        end
 end
 
 
@@ -778,20 +785,14 @@ if STAT ~= 'P'
 %-Height threshold - Bayesian inference
 %--------------------------------------------------------------------------
 elseif STAT == 'P'
-    
-%     u_default = 1 - 1/SPM.xVol.S;
-%     str       = 'Posterior probability threshold for PPM';
-%     u         = spm_input(str,'+0','r',u_default,1);
-%     thresDesc = ['P>'  num2str(u) ' (PPM)'];
-    
     try
         u = xSPM.u;
     catch
         u_default = 10;
-        str       = 'Log-Odds Threshold for PPM';
+        str       = 'Log Odds Threshold for PPM';
         u         = spm_input(str,'+0','r',u_default,1);
     end
-    thresDesc = ['P > '  num2str(u) ' (PPM)'];
+    thresDesc = ['Log Odds > '  num2str(u)];
     
 end % (if STAT)
 

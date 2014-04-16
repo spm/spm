@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5825 2014-01-02 15:09:05Z guillaume $
+% $Id: spm_list.m 5959 2014-04-16 17:14:33Z will $
 
 
 %==========================================================================
@@ -172,7 +172,7 @@ case 'table'                                                        %-Table
         if xSPM.STAT ~= 'P'
             Title = 'p-values adjusted for search volume';
         else
-            Title = 'P = Log Bayes Factor';
+            Title = 'P = Log Odds';
         end
     end
     

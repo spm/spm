@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5903 2014-03-03 14:56:10Z guillaume $
+% $Id: spm_results_ui.m 5959 2014-04-16 17:14:33Z will $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5903 $'; 
+SVNid = '$Rev: 5959 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -413,7 +413,11 @@ switch lower(Action), case 'setup'                         %-Set up results
     text(get(h,'Extent')*[0;0;1;0],24,spm_file(SPM.swd,'short30'),'Parent',hResAx)
     try
         thresDesc = xSPM.thresDesc;
-        text(0,12,sprintf('Height threshold %c = %0.6f  {%s}',xSPM.STAT,xSPM.u,thresDesc),'Parent',hResAx)
+        if strcmp(xSPM.STAT,'P')
+            text(0,12,sprintf('Height threshold %s',thresDesc),'Parent',hResAx)
+        else
+            text(0,12,sprintf('Height threshold %c = %0.6f  {%s}',xSPM.STAT,xSPM.u,thresDesc),'Parent',hResAx)
+        end
     catch
         text(0,12,sprintf('Height threshold %c = %0.6f',xSPM.STAT,xSPM.u),'Parent',hResAx)
     end
