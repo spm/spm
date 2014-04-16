@@ -43,9 +43,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5955 2014-04-15 15:35:44Z vladimir $
+% $Id: spm_eeg_epochs.m 5957 2014-04-16 15:23:19Z vladimir $
 
-SVNrev = '$Rev: 5955 $';
+SVNrev = '$Rev: 5957 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -164,8 +164,6 @@ ntrial = size(trl, 1);
 %--------------------------------------------------------------------------
 if isTF
     Dnew = clone(D, [S.prefix fname(D)], [D.nchannels, D.nfrequencies, nsampl, ntrial]);
-    
-    Dnew = frequencies(Dnew, ':', D.frequencies);
 else
     Dnew = clone(D, [S.prefix fname(D)], [D.nchannels, nsampl, ntrial]);
 end

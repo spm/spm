@@ -11,7 +11,7 @@ function new = clone(this, fnamedat, dim, reset)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Vladimir Litvak
-% $Id: clone.m 5808 2013-12-19 14:48:54Z vladimir $
+% $Id: clone.m 5957 2014-04-16 15:23:19Z vladimir $
 
 if nargin < 4
     reset = 0;
@@ -101,5 +101,10 @@ new = check(new);
 
 % link into new meeg object
 new = link(new, d.fname, d.dtype, d.scl_slope, d.offset);
+
+if strncmpi(transformtype(new),'TF',2) && strncmpi(transformtype(this),'TF',2) ...
+        && (nfrequencies(new) == nfrequencies(this))
+    new = frequencies(new, ':', frequencies(this));
+end
 
 save(new);

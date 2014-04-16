@@ -37,9 +37,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_artefact.m 5957 2014-04-16 15:23:19Z vladimir $
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 5957 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -99,7 +99,7 @@ if isequal(S.mode, 'reject')
     %-Classify trials as bad if they have artefacts in good M/EEG channels
     %-or in non-M/EEG channels
     %--------------------------------------------------------------------------
-    badtrialind = find(any(bad(goodchanind, :)));
+    badtrialind = find(any(bad(goodchanind, :), 1));
     
     %-Update and save new dataset
     %--------------------------------------------------------------------------
