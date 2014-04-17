@@ -1,6 +1,6 @@
-function [u dg df] = spm_DEM_diff(M,u)
-% evaluates an active model given innovations z{i} and w{i}
-% FORMAT [u dgdv dgdx dfdv dfdx] = spm_ADEM_diff(M,u);
+function [u,dg,df] = spm_DEM_diff(M,u)
+% Evaluate an active model given innovations z{i} and w{i}
+% FORMAT [u dgdv dgdx dfdv dfdx] = spm_DEM_diff(M,u);
 %
 % M    - generative model
 %
@@ -14,10 +14,11 @@ function [u dg df] = spm_DEM_diff(M,u)
 %
 % The system is evaluated at the prior expectation of the parameters
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
- 
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
-% $Id: spm_DEM_diff.m 4247 2011-03-14 18:16:50Z karl $
+% $Id: spm_DEM_diff.m 5962 2014-04-17 12:47:43Z spm $
+
 
 % Check for action (ADEM)
 %==========================================================================
@@ -80,15 +81,15 @@ for  i = (nl - 1):-1:1
     % evaluate
     %----------------------------------------------------------------------
     if ADEM
-        [dgdx g] = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
-        [dfdx f] = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
+        [dgdx,g] = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
+        [dfdx,f] = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
         dgdv     = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,2);
         dfdv     = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,2);
         dgda     = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,3);
         dfda     = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,3);
     else
-        [dgdx g] = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,1);
-        [dfdx f] = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,1);
+        [dgdx,g] = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,1);
+        [dfdx,f] = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,1);
         dgdv     = spm_diff(M(i).g,xi{i},vi{i + 1},M(i).pE,2);
         dfdv     = spm_diff(M(i).f,xi{i},vi{i + 1},M(i).pE,2);
         dgda     = [];

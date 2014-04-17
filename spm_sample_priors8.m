@@ -11,11 +11,11 @@ function [s,ds1,ds2,ds3] = spm_sample_priors8(tpm,x1,x2,x3)
 % V = spm_vol(P);
 % T = spm_load_priors(V);
 % B = spm_sample_priors(T,X,Y,Z);
-%____________________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_sample_priors8.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_sample_priors8.m 5962 2014-04-17 12:47:43Z spm $
 
 deg  = tpm.deg;
 tiny = tpm.tiny;
@@ -77,5 +77,4 @@ else
         ds2{k} = s{k}.*(ds2{k} - da2); ds2{k}(msk) = 0;
         ds3{k} = s{k}.*(ds3{k} - da3); ds3{k}(msk) = 0;
     end
-end;
-
+end

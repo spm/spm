@@ -6,11 +6,11 @@ function [Fm] = spm_vpca_f (pca,c)
 % c     information about single component
 %
 % Fm    negative free energy of model
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca_f.m 4651 2012-02-09 16:03:39Z will $
+% $Id: spm_vpca_f.m 5962 2014-04-17 12:47:43Z spm $
 
 
 d=pca.d;

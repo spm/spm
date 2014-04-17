@@ -10,11 +10,11 @@ function [pca,c] = spm_vpca_update (T,S,pca,c,m)
 % m     cluster number (used for mixtures of VPCA model)
 %
 % pca,c updated info
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca_update.m 4651 2012-02-09 16:03:39Z will $
+% $Id: spm_vpca_update.m 5962 2014-04-17 12:47:43Z spm $
 
 q=c(m).q;
 d=pca.d;
@@ -85,5 +85,3 @@ if pca.M==1
     pca.qb_tau=pca.b_tau+0.5*c(m).sum_quad_exp;
     pca.mean_tau=pca.qa_tau/pca.qb_tau;
 end
-
-

@@ -16,18 +16,21 @@ function [M,h] = spm_maff8(varargin)
 %           'rigid'   - rigid(ish)-body registration
 %           'subj'    - inter-subject registration
 %           'none'    - no regularisation
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_maff8.m 5782 2013-12-05 16:11:14Z john $
+% $Id: spm_maff8.m 5962 2014-04-17 12:47:43Z spm $
 
 [buf,MG,x,ff] = loadbuf(varargin{1:3});
 [M,h]         = affreg(buf, MG, x, ff, varargin{4:end});
 
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function [buf,MG,x,ff] = loadbuf(V,samp,fwhm)
+%==========================================================================
 function [buf,MG,x,ff] = loadbuf(V,samp,fwhm)
 if ischar(V), V = spm_vol(V); end;
 d       = V(1).dim(1:3);
@@ -41,7 +44,7 @@ x3      = 1:sk(3):d(3);
 s    = (fwhm+mean(vx))/sqrt(8*log(2));                 % Standard deviation
 ff   = prod(4*pi*(s./vx./sk).^2 + 1)^(1/2);
 
-%% Old version of fudge factor
+% Old version of fudge factor
 %ff  = max(1,ff^3/prod(sk)/abs(det(V(1).mat(1:3,1:3))));
 
 % Load the image
@@ -96,9 +99,11 @@ spm_progress_bar('Clear');
 MG = V.mat;
 x  = {x1,x2,x3};
 return;
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% function [M,h0] = affreg(buf,MG,x,ff,tpm,M,regtyp)
+%==========================================================================
 function [M,h0] = affreg(buf,MG,x,ff,tpm,M,regtyp)
 % Mutual Information Registration
 
@@ -137,8 +142,8 @@ for iter=1:200
     y2a     = T(2,1)*x1 + T(2,2)*x2 + T(2,4);
     y3a     = T(3,1)*x1 + T(3,2)*x2 + T(3,4);
 
-    for i=1:length(x3),
-        if ~buf(i).nm, continue; end;
+    for i=1:length(x3)
+        if ~buf(i).nm, continue; end
         y1    = y1a(buf(i).msk) + T(1,3)*x3(i);
         y2    = y2a(buf(i).msk) + T(2,3)*x3(i);
         y3    = y3a(buf(i).msk) + T(3,3)*x3(i);
@@ -151,15 +156,15 @@ for iter=1:200
         buf(i).b    = b;
         buf(i).msk1 = msk;
         buf(i).nm1  = sum(buf(i).msk1);
-    end;
+    end
 
     ll0 = 0;
-    for subit=1:60,
+    for subit=1:60
         h0  = zeros(256,numel(tpm.dat))+eps;
         ll1 = ll0;
         ll0 = 0;
         for i=1:length(x3),
-            if ~buf(i).nm || ~buf(i).nm1, continue; end;
+            if ~buf(i).nm || ~buf(i).nm1, continue; end
             gm    = double(buf(i).g(buf(i).msk1))+1;
             q     = zeros(numel(gm),size(h0,2));
             for k=1:size(h0,2),
@@ -172,14 +177,14 @@ for iter=1:200
             for k=1:size(h0,2),
                 h0(:,k) = h0(:,k) + accumarray(gm,q(:,k)./sq,[256 1]);
             end
-        end;
+        end
         if ~rem(subit,4) && (ll0-ll1)/sum(h0(:)) < 1e-5, break; end
         h1  = conv2((h0+eps)/sum(h0(:)),krn,'same');
        %figure(9); plot(log(h0+1)); drawnow;
 
         h1  = h1./(sum(h1,2)*sum(h1,1));
     end
-    for i=1:length(x3),
+    for i=1:length(x3)
         buf(i).b    = [];
         buf(i).msk1 = [];
     end
@@ -188,8 +193,8 @@ for iter=1:200
     ll1   = (sum(sum(h0.*log(h1))) - penalty)/ssh/log(2);
    %fprintf('%g\t%g\n', sum(sum(h0.*log2(h1)))/ssh, -penalty/ssh);
     spm_plot_convergence('Set',ll1);
-    if abs(ll1-ll)<1e-5, break; end;
-    if (ll1<ll),
+    if abs(ll1-ll)<1e-5, break; end
+    if (ll1<ll)
         stepsize = stepsize*0.5;
         h1       = oh1;
         R        = derivs(tpm.M,sol,MG);
@@ -203,8 +208,8 @@ for iter=1:200
     end
     Alpha = zeros(12);
     Beta  = zeros(12,1);
-    for i=1:length(x3),
-        if ~buf(i).nm, continue; end;
+    for i=1:length(x3)
+        if ~buf(i).nm, continue; end
         gi    = double(buf(i).g)+1;
         y1    = y1a(buf(i).msk) + T(1,3)*x3(i);
         y2    = y2a(buf(i).msk) + T(2,3)*x3(i);
@@ -217,20 +222,20 @@ for iter=1:200
         gi    = gi(msk);
 
         nz    = size(y1,1);
-        if nz,
+        if nz
             mi    = zeros(nz,1) + eps;
             dmi1  = zeros(nz,1);
             dmi2  = zeros(nz,1);
             dmi3  = zeros(nz,1);
             [b, db1, db2, db3] = spm_sample_priors8(tpm,y1,y2,y3);
 
-            for k=1:size(h0,2),
+            for k=1:size(h0,2)
                 tmp  = h1(gi,k);
                 mi   = mi   + tmp.*b{k};
                 dmi1 = dmi1 + tmp.*db1{k};
                 dmi2 = dmi2 + tmp.*db2{k};
                 dmi3 = dmi3 + tmp.*db3{k};
-            end;
+            end
             dmi1 = dmi1./mi;
             dmi2 = dmi2./mi;
             dmi3 = dmi3./mi;
@@ -252,13 +257,16 @@ for iter=1:200
 
     % Gauss-Newton update
     sol1  = sol - stepsize*((Alpha+Alpha0)\(Beta+Alpha0*(sol-mu)));
-end;
+end
 
 spm_plot_convergence('Clear');
 M = P2M(sol);
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function P = M2P(M)
+%==========================================================================
 function P = M2P(M)
 % Polar decomposition parameterisation of affine transform,
 % based on matrix logs
@@ -275,8 +283,11 @@ P(4:6)  = lR([2 3 6]);
 P(7:12) = lV([1 2 3 5 6 9]);
 P       = real(P);
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function M = P2M(P)
+%==========================================================================
 function M = P2M(P)
 % Polar decomposition parameterisation of affine transform,
 % based on matrix logs
@@ -299,12 +310,15 @@ V      = expm(T+T'-diag(diag(T)));
 
 M      = [V*R D ; 0 0 0 1];
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
+
+
+%==========================================================================
+% function R = derivs(MF,P,MG)
+%==========================================================================
 function R = derivs(MF,P,MG)
 % Numerically compute derivatives of Affine transformation matrix w.r.t.
 % changes in the parameters.
-R = zeros(12,12);
+R  = zeros(12,12);
 M0 = MF\P2M(P)*MG;
 M0 = M0(1:3,:);
 for i=1:12
@@ -314,8 +328,5 @@ for i=1:12
     M1     = MF\P2M(P1)*MG;
     M1     = M1(1:3,:);
     R(:,i) = (M1(:)-M0(:))/dp;
-end;
+end
 return;
-%_______________________________________________________________________
-%_______________________________________________________________________
-

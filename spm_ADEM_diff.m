@@ -1,5 +1,5 @@
-function [u dg df] = spm_ADEM_diff(M,u)
-% evaluates an active model given innovations z{i} and w{i}
+function [u,dg,df] = spm_ADEM_diff(M,u)
+% Evaluate an active model given innovations z{i} and w{i}
 % FORMAT [u dg df] = spm_ADEM_diff(M,u);
 %
 % M    - generative model
@@ -12,13 +12,14 @@ function [u dg df] = spm_ADEM_diff(M,u)
 %
 % dg.dv, ...  components of the Jacobian in generalised coordinates
 %
-% The system is evaluated at the prior expectation of the parameters
+% The system is evaluated at the prior expectation of the parameters.
 %__________________________________________________________________________
-% Copyright (C) 2005 Wellcome Department of Imaging Neuroscience
- 
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
+
 % Karl Friston
-% $Id: spm_ADEM_diff.m 4712 2012-04-10 13:22:50Z karl $
- 
+% $Id: spm_ADEM_diff.m 5962 2014-04-17 12:47:43Z spm $
+
+
 % number of states and parameters
 %--------------------------------------------------------------------------
 nl    = size(M,2);                        % number of levels
@@ -59,8 +60,8 @@ for  i = (nl - 1):-1:1
  
     % evaluate
     %----------------------------------------------------------------------
-    [dgdx g] = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
-    [dfdx f] = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
+    [dgdx,g] = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
+    [dfdx,f] = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,1);
     dgdv     = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,2);
     dfdv     = spm_diff(M(i).f,xi{i},vi{i + 1},ai{i + 1},M(i).pE,2);
     dgda     = spm_diff(M(i).g,xi{i},vi{i + 1},ai{i + 1},M(i).pE,3);

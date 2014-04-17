@@ -28,18 +28,18 @@ function [pca] = spm_vpca (T,q,Bayes)
 %       Prior precisions of Factor magnitudes: mean_alpha
 %       Prior precision of Mean: mean_beta
 %
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca.m 4651 2012-02-09 16:03:39Z will $
+% $Id: spm_vpca.m 5962 2014-04-17 12:47:43Z spm $
 
 [d,N]=size(T);
-if nargin < 2 | isempty(q)
+if nargin < 2 || isempty(q)
     % Set latent space dimensionality to max possible 
     q=d-1;
 end
-if nargin < 3 | isempty(Bayes)
+if nargin < 3 || isempty(Bayes)
     Bayes=1;
 end
 

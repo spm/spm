@@ -25,11 +25,12 @@ function [M_opt,log_ev,lambda,var] = spm_pca_order (X, N)
 % W. Penny, S. Roberts and R. Everson (2000) ICA: model order selection
 % and dynamic source models. ICA: Principles and Practice, pages 299-314. 
 % Cambridge University Press.
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_pca_order.m 5390 2013-04-04 16:04:31Z vladimir $
+% $Id: spm_pca_order.m 5962 2014-04-17 12:47:43Z spm $
+
 
 if nargin == 1
     [N,d]=size(X);
@@ -80,4 +81,3 @@ end
 [max_ev,M_opt]=max(log_ev);
 
 var=mean(lambda(M_opt+1:d));
-

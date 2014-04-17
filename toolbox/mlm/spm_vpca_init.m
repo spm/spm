@@ -10,12 +10,11 @@ function [W_ml,lambda,sigma2] = spm_vpca_init (T, form_cov)
 % W_ml      Maximum Likelihood (ML) estimate of factor matrix
 % lambda    eigenvalues
 % sigma2    Observation noise variance
-%
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Department of Imaging Neuroscience
+%__________________________________________________________________________
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vpca_init.m 4651 2012-02-09 16:03:39Z will $
+% $Id: spm_vpca_init.m 5962 2014-04-17 12:47:43Z spm $
 
 % Maximum size of data set that SVD can handle given typical PC memory
 max_size=10^6;
@@ -34,7 +33,7 @@ end
 q=min(d,N)-1; % Set latent space dimensionality to max possible 
 noise_dim=q+1;
 
-if nargin < 2 | isempty(form_cov)
+if nargin < 2 || isempty(form_cov)
     form_cov=0;
 end
 
@@ -58,4 +57,3 @@ sigma2=mean(lambda(noise_dim));
 lambda=lambda(1:q);
     
 W_ml=v*diag(sqrt(lambda-sigma2));
-

@@ -1,8 +1,7 @@
-function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
-%
+function VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % Function to prepare fieldmap data for processing
 % 
-% FORMAT VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs)
+% FORMAT VDM = FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % fm_dir    - name of directory containing fieldmap images
 % epi_dir   - name of directory containing epi images (needs first epi in time
 %             series to match the fieldmap to).
@@ -60,15 +59,13 @@ function VDM=FieldMap_preprocess(fm_dir,epi_dir,pm_defs,sessname)
 % done by default with a siemens field map (set 6th flag to 0) 
 % and the matching of the fieldmap to the EPI (set 7th flag to 0).
 % 
-% 27/02/07 - Updated for SPM5.
-% 20/02/08 - Updated to generate session specific versions of the 
-% vdm file that have been matched to the first image of each session.
-%_______________________________________________________________________
-% Copyright (C) 2006 Wellcome Department of Imaging Neuroscience
+% This function generates session specific versions of the vdm file that
+% have been matched to the first image of each session.
+%__________________________________________________________________________
+% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Chloe Hutton 
-% $Id: FieldMap_preprocess.m 4842 2012-08-15 18:02:30Z guillaume $
-%_______________________________________________________________________
+% $Id: FieldMap_preprocess.m 5962 2014-04-17 12:47:43Z spm $
 
  
 if nargin < 3
@@ -113,9 +110,9 @@ else
    error('Sorry the parameter epifm must be 0 or 1');
 end
 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Match the VDM to EPI unless unless switched off in pm_defs(7)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 pm_def.match_vdm=1;
 if size(pm_defs,1)>6 || size(pm_defs,2)>6
    if pm_defs(7)==0
@@ -123,9 +120,9 @@ if size(pm_defs,1)>6 || size(pm_defs,2)>6
    end
 end
 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Write the unwarped EPI unless unless switched off in pm_defs(8)
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 pm_def.write_unwarped=1;
 if size(pm_defs,1)>7 || size(pm_defs,2)>7
    if pm_defs(8)==0
@@ -133,9 +130,9 @@ if size(pm_defs,1)>7 || size(pm_defs,2)>7
    end
 end
 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Load epi data from data directory for each session if necessary
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if iscell(epi_dir)
    nsessions = size(epi_dir,2);
    for sessnum=1:nsessions
@@ -149,9 +146,9 @@ elseif ischar(epi_dir)
    epi_img{sessnum}=fullfile(epi_dir,epi_all(1,:));
 end
 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Load field map data from fieldmap directory
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if strcmp(pm_def.INPUT_DATA_FORMAT,'PM')
    fm_imgs = strvcat(spm_select('List',fm_dir,'^s.*\.nii$'),spm_select('List',fm_dir,'^s.*\.img$'));
    if ~isempty(fm_imgs)
@@ -211,9 +208,7 @@ else
    error('Funny input format specified. FieldMap needs short-real, short-imag, long-real, long-imag')
 end
 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % Run function to create vdm file 
-%----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 VDM = FieldMap_create(fm_imgs,epi_img,pm_def);
-
-return

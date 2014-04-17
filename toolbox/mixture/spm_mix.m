@@ -9,7 +9,7 @@ function [mix] = spm_mix (y,m,verbose)
 %
 % mix        Returned model
 %
-% -------------------------------------------------------
+%--------------------------------------------------------------------------
 % The fields in mix are:
 %
 % m                The number of components
@@ -38,11 +38,11 @@ function [mix] = spm_mix (y,m,verbose)
 % a_0,B_0          Prior precisions, p(Gamma)=W(a_0,B_0)
 % m_0,beta_0       Prior means, p(mu)=N(m_0,beta_0 Gamma_s)
 %
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2007-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mix.m 4575 2011-11-28 16:18:10Z will $
+% $Id: spm_mix.m 5962 2014-04-17 12:47:43Z spm $
 
 % This code implements the algorithm in:
 %
@@ -275,6 +275,3 @@ for j=1:m,
     mix.state(j).prior=pi_bar(j);
     mix.state(j).C=mix.state(j).B/mix.state(j).a;
 end
-
-
-
