@@ -3,10 +3,10 @@ function V = spm_create_vol(V)
 % FORMAT V = spm_create_vol(V)
 % V        - image volume information (see spm_vol.m)
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_create_vol.m 5734 2013-11-06 14:39:35Z vladimir $
+% $Id: spm_create_vol.m 5963 2014-04-17 19:27:46Z guillaume $
 
 
 for i=1:numel(V)
@@ -148,7 +148,7 @@ if ~isempty(N0)
             N.extras.mat(:,:,V.n(1)) = V.mat;
         end
     else
-        if sum(sum((N0.mat-V.mat).^2))>1e-8,
+        if sum(sum((N0.mat-V.mat).^2))>1e-8
             N.extras.mat(:,:,V.n(1)) = V.mat;
         end
     end
@@ -162,15 +162,19 @@ if ~isempty(N0)
     end
 end
 
-if isfield(N.extras,'mat'),
+if isfield(N.extras,'mat')
     M0 = N.mat;
-    for i=1:size(N.extras.mat,3),
-        if sum((M0-N.extras.mat(:,:,i)).^2) < 1e-8,
+    for i=1:size(N.extras.mat,3)
+        if sum((M0-N.extras.mat(:,:,i)).^2) < 1e-8
             N.extras.mat(:,:,i) = 0;
         end
     end
-    if sum(N.extras.mat(:).^2) < 1e-8*size(N.extras.mat,3),
+    if sum(N.extras.mat(:).^2) < 1e-8*size(N.extras.mat,3)
         N.extras = [];
+        if ~isempty(N0) && ~isempty(N0.extras) && isstruct(N0.extras) && isfield(N0.extras,'mat')
+            warning('Forcing deletion of MAT-file.');
+            spm_unlink(spm_file(N.dat.fname,'ext','mat'));
+        end
     end
 end
 
