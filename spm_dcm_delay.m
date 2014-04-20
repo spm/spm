@@ -1,7 +1,7 @@
-function [Q,J] = spm_dcm_delay(M,P)
+function [Q,J] = spm_dcm_delay(P,M)
 % returns the delay operator for flow and Jacobians of dynamical systems
-% FORMAT [Q,J] = spm_dcm_delay(M,P)
-%
+% FORMAT [Q,J] = spm_dcm_delay(P,M)
+% P   - model parameters
 % M   - model specification structure
 % Required fields:
 %   M.f - dx/dt    = f(x,u,P,M)            {function string or m-file}
@@ -10,8 +10,6 @@ function [Q,J] = spm_dcm_delay(M,P)
 %   M.x - (n x 1) = x(0) = expansion point: defaults to x = 0;
 %   M.u - (m x 1) = u    = expansion point: defaults to u = 0;
 %
-% P     - model parameters
-% D     - delay matrix (among hidden states): default D = zeros(n,n)
 %
 % return the delay operator for Jacobians of dynamical systems where the
 % states are
@@ -27,7 +25,7 @@ function [Q,J] = spm_dcm_delay(M,P)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_dcm_delay.m 5964 2014-04-20 09:48:58Z karl $
 
 
 % evaluate delay matrix D from parameters
@@ -69,7 +67,6 @@ else
     D = sparse(0);
     
 end
-
 
 
 % create inline functions

@@ -14,7 +14,7 @@ function [b,a] = spm_csd_mtf_plot_pole_zero(P,M,U,region_stab)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Rosalyn Moran
-% $Id: spm_csd_mtf_plot_pole_zero.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_csd_mtf_plot_pole_zero.m 5964 2014-04-20 09:48:58Z karl $
 
 
 % compute log-spectral density
@@ -98,18 +98,9 @@ for  c = 1:size(X,1)
         
     end
     
-    
-    % get delay operator
+    % augment and bi-linearise
     %----------------------------------------------------------------------
-    try
-        M.D = spm_dcm_delay(M,Q);
-    catch
-        M.D = 1;
-    end
-    
-    
-    % augment and bi-linearise (with intrinsic delays)
-    %----------------------------------------------------------------------
+    M.D       = 1;
     [M0,M1,L] = spm_bireduce(M,Q);
     
     % project onto spatial modes

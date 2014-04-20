@@ -1,20 +1,20 @@
-function [Y,w,t,x,G,S,E,dP] = spm_csd_int(P,M,U)
+function [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % Time frequency response of a neural mass model
-% FORMAT [Y,w,t,x,G,S,E,dP] = spm_csd_int(P,M,U)
+% FORMAT [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
 % U - time-dependent input
 %
-% Y  - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
-%                    - for w frequencies over time t in M.Hz
+% ERP  - {E(t,nc}}      - event-related average (sensor space)
+% CSD  - {Y(t,w,nc,nc}} - cross-spectral density for nc channels {trials}
+%                       - for w frequencies over time t in M.Hz
+% csd  - {G(t,w,nc,nc}} - cross spectrum density (before sampling)
+% mtf  - {S(t,w,nc,nu}} - transfer functions
 % w  - frequencies
 % t  - peristimulus time
 % x  - expectation of hidden (neuronal) states (for last trial)
-% G  - {G(t,w,nc,nc}} - cross spectrum density before dispersion
-% S  - {S(t,w,nc,nu}} - transfer functions
-% E  - {E(t,nc}}      - event-related average (sensor space)
-% dP - {dP(t,np)}     - parameter fluctuations (plasticity)
+% dP - {dP(t,np)}        - parameter fluctuations (plasticity)
 %__________________________________________________________________________
 %
 % This integration routine evaluates the responses of a neural mass model
@@ -29,7 +29,7 @@ function [Y,w,t,x,G,S,E,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5952 2014-04-13 20:58:59Z karl $
+% $Id: spm_csd_int.m 5964 2014-04-20 09:48:58Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -152,40 +152,48 @@ for c = 1:size(X,1)
         
         % compute complex cross spectral density
         %==================================================================
+        if nargout > 1
+            
+            % add exogenous input and expand around current states
+            %--------------------------------------------------------------
+            M.u     = sparse(nu,1);
+            M.x     = spm_unvec(x(:,i),M.x);
+            [g,w,s] = spm_csd_mtf(R,M);
+            
+            
+            % place CSD and transfer functions in response
+            %--------------------------------------------------------------
+            csd{c}(i,:,:,:) = g{1};
+            mtf{c}(i,:,:,:) = s{1};
+            
+            % remove exogenous input and reset expansion point 
+            %--------------------------------------------------------------
+            M.x     = spm_unvec(x(:,1),M.x);
+            M       = rmfield(M,'u');
+            
+        end
         
-        % use current states
-        %------------------------------------------------------------------
-        M.x     = spm_unvec(x(:,i),M.x);
-        M.u     = sparse(nu,1);
-        [g,w,s] = spm_csd_mtf(R,M);
- 
         
-        % place CSD and transfer functions in response
-        %------------------------------------------------------------------
-        G{c}(i,:,:,:) = g{1};
-        S{c}(i,:,:,:) = s{1};
-
-        
-        % update dx = (expm(dt*J) - I)*inv(J)*f(x,u) = LL*f(x,u)
+        % update dx = (expm(dt*J) - I)*inv(J)*f(x,u) = L*f(x,u)
         %==================================================================
         
-        % reset to expansion point (hidden states and exogenous input)
+        % update expected hidden states
         %------------------------------------------------------------------
-        M     = rmfield(M,'u');
-        M.x   = spm_unvec(x(:,1),M.x); 
         for j = 1:N
             x(:,i) = x(:,i) + L*f(x(:,i),u(:,i),R,M);
         end
         
-        % and ERP response
+        % and get ERP
         %------------------------------------------------------------------
         erp(:,i)  = feval(M.g,x(:,i),u(:,i),R,M);
         
     end
     
-    % model dispersion associated with wavelet transforms
+    % expected responses (under wavelet transforms)
     %----------------------------------------------------------------------
-    Y{c}  = spm_morlet_conv(G{c},w*dt,Rft);
-    E{c}  = erp';
+    ERP{c}  = erp';
+    if nargout > 1
+        CSD{c}  = spm_morlet_conv(csd{c},w*dt,Rft);
+    end
     
 end

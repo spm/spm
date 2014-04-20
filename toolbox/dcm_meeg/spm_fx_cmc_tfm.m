@@ -12,6 +12,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 %   x(:,6) - conductance (inhibitory interneurons)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
+% u        - exogenous input
 %
 % f        - dx(t)/dt  = f(x(t))
 % J        - df(t)/dx(t)
@@ -20,7 +21,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 %
 % Prior fixed parameter scaling [Defaults]
 %
-% E  = (forward, backward, lateral) extrinsic rates 
+% E  = (forward and backward) extrinsic rates 
 % G  = intrinsic rates
 % D  = propagation delays (intrinsic, extrinsic)
 % T  = synaptic time constants
@@ -33,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 5952 2014-04-13 20:58:59Z karl $
+% $Id: spm_fx_cmc_tfm.m 5964 2014-04-20 09:48:58Z karl $
  
  
 % get dimensions and configure state variables
@@ -44,9 +45,9 @@ n  = size(x,1);                       % number of sources
 
 % [default] fixed parameters
 %--------------------------------------------------------------------------
-E  = [1 1/8 1/4 1/2]*200;             % extrinsic (forward and backward)  
-G  = [8 4 8 4 4 2 6 4 2 2 1 8]*200;   % intrinsic connections
-T  = [190 170 12 8];                  % synaptic time constants
+E  = [8 2 2 2]*200;                   % extrinsic (forward and backward)  
+G  = [8 4 8 4 4 2 4 4 2 2 0 4]*200;   % intrinsic connections
+T  = [200 160 12 8];                  % synaptic time constants
 R  = 1;                               % slope of sigmoid activation function
 
 % [specified] fixed parameters
@@ -94,12 +95,15 @@ if isfield(M,'u')
     
     % endogenous input
     %----------------------------------------------------------------------
-    U = u(:)*256;
+    U   = u(:)*256;
+    M.m = size(U,1);
     
 else
     % exogenous input
     %----------------------------------------------------------------------
-    U = C*u(:)*32;
+    U   = C*u(:)*8;
+    M.m = size(C,2);
+    
 end
 
  
@@ -144,8 +148,8 @@ G    = ones(n,1)*G;
 %   S(:,7) - voltage     (deep pyramidal cells)
 %   S(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
-i          = 1:size(P.T,2);
-T(:,i)     = T(:,i).*exp(P.T);
+i       = 1:size(P.T,2);
+T(:,i)  = T(:,i).*exp(P.T);
 
 
 % intrinsic connections to be optimised (only the first is modulated)
@@ -217,7 +221,7 @@ if nargout < 2; return, end
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-[Q,J] = spm_dcm_delay(M,P);
+[Q,J] = spm_dcm_delay(P,M);
  
  
 return

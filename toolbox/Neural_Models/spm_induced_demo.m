@@ -32,7 +32,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5952 2014-04-13 20:58:59Z karl $
+% $Id: spm_induced_demo.m 5964 2014-04-20 09:48:58Z karl $
  
  
 % Model specification
@@ -55,7 +55,7 @@ M.dipfit.Ns    = Ns;
 A{1} = [0 0; 1 0];
 A{2} = [0 1; 0 0];
 A{3} = [0 0; 0 0];
-C    = [1; 0];
+C    = [1 0;0 1];
 
 % get priors
 %--------------------------------------------------------------------------
@@ -85,7 +85,7 @@ M.n   = nx;
 M.pE  = pE;
 M.m   = nu;
 M.l   = Nc;
-M.Hz  = 1:64;
+M.Hz  = 4:64;
 M.Rft = 4;
  
 % solve for steady state
@@ -98,7 +98,7 @@ M.x   = spm_dcm_neural_x(pE,M);
 % remove M.u to invoke exogenous inputs
 %--------------------------------------------------------------------------
 N     = 128;
-U.dt  = 4/1000;
+U.dt  = 4/1024;
 b     = (1:N)';
 pst   = (b-N/4)*U.dt;
 U.u   = sparse(N,M.m);
@@ -106,11 +106,13 @@ U.u   = sparse(N,M.m);
 
 % exogenous input – a sustained input of about 128 seconds
 %--------------------------------------------------------------------------
-U.u(:,1)  = spm_conv((pst > 64/1000 & pst < 72/1000)*32,8);
+M.ons    = 64;
+U.u(:,1) = spm_erp_u(pst,pE,M);
+
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
-[csd,w,t,x,CSD,mtf,erp,dP] = spm_csd_int(pE,M,U);
+[erp,csd,CSD,mtf,w,t,x,dP] = spm_csd_int(pE,M,U);
 
  
 % plot expected responses
@@ -144,14 +146,11 @@ plot(pst*1000,dP{1})
 xlabel('peristimulus time (ms)')
 title('intrinsic connectivity','FontSize',16)
 spm_axis tight
- 
 
  
 % expected time frequency response (coherence and cross-covariance)
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(CSD{1},pst,w,1)
-
-return
 
 % expected time frequency response
 %--------------------------------------------------------------------------
@@ -176,13 +175,12 @@ spm_dcm_tfm_response(xY,pst,w)
 %==========================================================================
 spm_figure('GetWin','Simulated trials');
  
- 
 % get serial correlations among random fluctuations
 %--------------------------------------------------------------------------
-Hz        = 1:M.Hz(end);
+Hz        = 1:128;
 Gu        = spm_csd_mtf_gu(pE,Hz);
 [ccf,lag] = spm_csd2ccf(full(Gu),Hz,U.dt);
-ccf       = ccf((length(ccf) + 1)/2:fix(U.dt/(lag(2) - lag(1))):end,1);
+ccf       = ccf((length(ccf) + 1)/2:end,1);
 ccf       = ccf(1:N)/max(ccf);
 ccf       = spm_sqrtm(toeplitz(ccf));
  
@@ -197,8 +195,9 @@ V     = U;
 Nt    = 16;
 for j = 1:Nt
     fprintf('\nsimulating trial %i',j)
-    V.u      = [U.u + ccf*randn(N,1), ccf*randn(N,1)];
-    D(:,:,j) = spm_int_J(qE,M,V);
+    V.u      = U.u + ccf*randn(N,M.m);
+    y        = spm_csd_int(qE,M,V);
+    D(:,:,j) = full(y{1});
 end
  
 % plot simulated data
@@ -226,7 +225,7 @@ title('simulated response and ERP','FontSize',16)
 spm_axis tight
 set(gca,'YLim',[-8 8])
  
- 
+
 % Time frequency response
 %--------------------------------------------------------------------------
 Nf    = length(M.Hz);

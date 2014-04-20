@@ -1,11 +1,9 @@
 function [u] = spm_erp_u(t,P,M)
 % returns the [scalar] input for EEG models (Gaussian function)
 % FORMAT [u] = spm_erp_u(t,P,M)
-%
+% t      - PST (seconds)
 % P      - parameter structure
 %   P.R  - scaling of [Gaussian] parameters
-%
-% t      - PST (seconds)
 %
 % u   - stimulus-related (subcortical) input
 %
@@ -18,7 +16,7 @@ function [u] = spm_erp_u(t,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_erp_u.m 5369 2013-03-28 20:09:27Z karl $
+% $Id: spm_erp_u.m 5964 2014-04-20 09:48:58Z karl $
 
 
 % preliminaries - check durations (ms)

@@ -29,7 +29,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 5952 2014-04-13 20:58:59Z karl $
+% $Id: spm_fp_cmc_tfm.m 5964 2014-04-20 09:48:58Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -37,7 +37,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 %   x(:,2) - conductance (spiny stellate cells)
 %   x(:,3) - voltage     (superficial pyramidal cells)
 %   x(:,4) - conductance (superficial pyramidal cells)
-%   x(:,5) - current     (inhibitory interneurons)
+%   x(:,5) - voltage     (inhibitory interneurons)
 %   x(:,6) - conductance (inhibitory interneurons)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
@@ -52,7 +52,8 @@ P  = spm_unvec(P,M.pE);               % neuronal parameters
 
 % neuronal populations with Voltage-dependent connectivity V
 %--------------------------------------------------------------------------
-f.G(:,1) = exp(32*exp(P.E(:,1)).*x(:,3)) - 1 - 8*exp(P.F(:,1)).*P.G(:,1);
+f.G(:,1) = exp(32*exp(P.E(:,1)).*x(:,3)) - 1 - 4*exp(P.F(:,1)).*P.G(:,1);
+f.G(:,2) = exp( 8*exp(P.E(:,2)).*x(:,5)) - 1 - 4*exp(P.F(:,2)).*P.G(:,2);
 
 % vectorise
 %--------------------------------------------------------------------------

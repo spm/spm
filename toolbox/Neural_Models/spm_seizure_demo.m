@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 5952 2014-04-13 20:58:59Z karl $ 
+% $Id: spm_seizure_demo.m 5964 2014-04-20 09:48:58Z karl $ 
  
 
 % Model specification
@@ -143,8 +143,8 @@ U.u   = sparse(N,M.m);
 
 % exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = tanh((t - 1/2)*32)*3/2;                 % modulatory input
-M.W      = inv(diag(sparse(1,1,8,1,M.n) + exp(-32)));
+U.u(:,1) = tanh((t - 1/2)*32);                 % modulatory input
+M.W      = inv(diag(sparse(1,1,1,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  
 % plot
