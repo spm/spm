@@ -25,7 +25,7 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5945 2014-04-10 09:29:15Z karl $
+% $Id: spm_dcm_mtf.m 5966 2014-04-25 14:37:59Z karl $
 
 
 % get local linear approximation
@@ -40,7 +40,7 @@ end
 % check expansion points
 %--------------------------------------------------------------------------
 try, M.x; catch, M.x = sparse(M.n,1); end
-try, M.u; catch, M.u = sparse(M.l,1); end
+try, M.u; catch, M.u = sparse(M.m,1); end
 
 % frequencies and peristimulus time of interest
 %--------------------------------------------------------------------------

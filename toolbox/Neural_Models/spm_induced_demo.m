@@ -32,11 +32,12 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5964 2014-04-20 09:48:58Z karl $
+% $Id: spm_induced_demo.m 5966 2014-04-25 14:37:59Z karl $
  
  
 % Model specification
 %==========================================================================
+rng('default')
  
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
@@ -66,6 +67,7 @@ x     = spm_dcm_x_neural(pE,options.model);
 
 % supress noise
 %--------------------------------------------------------------------------
+pE.a(1,:) = -2;
 pE.b(1,:) = -2;
 pE.c(1,:) = -2;
  
@@ -85,7 +87,7 @@ M.n   = nx;
 M.pE  = pE;
 M.m   = nu;
 M.l   = Nc;
-M.Hz  = 4:64;
+M.Hz  = 2:64;
 M.Rft = 4;
  
 % solve for steady state
@@ -147,7 +149,7 @@ xlabel('peristimulus time (ms)')
 title('intrinsic connectivity','FontSize',16)
 spm_axis tight
 
- 
+
 % expected time frequency response (coherence and cross-covariance)
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(CSD{1},pst,w,1)
@@ -157,6 +159,7 @@ spm_dcm_tfm_image(CSD{1},pst,w,1)
 spm_figure('GetWin','transfer functions');
 
 spm_dcm_tfm_transfer(mtf{1},pst,w)
+
 
 % simulated responses
 %==========================================================================
@@ -174,84 +177,71 @@ spm_dcm_tfm_response(xY,pst,w)
 % Integrate system to simulate responses
 %==========================================================================
 spm_figure('GetWin','Simulated trials');
- 
-% get serial correlations among random fluctuations
+
+
+% get spectral density of neuronal fluctuations
 %--------------------------------------------------------------------------
-Hz        = 1:128;
-Gu        = spm_csd_mtf_gu(pE,Hz);
-[ccf,lag] = spm_csd2ccf(full(Gu),Hz,U.dt);
-ccf       = ccf((length(ccf) + 1)/2:end,1);
-ccf       = ccf(1:N)/max(ccf);
-ccf       = spm_sqrtm(toeplitz(ccf));
- 
-% enable exogenous input to affect all sources
-%--------------------------------------------------------------------------
-qE    = pE;
-qE.C  = log(eye(2,2) + exp(-32));
-V     = U;
+Hz    = 2:128;
+Gu    = spm_csd_mtf_gu(pE,Hz);
  
 % simulate Nt trials
 %--------------------------------------------------------------------------
-Nt    = 16;
+Nt    = 8;
+V     = U;
 for j = 1:Nt
+    
     fprintf('\nsimulating trial %i',j)
-    V.u      = U.u + ccf*randn(N,M.m);
-    y        = spm_csd_int(qE,M,V);
-    D(:,:,j) = full(y{1});
+    y    = 32;
+    while max(abs(spm_vec(y))) > 1
+        V.u  = U.u + spm_rand_power_law(Gu,Hz,U.dt,N)*2;
+        y    = spm_csd_int(pE,M,V);
+    end
+    D(:,:,j) = full(real(y{1}));
+    
+    % LFP – random fluctuations
+    %----------------------------------------------------------------------
+    subplot(2,2,1)
+    plot(pst*1000,D(:,:,j)), hold on
+    xlabel('time (s)')
+    title('simulated response and ERP','FontSize',16)
+    spm_axis tight,axis square, drawnow
+    
 end
- 
-% plot simulated data
-%==========================================================================
- 
-% LFP – expectation
+hold off
+
+% LFP – expectations
 %--------------------------------------------------------------------------
-subplot(4,1,1)
-plot(pst*1000,erp{1})
+subplot(2,2,2)
+plot(pst*1000,erp{1},'-.'), hold on
+plot(pst*1000,mean(D,3)), hold off
 xlabel('time (s)')
 title('LFP response – expectation','FontSize',16)
-spm_axis tight
-set(gca,'YLim',[-8 8])
+spm_axis tight, axis square
  
-% LFP – random fluctuations
-%--------------------------------------------------------------------------
-subplot(4,1,2)
-for i = 1:size(D,3)
-    plot(pst*1000,D(:,:,i),':'), hold on
-end
-plot(pst*1000,mean(D,3),'Linewidth',2)
-hold off
-xlabel('time (s)')
-title('simulated response and ERP','FontSize',16)
-spm_axis tight
-set(gca,'YLim',[-8 8])
+
  
 
 % Time frequency response
 %--------------------------------------------------------------------------
 Nf    = length(M.Hz);
-Nb    = length(pst);
-Nm    = Nc;
- 
-P     = zeros(Nb,Nf,Nm,Nm);
-Q     = zeros(Nb,Nf,Nm,Nm);
-c     = 1;
+P     = zeros(N,Nf,Nc,Nc);
+Q     = zeros(N,Nf,Nc,Nc);
 E     = mean(D,3);
 for k = 1:Nt
     
-    fprintf('\nevaluating condition %i (trial %i)',c,k)
     d     = full(double(D(:,:,k)));
     G     = spm_morlet(d - E,w*U.dt,M.Rft);
-    for i = 1:Nm
-        for j = 1:Nm
+    for i = 1:Nc
+        for j = 1:Nc
             P(:,:,i,j) = (G(:,:,i).*conj(G(:,:,j)));
         end
     end
     Q = Q + P;
 end
 
-% normalise induced responses
+% scale induced responsest sample variance
 %--------------------------------------------------------------------------
-Vm    = mean(mean(squeeze(var(D,[],3))));
+Vm    = mean(mean((var(D))));
 Vs    = mean(diag(squeeze(mean(squeeze(mean(Q))))));
 Q     = Vm*Q/Vs;
 
@@ -261,20 +251,20 @@ spm_dcm_tfm_image(Q,pst,w,1)
 
 % simulated responses
 %==========================================================================
-spm_figure('GetWin','Empirical (simulated) responses');
+spm_figure('GetWin','Predicted responses');
  
 % time-frequency
 %--------------------------------------------------------------------------
 xY.erp{1} = E;
 xY.csd{1} = Q;
-spm_dcm_tfm_response(xY,pst,w)
+spm_dcm_tfm_response(xY,pst,w,5)
 
 
 % compare expected and simulated responses
 %==========================================================================
 spm_figure('GetWin','Expected and simulated responses');
 
-spm_dcm_tfm_image(csd{1},pst,w,1)
-spm_dcm_tfm_image(Q,pst,w,0)
+spm_dcm_tfm_image(csd{1},pst,w,0)
+spm_dcm_tfm_image(Q,pst,w,1)
  
  

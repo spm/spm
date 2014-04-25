@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_2014.m 5932 2014-03-28 10:04:32Z karl $
+% $Id: spm_fx_cmc_2014.m 5966 2014-04-25 14:37:59Z karl $
  
  
 % get dimensions and configure state variables
@@ -224,7 +224,7 @@ if nargout < 2; return, end
 % Implement: dx(t)/dt = f(x(t - d)) = inv(1 + D.*dfdx)*f(x(t))
 %                     = Q*f = Q*J*x(t)
 %--------------------------------------------------------------------------
-[Q,J] = spm_dcm_delay(M,P);
+[Q,J] = spm_dcm_delay(P,M);
  
  
 return

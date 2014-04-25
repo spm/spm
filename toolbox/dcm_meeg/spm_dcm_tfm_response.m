@@ -1,4 +1,4 @@
-function spm_dcm_tfm_response(xY,pst,hz)
+function spm_dcm_tfm_response(xY,pst,hz,top)
 % displays evoked and induced responses
 % FORMAT spm_dcm_tfm_response(xY,pst,hz)
 %
@@ -19,12 +19,13 @@ function spm_dcm_tfm_response(xY,pst,hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_dcm_tfm_response.m 5966 2014-04-25 14:37:59Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
 if nargin < 2, pst = 1:size(xY.csd{1},1); end
 if nargin < 3, hz  = 1:size(xY.csd{1},2); end
+if nargin < 4, top = 1;                   end
  
  
 % plot time frequency responses
@@ -38,7 +39,7 @@ for i = 1:nc
         try
             % evoked response
             %--------------------------------------------------------------
-            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + 1)
+            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + top)
             
             erp = xY.erp{e}(:,i)';
             csd = xY.csd{e}(:,:,i,i)';
@@ -51,7 +52,7 @@ for i = 1:nc
             
             % induced response
             %--------------------------------------------------------------
-            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + 2)
+            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + top + 1)
             
             imagesc(pst,hz,abs(csd).^2);
             str = sprintf('induced: condition %i',e);

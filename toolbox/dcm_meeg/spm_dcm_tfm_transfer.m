@@ -17,7 +17,7 @@ function spm_dcm_tfm_transfer(dtf,pst,Hz)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_transfer.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_dcm_tfm_transfer.m 5966 2014-04-25 14:37:59Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ lag   = lag*1000;
 
 % restrict range of lags
 %--------------------------------------------------------------------------
-j     = find(0 < lag & lag < 128);
+j     = find(0 < lag & lag < 256);
 lag   = lag(j);
 irf   = irf(:,j,:,:);
 

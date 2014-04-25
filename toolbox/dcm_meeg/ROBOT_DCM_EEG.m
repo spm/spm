@@ -1,4 +1,4 @@
-function E = DCM_ROBOT
+function E = ROBOT_DCM_EEG
 % test routine to check current implementations of DCM for electrophysiology
 %==========================================================================
 %   options.analysis     - 'ERP','CSD', 'IND' or 'TFM
