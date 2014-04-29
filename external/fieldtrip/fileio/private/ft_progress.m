@@ -47,7 +47,7 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 7491 2013-02-18 14:29:29Z eelspa $
+% $Id: ft_progress.m 9451 2014-04-24 06:34:48Z jorhor $
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -156,7 +156,7 @@ else
     return;
   elseif (varargin{1}-p)<0.01 && strcmp(t, 'etf')
     % display should not be updated it the difference is less than one percent
-    return;
+    % return;
   end
 
   % count the number of updates, for debugging

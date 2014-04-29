@@ -128,9 +128,9 @@ function [segmented] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 9371 2014-04-07 12:43:49Z roboos $
+% $Id: ft_volumesegment.m 9442 2014-04-17 09:06:16Z jansch $
 
-revision = '$Id: ft_volumesegment.m 9371 2014-04-07 12:43:49Z roboos $';
+revision = '$Id: ft_volumesegment.m 9442 2014-04-17 09:06:16Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -149,10 +149,10 @@ end
 % instead of specifying cfg.coordsys, the user should specify the coordsys in the data
 cfg = ft_checkconfig(cfg, 'forbidden', {'units', 'inputcoordsys', 'coordinates'});
 cfg = ft_checkconfig(cfg, 'deprecated', 'coordsys');
-if isfield(cfg, 'coordsys') && ~isfield(mri, 'coordsys')
-  % from revision 8680 onward (Oct 2013) it is not recommended to use cfg.coordsys to specify the coordinate system of the data.
-  mri.coordsys = cfg.coordsys;
-end
+%if isfield(cfg, 'coordsys') && ~isfield(mri, 'coordsys')
+%  % from revision 8680 onward (Oct 2013) it is not recommended to use cfg.coordsys to specify the coordinate system of the data.
+%  mri.coordsys = cfg.coordsys;
+%end
 
 % check if the input data is valid for this function
 mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes', 'hasunit', 'yes', 'hascoordsys', 'yes');
@@ -274,8 +274,15 @@ end
 if dotpm
   
   % remember the original transformation matrix coordinate system
+  original = [];
   original.transform = mri.transform;
   original.coordsys  = mri.coordsys;
+  if isfield(mri,'unit')
+    original.unit    = mri.unit;
+  else
+    mri = ft_convert_units(mri); % guess the unit field if not present
+    original.unit = mri.unit;
+  end
   mri = ft_convert_units(mri,    'mm');
   if isdeployed
     mri = ft_convert_coordsys(mri, 'spm', 2, cfg.template);
@@ -419,12 +426,10 @@ if dotpm
   
   % collect the results
   segmented.dim       = size(V(1).dat);
-  segmented.dim       = segmented.dim(:)';    % enforce a row vector
+  segmented.dim       = segmented.dim(:)';  % enforce a row vector
   segmented.transform = original.transform; % use the original transform
   segmented.coordsys  = original.coordsys;  % use the original coordsys
-  if isfield(mri, 'unit')
-    segmented.unit = mri.unit;
-  end
+  segmented.unit      = original.unit;      % use the original units
   segmented.gray      = V(1).dat;
   if length(V)>1, segmented.white     = V(2).dat; end
   if length(V)>2, segmented.csf       = V(3).dat; end

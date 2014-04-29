@@ -10,16 +10,16 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %   tmpcfg.downsample = cfg.downsample;  % copy over
 %   tmpcfg.smooth     = 'no';            % override the default
 %   mri = ft_volumedownsample(tmpcfg, mri);
-%   [cfg, mri] = rollback_provenance(tmpcfg, mri);
+%   [cfg, mri] = rollback_provenance(cfg, mri);
 %
-%   tmpcfg = [];
+%   tmpcfg           = [];
 %   tmpcfg.parameter = cfg.parameter;
 %   [varargin{:}] = ft_selectdata(tmpcfg, varargin{:});
 %   [cfg, varargin{:}] = rollback_provenance(cfg, varargin{:});
 %
 % See also FT_PREAMBLE, FT_POSTAMBLE
 
-% Copyright (C) 2013, Robert Oostenveld
+% Copyright (C) 2013-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -37,7 +37,7 @@ function [cfg, varargout] = rollback_provenance(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rollback_provenance.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: rollback_provenance.m 9424 2014-04-15 19:42:36Z roboos $
 
 for i=1:(nargin-1)
   
@@ -73,7 +73,6 @@ for i=1:(nargin-1)
     });
   
   for j=1:length(fn)
-    fprintf('updating cfg.%s\n', fn{j});
     cfg.(fn{j}) = varargin{i}.cfg.(fn{j});
   end % for all fields that overlap
   

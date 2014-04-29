@@ -107,9 +107,9 @@ function [grid, cfg] = ft_prepare_sourcemodel(cfg, vol, sens)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_sourcemodel.m 9065 2014-01-02 13:19:38Z jansch $
+% $Id: ft_prepare_sourcemodel.m 9460 2014-04-29 10:15:49Z jorhor $
 
-revision = '$Id: ft_prepare_sourcemodel.m 9065 2014-01-02 13:19:38Z jansch $';
+revision = '$Id: ft_prepare_sourcemodel.m 9460 2014-04-29 10:15:49Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -637,7 +637,9 @@ if basedonmni
   else
     grid.pos = ft_warp_apply(inv(normalise.initial), ft_warp_apply(normalise.params, mnigrid.pos, 'sn2individual'));
   end
-  grid.dim     = mnigrid.dim;
+  if isfield(grid, 'dim')
+    grid.dim     = mnigrid.dim;
+  end
   grid.unit    = mnigrid.unit;
   grid.inside  = mnigrid.inside;
   grid.outside = mnigrid.outside;

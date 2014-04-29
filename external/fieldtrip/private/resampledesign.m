@@ -44,7 +44,7 @@ function [resample] = resampledesign(cfg, design)
 % be done, at the same time controlling that repetitions are not shuffled
 % between different control blocks.
 %
-% See also STATISTICS_MONTECARLO
+% See also FT_STATISTICS_MONTECARLO
 
 % Copyright (C) 2005-2011, Robert Oostenveld
 %
@@ -64,7 +64,7 @@ function [resample] = resampledesign(cfg, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: resampledesign.m 9284 2014-03-12 08:38:00Z roboos $
+% $Id: resampledesign.m 9455 2014-04-25 08:14:07Z jorhor $
 
 ft_checkopt(cfg, 'ivar', {'numericscalar', 'numericvector', 'empty'});
 ft_checkopt(cfg, 'uvar', {'numericscalar', 'numericvector', 'empty'});

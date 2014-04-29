@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 9360 2014-04-06 11:52:44Z roboos $
+% $Id: ft_datatype.m 9430 2014-04-16 15:31:35Z roboos $
 
 if nargin<2
   desired = [];
@@ -40,7 +40,7 @@ end
 % determine the type of input data, this can be raw, freq, timelock, comp, spike, source, volume, dip, segmentation, parcellation
 israw          =  isfield(data, 'label') && isfield(data, 'time') && isa(data.time, 'cell') && isfield(data, 'trial') && isa(data.trial, 'cell') && ~isfield(data,'trialtime');
 isfreq         = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq') && ~isfield(data,'trialtime') && ~isfield(data,'origtrial'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
-istimelock     =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ~isfield(data,'trialtime'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
+istimelock     =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ~isfield(data,'timestamp') && ~isfield(data,'trialtime'); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp         =  isfield(data, 'label') && isfield(data, 'topo') || isfield(data, 'topolabel');
 isvolume       =  isfield(data, 'transform') && isfield(data, 'dim');
 issource       =  isfield(data, 'pos');
@@ -52,7 +52,7 @@ issegmentation = check_segmentation(data);
 isparcellation = check_parcellation(data);
 
 if ~isfreq
-  % this applies to a ferq structure from 2003 up to early 2006
+  % this applies to a freq structure from 2003 up to early 2006
   isfreq = all(isfield(data, {'foi', 'label', 'dimord'})) && ~isempty(strfind(data.dimord, 'frq'));
 end
 
@@ -66,7 +66,9 @@ isspike           = isfield(data, 'label') && (spk_hastimestamp || spk_hastrials
 isgrad = isfield(data, 'label') && isfield(data, 'coilpos') && isfield(data, 'coilori');
 iselec = isfield(data, 'label') && isfield(data, 'elecpos');
 
-if iscomp && israw
+if isspike
+  type = 'spike';
+elseif iscomp && israw
   if strcmp(desired, 'raw')
     type = 'raw';
   else
@@ -129,7 +131,11 @@ if nargin>1
   % return a boolean value
   switch desired
     case 'raw'
-      type = any(strcmp(type, {'raw', 'comp'}));
+      type = strcmp(type, 'raw')      || (strcmp(type, 'comp') && israw);
+    case 'timelock'
+      type = strcmp(type, 'timelock') || (strcmp(type, 'comp') && istimelock);
+    case 'freq'
+      type = strcmp(type, 'freq')     || (strcmp(type, 'comp') && isfreq);
     case 'volume'
       type = any(strcmp(type, {'volume', 'segmentation'}));
     case 'source'
@@ -191,7 +197,6 @@ end
 if ~isempty(isboolean)
   res = all(isboolean);
 end
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

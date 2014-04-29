@@ -64,9 +64,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 9352 2014-04-04 12:00:53Z roboos $
+% $Id: ft_sourcegrandaverage.m 9414 2014-04-14 20:54:43Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 9352 2014-04-04 12:00:53Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 9414 2014-04-14 20:54:43Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -203,7 +203,7 @@ else
     if isfield(varargin{1}, [cfg.parameter 'dimord'])
       grandavg.([cfg.parameter 'dimord']) = varargin{1}.([cfg.parameter 'dimord']);
     elseif isfield(varargin{1}, 'dimord')
-      grandavg.dimord = varargin{1}.('dimord');
+      grandavg.dimord = varargin{1}.dimord;
     end
   end % if keepindividual
   clear dat
@@ -211,16 +211,10 @@ else
 end % if iscell
 
 % the fields that describe the actual data need to be copied over from the input to the output
-if isfield(grandavg, [cfg.parameter 'dimord'])
-  dimord = grandavg.([cfg.parameter 'dimord']);
-elseif isfield(grandavg, 'dimord')
-  dimord = grandavg.('dimord');
-else
-  dimord = [];
-end
+dimord = getdimord(grandavg, cfg.parameter);
 
 % some standard fields from the input should be copied over in the output
-copyfield = {'pos', 'inside', 'outside', 'dim'};
+copyfield = {'pos' 'dim' 'inside' 'outside' 'unit' 'coordsys'};
 if ~isempty(strfind(dimord, 'time')), copyfield{end+1} = 'time'; end
 if ~isempty(strfind(dimord, 'freq')), copyfield{end+1} = 'freq'; end
 for i=1:length(copyfield)

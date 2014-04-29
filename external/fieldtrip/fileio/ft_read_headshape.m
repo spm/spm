@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 9251 2014-02-27 16:14:49Z vlalit $
+% $Id: ft_read_headshape.m 9449 2014-04-22 16:50:49Z vlalit $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);

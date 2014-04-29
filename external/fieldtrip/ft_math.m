@@ -42,13 +42,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9351 2014-04-04 09:35:35Z roboos $
+% $Id: ft_math.m 9414 2014-04-14 20:54:43Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9351 2014-04-04 09:35:35Z roboos $';
+revision = '$Id: ft_math.m 9414 2014-04-14 20:54:43Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -102,14 +102,7 @@ tmpcfg.parameter = cfg.parameter;
 
 cfg.parameter = tmpcfg.parameter;
 
-if isfield(varargin{1}, [cfg.parameter 'dimord'])
-  dimord = varargin{1}.([cfg.parameter 'dimord']);
-elseif isfield(varargin{1}, 'dimord')
-  dimord = varargin{1}.dimord;
-else
-  error('the dimord of the requested parameter is unknown');
-end
-
+dimord = getdimord(varargin{1}, cfg.parameter);
 dimtok = tokenize(dimord, '_');
 
 % this determines which descriptive fields will get copied over
