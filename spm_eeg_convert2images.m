@@ -31,9 +31,9 @@ function images = spm_eeg_convert2images(S)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, James Kilner, Stefan Kiebel
-% $Id: spm_eeg_convert2images.m 5707 2013-10-21 15:46:48Z vladimir $
+% $Id: spm_eeg_convert2images.m 5968 2014-05-01 10:58:57Z vladimir $
 
-SVNrev = '$Rev: 5707 $';
+SVNrev = '$Rev: 5968 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -136,7 +136,7 @@ switch S.mode
         N.mat = [...
             V(1)  0     0               -C(1);...
             0     V(2)  0               -C(2);...
-            0     0     1               1e3*mean(D.time(timeind));...
+            0     0     1               1;...
             0     0     0               1];
         N.mat(3,4) = N.mat(3,4) - N.mat(3,3);
         
