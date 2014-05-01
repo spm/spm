@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5920 2014-03-17 13:06:59Z guillaume $
+% $Id: spm_orthviews.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 % The basic fields of st are:
@@ -766,10 +766,13 @@ st.centre = st.centre(:);
 %==========================================================================
 function callback
 global st
-if isa(st.callback,'function_handle')
-    feval(st.callback);
-else
-    eval(st.callback);
+if ~iscell(st.callback), st.callback = { st.callback }; end
+for i=1:numel(st.callback)
+    if isa(st.callback{i},'function_handle')
+        feval(st.callback{i});
+    else
+        eval(st.callback{i});
+    end
 end
 
 

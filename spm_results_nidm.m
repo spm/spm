@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 5953 2014-04-14 12:03:38Z guillaume $
+% $Id: spm_results_nidm.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -202,8 +202,8 @@ p = spm_provenance;
 %-Namespaces
 %--------------------------------------------------------------------------
 p.add_namespace('neurolex','http://neurolex.org/wiki/');
-p.add_namespace('spm','http://www.fil.ion.ucl.ac.uk/spm/nidm/terms#');
-p.add_namespace('nidm','http://nidm.nidash.org/');
+p.add_namespace('spm','http://www.incf.org/ns/nidash/spm#');
+p.add_namespace('nidm','http://www.incf.org/ns/nidash/nidm#');
 p.add_namespace('niiri','http://iri.nidash.org/');
 p.add_namespace('crypto','http://www.w3.org/2000/10/swap/crypto#');
 
@@ -239,7 +239,7 @@ end
 p.entity('niiri:data_id',{...
     'prov:type','prov:Collection',...
     'prov:type','nidm:Data',...
-    'prov:label',{'Image Data','xsd:string'},...
+    'prov:label',{'Data','xsd:string'},...
     extra_fields{:}});
 
 %-Entity: Design Matrix

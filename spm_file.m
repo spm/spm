@@ -54,7 +54,7 @@ function str = spm_file(str,varargin)
 % Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_file.m 5953 2014-04-14 12:03:38Z guillaume $
+% $Id: spm_file.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 needchar = ischar(str);
@@ -159,6 +159,7 @@ while ~isempty(options)
             case 'link'
                 if desktop('-inuse')
                     cmd = ['<a href="matlab:' options{2} ';">%s</a>'];
+                    cmd = strrep(cmd,'\','\\');
                     p   = numel(setxor(strfind(cmd,'%'),strfind(cmd,'%%')));
                     m   = repmat(str(n),1,p);
                     str{n} = sprintf(cmd,m{:});

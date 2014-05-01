@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5959 2014-04-16 17:14:33Z will $
+% $Id: spm_list.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 %==========================================================================
@@ -688,7 +688,8 @@ case 'table'                                                        %-Table
     
     %-Cluster and local maxima p-values & statistics
     %----------------------------------------------------------------------
-    HlistXYZ = [];
+    HlistXYZ   = [];
+    HlistClust = [];
     for i=1:size(TabDat.dat,1)
         
         %-Paginate if necessary
@@ -713,6 +714,11 @@ case 'table'                                                        %-Table
                      'UserData',TabDat.dat{i,k},...
                      'ButtonDownFcn','get(gcbo,''UserData'')');
             hPage = [hPage, h];
+            if k == 5
+                HlistClust = [HlistClust, h];
+                set(h,'UserData',struct('k',TabDat.dat{i,k},'XYZmm',TabDat.dat{i,12}));
+                set(h,'ButtonDownFcn','getfield(get(gcbo,''UserData''),''k'')');
+            end
         end
         
         % Specifically changed so it properly finds hMIPax
@@ -764,17 +770,17 @@ case 'table'                                                        %-Table
     if ispc
         uimenu(h,'Label','Export to Excel',...
         'CallBack',...
-        'spm_list(''xlslist'',get(get(gcbo,''Parent''),''UserData''))',...
+        'spm_list(''xlslist'',get(get(gcbo,''Parent''),''UserData''));',...
         'Interruptible','off','BusyAction','Cancel');
     end
     uimenu(h,'Label','Export to CSV file',...
         'CallBack',...
-        'spm_list(''csvlist'',get(get(gcbo,''Parent''),''UserData''))',...
+        'spm_list(''csvlist'',get(get(gcbo,''Parent''),''UserData''));',...
         'Interruptible','off','BusyAction','Cancel');
 
     %-Setup registry
     %----------------------------------------------------------------------
-    set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ))
+    set(hAx,'UserData',struct('hReg',hReg,'HlistXYZ',HlistXYZ,'HlistClust',HlistClust))
     spm_XYZreg('Add2Reg',hReg,hAx,'spm_list');
 
     varargout = {};
@@ -872,10 +878,12 @@ case 'table'                                                        %-Table
     %======================================================================
     case 'xlslist'                                  %-Export table to Excel
     %======================================================================
-    % FORMAT spm_list('XLSList',TabDat)
+    % FORMAT spm_list('XLSList',TabDat,ofile)
 
         if nargin<2, error('Not enough input arguments.'); end
         TabDat = varargin{2};
+        if nargin == 3, ofile = varargin{3};
+        else            ofile = [tempname '.xls']; end
         
         d          = [TabDat.hdr(1:2,:);TabDat.dat];
         xyz        = d(3:end,end);
@@ -883,20 +891,20 @@ case 'table'                                                        %-Table
         d(:,end+1) = d(:,end);
         d(:,end+1) = d(:,end);
         d(3:end,end-2:end) = xyz;
-        tmpfile    = [tempname '.xls'];
-        xlswrite(tmpfile, d);
-        winopen(tmpfile);
+        xlswrite(ofile, d);
+        if nargin == 2, winopen(ofile); end
     
     %======================================================================
     case 'csvlist'            %-Export table to comma-separated values file
     %======================================================================
-    % FORMAT spm_list('CSVList',TabDat)
+    % FORMAT spm_list('CSVList',TabDat,ofile)
 
         if nargin<2, error('Not enough input arguments.'); end
         TabDat = varargin{2};
+        if nargin == 3, ofile = varargin{3};
+        else            ofile = [tempname '.csv']; end
         
-        tmpfile = [tempname '.csv'];
-        fid = fopen(tmpfile,'wt');
+        fid = fopen(ofile,'wt');
         fprintf(fid,[repmat('%s,',1,11) '%d,,\n'],TabDat.hdr{1,:});
         fprintf(fid,[repmat('%s,',1,12) '\n'],TabDat.hdr{2,:});
         fmt = TabDat.fmt;
@@ -906,7 +914,7 @@ case 'table'                                                        %-Table
             fprintf(fid,fmt,TabDat.dat{i,:});
         end
         fclose(fid);
-        open(tmpfile);
+        if nargin == 2, open(tmpfile); end
     
     %======================================================================
     case 'setcoords'                                    %-Coordinate change

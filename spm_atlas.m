@@ -14,10 +14,10 @@ function varargout = spm_atlas(action,varargin)
 % FORMAT D = spm_atlas('dir')
 % FORMAT def = spm_atlas('def')
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 5699 2013-10-17 12:21:28Z guillaume $
+% $Id: spm_atlas.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 fprintf('**** Please do not use spm_atlas yet as syntax WILL change ****\n');
@@ -215,6 +215,23 @@ case 'label'
         set(HlistXYZ(i),'UIContextMenu',h);
     end
     
+    %-Add contextual menus to clusters
+    %----------------------------------------------------------------------
+    HlistClust = UD.HlistClust(ishandle(UD.HlistClust));
+    xSPM = evalin('base','xSPM');
+    A = spm_clusters(xSPM.XYZ);
+    
+    for i=1:numel(HlistClust)
+        hi      = uicontextmenu('Parent',ancestor(hAx,'figure'));
+        XYZmm  = getfield(get(HlistClust(i),'UserData'),'XYZmm');
+        [unused,j] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
+        [labk, P]  = spm_atlas('query',xA,xSPM.XYZmm(:,A==A(j)));
+        for k=1:numel(labk)
+            hj = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{k},P(k)));
+        end
+        set(HlistClust(i),'UIContextMenu',hi);
+    end
+    
     spm('Pointer','Arrow')
 
 
@@ -287,7 +304,7 @@ case 'query'
     unknown = '????';
     
     if numel(xA.V) == 1 % or xA.X contains type definition
-        if isnumeric(xY)
+        if isnumeric(xY) && size(xY,2) == 1
             %-peak
             XYZmm     = xY;
             XYZ       = xA.V.mat\[XYZmm;1];
@@ -300,6 +317,7 @@ case 'query'
             end
             
             varargout = { Q };
+            if nargout > 1, varargout = { {Q}, 100 }; end
         else
             %-cluster
             v         = spm_summarise(xA.V,xY);

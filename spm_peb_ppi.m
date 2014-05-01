@@ -47,7 +47,7 @@ function PPI = spm_peb_ppi(varargin)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_peb_ppi.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_peb_ppi.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 % SETTING UP A PPI THAT ACCOUNTS FOR THE HRF
@@ -149,7 +149,7 @@ else
         P            = varargin{1};
     catch
         [P, sts]     = spm_select(1,'^SPM\.mat$','Select SPM.mat');
-        if ~sts, PPI = struct([]); return; end
+        if ~sts, PPI = []; return; end
     end
     swd = spm_file(P,'fpath');
     load(fullfile(swd,'SPM.mat'));
@@ -184,8 +184,9 @@ switch lower(ppiflag)
             p   = load(deblank(VOI(1,:)),'xY');
         catch
             spm_input('physiological variable:...  ',2,'d');
-            voi = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
-            p   = load(deblank(voi),'xY');
+            [VOI,sts] = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
+            if ~sts, PPI = []; return; end
+            p   = load(VOI,'xY');
         end
     end
     xY(1) = p.xY;
@@ -211,9 +212,10 @@ switch lower(ppiflag)
             end
         catch
             spm_input('physiological variables:...  ',2,'d');
-            voi       = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
+            [VOI,sts] = spm_select(2,'^VOI.*\.mat$',{'select VOIs'});
+            if ~sts, PPI = []; return; end
             for i = 1:2
-                p     = load(deblank(voi(i,:)),'xY');
+                p     = load(deblank(VOI(i,:)),'xY');
                 xY(i) = p.xY;
             end
         end
@@ -230,8 +232,9 @@ switch lower(ppiflag)
             p   = load(deblank(VOI(1,:)),'xY');
         catch
             spm_input('physiological variable:...  ',2,'d');
-            voi = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
-            p   = load(deblank(voi(:))','xY');
+            [VOI,sts] = spm_select(1,'^VOI.*\.mat$',{'select VOI'});
+            if ~sts, PPI = []; return; end
+            p   = load(VOI,'xY');
         end
     end
     xY(1) = p.xY;

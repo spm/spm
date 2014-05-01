@@ -10,7 +10,7 @@ function out = spm_run_results(job)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 5543 2013-06-11 17:48:18Z guillaume $
+% $Id: spm_run_results.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 cspec = job.conspec;
@@ -76,14 +76,24 @@ for k = 1:numel(cspec)
     %-Return/save result outputs
     %----------------------------------------------------------------------
     if ~isequal(job.print, false)
-        if strcmpi(job.print,'html')
-            spm_results_export(SPM,xSPM,TabDat);
-        else
-            if ~spm('CmdLine')
-                spm_figure('Print','Graphics','',job.print);
-            else
-                spm_list('TxtList',TabDat);
-            end
+        switch job.print
+            case {'csv','xls'}
+                ofile = spm_file(fullfile(xSPM.swd,...
+                    ['spm_' datestr(now,'yyyymmmdd') '.' job.print]),'unique');
+                spm_list([upper(job.print) 'List'],TabDat,ofile);
+                if strcmp(job.print,'csv'), cmd = 'open(''%s'')';
+                else                        cmd = 'winopen(''%s'')'; end
+                fprintf('Saving results to:\n  %s\n',spm_file(ofile,'link',cmd));
+            case 'html'
+                spm_results_export(SPM,xSPM,TabDat);
+            case 'nidm'
+                spm_results_nidm(SPM,xSPM,TabDat);
+            otherwise
+                if ~spm('CmdLine')
+                    spm_figure('Print','Graphics','',job.print);
+                else
+                    spm_list('TxtList',TabDat);
+                end
         end
     end
     

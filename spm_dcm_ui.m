@@ -67,7 +67,7 @@ function varargout = spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 5600 2013-08-10 20:20:49Z karl $
+% $Id: spm_dcm_ui.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 DCMversion = 'DCM12';
@@ -131,7 +131,7 @@ case 'estimate (time-series)',
 
     %-select DCM models
     %----------------------------------------------------------------------
-    [P, sts] = spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat');
+    [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','select DCM_???.mat');
     if ~sts, return; else P = cellstr(P); end
 
     spm('Pointer','Watch');
@@ -155,7 +155,7 @@ case 'estimate (cross-spectra)',
 
     %-select DCM models
     %----------------------------------------------------------------------
-    [P, sts] = spm_select(Inf,'^DCM.*\.mat$','select DCM_???.mat');
+    [P, sts] = spm_select([1 Inf],'^DCM.*\.mat$','select DCM_???.mat');
     if ~sts, return; else P = cellstr(P); end
 
     spm('Pointer','Watch');

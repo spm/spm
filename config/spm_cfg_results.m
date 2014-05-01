@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_results.m 5969 2014-05-01 14:37:22Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -233,6 +233,14 @@ for i=1:numel(pf)
     print.labels{end+1} = pf(i).name;
     print.values{end+1} = pf(i).label{1};
 end
+print.labels{end+1} = 'CSV file';
+print.values{end+1} = 'csv';
+if ispc
+    print.labels{end+1} = 'Excel spreadsheet file';
+    print.values{end+1} = 'xls';
+end
+print.labels{end+1} = 'NIDM <experimental>';
+print.values{end+1} = 'nidm';
 print.labels{end+1} = 'HTML <experimental>';
 print.values{end+1} = 'html';
 print.def = @(val)spm_get_defaults('ui.print', val{:});

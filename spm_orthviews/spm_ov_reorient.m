@@ -14,18 +14,18 @@ function ret = spm_ov_reorient(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_ov_reorient.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_ov_reorient.m 5969 2014-05-01 14:37:22Z guillaume $
 
-global st;
+global st
 if isempty(st)
-    error('reorient: This routine can only be called as a plugin for spm_orthviews!');
+    error('This routine can only be called as a plugin for spm_orthviews.');
 end
 
 if nargin < 2
-    error('reorient: Wrong number of arguments. Usage: spm_orthviews(''reorient'', cmd, volhandle, varargin)');
+    error('Not enough input arguments. Usage: spm_orthviews(''reorient'', cmd, volhandle, varargin)');
 end
 
 cmd = lower(varargin{1});
@@ -107,10 +107,10 @@ switch cmd
             else
                 % Do not show 'Reorient Images' context menu in other images
                 set(obj, 'Visible', 'off');
-            end;
-        end;
+            end
+        end
         for k = 1:numel(labels)
-            st.vols{volhandle(1)}.reorient.l(k)=uicontrol(...
+            st.vols{volhandle(1)}.reorient.l(k) = uicontrol(...
                 Finter, 'Style','Text', ...
                 'Position',[75 hpos(k) 100 016], 'String',labels{k});
             st.vols{volhandle(1)}.reorient.e(k) = uicontrol(...
@@ -119,7 +119,7 @@ switch cmd
                 num2str(volhandle),'])'], ...
                 'Position',[175 hpos(k) 065 020], 'String',num2str(prms(k)), ...
                 'ToolTipString',tooltips{k});
-        end;
+        end
         spm_orthviews('redraw');
         
     case 'context_quit'
@@ -143,7 +143,7 @@ switch cmd
             try
                 st.vols{k}.premul = st.vols{k}.reorient.oldpremul;
                 st.vols{k} = rmfield(st.vols{k},'reorient');
-            end;
+            end
             obj = findobj(Fgraph, 'Tag',  ['REORIENT_M_', num2str(k)]);
             if any(k == volhandle)
                 objh = findobj(obj, 'Tag', ['REORIENT_1_', num2str(k)]);
@@ -152,8 +152,8 @@ switch cmd
                 set(objs, 'Visible', 'on');
             else
                 set(obj, 'Visible', 'on');
-            end;
-        end;
+            end
+        end
         spm_orthviews('redraw');
         
     case 'context_origin'
@@ -161,8 +161,8 @@ switch cmd
         M = spm_matrix(-pos');
         P = {spm_file(st.vols{volhandle}.fname, 'number', st.vols{volhandle}.n)};
         p = spm_fileparts(st.vols{volhandle}.fname);
-        [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
-        if ~ok
+        [P, sts] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P, p);
+        if ~sts
             disp('''Set origin to Xhairs'' cancelled.');
             return;
         end
@@ -192,8 +192,8 @@ switch cmd
             P{i} = spm_file(st.vols{volhandle(i)}.fname, ...
                 'number', st.vols{volhandle(i)}.n);
         end
-        [P, ok] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P);
-        if ~ok
+        [P, sts] = spm_select(Inf, 'image', {'Image(s) to reorient'}, P);
+        if ~sts
             disp('Reorientation cancelled.');
             spm_orthviews('reorient', 'context_quit', volhandle);
             return;
@@ -219,19 +219,19 @@ switch cmd
         prms=zeros(1,12);
         for k=1:9
             prms(k) = evalin('base',[get(st.vols{volhandle(1)}.reorient.e(k),'string') ';']);
-        end;
+        end
         switch get(st.vols{volhandle(1)}.reorient.order, 'value')
-            case 1,
+            case 1
                 order = 'Z*S*R*T';
-            case 2,
+            case 2
                 order = 'R*T*Z*S';
-            case 3,
+            case 3
                 order = 'T*R*Z*S';
-        end;
+        end
         for k = volhandle
-            st.vols{k}.premul = spm_matrix(prms,order)* ...
+            st.vols{k}.premul = spm_matrix(prms,order) * ...
                 st.vols{k}.reorient.oldpremul;
-        end;
+        end
         spm_orthviews('redraw');
         
     case 'redraw'
@@ -239,26 +239,25 @@ switch cmd
             if isfield(st.vols{volhandle}.reorient,'lh')
                 if ~isempty(st.vols{volhandle}.reorient.lh)
                     delete(cat(1,st.vols{volhandle}.reorient.lh{:}));
-                end;
-            end;
+                end
+            end
             st.vols{volhandle}.reorient.lh = {};
             ncl = str2double(get(st.vols{volhandle}.reorient.e(10),'string'));
             if ncl > 0
-                todraw=spm_orthviews('valid_handles');
+                todraw = setxor(spm_orthviews('valid_handles'),volhandle);
                 for d = 1:3
                     CData = sqrt(sum(get(st.vols{volhandle}.ax{d}.d,'CData').^2, 3));
                     CData(isinf(CData)) = NaN;
                     for h = todraw
-                        if h ~= volhandle
-                            axes(st.vols{h}.ax{d}.ax);
-                            hold on;
-                            [C,st.vols{volhandle}.reorient.lh{end+1}]=contour(CData,ncl,'r-');
-                        end;
-                    end;
-                end;
+                        set(st.vols{h}.ax{d}.ax,'NextPlot','add');
+                        [C,st.vols{volhandle}.reorient.lh{end+1}] = ...
+                            contour(st.vols{h}.ax{d}.ax,CData,ncl,'r-');
+                    end
+                end
                 set(cat(1,st.vols{volhandle}.reorient.lh{:}),'HitTest','off');
-            end;
-        end;
+            end
+        end
+        
     otherwise
-        fprintf('spm_orthviews(''reorient'', ...): Unknown action %s', cmd);
-end;
+        warning('Unknown action: %s', cmd);
+end
