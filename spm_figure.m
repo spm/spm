@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 5912 2014-03-10 16:59:31Z guillaume $
+% $Id: spm_figure.m 5970 2014-05-01 15:33:32Z guillaume $
 
 
 %==========================================================================
@@ -963,6 +963,12 @@ rend = get(ancestor(obj,'figure'),'Renderer');
 hr   = get(findall(obj,'Label','Renderer'),'Children');
 set(hr,'Checked','off');
 set(hr(ismember(lower(get(hr,'Label')),rend)),'Checked','on');
+
+% for compatibility when opening a FIG-file from a previous version of SPM
+function myisresults(obj,evt)
+return;
+function mysatfig(obj,evt)
+return;
 
 
 %==========================================================================
