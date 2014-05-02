@@ -4,7 +4,7 @@ function [varargout] = spm_eeg_review_callbacks(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_callbacks.m 5921 2014-03-17 19:23:29Z guillaume $
+% $Id: spm_eeg_review_callbacks.m 5971 2014-05-02 14:06:06Z vladimir $
 
 spm('pointer','watch');
 drawnow expose
@@ -601,6 +601,8 @@ switch varargin{1}
         
         Events = events(D);
         Nevents = length(Events);
+        
+        [Events(cellfun(@isempty, {Events.duration})).duration] = deal(0);
         
         x                       = [Events.time]';
         x(:,2)                  = [Events.duration]';
