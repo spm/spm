@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5713 2013-10-29 15:23:18Z john $
+% $Id: spm_deformations.m 5973 2014-05-06 18:12:24Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -605,7 +605,7 @@ for m=1:numel(PI)
     create(NO);
 
     % Smoothing settings
-    vx  = sqrt(sum(mat(1:3,1:3).^2));
+    vx  = sqrt(sum(mat0(1:3,1:3).^2));
     krn = max(job.fwhm./vx,0.25);
 
     % Loop over volumes within the file

@@ -71,7 +71,7 @@ function results = spm_preproc8(obj)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc8.m 5298 2013-03-04 17:13:09Z john $
+% $Id: spm_preproc8.m 5973 2014-05-06 18:12:24Z john $
 
 Affine    = obj.Affine;
 tpm       = obj.tpm;
@@ -409,14 +409,14 @@ for iter=1:20,
                     clear cr
                 end
 
-               %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
+                %fprintf('MOG:\t%g\t%g\t%g\n', ll,llr,llrb);
 
                 % Mixing proportions, Means and Variances
                 for k=1:K,
                     tmp       = mom0(lkp==lkp(k));
-                    mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);
-                    mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);
-                    vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0;
+                    mg(k)     = (mom0(k)+tiny)/sum(tmp+tiny);  % US eq. 27 (partly)
+                    mn(:,k)   = mom1(:,k)/(mom0(k)+tiny);      % US eq. 23
+                    vr(:,:,k) = (mom2(:,:,k) - mom1(:,k)*mom1(:,k)'/mom0(k))/(mom0(k)+tiny) + vr0; % US eq. 25
                 end
                 for k1=1:Kb,
                     wp(k1) = (sum(mom0(lkp==k1)) +1)/(mgm(k1) +1); % bias the solution towards 1
@@ -502,6 +502,8 @@ for iter=1:20,
         if iter1 > 1 && ~((ll-ooll)>2*tol1*nm), break; end
         ooll = ll;
 
+
+
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Estimate bias
         % Note that for multi-spectral data, the covariances among
@@ -541,10 +543,9 @@ for iter=1:20,
                                 w2  = w2 + tmp;
                             end
                             wt1   = zeros(d(1:2));
-                            wt1(buf(z).msk) = -(1 + cr.*w1);
+                            wt1(buf(z).msk) = -(1 + cr.*w1); % US eq. 34 (gradient)
                             wt2   = zeros(d(1:2));
-                           %wt2(buf(z).msk) = cr.*(cr.*w2 - w1);
-                            wt2(buf(z).msk) = cr.*cr.*w2 + 1;
+                            wt2(buf(z).msk) = cr.*cr.*w2 + 1; % Simplified Hessian of US eq. 34
                         else
                             q = B;
                             for n1=1:N,
@@ -574,6 +575,7 @@ for iter=1:20,
                                 wt2(buf(z).msk) = wt2(buf(z).msk) + qk.*(1 - gr2.*cr0.^2);
                             end
                         end
+
                         b3    = chan(n).B3(z,:)';
                         Beta  = Beta  + kron(b3,spm_krutil(wt1,chan(n).B1,chan(n).B2,0));
                         Alpha = Alpha + kron(b3*b3',spm_krutil(wt2,chan(n).B1,chan(n).B2,1));
@@ -699,6 +701,8 @@ for iter=1:20,
             end
         end
     end
+
+
  
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Estimate deformations
