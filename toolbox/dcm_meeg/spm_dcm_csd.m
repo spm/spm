@@ -41,7 +41,7 @@ function DCM = spm_dcm_csd(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_csd.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_dcm_csd.m 5975 2014-05-07 18:07:42Z karl $
  
  
 % check options
@@ -119,8 +119,8 @@ DCM.M.x  = x;
 DCM.M.n  = length(spm_vec(x));
 DCM.M.pE = pE;
 DCM.M.pC = pC;
-DCM.M.hE = 8;
-DCM.M.hC = exp(-8);
+DCM.M.hE = 6;
+DCM.M.hC = 1/64;
 DCM.M.m  = Ns;
 
 % specify M.u - endogenous input (fluctuations) and intial states

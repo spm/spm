@@ -1,10 +1,11 @@
-function [G] = spm_morlet_conv(G,k,wnum)
+function [G] = spm_morlet_conv(G,w,dt,wnum)
 % temporal convolution of complex spectral responses with Morlet envelope
-% FORMAT [G] = spm_morlet_conv(G,k,wnum)
+% FORMAT [G] = spm_morlet_conv(G,w,dt,wnum)
 %
 % G      - (t x w x n x n) cross spectral density
-% k      - Frequencies (cycles per time bin)
-% wnum   - Wavelet number: default = 4
+% w      - Frequencies (Hz)
+% dt     - sampling interval (sec)
+% wnum   - Wavelet number: default = 2  s.d. = wnum * 1/w
 %
 % G      - convolved cross spectral density
 %__________________________________________________________________________
@@ -15,24 +16,46 @@ function [G] = spm_morlet_conv(G,k,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet_conv.m 4768 2012-06-11 17:06:55Z karl $
+% $Id: spm_morlet_conv.m 5975 2014-05-07 18:07:42Z karl $
 
 
 % setup and defaults
 %--------------------------------------------------------------------------
-if nargin < 3, wnum = 4; end
+if nargin < 4, wnum = 2; end
 
-% convolution
+% get (non-stationary) convolution matrix for frequencies
 %--------------------------------------------------------------------------
-for w = 1:size(G,2)
-    n     = 2*round(wnum/k(w)/2);
-    h     = 1 - cos(2*pi*(1:n)/(n + 1));
-    h     = h/sqrt(sum(abs(h).^2));
-    h     = h.^2';
+N     = length(w);
+t     = (-N:N)'/(2*w(end));
+ind   = 1:N;
+for i = 1:N
+    s      = wnum/w(i);
+    h      = abs(fftshift(fft(exp(-t.^2/(2*s^2)))));
+    h      = h(ind + N - i);
+    H(:,i) = h/sum(h);
+end
+
+% convolution over frequencies
+%--------------------------------------------------------------------------
+for i = 1:size(G,3)
+    for j = 1:size(G,4)
+        G(:,:,i,j) = G(:,:,i,j)*H;
+    end
+end
+
+% convolution over frequencies
+%--------------------------------------------------------------------------
+ind    = 1:size(G,1);
+for k = 1:N
+    s     = wnum/w(k);
+    n     = s*4;
+    t     = -n:dt:n;
+    h     = exp(-t.^2/(2*s^2));
+    h     = h/sum(h);
     for i = 1:size(G,3)
         for j = 1:size(G,4)
-            g          = conv(G(:,w,i,j),h);
-            G(:,w,i,j) = g((1:size(G,1)) + n/2);
+            g          = conv(G(:,k,i,j),h);
+            G(:,k,i,j) = g(ind + round(length(t)/2));
         end
     end
 end

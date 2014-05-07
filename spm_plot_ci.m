@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5789 2013-12-08 14:36:51Z karl $
+% $Id: spm_plot_ci.m 5975 2014-05-07 18:07:42Z karl $
 
 % unpack expectations into a matrix
 %--------------------------------------------------------------------------
@@ -32,8 +32,8 @@ E     = E(j,:);
 
 % unpack conditional covariances
 %--------------------------------------------------------------------------
-ci    = spm_invNcdf(1 - 0.05);
-
+ci    = spm_invNcdf(1 - 0.05);               % confidence interval
+gr    = 0.9;                                 % grey level
 if iscell(C)
     
     % try cell array of covariances (from spm_DEM amd spm_LAP)
@@ -92,12 +92,12 @@ if N >= 8
     %======================================================================
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+            [1 1 1]*gr,'EdgeColor',[1 1 1]*.5),hold on
         plot(x,exp(E))
         
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            [1 1 1]*.8,'EdgeColor',[1 1 1]*.5),hold on
+            [1 1 1]*gr,'EdgeColor',[1 1 1]*.5),hold on
         plot(x,E,s)
     end
     
@@ -108,7 +108,7 @@ elseif n == 2
     %======================================================================
     try,  C = C{1};  end
     [x,y] = ellipsoid(E(1),E(2),1,c(1),c(2),0,32);
-    fill(x(16,:)',y(16,:)',[1 1 1]*.9,'EdgeColor',[1 1 1]*.8),hold on
+    fill(x(16,:)',y(16,:)',[1 1 1]*gr,'EdgeColor',[1 1 1]*.5),hold on
     plot(E(1,1),E(2,1),'.','MarkerSize',16)
     
     

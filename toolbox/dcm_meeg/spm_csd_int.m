@@ -29,7 +29,7 @@ function [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5964 2014-04-20 09:48:58Z karl $
+% $Id: spm_csd_int.m 5975 2014-05-07 18:07:42Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -193,7 +193,7 @@ for c = 1:size(X,1)
     %----------------------------------------------------------------------
     ERP{c}  = erp';
     if nargout > 1
-        CSD{c}  = spm_morlet_conv(csd{c},w*dt,Rft);
+        CSD{c}  = spm_morlet_conv(csd{c},w,dt);
     end
     
 end
