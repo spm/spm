@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5959 2014-04-16 17:14:33Z will $
+% $Id: spm_results_ui.m 5976 2014-05-08 15:51:04Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5959 $'; 
+SVNid = '$Rev: 5976 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -361,14 +361,16 @@ switch lower(Action), case 'setup'                         %-Set up results
         hMax = spm_mesh_render('Register',hMax,hReg);
     elseif isequal(units(2:3),{'' ''})
         set(hMIPax, 'Position',[0.05 0.65 0.55 0.25]);
+        [allS,allXYZmm] = spm_read_vols(xSPM.Vspm);
+        plot(hMIPax,allXYZmm(1,:),allS,'Color',[0.6 0.6 0.6]);
+        set(hMIPax,'NextPlot','add');
         MIP = NaN(1,xSPM.DIM(1));
         MIP(xSPM.XYZ(1,:)) = xSPM.Z;
         XYZmm = xSPM.M(1,:)*[1:xSPM.DIM(1);zeros(2,xSPM.DIM(1));ones(1,xSPM.DIM(1))];
-        plot(hMIPax,XYZmm,MIP,'b-+');
-        set(hMIPax,'NextPlot','add');
+        plot(hMIPax,XYZmm,MIP,'b-+','LineWidth',2);
         plot(hMIPax,[XYZmm(1) XYZmm(end)],[xSPM.u xSPM.u],'r');
         clim = get(hMIPax,'YLim');
-        axis(hMIPax,[XYZmm(1) XYZmm(end) 0 clim(2)]);
+        axis(hMIPax,[sort([XYZmm(1) XYZmm(end)]) 0 clim(2)]);
         %set(hMIPax,'XTick',[],'YTick',[]);
     else
         hMIPax = spm_mip_ui(xSPM.Z,xSPM.XYZmm,M,DIM,hMIPax,units);
