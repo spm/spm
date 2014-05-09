@@ -403,7 +403,7 @@ keepchans = (length(sel1)==length(montage.labelnew));
 if isfield(input, 'chantype')
   if keepchans
     % reorder them according to the montage
-    sens.chantype = input.chantype(sel2,:);
+    %sens.chantype = input.chantype(sel2,:);
   else
     input = rmfield(input, 'chantype');
   end
@@ -412,7 +412,7 @@ end
 if isfield(input, 'chanunit')
   if keepchans
     % reorder them according to the montage
-    sens.chanunit = input.chanunit(sel2,:);
+    %sens.chanunit = input.chanunit(sel2,:);
   else
     input = rmfield(input, 'chanunit');
   end
