@@ -126,7 +126,7 @@ However, the cleanup step (re-introduced from the old segmentation routine, and 
 
 \subsection{Canonical Variates Analysis}
 
-SPM's Canonical Variates Analysis (CVA) function, \texttt{spm\_cva.m}, has been updated so that it also computes Log Bayes Factors to make inferences about the number of significantly non-zero canonical vectors. It computes AIC and BIC approximations to these Log Bayes Factors. These quantities can be used in second-level analysis to make inferences about a group of subjects/sessions using the SPM's random effects model selection tool (\texttt{spm\_BMS.m}). 
+SPM's Canonical Variates Analysis (CVA) function, \texttt{spm\_cva.m}, has been updated so that it also computes Log Bayes Factors to make inferences about the number of significantly non-zero canonical vectors. It computes AIC and BIC approximations to these Log Bayes Factors. These quantities can be used in second-level analysis to make inferences about a group of subjects/sessions using the SPM's random effects model selection tool (\texttt{spm\_BMS.m}).
 
 \subsection{Regional Bayesian model comparison - first level}
 
@@ -135,7 +135,11 @@ The function \texttt{spm\_vb\_regionF.m} now provides approximation of the log m
 \subsection{Interactive Bayesian model comparison - second level}
 
 Multidimensional (or two-sided) inferences about GLM parameters  are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
-This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG) .
+This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG). If you wish to create log Bayes factor maps in favour of the {\em null} model, you can use the matlab command line function \verb!spm_bms_test_null.m!.
+
+Operationally, Bayesian inferences at the second level are implemented by first specifying a model, and then estimating it under the 'classical' option. You must then re-estimate the model under the 'Bayesian' option. Subsequent to this, when you are specifying new contrasts in the contrast manager you can have some contrasts that are Bayesian ('t' will provide inference about effect sizes, 'F' will use the Savage-Dickey approach), and others that are classical. The first time you specify a contrast you decide which it is to be.
+
+
 
 \subsection{Mixed-effects models}
 
@@ -149,7 +153,7 @@ See \cite{Barnes2013}.
 
 \subsubsection{Reparametrisation of the bilinear model}
 
-The bilinear model used by (single-state) DCM for fMRI has been upgraded. To summarise, a number of people have observed that Bayesian parameter averages (BPA) of self (intrinsic) connections can be positive, despite being negative for each subject or session. This is perfectly plausible behaviour -- in the sense that their prior expectation is $-1/2$ and each subject can provide evidence that the posterior is less than the prior mean (but still negative). When this evidence is accumulated by BPA, the posterior can be `pushed' into positive values. The anomalous aspect of this behaviour rests on the fact that there is no negativity constraint on the self-connections.  In the revised code, the self-connections -- in the leading diagonal of the $A$ matrix -- now specify log scaling parameters. This means that these (and only these) parameters encode a self-connections of $-1/2*exp(A)$; where $A$ has a prior mean of $0$ and $-1/2*exp(0) = -1/2$. 
+The bilinear model used by (single-state) DCM for fMRI has been upgraded. To summarise, a number of people have observed that Bayesian parameter averages (BPA) of self (intrinsic) connections can be positive, despite being negative for each subject or session. This is perfectly plausible behaviour -- in the sense that their prior expectation is $-1/2$ and each subject can provide evidence that the posterior is less than the prior mean (but still negative). When this evidence is accumulated by BPA, the posterior can be `pushed' into positive values. The anomalous aspect of this behaviour rests on the fact that there is no negativity constraint on the self-connections.  In the revised code, the self-connections -- in the leading diagonal of the $A$ matrix -- now specify log scaling parameters. This means that these (and only these) parameters encode a self-connections of $-1/2*exp(A)$; where $A$ has a prior mean of $0$ and $-1/2*exp(0) = -1/2$.
 
 This re-parameterisation does not affect model inversion very much but guarantees the BPA is always negative because $-1/2*exp(A) < 0$ has to be less than one. The parameterisation of connection strengths in terms of log scale parameters is already used by two-state models for fMRI and all EEG (and MEG) DCMs.
 
@@ -165,7 +169,7 @@ Stochastic DCM for fMRI is similarly well suited for modelling resting state dat
 
 Spectral DCM overcomes these problems by making stationarity assumptions, and considering the cross-spectra of the observed BOLD data, as opposed to the original time series. This reduces the inversion to an estimation of the spectral density of the neuronal fluctuations 'driving' the system (and observation noise). This permits a more efficient estimation (inversion taking seconds to minutes), yielding estimates of coupling (as with all DCMs), as well as potentially useful parameters describing the endogenous neuronal fluctuations. Stationarity assumptions preclude the inclusion of modulatory inputs, i.e. changes in coupling caused by experimental manipulation. For this, investigators should explore stochastic DCM for fMRI.
 
-In summary, this DCM is suited for investigators looking to compare the coupling in an endogenous (or "resting state") network between two groups of subjects (e.g. patients and controls). 
+In summary, this DCM is suited for investigators looking to compare the coupling in an endogenous (or "resting state") network between two groups of subjects (e.g. patients and controls).
 
 \section{EEG/MEG}
 
