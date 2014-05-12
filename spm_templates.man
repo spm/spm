@@ -62,6 +62,163 @@
 % 603 605 606 607 608 609 610 611 612 613 614 616 617 618 619 621 622
 % 623 625 626 627 629 630 631 632 633 634 635 636 639 640 641 642 644
 % 646 648 652 653 662
+%
+% tpm/MaxProb.nii
+% ---------------
+% Maximum probability tissue labels derived from the ``MICCAI 2012
+% Grand Challenge and Workshop on Multi-Atlas Labeling''.
+% https://masi.vuse.vanderbilt.edu/workshop2012/index.php/Challenge_Details
+% These data were released under the Creative Commons
+% Attribution-NonCommercial (CC BY-NC) with no end date.
+% Users should credit the MRI scans as originating from the OASIS
+% project (http://www.oasis-brains.org/) and the labeled data as
+% "provided by Neuromorphometrics, Inc. (http://Neuromorphometrics.com/)
+% under academic subscription".  These references should be included
+% in all workshop and final publications.
+%
+% The MRI scans were aligned with tpm/TPM.nii via the Segment algorithm
+% of SPM12b (version 5979, with settings all at default values), which
+% resulted in deformation fields that were used to warp the label maps
+% to MNI-space. The tpm/MaxProb.nii encode the single most probable
+% structure labels following this rather approximate alignment procedure.
+%
+% Labels are coded as follows:
+%  4   3rd Ventricle
+%  11  4th Ventricle
+%  23  Right Accumbens Area
+%  30  Left Accumbens Area
+%  31  Right Amygdala
+%  32  Left Amygdala
+%  35  Brain Stem
+%  36  Right Caudate
+%  37  Left Caudate
+%  38  Right Cerebellum Exterior
+%  39  Left Cerebellum Exterior
+%  40  Right Cerebellum White Matter
+%  41  Left Cerebellum White Matter
+%  44  Right Cerebral White Matter
+%  45  Left Cerebral White Matter
+%  46  CSF
+%  47  Right Hippocampus
+%  48  Left Hippocampus
+%  49  Right Inf Lat Vent
+%  50  Left Inf Lat Vent
+%  51  Right Lateral Ventricle
+%  52  Left Lateral Ventricle
+%  55  Right Pallidum
+%  56  Left Pallidum
+%  57  Right Putamen
+%  58  Left Putamen
+%  59  Right Thalamus Proper
+%  60  Left Thalamus Proper
+%  61  Right Ventral DC
+%  62  Left Ventral DC
+%  63  Right vessel
+%  64  Left vessel
+%  69  Optic Chiasm
+%  71  Cerebellar Vermal Lobules I-V
+%  72  Cerebellar Vermal Lobules VI-VII
+%  73  Cerebellar Vermal Lobules VIII-X
+%  75  Left Basal Forebrain
+%  76  Right Basal Forebrain
+%  100 Right ACgG anterior cingulate gyrus
+%  101 Left ACgG anterior cingulate gyrus
+%  102 Right AIns anterior insula
+%  103 Left AIns anterior insula
+%  104 Right AOrG anterior orbital gyrus
+%  105 Left AOrG anterior orbital gyrus
+%  106 Right AnG angular gyrus
+%  107 Left AnG angular gyrus
+%  108 Right Calc calcarine cortex
+%  109 Left Calc calcarine cortex
+%  112 Right CO central operculum
+%  113 Left CO central operculum
+%  114 Right Cun cuneus
+%  115 Left Cun cuneus
+%  116 Right Ent entorhinal area
+%  117 Left Ent entorhinal area
+%  118 Right FO frontal operculum
+%  119 Left FO frontal operculum
+%  120 Right FRP frontal pole
+%  121 Left FRP frontal pole
+%  122 Right FuG fusiform gyrus
+%  123 Left FuG fusiform gyrus
+%  124 Right GRe gyrus rectus
+%  125 Left GRe gyrus rectus
+%  128 Right IOG inferior occipital gyrus
+%  129 Left IOG inferior occipital gyrus
+%  132 Right ITG inferior temporal gyrus
+%  133 Left ITG inferior temporal gyrus
+%  134 Right LiG lingual gyrus
+%  135 Left LiG lingual gyrus
+%  136 Right LOrG lateral orbital gyrus
+%  137 Left LOrG lateral orbital gyrus
+%  138 Right MCgG middle cingulate gyrus
+%  139 Left MCgG middle cingulate gyrus
+%  140 Right MFC medial frontal cortex
+%  141 Left MFC medial frontal cortex
+%  142 Right MFG middle frontal gyrus
+%  143 Left MFG middle frontal gyrus
+%  144 Right MOG middle occipital gyrus
+%  145 Left MOG middle occipital gyrus
+%  146 Right MOrG medial orbital gyrus
+%  147 Left MOrG medial orbital gyrus
+%  148 Right MPoG postcentral gyrus medial segment
+%  149 Left MPoG postcentral gyrus medial segment
+%  150 Right MPrG precentral gyrus medial segment
+%  151 Left MPrG precentral gyrus medial segment
+%  152 Right MSFG superior frontal gyrus medial segment
+%  153 Left MSFG superior frontal gyrus medial segment
+%  154 Right MTG middle temporal gyrus
+%  155 Left MTG middle temporal gyrus
+%  156 Right OCP occipital pole
+%  157 Left OCP occipital pole
+%  160 Right OFuG occipital fusiform gyrus
+%  161 Left OFuG occipital fusiform gyrus
+%  162 Right OpIFG opercular part of the inferior frontal gyrus
+%  163 Left OpIFG opercular part of the inferior frontal gyrus
+%  164 Right OrIFG orbital part of the inferior frontal gyrus
+%  165 Left OrIFG orbital part of the inferior frontal gyrus
+%  166 Right PCgG posterior cingulate gyrus
+%  167 Left PCgG posterior cingulate gyrus
+%  168 Right PCu precuneus
+%  169 Left PCu precuneus
+%  170 Right PHG parahippocampal gyrus
+%  171 Left PHG parahippocampal gyrus
+%  172 Right PIns posterior insula
+%  173 Left PIns posterior insula
+%  174 Right PO parietal operculum
+%  175 Left PO parietal operculum
+%  176 Right PoG postcentral gyrus
+%  177 Left PoG postcentral gyrus
+%  178 Right POrG posterior orbital gyrus
+%  179 Left POrG posterior orbital gyrus
+%  180 Right PP planum polare
+%  181 Left PP planum polare
+%  182 Right PrG precentral gyrus
+%  183 Left PrG precentral gyrus
+%  184 Right PT planum temporale
+%  185 Left PT planum temporale
+%  186 Right SCA subcallosal area
+%  187 Left SCA subcallosal area
+%  190 Right SFG superior frontal gyrus
+%  191 Left SFG superior frontal gyrus
+%  192 Right SMC supplementary motor cortex
+%  193 Left SMC supplementary motor cortex
+%  194 Right SMG supramarginal gyrus
+%  195 Left SMG supramarginal gyrus
+%  196 Right SOG superior occipital gyrus
+%  197 Left SOG superior occipital gyrus
+%  198 Right SPL superior parietal lobule
+%  199 Left SPL superior parietal lobule
+%  200 Right STG superior temporal gyrus
+%  201 Left STG superior temporal gyrus
+%  202 Right TMP temporal pole
+%  203 Left TMP temporal pole
+%  204 Right TrIFG triangular part of the inferior frontal gyrus
+%  205 Left TrIFG triangular part of the inferior frontal gyrus
+%  206 Right TTG transverse temporal gyrus
+%  207 Left TTG transverse temporal gyrus
 % _________________________________________________________________________
 % _________________________________________________________________________
 %
@@ -367,4 +524,4 @@
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_templates.man 5718 2013-10-30 13:54:23Z john $
+% $Id: spm_templates.man 5980 2014-05-12 16:15:49Z john $
