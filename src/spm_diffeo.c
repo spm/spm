@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 5506 2013-05-14 17:13:43Z john $ */
+/* $Id: spm_diffeo.c 5982 2014-05-14 12:57:43Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -956,7 +956,7 @@ static void brc_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *
 
     for(i=0; i<nrhs; i++)
         if (!mxIsNumeric(prhs[i]) || mxIsComplex(prhs[i]) || mxIsSparse(prhs[i]) || !mxIsSingle(prhs[i]))
-            mexErrMsgTxt("Data must be numeric, real, full and double");
+            mexErrMsgTxt("Data must be numeric, real, full and single");
 
     nd = mxGetNumberOfDimensions(prhs[0]);
     if (nd!=4) mexErrMsgTxt("Wrong number of dimensions.");
