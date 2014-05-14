@@ -1,26 +1,25 @@
 function downsample = spm_cfg_eeg_downsample
-% configuration file for M/EEG downsampling
-%_______________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Configuration file for M/EEG downsampling
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_downsample.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_downsample.m 5983 2014-05-14 17:09:17Z guillaume $
 
-rev = '$Rev: 5377 $';
 
-D = cfg_files;
-D.tag = 'D';
-D.name = 'File Name';
+D        = cfg_files;
+D.tag    = 'D';
+D.name   = 'File Name';
 D.filter = 'mat';
-D.num = [1 1];
-D.help = {'Select the M/EEG mat file.'};
+D.num    = [1 1];
+D.help   = {'Select the M/EEG mat file.'};
 
-fsample_new = cfg_entry;
-fsample_new.tag = 'fsample_new';
-fsample_new.name = 'New sampling rate';
+fsample_new         = cfg_entry;
+fsample_new.tag     = 'fsample_new';
+fsample_new.name    = 'New sampling rate';
 fsample_new.strtype = 'r';
-fsample_new.num = [1 1];
-fsample_new.help = {'Input the new sampling rate [Hz].'};
+fsample_new.num     = [1 1];
+fsample_new.help    = {'Input the new sampling rate [Hz].'};
 
 prefix         = cfg_entry;
 prefix.tag     = 'prefix';
@@ -30,26 +29,26 @@ prefix.strtype = 's';
 prefix.num     = [1 Inf];
 prefix.val     = {'d'};
 
-downsample = cfg_exbranch;
-downsample.tag = 'downsample';
+downsample      = cfg_exbranch;
+downsample.tag  = 'downsample';
 downsample.name = 'Downsampling';
-downsample.val = {D fsample_new, prefix};
+downsample.val  = {D fsample_new, prefix};
 downsample.help = {'Downsample EEG/MEG data.'};
 downsample.prog = @eeg_downsample;
 downsample.vout = @vout_eeg_downsample;
 downsample.modality = {'EEG'};
 
 
+%==========================================================================
 function out = eeg_downsample(job)
-% construct the S struct
-S = job;
+S   = job;
 S.D = S.D{1};
 
-profile on
 out.D = spm_eeg_downsample(S);
-profile off
 out.Dfname = {fullfile(out.D.path, out.D.fname)};
 
+
+%==========================================================================
 function dep = vout_eeg_downsample(job)
 % Output is always in field "D", no matter how job is structured
 dep = cfg_dep;
@@ -65,5 +64,3 @@ dep(2).sname = 'Downsampled Datafile';
 dep(2).src_output = substruct('.','Dfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
-
-
