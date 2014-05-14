@@ -5,7 +5,7 @@ function obj = subsasgn(obj,subs,varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 5878 2014-02-14 12:28:28Z john $
+% $Id: subsasgn.m 5985 2014-05-14 18:32:51Z john $
 
 
 switch subs(1).type,
@@ -106,7 +106,7 @@ case {'.'},
                 d = findindict(s,'units');
                 val1 = diag([[1 1 1]/d.rescale 1])*val1;
             end;
-            obj.hdr = encode_qform0(double(val1), obj.hdr);
+            obj.hdr = encode_qform0(double(single(val1-1)+1), obj.hdr);
 
         case {'mat0_intent'}
             if isempty(val1),
@@ -132,9 +132,9 @@ case {'.'},
                 val1 = diag([[1 1 1]/d.rescale 1])*val1;
             end;
             val1           = val1 * [eye(4,3) [1 1 1 1]'];
-            obj.hdr.srow_x = val1(1,:);
-            obj.hdr.srow_y = val1(2,:);
-            obj.hdr.srow_z = val1(3,:);
+            obj.hdr.srow_x = single(val1(1,:)-1)+1;
+            obj.hdr.srow_y = single(val1(2,:)-1)+1;
+            obj.hdr.srow_z = single(val1(3,:)-1)+1;
 
         case {'mat_intent'}
             if isempty(val1),
