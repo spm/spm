@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_prep.m 5986 2014-05-15 09:36:55Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -239,7 +239,11 @@ switch lower(S.task)
         template_sfp = dir(fullfile(spm('dir'), 'EEGtemplates', '*.sfp'));
         template_sfp = {template_sfp.name};
         
-        ind = strmatch([ft_senstype(D.chanlabels(D.indchantype('EEG'))) '.sfp'], template_sfp, 'exact');
+        if ft_senstype(D.chanlabels(D.indchantype('EEG')), 'ext1020')
+            ind = strmatch('ext1020.sfp', template_sfp, 'exact');
+        else
+            ind = strmatch([ft_senstype(D.chanlabels(D.indchantype('EEG'))) '.sfp'], template_sfp, 'exact');
+        end
         
         if ~isempty(ind)            
             fid = D.fiducials;

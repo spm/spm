@@ -7,7 +7,7 @@ function varargout = spm_eeg_inv_imag_api(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_imag_api.m 5461 2013-05-02 19:01:57Z vladimir $
+% $Id: spm_eeg_inv_imag_api.m 5986 2014-05-15 09:36:55Z vladimir $
 
 spm('Clear');
 
@@ -126,7 +126,8 @@ D = spm_eeg_load(S);
 [D, ok] = check(D, 'sensfid');
 
 if ~ok
-    if check(D, 'basic')
+    [D, ok] = check(D, 'basic');
+    if ok
         warndlg(['The requested file is not ready for source reconstruction.'...
             'See Matlab window for details.']);
     else

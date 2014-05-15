@@ -6,7 +6,7 @@ function spm_eeg_prep_ui(callback)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep_ui.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_prep_ui.m 5986 2014-05-15 09:36:55Z vladimir $
 
 
 spm('Pointer','Watch');
@@ -23,7 +23,7 @@ end
 %==========================================================================
 function CreateMenu
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 5986 $';
 spm('FnBanner', 'spm_eeg_prep_ui', SVNrev);
 Finter = spm('FnUIsetup', 'M/EEG prepare', 0);
 
@@ -1170,7 +1170,7 @@ if isa(get(Finter, 'UserData'), 'meeg')
     template_sfp = {template_sfp.name};
     ind = strmatch([ft_senstype(D.chanlabels) '.sfp'], template_sfp, 'exact');
     
-    if ~isempty(ind)
+    if ~isempty(ind) || ft_senstype(D.chanlabels, 'ext1020')
         HasDefaultLocs = 'on';
     end
     

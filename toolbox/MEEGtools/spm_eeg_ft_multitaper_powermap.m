@@ -22,10 +22,10 @@ function Dtf = spm_eeg_ft_multitaper_powermap(S)
 % Copyright (C) 2009 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_powermap.m 5674 2013-10-09 10:00:26Z vladimir $
+% $Id: spm_eeg_ft_multitaper_powermap.m 5986 2014-05-15 09:36:55Z vladimir $
  
 %%
-SVNrev = '$Rev: 5674 $';
+SVNrev = '$Rev: 5986 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -132,13 +132,13 @@ Dtf  = spm_eeg_ft2spm(dummy, fullfile(D.path, ['TF' D.fname]));
 
 %-Copy some additional information from the original file
 %--------------------------------------------------------------------------
-Dtf  = conditions (Dtf, [], D.conditions);
+Dtf  = conditions (Dtf, ':', D.conditions);
 
 [sel1, sel2] = spm_match_str(Dtf.chanlabels, D.chanlabels);
 
 Dtf = chantype(Dtf, sel1, chantype(D, sel2));
 Dtf = badchannels(Dtf, sel1, badchannels(D, sel2));
-Dtf = coor2D(Dtf, [], coor2D(D, []));
+Dtf = coor2D(Dtf, ':', coor2D(D, ':'));
 
 Dtf = badtrials(Dtf, badtrials(D), 1);
 Dtf = history(Dtf, history(D));
