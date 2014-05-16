@@ -5,7 +5,7 @@ function headmodelhelmet = spm_cfg_eeg_inv_headmodelhelmet
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5792 2013-12-09 12:09:33Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodelhelmet.m 5989 2014-05-16 14:35:18Z gareth $
 
 
 D = cfg_files;
@@ -324,6 +324,7 @@ for i = 1:numel(job.D)
         catch
             nocoilpos=H1.Dnocoils.sensors.meg.coilpos;
             nocoilfids=H1.Dnocoils.fiducials;
+            nocoillabels=H1.Dnocoils.sensors.meg.label;
         end;
         
         if max(max(abs(D.fiducials.fid.pnt-nocoilfids.fid.pnt)))>1e-3,
@@ -331,7 +332,9 @@ for i = 1:numel(job.D)
             % changeHeadpos -nominal resets to default coil positions
             
         end;
-        defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos',nocoilpos');
+        
+        [c,ia,ib]=intersect(D.sensors('MEG').label,nocoillabels,'rows')
+        defaultHead2currentHead=spm_eeg_inv_rigidreg(D.sensors('MEG').coilpos(ia,:)',nocoilpos(ib,:)');
         
         meegfid = D.fiducials;
         
