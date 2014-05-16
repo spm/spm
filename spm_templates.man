@@ -63,8 +63,8 @@
 % 623 625 626 627 629 630 631 632 633 634 635 636 639 640 641 642 644
 % 646 648 652 653 662
 %
-% tpm/MaxProb.nii
-% ---------------
+% tpm/labels_Neuromorphometrics.nii
+% ---------------------------------
 % Maximum probability tissue labels derived from the ``MICCAI 2012
 % Grand Challenge and Workshop on Multi-Atlas Labeling''.
 % https://masi.vuse.vanderbilt.edu/workshop2012/index.php/Challenge_Details
@@ -79,8 +79,10 @@
 % The MRI scans were aligned with tpm/TPM.nii via the Segment algorithm
 % of SPM12b (version 5979, with settings all at default values), which
 % resulted in deformation fields that were used to warp the label maps
-% to MNI-space. The tpm/MaxProb.nii encode the single most probable
-% structure labels following this rather approximate alignment procedure.
+% to MNI-space. The tpm/labels_Neuromorphometrics.nii encode the single
+% most probable structure labels following this rather approximate
+% alignment procedure (after weighting each subject to account for
+% repeat scans).
 %
 % Labels are coded as follows:
 %  4   3rd Ventricle
@@ -219,6 +221,38 @@
 %  205 Left TrIFG triangular part of the inferior frontal gyrus
 %  206 Right TTG transverse temporal gyrus
 %  207 Left TTG transverse temporal gyrus
+%
+% The 30 OASIS subjects (gender and age) used were:
+%  OAS1_0040 F 38
+%  OAS1_0061 F 20
+%  OAS1_0080 F 25
+%  OAS1_0083 F 90
+%  OAS1_0091 F 18
+%  OAS1_0092 M 22
+%  OAS1_0101 M 29
+%  OAS1_0111 M 23
+%  OAS1_0113 F 83
+%  OAS1_0117 M 25
+%  OAS1_0145 M 34
+%  OAS1_0150 F 20
+%  OAS1_0156 F 20
+%  OAS1_0191 F 21
+%  OAS1_0202 F 23
+%  OAS1_0220 F 75
+%  OAS1_0230 F 19
+%  OAS1_0236 F 20
+%  OAS1_0239 F 29
+%  OAS1_0249 F 28
+%  OAS1_0282 F 45
+%  OAS1_0285 M 20
+%  OAS1_0300 M 68
+%  OAS1_0331 F 54
+%  OAS1_0353 M 22
+%  OAS1_0368 M 22
+%  OAS1_0379 F 20
+%  OAS1_0395 F 26
+%  OAS1_0417 F 30
+%  OAS1_0456 M 61
 % _________________________________________________________________________
 % _________________________________________________________________________
 %
@@ -524,4 +558,4 @@
 % Copyright (C) 1991,1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_templates.man 5980 2014-05-12 16:15:49Z john $
+% $Id: spm_templates.man 5990 2014-05-16 16:50:07Z john $
