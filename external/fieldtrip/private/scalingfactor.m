@@ -69,7 +69,7 @@ function factor = scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scalingfactor.m 7271 2012-12-31 10:04:49Z roboos $
+% $Id: scalingfactor.m 9497 2014-05-12 09:51:43Z jorhor $
 
 persistent previous_old previous_new previous_factor
 
@@ -77,6 +77,15 @@ if isempty(previous_old)
   previous_old = {};
   previous_new = {};
   previous_factor = [];
+end
+
+if ~isequal(class(old), class(new))
+  error('the input arguments should be of the same class');
+end
+
+if iscell(old)
+  factor = cellfun(@scalingfactor, old, new);
+  return
 end
 
 cachehit = strcmp(old, previous_old) & strcmp(new, previous_new);
@@ -105,6 +114,7 @@ A   = 7;
 K   = 11;
 mol = 13;
 cd  = 17;
+unknown = -1;
 
 % each of the derives units is represented by a product and/or ratio of prime numbers
 Hz  = 1/s;

@@ -113,9 +113,9 @@ function [stat] = ft_connectivityanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityanalysis.m 9017 2013-12-11 11:48:26Z jansch $
+% $Id: ft_connectivityanalysis.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_connectivityanalysis.m 9017 2013-12-11 11:48:26Z jansch $';
+revision = '$Id: ft_connectivityanalysis.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -125,7 +125,13 @@ ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
 
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
 % FIXME it should be checked carefully whether the following works
+% check if the input data is valid for this function
 % data = ft_checkdata(data, 'datatype', {'raw', 'timelock', 'freq', 'source'});
 
 % set the defaults

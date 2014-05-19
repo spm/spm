@@ -68,15 +68,20 @@ function [cfg, artifact] = ft_artifact_eog(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_eog.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_artifact_eog.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_artifact_eog.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_artifact_eog.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
 % ft_preamble provenance is not needed because just a call to ft_artifact_zvalue
 % ft_preamble loadvar data is not needed because ft_artifact_zvalue will do this
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',    {'datatype', 'continuous'});

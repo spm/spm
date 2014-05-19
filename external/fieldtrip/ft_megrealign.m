@@ -91,9 +91,9 @@ function [data] = ft_megrealign(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megrealign.m 9336 2014-04-02 19:59:44Z roboos $
+% $Id: ft_megrealign.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_megrealign.m 9336 2014-04-02 19:59:44Z roboos $';
+revision = '$Id: ft_megrealign.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -102,6 +102,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'plot3d',      'feedback'});

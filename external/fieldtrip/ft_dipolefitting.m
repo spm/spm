@@ -118,9 +118,9 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 8701 2013-11-02 10:15:35Z roboos $
+% $Id: ft_dipolefitting.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 8701 2013-11-02 10:15:35Z roboos $';
+revision = '$Id: ft_dipolefitting.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,6 +129,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
@@ -299,7 +304,11 @@ if strcmp(cfg.gridsearch, 'yes')
   % construct the dipole grid on which the gridsearch will be done
   tmpcfg = [];
   tmpcfg.vol  = vol;
-  tmpcfg.grad = sens; % this can be electrodes or gradiometers
+  if ft_senstype(sens, 'eeg')
+    tmpcfg.elec = sens;
+  else
+    tmpcfg.grad = sens;
+  end
   % copy all options that are potentially used in ft_prepare_sourcemodel
   try, tmpcfg.grid        = cfg.grid;         end
   try, tmpcfg.mri         = cfg.mri;          end

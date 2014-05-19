@@ -34,9 +34,9 @@ function [data] = ft_appendspike(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appendspike.m 9091 2014-01-13 10:15:03Z jansch $
+% $Id: ft_appendspike.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_appendspike.m 9091 2014-01-13 10:15:03Z jansch $';
+revision = '$Id: ft_appendspike.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -44,6 +44,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 isspike = zeros(size(varargin));
 for i=1:length(varargin)
@@ -54,6 +59,7 @@ end
 if all(isspike)
   spike = {};
   for i=1:length(varargin)
+    % check if the input data is valid for this function
     spike{i} = ft_checkdata(varargin{i}, 'datatype', 'spike');
   end
   

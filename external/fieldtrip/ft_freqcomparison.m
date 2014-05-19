@@ -22,14 +22,14 @@ function [freq] = ft_freqcomparison(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqcomparison.m 8353 2013-07-30 13:56:38Z roboos $
+% $Id: ft_freqcomparison.m 9520 2014-05-14 09:33:28Z roboos $
 
 % DEPRECATED by roboos on 30 July 2013
 % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=2222 for more details
 % support for this functionality can be removed at the end of 2013
 warning('FT_FREQCOMPARISON is deprecated, please use FT_MATH instead.')
 
-revision = '$Id: ft_freqcomparison.m 8353 2013-07-30 13:56:38Z roboos $';
+revision = '$Id: ft_freqcomparison.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -37,6 +37,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % nargin check
 if length(varargin)~=2

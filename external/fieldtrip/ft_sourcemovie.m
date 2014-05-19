@@ -24,13 +24,13 @@ function [cfg, M] = ft_sourcemovie(cfg, source, source2)
 
 % Copyright (C) 2011, Robert Oostenveld
 %
-% $Id: ft_sourcemovie.m 9273 2014-03-07 16:38:42Z jansch $
+% $Id: ft_sourcemovie.m 9521 2014-05-14 09:45:42Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_sourcemovie.m 9273 2014-03-07 16:38:42Z jansch $';
+revision = '$Id: ft_sourcemovie.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -40,9 +40,12 @@ ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
 
-% ensure that the input data is valiud for this function, this will also do
-% backward-compatibility conversions of old data that for example was
-% read from an old *.mat file
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
+% check if the input data is valid for this function
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
 
 % check if the input cfg is valid for this function

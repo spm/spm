@@ -10,7 +10,7 @@ function [x, y] = ft_select_box(handle, eventdata, varargin)
 % with the corners of the selected region.
 %
 % Optional input arguments should come in key-value pairs and can include
-%   'multiple'   true/false, make multiple selections by dragging, clicking
+%   'multiple' = true/false, make multiple selections by dragging, clicking
 %                in one will finalize the selection (default = false)
 
 % Copyright (C) 2006, Robert Oostenveld
@@ -31,7 +31,7 @@ function [x, y] = ft_select_box(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_box.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_select_box.m 9515 2014-05-13 13:30:43Z roboos $
 
 % get the optional arguments
 multiple = ft_getopt(varargin, 'multiple', false);

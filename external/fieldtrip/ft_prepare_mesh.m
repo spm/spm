@@ -71,9 +71,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: ft_prepare_mesh.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 9006 2013-12-10 11:24:56Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -82,6 +82,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar mri
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % we cannot use nargin, because the data might have been loaded from cfg.inputfile
 hasdata = exist('mri', 'var');

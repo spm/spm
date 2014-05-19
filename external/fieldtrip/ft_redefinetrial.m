@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_redefinetrial.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_redefinetrial.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -81,6 +81,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % ft_checkdata is done further down
 

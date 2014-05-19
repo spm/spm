@@ -55,9 +55,9 @@ function [cfg] = ft_clusterplot(cfg, stat)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_clusterplot.m 9387 2014-04-09 18:39:36Z nielam $
+% $Id: ft_clusterplot.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_clusterplot.m 9387 2014-04-09 18:39:36Z nielam $';
+revision = '$Id: ft_clusterplot.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -66,6 +66,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar stat
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the given data is appropriate
 if isfield(stat,'freq') && length(stat.freq) > 1

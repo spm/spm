@@ -22,7 +22,7 @@ function bnd = prepare_mesh_segmentation(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_segmentation.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: prepare_mesh_segmentation.m 9530 2014-05-14 16:13:20Z roboos $
 
 
 % ensure that the input is consistent with what this function expects
@@ -106,7 +106,7 @@ for i =1:numel(cfg.tissue)
     % the code below assumes that it is a probabilistic representation
     % for example {'brain', 'skull', scalp'}
     try
-      seg = mri.(cfg.tissue{i});
+      seg = mri.(fixname(cfg.tissue{i}));
     catch
       error('Please specify cfg.tissue to correspond to tissue types in the segmented MRI')
     end

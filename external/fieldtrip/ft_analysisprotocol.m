@@ -75,14 +75,14 @@ function [script, details] = ft_analysisprotocol(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_analysisprotocol.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_analysisprotocol.m 9520 2014-05-14 09:33:28Z roboos $
 
 persistent depth   % this corresponds to the vertical   direction in the figure
 persistent branch  % this corresponds to the horizontal direction in the figure
 persistent parent
 persistent info
 
-revision = '$Id: ft_analysisprotocol.m 9226 2014-02-23 13:12:06Z roboos $';
+revision = '$Id: ft_analysisprotocol.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -94,6 +94,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % set the defaults
 if ~isfield(cfg, 'filename'),    cfg.filename    = [];                end

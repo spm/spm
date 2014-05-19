@@ -69,7 +69,7 @@ function label = ft_senslabel(type, varargin)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senslabel.m 9084 2014-01-08 16:17:33Z roboos $
+% $Id: ft_senslabel.m 9538 2014-05-15 09:59:31Z vlalit $
 
 % these are for speeding up subsequent calls with the same input arguments
 persistent eeg electrode ant128 btiref bti148 bti148_planar bti148_planar_combined bti248 bti248_planar bti248_planar_combined ctfref ctfheadloc ctf64 ctf151 ctf151_planar ctf151_planar_combined ctf275 ctf275_planar ctf275_planar_combined neuromag122 neuromag122_combined neuromag306 neuromag306_combined eeg1020 eeg1010 eeg1005 ext1020 biosemi64 biosemi128 biosemi256 egi32 egi64 egi128 egi256 itab28 itab153 itab153_planar itab153_planar_combined yokogawa9 yokogawa64 yokogawa64_planar yokogawa64_planar_combined yokogawa160 yokogawa160_planar yokogawa160_planar_combined yokogawa440 yokogawa440_planar yokogawa440_planar_combined
@@ -163,6 +163,7 @@ elseif isempty(eval(type))
         'LE2'
         'LE3'
         'LE4'
+        'Lm'
         'R1'
         'R2'
         'R3'
@@ -219,6 +220,7 @@ elseif isempty(eval(type))
         'RE2'
         'RE3'
         'RE4'
+        'Rm'
         };
       
     case 'btiref'
@@ -1649,6 +1651,9 @@ elseif isempty(eval(type))
         'Oz'
         'O2'};
       
+      % Add also reference and some alternative labels that might be used
+      label = cat(1, label, {'A1' 'A2' 'M1' 'M2' 'T3' 'T4' 'T5' 'T6'}');
+      
     case 'eeg1010'
       label = {
         'Fp1'
@@ -1738,7 +1743,10 @@ elseif isempty(eval(type))
         'Iz'
         'I2'
         };
-      
+
+      % Add also reference and some alternative labels that might be used
+      label = cat(1, label, {'A1' 'A2' 'M1' 'M2' 'T3' 'T4' 'T5' 'T6'}');
+
     case 'eeg1005'
       label = {
         'Fp1'
@@ -2077,6 +2085,9 @@ elseif isempty(eval(type))
         'OIz'
         'OI2'
         };
+
+      % Add also reference and some alternative labels that might be used
+      label = cat(1, label, {'A1' 'A2' 'M1' 'M2' 'T3' 'T4' 'T5' 'T6'}');
       
     case 'ext1020'
       % start with the eeg1005 list
@@ -2418,7 +2429,7 @@ elseif isempty(eval(type))
         'OI2'
         };
       
-      % Add also alternative labels that are used in some systems
+      % Add also reference and some alternative labels that might be used
       label = cat(1, label, {'A1' 'A2' 'M1' 'M2' 'T3' 'T4' 'T5' 'T6'}');
       
       % This is to account for all variants of case in 1020 systems

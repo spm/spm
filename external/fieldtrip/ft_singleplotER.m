@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 9152 2014-01-29 14:34:29Z roevdmei $
+% $Id: ft_singleplotER.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_singleplotER.m 9152 2014-01-29 14:34:29Z roevdmei $';
+revision = '$Id: ft_singleplotER.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -107,6 +107,11 @@ ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar    varargin
 ft_preamble provenance varargin
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -177,6 +182,7 @@ end
 % ensure that the input is correct, also backward compatibility with old data structures:
 dtype = cell(Ndata, 1);
 for i=1:Ndata
+  % check if the input data is valid for this function
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'timelock', 'freq'});
   dtype{i}    = ft_datatype(varargin{i});
   

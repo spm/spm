@@ -67,13 +67,18 @@ function [ev] = ft_recodeevent(cfg, event, trl)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_recodeevent.m 9091 2014-01-13 10:15:03Z jansch $
+% $Id: ft_recodeevent.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_recodeevent.m 9091 2014-01-13 10:15:03Z jansch $';
+revision = '$Id: ft_recodeevent.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % set the defaults
 cfg.eventtype   = ft_getopt(cfg, 'eventtype',   []);

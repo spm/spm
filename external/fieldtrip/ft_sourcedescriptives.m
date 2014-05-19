@@ -60,9 +60,9 @@ function [source] = ft_sourcedescriptives(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcedescriptives.m 9193 2014-02-11 16:01:19Z jansch $
+% $Id: ft_sourcedescriptives.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_sourcedescriptives.m 9193 2014-02-11 16:01:19Z jansch $';
+revision = '$Id: ft_sourcedescriptives.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -71,6 +71,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input data is valid for this function
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');

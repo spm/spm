@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9303 2014-03-20 13:45:34Z eelspa $
+% $Id: topoplot_common.m 9547 2014-05-16 19:13:12Z roboos $
 
-revision = '$Id: topoplot_common.m 9303 2014-03-20 13:45:34Z eelspa $';
+revision = '$Id: topoplot_common.m 9547 2014-05-16 19:13:12Z roboos $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -278,16 +278,20 @@ end
 % check whether rpt/subj is present and remove if necessary and whether
 hasrpt = any(ismember(dimtok, {'rpt' 'subj'}));
 if strcmp(dtype, 'timelock') && hasrpt,
-  tmpcfg        = [];
-  tmpcfg.trials = cfg.trials;
-  data          = ft_timelockanalysis(tmpcfg, data);
-  if ~strcmp(cfg.parameter, 'avg')
-    % rename avg back into the parameter
-    data.(cfg.parameter) = data.avg;
-    data                 = rmfield(data, 'avg');
+  if ~isfield(data, cfg.parameter) || strcmp(cfg.parameter, 'individual')
+    tmpcfg        = [];
+    tmpcfg.trials = cfg.trials;
+    data          = ft_timelockanalysis(tmpcfg, data);
+    if ~strcmp(cfg.parameter, 'avg')
+      % rename avg back into the parameter
+      data.(cfg.parameter) = data.avg;
+      data                 = rmfield(data, 'avg');
+    end
+    dimord        = data.dimord;
+    dimtok        = tokenize(dimord, '_');
+  else
+    fprintf('input data contains repetitions, ignoring these and using ''%s'' field\n', cfg.parameter);
   end
-  dimord        = data.dimord;
-  dimtok        = tokenize(dimord, '_');
 elseif strcmp(dtype, 'freq') && hasrpt,
   % this also deals with fourier-spectra in the input
   % or with multiple subjects in a frequency domain stat-structure
@@ -695,13 +699,19 @@ end
 % Draw topoplot
 cla
 hold on
+
 % Set ft_plot_topo specific options
-if strcmp(cfg.interplimits,'head'),  interplimits = 'mask';
-else interplimits = cfg.interplimits; end
-if strcmp(cfg.style,'both');        style = 'surfiso';     end
-if strcmp(cfg.style,'straight');    style = 'surf';         end
-if strcmp(cfg.style,'contour');     style = 'iso';         end
-if strcmp(cfg.style,'fill');        style = 'isofill';     end
+if strcmp(cfg.interplimits,'head')
+  interplimits = 'mask';
+else
+  interplimits = cfg.interplimits; 
+end
+if strcmp(cfg.style,'both');            style = 'surfiso';     end
+if strcmp(cfg.style,'straight');        style = 'surf';        end
+if strcmp(cfg.style,'contour');         style = 'iso';         end
+if strcmp(cfg.style,'fill');            style = 'isofill';     end
+if strcmp(cfg.style,'straight_imsat');  style = 'imsat';       end
+if strcmp(cfg.style,'both_imsat');      style = 'imsatiso';    end
 
 % check for nans
 nanInds = isnan(datavector);
@@ -717,7 +727,7 @@ end
 
 % Draw plot
 if ~strcmp(cfg.style,'blank')
-  ft_plot_topo(chanX,chanY,datavector,'interpmethod',cfg.interpolation,...
+  opt = {'interpmethod',cfg.interpolation,...
     'interplim',interplimits,...
     'gridscale',cfg.gridscale,...
     'outline',cfg.layout.outline,...
@@ -725,7 +735,12 @@ if ~strcmp(cfg.style,'blank')
     'isolines',cfg.contournum,...
     'mask',cfg.layout.mask,...
     'style',style,...
-    'datmask', maskdatavector);
+    'datmask', maskdatavector};
+  if strcmp(style,'imsat') || strcmp(style,'imsatiso')
+    % add clim to opt
+    opt = [opt {'clim',[zmin zmax]}];
+  end
+  ft_plot_topo(chanX,chanY,datavector,opt{:});
 elseif ~strcmp(cfg.style,'blank')
   ft_plot_lay(lay,'box','no','label','no','point','no')
 end

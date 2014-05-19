@@ -7,19 +7,19 @@ function [varargout] = ft_plot_text(X, Y, str, varargin)
 %   ft_plot_text(X, Y, str, ...)
 %
 % Optional arguments should come in key-value pairs and can include
-%   Color               =
-%   FontSize            =
-%   FontName            =
-%   HorizontalAlignment =
-%   tag                 =
+%   'Color'               =
+%   'FontSize'            =
+%   'FontName'            =
+%   'HorizontalAlignment' =
+%   'tag'                 = string, the name this vector gets. All tags with the same name can be deleted in a figure, without deleting other parts of the figure.
 %
 % It is possible to plot the object in a local pseudo-axis (c.f. subplot), which is specfied as follows
-%   hpos        = horizontal position of the center of the local axes
-%   vpos        = vertical position of the center of the local axes
-%   width       = width of the local axes
-%   height      = height of the local axes
-%   hlim        = horizontal scaling limits within the local axes
-%   vlim        = vertical scaling limits within the local axes
+%   'hpos'                = horizontal position of the center of the local axes
+%   'vpos'                = vertical position of the center of the local axes
+%   'width'               = width of the local axes
+%   'height'              = height of the local axes
+%   'hlim'                = horizontal scaling limits within the local axes
+%   'vlim'                = vertical scaling limits within the local axes
 
 % Copyrights (C) 2009-2011, Robert Oostenveld
 %
@@ -39,7 +39,7 @@ function [varargout] = ft_plot_text(X, Y, str, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_text.m 8578 2013-10-01 09:11:23Z roevdmei $
+% $Id: ft_plot_text.m 9515 2014-05-13 13:30:43Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

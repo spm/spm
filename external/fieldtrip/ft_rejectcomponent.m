@@ -17,7 +17,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 % componentanalysis will do a subspace projection of the input data
 % onto the space which is spanned by the topographies in the unmixing
 % matrix in comp, after removal of the artifact components.  Please use
-% this option of including data as input, if you wish to use the output 
+% this option of including data as input, if you wish to use the output
 % data.grad in further computation, for example for leadfield computation.
 %
 % The configuration should contain
@@ -34,7 +34,7 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %
 % See also FT_COMPONENTANALYSIS, FT_PREPROCESSING
 
-% Copyright (C) 2005-2009, Robert Oostenveld
+% Copyright (C) 2005-2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -52,9 +52,9 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 8509 2013-09-24 13:27:55Z johzum $
+% $Id: ft_rejectcomponent.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_rejectcomponent.m 8509 2013-09-24 13:27:55Z johzum $';
+revision = '$Id: ft_rejectcomponent.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -63,6 +63,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar comp data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % set defaults
 cfg.component  = ft_getopt(cfg, 'component',  []);
@@ -75,6 +80,7 @@ nargin = nargin + exist('comp', 'var');
 nargin = nargin + exist('data', 'var');
 
 if nargin==3
+  % check if the input data is valid for this function
   data    = ft_checkdata(data, 'datatype', 'raw');
   label   = data.label;
   hasdata = 1;
@@ -88,7 +94,6 @@ end
 
 comp    = ft_checkdata(comp, 'datatype', 'comp');
 ncomps  = length(comp.label);
-
 
 if min(cfg.component)<1
   error('you cannot remove components that are not present in the data');
@@ -114,8 +119,8 @@ else
   fprintf('keeping %d components\n',  nchans-length(cfg.component));
 end
 
-%create a projection matrix by subtracting the subspace spanned by the
-%topographies of the to-be-removed components from identity
+% create a projection matrix by subtracting the subspace spanned by the
+% topographies of the to-be-removed components from identity
 [seldat, selcomp] = match_str(label, comp.topolabel);
 
 if length(seldat)~=length(label) && nargin==3,
@@ -123,54 +128,46 @@ if length(seldat)~=length(label) && nargin==3,
 end
 
 if hasdata
-  mixing = comp.topo(selcomp,:);
+  mixing   = comp.topo(selcomp,:);
   unmixing = comp.unmixing(:,selcomp);
-  tra = eye(length(selcomp)) - mixing(:, cfg.component)*unmixing(cfg.component, :);
-  %I am not sure about this, but it gives comparable results to the ~hasdata case
-  %when comp contains non-orthogonal (=ica) topographies, and contains a complete decomposition
   
-  %we are going from data to components, and back again
-  labelorg = comp.topolabel(selcomp);
-  labelnew = comp.topolabel(selcomp);
+  % I am not sure about this, but it gives comparable results to the ~hasdata case
+  % when comp contains non-orthogonal (=ica) topographies, and contains a complete decomposition
   
-  keepunused = 'yes'; %keep the original data which are not present in the mixing provided
+  montage     = [];
+  montage.tra = eye(length(selcomp)) - mixing(:, cfg.component)*unmixing(cfg.component, :);
+  % we are going from data to components, and back again
+  montage.labelorg = comp.topolabel(selcomp);
+  montage.labelnew = comp.topolabel(selcomp);
+  
+  keepunused = 'yes'; % keep the original data which are not present in the mixing provided
   
 else
   mixing = comp.topo(selcomp, :);
   mixing(:, cfg.component) = 0;
-  tra = mixing;
   
-  %we are going from components to data
-  labelorg = comp.label;
-  labelnew = comp.topolabel(selcomp);
+  montage     = [];
+  montage.tra = mixing;
+  % we are going from components to data
+  montage.labelorg = comp.label;
+  montage.labelnew = comp.topolabel(selcomp);
   
-  %create data structure
+  keepunused = 'no'; % don't need to keep the original rejected components
+  
+  % create data structure
   data         = [];
   data.trial   = comp.trial;
   data.time    = comp.time;
   data.label   = comp.label;
   data.fsample = comp.fsample;
-  if isfield(comp, 'grad'), data.grad       = comp.grad;  end
-  if isfield(comp, 'elec'), data.elec       = comp.elec;  end
-  if isfield(comp, 'trialinfo'),   data.trialinfo  = comp.trialinfo;  end
-  if isfield(comp, 'sampleinfo'),   data.sampleinfo = comp.sampleinfo; end
-  
-  keepunused = 'no'; %don't need to keep the original rejected components
-end
+  if isfield(comp, 'grad'),       data.grad       = comp.grad;       end
+  if isfield(comp, 'elec'),       data.elec       = comp.elec;       end
+  if isfield(comp, 'trialinfo'),  data.trialinfo  = comp.trialinfo;  end
+  if isfield(comp, 'sampleinfo'), data.sampleinfo = comp.sampleinfo; end
+end % if hasdata
 
-%OLD CODE
-% recontruct the trials
-%for i=1:ntrials
-%  data.trial{i} = projector * data.trial{i}(seldat,:);
-%end
-%data.label = data.label(seldat);
-
-%create montage and apply this to data and grad
-montage          = [];
-montage.tra      = tra;
-montage.labelorg = labelorg;
-montage.labelnew = labelnew;
-data             = ft_apply_montage(data, montage, 'keepunused', keepunused, 'feedback', cfg.feedback);
+% apply the montage to the data and to the sensor description
+data = ft_apply_montage(data, montage, 'keepunused', keepunused, 'feedback', cfg.feedback);
 
 if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra')),
   if isfield(data, 'grad')
@@ -210,9 +207,6 @@ if isfield(data, 'grad') || (isfield(data, 'elec') && isfield(data.elec, 'tra'))
   sens.balance.(invcompfield).tra(remove, :)   = [];
   sens.balance.(invcompfield).labelnew(remove) = [];
   data.(sensfield)  = sens;
-  %data.(sensfield)  = ft_apply_montage(data.(sensfield), montage, 'keepunused', 'no', 'balancename', 'invcomp');
-else
-  %warning('the gradiometer description does not match the data anymore');
 end
 
 % do the general cleanup and bookkeeping at the end of the function

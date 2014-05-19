@@ -29,7 +29,7 @@ function ft_preamble(cmd, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble.m 7200 2012-12-15 15:56:55Z roboos $
+% $Id: ft_preamble.m 9520 2014-05-14 09:33:28Z roboos $
 
 % ideally this would be a script, because the local variables would then be
 % shared with the calling function. Instead, this is a function which then
@@ -38,7 +38,7 @@ function ft_preamble(cmd, varargin)
 % the following section ensures that these scripts are included as
 % dependencies when using the MATLAB compiler
 %
-%#function ft_preamble_help
+%#function ft_preamble_init
 %#function ft_preamble_debug
 %#function ft_preamble_trackconfig
 %#function ft_preamble_provenance

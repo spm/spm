@@ -95,9 +95,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 9158 2014-01-29 15:04:18Z jansch $
+% $Id: ft_sourceinterpolate.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_sourceinterpolate.m 9158 2014-01-29 15:04:18Z jansch $';
+revision = '$Id: ft_sourceinterpolate.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -106,6 +106,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar functional anatomical
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % this is not supported any more as of 26/10/2011
 if ischar(anatomical),

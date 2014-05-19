@@ -110,9 +110,9 @@ function [elec_realigned] = ft_sensorrealign(cfg, elec_original)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sensorrealign.m 9244 2014-02-26 09:49:03Z roboos $
+% $Id: ft_sensorrealign.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_sensorrealign.m 9244 2014-02-26 09:49:03Z roboos $';
+revision = '$Id: ft_sensorrealign.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -120,6 +120,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % the interactive method uses a global variable to get the data from the figure when it is closed
 global norm

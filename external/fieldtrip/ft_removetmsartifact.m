@@ -47,7 +47,7 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 9338 2014-04-03 08:02:40Z jimher $
+% $Id: ft_removetmsartifact.m 9521 2014-05-14 09:45:42Z roboos $
 
 % DEPRECATED by jimher on 19 September 2013
 % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1791 for more details
@@ -58,10 +58,9 @@ warning('FT_REMOVETMSARTIFACT is deprecated, please follow TMS-EEG tutorial inst
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 9338 2014-04-03 08:02:40Z jimher $';
+revision = '$Id: ft_removetmsartifact.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
-
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init            % this will show the function help if nargin==0 and return an error
 ft_preamble provenance      % this records the time and memory usage at teh beginning of the function
@@ -69,9 +68,12 @@ ft_preamble trackconfig     % this converts the cfg structure in a config object
 ft_preamble debug
 ft_preamble loadvar datain  % this reads the input data in case the user specified the cfg.inputfile option
 
-% ensure that the input data is valid for this function, this will also do
-% backward-compatibility conversions of old data that for example was
-% read from an old *.mat file
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
+% check if the input data is valid for this function
 data = ft_checkdata(data, 'datatype', {'raw'}, 'feedback', 'yes');
 
 % ensure that the required options are present

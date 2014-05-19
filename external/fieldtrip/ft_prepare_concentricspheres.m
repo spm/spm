@@ -23,11 +23,11 @@ function [vol, cfg] = ft_prepare_concentricspheres(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_concentricspheres.m 8963 2013-12-05 08:41:12Z roboos $
+% $Id: ft_prepare_concentricspheres.m 9520 2014-05-14 09:33:28Z roboos $
 
 warning('FT_PREPARE_CONCENTRICSPHERES is deprecated, please use FT_PREPARE_HEADMODEL with cfg.method = ''concentricspheres'' instead.')
 
-revision = '$Id: ft_prepare_concentricspheres.m 8963 2013-12-05 08:41:12Z roboos $';
+revision = '$Id: ft_prepare_concentricspheres.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -35,6 +35,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'forbidden', 'nonlinear');

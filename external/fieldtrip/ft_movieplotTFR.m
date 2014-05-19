@@ -60,7 +60,7 @@ function [cfg] = ft_movieplotTFR(cfg, data)
 %
 % $id: ft_movieploter.m 4354 2011-10-05 15:06:02z crimic $
 
-revision = '$Id: ft_movieplotTFR.m 9132 2014-01-27 10:51:30Z jimher $';
+revision = '$Id: ft_movieplotTFR.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -70,7 +70,13 @@ ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
 
-% check the input dtaa, this function is also called from ft_movieplotER
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
+% check if the input data is valid for this function
+% note that this function is also called from ft_movieplotER
 data = ft_checkdata(data, 'datatype', {'timelock', 'freq'});
 
 % check if the input cfg is valid for this function

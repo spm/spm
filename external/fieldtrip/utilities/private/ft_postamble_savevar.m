@@ -4,8 +4,10 @@
 % cfg.outputfile variable.
 %
 % Use as
-%   ft_preamble savevar data
-%   ft_preamble savevar source mri
+%   ft_postamble savevar data
+%   ft_postamble savevar source mri
+%
+% See also FT_PREAMBLE_LOADVAR
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -25,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_savevar.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_postamble_savevar.m 9520 2014-05-14 09:33:28Z roboos $
 
 global ft_default
 

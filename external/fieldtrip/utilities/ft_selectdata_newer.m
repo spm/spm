@@ -68,7 +68,7 @@ function [varargout] = ft_selectdata_newer(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_newer.m 9423 2014-04-15 18:48:22Z roboos $
+% $Id: ft_selectdata_newer.m 9476 2014-05-11 06:26:39Z roboos $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -852,7 +852,7 @@ end
 
 indx = nan(numel(alltimevec), numel(alltimecell));
 for k = 1:numel(alltimecell)
-  [~, ix, iy] = intersect(alltimevec, round(alltimecell{k}/tol)*tol);
+  [dum, ix, iy] = intersect(alltimevec, round(alltimecell{k}/tol)*tol);
   indx(ix,k) = iy;
 end
 
@@ -971,7 +971,7 @@ end
 
 indx = nan+zeros(numel(freqaxis), ndata);
 for k = 1:ndata
-  [~, ix, iy] = intersect(freqaxis, round(varargin{k}.freq(:)/tol)*tol);
+  [dum, ix, iy] = intersect(freqaxis, round(varargin{k}.freq(:)/tol)*tol);
   indx(ix,k) = iy;
 end
 

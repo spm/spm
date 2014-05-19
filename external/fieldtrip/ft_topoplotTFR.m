@@ -157,14 +157,19 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 9132 2014-01-27 10:51:30Z jimher $
+% $Id: ft_topoplotTFR.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_topoplotTFR.m 9132 2014-01-27 10:51:30Z jimher $';
+revision = '$Id: ft_topoplotTFR.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
 ft_preamble provenance
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % this is just a wrapper function around the common code that does all the hard work
 % the reason for this wrapper function is to have a placeholder for TFR-specific documentation

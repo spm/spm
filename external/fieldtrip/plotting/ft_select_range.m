@@ -14,14 +14,13 @@ function ft_select_range(handle, eventdata, varargin)
 % the selection option.
 % 
 % Input arguments:
-%   event       = string, event used as hook.
-%   callback    = function handle or cell-array containing function handle and additional input arguments
-%   contextmenu = cell-array containing labels shown in right-click menu
-%   multiple    = boolean, allowing multiple selection boxes or not
-%   xrange      = boolean, xrange variable or not
-%   yrange      = boolean, yrange variable or not
-%   clear       = boolean
-%
+%   'event'       = string, event used as hook.
+%   'callback'    = function handle or cell-array containing function handle and additional input arguments
+%   'contextmenu' = cell-array containing labels shown in right-click menu
+%   'multiple'    = boolean, allowing multiple selection boxes or not
+%   'xrange'      = boolean, xrange variable or not
+%   'yrange'      = boolean, yrange variable or not
+%   'clear'       = boolean
 %
 % Example use:
 %   x = randn(10,1);
@@ -61,7 +60,7 @@ function ft_select_range(handle, eventdata, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_range.m 7366 2013-01-21 13:22:17Z roboos $
+% $Id: ft_select_range.m 9515 2014-05-13 13:30:43Z roboos $
 
 % get the optional arguments
 event       = ft_getopt(varargin, 'event');

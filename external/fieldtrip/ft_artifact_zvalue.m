@@ -101,15 +101,20 @@ function [cfg, artifact] = ft_artifact_zvalue(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_artifact_zvalue.m 9203 2014-02-14 15:27:25Z roevdmei $
+% $Id: ft_artifact_zvalue.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_artifact_zvalue.m 9203 2014-02-14 15:27:25Z roevdmei $';
+revision = '$Id: ft_artifact_zvalue.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
 ft_preamble provenance
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % set default rejection parameters
 cfg.headerformat                 = ft_getopt(cfg,                  'headerformat', []);
@@ -159,13 +164,18 @@ if pertrial
 end
 
 if nargin > 1
-  % data given as input
-  isfetch = 1;
-  hdr  = ft_fetch_header(data);
+  % check if the input data is valid for this function
   data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
+  % data given as input, use ft_fetch_header and ft_fetch_data in the remainder of the code
+  isfetch = 1;
+  hdr = ft_fetch_header(data);
 elseif nargin == 1
   % only cfg given
   isfetch = 0;
+  
+  if ~isfield(cfg, 'headerfile') && isfield(cfg, 'dataset')
+    cfg = dataset2files(cfg);
+  end
   hdr = ft_read_header(cfg.headerfile, 'headerformat', cfg.headerformat);
   
   % check whether the value for trlpadding makes sense; negative trlpadding

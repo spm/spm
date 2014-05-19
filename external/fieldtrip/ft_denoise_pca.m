@@ -59,9 +59,9 @@ function data = ft_denoise_pca(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_denoise_pca.m 8144 2013-05-23 14:12:24Z jorhor $
+% $Id: ft_denoise_pca.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_denoise_pca.m 8144 2013-05-23 14:12:24Z jorhor $';
+revision = '$Id: ft_denoise_pca.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -69,6 +69,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

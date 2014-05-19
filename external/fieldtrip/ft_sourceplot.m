@@ -175,9 +175,9 @@ function [cfg] = ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9446 2014-04-19 08:41:19Z roboos $
+% $Id: ft_sourceplot.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_sourceplot.m 9446 2014-04-19 08:41:19Z roboos $';
+revision = '$Id: ft_sourceplot.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -186,6 +186,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % this is not supported any more as of 26/10/2011
 if ischar(data)
@@ -908,7 +913,7 @@ elseif isequal(cfg.method,'surface')
       fprintf('downsampling surface from %d vertices\n', size(surf.pnt,1));
       [temp.tri, temp.pnt] = reducepatch(surf.tri, surf.pnt, 1/cfg.surfdownsample);
       % find indices of retained patch faces
-      [~, idx] = ismember(temp.pnt, surf.pnt, 'rows');
+      [dummy, idx] = ismember(temp.pnt, surf.pnt, 'rows');
       surf.tri = temp.tri;
       surf.pnt = temp.pnt;
       clear temp

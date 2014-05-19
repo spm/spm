@@ -56,13 +56,18 @@ function [varargout] = ft_stratify(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_stratify.m 8888 2013-11-28 19:16:10Z jansch $
+% $Id: ft_stratify.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_stratify.m 8888 2013-11-28 19:16:10Z jansch $';
+revision = '$Id: ft_stratify.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % input1 and input2 are the to be stratified with respect to each other
 % dimensionality of input1 (2) = chan x rpt. if nchan>1, do a "double"

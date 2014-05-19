@@ -89,7 +89,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 9457 2014-04-26 18:01:40Z roboos $
+% $Id: ft_read_event.m 9546 2014-05-16 18:58:17Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -785,8 +785,7 @@ switch eventformat
     begSDV = datenum(begTime);
     % find out if there are epochs in this dataset
     if isfield(hdr.orig.xml,'epochs') && length(hdr.orig.xml.epochs) > 1
-      Msamp2offset = zeros(2,size(hdr.orig.epochdef,1),1+max(hdr.orig.epochdef(:,2)-hdr.orig.epochdef(:,1)));
-      Msamp2offset(:) = NaN;
+      Msamp2offset = nan(2,size(hdr.orig.epochdef,1),1+max(hdr.orig.epochdef(:,2)-hdr.orig.epochdef(:,1)));
       for iEpoch = 1:size(hdr.orig.epochdef,1)
         nSampEpoch = hdr.orig.epochdef(iEpoch,2)-hdr.orig.epochdef(iEpoch,1)+1;
         Msamp2offset(1,iEpoch,1:nSampEpoch) = hdr.orig.epochdef(iEpoch,1):hdr.orig.epochdef(iEpoch,2); %sample number in samples

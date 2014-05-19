@@ -44,9 +44,9 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 8529 2013-09-24 15:57:35Z johzum $
+% $Id: ft_timelockbaseline.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_timelockbaseline.m 8529 2013-09-24 15:57:35Z johzum $';
+revision = '$Id: ft_timelockbaseline.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -55,6 +55,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar timelock
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input data is valid for this function
 timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');

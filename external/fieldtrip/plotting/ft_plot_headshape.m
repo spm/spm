@@ -17,8 +17,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %   'fidcolor'    = color specification as [r g b] values or a string, for example 'brain', 'cortex', 'skin', 'red', 'r'
 %   'fidmarker'   = ['.', '*', '+',  ...]
 %   'fidlabel'    = ['yes', 'no', 1, 0, 'true', 'false']
-%   'transform'   = transformation matrix for the fiducials, converts MRI
-%                   voxels into head shape coordinates
+%   'transform'   = transformation matrix for the fiducials, converts MRI voxels into head shape coordinates
 %
 % Example
 %   shape = ft_read_headshape(filename);
@@ -42,7 +41,7 @@ function hs = ft_plot_headshape(headshape,varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_headshape.m 9111 2014-01-19 21:46:02Z roboos $
+% $Id: ft_plot_headshape.m 9515 2014-05-13 13:30:43Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

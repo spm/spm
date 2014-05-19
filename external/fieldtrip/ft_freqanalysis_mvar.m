@@ -53,9 +53,9 @@ function [freq] = ft_freqanalysis_mvar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mvar.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_freqanalysis_mvar.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_freqanalysis_mvar.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_freqanalysis_mvar.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -64,6 +64,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 cfg.foi        = ft_getopt(cfg, 'foi',        'all');
 cfg.feedback   = ft_getopt(cfg, 'feedback',   'none');

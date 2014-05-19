@@ -147,9 +147,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 9336 2014-04-02 19:59:44Z roboos $
+% $Id: ft_preprocessing.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_preprocessing.m 9336 2014-04-02 19:59:44Z roboos $';
+revision = '$Id: ft_preprocessing.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -158,6 +158,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % return immediately after distributed execution
 if ~isempty(ft_getopt(cfg, 'distribute'))
@@ -238,7 +243,7 @@ if hasdata
   % this is used to convert the data back to timelock later
   convert = ft_datatype(data);
   
-  % the input data must be raw
+  % check if the input data is valid for this function, the input data must be raw
   data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
   
   % check if the input cfg is valid for this function

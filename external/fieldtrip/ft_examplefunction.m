@@ -29,13 +29,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 9295 2014-03-18 11:30:44Z roboos $
+% $Id: ft_examplefunction.m 9520 2014-05-14 09:33:28Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 9295 2014-03-18 11:30:44Z roboos $';
+revision = '$Id: ft_examplefunction.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 
@@ -48,6 +48,12 @@ ft_preamble provenance      % this records the time and memory usage at teh begi
 ft_preamble trackconfig     % this converts the cfg structure in a config object, which tracks the cfg options that are being used
 ft_preamble debug           % this allows for displaying or saving the function name and input arguments upon an error
 ft_preamble loadvar datain  % this reads the input data in case the user specified the cfg.inputfile option
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  % do not continue function execution in case the outputfile is present and the user indicated to keep it
+  return
+end
 
 % ensure that the input data is valid for this function, this will also do 
 % backward-compatibility conversions of old data that for example was 

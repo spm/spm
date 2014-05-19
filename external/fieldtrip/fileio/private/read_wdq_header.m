@@ -24,7 +24,7 @@ function [hdr] = read_wdq_header(filename)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_wdq_header.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_wdq_header.m 9514 2014-05-13 12:58:22Z roboos $
 
 % information about how to interpret the file are taken from the document
 % 'CODAS data storage format'
@@ -32,8 +32,9 @@ function [hdr] = read_wdq_header(filename)
 fid = fopen(filename, 'r');
 %tmp = fread(fid, 110); % the first 110 bytes are always interpretable equally
 hdr = [];
-hdr.nchan         = fread(fid, 1, 'uint16');
-hdr.nchan         = hdr.nchan - bitand(hdr.nchan, 32);
+hdr.nchan         = fread(fid, 1, 'uint16=>uint16');
+% hdr.nchan         = hdr.nchan - bitand(hdr.nchan, 32);
+hdr.nchan         = double(bitand(hdr.nchan, 255)); % only the lowest bits seem to be coding the number of channels
 i2                = fread(fid, 1, 'uint16');
 hdr.offset        = fread(fid, 1, 'uint8');
 hdr.nbyteschanhdr = fread(fid, 1, 'uint8');

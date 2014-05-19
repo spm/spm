@@ -64,9 +64,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 9414 2014-04-14 20:54:43Z roboos $
+% $Id: ft_sourcegrandaverage.m 9526 2014-05-14 15:25:21Z eelspa $
 
-revision = '$Id: ft_sourcegrandaverage.m 9414 2014-04-14 20:54:43Z roboos $';
+revision = '$Id: ft_sourcegrandaverage.m 9526 2014-05-14 15:25:21Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -75,6 +75,32 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar varargin
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
+% check if cfg.parameter is specified in an old-fashioned way (e.g.
+% 'avg.pow')
+% if this is the case, and the data indeed is also specified in this old 
+% way, then later on we will strip the 'avg.' part from the cfg, as the
+% data field will be moved up to the main structure by ft_datatype_source
+% with version=upcoming.
+% this check is performed here, rather than below the ft_checkdata step,
+% because we need to verify that the input data indeed contains a
+% substructure. If it does not, then specifying cfg.parameter=xxx.yyy is a
+% user error.
+if isfield(cfg, 'parameter') && strfind(cfg.parameter, '.')
+  [tok,rem] = strtok(cfg.parameter, '.');
+  for i = 1:length(varargin)
+    if ~isfield(varargin{i}, tok)
+      error('data does not contain ''%s'' substructure', tok);
+    end
+  end
+
+  cfg.parameter = rem(2:end);
+end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)

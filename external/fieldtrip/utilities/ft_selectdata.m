@@ -67,7 +67,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9447 2014-04-22 13:29:18Z roboos $
+% $Id: ft_selectdata.m 9478 2014-05-11 08:12:36Z roboos $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -786,7 +786,7 @@ end
 
 indx = nan(numel(alltimevec), numel(alltimecell));
 for k = 1:numel(alltimecell)
-  [~, ix, iy] = intersect(alltimevec, round(alltimecell{k}/tol)*tol);
+  [dum, ix, iy] = intersect(alltimevec, round(alltimecell{k}/tol)*tol);
   indx(ix,k) = iy;
 end
 
@@ -905,7 +905,7 @@ end
 
 indx = nan+zeros(numel(freqaxis), ndata);
 for k = 1:ndata
-  [~, ix, iy] = intersect(freqaxis, round(varargin{k}.freq(:)/tol)*tol);
+  [dum, ix, iy] = intersect(freqaxis, round(varargin{k}.freq(:)/tol)*tol);
   indx(ix,k) = iy;
 end
 
@@ -1209,4 +1209,46 @@ else
 end
 end % function cellmatmean
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%ISROW True if input is a row vector.
+%   ISROW(V) returns logical 1 (true) if SIZE(V) returns [1 n]
+%   with a nonnegative integer value n, and logical 0 (false) otherwise.
+%
+% This is a drop-in replacement for the MATLAB function with the same name,
+% which does not exist in versions < 2010.
+%
+% See http://bugzilla.fcdonders.nl/show_bug.cgi?id=2567
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function s = isrow(v)
+siz = size(v);
+m = siz(1);
+n = siz(2);
+if numel(siz)==2 && m==1 && n>0
+  s = true;
+else
+  s = false;
+end
+end % function isrow
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%ISROW True if input is a column vector.
+%   ISROW(V) returns logical 1 (true) if SIZE(V) returns [m 1]
+%   with a nonnegative integer value m, and logical 0 (false) otherwise.
+%
+% This is a drop-in replacement for the MATLAB function with the same name,
+% which does not exist in versions < 2010.
+%
+% See http://bugzilla.fcdonders.nl/show_bug.cgi?id=2567
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function s = iscolumn(v)
+siz = size(v);
+m = siz(1);
+n = siz(2);
+if numel(siz)==2 && m>0 && n==1
+  s = true;
+else
+  s = false;
+end
+end % function iscolumn
 

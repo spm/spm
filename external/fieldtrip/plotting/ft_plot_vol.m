@@ -1,25 +1,26 @@
 function ft_plot_vol(vol, varargin)
 
-% FT_PLOT_VOL visualizes the boundaries in the vol structure constituting the
-% geometrical information of the forward model
+% FT_PLOT_VOL visualizes the boundaries in the volume conduction model of the head as
+% specified in the vol structure
 %
 % Use as
 %   hs = ft_plot_vol(vol, varargin)
 %
-% Graphic facilities are available for vertices, edges and faces. A list of
-% the arguments is given below with the correspondent admitted choices.
-%
-%     'facecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'vertexcolor'   [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'edgecolor'     [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
-%     'facealpha'     number between 0 and 1
-%     'faceindex'     true or false
-%     'vertexindex'   true or false
+% Optional arguments should come in key-value pairs and can include
+%   'facecolor'   = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%   'vertexcolor' = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%   'edgecolor'   = [r g b] values or string, for example 'brain', 'cortex', 'skin', 'black', 'red', 'r'
+%   'facealpha'   = number between 0 and 1
+%   'faceindex'   = true or false
+%   'vertexindex' = true or false
 %
 % Example
+%   vol   = [];
 %   vol.r = [86 88 92 100];
 %   vol.o = [0 0 40];
 %   figure, ft_plot_vol(vol)
+%
+% See also FT_PREPARE_HEADMODEL
 
 % Copyright (C) 2009, Cristiano Micheli
 %
@@ -39,7 +40,7 @@ function ft_plot_vol(vol, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vol.m 8805 2013-11-18 13:24:36Z roboos $
+% $Id: ft_plot_vol.m 9515 2014-05-13 13:30:43Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

@@ -37,7 +37,7 @@ function fieldtrip2fiff(filename, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fieldtrip2fiff.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: fieldtrip2fiff.m 9521 2014-05-14 09:45:42Z roboos $
 
 % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_defaults
@@ -53,7 +53,7 @@ eventfile = [pathstr filesep name '-eve.fif'];
 % ensure the mne-toolbox to be on the path
 ft_hastoolbox('mne', 1);
 
-% check the input data
+% check if the input data is valid for this function
 data   = ft_checkdata(data, 'datatype', {'raw', 'timelock'}, 'feedback', 'yes');
 istlck = ft_datatype(data, 'timelock');
 isepch = ft_datatype(data, 'raw');

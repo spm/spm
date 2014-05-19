@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 9348 2014-04-03 18:46:44Z roboos $
+% $Id: ft_checkdata.m 9464 2014-05-02 08:00:02Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -277,7 +277,13 @@ if ~isempty(dtype)
   if ~okflag
     % try to convert the data
     for iCell = 1:length(dtype)
-      if isequal(dtype(iCell), {'source'}) && isvolume
+      if isequal(dtype(iCell), {'parcellation'}) && issegmentation
+        data = volume2source(data); % segmentation=volume, parcellation=source
+        data = ft_datatype_parcellation(data);
+        issegmentation = 0;
+        isparcellation = 1;
+        okflag = 1;
+      elseif isequal(dtype(iCell), {'source'}) && isvolume
         data = volume2source(data);
         data = ft_datatype_source(data);
         isvolume = 0;
@@ -1976,3 +1982,5 @@ data.label = spike.label;
 data.fsample = fsample;
 if isfield(spike,'hdr'), data.hdr = spike.hdr; end
 if isfield(spike,'cfg'), data.cfg = spike.cfg; end
+
+

@@ -22,9 +22,9 @@ function ft_sourcewrite(cfg, source)
 
 % Copyright (C) 2011, Jan-Mathijs Schoffelen
 %
-% $Id: ft_sourcewrite.m 8384 2013-08-07 15:13:23Z roboos $
+% $Id: ft_sourcewrite.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 8384 2013-08-07 15:13:23Z roboos $';
+revision = '$Id: ft_sourcewrite.m 9521 2014-05-14 09:45:42Z roboos $';
 
 ft_defaults                 
 ft_preamble init           
@@ -33,6 +33,12 @@ ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
 
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
+% check if the input data is valid for this function
 source = ft_checkdata(source, 'datatype', 'source', 'feedback', 'yes');
 
 % ensure that the required options are present

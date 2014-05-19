@@ -45,9 +45,9 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceparcellate.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_sourceparcellate.m 9533 2014-05-15 06:36:10Z roboos $
 
-revision = '$Id: ft_sourceparcellate.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_sourceparcellate.m 9533 2014-05-15 06:36:10Z roboos $';
 
 ft_defaults
 ft_preamble init
@@ -55,6 +55,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar source
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % get the defaults
 cfg.parcellation = ft_getopt(cfg, 'parcellation');
@@ -77,6 +82,11 @@ end
 parcellation = ft_checkdata(parcellation, 'datatype', 'parcellation', 'parcellationstyle', 'indexed');
 % ensure it is a source, not a volume
 source       = ft_checkdata(source, 'datatype', 'source', 'inside', 'logical', 'sourcerepresentation', 'new');
+
+% ensure that the source and the parcellation are anatomically consistent
+if ~isequal(source.pos, parcellation.pos)
+  error('the source positions are not consistent with the parcellation, please use FT_SOURCEINTERPOLATE');
+end
 
 if isempty(cfg.parcellation)
   % determine the first field that can be used for the parcellation

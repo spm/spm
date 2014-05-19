@@ -58,7 +58,7 @@ function [sens] = ft_read_sens(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_sens.m 9123 2014-01-22 15:51:08Z jimher $
+% $Id: ft_read_sens.m 9463 2014-05-02 07:55:56Z jimher $
 
 % optionally get the data from the URL and make a temporary local copy
 filename = fetch_url(filename);
@@ -267,7 +267,7 @@ switch fileformat
       sens.fid.pnt    = [x(sel) y(sel) z(sel)];
     end
     
-  case 'localite_pos'
+  case {'localite_pos','localite_ins'}
     if ~usejava('jvm') % Using xml2struct requires java
       fid = fopen(filename);
       

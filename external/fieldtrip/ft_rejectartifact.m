@@ -81,13 +81,13 @@ function [cfg] = ft_rejectartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectartifact.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_rejectartifact.m 9521 2014-05-14 09:45:42Z roboos $
 
 % FIXME this function contains a lot of lines of code that pertain to backward 
 % compatibility support that dates back to 2004/2005. It would be good to strip 
 % that code and only keep the relevant parts
 
-revision = '$Id: ft_rejectartifact.m 8776 2013-11-14 09:04:48Z roboos $';
+revision = '$Id: ft_rejectartifact.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -96,6 +96,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar data
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % ft_checkdata is done further down
 
@@ -187,6 +192,7 @@ end
 hasdata = exist('data', 'var');
 
 if hasdata
+  % check if the input data is valid for this function
   data = ft_checkdata(data, 'hassampleinfo', 'yes');
   if isfield(data, 'sampleinfo')
     

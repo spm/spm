@@ -114,14 +114,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 9098 2014-01-15 11:25:04Z roboos $
+% $Id: ft_databrowser.m 9520 2014-05-14 09:33:28Z roboos $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 9098 2014-01-15 11:25:04Z roboos $';
+revision = '$Id: ft_databrowser.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,6 +129,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 hasdata = (nargin>1);
 hascomp = hasdata && ft_datatype(data, 'comp');

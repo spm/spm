@@ -63,9 +63,9 @@ function [neighbours, cfg] = ft_prepare_neighbours(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_neighbours.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: ft_prepare_neighbours.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_prepare_neighbours.m 9006 2013-12-10 11:24:56Z roboos $';
+revision = '$Id: ft_prepare_neighbours.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -73,6 +73,11 @@ ft_preamble init
 ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'required', {'method'});
@@ -82,7 +87,11 @@ cfg.feedback = ft_getopt(cfg, 'feedback', 'no');
 cfg.channel = ft_getopt(cfg, 'channel', 'all');
 
 hasdata = nargin>1;
-if hasdata, data = ft_checkdata(data); end
+
+if hasdata
+  % check if the input data is valid for this function
+  data = ft_checkdata(data);
+end
 
 if strcmp(cfg.method, 'template')
   neighbours = [];

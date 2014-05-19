@@ -89,7 +89,7 @@ function [type] = ft_senstype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_senstype.m 9324 2014-03-26 16:53:03Z roboos $
+% $Id: ft_senstype.m 9462 2014-05-01 16:00:46Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout
@@ -388,7 +388,7 @@ if ~isempty(desired)
   % return a boolean flag
   switch desired
     case 'ext1020'
-      type = any(strcmp(type, {'eeg1005' 'eeg1010' 'eeg1020'}));
+      type = any(strcmp(type, {'eeg1005' 'eeg1010' 'eeg1020' 'ext1020'}));
     case {'eeg' 'electrode'}
       type = any(strcmp(type, {'eeg' 'electrode' 'ant128' 'biosemi64' 'biosemi128' 'biosemi256' 'egi32' 'egi64' 'egi128' 'egi256' 'eeg1005' 'eeg1010' 'eeg1020' 'ext1020'}));
     case 'biosemi'

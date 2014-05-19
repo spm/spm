@@ -8,39 +8,39 @@ function ft_uilayout(h, varargin)
 %
 % In addition to MATLAB defaults (see UICONTROL), you can use the
 % following key-value pairs:
-%   'hpos'           'auto':       puts elements in horizontal adjacent
+%   'hpos'         = 'auto'      : puts elements in horizontal adjacent
 %                                  order with a fixed distance of 0.01
-%                    'align':      adjusts the horizontal position of all
+%                    'align'     : adjusts the horizontal position of all
 %                                  elements to the first element
 %                    'distribute': puts elements in horizontal adjacent
 %                                  order such that they distribute evenly
 %                    scalar      : sets the horizontal position of elements
 %                                  to the specified scalar
-%   'vpos'           'auto':       puts elements in vertical adjacent
+%   'vpos'         = 'auto'      : puts elements in vertical adjacent
 %                                  order with a fixed distance of 0.01
-%                    'align':      adjusts the vertical position of all
+%                    'align'     : adjusts the vertical position of all
 %                                  elements to the first element
 %                    'distribute': puts elements in vertical adjacent
 %                                  order such that they distribute evenly
 %                    scalar      : sets the vertical position of elements
 %                                  to the specified scalar
-%   'width'          scalar      : sets the width of elements to the
+%   'width'        = scalar      : sets the width of elements to the
 %                                  specified scalar
-%   'height'         scalar      : sets the height of elements to the
+%   'height'       = scalar      : sets the height of elements to the
 %                                  specified scalar
-%   'halign'         'left'      : aligns the horizontal position of
+%   'halign'       = 'left'      : aligns the horizontal position of
 %                                  elements to the left
 %                    'right'     : aligns the horizontal position of
 %                                  elements to the right
-%   'valign'         'top'       : aligns the vertical position of
+%   'valign'       = 'top'       : aligns the vertical position of
 %                                  elements to the top
 %                    'bottom'    : aligns the vertical position of
 %                                  elements to the bottom
-%   'halign'         'left'      : aligns the horizontal position of
+%   'halign'       = 'left'      : aligns the horizontal position of
 %                                  elements to the left
 %                    'right'     : aligns the horizontal position of
 %                                  elements to the right
-
+% See also UICONTROL
 
 % Copyright (C) 2009, Robert Oostenveld
 %
@@ -60,7 +60,7 @@ function ft_uilayout(h, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_uilayout.m 9378 2014-04-08 10:27:32Z roboos $
+% $Id: ft_uilayout.m 9515 2014-05-13 13:30:43Z roboos $
 
 % these are used to make a selection of uicontrol elements
 tag    = ft_getopt(varargin, 'tag');

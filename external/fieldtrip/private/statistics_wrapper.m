@@ -51,7 +51,7 @@ function [stat, cfg] = statistics_wrapper(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: statistics_wrapper.m 9193 2014-02-11 16:01:19Z jansch $
+% $Id: statistics_wrapper.m 9466 2014-05-02 11:53:02Z roboos $
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'approach',   'method'});
@@ -287,7 +287,7 @@ fprintf('using "%s" for the statistical testing\n', func2str(statmethod));
 
 % check that the design completely describes the data
 if size(dat,2) ~= size(cfg.design,2)
-  error('the size of the design matrix does not match the number of observations in the data');
+  error('the size of the design matrix (%d) does not match the number of observations in the data (%d)', size(cfg.design,2), size(dat,2));
 end
 
 % determine the number of output arguments

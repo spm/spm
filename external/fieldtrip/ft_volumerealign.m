@@ -157,9 +157,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 9427 2014-04-16 07:40:38Z jansch $
+% $Id: ft_volumerealign.m 9520 2014-05-14 09:33:28Z roboos $
 
-revision = '$Id: ft_volumerealign.m 9427 2014-04-16 07:40:38Z jansch $';
+revision = '$Id: ft_volumerealign.m 9520 2014-05-14 09:33:28Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -168,6 +168,11 @@ ft_preamble provenance
 ft_preamble trackconfig
 ft_preamble debug
 ft_preamble loadvar mri
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input data is valid for this function
 mri = ft_checkdata(mri, 'datatype', 'volume', 'feedback', 'yes');
@@ -701,7 +706,7 @@ switch cfg.method
       
     % construct the coregistration matrix
     nrm = normals(scalp.pnt, scalp.tri, 'vertex');
-    [R, t, err, ~, info] = icp(scalp.pnt', shape.pnt', numiter, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true, 'WorstRejection', 0.05);
+    [R, t, err, dummy, info] = icp(scalp.pnt', shape.pnt', numiter, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true, 'WorstRejection', 0.05);
     
     if doicp,
       % create the additional transformation matrix and compute the

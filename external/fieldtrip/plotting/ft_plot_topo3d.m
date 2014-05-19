@@ -11,8 +11,7 @@ function ft_plot_topo3d(pnt, val, varargin)
 % Optional input arguments should be specified in key-value pairs and can include
 %   'contourstyle' = string, 'none', 'black', 'color' (default = 'none')
 %   'facealpha'    = scalar, between 0 and 1 (default = 1)
-%   'refine'       = scalar, number of refinement steps for the triangulation, to
-%                            get a smoother interpolation (default = 0)
+%   'refine'       = scalar, number of refinement steps for the triangulation, to get a smoother interpolation (default = 0)
 %
 % See also FT_PLOT_TOPO
 
@@ -34,7 +33,7 @@ function ft_plot_topo3d(pnt, val, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_topo3d.m 9221 2014-02-21 19:03:47Z jansch $
+% $Id: ft_plot_topo3d.m 9515 2014-05-13 13:30:43Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

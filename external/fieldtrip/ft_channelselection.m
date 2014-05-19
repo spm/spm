@@ -1,4 +1,4 @@
-function [channel] = ft_channelselection(desired, datachannel, type)
+function [channel] = ft_channelselection(desired, datachannel, senstype)
 
 % FT_CHANNELSELECTION makes a selection of EEG and/or MEG channel labels.
 % This function translates the user-specified list of channels into channel
@@ -72,16 +72,17 @@ function [channel] = ft_channelselection(desired, datachannel, type)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_channelselection.m 9322 2014-03-26 16:36:14Z roboos $
+% $Id: ft_channelselection.m 9461 2014-05-01 16:00:35Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion 
+
 if isempty(recursion)
   recursion = false;
 end
 
-if nargin < 3;
-    type='unknown';
+if nargin<3
+  senstype = ft_senstype(datachannel);
 end
 
 % start with the list of desired channels, this will be pruned/expanded
@@ -195,13 +196,7 @@ labelmegref  = [];
 labelmegmag  = [];
 labeleeg     = [];
 
-if strcmp(type,'unknown');
-    casetype=ft_senstype(datachannel);
-else
-    casetype=type;
-end
-
-switch casetype
+switch senstype
 
   case {'yokogawa', 'yokogawa160', 'yokogawa160_planar', 'yokogawa64', 'yokogawa64_planar', 'yokogawa440', 'yokogawa440_planar'}
     % Yokogawa axial gradiometers channels start with AG, hardware planar gradiometer 

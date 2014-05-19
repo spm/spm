@@ -117,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 9160 2014-01-29 15:05:45Z roevdmei $
+% $Id: ft_multiplotER.m 9521 2014-05-14 09:45:42Z roboos $
 
-revision = '$Id: ft_multiplotER.m 9160 2014-01-29 15:05:45Z roevdmei $';
+revision = '$Id: ft_multiplotER.m 9521 2014-05-14 09:45:42Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,7 +129,13 @@ ft_preamble loadvar    varargin
 ft_preamble provenance varargin
 ft_preamble trackconfig
 
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
+
 for i=1:length(varargin)
+  % check if the input data is valid for this function
   varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'timelock', 'freq'});
 end
 

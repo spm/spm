@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_statistics_montecarlo.m 9520 2014-05-14 09:33:28Z roboos $
 
 % deal with the user specified randomseed first, to mimick old behavior
 cfg.randomseed = ft_getopt(cfg, 'randomseed', 'yes');
@@ -110,6 +110,11 @@ ft_preamble provenance
 ft_preamble randomseed
 ft_preamble trackconfig
 ft_preamble debug
+
+% the abort variable is set to true or false in ft_preamble_init
+if abort
+  return
+end
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed',     {'factor',           'ivar'});

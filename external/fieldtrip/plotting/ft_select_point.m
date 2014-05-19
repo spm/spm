@@ -1,16 +1,16 @@
 function [selected] = ft_select_point(pos, varargin)
 
-% FT_SELECT_POINT helper function for selecting a one or multiple points
-% in the current figure using the mouse.
+% FT_SELECT_POINT helper function for selecting a one or multiple points in the
+% current figure using the mouse. It returns a list of the [x y] coordinates of the
+% selected points.
 %
 % Use as
 %   [selected] = ft_select_point(pos, ...)
 %
-% It returns a list of the [x y] coordinates of the selected points.
 %
 % Optional input arguments should come in key-value pairs and can include
-%   'multiple'    true/false, make multiple selections, pressing "q" on the keyboard finalizes the selection (default = false)
-%   'nearest'     true/false (default = true)
+%   'multiple'   = true/false, make multiple selections, pressing "q" on the keyboard finalizes the selection (default = false)
+%   'nearest'    = true/false (default = true)
 %
 % Example use
 %   pos = randn(10,2);
@@ -34,7 +34,7 @@ function [selected] = ft_select_point(pos, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_select_point.m 7676 2013-03-16 14:55:44Z roboos $
+% $Id: ft_select_point.m 9515 2014-05-13 13:30:43Z roboos $
 
 
 % get optional input arguments
