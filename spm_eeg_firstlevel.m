@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 5612 2013-08-15 11:30:02Z vladimir $
+% $Id: spm_eeg_firstlevel.m 5994 2014-05-19 17:34:36Z vladimir $
 
 
-SVNrev = '$Rev: 5612 $';
+SVNrev = '$Rev: 5994 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -30,204 +30,159 @@ job{1}.spm.stats.fmri_design.timing.fmri_t0 = 1;
 job{1}.spm.stats.fmri_design.volt           = S.volt;
 job{1}.spm.stats.fmri_design.cvi            = 'none';
 
-nsess = numel(S.sess);
-scans = {};
-W     = [];
-for i = 1:nsess
-    D        = spm_eeg_load(char(S.sess(i).D));
-    
-    isTF     = strncmpi(D.transformtype,'TF',2);
-    
-    time     = D.time;
-    dt       = mean(diff(time));
-    nt       = D.nsamples;
-    channels = D.selectchannels(S.channels);
-    nchan    = numel(channels);
-    nf       = D.nfrequencies;
-    
-    bad      = badsamples(D, channels, ':', 1);
-    if sum(any(bad'))>1
-        warning('Artefacts will be combined for all channels. Run channel by channel to use more data.');
-    end
-    
-    W = [W any(badsamples(D, channels, ':', 1))];
-    
-    if isempty(nf), nf = 1; end
-    
-    ni         = nifti;
-    ni.dat     = file_array(spm_file(D.fnamedat,'ext','nii', ...
-        'path', statdir, 'prefix', sprintf('sess%d_', i)),...
-        [nchan nf 1 nt],...
-        [spm_type('float32') spm_platform('bigend')],...
-        0,...
-        1,...
-        0);
-    ni.mat     = eye(4);
-    ni.mat0    = eye(4);
-    ni.descrip = '4D image';
-    
-    create(ni);
-    
-    spm_progress_bar('Init',size(ni.dat,4),sprintf('Saving 4D image, session %d/%d', i, nsess), 'Volumes Complete');
-    if nt > 100, Ibar = floor(linspace(1, nt,100));
-    else Ibar = 1:nt; end
-    
-    for j = 1:size(ni.dat,4)
-        if isTF
-            ni.dat(:,:,1,j) = D(channels, :, j, 1);
-        else
-            ni.dat(:,1,1,j) = D(channels, j , 1);
-        end
-        
-        scans{end+1, 1} = [ni.dat.fname, ',', num2str(j)];
-        
-        if any(Ibar == j), spm_progress_bar('Set', j); end
-    end
-    spm_progress_bar('Clear');
-    
-    
-    job{1}.spm.stats.fmri_design.timing.RT  = dt;
-    job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess(i), {'D', 'cond'});
-    job{1}.spm.stats.fmri_design.sess.nscan = nt;
-    
-    nc = numel(S.sess(i).cond);
-    
-    if nc == 0
-        job{1}.spm.stats.fmri_design.sess.cond = S.sess(i).cond;
-    else
-        for j = 1:nc
-            conditionlabels = {};
-            trigsample      = {};
-            duration        = {};
-            durationsample  = {};
-            if isfield(S.sess(i).cond(j).define, 'event')
-                S1              = [];
-                S1.D            = D;
-                S1.reviewtrials = 0;
-                S1.save         = 0;
-                S1.trialdef     = S.sess(i).cond(j).define.event;
-                S1.timewin      = [0 0];
-                [S1.trialdef(:).conditionlabel] = deal(S.sess(i).cond(j).name);
-                
-                trl                       = spm_eeg_definetrial(S1);
-                trigsample{j}             = trl(:, 1);
-                trig{j}                   = time(trigsample{j});
-                duration{j}               = 0*trig{j};
-                durationsample{j}         = 0*trig{j};
-            elseif isfield(S.sess(i).cond(j).define, 'manual')
-                if isequal(S.timing.units, 'secs')
-                    trig{j}         = S.sess(i).cond(j).define.manual.onset;
-                    trigsample{j}   = D.indsample(trig{j});
-                    duration{j}     = S.sess(i).cond(j).define.manual.duration;
-                    if isempty(duration)
-                        duration{j} = 0*trig{j};
-                    end
-                    durationsample{j} = round(duration{j}*D.fsample);
-                else
-                    trigsample{j}     = S.sess(i).cond(j).define.manual.onset;
-                    trig{j}           = time(trigsample{j});
-                    durationsample{j} = S.sess(i).cond(j).define.manual.duration;
-                    if isempty(durationsample)
-                        durationsample{j} = 0*trig{j};
-                    end
-                    duration{j}       = durationsample{j}/D.fsample;
+
+D        = spm_eeg_load(char(S.sess.D));
+
+isTF     = strncmpi(D.transformtype,'TF',2);
+
+time     = D.time;
+dt       = mean(diff(time));
+nt       = D.nsamples;
+channels = D.selectchannels(S.channels);
+nchan    = numel(channels);
+nf       = D.nfrequencies;
+
+job{1}.spm.stats.fmri_design.timing.RT  = dt;
+job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond'});
+job{1}.spm.stats.fmri_design.sess.hpf   = Inf;
+job{1}.spm.stats.fmri_design.sess.nscan = nt;
+
+nc = numel(S.sess.cond);
+
+if nc == 0
+    job{1}.spm.stats.fmri_design.sess.cond = S.sess.cond;
+else
+    for j = 1:nc
+        conditionlabels = {};
+        trigsample      = {};
+        duration        = {};
+        durationsample  = {};
+        if isfield(S.sess.cond(j).define, 'event')
+            S1              = [];
+            S1.D            = D;
+            S1.reviewtrials = 0;
+            S1.save         = 0;
+            S1.trialdef     = S.sess.cond(j).define.event;
+            S1.timewin      = [0 0];
+            [S1.trialdef(:).conditionlabel] = deal(S.sess.cond(j).name);
+            
+            trl                       = spm_eeg_definetrial(S1);
+            trigsample{j}             = trl(:, 1);
+            trig{j}                   = time(trigsample{j});
+            duration{j}               = 0*trig{j};
+            durationsample{j}         = 0*trig{j};
+        elseif isfield(S.sess.cond(j).define, 'manual')
+            if isequal(S.timing.units, 'secs')
+                trig{j}         = S.sess.cond(j).define.manual.onset;
+                trigsample{j}   = D.indsample(trig{j});
+                duration{j}     = S.sess.cond(j).define.manual.duration;
+                if isempty(duration)
+                    duration{j} = 0*trig{j};
                 end
-                conditionlabels{j}    = repmat({S.sess(i).cond(j).name}, length(trig{j}), 1);
+                durationsample{j} = round(duration{j}*D.fsample);
             else
-                error('Unsupported option');
+                trigsample{j}     = S.sess.cond(j).define.manual.onset;
+                trig{j}           = time(trigsample{j});
+                durationsample{j} = S.sess.cond(j).define.manual.duration;
+                if isempty(durationsample)
+                    durationsample{j} = 0*trig{j};
+                end
+                duration{j}       = durationsample{j}/D.fsample;
             end
-            
-            job{1}.spm.stats.fmri_design.sess.cond(j).name     = S.sess(i).cond(j).name;
-            job{1}.spm.stats.fmri_design.sess.cond(j).onset    = trig{j} - D.timeonset;
-            job{1}.spm.stats.fmri_design.sess.cond(j).duration = duration{j};
-            job{1}.spm.stats.fmri_design.sess.cond(j).tmod     = S.sess(i).cond(j).tmod;
-            job{1}.spm.stats.fmri_design.sess.cond(j).pmod     = S.sess(i).cond(j).pmod;
-            job{1}.spm.stats.fmri_design.sess.cond(j).orth     = S.sess(i).cond(j).orth;
-        end
-    end
-    
-    eventchanind = D.indchannel('event');
-    if ~isempty(eventchanind)
-        cond =  job{1}.spm.stats.fmri_design.sess.cond;
-        job{1}.spm.stats.fmri_design.sess.cond = ...
-            rmfield(cond, {'tmod', 'pmod', 'orth'});
-        job{1}.spm.stats.fmri_design.timing.fmri_t    = 1;
-        job{1}.spm.stats.fmri_design.bases.fir.length = dt;
-        job{1}.spm.stats.fmri_design.bases.fir.order  = 1;
-        
-        [dummy, job] = spm_jobman('harvest', job);
-        spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
-                
-        load(fullfile(statdir, 'SPM.mat'));
-        
-        X = SPM.xX.X*SPM.xBF.dt;
-        X = X(:, 1:(end-1));
-        
-        aX = any(X', 1);
-        caX = cumsum(aX);
-        
-        if isTF
-            Y = squeeze(mean(D(eventchanind, :, :), 2));
+            conditionlabels{j}    = repmat({S.sess.cond(j).name}, length(trig{j}), 1);
         else
-            Y = D(eventchanind, :);
+            error('Unsupported option');
         end
         
-        Y = Y-min(Y);
-        Y = Y/max(Y);
-        
-        [c, lags] = xcorr(aX, Y, 500, 'coeff');
-        
-        [dummy, ind] = max(c);
-        shiftcorr = lags(ind);
-        
-        if ~spm('CmdLine')
-            spm_figure('GetWin','Timing check');
-            clf
-            subplot(2, 3, 1:3);
-            plot(lags, c);
-            xlim(100*[-1 1]);
-            
-            ntoplot = 5;
-            i1 = find(caX == 1);
-            i2 = find(caX == ntoplot);
-            
-            i3= find((caX-caX(floor(nt/2))) == 1);
-            i4= find((caX-caX(floor(nt/2))) == ntoplot);
-            
-            i5= find((caX-caX(end)) == -ntoplot);
-            i6= find((caX-caX(end)) == 0);
-            
-            subplot(2, 3, 4);
-            plot(time(i1(1):i2(1)), Y(i1(1):i2(1)), 'k');
-            hold on
-            plot(time(i1(1):i2(1)), X(i1(1):i2(1), :));
-            
-            subplot(2, 3, 5);
-            plot(time(i3(1):i4(1)), Y(i3(1):i4(1)), 'k');
-            hold on
-            plot(time(i3(1):i4(1)), X(i3(1):i4(1), :));
-            
-            subplot(2, 3, 6);
-            plot(time(i5(1):i6(1)), Y(i5(1):i6(1)), 'k');
-            hold on
-            plot(time(i5(1):i6(1)), X(i5(1):i6(1), :));
-        end
-        
-        delete(fullfile(statdir, 'SPM.mat'));
-        job{1}.spm.stats.fmri_design.bases     = [];
-        job{1}.spm.stats.fmri_design.sess.cond = cond;
-    else
-        shiftcorr = 0;
+        job{1}.spm.stats.fmri_design.sess.cond(j).name     = S.sess.cond(j).name;
+        job{1}.spm.stats.fmri_design.sess.cond(j).onset    = trig{j} - D.timeonset;
+        job{1}.spm.stats.fmri_design.sess.cond(j).duration = duration{j};
+        job{1}.spm.stats.fmri_design.sess.cond(j).tmod     = S.sess.cond(j).tmod;
+        job{1}.spm.stats.fmri_design.sess.cond(j).pmod     = S.sess.cond(j).pmod;
+        job{1}.spm.stats.fmri_design.sess.cond(j).orth     = S.sess.cond(j).orth;
     end
-    
-    for c = 1:nc
-        job{1}.spm.stats.fmri_design.sess.cond(c).onset = ...
-            job{1}.spm.stats.fmri_design.sess.cond(c).onset + 1e-3*S.timing.timewin(1) - shiftcorr*dt;
-    end
-    
-    
-    sess(i) = job{1}.spm.stats.fmri_design.sess;
 end
+
+eventchanind = D.indchannel('event');
+if ~isempty(eventchanind)
+    cond =  job{1}.spm.stats.fmri_design.sess.cond;
+    job{1}.spm.stats.fmri_design.sess.cond = ...
+        rmfield(cond, {'tmod', 'pmod', 'orth'});
+    job{1}.spm.stats.fmri_design.timing.fmri_t    = 1;
+    job{1}.spm.stats.fmri_design.bases.fir.length = dt;
+    job{1}.spm.stats.fmri_design.bases.fir.order  = 1;
+    
+    [dummy, job] = spm_jobman('harvest', job);
+    spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
+    
+    load(fullfile(statdir, 'SPM.mat'));
+    
+    X = SPM.xX.X*SPM.xBF.dt;
+    X = X(:, 1:(end-1));
+    
+    aX = any(X', 1);
+    caX = cumsum(aX);
+    
+    if isTF
+        Y = squeeze(mean(D(eventchanind, :, :), 2));
+    else
+        Y = D(eventchanind, :);
+    end
+    
+    Y = Y-min(Y);
+    Y = Y/max(Y);
+    
+    [c, lags] = xcorr(aX, Y, 500, 'coeff');
+    
+    [dummy, ind] = max(c);
+    shiftcorr = lags(ind);
+    
+    if ~spm('CmdLine')
+        spm_figure('GetWin','Timing check');
+        clf
+        subplot(2, 3, 1:3);
+        plot(lags, c);
+        xlim(100*[-1 1]);
+        
+        ntoplot = 5;
+        i1 = find(caX == 1);
+        i2 = find(caX == ntoplot);
+        
+        i3= find((caX-caX(floor(nt/2))) == 1);
+        i4= find((caX-caX(floor(nt/2))) == ntoplot);
+        
+        i5= find((caX-caX(end)) == -ntoplot);
+        i6= find((caX-caX(end)) == 0);
+        
+        subplot(2, 3, 4);
+        plot(time(i1(1):i2(1)), Y(i1(1):i2(1)), 'k');
+        hold on
+        plot(time(i1(1):i2(1)), X(i1(1):i2(1), :));
+        
+        subplot(2, 3, 5);
+        plot(time(i3(1):i4(1)), Y(i3(1):i4(1)), 'k');
+        hold on
+        plot(time(i3(1):i4(1)), X(i3(1):i4(1), :));
+        
+        subplot(2, 3, 6);
+        plot(time(i5(1):i6(1)), Y(i5(1):i6(1)), 'k');
+        hold on
+        plot(time(i5(1):i6(1)), X(i5(1):i6(1), :));
+    end
+    
+    delete(fullfile(statdir, 'SPM.mat'));
+    job{1}.spm.stats.fmri_design.bases     = [];
+    job{1}.spm.stats.fmri_design.sess.cond = cond;
+else
+    shiftcorr = 0;
+end
+
+for c = 1:nc
+    job{1}.spm.stats.fmri_design.sess.cond(c).onset = ...
+        job{1}.spm.stats.fmri_design.sess.cond(c).onset + 1e-3*S.timing.timewin(1) - shiftcorr*dt;
+end
+
+
 
 job{1}.spm.stats.fmri_design.timing.fmri_t        = S.timing.utime;
 bname                                             = char(fieldnames(S.bases));
@@ -235,48 +190,29 @@ bname                                             = char(fieldnames(S.bases));
 job{1}.spm.stats.fmri_design.bases                = S.bases;
 job{1}.spm.stats.fmri_design.bases.(bname).length = 1e-3*diff(sort(S.timing.timewin));
 
-job{1}.spm.stats.fmri_design.sess                 = sess;
 
 [dummy, job] = spm_jobman('harvest', job);
 spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
 
 clear job
 
-job{1}.spm.stats.fmri_data.spmmat{1} = fullfile(statdir, 'SPM.mat');
-job{1}.spm.stats.fmri_data.scans     = scans;
-
-[dummy, job] = spm_jobman('harvest', job);
-spm_run_fmri_data(job{1}.spm.stats.fmri_data);
-
 load SPM.mat
 
-% % assume i.i.d.
-% if isTF
-%     SPM.xVi = struct('form', 'i.i.d.',...
-%         'V',   speye(size(D,3)));
-% else
-%     SPM.xVi = struct('form', 'i.i.d.',...
-%         'V',   speye(size(D, 2)));
-% end
+X = SPM.xX.X*SPM.xBF.dt;
 
-% no masking
-try, SPM = rmfield(SPM,'xM'); end
+if S.sess.hpf
+    K = [];
+    K.RT     = dt;
+    K.row    = SPM.Sess.row;
+    K.HParam = S.sess.hpf;
+else
+    K = 1;
+end
 
-
-W = ~W + W*exp(-256);
-SPM.xX.W = sparse(diag(W));
-
-save('SPM.mat','SPM', spm_get_defaults('mat.format'));
-
-clear job
-
-job{1}.spm.stats.fmri_est.spmmat{1} = fullfile(statdir, 'SPM.mat');
-job{1}.spm.stats.fmri_est.method.Classical = 1;
-
-[dummy, job] = spm_jobman('harvest', job);
-spm_run_fmri_est(job{1}.spm.stats.fmri_est);
-
-load SPM.mat
+xX    = spm_sp('Set', spm_filter(K, X)); % filter design
+if ~isfield(xX,'pX')
+    xX.pX = spm_sp('x-',xX);
+end
 
 nb = size(SPM.xBF.bf, 1);
 nr = size(SPM.xBF.bf, 2);
@@ -299,39 +235,42 @@ Dout = chanlabels(Dout, ':', D.chanlabels(channels));
 Dout = conditions(Dout, ':', label);
 Dout = type(Dout, 'evoked');
 
-for i = 1:ne
-    if isTF
-        beta = zeros(nr, nf, nchan);
-        for j = 1:nr
-            b = nifti(sprintf('beta_%04d%s',(i-1)*nr+j, spm_file_ext));
-            beta(j, :, :) = b.dat(:, :)';
-        end
-        
-        for c = 1:nchan
-            xY = SPM.xBF.bf*spm_squeeze(beta(:, :, c), 3);
+
+spm_progress_bar('Init', nchan, 'channels done');
+if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
+else Ibar = 1:nchan; end
+for c = 1:nchan
+    
+    W = ones(nt, 1);
+    W(D.badsamples(channels(c), ':', 1)) = exp(-256);
+    W = spdiags(W, 0, nt, nt);
+    
+    axX    = spm_sp('Set', spm_filter(K, W*X));
+    if ~isfield(axX,'pX')
+        axX.pX = spm_sp('x-',axX);
+    end
+    
+    Y = reshape(D(channels(c), :, :, :), nf, nt);
+    
+    Y = spm_filter(K, W*Y');
+    
+    B = axX.pX*Y;
+    
+    for i = 1:ne
+        xY = SPM.xBF.bf*B((i-1)*nr+(1:nr), :);
+        if isTF
             Dout(c, :, :, i) = shiftdim(xY', -1);
-        end
-    else
-        beta = zeros(nr, nchan);
-        for j = 1:nr
-            b = nifti(sprintf('beta_%04d%s',(i-1)*nr+j, spm_file_ext));
-            beta(j, :) = b.dat(:, :)';
-        end
-        
-        for c = 1:nchan
-            xY = SPM.xBF.bf*beta(:, c);
+        else
             Dout(c, :, i) = xY';
         end
     end
+    
+    if ismember(c, Ibar), spm_progress_bar('Set', c); end
 end
 
+spm_progress_bar('Clear');
 
 D = Dout;
 %-Save
 %--------------------------------------------------------------------------
 save(D);
-
-%{
-% TODO
-% artefacts
-%}

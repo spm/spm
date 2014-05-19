@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_eeg_firstlevel.m 5994 2014-05-19 17:34:36Z vladimir $
 
-rev = '$Rev: 5652 $';
+rev = '$Rev: 5994 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -366,19 +366,6 @@ sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
 sess.val     = {D generic1 multi generic2 multi_reg hpf };
 sess.help    = {'The design matrix for fMRI data consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per fMRI scanning session for that subject.'};
-% % ---------------------------------------------------------------------
-% % generic Data & Design
-% % ---------------------------------------------------------------------
-% generic         = cfg_repeat;
-% generic.tag     = 'generic';
-% generic.name    = 'Data & Design';
-% generic.help    = {
-%                    'The design matrix defines the experimental design and the nature of hypothesis testing to be implemented.  The design matrix has one row for each scan and one column for each effect or explanatory variable. (e.g. regressor or stimulus function).  '
-%                    ''
-%                    'This allows you to build design matrices with separable session-specific partitions.  Each partition may be the same (in which case it is only necessary to specify it once) or different.  Responses can be either event- or epoch related, where the latter model involves prolonged and possibly time-varying responses to state-related changes in experimental conditions.  Event-related response are modelled in terms of responses to instantaneous events.  Mathematically they are both modelled by convolving a series of delta (stick) or box-car functions, encoding the input or stimulus function. with a set of hemodynamic basis functions.'
-% }';
-% generic.values  = {sess };
-% generic.num     = [1 Inf];
 % ---------------------------------------------------------------------
 % order Order
 % ---------------------------------------------------------------------
