@@ -50,7 +50,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % F   - [-ve] free energy F = log evidence = p(y|f,g,pE,pC) = p(y|m)
 %
 %__________________________________________________________________________
-% This is the same as spm_nlsi_GH but tries to model the free energy as a
+% This is the same as spm_nlsi_GN but tries to model the free energy as a
 % function of conditional expectations using a sparse mixture of scaled
 % Gaussians. The objective is to account for local maxima when optimising
 % free energy by recasting the problem in terms of a parameterised mapping 
@@ -59,7 +59,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN_H.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_nlsi_GN_H.m 5993 2014-05-19 14:10:33Z ged $
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------

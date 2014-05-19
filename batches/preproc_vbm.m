@@ -13,7 +13,7 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id$
+% $Id: preproc_vbm.m 5993 2014-05-19 14:10:33Z ged $
 
 if exist('preproc_vbm', 'file')
     help preproc_vbm

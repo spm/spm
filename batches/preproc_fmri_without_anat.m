@@ -12,7 +12,7 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id$
+% $Id: preproc_fmri_without_anat.m 5993 2014-05-19 14:10:33Z ged $
 
 if exist('preproc_fmri_without_anat', 'file')
     help preproc_fmri_without_anat

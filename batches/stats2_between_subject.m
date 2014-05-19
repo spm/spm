@@ -12,7 +12,7 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id$
+% $Id: stats2_between_subject.m 5993 2014-05-19 14:10:33Z ged $
 
 if exist('stats2_between_subject', 'file')
     help stats2_between_subject
