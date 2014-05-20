@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 5994 2014-05-19 17:34:36Z vladimir $
+% $Id: spm_eeg_firstlevel.m 5995 2014-05-20 11:27:48Z vladimir $
 
 
-SVNrev = '$Rev: 5994 $';
+SVNrev = '$Rev: 5995 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -43,7 +43,7 @@ nchan    = numel(channels);
 nf       = D.nfrequencies;
 
 job{1}.spm.stats.fmri_design.timing.RT  = dt;
-job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond'});
+job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond', 'savereg'});
 job{1}.spm.stats.fmri_design.sess.hpf   = Inf;
 job{1}.spm.stats.fmri_design.sess.nscan = nt;
 
@@ -104,13 +104,16 @@ else
 end
 
 eventchanind = D.indchannel('event');
-if ~isempty(eventchanind)
-    cond =  job{1}.spm.stats.fmri_design.sess.cond;
+if ~isempty(eventchanind) && nc
+    sess =  job{1}.spm.stats.fmri_design.sess;
     job{1}.spm.stats.fmri_design.sess.cond = ...
-        rmfield(cond, {'tmod', 'pmod', 'orth'});
+        rmfield(sess.cond, {'tmod', 'pmod', 'orth'});
     job{1}.spm.stats.fmri_design.timing.fmri_t    = 1;
     job{1}.spm.stats.fmri_design.bases.fir.length = dt;
     job{1}.spm.stats.fmri_design.bases.fir.order  = 1;
+    job{1}.spm.stats.fmri_design.sess.regress     = [];
+    job{1}.spm.stats.fmri_design.sess =...
+        rmfield(job{1}.spm.stats.fmri_design.sess, 'regress');
     
     [dummy, job] = spm_jobman('harvest', job);
     spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
@@ -171,8 +174,8 @@ if ~isempty(eventchanind)
     end
     
     delete(fullfile(statdir, 'SPM.mat'));
-    job{1}.spm.stats.fmri_design.bases     = [];
-    job{1}.spm.stats.fmri_design.sess.cond = cond;
+    job{1}.spm.stats.fmri_design.bases  = [];
+    job{1}.spm.stats.fmri_design.sess   = sess;
 else
     shiftcorr = 0;
 end
@@ -214,63 +217,147 @@ if ~isfield(xX,'pX')
     xX.pX = spm_sp('x-',xX);
 end
 
-nb = size(SPM.xBF.bf, 1);
-nr = size(SPM.xBF.bf, 2);
-
-label = {};
-for i = 1:numel(SPM.Sess.U)
-    label = [label SPM.Sess.U(i).name];
-end
-ne = numel(label);
-
-if isTF
-    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', S.prefix), [nchan nf nb ne]);
-else
-    Dout = clone(D, spm_file(D.fname, 'path', statdir, 'prefix', S.prefix), [nchan nb ne]);
-end
-
-Dout = fsample(Dout, 1/dt);
-Dout = timeonset(Dout, 1e-3*S.timing.timewin(1));
-Dout = chanlabels(Dout, ':', D.chanlabels(channels));
-Dout = conditions(Dout, ':', label);
-Dout = type(Dout, 'evoked');
-
-
-spm_progress_bar('Init', nchan, 'channels done');
-if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
-else Ibar = 1:nchan; end
-for c = 1:nchan
+if ~isempty(SPM.Sess.U)
     
-    W = ones(nt, 1);
-    W(D.badsamples(channels(c), ':', 1)) = exp(-256);
-    W = spdiags(W, 0, nt, nt);
+    nb = size(SPM.xBF.bf, 1);
+    nr = size(SPM.xBF.bf, 2);
     
-    axX    = spm_sp('Set', spm_filter(K, W*X));
-    if ~isfield(axX,'pX')
-        axX.pX = spm_sp('x-',axX);
+    label = {};
+    for i = 1:numel(SPM.Sess.U)
+        label = [label SPM.Sess.U(i).name];
+    end
+    ne = numel(label);
+    
+    if isTF
+        Dout = clone(D, spm_file(D.fname, 'prefix', S.prefix), [nchan nf nb ne]);
+    else
+        Dout = clone(D, spm_file(D.fname, 'prefix', S.prefix), [nchan nb ne]);
     end
     
-    Y = reshape(D(channels(c), :, :, :), nf, nt);
+    Dout = fsample(Dout, 1/dt);
+    Dout = timeonset(Dout, 1e-3*S.timing.timewin(1));
+    Dout = chanlabels(Dout, ':', D.chanlabels(channels));
+    Dout = conditions(Dout, ':', label);
+    Dout = type(Dout, 'evoked');
     
-    Y = spm_filter(K, W*Y');
     
-    B = axX.pX*Y;
-    
-    for i = 1:ne
-        xY = SPM.xBF.bf*B((i-1)*nr+(1:nr), :);
-        if isTF
-            Dout(c, :, :, i) = shiftdim(xY', -1);
-        else
-            Dout(c, :, i) = xY';
+    spm_progress_bar('Init', nchan, 'channels done');
+    if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
+    else Ibar = 1:nchan; end
+    for c = 1:nchan
+        
+        W = ones(nt, 1);
+        W(D.badsamples(channels(c), ':', 1)) = exp(-256);
+        W = spdiags(W, 0, nt, nt);
+        
+        axX    = spm_sp('Set', spm_filter(K, W*X));
+        if ~isfield(axX,'pX')
+            axX.pX = spm_sp('x-',axX);
         end
+        
+        Y = reshape(D(channels(c), :, :, :), nf, nt);
+        
+        Y = spm_filter(K, W*Y');
+        
+        B = axX.pX*Y;
+        
+        for i = 1:ne
+            xY = SPM.xBF.bf*B((i-1)*nr+(1:nr), :);
+            if isTF
+                Dout(c, :, :, i) = shiftdim(xY', -1);
+            else
+                Dout(c, :, i) = xY';
+            end
+        end
+        
+        if ismember(c, Ibar), spm_progress_bar('Set', c); end
     end
     
-    if ismember(c, Ibar), spm_progress_bar('Set', c); end
+    spm_progress_bar('Clear');
+     
+    %-Save
+    %--------------------------------------------------------------------------
+    save(Dout);
+else
+    Dout = [];
+    nr   = 0;
+    ne   = 0;
 end
 
-spm_progress_bar('Clear');
+if ~isempty(SPM.Sess.C) && S.sess.savereg   
+    rlabel = {};
+    for i = 1:numel(SPM.Sess.C)
+        rlabel = [rlabel SPM.Sess.C(i).name];
+    end
+    
+    ng = numel(rlabel);
+    
+    if ~isempty(Dout)
+      preprefix = 'R';
+    else
+      preprefix = ''; 
+    end
+    
+    if isTF
+        Dr = clone(D, spm_file(D.fname, 'prefix', [S.prefix preprefix]), [nchan nf 1 ng]);
+    else
+        Dr = clone(D, spm_file(D.fname, 'prefix', [S.prefix preprefix]), [nchan 1 ng]);
+    end
+    
+    Dr = fsample(Dr, 0);
+    Dr = timeonset(Dr, 0);
+    Dr = chanlabels(Dr, ':', D.chanlabels(channels));
+    Dr = conditions(Dr, ':', rlabel);
+    Dr = type(Dr, 'evoked');
+    
+    
+    spm_progress_bar('Init', nchan, 'channels done');
+    if nchan > 100, Ibar = floor(linspace(1, nchan, 100));
+    else Ibar = 1:nchan; end
+    for c = 1:nchan
+        
+        W = ones(nt, 1);
+        W(D.badsamples(channels(c), ':', 1)) = exp(-256);
+        W = spdiags(W, 0, nt, nt);
+        
+        axX    = spm_sp('Set', spm_filter(K, W*X));
+        if ~isfield(axX,'pX')
+            axX.pX = spm_sp('x-',axX);
+        end
+        
+        Y = reshape(D(channels(c), :, :, :), nf, nt);
+        
+        Y = spm_filter(K, W*Y');
+        
+        B = axX.pX*Y;
+        
+        for i = 1:ng
+            xY = B(ne*nr+i, :);
+            if isTF
+                Dr(c, :, :, i) = xY;
+            else
+                Dr(c, :, i) = xY;
+            end
+        end
+        
+        if ismember(c, Ibar), spm_progress_bar('Set', c); end
+    end
+    
+    spm_progress_bar('Clear');
+    
+    %-Save
+    %--------------------------------------------------------------------------
+    save(Dr);
+else
+    Dr = [];
+end
 
-D = Dout;
-%-Save
-%--------------------------------------------------------------------------
-save(D);
+if ~isempty(Dout)
+    D = Dout;
+else
+    D = Dr;
+end
+
+
+
+

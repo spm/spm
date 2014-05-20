@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5994 2014-05-19 17:34:36Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 5995 2014-05-20 11:27:48Z vladimir $
 
-rev = '$Rev: 5994 $';
+rev = '$Rev: 5995 $';
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -349,6 +349,18 @@ multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
 multi_reg.num     = [0 1];
 % ---------------------------------------------------------------------
+% Save regressor coefficients
+% ---------------------------------------------------------------------
+savereg         = cfg_menu;
+savereg.tag     = 'savereg';
+savereg.name    = 'Save regressor coefficients';
+savereg.help    = {'Choose ''yes'' to save the coefficients for regressors as a separate dataset (of spectra for TF data). If you are only using regressors to model out nuisance variables',
+    '(e.g. motion) saving might not be necessary'};
+               
+savereg.labels = {'yes', 'no'};
+savereg.values = {true, false};
+savereg.val    = {false};
+% ---------------------------------------------------------------------
 % hpf High-pass filter
 % ---------------------------------------------------------------------
 hpf         = cfg_entry;
@@ -364,8 +376,8 @@ hpf.val     = {10};
 sess         = cfg_branch;
 sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
-sess.val     = {D generic1 multi generic2 multi_reg hpf };
-sess.help    = {'The design matrix for fMRI data consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per fMRI scanning session for that subject.'};
+sess.val     = {D generic1 multi generic2 multi_reg savereg hpf };
+sess.help    = {'The design matrix consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per scanning session for that subject.'};
 % ---------------------------------------------------------------------
 % order Order
 % ---------------------------------------------------------------------
