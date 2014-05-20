@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 5998 2014-05-20 16:22:59Z guillaume $
+% $Id: spm_results_nidm.m 5999 2014-05-20 16:26:42Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -672,7 +672,7 @@ end
 serialize(p,fullfile(outdir,'spm_nidm.provn'));
 serialize(p,fullfile(outdir,'spm_nidm.ttl'));
 serialize(p,fullfile(outdir,'spm_nidm.json'));
-serialize(p,fullfile(outdir,'spm_nidm.pdf'));
+%serialize(p,fullfile(outdir,'spm_nidm.pdf'));
 prov = p;
 
 
