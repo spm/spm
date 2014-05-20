@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5953 2014-04-14 12:03:38Z guillaume $
+% $Id: spm_provenance.m 5998 2014-05-20 16:22:59Z guillaume $
 
 
 %-Properties
@@ -302,6 +302,9 @@ methods (Access='private')
         l = list_expressions;
         i = ismember(l(:,1),comp);
         argconv = l{i,4};
+        if ~ismember(comp,{'entity','activity','agent'})
+            argconv = argconv(2:end);
+        end
         if numel(arg) > numel(argconv)
             error('Too many input arguments.');
         end
@@ -359,15 +362,15 @@ methods (Access='private')
                 if ~isempty(obj.stack{i}{2})
                     str = [str sprintf('%s; ',obj.stack{i}{2})];
                 end
-                k = find(cellfun(@(x) isequal(x,'-'),obj.stack{i}(3:end-1)));
+                k = find(cellfun(@(x) ~isequal(x,'-'),obj.stack{i}(3:end-1)));
                 if isempty(k)
-                    k = numel(obj.stack{i});
+                    k = 0;
                 else
-                    k = min(k) + 2; % remove optional '-'
+                    k = max(k) + 2; % remove optional '-'
                 end
-                for j=3:k-1
+                for j=3:k
                     str = [str sprintf('%s',obj.stack{i}{j})];
-                    if j~=k-1, str = [str sprintf(', ')]; end
+                    if j~=k, str = [str sprintf(', ')]; end
                 end
             end
             %-Attributes
