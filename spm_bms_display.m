@@ -1,4 +1,4 @@
-function spm_bms_display(BMS,action)
+function varargout = spm_bms_display(BMS,action)
 % Display results from BMS Maps
 % FORMAT spm_bms_display(BMS,action)
 %
@@ -12,7 +12,7 @@ function spm_bms_display(BMS,action)
 % Copyright (C) 2009-2012 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_bms_display.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_bms_display.m 5997 2014-05-20 14:51:07Z will $
 
 
 % Main options (action)
@@ -29,7 +29,39 @@ switch action
     M     = xSPM.xVol.M;
     iM    = xSPM.iM;
     DIM   = xSPM.xVol.DIM;
-    units = {'mm' 'mm' 'mm'};
+    
+    try
+        if strcmp(spm('CheckModality'),'EEG')
+            datatype = {...
+                'Volumetric (2D/3D)',...
+                'Scalp-Time',...
+                'Scalp-Frequency',...
+                'Time-Frequency',...
+                'Frequency-Frequency'};
+            selected = spm_input('Data Type: ','+1','m',datatype);
+            datatype = datatype{selected};
+        else
+            datatype = 'Volumetric (2D/3D)';
+        end
+    catch
+        datatype     = 'Volumetric (2D/3D)';
+    end
+    
+    switch datatype
+        case 'Volumetric (2D/3D)'
+            units    = {'mm' 'mm' 'mm'};
+        case 'Scalp-Time'
+            units    = {'mm' 'mm' 'ms'};
+        case 'Scalp-Frequency'
+            units    = {'mm' 'mm' 'Hz'};
+        case 'Time-Frequency'
+            units    = {'Hz' 'ms' ''};
+        case 'Frequency-Frequency'
+            units    = {'Hz' 'Hz' ''};
+        otherwise
+            error('Unknown data type.');
+    end
+        
     title = 'Bayesian Model Selection';
     str   = xSPM.str;
 
@@ -370,6 +402,8 @@ uicontrol(Finter,'Style','Text',...
     set(Finter,'UserData',user_data,...
             'HandleVisibility','callback')
 
+    varargout = { hReg };
+        
     % Do plot - action: 'do_plot'
     % =====================================================================
     case 'do_plot'

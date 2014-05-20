@@ -13,7 +13,7 @@ function spm_run_bms_vis(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_run_bms_vis.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_run_bms_vis.m 5997 2014-05-20 14:51:07Z will $
 
 % Input
 % -------------------------------------------------------------------------
@@ -203,6 +203,8 @@ if ~isempty(z_above)
     xSPM.Ps           = [];
     xSPM.S            = 0;
     xSPM.z_ps         = z_ps;
+    xSPM.VRpv         = [];
+    xSPM.Vspm         = [];
     BMS.xSPM          = xSPM;
     
     % Display on workspace
@@ -210,7 +212,9 @@ if ~isempty(z_above)
     assignin('base','xSPM',xSPM);
     
     % Display results
-    spm_bms_display(BMS,'Init');
+    hReg = spm_bms_display(BMS,'Init');
+    
+    assignin('base','hReg',hReg);
     
 else
     
