@@ -17,10 +17,10 @@ function out = spm_run_bms_dcm(job)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 5943 2014-04-08 17:36:45Z guillaume $
+% $Id: spm_run_bms_dcm.m 5996 2014-05-20 14:28:46Z guillaume $
 
 
-SVNid = '$Rev: 5943 $';
+SVNid = '$Rev: 5996 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -203,7 +203,7 @@ else
                     % Data ID verification. At least for now we'll
                     % re-compute the IDs rather than use the ones stored
                     % with the DCM.
-                    if ~exist('DCM','var'), job.verify_id = 0; end
+                    if ~exist('DCM','var') || ~isfield(DCM,'DCM'), job.verify_id = 0; end
                     if job.verify_id
                         
                         disp(sprintf('Identifying data: model %d', j));
