@@ -1,13 +1,13 @@
-function spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
-% Insert new inputs into a DCM model
-% FORMAT spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
+function DCM = spm_dcm_U(DCM,SPM,sess,inputs)
+% Insert new inputs into a DCM
+% FORMAT DCM = spm_dcm_U(DCM,SPM,sess,inputs)
 %
-% DCM_filename  - Name of DCM file  (char array)
-% SPM_filename  - Name of SPM file  (char array)
-% session       - Session number    (integer)
-% input_nos     - Inputs to include (cell array)
+% DCM     - DCM structure or its filename
+% SPM     - SPM structure or its filename
+% sess    - session index     (integer)
+% inputs  - Inputs to include (cell array)
 %
-% Examples of specification of parameter 'input_nos':
+% Examples of specification of parameter 'inputs':
 % * without parametric modulations:
 %   {1, 0, 1} includes inputs 1 and 3.
 % * with parametric modulations:
@@ -20,33 +20,37 @@ function spm_dcm_U(DCM_filename,SPM_filename,session,input_nos)
 % subject Y's. The model can then be re-estimated without having to go
 % through model specification again.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2003-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_U.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_dcm_U.m 6006 2014-05-21 18:09:05Z guillaume $
 
 
 %-Load DCM and SPM files
 %--------------------------------------------------------------------------
-load(DCM_filename);
-load(SPM_filename);
-
+if ~isstruct(DCM)
+    DCMfile = DCM;
+    load(DCM);
+end
+if ~isstruct(SPM)
+    load(SPM);
+end
 
 %-Get session
 %--------------------------------------------------------------------------
 try
-    Sess = SPM.Sess(session);
+    Sess = SPM.Sess(sess);
 catch
-    error('SPM file does not have a session %d.',session);
+    error('SPM file does not have a session %d.',sess);
 end
 
 
 %-Check numbers of inputs
 %--------------------------------------------------------------------------
-if size(DCM.c,2) ~= sum(cellfun(@nnz,input_nos))
+if size(DCM.c,2) ~= sum(cellfun(@nnz,inputs))
     error('Number of specified inputs does not match DCM.');
 end
-if length(input_nos) > length(Sess.U)
+if numel(inputs) > numel(Sess.U)
     error('More inputs specified than exist in SPM.mat.');
 end
 
@@ -56,9 +60,9 @@ end
 U.name = {};
 U.u    = [];
 U.dt   = DCM.U.dt;
-for i  = 1:length(input_nos)
-    if any(input_nos{i})
-        mo = find(input_nos{i});
+for i  = 1:numel(inputs)
+    if any(inputs{i})
+        mo = find(inputs{i});
         if (length(mo)-1) > length(Sess.U(i).P)
             error(['More parametric modulations specified than exist ' ...
                 'for input %s in SPM.mat.'],Sess.U(i).name{1});
@@ -89,6 +93,8 @@ if round(DCM.v*DCM.Y.dt/DCM.U.dt) ~= num_inputs
 end
 
 
-% Save DCM with replaced inputs
+% Save (overwrite) DCM with replaced inputs
 %--------------------------------------------------------------------------
-save(DCM_filename, 'DCM', spm_get_defaults('mat.format'));
+if exist('DCMfile','var')
+    save(DCMfile, 'DCM', spm_get_defaults('mat.format'));
+end

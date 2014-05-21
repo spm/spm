@@ -3,10 +3,10 @@ function varargout = spm_api_erp(varargin)
 %    FIG = SPM_API_ERP launch spm_api_erp GUI.
 %    SPM_API_ERP('callback_name', ...) invoke the named callback.
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 5732 2013-11-06 14:03:56Z rosalyn $
+% $Id: spm_api_erp.m 6006 2014-05-21 18:09:05Z guillaume $
  
 
 %-Launch GUI
@@ -1218,7 +1218,7 @@ return
 %--------------------------------------------------------------------------
 function BMS_Callback(hObject, eventdata, handles)
 %spm_api_bmc
-spm_jobman('Interactive','','spm.stats.bms.bms_dcm')
+spm_jobman('Interactive','','spm.dcm.bms.inference');
  
  
 % --- Executes on selection change in ERP.
