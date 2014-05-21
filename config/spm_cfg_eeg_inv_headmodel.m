@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 5792 2013-12-09 12:09:33Z guillaume $
+% $Id: spm_cfg_eeg_inv_headmodel.m 6002 2014-05-21 09:54:48Z gareth $
 
 
 D = cfg_files;
@@ -111,10 +111,10 @@ fidname.help = {'Label of a fiducial point (as specified in the M/EEG dataset)'}
 
 type = cfg_entry;
 type.tag = 'type';
-type.name = 'Type MNI coordinates';
+type.name = 'Type MRI coordinates';
 type.strtype = 'r';
 type.num = [1 3];
-type.help = {'Type the coordinates corresponding to the fiducial in the structural image.'};
+type.help = {'Type the coordinates (in MNI or native space depending on the MRI supplied) corresponding to the fiducial in the structural image.'};
 
 fiducials_filename = fullfile(spm('dir'), 'EEGtemplates', 'fiducials.sfp');
 fid = fopen(fiducials_filename ,'rt');
