@@ -3,7 +3,7 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 5813 2013-12-20 18:54:10Z guillaume $
+% $Id: spm_rewrite_job.m 6005 2014-05-21 16:46:26Z guillaume $
 
 
 try
@@ -64,6 +64,15 @@ end
 try
     if isequal(job.stats.results.print, true)
         job.stats.results.print = spm_get_defaults('ui.print');
+    end
+end
+
+try
+    job.stats.bms.bms_dcm;
+    job = struct('dcm',struct('bms',struct('inference',job.stats.bms.bms_dcm)));
+    for i=1:numel(job.dcm.bms.inference.sess_dcm)
+        job.dcm.bms.inference.sess_dcm{i}.dcmmat = job.dcm.bms.inference.sess_dcm{i}.mod_dcm;
+        job.dcm.bms.inference.sess_dcm{i} = rmfield(job.dcm.bms.inference.sess_dcm{i},'mod_dcm');
     end
 end
 

@@ -4,7 +4,7 @@ function bms = spm_cfg_dcm_bms
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao Rosa
-% $Id: spm_cfg_dcm_bms.m 6004 2014-05-21 14:24:14Z guillaume $
+% $Id: spm_cfg_dcm_bms.m 6005 2014-05-21 16:46:26Z guillaume $
 
 %--------------------------------------------------------------------------
 % dir Directory
@@ -28,7 +28,7 @@ dcmmat.help    = {['Select the DCM_*.mat file for each model. '...
                    'DCM_*.mat files (models) should be specified '...
                    'in the same order for each subject and session.']};
 dcmmat.filter  = 'mat';
-dcmmat.ufilter = '.*';
+dcmmat.ufilter = '^DCM.*\.mat$';
 dcmmat.num     = [0 Inf];
 
 %--------------------------------------------------------------------------
@@ -307,7 +307,7 @@ bmsmat.help    = {['Specify the BMS.mat file obtained from previous BMS '...
                    'analysis (optional). Leave field empty to work on '...
                    'serial mode.']};
 bmsmat.filter  = 'mat';
-bmsmat.ufilter = '.*';
+bmsmat.ufilter = '^BMS\.mat$';
 bmsmat.val     = {{''}};
 bmsmat.num     = [0 1];
 

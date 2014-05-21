@@ -67,7 +67,7 @@ function varargout = spm_dcm_ui(Action)
 % Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_ui.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_dcm_ui.m 6005 2014-05-21 16:46:26Z guillaume $
 
 
 DCMversion = 'DCM12';
@@ -205,7 +205,7 @@ case 'compare',
     
     spm('FnBanner','spm_api_bmc');
     
-    spm_jobman('Interactive','','spm.stats.bms.bms_dcm');
+    spm_jobman('Interactive','','spm.dcm.bms.inference');
 
 
 %==========================================================================
