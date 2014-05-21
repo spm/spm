@@ -1,9 +1,9 @@
 function meeg = spm_cfg_eeg
 % SPM M/EEG Configuration file for MATLABBATCH
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 5926 2014-03-25 11:55:25Z gareth $
+% $Id: spm_cfg_eeg.m 6004 2014-05-21 14:24:14Z guillaume $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -59,7 +59,7 @@ meegmodel        = cfg_choice;
 meegmodel.tag    = 'modelling';
 meegmodel.name   = 'Modelling';
 meegmodel.help   = {'M/EEG Modelling'};
-meegmodel.values = {spm_cfg_eeg_firstlevel, spm_cfg_eeg_dcm_group}; 
+meegmodel.values = {spm_cfg_eeg_firstlevel}; 
 %--------------------------------------------------------------------------
 % M/EEG other
 %--------------------------------------------------------------------------

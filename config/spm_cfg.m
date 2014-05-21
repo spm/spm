@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6000 2014-05-20 17:16:38Z guillaume $
+% $Id: spm_cfg.m 6004 2014-05-21 14:24:14Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -30,7 +30,7 @@ stats         = cfg_choice;
 stats.tag     = 'stats';
 stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_mfx spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms spm_cfg_ppi spm_cfg_setlevel };
+stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_mfx spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
 
 %--------------------------------------------------------------------------
 % Dynamic Causal Modelling
@@ -39,7 +39,7 @@ dcm         = cfg_choice;
 dcm.tag     = 'dcm';
 dcm.name    = 'DCM';
 dcm.help    = {'Dynamic Causal Modelling.'};
-dcm.values  = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg };
+dcm.values  = { spm_cfg_dcm_fmri spm_cfg_dcm_meeg spm_cfg_dcm_bms};
 
 %--------------------------------------------------------------------------
 % Util

@@ -1,16 +1,23 @@
-function out = spm_run_bms_dcm_vis(job)
+function out = spm_run_dcm_bms_vis(job)
 % Review BMS results
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% Chun-Chuan Chen and Maria Joao Rosa
-% $Id: spm_run_bms_dcm_vis.m 4136 2010-12-09 22:22:28Z guillaume $
+% CC Chen and Maria Joao Rosa
+% $Id: spm_run_dcm_bms_vis.m 6004 2014-05-21 14:24:14Z guillaume $
 
-if ~exist('job','var') || isempty(job.file{1})
-    fname = spm_select([1 1],'^BMS\.mat$','select BMS.mat file');
-    load(fname);
+
+if ~nargin || isempty(job.bmsmat{1})
+    [bmsmat, sts] = spm_select(1,'^BMS\.mat$','Select BMS.mat');
+    if ~sts, out = []; return; end
 else
-    load(job.file{1});
+    bmsmat = job.file{1};
+end
+
+try
+    load(bmsmat);
+catch
+    error('Cannot load file: %s', bmsmat);
 end
 
 A = 1;

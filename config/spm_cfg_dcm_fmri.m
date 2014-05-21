@@ -4,7 +4,7 @@ function fmri = spm_cfg_dcm_fmri
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_cfg_dcm_fmri.m 6000 2014-05-20 17:16:38Z guillaume $
+% $Id: spm_cfg_dcm_fmri.m 6004 2014-05-21 14:24:14Z guillaume $
 
 % -------------------------------------------------------------------------
 % dcmmat Select DCM_*.mat
@@ -74,7 +74,7 @@ inp.num     = [1 Inf];
 % -------------------------------------------------------------------------
 regions      = cfg_exbranch;
 regions.tag  = 'regions';
-regions.name = 'Specify regions';
+regions.name = 'Region specification';
 regions.val  = { dcmmat voimat };
 regions.help = {'Insert new regions into a DCM model. '...
     '' ...
@@ -91,7 +91,7 @@ regions.vout = @vout_dcm_fmri;
 % -------------------------------------------------------------------------
 inputs      = cfg_exbranch;
 inputs.tag  = 'inputs';
-inputs.name = 'Specify inputs';
+inputs.name = 'Input specification';
 inputs.val  = { dcmmat spmmat session inp };
 inputs.help = {'Insert new inputs into a DCM model'...
     ''...
@@ -117,7 +117,7 @@ analysis.val     = {'time'};
 % -------------------------------------------------------------------------
 estimate      = cfg_exbranch;
 estimate.tag  = 'estimate';
-estimate.name = 'Estimate';
+estimate.name = 'DCM estimation';
 estimate.val  = { dcmmat analysis };
 estimate.help = {'Estimate parameters of a DCM for fMRI data.'};
 estimate.prog = @spm_run_dcm_fmri_est;

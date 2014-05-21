@@ -1,4 +1,4 @@
-function out = spm_run_bms_dcm(job)
+function out = spm_run_dcm_bms(job)
 % Compare DCMs on the basis of their log-evidences
 % Four methods are available to identify the best among alternative models:
 %
@@ -17,10 +17,10 @@ function out = spm_run_bms_dcm(job)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_bms_dcm.m 5996 2014-05-20 14:28:46Z guillaume $
+% $Id: spm_run_dcm_bms.m 6004 2014-05-21 14:24:14Z guillaume $
 
 
-SVNid = '$Rev: 5996 $';
+SVNid = '$Rev: 6004 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -35,7 +35,7 @@ ld_msp  = ~isempty(job.model_sp{1});     % Model space file
 bma_do  = isfield(job.bma,'bma_yes');    % Compute BMA
 data_se = ~isempty(job.sess_dcm);        % DCM files
 
-out.files{1} = '';
+out.bmsmat = {''};
 
 % check whether a BMS.mat file exists in the selected directory
 if exist(fname,'file')
@@ -72,7 +72,7 @@ if bma_do
         fprintf('%30s\n','...done')                                     %-#
     else
         if data_se
-            load(job.sess_dcm{1}(1).mod_dcm{1})
+            load(job.sess_dcm{1}(1).dcmmat{1})
         else
             spm('alert','Please specify DCM.mat files or model_space.mat to do BMA!','Error');
             return
@@ -133,7 +133,7 @@ else
     else
         ns        = size(job.sess_dcm,2);                 % No of Subjects
         nsess     = size(job.sess_dcm{1},2);              % No of sessions
-        nm        = size(job.sess_dcm{1}(1).mod_dcm,1);   % No of Models
+        nm        = size(job.sess_dcm{1}(1).dcmmat,1);   % No of Models
         fname_msp = fullfile(job.dir{1},'model_space.mat');
     end
     
@@ -155,7 +155,7 @@ else
         else
             disp(sprintf('Loading DCMs for subject %d', k));
             nsess_now       = size(job.sess_dcm{k},2);
-            nmodels         = size(job.sess_dcm{k}(1).mod_dcm,1);
+            nmodels         = size(job.sess_dcm{k}(1).dcmmat,1);
         end
         
         if (nsess_now == nsess && nmodels== nm) % Check no of sess/mods
@@ -173,7 +173,7 @@ else
                         clear DCM
                         
                         % Load DCM (model)
-                        tmp = job.sess_dcm{k}(h).mod_dcm{j};
+                        tmp = job.sess_dcm{k}(h).dcmmat{j};
                         if ~job.verify_id
                             st = warning('off','MATLAB:load:variableNotFound');
                             DCM.DCM = load(tmp, 'F', 'Ep', 'Cp');
@@ -479,7 +479,7 @@ fprintf('%-40s: %30s','Saving BMS.mat','...writing')                    %-#
 save(fname,'BMS', spm_get_defaults('mat.format'));
 fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')                %-#
 
-out.files{1} = fname;
+out.bmsmat = { fname };
 
 %-Save model_space
 %--------------------------------------------------------------------------
@@ -487,4 +487,6 @@ if ~ld_msp && data_se && ~ld_f
     fprintf('%-40s: %30s','Saving model space','...writing')            %-#
     save(fname_msp,'subj', spm_get_defaults('mat.format'));
     fprintf('%s%30s\n',repmat(sprintf('\b'),1,30),'...done')            %-#
+    
+    out.model_space = { fname_msp };
 end
