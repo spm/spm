@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 5942 2014-04-08 15:59:19Z guillaume $
+% $Id: spm_run_factorial_design.m 6011 2014-05-22 17:53:54Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -554,6 +554,42 @@ G  = []; Gnames = {};
 
 xC = [];                              %-Struct array to hold raw covariates
 
+%-Multiple covariates
+%--------------------------------------------------------------------------
+for m=1:numel(job.multi_cov)
+    for n=1:numel(job.multi_cov(m).files)
+        tmp   = load(job.multi_cov(m).files{n});
+        names = {};
+        if isstruct(tmp) % .mat
+            if isfield(tmp,'R')
+                R = tmp.R;
+                if isfield(tmp,'names')
+                    names = tmp.names;
+                end
+            else
+                error(['Variable ''R'' not found in multiple ' ...
+                    'covariates file ''%s''.'], job.multi_cov(m).files{n});
+            end
+        elseif isnumeric(tmp) % .txt
+            R     = tmp;
+            % read names from first line if commented?
+        end
+        for j=1:size(R,2)
+            job.cov(end+1).c   = R(:,j);
+            if isempty(names)
+                job.cov(end).cname = sprintf('R%d%s',j);
+            else
+                job.cov(end).cname = names{j};
+            end
+            job.cov(end).iCFI  = job.multi_cov(m).iCFI;
+            job.cov(end).iCC   = job.multi_cov(m).iCC;
+        end
+    end
+end
+
+
+%-Covariates
+%--------------------------------------------------------------------------
 nc = length(job.cov);                 %-Number of covariates
 for i=1:nc
 

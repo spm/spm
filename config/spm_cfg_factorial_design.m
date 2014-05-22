@@ -4,7 +4,7 @@ function factorial_design = spm_cfg_factorial_design
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_cfg_factorial_design.m 5917 2014-03-13 16:27:04Z guillaume $
+% $Id: spm_cfg_factorial_design.m 6011 2014-05-22 17:53:54Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -732,11 +732,44 @@ cov.help    = {'Add a new covariate to your experimental design.'};
 generic        = cfg_repeat;
 generic.tag    = 'generic';
 generic.name   = 'Covariates';
-generic.help   = {
-                   'This option allows for the specification of covariates and nuisance variables. Unlike SPM94/5/6, where the design was partitioned into effects of interest and nuisance effects for the computation of adjusted data and the F-statistic (which was used to thresh out voxels where there appeared to be no effects of interest), SPM does not partition the design in this way anymore. The only remaining distinction between effects of interest (including covariates) and nuisance effects is their location in the design matrix, which we have retained for continuity.  Pre-specified design matrix partitions can be entered.'
-}';
+generic.help   = {'This option allows for the specification of covariates and nuisance variables. Unlike SPM94/5/6, where the design was partitioned into effects of interest and nuisance effects for the computation of adjusted data and the F-statistic (which was used to thresh out voxels where there appeared to be no effects of interest), SPM does not partition the design in this way anymore. The only remaining distinction between effects of interest (including covariates) and nuisance effects is their location in the design matrix, which we have retained for continuity.  Pre-specified design matrix partitions can be entered.'};
 generic.values = {cov};
 generic.num    = [0 Inf];
+
+%--------------------------------------------------------------------------
+% multi_reg Multiple covariates
+%--------------------------------------------------------------------------
+cov         = cfg_files;
+cov.tag     = 'files';
+cov.name    = 'File(s)';
+cov.val{1}  = {''};
+cov.help    = {
+                     'Select the *.mat/*.txt file(s) containing details of your multiple covariates. '
+                     ''
+                     'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the covariates. Each column of R will contain a different covariate. Unless the covariates names are given in a cell array called ''names'' in the MAT-file containing variable R, the covariates will be named R1, R2, R3, ..etc.'
+                     }';
+cov.filter  = 'mat';
+cov.ufilter = '.*';
+cov.num     = [0 Inf];
+
+%--------------------------------------------------------------------------
+% multi_cov Covariate
+%--------------------------------------------------------------------------
+multi_cov         = cfg_branch;
+multi_cov.tag     = 'multi_cov';
+multi_cov.name    = 'Covariates';
+multi_cov.val     = {cov iCFI iCC};
+multi_cov.help    = {'Add a new set of covariates to your experimental design.'};
+
+%--------------------------------------------------------------------------
+% generic2 Multiple covariates
+%--------------------------------------------------------------------------
+generic2        = cfg_repeat;
+generic2.tag    = 'generic';
+generic2.name   = 'Multiple covariates';
+generic2.help   = {'This option allows for the specification of multiple covariates from TXT/MAT files.'};
+generic2.values = {multi_cov};
+generic2.num    = [0 Inf];
 
 %--------------------------------------------------------------------------
 % tm_none None
@@ -995,7 +1028,7 @@ globalm.help = {
 factorial_design      = cfg_exbranch;
 factorial_design.tag  = 'factorial_design';
 factorial_design.name = 'Factorial design specification';
-factorial_design.val  = {dir des generic masking globalc globalm};
+factorial_design.val  = {dir des generic generic2 masking globalc globalm};
 factorial_design.help = {
                          'This interface configures the design matrix, describing the general linear model, data specification, and other parameters necessary for the statistical analysis. These parameters are saved in a configuration file (SPM.mat), which can then be passed on to spm_spm.m which estimates the design. This is achieved by pressing the ''Estimate'' button. Inference on these estimated parameters is then handled by the SPM results section. '
                          ''
