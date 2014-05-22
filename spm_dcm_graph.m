@@ -8,7 +8,7 @@ function spm_dcm_graph(xY,A)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_graph.m 5906 2014-03-04 18:03:44Z guillaume $
+% $Id: spm_dcm_graph.m 6012 2014-05-22 18:21:41Z guillaume $
 
 
 % get dimensions, locations and names
@@ -58,7 +58,7 @@ set(h.handles.mesh,'FaceAlpha',1/16);
 %--------------------------------------------------------------------------
 if nargin < 2, return, end
 
-% check for cell array connecions (EEG)
+% check for cell array connections (EEG)
 %--------------------------------------------------------------------------
 if iscell(A)
     W = 0;
@@ -159,7 +159,7 @@ for i = 1:m
             line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
                 'LineStyle','-',...
                 'LineWidth', W(i,j));
-        else
+        elseif W(i,j) < 0
             line(U(1,[i j]),U(2,[i j]),U(3,[i j]),'Color',col{k},...
                 'LineStyle','-.',...
                 'LineWidth',-W(i,j));  
