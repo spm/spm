@@ -57,9 +57,9 @@ function varargout = spm_shoot3d(v0,prm,args, F)
 % (c) Wellcome Trust Centre for NeuroImaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot3d.m 4883 2012-09-03 12:34:55Z john $
+% $Id: spm_shoot3d.m 6008 2014-05-22 12:08:01Z john $
 
-spm_diffeo('bound',0);
+spm_diffeo('boundary',0); % Set boundary condition
 args0 = [8 4 4];
 if nargin<3,
     args = args0;

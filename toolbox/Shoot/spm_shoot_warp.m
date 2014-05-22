@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 6001 2014-05-20 18:20:02Z john $
+% $Id: spm_shoot_warp.m 6008 2014-05-22 12:08:01Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -30,6 +30,7 @@ scale   = d.scale;   % Fraction of Gauss-Newton update step to use
 bs_args = d.bs_args; % B-spline settings for interpolation
 %_______________________________________________________________________
 
+spm_diffeo('boundary',0); % Set boundary condition
 
 % Sort out handles to images
 n1 = numel(job.images);

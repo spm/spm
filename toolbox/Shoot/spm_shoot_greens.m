@@ -19,9 +19,10 @@ function varargout = spm_shoot_greens(varargin)
 % (c) Wellcome Trust Centre for NeuroImaging (2012)
 
 % John Ashburner
-% $Id: spm_shoot_greens.m 4925 2012-09-14 11:17:01Z guillaume $
+% $Id: spm_shoot_greens.m 6008 2014-05-22 12:08:01Z john $
 
-spm_diffeo('bound',0);
+spm_diffeo('boundary',0);
+
 if nargin==3 && isa(varargin{1},'char') && strcmp(varargin{1},'kernel'),
     d   = varargin{2};
     prm = varargin{3};

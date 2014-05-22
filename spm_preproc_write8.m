@@ -5,7 +5,7 @@ function [cls,M1] = spm_preproc_write8(res,tc,bf,df,mrf,cleanup,bb,vx)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_write8.m 5962 2014-04-17 12:47:43Z spm $
+% $Id: spm_preproc_write8.m 6008 2014-05-22 12:08:01Z john $
 
 % Prior adjustment factor.
 % This is a fudge factor to weaken the effects of the tissue priors.  The
@@ -388,7 +388,7 @@ if any(tc(:,3)) || any(tc(:,4)) || nargout>=1,
             if any(tc(:,3)),
                 [c,w]       = spm_diffeo('push',c,y,d1(1:3));
                 vx          = sqrt(sum(M1(1:3,1:3).^2));
-                spm_field('bound',1);
+                spm_field('boundary',1);
                 C(:,:,:,k1) = spm_field(w,c,[vx  1e-6 1e-4 0  3 2]);
                 clear w
             else

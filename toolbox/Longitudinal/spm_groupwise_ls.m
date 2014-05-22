@@ -28,7 +28,7 @@ function out = spm_groupwise_ls(Nii, output, prec, w_settings, b_settings, s_set
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_groupwise_ls.m 5855 2014-01-28 17:24:30Z john $
+% $Id: spm_groupwise_ls.m 6008 2014-05-22 12:08:01Z john $
 
 % Get handles to NIfTI data
 %-----------------------------------------------------------------------
@@ -66,8 +66,8 @@ B = se3_basis;
 
 % Set boundary conditions 
 %-----------------------------------------------------------------------
-spm_field('bound',1); % Bias correction - Neumann
-spm_diffeo('bound',0);     % Diffeomorphism  - circulant
+spm_field('boundary',1); % Bias correction - Neumann
+spm_diffeo('boundary',0);     % Diffeomorphism  - circulant
 
 % Computations for figuring out how many grid levels are likely to work
 %-----------------------------------------------------------------------
@@ -185,9 +185,9 @@ for level=nlevels:-1:1, % Loop over resolutions, starting with the lowest
 
             if all(isfinite(b_settings(i,:))),
                 vxi           = sqrt(sum(img(i).mat(1:3,1:3).^2));
-                spm_diffeo('bound',1);
+                spm_diffeo('boundary',1);
                 param(i).bias = spm_diffeo('resize',param(i).bias,size(img(i).f));
-                spm_diffeo('bound',0);
+                spm_diffeo('boundary',0);
                 bmom          = spm_field('vel2mom', param(i).bias, [vxi b_settings(i,:)*sc]);
                 param(i).eb   = sum(bmom(:).*param(i).bias(:));
                 clear bmom
