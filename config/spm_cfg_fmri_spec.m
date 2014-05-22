@@ -3,7 +3,7 @@ function fmri_spec = spm_cfg_fmri_spec
 %__________________________________________________________________________
 % Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 5928 2014-03-27 13:18:40Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 6010 2014-05-22 15:55:56Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -330,7 +330,7 @@ multi_reg.help    = {
                      ''
                      'If you have multiple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. '
                      ''
-                     'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
+                     'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. Unless the regressor names are given in a cell array called ''names'' in the MAT-file containing variable R, the regressors will be named R1, R2, R3, ..etc.'
                      ''
                      'You can also select a PPI.mat file and SPM will automatically create regressors from fields PPI.ppi, PPI.Y and PPI.P.'
 }';

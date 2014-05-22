@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 5928 2014-03-27 13:18:40Z guillaume $
+% $Id: spm_run_fmri_spec.m 6010 2014-05-22 15:55:56Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -260,22 +260,34 @@ for i = 1:numel(job.sess)
     %----------------------------------------------------------------------
     if ~isempty(sess.multi_reg{1})
         for q=1:numel(sess.multi_reg)
-            tmp = load(sess.multi_reg{q});
+            tmp   = load(sess.multi_reg{q});
+            names = {};
             if isstruct(tmp) % .mat
                 if isfield(tmp,'R')
                     R = tmp.R;
+                    if isfield(tmp,'names')
+                        names = tmp.names;
+                    end
                 elseif isfield(tmp,'PPI')
-                    R = [tmp.PPI.ppi tmp.PPI.Y tmp.PPI.P];
+                    R    = [tmp.PPI.ppi tmp.PPI.Y tmp.PPI.P];
+                    names = {...
+                        ['PPI Interaction: ' tmp.PPI.name],...
+                        ['Main Effect: ' tmp.PPI.xY.name ' BOLD'],...
+                        'Main Effect: "psych" condition'};
                 else
                     error(['Variable ''R'' not found in multiple ' ...
                         'regressor file ''%s''.'], sess.multi_reg{q});
                 end
             elseif isnumeric(tmp) % .txt
-                R = tmp;
+                R     = tmp;
             end
             
             if size(R,1) ~= SPM.nscan(i)
                 error('Length of regressor is not commensurate with data points.');
+            end
+            if ~isempty(names) && numel(names) ~= size(R,2)
+                warning('Mismatch between number of regressors and their names.');
+                names = {};
             end
             C  = [C, R];
             if numel(sess.multi_reg) == 1
@@ -283,13 +295,11 @@ for i = 1:numel(job.sess)
             else
                 nb_mult = sprintf('_%d',q);
             end
-            if isstruct(tmp) && isfield(tmp,'PPI')
-                Cname{end+1} = ['PPI Interaction: ' tmp.PPI.name];
-                Cname{end+1} = ['Main Effect: ' tmp.PPI.xY.name ' BOLD'];
-                Cname{end+1} = 'Main Effect: "psych" condition';
-            else
-                for j=1:size(R,2)
+            for j=1:size(R,2)
+                if isempty(names)
                     Cname{end+1} = sprintf('R%d%s',j,nb_mult);
+                else
+                    Cname{end+1} = sprintf('%s%s',names{j},nb_mult);
                 end
             end
         end
