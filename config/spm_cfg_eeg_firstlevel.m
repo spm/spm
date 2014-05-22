@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 6009 2014-05-22 12:11:55Z vladimir $
 
-rev = '$Rev: 6007 $';
+rev = '$Rev: 6009 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -377,7 +377,7 @@ order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'n';
-order.val     = 12;
+order.val     = {12};
 order.num     = [1 1];
 % ---------------------------------------------------------------------
 % fourier Fourier Set
