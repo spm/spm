@@ -18,9 +18,9 @@ function D = spm_eeg_downsample(S)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 5848 2014-01-21 17:54:05Z christophe $
+% $Id: spm_eeg_downsample.m 6007 2014-05-22 11:41:12Z vladimir $
 
-SVNrev = '$Rev: 5848 $';
+SVNrev = '$Rev: 6007 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -124,38 +124,3 @@ save(D);
 %-Cleanup
 %--------------------------------------------------------------------------
 spm('FigName','M/EEG downsampling: done'); spm('Pointer','Arrow');
-
-
-%==========================================================================
-function [Y,alpha] = spm_resample(X,alpha)
-% Basic resample function (when no Signal Proc. Toolbox)
-% FORMAT Y = spm_resample(X,alpha)
-% IN:
-%   - X: a nXm matrix of n time series
-%   - alpha: the ration of input versus output sampling frequencies. If
-%   alpha>1, rs(X,alpha) performs upsampling of the time series.
-% OUT:
-%   - Y: nX[alpha*m] matrix of resampled time series
-%   - alpha: true alpha used (due to rational rounding)
-% This function operates on rows of a signal matrix. This means it can be
-% used on a block of channels.
-
-% Jean Daunizeau
-
-N0     = size(X,2);
-N      = floor(N0*alpha);
-alpha  = N/N0;
-Y      = fftshift(fft(X,[],2),2);
-sy     = size(Y,2);
-middle = floor(sy./2)+1;
-if alpha>1 % upsample
-    N2 = floor((N-N0)./2);
-    if N0/2 == floor(N0/2)
-        Y(:,1) = []; % throw away non symmetric DFT coef
-    end
-    Y  = [zeros(size(Y,1),N2),Y,zeros(size(Y,1),N2)];
-else % downsample
-    N2 = floor(N./2);
-    Y  = Y(:,middle-N2:middle+N2);
-end
-Y      = alpha*ifft(ifftshift(Y,2),[],2);

@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 6004 2014-05-21 14:24:14Z guillaume $
+% $Id: spm_cfg_eeg.m 6007 2014-05-22 11:41:12Z vladimir $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -59,7 +59,7 @@ meegmodel        = cfg_choice;
 meegmodel.tag    = 'modelling';
 meegmodel.name   = 'Modelling';
 meegmodel.help   = {'M/EEG Modelling'};
-meegmodel.values = {spm_cfg_eeg_firstlevel}; 
+meegmodel.values = {spm_cfg_eeg_firstlevel, spm_cfg_eeg_regressors}; 
 %--------------------------------------------------------------------------
 % M/EEG other
 %--------------------------------------------------------------------------

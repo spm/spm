@@ -10,28 +10,30 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 5995 2014-05-20 11:27:48Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6007 2014-05-22 11:41:12Z vladimir $
 
 
-SVNrev = '$Rev: 5995 $';
+SVNrev = '$Rev: 6007 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','M/EEG first level');
 
-statdir = char(S.dir);
-cd(statdir);
+D        = spm_eeg_load(char(S.sess.D));
+
+statdir = D.path;
+
+try
+    delete(fullfile(statdir, 'SPM.mat'));
+end
 
 job{1}.spm.stats.fmri_design = [];
-job{1}.spm.stats.fmri_design.dir            = S.dir;
+job{1}.spm.stats.fmri_design.dir            = {statdir};
 job{1}.spm.stats.fmri_design.timing.units   = 'secs';
 job{1}.spm.stats.fmri_design.timing.fmri_t0 = 1;
 job{1}.spm.stats.fmri_design.volt           = S.volt;
 job{1}.spm.stats.fmri_design.cvi            = 'none';
-
-
-D        = spm_eeg_load(char(S.sess.D));
 
 isTF     = strncmpi(D.transformtype,'TF',2);
 

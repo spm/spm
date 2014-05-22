@@ -3,19 +3,10 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 5995 2014-05-20 11:27:48Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 6007 2014-05-22 11:41:12Z vladimir $
 
-rev = '$Rev: 5995 $';
-% ---------------------------------------------------------------------
-% dir Directory
-% ---------------------------------------------------------------------
-dir         = cfg_files;
-dir.tag     = 'dir';
-dir.name    = 'Directory';
-dir.help    = {'Select a directory where the SPM.mat file containing the specified design matrix will be written.'};
-dir.filter = 'dir';
-dir.ufilter = '.*';
-dir.num     = [1 1];
+rev = '$Rev: 6007 $';
+
 % ---------------------------------------------------------------------
 % units Units for design
 % ---------------------------------------------------------------------
@@ -386,6 +377,7 @@ order.tag     = 'order';
 order.name    = 'Order';
 order.help    = {'Number of basis functions'};
 order.strtype = 'n';
+order.val     = 12;
 order.num     = [1 1];
 % ---------------------------------------------------------------------
 % fourier Fourier Set
@@ -475,7 +467,7 @@ prefix.val     = {'C'};
 convmodel         = cfg_exbranch;
 convmodel.tag     = 'convmodel';
 convmodel.name    = 'Convolution modelling';
-convmodel.val     = {dir spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
+convmodel.val     = {spm_cfg_eeg_channel_selector timing sess bases volt, prefix};
 convmodel.prog = @eeg_run;
 convmodel.vout = @vout_eeg;
 convmodel.modality = {'EEG'};
