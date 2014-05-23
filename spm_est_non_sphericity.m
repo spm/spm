@@ -30,10 +30,10 @@ function [xVi, mask] = spm_est_non_sphericity(SPM)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_est_non_sphericity.m 4940 2012-09-20 17:27:54Z guillaume $
+% $Id: spm_est_non_sphericity.m 6015 2014-05-23 15:46:19Z guillaume $
 
 
-SVNid = '$Rev: 4940 $';
+SVNid = '$Rev: 6015 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -125,7 +125,7 @@ chunksize = floor(spm_get_defaults('stats.maxmem') / 8 / nScan);
 nbchunks  = ceil(prod(DIM) / chunksize);
 chunks    = min(cumsum([1 repmat(chunksize,1,nbchunks)]),prod(DIM)+1);
 
-spm_progress_bar('Init',nbchunks,'Hyperparameters estimation','Chunks');
+spm_progress_bar('Init',nbchunks,'Hyperparameter estimation','Chunks');
 
 for i=1:nbchunks
     chunk = chunks(i):chunks(i+1)-1;

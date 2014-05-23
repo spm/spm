@@ -268,10 +268,10 @@ function SPM = spm_spm(SPM)
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Guillaume Flandin
-% $Id: spm_spm.m 5916 2014-03-13 13:15:02Z guillaume $
+% $Id: spm_spm.m 6015 2014-05-23 15:46:19Z guillaume $
 
 
-SVNid = '$Rev: 5916 $';
+SVNid = '$Rev: 6015 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -539,7 +539,7 @@ chunksize = floor(spm_get_defaults('stats.maxmem') / 8 / nScan);
 nbchunks  = ceil(prod(DIM) / chunksize);
 chunks    = min(cumsum([1 repmat(chunksize,1,nbchunks)]),prod(DIM)+1);
 
-spm_progress_bar('Init',nbchunks,'Parameters estimation','Chunks');
+spm_progress_bar('Init',nbchunks,'Parameter estimation','Chunks');
 
 for i=1:nbchunks
     chunk = chunks(i):chunks(i+1)-1;

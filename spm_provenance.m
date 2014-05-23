@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 5998 2014-05-20 16:22:59Z guillaume $
+% $Id: spm_provenance.m 6015 2014-05-23 15:46:19Z guillaume $
 
 
 %-Properties
@@ -527,6 +527,11 @@ methods (Access='private')
                         if j~=numel(attr)-1, str = [str sprintf(' ;\n')]; end
                     end
                 end
+            elseif ismember(obj.stack{i}{1},{'bundle'})
+                str = [str sprintf('%s\n',obj.stack{i}{2})];
+                str = [str sprintf([o 'a prov:Bundle .\n'])];
+                str = [str serialize_ttl(obj.stack{i}{3},2)];
+                % further work required for ttl & bundle
             else
                 str = [str sprintf('%s prov:%s %s',obj.stack{i}{[3 1 4]})];
             end
@@ -534,7 +539,7 @@ methods (Access='private')
         end
     end
     
-    function str = serialize_dot(obj)
+    function str = serialize_dot(obj,annn)
         s = sortprov(obj);
         str = '';
         expr = {'entity','activity','agent'};
@@ -553,7 +558,7 @@ methods (Access='private')
         dot_style.annotation     = {'shape','note','color','gray','fontcolor','black','fontsize','10'};
         strannlab = '<<TABLE cellpadding="0" border="0">%s</TABLE>>';
         strtr = '<TR><TD align="left">%s</TD><TD align="left">%s</TD></TR>';
-        annn = 0;
+        if nargin < 2, annn = 0; end
         for i=1:numel(s)
             if ~isempty(s(i).idx)
                 if ismember(s(i).expr,expr)
@@ -605,6 +610,7 @@ methods (Access='private')
                     end
                 elseif ~ismember(s(i).expr,{'bundle','collection','emptyCollection','alternateOf','specializationOf'})
                     for j=s(i).idx
+                        if isequal(obj.stack{j}{4},'-'), continue; end
                         A = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{3}))];
                         B = ['n' get_valid_identifier(get_url(obj,obj.stack{j}{4}))];
                         str = [str sprintf('%s -> %s ',A,B)];
@@ -614,6 +620,14 @@ methods (Access='private')
                             str = [str dotlist([dot_style.default,'label',s(i).expr])];
                         end
                     end
+                elseif ismember(s(i).expr,{'bundle'})
+                    label = obj.stack{s(i).idx}{2};
+                    url = get_url(obj,obj.stack{s(i).idx}{2});
+                    str = [str sprintf('subgraph clustern%s {\n',get_valid_identifier(url))];
+                    str = [str sprintf('  label="%s";\n',label)];
+                    str = [str sprintf('  URL="%s";\n',url)];
+                    str = [str serialize_dot(obj.stack{s(i).idx}{3},annn)];
+                    str = [str sprintf('}\n')];
                 else
                     warning('"%s" not handled yet.',s(i).expr);
                 end
