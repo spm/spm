@@ -15,7 +15,7 @@ function res = spm_eeg_regressors_movement_ctf(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6007 $';
+SVNrev = '$Rev: 6013 $';
 
 if nargin == 0
     
@@ -91,7 +91,7 @@ else
         error('Trial numbers should be equal between input and movement dataset.');
     end
     
-    data = squeeze(mean(Dmov(hlc_chan_ind, :, :), 3));
+    data = squeeze(mean(Dmov(hlc_chan_ind, :, :), 2));
     
 end
 
