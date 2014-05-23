@@ -15,7 +15,7 @@ function res = spm_eeg_regressors_tfpower(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6007 $';
+SVNrev = '$Rev: 6016 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -108,7 +108,7 @@ if isequal(D.type, 'continuous')
     data = spm_squeeze(mean(mean(Dtf(chanind, freqind, :), 2), 1), 2:4);
     
     if D.fsample ~= Dtf.fsample
-        [data, alpha] = spm_resample(data, D.fsample/Dtf.fsample);
+        [data, alpha] = spm_timeseries_resample(data, D.fsample/Dtf.fsample);
     else
         alpha = 1;
     end

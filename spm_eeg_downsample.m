@@ -13,14 +13,14 @@ function D = spm_eeg_downsample(S)
 % 
 % This function uses the Signal Processing toolbox from The MathWorks:
 %               http://www.mathworks.com/products/signal/
-% (function resample.m) if present and an homebrew version otherwise
+% (function resample.m) if present and spm_timeseries_resample.m otherwise.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_downsample.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_eeg_downsample.m 6016 2014-05-23 17:34:06Z guillaume $
 
-SVNrev = '$Rev: 6007 $';
+SVNrev = '$Rev: 6016 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -51,7 +51,7 @@ if flag_tbx % Signal Proc. Toolbox
     nsamples_new = ceil(nsamples(D)*P/Q);
 else
     d             = double(squeeze(D(1, :, 1)));
-    [d2,alpha]    = spm_resample(d,P/Q);
+    [d2,alpha]    = spm_timeseries_resample(d,P/Q);
     fsample_new   = D.fsample*alpha;
     S.fsample_new = fsample_new;
     disp(['Resampling frequency is ',num2str(fsample_new), 'Hz'])
@@ -90,7 +90,7 @@ if strcmp(D.type, 'continuous')
         if flag_tbx % Signal Proc. Toolbox
             Dnew(blkchan,:) = resample(Dtemp', P, Q)';
         else
-            Dnew(blkchan,:) = spm_resample(Dtemp,P/Q);
+            Dnew(blkchan,:) = spm_timeseries_resample(Dtemp,P/Q);
         end
         spm_progress_bar('Set', blkchan(end));
     end    
@@ -104,7 +104,7 @@ else
         if flag_tbx % signal proc. toolbox
             Dnew(:, :, i) = resample(spm_squeeze(D(:, :, i), 3)', P, Q)';
         else
-            Dnew(:, :, i) = spm_resample(spm_squeeze(D(:, :, i), 3),P/Q);
+            Dnew(:, :, i) = spm_timeseries_resample(spm_squeeze(D(:, :, i), 3),P/Q);
         end       
         
         if ismember(i, Ibar), spm_progress_bar('Set', i); end

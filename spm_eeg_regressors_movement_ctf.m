@@ -15,7 +15,7 @@ function res = spm_eeg_regressors_movement_ctf(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6013 $';
+SVNrev = '$Rev: 6016 $';
 
 if nargin == 0
     
@@ -77,7 +77,7 @@ if isequal(D.type, 'continuous')
     data = Dmov(hlc_chan_ind, :);
     
     if D.fsample ~= Dmov.fsample
-        [data, alpha] = spm_resample(data, D.fsample/Dmov.fsample);
+        [data, alpha] = spm_timeseries_resample(data, D.fsample/Dmov.fsample);
     else
         alpha = 1;
     end
