@@ -19,7 +19,7 @@ function [y,DEM] = spm_SEM_gen_full(P,MM,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_SEM_gen_full.m 5791 2013-12-08 14:42:34Z karl $
+% $Id: spm_SEM_gen_full.m 6014 2014-05-23 15:00:35Z guillaume $
  
 % trial-specific initial states and parameters
 %==========================================================================
@@ -29,7 +29,7 @@ if nargin > 2
     %----------------------------------------------------------------------
     M       = MM;
     x       = M.x;
-    [nu nc] = size(U);
+    [nu,nc] = size(U);
     y       = cell(nu);
     DEM     = cell(nu);
     for i = 1:nc
@@ -49,7 +49,7 @@ if nargin > 2
             Q = Q + U(j,i)*spm_vec(P.B{j});
         end
         Q      = spm_unvec(Q,P.A);
-        [Y D]  = spm_SEM_gen(Q,M);
+        [Y,D]  = spm_SEM_gen(Q,M);
         y{i}   = Y;
         DEM{i} = D;
         

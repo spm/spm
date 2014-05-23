@@ -24,7 +24,7 @@ function DCM = spm_dcm_spem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_spem.m 5791 2013-12-08 14:42:34Z karl $
+% $Id: spm_dcm_spem.m 6014 2014-05-23 15:00:35Z guillaume $
 
 % name
 %--------------------------------------------------------------------------
@@ -65,7 +65,7 @@ M.Nmax  = 64;
 
 % posterior predictions
 %--------------------------------------------------------------------------
-[Y DEM] = spm_SEM_gen(Ep,M,DCM.xU);
+[Y,DEM] = spm_SEM_gen(Ep,M,DCM.xU);
 
 % report solution for the first condition
 %--------------------------------------------------------------------------

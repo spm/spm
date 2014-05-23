@@ -1,26 +1,26 @@
 function xY = spm_dcm_spem_data(xY)
-% prepares (decimates and normalises) data DCM for SPEM
+% Prepare (decimate and normalise) data DCM for SPEM
 % FORMAT xY = spm_dcm_spem_data(xY)
 %
-%   xY.Y{i}  – original data
-%   xY.C{i}  – original target
+%   xY.Y{i}  - original data
+%   xY.C{i}  - original target
 %   xY.DT    - original timing
 %
 % creates:
 %
-%   xY.y{i} – normalised (decimated) lag (data - target)
-%   xY.u{i} – normalised (decimated) target
+%   xY.y{i} - normalised (decimated) lag (data - target)
+%   xY.u{i} - normalised (decimated) target
 %   xY.R(i) - decimation
 %   xY.x(i) - intial states
 %   xY.dt   - mean normalised (decimated) timing
 %
 %  This auxiliary routine  decimates and normalises eye movement data to a
-%  single period of a (negative) cosine wave – of unit amplitude.
+%  single period of a (negative) cosine wave - of unit amplitude.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_spem_data.m 5788 2013-12-06 20:08:57Z karl $
+% $Id: spm_dcm_spem_data.m 6014 2014-05-23 15:00:35Z guillaume $
  
 % Get frequency (in bins) and target trajectory
 %==========================================================================
@@ -56,5 +56,3 @@ end
 % average time bin
 %--------------------------------------------------------------------------
 xY.dt = mean(xY.dt);
- 
-

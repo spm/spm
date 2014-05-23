@@ -1,5 +1,5 @@
 function DCM = spm_dcm_spem_results(DCM)
-% Displays (DCM results of) of smooth pursuit eye movements
+% Display (DCM results of) of smooth pursuit eye movements
 % FORMAT DCM = spm_dcm_spem_results(DCM)
 %
 % DCM
@@ -12,14 +12,14 @@ function DCM = spm_dcm_spem_results(DCM)
 % and (if inverted)
 %
 %       Y{i}   - predicted responses
-%       DEM{i} – ADEM inversion structure
-%       Ep     – posterior expectation
-%       Cp     – posterior covariance
+%       DEM{i} - ADEM inversion structure
+%       Ep     - posterior expectation
+%       Cp     - posterior covariance
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_spem_results.m 5789 2013-12-08 14:36:51Z karl $
+% $Id: spm_dcm_spem_results.m 6014 2014-05-23 15:00:35Z guillaume $
  
 % model specification
 %--------------------------------------------------------------------------
