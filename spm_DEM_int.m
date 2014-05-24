@@ -17,7 +17,7 @@ function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_int.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_DEM_int.m 6017 2014-05-24 14:36:02Z karl $
 
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -76,24 +76,26 @@ dfdw  = kron(eye(n,n),eye(nx,nx));
 
 % initialize conditional estimators of states to be saved (V and X)
 %--------------------------------------------------------------------------
+mnx   = 0;
+mnv   = 0;
 for i = 1:nl
+    
     V{i} = sparse(M(i).l,nt);
     X{i} = sparse(M(i).n,nt);
     Z{i} = sparse(M(i).l,nt);
     W{i} = sparse(M(i).n,nt);
+    
+    % check for state-dependent precision
+    %----------------------------------------------------------------------
+    mnx = mnx | length(M(i).pg);
+    mnv = mnv | length(M(i).ph);
+    
 end
 
-% method for state-dependent precision
-%------------------------------------------------------------------
-if isempty(spm_vec(M.ph)) && isempty(spm_vec(M.pg))
-    state_dependent = 0;
-    Sz = 1;
-    Sw = 1;
-else
-    state_dependent = 1;
-end
-
-
+% defaults for state-dependent precision
+%--------------------------------------------------------------------------
+Sz = 1;
+Sw = 1;
 
 % iterate over sequence (t) and within for static models
 %==========================================================================
@@ -110,12 +112,15 @@ for t  = 1:nt
 
         % evaluate state-dependent precision
         %------------------------------------------------------------------
-        if state_dependent
+        if mnx || mnv
+            
             pu.x = {spm_vec(xi(1:end - 1))};
             pu.v = {spm_vec(vi(1 + 1:end))};
             p    = spm_LAP_eval(M,pu,ph);
-            Sz   = sparse(diag(exp(-p.h/2)));
-            Sw   = sparse(diag(exp(-p.g/2)));
+            
+            if mnv, Sz = sparse(diag(exp(-p.h/2))); end
+            if mnx, Sw = sparse(diag(exp(-p.g/2))); end
+            
         end
 
         % derivatives of innovations (and exogenous input)
@@ -152,6 +157,10 @@ for t  = 1:nt
                 if M(i).n, W{i}(:,t) = spm_vec(wi{i}); end
             end
         end
+        
+        % break for static models
+        %------------------------------------------------------------------
+        if nt == 1, break, end
 
 
         % Jacobian for update

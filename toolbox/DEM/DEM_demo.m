@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 20-Feb-2014 17:29:38
+% Last Modified by GUIDE v2.5 24-May-2014 15:01:26
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -469,3 +469,7 @@ function pushbutton149_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Dynamic%20modeling%20of%20neuronal%20responses%20in%20fMRI%20using%20cubature%20Kalman%20filtering.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_doublewell_LAP')
 
+% --- Executes on button press in pushbutton150.
+function pushbutton150_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Attention%20uncertainty%20and%20free-energy.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_texture')

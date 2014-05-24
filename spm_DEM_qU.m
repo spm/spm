@@ -13,7 +13,7 @@ function spm_DEM_qU(qU,pU)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_qU.m 5736 2013-11-10 13:17:10Z karl $
+% $Id: spm_DEM_qU.m 6017 2014-05-24 14:36:02Z karl $
  
 % unpack
 %--------------------------------------------------------------------------
@@ -96,6 +96,18 @@ for i = 1:g
         axis square
         try, set(gca,'XLim',[t(1) t(end)]), end
         box off
+        
+        % true causes
+        %------------------------------------------------------------------
+        if nargin > 1
+            subplot(g,2,2*i)
+            plot(t,full(real(pV{i})))
+            title('true causes','FontSize',16);
+            axis square
+            try, set(gca,'XLim',[t(1) t(end)]), end
+            box off
+        end
+        
  
     else
  

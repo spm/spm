@@ -16,7 +16,7 @@ function [p,dp] = spm_LAP_eval(M,qu,qh)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_LAP_eval.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_LAP_eval.m 6017 2014-05-24 14:36:02Z karl $
 
 
 % Get states {qu.v{1},qu.x{1}} in hierarchical form (v{i},x{i})
@@ -35,12 +35,12 @@ for i = 1:N
     % precision of causal and hidden states
     %----------------------------------------------------------------------
     try
-        h{i,1} = feval(M(i).ph,x{i},v{i},qh.h{i},M(i));
+        h{i,1} = spm_vec(feval(M(i).ph,x{i},v{i},qh.h{i},M(i)));
     catch
         h{i,1} = sparse(M(i).l,1);
     end
     try
-        g{i,1} = feval(M(i).pg,x{i},v{i},qh.g{i},M(i));
+        g{i,1} = spm_vec(feval(M(i).pg,x{i},v{i},qh.g{i},M(i)));
     catch
         g{i,1} = sparse(M(i).n,1);
     end
@@ -60,7 +60,7 @@ if nargout < 2, return, end
 % assume predicions are a function of, and only of hyperparameters
 %--------------------------------------------------------------------------
 try
-    method = M(1).E.method;
+    method   = M(1).E.method;
 catch
     method.h = 1;
     method.g = 1;

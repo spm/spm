@@ -14,6 +14,7 @@ function [DEM] = spm_LAP(DEM)
 %
 %   M(i).ph = pi(v) = ph(x,v,h,M) {inline function, string or m-file}
 %   M(i).pg = pi(x) = pg(x,v,g,M) {inline function, string or m-file}
+%                                  (assumed to be linear in v and x)
 %
 %   pi(v,x) = vectors of log-precisions; (h,g) = precision parameters
 %
@@ -71,8 +72,8 @@ function [DEM] = spm_LAP(DEM)
 %
 % M(1).E.method.h = 0,1  switch for precision parameters (hidden causes)
 % M(1).E.method.g = 0,1  switch for precision parameters (hidden states)
-% M(1).E.method.x = 0,1  switch for precision (hidden causes)
-% M(1).E.method.v = 0,1  switch for precision (hidden states)
+% M(1).E.method.v = 0,1  switch for precision (hidden causes)
+% M(1).E.method.x = 0,1  switch for precision (hidden states)
 %__________________________________________________________________________
 %
 % spm_LAP implements a variational scheme under the Laplace
@@ -88,7 +89,7 @@ function [DEM] = spm_LAP(DEM)
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAP.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_LAP.m 6017 2014-05-24 14:36:02Z karl $
  
  
 % find or create a DEM figure
@@ -191,6 +192,8 @@ ne  = nv*n + nx*n + ny*n;                    % number of generalised errors
 s     = M(1).E.s;
 Rh    = spm_DEM_R(n,s,form);
 Rg    = spm_DEM_R(n,s,form);
+
+if ~nx, Rg = sparse(0,0); end
  
 W     = sparse(nx*n,nx*n);
 V     = sparse((ny + nv)*n,(ny + nv)*n);
@@ -488,8 +491,8 @@ for iN = 1:nN
             %--------------------------------------------------------------                      
             dLdaa = spm_cat({dLduu dLdup  ;
                              dLdpu dLdpp});
-            dLdbb = spm_cat({dLdpp  dLdph ;
-                             dLdhp  dLdhh});
+            dLdbb = spm_cat({dLdpp dLdph  ;
+                             dLdhp dLdhh});
             
             Cup   = spm_inv(dLdaa);
             Chh   = spm_inv(dLdhh);
@@ -548,7 +551,7 @@ for iN = 1:nN
                         
             % save conditional moments (and prediction error) at Q{t}
             %==============================================================
-            if iD == 1
+            if iD == 1 || ns == 1
                 
                 % save means
                 %----------------------------------------------------------
@@ -576,7 +579,7 @@ for iN = 1:nN
                                 
                 % Free-action (states and parameters)
                 %----------------------------------------------------------
-                AC(is)    = sum(Fc(is,:))       ...
+                AC(is)    = sum(Fc(is,:))    ...
                           - Ep'*Pp*Ep/2      ...
                           - Eh'*Ph*Eh/2      ...
                           + spm_logdet(Pp)/2 ...
