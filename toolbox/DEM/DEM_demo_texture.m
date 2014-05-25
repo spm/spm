@@ -33,17 +33,12 @@ function LAP = DEM_demo_texture
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_texture.m 6017 2014-05-24 14:36:02Z karl $
+% $Id: DEM_demo_texture.m 6018 2014-05-25 09:24:14Z karl $
  
 
 % Create a generative model:
 %==========================================================================
 rng('default')
-
-% tell the model precision depends on hidden causes
-%--------------------------------------------------------------------------
-G(1).E.method.v = 1;
-G(1).E.linear   = 1;
                                        
 % level 1; textured stimulus with noise (log precision of four)
 %--------------------------------------------------------------------------
@@ -54,7 +49,7 @@ G(1).g  = inline('v','x','v','P');
 
 % level 2; underlying causes (three Gaussian patches)
 %--------------------------------------------------------------------------
-ph      = '6 - exp(-((1:128)''*ones(1,3) - ones(128,1)*[48 64 80]).^2/32)*v(1:3)';
+ph      = '6 - exp(-((1:128)''*ones(1,3) - ones(128,1)*[48 64 80]).^2/32)*v';
 G(2).v  = zeros(128,1);                   % textured stimulus
 G(2).V  = [];
 G(2).ph = inline(ph,'x','v','h','M');

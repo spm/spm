@@ -67,7 +67,7 @@ function [DEM] = spm_LAPF(DEM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_LAPF.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_LAPF.m 6018 2014-05-25 09:24:14Z karl $
 
 
 % find or create a DEM figure
@@ -112,7 +112,6 @@ try method.g; catch, method.g = 0; end
 try method.x; catch, method.x = 0; end
 try method.v; catch, method.v = 0; end
 
-M(1).E.method = method;
 
 % assume precisions are a function of, and only of, hyperparameters
 %--------------------------------------------------------------------------
@@ -126,16 +125,18 @@ end
 %--------------------------------------------------------------------------
 for i  = 1:length(M)
     try
-        feval(M(i).ph,M(i).x,M(i).v,M(i).hE,M(i));
+        feval(M(i).ph,M(i).x,M(i + 1).v,M(i).hE,M(i)); method.v = 1;
     catch
         M(i).ph = inline('spm_LAP_ph(x,v,h,M)','x','v','h','M');
     end
     try
-        feval(M(i).pg,M(i).x,M(i).v,M(i).gE,M(i));
+        feval(M(i).pg,M(i).x,M(i + 1).v,M(i).gE,M(i)); method.x = 1;
     catch
         M(i).pg = inline('spm_LAP_pg(x,v,h,M)','x','v','h','M');
     end
 end
+
+M(1).E.method = method;
 
  
 % order parameters (d = n = 1 for static models) and checks
