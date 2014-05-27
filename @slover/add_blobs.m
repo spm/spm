@@ -23,6 +23,6 @@ if isempty(imgno)
   imgno = length(obj.img);
 end
 if ~isempty(xyz)
-  obj.img(imgno).vol = blobs2vol(xyz,vals,mat);
+  obj.img(imgno).vol = pr_blobs2vol(xyz,vals,mat);
 end
 
