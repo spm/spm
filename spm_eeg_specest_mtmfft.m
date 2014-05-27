@@ -1,6 +1,6 @@
-function res = spm_eeg_specest_mtmconvol(S, data, time)
+function res = spm_eeg_specest_mtmfft(S, data, time)
 % Plugin for spm_eeg_tf implementing spectral estimation using Fieldtrip's freqanalysis_mtmconvol
-% FORMAT res = spm_eeg_specest_ft_mtmconvol(S, data, time)
+% FORMAT res = spm_eeg_specest_mtmfft(S, data, time)
 %
 % S                     - input structure
 % fields of S:
@@ -8,10 +8,7 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %                    other possible inputs of 'window'
 %    S.freqres     - frequency resolutions (plus-minus for each frequency, can
 %                    be a vector with a value per frequency)
-%    S.frequencies - vector of frequencies
-%    S.timeres     - time resolution in ms (length of the sliding time-window)
-%    S.timestep    - time step (in ms) to slide the time-window by.
-%
+%    S.frequencies - vector of frequencies%
 % Output:
 %  res -
 %   If no input is provided the plugin returns a cfg branch for itself
@@ -23,9 +20,9 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %      res.time    - time axis
 %      res.freq    - frequency axis
 %______________________________________________________________________________________
-% Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2011-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmfft.m 6020 2014-05-27 16:38:54Z vladimir $
+% $Id: spm_eeg_specest_mtmfft.m 6021 2014-05-27 16:41:37Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
