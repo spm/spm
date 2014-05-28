@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6006 2014-05-21 18:09:05Z guillaume $
+% $Id: spm_api_erp.m 6022 2014-05-28 14:59:28Z guillaume $
  
 
 %-Launch GUI
@@ -99,6 +99,8 @@ switch model
                  set(handles.model,'Value',7);
     case{'IND'}, set(handles.ERP,  'Value',4);
     case{'PHA'}, set(handles.ERP,  'Value',5);
+    case{'NFM'}, set(handles.ERP,  'Value',6);
+                 set(handles.model,'Value',10);
     otherwise
 end
 handles = ERP_Callback(hObject, eventdata, handles);
@@ -134,6 +136,7 @@ switch model
     case{'CMM'}, set(handles.model,'Value',7);
     case{'NMDA'}, set(handles.model,'Value',8);
     case{'CMM_NMDA'}, set(handles.model,'Value',9);
+    case{'NFM'}, set(handles.model,'Value',10);
 
     otherwise
 end
@@ -156,6 +159,11 @@ if ismember(DCM.options.analysis, {'IND', 'PHA'})
         case{'IMG'}, set(handles.Spatial,'Value',1);
         case{'ECD'}, set(handles.Spatial,'Value',1);
         case{'LFP'}, set(handles.Spatial,'Value',2);
+        otherwise
+    end
+elseif ismember(DCM.options.analysis, {'NFM'})
+    switch model
+        case{'LFP'}, set(handles.Spatial,'Value',1);
         otherwise
     end
 else
@@ -1123,6 +1131,11 @@ switch handles.DCM.options.analysis
     case{'PHA'}
         handles.DCM = spm_dcm_phase(handles.DCM);
 
+    % cross-spectral density model (steady-state responses)
+    %----------------------------------------------------------------------
+    case{'NFM'}
+        handles.DCM = spm_dcm_nfm(handles.DCM);
+
     otherwise
         warndlg('unknown analysis type')
         return
@@ -1173,6 +1186,11 @@ switch handles.DCM.options.analysis
     case{'PHA'}
         spm_dcm_phase_results(handles.DCM, Action); 
  
+    % Cross-spectral density model (complex)
+    %----------------------------------------------------------------------
+    case{'NFM'}
+        spm_dcm_csd_results(handles.DCM, Action);
+        
     otherwise
         warndlg('unknown analysis type')
         return
@@ -1381,6 +1399,37 @@ switch handles.DCM.options.analysis
         set(handles.Imaging, 'Enable','off' )
         set(handles.onset,   'Enable','off');
         set(handles.dur,     'Enable','off');
+           
+    % Cross-spectral density model (complex)
+    %----------------------------------------------------------------------
+    case {'NFM'}
+        Action = {
+              'spectral data',...
+              'Coupling (A)',...
+              'Coupling (B)',...
+              'Coupling (C)',...
+              'trial-specific effects',...
+              'Input',...
+              'Transfer functions',...
+              'Cross-spectra (sources)',...
+              'Cross-spectra (channels)',...
+              'Coherence (sources)',...
+              'Coherence (channels)',...
+              'Covariance (sources)',...
+              'Covariance (channels)',...
+              'Dipoles'};
+        try
+            set(handles.Nmodes, 'Value', handles.DCM.options.Nmodes);
+        catch
+            set(handles.Nmodes, 'Value', 4);
+        end
+        
+        set(handles.text20, 'String', 'modes');
+        set(handles.model,  'Value',10,'Enable','off');
+        set(handles.Spatial,'Value',1,'String',{'LFP'}); 
+        set(handles.Wavelet,'Enable','on');
+        set(handles.onset,  'Enable','off');
+        set(handles.dur,    'Enable','off');
         
     otherwise
         warndlg('unknown analysis type')
@@ -1405,7 +1454,7 @@ handles.DCM = spm_dcm_erp_dipfit(handles.DCM, 1);
 
 switch handles.DCM.options.analysis
     
-    case{'CSD'}
+    case{'CSD','NFM'}
         
         % cross-spectral density (if DCM.M.U (eigen-space) exists
         %------------------------------------------------------------------
