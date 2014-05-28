@@ -118,7 +118,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 5903 2014-03-03 14:56:10Z guillaume $
+% $Id: spm_DesRep.m 6023 2014-05-28 15:31:20Z guillaume $
 
 
 %==========================================================================
@@ -251,17 +251,17 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 5903 $'; 
+SVNid = '$Rev: 6023 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
-if nargin==0
+if ~nargin
     SPMid = spm('FnBanner',mfilename,SVNid);
-    hC = spm_DesRep('DesRepUI'); 
-    SPM = get(hC,'UserData');
-    if ~isempty(SPM) && isfield(SPM.xY,'VY')
-        spm_DesRep('DesMtx',SPM.xX,...
-            reshape(cellstr(SPM.xY.P),size(SPM.xY.VY)),SPM.xsDes);
+    hC    = spm_DesRep('DesRepUI'); 
+    SPM   = get(hC,'UserData');
+    if ~isempty(SPM)
+        cb_menu([],[],'DesMtx',SPM);
+        drawnow;
     end
     return;
 end
@@ -339,26 +339,17 @@ hC      = uimenu(Finter,'Label','Design',...
         'UserData',SPM,...
         'HandleVisibility','on');
 
-%-Generic CallBack code
-%--------------------------------------------------------------------------
-cb      = 'tmp = get(get(gcbo,''UserData''),''UserData''); ';
-
 %-DesMtx
 %--------------------------------------------------------------------------
 hDesMtx = uimenu(hC,'Label','Design Matrix','Accelerator','D',...
-        'CallBack',[cb,...
-        'spm_DesRep(''DesMtx'',tmp.xX,',...
-            'reshape(cellstr(tmp.xY.P),size(tmp.xY.VY)),tmp.xsDes)'],...
+        'CallBack',{@cb_menu,'DesMtx',SPM},...
         'UserData',hC,...
         'HandleVisibility','off');
-
-if strcmp(SPM.cfg,'SPMcfg'), set(hDesMtx,'Enable','off'), end
 
 %-Design matrix orthogonality
 %--------------------------------------------------------------------------
 h = uimenu(hC,'Label','Design orthogonality','Accelerator','O',...
-        'CallBack',[cb,...
-        'spm_DesRep(''DesOrth'',tmp.xX)'],...
+        'CallBack',{@cb_menu,'DesOrth',SPM},...
         'UserData',hC,...
         'HandleVisibility','off');
 
@@ -369,15 +360,11 @@ hExplore = uimenu(hC,'Label','Explore','HandleVisibility','off');
 switch SPM.modality
 case 'PET'
     hFnF = uimenu(hExplore,'Label','Files and factors','Accelerator','F',...
-        'CallBack',[cb,...
-        'spm_DesRep(''Files&Factors'',',...
-            'reshape(cellstr(tmp.xY.P),size(tmp.xY.VY)),',...
-            'tmp.xX.I,tmp.xC,tmp.xX.sF,tmp.xsDes)'],...
+        'CallBack',{@cb_menu,'Files&Factors',SPM},...
         'UserData',hC,...
         'HandleVisibility','off');
     hCovs = uimenu(hExplore,'Label','Covariates','Accelerator','C',...
-        'CallBack',[cb,...
-        'spm_DesRep(''Covs'',tmp.xX,tmp.xC)'],...
+        'CallBack',{@cb_menu,'Covs',SPM},...
         'UserData',hC,...
         'HandleVisibility','off');
     if isempty(SPM.xC), set(hCovs,'Enable','off'), end
@@ -387,8 +374,7 @@ case 'fMRI'
             'HandleVisibility','off');
         for k = 1:length(SPM.Sess(j).Fc)
             uimenu(h,'Label',SPM.Sess(j).Fc(k).name,...
-                 'CallBack',[cb,...
-            sprintf('spm_DesRep(''fMRIDesMtx'',tmp,%d,%d);',j,k)],...
+                 'CallBack',{@cb_menu,'fMRIDesMtx',SPM,j,k},...
                  'UserData',hC,...
                  'HandleVisibility','off')
         end
@@ -396,7 +382,7 @@ case 'fMRI'
 end
 
 hxvi = uimenu(hExplore, 'Label','Covariance structure', ...
-        'Callback',[cb, 'spm_DesRep(''xVi'', tmp.xVi);'], ...
+        'Callback',{@cb_menu,'xVi',SPM},...
         'UserData',hC, 'HandleVisibility','off');
 if ~isfield(SPM,'xVi') || (isfield(SPM.xVi,'iid') && SPM.xVi.iid) || ...
     ~(isfield(SPM.xVi,'V') || isfield(SPM.xVi,'Vi'))
@@ -1553,4 +1539,43 @@ error(['Unknown action string: ',varargin{1}])
 
 
 %==========================================================================
+end
+
+
+%==========================================================================
+% function cb_menu(obj,evt,action,SPM,varargin)
+%==========================================================================
+function cb_menu(obj,evt,action,SPM,varargin)
+
+switch action
+    case {'DesMtx','Files&Factors'}
+        try
+            filenames = reshape(cellstr(SPM.xY.P),size(SPM.xY.VY));
+        catch
+            filenames = {};
+        end
+end
+
+switch action
+    case 'DesMtx'
+        spm_DesRep('DesMtx',SPM.xX,...
+            filenames,...
+            SPM.xsDes);
+            
+    case 'DesOrth'
+        spm_DesRep('DesOrth',SPM.xX);
+
+    case 'Files&Factors'
+        spm_DesRep('Files&Factors',...
+            filenames,...
+            SPM.xX.I,SPM.xC,SPM.xX.sF,SPM.xsDes);
+
+    case 'Covs'
+        spm_DesRep('Covs',SPM.xX,SPM.xC);
+
+    case 'fMRIDesMtx'
+        spm_DesRep('fMRIDesMtx',SPM,varargin{1},varargin{2});
+
+    case 'xVi'
+        spm_DesRep('xVi', SPM.xVi);
 end

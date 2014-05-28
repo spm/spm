@@ -10,7 +10,7 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6010 2014-05-22 15:55:56Z guillaume $
+% $Id: spm_run_fmri_spec.m 6023 2014-05-28 15:31:20Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -111,6 +111,10 @@ for i = 1:numel(job.sess)
         SPM.nscan(i) = sess.nscan;
     else
         SPM.nscan(i) = numel(sess.scans);
+        if SPM.nscan(i) == 1
+            sess.scans   = cellstr(spm_select('Expand',sess.scans{1}));
+            SPM.nscan(i) = numel(sess.scans);
+        end
         SPM.xY.P     = strvcat(SPM.xY.P,sess.scans{:});
     end
     if SPM.nscan(i) == 1

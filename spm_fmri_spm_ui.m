@@ -172,10 +172,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 5744 2013-11-13 19:55:18Z guillaume $
+% $Id: spm_fmri_spm_ui.m 6023 2014-05-28 15:31:20Z guillaume $
 
 
-SVNid = '$Rev: 5744 $';
+SVNid = '$Rev: 6023 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -272,6 +272,18 @@ else
 end
 
 SPM.xVi.form = cVi;
+
+
+%-Design description - for saving and display
+%==========================================================================
+for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
+Fstr      = sprintf('[min] Cutoff: %d {s}',min([SPM.xX.K(:).HParam]));
+SPM.xsDes = struct(...
+    'Basis_functions',      SPM.xBF.name,...
+    'Number_of_sessions',   sprintf('%d',nsess),...
+    'Trials_per_session',   sprintf('%-3d',ntr),...
+    'Interscan_interval',   sprintf('%0.2f {s}',SPM.xY.RT),...
+    'High_pass_Filter',     Fstr);
 
 
 %-Return if design-only specification
@@ -385,17 +397,11 @@ SPM.xM = struct(...
 
 %-Design description - for saving and display
 %==========================================================================
-for i     = 1:nsess, ntr(i) = length(SPM.Sess(i).U); end
-Fstr      = sprintf('[min] Cutoff: %d {s}',min([SPM.xX.K(:).HParam]));
-SPM.xsDes = struct(...
-    'Basis_functions',      SPM.xBF.name,...
-    'Number_of_sessions',   sprintf('%d',nsess),...
-    'Trials_per_session',   sprintf('%-3d',ntr),...
-    'Interscan_interval',   sprintf('%0.2f {s}',SPM.xY.RT),...
-    'High_pass_Filter',     Fstr,...
+xs = struct(...
     'Global_calculation',   SPM.xGX.sGXcalc,...
     'Grand_mean_scaling',   SPM.xGX.sGMsca,...
     'Global_normalisation', SPM.xGX.iGXcalc);
+for fn=(fieldnames(xs))', SPM.xsDes.(fn{1}) = xs.(fn{1}); end
 
 
 %==========================================================================
@@ -404,16 +410,19 @@ SPM.xsDes = struct(...
 
 %-Save SPM.mat
 %--------------------------------------------------------------------------
-fprintf('%-40s: ','Saving SPM configuration')                           %-#
-save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
-fprintf('%30s\n','...SPM.mat saved')                                    %-#
+%if ~nargout
+    fprintf('%-40s: ','Saving SPM configuration')                       %-#
+    save('SPM.mat', 'SPM', spm_get_defaults('mat.format'));
+    fprintf('%30s\n','...SPM.mat saved')                                %-#
+%end
 
 
 %-Display design report
 %--------------------------------------------------------------------------
 if ~spm('CmdLine') && ~isempty(spm_figure('FindWin','Graphics'))
     fprintf('%-40s: ','Design reporting')                               %-#
-    fname = reshape(cellstr(SPM.xY.P),size(SPM.xY.VY));
+    try,   fname = reshape(cellstr(SPM.xY.P),size(SPM.xY.VY));
+    catch, fname = {}; end
     spm_DesRep('DesMtx',SPM.xX,fname,SPM.xsDes)
     fprintf('%30s\n','...done')                                         %-#
 end
