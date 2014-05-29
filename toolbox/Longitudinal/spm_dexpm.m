@@ -1,6 +1,6 @@
 function [E,dE] = spm_dexpm(A,dA)
 % Differentiate a matrix exponential
-% FORMAT [E,dE] = spm_diff_expm(A,dA)
+% FORMAT [E,dE] = spm_dexpm(A,dA)
 % A  - Lie algebra
 % dA - basis function to differentiate with respect to
 % E  - expm(A)
@@ -13,7 +13,7 @@ function [E,dE] = spm_dexpm(A,dA)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_dexpm.m 4776 2012-07-02 20:33:35Z john $
+% $Id: spm_dexpm.m 6024 2014-05-29 11:41:32Z john $
 
 if nargin<2,
     dA = zeros([size(A) 0]);

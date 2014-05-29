@@ -14,7 +14,7 @@ function out = spm_shoot_warp(job)
 % Copyright (C) Wellcome Trust Centre for Neuroimaging (2009)
 
 % John Ashburner
-% $Id: spm_shoot_warp.m 6008 2014-05-22 12:08:01Z john $
+% $Id: spm_shoot_warp.m 6024 2014-05-29 11:41:32Z john $
 
 %_______________________________________________________________________
 d       = spm_shoot_defaults;
@@ -54,23 +54,9 @@ end;
 dm = [size(NF(1,1).NI.dat) 1];
 dm = dm(1:3);
 
-g  = cell(n1+1,1);
-NG = nifti(job.templates{end});
-if size(NG.dat,4) < n1+1,
-    error('Not enough tissues in template (%d < %d+1).', size(NG.dat,4),n2);
-end
+% Sort out which template for each iteration
+tmpl_no = round(((1:nits)-1)/(nits-1)*(numel(job.templates)-0.51))+1;
 
-bg = ones([size(NG.dat,1), size(NG.dat,2), size(NG.dat,3)]);
-for j=1:n1,
-    tmp  = NG.dat(:,:,:,j);
-    g{j} = spm_bsplinc(log(tmp), bs_args);
-    bg   = bg - tmp;
-    clear tmp;
-end
-g{n1+1}  = log(max(bg,eps));
-clear bg
-
-vx = sqrt(sum(NG.mat(1:3,1:3).^2));
 ok = true(n2,1);
 
 NU     = nifti;
@@ -113,9 +99,18 @@ for i=1:n2, % Loop over subjects
 
     drawnow
 
+    % Re-load first template (if necessary)
+    if (i==1) || ~all(tmpl_no==1),
+        [g,vx] = load_template(job.templates{tmpl_no(1)}, n1, bs_args);
+    end
 
     % The actual work
     for it=1:nits,
+
+        % Load template appropriate for this iteration
+        if (it>1) && (tmpl_no(it)~=tmpl_no(it-1)),
+            [g,vx] = load_template(job.templates{tmpl_no(it)}, n1, bs_args);
+        end
 
         % More regularisation in the early iterations, as well as a
         % a less accurate approximation in the integration.
@@ -195,4 +190,22 @@ f{n1+1}(msk) = 0.00001;
 %=======================================================================
 
 %=======================================================================
+function [g,vx] = load_template(template, n1, bs_args)
+g  = cell(n1+1,1);
+NG = nifti(template);
+if size(NG.dat,4) < n1+1,
+    error('Not enough tissues in template (%d < %d+1).', size(NG.dat,4),n1);
+end
+
+bg = ones([size(NG.dat,1), size(NG.dat,2), size(NG.dat,3)]);
+for j=1:n1,
+    tmp  = NG.dat(:,:,:,j);
+    g{j} = spm_bsplinc(log(tmp), bs_args);
+    bg   = bg - tmp;
+    clear tmp;
+end
+g{n1+1}  = log(max(bg,eps));
+clear bg
+
+vx = sqrt(sum(NG.mat(1:3,1:3).^2));
 
