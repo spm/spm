@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6015 2014-05-23 15:46:19Z guillaume $
+% $Id: spm_results_nidm.m 6025 2014-05-29 13:35:51Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -633,7 +633,7 @@ for i=1:size(TabDat.dat,1)
         'prov:label',{['Peak Statistic: ' iPeak],'xsd:string'},...
         'prov:location',['niiri:coordinate_' iPeak],...
         'prov:value',{TabDat.dat{i,9},'xsd:float'},...
-        'nidm:equivalentZStatistic',{inf2notinf(TabDat.dat{i,10}),'xsd:float'},...
+        'nidm:equivalentZStatistic',{xsdfloat(TabDat.dat{i,10}),'xsd:float'},...
         'nidm:pValueUncorrected',{TabDat.dat{i,11},'xsd:float'},...
         'nidm:pValueFWER',{TabDat.dat{i,7},'xsd:float'},...
         'nidm:qValueFDR',{TabDat.dat{i,8},'xsd:float'},...
@@ -658,16 +658,19 @@ pp.bundle('niiri:spm_results_id',p);
 %==========================================================================
 serialize(pp,fullfile(outdir,'spm_nidm.provn'));
 serialize(pp,fullfile(outdir,'spm_nidm.json'));
-%serialize(pp,fullfile(outdir,'spm_nidm.ttl'));
+serialize(pp,fullfile(outdir,'spm_nidm.ttl'));
 %serialize(pp,fullfile(outdir,'spm_nidm.pdf'));
 prov = pp;
 
 
 %==========================================================================
-% function v = inf2notinf(v)
+% function v = xsdfloat(v)
 %==========================================================================
-function v = inf2notinf(v)
-if isinf(v), v = 999999999; end
+function v = xsdfloat(v)
+% See http://books.xmlschemata.org/relaxng/ch19-77095.html
+if numel(v) == 1 && isinf(v) && v > 0, v = 'INF';  end
+if numel(v) == 1 && isinf(v) && v < 0, v = '-INF'; end
+if numel(v) == 1 && isnan(v),          v = 'NaN';  end
 
 
 %==========================================================================
@@ -798,7 +801,7 @@ v2wm = M * [eye(4,3) [1 1 1 1]'];
 M    = M(1:3,1:3);
 id = ['niiri:coordinate_space_id_' num2str(index)];
 p.entity(id,{...
-    'prov:type','nidm:atCoordinateSpace',...
+    'prov:type','nidm:CoordinateSpace',...
     'prov:label',{['Coordinate space ' num2str(index)],'xsd:string'},...
     'nidm:voxelToWorldMapping',{v2wm,'xsd:string'},...
     'nidm:voxelUnits',{units,'xsd:string'},...

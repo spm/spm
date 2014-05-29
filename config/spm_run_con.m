@@ -5,10 +5,12 @@ function out = spm_run_con(job)
 % Output:
 % out    - struct containing contrast and SPM{.} images filename
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_con.m 5344 2013-03-21 17:12:29Z guillaume $
+% $Id: spm_run_con.m 6025 2014-05-29 13:35:51Z guillaume $
 
+
+spm('FnBanner','spm_contrasts.m');
 
 %-Change to the analysis directory
 %--------------------------------------------------------------------------
@@ -16,7 +18,7 @@ cwd = pwd;
 try
     swd = spm_file(job.spmmat{1},'fpath');
     cd(swd);
-    fprintf('   Changing directory to: %s\n',swd);
+    fprintf('%-40s: %30s\n','Contrasts folder',spm_file(swd,'short30'));%-#
 catch
     error('Failed to change directory %s.',swd)
 end
@@ -37,6 +39,7 @@ bayes_con = isfield(SPM,'PPM');
 %-Delete contrast (if requested)
 %--------------------------------------------------------------------------
 if job.delete && isfield(SPM,'xCon')
+    fprintf('%-40s: ','Deleting contrasts');                            %-#
     for k=1:numel(SPM.xCon)
         if ~isempty(SPM.xCon(k).Vcon)
             f = SPM.xCon(k).Vcon.fname;
@@ -44,6 +47,9 @@ if job.delete && isfield(SPM,'xCon')
                 case 'img'
                     n = spm_file(f,'basename');
                     spm_unlink([n '.img'],[n '.hdr']);
+                case 'gii'
+                    n = spm_file(f,'basename');
+                    spm_unlink([n '.gii'],[n '.dat']);
                 otherwise
                     spm_unlink(f);
             end
@@ -54,6 +60,9 @@ if job.delete && isfield(SPM,'xCon')
                 case 'img'
                     n = spm_file(f,'basename');
                     spm_unlink([n '.img'],[n '.hdr']);
+                case 'gii'
+                    n = spm_file(f,'basename');
+                    spm_unlink([n '.gii'],[n '.dat']);
                 otherwise
                     spm_unlink(f);
             end
@@ -67,6 +76,7 @@ if job.delete && isfield(SPM,'xCon')
     if isempty(job.consess)
         save(fullfile(SPM.swd,'SPM.mat'), 'SPM', spm_get_defaults('mat.format'));
     end
+    fprintf('%30s\n','...done');                                        %-#
 end
 
 %-Retrospectively label Bayesian contrasts as T's, if this info is missing
@@ -238,7 +248,7 @@ for i = 1:length(job.consess)
             disp(emsg);
             error('Error in contrast specification');
         else
-            disp(imsg);
+            %disp(imsg);
         end
 
         %-Fill-in the contrast structure
@@ -261,9 +271,10 @@ for i = 1:length(job.consess)
     end
 end
 
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
 %-Change back directory
 %--------------------------------------------------------------------------
-fprintf('   Changing back to directory: %s\n', cwd);
 cd(cwd); 
 
 %-Output structure

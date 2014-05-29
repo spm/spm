@@ -24,7 +24,7 @@ function [Y,y,beta,Bcov,G] = spm_graph(SPM,XYZ,xG)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_graph.m 5581 2013-07-16 15:28:33Z guillaume $
+% $Id: spm_graph.m 6025 2014-05-29 13:35:51Z guillaume $
 
 
 if nargin == 3 && isstruct(SPM) && isstruct(XYZ) && ishandle(xG)
@@ -215,6 +215,7 @@ switch xG.def
 
             % fitted (predicted) data (Y = X1*beta)
             %--------------------------------------------------------------
+            % this should be SPM.xX.xKXs.X instead of SPM.xX.X below
             Y = SPM.xX.X*SPM.xCon(Ic).c*pinv(SPM.xCon(Ic).c)*beta;
         else
 

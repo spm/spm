@@ -34,7 +34,7 @@ classdef spm_provenance < handle
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6015 2014-05-23 15:46:19Z guillaume $
+% $Id: spm_provenance.m 6025 2014-05-29 13:35:51Z guillaume $
 
 
 %-Properties
@@ -363,10 +363,10 @@ methods (Access='private')
                     str = [str sprintf('%s; ',obj.stack{i}{2})];
                 end
                 k = find(cellfun(@(x) ~isequal(x,'-'),obj.stack{i}(3:end-1)));
-                if isempty(k)
-                    k = 0;
+                if false %isempty(k)
+                    k = 0; % remove optional '-'
                 else
-                    k = max(k) + 2; % remove optional '-'
+                    k = numel(obj.stack{i})-1;
                 end
                 for j=3:k
                     str = [str sprintf('%s',obj.stack{i}{j})];
@@ -479,16 +479,18 @@ methods (Access='private')
         o = blanks(2*step);
         str = '';
         %-Namespace
-        ns = obj.namespace;
-        ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
-        if ~isempty(ns(1).uri)
-            str = [str sprintf('@prefix : <%s> .\n',ns(1).uri)];
-        end
-        for i=2:numel(ns)
-            str = [str sprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri)];
-        end
-        if ~isempty(ns(1).uri) || numel(ns) > 3
-            str = [str sprintf('\n')];
+        if step ==1
+            ns = obj.namespace;
+            ns(end+1) = struct('prefix','rdfs','uri','http://www.w3.org/2000/01/rdf-schema#');
+            if ~isempty(ns(1).uri)
+                str = [str sprintf('@prefix : <%s> .\n',ns(1).uri)];
+            end
+            for i=2:numel(ns)
+                str = [str sprintf('@prefix %s: <%s> .\n',ns(i).prefix,ns(i).uri)];
+            end
+            if ~isempty(ns(1).uri) || numel(ns) > 3
+                str = [str sprintf('\n')];
+            end
         end
         %-Expressions
         % optional entries for activity and relations are not saved
@@ -498,6 +500,7 @@ methods (Access='private')
                 attr = obj.stack{i}{end};
                 k = ismember(attr(1:2:end),'prov:type');
                 a_type = [{['prov:' obj.stack{i}{1}]} attr{2*find(k)}];
+                a_type{1}(6) = upper(a_type{1}(6));
                 str = [str sprintf([o 'a'])];
                 for j=1:numel(a_type)
                     str = [str sprintf(' %s',a_type{j})];
@@ -509,6 +512,13 @@ methods (Access='private')
                         attribute = attr{j};
                         literal = attr{j+1};
                         if strcmp(attribute,'prov:type'), continue; end
+                        if strcmp(attribute,'prov:label')
+                            attribute = 'rdfs:label';
+                            if iscell(literal), literal = literal{1}; end
+                        end
+                        if strcmp(attribute,'prov:location')
+                            attribute = 'prov:atLocation';
+                        end
                         if iscell(literal)
                             %if ~strcmp(literal{2},'xsd:string')
                                 literal = sprintf('"%s"^^%s',literal{:});
@@ -527,15 +537,20 @@ methods (Access='private')
                         if j~=numel(attr)-1, str = [str sprintf(' ;\n')]; end
                     end
                 end
+                str = [str sprintf(' .\n\n')];
             elseif ismember(obj.stack{i}{1},{'bundle'})
-                str = [str sprintf('%s\n',obj.stack{i}{2})];
-                str = [str sprintf([o 'a prov:Bundle .\n'])];
-                str = [str serialize_ttl(obj.stack{i}{3},2)];
-                % further work required for ttl & bundle
+                str = [str serialize_ttl(obj.stack{i}{3},step+1)];
             else
-                str = [str sprintf('%s prov:%s %s',obj.stack{i}{[3 1 4]})];
+                if strcmp(obj.stack{i}{1},'wasGeneratedBy') && ~strcmp(obj.stack{i}{5},'-')
+                    % temporary hack until full PROV-N to PROV-O mapping...
+                    tag = ['_:blank' int2str(i)];
+                    str = [str sprintf('%s a prov:Generation .\n\n',tag)];
+                    str = [str sprintf('%s prov:qualifiedGeneration %s .\n\n',obj.stack{i}{3},tag)];
+                    str = [str sprintf('%s prov:atTime "%s"^^xsd:dateTime .\n\n',tag,obj.stack{i}{5})];
+                else
+                    str = [str sprintf('%s prov:%s %s .\n\n',obj.stack{i}{[3 1 4]})];
+                end
             end
-            str = [str sprintf(' .\n\n')];
         end
     end
     
@@ -670,6 +685,7 @@ end
 function varargout = parseQN(qn,ret)
     [t,r] = strtok(qn,':');
     if isempty(r), r = t; t = ''; else r(1) = []; end
+    if ~isempty(strfind(r,' ')), t = ''; r = qn; end
     if nargin == 1, ret = 'all'; end
     switch lower(ret)
         case 'all'

@@ -50,7 +50,7 @@ function [Y,xY] = spm_regions(xSPM,SPM,hReg,xY)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_regions.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_regions.m 6025 2014-05-29 13:35:51Z guillaume $
 
 
 %-Shortcut for VOI display
@@ -254,7 +254,11 @@ xY.s    = s;
 %-Display VOI weighting and eigenvariate
 %==========================================================================
 if ~noGraph
-    display_VOI(xY, SPM.xY.RT);
+    if isfield(SPM.xY,'RT')
+        display_VOI(xY, SPM.xY.RT);
+    else
+        display_VOI(xY);
+    end
 end
  
 %-Save
@@ -292,11 +296,11 @@ if fullsize, title(['Region: ' xY.name]); end
 %-Show dynamics
 %--------------------------------------------------------------------------
 if fullsize, subplot(2,1,2); else subplot(2,2,4); end
-try
-    plot(TR*[1:length(xY.u)],xY.u)
+if nargin == 2
+    plot(TR*[1:length(xY.u)],xY.u);
     str = 'time (seconds}';
-catch
-    plot(xY.u)
+else
+    plot(xY.u);
     str = 'scan';
 end
 title(['1st eigenvariate: ' xY.name],'FontSize',10)
