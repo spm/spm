@@ -19,7 +19,7 @@ function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 5633 2013-09-10 13:58:03Z karl $
+% $Id: spm_dcm_generate.m 6026 2014-05-30 11:09:03Z peter $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -45,8 +45,8 @@ m     = size(U.u,2);  % number of inputs
 % Check whether the model is stable by examining the eigenvalue 
 % spectrum for the intrinsic connectivity matrix 
 %--------------------------------------------------------------------------
-eigval = eig(full(DCM.Ep.A));
-if max(eigval) >= 0
+[is_stable, eigval] = spm_dcm_check_stability(DCM);
+if ~is_stable
     fprintf('Modelled system is potentially unstable:\n');
     fprintf('Lyapunov exponent of combined connectivity matrix is %f\n',max(eigval));
     fprintf('Check the output to ensure that values are in a normal range.\n')
@@ -114,7 +114,7 @@ e      = K*z;
 Y      = DCM.Y;
 Y.Q    = spm_Ce(v*ones(1,n));
 
-Y.y    = y(:,1:n) + e*r;  % 
+Y.y    = y(:,1:n) + e*r; 
 x    = y(:,n+1:2*n);
 Y.secs = Y.dt*v;
 

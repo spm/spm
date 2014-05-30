@@ -1,5 +1,6 @@
 function spm_dcm_create(syn_model, source_model, SNR)
-% Specify a DCM model without having to use an SPM.mat file
+% Creates a DCM model with simulated data. The model can be specified via
+% the GUI or duplicated from an existing model.
 % FORMAT spm_dcm_create(syn_model, source_model, SNR)
 %
 % syn_model     - name of the synthetic DCM to be created 
@@ -22,9 +23,8 @@ function spm_dcm_create(syn_model, source_model, SNR)
 %__________________________________________________________________________
 % Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
 
-% Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_create.m 4493 2011-09-16 15:33:32Z guillaume $
-
+% Will Penny & Klaas Enno Stephan & Peter Zeidman
+% $Id: spm_dcm_create.m 6026 2014-05-30 11:09:03Z peter $
 
 Finter = spm_figure('GetWin','Interactive');
 header = get(Finter,'Name');
@@ -51,9 +51,20 @@ switch upper(source_model)
         % Define model by GUI
         %==================================================================
         
+        % Load SPM for experimental timing
+        %------------------------------------------------------------------        
+        [spm_file, sts] = spm_select(1,'^SPM\.mat$','Select SPM.mat');
+        if ~sts, return; end
+        try
+            SPM=load(spm_file);
+            SPM=SPM.SPM;
+        catch
+            error(['Cannot read ' spm_file]);
+        end        
+        
         % get cell array of region structures
         %------------------------------------------------------------------
-        n = spm_input('Enter number of regions','+1','r',[],1);
+        n = spm_input('Enter number of regions',1,'r',[],1);
         for i=1:n
             str         = sprintf('Region %d',i);
             xY(i).name  = spm_input(['Name for ',str],'+1','s');
@@ -68,10 +79,67 @@ switch upper(source_model)
             xY(i).u     = 1;
             xY(i).X0    = [];
         end
-
-        DCM = spm_dcm_specify([],xY);
-
         
+        % run through standard specification questions
+        %------------------------------------------------------------------
+        DCM = spm_dcm_specify_ui(SPM,xY);
+        
+        % get desired number of volumes
+        %------------------------------------------------------------------        
+        v = spm_input('How many volumes to create?',1,'r',100);
+        DCM.v = v;
+        
+        % Set default connection strengths to reasonable values
+        %------------------------------------------------------------------                
+        DEFAULT_SELF     = 0;
+        DEFAULT_BETWEEN  = 0.3;
+        DEFAULT_DRIVING  = 0.8;
+                       
+        defaults = struct();
+        defaults.A = DEFAULT_BETWEEN .* DCM.a;
+        defaults.A = defaults.A - diag(diag(defaults.A));
+        defaults.A = defaults.A + diag(repmat(DEFAULT_SELF,n,1));                   
+        defaults.B = DEFAULT_BETWEEN .* DCM.b;        
+        defaults.C = DEFAULT_DRIVING .* DCM.c;
+        
+        % Build A-matrix
+        %------------------------------------------------------------------                        
+              
+        % Initialize DCM.Ep with prior values
+        DCM.Ep = spm_dcm_fmri_priors(DCM.a,DCM.b,DCM.c,DCM.d);     
+       
+        enabled  = struct('A',DCM.a,'B',DCM.b,'C',DCM.c);
+        
+        entry_accepted = false;
+        while ~entry_accepted
+            % Prompt for A-matrix
+            txt = 'Connectivity for';
+            con = spm_dcm_connectivity_ui(DCM,'A', txt, defaults, enabled);
+            DCM.Ep.A = con.A;        
+        
+            % Check stability
+            if spm_dcm_check_stability(DCM)
+                entry_accepted = true;
+            else
+                % Query for another attempt
+                qtext = ...
+                    'Parameters may lead to an unstable estimate. Edit your selection?';
+                options = struct('Default','Yes','Interpreter','none');
+                choice = questdlg(qtext,'Stability','Yes','No',options);                
+                entry_accepted = ~strcmp(choice,'Yes');
+                
+                % Ensure any new values are re-populated
+                defaults = struct('A',DCM.Ep.A,'B',DCM.Ep.B,'C',DCM.Ep.C);
+            end            
+        end
+        
+        % Build B-matrix and C-matrix
+        %------------------------------------------------------------------               
+        con = spm_dcm_connectivity_ui(DCM,'B', txt, defaults, enabled);
+        DCM.Ep.B = con.B;        
+        con = spm_dcm_connectivity_ui(DCM,'C', txt, defaults, enabled);
+        DCM.Ep.C = con.C;
+                
     case 'IMPORT'
         
         % Import existing model - prompt user to choose it
@@ -97,13 +165,7 @@ end
 X0    = ones(DCM.v,1);
 switch upper(source_model)
     case 'GUI'
-        % All fields have to be modified
-        %DCM.v    = xxx;
         Y        = DCM.Y;
-        DCM.Ep.A = DCM.a;
-        DCM.Ep.B = DCM.b;
-        DCM.Ep.C = DCM.c;
-        DCM.Ep.D = DCM.d;
         DCM.Ep.decay = sparse(DCM.n,1);
         DCM.Ep.transit = sparse(DCM.n,1);
         DCM.Ep.epsilon = sparse(1,1);
