@@ -1,42 +1,36 @@
 function D = spm_eeg_spatial_confounds(S)
 % This function defines spatial confounds and adds them to MEEG dataset.
+% FORMAT D = spm_eeg_spatial_confounds(S)
 %
-% Disclaimer: this code is provided as an example and is not guaranteed to work
-% with data on which it was not tested. If it does not work for you, feel
-% free to improve it and contribute your improvements to the MEEGtools toolbox
-% in SPM (http://www.fil.ion.ucl.ac.uk/spm)
+% S        - optional input struct
+%  fields of S:
+%   D        - MEEG object or filename of M/EEG mat-file with epoched data
+%   mode     - method for definition of the confounds (EYES, BESA, SVD,
+%              SPMEEG, CLEAR)
+%
 %
 % _______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_spatial_confounds.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_spatial_confounds.m 6029 2014-05-30 18:52:03Z vladimir $
 
 
-SVNrev = '$Rev: 5775 $';
+SVNrev = '$Rev: 6029 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Define spatial confounds');
 
-%-Get MEEG object
-%--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+if ~isfield(S, 'mode') && isfield(S, 'method'),          S.mode  = S.method;             end
+if ~isfield(S, 'threshold') && isfield(S, 'svdthresh'),  S.threshold  = S.svdthreshd;    end
 
-D = spm_eeg_load(D);
 
-if ~isfield(S, 'method')
-    S.method = spm_input('How to define?','+1', 'm', 'SVD|SPMEEG|Eyes|BESA|Clear', strvcat('SVD', 'SPMEEG', 'Eyes', 'BESA', 'Clear'));
-end
+D = spm_eeg_load(S.D);
 
-switch upper(S.method)
+
+switch upper(S.mode)
     case 'EYES'
         [D, ok] = check(D, 'sensfid');
         
@@ -66,7 +60,7 @@ switch upper(S.method)
             save(D);
         end
         
-        eyes = gifti(struct('pnt', [-34 53 -38; 34 53 -38]));
+        eyes = [-34 53 -38; 34 53 -38];
         
         
         sconf = [];
@@ -86,6 +80,8 @@ switch upper(S.method)
             data = spm_eeg_inv_get_vol_sens(D, [], [], [], modalities{k});
             
            
+            eyes = spm_eeg_inv_transform_points(inv(data.transforms.toMNI), eyes);
+            
             vol  = data.(modalities{k}).vol;
             sens = data.(modalities{k}).sens;
             
@@ -102,7 +98,7 @@ switch upper(S.method)
                 reducerank = 3;
             end
             
-            L  = ft_compute_leadfield(eyes.vertices, sens, vol, 'reducerank', reducerank);
+            L  = ft_compute_leadfield(eyes, sens, vol, 'reducerank', reducerank);
             
             [sel1, sel2] = spm_match_str(sconf.label, D.chanlabels(chanind));
             
@@ -111,37 +107,29 @@ switch upper(S.method)
         end
         
         D = sconfounds(D, sconf);
-    case 'BESA'
-        if ~isfield(S, 'conffile')
-            S.conffile = spm_select(1, '\.bsa$', 'Select BESA *.bsa file');
-        end
+    case 'BESA'       
         sconf = spm_eeg_read_bsa(S.conffile );
         D = sconfounds(D, sconf);
-    case 'SVD'
-        if ~isfield(S, 'timewin')
-            S.timewin  = spm_input('PST window (ms)', '+1', 'r', '', 2)/1000;
-        end
+    case 'SVD'       
         cl = D.condlist;
         svdinput = [];
         for i = 1:numel(cl)
-            svdinput = [svdinput mean(D(D.indchantype('MEEG', 'GOOD'), D.indsample(S.timewin(1)):D.indsample(S.timewin(2)), D.indtrial(cl{i})), 3)];
+            svdinput = [svdinput mean(D(D.indchantype('MEEG', 'GOOD'), D.indsample(1e-3*S.timewin(1)):D.indsample(1e-3*S.timewin(2)), D.indtrial(cl{i})), 3)];
         end
         [U, L, V] = spm_svd(svdinput);
         
         
-        if isfield(S, 'svdthresh')
+        if isfield(S, 'threshold')
             temp = zeros(size(svdinput));
             for n = size(V, 2):-1:1
                 temp = temp+U(:, n)*L(n,n)*V(:,n)';
-                if max(max(temp))>S.svdthresh;
+                if max(max(temp))>S.threshold;
                     S.ncomp = min(n+1, size(V, 2));
                     break;
                 else
                     S.ncomp = 0;
                 end
-            end
-        elseif ~isfield(S, 'ncomp')
-            S.ncomp = spm_input('How many components?', '+1', 'n', '1', 1);
+            end       
         end
         
         if S.ncomp>0
@@ -155,10 +143,7 @@ switch upper(S.method)
             sconf.bad(sel1, :) = 0;
             D = sconfounds(D, sconf);
         end
-    case 'SPMEEG'
-        if ~isfield(S, 'conffile')
-            S.conffile =  spm_select(1, 'mat', 'Select M/EEG mat file with sconfounds');
-        end
+    case 'SPMEEG'       
         Ds = spm_eeg_load(S.conffile);
         sconf = getfield(Ds, 'sconfounds');
         D = sconfounds(D, sconf);

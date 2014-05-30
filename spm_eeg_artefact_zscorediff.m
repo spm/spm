@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_zscorediff(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_zscorediff.m 5613 2013-08-15 11:56:07Z vladimir $
+% $Id: spm_eeg_artefact_zscorediff.m 6029 2014-05-30 18:52:03Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -29,7 +29,7 @@ if nargin == 0
     threshold.name = 'Threshold';
     threshold.strtype = 'r';
     threshold.num = [1 1];
-    threshold.val = {3};
+    threshold.val = {5};
     threshold.help = {'Threshold value (in stdev)'};
     
     excwin = cfg_entry;
@@ -50,7 +50,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5613 $';
+SVNrev = '$Rev: 6029 $';
 
 %-Startup
 %--------------------------------------------------------------------------

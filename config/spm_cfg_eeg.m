@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_cfg_eeg.m 6029 2014-05-30 18:52:03Z vladimir $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -14,7 +14,8 @@ meegprep.name   = 'Preprocessing';
 meegprep.help   = {'M/EEG preprocessing.'};
 meegprep.values = {spm_cfg_eeg_epochs spm_cfg_eeg_prepare spm_cfg_eeg_montage spm_cfg_eeg_filter...
     spm_cfg_eeg_bc spm_cfg_eeg_artefact spm_cfg_eeg_downsample spm_cfg_eeg_merge...
-    spm_cfg_eeg_fuse spm_cfg_eeg_combineplanar spm_cfg_eeg_reduce spm_cfg_eeg_crop spm_cfg_eeg_remove_bad_trials}; 
+    spm_cfg_eeg_fuse spm_cfg_eeg_combineplanar spm_cfg_eeg_reduce spm_cfg_eeg_crop...
+    spm_cfg_eeg_remove_bad_trials spm_cfg_eeg_spatial_confounds spm_cfg_eeg_correct_sensor_data}; 
 
 %--------------------------------------------------------------------------
 % M/EEG averaging

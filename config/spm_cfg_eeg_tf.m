@@ -4,7 +4,7 @@ function tf = spm_cfg_eeg_tf
 % Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_tf.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_tf.m 6029 2014-05-30 18:52:03Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -134,14 +134,16 @@ dep(2).src_output = substruct('.','Dtfname');
 % this can be entered into any file selector
 dep(2).tgt_spec   = cfg_findspec({{'filter','mat'}});
 
-dep(3)            = cfg_dep;
-dep(3).sname      = 'M/EEG time-frequency phase dataset';
-dep(3).src_output = substruct('.','Dtph');
-% this can be entered into any evaluated input
-dep(3).tgt_spec   = cfg_findspec({{'strtype','e'}});
-
-dep(4)            = cfg_dep;
-dep(4).sname      = 'M/EEG time-frequency phase dataset';
-dep(4).src_output = substruct('.','Dtphname');
-% this can be entered into any file selector
-dep(4).tgt_spec   = cfg_findspec({{'filter','mat'}});
+if job.phase
+    dep(3)            = cfg_dep;
+    dep(3).sname      = 'M/EEG time-frequency phase dataset';
+    dep(3).src_output = substruct('.','Dtph');
+    % this can be entered into any evaluated input
+    dep(3).tgt_spec   = cfg_findspec({{'strtype','e'}});
+    
+    dep(4)            = cfg_dep;
+    dep(4).sname      = 'M/EEG time-frequency phase dataset';
+    dep(4).src_output = substruct('.','Dtphname');
+    % this can be entered into any file selector
+    dep(4).tgt_spec   = cfg_findspec({{'filter','mat'}});
+end

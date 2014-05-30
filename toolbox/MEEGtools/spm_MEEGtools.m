@@ -4,7 +4,7 @@ function spm_MEEGtools
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_MEEGtools.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_MEEGtools.m 6029 2014-05-30 18:52:03Z vladimir $
 
 
 funlist = {
@@ -14,9 +14,7 @@ funlist = {
     'Fieldtrip interactive plotting', 'spm_eeg_plot_interactive';
     'Fieldtrip visual artefact rejection', 'spm_eeg_ft_artefact_visual';
     'Fieldtrip dipole fitting', 'spm_eeg_ft_dipolefitting';
-    'Vector-AR connectivity measures', 'spm_eeg_var_measures';
-    'Define spatial confounds' , 'spm_eeg_spatial_confounds'
-    'Correct sensor data',        'spm_eeg_correct_sensor_data'
+    'Vector-AR connectivity measures', 'spm_eeg_var_measures';  
     'Use CTF head localization' , 'spm_eeg_megheadloc'
     'Fix CTF head position data' ,'spm_eeg_fix_ctf_headloc'
     'Fieldtrip manual coregistration' , 'spm_eeg_ft_datareg_manual'

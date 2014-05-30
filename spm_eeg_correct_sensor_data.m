@@ -5,7 +5,7 @@ function D = spm_eeg_correct_sensor_data(S)
 % S                    - input structure (optional)
 % (optional) fields of S:
 %   S.D                - MEEG object or filename of M/EEG mat-file
-%   S.method           - 'SSP' - simple projection
+%   S.mode             - 'SSP' - simple projection
 %                      - 'Berg' - the method of Berg (see the reference below)
 % Output:
 % D                   - MEEG object (also written on disk)
@@ -23,36 +23,28 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 5640 2013-09-18 12:02:29Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 6029 2014-05-30 18:52:03Z vladimir $
 
-SVNrev = '$Rev: 5640 $';
+SVNrev = '$Rev: 6029 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('FnBanner', mfilename, SVNrev);
 spm('FigName','Correct sensor data');
 
+if ~isfield(S, 'mode') && isfield(S, 'correction'),  S.mode  = S.correction;  end
+if ~isfield(S, 'prefix'),                            S.prefix   = 'T';        end
 %-Get MEEG object
 %--------------------------------------------------------------------------
-try
-    D = S.D;
-catch
-    [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
-    S.D = D;
-end
+D = spm_eeg_load(S.D);
 
-D = spm_eeg_load(D);
+inputfile = fullfile(D);
 
 if ~any(D.sconfounds)
     D = spm_eeg_spatial_confounds(S);
     if ~any(D.sconfounds)
         return;
     end
-end
-
-if ~isfield(S, 'correction')
-    S.correction = spm_input('Correction method','+1', 'SSP|Berg', strvcat('SSP', 'Berg'));
 end
 
 [mod, list] = modality(D, 1, 1);
@@ -89,17 +81,16 @@ for i = 1:numel(A)
         error('Spatial confound vector does not match the channels');
     end
     
-    if isequal(lower(S.correction), 'berg')
+    if isequal(lower(S.mode), 'berg')
         [D, ok] = check(D, 'sensfid');
         
         if ~ok
             if check(D, 'basic')
-                errordlg(['The requested file is not ready for source reconstruction.'...
+                error(['The requested file is not ready for source reconstruction.'...
                     'Use prep to specify sensors and fiducials.']);
             else
-                errordlg('The meeg file is corrupt or incomplete');
+                error('The meeg file is corrupt or incomplete');
             end
-            return
         end
         
         %% ============ Find or prepare head model
@@ -142,8 +133,8 @@ for i = 1:numel(A)
     S1   = [];
     S1.D = D;
     S1.montage = montage;
-    S1.keepothers = 1;
-    S1.updatehistory  = 0;
+    S1.keepothers = true;
+    S1.updatehistory  = false;
     
     Dnew = spm_eeg_montage(S1); 
     
@@ -184,6 +175,8 @@ end
 
 D = D.history(mfilename, S);
 save(D);
+
+D = move(D, spm_file(inputfile, 'prefix', S.prefix));
 
 %-Cleanup
 %--------------------------------------------------------------------------
