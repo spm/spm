@@ -11,6 +11,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 %                  - for N frequencies in M.Hz [default 1:64Hz]
 % w - frequencies
 % s - modulation transfer functions (complex)
+% g - normalised modulation transfer function (true Granger causality)
 %
 % When called with U this function will return a cross-spectral response
 % for each of the condition-specific parameters specified in U.X; otherwise
@@ -34,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_csd_mtf.m 6030 2014-05-31 13:09:24Z karl $
 
 
 
@@ -144,7 +145,7 @@ else
     y = g;
 end
 
-% Granger causality if requested
+% Granger causality (normalised transfer functions) if requested
 %==========================================================================
 if nargout > 3
     for c = 1:length(s)

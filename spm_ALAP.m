@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 6018 2014-05-25 09:24:14Z karl $
+% $Id: spm_ALAP.m 6030 2014-05-31 13:09:24Z karl $
 
 
 % check model, data and priors
@@ -257,8 +257,8 @@ na  = ga;                                    % number of a (action)
 Rh  = spm_DEM_R(n,s,form);
 Rg  = spm_DEM_R(n,s,form);
 
-QW   = sparse(nx*n,nx*n);
-QV   = sparse((ny + nv)*n,(ny + nv)*n);
+QW  = sparse(nx*n,nx*n);
+QV  = sparse((ny + nv)*n,(ny + nv)*n);
 
 
 % restriction matrix, mapping prediction errors to action

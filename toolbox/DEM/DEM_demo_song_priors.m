@@ -1,6 +1,6 @@
 function DEM_demo_song_priors
 % Demo for a bird songs: In this example, we simulate local field potential
-% using the prediction error from the song-bird example above. We look at
+% using the prediction error from the song-bird example below. We look at
 % these responses under natural stimuli and after removing the second
 % level of the hierarchy to show it is necessary for veridical perception.
 % We then repeat but omitting dynamical priors by forsaking generalised 
@@ -9,7 +9,7 @@ function DEM_demo_song_priors
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_song_priors.m 5168 2013-01-03 11:02:15Z karl $
+% $Id: DEM_demo_song_priors.m 6030 2014-05-31 13:09:24Z karl $
  
  
 % hierarchical non-linear generative model (dynamic & chaotic)

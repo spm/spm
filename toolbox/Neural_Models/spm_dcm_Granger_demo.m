@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_dcm_Granger_demo.m 6030 2014-05-31 13:09:24Z karl $
  
  
 % Model specification
@@ -366,7 +366,7 @@ for j = 1:length(k)
     % plot forwards and backwards functions (nonparametric)
     %----------------------------------------------------------------------
     subplot(3,2,3)
-    plot(Hz,abs(gew(:,2,1)),Hz,abs(mtf{1}(:,2,1)))
+    plot(Hz,abs(gew(:,2,1)),Hz,abs(qew{1}(:,2,1)))
     xlabel('frequency')
     ylabel('absolute value')
     title('forward','FontSize',16)
@@ -374,7 +374,7 @@ for j = 1:length(k)
     axis(a);
     
     subplot(3,2,4)
-    plot(Hz,abs(gew(:,1,2)),Hz,abs(mtf{1}(:,1,2)))
+    plot(Hz,abs(gew(:,1,2)),Hz,abs(qew{1}(:,1,2)))
     xlabel('frequency')
     ylabel('absolute value')
     title('backward','FontSize',16)
@@ -660,8 +660,8 @@ gwe  = spm_dtf2gew(mtf,Gu);
 qew  = spm_dtf2gew(dtf,Gu);
 gew  = spm_csd2gew(csd,Hz);
 
-spm_spectral_plot(Hz,mtf,'b:',  'frequency','density')
-spm_spectral_plot(Hz,gwe,'b', 'frequency','density')
+spm_spectral_plot(Hz,mtf,'b:', 'frequency','density')
+spm_spectral_plot(Hz,gwe,'b',  'frequency','density')
 spm_spectral_plot(Hz,qew,'r',  'frequency','density')
 spm_spectral_plot(Hz,gew,'g',  'frequency','density')
 legend('modulation transfer function',...

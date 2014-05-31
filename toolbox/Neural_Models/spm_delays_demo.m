@@ -2,19 +2,24 @@ function spm_delays_demo
 % Demo routine for induced responses
 %==========================================================================
 %
-% This routine illustrates the Taylor approxmiation to deay differential
-% equatiton solvers using two (exttrinsically connected) neural masses
+% This routine illustrates the Taylor approximation to delay differential
+% equation solvers using two (extrinsically connected) neural masses. In
+% this simulation, using a canonical microcircuit model, exogenous inputs
+% are applied to two sources with a unidirectional (forward) connection.
+% The responses of those regions are summarised in terms of their
+% first-order Volterra kernels, under different conduction delays from the
+% source to the target. The effect of these delays can then be seen as a
+% translation of the forward curve and (or impulse response of the target 
+% to perturbations of the source.
 % 
 % See also:
-%  spm_ccf2csd.m, spm_ccf2mar, spm_csd2ccf.m, spm_csd2mar.m, spm_mar2csd.m, 
-%  spm_csd2coh.m, spm_ccf2gew, spm_dcm_mtf.m, spm_Q.m, spm_mar.m and 
-%  spm_mar_spectral.m
+%  spm_dcm_delay.m
 %
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_delays_demo.m 5883 2014-02-18 10:32:23Z karl $
+% $Id: spm_delays_demo.m 6030 2014-05-31 13:09:24Z karl $
  
 
 % Notes: analysis of delay operator
@@ -95,7 +100,12 @@ for j  = 1:length(k)
     %======================================================================
     [S,K,s,w,t]  = spm_dcm_mtf(P,M);
     
-    spm_spectral_plot(t*1000,K,'r','frequency','density',1)
+    spm_spectral_plot(t*1000,K,'r','iimpulse response','density',1)
     
 end
+
+subplot(2,2,1); title('response of source','FontSize',16)
+subplot(2,2,3); title('forward influence ','FontSize',16); a = axis;
+subplot(2,2,2); title('backward influence','FontSize',16); axis(a) 
+subplot(2,2,4); title('response of target','FontSize',16)
 

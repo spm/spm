@@ -22,7 +22,7 @@ function varargout = Neural_demo(varargin)
 
 % Edit the above text to modify the response to help Neural_demo
 
-% Last Modified by GUIDE v2.5 24-Jan-2014 20:22:25
+% Last Modified by GUIDE v2.5 31-May-2014 12:06:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -179,3 +179,15 @@ run_demo_Callback(hObject, handles, 'DEMO_model_reduction_ERP')
 function pushbutton30_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Analysing%20connectivity%20with%20Granger%20causality%20and%20dynamic%20causal%20modelling.pdf';
 run_demo_Callback(hObject, handles, 'spm_dcm_Granger_demo')
+
+
+% --- Executes on button press in pushbutton31.
+function pushbutton31_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Analysing%20connectivity%20with%20Granger%20causality%20and%20dynamic%20causal%20modelling.pdf';
+run_demo_Callback(hObject, handles, 'spm_delays_demo')
+
+
+% --- Executes on button press in pushbutton32.
+function pushbutton32_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Analysing%20connectivity%20with%20Granger%20causality%20and%20dynamic%20causal%20modelling.pdf';
+run_demo_Callback(hObject, handles, 'spm_dcm_Granger_asymmetry_demo')
