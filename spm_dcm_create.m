@@ -23,7 +23,7 @@ function spm_dcm_create(syn_model,source_model,SNR)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id: spm_dcm_create.m 6031 2014-06-02 12:49:52Z guillaume $
+% $Id: spm_dcm_create.m 6033 2014-06-02 13:52:29Z peter $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -62,6 +62,20 @@ switch upper(source_model)
             error('Cannot read %s.',spm_file);
         end        
         
+        % Check for which session to create the DCM
+        %------------------------------------------------------------------
+        if isfield(SPM,'Sess')
+            session = length(SPM.Sess);
+            if session > 1
+                session   = spm_input('which session','!+1','n1',1,session);
+                if isempty(session) || ~isnumeric(session)
+                    error('A session number is required');
+                end
+            end
+        else
+            session = 1;
+        end        
+        
         % get cell array of region structures
         %------------------------------------------------------------------
         n = spm_input('Enter number of regions',1,'r',[],1);
@@ -75,7 +89,7 @@ switch upper(source_model)
             xY(i).s     = 1;
             xY(i).spec  = 1;
             % for compatibility with spm_dcm_specify
-            xY(i).Sess  = 1;
+            xY(i).Sess  = session;
             xY(i).u     = 1;
             xY(i).X0    = [];
         end
@@ -86,7 +100,11 @@ switch upper(source_model)
         
         % get desired number of scans
         %------------------------------------------------------------------        
-        DCM.v = spm_input('Enter number of time points',1,'r',128);
+        if isfield(SPM,'Sess')
+            DCM.v = length(SPM.Sess(session).row);
+        else
+            DCM.v = spm_input('Enter number of volumes',1,'r',128);
+        end        
         
         % Set default connection strengths to reasonable values
         %------------------------------------------------------------------                
