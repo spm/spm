@@ -2,25 +2,24 @@ function spm_dcm_review(DCM,action)
 % Review an estimated DCM
 % FORMAT spm_dcm_review(DCM,action)
 %
-% DCM    - DCM filename
-%
-% action -
-% 'fixed connections'
-% ['    effects of ' DCM.U.name{i}];
-% 'contrast of connections'
-% 'location of regions'
-% 'inputs'
-% 'outputs'
-% 'kernels'
-% 'estimates of states'
-% 'estimates of parameters'
-% 'estimates of precisions'
-% ['   hidden states: ' DCM.Y.name{i}]
+% DCM    - DCM structure or its filename
+% action - one of:
+%          'fixed connections'
+%          ['    effects of ' DCM.U.name{i}];
+%          'contrast of connections'
+%          'location of regions'
+%          'inputs'
+%          'outputs'
+%          'kernels'
+%          'estimates of states'
+%          'estimates of parameters'
+%          'estimates of precisions'
+%          ['   hidden states: ' DCM.Y.name{i}]
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 5635 2013-09-16 14:06:23Z guillaume $
+% $Id: spm_dcm_review.m 6031 2014-06-02 12:49:52Z guillaume $
 
 
 %-Get DCM structure
@@ -379,18 +378,17 @@ switch action
         k     = min(l,8);
         for i = 1:k
             subplot(k,1,i);
-            try
+            if isfield(DCM,'y')
                 plot(x,DCM.y(:,i),x,DCM.y(:,i) + DCM.R(:,i),':');
                 title([DCM.Y.name{i} ': responses and predictions' ],'FontSize',16);
                 xlabel('time {seconds}');
-            catch
+                legend('predicted', 'observed');
+            else
                 plot(x,DCM.Y.y(:,i));
                 title([DCM.Y.name{i} ': responses' ],'FontSize',16);
                 xlabel('time {seconds}');
+                legend('observed');
             end
-        end
-        try
-            legend('predicted', 'observed')
         end
 
     %======================================================================

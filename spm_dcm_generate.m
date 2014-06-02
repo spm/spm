@@ -1,25 +1,25 @@
 function [Y,x] = spm_dcm_generate(syn_model,SNR)
 % Generate synthetic data from a DCM specification
-% FORMAT spm_dcm_generate(syn_model,SNR)
+% FORMAT [Y,x] = spm_dcm_generate(syn_model,SNR)
 % 
-% syn_model     Name of synthetic DCM file
-% SNR           Signal to noise ratio [default: 1]
+% syn_model   - Name of synthetic DCM file
+% SNR         - Signal to noise ratio [default: 1]
 %
 % This routine will update the DCM.Y field as follows: 
-%           Y.y     synthetic BOLD data
-%           Y.secs  overall number of seconds
-%           Y.Q     Components of error precision
+%           Y.y    - synthetic BOLD data
+%           Y.secs - overall number of seconds
+%           Y.Q    - components of error precision
 %
 % and will enter neuronal activity (first hidden var in each region) into 
 % DCM.x
 %
-% Y             Simulated (Noisy) BOLD data
-% x             Simulated neuronal activity (first hidden variable in each region)
+% Y           - Simulated (Noisy) BOLD data
+% x           - Simulated neuronal activity (first hidden variable in each region)
 %__________________________________________________________________________
-% Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan
-% $Id: spm_dcm_generate.m 6026 2014-05-30 11:09:03Z peter $
+% $Id: spm_dcm_generate.m 6031 2014-06-02 12:49:52Z guillaume $
 
 % Check parameters and load specified DCM
 %--------------------------------------------------------------------------
@@ -115,7 +115,7 @@ Y      = DCM.Y;
 Y.Q    = spm_Ce(v*ones(1,n));
 
 Y.y    = y(:,1:n) + e*r; 
-x    = y(:,n+1:2*n);
+x      = y(:,n+1:2*n);
 Y.secs = Y.dt*v;
 
 % Save synthetic DCM
@@ -130,6 +130,8 @@ save(syn_model, 'DCM', spm_get_defaults('mat.format'));
 if nargout==1
     varargout{1} = DCM;
 end
+
+if spm('CmdLine'), return; end
 
 % Display the time series generated
 %--------------------------------------------------------------------------

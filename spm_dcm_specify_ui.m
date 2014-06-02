@@ -1,17 +1,16 @@
 function DCM = spm_dcm_specify_ui(SPM,xY)
-% Interface for stepping the user through creating a DCM model
-% FORMAT [DCM] = spm_dcm_specify_ui(SPM,xY)
+% Interface for stepping the user through creating a DCM
+% FORMAT DCM = spm_dcm_specify_ui(SPM,xY)
 %
 % SPM      - SPM structure from SPM.mat
 % xY       - (optional) VOI structures to be inserted into the DCM
 %
-% Returns:
-% DCM     - the DCM structure (see spm_dcm_ui)
+% DCM      - DCM structure (see spm_dcm_ui)
 %__________________________________________________________________________
-% Copyright (C) 2002-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_specify_ui.m 6026 2014-05-30 11:09:03Z peter $
+% $Id: spm_dcm_specify_ui.m 6031 2014-06-02 12:49:52Z guillaume $
 
 
 %-Interactive window
@@ -107,7 +106,7 @@ end
 %==========================================================================
 % Model options
 %==========================================================================
-if nc                                                     % there are inputs
+if nc                                                    % there are inputs
     spm_input('Model options:...  ',-1,'d');
     options.nonlinear  = spm_input('modulatory effects','+1','b',{'bilinear','nonlinear'},[0 1],1);
     options.two_state  = spm_input('states per region', '+1','b',{'one','two'},[0 1],1);
