@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 6002 2014-05-21 09:54:48Z gareth $
+% $Id: spm_cfg_eeg_inv_headmodel.m 6036 2014-06-03 22:43:51Z vladimir $
 
 
 D = cfg_files;
@@ -187,7 +187,7 @@ meg.name = 'MEG head model';
 meg.help = {'Select the head model type to use for MEG (if present)'};
 meg.labels = {'Single Sphere', 'MEG Local Spheres', 'Single Shell'};
 meg.values = {'Single Sphere', 'MEG Local Spheres', 'Single Shell'};
-meg.val = {'Single Sphere'};
+meg.val = {'Single Shell'};
 
 forward = cfg_branch;
 forward.tag = 'forward';
