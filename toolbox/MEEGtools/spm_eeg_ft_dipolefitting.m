@@ -9,7 +9,7 @@
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_dipolefitting.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_ft_dipolefitting.m 6035 2014-06-03 22:32:20Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Fieldtrip dipole fitting', 0);
 %%
@@ -66,6 +66,8 @@ end
 if D.ntrials > 1
     clb = D.conditions;
     ind = spm_input('Select trial',1, 'm', sprintf('%s|', clb{:}),1:D.ntrials);    
+else
+    ind = 1;
 end
 
 data = D.fttimelock(chanind, ':',  ind);
@@ -102,10 +104,10 @@ cfg.xlim=[min(source.time) max(source.time)];
 cfg.comment ='xlim';
 cfg.commentpos='middlebottom';
 cfg.marker='on';
-cfg.rotate = 0;
 
 if strcmp('EEG', modality)
     cfg.elec = sens;
+    cfg.rotate = 0;
 else
     cfg.grad = sens;
 end

@@ -37,9 +37,9 @@ function D = spm_eeg_artefact(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact.m 5957 2014-04-16 15:23:19Z vladimir $
+% $Id: spm_eeg_artefact.m 6035 2014-06-03 22:32:20Z vladimir $
 
-SVNrev = '$Rev: 5957 $';
+SVNrev = '$Rev: 6035 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -144,9 +144,11 @@ elseif isequal(S.mode, 'mark')
         end
     end    
     
-    bad = squeeze(mean(mean(badsamples(D, D.indchantype({'MEEG', 'LFP'}), ':', ':'), 2), 3)) > S.badchanthresh;
+    meegind = D.indchantype({'MEEG', 'LFP'});
     
-    badchanind = find(bad);
+    bad = squeeze(mean(mean(badsamples(D, meegind, ':', ':'), 2), 3)) > S.badchanthresh;
+    
+    badchanind = meegind(bad);
     
     %-Update and save new dataset
     %--------------------------------------------------------------------------
