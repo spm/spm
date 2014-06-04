@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 6030 2014-05-31 13:09:24Z karl $
+% $Id: spm_ALAP.m 6039 2014-06-04 18:50:28Z karl $
 
 
 % check model, data and priors
@@ -726,7 +726,7 @@ for iN = 1:nN
         
         % and action
         %------------------------------------------------------------------
-        if na, qa(is) = qu.a{1}; end
+        if na, qa(:,is) = qu.a{1}; end
         
         % and conditional covariances
         %------------------------------------------------------------------

@@ -13,20 +13,15 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 5371 2013-03-28 20:10:54Z karl $
+% $Id: spm_DEM_play_song.m 6039 2014-06-04 18:50:28Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
-try
-    T;
-catch
-    T = 2;
-end
- 
+try, T;           catch, T = 2;  end
+try, v = qU.v{1}; catch, v = qU; end
  
 % create sound image
 %==========================================================================
-v      = qU.v{1};
 [Nm m] = size(v);
  
 % frequencies
@@ -41,7 +36,7 @@ n   = FS/Hz(1);                            % window length
 N   = FS*T;                                % number of sonogram bins
 R   = fix(N/m);                            % interpolation factor
 N   = R*m;
-pst = [1:N]/FS;                            % peristimulus time
+pst = (1:N)/FS;                            % peristimulus time
 sf  = 2*64^2;                              % dispersion of frequencies
  
  
@@ -63,10 +58,11 @@ f     = 64*f + Lf;
 S     = sparse(Nf,N);
 for i = 1:N
     s      = b(i)*exp(-(Hz - f(i)).^2/sf);
-    S(:,i) = sparse(s.*(s > exp(-4)));
+    s      = sparse(s.*(s > exp(-4)));
+    S(:,i) = s;
 end
- 
- 
+
+
 % inverse Fourier transform
 %--------------------------------------------------------------------------
 Y   = spm_iwft(S,k,n);
