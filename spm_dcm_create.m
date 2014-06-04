@@ -23,7 +23,7 @@ function spm_dcm_create(syn_model,source_model,SNR)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id: spm_dcm_create.m 6033 2014-06-02 13:52:29Z peter $
+% $Id: spm_dcm_create.m 6037 2014-06-04 09:01:16Z peter $
 
 
 Finter = spm_figure('GetWin','Interactive');
@@ -64,19 +64,15 @@ switch upper(source_model)
         
         % Check for which session to create the DCM
         %------------------------------------------------------------------
-        if isfield(SPM,'Sess')
-            session = length(SPM.Sess);
-            if session > 1
-                session   = spm_input('which session','!+1','n1',1,session);
-                if isempty(session) || ~isnumeric(session)
-                    error('A session number is required');
-                end
+        session = length(SPM.Sess);
+        if session > 1
+            session   = spm_input('which session','!+1','n1',1,session);
+            if isempty(session) || ~isnumeric(session)
+                error('A session number is required');
             end
-        else
-            session = 1;
-        end        
+        end     
         
-        % get cell array of region structures
+        % Get cell array of region structures
         %------------------------------------------------------------------
         n = spm_input('Enter number of regions',1,'r',[],1);
         for i=1:n
@@ -94,17 +90,13 @@ switch upper(source_model)
             xY(i).X0    = [];
         end
         
-        % run through standard specification questions
+        % Run through standard specification questions
         %------------------------------------------------------------------
         DCM   = spm_dcm_specify_ui(SPM,xY);
         
-        % get desired number of scans
+        % Get desired number of scans
         %------------------------------------------------------------------        
-        if isfield(SPM,'Sess')
-            DCM.v = length(SPM.Sess(session).row);
-        else
-            DCM.v = spm_input('Enter number of volumes',1,'r',128);
-        end        
+        DCM.v = SPM.nscan(session);
         
         % Set default connection strengths to reasonable values
         %------------------------------------------------------------------                
