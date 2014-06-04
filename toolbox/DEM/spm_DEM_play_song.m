@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 6039 2014-06-04 18:50:28Z karl $
+% $Id: spm_DEM_play_song.m 6041 2014-06-04 20:48:41Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -27,9 +27,9 @@ try, v = qU.v{1}; catch, v = qU; end
 % frequencies
 %--------------------------------------------------------------------------
 Hf  = 5000;                                % upper frequency (Hz)
-Lf  = 2000;                                % lower frequency (Hz)
+Lf  = 2500;                                % lower frequency (Hz)
 Nf  = 64;                                  % number of frequency bin
-Hz  = linspace(Lf,Hf,64);                  % frequencies
+Hz  = linspace(Lf,Hf,64)';                 % frequencies
 FS  = 2*Hz(end);                           % sampling rate (Hz)
 k   = Hz/Hz(1);                            % cycles per window
 n   = FS/Hz(1);                            % window length
@@ -51,15 +51,22 @@ end
 b     = V(1,:);                            % amplitude modulation
 f     = V(2,:);                            % frequency modulation
 b     = abs(b);
-b     = b - min(b);
 b     = b/max(b);
 b     = tanh((b - 1/2)*6) + 1;
-f     = 64*f + Lf;
+f     = 32*f + Lf;
 S     = sparse(Nf,N);
 for i = 1:N
     s      = b(i)*exp(-(Hz - f(i)).^2/sf);
     s      = sparse(s.*(s > exp(-4)));
     S(:,i) = s;
+    
+    s      = b(i)*exp(-(Hz - 7*f(i)/8).^2/sf);
+    s      = sparse(s.*(s > exp(-4)));
+    S(:,i) = S(:,i) + s/8;
+    
+    s      = b(i)*exp(-(Hz - 6*f(i)/8).^2/sf);
+    s      = sparse(s.*(s > exp(-4)));
+    S(:,i) = S(:,i) + s/16;
 end
 
 

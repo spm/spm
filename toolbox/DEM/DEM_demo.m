@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 24-May-2014 15:01:26
+% Last Modified by GUIDE v2.5 04-Jun-2014 21:44:36
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -473,3 +473,9 @@ run_demo_Callback(hObject, handles, 'DEM_demo_doublewell_LAP')
 function pushbutton150_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Attention%20uncertainty%20and%20free-energy.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_texture')
+
+
+% --- Executes on button press in pushbutton151.
+function pushbutton151_Callback(hObject, eventdata, handles)
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Predictive%20coding%20under%20the%20free-energy%20principle.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_duet')
