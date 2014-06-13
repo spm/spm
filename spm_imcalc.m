@@ -80,10 +80,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 6042 2014-06-13 14:31:47Z volkmar $
+% $Id: spm_imcalc.m 6043 2014-06-13 14:31:48Z volkmar $
 
 
-SVNid = '$Rev: 6042 $';
+SVNid = '$Rev: 6043 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -141,7 +141,9 @@ if ischar(Vo)
     Vo = struct('fname',   fullfile(p, [n, e]),...
                 'dim',     Vi(1).dim(1:3),...
                 'dt',      [dtype spm_platform('bigend')],...
+                'pinfo',   [Inf Inf Inf]',...
                 'mat',     Vi(1).mat,...
+                'n',       1,...
                 'descrip', 'spm - algebra');
 end
 
