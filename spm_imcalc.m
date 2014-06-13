@@ -42,9 +42,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % representation of NaN.
 %
 % With images of different sizes and orientations, the size and orientation
-% of the first is used for the output image. A warning is given in this 
-% situation. Images are sampled into this orientation using the
-% interpolation specified by the interp parameter.
+% of the reference image is used. Reference is the first image, if
+% Vo (input) is a filename, otherwise reference is Vo (input). A
+% warning is given in this situation. Images are sampled into this
+% orientation using the interpolation specified by the interp parameter.
 %__________________________________________________________________________
 %
 % Example expressions (f):
@@ -79,10 +80,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 4591 2011-12-15 19:04:13Z guillaume $
+% $Id: spm_imcalc.m 6042 2014-06-13 14:31:47Z volkmar $
 
 
-SVNid = '$Rev: 4591 $';
+SVNid = '$Rev: 6042 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -99,10 +100,17 @@ if ~isstruct(Vi), Vi = spm_vol(char(Vi)); end
 
 if isempty(Vi), error('no input images specified'), end
 
-[sts, str] = spm_check_orientations(Vi, false);
+if isstruct(Vo)
+    Vchk   = [Vo; Vi(:)];
+    refstr = 'output';
+else
+    Vchk   = Vi(:);
+    refstr = '1st';
+end
+[sts, str] = spm_check_orientations(Vchk, false);
 if ~sts
     for i=1:size(str,1)
-        fprintf('Warning: %s - using 1st image.\n',strtrim(str(i,:)));
+        fprintf('Warning: %s - using %s image.\n',strtrim(str(i,:)),refstr);
     end
 end
 
