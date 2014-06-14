@@ -29,7 +29,7 @@ function spm_MDP_trust
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_trust.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: spm_MDP_trust.m 6044 2014-06-14 10:22:46Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -159,7 +159,7 @@ for i = 1:NG
     W(:,i) = MDP.W(:,end);
     P(:,i) = MDP.P(:,1);
     
-    % update prior beliefs about initial state (pro-social for
+    % update prior beliefs about initial state (pro-social or
     % non-social) and associated utility functions
     %----------------------------------------------------------------------
     a      = find(MDP.U(:,1));

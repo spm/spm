@@ -33,7 +33,7 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 5818 2013-12-23 19:02:20Z karl $
+% $Id: spm_MDP_urn.m 6044 2014-06-14 10:22:46Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -120,7 +120,7 @@ MDP.o    = o;
 MDP.a    = a;
 MDP.plot = gcf;
 MDP.N    = 8;
-MDP      = spm_MDP_game(MDP);
+MDP      = spm_MDP_game_KL(MDP);
  
 % plot convergence and precision
 %--------------------------------------------------------------------------
@@ -142,9 +142,9 @@ xlabel('Latency (updates)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
 axis([1 nd 0 4])
- 
 
-% Illustrate dependency parameters
+
+% Illustrate dependency on parameters
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
 
@@ -173,7 +173,7 @@ DF    = [];
 p     = linspace(0,8,8);
 for i = 1:length(p)
     DP.C    = spm_softmax(spm_vec((L > p(i)) + W)*4);
-    DP      = spm_MDP_game(DP);
+    DP      = spm_MDP_game_KL(DP);
     PF(i,:) = 1 - DP.P(1,:);
     DF(i,:) = PrT(DP.P);
 end
@@ -205,7 +205,7 @@ DF    = [];
 p     = linspace(2,16,8);
 for i = 1:length(p)
     DP.alpha  = p(i);
-    DP      = spm_MDP_game(DP);
+    DP      = spm_MDP_game_KL(DP);
     PF(i,:) = 1 - DP.P(1,:);
     DF(i,:) = PrT(DP.P);
 end
@@ -247,7 +247,7 @@ for t = 1:8
     MDP.s = [];
     MDP.o = [];
     MDP.a = [];
-    MDP   = spm_MDP_game(MDP);
+    MDP   = spm_MDP_game_KL(MDP);
     
     % place outcomes in DP
     %----------------------------------------------------------------------
@@ -262,7 +262,7 @@ for t = 1:8
     %----------------------------------------------------------------------
     for i = 1:length(p);
         DP.alpha = p(i);
-        DP       = spm_MDP_game(DP);
+        DP       = spm_MDP_game_KL(DP);
         LL(i,t)  = sum(log(DP.P(find(DP.U))));
     end
     

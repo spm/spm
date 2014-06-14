@@ -13,7 +13,7 @@ function [Y,FS] = spm_DEM_play_song(qU,T);
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_DEM_play_song.m 6041 2014-06-04 20:48:41Z karl $
+% $Id: spm_DEM_play_song.m 6044 2014-06-14 10:22:46Z karl $
  
 % load frequency modes
 %--------------------------------------------------------------------------
@@ -59,14 +59,6 @@ for i = 1:N
     s      = b(i)*exp(-(Hz - f(i)).^2/sf);
     s      = sparse(s.*(s > exp(-4)));
     S(:,i) = s;
-    
-    s      = b(i)*exp(-(Hz - 7*f(i)/8).^2/sf);
-    s      = sparse(s.*(s > exp(-4)));
-    S(:,i) = S(:,i) + s/8;
-    
-    s      = b(i)*exp(-(Hz - 6*f(i)/8).^2/sf);
-    s      = sparse(s.*(s > exp(-4)));
-    S(:,i) = S(:,i) + s/16;
 end
 
 

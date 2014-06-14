@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 5790 2013-12-08 14:42:01Z karl $
+% $Id: spm_MDP_offer.m 6044 2014-06-14 10:22:46Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -87,7 +87,7 @@ MDP.a    = [1 1 1 1 1 1 1 1 1];
 MDP.plot = gcf;
 MDP.N    = 8;
 MDP      = spm_MDP_game(MDP);
- 
+
 % plot convergence and precision
 %--------------------------------------------------------------------------
 subplot(4,2,7)
