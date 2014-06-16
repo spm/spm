@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 5972 2014-05-06 15:46:10Z vladimir $
+% $Id: spm_eeg_montage.m 6046 2014-06-16 10:58:27Z vladimir $
 
-SVNrev = '$Rev: 5972 $';
+SVNrev = '$Rev: 6046 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -120,7 +120,8 @@ if ~isnumeric(montage)
     % add columns for the channels that are not involved in the montage
     [add, ind]       = setdiff(D.chanlabels, montage.labelorg);
     chlab            = D.chanlabels;
-    add              = chlab(sort(ind));
+    ind              = sort(ind);
+    add              = chlab(ind);
     
     m = size(montage.tra, 1);
     n = size(montage.tra, 2);
@@ -128,10 +129,24 @@ if ~isnumeric(montage)
     if S.keepothers
         montage.tra((m+(1:k)), (n+(1:k))) = eye(k);
         montage.labelnew = cat(1, montage.labelnew(:), add(:));
+        
+        if isfield(montage, 'chantypenew')
+            montage.chantypenew = cat(1, montage.chantypenew(:), D.chantype(ind)');
+        end
+        if isfield(montage, 'chanunitnew')
+            montage.chanunitnew = cat(1, montage.chanunitnew(:), D.units(ind)');
+        end
     else
         montage.tra = [montage.tra zeros(m, k)];
     end
     montage.labelorg = cat(1, montage.labelorg(:), add(:));
+    
+    if isfield(montage, 'chantypeorg')
+        montage.chantypeorg = cat(1, montage.chantypeorg(:), D.chantype(ind)');
+    end
+    if isfield(montage, 'chanunitorg')
+        montage.chanunitorg = cat(1, montage.chanunitorg(:), D.units(ind)');
+    end
     
     % determine whether all channels are unique
     m = size(montage.tra,1);
@@ -149,9 +164,15 @@ if ~isnumeric(montage)
     end
     
     % reorder the columns of the montage matrix
-    [selchan, selmont] = spm_match_str(D.chanlabels, montage.labelorg);
-    montage.tra        = montage.tra(:,selmont);
-    montage.labelorg   = montage.labelorg(selmont);
+    [selchan, selmont]  = spm_match_str(D.chanlabels, montage.labelorg);
+    montage.tra         = montage.tra(:,selmont);
+    montage.labelorg    = montage.labelorg(selmont);
+    if isfield(montage, 'chantypeorg')
+        montage.chantypeorg = montage.chantypeorg(selmont);
+    end
+    if isfield(montage, 'chanunitorg')
+        montage.chanunitorg = montage.chanunitorg(selmont);
+    end
 end
 
 isTF = strncmp(D.transformtype, 'TF', 2);
@@ -234,11 +255,18 @@ switch S.mode
         % If all the original channels contributing to a new channel have
         % the same units, transfer them to the new channel. This might be
         % wrong if the montage itself changes the units by scaling the data.
-        unitlist = repmat({'unknown'}, m, 1);
+        if isfield(montage, 'chanunitnew')
+            unitlist = montage.chanunitnew;
+        else
+            unitlist = repmat({'unknown'}, m, 1);
+        end
+        
         for i = 1:m
-            unit = unique(units(D, D.indchannel(montage.labelorg(~~montage.tra(i, :)))));
-            if numel(unit)==1
-                unitlist(i) = unit;
+            if isequal(unitlist{i}, 'unknown')
+                unit = unique(units(D, D.indchannel(montage.labelorg(~~montage.tra(i, :)))));
+                if numel(unit)==1
+                    unitlist(i) = unit;
+                end
             end
         end
         Dnew = units(Dnew, ':', unitlist);
@@ -249,6 +277,20 @@ switch S.mode
         S1.D = Dnew;
         S1.updatehistory = 0;
         Dnew = spm_eeg_prep(S1);
+        
+        if isfield(montage, 'chantypenew')
+            ctype = Dnew.chantype;                        
+            
+            % Montage chatype overrides the default if specified
+            for i = 1:m
+                if ~isequal(montage.chantypenew{i}, 'unknown')
+                    ctype(i) = upper(montage.chantypenew(i));
+                end
+            end
+        end
+        
+        Dnew = chantype(Dnew, ':', ctype);
+                
         
         %-Apply montage to sensors
         %----------------------------------------------------------------------
@@ -265,10 +307,23 @@ switch S.mode
                     sensmontage.tra(selempty, :) = [];
                     sensmontage.labelnew(selempty) = [];
                     
+                    if isfield(sensmontage, 'chantypeorg')
+                        sensmontage.chantypeorg = sensmontage.chantypeorg(sel2);
+                    end
+                    if isfield(sensmontage, 'chanunitorg')
+                        sensmontage.chanunitorg = sensmontage.chanunitorg(sel2);
+                    end                    
+                    if isfield(sensmontage, 'chantypenew')
+                        sensmontage.chantypenew(selempty) = [];
+                    end
+                    if isfield(sensmontage, 'chanunitnew')
+                        sensmontage.chanunitnew(selempty) = [];
+                    end
+                    
                     % Just remove known non-scalp channels to be on the
                     % safe side. 'Other' channels are not removed as they
                     % can be some kind of spatial components.
-                    lblaux    = Dnew.chanlabels(Dnew.indchantype({'EOG', 'ECG', 'EMG', 'LFP', 'PHYS'}));              
+                    lblaux    = Dnew.chanlabels(Dnew.indchantype({'EOG', 'ECG', 'EMG', 'LFP', 'PHYS'}));
                     [sel3, sel4] = spm_match_str(lblaux, sensmontage.labelnew);
                     sensmontage.tra(sel4, :) = [];
                     sensmontage.labelnew(sel4) = [];
@@ -279,7 +334,7 @@ switch S.mode
                         keepunused = 'no';
                     end
                     
-                    chanunitorig = sens.chanunit(sel1);
+                    chanunitorig = sens.chanunit;
                     labelorg     = sens.label;
                     
                     sens = ft_apply_montage(sens, sensmontage, 'keepunused', keepunused);
@@ -296,20 +351,28 @@ switch S.mode
                     end
                     
                     
+                  
+                    if isfield(sens, 'chanunit')
+                        chanunit = sens.chanunit;
+                    else
+                        chanunit = repmat({'unknown'}, numel(sens.label), 1);
+                    end
+                    
                     % If all the original channels contributing to a new channel have
                     % the same units, transfer them to the new channel. This might be
                     % wrong if the montage itself changes the units by scaling the data.
-                    chanunit = repmat({'unknown'}, numel(sens.label), 1);
                     for j = 1:numel(chanunit)
-                        k = strmatch(sens.label{j}, sensmontage.labelnew, 'exact');
-                        if ~isempty(k)
-                            unit = unique(chanunitorig(~~sensmontage.tra(k, :)));
-                            if numel(unit)==1
-                                chanunit(j) = unit;
+                        if isequal(chanunit{j}, 'unknown') %do not override units specified by montage
+                            k = strmatch(sens.label{j}, sensmontage.labelnew, 'exact');
+                            if ~isempty(k)
+                                unit = unique(chanunitorig(sel1(~~sensmontage.tra(k, :))));
+                                if numel(unit)==1
+                                    chanunit(j) = unit;
+                                end
+                            else %channel was not in the montage, but just copied
+                                k = strmatch(sens.label{j}, labelorg, 'exact');
+                                chanunit(j) = chanunitorig(k);
                             end
-                        else %channel was not in the montage, but just copied
-                            k = strmatch(sens.label{j}, labelorg, 'exact');
-                            chanunit(j) = chanunitorig(k);
                         end
                     end
                     

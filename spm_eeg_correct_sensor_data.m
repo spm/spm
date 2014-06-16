@@ -23,9 +23,9 @@ function D = spm_eeg_correct_sensor_data(S)
 %   Electroencephalogr Clin Neurophysiol. 1994 Mar;90(3):229-41.
 %
 % Vladimir Litvak
-% $Id: spm_eeg_correct_sensor_data.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_eeg_correct_sensor_data.m 6046 2014-06-16 10:58:27Z vladimir $
 
-SVNrev = '$Rev: 6029 $';
+SVNrev = '$Rev: 6046 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -71,11 +71,17 @@ end
 Dorig = D;
 
 for i = 1:numel(A)
-    label = D.chanlabels(indchantype(D, list{i}, 'GOOD'));
+    label = D.chanlabels(indchantype(D, list{i}, 'GOOD'))';
     
     montage = [];
     montage.labelorg = label;
     montage.labelnew = label;
+    
+    montage.chantypeorg = lower(D.chantype(D.indchannel(label)))';
+    montage.chantypenew  = lower(montage.chantypeorg);
+   
+    montage.chanunitorg = D.units(D.indchannel(label))';
+    montage.chanunitnew  = montage.chanunitorg;
     
     if size(A{i}, 1)~=numel(label)
         error('Spatial confound vector does not match the channels');
@@ -128,8 +134,7 @@ for i = 1:numel(A)
     else
         montage.tra = eye(size(A{i}, 1)) - A{i}*pinv(A{i});
     end    
-    
-    %% ============  Use the montage functionality to compute source activity.
+     
     S1   = [];
     S1.D = D;
     S1.montage = montage;
@@ -152,8 +157,14 @@ end
 %% ============  Change the channel order to the original order
 tra = eye(D.nchannels);
 montage = [];
-montage.labelorg = D.chanlabels;
-montage.labelnew = Dorig.chanlabels;
+montage.labelorg = D.chanlabels';
+montage.labelnew = Dorig.chanlabels';
+
+montage.chantypeorg  = lower(D.chantype)';
+montage.chantypenew  = lower(Dorig.chantype)';
+
+montage.chanunitorg  = D.units';
+montage.chanunitnew  = Dorig.units';
 
 [sel1, sel2]  = spm_match_str(montage.labelnew, montage.labelorg);
 
@@ -166,6 +177,7 @@ S1.keepothers = 0;
 S1.updatehistory  = 0;
 
 Dnew = spm_eeg_montage(S1);
+
 delete(D);
 D = Dnew;
 

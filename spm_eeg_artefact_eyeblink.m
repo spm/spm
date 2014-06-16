@@ -17,7 +17,7 @@ function res = spm_eeg_artefact_eyeblink(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Laurence Hunt
-% $Id: spm_eeg_artefact_eyeblink.m 5625 2013-08-30 11:08:12Z vladimir $
+% $Id: spm_eeg_artefact_eyeblink.m 6046 2014-06-16 10:58:27Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -51,7 +51,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5625 $';
+SVNrev = '$Rev: 6046 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -73,7 +73,7 @@ end
 eog_data = reshape(squeeze(D(chanind,:,:)), 1, []);
 
 %% filter data at 1-15Hz (eyeblink duration typically 100-300ms) and demean
-eog_filt = detrend(abs(hilbert(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but'))), 'constant');
+eog_filt = detrend(abs(hilbert(ft_preproc_bandpassfilter(eog_data, D.fsample, [1 15], 4, 'but',[], 'split'))), 'constant');
 
 %% find eye-movements
 

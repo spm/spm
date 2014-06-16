@@ -7,7 +7,7 @@ function res = sensors(this, type, newsens)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: sensors.m 5948 2014-04-11 09:54:07Z vladimir $
+% $Id: sensors.m 6046 2014-06-16 10:58:27Z vladimir $
 
 if nargin<2
     error('Sensor type (EEG or MEG) must be specified');
@@ -52,6 +52,19 @@ if  ~isempty(res) && this.montage.Mind > 0
         sensmontage.tra(selempty, :) = [];
         sensmontage.labelnew(selempty) = [];
         
+        if isfield(sensmontage, 'chantypeorg')
+            sensmontage.chantypeorg = sensmontage.chantypeorg(sel2);
+        end
+        if isfield(sensmontage, 'chanunitorg')
+            sensmontage.chanunitorg = sensmontage.chanunitorg(sel2);
+        end
+        if isfield(sensmontage, 'chantypenew')
+            sensmontage.chantypenew(selempty) = [];
+        end
+        if isfield(sensmontage, 'chanunitnew')
+            sensmontage.chanunitnew(selempty) = [];
+        end
+        
         chanunitorig = sens.chanunit(sel1);
         chantypeorig = sens.chantype(sel1);
         labelorg     = sens.label;
@@ -75,33 +88,50 @@ if  ~isempty(res) && this.montage.Mind > 0
         % If all the original channels contributing to a new channel have
         % the same units, transfer them to the new channel. This might be
         % wrong if the montage itself changes the units by scaling the data.
-        chanunit = repmat({'unknown'}, numel(sens.label), 1);
-        chantype = repmat({'unknown'}, numel(sens.label), 1);
+        if isfield(sens, 'chanunit')
+            chanunit = sens.chanunit;
+        else
+            chanunit = repmat({'unknown'}, numel(sens.label), 1);
+        end
+        
+        if isfield(sens, 'chantype')
+            chantype = sens.chantype;
+        else
+            chantype = repmat({'unknown'}, numel(sens.label), 1);
+        end
         
         for j = 1:numel(sens.label)
             k = strmatch(sens.label{j}, sensmontage.labelnew, 'exact');
             if ~isempty(k)
-                unit = unique(chanunitorig(~~abs(sensmontage.tra(k, :))));
-                if numel(unit)==1
-                    chanunit(j) = unit;
-                elseif strcmpi(type, 'MEG')
-                    chanunit{j} = 'T';
-                else
-                    chanunit{j} = 'V';
+                if isequal(chanunit{j}, 'unknown')
+                    unit = unique(chanunitorig(~~abs(sensmontage.tra(k, :))));
+                    if numel(unit)==1
+                        chanunit(j) = unit;
+                    elseif strcmpi(type, 'MEG')
+                        chanunit{j} = 'T';
+                    else
+                        chanunit{j} = 'V';
+                    end
                 end
                 
-                ctype = unique(chantypeorig(~~abs(sensmontage.tra(k, :))));
-                if numel(ctype)==1
-                    chantype(j) = ctype;
-                elseif strcmpi(type, 'MEG')
-                    chantype{j} = 'megmag';
-                else
-                    chantype{j} = 'eeg';
+                if isequal(chantype{j}, 'unknown')
+                    ctype = unique(chantypeorig(~~abs(sensmontage.tra(k, :))));
+                    if numel(ctype)==1
+                        chantype(j) = ctype;
+                    elseif strcmpi(type, 'MEG')
+                        chantype{j} = 'megmag';
+                    else
+                        chantype{j} = 'eeg';
+                    end
                 end
             else %channel was not in the montage, but just copied
                 k = strmatch(sens.label{j}, labelorg, 'exact');
-                chanunit(j) = chanunitorig(k);
-                chantype(j) = chantypeorig(k);
+                if isequal(chanunit{j}, 'unknown')
+                    chanunit(j) = chanunitorig(k);
+                end
+                if isequal(chantype{j}, 'unknown')
+                    chantype(j) = chantypeorig(k);
+                end
             end
         end
         
