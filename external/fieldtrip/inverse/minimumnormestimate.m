@@ -65,7 +65,7 @@ function [dipout] = minimumnormestimate(dip, grad, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: minimumnormestimate.m 8438 2013-08-29 11:00:15Z jansch $
+% $Id: minimumnormestimate.m 9585 2014-05-22 18:52:26Z jansch $
 
 % ensure that these are row-vectors
 dip.inside  = dip.inside(:)';
@@ -209,7 +209,7 @@ if ~hasfilter
     
     % as documented on MNE website, this is replacing the part of the code above, it gives
     % more stable results numerically.
-    Rc      = chol(R);
+    Rc      = chol(R, 'lower');
     [U,S,V] = svd(A * Rc, 'econ');
     s  = diag(S);
     ss = s ./ (s.^2 + lambda);

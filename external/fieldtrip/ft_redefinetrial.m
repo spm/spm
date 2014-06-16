@@ -70,9 +70,9 @@ function [data] = ft_redefinetrial(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_redefinetrial.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_redefinetrial.m 9577 2014-05-21 20:01:00Z roboos $
 
-revision = '$Id: ft_redefinetrial.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_redefinetrial.m 9577 2014-05-21 20:01:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -105,7 +105,7 @@ cfg.overlap      = ft_getopt(cfg, 'overlap',   0);
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function, this will convert it to raw if needed
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', cfg.feedback);
+data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'feedback', cfg.feedback);
 fb   = istrue(cfg.feedback);
 
 % select trials of interest

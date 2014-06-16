@@ -1,13 +1,18 @@
-% FT_POSTAMBLE_PROVENANCE is a helper script that reports the time and memory that was
-% used by the calling function and that stores this information together with user
-% name, MATLAB version and other provenance information in the output cfg structure.
-% This should be used together with FT_PREAMBLE_PROVENANCE, which records the time and
-% memory at the start of the function.
+% FT_POSTAMBLE_PROVENANCE is a helper script that reports the time and memory used by
+% the calling function and that stores this information together with user name,
+% MATLAB version and other provenance information in the output cfg structure. This
+% script is to be used together with FT_PREAMBLE_PROVENANCE, which records the time
+% and memory at the start of the function.
 %
-% Another aspects of provenance relates to uniquely identifying the input and the
-% output data. The code that deals with tracking the information about the input data
-% structures is found in ft_preamble_loadvar. The code that deals with tracking the
-% information about the output data structures is found in ft_preamble_history.
+% FieldTrip also attempts to uniquely identify the input and the output data. The
+% code that deals with tracking the input data structures is found in
+% FT_PREAMBLE_LOADVAR. The code that deals with tracking the information about the
+% output data structures is found in FT_POSTAMBLE_HISTORY.
+%
+% Use as
+%   ft_preamble provenance
+%
+% See also FT_PREAMBLE_PROVENANCE
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -27,7 +32,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_provenance.m 8070 2013-04-24 13:38:40Z roevdmei $
+% $Id: ft_postamble_provenance.m 9561 2014-05-21 06:50:39Z roboos $
 
 % the name of the variables are passed in the preamble field
 global ft_default

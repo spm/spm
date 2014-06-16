@@ -2,6 +2,9 @@
 % help in case the user did not specify any input argument. This can be
 % used in all fieldtrip main functions that take at least a cfg input
 % argument, and most also take one or multiple data structures.
+%
+% Use as
+%   ft_preamble init
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -21,7 +24,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_init.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_preamble_init.m 9561 2014-05-21 06:50:39Z roboos $
 
 if nargin==0
   stack = dbstack('-completenames');

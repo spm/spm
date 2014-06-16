@@ -1,5 +1,5 @@
 % FT_POSTAMBLE_SAVEVAR is a helper script that optionally saves the output
-% fieldtrip data structures to a mat file on disk. This is useful for
+% FieldTrip data structures to a *.mat file on disk. This is useful for
 % batching and for distributed processing. This makes use of the
 % cfg.outputfile variable.
 %
@@ -27,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_savevar.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_postamble_savevar.m 9561 2014-05-21 06:50:39Z roboos $
 
 global ft_default
 

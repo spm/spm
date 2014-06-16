@@ -98,7 +98,7 @@ function [stat, cfg] = ft_statistics_montecarlo(cfg, dat, design, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_montecarlo.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_statistics_montecarlo.m 9613 2014-06-10 13:51:24Z eelspa $
 
 % deal with the user specified randomseed first, to mimick old behavior
 cfg.randomseed = ft_getopt(cfg, 'randomseed', 'yes');
@@ -174,6 +174,10 @@ if strcmp(cfg.correctm, 'cluster')
       if isfield(cfg, 'insideorig')
         cfg.connectivity = cfg.connectivity(cfg.insideorig, cfg.insideorig);
       end
+    elseif isfield(cfg, 'avgoverchan') && istrue(cfg.avgoverchan)
+      % channel dimension has been averaged across, no sense in clustering
+      % across space
+      cfg.connectivity = true(1);
     elseif isfield(cfg, 'channel')
       cfg.neighbours   = ft_getopt(cfg, 'neighbours', []);
       cfg.connectivity = channelconnectivity(cfg);

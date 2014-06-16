@@ -1,6 +1,12 @@
 function [varargout] = ft_selectdata_new(cfg, varargin)
 
-% FT_SELECTDATA makes a selection in the input data along specific data
+% FT_SELECTDATA_NEW is deprecated, please use FT_SELECTDATA instead.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Old documentation for reference
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% This function makes a selection in the input data along specific data
 % dimensions, such as channels, time, frequency, trials, etc. It can also
 % be used to average the data along each of the specific dimensions.
 %
@@ -57,7 +63,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 9476 2014-05-11 06:26:39Z roboos $
+% $Id: ft_selectdata_new.m 9620 2014-06-12 17:35:59Z roboos $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error

@@ -11,7 +11,7 @@ function [s] = ft_statfun_diff(cfg, dat, design)
 % permutation test, without having to worry about the representation
 % of the data.
 %
-% See also STATFUN_MEAN for an other example function
+% See also FT_STATFUN_MEAN for an other example function
 
 % Copyright (C) 2006, Robert Oostenveld 
 %
@@ -31,7 +31,7 @@ function [s] = ft_statfun_diff(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_diff.m 8736 2013-11-07 21:17:32Z roboos $
+% $Id: ft_statfun_diff.m 9560 2014-05-20 20:38:42Z dieloz $
 
 selA = find(design(cfg.ivar,:)==1); % selecton condition 1 or A
 selB = find(design(cfg.ivar,:)==2); % selecton condition 2 or B

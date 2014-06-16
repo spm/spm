@@ -45,9 +45,9 @@ function cfg = ft_interactiverealign(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interactiverealign.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_interactiverealign.m 9618 2014-06-12 13:27:35Z roboos $
 
-revision = '$Id: ft_interactiverealign.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_interactiverealign.m 9618 2014-06-12 13:27:35Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -195,6 +195,7 @@ function cb_redraw(hObject, eventdata, handles)
 fig        = get(hObject, 'parent');
 individual = getappdata(fig, 'individual');
 template   = getappdata(fig, 'template');
+transform  = getappdata(fig, 'transform');
 
 % get the transformation details
 rx = str2double(get(findobj(fig, 'tag', 'rx'), 'string'));
@@ -211,6 +212,8 @@ R = rotate   ([rx ry rz]);
 T = translate([tx ty tz]);
 S = scale    ([sx sy sz]);
 H = S * T * R;
+% combine the present transform according to the GUI with the one that has been previously applied
+transform = H * transform;
 
 axis vis3d; cla
 xlabel('x')
@@ -221,16 +224,16 @@ hold on
 
 % the "individual" struct is a local copy, so it is safe to change it here
 if ~isempty(individual.vol)
-  individual.vol = ft_transform_vol(H, individual.vol);
+  individual.vol = ft_transform_vol(transform, individual.vol);
 end
 if ~isempty(individual.elec)
-  individual.elec = ft_transform_sens(H, individual.elec);
+  individual.elec = ft_transform_sens(transform, individual.elec);
 end
 if ~isempty(individual.grad)
-  individual.grad = ft_transform_sens(H, individual.grad);
+  individual.grad = ft_transform_sens(transform, individual.grad);
 end
 if ~isempty(individual.headshape)
-  individual.headshape = ft_transform_headshape(H, individual.headshape);
+  individual.headshape = ft_transform_headshape(transform, individual.headshape);
 end
 
 if ~isempty(template.elec)

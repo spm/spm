@@ -118,9 +118,9 @@ function [source] = ft_dipolefitting(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_dipolefitting.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_dipolefitting.m 9591 2014-05-27 20:37:46Z roboos $
 
-revision = '$Id: ft_dipolefitting.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_dipolefitting.m 9591 2014-05-27 20:37:46Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -136,7 +136,7 @@ if abort
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', {'comp', 'timelock', 'freq'}, 'feedback', 'yes');
 
 % set the defaults
 if ~isfield(cfg, 'channel'),     cfg.channel = 'all';        end

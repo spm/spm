@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9547 2014-05-16 19:13:12Z roboos $
+% $Id: topoplot_common.m 9564 2014-05-21 09:24:50Z roboos $
 
-revision = '$Id: topoplot_common.m 9547 2014-05-16 19:13:12Z roboos $';
+revision = '$Id: topoplot_common.m 9564 2014-05-21 09:24:50Z roboos $';
 
 % do the general setup of the function, path of this was already done in the
 % ft_topoplotER or ft_topoplotTFR function that wraps around this one
@@ -77,7 +77,7 @@ if Ndata>1 && ~isnumeric(varargin{end})
 end
 
 data = varargin{indx};
-data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'});
+data = ft_checkdata(data, 'datatype', {'comp', 'timelock', 'freq'});
 
 % check for option-values to be renamed
 cfg = ft_checkconfig(cfg, 'renamedval', {'electrodes',   'dotnum',      'numbers'});
@@ -535,10 +535,8 @@ end
 % Make vector dat with one value for each channel
 dat    = data.(cfg.parameter);
 % get dimord dimensions
-dims = textscan(data.dimord,'%s', 'Delimiter', '_');
-dims = dims{1};
-ydim = find(strcmp(yparam, dims));
-xdim = find(strcmp(xparam, dims));
+ydim = find(strcmp(yparam, dimtok{1}));
+xdim = find(strcmp(xparam, dimtok{1}));
 zdim = setdiff(1:ndims(dat), [ydim xdim]);
 % and permute
 dat = permute(dat, [zdim(:)' ydim xdim]);

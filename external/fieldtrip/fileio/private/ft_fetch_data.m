@@ -27,10 +27,13 @@ function [dat] = ft_fetch_data(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_data.m 8436 2013-08-29 09:48:16Z roboos $
+% $Id: ft_fetch_data.m 9605 2014-06-05 10:55:43Z eelspa $
 
 % check whether input is data
-data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
+skipcheckdata = ft_getopt(varargin, 'skipcheckdata');
+if isempty(skipcheckdata) || skipcheckdata ~= 1
+  data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
+end
 
 % get the options
 hdr          = ft_getopt(varargin, 'header');

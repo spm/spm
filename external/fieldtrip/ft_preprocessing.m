@@ -78,6 +78,7 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.hilbert       = 'no', 'abs', 'complex', 'real', 'imag', 'absreal', 'absimag' or 'angle' (default = 'no')
 %   cfg.rectify       = 'no' or 'yes' (default = 'no')
 %   cfg.precision     = 'single' or 'double' (default = 'double')
+%   cfg.absdiff       = 'no' or 'yes', computes absolute derivative (i.e.first derivative then rectify)
 %
 % Preprocessing options that you should only use for EEG data are
 %   cfg.reref         = 'no' or 'yes' (default = 'no')
@@ -147,9 +148,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_preprocessing.m 9602 2014-06-05 10:25:47Z eelspa $
 
-revision = '$Id: ft_preprocessing.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_preprocessing.m 9602 2014-06-05 10:25:47Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -244,7 +245,7 @@ if hasdata
   convert = ft_datatype(data);
   
   % check if the input data is valid for this function, the input data must be raw
-  data = ft_checkdata(data, 'datatype', 'raw', 'hassampleinfo', 'yes');
+  data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'hassampleinfo', 'yes');
   
   % check if the input cfg is valid for this function
   cfg = ft_checkconfig(cfg, 'forbidden',   {'trl', 'dataset', 'datafile', 'headerfile'});

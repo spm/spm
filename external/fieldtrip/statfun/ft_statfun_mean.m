@@ -12,7 +12,7 @@ function [stat] = ft_statfun_mean(cfg, dat, design)
 % structure, that contains the result of the computation inside this
 % function in the stat field.
 %
-% See also STATFUN_DIFF for an other simple example statfun
+% See also FT_STATFUN_DIFF for an other simple example statfun
 
 % Copyright (C) 2012, Donders Centre for Cognitive Neuroimaging, Nijmegen, NL
 %
@@ -32,7 +32,7 @@ function [stat] = ft_statfun_mean(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_mean.m 8736 2013-11-07 21:17:32Z roboos $
+% $Id: ft_statfun_mean.m 9560 2014-05-20 20:38:42Z dieloz $
 
 stat = mean(dat,2);
 

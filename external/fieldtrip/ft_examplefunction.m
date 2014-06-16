@@ -3,7 +3,7 @@ function dataout = ft_examplefunction(cfg, datain)
 % FT_EXAMPLEFUNCTION demonstrates to new developers how a FieldTrip function should look like
 %
 % Use as
-%  outdata = ft_examplefunction(cfg, indata) 
+%   outdata = ft_examplefunction(cfg, indata) 
 % where indata is <<describe the type of data or where it comes from>> 
 % and cfg is a configuration structure that should contain 
 %
@@ -29,13 +29,13 @@ function dataout = ft_examplefunction(cfg, datain)
 % Here come the Copyrights
 %
 % Here comes the Revision tag, which is auto-updated by the version control system
-% $Id: ft_examplefunction.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_examplefunction.m 9587 2014-05-23 11:11:25Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_examplefunction.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_examplefunction.m 9587 2014-05-23 11:11:25Z roboos $';
 
 % do the general setup of the function
 
@@ -58,7 +58,7 @@ end
 % ensure that the input data is valid for this function, this will also do 
 % backward-compatibility conversions of old data that for example was 
 % read from an old *.mat file
-datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
+datain = ft_checkdata(datain, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes', 'hasoffset', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'deprecated',  {'normalizecov', 'normalizevar'});

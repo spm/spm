@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 9534 2014-05-15 06:38:16Z roboos $
+% $Id: ft_chantype.m 9629 2014-06-16 08:52:41Z roboos $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -261,6 +261,9 @@ elseif ft_senstype(input, 'ctf') && isheader
   end
   for sel=find(origSensType(:)==11)'
     type{sel} = 'trigger';
+  end
+  for sel=find(origSensType(:)==17)'
+    type{sel} = 'clock';
   end
   for sel=find(origSensType(:)==9)'
     type{sel} = 'eeg';

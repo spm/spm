@@ -55,9 +55,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_appenddata.m 9627 2014-06-14 14:44:16Z eelspa $
 
-revision = '$Id: ft_appenddata.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_appenddata.m 9627 2014-06-14 14:44:16Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -74,7 +74,7 @@ end
 
 % check if the input data is valid for this function
 for i=1:length(varargin)
-  varargin{i} = ft_checkdata(varargin{i}, 'datatype', 'raw', 'feedback', 'no');
+  varargin{i} = ft_checkdata(varargin{i}, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'no');
 end
 
 % determine the dimensions of the data
@@ -268,10 +268,10 @@ elseif catlabel
     data.label = cat(1, data.label(:), varargin{i}.label(:));
     
     % check whether the trialinfo and sampleinfo fields are consistent
-    if hassampleinfo && ~all(data.sampleinfo(:)==varargin{i}.sampleinfo(:))
+    if hassampleinfo && ~isequaln(data.sampleinfo, varargin{i}.sampleinfo)
       removesampleinfo = 1;
     end
-    if hastrialinfo && ~all(data.trialinfo(:)==varargin{i}.trialinfo(:))
+    if hastrialinfo && ~isequaln(data.trialinfo, varargin{i}.trialinfo)
       removetrialinfo = 1;
     end
   end
@@ -306,7 +306,7 @@ else
 end
 
 % some fields from the input should be copied over in the output
-copyfield = {'grad', 'elec', 'topo', 'topolabel', 'unmixing'};
+copyfield = {'grad', 'elec', 'topo', 'topolabel', 'unmixing', 'fsample'};
 for i=1:length(copyfield)
   if isfield(varargin{1}, copyfield{i})
     data.(copyfield{i}) = varargin{1}.(copyfield{i});

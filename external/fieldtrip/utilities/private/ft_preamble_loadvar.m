@@ -3,12 +3,15 @@
 % alternative to the user specifying the data structures as input variables
 % to the calling function. This makes use of the cfg.inputfile variable.
 %
+% Furthermore, this function computes the MD5 hash of the input data structures for
+% provenance.
+%
 % Use as
 %   ft_preamble loadvar data
 %   ft_preamble loadvar source mri
 %   ft_preamble loadvar varargin
 %
-% See also FT_POSTAMBLE_SAVEVAR
+% See also FT_POSTAMBLE_SAVEVAR, FT_PREAMBLE_PROVENANCE
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -28,7 +31,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_loadvar.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_preamble_loadvar.m 9561 2014-05-21 06:50:39Z roboos $
 
 % the name of the variables are passed in the preamble field
 global ft_default

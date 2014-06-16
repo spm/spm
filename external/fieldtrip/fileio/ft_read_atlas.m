@@ -43,7 +43,7 @@ function atlas = ft_read_atlas(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_atlas.m 9262 2014-03-07 08:37:39Z jansch $
+% $Id: ft_read_atlas.m 9612 2014-06-10 10:31:28Z jansch $
 
 % deal with multiple filenames
 if isa(filename, 'cell')
@@ -2072,12 +2072,26 @@ switch atlasformat
         sel = find(tmporig==key(m));
         if ~isempty(sel)
           cnt = cnt+1;
-          tmplabel{end+1,1} = label{m};
-          tmpnew(tmporig==key(m)) = cnt;
+          if any(strcmp(tmplabel,deblank(label{m})))
+            
+            % one feature of a gifti can be that the same labels can exist (and
+            % are treated as a different parcel) while they should be the same
+            % parcel, i.e. when there's an empty space at the end of the label
+            val = find(strcmp(tmplabel, deblank(label{m})));
+          else
+            % add as a new label
+            tmplabel{end+1,1} = label{m};
+            val = cnt;
+          end          
+          tmpnew(tmporig==key(m)) = val;
         end
       end
-      parcelfield = ['parcellation',num2str(k)];
       
+      if size(g.cdata,2)>1
+        parcelfield = ['parcellation',num2str(k)];
+      else
+        parcelfield = ['parcellation'];
+      end
       atlas.(parcelfield) = tmpnew;
       atlas.([parcelfield, 'label']) = tmplabel;    
     end

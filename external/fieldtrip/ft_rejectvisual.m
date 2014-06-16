@@ -102,13 +102,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_rejectvisual.m 9577 2014-05-21 20:01:00Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_rejectvisual.m 9577 2014-05-21 20:01:00Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -151,7 +151,7 @@ if ~isfield(cfg, 'viewmode'),    cfg.viewmode   = 'remove';    end
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function, this will convert it to raw if needed
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'hassampleinfo', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % for backward compatibility
 if ~isfield(cfg, 'metric') && any(strcmp(cfg.method, {'var', 'min', 'max', 'maxabs', 'range'}))

@@ -30,19 +30,19 @@ function data = ft_math(cfg, varargin)
 % if you specify one input argument and a scalar value.
 %
 % The operation 'divide' is implemented as follows
-%   y = x1 / x2
+%   y = x1 ./ x2
 % if you specify two input arguments, or as
 %   y = x1 / s
 % if you specify one input argument and a scalar value.
 %
 % The operation 'multiply' is implemented as follows
-%   y = x1 * x2
+%   y = x1 .* x2
 % if you specify two input arguments, or as
 %   y = x1 * s
 % if you specify one input argument and a scalar value.
 %
 % It is also possible to specify your own operation as a sting, like this
-%   cfg.operation = '(x1-x2)/(x1+x2)
+%   cfg.operation = '(x1-x2)/(x1+x2)'
 % or using 's' for the scalar value like this
 %   cfg.operation = '(x1-x2)^s'
 %
@@ -74,13 +74,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9525 2014-05-14 15:08:05Z roboos $
+% $Id: ft_math.m 9597 2014-06-03 08:03:58Z jorhor $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9525 2014-05-14 15:08:05Z roboos $';
+revision = '$Id: ft_math.m 9597 2014-06-03 08:03:58Z jorhor $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -153,7 +153,15 @@ if hastime
   data.time = varargin{1}.time;
 end
 if haspos
-  data.pos = varargin{1}.pos;
+  if isfield(varargin{1}, 'pos')
+    data.pos = varargin{1}.pos;
+  end
+  if isfield(varargin{1}, 'dim')
+    data.dim = varargin{1}.dim;
+  end
+  if isfield(varargin{1}, 'transform')
+    data.transform = varargin{1}.transform;
+  end
 end
 
 % use an anonymous function
@@ -289,6 +297,13 @@ else
       else
         y = x1 ./ varargin{2}.(cfg.parameter);
       end
+            
+    case 'log10'
+      if length(varargin)>2
+        error('the operation "%s" requires exactly 2 input arguments', cfg.operation);
+      end
+      fprintf('taking the log difference between the 2nd input argument and the 1st\n');
+      tmp = log10(tmp ./ varargin{2}.(cfg.parameter));
       
     otherwise
       % assume that the operation is descibed as a string, e.g. (x1-x2)/(x1+x2)

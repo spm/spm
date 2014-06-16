@@ -1,7 +1,14 @@
-% FT_POSTAMBLE_TRACKCONFIG is a helper script that requests ft_checkconfig
-% to switch off the (optional) configuration tracking and to report on the
-% used and unused options and/or clean up the output cfg structure. This
-% should be used together with FT_PREAMBLE_TRACKCONFIG.
+% FT_POSTAMBLE_TRACKCONFIG is a helper script that calls ft_checkconfig to switch the
+% (optional) configuration tracking off and to report on the used and unused options
+% and/or clean up the output cfg structure. This should be used together with
+% FT_PREAMBLE_TRACKCONFIG.
+%
+% Use as
+%   ft_preamble trackconfig
+%   ... regular code goes here ...
+%   ft_postamble trackconfig
+%
+% See also FT_PREAMBLE_TRACKCONFIG
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -21,7 +28,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_trackconfig.m 8389 2013-08-09 10:28:48Z jansch $
+% $Id: ft_postamble_trackconfig.m 9561 2014-05-21 06:50:39Z roboos $
 
 % otherwise the empty field would end up in the output cfg
 global ft_default

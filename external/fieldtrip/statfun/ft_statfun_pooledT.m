@@ -27,13 +27,19 @@ function [s] = ft_statfun_pooledT(cfg, dat, design)
 %   [stat] = ft_freqstatistics(cfg, freq1, freq2, ...)
 %   [stat] = ft_sourcestatistics(cfg, source1, source2, ...)
 % with the following configuration option
-%   cfg.statistic = 'pooledT'
+%   cfg.statistic = 'ft_statfun_pooledT'
 %
 % Configuration options that are relevant for this function are
 %   cfg.ivar      = number, index into the design matrix with the independent variable
 %
-% See FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS or FT_SOURCESTATISTICS
-% for details.
+% See FT_TIMELOCKSTATISTICS, FT_FREQSTATISTICS or FT_SOURCESTATISTICS for details.
+%
+% For low-level use, the external interface of this function has to be
+%   [s,cfg] = ft_statfun_pooledT(cfg, dat, design);
+% where
+%   dat    contains the biological data, Nsamples x Nreplications
+%          dat must contain fourier representations. 
+%   design contains the independent variable (ivar), Nreplications x Nvar
 
 % Copyright (C) 2007, Robert Oostenveld
 %
@@ -53,7 +59,7 @@ function [s] = ft_statfun_pooledT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_pooledT.m 8736 2013-11-07 21:17:32Z roboos $
+% $Id: ft_statfun_pooledT.m 9560 2014-05-20 20:38:42Z dieloz $
 
 
 selA = find(design(cfg.ivar,:)==1);

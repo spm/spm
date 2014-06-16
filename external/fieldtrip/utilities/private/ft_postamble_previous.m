@@ -1,5 +1,5 @@
 % FT_POSTAMBLE_PREVIOUS adds the cfg structure from the input data
-% structure(s) to the current configuration structure as cfg.previous
+% structure or structures to the current configuration structure.
 %
 % Use as
 %   ft_postamble previous inputvar
@@ -24,7 +24,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_postamble_previous.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_postamble_previous.m 9561 2014-05-21 06:50:39Z roboos $
 
 global ft_default
 

@@ -42,7 +42,7 @@ function chanunit = ft_chanunit(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 8932 2013-12-02 10:01:25Z roboos $
+% $Id: ft_chanunit.m 9629 2014-06-16 08:52:41Z roboos $
 
 % determine the type of input, this is handled similarly as in FT_CHANTYPE
 isheader =  isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
@@ -155,6 +155,7 @@ elseif ft_senstype(input, 'ctf') && isfield(input, 'chantype')
   chanunit(strcmp('meggrad',          input.chantype)) = {'T'};
   chanunit(strcmp('refmag',           input.chantype)) = {'T'};
   chanunit(strcmp('refgrad',          input.chantype)) = {'T'};
+  chanunit(strcmp('clock',            input.chantype)) = {'s'}; % seconds
   
 elseif ft_senstype(input, 'yokogawa') && isfield(input, 'chantype')
   chanunit(strcmp('meggrad',          input.chantype)) = {'T'};

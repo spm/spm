@@ -1,6 +1,7 @@
 function data = ft_removetmsartifact(cfg, data)
 
 % FT_REMOVETMSARTIFACT removes TMS artifacts from EEG data
+%
 % %% NOTE: Please be aware that this function is deprecated. Please follow
 %          the TMS-EEG tutorial instead
 %          (http://fieldtrip.fcdonders.nl/tutorial/tms-eeg).
@@ -47,7 +48,7 @@ function data = ft_removetmsartifact(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetmsartifact.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_removetmsartifact.m 9587 2014-05-23 11:11:25Z roboos $
 
 % DEPRECATED by jimher on 19 September 2013
 % see http://bugzilla.fcdonders.nl/show_bug.cgi?id=1791 for more details
@@ -58,7 +59,7 @@ warning('FT_REMOVETMSARTIFACT is deprecated, please follow TMS-EEG tutorial inst
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetmsartifact.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_removetmsartifact.m 9587 2014-05-23 11:11:25Z roboos $';
 
 % do the general setup of the function
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available

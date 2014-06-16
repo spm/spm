@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 9194 2014-02-11 20:39:09Z arjsto $
+% $Id: dipole_fit.m 9601 2014-06-05 07:48:33Z eelspa $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -86,7 +86,7 @@ constr         = ft_getopt(varargin, 'constr'         ); % default is not to hav
 metric         = ft_getopt(varargin, 'metric',    'rv');
 checkinside    = ft_getopt(varargin, 'checkinside', false);
 display        = ft_getopt(varargin, 'display', 'iter');
-optimfun       = ft_getopt(varargin, 'optimfun'       ); if isa(optimfun, 'char'),  optimfun = str2fun(optimfun); end
+optimfun       = ft_getopt(varargin, 'optimfun'       ); if isa(optimfun, 'char'),  optimfun = str2func(optimfun); end
 maxiter        = ft_getopt(varargin, 'maxiter'        );
 reducerank     = ft_getopt(varargin, 'reducerank'     ); % for leadfield computation
 normalize      = ft_getopt(varargin, 'normalize'      ); % for leadfield computation

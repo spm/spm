@@ -67,9 +67,9 @@ function [data] = ft_resampledata(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_resampledata.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_resampledata.m 9576 2014-05-21 15:23:45Z roboos $
 
-revision = '$Id: ft_resampledata.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_resampledata.m 9576 2014-05-21 15:23:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -102,7 +102,7 @@ if ~isfield(cfg, 'method'),     cfg.method     = 'pchip'; end  % interpolation m
 convert = ft_datatype(data);
   
 % check if the input data is valid for this function, this will convert it to raw if needed
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes');
   
 if isempty(cfg.detrend)
   error('The previous default to apply detrending has been changed. Recommended is to apply a baseline correction instead of detrending. See the help of this function for more details.');

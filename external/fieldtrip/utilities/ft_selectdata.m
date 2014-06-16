@@ -1,5 +1,6 @@
 function [varargout] = ft_selectdata(varargin)
 
+% FT_SELECTDATA makes a selection in the input data along specific data
 % dimensions, such as channels, time, frequency, trials, etc. It can also
 % be used to average the data along each of the specific dimensions.
 %
@@ -67,7 +68,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9478 2014-05-11 08:12:36Z roboos $
+% $Id: ft_selectdata.m 9611 2014-06-10 07:36:31Z eelspa $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -159,11 +160,17 @@ for i=1:length(orgdim1)
 end
 
 dimord = cell(size(datfield));
-datsiz = cell(size(datfield));
 for i=1:length(datfield)
   dimord{i} = getdimord(varargin{1}, datfield{i});
-  datsiz{i} = getdimsiz(varargin{1}, datfield{i});
 end
+
+% do not consider fields of which the dimensions are unknown
+sel = cellfun(@isempty, regexp(dimord, 'unknown'));
+for i=find(~sel)
+  fprintf('not including "%s" in selection\n', datfield{i});
+end
+datfield = datfield(sel);
+dimord   = dimord(sel);
 
 % determine all dimensions that are present in all data fields
 dimtok = {};

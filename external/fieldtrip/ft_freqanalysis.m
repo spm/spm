@@ -185,7 +185,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 9545 2014-05-16 17:33:31Z dieloz $';
+revision = '$Id: ft_freqanalysis.m 9564 2014-05-21 09:24:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -206,7 +206,7 @@ cfg.inputlock  = ft_getopt(cfg, 'inputlock',  []);  % this can be used as mutex 
 cfg.outputlock = ft_getopt(cfg, 'outputlock', []);  % this can be used as mutex when doing distributed computation
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'raw', 'comp', 'mvar'}, 'feedback', cfg.feedback, 'hassampleinfo', 'yes');
+data = ft_checkdata(data, 'datatype', {'raw', 'raw+comp', 'mvar'}, 'feedback', cfg.feedback, 'hassampleinfo', 'yes');
 
 % select trials of interest
 cfg.trials = ft_getopt(cfg, 'trials', 'all');

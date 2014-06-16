@@ -1,6 +1,13 @@
-% FT_PREAMBLE_TRACKCONFIG is a helper script that calls ft_checkconfig to
-% switch the (optional) configuration tracking on. This should be used
-% together with FT_POSTAMBLE_TRACKCONFIG.
+% FT_PREAMBLE_TRACKCONFIG is a helper script that calls ft_checkconfig to switch the
+% (optional) configuration tracking on. This should be used together with
+% FT_POSTAMBLE_TRACKCONFIG.
+%
+% Use as
+%   ft_preamble trackconfig
+%   ... regular code goes here ...
+%   ft_postamble trackconfig
+%
+% See also FT_POSTAMBLE_TRACKCONFIG
 
 % Copyright (C) 2011-2012, Robert Oostenveld, DCCN
 %
@@ -20,7 +27,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_trackconfig.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_preamble_trackconfig.m 9561 2014-05-21 06:50:39Z roboos $
 
 % otherwise the empty field would end up in the output cfg
 global ft_default

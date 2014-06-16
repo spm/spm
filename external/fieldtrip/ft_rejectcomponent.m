@@ -52,9 +52,9 @@ function [data] = ft_rejectcomponent(cfg, comp, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectcomponent.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_rejectcomponent.m 9564 2014-05-21 09:24:50Z roboos $
 
-revision = '$Id: ft_rejectcomponent.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_rejectcomponent.m 9564 2014-05-21 09:24:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -82,18 +82,20 @@ nargin = nargin + exist('data', 'var');
 if nargin==3
   % check if the input data is valid for this function
   data    = ft_checkdata(data, 'datatype', 'raw');
+  comp    = ft_checkdata(comp, 'datatype', 'comp');
   label   = data.label;
-  hasdata = 1;
   nchans  = length(data.label);
+  ncomps  = length(comp.label);
+  hasdata = 1;
 elseif nargin==2
+  % check if the input data is valid for this function
+  comp    = ft_checkdata(comp, 'datatype', 'raw+comp');
   label   = comp.topolabel;
+  ncomps  = length(comp.label);
   hasdata = 0;
 else
   error('incorrect number of input arguments');
 end
-
-comp    = ft_checkdata(comp, 'datatype', 'comp');
-ncomps  = length(comp.label);
 
 if min(cfg.component)<1
   error('you cannot remove components that are not present in the data');

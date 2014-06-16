@@ -77,9 +77,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_volumelookup.m 9595 2014-05-29 09:09:23Z roboos $
 
-revision = '$Id: ft_volumelookup.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_volumelookup.m 9595 2014-05-29 09:09:23Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -312,10 +312,12 @@ elseif mask2label
     fn = fn(isboolean);
     isindexed = 0;
   end
-  sel   = find(volume.(cfg.maskparameter)(:));
+  sel = find(volume.(cfg.maskparameter)(:));
   labels.name = cell(0,1);
   for k = 1:numel(fn)
-    labels.name = cat(1, labels.name, atlas.([fn{k},'label']));
+    % ensure that they are concatenated as column
+    tmp = atlas.([fn{k},'label']);
+    labels.name = cat(1, labels.name(:), tmp(:));
   end
   labels.name{end+1} = 'no_label_found';
   labels.count = zeros(length(labels.name),1);

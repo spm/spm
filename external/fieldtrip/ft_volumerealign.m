@@ -157,9 +157,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_volumerealign.m 9619 2014-06-12 13:48:32Z roboos $
 
-revision = '$Id: ft_volumerealign.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_volumerealign.m 9619 2014-06-12 13:48:32Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -668,9 +668,9 @@ switch cfg.method
     
     if dointeractive,
       tmpcfg                       = [];
-      tmpcfg.template.elec         = shape;
+      tmpcfg.template.elec         = shape;     % this is the Polhemus recorded headshape
       tmpcfg.template.elec.chanpos = shape.pnt;
-      tmpcfg.individual.headshape  = scalp;
+      tmpcfg.individual.headshape  = scalp;     % this is the headshape extracted from the anatomical MRI
       tmpcfg.individual.headshapestyle = 'surface';
       tmpcfg = ft_interactiverealign(tmpcfg);
       M      = tmpcfg.m;

@@ -44,13 +44,13 @@ function dataout = ft_interpolatenan(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_interpolatenan.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_interpolatenan.m 9564 2014-05-21 09:24:50Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_interpolatenan.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_interpolatenan.m 9564 2014-05-21 09:24:50Z roboos $';
 
 % do the general setup of the function
 ft_defaults                 % this ensures that the path is correct and that the ft_defaults global variable is available
@@ -66,7 +66,7 @@ if abort
 end
 
 % check if the input data is valid for this function
-datain = ft_checkdata(datain, 'datatype', {'raw', 'comp'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
+datain = ft_checkdata(datain, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
 
 % check if the input is valid
 cfg             = ft_checkconfig(cfg, 'allowedval',{'method','nearest','linear','spline','pchip','cubic','v5cubic'});

@@ -69,7 +69,7 @@ function factor = scalingfactor(old, new)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: scalingfactor.m 9497 2014-05-12 09:51:43Z jorhor $
+% $Id: scalingfactor.m 9631 2014-06-16 10:55:43Z vlalit $
 
 persistent previous_old previous_new previous_factor
 
@@ -84,7 +84,7 @@ if ~isequal(class(old), class(new))
 end
 
 if iscell(old)
-  factor = cellfun(@scalingfactor, old, new);
+  factor = cellfun(@scalingfactor, old(:), new(:));
   return
 end
 
