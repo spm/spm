@@ -11,7 +11,7 @@ function spm_eeg_var_measures
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_var_measures.m 5614 2013-08-15 12:15:16Z vladimir $
+% $Id: spm_eeg_var_measures.m 6047 2014-06-16 11:11:22Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','MEEGtoools VAR measures', 0);
 
@@ -43,6 +43,7 @@ if strcmp(D.type, 'continuous')
     trldur = spm_input('Input trial length in sec)', '+1', 'r', '2', 1);
     
     cfg = [];
+    cfg.trackcallinfo  = 'no';
     cfg.dataset = fullfile(D.path, D.fname);
     cfg.channel= chan;
     cfg.trl = 1:round(trldur*D.fsample):D.nsamples;
@@ -81,11 +82,13 @@ cfg=[];
 cfg.channel = chan;
 cfg.resamplefs = 250;
 cfg.detrend = 'yes';
+cfg.trackcallinfo  = 'no';
 data = ft_resampledata(cfg, data);
 %%
 cfg =[];
 cfg.channel = chan;
 cfg.keeptrials = 'yes';
+cfg.trackcallinfo  = 'no';
 data= ft_timelockanalysis(cfg, data);
 
 Ntrials=size(data.trial,1);
@@ -100,6 +103,7 @@ cfg.taper = 'dpss';
 cfg.method = 'mtmfft';
 cfg.foilim     = [0 100]; % Frequency range
 cfg.tapsmofrq = 1; % Frequency resolution
+cfg.trackcallinfo  = 'no';
 %
 inp = ft_freqanalysis(cfg, data);
 

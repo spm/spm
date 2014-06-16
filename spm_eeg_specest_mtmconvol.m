@@ -25,7 +25,7 @@ function res = spm_eeg_specest_mtmconvol(S, data, time)
 %______________________________________________________________________________________
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_eeg_specest_mtmconvol.m 6020 2014-05-27 16:38:54Z vladimir $
+% $Id: spm_eeg_specest_mtmconvol.m 6047 2014-06-16 11:11:22Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_tf
@@ -141,7 +141,7 @@ if length(unique(diff(timeoi)))>1 && max(abs(diff(unique(diff(timeoi)))))>1e-6
     error('Non-uniform output time axis')
 end
 
-if length(unique(diff(freqoi)))>1 && max(abs(diff(unique(diff(freqoi)))))>1e-3
+if length(unique(diff(freqoi)))>1 && max(abs(diff(unique(diff(freqoi)))))>1e-2
     error('Non-uniform output frequency axis')
 end
 
