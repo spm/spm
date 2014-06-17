@@ -66,7 +66,7 @@ function [CVA] = spm_cva(Y,X,X0,c,U)
 % Copyright (C) 2006-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_cva.m 5780 2013-12-05 11:36:03Z guillaume $
+% $Id: spm_cva.m 6053 2014-06-17 15:38:32Z adeel $
 
 
 if nargin < 3, X0 = [];             end
@@ -81,6 +81,11 @@ if any(any(X0))
     X0 = spm_svd(X0);
 end
 
+%-Remove null space of contrast
+%--------------------------------------------------------------------------
+Y     = Y - X0*(X0'*Y);
+X     = X - X0*(X0'*X);
+P     = pinv(X);
 
 %-Dimension reduction (if necessary)
 %==========================================================================
@@ -100,15 +105,8 @@ else
 end
 Y     = Y*U;
 
-
 %-Canonical Variates Analysis
 %==========================================================================
-
-%-Remove null space of contrast
-%--------------------------------------------------------------------------
-Y     = Y - X0*(X0'*Y);
-X     = X - X0*(X0'*X);
-P     = pinv(X);
 
 %-Degrees of freedom
 %--------------------------------------------------------------------------
