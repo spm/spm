@@ -35,14 +35,16 @@ function [family,model] = spm_compare_families (lme,family)
 %                - FFX only: 
 %                   .subj_lme      log model ev without subject effects
 %                   .prior         model priors
-%                   .like          model likelihoods
+%                   .like          model likelihoods 
+%                                  (likelihood scaled to unity for most
+%                                  likely model)
 %                   .posts         model posteriors
 %
 %__________________________________________________________________________
 % Copyright (C) 2009 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_compare_families.m 5465 2013-05-03 17:18:18Z will $
+% $Id: spm_compare_families.m 6052 2014-06-17 09:38:13Z will $
 
 try
     infer=family.infer;
@@ -106,33 +108,21 @@ if strcmp(infer,'FFX')
         model.prior(i)=1/fam_size(partition(i));
     end
     
-    % Ensure all log model evidence differences and sums thereof
-    % are within machine range
-    Ni=size(lme,1);
-    lme=lme-(max(lme,[],2))*ones(1,N);
-    max_val = log(realmax('double'));
-    sub_max_val = max_val/N;
-    
-    for i=1:Ni,
-        for k = 1:N,
-            lme(i,k) = sign(lme(i,k)) * min(sub_max_val,abs(lme(i,k)));
-        end
-    end
-    sumlme=sum(lme,1);
+    slme=sum(lme,1);
+    slme=slme-(max(slme,[],2))*ones(1,N);
     
     % Model likelihoods
-    model.subj_lme=lme;
-    model.like=exp(sumlme);
+    model.subj_lme=slme;
+    model.like=exp(slme);
     
     % Model posterior
     num=model.prior.*model.like;
     model.post=num/sum(num);
     
     % Family posterior
-    sumlme=sumlme-min(sumlme);
     for i=1:K,
-        family.post(i)=sum(model.post(ind{i}));
         family.like(i)=sum(model.like(ind{i}));
+        family.post(i)=sum(model.post(ind{i}));
     end
     return;
 end
