@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_orthviews.m 6055 2014-06-18 11:10:08Z guillaume $
 
 
 % The basic fields of st are:
@@ -566,8 +566,8 @@ for i=1:3
     d  = image(0, 'Tag','Transverse', 'Parent',ax, 'DeleteFcn',DeleteFcn);
     set(ax, 'Ydir','normal', 'ButtonDownFcn',@repos_start);
     
-    lx = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn);
-    ly = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn);
+    lx = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn, 'Color',[0 0 1]);
+    ly = line(0,0, 'Parent',ax, 'DeleteFcn',DeleteFcn, 'Color',[0 0 1]);
     if ~st.xhairs
         set(lx, 'Visible','off');
         set(ly, 'Visible','off');
