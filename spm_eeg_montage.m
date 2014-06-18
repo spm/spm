@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6046 2014-06-16 10:58:27Z vladimir $
+% $Id: spm_eeg_montage.m 6054 2014-06-18 10:34:09Z vladimir $
 
-SVNrev = '$Rev: 6046 $';
+SVNrev = '$Rev: 6054 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -287,9 +287,11 @@ switch S.mode
                     ctype(i) = upper(montage.chantypenew(i));
                 end
             end
+            
+            Dnew = chantype(Dnew, ':', ctype);
         end
         
-        Dnew = chantype(Dnew, ':', ctype);
+
                 
         
         %-Apply montage to sensors
