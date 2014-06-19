@@ -35,10 +35,10 @@ onsets = [];
 lengths = [];
 for i = 1:numel(vars)
     fsample(i) = round(1./vars{i}.interval);
-    onsets(i)  = 1e-3*round(1e3*vars{i}.times(1));
+    %onsets(i)  = 1e-3*round(1e3*vars{i}.times(1));
     lengths(i) = vars{i}.length;
     header.label{i} = vars{i}.title;
-    header.orig{i} = rmfield(vars{i}, {'values', 'times'});
+    header.orig{i} = rmfield(vars{i}, {'values'});
 end
 
 if length(unique(fsample))>1 || length(unique(onsets))>1 || length(unique(lengths))>1
@@ -49,7 +49,7 @@ header.Fs          = unique(fsample);
     
 header.nSamples    = unique(lengths);
 
-header.nSamplesPre = -round(unique(onsets)*header.Fs);
+header.nSamplesPre = 0;% -round(unique(onsets)*header.Fs);
 
 header.nTrials     = 1;
 

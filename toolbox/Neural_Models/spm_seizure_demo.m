@@ -1,4 +1,4 @@
-function spm_seizure_demo
+%function spm_seizure_demo
 % Demo routine for local field potential models
 %==========================================================================
 % 
@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 5966 2014-04-25 14:37:59Z karl $ 
+% $Id: spm_seizure_demo.m 6058 2014-06-19 11:55:22Z vladimir $ 
  
 
 % Model specification

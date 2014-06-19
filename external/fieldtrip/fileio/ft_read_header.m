@@ -1418,8 +1418,8 @@ switch headerformat
         end
         % no error message from fiff_setup_read_raw? Then maxshield
         % was applied, but maxfilter wasn't, so return this error:
-        error(['Maxshield data has not had maxfilter applied to it - cannot be read by fieldtrip. ' ...
-          'Apply Neuromag maxfilter before converting to fieldtrip format.']);
+%         error(['Maxshield data has not had maxfilter applied to it - cannot be read by fieldtrip. ' ...
+%           'Apply Neuromag maxfilter before converting to fieldtrip format.']);
       end
       hdr.nSamples    = raw.last_samp - raw.first_samp + 1; % number of samples per trial
       hdr.nSamplesPre = 0;

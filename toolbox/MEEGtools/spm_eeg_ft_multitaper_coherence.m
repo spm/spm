@@ -33,10 +33,10 @@ function Dcoh = spm_eeg_ft_multitaper_coherence(S)
 % Copyright (C) 2008 Institute of Neurology, UCL
 
 % Vladimir Litvak
-% $Id: spm_eeg_ft_multitaper_coherence.m 5880 2014-02-14 14:15:05Z vladimir $
+% $Id: spm_eeg_ft_multitaper_coherence.m 6058 2014-06-19 11:55:22Z vladimir $
 
 %%
-SVNrev = '$Rev: 5880 $';
+SVNrev = '$Rev: 6058 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -268,8 +268,8 @@ for j = 1:np
         end
 
         if ~robust
-            Dcoh(j, :, :, i) = shiftdim(spm_squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
-                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :)))), 2), -1);
+            Dcoh(j, :, :, i) = spm_squeeze(abs(mean(freq.crsspctrm(w, crossind, :, :))./...
+                sqrt(mean(freq.powspctrm(w, powind(1), :, :)).*mean(freq.powspctrm(w, powind(2), :, :)))), 2);
         else
             if bycondition
                 [Y, W] = spm_robust_average(permute(cat(4, spm_squeeze(abs(freq.crsspctrm(w, crossind , :, :)), 2),...

@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_flat(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_flat.m 6035 2014-06-03 22:32:20Z vladimir $
+% $Id: spm_eeg_artefact_flat.m 6058 2014-06-19 11:55:22Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -51,7 +51,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 6035 $';
+SVNrev = '$Rev: 6058 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -111,12 +111,23 @@ elseif isequal(S.mode, 'mark')
                 tmp  = find(dat);
                 diffs = diff([0 tmp D.nsamples]);
                 onsets = find(diffs>=seqlength);
+                
+                onsetsamples = [];
+                if any(onsets == 1);
+                    onsetsamples = 1;
+                    onsets(1)    = [];
+                    onsetsamples = [onsetsamples tmp(onsets-1)+1];
+                    onsets       = [1 onsets];
+                else
+                   onsetsamples = [onsetsamples tmp(onsets-1)+1];
+                end                   
+                                                   
                 k = 1;
                 m = 1;
                 while k<=length(onsets)
                     if m <= length(onsets)
-                        ind1 = onsets(k);
-                        ind2 = onsets(m) + diffs(onsets(m));
+                        ind1 = onsetsamples(k);
+                        ind2 = onsetsamples(m) + diffs(onsets(m))-1;
                         if ind2 > length(dat)
                             ind2 = length(dat);
                         end
@@ -129,27 +140,27 @@ elseif isequal(S.mode, 'mark')
                             
                             res(end+1).type   = 'artefact_flat';
                             res(end).value    = char(D.chanlabels(chanind(j)));
-                            res(end).time     = D.time(onsets(k)+1) - D.time(1) + D.trialonset(i);
-                            res(end).duration = (onsets(m) + diffs(onsets(m))-onsets(k))/D.fsample;
+                            res(end).time     = D.time(onsetsamples(k)) - D.time(1) + D.trialonset(i);
+                            res(end).duration = (onsetsamples(m) + diffs(onsets(m))-onsetsamples(k))/D.fsample;
                             
                             k = m+1;
                             m = k;
                         end
                     else
-                        ind1 = onsets(k);
+                        ind1 = onsetsamples(k);
                         ind2 = length(dat);
                         if (sum(dat(ind1:ind2))/(ind2-ind1+1))<0.5
                             res(end+1).type   = 'artefact_flat';
                             res(end).value    = char(D.chanlabels(chanind(j)));
-                            res(end).time     = D.time(onsets(k)+1) - D.time(1) + D.trialonset(i);
-                            res(end).duration = (length(dat)-onsets(k))/D.fsample;
+                            res(end).time     = D.time(onsetsamples(k)) - D.time(1) + D.trialonset(i);
+                            res(end).duration = (length(dat)-onsetsamples(k)+2)/D.fsample;
                         else                            
                             m = m-1;                            
                             
                             res(end+1).type   = 'artefact_flat';
                             res(end).value    = char(D.chanlabels(chanind(j)));
-                            res(end).time     = D.time(onsets(k)+1) - D.time(1) + D.trialonset(i);
-                            res(end).duration = (onsets(m) + diffs(onsets(m))-onsets(k))/D.fsample;                                                    
+                            res(end).time     = D.time(onsetsamples(k)) - D.time(1) + D.trialonset(i);
+                            res(end).duration = (onsetsamples(m) + diffs(onsets(m))-onsetsamples(k))/D.fsample;                                                    
                         end
                         break;
                     end

@@ -13,7 +13,7 @@ function D = spm_eeg_inv_forward_ui(varargin)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward_ui.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_inv_forward_ui.m 6058 2014-06-19 11:55:22Z vladimir $
 
 %-Initialisation
 %--------------------------------------------------------------------------
@@ -24,7 +24,7 @@ D.inv{val}.forward = struct([]);
 for i = 1:numel(D.inv{val}.datareg)
     switch D.inv{val}.datareg(i).modality
         case 'EEG'
-            models = {'EEG BEM', '3-Shell Sphere'};
+            models = {'EEG BEM', '3-Shell Sphere', 'EEG interpolated'};
         case 'MEG'
             models = {'Single Sphere', 'MEG Local Spheres', 'Single Shell'};
         otherwise
