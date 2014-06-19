@@ -20,7 +20,7 @@ function spm_progress_bar(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_progress_bar.m 5731 2013-11-04 18:11:44Z guillaume $
+% $Id: spm_progress_bar.m 6056 2014-06-19 11:00:29Z guillaume $
 
 if ~nargin, action = 'Init'; end
 
@@ -51,6 +51,7 @@ switch lower(action)
                      'Ylim',     [0 max([arg1 eps])],...
                      'Box',      'on',...
                      'Parent',   Finter);
+        try, pb.ax.ClippingStyle = 'rectangle'; end
         lab = get(pb.ax,'Xlabel');
         set(lab,'string',arg2,'FontSize',10,'Interpreter',interp);
         lab = get(pb.ax,'Ylabel');

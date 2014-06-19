@@ -118,7 +118,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 6023 2014-05-28 15:31:20Z guillaume $
+% $Id: spm_DesRep.m 6056 2014-06-19 11:00:29Z guillaume $
 
 
 %==========================================================================
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 6023 $'; 
+SVNid = '$Rev: 6056 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -737,10 +737,7 @@ set(hDesMtx,'TickDir','out',...
 if desmtx
     xlabel('parameters'), ylabel('images')
 else
-    set(get(hDesMtx,'Xlabel'),...
-        'Position',get(get(hDesMtx,'Ylabel'),'Position'),...
-        'Rotation',90')
-    xlabel('design matrix')
+    ylabel('design matrix')
 end
 
 %-Parameter names
