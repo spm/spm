@@ -26,7 +26,7 @@ function spm_dcm_Granger_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 6058 2014-06-19 11:55:22Z vladimir $
+% $Id: spm_dcm_Granger_demo.m 6059 2014-06-19 11:57:31Z vladimir $
  
  
 % Model specification
@@ -310,7 +310,7 @@ title('MAR approximation error','FontSize',16)
 axis square
 
 % a more careful examination of [in]stability on Granger causality
-%% ==========================================================================
+%==========================================================================
 spm_figure('GetWin','Figure 5'); clf
 k     = linspace(0,2/3,8);
 for j = 1:length(k)
@@ -382,7 +382,7 @@ for j = 1:length(k)
     axis(a);
     
 end
-%%
+
 a = .2;
 subplot(3,2,5)
 image(Hz,k,GCF'*64/a)
@@ -398,7 +398,7 @@ ylabel('log(exponent)')
 title('backward','FontSize',16)
 axis square
 
-%% a more careful examination of measurement noise
+% a more careful examination of measurement noise
 %==========================================================================
 spm_figure('GetWin','Figure 6' ); clf
 spm_figure('GetWin','Figure 6a'); clf
@@ -499,11 +499,11 @@ ylabel('log(exponent)')
 title('backward','FontSize',16)
 axis square
 
-%%
+
 
 % return if in demonstration mode
 %--------------------------------------------------------------------------
-DEMO = 0;
+DEMO = 1;
 if DEMO, return, end
 
 

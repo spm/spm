@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6058 2014-06-19 11:55:22Z vladimir $
+% $Id: spm_eeg_invert_classic.m 6059 2014-06-19 11:57:31Z vladimir $
 
 
 
@@ -101,11 +101,7 @@ end
 
 val=D.val;
 
-try
-    inverse   = D.inv{val}.inverse;
-catch
-    inverse = [];
-end
+inverse   = D.inv{val}.inverse;
 
 % forward model
 %--------------------------------------------------------------------------
@@ -137,7 +133,7 @@ try, SHUFFLELEADS=inverse.SHUFFLELEADS;catch, SHUFFLELEADS=0;end; %% ONLY FOR TE
 
 % defaults
 %--------------------------------------------------------------------------
-%type = inverse.type;    % Type of inversion scheme
+type = inverse.type;    % Type of inversion scheme
 
 
 % get specified modalities to invert (default to all)
