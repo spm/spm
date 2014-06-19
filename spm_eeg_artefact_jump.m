@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_jump(S)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_jump.m 5643 2013-09-19 10:48:31Z vladimir $
+% $Id: spm_eeg_artefact_jump.m 6060 2014-06-19 13:31:19Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -49,7 +49,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 5643 $';
+SVNrev = '$Rev: 6060 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -91,6 +91,8 @@ elseif isequal(S.mode, 'mark')
         
         bad  = abs(diff(squeeze(D(chanind, :, i)), [], 2))>threshold;
         
+        bad = [zeros(size(bad, 1), 1) bad];
+        
         if ~any(bad(:))
             if multitrial && ismember(i, Ibar), spm_progress_bar('Set', i); end
             continue;
@@ -114,11 +116,15 @@ elseif isequal(S.mode, 'mark')
             offsets = find(~bad(j, :));
             onsets(find(diff(onsets)<2)+1) = [];
             
+            if bad(j, end)
+                offsets(end+1) = length(bad)+1;
+            end
+            
             for k = 1:length(onsets)
                 res(end+1).type   = 'artefact_jump';
                 res(end).value    = char(D.chanlabels(chanind(j)));
-                res(end).time     = D.time(onsets(k)) - D.time(1) + D.trialonset(i);
-                res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k)+1)./D.fsample;
+                res(end).time     = D.time(onsets(k)+1) - D.time(1) + D.trialonset(i);
+                res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k))./D.fsample;
             end
             
             if ~multitrial && ismember(j, Ibar), spm_progress_bar('Set', j); end

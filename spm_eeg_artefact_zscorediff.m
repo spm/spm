@@ -16,7 +16,7 @@ function res = spm_eeg_artefact_zscorediff(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_artefact_zscorediff.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_eeg_artefact_zscorediff.m 6060 2014-06-19 13:31:19Z vladimir $
 
 
 %-This part if for creating a config branch that plugs into spm_cfg_eeg_artefact
@@ -50,7 +50,7 @@ if nargin == 0
     return
 end
 
-SVNrev = '$Rev: 6029 $';
+SVNrev = '$Rev: 6060 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -113,11 +113,15 @@ for j = 1:length(chanind)
             offsets = find(~bad(:, i));
             onsets(find(diff(onsets)<2)+1) = [];
             
+            if bad(end, i)
+                offsets(end+1) = size(bad, 1)+1;
+            end
+            
             for k = 1:length(onsets)
                 res(end+1).type   = 'artefact_zscorediff';
                 res(end).value    = char(D.chanlabels(chanind(j)));
-                res(end).time     = D.time(onsets(k)) - D.time(1) + D.trialonset(i);
-                res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k)+1)./D.fsample;
+                res(end).time     = D.time(onsets(k)+1) - D.time(1) + D.trialonset(i);
+                res(end).duration = (min(offsets(offsets>onsets(k)))-onsets(k))./D.fsample;
             end
             
             if ~isempty(res)
