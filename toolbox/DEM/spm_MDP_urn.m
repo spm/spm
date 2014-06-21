@@ -33,7 +33,7 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 6044 2014-06-14 10:22:46Z karl $
+% $Id: spm_MDP_urn.m 6062 2014-06-21 11:00:15Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -137,11 +137,11 @@ nd  = length(MDP.d);
 K   = tril(toeplitz(exp(-((1:nd) - 1)'/8)));
  
 subplot(4,2,8)
-plot(pinv(K)*MDP.d'), hold on
+plot(pinv(K)*MDP.d(:)), hold on
 xlabel('Latency (updates)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
-axis([1 nd 0 4])
+spm_axis tight
 
 
 % Illustrate dependency on parameters

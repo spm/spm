@@ -86,7 +86,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6061 2014-06-21 09:02:42Z karl $
+% $Id: spm_MDP_game_KL.m 6062 2014-06-21 11:00:15Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -298,7 +298,7 @@ for t  = 1:T
         
         % simulated dopamine responses (precision as each iteration)
         %------------------------------------------------------------------
-        gamma(end + 1) = W(t);
+        gamma(end + 1,1) = W(t);
         
     end
     
@@ -461,14 +461,19 @@ for t  = 1:T
     
 end
 
+% deconvolve to simulate dopamine responses
+%--------------------------------------------------------------------------
+da     = pinv( tril(toeplitz(exp(-((1:length(gamma)) - 1)'/8))) )*gamma;
+
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
-MDP.P = P;              % probability of action at time 1,...,T - 1
-MDP.Q = x;              % conditional expectations over N hidden states
-MDP.O = O;              % a sparse matrix, encoding outcomes at 1,...,T
-MDP.S = S;              % a sparse matrix, encoding the states
-MDP.U = U;              % a sparse matrix, encoding the action
-MDP.W = W;              % posterior expectations of precision
-MDP.d = gamma;          % simulated dopamine responses
+MDP.P  = P;              % probability of action at time 1,...,T - 1
+MDP.Q  = x;              % conditional expectations over N hidden states
+MDP.O  = O;              % a sparse matrix, encoding outcomes at 1,...,T
+MDP.S  = S;              % a sparse matrix, encoding the states
+MDP.U  = U;              % a sparse matrix, encoding the action
+MDP.W  = W;              % posterior expectations of precision
+MDP.d  = gamma;          % simulated dopamine responses
+MDP.da = da;             % simulated dopamine responses (deconvolved)
 
 

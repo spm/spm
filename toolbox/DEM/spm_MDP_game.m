@@ -86,7 +86,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6061 2014-06-21 09:02:42Z karl $
+% $Id: spm_MDP_game.m 6062 2014-06-21 11:00:15Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -95,7 +95,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION)
 %--------------------------------------------------------------------------
 try, PLOT  = MDP.plot;      catch, PLOT  = 0;     end
 try, alpha = MDP.alpha;     catch, alpha = 8;     end
-try, beta  = MDP.beta;      catch, beta  = 1;     end
+try, beta  = MDP.beta;      catch, beta  = 8;     end
 try, N     = MDP.N;         catch, N     = 4;     end
 try, T     = size(MDP.V,1); catch, T     = MDP.T; end
 
@@ -161,7 +161,8 @@ try
     % asume no preferences if only final outceoms are specifed
     %----------------------------------------------------------------------
     if size(C,2) ~= T
-        C = [ones(No,T - 1) C(:,end)] ;
+        C = [ones(No,T - 1) C(:,end)];
+        C = C(:,end)*ones(1,T);
     end
     
 catch
@@ -224,8 +225,8 @@ W      = sparse(1,T);              % posterior precision
 % solve
 %==========================================================================
 gamma  = [];                       % simulated dopamine responses
-x      = ones(Ns,T)/Ns;            % expectations of hidden states
-u      = ones(Np,T)/Np;            % expectations of hidden states
+x      = zeros(Ns,T);              % expectations of hidden states
+u      = zeros(Np,T);              % expectations of hidden states
 for t  = 1:T
     
     
@@ -241,8 +242,13 @@ for t  = 1:T
         
         % update policy expectations
         %------------------------------------------------------------------
-        u(:,t) = u(:,t - 1);
-        W(t)   = W(t - 1);
+        u(w,t) = u(w,t - 1)/sum(u(w,t - 1));
+        x(:,t) = B{t - 1,a(t - 1)}*x(:,t - 1);
+        
+    else
+        
+        u(:,t) = ones(Np,1)/Np;
+        x(:,t) = spm_softmax(lnD);
         
     end
     
@@ -254,13 +260,13 @@ for t  = 1:T
         
         % current state (x)
         %------------------------------------------------------------------
-        if t == 1
-            v  = lnD;
-        else
+        if t > 1
             v  = log(B{t - 1,a(t - 1)}*x(:,t - 1));
+        else
+            v  = lnD;
         end
         v      = v + lnA(o(t),:)' + W(t)*Q'*u(w,t);
-        x(:,t) = spm_softmax(log(x(:,t))/2 + v/2);
+        x(:,t) = x(:,t)/2 + spm_softmax(v)/2;
         
         
         % value of policies x current state (under allowable policies)
@@ -282,13 +288,13 @@ for t  = 1:T
                 %----------------------------------------------------------
                 switch OPTION
                     case{'Free Energy'}
-                        Q(k,:) = Q(k,:) + HA*Bj + (lnC(:,j) - log(ABj*x(:,t)))'*ABj - 1;
+                        Q(k,:) = Q(k,:) + HA*Bj + (lnC(:,j) - log(ABj*x(:,t)))'*ABj;
                         
                     case{'KL Control'}
-                        Q(k,:) = Q(k,:) + (lnC(:,j) - log(ABj*x(:,t)))'*ABj - 1;
+                        Q(k,:) = Q(k,:) + (lnC(:,j) - log(ABj*x(:,t)))'*ABj;
                         
                     case{'Expected Utility'}
-                        Q(k,:) = Q(k,:) + lnC(:,j)'*ABj - 1;
+                        Q(k,:) = Q(k,:) + lnC(:,j)'*ABj;
                         
                     otherwise
                         disp(['unkown optiion: ' OPTION])
@@ -300,15 +306,14 @@ for t  = 1:T
         % precision (W)
         %------------------------------------------------------------------
         if isfield(MDP,'w')
-            v = MDP.w(t);
+            W(t) = MDP.w(t);
         else
-            v = alpha/(beta - u(w,t)'*Q*x(:,t));
+            W(t) = alpha/(beta - u(w,t)'*Q*x(:,t));
         end
-        W(t)  = W(t)/2 + v/2;
-        
+
         % policy (u)
         %------------------------------------------------------------------
-        u(w,t) = spm_softmax(W(t)*Q*x(:,t));
+        u(w,t)   = spm_softmax(W(t)*Q*x(:,t));
         
         
         % simulated dopamine responses (precision as each iteration)

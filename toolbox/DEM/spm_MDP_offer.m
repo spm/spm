@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 6061 2014-06-21 09:02:42Z karl $
+% $Id: spm_MDP_offer.m 6062 2014-06-21 11:00:15Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -104,9 +104,9 @@ plot(MDP.da), hold on
 xlabel('Latency (iterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
-axis([1 length(MDP.da) 0 4])
+spm_axis tight
 
- 
+
 % Solve - an example game (with low offer at t = 5)
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Figure 2'); clf
@@ -130,9 +130,9 @@ plot(MDP.da), hold on
 xlabel('Latency (iiterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
-axis([1 length(MDP.da) 0 4])
+spm_axis tight
 
- 
+
 % Illustrate dependency parameters
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf
@@ -280,7 +280,7 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     DP.C    = spm_softmax([1 1 1 2 p(i)]');
     UP(i,:) = log(DP.C);
-    DP      = spm_MDP_game(DP,'Expected Utility');
+    DP      = spm_MDP_game(DP);
     DW(i,:) = DP.W;
     
 end
@@ -317,8 +317,8 @@ axis square
 % the efect of decreasing (fixed) precision
 %--------------------------------------------------------------------------
 DP    = MDP;
-DP.C  = spm_softmax([1 1 1 4 4]');
-p     = linspace(0,4,16);
+DP.C  = spm_softmax([1 1 1 2 3]');
+p     = linspace(0,1,16);
 for i = 1:length(p)
     DP.w    = zeros(1,T) + p(i);
     DP      = spm_MDP_game(DP,'Expected Utility');
