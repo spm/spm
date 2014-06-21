@@ -1,6 +1,8 @@
 function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % aaction selection using active inference (KL formulation)
-% FORMAT [MDP] = spm_MDP_select(MDP)
+% FORMAT [MDP] = spm_MDP_game_KL(MDP,[EU])
+
+% EU              - optional flag to invoke expected utility only
 %
 % MDP.T           - process depth (the horizon)
 % MDP.N           - number of variational iterations (default 4)
@@ -84,7 +86,7 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6044 2014-06-14 10:22:46Z karl $
+% $Id: spm_MDP_game_KL.m 6061 2014-06-21 09:02:42Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -136,10 +138,8 @@ for i = 1:T
         if i == 1 || Nb == T
             B{i,j}   = MDP.B{i,j} + p0;
             B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
-            lnB{i,j} = log(B{i,j});
         else
             B{i,j}   = B{1,j};
-            lnB{i,j} = lnB{1,j};
         end
     end
 end
@@ -267,7 +267,7 @@ for t  = 1:T
         if t == 1
             v  = lnD;
         else
-            v  = lnB{t - 1,a(t - 1)}*x(:,t - 1);
+            v  = log(B{t - 1,a(t - 1)}*x(:,t - 1));
         end
         v      = v + lnA(o(t),:)' + W(t)*Q'*u;
         x(:,t) = spm_softmax(v);
@@ -388,7 +388,6 @@ for t  = 1:T
             xlabel('Time','FontSize',12)
             ylabel('Control state','FontSize',12)
             spm_axis tight
-            legend({'Stay','Shift'}), hold off
         else
             bar(P)
             title('Inferred policy','FontSize',14)

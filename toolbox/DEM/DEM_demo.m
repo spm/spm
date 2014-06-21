@@ -22,7 +22,7 @@ function varargout = DEM_demo(varargin)
 
 % Edit the above text to modify the response to help DEM_demo
 
-% Last Modified by GUIDE v2.5 04-Jun-2014 21:44:36
+% Last Modified by GUIDE v2.5 16-Jun-2014 18:18:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -474,8 +474,13 @@ function pushbutton150_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Attention%20uncertainty%20and%20free-energy.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_texture')
 
-
 % --- Executes on button press in pushbutton151.
 function pushbutton151_Callback(hObject, eventdata, handles)
 handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/Predictive%20coding%20under%20the%20free-energy%20principle.pdf';
 run_demo_Callback(hObject, handles, 'DEM_demo_duet')
+
+% --- Executes on button press in pushbutton152.
+function pushbutton152_Callback(hObject, eventdata, handles)
+% --- Executes on button press in pushbutton133.
+handles.web = 'http://www.fil.ion.ucl.ac.uk/~karl/The%20anatomy%20of%20choice%20active%20inference%20and%20agency.pdf';
+run_demo_Callback(hObject, handles, 'DEM_demo_MDP_maze')

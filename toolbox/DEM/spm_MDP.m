@@ -63,7 +63,7 @@ function [Q,R,S,U,P] = spm_MDP(MDP)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP.m 5784 2013-12-05 17:41:58Z karl $
+% $Id: spm_MDP.m 6061 2014-06-21 09:02:42Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -190,7 +190,7 @@ for k = 1:(T - 1)
     % forward and backward passes at this time point
     %----------------------------------------------------------------------
     for i = 1:8
-        for t = [(T - 1):-1:k]
+        for t = (T - 1):-1:k
             
             % get data likelihood if available at this time
             %--------------------------------------------------------------
@@ -212,10 +212,8 @@ for k = 1:(T - 1)
             
             % update sufficient statistics of hidden states and control
             %--------------------------------------------------------------
-            at     = exp(at - max(at));
-            bt     = exp(bt - max(bt));
-            a(:,t) = at/sum(at);
-            b(:,t) = bt/sum(bt);
+            a(:,t) = spm_softmax(at);
+            b(:,t) = spm_softmax(bt);
             
             % graphics to inspect update scheme
             %==============================================================
@@ -249,19 +247,17 @@ for k = 1:(T - 1)
     % sampling of next state (outcome)
     %======================================================================
     for i = 1:Nu
-        F(i) = B{k,i}(:,s)'*lnA*a(:,k + 1);
+        F(i,1) = B{k,i}(:,s)'*lnA*a(:,k + 1);
     end
     
     % next action (the action and minimises expected free energy)
     %----------------------------------------------------------------------
-    Pu       = exp(lambda*(F(:) - max(F)));
-    Pu       = Pu/sum(Pu);
+    Pu       = spm_softmax(F,lambda);
     i        = find(rand < cumsum(Pu),1);
     
     % next state (assuming G mediates uncertainty modelled the likelihood)
     %----------------------------------------------------------------------
-    Ps       = (G{k,i}(:,s)).^lambda;
-    Ps       = Ps/sum(Ps);
+    Ps       = spm_softmax(G{k,i}(:,s),lambda);
     s        = find(rand < cumsum(Ps),1);
     
     

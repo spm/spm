@@ -18,10 +18,11 @@ function spm_MDP_mountain_car(X,V,T)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_mountain_car.m 5174 2013-01-03 20:13:12Z karl $
+% $Id: spm_MDP_mountain_car.m 6061 2014-06-21 09:02:42Z karl $
  
 % set up and preliminaries
 %==========================================================================
+rng('default');
 global eta
 eta  = 16;
 u    = [-2 -1 0 1 2];                       % levels of control

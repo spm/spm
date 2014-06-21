@@ -26,7 +26,7 @@ function spm_MDP_offer
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_offer.m 6044 2014-06-14 10:22:46Z karl $
+% $Id: spm_MDP_offer.m 6061 2014-06-21 09:02:42Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -99,15 +99,12 @@ spm_axis tight
 
 % deconvolve to simulate dopamine responses
 %--------------------------------------------------------------------------
-nd  = length(MDP.d);
-K   = tril(toeplitz(exp(-((1:nd) - 1)'/8)));
- 
 subplot(4,2,8)
-plot(pinv(K)*MDP.d'), hold on
+plot(MDP.da), hold on
 xlabel('Latency (iterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
-axis([1 nd 0 4])
+axis([1 length(MDP.da) 0 4])
 
  
 % Solve - an example game (with low offer at t = 5)
@@ -129,11 +126,11 @@ title('Expected precision','FontSize',16)
 spm_axis tight
  
 subplot(4,2,8)
-plot(pinv(K)*MDP.d'), hold on
+plot(MDP.da), hold on
 xlabel('Latency (iiterations)','FontSize',12)
 ylabel('Precision of beliefs','FontSize',12)
 title('Simulated dopamine responses','FontSize',16)
-axis([1 nd 0 4])
+axis([1 length(MDP.da) 0 4])
 
  
 % Illustrate dependency parameters
@@ -156,7 +153,7 @@ for i = 1:length(p)
     DP.C    = spm_softmax([1 1 1 p(i) 4]');
     DP      = spm_MDP_game(DP);
     BF      = DP.P;
-    DP      = spm_MDP_game(DP,'EU');
+    DP      = spm_MDP_game(DP,'Expected Utility');
     BE      = DP.P;
     PF(i,:) = BF(2,:);
     PE(i,:) = BE(2,:);
@@ -248,7 +245,7 @@ axis square
 %--------------------------------------------------------------------------
 beta = 1;
 D    = 1./W - beta;
-MDP  = spm_MDP_game(MDP,'EU');
+MDP  = spm_MDP_game(MDP,'Expected Utility');
 W    = MDP.W;
 V    = 1./W - beta;
  
@@ -283,7 +280,7 @@ for i = 1:length(p)
     %----------------------------------------------------------------------
     DP.C    = spm_softmax([1 1 1 2 p(i)]');
     UP(i,:) = log(DP.C);
-    DP      = spm_MDP_game(DP,'EU');
+    DP      = spm_MDP_game(DP,'Expected Utility');
     DW(i,:) = DP.W;
     
 end
@@ -324,7 +321,7 @@ DP.C  = spm_softmax([1 1 1 4 4]');
 p     = linspace(0,4,16);
 for i = 1:length(p)
     DP.w    = zeros(1,T) + p(i);
-    DP      = spm_MDP_game(DP,'EU');
+    DP      = spm_MDP_game(DP,'Expected Utility');
     DT(i,:) = PrT(DP.P);
 end
 

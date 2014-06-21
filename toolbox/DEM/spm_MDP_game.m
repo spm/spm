@@ -1,6 +1,6 @@
-function [MDP] = spm_MDP_game(MDP,varargin)
+function [MDP] = spm_MDP_game(MDP,OPTION)
 % aaction selection using active inference
-% FORMAT [MDP] = spm_MDP_select(MDP)
+% FORMAT [MDP] = spm_MDP_game(MDP,OPTION)
 %
 % MDP.T           - process depth (the horizon)
 % MDP.N           - number of variational iterations (default 4)
@@ -37,6 +37,8 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % MDP.U(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
 % MDP.W(1,T)   - posterior expectations of precision
 % MDP.d        - simulated dopamine responses
+%
+% OPTION      -{'Free Energy' | 'KL Control' | 'Expected Utility'};
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy)using a generative model based upon a Markov
@@ -84,18 +86,22 @@ function [MDP] = spm_MDP_game(MDP,varargin)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6044 2014-06-14 10:22:46Z karl $
+% $Id: spm_MDP_game.m 6061 2014-06-21 09:02:42Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % options and precision defaults
 %--------------------------------------------------------------------------
-try, PLOT  = MDP.plot;  catch, PLOT  = 0; end
-try, alpha = MDP.alpha; catch, alpha = 8; end
-try, beta  = MDP.beta;  catch, beta  = 1; end
-try, N     = MDP.N;     catch, N     = 4; end
+try, PLOT  = MDP.plot;      catch, PLOT  = 0;     end
+try, alpha = MDP.alpha;     catch, alpha = 8;     end
+try, beta  = MDP.beta;      catch, beta  = 1;     end
+try, N     = MDP.N;         catch, N     = 4;     end
+try, T     = size(MDP.V,1); catch, T     = MDP.T; end
 
+if nargin < 2
+    OPTION = 'Free Energy';
+end
 
 % set up figure if necessary
 %--------------------------------------------------------------------------
@@ -110,11 +116,10 @@ end
 
 % generative model and initial states
 %--------------------------------------------------------------------------
-T     = MDP.T;                     % process depth (the horizon)
-Ns    = size(MDP.B{1},1);          % number of hidden states
-Nb    = size(MDP.B,1);             % number of time-dependent probabilities
-Nu    = size(MDP.B,2);             % number of hidden controls
-p0    = exp(-16);                  % smallest probability
+Ns    = size(MDP.B{1},1);         % number of hidden states
+Nb    = size(MDP.B,1);            % number of time-dependent probabilities
+Nu    = size(MDP.B,2);            % number of hidden controls
+p0    = exp(-16);                 % smallest probability
 
 % likelihood model (for a partially observed MDP implicit in G)
 %--------------------------------------------------------------------------
@@ -136,10 +141,8 @@ for i = 1:T
         if i == 1 || Nb == T
             B{i,j}   = MDP.B{i,j} + p0;
             B{i,j}   = B{i,j}*diag(1./sum(B{i,j}));
-            lnB{i,j} = log(B{i,j});
         else
             B{i,j}   = B{1,j};
-            lnB{i,j} = lnB{1,j};
         end
     end
 end
@@ -158,7 +161,7 @@ try
     % asume no preferences if only final outceoms are specifed
     %----------------------------------------------------------------------
     if size(C,2) ~= T
-        C      = C(:,end)*ones(1,T);
+        C = [ones(No,T - 1) C(:,end)] ;
     end
     
 catch
@@ -239,6 +242,7 @@ for t  = 1:T
         % update policy expectations
         %------------------------------------------------------------------
         u(:,t) = u(:,t - 1);
+        W(t)   = W(t - 1);
         
     end
     
@@ -253,10 +257,10 @@ for t  = 1:T
         if t == 1
             v  = lnD;
         else
-            v  = lnB{t - 1,a(t - 1)}*x(:,t - 1);
+            v  = log(B{t - 1,a(t - 1)}*x(:,t - 1));
         end
         v      = v + lnA(o(t),:)' + W(t)*Q'*u(w,t);
-        x(:,t) = x(:,t)/2 + spm_softmax(v)/2;
+        x(:,t) = spm_softmax(log(x(:,t))/2 + v/2);
         
         
         % value of policies x current state (under allowable policies)
@@ -276,10 +280,20 @@ for t  = 1:T
                 
                 % predicted entropy and divergence
                 %----------------------------------------------------------
-                Q(k,:) = HA*Bj + (lnC(:,j) - log(ABj*x(:,t)))'*ABj;
-                
-            end
-            
+                switch OPTION
+                    case{'Free Energy'}
+                        Q(k,:) = Q(k,:) + HA*Bj + (lnC(:,j) - log(ABj*x(:,t)))'*ABj - 1;
+                        
+                    case{'KL Control'}
+                        Q(k,:) = Q(k,:) + (lnC(:,j) - log(ABj*x(:,t)))'*ABj - 1;
+                        
+                    case{'Expected Utility'}
+                        Q(k,:) = Q(k,:) + lnC(:,j)'*ABj - 1;
+                        
+                    otherwise
+                        disp(['unkown optiion: ' OPTION])
+                end 
+            end    
         end
         
         
@@ -299,7 +313,7 @@ for t  = 1:T
         
         % simulated dopamine responses (precision as each iteration)
         %------------------------------------------------------------------
-        gamma(end + 1) = W(t);
+        gamma(end + 1,1) = W(t);
         
     end
     
@@ -389,7 +403,6 @@ for t  = 1:T
             xlabel('Time','FontSize',12)
             ylabel('Control state','FontSize',12)
             spm_axis tight
-            legend({'Stay','Shift'}), hold off
         else
             bar(P)
             title('Inferred policy','FontSize',14)
@@ -409,7 +422,7 @@ for t  = 1:T
         % expectations over policies
         %------------------------------------------------------------------
         subplot(4,2,4)
-        imagesc(u)
+        image((1 - u)*64)
         title('Posterior probability','FontSize',14)
         ylabel('Policy','FontSize',12)
         xlabel('Time','FontSize',12)
@@ -463,14 +476,19 @@ for t  = 1:T
     
 end
 
+% deconvolve to simulate dopamine responses
+%--------------------------------------------------------------------------
+da     = pinv( tril(toeplitz(exp(-((1:length(gamma)) - 1)'/8))) )*gamma;
+
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
-MDP.P = P;              % probability of action at time 1,...,T - 1
-MDP.Q = x;              % conditional expectations over N hidden states
-MDP.O = O;              % a sparse matrix, encoding outcomes at 1,...,T
-MDP.S = S;              % a sparse matrix, encoding the states
-MDP.U = U;              % a sparse matrix, encoding the action
-MDP.W = W;              % posterior expectations of precision
-MDP.d = gamma;          % simulated dopamine responses
+MDP.P  = P;              % probability of action at time 1,...,T - 1
+MDP.Q  = x;              % conditional expectations over N hidden states
+MDP.O  = O;              % a sparse matrix, encoding outcomes at 1,...,T
+MDP.S  = S;              % a sparse matrix, encoding the states
+MDP.U  = U;              % a sparse matrix, encoding the action
+MDP.W  = W;              % posterior expectations of precision
+MDP.d  = gamma;          % simulated dopamine responses
+MDP.da = da;             % simulated dopamine responses (deconvolved)
 
 
