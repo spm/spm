@@ -41,13 +41,13 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % MDP.d        - simulated dopamine responses
 %
 % This routine provides solutions of active inference (minimisation of
-% variational free energy)using a generative model based upon a Markov
+% variational free energy) using a generative model based upon a Markov
 % decision process. This model and inference scheme is formulated
 % in discrete space and time. This means that the generative model (and
 % process) are  finite state  machines or hidden Markov models whose
 % dynamics are given by transition probabilities among states and the 
 % likelihood corresponds to a particular outcome conditioned upon
-% hidden states. Similarly, for simplicity, this routine assumes that action
+% hidden states. For simplicity, this routine assumes that action
 % and hidden controls are isomorphic. If the dynamics of transition
 % probabilities of the true process are not provided, this routine will use
 % the equivalent probabilities from the generative model.
@@ -77,16 +77,17 @@ function [MDP] = spm_MDP_game_KL(MDP,varargin)
 % probabilistic mapping between (isomorphic) hidden states and outcomes
 % into the transition probabilities G.
 %
-% See spm_MDP, which uses multiple future states and a mean field 
+% See also: spm_MDP, which uses multiple future states and a mean field 
 % approximation for control states – but allows for different actions
 % at all times (as in control problems).
 %
-% See also spm_MDP
+% See also: spm_MDP_game, which generalises this scheme and replaces prior
+% beliefs about KL control with minimisation of expected free energy.
 %__________________________________________________________________________
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game_KL.m 6062 2014-06-21 11:00:15Z karl $
+% $Id: spm_MDP_game_KL.m 6064 2014-06-23 09:39:46Z karl $
 
 % set up and preliminaries
 %==========================================================================

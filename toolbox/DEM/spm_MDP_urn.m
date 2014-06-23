@@ -33,7 +33,7 @@ function spm_MDP_urn
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_MDP_urn.m 6062 2014-06-21 11:00:15Z karl $
+% $Id: spm_MDP_urn.m 6064 2014-06-23 09:39:46Z karl $
  
 % set up and preliminaries
 %==========================================================================
@@ -120,7 +120,7 @@ MDP.o    = o;
 MDP.a    = a;
 MDP.plot = gcf;
 MDP.N    = 8;
-MDP      = spm_MDP_game_KL(MDP);
+MDP      = spm_MDP_game(MDP);
  
 % plot convergence and precision
 %--------------------------------------------------------------------------
@@ -173,7 +173,7 @@ DF    = [];
 p     = linspace(0,8,8);
 for i = 1:length(p)
     DP.C    = spm_softmax(spm_vec((L > p(i)) + W)*4);
-    DP      = spm_MDP_game_KL(DP);
+    DP      = spm_MDP_game(DP);
     PF(i,:) = 1 - DP.P(1,:);
     DF(i,:) = PrT(DP.P);
 end
@@ -205,7 +205,7 @@ DF    = [];
 p     = linspace(2,16,8);
 for i = 1:length(p)
     DP.alpha  = p(i);
-    DP      = spm_MDP_game_KL(DP);
+    DP      = spm_MDP_game(DP);
     PF(i,:) = 1 - DP.P(1,:);
     DF(i,:) = PrT(DP.P);
 end
@@ -247,7 +247,7 @@ for t = 1:8
     MDP.s = [];
     MDP.o = [];
     MDP.a = [];
-    MDP   = spm_MDP_game_KL(MDP);
+    MDP   = spm_MDP_game(MDP);
     
     % place outcomes in DP
     %----------------------------------------------------------------------
@@ -262,7 +262,7 @@ for t = 1:8
     %----------------------------------------------------------------------
     for i = 1:length(p);
         DP.alpha = p(i);
-        DP       = spm_MDP_game_KL(DP);
+        DP       = spm_MDP_game(DP);
         LL(i,t)  = sum(log(DP.P(find(DP.U))));
     end
     
