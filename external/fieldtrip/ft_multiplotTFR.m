@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_multiplotTFR.m 9653 2014-06-21 06:58:02Z roboos $
 
-revision = '$Id: ft_multiplotTFR.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 9653 2014-06-21 06:58:02Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -671,7 +671,8 @@ ft_postamble provenance
 ft_postamble previous data
 
 % add a menu to the figure
-% ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
+% also, delete any possibly existing previous menu, this is safe because delete([]) does nothing
+delete(findobj(gcf, 'type', 'uimenu', 'label', 'FieldTrip'));
 ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
 uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
 uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);

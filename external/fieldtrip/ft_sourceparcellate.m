@@ -45,9 +45,9 @@ function parcel = ft_sourceparcellate(cfg, source, parcellation)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceparcellate.m 9570 2014-05-21 09:54:18Z roboos $
+% $Id: ft_sourceparcellate.m 9641 2014-06-19 15:52:57Z roboos $
 
-revision = '$Id: ft_sourceparcellate.m 9570 2014-05-21 09:54:18Z roboos $';
+revision = '$Id: ft_sourceparcellate.m 9641 2014-06-19 15:52:57Z roboos $';
 
 ft_defaults
 ft_preamble init
@@ -106,7 +106,7 @@ end
 
 % determine the fields and corresponding dimords to work on
 fn = fieldnames(source);
-fn = setdiff(fn, {'pos', 'inside', 'outside', 'time', 'freq', 'dim', 'transform', 'unit', 'coordsys', 'cfg'}); % remove fields that do not represent the data
+fn = setdiff(fn, {'pos', 'tri', 'inside', 'outside', 'time', 'freq', 'dim', 'transform', 'unit', 'coordsys', 'cfg'}); % remove fields that do not represent the data
 fn = fn(cellfun(@isempty, regexp(fn, 'dimord'))); % remove dimord fields
 dimord = cell(size(fn));
 for i=1:numel(fn)
@@ -230,7 +230,7 @@ for i=1:numel(fn)
     for j1=1:numel(seglabel)
       for j2=1:numel(seglabel)
         k = k + 1;
-        ft_progress(k/K, 'computing parcellation for parameter %s combined with %s', seglabel{j1}, seglabel{j2});
+        ft_progress(k/K, 'computing parcellation for %s combined with %s', seglabel{j1}, seglabel{j2});
         switch cfg.method
           case 'mean'
             tmp(j1,j2,:) = arraymean2(dat(seg==j1,seg==j2,:));

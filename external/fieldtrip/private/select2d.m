@@ -1,4 +1,4 @@
-function [x, y] = select2d;
+function [x, y] = select2d
 
 % SELECT2D helper function for selecting a rectangular region
 % in the current figure using the mouse.
@@ -27,7 +27,7 @@ function [x, y] = select2d;
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select2d.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: select2d.m 9663 2014-06-22 07:06:19Z roboos $
 
 k = waitforbuttonpress;
 point1 = get(gca,'CurrentPoint');    % button down detected

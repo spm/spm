@@ -1,4 +1,4 @@
-function dat = ft_preproc_medianfilter(dat, order);
+function dat = ft_preproc_medianfilter(dat, order)
 
 % FT_PREPROC_MEDIANFILTER applies a median filter, which smooths the data with
 % a boxcar-like kernel except that it keeps steps in the data. This
@@ -30,7 +30,7 @@ function dat = ft_preproc_medianfilter(dat, order);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 7288 2013-01-09 16:36:57Z jansch $
+% $Id: ft_preproc_medianfilter.m 9663 2014-06-22 07:06:19Z roboos $
 
 % set the default filter order
 if nargin<2 || isempty(order)

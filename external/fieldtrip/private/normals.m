@@ -1,4 +1,4 @@
-function [nrm] = normals(pnt, tri, opt);
+function [nrm] = normals(pnt, tri, opt)
 
 % NORMALS compute the surface normals of a triangular mesh
 % for each triangle or for each vertex
@@ -24,7 +24,7 @@ function [nrm] = normals(pnt, tri, opt);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: normals.m 8960 2013-12-05 07:43:01Z roboos $
+% $Id: normals.m 9663 2014-06-22 07:06:19Z roboos $
 
 if nargin<3
   opt='vertex';

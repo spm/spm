@@ -1,4 +1,4 @@
-function [bp, x] = binomialprob(pobs, alpha, subjratio);
+function [bp, x] = binomialprob(pobs, alpha, subjratio)
 
 % BINOMIALPROB computes the probability of observing a significant effect
 % in multiple tests. It allows you to test questions like "How likely
@@ -35,7 +35,7 @@ function [bp, x] = binomialprob(pobs, alpha, subjratio);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: binomialprob.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: binomialprob.m 9663 2014-06-22 07:06:19Z roboos $
 
 % determine the number of subjects
 [M, N] = size(pobs);

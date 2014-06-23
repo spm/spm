@@ -1,4 +1,4 @@
-function [pnt, tri] = ksphere(N);
+function [pnt, tri] = ksphere(N)
 
 % KSPHERE returns a triangulated sphere with K vertices that are
 % approximately evenly distributed over the sphere. 
@@ -31,7 +31,7 @@ function [pnt, tri] = ksphere(N);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ksphere.m 8743 2013-11-08 09:57:32Z roboos $
+% $Id: ksphere.m 9664 2014-06-22 07:06:29Z roboos $
 
 for k=1:N
   h = -1 + 2*(k-1)/(N-1);

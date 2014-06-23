@@ -53,9 +53,9 @@ function [resliced] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_volumereslice.m 9654 2014-06-21 07:24:04Z roboos $
 
-revision = '$Id: ft_volumereslice.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_volumereslice.m 9654 2014-06-21 07:24:04Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -130,11 +130,11 @@ if isempty(cfg.zrange)
   cfg.zrange = zrange;
 end
 
-if ~isequal(cfg.downsample, 1)
-  % downsample the anatomical volume
-  tmpcfg = [];
-  tmpcfg.downsample = cfg.downsample;
+if cfg.downsample~=1
+  % optionally downsample the anatomical and/or functional volumes
+  tmpcfg = keepfields(cfg, {'downsample'});
   mri = ft_volumedownsample(tmpcfg, mri);
+  [cfg, mri] = rollback_provenance(cfg, mri);
 end
 
 % compute the desired grid positions

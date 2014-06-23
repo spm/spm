@@ -71,9 +71,9 @@ function [bnd, cfg] = ft_prepare_mesh(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_mesh.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_prepare_mesh.m 9654 2014-06-21 07:24:04Z roboos $
 
-revision = '$Id: ft_prepare_mesh.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_prepare_mesh.m 9654 2014-06-21 07:24:04Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -125,10 +125,10 @@ if ~isfield(cfg, 'method')
 end
 
 if hasdata && cfg.downsample~=1
-  % optionally downsample the anatomical MRI and/or the tissue segmentation
-  tmpcfg = [];
-  tmpcfg.downsample = cfg.downsample;
+  % optionally downsample the anatomical volume and/or tissue segmentations
+  tmpcfg = keepfields(cfg, {'downsample'});
   mri = ft_volumedownsample(tmpcfg, mri);
+  [cfg, mri] = rollback_provenance(cfg, mri);
 end
 
 switch cfg.method

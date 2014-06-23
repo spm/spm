@@ -1,4 +1,4 @@
-function [source] = fixinside(source, opt);
+function [source] = fixinside(source, opt)
 
 % FIXINSIDE ensures that the region of interest (which is indicated by the
 % field "inside") is consistently defined for source structures and volume
@@ -27,7 +27,7 @@ function [source] = fixinside(source, opt);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fixinside.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fixinside.m 9664 2014-06-22 07:06:29Z roboos $
 
 
 if nargin<2

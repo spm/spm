@@ -1,4 +1,4 @@
-function [prb, cohobs, mcohrnd] = shiftpredict(cfg, dat, datindx, refindx, trltapcnt);
+function [prb, cohobs, mcohrnd] = shiftpredict(cfg, dat, datindx, refindx, trltapcnt)
 
 % SHIFTPREDICT implements a shift-predictor for testing significance
 % of coherence within a single condition. This function is a subfunction 
@@ -35,7 +35,7 @@ function [prb, cohobs, mcohrnd] = shiftpredict(cfg, dat, datindx, refindx, trlta
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: shiftpredict.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: shiftpredict.m 9663 2014-06-22 07:06:19Z roboos $
 
 nsgn = size(dat,1);
 ntap = size(dat,2); % total number of tapers over all trials
@@ -252,7 +252,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that shuffles in blocks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [out] = randblockshift(n, k);
+function [out] = randblockshift(n, k)
 n    = n(:);
 nbin = length(n)/k;
 n    = reshape(n, [k nbin]);

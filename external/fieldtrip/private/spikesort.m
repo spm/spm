@@ -1,4 +1,4 @@
-function [numA, numB, indA, indB] = spikesort(numA, numB, varargin);
+function [numA, numB, indA, indB] = spikesort(numA, numB, varargin)
 
 % SPIKESORT uses a variation on the cocktail sort algorithm in combination
 % with a city block distance to achieve N-D trial pairing between spike
@@ -46,7 +46,7 @@ function [numA, numB, indA, indB] = spikesort(numA, numB, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: spikesort.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: spikesort.m 9663 2014-06-22 07:06:19Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;

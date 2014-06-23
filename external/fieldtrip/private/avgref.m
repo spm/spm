@@ -1,4 +1,4 @@
-function [data] = avgref(data, sel);
+function [data] = avgref(data, sel)
 
 % AVGREF computes the average reference in each column
 %   [data] = avgref(data)
@@ -25,7 +25,7 @@ function [data] = avgref(data, sel);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: avgref.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: avgref.m 9663 2014-06-22 07:06:19Z roboos $
 
 % determine the dimension of the data
 if length(size(data))==3

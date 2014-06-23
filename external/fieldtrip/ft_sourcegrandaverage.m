@@ -64,9 +64,9 @@ function [grandavg] = ft_sourcegrandaverage(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcegrandaverage.m 9526 2014-05-14 15:25:21Z eelspa $
+% $Id: ft_sourcegrandaverage.m 9651 2014-06-20 14:06:53Z roboos $
 
-revision = '$Id: ft_sourcegrandaverage.m 9526 2014-05-14 15:25:21Z eelspa $';
+revision = '$Id: ft_sourcegrandaverage.m 9651 2014-06-20 14:06:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -91,7 +91,7 @@ end
 % because we need to verify that the input data indeed contains a
 % substructure. If it does not, then specifying cfg.parameter=xxx.yyy is a
 % user error.
-if isfield(cfg, 'parameter') && strfind(cfg.parameter, '.')
+if isfield(cfg, 'parameter') && ~isempty(strfind(cfg.parameter, '.'))
   [tok,rem] = strtok(cfg.parameter, '.');
   for i = 1:length(varargin)
     if ~isfield(varargin{i}, tok)
@@ -131,7 +131,9 @@ for k = 1:numel(checkfields)
 end
 
 % ensure a consistent selection of the data over all inputs
-[varargin{:}] = ft_selectdata(cfg, varargin{:});
+tmpcfg = keepfields(cfg, {'parameter', 'trials', 'latency', 'frequency', 'foilim'});
+[varargin{:}] = ft_selectdata(tmpcfg, varargin{:});
+[cfg, varargin{:}] = rollback_provenance(cfg, varargin{:});
 
 % start with an empty output structure
 

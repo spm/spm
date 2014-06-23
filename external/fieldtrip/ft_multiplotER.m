@@ -117,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_multiplotER.m 9653 2014-06-21 06:58:02Z roboos $
 
-revision = '$Id: ft_multiplotER.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_multiplotER.m 9653 2014-06-21 06:58:02Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -759,20 +759,20 @@ if ~isempty(cfg.renderer)
   set(gcf, 'renderer', cfg.renderer)
 end
 
-% add a menu to the figure, but only if the current figure does not have subplots
-% also, delete any possibly existing previous menu, this is safe because delete([]) does nothing
-if numel(findobj(gcf, 'type', 'axes')) <= 1
-  % ftmenu = uicontextmenu; set(gcf, 'uicontextmenu', ftmenu)
-  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
-  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
-  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
-end
-
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble debug
 ft_postamble previous varargin
+
+% add a menu to the figure, but only if the current figure does not have subplots
+% also, delete any possibly existing previous menu, this is safe because delete([]) does nothing
+delete(findobj(gcf, 'type', 'uimenu', 'label', 'FieldTrip'));
+if numel(findobj(gcf, 'type', 'axes')) <= 1
+  ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+  uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+  uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION

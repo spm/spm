@@ -1,4 +1,4 @@
-function [select] = parameterselection(param, data);
+function [select] = parameterselection(param, data)
 
 % PARAMETERSELECTION selects the parameters that are present as a volume in the data
 % add that have a dimension that is compatible with the specified dimensions of the
@@ -29,7 +29,7 @@ function [select] = parameterselection(param, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: parameterselection.m 9349 2014-04-03 18:46:47Z roboos $
+% $Id: parameterselection.m 9664 2014-06-22 07:06:29Z roboos $
 
 if ischar(param)
   param = {param};   % it should be a cell-array

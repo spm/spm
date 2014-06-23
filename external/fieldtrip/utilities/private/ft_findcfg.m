@@ -1,4 +1,4 @@
-function [val, status] = ft_findcfg(cfg, var);
+function [val, status] = ft_findcfg(cfg, var)
 
 % FT_FINDCFG searches for an element in the cfg structure
 % or in the nested previous cfgs
@@ -29,7 +29,7 @@ function [val, status] = ft_findcfg(cfg, var);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_findcfg.m 7839 2013-04-16 18:25:34Z roboos $
+% $Id: ft_findcfg.m 9664 2014-06-22 07:06:29Z roboos $
 
 if var(1)~='.'
   var = ['.' var];

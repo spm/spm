@@ -1,4 +1,4 @@
-function [optarg] = ft_cfg2keyval(cfg);
+function [optarg] = ft_cfg2keyval(cfg)
 
 % CFG2KEYVAL converts between a structure and a cell-array with key-value
 % pairs which can be used for optional input arguments.
@@ -24,7 +24,7 @@ function [optarg] = ft_cfg2keyval(cfg);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_cfg2keyval.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_cfg2keyval.m 9663 2014-06-22 07:06:19Z roboos $
 
 if ~isempty(cfg)
   optarg = [fieldnames(cfg) struct2cell(cfg)]';

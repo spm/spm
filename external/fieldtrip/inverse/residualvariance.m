@@ -1,4 +1,4 @@
-function [dipout] = residualvariance(dip, grad, vol, dat, varargin);
+function [dipout] = residualvariance(dip, grad, vol, dat, varargin)
 
 % RESIDUALVARIANCE scan with a single dipole and computes the RV
 % at each grid location.
@@ -24,7 +24,7 @@ function [dipout] = residualvariance(dip, grad, vol, dat, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: residualvariance.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: residualvariance.m 9663 2014-06-22 07:06:19Z roboos $
 
 % get the optional settings, or use default value
 feedback      = keyval('feedback',      varargin); if isempty(feedback),      feedback = 'text';            end

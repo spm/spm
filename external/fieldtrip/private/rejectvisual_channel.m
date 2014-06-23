@@ -1,4 +1,4 @@
-function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
+function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data)
 
 % SUBFUNCTION for rejectvisual
 
@@ -20,7 +20,7 @@ function [chansel, trlsel, cfg] = rejectvisual_channel(cfg, data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rejectvisual_channel.m 9079 2014-01-08 10:22:05Z roboos $
+% $Id: rejectvisual_channel.m 9663 2014-06-22 07:06:19Z roboos $
 
 % determine the initial selection of trials and channels
 nchan = length(data.label);
@@ -266,14 +266,14 @@ info.quit = 1;
 guidata(h,info);
 uiresume;
 
-function str = description_channel(info);
+function str = description_channel(info)
 if info.chansel(info.chanlop)
   str = sprintf('channel %s marked as GOOD\n', info.data.label{info.chanlop});
 else
   str = sprintf('channel %s marked as BAD\n', info.data.label{info.chanlop});
 end
 
-function str = description_trial(info);
+function str = description_trial(info)
 if info.trlsel(info.trlop)
   str = sprintf('trial %d marked as GOOD\n', info.trlop);
 else

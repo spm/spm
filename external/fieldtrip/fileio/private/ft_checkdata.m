@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 9593 2014-05-29 08:53:50Z roboos $
+% $Id: ft_checkdata.m 9650 2014-06-20 13:58:28Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -2028,16 +2028,3 @@ data.fsample = fsample;
 if isfield(spike,'hdr'), data.hdr = spike.hdr; end
 if isfield(spike,'cfg'), data.cfg = spike.cfg; end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = keepfields(data, fn)
-fn = setdiff(fieldnames(data), fn);
-for i=1:numel(fn)
-  data = rmfield(data, fn{i});
-end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = removefields(data, fn)
-fn = intersect(fieldnames(data), fn);
-for i=1:numel(fn)
-  data = rmfield(data, fn{i});
-end

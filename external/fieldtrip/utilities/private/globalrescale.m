@@ -1,4 +1,4 @@
-function [H] = globalrescale(f);
+function [H] = globalrescale(f)
 
 % GLOBALRESCALE creates the homogenous spatial transformation matrix
 % for a 7 parameter rigid-body transformation with global rescaling
@@ -49,7 +49,7 @@ function [H] = globalrescale(f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: globalrescale.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: globalrescale.m 9664 2014-06-22 07:06:29Z roboos $
 
 % compute the homogenous transformation matrix for the translation
 T = translate(f([1 2 3]));

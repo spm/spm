@@ -13,12 +13,12 @@ function [shape] = ft_read_headshape(filename, varargin)
 %
 % Filename can be a string or cell array of strings. If it is a cell-array,
 % the following situations are supported:
-%   - a two-element cell-array points to files that represent the left and
-%   right hemisphere, respectively, for example freesurfer's {'lh.orig'
-%   'rh.orig'}, or caret's {'X.L.Y.Z.surf.gii' 'X.R.Y.Z.surf.gii'}
-%   - a two-element cell-array points to files that represent the
-%   coordinates and topology in separate files. Current support for
-%   caret-based files {'X.L.Y.Z.coord.gii' 'A.L.B.C.topo.gii'};
+%  - a two-element cell-array with the file names for the left and
+%    right hemisphere, e.g. FreeSurfer's {'lh.orig' 'rh.orig'}, or 
+%    Caret's {'X.L.Y.Z.surf.gii' 'X.R.Y.Z.surf.gii'}
+%  - a two-element cell-array points to files that represent 
+%    the coordinates and topology in separate files, e.g. 
+%    Caret's {'X.L.Y.Z.coord.gii' 'A.L.B.C.topo.gii'};
 %
 % Additional options should be specified in key-value pairs and can be
 %
@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 9469 2014-05-06 15:49:59Z vlalit $
+% $Id: ft_read_headshape.m 9639 2014-06-19 15:27:44Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);

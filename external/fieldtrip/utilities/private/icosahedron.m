@@ -1,4 +1,4 @@
-function [pnt, tri] = icosahedron();
+function [pnt, tri] = icosahedron()
 
 % ICOSAHEDRON creates an icosahedron
 %
@@ -25,7 +25,7 @@ function [pnt, tri] = icosahedron();
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: icosahedron.m 8961 2013-12-05 07:43:05Z roboos $
+% $Id: icosahedron.m 9664 2014-06-22 07:06:29Z roboos $
 
 tri = [
    1   2   3

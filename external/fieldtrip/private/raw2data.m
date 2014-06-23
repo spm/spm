@@ -1,4 +1,4 @@
-function [data] = raw2data(data, dimord);
+function [data] = raw2data(data, dimord)
 
 % RAW2DATA is a helper function that converts raw data to various types of
 % averages. This function is used to apply the analysis steps that were
@@ -24,7 +24,7 @@ function [data] = raw2data(data, dimord);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: raw2data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: raw2data.m 9663 2014-06-22 07:06:19Z roboos $
 
 if isempty(dimord)
   % no conversion is needed

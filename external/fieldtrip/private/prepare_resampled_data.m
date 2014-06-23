@@ -1,4 +1,4 @@
-function [cfg, varargout] = prepare_resampled_data(cfg, varargin);
+function [cfg, varargout] = prepare_resampled_data(cfg, varargin)
 
 % PREPARE_RESAMPLED_DATA performs resampling of the input data for
 % multiple variables in a single or multiple conditions. The resampling
@@ -62,7 +62,7 @@ function [cfg, varargout] = prepare_resampled_data(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_resampled_data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_resampled_data.m 9663 2014-06-22 07:06:19Z roboos $
 
 % for backward compatibility with misspelled configuration option
 ft_checkconfig(cfg, 'renamed', {'jacknife', 'jackknife'});

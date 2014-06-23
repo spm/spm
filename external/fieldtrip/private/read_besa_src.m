@@ -1,4 +1,4 @@
-function [src] = read_besa_src(filename);
+function [src] = read_besa_src(filename)
 
 % READ_BESA_SRC reads a beamformer source reconstruction from a BESA file
 %
@@ -26,7 +26,7 @@ function [src] = read_besa_src(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_besa_src.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_besa_src.m 9663 2014-06-22 07:06:19Z roboos $
 
 src = [];
 fid = fopen(filename, 'rt');

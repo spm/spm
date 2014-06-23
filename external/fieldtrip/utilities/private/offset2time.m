@@ -1,4 +1,4 @@
-function time = offset2time(offset, fsample, nsamples);
+function time = offset2time(offset, fsample, nsamples)
 
 % OFFSET2TIME converts the offset of a trial definition into a time-axis
 % according to the definition from DEFINETRIAL
@@ -33,7 +33,7 @@ function time = offset2time(offset, fsample, nsamples);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: offset2time.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: offset2time.m 9664 2014-06-22 07:06:29Z roboos $
 
 % ensure that these are not integers
 offset   = double(offset);

@@ -1,4 +1,4 @@
-function [grad] = nimh2grad(hdr);
+function [grad] = nimh2grad(hdr)
 
 % NIMH2GRAD constructs a gradiometer definition from the res4 header whish
 % is read using the NIMH implementation of ctf_read_res4. The grad
@@ -29,7 +29,7 @@ function [grad] = nimh2grad(hdr);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: nimh2grad.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: nimh2grad.m 9663 2014-06-22 07:06:19Z roboos $
 
 % only work on the MEG channels
 if isfield(hdr.sensor.index, 'meg')

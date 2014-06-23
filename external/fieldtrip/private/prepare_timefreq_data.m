@@ -1,4 +1,4 @@
-function [cfg, data] = prepare_timefreq_data(cfg, varargin);
+function [cfg, data] = prepare_timefreq_data(cfg, varargin)
 
 % PREPARE_TIMEFREQ_DATA collects the overlapping data from multiple ERPs
 % or ERFs according to the channel/time/freq-selection in the configuration
@@ -50,7 +50,7 @@ function [cfg, data] = prepare_timefreq_data(cfg, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_timefreq_data.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: prepare_timefreq_data.m 9663 2014-06-22 07:06:19Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'channel'),              cfg.channel = 'all';                     end
@@ -438,7 +438,7 @@ end
 
 % add version information to the configuration
 cfg.version.name = mfilename('fullpath');
-cfg.version.id = '$Id: prepare_timefreq_data.m 7123 2012-12-06 21:21:38Z roboos $';
+cfg.version.id = '$Id: prepare_timefreq_data.m 9663 2014-06-22 07:06:19Z roboos $';
 
 cfg.previous = [];
 % remember the configuration details from the input data
@@ -454,7 +454,7 @@ data.cfg    = cfg;
 % same time. Furthermore, the output data will have the same NUMBER of
 % dimensions as the input data (i.e. no squeezing)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [dat] = avgoverdim(dat, dim);
+function [dat] = avgoverdim(dat, dim)
 siz = size(dat);
 siz((end+1):4) = 1;           % this should work at least up to 4 dimensions, also if not present in  the data
 for i=dim
@@ -467,7 +467,7 @@ end
 % SUBFUNCTION that reformats the data into a consistent struct with a fixed
 % dimord and that combines power and cross-spectra
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [output, hascrsspctrm] = forcedimord(input);
+function [output, hascrsspctrm] = forcedimord(input)
 
 % for backward compatibility with old timelockanalysis data that does not contain a dimord
 if ~isfield(input, 'dimord') && isfield(input, 'avg') && isfield(input, 'var') && isfield(input, 'trial')
@@ -595,7 +595,7 @@ output.dimord = 'repl_chan_freq_time';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION convert Nx2 cell array with channel combinations into Nx1 cell array with labels
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function label = cmb2label(labelcmb);
+function label = cmb2label(labelcmb)
 label = {};
 for i=1:size(labelcmb)
   label{i,1} = [labelcmb{i,1} '&' labelcmb{i,2}];
@@ -604,7 +604,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION  convert Nx1 cell array with labels into N2x cell array with channel combinations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function labelcmb = label2cmb(label);
+function labelcmb = label2cmb(label)
 labelcmb = {};
 for i=1:length(label)
   labelcmb(i,1:2) = tokenize(label{i}, '&');

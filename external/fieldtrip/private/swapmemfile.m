@@ -1,4 +1,4 @@
-function [data] = swapmemfile(data);
+function [data] = swapmemfile(data)
 
 % SWAPMEMFILE swaps a variable from file into memory and clears it 
 % again from the memory on the subsequent call
@@ -36,7 +36,7 @@ function [data] = swapmemfile(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: swapmemfile.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: swapmemfile.m 9663 2014-06-22 07:06:19Z roboos $
 
 % this variable will be empty at the first call
 persistent file

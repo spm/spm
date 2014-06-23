@@ -1,4 +1,4 @@
-function [h] = fdr(p, q);
+function [h] = fdr(p, q)
 
 % FDR false discovery rate
 %
@@ -28,7 +28,7 @@ function [h] = fdr(p, q);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: fdr.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: fdr.m 9663 2014-06-22 07:06:19Z roboos $
 
 % convert the input into a row vector
 dim = size(p);

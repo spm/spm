@@ -1,4 +1,4 @@
-function write_neuralynx_nse(filename, nse);
+function write_neuralynx_nse(filename, nse)
 
 % WRITE_NEURALYNX_NSE writes spike timestamps and waveforms to a NSE file
 % The input data should be scaled in uV.
@@ -26,7 +26,7 @@ function write_neuralynx_nse(filename, nse);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_neuralynx_nse.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: write_neuralynx_nse.m 9663 2014-06-22 07:06:19Z roboos $
 
 if ~isa(nse.TimeStamp, 'uint64')
   error('timestamps should be uint64');

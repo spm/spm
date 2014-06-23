@@ -63,7 +63,7 @@ function [varargout] = ft_selectdata_new(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata_new.m 9620 2014-06-12 17:35:59Z roboos $
+% $Id: ft_selectdata_new.m 9649 2014-06-20 13:58:26Z roboos $
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will reset warning_once and show the function help if nargin==0 and return an error
@@ -639,24 +639,6 @@ end % main function ft_selectdata
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTIONS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = keepfields(data, fn)
-
-% KEEPFIELDS behaves opposite to RMFIELD: it keeps the specified
-% fieldnames, and removes the rest.
-%
-% Use as
-%   data = keepfields(data, fn)
-%
-% Where fn is a cell-array of fields to keep
-
-fn = setdiff(fieldnames(data), fn);
-for i=1:numel(fn)
-  data = rmfield(data, fn{i});
-end
-
-end % function keepfields
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = makeselection(data, seldim, selindx, avgoverdim, datfields, selmode)
 

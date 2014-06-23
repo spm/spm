@@ -1,4 +1,4 @@
-function [select] = select_channel_list(label, select, titlestr);
+function [select] = select_channel_list(label, select, titlestr)
 
 % SELECT_CHANNEL_LIST presents a dialog for selecting multiple elements
 % from a cell array with strings, such as the labels of EEG channels.
@@ -33,7 +33,7 @@ function [select] = select_channel_list(label, select, titlestr);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: select_channel_list.m 7714 2013-03-28 12:33:07Z roevdmei $
+% $Id: select_channel_list.m 9664 2014-06-22 07:06:29Z roboos $
 
 if nargin<3
   titlestr = 'Select';
@@ -74,7 +74,7 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function label_redraw(h);
+function label_redraw(h)
 userdata = get(h, 'userdata');
 set(findobj(h, 'tag', 'lbsel'  ), 'string', userdata.label(userdata.select));
 set(findobj(h, 'tag', 'lbunsel'), 'string', userdata.label(userdata.unselect));
@@ -94,7 +94,7 @@ end
 set(findobj(h, 'tag', 'lbunsel'  ), 'value', tmp);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function label_addall(h, eventdata, handles, varargin);
+function label_addall(h, eventdata, handles, varargin)
 h = get(h, 'parent');
 userdata = get(h, 'userdata');
 userdata.select   = 1:length(userdata.label);
@@ -104,7 +104,7 @@ set(h, 'userdata', userdata);
 label_redraw(h);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function label_removeall(h, eventdata, handles, varargin);
+function label_removeall(h, eventdata, handles, varargin)
 h = get(h, 'parent');
 userdata = get(h, 'userdata');
 userdata.unselect = 1:length(userdata.label);
@@ -114,7 +114,7 @@ set(h, 'userdata', userdata);
 label_redraw(h);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function label_add(h, eventdata, handles, varargin);
+function label_add(h, eventdata, handles, varargin)
 h = get(h, 'parent');
 userdata = get(h, 'userdata');
 if ~isempty(userdata.unselect)

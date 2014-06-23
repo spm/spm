@@ -128,9 +128,9 @@ function [segmented] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_volumesegment.m 9654 2014-06-21 07:24:04Z roboos $
 
-revision = '$Id: ft_volumesegment.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_volumesegment.m 9654 2014-06-21 07:24:04Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -265,12 +265,12 @@ if needana && ~hasanatomy
   error('the input volume needs an anatomy-field');
 end
 
-% perform optional downsampling before segmentation
-if cfg.downsample ~= 1
-  tmpcfg            = [];
-  tmpcfg.downsample = cfg.downsample;
-  tmpcfg.smooth     = 'no'; % smoothing is done in ft_volumesegment itself
+if cfg.downsample~=1
+  % optionally downsample the anatomical and/or functional volumes
+  tmpcfg = keepfields(cfg, {'downsample'});
+  tmpcfg.smooth = 'no'; % smoothing is done in ft_volumesegment itself
   mri = ft_volumedownsample(tmpcfg, mri);
+  [cfg, mri] = rollback_provenance(cfg, mri);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

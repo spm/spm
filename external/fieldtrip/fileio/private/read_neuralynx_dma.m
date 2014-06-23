@@ -1,4 +1,4 @@
-function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
+function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel)
 
 % READ_NEURALYNX_DMA reads specified samples and channels data from a Neuralynx DMA log file
 %
@@ -33,7 +33,7 @@ function [dat] = read_neuralynx_dma(filename, begsample, endsample, channel);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_neuralynx_dma.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_neuralynx_dma.m 9664 2014-06-22 07:06:29Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The data is simply a stream of constant size records,  the size of the

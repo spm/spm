@@ -1,4 +1,4 @@
-function [pntr, trir] = refine(pnt, tri, method, varargin);
+function [pntr, trir] = refine(pnt, tri, method, varargin)
 
 % REFINE a 3D surface that is described by a triangulation
 %
@@ -35,7 +35,7 @@ function [pntr, trir] = refine(pnt, tri, method, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: refine.m 8960 2013-12-05 07:43:01Z roboos $
+% $Id: refine.m 9663 2014-06-22 07:06:19Z roboos $
 
 if nargin<3
   method = 'banks';

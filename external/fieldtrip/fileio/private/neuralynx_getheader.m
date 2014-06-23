@@ -1,4 +1,4 @@
-function [hdr] = neuralynx_getheader(filename);
+function [hdr] = neuralynx_getheader(filename)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION for reading the 16384 byte header from any Neuralynx file
@@ -22,7 +22,7 @@ function [hdr] = neuralynx_getheader(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: neuralynx_getheader.m 9056 2013-12-21 20:27:38Z marvin $
+% $Id: neuralynx_getheader.m 9664 2014-06-22 07:06:29Z roboos $
 
 fid     = fopen(filename, 'rb', 'ieee-le');
 buf     = fread(fid, 16*1024, 'uint8=>char');

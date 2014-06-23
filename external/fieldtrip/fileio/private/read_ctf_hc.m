@@ -1,4 +1,4 @@
-function [hc] = read_ctf_hc(filename);
+function [hc] = read_ctf_hc(filename)
 
 % READ_CTF_HC reads the MEG headcoil marker positions from an ascii file
 % and computes the coordinate transformation required to get from from
@@ -50,7 +50,7 @@ function [hc] = read_ctf_hc(filename);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_ctf_hc.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: read_ctf_hc.m 9664 2014-06-22 07:06:29Z roboos $
 
 % this can be used for printing detailled user feedback
 fb = false;

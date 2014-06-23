@@ -1,4 +1,4 @@
-function [pnt, line] = find_mesh_edge(pnt, tri);
+function [pnt, line] = find_mesh_edge(pnt, tri)
 
 % FIND_MESH_EDGE returns the edge of a triangulated mesh
 %
@@ -25,7 +25,7 @@ function [pnt, line] = find_mesh_edge(pnt, tri);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: find_mesh_edge.m 8961 2013-12-05 07:43:05Z roboos $
+% $Id: find_mesh_edge.m 9664 2014-06-22 07:06:29Z roboos $
 
 npnt = size(pnt,1);
 ntri = size(tri,1);

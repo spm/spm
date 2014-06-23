@@ -1,4 +1,4 @@
-function [pnt, tri] = headsurface(vol, sens, varargin);
+function [pnt, tri] = headsurface(vol, sens, varargin)
 
 % HEADSURFACE constructs a triangulated description of the skin or brain
 % surface from a volume conduction model, from a set of electrodes or
@@ -36,7 +36,7 @@ function [pnt, tri] = headsurface(vol, sens, varargin);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: headsurface.m 8739 2013-11-08 08:17:23Z roboos $
+% $Id: headsurface.m 9663 2014-06-22 07:06:19Z roboos $
 
 if nargin<1
   vol = [];

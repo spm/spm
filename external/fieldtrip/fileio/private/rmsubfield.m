@@ -1,4 +1,4 @@
-function [s] = rmsubfield(s, f, v);
+function [s] = rmsubfield(s, f, v)
 
 % RMSUBFIELD removes the contents of the specified field from a structure
 % just like the standard Matlab RMFIELD function, except that you can also
@@ -30,7 +30,7 @@ function [s] = rmsubfield(s, f, v);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rmsubfield.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: rmsubfield.m 9664 2014-06-22 07:06:29Z roboos $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');

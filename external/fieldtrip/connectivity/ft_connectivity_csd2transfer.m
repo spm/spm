@@ -54,7 +54,7 @@ function [output] = ft_connectivity_csd2transfer(freq, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivity_csd2transfer.m 8941 2013-12-02 14:41:17Z jansch $
+% $Id: ft_connectivity_csd2transfer.m 9671 2014-06-23 08:03:54Z jansch $
 
 numiteration = ft_getopt(varargin, 'numiteration', 100);
 channelcmb   = ft_getopt(varargin, 'channelcmb',   {});
@@ -395,7 +395,7 @@ elseif strcmp(sfmethod, 'bivariate')
       for k = 1:numel(begchunk)
         fprintf('computing factorization of chunck %d/%d\n', k, numel(begchunk));
         [Htmp, Ztmp, Stmp] = sfactorization_wilson2x2(freq.crsspctrm, freq.freq, ...
-                                             numiteration, tol, cmbindx(begchunk(k):endchunk(k),:), fb, init);
+                                             numiteration, tol, cmbindx(begchunk(k):endchunk(k),:), fb, init, checkconvergence);
                                            
         begix = (k-1)*nperchunk*4+1;
         endix = min(k*nperchunk*4, size(cmbindx,1)*4);

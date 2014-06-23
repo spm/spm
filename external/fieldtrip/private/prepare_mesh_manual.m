@@ -31,7 +31,7 @@ function bnd = prepare_mesh_manual(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_mesh_manual.m 9006 2013-12-10 11:24:56Z roboos $
+% $Id: prepare_mesh_manual.m 9663 2014-06-22 07:06:19Z roboos $
 
 % FIXME: control slice's cmap referred to abs values
 % FIXME: clean structure slicedata
@@ -136,7 +136,7 @@ catch
 end
 
 
-function cb_redraw(hObject, eventdata, handles);
+function cb_redraw(hObject, eventdata, handles)
 fig  = get(hObject, 'parent');
 prop = getappdata(fig,'prop');
 data = getappdata(fig,'data');

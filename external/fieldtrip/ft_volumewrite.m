@@ -78,9 +78,9 @@ function ft_volumewrite(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumewrite.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_volumewrite.m 9654 2014-06-21 07:24:04Z roboos $
 
-revision = '$Id: ft_volumewrite.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_volumewrite.m 9654 2014-06-21 07:24:04Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -128,12 +128,11 @@ if iscell(cfg.parameter)
   cfg.parameter = cfg.parameter{1};
 end
 
-% downsample the volume
-if cfg.downsample > 1
-  tmpcfg = [];
-  tmpcfg.downsample = cfg.downsample;
-  tmpcfg.parameter  = cfg.parameter;
+if cfg.downsample~=1
+  % optionally downsample the anatomical and/or functional volumes
+  tmpcfg = keepfields(cfg, {'downsample', 'parameter'});
   volume = ft_volumedownsample(tmpcfg, volume);
+  [cfg, volume] = rollback_provenance(cfg, volume);
 end
 
 % copy the data and convert into double values so that it can be scaled later

@@ -1,4 +1,4 @@
-function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
+function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION that converts a freq structure into Cf, Cr and Pr
@@ -26,7 +26,7 @@ function [Cf, Cr, Pr, Ntrials, cfg] = prepare_freq_matrices(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: prepare_freq_matrices.m 8319 2013-07-16 11:47:51Z jorhor $
+% $Id: prepare_freq_matrices.m 9663 2014-06-22 07:06:19Z roboos $
 
 % set the defaults
 if ~isfield(cfg, 'dicsfix'), cfg.dicsfix = 'yes'; end

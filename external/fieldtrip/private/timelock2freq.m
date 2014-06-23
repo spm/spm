@@ -1,4 +1,4 @@
-function [pow, csd, fourier] = timelock2freq(mom);
+function [pow, csd, fourier] = timelock2freq(mom)
 
 % TIMELOCK2FREQ transform the reconstructed dipole moment into
 % something that again resembles the physical input parameter in
@@ -24,7 +24,7 @@ function [pow, csd, fourier] = timelock2freq(mom);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: timelock2freq.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: timelock2freq.m 9663 2014-06-22 07:06:19Z roboos $
 
 n = size(mom,2)/2;
 

@@ -1,4 +1,5 @@
-function M=dimindex(A,dim,idx);
+function M=dimindex(A,dim,idx)
+
 % function M=dimindex(A,dim,idx);
 % 
 % The purpose of the function is shown by the following example:
@@ -29,7 +30,7 @@ function M=dimindex(A,dim,idx);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dimindex.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: dimindex.m 9663 2014-06-22 07:06:19Z roboos $
 
 if(~iscell(idx))
     if(~any(size(dim)==1)||~any(size(idx)==1)||ndims(dim)>2||ndims(idx)>2||...

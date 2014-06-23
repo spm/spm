@@ -1,4 +1,4 @@
-function [H] = traditional(f);
+function [H] = traditional(f)
 
 % TRADITIONAL creates the homogenous spatial transformation matrix
 % for a 9 parameter traditional "Talairach-model" transformation
@@ -54,7 +54,7 @@ function [H] = traditional(f);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: traditional.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: traditional.m 9663 2014-06-22 07:06:19Z roboos $
 
 % compute the homogenous transformation matrix for the translation
 T = translate(f([1 2 3]));

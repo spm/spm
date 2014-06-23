@@ -1,4 +1,4 @@
-function [retval] = rv(d1, d2);
+function [retval] = rv(d1, d2)
 
 % RV returns the relative residual variance between measured and simulated data
 %
@@ -22,7 +22,7 @@ function [retval] = rv(d1, d2);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: rv.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: rv.m 9663 2014-06-22 07:06:19Z roboos $
 
 retval = sum((d1-d2).^2) ./ sum(d1.^2);
 

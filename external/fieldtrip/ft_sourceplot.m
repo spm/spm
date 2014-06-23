@@ -172,9 +172,9 @@ function ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9616 2014-06-12 12:08:11Z jansch $
+% $Id: ft_sourceplot.m 9673 2014-06-23 12:05:28Z jansch $
 
-revision = '$Id: ft_sourceplot.m 9616 2014-06-12 12:08:11Z jansch $';
+revision = '$Id: ft_sourceplot.m 9673 2014-06-23 12:05:28Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -291,12 +291,12 @@ cfg.maskparameter = parameterselection(cfg.maskparameter, data);
 try, cfg.funparameter  = cfg.funparameter{1};  end
 try, cfg.maskparameter = cfg.maskparameter{1}; end
 
-if cfg.downsample ~=1 && isvolume
-  % downsample all volumes
-  tmpcfg = [];
-  tmpcfg.parameter  = {cfg.funparameter, cfg.maskparameter, cfg.anaparameter};
-  tmpcfg.downsample = cfg.downsample;
+if isvolume && cfg.downsample~=1
+  % optionally downsample the anatomical and/or functional volumes
+  tmpcfg = keepfields(cfg, {'downsample'});
+  tmpcfg.parameter = {cfg.funparameter, cfg.maskparameter, cfg.anaparameter};
   data = ft_volumedownsample(tmpcfg, data);
+  [cfg, data] = rollback_provenance(cfg, data);
 end
 
 %%% make the local variables:
@@ -799,12 +799,6 @@ if isequal(cfg.method,'ortho')
   fprintf('click and hold right mouse button to update the position while moving the mouse\n');
   fprintf('use the arrowkeys to navigate in the current axis\n');
   
-  while(opt.quit==0)
-    uiwait(h);
-    opt = getappdata(h, 'opt');
-  end
-  delete(h);
-  
 elseif isequal(cfg.method,'glassbrain')
   tmpcfg          = [];
   tmpcfg.funparameter = cfg.funparameter;
@@ -881,15 +875,9 @@ elseif isequal(cfg.method,'surface')
       surf.pnt = temp.pnt;
       clear temp
       % downsample other fields
-      if isfield(surf, 'curv')
-        surf.curv = surf.curv(idx);
-      end
-      if isfield(surf, 'sulc')
-        surf.sulc = surf.sulc(idx);
-      end
-      if isfield(surf, 'hemisphere')
-        surf.hemisphere = surf.hemisphere(idx);
-      end
+      if isfield(surf, 'curv'),       surf.curv       = surf.curv(idx);       end
+      if isfield(surf, 'sulc'),       surf.sulc       = surf.sulc(idx);       end
+      if isfield(surf, 'hemisphere'), surf.hemisphere = surf.hemisphere(idx); end
     end
     
     % these are required
@@ -900,58 +888,25 @@ elseif isequal(cfg.method,'surface')
     fprintf('%d voxels in functional data\n', prod(dim));
     fprintf('%d vertices in cortical surface\n', size(surf.pnt,1));
     
-    if (hasfun  && strcmp(cfg.projmethod,'project')),
-      val=zeros(size(surf.pnt,1),1);
-      if hasmsk
-        maskval = val;
-      end;
-      %convert projvec in mm to a factor, assume mean distance of 70mm
-      cfg.projvec=(70-cfg.projvec)/70;
-      for iproj = 1:length(cfg.projvec),
-        sub = round(ft_warp_apply(inv(data.transform), surf.pnt*cfg.projvec(iproj), 'homogenous'));  % express
-        sub(sub(:)<1) = 1;
-        sub(sub(:,1)>dim(1),1) = dim(1);
-        sub(sub(:,2)>dim(2),2) = dim(2);
-        sub(sub(:,3)>dim(3),3) = dim(3);
-        disp('projecting...')
-        ind = sub2ind(dim, sub(:,1), sub(:,2), sub(:,3));
-        if strcmp(cfg.projcomb,'mean')
-          val = val + cfg.projweight(iproj) * fun(ind);
-          if hasmsk
-            maskval = maskval + cfg.projweight(iproj) * msk(ind);
-          end
-        elseif strcmp(cfg.projcomb,'max')
-          val =  max([val cfg.projweight(iproj) * fun(ind)],[],2);
-          tmp2 = min([val cfg.projweight(iproj) * fun(ind)],[],2);
-          fi = find(val < max(tmp2));
-          val(fi) = tmp2(fi);
-          if hasmsk
-            maskval = max(abs([maskval cfg.projweight(iproj) * fun(ind)]),[],2);
-          end
-        else
-          error('undefined method to combine projections; use cfg.projcomb= mean or max')
-        end
-      end
-      if strcmp(cfg.projcomb,'mean'),
-        val=val/length(cfg.projvec);
-        if hasmsk
-          maskval = max(abs([maskval cfg.projweight(iproj) * fun(ind)]),[],2);
-        end
-      end;
-      if ~isempty(cfg.projthresh),
-        mm=max(abs(val(:)));
-        maskval(abs(val) < cfg.projthresh*mm) = 0;
-      end
+    tmpcfg = [];
+    tmpcfg.parameter = {cfg.funparameter};
+    if ~isempty(cfg.maskparameter)
+      tmpcfg.parameter = [tmpcfg.parameter {cfg.maskparameter}];
     end
+    tmpcfg.interpmethod = cfg.projmethod;
+    tmpcfg.distmat    = cfg.distmat;
+    tmpcfg.sphereradius = cfg.sphereradius;
+    tmpcfg.projvec    = cfg.projvec;
+    tmpcfg.projcomb   = cfg.projcomb;
+    tmpcfg.projweight = cfg.projweight;
+    tmpcfg.projthresh = cfg.projthresh;
+    tmpdata           = ft_sourceinterpolate(tmpcfg, data, surf);
     
-    if (hasfun && ~strcmp(cfg.projmethod,'project')),
-      [interpmat, cfg.distmat] = interp_gridded(data.transform, fun, surf.pnt, 'projmethod', cfg.projmethod, 'distmat', cfg.distmat, 'sphereradius', cfg.sphereradius, 'inside', data.inside);
-      % interpolate the functional data
-      val = interpmat * fun(data.inside(:));
-    end;
-    if (hasmsk && ~strcmp(cfg.projmethod,'project')),
-      % also interpolate the opacity mask
-      maskval = interpmat * msk(data.inside(:));
+    if hasfun, val     = getsubfield(tmpdata, cfg.funparameter);  val     = val(:);     end
+    if hasmsk, maskval = getsubfield(tmpdata, cfg.maskparameter); maskval = maskval(:); end
+    
+    if ~isempty(cfg.projthresh),
+      maskval(abs(val) < cfg.projthresh*max(abs(val(:)))) = 0;
     end
     
   else
@@ -985,7 +940,7 @@ elseif isequal(cfg.method,'surface')
   if isfield(surf, 'curv')
     % the curvature determines the color of gyri and sulci
     color = surf.curv(:) * cortex_light + (1-surf.curv(:)) * cortex_dark;
- else
+  else
     color = repmat(cortex_light, size(surf.pnt,1), 1);
   end
   
@@ -1082,7 +1037,7 @@ elseif isequal(cfg.method,'slice')
   
   % take care of a potential singleton 3d dimension
   dim = [dim 1];
-
+  
   m = dim(1);
   n = dim(2);
   M = ceil(sqrt(dim(3)));
@@ -1138,6 +1093,12 @@ ft_postamble debug
 ft_postamble trackconfig
 ft_postamble provenance
 ft_postamble previous data
+
+% add a menu to the figure
+% also, delete any possibly existing previous menu, this is safe because delete([]) does nothing
+ftmenu = uimenu(gcf, 'Label', 'FieldTrip');
+uimenu(ftmenu, 'Label', 'Show pipeline',  'Callback', {@menu_pipeline, cfg});
+uimenu(ftmenu, 'Label', 'About',  'Callback', @menu_about);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION makes an overlay of 3D anatomical, functional and probability
@@ -1531,8 +1492,8 @@ switch key
   case ''
     % do nothing
   case 'q'
-    setappdata(h, 'opt', opt);
-    cb_cleanup(h);
+    %     setappdata(h, 'opt', opt);
+    %     cb_cleanup(h);
   case {'i' 'j' 'k' 'm' 28 29 30 31 'leftarrow' 'rightarrow' 'uparrow' 'downarrow'} % TODO FIXME use leftarrow rightarrow uparrow downarrow
     % update the view to a new position
     if     strcmp(tag,'ik') && (strcmp(key,'i') || strcmp(key,'uparrow')    || isequal(key, 30)), opt.ijk(3) = opt.ijk(3)+1; opt.update = [0 0 1];
@@ -1645,10 +1606,11 @@ uiresume;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function cb_cleanup(h, eventdata)
 
-opt = getappdata(h, 'opt');
-opt.quit = true;
-setappdata(h, 'opt', opt);
-uiresume
+% opt = getappdata(h, 'opt');
+% opt.quit = true;
+% setappdata(h, 'opt', opt);
+% uiresume
+delete(h);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SUBFUNCTION
@@ -1687,5 +1649,3 @@ end
 if ~isempty(eventdata.Modifier)
   key = [eventdata.Modifier{1} '+' key];
 end
-
-

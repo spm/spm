@@ -1,4 +1,4 @@
-function [data] = blc(data, interval, optional);
+function [data] = blc(data, interval, optional)
 
 % BLC does a baseline correction using the prestimulus interval of the data
 %
@@ -26,7 +26,7 @@ function [data] = blc(data, interval, optional);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: blc.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: blc.m 9663 2014-06-22 07:06:19Z roboos $
 
 % determine the dimension of the data
 if length(size(data))==3

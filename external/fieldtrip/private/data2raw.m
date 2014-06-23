@@ -1,4 +1,4 @@
-function [data, dimord] = data2raw(data);
+function [data, dimord] = data2raw(data)
 
 % DATA2RAW is a helper function that converts various types of averages to
 % raw data. This function is used to apply the analysis steps that were
@@ -24,7 +24,7 @@ function [data, dimord] = data2raw(data);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: data2raw.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: data2raw.m 9663 2014-06-22 07:06:19Z roboos $
 
 % determine the type of input data
 if isfield(data, 'label') && ~isfield(data, 'avg') && isfield(data, 'trial') && iscell(data.trial)

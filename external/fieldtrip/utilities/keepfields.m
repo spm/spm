@@ -1,17 +1,13 @@
-function [s] = getsubfield(s, f)
+function [s] = keepfields(s, fields)
 
-% GETSUBFIELD returns a field from a structure just like the standard
-% Matlab GETFIELD function, except that you can also specify nested fields
-% using a '.' in the fieldname. The nesting can be arbitrary deep.
+% KEEPFIELDS makes a selection of the fields in a structure
 %
 % Use as
-%   f = getsubfield(s, 'fieldname')
-% or as
-%   f = getsubfield(s, 'fieldname.subfieldname')
+%   s = keepfields(s, fields);
 %
-% See also GETFIELD, ISSUBFIELD, SETSUBFIELD
+% See also REMOVEFIELDS
 
-% Copyright (C) 2005-2013, Robert Oostenveld
+% Copyright (C) 2014, Robert Oostenveld
 %
 % This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
 % for the documentation and details.
@@ -29,20 +25,20 @@ function [s] = getsubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id: keepfields.m 9651 2014-06-20 14:06:53Z roboos $
 
-if iscell(f)
-  f = f{1};
+if isempty(s)
+   % this prevents problems if s is an empty double, i.e. []
+  return
 end
 
-if ~ischar(f)
-  error('incorrect input argument for fieldname');
+if ischar(fields)
+  fields = {fields};
+elseif ~iscell(fields)
+  error('fields input argument must be a cell array of strings or a single string');
 end
 
-while (1)
-  [t, f] = strtok(f, '.');
-  s = getfield(s, t);
-  if isempty(f)
-    break
-  end
+fields = setdiff(fieldnames(s), fields);
+for i=1:numel(fields)
+  s = rmfield(s, fields{i});
 end

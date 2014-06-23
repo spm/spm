@@ -68,7 +68,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9611 2014-06-10 07:36:31Z eelspa $
+% $Id: ft_selectdata.m 9649 2014-06-20 13:58:26Z roboos $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -140,6 +140,10 @@ if ~isfield(cfg, 'foilim')
 end
 
 datfield  = fieldnames(varargin{1});
+for i=2:length(varargin)
+  % only consider fields that are present in all inputs
+  datfield = intersect(datfield, fieldnames(varargin{i}));
+end
 datfield  = setdiff(datfield, {'label' 'labelcmb'}); % these fields will be used for selection, but are not treated as data fields
 xtrafield =  {'cfg' 'hdr' 'fsample' 'grad' 'elec' 'transform' 'unit' 'topolabel' 'lfplabel' 'dim'}; % these fields will not be touched in any way by the code
 datfield  = setdiff(datfield, xtrafield);
@@ -336,7 +340,7 @@ for i=1:numel(varargin)
   % also update the fields that describe the dimensions, time/freq/pos have been dealt with as data
   if haschan,    varargin{i} = makeselection_chan   (varargin{i}, selchan{i}, avgoverchan); end % update the label field
   if haschancmb, varargin{i} = makeselection_chancmb(varargin{i}, selchancmb{i}, avgoverchancmb); end % update the labelcmb field
- 
+  
 end % for varargin
 
 if strcmp(cfg.select, 'union')
@@ -1090,14 +1094,6 @@ for i=1:ndata
   posindx{i} = nan;    % the nan return value specifies that no selection was specified
 end
 end % function getselection_pos
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [data] = keepfields(data, fn)
-fn = setdiff(fieldnames(data), fn);
-for i=1:numel(fn)
-  data = rmfield(data, fn{i});
-end
-end % function keepfields
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function x = squeezedim(x, dim)

@@ -1,4 +1,4 @@
-function [timelock, cfg] = freq2timelock(cfg, freq);
+function [timelock, cfg] = freq2timelock(cfg, freq)
 
 % FREQ2TIMELOCK  transform the frequency data into something
 % on which the timelocked source reconstruction methods can
@@ -28,7 +28,7 @@ function [timelock, cfg] = freq2timelock(cfg, freq);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: freq2timelock.m 9092 2014-01-13 10:23:36Z jansch $
+% $Id: freq2timelock.m 9663 2014-06-22 07:06:19Z roboos $
 
 if isfield(freq, 'fourierspctrm')
   fprintf('constructing real/imag data representation from single trial fourier representation\n');

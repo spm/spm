@@ -1,4 +1,4 @@
-function [x, ut] = svdfft(f, n, trltapcnt);
+function [x, ut] = svdfft(f, n, trltapcnt)
 
 % SVDFFT computes a rotated FFT matrix, using the real part of the
 % cross-spectral density matrix. This rotation ensures that the phase
@@ -30,7 +30,7 @@ function [x, ut] = svdfft(f, n, trltapcnt);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: svdfft.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: svdfft.m 9663 2014-06-22 07:06:19Z roboos $
 
 if nargin == 1,
   n         = size(f,1);

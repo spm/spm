@@ -1,4 +1,4 @@
-function [timelock, cfg] = comp2timelock(cfg, comp);
+function [timelock, cfg] = comp2timelock(cfg, comp)
 
 % COMP2TIMELOCK transform the independent components into something
 % on which the timelocked source reconstruction methods can
@@ -22,7 +22,7 @@ function [timelock, cfg] = comp2timelock(cfg, comp);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: comp2timelock.m 9092 2014-01-13 10:23:36Z jansch $
+% $Id: comp2timelock.m 9663 2014-06-22 07:06:19Z roboos $
 
 % only convert, do not perform channel or component selection
 timelock        = [];

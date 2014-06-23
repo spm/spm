@@ -1,4 +1,4 @@
-function offset = time2offset(time, fsample);
+function offset = time2offset(time, fsample)
 
 % TIME2OFFSET converts a time-axis of a trial into the offset in samples
 % according to the definition from DEFINETRIAL
@@ -33,6 +33,6 @@ function offset = time2offset(time, fsample);
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: time2offset.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: time2offset.m 9664 2014-06-22 07:06:29Z roboos $
 
 offset = round(time(1)*fsample);
