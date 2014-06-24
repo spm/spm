@@ -105,11 +105,11 @@ function varargout=FieldMap(varargin)
 % 
 % Wellcome Trust and IBIM Consortium
 %_______________________________________________________________________
-% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 4996 2012-10-11 18:28:37Z guillaume $
-%_______________________________________________________________________
+% $Id: FieldMap.m 6066 2014-06-24 11:29:17Z guillaume $
+
 
 persistent PF FS WS PM   % GUI related constants
 persistent ID            % Image display
@@ -445,13 +445,13 @@ switch lower(Action)
            'ToolTipString','Site specific default files',...
            'Position',[400 480 60 22].*WS);
       else
-     uicontrol(PM,'Style','PopUp',...
+         uicontrol(PM,'Style','PopUp',...
            'String',menu_items,...
            'Enable','On',...
            'ToolTipString','Site specific default files',...
-               'Position',[390 480 90 22].*WS,...
+           'Position',[390 480 90 22].*WS,...
            'callback','FieldMap(''DefaultFile_Gui'');',...
-               'UserData',def_files);          
+           'UserData',def_files);          
       end
       
 %-Apply defaults to buttons
@@ -1443,14 +1443,10 @@ switch lower(Action)
 
    case 'getdefaultfiles'
       fmdir = fullfile(spm('Dir'),'toolbox','FieldMap');
-      defdir = dir(fullfile(fmdir,'pm_defaults*.m'));
-      for i=1:length(defdir)
-     if defdir(i).name(12) ~= '.' && defdir(i).name(12) ~= '_'
-        error('Error in default file spec: %s',defdir(i).name);
-     end
-     defnames{i} = defdir(i).name;
-      end
-      varargout{1} = defnames;
+      defnames = spm_select('FPList',fmdir,'^pm_defaults.*\.m');
+      defnames = char(defnames,...
+          spm_select('FPList',fullfile(fmdir,'FIL'),'^pm_defaults.*\.m'));
+      varargout{1} = cellstr(defnames);
 
 %=======================================================================
 %
@@ -1460,12 +1456,9 @@ switch lower(Action)
 
    case 'deffiles2menuitems'
       for i=1:length(varargin{2})
-     if strcmp(varargin{2}{i},'pm_defaults.m');
-        menit{i} = 'Default';
-     else
-        endindx = strfind(varargin{2}{i},'.m');
-        menit{i} = varargin{2}{i}(13:(endindx-1));
-     end
+         menit{i} = spm_file(varargin{2}{i},'basename');
+         menit{i} = menit{i}(13:end); % "pm_defaults_<menit>.m"
+         if isempty(menit{i}), menit{i} = 'Default'; end
       end
       varargout{1} = menit;
       
