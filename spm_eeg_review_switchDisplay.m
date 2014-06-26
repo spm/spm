@@ -4,7 +4,7 @@ function [D] = spm_eeg_review_switchDisplay(D)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 5851 2014-01-22 13:33:48Z vladimir $
+% $Id: spm_eeg_review_switchDisplay.m 6070 2014-06-26 20:53:39Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -51,10 +51,10 @@ end
 
 return
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Standard EEG/MEG data plot
+%==========================================================================
+% Standard EEG/MEG data plot
+%==========================================================================
 function [D] = standardData(D)
 
 % POS = get(D.PSD.handles.hfig,'position');
@@ -118,10 +118,10 @@ else
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% 'SPM-like' EEG/MEG data plot
+%==========================================================================
+% 'SPM-like' EEG/MEG data plot
+%==========================================================================
 function [D] = scalpData(D)
 
 % POS = get(D.PSD.handles.hfig,'position');
@@ -202,10 +202,10 @@ else
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% RENDERING OF INVERSE SOLUTIONS
+%==========================================================================
+% RENDERING OF INVERSE SOLUTIONS
+%==========================================================================
 function [D] = visuRecon(D)
 POS = get(D.PSD.handles.hfig,'position');
 
@@ -377,12 +377,10 @@ if ~~D.PSD.source.VIZU.current
     set(D.PSD.source.VIZU.lineTime,'visible','on')
     set(D.PSD.source.VIZU.plotTC,'visible','on')
     set(D.PSD.source.VIZU.pve,'visible','on')
-    try
-        set(D.PSD.handles.BMCplot,'visible','on');
-        set(D.PSD.handles.hbar,'visible','on');
-        set(D.PSD.handles.BMCcurrent,'visible','on');
-        set(D.PSD.handles.BMCpanel,'visible','on');
-    end
+    try,set(D.PSD.handles.BMCplot,'visible','on'); end
+    try,set(D.PSD.handles.hbar,'visible','on'); end
+    try,set(D.PSD.handles.BMCcurrent,'visible','on'); end
+    try,set(D.PSD.handles.BMCpanel,'visible','on'); end
     
 
     set(D.PSD.handles.hfig,'userdata',D)
@@ -404,10 +402,9 @@ else
 
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% GET DATA INFO
+%==========================================================================
+% GET DATA INFO
+%==========================================================================
 function [D] = DataInfo(D)
 
 

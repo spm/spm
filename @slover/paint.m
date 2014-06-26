@@ -270,9 +270,9 @@ for i = 1:nslices
       end
       set(axisd(i),'NextPlot','add');
       if mars_struct('isthere', thisimg, 'contours')
-    [c h] = contour(axisd(i), i1, thisimg.contours, linespec);
+    [c,h] = contour(axisd(i), i1, thisimg.contours, linespec);
       else
-    [c h] = contour(axisd(i), i1, linespec);
+    [c,h] = contour(axisd(i), i1, linespec);
       end
       if ~isempty(h)
     if ~mars_struct('isthere', thisimg, 'linespec') 

@@ -118,7 +118,7 @@ function varargout = spm_DesRep(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_DesRep.m 6056 2014-06-19 11:00:29Z guillaume $
+% $Id: spm_DesRep.m 6070 2014-06-26 20:53:39Z guillaume $
 
 
 %==========================================================================
@@ -251,7 +251,7 @@ function varargout = spm_DesRep(varargin)
 %__________________________________________________________________________
 
 
-SVNid = '$Rev: 6056 $'; 
+SVNid = '$Rev: 6070 $'; 
 
 %-Format arguments
 %--------------------------------------------------------------------------
@@ -579,7 +579,7 @@ hCovMtxSc  = [];
 if isfield(varargin{2},'V')
   clim = full([-max(varargin{2}.V(:))/2 max(varargin{2}.V(:))]); % scale 0 to gray
   hCovMtxIm(1) = imagesc(varargin{2}.V, clim);
-  hCovMtxSc = colorbar('vert');
+  hCovMtxSc = colorbar;
   set(hCovMtxSc,'Ylim',[0 clim(2)]); % cut colorbar at 0
   %-Setup callbacks to allow interrogation of covariance matrix
   %------------------------------------------------------------------------
@@ -998,7 +998,7 @@ line('XData',[0.3 0.7],'YData',[0.44 0.44],'LineWidth',3,'Color','r')
 
 %-Design matrix (as underlay for plots) and parameter names
 %--------------------------------------------------------------------------
-[nScan,nPar]   = size(varargin{2}.X);
+[nScan,nPar] = size(varargin{2}.X);
 if isfield(varargin{2},'name') && ~isempty(varargin{2}.name)
     Xnames = varargin{2}.name; else Xnames = {}; end
 
@@ -1017,7 +1017,6 @@ set(hDesMtx,'Visible','off')
 hParAx = axes('Position',[.8 .5 .2 .3],'Visible','off',...
     'DefaultTextFontSize',FS(8),'DefaultTextInterpreter','TeX',...
     'YLim',[0.5,nPar+0.5],'YDir','Reverse');
-hPNames = zeros(nPar,1);
 for i = 1:nPar, hPNames(i) = text(.05,i,Xnames{i}); end
 
 

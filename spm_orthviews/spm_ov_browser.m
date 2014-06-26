@@ -9,7 +9,7 @@ function ret = spm_ov_browser(varargin)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 5942 2014-04-08 15:59:19Z guillaume $
+% $Id: spm_ov_browser.m 6070 2014-06-26 20:53:39Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -83,7 +83,11 @@ hS = uicontrol('Parent', Fgraph,...
     'Value',             1,...
     'SliderStep',        [1 1]/(numel(f)-1));
 try
-    hListener = handle.listener(hS,'ActionEvent',@browser_slider);
+    if spm_check_version('matlab','8.4') >= 0
+        hListener = addlistener(hS,'ContinuousValueChange',@browser_slider);
+    else
+        hListener = handle.listener(hS,'ActionEvent',@browser_slider);
+    end
     setappdata(hS,'myListener',hListener);
 catch
     set(hS,'Callback',   @browser_slider);

@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 5493 2013-05-11 10:16:00Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 6070 2014-06-26 20:53:39Z guillaume $
 
 ChanLabel = char(ChanLabel);
 ParentAxes = [];
@@ -273,6 +273,7 @@ if ishandle(d.in.handles.hfig)
         try
             % delete current contour plot
             delete(findobj(d.ParentAxes,'type','hggroup'));
+            delete(findobj(d.ParentAxes,'type','contour')); % R2014b
             % create new one
             [C,hc] = contour(d.ParentAxes,flipud(ZI),...
                 'linecolor',[0.5.*ones(3,1)]);
