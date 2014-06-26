@@ -62,7 +62,7 @@ Select \textsc{Coregister (Estimate)} from the \textsc{Coregister} pulldown. Thi
 SPM will then implement a coregistration between the structural and functional data that maximises the mutual information. The image in figure~\ref{aud_coreg} should then appear in the Graphics window. SPM will have changed the header of the source file which in this case is the structural image \texttt{sM00223\_002.hdr}.
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/coreg}
+\includegraphics[width=125mm]{auditory/coreg}
 \caption{\em Mutual Information Coregistration of Auditory data.\label{aud_coreg}}
 \end{center}
 \end{figure}
@@ -71,7 +71,7 @@ The \textsc{Check Reg} facility is useful here, to check the results of coregist
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/checkreg}
+\includegraphics[width=125mm]{auditory/checkreg}
 \caption{\em Checking registration of functional and ``registered'' structural data. \label{aud_checkreg}}
 \end{center}
 \end{figure}
@@ -84,14 +84,14 @@ SPM will create gray and white matter images and bias-field corrected structural
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/gray}
+\includegraphics[width=125mm]{auditory/gray}
 \caption{\em Gray matter image and ``registered'' structural image.\label{aud_gray}}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/bias}
+\includegraphics[width=125mm]{auditory/bias}
 \caption{\em Structural image (top) and bias-corrected structural image (bottom). Notice that the original structural is darker at the top than at the bottom. This non-uniformity has been removed in the bias-corrected image.\label{aud_bias}}
 \end{center}
 \end{figure}
@@ -138,7 +138,7 @@ An example of functional image and its smoothed version is displayed on Figure~\
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/smooth}
+\includegraphics[width=125mm]{auditory/smooth}
 \caption{\em Functional image (top) and 6mm-smoothed functional image (bottom). These images were obtained using SPM's ``CheckReg'' facility. \label{aud_smooth}}
 \end{center}
 \end{figure}
@@ -163,7 +163,7 @@ SPM will then write an \texttt{SPM.mat} file to the \texttt{DIR/classical} direc
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=80mm]{auditory/design}
+\includegraphics[width=125mm]{auditory/design}
 \caption{\emph{\texttt{Design matrix}: The filenames on the right-hand side of the design matrix indicate the scan associated with each row.\label{aud_design}}}
 \end{center}
 \end{figure}
@@ -172,7 +172,7 @@ At this stage it is advisable to check your model specification using SPM's revi
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=80mm]{auditory/explore}
+\includegraphics[width=125mm]{auditory/explore}
 \caption{\emph{\texttt{Exploring the design matrix in Figure~\ref{aud_design}}: This shows the time series of the ``listening'' regressor (top left), a frequency domain plot of the ``listening'' regressor (top right) and the basis function used to convert assumed neuronal activity into hemodynamic activity. In this model we used the default option - the canonical basis function. The frequency domain plot shows that the frequency content of the ``listening'' regressor is above the set frequencies that are removed by the High Pass Filter (HPF) (these are shown in gray - in this model we accepted the default HPF cut-off of 128s or 0.008Hz). \label{aud_explore}}}
 \end{center}
 \end{figure}
@@ -208,7 +208,7 @@ After estimation:
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=60mm]{auditory/con_man}
+\includegraphics[width=75mm]{auditory/con_man}
 \caption{\emph{The contrast manager}}
 \end{center}
 \end{figure}
@@ -223,8 +223,8 @@ The contrast manager displays the design matrix (surfable) in the right panel an
 \item{Select ``Define new contrast''}
 \end{itemize}
 \begin{figure}
-\includegraphics[width=60mm]{auditory/con_man2}
-\includegraphics[width=60mm]{auditory/con_man3}
+\includegraphics[width=75mm]{auditory/con_man2}
+\includegraphics[width=75mm]{auditory/con_man3}
 \caption{\emph{Left: A contrast is entered by specifying the numeric values in the lower window and the name in the upper window. Right: After contrasts have been specified they can be selected.}}
 \end{figure}
 
