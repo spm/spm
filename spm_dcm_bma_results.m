@@ -1,26 +1,27 @@
 function spm_dcm_bma_results(BMS,method)
 % Plot histograms from BMA for selected modulatory and driving input
-% FORMAT spm_dcm_bma_results(BMS,mod_in,drive_in,method)
-%
-% Input:
+% FORMAT spm_dcm_bma_results(BMS,method)
 % BMS        - BMS.mat file
 % method     - inference method (FFX or RFX)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % Maria Joao
-% $Id: spm_dcm_bma_results.m 4744 2012-05-17 14:38:09Z will $
+% $Id: spm_dcm_bma_results.m 6067 2014-06-26 15:33:30Z guillaume $
 
-if nargin < 1
-    fname       = spm_select(1,'^BMS.mat$','select BMS.mat file');
+
+%-Load BMS file
+%--------------------------------------------------------------------------
+if ~nargin
+    [fname, sts] = spm_select(1,'^BMS.mat$','select BMS.mat file');
+    if ~sts, return; end
 else
     fname = BMS;
 end
-% load BMS file
-%--------------------------------------------------------------------------
+
 load(fname)
 
-% Check BMS/BMA method used
+%-Check BMS/BMA method used
 %--------------------------------------------------------------------------
 if nargin < 2
     ff = fieldnames(BMS.DCM);
@@ -32,20 +33,20 @@ if nargin < 2
     end
 end
 
-% select method
+%-Select method
 %--------------------------------------------------------------------------
 if isfield(BMS.DCM,method)
     switch method
         case 'ffx'
             if isempty(BMS.DCM.ffx.bma)
-                error('No BMA analysis for FFX in BMS file!');
+                error('No BMA analysis for FFX in BMS file.');
             else
 
-                Nsamp   = BMS.DCM.ffx.bma.nsamp;
-                amat    = BMS.DCM.ffx.bma.a;
-                bmat    = BMS.DCM.ffx.bma.b;
-                cmat    = BMS.DCM.ffx.bma.c;
-                dmat    = BMS.DCM.ffx.bma.d;
+                Nsamp = BMS.DCM.ffx.bma.nsamp;
+                amat  = BMS.DCM.ffx.bma.a;
+                bmat  = BMS.DCM.ffx.bma.b;
+                cmat  = BMS.DCM.ffx.bma.c;
+                dmat  = BMS.DCM.ffx.bma.d;
             end
             disp('Loading model space...')
             load(BMS.DCM.ffx.data)
@@ -53,24 +54,23 @@ if isfield(BMS.DCM,method)
 
         case 'rfx'
             if isempty(BMS.DCM.rfx.bma)
-                error('No BMA analysis for RFX in BMS file!');
+                error('No BMA analysis for RFX in BMS file.');
             else
                 Nsamp = BMS.DCM.rfx.bma.nsamp;
-                amat = BMS.DCM.rfx.bma.a;
-                bmat = BMS.DCM.rfx.bma.b;
-                cmat = BMS.DCM.rfx.bma.c;
-                dmat = BMS.DCM.rfx.bma.d;
+                amat  = BMS.DCM.rfx.bma.a;
+                bmat  = BMS.DCM.rfx.bma.b;
+                cmat  = BMS.DCM.rfx.bma.c;
+                dmat  = BMS.DCM.rfx.bma.d;
             end
             disp('Loading model space...')
             load(BMS.DCM.rfx.data)
             load(subj(1).sess(1).model(1).fname)
     end
 else
-    msgbox(sprintf('No %s analysis in current BMS.mat file!',method))
-    return
+    error('No %s analysis in current BMS.mat file.',method);
 end
 
-% number of regions, mod. inputs and names
+%-Number of regions, mod. inputs and names
 %--------------------------------------------------------------------------
 n  = size(amat,2); % #region
 m  = size(bmat,3); % #drv/mod inputs
@@ -112,11 +112,11 @@ else
 end
 
 if isfield(DCM.Y,'name')
-    for i=1:n,
+    for i=1:n
         region(i).name = DCM.Y.name{i};
     end
 else
-    for i=1:n,
+    for i=1:n
         str            = sprintf('Region %d',i);
         region(i).name = spm_input(['Name for ',str],'+1','s');
     end
@@ -124,10 +124,10 @@ end
 
 bins   = Nsamp/100;
 
-% intrinsic connection density
+%-Intrinsic connection density
 %--------------------------------------------------------------------------
 F  = spm_figure('GetWin','Graphics');
-set(F,'name','BMA: results');
+set(F,'name',sprintf('%s: %s',spm('Version'),'BMA Results'));
 FS = spm('FontSizes');
 
 usd.amat        = amat;
@@ -143,7 +143,7 @@ usd.FS          = FS;
 usd.drive_input = drive_input;
 usd.mod_input   = mod_input;
 if nonLin
-    usd.mod_reg     = mod_reg;
+    usd.mod_reg = mod_reg;
 end
 usd.bins        = bins;
 usd.Nsamp       = Nsamp;
@@ -176,18 +176,19 @@ set(handles.hh,'backgroundcolor',[1 1 1])
 set(handles.hp,'HighlightColor',0.8*[1 1 1])
 set(handles.hp,'backgroundcolor',[1 1 1])
 
-feval(@plot_a,F)
+plot_a(F);
+
 
 %==========================================================================
 function plot_a(F)
 
-try
-    F;
-catch
+if ~nargin
     F = get(gco,'parent');
 end
 
-hc = intersect(findobj('tag','bma_results'),get(F,'children'));
+H = findobj(F,'tag','BMA_parameters','type','uipanel');
+
+hc = intersect(findobj('tag','bma_results'),get(H,'children'));
 if ~isempty(hc)
     delete(hc)
 end
@@ -195,13 +196,13 @@ end
 ud = get(F,'userdata');
 
 titlewin = 'BMA: intrinsic connections (a)';
-hTitAx = axes('Parent',F,'Position',[0.2,0.04,0.6,0.02],...
+hTitAx = axes('Parent',H,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:ud.n,
-    for j=1:ud.n,
+for i=1:ud.n
+    for j=1:ud.n
         k=(i-1)*ud.n+j;
         subplot(ud.n,ud.n,k);
         if (i==j)
@@ -226,8 +227,9 @@ function plot_b
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
+H  = findobj(hf,'tag','BMA_parameters','type','uipanel');
 
-hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(H,'children'));
 if ~isempty(hc)
     delete(hc)
 end
@@ -240,13 +242,13 @@ b_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_mod = find(ud.mod_input==b_ind);
 
 titlewin = ['BMA: modulatory connections (b',num2str(b_ind),')'];
-hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+hTitAx = axes('Parent',H,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:ud.n,
-    for j=1:ud.n,
+for i=1:ud.n
+    for j=1:ud.n
         k=(i-1)*ud.n+j;
         subplot(ud.n,ud.n,k);
         if (i==j)
@@ -271,8 +273,9 @@ function plot_c
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
+H  = findobj(hf,'tag','BMA_parameters','type','uipanel');
 
-hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(H,'children'));
 if ~isempty(hc)
     delete(hc)
 end
@@ -285,12 +288,12 @@ c_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_drv = find(ud.drive_input==c_ind);
 
 titlewin = ['BMA: input connections (c',num2str(c_ind),')'];
-hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+hTitAx = axes('Parent',H,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for j=1:ud.n,
+for j=1:ud.n
     subplot(1,ud.n,j);
     if length(find(ud.cmat(j,ud.drive_input(i_drv),:)==0))==ud.Nsamp
         plot([0 0],[0 1],'k');
@@ -313,8 +316,9 @@ function plot_d
 
 hf = get(gco,'parent');
 ud = get(hf,'userdata');
+H  = findobj(hf,'tag','BMA_parameters','type','uipanel');
 
-hc = intersect(findobj('tag','bma_results'),get(hf,'children'));
+hc = intersect(findobj('tag','bma_results'),get(H,'children'));
 if ~isempty(hc)
     delete(hc)
 end
@@ -327,13 +331,13 @@ d_ind = str2num(t_str(strfind(t_str,'#')+1:end));
 i_mreg = find(ud.mod_reg==d_ind);
 
 titlewin = ['BMA: non-linear connections (d',num2str(d_ind),')'];
-hTitAx = axes('Parent',hf,'Position',[0.2,0.04,0.6,0.02],...
+hTitAx = axes('Parent',H,'Position',[0.2,0.04,0.6,0.02],...
     'Visible','off','tag','bma_results');
 text(0.55,0,titlewin,'Parent',hTitAx,'HorizontalAlignment','center',...
     'VerticalAlignment','baseline','FontWeight','Bold','FontSize',ud.FS(12))
 
-for i=1:ud.n,
-    for j=1:ud.n,
+for i=1:ud.n
+    for j=1:ud.n
         k=(i-1)*ud.n+j;
         subplot(ud.n,ud.n,k);
         if (i==j)

@@ -65,11 +65,11 @@ function [varargout] = spm_uitable(varargin)
 %     See also AWTCREATE, AWTINVOKE, JAVACOMPONENT, UITREE, UITREENODE
 
 %   Copyright 2002-2006 The MathWorks, Inc.
-%   $Revision: 4185 $  $Date: 2006/11/29 21:53:13 $
+%   $Revision: 6067 $  $Date: 2006/11/29 21:53:13 $
 
 %   Release: R14. This feature will not work in previous versions of MATLAB.
 
-% $Id: spm_uitable.m 4185 2011-02-01 18:46:18Z guillaume $
+% $Id: spm_uitable.m 6067 2014-06-26 15:33:30Z guillaume $
 
 % Setup and P-V parsing
 
@@ -79,10 +79,16 @@ if isempty(varargin)
     else
         varargout{1} = 'on';
     end
+    if spm_check_version('matlab','8.4') >= 0
+        warning('spm_uitable disabled, use uitable.');
+        varargout{1} = 'off';
+    end
     return
 end
 
-if ~isempty(javachk('awt')) || spm_check_version('matlab','7.3') <= 0
+if ~isempty(javachk('awt')) || ...
+        spm_check_version('matlab','7.3') <= 0 || ...
+        spm_check_version('matlab','8.4') >= 0 % R2014b, use uitable
     varargout{1} = [];
     varargout{2} = [];
     return;

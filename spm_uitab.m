@@ -1,32 +1,31 @@
-function [handles] = spm_uitab(hparent,labels,callbacks,...
-    tag,active,height,tab_height)
-% Create tabs in the SPM Graphics window
-% FORMAT [handles] = spm_uitab(hfig,labels,callbacks,...
-%    tag,active,height,tab_height)
-% This functiuon creates tabs in the SPM graphics window.
+function [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height,tab_height)
+% Create tabs in a figure
+% FORMAT [handles] = spm_uitab(hparent,labels,callbacks,tag,active,height,tab_height)
+% This function creates tabs in the SPM graphics window.
 % These tabs may be associated with different sets of axes and uicontrol,
 % through the use of callback functions linked to the tabs.
-% IN:
-%   - hparent: the handle of the parent of the tabs (can be the SPM graphics
-%   windows, or the handle of the uipanel of a former spm_uitab...)
-%   - labels: a cell array of string containing the labels of the tabs
-%   - callbacks: a cell array of strings which will be evaluated using the
-%   'eval' function when clicking on a tab
-%   - tag: a string which is the tags associated with the tabs (useful for
-%   finding them in a window...)
-%   - active: the index of the active tab when creating the uitabs (default
-%   = 1, ie the first tab is active)
-%   - height: the relative height of the tab panels within its parent
-%   spatial extent (default = 1)
-%   - tab_height: the relative height of the tabs within its parent spatial
-%   extent (default = 0.025)
-% OUT:
-%   - handles: a structure of handles for the differents tab objects.
+% Inputs:
+%   hparent    - the handle of the parent of the tabs (can be the SPM
+%                graphics windows, or the handle of the uipanel of a former
+%                spm_uitab...)
+%   labels     - a cell array of string containing the labels of the tabs
+%   callbacks  - a cell array of strings which will be evaluated using the
+%                'eval' function when clicking on a tab [default: {[]}]
+%   tag        - a string which is the tag associated with the tabs
+%                (useful for finding them in a window...) [default: '']
+%   active     - the index of the active tab when creating the uitabs
+%                [default: 1, ie the first tab is active]
+%   height     - the relative height of the tab panels within its parent
+%                spatial extent [default: 1]
+%   tab_height - the relative height of the tabs within its parent spatial
+%                extent [default: 0.025]
+% Output:
+%   handles    - a structure of handles for the differents tab objects.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_uitab.m 5460 2013-05-02 13:28:40Z christophe $
+% $Id: spm_uitab.m 6067 2014-06-26 15:33:30Z guillaume $
 
 Ntabs = length(labels);
 

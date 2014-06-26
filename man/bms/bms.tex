@@ -2,7 +2,7 @@
 
 This chapter describes the use of SPM's Bayesian Model Inference capabilities.
 For a fuller background on this topic see \cite{dcm_families}.
-We illustrate the methods using a DCM for fMRI study of the languange system.
+We illustrate the methods using a DCM for fMRI study of the language system.
 
 \section{Background}
 
@@ -23,7 +23,7 @@ subset of connections in the model. These are the forward and backward connectio
 \section{Data}
 
 An archive containing 16 DCMs for each of 12 subjects can be downloaded from the 
-SPM web page. This archive is called \verb!dcm_bms.zip!. When you extract the data onto your computer a number of subdirectories will be created - one for each of the 12 subjects. The 16 DCMs for each subject are then available in these subject-specific directories. You can load one of these into SPM and examine the information contained therein. 
+SPM web page\footnote{Bayesian comparison of Dynamic Causal Models: \url{http://www.fil.ion.ucl.ac.uk/spm/data/dcm_bms/}}. This archive is called \verb!dcm_bms.zip!. When you extract the data onto your computer a number of subdirectories will be created - one for each of the 12 subjects. The 16 DCMs for each subject are then available in these subject-specific directories. You can load one of these into SPM and examine the information contained therein. 
 
 These DCM files contain the usual information eg. the original time series from each region of interest are available in
 \verb!DCM.xY(1)! for region 1, wherein \verb!DCM.xY(1).name='PSTS_6'! indicates this is the posterior temporal region. The estimated parameter values are available in \verb!DCM.Ep!. You should note that these DCMs were specified and estimated using SPM revision 3894 (from May 2010) and that these DCM structures 
@@ -40,7 +40,7 @@ command\newline \verb!subj=model_space_filenames(subj,new_base_dir)! where \verb
 
 \subsection{Single Family}
 
-Now open SPM and in the Menu window go to Batch, SPM, Stats, Bayesian Model Selection, BMS:DCM. This will open SPM's batch editor. Select an appropriate directory (eg. where you unzipped the archive), highlight Load model space and select the \verb!model_space.mat! file.
+Now open SPM and in the Menu window go to Batch, SPM, DCM, Bayesian Model Selection, Model Inference. This will open SPM's batch editor. Select an appropriate directory (eg. where you unzipped the archive), highlight Load model space and select the \verb!model_space.mat! file.
 For inference method select 'FFX'. Save the batch job as \verb!ffx_all_models.mat!, then press the green play button to run the job.
 This will produce the figure~\ref{ffx_model}, showing that model 6 is the best model.
 
@@ -66,7 +66,7 @@ Now go back into the batch editor and reload the \verb!ffx_all_models.mat! job.
 Highlight BMA, and select Choose family (instead of 'Do not compute'). Accept the 'Winning Family' option. The BMA results will be saved in the same BMS.mat file as the previous analyses. Now go ahead and press the green play button.
 SPM will do the FFX model inference (again), but will also implement a weighted average of the model parameters where the weights are given by the evidence for each model, as described in \cite{dcm_families}. After the averaging is complete, SPM will report the number of models in Occams window. This should be 10 models (models 5,6,7,8,11,12,13,14,15,16). 
 
-To look at the BMA results, go to the Menu window and press the Dynamic Causal Modelling button. Then select Average, select BMA, and then the BMS.mat file just created. Then select FFX for the inference method. If you then highlight the tab (top left) to select the modulatory variables you should get the plot shown in figure~\ref{bma}.
+To look at the BMA results, go to the Menu window and press the Dynamic Causal Modelling button. Then select Average, select BMA, and then the BMS.mat file just created. If you then highlight the tab (top left) to select the modulatory variables you should get the plot shown in figure~\ref{bma}.
 
 \begin{figure}
 \begin{center}

@@ -146,8 +146,6 @@ This dataset has already been preprocessed (coregistered, normalised and smoothe
 \item Click \textsc{Directory} and choose the \texttt{GLM} directory that you made above.
 \item \textsc{Units for design} [\textsc{scans}]
 \item \textsc{Interscan interval} [3.22]
-\item \textsc{Microtime resolution} [16]
-\item \textsc{Microtime onset} [1]
 \item Click \textsc{Data \& Design}. Then in the \textsc{Current Item} box click \textsc{New: Subject/Session}, Figure~\ref{fig:ppi4}.
 
 \begin{figure}[!ht]
@@ -235,8 +233,8 @@ Notice that this file contains a single variable, \texttt{R}, which is a 360 x 3
 \item Under \textsc{Contrast Manager} click \textsc{Select \texttt{SPM.mat}} then click the \textsc{Dependency} button and choose \textsc{Model estimation: SPM.mat File}
 
 \item Click \textsc{Contrast Sessions} then click \textsc{New: F-contrast} once, and \textsc{New: T-contrast} twice from the \textsc{Current Item} box.
-\item Click \textsc{Contrast vectors} and then \textsc{New: F contrast vector}. 
-\item The F contrast vector can be entered as [eye(3), zeros(3,4)], which will produce:
+\item Click \textsc{Contrast vectors} and then \textsc{New: F contrast}. 
+\item The F contrast vector (named ``effects of interest'') can be entered as [eye(3), zeros(3,4)], which will produce:
 \begin{verbatim}
 1 0 0 0 0 0 0
 0 1 0 0 0 0 0
@@ -264,8 +262,7 @@ Notice that this file contains a single variable, \texttt{R}, which is a 360 x 3
 \begin{enumerate}
 \item Click \textsc{Results} and select the \texttt{SPM.mat} file.
 \item Choose the \texttt{Attention} contrast
-\item Mask with other contrasts [No]
-\item Title for comparison [Attention]
+\item Apply masking [None]
 \item p value adjustment to control [None]
 \item threshold {T or p value} [0.0001]
 \item \& extent threshold {voxels} [10]
@@ -278,11 +275,10 @@ Notice that this file contains a single variable, \texttt{R}, which is a 360 x 3
 \end{figure}
 
 \item To look at the \texttt{Motion} contrast where \texttt{Attention} is greater than \texttt{No Attention}, click \textsc{Results}, choose the \texttt{SPM.mat} file and choose the \texttt{Motion} contrast.
-\item apply masking [Yes]
+\item apply masking [Contrast]
 \item Select contrast for masking: Choose the \texttt{Attention} contrast
 \item Uncorrected mask p-value [0.01]
 \item Nature of Mask: [inclusive]
-\item title for comparison: leave as the defaults, which is [Motion  (masked [incl.] by Attention at p=0.01)]
 \item p value adjustment to control [FWE]
 \item threshold {T or p value} [0.05]
 \item \& extent threshold {voxels} [3]
@@ -401,7 +397,6 @@ The design matrix is shown below, Figure~\ref{fig:ppi14}.
 \item Press the \textsc{Results} button and select the \texttt{SPM.mat} file in the PPI directory.
 \item Choose the \texttt{PPI-Interaction} contrast
 \item apply masking [No]
-\item title for comparison [PPI-Interaction]
 \item p value adjustment to control [None]
 \item threshold {T or p value} [0.01]
 \item \& extent threshold {voxels} [10]
@@ -421,7 +416,6 @@ The design matrix is shown below, Figure~\ref{fig:ppi14}.
 \item In order to plot the PPI graph showing the effect of attention, you need to extract a VOI from the V5 region. To do this, you will return to the original GLM analysis.
 \item Click Results, then select the GLM analysis \texttt{SPM.mat} file and the \texttt{Motion} contrast.
 \item apply masking [No]
-\item title for comparison [Motion]
 \item p value adjustment to control [None]
 \item threshold {T or p value} [0.001]
 \item \& extent threshold {voxels} [3]

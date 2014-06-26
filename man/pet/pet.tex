@@ -55,10 +55,9 @@ Then press `Estimate' and select the \texttt{SPM.mat} file just created. SPM wil
 \item{Now press the 'Results' button.}
 \item{Select the \texttt{SPM.mat} file.}
 \item{In the contrast manager press 'Define new contrast' (select T). Enter [-1 1] in the contrast section and enter 'activation' as a 'name'.}
-\item{Press the '..submit' button. Press OK.}
+\item{Press the 'submit' button. Press OK.}
 \item{Now press the 'Done' button.}
 \item{Mask with other contrast(s) [No]}
-\item{Title for comparison [activation]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
@@ -171,10 +170,9 @@ We can then examine relative activations, that is, regions which respond more st
 \item{Select the \texttt{SPM.mat} file.}
 \item{In the contrast manager press 'Define new contrast' (select T)}
 \item{Specify e.g. \verb!Subject 2: Gen > Shad! (name) and '0 0 -1 1' (contrast).}
-\item{Press the '..submit' button. Press OK.}
+\item{Press the 'submit' button. Press OK.}
 \item{Now press the 'Done' button.}
 \item{Mask with other contrast(s) [No]}
-\item{Title for comparison [activation]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}
@@ -285,8 +283,8 @@ as shown in Figure~\ref{svc}.
 To extract a time course for data in this region of interest (this uses the SPM function \texttt{spm\_regions.m}):
 \begin{itemize}
 \item{Select ``eigenvariate'' from the ``Multivariate'' section in the Interactive window}
-\item{Select ('don't adjust')}
 \item{Specify `Broca' for name of region and 0 for the VOI radius.}
+\item{Select ('don't adjust')}
 \end{itemize}
 SPM displays a graph of the first eigenvariate of the data in or centered around the chosen voxel, as shown in Figure~\ref{voi}. It also lists the eigenvariate values $Y$ in the Matlab window.  Adjustment is with respect to the null space of a selected contrast.
 This means that any effects not spanned by the chosen contrast
@@ -310,8 +308,8 @@ A file called \verb!VOI_regionname.mat! is created in the working directory cont
 
 \subsection{Inclusive Masking}
 
-We have so far looked at the {\em average} effect over the five subjects in our group using the `All: Gen > Shad' contrast.
-To assess condition effects that are {\em common} to all subjects, one can either mask (inclusively) the `All: Gen > Shad' contrast with the individual contrasts, or perform a conjunction analysis. Firstly we'll use the inclusive masking
+We have so far looked at the {\em average} effect over the five subjects in our group using the `All: Gen $>$ Shad' contrast.
+To assess condition effects that are {\em common} to all subjects, one can either mask (inclusively) the `All: Gen $>$ Shad' contrast with the individual contrasts, or perform a conjunction analysis. Firstly we'll use the inclusive masking
 approach.
 \begin{itemize}
 \item{Press the 'Results' button.}
@@ -321,7 +319,6 @@ approach.
 \item{Then hold down the [control] button whilst selecting all the individual contrasts. The contrast manager should then appear as in Figure~\ref{masked_con}.}
 \item{Uncorrected mask p-value [0.05]}
 \item{Nature of mask [inclusive]}
-\item{Title for comparison [accept the default]}
 \item{p value adjustment to control [FWE]}
 \item{Family-wise p-value [0.05]}
 \item{Extent threshold {voxels} [0]}

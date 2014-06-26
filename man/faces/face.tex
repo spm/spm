@@ -107,7 +107,7 @@ SPM will then implement a coregistration between the structural and functional d
 
 \subsection{Segmentation}
 
-Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor window. Highlight the ``Volumes'' field in ``Data > Channels'' and then select the subjects coregistered anatomical image eg. \texttt{sM03953\_0007.img}. Change ``Save Bias Corrected'' so that it contains ``Save Bias Corrected'' instead of ``Save Nothing''. At the bottom of the list, select ``Forward'' in ``Deformation Fields''. Save the job file as \texttt{segment.mat} and then press the \texttt{Run} button. SPM will segment the structural image using the default tissue probability maps as priors. 
+Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor window. Highlight the ``Volumes'' field in ``Data $>$ Channels'' and then select the subjects coregistered anatomical image eg. \texttt{sM03953\_0007.img}. Change ``Save Bias Corrected'' so that it contains ``Save Bias Corrected'' instead of ``Save Nothing''. At the bottom of the list, select ``Forward'' in ``Deformation Fields''. Save the job file as \texttt{segment.mat} and then press the \texttt{Run} button. SPM will segment the structural image using the default tissue probability maps as priors. 
 SPM will create, by default, gray and white matter images and bias-field corrected structral image. These can be viewed using the CheckReg facility as described in the previous section. Figure~\ref{face_gray} shows the gray matter image, \texttt{c1sM03953\_0007.nii}, along with the original structural\footnote{Segmentation can sometimes fail if the source (structural) image is not close in orientation to the MNI templates. It is generally advisable to manually orient the structural to match the template (ie MNI space) as close as possible by using the ``Display'' button, adjusting x/y/z/pitch/roll/yaw, and then pressing the ``Reorient'' button.}.
 
 \begin{figure}
@@ -161,7 +161,7 @@ This will smooth the data by (the default) 8mm in each direction, the default sm
 
 \section{Modelling categorical responses}
 
-Before setting up the design matrix we must first load the Stimulus Onsets Times (SOTs) into \matlab\. SOTs are stored in the \texttt{sots.mat} file in a cell array such that eg. \texttt{sot\{1\}} contains stimulus onset times in TRs for event type 1, which is N1. Event-types 2, 3 and 4 are N2, F1 and F2.\footnote{Unlike previous analyses of these data in SPM99 and SPM2, we will not bother with extra event-types for the (rare) error trials.}
+Before setting up the design matrix we must first load the Stimulus Onsets Times (SOTs) into \matlab\ . SOTs are stored in the \texttt{sots.mat} file in a cell array such that eg. \texttt{sot\{1\}} contains stimulus onset times in TRs for event type 1, which is N1. Event-types 2, 3 and 4 are N2, F1 and F2.\footnote{Unlike previous analyses of these data in SPM99 and SPM2, we will not bother with extra event-types for the (rare) error trials.}
 \begin{itemize}
 \item At the \matlab\ command prompt type \texttt{load sots}
 \end{itemize}
@@ -473,12 +473,10 @@ Finally, if we want to ask where is there a signal greater than 1\% (with a cert
 \item Specify None
 \item \emph{Effect size threshold for PPM}
 \item Enter the value
-\item \emph{Posterior probability threshold for PPM}
-\item Enter the value 0.95
+\item \emph{Log Odds Threshold for PPM}
+\item Enter the value 10
 \item \emph{Extent threshold [0]}
 \item Accept the default value
-\item \emph{Plot effect size [Yes/No]}
-\item Select the default ``Yes''
 \end{itemize}
 SPM will then plot a map of effect sizes at voxels where it is 95\% sure that the effect size is greater than 1\% of the global mean.
 Then use overlays, sections, select the normalised structural image created earlier and move the cursor to the activation in the left hemisphere. This should create the plot shown in Figure~\ref{face_bayes}.

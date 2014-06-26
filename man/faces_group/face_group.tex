@@ -28,19 +28,9 @@ In both first-level models (\textbf{M1i} and \textbf{M1f}), the contrast images 
 
 For each type of model, the main effect of faces versus baseline (eg, a [0.5 ... 0.5] contrast for each basis function, or \texttt{kron([0.5 0.5],eye(Nf))} more generally) was examined.
 
-The 12 (subjects) \texttt{con*.img}s from the 1st-level model using the canonical HRF (\textbf{M1c}) are in the zipped file
+The 12 (subjects) \texttt{con*.img}s from the 1st-level model using the canonical HRF (\textbf{M1c}), the 12 (subjects) x 3 (basis functions) \texttt{con*.img}s from the 1st-level model using the informed basis (\textbf{M1i}) set and the 12 (subjects) x 12 (basis functions) x 2 (contrast-types) \texttt{con*.img}s from the 1st-level model using the FIR basis (\textbf{M1f}) set are in the zipped file
 \begin{itemize}
-\item \url{http://www.fil.ion.ucl.ac.uk/spm/download/data/face_rfx/cons_can.zip}
-\end{itemize}
-
-The 12 (subjects) x 3 (basis functions) \texttt{con*.img}s from the 1st-level model using the informed basis (\textbf{M1i}) set are in the zipped file
-\begin{itemize}
-\item \url{http://www.fil.ion.ucl.ac.uk/spm/download/data/face_rfx/cons_informed.zip}
-\end{itemize}
-
-The 12 (subjects) x 12 (basis functions) x 2 (contrast-types) \texttt{con*.img}s from the 1st-level model using the FIR basis (\textbf{M1f}) set are in the zipped file
-\begin{itemize}
-\item \url{http://www.fil.ion.ucl.ac.uk/spm/download/data/face_rfx/cons_fir.zip}
+\item \url{http://www.fil.ion.ucl.ac.uk/spm/download/data/face_rfx/face_rfx.zip}
 \end{itemize}
 
 Each contrast-type is examined in a separate SPM analysis. This chapter just describes analysis of the main effect of faces versus baseline.
@@ -82,10 +72,9 @@ SPM will now estimate the parameters, that is, the size of the population effect
 \item Now press the ``Results'' button.
 \item Select the \texttt{SPM.mat} file.
 \item In the contrast manager press ``Define new contrast'' (select F). Enter [1] in the contrast section and enter ``Faces vs Baseline: Canonical HRF' as a ``name''. Note: This [1] F-contrast tests for both ``activations'' and ``deactivations'' versus the interstimulus baseline, though in the present case, the regions are nearly all activations, as can be seen by entering the same contrast weight [1], but as a T rather than F contrast.
-\item Press the ``..submit'' button. Press OK.
+\item Press the ``submit'' button. Press OK.
 \item Now press the ``Done'' button.
 \item Mask with other contrast(s) [No]
-\item Title for comparison: accept [Faces vs Baseline: Canonical HRF]
 \item p value adjustment to control [FWE]
 \item Family-wise p-value [0.05]
 \item Extent threshold {voxels} [0]
@@ -168,10 +157,9 @@ Note that these are ``global'' values which are scaled by a voxel specific-value
 \item Now press the ``Results'' button.
 \item Select the \texttt{SPM.mat} file.
 \item In the Contrast Manager press ``Define new contrast'' (select F). Enter \texttt{eye(3)} in the contrast section and enter ``Faces vs Baseline: Informed'' as a ``name''. Note: In \matlab\ \texttt{eye(3)} evaluates to the identity matrix [1 0 0; 0 1 0; 0 0 1].\footnote{SPM will have produced some contrasts automatically, one of them being the ``main effect of basis''. This contrast is, however, not appropriate for our purposes.}
-\item Press the ``..submit'' button. Press OK.
+\item Press the ``submit'' button. Press OK.
 \item Now press the ``Done'' button.
 \item Mask with other contrast(s) [No]
-\item Title for comparison: accept [Faces vs Baseline: Informed]
 \item p value adjustment to control [FWE]
 \item Family-wise p-value [0.05]
 \item Extent threshold {voxels} [0]
@@ -298,10 +286,9 @@ Notice also the high values close to the diagonal, which reflect the positive co
 \item Select the \texttt{SPM.mat} file.
 \item In the contrast manager press ``Define new contrast'' (select F). Enter \texttt{eye(12)} in the contrast section and enter ``Faces vs Baseline: FIR'' as a ``name'.\footnote{SPM will have produced some contrasts automatically, one of them being the ``main effect of TimeBin''. This contrast is, however, not 
 appropriate for our purposes.}
-\item Press the ``..submit'' button. Press OK.
+\item Press the ``submit'' button. Press OK.
 \item Now press the ``Done'' button.
 \item Mask with other contrast(s) [No]
-\item Title for comparison: accept [Faces vs Baseline: FIR]
 \item p value adjustment to control [FWE]
 \item Family-wise p-value [0.05]
 \item Extent threshold {voxels} [0]

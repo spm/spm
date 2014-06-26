@@ -43,7 +43,7 @@ SPM will also create a mean image eg. \texttt{meanfM00223\_016.img} which will b
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=100mm]{auditory/realign}
+\includegraphics[width=125mm]{auditory/realign}
 \caption{\em Realignment of Auditory data.\label{aud_realign}}
 \end{center}
 \end{figure}
@@ -80,7 +80,7 @@ The \textsc{Check Reg} facility is useful here, to check the results of coregist
 
 Press the \textsc{Segment} button. This will call up the specification of a segmentation job in the batch editor. Highlight the ``Volumes'' field and then select the subject's registered anatomical image eg. \texttt{sM00223\_002.img}. Highlight ``Save Bias Corrected'' and select ``Save Bias Corrected''. Highlight ``Deformation Fields'' \t the bottom of the list and select ``Forward''. Save the job file as \texttt{segment.mat} and then press \texttt{RUN}. SPM will segment the structural image using the default tissue probability maps as priors. 
 
-SPM will create gray and white matter images and bias-field corrected structural image. These can be viewed using the \textsc{CheckReg} facility as described in the previous section. Figure~\ref{aud_gray} shows the gray matter image, \texttt{c1sM0023\_002.img} along with the original structural. Figure~\ref{aud_bias} shows the structural and bias-corrected image, \texttt{msM0023\_002.img}.
+SPM will create gray and white matter images and bias-field corrected structural image. These can be viewed using the \textsc{CheckReg} facility as described in the previous section. Figure~\ref{aud_gray} shows the gray matter image, \texttt{c1sM0023\_002.nii} along with the original structural. Figure~\ref{aud_bias} shows the structural and bias-corrected image, \texttt{msM0023\_002.nii}.
 
 \begin{figure}
 \begin{center}
@@ -118,7 +118,7 @@ If you wish to superimpose a subject's functional activations on their own anato
 \begin{itemize}
 \item Select \textsc{Normalise (Write)}, highlight ``Data'', select ``New Subject''.
 \item Highlight ``Deformation Field'', select the  \texttt{y\_sM00223\_002.nii} file that you created in the previous section, press ``Done''.
-\item Highlight ``Images to Write'', select the bias-corrected structural eg. \texttt{msM00223\_002.img}, press ``Done''.
+\item Highlight ``Images to Write'', select the bias-corrected structural eg. \texttt{msM00223\_002.nii}, press ``Done''.
 \item Open ``Writing Options'', select voxel sizes and change the default [2 2 2] to [1 1 3] which corresponds to the original resolution of the images.
 \item Save the job as \texttt{normalise\_structural.mat} and press the \texttt{RUN} button.
 \end{itemize}
@@ -240,8 +240,8 @@ One sided main effects for the listening condition (i.e., a one-sided t-test) ca
 You will then be prompted with
 
 \begin{itemize}
-\item  \emph{Mask with other contrast ? [Yes/No]}.
-\item ``Specify No''.
+\item  \emph{Apply masking ? [none/contrast/image]}.
+\item ``Specify none''.
 \end{itemize}
 
 Masking implies selecting voxels specified by other contrasts. If ``yes'', SPM will prompt for (one or more) masking contrasts, the significance level of the mask (default \textit{p} = 0.05 uncorrected), and will ask whether an inclusive or exclusive mask should be used. Exclusive will remove all voxels which reach the default level of significance in the masking contrast, inclusive will remove all voxels which do not reach the default level of significance in the masking contrast. Masking does not affect \textit{p}-values of the ``target'' contrast, it only includes or excludes voxels.
@@ -288,7 +288,7 @@ Entering a value $k$ here will produce SPMs with clusters containing at least $k
 \subsection{Files}
 
 A number of files are written to the working directory at this time.
-Images containing weighted parameter estimates are saved as \texttt{con\_0001.hdr/img}, \texttt{con\_0002.hdr/img}, etc. in the working directory. Images of T-statistics are saved as \texttt{spmT\_0001.hdr/img}, \texttt{spmT\_0002.hdr/img} etc., also in the working directory.
+Images containing weighted parameter estimates are saved as \texttt{con\_0001.nii}, \texttt{con\_0002.nii}, etc. in the working directory. Images of T-statistics are saved as \texttt{spmT\_0001.nii}, \texttt{spmT\_0002.nii} etc., also in the working directory.
 
 \subsection{Maximum Intensity Projections}
 
@@ -388,7 +388,7 @@ The visualisation section of the Interactive window also provides an overlay fac
 \item \textbf{Render}: overlay on a volume rendered brain.
 \end{enumerate}
 
-Thresholded SPMs can be saved as NIfTI image files in the working directory by using the ``Save'' button in the Interactive window. In Figures~\ref{aud_slices}, \ref{aud_sections} and \ref{aud_render} the `listening $>$ rest' activation has been superimposed on the spatially normalised, bias-corrected anatomical image \texttt{wmsM00223\_002.img} created earlier. 
+Thresholded SPMs can be saved as NIfTI image files in the working directory by using the ``Save'' button in the Interactive window. In Figures~\ref{aud_slices}, \ref{aud_sections} and \ref{aud_render} the `listening $>$ rest' activation has been superimposed on the spatially normalised, bias-corrected anatomical image \texttt{wmsM00223\_002.nii} created earlier. 
 
 \begin{figure}
 \begin{center}
@@ -407,9 +407,9 @@ Thresholded SPMs can be saved as NIfTI image files in the working directory by u
 For the ``Render'' option we first created a rendering for this subject. This was implemented by 
 
 \begin{itemize}
-\item ``Normalise (Write)'' the two images \texttt{c1sM00223\_002.img} and \texttt{c2sM00223\_002.img} using the ``Deformation Field'' \texttt{y\_sM00223\_002.nii} and a voxel size of [1 1 3].
-\item Selecting ``Xtract Surface'' from the ``Render'' pulldown menu.
-\item Selecting the gray and white matter images \texttt{wc1sM00223\_002.img} and \texttt{wc2sM00223\_002.img} created in the first step.
+\item ``Normalise (Write)'' the two images \texttt{c1sM00223\_002.nii} and \texttt{c2sM00223\_002.nii} using the ``Deformation Field'' \texttt{y\_sM00223\_002.nii} and a voxel size of [1 1 1].
+\item Selecting ``Extract Surface'' from the ``Render'' pulldown menu.
+\item Selecting the gray and white matter images \texttt{wc1sM00223\_002.nii} and \texttt{wc2sM00223\_002.nii} created in the first step.
 \item Saving the results using the default options (Rendering and Surface).
 \end{itemize}
 
@@ -485,10 +485,10 @@ It is also possible to project and display the results on a surface mesh, we are
 %
 %\begin{itemize}
 %\item An \texttt{SPM.mat} file.
-%\item Images of estimated regression coefficients  \texttt{Cbeta\_0001.img} and \texttt{Cbeta\_0002.img}. These filenames are prefixed with a \texttt{C} indicating that these are the mean values of the ``Conditional'' or ``Posterior'' density.
-%\item Images of error bars/standard deviations on the regression coefficients \texttt{SDbeta\_0001.img} and \texttt{SDbeta\_0002.img}.
-%\item An image of the standard deviation of the error \texttt{Sess1\_SDerror.img}.
-%\item An image \texttt{mask.img} indicating which voxels were included in the analysis.
+%\item Images of estimated regression coefficients  \texttt{Cbeta\_0001.nii} and \texttt{Cbeta\_0002.nii}. These filenames are prefixed with a \texttt{C} indicating that these are the mean values of the ``Conditional'' or ``Posterior'' density.
+%\item Images of error bars/standard deviations on the regression coefficients \texttt{SDbeta\_0001.nii} and \texttt{SDbeta\_0002.nii}.
+%\item An image of the standard deviation of the error \texttt{Sess1\_SDerror.nii}.
+%\item An image \texttt{mask.nii} indicating which voxels were included in the analysis.
 %\end{itemize}
 %
 %\subsection{Inference}
