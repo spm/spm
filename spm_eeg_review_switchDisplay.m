@@ -1,10 +1,10 @@
 function [D] = spm_eeg_review_switchDisplay(D)
 % Switch between displays in the M/EEG Review facility
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_review_switchDisplay.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_eeg_review_switchDisplay.m 6072 2014-06-27 16:35:30Z guillaume $
 
 try % only if already displayed stuffs
     handles = rmfield(D.PSD.handles,'PLOT');
@@ -505,7 +505,7 @@ switch D.PSD.VIZU.uitable
                     table{i,5} = char(units(D,i));
                 end
                 colnames = {'label','type','bad','position','units'};
-                [ht,hc] = spm_uitable(table,colnames);
+                [ht,hc] = my_uitable(table,colnames);
                 set(ht,'units','normalized');
                 set(hc,'position',[0.1 0.05 0.55 0.7],...
                     'tag','plotEEG');
@@ -543,7 +543,7 @@ switch D.PSD.VIZU.uitable
                             table{i,7} = num2str(trialonset(D,1));
                         end
                         colnames = {'label','type','value','duration','time','bad','onset'};
-                        [ht,hc] = spm_uitable(table,colnames);
+                        [ht,hc] = my_uitable(table,colnames);
                         set(ht,'units','normalized');
                         set(hc,'position',[0.1 0.05 0.74 0.7],...
                             'tag','plotEEG');
@@ -596,7 +596,7 @@ switch D.PSD.VIZU.uitable
                             table{i,7} = num2str(trialonset(D,i));
                         end
                         colnames = {'label','type','value','duration','time','bad','onset'};
-                        [ht,hc] = spm_uitable(table,colnames);
+                        [ht,hc] = my_uitable(table,colnames);
                         set(ht,'units','normalized');
                         set(hc,'position',[0.1 0.05 0.74 0.7],...
                             'tag','plotEEG');
@@ -611,7 +611,7 @@ switch D.PSD.VIZU.uitable
                             end
                         end
                         colnames = {'label','nb of repl','bad'};
-                        [ht,hc] = spm_uitable(table,colnames);
+                        [ht,hc] = my_uitable(table,colnames);
                         set(ht,'units','normalized');
                         set(hc,'position',[0.1 0.05 0.32 0.7],...
                             'tag','plotEEG');
@@ -699,7 +699,7 @@ switch D.PSD.VIZU.uitable
                     end
                     colnames = {'label','date','modality','model','#dipoles','method',...
                         'pst','hanning','band pass','#modes','%var','log[p(y|m)]'};
-                    [ht,hc] = spm_uitable('set',table,colnames);
+                    [ht,hc] = my_uitable('set',table,colnames);
                     set(ht,'units','normalized');
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
@@ -723,7 +723,7 @@ switch D.PSD.VIZU.uitable
                 table = spm_eeg_history(D);
                 if ~isempty(table)
                     colnames = {'Process','function called','input file','output file'};
-                    [ht,hc] = spm_uitable(table,colnames);
+                    [ht,hc] = my_uitable(table,colnames);
                     set(ht,'units','normalized','editable',0);
                     set(hc,'position',[0.1 0.05 0.8 0.7],...
                         'tag','plotEEG');
@@ -747,4 +747,16 @@ switch D.PSD.VIZU.uitable
             set(D.PSD.handles.infoText,'string',str)
         end
 
+end
+
+
+%==========================================================================
+function [ht,hc] = my_uitable(varargin)
+%==========================================================================
+% conversion layer for various MATLAB versions
+if spm_check_version('matlab','8.4') >= 0
+    warning('Consider migrating to the new uitable component.');
+    [ht,hc] = uitable('v0',varargin{:});
+else
+    [ht,hc] = spm_uitable(varargin{:});
 end

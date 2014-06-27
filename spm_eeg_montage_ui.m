@@ -12,7 +12,7 @@ function montage = spm_eeg_montage_ui(montage)
 % Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_montage_ui.m 4457 2011-09-05 14:04:22Z guillaume $
+% $Id: spm_eeg_montage_ui.m 6072 2014-06-27 16:35:30Z guillaume $
 
 
 % Create the figure
@@ -22,7 +22,7 @@ S0   = spm('WinSize','0',1);
 pos  = get(fig,'position');
 pos2 = [40 70 pos(3)-60 pos(4)-100];
 pos  = [S0(1) S0(2) 0 0] + [pos(1) pos(2) 1.8*pos(3) pos(4)];
-set(gcf,...
+set(fig,...
     'menubar',     'none',...
     'position',    pos,...
     'numbertitle', 'off',...
@@ -36,7 +36,7 @@ table    = cat(2,montage.labelnew(:),num2cell(montage.tra));
 colnames = cat(2,'channel labels',montage.labelorg(:)');
 
 pause(1e-1) % This is weird, but fixes java troubles.
-[ht,hc]  = spm_uitable(table,colnames);
+ht       = my_uitable(table,colnames);
 set(ht,'position',pos2, 'units','normalized');
 
 % Display the matrix representation of the montage 
@@ -80,7 +80,7 @@ delete(ud.ht);
 table = cat(2,newLabels,num2cell(M));
 colnames = cat(2,'channel labels',ud.montage.labelorg(:)');
 pause(1) % This is weird, but fixes java troubles.
-ht = spm_uitable(table,colnames);
+ht = my_uitable(table,colnames);
 set(ht,'position',pos,...
     'units','normalized');
 ud.ht = ht;
@@ -103,7 +103,7 @@ if sts
         table      = cat(2,montage.labelnew(:),num2cell(montage.tra));
         colnames   = cat(2,'channel labels',montage.labelorg(:)');
         pause(1) % This is weird, but fixes java troubles.
-        ht         = spm_uitable(table,colnames);
+        ht         = my_uitable(table,colnames);
         set(ht,'position',pos,...
             'units','normalized');
         ud.ht      = ht;
@@ -218,3 +218,14 @@ hCheck = uicontrol('style','pushbutton',...
     'string',' Refresh display ','callback',{@doCheck,h},...
     'position',[760 20 120 20]);
 set(hCheck,'units','normalized');
+
+%==========================================================================
+function h = my_uitable(varargin)
+%==========================================================================
+% conversion layer for various MATLAB versions
+if spm_check_version('matlab','8.4') >= 0
+    warning('Consider migrating to the new uitable component.');
+    h = uitable('v0',varargin{:});
+else
+    h = spm_uitable(varargin{:});
+end
