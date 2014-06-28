@@ -37,11 +37,11 @@ function MDP = DEM_demo_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6064 2014-06-23 09:39:46Z karl $
+% $Id: DEM_demo_MDP_maze.m 6073 2014-06-28 09:14:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
-% rng('default')
+rng('default')
 
 % observation probabilities
 %--------------------------------------------------------------------------
@@ -92,8 +92,10 @@ MDP.C = C;                          % terminal cost probabilities (priors)
 MDP.D = D;                          % initial state probabilities (priors)
 MDP.V = V;                          % allowable policies
 
-MDP.alpha = 64;                     % gamma hyperparameters
-MDP.beta  = 4;
+MDP.alpha  = 64;                    % gamma hyperparameter
+MDP.beta   = 4;                     % gamma hyperparameter
+MDP.lambda = 1/4;                   % precision update rate
+
 
 % Solve - an example game
 %==========================================================================
@@ -102,15 +104,14 @@ MDP.plot = gcf;
 MDP      = spm_MDP_game(MDP,'FE');
 
 
-% return
-
 % different formulations of optimality as a function of preference
 %==========================================================================
 spm_figure('GetWin','Figure 2'); clf
 MDP.plot = 0;
 MDP.N    = 4;
 
-c     = linspace(0,2,8);
+n     = 128;                              % number of simulated trials
+c     = linspace(0,2,6);
 d     = kron(ones(4,1),[0; 0; 1; 0]);
 for i = 1:length(c)
     
@@ -121,17 +122,26 @@ for i = 1:length(c)
     
     % simulate trials and record outcomes
     %----------------------------------------------------------------------
-    for j = 1:32
+    for j = 1:n
         
+        % randomise reward
+        %------------------------------------------------------------------
         s       = rand > 1/2;
         MDP.S   = kron([1 0 0 0],[s ~s])';
         
+        
+        % inverst under different schemes
+        %------------------------------------------------------------------
         MDP     = spm_MDP_game(MDP,'FE');
         FE(j,i) = d'*MDP.O(:,end);
         MDP     = spm_MDP_game(MDP,'KL');
         KL(j,i) = d'*MDP.O(:,end);
         MDP     = spm_MDP_game(MDP,'RL');
         RL(j,i) = d'*MDP.O(:,end);
+        MDP     = spm_MDP_game(MDP,'FE',1);
+        FP(j,i) = d'*MDP.O(:,end);
+        try MDP = rmfield(MDP,'w'); end
+        
     end
     
 end
@@ -140,15 +150,15 @@ MDP.C  = C;
 
 % posterior beliefs about hidden states (prosocial versus nonsocial)
 %--------------------------------------------------------------------------
-subplot(2,1,1)
-bar(c,[mean(FE); mean(KL); mean(RL)]'*100), hold on
-plot(c,c*0 + 100/3,'--k'), hold on
-plot(c,c*0 + 100*a,'-.k'), hold off
+subplot(3,1,1)
+bar(c,[mean(FE); mean(KL); mean(RL); mean(FP)]'*100), hold on
+plot(c,c*0 + 100*3/8,'--k'), hold on
+plot(c,c*0 + 100*a,  '-.k'), hold off
 title('Performance','FontSize',16)
 xlabel('Prior preference','FontSize',12)
 ylabel('success rate (%)','FontSize',12)
 spm_axis tight, axis square
-legend({'FE','KL','RL'})
+legend({'FE','KL','RL','DA'})
 
 
 % dopamine responses to US and CS
@@ -160,32 +170,62 @@ MDP   = spm_MDP_game(MDP,'FE');
 
 % axis
 %--------------------------------------------------------------------------
-ax    = [0.5*MDP.N 2.5*MDP.N 0 4];
+pst   = (1:length(MDP.d))*100/1000;
+ax    = [1 pst(end) 0 4];
 
-spm_figure('GetWin','Figure 2');
-subplot(2,1,2)
-plot(MDP.da,'k'), hold on
+subplot(3,2,3)
+plot(pst,MDP.d,'k'), hold on
+subplot(3,2,5)
+plot(pst,MDP.da,'k'), hold on
 
-MDP.a = [1 2 2];
+
+subplot(3,2,6)
+r     = 128;
+bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
+title('Simulated (CS & US) responses','FontSize',16)
+xlabel('Peristimulus time (sec)','FontSize',12)
+ylabel('Rate','FontSize',12)
+axis square, set(gca,'XLim',ax(1:2))
+
+
+% repeat but with the US only
+%--------------------------------------------------------------------------
+MDP.a = [1 1 2];
 MDP.o = [1 ((1 - 1)*4 + 1) ((2 - 1)*4 + 3)];
 MDP   = spm_MDP_game(MDP,'FE');
 
-spm_figure('GetWin','Figure 2');
-subplot(2,1,2)
-plot(MDP.da,'r'), hold off
+subplot(3,2,3)
+plot(pst,MDP.d,'r'), hold off
+title('Precision updates','FontSize',16)
+xlabel('Peristimulus time (sec)','FontSize',12)
+ylabel('Precision','FontSize',12)
+axis square, set(gca,'XLim',ax(1:2))
+
+subplot(3,2,5)
+plot(pst,MDP.da,'r'), hold off
 title('Dopamine responses','FontSize',16)
-xlabel('Peristimulus time','FontSize',12)
+xlabel('Peristimulus time (sec)','FontSize',12)
 ylabel('Response','FontSize',12)
 axis square, axis(ax)
+
+subplot(3,2,4)
+r     = 128;
+bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
+title('Simulated (US) responses','FontSize',16)
+xlabel('Peristimulus time (sec)','FontSize',12)
+ylabel('Rate','FontSize',12)
+axis square, set(gca,'XLim',ax(1:2))
+
 
 
 % different levels of priors and uncertainty
 %==========================================================================
 spm_figure('GetWin','Figure 3'); clf; 
-subplot(2,1,1)
+
 MDP.a = [4 2 2];
 MDP.o = [1 ((4 - 1)*4 + 1) ((2 - 1)*4 + 3)];
-c     = linspace(0,2,4);
+n     = 3;
+c     = linspace(0,2,n);
 for i = 1:length(c)
     
     % preference
@@ -196,20 +236,30 @@ for i = 1:length(c)
     %----------------------------------------------------------------------
     MDP  = spm_MDP_game(MDP,'FE');
     col  = [1 1 1]*(length(c) - i)/length(c);
-    plot(MDP.da,'Color',col), hold on
-
+    
+    subplot(2,2,1)
+    plot(pst,MDP.da,'Color',col), hold on
+    title('Preference (utility)','FontSize',16)
+    xlabel('Peristimulus time (sec)','FontSize',12)
+    ylabel('Response','FontSize',12)
+    axis square, axis(ax)
+    
+    subplot(2*n,2,(i - 1)*2 + 2)
+    r     = 128;
+    bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
+    ylabel('Rate','FontSize',12)
+    axis square, set(gca,'XLim',ax(1:2))
+    
 end
-title('Preference (utility)','FontSize',16)
-xlabel('Peristimulus time','FontSize',12)
-ylabel('Response','FontSize',12)
-axis square, axis(ax)
+
+
 
 % and uncertainty
 %--------------------------------------------------------------------------
 subplot(2,1,2)
 
 MDP.C = C;
-c     = linspace(.5,.9,4);
+c     = linspace(.5,.9,n);
 for i = 1:length(c)
     
     % preference
@@ -225,10 +275,114 @@ for i = 1:length(c)
     %----------------------------------------------------------------------
     MDP  = spm_MDP_game(MDP,'FE');
     col  = [1 1 1]*(length(c) - i)/length(c);
-    plot(MDP.da,'Color',col), hold on
+    
+    subplot(2,2,3)
+    plot(pst,MDP.da,'Color',col), hold on
+    title('Uncertainty','FontSize',16)
+    xlabel('Peristimulus time (sec)','FontSize',12)
+    ylabel('Response','FontSize',12)
+    axis square, axis(ax)
+    
+    subplot(2*n,2,(i - 1)*2 + 2 + n*2)
+    r     = 128;
+    bar(pst,r*MDP.da + randn(size(MDP.da)).*sqrt(r*MDP.da))
+    ylabel('Rate','FontSize',12)
+    axis square, set(gca,'XLim',ax(1:2))
     
 end
-title('Uncertainty','FontSize',16)
 xlabel('Peristimulus time','FontSize',12)
-ylabel('Response','FontSize',12)
-axis square, axis(ax)
+
+% learniing the hidden context
+%==========================================================================
+
+% mapping from hidden lcoations to the (unkown) world
+%--------------------------------------------------------------------------
+M     = [1 2 3 4; 1 3 2 4; 1 4 3 2; 1 2 4 3]';
+
+% A
+%--------------------------------------------------------------------------
+m     = size(M,1);
+MDP.A = kron(ones(1,m),A);
+
+% B
+%--------------------------------------------------------------------------
+for i = 1:length(B)
+    MDP.B{i} = spm_cat(spm_diag(B(M(i,:))));
+end
+
+% C
+%--------------------------------------------------------------------------
+MDP.C  = C;
+
+
+% simulate trials and record outcomes
+%==========================================================================
+spm_figure('GetWin','Figure 4'); clf
+MDP.plot = 0;
+
+
+MDP.N = 4;
+MDP.a = [];
+MDP.o = [];
+RDP   = MDP;
+
+d     = kron(ones(4,1),[0; 0; 1; 0]);
+DD    = kron(eye(m,m) + 1/2,D*ones(1,length(D)));
+DD    = DD*diag(1./sum(DD));
+for j = 1:128
+    
+    % initial context
+    %----------------------------------------------------------------------
+    MDP.D  = kron(ones(m,1)/m,D);
+    RDP.D  = kron(ones(m,1)/m,D);
+    ss     = find(rand < cumsum(ones(1,m)/m),1);
+    ss     = sparse(ss,1,1,m,1);
+    
+    for i = 1:8
+        
+        % initial state
+        %------------------------------------------------------------------
+        s      = rand > 1/2;
+        s      = kron([1 0 0 0],[s ~s])';
+        MDP.S  = kron(ss,s);
+        RDP.S  = kron(ss,s);
+        
+        % trial
+        %------------------------------------------------------------------
+        MDP    = spm_MDP_game(MDP,'FE');
+        RDP    = spm_MDP_game(MDP,'RL');
+        
+        R(j,i) = d'*MDP.O(:,end);
+        H(j,i) = -log(MDP.Q(:,end))'*MDP.Q(:,end);
+        
+        r(j,i) = d'*RDP.O(:,end);
+        h(j,i) = -log(RDP.Q(:,end))'*RDP.Q(:,end);
+        
+        % Bayesian update
+        %------------------------------------------------------------------
+        MDP.D  = spm_softmax(log(DD*MDP.Q(:,end)) + log(MDP.D));
+        RDP.D  = spm_softmax(log(DD*RDP.Q(:,end)) + log(RDP.D));
+        
+    end
+
+end
+
+subplot(2,1,1)
+t  = 1:size(R,2);
+plot(t,100*mean(R),'-k',t,100*mean(R),'ok'), hold on
+plot(t,100*mean(H),'-r',t,100*mean(H),'or')
+plot(t,100*mean(r),':k',t,100*mean(r),'ok')
+plot(t,100*mean(h),':r',t,100*mean(h),'or')
+plot(t,t*0 + 100*3/8,':k'), hold on
+plot(t,t*0 + 100*a,  '--k'), hold off
+title('Exploration and exploitation','FontSize',16)
+xlabel('Number of trials','FontSize',12)
+ylabel('Performance and uncertainty','FontSize',12)
+axis([1 t(end) 0 100])
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
-function [MDP] = spm_MDP_game(MDP,OPTION)
+function [MDP] = spm_MDP_game(MDP,OPTION,W)
 % aaction selection using active inference
-% FORMAT [MDP] = spm_MDP_game(MDP,OPTION)
+% FORMAT [MDP] = spm_MDP_game(MDP,OPTION,W)
 %
 % MDP.T           - process depth (the horizon)
 % MDP.N           - number of variational iterations (default 4)
@@ -36,9 +36,11 @@ function [MDP] = spm_MDP_game(MDP,OPTION)
 % MDP.S(N,T)   - a sparse matrix of ones encoding states at time 1,...,T
 % MDP.U(M,T)   - a sparse matrix of ones encoding action at time 1,...,T
 % MDP.W(1,T)   - posterior expectations of precision
-% MDP.d        - simulated dopamine responses
+% MDP.d        - simulated dopamine responses (convolved)
+% MDP.da       - simulated dopamine responses (deconvolved)
 %
 % OPTION       - {'Free Energy' | 'KL Control' | 'Expected Utility'};
+% W            - optional fixed precision
 %
 % This routine provides solutions of active inference (minimisation of
 % variational free energy) using a generative model based upon a Markov
@@ -98,23 +100,27 @@ function [MDP] = spm_MDP_game(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6064 2014-06-23 09:39:46Z karl $
+% $Id: spm_MDP_game.m 6073 2014-06-28 09:14:29Z karl $
 
 % set up and preliminaries
 %==========================================================================
 
 % options and precision defaults
 %--------------------------------------------------------------------------
-try, PLOT  = MDP.plot;  catch, PLOT  = 0;             end
-try, alpha = MDP.alpha; catch, alpha = 8;             end
-try, beta  = MDP.beta;  catch, beta  = 4;             end
-try, N     = MDP.N;     catch, N     = 4;             end
-try, T     = MDP.T;     catch, T     = size(MDP.V,1); end
+try, PLOT   = MDP.plot;   catch, PLOT   = 0;             end
+try, alpha  = MDP.alpha;  catch, alpha  = 8;             end
+try, beta   = MDP.beta;   catch, beta   = 4;             end
+try, lambda = MDP.lambda; catch, lambda = 0;             end
+try, N      = MDP.N;      catch, N      = 4;             end
+try, T      = MDP.T;      catch, T      = size(MDP.V,1); end
 
 % options
 %--------------------------------------------------------------------------
 if nargin < 2, OPTION = 'Free Energy'; end
 MDP.OPT = OPTION;
+if nargin > 2
+    MDP.w = zeros(1,T) + W;
+end
 
 
 % set up figure if necessary
@@ -240,6 +246,7 @@ W      = zeros(1, T);              % posterior precision
 % solve
 %==========================================================================
 gamma  = [];                       % simulated dopamine responses
+b      = 1;                        % expecedt rate parameter
 for t  = 1:T
     
     
@@ -318,11 +325,12 @@ for t  = 1:T
         % precision (W)
         %------------------------------------------------------------------
         if isfield(MDP,'w')
-            v = MDP.w(t);
+            W(t) = MDP.w(t);
         else
-            v = alpha/(beta - u(w,t)'*Q);
+            b    = lambda*b + (1 - lambda)*(beta - u(w,t)'*Q);
+            W(t) = alpha/b;
         end
-        W(t)  = W(t)/4 + v*3/4;
+
         
         % simulated dopamine responses (precision as each iteration)
         %------------------------------------------------------------------
@@ -491,7 +499,8 @@ end
 
 % deconvolve to simulate dopamine responses
 %--------------------------------------------------------------------------
-da     = pinv( tril(toeplitz(exp(-((1:length(gamma)) - 1)'/N))) )*gamma;
+K      = tril(toeplitz(exp(-((1:length(gamma)) - 1)'/N)));
+da     = pinv(K)*gamma;
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
@@ -503,5 +512,6 @@ MDP.U  = U;              % a sparse matrix, encoding the action
 MDP.W  = W;              % posterior expectations of precision
 MDP.d  = gamma;          % simulated dopamine responses
 MDP.da = da;             % simulated dopamine responses (deconvolved)
+
 
 

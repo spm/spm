@@ -24,7 +24,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % G  = intrinsic rates
 % D  = propagation delays (intrinsic, extrinsic)
 % T  = synaptic time constants
-% R  = slope of sigmoid activation function
+% S  = slope of sigmoid activation function
 %
 %__________________________________________________________________________
 % David O, Friston KJ (2003) A neural mass model for MEG/EEG: coupling and
@@ -33,7 +33,7 @@ function [f,J,Q] = spm_fx_cmc(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_fx_cmc.m 6073 2014-06-28 09:14:29Z karl $
  
  
 % get dimensions and configure state variables
