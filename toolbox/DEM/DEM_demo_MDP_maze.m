@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6073 2014-06-28 09:14:29Z karl $
+% $Id: DEM_demo_MDP_maze.m 6075 2014-06-29 21:11:40Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -111,7 +111,7 @@ MDP.plot = 0;
 MDP.N    = 4;
 
 n     = 128;                              % number of simulated trials
-c     = linspace(0,2,6);
+c     = linspace(0,1,6);
 d     = kron(ones(4,1),[0; 0; 1; 0]);
 for i = 1:length(c)
     
@@ -148,7 +148,7 @@ end
 MDP.S  = S;
 MDP.C  = C;
 
-% posterior beliefs about hidden states (prosocial versus nonsocial)
+% plot behavioural results
 %--------------------------------------------------------------------------
 subplot(3,1,1)
 bar(c,[mean(FE); mean(KL); mean(RL); mean(FP)]'*100), hold on
@@ -327,7 +327,7 @@ MDP.o = [];
 RDP   = MDP;
 
 d     = kron(ones(4,1),[0; 0; 1; 0]);
-DD    = kron(eye(m,m) + 1/2,D*ones(1,length(D)));
+DD    = kron(eye(m,m) + 1/16,D*ones(1,length(D)));
 DD    = DD*diag(1./sum(DD));
 for j = 1:128
     
@@ -360,8 +360,8 @@ for j = 1:128
         
         % Bayesian update
         %------------------------------------------------------------------
-        MDP.D  = spm_softmax(log(DD*MDP.Q(:,end)) + log(MDP.D));
-        RDP.D  = spm_softmax(log(DD*RDP.Q(:,end)) + log(RDP.D));
+        MDP.D  = spm_softmax(log(DD*MDP.Q(:,end)));
+        RDP.D  = spm_softmax(log(DD*RDP.Q(:,end)));
         
     end
 

@@ -26,7 +26,7 @@ function [y,w,S] = spm_csd_fmri_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_fmri_mtf.m 5889 2014-02-20 11:42:20Z karl $
+% $Id: spm_csd_fmri_mtf.m 6075 2014-06-29 21:11:40Z karl $
 
 
 % compute log-spectral density
@@ -65,7 +65,7 @@ end
 %--------------------------------------------------------------------------
 C     = 1/256;
 
-% neuronal fluctuations (Gu)
+% neuronal fluctuations (Gu) (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nu
     if strcmp(form,'1/f')
@@ -76,7 +76,7 @@ for i = 1:nu
     Gu(:,i,i) = Gu(:,i,i) + C*G;
 end
 
-% observation noise
+% observation noise (1/f or AR(1) form)
 %--------------------------------------------------------------------------
 for i = 1:nn
     
