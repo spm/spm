@@ -7,10 +7,10 @@ function out = spm_run_reorient(varargin)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_run_reorient.m 5120 2012-12-14 14:20:20Z ged $
+% $Id: spm_run_reorient.m 6078 2014-06-30 18:10:33Z guillaume $
 
 job = varargin{1};
 if isfield(job.transform,'transprm')
@@ -19,9 +19,11 @@ elseif isfield(job.transform,'transF')
     load(char(job.transform.transF), 'M');
     job.transform.transM = M;
 end
+
 K = numel(job.srcfiles);
 spm_progress_bar('Init', K, 'Reorient', 'Images completed');
 if isempty(job.prefix)
+    
     % read and write separately, so duplicates get harmlessly overwritten
     MM = zeros(4, 4, K);
     for k = 1:K
@@ -32,7 +34,9 @@ if isempty(job.prefix)
         spm_progress_bar('Set',k);
     end
     out.files = job.srcfiles;
+    
 else
+    
     out.files = cell(size(job.srcfiles));
     for k = 1:K
         V       = spm_vol(job.srcfiles{k});
@@ -40,8 +44,9 @@ else
         V.mat   = job.transform.transM * V.mat;
         V.fname = spm_file(V.fname, 'prefix',job.prefix);
         spm_write_vol(V,X);
-        out.files{k} = V.fname;
+        out.files{k} = [V.fname ',' num2str(V.n(1))];
         spm_progress_bar('Set',k);
     end
+    
 end
 spm_progress_bar('Clear');
