@@ -1,5 +1,5 @@
 /*
- * $Id: init.c 5458 2013-05-01 14:32:23Z guillaume $
+ * $Id: init.c 6076 2014-06-30 13:41:11Z guillaume $
  * Guillaume Flandin
  */
 
@@ -20,7 +20,7 @@
 #ifdef SPM_WIN32
 #include <io.h>
 #define snprintf _snprintf
-#define ftruncate _chsize
+#define ftruncate _chsize_s
 #else
 #include <unistd.h>
 #include <sys/types.h>
