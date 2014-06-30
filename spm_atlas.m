@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_atlas.m 6077 2014-06-30 16:55:03Z spm $
 
 
 fprintf('**** Please do not use spm_atlas yet as syntax WILL change ****\n');
@@ -399,7 +399,7 @@ case 'mask'
     % VM = spm_write_vol(VM,VM.dat);
     % VM = rmfield(VM,'dat');
     
-	
+    
 %==========================================================================
 case 'maxprob'
 %==========================================================================

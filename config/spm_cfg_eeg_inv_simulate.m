@@ -5,7 +5,7 @@ function simulate = spm_cfg_eeg_inv_simulate
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_simulate.m 5947 2014-04-10 15:32:42Z gareth $
+% $Id: spm_cfg_eeg_inv_simulate.m 6077 2014-06-30 16:55:03Z spm $
 
 D = cfg_files;
 D.tag = 'D';
@@ -256,7 +256,7 @@ if isfield(job.isinversion,'setsources'), %% defining individual sources
         sinfreq=job.isinversion.setsources.isSin.foi;
         % Create the waveform for each source
         
-        for j=1:Nsources				% For each source
+        for j=1:Nsources                % For each source
                 simsignal(j,:)=nAmdipmom(j)*sin((D{1}.time(timeind)- D{1}.time(min(timeind)))*sinfreq(j)*2*pi);
         end; % for j
         

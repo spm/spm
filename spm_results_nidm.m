@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6025 2014-05-29 13:35:51Z guillaume $
+% $Id: spm_results_nidm.m 6077 2014-06-30 16:55:03Z spm $
 
 
 %-Get input parameters, interactively if needed
@@ -438,7 +438,7 @@ else
     ustt = ['p-value ' td.thresDesc];
 end
 p.entity('niiri:height_threshold_id',{...
-	'prov:type','nidm:HeightThreshold',...
+    'prov:type','nidm:HeightThreshold',...
     'prov:label',{['Height Threshold: ' xSPM.thresDesc],'xsd:string'},... %esc
     'nidm:userSpecifiedThresholdType',{ustt,'xsd:string'},...
     'prov:value',{TabDat.ftr{1,2}(1),'xsd:float'},... % xSPM.u

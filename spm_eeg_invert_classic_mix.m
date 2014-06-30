@@ -21,7 +21,7 @@ function [D] = spm_eeg_invert_classic_mix(D,val,Qpriors,surfind,ugainfiles)
 % This version is for single subject single modality analysis and therefore
 % contains none of the associated scaling factors.
 %
-% $Id: spm_eeg_invert_classic_mix.m 5918 2014-03-14 12:19:08Z gareth $
+% $Id: spm_eeg_invert_classic_mix.m 6077 2014-06-30 16:55:03Z spm $
 
 
 
@@ -270,32 +270,32 @@ YTY         = T'*YY*T;     % Filter
 
 if isempty(Nt),
     
-    [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
     if isempty(U),
         warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);			% get temporal modes
+        [U E]  = svd(YTY);          % get temporal modes
     end;
-    E      = diag(E)/trace(YTY);			% normalise variance
-    Nr     = min(length(E),Nmax);			% number of temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
+    Nr     = min(length(E),Nmax);           % number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else
-    [U E]  = svd(YTY);			% get temporal modes
+    [U E]  = svd(YTY);          % get temporal modes
     
-    E      = diag(E)/trace(YTY);			% normalise variance
+    E      = diag(E)/trace(YTY);            % normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
 
-V      = U(:,1:Nr);						% temporal modes
-VE     = sum(E(1:Nr));					% variance explained
+V      = U(:,1:Nr);                     % temporal modes
+VE     = sum(E(1:Nr));                  % variance explained
 
 fprintf('Using %i temporal modes, ',Nr)
 fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
 
 % projection and whitening
 %----------------------------------------------------------------------
-S      = T*V;							% temporal projector
-Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
+S      = T*V;                           % temporal projector
+Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
 
 
 % get spatial covariance (Y*Y') for Gaussian process model
@@ -356,7 +356,7 @@ AY=spm_cat(AY);
 
 % assuming equal noise over subjects (Qe) and modalities AQ
 %--------------------------------------------------------------------------
-AQeA   = A*QE*A';			% Note that here it is A*A'
+AQeA   = A*QE*A';           % Note that here it is A*A'
 Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
 
 
@@ -391,7 +391,7 @@ fprintf('Inverting subject 1\n')
 
 % generate sensor component (Qe) per modality
 %----------------------------------------------------------------------
-AQeA  = A*QE*A';				% Again it is A*A'
+AQeA  = A*QE*A';                % Again it is A*A'
 AQ    = AQeA/(trace(AQeA));
 
 

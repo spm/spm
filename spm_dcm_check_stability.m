@@ -13,7 +13,7 @@ function [is_stable,eigval] = spm_dcm_check_stability(DCM)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny & Klaas Enno Stephan & Peter Zeidman
-% $Id$
+% $Id: spm_dcm_check_stability.m 6077 2014-06-30 16:55:03Z spm $
 
 
 %-Load DCM if necessary

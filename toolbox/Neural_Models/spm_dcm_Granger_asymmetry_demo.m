@@ -26,7 +26,7 @@ function spm_dcm_Granger_asymmetry_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_Granger_demo.m 5934 2014-03-28 15:03:00Z karl $
+% $Id: spm_dcm_Granger_asymmetry_demo.m 6077 2014-06-30 16:55:03Z spm $
  
  
 % Model specification

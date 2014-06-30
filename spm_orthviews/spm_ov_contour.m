@@ -9,7 +9,7 @@ function ret = spm_ov_contour(varargin)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_contour.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_ov_contour.m 6077 2014-06-30 16:55:03Z spm $
 
 
 switch lower(varargin{1})
@@ -79,7 +79,7 @@ if any(strcmp(get(allOpts,'Checked'),'on'))
 end
 if ~current
     set(hObj, 'Checked','on');
-	contour_display(i,varargin{:}); 
+    contour_display(i,varargin{:}); 
 end
 
 

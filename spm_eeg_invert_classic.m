@@ -78,7 +78,7 @@ function [D] = spm_eeg_invert_classic(D,val)
 % A general Bayesian treatment for MEG source reconstruction incorporating lead field uncertainty.
 % Neuroimage 60(2), 1194-1204 doi:10.1016/j.neuroimage.2012.01.077.
 
-% $Id: spm_eeg_invert_classic.m 6059 2014-06-19 11:57:31Z vladimir $
+% $Id: spm_eeg_invert_classic.m 6077 2014-06-30 16:55:03Z spm $
 
 
 
@@ -381,31 +381,31 @@ YTY         = T'*YY*T;     % Filter
 %======================================================================
 
 if isempty(Nt), %% automatically assign appropriate number of temporal modes    
-    [U E]  = spm_svd(YTY,exp(-8));			% get temporal modes
+    [U E]  = spm_svd(YTY,exp(-8));          % get temporal modes
     if isempty(U), %% fallback
         warning('nothing found using spm svd, using svd');
-        [U E]  = svd(YTY);			% get temporal modes
+        [U E]  = svd(YTY);          % get temporal modes
     end;
-    E      = diag(E)/trace(YTY);			% normalise variance
-    Nr     = min(length(E),Nmax);			% number of temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
+    Nr     = min(length(E),Nmax);           % number of temporal modes
     Nr=max(Nr,1); %% use at least one mode
 else %% use predefined number of modes
-    [U E]  = svd(YTY);			% get temporal modes
-    E      = diag(E)/trace(YTY);			% normalise variance
+    [U E]  = svd(YTY);          % get temporal modes
+    E      = diag(E)/trace(YTY);            % normalise variance
     disp('Fixed number of temporal modes');
     Nr=Nt;
 end;
 
-V      = U(:,1:Nr);						% temporal modes
-VE     = sum(E(1:Nr));					% variance explained
+V      = U(:,1:Nr);                     % temporal modes
+VE     = sum(E(1:Nr));                  % variance explained
 
 fprintf('Using %i temporal modes, ',Nr)
 fprintf('accounting for %0.2f percent average variance\n',full(100*VE))
 
 % projection and whitening
 %----------------------------------------------------------------------
-S      = T*V;							% temporal projector
-Vq     = S*pinv(S'*qV*S)*S';			% temporal precision
+S      = T*V;                           % temporal projector
+Vq     = S*pinv(S'*qV*S)*S';            % temporal precision
 
 
 % get spatial covariance (Y*Y') for Gaussian process model
@@ -462,7 +462,7 @@ ID    = spm_data_id(AY); %% get a unique ID for these filtered data
 
 % assuming equal noise over subjects (Qe) and modalities AQ
 %--------------------------------------------------------------------------
-AQeA   = A*QE*A';			% Note that here it is A*A'
+AQeA   = A*QE*A';           % Note that here it is A*A'
 Qe{1}  = AQeA/(trace(AQeA)); % it means IID noise in virtual sensor space
 
 %Q0          = Qe0*trace(AYYA)*Qe{1}*Nr; %% fixed (min) level of sensor space variance- this is divided by Nr later in spm_reml_sc
@@ -510,7 +510,7 @@ switch(type)
         Qp{1} = diag(allsource);
         LQpL{1} = UL*diag(allsource)*UL';
         
-    case {'EBBgs'}	% NEW BEAMFORMER PRIOR!!
+    case {'EBBgs'}  % NEW BEAMFORMER PRIOR!!
         % create beamforming prior- Juan David- Martinez Vargas
         %------------------------------------------------------------------
         allsource = zeros(Ntrials,Ns);

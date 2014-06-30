@@ -98,7 +98,7 @@ function [MDP] = spm_MDP_game_optimism(MDP,OPTION)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6062 2014-06-21 11:00:15Z karl $
+% $Id: spm_MDP_game_optimism.m 6077 2014-06-30 16:55:03Z spm $
 
 % set up and preliminaries
 %==========================================================================

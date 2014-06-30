@@ -151,7 +151,7 @@ function varargout = spm_orthviews(action,varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner et al
-% $Id: spm_orthviews.m 6055 2014-06-18 11:10:08Z guillaume $
+% $Id: spm_orthviews.m 6077 2014-06-30 16:55:03Z spm $
 
 
 % The basic fields of st are:
@@ -1308,8 +1308,8 @@ for i = valid_handles(arg1)
                     end
                     if j==numel(st.vols{i}.blobs)
                         imgt = reshape(imgt,[size(gimgt) 3]);
-                    	imgc = reshape(imgc,[size(gimgc) 3]);
-                    	imgs = reshape(imgs,[size(gimgs) 3]);
+                        imgc = reshape(imgc,[size(gimgc) 3]);
+                        imgs = reshape(imgs,[size(gimgs) 3]);
                     end
                     
                      % colourbar

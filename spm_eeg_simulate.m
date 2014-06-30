@@ -2,9 +2,9 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,woi,whitenoise,SNRdB,trialind,mnimesh,SmthInit);
 %% Simulate a number of MSP patches at specified locations on existing mesh
 %
-% Created by:	Jose David Lopez - ralph82co@gmail.com
-%				Gareth Barnes - g.barnes@ucl.ac.uk
-%				Vladimir Litvak - litvak.vladimir@gmail.com
+% Created by:   Jose David Lopez - ralph82co@gmail.com
+%               Gareth Barnes - g.barnes@ucl.ac.uk
+%               Vladimir Litvak - litvak.vladimir@gmail.com
 %
 %% D dataset
 %% prefix : prefix of new simulated dataset
@@ -19,7 +19,7 @@ function [Dnew,meshsourceind]=spm_eeg_simulate(D,prefix,patchmni,simsignal,ormni
 %% Outputs
 %% Dnew- new dataset
 %% meshsourceind- vertex indices of sources on the mesh
-% $Id: spm_eeg_simulate.m 5947 2014-04-10 15:32:42Z gareth $
+% $Id: spm_eeg_simulate.m 6077 2014-06-30 16:55:03Z spm $
 
 %% LOAD IN ORGINAL DATA
 useind=1; % D to use
@@ -149,7 +149,7 @@ if max(mnidist)>0.1
 end;
 
 
-Ndip = size(simsignal,1);		% Number of dipoles
+Ndip = size(simsignal,1);       % Number of dipoles
 
 
 
@@ -177,10 +177,10 @@ end;
 
 %% WAVEFORM FOR EACH SOURCE
 
-Ntrials = Dnew.ntrials;				% Number of trials
+Ntrials = Dnew.ntrials;             % Number of trials
 
 % define period over which dipoles are active
-startf1  = woi(1);					% (sec) start time
+startf1  = woi(1);                  % (sec) start time
 endf1 = woi(2); %% end time
 f1ind = intersect(find(Dnew.time>startf1),find(Dnew.time<=endf1));
 
@@ -245,12 +245,12 @@ else %%% CURRENT DENSITY ON SURFACE SIMULATION
     disp('SIMULATING CURRENT DISTRIBUTIONS ON MESH');
     %% CREATE A NEW FORWARD model for e mesh
     fprintf('Computing Gain Matrix: ')
-    spm_input('Creating gain matrix',1,'d');	% Shows gain matrix computation
+    spm_input('Creating gain matrix',1,'d');    % Shows gain matrix computation
     
-    [L Dnew] = spm_eeg_lgainmat(Dnew);				% Gain matrix
+    [L Dnew] = spm_eeg_lgainmat(Dnew);              % Gain matrix
     
-    Nd    = size(L,2);							% number of dipoles
-    X	  = zeros(Nd,size(Dnew,2));						% Matrix of dipoles
+    Nd    = size(L,2);                          % number of dipoles
+    X     = zeros(Nd,size(Dnew,2));                     % Matrix of dipoles
     fprintf(' - done\n')
     
     
@@ -354,11 +354,11 @@ end
 dnewind=chans(tmpind);
 
 if isempty(ormni)
-    Nj		= size(vert,1);
-    M		= mean(X(:,f1ind)'.^2,1);
-    G		= sqrt(sparse(1:Nj,1,M,Nj,1));
-    Fgraph	= spm_figure('GetWin','Graphics');
-    j		= find(G);
+    Nj      = size(vert,1);
+    M       = mean(X(:,f1ind)'.^2,1);
+    G       = sqrt(sparse(1:Nj,1,M,Nj,1));
+    Fgraph  = spm_figure('GetWin','Graphics');
+    j       = find(G);
     
     clf(Fgraph)
     figure(Fgraph)
