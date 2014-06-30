@@ -1,19 +1,19 @@
-function [xCon,SPM]= spm_vb_logbf (SPM,XYZ,xCon,ic)
+function [xCon,SPM] = spm_vb_logbf(SPM,XYZ,xCon,ic)
 % Compute and write log Bayes factor image
-% FORMAT [xCon,SPM]= spm_vb_logbf (SPM,XYZ,xCon,ic)
+% FORMAT [xCon,SPM] = spm_vb_logbf(SPM,XYZ,xCon,ic)
 %
-% SPM  - SPM data structure
-% XYZ  - voxel list
-% xCon - contrast info
-% ic   - contrast number
+% SPM    - SPM data structure
+% XYZ    - voxel list
+% xCon   - contrast info
+% ic     - contrast number
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_logbf.m 5219 2013-01-29 17:07:07Z spm $
+% $Id: spm_vb_logbf.m 6079 2014-06-30 18:25:37Z spm $
 
-% Get approximate posterior covariance for ic
-% using Taylor-series approximation
+
+% Get approximate posterior covariance using Taylor-series approximation
         
 %-Get number of sessions
 %--------------------------------------------------------------------------

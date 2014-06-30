@@ -1,14 +1,14 @@
-function [block] = spm_vb_w (Y,block)
+function [block] = spm_vb_w(Y,block)
 % Variational Bayes for GLM-AR modelling in a block - update w
 % FORMAT [block] = spm_vb_w (Y,block)
 %
-% Y             [T x N] time series 
-% block         data structure 
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Y          - [T x N] time series 
+% block      - data structure (see spm_vb_glmar)
+%__________________________________________________________________________
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_w.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_w.m 6079 2014-06-30 18:25:37Z spm $
 
 if block.verbose
     disp('Updating w');
@@ -48,4 +48,3 @@ for n = 1:N,
         block.I.W_tilde(:,:,n) = reshape(block.I.D(:,:,n)'*w_mean,p,p);
     end
 end
-

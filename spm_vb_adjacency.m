@@ -8,12 +8,11 @@ function W = spm_vb_adjacency(edges,weights,N)
 %
 % W        [N x N] matrix of (weighted) edges
 % Wij      edge weight between nodes i and j if they are neighbors, otherwise 0
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
  
 % Lee Harrison
-% $Id: spm_vb_adjacency.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_vb_adjacency.m 6079 2014-06-30 18:25:37Z spm $
 
 % Number of edges
 Ne = size(edges,1);
@@ -29,5 +28,5 @@ if nargin < 3
 end
 
 % (Weighted) adjacency matrix
-W   = sparse([edges(:,1);edges(:,2)],[edges(:,2);edges(:,1)],...
-                [weights;weights],N,N);
+W  = sparse([edges(:,1);edges(:,2)],[edges(:,2);edges(:,1)],...
+            [weights;weights],N,N);

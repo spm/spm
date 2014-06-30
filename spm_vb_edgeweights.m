@@ -1,5 +1,5 @@
 function [edges,weights] = spm_vb_edgeweights(vxyz,img)
-% Computes edge set and edge weights of a graph
+% Compute edge set and edge weights of a graph
 % FORMAT [edges,weights]= spm_vb_edgeweights(vxyz,img)
 % 
 % vxyz     list of neighbouring voxels (see spm_vb_neighbors)
@@ -13,10 +13,10 @@ function [edges,weights] = spm_vb_edgeweights(vxyz,img)
 % Ne       number of edges (cardinality of edges set)
 % N        number of nodes (cardinality of node set)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_edgeweights.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_vb_edgeweights.m 6079 2014-06-30 18:25:37Z spm $
 
 N       = size(vxyz,1);
 [r,c,v] = find(vxyz');

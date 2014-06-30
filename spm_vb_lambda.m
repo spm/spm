@@ -1,24 +1,24 @@
-function [block] = spm_vb_lambda (Y,block)
+function [block] = spm_vb_lambda(Y,block)
 % Variational Bayes for GLM-AR models - Update lambda
-% FORMAT [block] = spm_vb_lambda (Y,block)
+% FORMAT [block] = spm_vb_lambda(Y,block)
 %
-% Y             [T x N] time series 
-% block         data structure containing the following fields:
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Y      - [T x N] time series 
+% block  - data structure (see spm_vb_glmar)
+%__________________________________________________________________________
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny and Nelson Trujillo-Barreto
-% $Id: spm_vb_lambda.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_lambda.m 6079 2014-06-30 18:25:37Z spm $
 
 if block.verbose
     disp('Updating lambda');
 end
 
-p=block.p;
-k=block.k;
-N=block.N;
+p = block.p;
+k = block.k;
+N = block.N;
 
-for n=1:N,
+for n=1:N
     if p > 0
         % Equation 77 in paper VB1
         Gn          = spm_vb_get_Gn (Y,block,n);

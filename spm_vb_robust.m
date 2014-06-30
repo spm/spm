@@ -13,10 +13,10 @@ function [slice] = spm_vb_robust (Y,slice)
 % W.D. Penny, J. Kilner and F. Blankenburg. Robust Bayesian General Linear 
 % Models. NeuroImage, 36(3):661-671, 2007.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_robust.m 2958 2009-03-26 11:19:20Z guillaume $
+% $Id: spm_vb_robust.m 6079 2014-06-30 18:25:37Z spm $
 
 [T, Nv] = size(Y);
 X       = slice.X;

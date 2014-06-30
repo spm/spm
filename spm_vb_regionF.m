@@ -21,10 +21,10 @@ function [F] = spm_vb_regionF (Y,xY,SPM)
 % Comparison of Spatially Regularised General Linear Models. Human 
 % Brain Mapping, 28(4):275-293.
 %__________________________________________________________________________
-% Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_vb_regionF.m 4689 2012-03-15 17:18:14Z will $
+% $Id: spm_vb_regionF.m 6079 2014-06-30 18:25:37Z spm $
 
 try 
     SPM;

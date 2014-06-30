@@ -25,19 +25,21 @@ function spm_vb_ppm_anova(SPM)
 % These images can then be thresholded. For example a threshold of 4.6 
 % corresponds to a posterior effect probability of [exp(4.6)] = 0.999. 
 % See paper VB4 for more details.
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_vb_ppm_anova.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_vb_ppm_anova.m 6079 2014-06-30 18:25:37Z spm $
 
-    
-disp('Warning: spm_vb_ppm_anova only works for single session data.');
+
+if numel(SPM.Sess) > 1
+    warning('spm_vb_ppm_anova only works for single session data.');
+end
 
 model = spm_vb_models(SPM,SPM.factor);
 
 analysis_dir = pwd;
-for m=1:length(model)-1,
+for m=1:length(model)-1
     model_subdir = ['model_',int2str(m)];
     mkdir(analysis_dir,model_subdir);
     SPM.swd = fullfile(analysis_dir,model_subdir);
@@ -95,8 +97,9 @@ elseif nf==2
     img_subtract(image1,image2,imout);
     
 end
-    
-%-----------------------------------------------------------------------
+
+
+%==========================================================================
 function img_subtract(image1,image2,image_out)
 % Subtract image 1 from image 2 and write to image out
 % Note: parameters are names of files

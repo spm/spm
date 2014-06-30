@@ -1,6 +1,6 @@
 function A = spm_vb_incidence(edges,N)
 % Edge-node incidence matrix of a graph
-% FORMAT W = spm_vb_incidence(edges,N)
+% FORMAT A = spm_vb_incidence(edges,N)
 % 
 % edges    [Ne x 2] list of neighboring voxel indices
 % N        number of nodes (cardinality of node set)
@@ -9,12 +9,11 @@ function A = spm_vb_incidence(edges,N)
 % A        [Ne x N] matrix - is the discrete analogue of the grad operator
 % A(ij,k)  +1 if i=k, -1 if j=k, 0 otherwise, where ij is the edge 
 % connecting nodes i and j, and k is in node set
-%
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Lee Harrison
-% $Id: spm_vb_incidence.m 2921 2009-03-23 17:59:50Z guillaume $
+% $Id: spm_vb_incidence.m 6079 2014-06-30 18:25:37Z spm $
 
 % Number of edges
 Ne = size(edges,1);

@@ -1,26 +1,26 @@
 function vxyz = spm_vb_neighbors(xyz,vol)
 % Create list of neighbors of voxels to be analysed
-% FORMAT [vxyz] = spm_vb_neighbors (xyz,DIM,vol)
+% FORMAT vxyz = spm_vb_neighbors (xyz,vol)
 %
-% xyz      [Nvoxels x 3] list of voxel positions which are to be analysed
-% vol      vol=1 for volumetric neighbors, vol=0 for within-slice neighbors 
+% xyz    - [Nvoxels x 3] list of voxel positions which are to be analysed
+% vol    - vol=1 for volumetric neighbors, vol=0 for within-slice neighbors 
 %          (default vol=0)
 %
-% vxyz     [Nvoxels x 4] list of neighbouring voxels
+% vxyz   - [Nvoxels x 4] list of neighbouring voxels
 %          or [Nvoxels x 6] list of neighbouring voxels for vol=1
 %
 %          vxyz(j,:)=[N1 N2 N3 0] means that there are only 3 neighbors
-%          of voxel j, and their numbers (ie. where they appear in the xyz list) 
-%          are N1, N2 and N3
+%          of voxel j, and their numbers (ie. where they appear in the xyz
+%          list) are N1, N2 and N3
 %
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_neighbors.m 3291 2009-07-28 10:26:16Z guillaume $
+% $Id: spm_vb_neighbors.m 6079 2014-06-30 18:25:37Z spm $
 
 if nargin<2
-    vol=0;
+    vol = 0;
 end
 
 nearestneighbor = 1;

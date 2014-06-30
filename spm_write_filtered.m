@@ -1,19 +1,17 @@
 function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Write the filtered SPM as an image
-% FORMAT V0 = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
-%
-% Z       - {1 x ?} vector point list of SPM values for MIP
-% XYZ     - {3 x ?} matrix of coordinates of points (voxel coordinates)
-% DIM     - image dimensions {voxels}
-% M       - voxels -> mm matrix [default: spm_matrix(-(DIM+1)/2)]
-% descrip - description string [default: 'SPM-filtered']
-% F       - output file's basename [default: user query]
+% FORMAT Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
+% Z         - {1 x ?} vector point list of SPM values for MIP
+% XYZ       - {3 x ?} matrix of coordinates of points (voxel coordinates)
+% DIM       - image dimensions {voxels}
+% M         - voxels -> mm matrix [default: spm_matrix(-(DIM+1)/2)]
+% descrip   - description string [default: 'SPM-filtered']
+% F         - output file's basename [default: user query]
 %
 % FORMAT V0 = spm_write_filtered(xSPM)
+% xSPM      - SPM results structure from spm_getSPM
 %
-% xSPM    - SPM results structure from spm_getSPM
-%
-% Vo      - output image volume information
+% Vo        - output image volume information
 %__________________________________________________________________________
 %
 % spm_write_filtered takes a pointlist image (parallel matrices of
@@ -26,10 +24,10 @@ function Vo = spm_write_filtered(Z,XYZ,DIM,M,descrip,F)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_write_filtered.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_write_filtered.m 6079 2014-06-30 18:25:37Z spm $
 
 
-SVNid = '$Rev: 5944 $';
+SVNid = '$Rev: 6079 $';
 
 %-Parse arguments
 %--------------------------------------------------------------------------

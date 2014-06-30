@@ -1,21 +1,22 @@
-function [S] = spm_vb_spatial_precision (prior_type,vxyz,img)
+function [S] = spm_vb_spatial_precision(prior_type,vxyz,img)
 % Compute spatial precision matrix appropriate to prior
-% FORMAT [S] = spm_vb_spatial_precision (vxyz,prior_type)
+% FORMAT [S] = spm_vb_spatial_precision(prior_type,vxyz,img)
 %
-% vxyz          List of voxels
-% prior_type    Type of prior
-% img           used to construct weights of WGL
+% prior_type - type of prior {'Spatial - UGL','Spatial - GMRF',...
+%                             'Spatial - LORETA','Spatial - WGL'}
+% vxyz       - list of voxels
+% img        - used to construct weights of WGL
 %
-% S             Spatial precision matrix
-%___________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% S          - spatial precision matrix
+%__________________________________________________________________________
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny, Nelson Trujillo-Barreto and Lee Harrison
-% $Id: spm_vb_spatial_precision.m 2451 2008-11-10 16:20:32Z lee $
+% $Id: spm_vb_spatial_precision.m 6079 2014-06-30 18:25:37Z spm $
 
-switch prior_type,
+switch prior_type
     
-    case 'Spatial - UGL',
+    case 'Spatial - UGL'
         % (un-normalized) Unweighted Graph Laplacian (UGL). 
         % L = A'*A, where A is the "incidence" matrix that has dimensions
         % (no. edges,no.nodes). A and A' are the discrete analogues of 
@@ -29,7 +30,7 @@ switch prior_type,
         L   = A'*A; % UGL
         S   = L;
         
-    case 'Spatial - GMRF',
+    case 'Spatial - GMRF'
         % Gaussian Markov Random Field with geometric boundary conditions
         % See equation in Woolrich et al. (ref 26 in paper VB2) 
         % Also described in dicussion in paper VB2
@@ -44,7 +45,7 @@ switch prior_type,
         Z   = spdiags((sum(W,2)+eps).^(-1/2),0,N,N);
         S   = Z*L*Z; % normalized UGL
         
-    case 'Spatial - LORETA',
+    case 'Spatial - LORETA'
         % Unbiased LORETA PRIOR
         % Ensures normalisation is correct for edges/corners 
         % - see discussion in section 2 of paper VB2
@@ -56,7 +57,7 @@ switch prior_type,
         L   = A'*A; % UGL
         S   = L'*L; % bi-Laplacian
 
-    case 'Spatial - WGL',
+    case 'Spatial - WGL'
         % Weighted graph-Laplacian, L. see Chung 1997 "Spectral graph theory"
         % and Strang 2007 "Computational Science and Engineering"
         % L = A'*C*A
@@ -76,6 +77,5 @@ switch prior_type,
         S   = L;
        
     otherwise
-        disp('Error in spm_vb_spatial_precision: unknown precision type');
-        return
+        error('Unknown precision type');
 end

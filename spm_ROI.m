@@ -17,10 +17,10 @@ function [xY, XYZmm, j] = spm_ROI(xY, XYZmm)
 % XYZmm  - [3xn] filtered locations of voxels {mm} (m>=n) within VOI xY
 % j      - [1xn] indices of input locations XYZmm within VOI xY
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston, Guillaume Flandin
-% $Id: spm_ROI.m 4770 2012-06-19 13:24:40Z guillaume $
+% $Id: spm_ROI.m 6079 2014-06-30 18:25:37Z spm $
 
 if nargin < 2 && nargout > 1
     error('Too many output arguments.');
@@ -131,10 +131,9 @@ if isa(XYZmm,'nifti')
 end
 if isstruct(XYZmm) % spm_vol
     [R,C,P]  = ndgrid(1:XYZmm.dim(1),1:XYZmm.dim(2),1:XYZmm.dim(3));
-    RCP      = [R(:)';C(:)';P(:)'];
-    clear R C P
-    RCP(4,:) = 1;
-    XYZmm    = XYZmm.mat(1:3,:)*RCP;    
+    RCP      = [R(:)';C(:)';P(:)';ones(1,numel(R))];
+    XYZmm    = XYZmm.mat(1:3,:)*RCP;
+    clear R C P RCP
 end
 if isempty(XYZmm), XYZmm = zeros(3,0); end
 
