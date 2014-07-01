@@ -31,10 +31,10 @@ classdef spm_provenance < handle
 % p.hadMember(collection,entity)
 % p.bundle(id,b)
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_provenance.m 6025 2014-05-29 13:35:51Z guillaume $
+% $Id: spm_provenance.m 6081 2014-07-01 18:19:42Z guillaume $
 
 
 %-Properties
@@ -49,7 +49,7 @@ end
 methods
     function obj = spm_provenance
         add_namespace(obj,'prov','http://www.w3.org/ns/prov#');
-        add_namespace(obj,'xsd','http://www.w3.org/2001/XMLSchema-datatypes#');
+        add_namespace(obj,'xsd','http://www.w3.org/2001/XMLSchema#');
     end
 end
 

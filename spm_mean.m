@@ -12,10 +12,10 @@ function spm_mean(P)
 %
 % This is not a "softmean" - zero voxels are treated as zero.
 %__________________________________________________________________________
-% Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner, Andrew Holmes
-% $Id: spm_mean.m 4489 2011-09-14 11:27:38Z guillaume $
+% $Id: spm_mean.m 6081 2014-07-01 18:19:42Z guillaume $
 
 
 persistent runonce
@@ -24,7 +24,7 @@ if isempty(runonce)
     runonce = 1;
 end
 
-SVNid = '$Rev: 4489 $';
+SVNid = '$Rev: 6081 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -37,7 +37,7 @@ if ~nargin
     if ~sts, return; end
 end
 
-if ischar(P), Vi = spm_vol(P); end
+Vi = spm_vol(P);
 
 spm_check_orientations(Vi);
 
