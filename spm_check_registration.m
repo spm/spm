@@ -12,9 +12,9 @@ function spm_check_registration(varargin)
 % Copyright (C) 1997-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_check_registration.m 5944 2014-04-09 17:10:08Z guillaume $
+% $Id: spm_check_registration.m 6080 2014-07-01 16:00:22Z guillaume $
 
-SVNid = '$Rev: 5944 $';
+SVNid = '$Rev: 6080 $';
 
 %-Get input
 %--------------------------------------------------------------------------
@@ -32,6 +32,15 @@ else
 end
 
 if ischar(images), images = spm_vol(images); end
+if numel(images) > 24
+    if ~isdeployed, addpath(fullfile(spm('Dir'),'spm_orthviews')); end
+    img = cell(1,numel(images));
+    for i=1:numel(images)
+        img{i} = [images(i).fname ',' num2str(images(i).n(1))];
+    end
+    spm_ov_browser('ui',char(img));
+    return
+end
 images = images(1:min(numel(images),24));
 
 %-Print

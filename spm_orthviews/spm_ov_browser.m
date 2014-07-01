@@ -6,10 +6,10 @@ function ret = spm_ov_browser(varargin)
 %             help spm_orthviews
 % at the MATLAB prompt.
 %__________________________________________________________________________
-% Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_browser.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_ov_browser.m 6080 2014-07-01 16:00:22Z guillaume $
 
 
 if ~nargin, varargin = {'ui'}; end
@@ -25,7 +25,7 @@ switch cmd
         if nargin <= 1
             browser_ui;
         else
-            browser(varargin{2:end});
+            browser_ui([],[],varargin{2:end});
         end
     case 'redraw'
         browser_redraw(varargin{2:end});
@@ -34,12 +34,16 @@ end
 
 
 %==========================================================================
-function browser_ui(hObj,event)
+function browser_ui(hObj,event,varargin)
 
-[f,sts] = spm_select([2 Inf],'image','Select images...');
-if ~sts, return; end
+if nargin < 3
+    [f,sts] = spm_select([2 Inf],'image','Select images...');
+    if ~sts, return; end
+else
+    f = varargin{1};
+end
 
-if nargin
+if nargin && ~isempty(hObj)
     Fgraph = ancestor(hObj,'figure');
     hC = current_handle;
 else

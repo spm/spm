@@ -1,37 +1,37 @@
-function TabDat = spm_VOI(SPM,xSPM,hReg,xY)
+function [TabDat,xSVC] = spm_VOI(SPM,xSPM,hReg,xY)
 % List of local maxima and adjusted p-values for a small Volume of Interest
-% FORMAT TabDat = spm_VOI(SPM,xSPM,hReg,[xY])
+% FORMAT [TabDat,xSVC] = spm_VOI(SPM,xSPM,hReg,[xY])
 %
-% SPM   - structure containing analysis details (see spm_spm)
+% SPM    - Structure containing analysis details (see spm_spm)
 %
-% xSPM  - structure containing SPM, distribution & filtering details
-%        - required fields are:
-% .swd   - SPM working directory - directory containing current SPM.mat
-% .Z     - minimum of n Statistics {filtered on u and k}
-% .n     - number of conjoint tests
-% .STAT  - distribution {Z, T, X or F}
-% .df    - degrees of freedom [df{interest}, df{residual}]
-% .u     - height threshold
-% .k     - extent threshold {resels}
-% .XYZ   - location of voxels {voxel coords}
-% .XYZmm - location of voxels {mm}
-% .S     - search Volume {voxels}
-% .R     - search Volume {resels}
-% .FWHM  - smoothness {voxels}
-% .M     - voxels - > mm matrix
-% .VOX   - voxel dimensions {mm}
-% .DIM   - image dimensions {voxels} - column vector
-% .Vspm  - mapped statistic image(s)
-% .Ps    - uncorrected P values in searched volume (for voxel FDR)
-% .Pp    - uncorrected P values of peaks (for peak FDR)
-% .Pc    - uncorrected P values of cluster extents (for cluster FDR)
-% .uc    - 0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
+% xSPM   - Structure containing SPM, distribution & filtering details
+%          Required fields are:
+% .swd     - SPM working directory - directory containing current SPM.mat
+% .Z       - minimum of n Statistics {filtered on u and k}
+% .n       - number of conjoint tests
+% .STAT    - distribution {Z, T, X or F}
+% .df      - degrees of freedom [df{interest}, df{residual}]
+% .u       - height threshold
+% .k       - extent threshold {resels}
+% .XYZ     - location of voxels {voxel coords}
+% .XYZmm   - location of voxels {mm}
+% .S       - search Volume {voxels}
+% .R       - search Volume {resels}
+% .FWHM    - smoothness {voxels}
+% .M       - voxels -> mm matrix
+% .VOX     - voxel dimensions {mm}
+% .DIM     - image dimensions {voxels} - column vector
+% .Vspm    - mapped statistic image(s)
+% .Ps      - uncorrected P values in searched volume (for voxel FDR)
+% .Pp      - uncorrected P values of peaks (for peak FDR)
+% .Pc      - uncorrected P values of cluster extents (for cluster FDR)
+% .uc      - 0.05 critical thresholds for FWEp, FDRp, FWEc, FDRc
 %
 % hReg   - Handle of results section XYZ registry (see spm_results_ui.m)
-%
 % xY     - VOI structure
 %
 % TabDat - Structure containing table data (see spm_list.m)
+% xSVC   - Thresholded xSPM data (see spm_getSPM.m)
 %__________________________________________________________________________
 %
 % spm_VOI is  called by the SPM results section and takes variables in
@@ -50,10 +50,10 @@ function TabDat = spm_VOI(SPM,xSPM,hReg,xY)
 %
 % See also: spm_list
 %__________________________________________________________________________
-% Copyright (C) 1999-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_VOI.m 4966 2012-09-26 14:17:35Z guillaume $
+% $Id: spm_VOI.m 6080 2014-07-01 16:00:22Z guillaume $
 
 
 %-Parse arguments
@@ -136,11 +136,30 @@ switch SPACE
     case 'I' %-Mask Image
     %----------------------------------------------------------------------
     if ~isfield(xY,'spec')
-        Msk= spm_select(1,'image','Image defining search volume');
+        [VM,sts] = spm_select([1 Inf],'image','Image defining search volume');
+        if ~sts, TabDat = []; xSVC = []; return; end
     else
-        Msk= xY.spec;
+        VM = xY.spec;
     end
-    D      = spm_vol(Msk);
+    D      = spm_vol(VM);
+    if numel(D) > 1
+        fprintf('Computing union of all masks.\n');
+        spm_check_orientations(D);
+        D2 = struct(...
+            'fname',   ['virtual_SVC_mask' spm_file_ext],...
+            'dim',     D(1).dim,...
+            'dt',      [spm_type('uint8') spm_platform('bigend')],...
+            'mat',     D(1).mat,...
+            'n',       1,...
+            'pinfo',   [1 0 0]',...
+            'descrip', 'SVC mask');
+        D2.dat     = false(D2.dim);
+        for i=1:numel(D)
+            D2.dat = D2.dat | spm_read_vols(D(i));
+        end
+        D2.dat     = uint8(D2.dat);
+        D  = D2;
+    end
     str    = spm_file(D.fname,'short30');
     str    = regexprep(str, {'\\' '\^' '_' '{' '}'}, ...
         {'\\\\' '\\^' '\\_' '\\{' '\\}'}); % Escape TeX special characters
@@ -194,6 +213,8 @@ if any(strcmp(SPACE,{'S','B'}))
 end
 
 TabDat     = spm_list('List',xSPM,hReg,Num,Dis,str);
+
+if nargout > 1, xSVC = xSPM; end
 
 %-Reset title
 %--------------------------------------------------------------------------
