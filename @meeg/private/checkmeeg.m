@@ -1,15 +1,16 @@
 function this = checkmeeg(this)
-% Function for checking the internal struct of meeg objects
+% Check the internal structure of meeg objects
 % FORMAT this = checkmeeg(this)
-% this - the struct to check (is returned modified if necessary)
-% _______________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% this  - the struct to check (is returned modified if necessary)
+% _________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: checkmeeg.m 5901 2014-02-28 10:01:08Z vladimir $
+% $Id: checkmeeg.m 6082 2014-07-02 17:40:56Z guillaume $
 
-%-Initialise data dimentions
-%-----------------------------------------------------------------------
+
+%-Initialise data dimensions
+%--------------------------------------------------------------------------
 if ~isfield(this, 'Nsamples')
     this.Nsamples = 0;
 end
@@ -33,7 +34,7 @@ isTF =  strncmp(this.transform.ID, 'TF', 2);
 
 if isTF
     if ~isfield(this.transform, 'frequencies')
-        error('Frequency axis must be defined for spectral dataset');
+        error('Frequency axis must be defined for spectral dataset.');
     end
     Nfrequencies = length(this.transform.frequencies);
 else
@@ -55,7 +56,7 @@ is_empty = ~all(expected_size);
 
 
 %-Link to the data file if necessary
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'path') || ~exist(this.path, 'dir')
     this.path = pwd;
 end
@@ -84,7 +85,8 @@ if isa(this.data, 'file_array')
     if ~exist(fname, 'file')
         fname = fullfile(p, [f x]);
         if ~exist(fname, 'file')
-            error('Could not find the data file');
+            error('Could not find the data file at either:\n  %s\nor\n  %s',...
+                fullfile(this.path, [f x]),fname);
         end
     end
     
@@ -109,7 +111,7 @@ if isa(this.data, 'file_array')
         this.data(1, 1, 1);
         is_linked = 1;
     catch
-        warning_flexible('SPM:checkmeeg', 'Failed to link to the data file. Unlinking');
+        warning_flexible('SPM:checkmeeg', 'Failed to link to the data file. Unlinking.');
         this.data = [];
         is_linked = 0;
     end       
@@ -133,13 +135,13 @@ elseif isempty(this.timeOnset)
 end
 
 %-Check channel description
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'channels') 
     this.channels = struct([]);
 end
 
 if is_linked && ~isempty(this.channels) && (numel(this.channels) ~= actual_size(1))
-    error('Channel description does not match the data');
+    error('Channel description does not match the data.');
 end
     
 if is_linked
@@ -192,13 +194,13 @@ if Nchannels > 0
 end
 
 %-Check trial description
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'trials') 
     this.trials = struct([]);
 end
 
 if is_linked && ~isempty(this.trials) && (numel(this.trials) ~= actual_size(end))
-    error('Trial description does not match the data');
+    error('Trial description does not match the data.');
 end
     
 if is_linked
@@ -211,7 +213,7 @@ if Ntrials > 0
     if ~isfield(this.trials, 'label')       
         [this.trials.label] = deal('Undefined');
     elseif any(cellfun('isempty', {this.trials(:).label}))
-        warning_flexible('SPM:checkmeeg', 'Some trial labels empty, assigning default');
+        warning_flexible('SPM:checkmeeg', 'Some trial labels empty, assigning default.');
         [this.trials(cellfun('isempty', {this.trials(:).label})).label] = deal('Undefined');
     end
     if ~isfield(this.trials, 'bad')
@@ -237,7 +239,7 @@ if Ntrials > 0
             this.trials(i).label = label;
         else
             this.trials(i).label = 'Unknown';
-            warning_flexible('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''');
+            warning_flexible('SPM:checkmeeg', 'Some trial labels were not strings, changing back to ''Unknown''.');
         end
         
         if  length(this.trials(i).bad)>1 || ~(this.trials(i).bad == 0 || this.trials(i).bad == 1)
@@ -249,8 +251,8 @@ if Ntrials > 0
         
         if ~isempty(event) && ~(numel(event) == 1 && isequal(event.type, 'no events'))
             % make sure that all required elements are present
-            if ~isfield(event, 'type'),     error('type field not defined for each event');  end
-            if ~isfield(event, 'time'),     error('time field not defined for each event');  end
+            if ~isfield(event, 'type'),     error('type field not defined for each event.');  end
+            if ~isfield(event, 'time'),     error('time field not defined for each event.');  end
             if ~isfield(event, 'value'),    [event.value]    = deal([]);                     end
             if ~isfield(event, 'offset'),   [event.offset]   = deal(0);                      end
             if ~isfield(event, 'duration'), [event.duration] = deal([]);                     end
@@ -294,10 +296,10 @@ if Ntrials > 0
 end
 
 %-Check frequency axis
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if isTF
     if is_linked && (length(this.transform.frequencies) ~= actual_size(2))
-        error('Frequency axis does not match the data');
+        error('Frequency axis does not match the data.');
     end
     
     df = diff(this.transform.frequencies);
@@ -310,11 +312,11 @@ end
 
 
 %-Check data type
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'type') ||...
         (strcmp(this.type, 'continuous') && Ntrials>1) ||...
         (strcmp(this.type, 'evoked') && (numel(unique({this.trials.label})) ~= Ntrials))
-    disp('Data type is missing or incorrect, assigning default');
+    disp('Data type is missing or incorrect, assigning default.');
     % rule of thumb - 10 sec
     if Nsamples == 0
         this.type = 'continuous';
@@ -328,7 +330,7 @@ if ~isfield(this, 'type') ||...
 end
 
 %-Check file name
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'fname')
     if is_linked
         this.fname = [f '.mat'];
@@ -339,7 +341,7 @@ end
 
 
 %-Check sensor description
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'sensors')
     this.sensors = struct([]);
 else
@@ -372,7 +374,7 @@ else
 end
 
 %-Check other fields
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 if ~isfield(this, 'fiducials')
    this.fiducials = struct([]);
 else
@@ -416,7 +418,7 @@ else
 end
 
 %-Check field order 
-%-----------------------------------------------------------------------
+%--------------------------------------------------------------------------
 fieldnames_order = {
     'type'
     'Nsamples'
