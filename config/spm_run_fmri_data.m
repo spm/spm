@@ -8,9 +8,9 @@ function out = spm_run_fmri_data(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_data.m 4492 2011-09-16 12:11:09Z guillaume $
+% $Id: spm_run_fmri_data.m 6088 2014-07-03 17:57:09Z guillaume $
 
 
 original_dir = pwd;
@@ -27,7 +27,7 @@ SPM.xY.P = char(job.scans);
 SPM = spm_fmri_spm_ui(SPM);
 
 if ~isempty(job.mask{1})
-    SPM.xM.VM         = spm_vol(job.mask{:});
+    SPM.xM.VM         = spm_data_hdr_read(job.mask{:});
     SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
 end
 

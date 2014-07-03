@@ -1,11 +1,11 @@
 function fmri_design = spm_cfg_fmri_design
 % SPM Configuration file for fMRI model specification (design only)
 %_______________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_design.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_fmri_design.m 6088 2014-07-03 17:57:09Z guillaume $
 
-rev = '$Rev: 5652 $';
+
 % ---------------------------------------------------------------------
 % dir Directory
 % ---------------------------------------------------------------------
@@ -307,15 +307,17 @@ multi_reg.tag     = 'multi_reg';
 multi_reg.name    = 'Multiple regressors';
 multi_reg.val{1} = {''};
 multi_reg.help    = {
-                     'Select the *.mat/*.txt file containing details of your multiple regressors. '
+                     'Select the *.mat/*.txt file(s) containing details of your multiple regressors. '
                      ''
                      'If you have multiple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. '
                      ''
                      'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
-}';
+                     ''
+                     'You can also select a PPI.mat file and SPM will automatically create regressors from fields PPI.ppi, PPI.Y and PPI.P.'
+                     }';
 multi_reg.filter = 'mat';
 multi_reg.ufilter = '.*';
-multi_reg.num     = [0 1];
+multi_reg.num     = [0 Inf];
 % ---------------------------------------------------------------------
 % hpf High-pass filter
 % ---------------------------------------------------------------------
@@ -583,14 +585,8 @@ cvi.help    = {
                ''
                'Serial correlation can be ignored if you choose the ''none'' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noisemodel (AR model order) is made under the estimation options. '
 }';
-cvi.labels = {
-              'none'
-              'AR(1)'
-}';
-cvi.values = {
-              'none'
-              'AR(1)'
-}';
+cvi.labels  = {'none', 'AR(1)', 'FAST'};
+cvi.values  = {'none', 'AR(1)', 'FAST'};
 cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
 % ---------------------------------------------------------------------
 % fmri_design fMRI model specification (design only)

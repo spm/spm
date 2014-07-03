@@ -8,9 +8,9 @@ function out = spm_run_fmri_spec(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6023 2014-05-28 15:31:20Z guillaume $
+% $Id: spm_run_fmri_spec.m 6088 2014-07-03 17:57:09Z guillaume $
 
 
 %-Check presence of previous analysis
@@ -355,7 +355,7 @@ SPM = spm_fmri_spm_ui(SPM);
 %--------------------------------------------------------------------------
 if ~design_only
     if ~isempty(job.mask{1})
-        SPM.xM.VM         = spm_vol(job.mask{1});
+        SPM.xM.VM         = spm_data_hdr_read(job.mask{1});
         SPM.xM.xs.Masking = [SPM.xM.xs.Masking, '+explicit mask'];
     end
 end

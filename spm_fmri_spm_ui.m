@@ -172,10 +172,10 @@ function [SPM] = spm_fmri_spm_ui(SPM)
 % Copyright (C) 1994-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_fmri_spm_ui.m 6023 2014-05-28 15:31:20Z guillaume $
+% $Id: spm_fmri_spm_ui.m 6088 2014-07-03 17:57:09Z guillaume $
 
 
-SVNid = '$Rev: 6023 $';
+SVNid = '$Rev: 6088 $';
 
 %==========================================================================
 % - D E S I G N   M A T R I X
@@ -241,7 +241,7 @@ else
             SPM.xVi.V  = speye(sum(nscan));
             cVi        = 'i.i.d';
 
-        case 'xxx'
+        case 'fast'
             %--------------------------------------------------------------
             dt = SPM.xY.RT;
             Q  = {};

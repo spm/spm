@@ -1,9 +1,9 @@
 function fmri_spec = spm_cfg_fmri_spec
 % SPM Configuration file for fMRI model specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_spec.m 6010 2014-05-22 15:55:56Z guillaume $
+% $Id: spm_cfg_fmri_spec.m 6088 2014-07-03 17:57:09Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -637,8 +637,8 @@ cvi.help    = {
                ''
                'Serial correlation can be ignored if you choose the ''none'' option. Note that the above options only apply if you later specify that your model will be estimated using the Classical (ReML) approach. If you choose Bayesian estimation these options will be ignored. For Bayesian estimation, the choice of noisemodel (AR model order) is made under the estimation options. '
 }';
-cvi.labels  = {'none', 'AR(1)'};
-cvi.values  = {'none', 'AR(1)'};
+cvi.labels  = {'none', 'AR(1)', 'FAST'};
+cvi.values  = {'none', 'AR(1)', 'FAST'};
 cvi.def     = @(val)spm_get_defaults('stats.fmri.cvi', val{:});
 
 %--------------------------------------------------------------------------

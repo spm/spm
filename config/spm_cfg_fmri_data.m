@@ -1,9 +1,9 @@
 function fmri_data = spm_cfg_fmri_data
 % SPM Configuration file for fMRI data specification
 %__________________________________________________________________________
-% Copyright (C) 2005-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_fmri_data.m 4470 2011-09-08 14:42:38Z guillaume $
+% $Id: spm_cfg_fmri_data.m 6088 2014-07-03 17:57:09Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -13,7 +13,7 @@ scans         = cfg_files;
 scans.tag     = 'scans';
 scans.name    = 'Scans';
 scans.help    = {'Select the fMRI scans for this session.  They must all have the same image dimensions, orientation, voxel size etc.'};
-scans.filter  = 'image';
+scans.filter  = {'image','mesh'};
 scans.ufilter = '.*';
 scans.num     = [1 Inf];
 
@@ -36,7 +36,7 @@ mask.tag     = 'mask';
 mask.name    = 'Explicit mask';
 mask.val{1}  = {''};
 mask.help    = {'Specify an image for explicitly masking the analysis. A sensible option here is to use a segmention of structural images to specify a within-brain mask. If you select that image as an explicit mask then only those voxels in the brain will be analysed. This both speeds the estimation and restricts SPMs/PPMs to within-brain voxels. Alternatively, if such structural images are unavailable or no masking is required, then leave this field empty.'};
-mask.filter  = 'image';
+mask.filter  = {'image','mesh'};
 mask.ufilter = '.*';
 mask.num     = [0 1];
 
