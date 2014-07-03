@@ -13,10 +13,10 @@ function varargout = spm_check_installation(action)
 % Build signature of SPM distribution as used by 'full' option.
 % (for developers)
 %__________________________________________________________________________
-% Copyright (C) 2009-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 5809 2013-12-20 14:30:22Z guillaume $
+% $Id: spm_check_installation.m 6083 2014-07-03 11:25:13Z guillaume $
 
 if isdeployed, return; end
 
@@ -110,7 +110,7 @@ end
 %--------------------------------------------------------------------------
 if ispc
     try
-        t = load(fullfile(d,'Split.mat'));
+        t = load(fullfile(d,'MIP.mat'));
     catch
         error(sprintf([...
             'There appears to be some problem reading the MATLAB .mat\n'...

@@ -33,9 +33,9 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 5915 2014-03-12 18:32:06Z guillaume $
+% $Id: spm_render.m 6083 2014-07-03 11:25:13Z guillaume $
 
-SVNrev = '$Rev: 5915 $';
+SVNrev = '$Rev: 6083 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -298,7 +298,7 @@ rgb = cell(1,length(rend));
 if ~isfinite(brt)
     % Old style split colourmap display
     %----------------------------------------------------------------------
-    load(fullfile(spm('Dir'),'Split.mat'));
+    split = [gray(64); hot(64)];
     if ~spm('CmdLine'), colormap(split); end
     for i=1:length(rend)
         ren = rend{i}.ren;
