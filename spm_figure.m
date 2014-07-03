@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 5970 2014-05-01 15:33:32Z guillaume $
+% $Id: spm_figure.m 6084 2014-07-03 11:55:34Z guillaume $
 
 
 %==========================================================================
@@ -308,6 +308,7 @@ if isempty(Tags)
     pos = get(F,'Position');
     delete(findall(allchild(F),'flat','HandleVisibility','on'));
     drawnow
+    pause(0.05);
     if ~isdocked, set(F,'Position',pos); end
     %-Reset figures callback functions
     zoom(F,'off');
@@ -1057,7 +1058,7 @@ h = figure('MenuBar','none',...
            'Toolbar','none',...
            'Tag','AboutSPM',...
            'WindowStyle','Modal',...
-           'Color',[0 0 0],...
+           'Color',[1 1 1],...
            'Visible','off',...
            'DoubleBuffer','on');
 pos = get(h,'Position');
@@ -1073,19 +1074,19 @@ image(IMG,'Parent',a); set(a,'Visible','off');
 a = axes('Parent',h,'Units','pixels','Position',[0 0 300 400],...
     'Visible','off','Tag','textcont');
 text(0.5,0.45,'Statistical Parametric Mapping','Parent',a,...
-    'HorizontalAlignment','center','Color',[1 1 1],'FontWeight','Bold');
+    'HorizontalAlignment','center','Color',[0 0 0],'FontWeight','Bold');
 text(0.5,0.40,spm('Version'),'Parent',a,'HorizontalAlignment','center',...
     'Color',[1 1 1]);
 text(0.5,0.30,'Wellcome Trust Centre for Neuroimaging','Parent',a,...
-    'HorizontalAlignment','center','Color',[1 1 1],'FontWeight','Bold');
+    'HorizontalAlignment','center','Color',[0 0 0],'FontWeight','Bold');
 text(0.5,0.25,['Copyright (C) 1991,1994-' datestr(now,'yyyy')],...
-    'Parent',a,'HorizontalAlignment','center','Color',[1 1 1]);
+    'Parent',a,'HorizontalAlignment','center','Color',[0 0 0]);
 text(0.5,0.20,'http://www.fil.ion.ucl.ac.uk/spm/','Parent',a,...
-    'HorizontalAlignment','center','Color',[1 1 1],...
+    'HorizontalAlignment','center','Color',[0 0 0],...
     'ButtonDownFcn','web(''http://www.fil.ion.ucl.ac.uk/spm/'');');
 if isdeployed
     text(0.5,0.15,['MATLAB(r). (c) 1984-' datestr(now,'yyyy') ' The MathWorks, Inc.'],...
-    'Parent',a,'HorizontalAlignment','center','Color',[1 1 1]);
+    'Parent',a,'HorizontalAlignment','center','Color',[0 0 0]);
 end
 
 uicontrol('Style','pushbutton','String','Credits','Position',[40 25 60 25],...
@@ -1136,6 +1137,7 @@ else
     c = [1 1 1] - 6*abs(0.4-x);
 end
 c(c<0) = 0; c(c>1) = 1;
+c = 1 - c;
 
 %==========================================================================
 function spm_check_update(obj,evt)

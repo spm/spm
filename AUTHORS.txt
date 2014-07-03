@@ -1,7 +1,6 @@
 
 % This file contains the list of people involved in the development of SPM
 % along its history.
-% If you feel someone is missing, please email <fil.spm@ucl.ac.uk>.
 %
 % John Ashburner
 % Gareth Barnes
@@ -16,9 +15,11 @@
 % Will Penny
 % Christophe Phillips
 % Dimitris Pinotsis
+% Adeel Razi
 % Ged Ridgway
 % Mohamed Seghier
 % Klaas Enno Stephan
+% Peter Zeidman
 %
 % Jesper Andersson
 % Matthew Brett
@@ -26,6 +27,7 @@
 % Chun-Chuan Chen
 % Justin Chumbley
 % Jean Daunizeau
+% Olivier David
 % Lee Harrison
 % Jon Heather
 % Rik Henson
