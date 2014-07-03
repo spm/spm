@@ -40,7 +40,7 @@ function ft_defaults
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_defaults.m 9232 2014-02-24 08:23:37Z roboos $
+% $Id: ft_defaults.m 9674 2014-06-24 07:49:49Z eelspa $
 
 global ft_default
 persistent initialized
@@ -135,6 +135,14 @@ if ~isdeployed
     ft_hastoolbox('compat', 3, 1); % not required
   end
     
+  try
+    % these directories contain functions that were added to MATLAB in
+    % recent versions to replace an older function.
+    if matlabversion(-Inf, '2011b')
+      ft_hastoolbox('compat/matlablt2012a', 2, 1);
+    end
+  end
+  
   try
     % these contains template layouts, neighbour structures, MRIs and cortical meshes
     ft_hastoolbox('template/layout', 1, 1);

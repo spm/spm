@@ -30,7 +30,7 @@ function dat = ft_preproc_medianfilter(dat, order)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preproc_medianfilter.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: ft_preproc_medianfilter.m 9683 2014-07-02 09:30:07Z eelspa $
 
 % set the default filter order
 if nargin<2 || isempty(order)
@@ -41,8 +41,16 @@ end
 pad = ceil(order/2);
 dat = ft_preproc_padding(dat, 'localmean', pad);
 
-% filter
-dat = medfilt1(dat, order, [], 2);
+hasfast = exist('fastmedfilt1d');
+if hasfast == 2 || hasfast == 3
+  % use fast median filter mex file
+  for k = 1:size(dat,1)
+    dat(k,:) = fastmedfilt1d(dat(k,:), order);
+  end
+else
+  % use Mathworks slow version
+  dat = medfilt1(dat, order, [], 2);
+end
 
 % cut the eges
 dat = ft_preproc_padding(dat, 'remove', pad);

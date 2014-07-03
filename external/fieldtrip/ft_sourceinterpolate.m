@@ -89,9 +89,9 @@ function [interp] = ft_sourceinterpolate(cfg, functional, anatomical)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceinterpolate.m 9673 2014-06-23 12:05:28Z jansch $
+% $Id: ft_sourceinterpolate.m 9680 2014-06-30 12:05:50Z jansch $
 
-revision = '$Id: ft_sourceinterpolate.m 9673 2014-06-23 12:05:28Z jansch $';
+revision = '$Id: ft_sourceinterpolate.m 9680 2014-06-30 12:05:50Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -331,7 +331,9 @@ elseif is2Dana && ~is2Dfun
   if ~strcmp(cfg.interpmethod, 'project')
     for k = 1:numel(cfg.parameter)
       tmp    = getsubfield(functional, cfg.parameter{k});
-      interp = setsubfield(interp, cfg.parameter{k}, interpmat*reshape(tmp, [prod(dim) numel(tmp)./prod(dim)]));
+      tmp    = tmp(functional.inside(:));
+      %interp = setsubfield(interp, cfg.parameter{k}, interpmat*reshape(tmp, [prod(dim) numel(tmp)./prod(dim)]));
+      interp = setsubfield(interp, cfg.parameter{k}, interpmat*tmp);
     end
   else
     for k = 1:numel(cfg.parameter)

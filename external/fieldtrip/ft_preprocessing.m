@@ -56,18 +56,31 @@ function [data] = ft_preprocessing(cfg, data)
 %   cfg.hpfiltord     = highpass filter order (default set in low-level function)
 %   cfg.bpfiltord     = bandpass filter order (default set in low-level function)
 %   cfg.bsfiltord     = bandstop filter order (default set in low-level function)
-%   cfg.lpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
-%   cfg.hpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
-%   cfg.bpfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
-%   cfg.bsfilttype    = digital filter type, 'but' or 'fir' or 'firls' (default = 'but')
-%   cfg.lpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass')
-%   cfg.hpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass')
-%   cfg.bpfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass')
-%   cfg.bsfiltdir     = filter direction, 'twopass', 'onepass' or 'onepass-reverse' (default = 'twopass')
+%   cfg.lpfilttype    = digital filter type, 'but' or 'firws' or 'fir' or 'firls' (default = 'but')
+%   cfg.hpfilttype    = digital filter type, 'but' or 'firws' or 'fir' or 'firls' (default = 'but')
+%   cfg.bpfilttype    = digital filter type, 'but' or 'firws' or 'fir' or 'firls' (default = 'but')
+%   cfg.bsfilttype    = digital filter type, 'but' or 'firws' or 'fir' or 'firls' (default = 'but')
+%   cfg.lpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse' or 'onepass-zerophase' (default for firws) or 'onepass-minphase' (firws, non-linear!)
+%   cfg.hpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse' or 'onepass-zerophase' (default for firws) or 'onepass-minphase' (firws, non-linear!)
+%   cfg.bpfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse' or 'onepass-zerophase' (default for firws) or 'onepass-minphase' (firws, non-linear!)
+%   cfg.bsfiltdir     = filter direction, 'twopass' (default), 'onepass' or 'onepass-reverse' or 'onepass-zerophase' (default for firws) or 'onepass-minphase' (firws, non-linear!)
 %   cfg.lpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
 %   cfg.hpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
 %   cfg.bpinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
 %   cfg.bsinstabilityfix = deal with filter instability, 'no', 'reduce', 'split' (default  = 'no')
+%   cfg.lpfiltdf      = lowpass transition width (firws, overrides order, default set in low-level function)
+%   cfg.hpfiltdf      = highpass transition width (firws, overrides order, default set in low-level function)
+%   cfg.bpfiltdf      = bandpass transition width (firws, overrides order, default set in low-level function)
+%   cfg.bsfiltdf      = bandstop transition width (firws, overrides order, default set in low-level function)
+%   cfg.lpfiltwintype = lowpass window type, 'hann' or 'hamming' (default) or 'blackman' or 'kaiser' (firws)
+%   cfg.hpfiltwintype = highpass window type, 'hann' or 'hamming' (default) or 'blackman' or 'kaiser' (firws)
+%   cfg.bpfiltwintype = bandpass window type, 'hann' or 'hamming' (default) or 'blackman' or 'kaiser' (firws)
+%   cfg.bsfiltwintype = bandstop window type, 'hann' or 'hamming' (default) or 'blackman' or 'kaiser' (firws)
+%   cfg.lpfiltdev     = lowpass max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
+%   cfg.hpfiltdev     = highpass max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
+%   cfg.bpfiltdev     = bandpass max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
+%   cfg.bsfiltdev     = bandstop max passband deviation (firws with 'kaiser' window, default 0.001 set in low-level function)
+%   cfg.plotfiltresp  = 'no' or 'yes', plot filter responses (firws, default = 'no')
 %   cfg.medianfiltord = length of median filter (default = 9)
 %   cfg.demean        = 'no' or 'yes', whether to apply baseline correction (default = 'no')
 %   cfg.baselinewindow = [begin end] in seconds, the default is the complete trial (default = 'all')
@@ -148,9 +161,9 @@ function [data] = ft_preprocessing(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preprocessing.m 9602 2014-06-05 10:25:47Z eelspa $
+% $Id: ft_preprocessing.m 9685 2014-07-02 14:23:19Z eelspa $
 
-revision = '$Id: ft_preprocessing.m 9602 2014-06-05 10:25:47Z eelspa $';
+revision = '$Id: ft_preprocessing.m 9685 2014-07-02 14:23:19Z eelspa $';
 
 % do the general setup of the function
 ft_defaults

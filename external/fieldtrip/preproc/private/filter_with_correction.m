@@ -37,7 +37,7 @@ function filt = filter_with_correction(B,A,dat,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filter_with_correction.m 7513 2013-02-20 16:54:20Z roboos $
+% $Id: filter_with_correction.m 9685 2014-07-02 14:23:19Z eelspa $
 
 poles = roots(A);
 if any(abs(poles) >= 1)
@@ -69,6 +69,10 @@ switch dir
     filt1 = filtfilt(B, A, dat')';
     filt2 = fliplr(filtfilt(B, A, fliplr(dat)')');
     filt  = (filt1 + filt2)/2;
+  case 'onepass-zerophase'
+    filt = fir_filterdcpadded(B, A, dat', 0)';
+  case 'onepass-minphase'
+    filt = fir_filterdcpadded(B, A, dat', 1)';
   otherwise
     error('unsupported filter direction "%s"', dir);
 end

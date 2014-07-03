@@ -172,9 +172,9 @@ function ft_sourceplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceplot.m 9673 2014-06-23 12:05:28Z jansch $
+% $Id: ft_sourceplot.m 9680 2014-06-30 12:05:50Z jansch $
 
-revision = '$Id: ft_sourceplot.m 9673 2014-06-23 12:05:28Z jansch $';
+revision = '$Id: ft_sourceplot.m 9680 2014-06-30 12:05:50Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -892,6 +892,11 @@ elseif isequal(cfg.method,'surface')
     tmpcfg.parameter = {cfg.funparameter};
     if ~isempty(cfg.maskparameter)
       tmpcfg.parameter = [tmpcfg.parameter {cfg.maskparameter}];
+      maskparameter    = cfg.maskparameter;
+    else
+      tmpcfg.parameter = [tmpcfg.parameter {'mask'}];
+      data.mask        = msk;
+      maskparameter    = 'mask'; % temporary variable 
     end
     tmpcfg.interpmethod = cfg.projmethod;
     tmpcfg.distmat    = cfg.distmat;
@@ -903,7 +908,7 @@ elseif isequal(cfg.method,'surface')
     tmpdata           = ft_sourceinterpolate(tmpcfg, data, surf);
     
     if hasfun, val     = getsubfield(tmpdata, cfg.funparameter);  val     = val(:);     end
-    if hasmsk, maskval = getsubfield(tmpdata, cfg.maskparameter); maskval = maskval(:); end
+    if hasmsk, maskval = getsubfield(tmpdata, maskparameter);     maskval = maskval(:); end
     
     if ~isempty(cfg.projthresh),
       maskval(abs(val) < cfg.projthresh*max(abs(val(:)))) = 0;

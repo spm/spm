@@ -47,7 +47,9 @@ function ft_progress(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_progress.m 9451 2014-04-24 06:34:48Z jorhor $
+% $Id: ft_progress.m 9688 2014-07-02 14:55:11Z eelspa $
+
+global ft_default;
 
 persistent p        % the previous value of the progress
 persistent c        % counter for the number of updates that is done
@@ -76,6 +78,7 @@ if nargin>1 && ischar(varargin{1}) && strcmp(varargin{1}, 'init')
   tprev = tic();
   lastArgin = [];
   closing = 0;
+  ft_default.progress.noerase = 0;
   
   % determine the type of feedback
   t = varargin{2};
@@ -131,10 +134,17 @@ elseif nargin==1 && ischar(varargin{1}) && strcmp(varargin{1}, 'close')
   tprev = [];
   lastArgin = [];
   closing = 0;
-
+  ft_default.progress.noerase = 0;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 else
+  
+  if isfield(ft_default, 'progress') &&...
+      isfield(ft_default.progress, 'noerase') &&...
+      ft_default.progress.noerase
+    strlen = 0;
+    ft_default.progress.noerase = 0;
+  end
   
   % make sure we don't update more than once every 100ms, significant
   % performance hit otherwise in certain conditions
