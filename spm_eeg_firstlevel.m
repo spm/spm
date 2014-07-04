@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6089 2014-07-04 11:07:46Z vladimir $
 
 
-SVNrev = '$Rev: 6007 $';
+SVNrev = '$Rev: 6089 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -45,7 +45,7 @@ nchan    = numel(channels);
 nf       = D.nfrequencies;
 
 job{1}.spm.stats.fmri_design.timing.RT  = dt;
-job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond', 'savereg'});
+job{1}.spm.stats.fmri_design.sess       = rmfield(S.sess, {'D', 'cond', 'convregress', 'multi_conv_reg', 'savereg'});
 job{1}.spm.stats.fmri_design.sess.hpf   = Inf;
 job{1}.spm.stats.fmri_design.sess.nscan = nt;
 
@@ -188,13 +188,44 @@ for c = 1:nc
 end
 
 
+U = struct([]);
+
+for i = 1:numel(S.sess.convregress)
+    U(i).name = S.sess.convregress(1).name;
+    U(i).u    = S.sess.convregress(1).val;
+end
+
+ncr = numel(U);
+
+if ~isequal(S.sess.multi_conv_reg, {''})
+    temp = load(S.sess.multi_conv_reg{1});
+    for i = 1:size(temp.R, 2)
+        U(ncr+i).u = temp.R(:, i);
+        if isfield(temp, 'names')
+            U(ncr+i).name = temp.names{i};
+        else
+            U(ncr+i).name = ['R' num2str(i)];
+        end
+    end
+end
+
+ncr = numel(U);
+
+% Create dummy conditions to replace with continuous regressors later
+for i = 1:ncr
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).name     = U(i).name;
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).onset    = D.time(round(D.nsamples/2));
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).duration = 0;
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).tmod     = 0;
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).pmod     = struct([]);
+    job{1}.spm.stats.fmri_design.sess.cond(nc+i).orth     = 0;
+end
 
 job{1}.spm.stats.fmri_design.timing.fmri_t        = S.timing.utime;
 bname                                             = char(fieldnames(S.bases));
 
 job{1}.spm.stats.fmri_design.bases                = S.bases;
 job{1}.spm.stats.fmri_design.bases.(bname).length = 1e-3*diff(sort(S.timing.timewin));
-
 
 [dummy, job] = spm_jobman('harvest', job);
 spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
@@ -204,6 +235,56 @@ clear job
 load SPM.mat
 
 X = SPM.xX.X*SPM.xBF.dt;
+
+nb = size(SPM.xBF.bf, 1);
+nr = size(SPM.xBF.bf, 2);
+
+T = 1/(SPM.xBF.dt*D.fsample);
+
+if ~isempty(U)
+    if S.timing.timewin(1)<0
+        pad = round(abs(1e-3*S.timing.timewin(1)*D.fsample));
+    else
+        pad = 0;
+    end
+    
+    for i = 1:ncr
+        u = U(i).u;
+        
+        u = u(:);
+        
+        if length(u)~= D.nsamples
+            error('Convolution regressor should be the same length as the data.');
+        end
+           
+        u = [u(:); zeros(pad, 1)];
+        
+        if T~=1
+            u = interp1(1:length(u), u, 1:1/T:length(u));
+        end
+        
+        U(i).u = u(:);
+        
+        U(i).dt = SPM.xBF.dt;
+        
+        if ~iscell(U(i).name)
+            U(i).name = {U(i).name};
+        end
+    end
+    
+    
+    %-Convolve stimulus functions with basis functions
+    %----------------------------------------------------------------------
+    [Xu] = spm_Volterra(U, SPM.xBF.bf);
+    
+    %-Resample regressors 
+    %----------------------------------------------------------------------
+    Xu = Xu((0:(nt + pad - 1))*T+1, :);       
+    
+    Xu = Xu((1+pad):end, :);
+    
+    X(:, (nc*nr+1):((nc+ncr)*nr)) = Xu;
+end
 
 if S.sess.hpf
     K = [];
@@ -219,11 +300,7 @@ if ~isfield(xX,'pX')
     xX.pX = spm_sp('x-',xX);
 end
 
-if ~isempty(SPM.Sess.U)
-    
-    nb = size(SPM.xBF.bf, 1);
-    nr = size(SPM.xBF.bf, 2);
-    
+if ~isempty(SPM.Sess.U)            
     label = {};
     for i = 1:numel(SPM.Sess.U)
         label = [label SPM.Sess.U(i).name];
@@ -236,7 +313,7 @@ if ~isempty(SPM.Sess.U)
         Dout = clone(D, spm_file(D.fname, 'prefix', S.prefix), [nchan nb ne]);
     end
     
-    Dout = fsample(Dout, 1/dt);
+    Dout = fsample(Dout, 1/SPM.xBF.dt);
     Dout = timeonset(Dout, 1e-3*S.timing.timewin(1));
     Dout = chanlabels(Dout, ':', D.chanlabels(channels));
     Dout = conditions(Dout, ':', label);
@@ -276,7 +353,7 @@ if ~isempty(SPM.Sess.U)
     end
     
     spm_progress_bar('Clear');
-     
+    
     %-Save
     %--------------------------------------------------------------------------
     save(Dout);
@@ -286,7 +363,7 @@ else
     ne   = 0;
 end
 
-if ~isempty(SPM.Sess.C) && S.sess.savereg   
+if ~isempty(SPM.Sess.C.C) && S.sess.savereg
     rlabel = {};
     for i = 1:numel(SPM.Sess.C)
         rlabel = [rlabel SPM.Sess.C(i).name];
@@ -295,9 +372,9 @@ if ~isempty(SPM.Sess.C) && S.sess.savereg
     ng = numel(rlabel);
     
     if ~isempty(Dout)
-      preprefix = 'R';
+        preprefix = 'R';
     else
-      preprefix = ''; 
+        preprefix = '';
     end
     
     if isTF

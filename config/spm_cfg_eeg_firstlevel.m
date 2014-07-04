@@ -3,9 +3,9 @@ function convmodel = spm_cfg_eeg_firstlevel
 %_______________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg_firstlevel.m 6009 2014-05-22 12:11:55Z vladimir $
+% $Id: spm_cfg_eeg_firstlevel.m 6089 2014-07-04 11:07:46Z vladimir $
 
-rev = '$Rev: 6009 $';
+rev = '$Rev: 6089 $';
 
 % ---------------------------------------------------------------------
 % units Units for design
@@ -306,6 +306,40 @@ val.help    = {'Enter the vector of regressor values'};
 val.strtype = 'r';
 val.num     = [Inf 1];
 % ---------------------------------------------------------------------
+% convregress Convolution Regressor
+% ---------------------------------------------------------------------
+convregress         = cfg_branch;
+convregress.tag     = 'convregress';
+convregress.name    = 'Regressor';
+convregress.val     = {name val };
+convregress.help    = {'Specification for convolution regressor'};
+% ---------------------------------------------------------------------
+% generic Regressors
+% ---------------------------------------------------------------------
+generic3         = cfg_repeat;
+generic3.tag     = 'generic';
+generic3.name    = 'Convolution regressors';
+generic3.help    = {'Convolution regressors are continuous variables that are convolved with a basis set to estimate an impulse-response pattern.'};
+generic3.values  = {convregress};
+generic3.num     = [0 Inf];
+% ---------------------------------------------------------------------
+% multi_conv_reg Multiple convolution regressors
+% ---------------------------------------------------------------------
+multi_conv_reg         = cfg_files;
+multi_conv_reg.tag     = 'multi_conv_reg';
+multi_conv_reg.name    = 'Multiple convolution regressors';
+multi_conv_reg.val{1} = {''};
+multi_conv_reg.help    = {
+                     'Select the *.mat/*.txt file containing details of your multiple regressors. '
+                     ''
+                     'If you have multiple regressors eg. realignment parameters, then entering the details a regressor at a time is very inefficient. This option can be used to load all the required information in one go. '
+                     ''
+                     'You will first need to create a *.mat file containing a matrix R or a *.txt file containing the regressors. Each column of R will contain a different regressor. When SPM creates the design matrix the regressors will be named R1, R2, R3, ..etc.'
+}';
+multi_conv_reg.filter = 'mat';
+multi_conv_reg.ufilter = '.*';
+multi_conv_reg.num     = [0 1];
+% ---------------------------------------------------------------------
 % regress Regressor
 % ---------------------------------------------------------------------
 regress         = cfg_branch;
@@ -367,7 +401,7 @@ hpf.val     = {10};
 sess         = cfg_branch;
 sess.tag     = 'sess';
 sess.name    = 'Subject/Session';
-sess.val     = {D generic1 multi generic2 multi_reg savereg hpf };
+sess.val     = {D generic1 multi generic3 multi_conv_reg generic2 multi_reg savereg hpf };
 sess.help    = {'The design matrix consists of one or more separable, session-specific partitions.  These partitions are usually either one per subject, or one per scanning session for that subject.'};
 % ---------------------------------------------------------------------
 % order Order
