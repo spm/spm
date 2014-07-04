@@ -7,10 +7,10 @@ function out = spm_run_results(job)
 % Output:
 % out    - computation results, usually a struct variable.
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_run_results.m 6092 2014-07-04 14:42:28Z guillaume $
 
 
 cspec = job.conspec;
@@ -84,10 +84,9 @@ for k = 1:numel(cspec)
                 if strcmp(job.print,'csv'), cmd = 'open(''%s'')';
                 else                        cmd = 'winopen(''%s'')'; end
                 fprintf('Saving results to:\n  %s\n',spm_file(ofile,'link',cmd));
-            case 'html'
-                spm_results_export(SPM,xSPM,TabDat);
             case 'nidm'
-                spm_results_nidm(SPM,xSPM,TabDat);
+                odir = spm_results_nidm(SPM,xSPM,TabDat);
+                fprintf('Exporting results in:\n  %s\n',odir);
             otherwise
                 if ~spm('CmdLine')
                     spm_figure('Print','Graphics','',job.print);

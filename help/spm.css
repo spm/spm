@@ -1,3 +1,14 @@
+body {
+    font-family: sans-serif;
+} 
+
+hr {
+    height:1px;
+    width:25em;
+    background-color:#000;
+    border:1px solid #FFF;
+}
+
 #footer {
 	margin: 0.5em 0em 0em 0em;
 	padding: 10px 10px 5px 20px;
@@ -12,13 +23,6 @@
 #footer img {
 	vertical-align: middle;
 	margin-right:2px;
-}
-
-hr {
-    height:1px;
-    width:25em;
-    background-color:#000;
-    border:1px solid #FFF;
 }
 
 .tbx {

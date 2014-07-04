@@ -1,9 +1,9 @@
 function results = spm_cfg_results
 % SPM Configuration file for Results Report
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_cfg_results.m 6092 2014-07-04 14:42:28Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -239,10 +239,8 @@ if ispc
     print.labels{end+1} = 'Excel spreadsheet file';
     print.values{end+1} = 'xls';
 end
-print.labels{end+1} = 'NIDM <experimental>';
+print.labels{end+1} = 'NIDM (Neuroimaging Data Model)';
 print.values{end+1} = 'nidm';
-print.labels{end+1} = 'HTML <experimental>';
-print.values{end+1} = 'html';
 print.def = @(val)spm_get_defaults('ui.print', val{:});
 
 %--------------------------------------------------------------------------
