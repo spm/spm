@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6089 2014-07-04 11:07:46Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6091 2014-07-04 13:25:51Z vladimir $
 
 
-SVNrev = '$Rev: 6089 $';
+SVNrev = '$Rev: 6091 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -239,7 +239,7 @@ X = SPM.xX.X*SPM.xBF.dt;
 nb = size(SPM.xBF.bf, 1);
 nr = size(SPM.xBF.bf, 2);
 
-T = 1/(SPM.xBF.dt*D.fsample);
+T = round(1/(SPM.xBF.dt*D.fsample));
 
 if ~isempty(U)
     if S.timing.timewin(1)<0
