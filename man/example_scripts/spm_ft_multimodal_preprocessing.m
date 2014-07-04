@@ -41,8 +41,8 @@ for d = 1:numel(datasets)
         cfg.channel = 'MEG';
         
         % baseline correction
-        cfg.blc     = 'yes';
-        cfg.blcwindow = [-0.2 0];
+        cfg.demean     = 'yes';
+        cfg.baselinewindow = [-0.2 0];
         
         % actually reading the data
         data{d, c}  = ft_preprocessing(cfg);

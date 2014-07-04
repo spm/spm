@@ -46,11 +46,11 @@ end
 ftdata = [];
 ftdata.trial = Y;
 ftdata.time = repmat({1e-3*DCM.xY.pst}, 1, Nt);
-ftdata.label = DCM.xY.name(DCM.xY.Ic);
+ftdata.label = DCM.xY.name;
 %%
 DD = spm_eeg_ft2spm(ftdata, 'simulated_data.mat');
 %%
-DD = conditions(DD, [], DCM.xY.code);
+DD = conditions(DD, ':', DCM.xY.code);
 DD = sensors(DD, 'EEG', sensors(D, 'EEG'));
 DD = fiducials(DD, D.fiducials);
 DD.inv = D.inv(1);

@@ -33,8 +33,7 @@ DCM.options.spatial='ECD';
 DCM.xY.modality='MEG';
 
 D=spm_eeg_load(DCM.xY.Dfile);
-Ic = strmatch(DCM.xY.modality, D.chantype);
-Ic = setdiff(Ic, D.badchannels);
+Ic = D.indchantype(DCM.xY.modality, 'GOOD');
 DCM.xY.Ic       = Ic;
 
 % forward model (spatial)
