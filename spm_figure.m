@@ -57,7 +57,7 @@ function varargout=spm_figure(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_figure.m 6084 2014-07-03 11:55:34Z guillaume $
+% $Id: spm_figure.m 6094 2014-07-07 19:17:37Z guillaume $
 
 
 %==========================================================================
@@ -189,7 +189,7 @@ if nargin<2, Tag=''; else Tag=varargin{2}; end
 
 F = spm_figure('CreateWin',Tag,Name,Visible);
 spm_figure('CreateBar',F);
-spm_figure('FigContextMenu',F);
+%spm_figure('FigContextMenu',F);
 varargout = {F};
 
 %==========================================================================
@@ -931,6 +931,7 @@ if nargin<2, sz=0; else sz=varargin{2}; end
 h  = [get(0,'CurrentFigure') spm_figure('FindWin','Satellite')];
 h  = [findall(h,'type','text'); findall(h,'type','uicontrol')];
 fs = get(h,'fontsize');
+if ~iscell(fs), fs = {fs}; end
 if ~isempty(fs)
     set(h,{'fontsize'},cellfun(@(x) max(x+sz,eps),fs,'UniformOutput',false));
 end
