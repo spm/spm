@@ -20,7 +20,7 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 6070 2014-06-26 20:53:39Z guillaume $
+% $Id: spm_eeg_plotScalpData.m 6095 2014-07-09 09:30:37Z vladimir $
 
 ChanLabel = char(ChanLabel);
 ParentAxes = [];
@@ -105,8 +105,9 @@ catch
         'name',figName,...
         'color',[1 1 1],...
         'deleteFcn',@dFcn);
-    ParentAxes = axes('parent',f);
+    
 end
+ParentAxes = axes('parent',f);
 COLOR = get(f,'color');
 d.hi = image(flipud(ZI),...
     'CDataMapping','scaled',...
