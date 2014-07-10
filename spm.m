@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 5984 2014-05-14 17:23:16Z guillaume $
+% $Id: spm.m 6098 2014-07-10 20:40:22Z guillaume $
 
 
 %=======================================================================
@@ -379,26 +379,22 @@ if nargin<2, Modality = ''; else Modality = varargin{2}; end
 %-----------------------------------------------------------------------
 spm('defaults',Modality);
 
-%-Sort out visability of appropriate controls on Menu window
+%-Sort out visibility of appropriate controls on Menu window
 %-----------------------------------------------------------------------
 Fmenu = spm_figure('FindWin','Menu');
 if ~isempty(Fmenu)
-
     if strcmpi(Modality,'PET')
-        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
-        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'on' );
+        set(findobj(Fmenu, '-regexp', 'Tag', 'FMRI'), 'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'EEG'),  'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'PET'),  'Visible', 'on' );
     elseif strcmpi(Modality,'FMRI')
-        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'on' );
-        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'on' );
+        set(findobj(Fmenu, '-regexp', 'Tag', 'EEG'),  'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'PET'),  'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'FMRI'), 'Visible', 'on' );
     else
-        set(findobj(Fmenu, 'Tag', 'PETFMRI'), 'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'PET'),     'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'FMRI'),    'Visible', 'off');
-        set(findobj(Fmenu, 'Tag', 'EEG'),     'Visible', 'on' );
+        set(findobj(Fmenu, '-regexp', 'Tag', 'PET'),  'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'FMRI'), 'Visible', 'off');
+        set(findobj(Fmenu, '-regexp', 'Tag', 'EEG'),  'Visible', 'on' );
     end
     set(findobj(Fmenu,'Tag','Modality'),'Value',ModNum,'UserData',ModNum);
 else
@@ -428,15 +424,16 @@ if strcmpi(Modality,'EEG') && ~isdeployed
     global ft_default
     ft_default.trackcallinfo = 'no';
     ft_default.showcallinfo = 'no';
-    addpath(fullfile(spm('Dir'),'external','bemcp'));
-    addpath(fullfile(spm('Dir'),'external','ctf'));
-    addpath(fullfile(spm('Dir'),'external','eeprobe'));
-    addpath(fullfile(spm('Dir'),'external','mne'));
-    addpath(fullfile(spm('Dir'),'external','yokogawa_meg_reader'));
-    addpath(fullfile(spm('Dir'),'toolbox', 'dcm_meeg'));
-    addpath(fullfile(spm('Dir'),'toolbox', 'spectral'));
-    addpath(fullfile(spm('Dir'),'toolbox', 'Neural_Models'));
-    addpath(fullfile(spm('Dir'),'toolbox', 'MEEGtools'));
+    addpath(...
+        fullfile(spm('Dir'),'external','bemcp'),...
+        fullfile(spm('Dir'),'external','ctf'),...
+        fullfile(spm('Dir'),'external','eeprobe'),...
+        fullfile(spm('Dir'),'external','mne'),...
+        fullfile(spm('Dir'),'external','yokogawa_meg_reader'),...
+        fullfile(spm('Dir'),'toolbox', 'dcm_meeg'),...
+        fullfile(spm('Dir'),'toolbox', 'spectral'),...
+        fullfile(spm('Dir'),'toolbox', 'Neural_Models'),...
+        fullfile(spm('Dir'),'toolbox', 'MEEGtools'));
 end
 
 %-Turn output pagination off in Octave
@@ -506,11 +503,8 @@ set(Fmenu,'Units','pixels', 'Position',[S0(1) S0(2) 0 0] + SM);
 %-----------------------------------------------------------------------
 set(findobj(Fmenu,'Tag', 'frame'),'backgroundColor',spm('colour'));
 set(Fmenu,'Color',[1 1 1]*.8);
-try
-    if ismac
-        b = findobj(Fmenu,'Style','pushbutton');
-        set(b,'backgroundColor',get(b(1),'backgroundColor')+0.002);
-    end
+if ismac
+    set(findobj(Fmenu,'UserData','LABEL'),'Visible','off','Tag','');
 end
 
 %-Set Utils
