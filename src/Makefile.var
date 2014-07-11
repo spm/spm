@@ -1,15 +1,15 @@
 # Makefile default variables
 #
-# Copyright (C) 1991-2013 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2014 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile.var 5459 2013-05-01 17:51:59Z guillaume $
+# $Id: Makefile.var 6099 2014-07-11 12:21:35Z guillaume $
 #
 ###############################################################################
 #
 # This file defines variables used in Makefile and has been tested under 
 # Linux, Windows and MacOS.
 # 
-# If you have to tweak this file to compile the SPM mex-files for your 
+# If you have to tweak this file to compile the SPM MEX-files for your 
 # platform, please send the details to <fil.spm@ucl.ac.uk> so they can be 
 # included here. 
 #
@@ -21,10 +21,7 @@
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Windows
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Windows
 #      MinGW: http://www.mingw.org/
-#      Gnumex: http://gnumex.sourceforge.net/
-#      MinGW-w64: http://mingw-w64.sourceforge.net/
 #  * MacOS:
-#      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_Mac_OS_(Intel)
 #      http://en.wikibooks.org/wiki/SPM/Installation_on_64bit_Mac_OS_(Intel)
 #
@@ -68,15 +65,7 @@ ifndef SUF
   ifeq (Darwin,$(PLATFORM))
     HARDWARE   = $(shell $(UNAME) -p)
     ifeq (i386,$(HARDWARE))
-      ifeq (1,$(MACI64))
-        SUF    = mexmaci64
-      else
-        SUF    = mexmaci
-      endif
-    endif
-    ifeq (powerpc,$(HARDWARE))
-      SUF      = mexmac
-      MEXOPTS += -DSPM_BIGENDIAN
+      SUF      = mexmaci64
     endif
     ifndef SUF
       $(error Unknowm platform $(PLATFORM)-$(HARDWARE))
