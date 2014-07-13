@@ -37,7 +37,7 @@ function MDP = DEM_demo_MDP_maze
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MDP_maze.m 6075 2014-06-29 21:11:40Z karl $
+% $Id: DEM_demo_MDP_maze.m 6100 2014-07-13 21:32:36Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -321,13 +321,13 @@ spm_figure('GetWin','Figure 4'); clf
 MDP.plot = 0;
 
 
-MDP.N = 4;
+MDP.N = 8;
 MDP.a = [];
 MDP.o = [];
 RDP   = MDP;
 
 d     = kron(ones(4,1),[0; 0; 1; 0]);
-DD    = kron(eye(m,m) + 1/16,D*ones(1,length(D)));
+DD    = kron(eye(m,m) + 1/8,D*ones(1,length(D)));
 DD    = DD*diag(1./sum(DD));
 for j = 1:128
     
@@ -354,6 +354,7 @@ for j = 1:128
         
         R(j,i) = d'*MDP.O(:,end);
         H(j,i) = -log(MDP.Q(:,end))'*MDP.Q(:,end);
+        G{i,j} = MDP.da;
         
         r(j,i) = d'*RDP.O(:,end);
         h(j,i) = -log(RDP.Q(:,end))'*RDP.Q(:,end);
@@ -362,6 +363,8 @@ for j = 1:128
         %------------------------------------------------------------------
         MDP.D  = spm_softmax(log(DD*MDP.Q(:,end)));
         RDP.D  = spm_softmax(log(DD*RDP.Q(:,end)));
+        MDP.gamma = MDP.d(end);
+        RDP.gamma = RDP.d(end);
         
     end
 
@@ -379,6 +382,27 @@ title('Exploration and exploitation','FontSize',16)
 xlabel('Number of trials','FontSize',12)
 ylabel('Performance and uncertainty','FontSize',12)
 axis([1 t(end) 0 100])
+
+% plot simulated dopamine responses
+%--------------------------------------------------------------------------
+r  = 128;
+G  = spm_cat(G);
+G  = mean(G,2);
+
+subplot(4,1,3)
+plot(G)
+title('Average dopaminergic response','FontSize',16)
+xlabel('Variational updates','FontSize',12)
+ylabel('Precision','FontSize',12)
+spm_axis tight
+
+subplot(4,1,4)
+bar(r*G + randn(size(G)).*sqrt(r*G))
+title('Simulated dopaminergic response','FontSize',16)
+xlabel('Variational updates','FontSize',12)
+ylabel('Spikes per then','FontSize',12)
+spm_axis tight
+
 
 
 

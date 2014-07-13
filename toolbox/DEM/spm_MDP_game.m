@@ -26,6 +26,8 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 % MDP.plot        - switch to suppress graphics: (default: [0])
 % MDP.alpha       - upper bound on precision (Gamma hyperprior – shape [8])
 % MDP.beta        - precision over precision (Gamma hyperprior - rate  [1])
+% MDP.gamma       - initial precision
+% MDP.lamba       - precision update rate
 %
 % produces:
 %
@@ -100,7 +102,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_MDP_game.m 6073 2014-06-28 09:14:29Z karl $
+% $Id: spm_MDP_game.m 6100 2014-07-13 21:32:36Z karl $
 
 % set up and preliminaries
 %==========================================================================
@@ -110,6 +112,7 @@ function [MDP] = spm_MDP_game(MDP,OPTION,W)
 try, PLOT   = MDP.plot;   catch, PLOT   = 0;             end
 try, alpha  = MDP.alpha;  catch, alpha  = 8;             end
 try, beta   = MDP.beta;   catch, beta   = 4;             end
+try, g      = MDP.gamma;  catch, g      = 1;             end
 try, lambda = MDP.lambda; catch, lambda = 0;             end
 try, N      = MDP.N;      catch, N      = 4;             end
 try, T      = MDP.T;      catch, T      = size(MDP.V,1); end
@@ -246,7 +249,7 @@ W      = zeros(1, T);              % posterior precision
 % solve
 %==========================================================================
 gamma  = [];                       % simulated dopamine responses
-b      = 1;                        % expecedt rate parameter
+b      = alpha/g;                  % expected rate parameter
 for t  = 1:T
     
     
@@ -501,6 +504,7 @@ end
 %--------------------------------------------------------------------------
 K      = tril(toeplitz(exp(-((1:length(gamma)) - 1)'/N)));
 da     = pinv(K)*gamma;
+da(1)  = da(2);
 
 % assemble results and place in NDP structure
 %--------------------------------------------------------------------------
