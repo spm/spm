@@ -19,7 +19,7 @@ function spm_dcm_tfm_response(xY,pst,hz,top)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_dcm_tfm_response.m 6101 2014-07-13 21:34:34Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -30,7 +30,7 @@ if nargin < 4, top = 1;                   end
  
 % plot time frequency responses
 %==========================================================================
-pst   = pst(:)'*1000;                              % pst in ms
+pst   = pst(:)';                                   % pst in ms
 ne    = length(xY.csd);                            % number of event types
 nc    = size(xY.csd{1},3);                         % number of channels
 bands = kron([8; 13; 32],[1 1]);

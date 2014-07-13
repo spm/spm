@@ -32,7 +32,7 @@ function [DCM] = spm_dcm_ind_results(DCM,Action,fig)
 % Copyright (C) 2007-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_results.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_dcm_ind_results.m 6101 2014-07-13 21:34:34Z karl $
  
  
 % set up
@@ -76,7 +76,7 @@ switch(lower(Action))
     end
     for i = 1:nt
         for j = 1:nr
-            TF{i,j} = TF{i,j} + xY.xf{i,j}*xY.U';
+            TF{i,j} = TF{i,j} + xY.xf{i,j}(:,1:nf)*xY.U';
         end
     end
     

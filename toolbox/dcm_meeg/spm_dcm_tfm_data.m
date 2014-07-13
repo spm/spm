@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_dcm_tfm_data.m 6101 2014-07-13 21:34:34Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -38,14 +38,6 @@ try
 catch
     errordlg('Please specify data and trials');
     error('')
-end
- 
-% ensure spatial modes have been computed (see spm_dcm_csd)
-%-------------------------------------------------------------------------
-try
-    DCM.M.U;
-catch
-    DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,DCM.options.Nmodes);
 end
  
 % load D
@@ -101,13 +93,19 @@ end
  
 % channel indices (excluding bad channels)
 %--------------------------------------------------------------------------
-if ~isfield(DCM.xY, 'Ic')
-    DCM.xY.Ic = D.indchantype(DCM.xY.modality,'GOOD');
-end
- 
+DCM.xY.Ic = D.indchantype(DCM.xY.modality,'GOOD');
 Ic        = DCM.xY.Ic;
-Nm        = size(DCM.M.U,2);
-DCM.xY.Ic = Ic;
+
+% ensure spatial modes have been computed (see spm_dcm_csd)
+%-------------------------------------------------------------------------
+if ~isfield(DCM.M,'U')
+    DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,DCM.options.Nmodes);
+end
+if size(DCM.M.U,1) ~= length(Ic);
+    DCM.M.U = spm_dcm_eeg_channelmodes(DCM.M.dipfit,DCM.options.Nmodes);
+end
+Nm          = size(DCM.M.U,2);
+
  
 % options
 %--------------------------------------------------------------------------

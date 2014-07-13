@@ -12,7 +12,7 @@ function D = spm_eeg_load(P)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_load.m 5376 2013-04-02 09:59:01Z karl $
+% $Id: spm_eeg_load.m 6101 2014-07-13 21:34:34Z karl $
 
 
 %-Bypass if the input is already an MEEG object
@@ -37,7 +37,12 @@ try
     load(P);
 catch
     
-    error('Cannot load file "%s".', P);
+    try
+        load(spm_file(P,'filename'))
+    catch
+        error('Cannot load file "%s".', P);
+    end
+    
 end
 
 %-Check whether there is a struct D

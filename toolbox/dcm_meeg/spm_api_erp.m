@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6022 2014-05-28 14:59:28Z guillaume $
+% $Id: spm_api_erp.m 6101 2014-07-13 21:34:34Z karl $
  
 
 %-Launch GUI
@@ -1333,12 +1333,15 @@ switch handles.DCM.options.analysis
             set(handles.Nmodes, 'Value', 4);
         end
         
-        set(handles.text20,     'String','modes');            
-        set(handles.Spatial,    'String',{'IMG','ECD','LFP'});
-        set(handles.Wavelet,    'Enable','on','String','Spectral density');
-        set(handles.onset,      'Enable','on');
-        set(handles.dur,        'Enable','on');
-        set(handles.model,      'Value',3,'Enable','off');
+        set(handles.text20, 'String','modes');            
+        set(handles.Spatial,'String',{'IMG','ECD','LFP'});
+        set(handles.Wavelet,'Enable','on','String','Spectral density');
+        set(handles.onset,  'Enable','on');
+        set(handles.dur,    'Enable','on');
+        set(handles.model,  'Value',3,'Enable','off');
+        set(handles.Rft,    'Enable','on');
+        set(handles.Hz1,    'Enable','on');
+        set(handles.Hz2,    'Enable','on');
         
     % induced responses
     %----------------------------------------------------------------------
@@ -1373,6 +1376,9 @@ switch handles.DCM.options.analysis
         set(handles.priors,     'Enable','off' )
         set(handles.onset,      'Enable','on');
         set(handles.dur,        'Enable','on');
+        set(handles.Rft,        'Enable','on');
+        set(handles.Hz1,        'Enable','on');
+        set(handles.Hz2,        'Enable','on');
         
     case{'PHA'}
           Action = {
@@ -1399,6 +1405,9 @@ switch handles.DCM.options.analysis
         set(handles.Imaging, 'Enable','off' )
         set(handles.onset,   'Enable','off');
         set(handles.dur,     'Enable','off');
+        set(handles.Rft,     'Enable','off');
+        set(handles.Hz1,     'Enable','off');
+        set(handles.Hz2,     'Enable','off');
            
     % Cross-spectral density model (complex)
     %----------------------------------------------------------------------
@@ -1430,6 +1439,9 @@ switch handles.DCM.options.analysis
         set(handles.Wavelet,'Enable','on');
         set(handles.onset,  'Enable','off');
         set(handles.dur,    'Enable','off');
+        set(handles.Rft,    'Enable','on');
+        set(handles.Hz1,    'Enable','on');
+        set(handles.Hz2,    'Enable','on');
         
     otherwise
         warndlg('unknown analysis type')
