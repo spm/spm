@@ -93,7 +93,9 @@ SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The 
 
 \section{Temporal processing}
 
-\subsection{Slice-timing correction}
+\subsection{Slice timing correction}
+
+The slice timing correction implementation was extended by adding the option to use slice acquisition times instead of slice orders and a reference time instead of a reference slice. In particular, this allows to handle datasets acquired using multi-band sequences. This work has been contributed by A. Hoffmann, M. Woletz and C. Windischberger from Medical University of Vienna, Austria \cite{woletz2014st}.
 
 \section{Spatial processing}
 There have been changes to much of the functionality for spatially transforming images -- particularly with respect to inter-subject registration.

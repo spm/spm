@@ -1,9 +1,9 @@
 function st = spm_cfg_st
 % SPM Configuration file for Slice Timing Correction
 %__________________________________________________________________________
-% Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_st.m 6103 2014-07-14 13:18:58Z guillaume $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -63,22 +63,30 @@ so         = cfg_entry;
 so.tag     = 'so';
 so.name    = 'Slice order';
 so.help    = {
-              'Enter the slice order. Bottom slice = 1. Sequence types and examples of code to enter are given below.'
+              'Enter the slice order. Bottom slice = 1. Sequence types and examples of code to enter are given below:'
               ''
-              'ascending (first slice=bottom): [1:1:nslices]'
+              '  ascending (first slice=bottom): [1:1:nslices]'
               ''
-              'descending (first slice=top): [nslices:-1:1]'
+              '  descending (first slice=top): [nslices:-1:1]'
               ''
-              'interleaved (middle-top):'
-              '    for k = 1:nslices,'
-              '        round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1,'
-              '    end'
+              '  interleaved (middle-top):'
+              '     for k = 1:nslices'
+              '         round((nslices-k)/2 + (rem((nslices-k),2) * (nslices - 1)/2)) + 1,'
+              '     end'
               ''
-              'interleaved (bottom -> up): [1:2:nslices 2:2:nslices]'
+              '  interleaved (bottom -> up): [1:2:nslices 2:2:nslices]'
               ''
-              'interleaved (top -> down): [nslices:-2:1, nslices-1:-2:1]'
+              '  interleaved (top -> down): [nslices:-2:1, nslices-1:-2:1]'
+              ''
+              'Alternatively you can enter the slice timing in ms for each slice individually.'
+              'If doing so, the next item (Reference Slice) will contain a reference time (in ms) instead of the slice index of the reference slice.'
+              'For Siemens scanners, this can be acquired in MATLAB from the dicom header as follows (use any volume after the first one):'
+              '   hdr = spm_dicom_headers(''dicom.ima'');'
+              '   slice_times = hdr{1}.Private_0019_1029'
+              'Note that slice ordering is assumed to be from foot to head. If it is not, enter instead: TR - INTRASCAN_TIME - SLICE_TIMING_VECTOR'
+              
 }';
-so.strtype = 'n';
+so.strtype = 'e';
 so.num     = [1 Inf];
 
 %--------------------------------------------------------------------------
@@ -87,8 +95,10 @@ so.num     = [1 Inf];
 refslice         = cfg_entry;
 refslice.tag     = 'refslice';
 refslice.name    = 'Reference Slice';
-refslice.help    = {'Enter the reference slice.'};
-refslice.strtype = 'n';
+refslice.help    = {'Enter the reference slice.'
+                    ''
+                    'If slice times are provided instead of slice indices in the previous item, this value should represent a reference time (in ms) instead of the slice index of the reference slice.'};
+refslice.strtype = 'e';
 refslice.num     = [1 1];
 
 %--------------------------------------------------------------------------

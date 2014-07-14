@@ -1,18 +1,20 @@
 function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Correct differences in slice acquisition times
 % FORMAT spm_slice_timing(P, sliceorder, refslice, timing, prefix)
-% P           - nimages x ? Matrix with filenames
-%               can also be a cell array of the above (multiple subj).
+% P           - char array of image filenames
+%               can also be a cell array of the above (multiple subjects).
 % sliceorder  - slice acquisition order, a vector of integers, each
 %               integer referring the slice number in the image file
 %               (1=first), and the order of integers representing their
 %               temporal acquisition order
+%               OR vector containig the acquisition time for each slice
+%               in milliseconds
 % refslice    - slice for time 0
+%               OR time in milliseconds for the reference slice
 % timing      - additional information for sequence timing
 %               timing(1) = time between slices
 %               timing(2) = time between last slices and next volume
 % prefix      - filename prefix for corrected image files, defaults to 'a'
-%
 %__________________________________________________________________________
 %
 %   Note: The sliceorder arg that specifies slice acquisition order is
@@ -74,28 +76,27 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %
 % Written by Darren Gitelman at Northwestern U., 1998
 %
-% Based (in large part) on ACQCORRECT.PRO from Geoff Aguirre and
-% Eric Zarahn at U. Penn.
+% Based (in large part) on ACQCORRECT.PRO from G. Aguirre and E. Zarahn
+% at U. Penn.
 %
-% v1.0  07/04/98    DRG
-% v1.1  07/09/98    DRG fixed code to reflect 1-based indices
-%               of matlab vs. 0-based of pvwave
-%
-% Modified by R Henson, C Buechel and J Ashburner, FIL, to
+% Modified by R. Henson, C. Buechel and J. Ashburner, FIL, to
 % handle different reference slices and memory mapping.
 %
-% Modified by M Erb, at U. Tuebingen, 1999, to ask for non-continuous
+% Modified by M. Erb, at U. Tuebingen, 1999, to ask for non-continuous
 % slice timing and number of sessions.
 %
-% Modified by R Henson for more general slice order and SPM2
+% Modified by R. Henson for more general slice order and SPM2.
+%
+% Modified by A. Hoffmann, M. Woletz and C. Windischberger from Medical
+% University of Vienna, Austria, to handle multi-band EPI sequences.
 %__________________________________________________________________________
-% Copyright (C) 1999-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 4848 2012-08-17 11:39:06Z guillaume $
+% $Id: spm_slice_timing.m 6103 2014-07-14 13:18:58Z guillaume $
 
 
-SVNid = '$Rev: 4848 $';
+SVNid = '$Rev: 6103 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -103,16 +104,11 @@ SPMid = spm('FnBanner',mfilename,SVNid);
 
 %-Parameters & Arguments
 %==========================================================================
-if nargin < 4
-    error('Not enough input arguments.');
-end
+if nargin < 4, error('Not enough input arguments.'); end
+if nargin < 5, prefix = 'a'; end
 
-if iscell(P)
-    nsubjects = length(P);
-else
-    nsubjects = 1;
-    P = {P};
-end
+if ~iscell(P), P = {P}; end
+nsubjects = numel(P);
 
 % Acquisition order: 1=first slice in image
 % Reference slice: 1=first slice in image, in Analyze format, slice 1 = bottom
@@ -124,29 +120,39 @@ end
 Vin     = spm_vol(P{1}(1,:));
 nslices = Vin(1).dim(3);
 
-TR  = (nslices-1)*timing(1)+timing(2);
+TR      = (nslices-1)*timing(1)+timing(2);
 fprintf('%-40s: %30s\n','Number of slices is...',num2str(nslices))      %-#
 fprintf('%-40s: %30s\n','Time to Repeat (TR) is...',num2str(TR))        %-#
-if nslices ~= length(sliceorder)
-    error('Mismatch between number of slices and slice acquisition order');
-end
-factor = timing(1)/TR;
 
-if nargin < 5, prefix = 'a'; end
+if ~isequal(1:nslices,sort(sliceorder))
+    if ~all(sliceorder >= 0 & sliceorder <= TR*1000)
+        error('Input is neither slice indices nor slice times.');
+    end
+    unit = 'slice times (ms)';
+else
+    if ~ismember(refslice,sliceorder)
+        error('Reference slice should contain a slice index.');
+    end
+    unit = 'slice indices';
+end
+fprintf('%-40s: %30s\n','Parameters are specified as...',unit)          %-#
+
+if nslices ~= numel(sliceorder)
+    error('Mismatch between number of slices and length of ''sliceorder'' vector.');
+end
 
 %-Slice timing correction
 %==========================================================================
 for subj = 1:nsubjects
-    PP        = P{subj};
-    Vin       = spm_vol(PP);
-    nimgo     = numel(Vin);
-    nimg      = 2^(floor(log2(nimgo))+1);
+    Vin   = spm_vol(P{subj});
+    nimgo = numel(Vin);
+    nimg  = 2^(floor(log2(nimgo))+1);
     if Vin(1).dim(3) ~= nslices
-        error('Number of slices differ! %d %\n', nimg);
+        error('Number of slices differ: %d vs %d.', nslices, Vin(1).dim(3));
     end
-    
-    % create new header files
-    Vout    = Vin;
+        
+    % Create new header files
+    Vout  = Vin;
     for k=1:nimgo
         Vout(k).fname  = spm_file(Vin(k).fname, 'prefix', prefix);
         if isfield(Vout(k),'descrip')
@@ -154,26 +160,31 @@ for subj = 1:nsubjects
         else
             desc = '';
         end
-        Vout(k).descrip = [desc 'acq-fix ref-slice ' int2str(refslice)];
+        Vout(k).descrip = [desc 'acq-fix ref-slice ' num2str(refslice)];
     end
     Vout = spm_create_vol(Vout);
     
-    % Set up large matrix for holding image info
-    % Organization is time by voxels
+    % Set up [time x voxels] matrix for holding image info
     slices = zeros([Vout(1).dim(1:2) nimgo]);
     stack  = zeros([nimg Vout(1).dim(1)]);
     
     task = sprintf('Correcting acquisition delay: session %d', subj);
     spm_progress_bar('Init',nslices,task,'planes complete');
     
-    % For loop to read data slice by slice do correction and write out
-    % In analzye format, the first slice in is the first one in the volume.
+    % Compute shifting amount from reference slice and slice order
+    if isequal(unit,'slice times (ms)')
+        % Compute time difference between the acquisition time of the
+        % reference slice and the current slice by using slice times
+        % supplied in sliceorder vector
+        shiftamount = (sliceorder - refslice) / (1000 * TR);
+    else
+        rslice      = find(sliceorder==refslice);
+        [Y, I]      = sort(sliceorder);
+        shiftamount = (I - rslice) * timing(1) / TR;
+    end
     
-    rslice = find(sliceorder==refslice);
+    % For loop to perform correction slice by slice
     for k = 1:nslices
-        
-        % Set up time acquired within slice order
-        shiftamount  = (find(sliceorder==k) - rslice) * factor;
         
         % Read in slice data
         B  = spm_matrix([0 0 k]);
@@ -181,7 +192,7 @@ for subj = 1:nsubjects
             slices(:,:,m) = spm_slice_vol(Vin(m),B,Vin(1).dim(1:2),1);
         end
         
-        % set up shifting variables
+        % Set up shifting variables
         len     = size(stack,1);
         phi     = zeros(1,len);
         
@@ -193,7 +204,7 @@ for subj = 1:nsubjects
         % Phi represents a range of phases up to the Nyquist frequency
         % Shifted phi 1 to right.
         for f = 1:len/2
-            phi(f+1) = -1*shiftamount*2*pi/(len/f);
+            phi(f+1) = -1*shiftamount(k)*2*pi/(len/f);
         end
         
         % Mirror phi about the center
@@ -211,20 +222,20 @@ for subj = 1:nsubjects
             % Extract columns from slices
             stack(1:nimgo,:) = reshape(slices(:,i,:),[Vout(1).dim(1) nimgo])';
             
-            % fill in continous function to avoid edge effects
+            % Fill in continous function to avoid edge effects
             for g=1:size(stack,2)
                 stack(nimgo+1:end,g) = linspace(stack(nimgo,g),...
                     stack(1,g),nimg-nimgo)';
             end
             
-            % shift the columns
+            % Shift the columns
             stack = real(ifft(fft(stack,[],1).*shifter,[],1));
             
             % Re-insert shifted columns
             slices(:,i,:) = reshape(stack(1:nimgo,:)',[Vout(1).dim(1) 1 nimgo]);
         end
         
-        % write out the slice for all volumes
+        % Write out the slice for all volumes
         for p = 1:nimgo
             Vout(p) = spm_write_plane(Vout(p),slices(:,:,p),k);
         end
