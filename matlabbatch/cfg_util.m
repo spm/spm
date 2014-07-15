@@ -418,9 +418,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 5797 2013-12-10 11:07:52Z volkmar $
+% $Id: cfg_util.m 6105 2014-07-15 12:49:56Z volkmar $
 
-rev = '$Rev: 5797 $';
+rev = '$Rev: 6105 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -929,6 +929,7 @@ switch lower(cmd),
             dflag = false;
         else
             cjob = cfg_util('initjob',varargin{1});
+            [c0, jobs] = cfg_util_persistent;
             dflag = true;
         end
         pflag = any(strcmpi(cmd, {'run','cont'})) && cfg_get_defaults([mfilename '.runparallel']);
