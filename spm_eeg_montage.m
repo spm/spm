@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6054 2014-06-18 10:34:09Z vladimir $
+% $Id: spm_eeg_montage.m 6106 2014-07-15 15:34:45Z vladimir $
 
-SVNrev = '$Rev: 6054 $';
+SVNrev = '$Rev: 6106 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -263,7 +263,7 @@ switch S.mode
         
         for i = 1:m
             if isequal(unitlist{i}, 'unknown')
-                unit = unique(units(D, D.indchannel(montage.labelorg(~~montage.tra(i, :)))));
+                unit = unique(units(D, D.indchannel(montage.labelorg(~~abs(montage.tra(i, :))))));
                 if numel(unit)==1
                     unitlist(i) = unit;
                 end
@@ -367,7 +367,7 @@ switch S.mode
                         if isequal(chanunit{j}, 'unknown') %do not override units specified by montage
                             k = strmatch(sens.label{j}, sensmontage.labelnew, 'exact');
                             if ~isempty(k)
-                                unit = unique(chanunitorig(sel1(~~sensmontage.tra(k, :))));
+                                unit = unique(chanunitorig(sel1(~~abs(sensmontage.tra(k, :)))));
                                 if numel(unit)==1
                                     chanunit(j) = unit;
                                 end
