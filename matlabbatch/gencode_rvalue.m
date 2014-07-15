@@ -28,9 +28,9 @@ function [str, sts] = gencode_rvalue(item, cflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: gencode_rvalue.m 6104 2014-07-15 12:49:51Z volkmar $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 6104 $'; %#ok
 
 if nargin < 2
     cflag = false;
@@ -49,6 +49,7 @@ switch class(item)
                 end
             else
                 % Create cell string, keep white space padding
+                cstr = cell(1,size(item,1));
                 for k = 1:size(item,1)
                     cstr{k} = item(k,:);
                 end
