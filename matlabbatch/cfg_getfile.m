@@ -88,7 +88,7 @@ function [t,sts] = cfg_getfile(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % John Ashburner and Volkmar Glauche
-% $Id: cfg_getfile.m 5867 2014-02-04 12:33:59Z volkmar $
+% $Id: cfg_getfile.m 6107 2014-07-16 12:07:47Z volkmar $
 
 t = {};
 sts = false;
@@ -1293,7 +1293,7 @@ end
 %=======================================================================
 function editdone(varargin)
 ob  = sib('EditWindow');
-str = get(ob,'String');
+str = cellstr(get(ob,'String'));
 if isempty(str) || isempty(str{1})
     str = {};
 else
