@@ -28,9 +28,9 @@ function [str, sts] = gencode_rvalue(item, cflag)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: gencode_rvalue.m 6104 2014-07-15 12:49:51Z volkmar $
+% $Id: gencode_rvalue.m 6109 2014-07-17 11:37:40Z volkmar $
 
-rev = '$Rev: 6104 $'; %#ok
+rev = '$Rev: 6109 $'; %#ok
 
 if nargin < 2
     cflag = false;
@@ -144,8 +144,17 @@ switch class(item)
                 if cflag
                     str = {sitem};
                 else
-                    bsz   = max(numel(sitem)+2,100); % bsz needs to be > 100 and larger than string length
-                    str1 = textscan(sitem, '%s', 'delimiter',';', 'bufsize',bsz);
+                    try
+                        if ~verLessThan('matlab', '8.4')
+                            bszopt = {};
+                        else
+                            error('Need bufsize option');
+                        end
+                    catch
+                        bsz   = max(numel(sitem)+2,100); % bsz needs to be > 100 and larger than string length
+                        bszopt = {'bufsize', bsz};
+                    end
+                    str1 = textscan(sitem, '%s', 'delimiter',';', bszopt{:});
                     if numel(str1{1}) > 1
                         str = str1{1};
                     else
