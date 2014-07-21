@@ -25,7 +25,7 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_dcm_mtf.m 6110 2014-07-21 09:36:13Z karl $
 
 
 % get local linear approximation
@@ -53,29 +53,38 @@ try, t = M.dt*(1:M.N)'; end
 
 % delay operator - if not specified already
 %--------------------------------------------------------------------------
-if nargout(M.f) == 4
-    [f,dfdx,D,dfdu] = feval(M.f,M.x,M.u,P,M);
+if isfield(M,'D')
     
-elseif nargout(M.f) == 3
-    [f,dfdx,D]      = feval(M.f,M.x,M.u,P,M);
-    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+    dfdx = spm_diff(M.f,M.x,M.u,P,M,1);
+    dfdu = spm_diff(M.f,M.x,M.u,P,M,2);
+    D    = M.D;
     
-elseif nargout(M.f) == 2
-    [f,dfdx]        = feval(M.f,M.x,M.u,P,M);
-    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
-    D               = 1;
 else
-    dfdx            = spm_diff(M.f,M.x,M.u,P,M,1);
-    dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
-    D               = 1;
+    
+    if nargout(M.f) == 4
+        [f,dfdx,D,dfdu] = feval(M.f,M.x,M.u,P,M);
+        
+    elseif nargout(M.f) == 3
+        [f,dfdx,D]      = feval(M.f,M.x,M.u,P,M);
+        dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+        
+    elseif nargout(M.f) == 2
+        [f,dfdx]        = feval(M.f,M.x,M.u,P,M);
+        dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+        D               = 1;
+    else
+        dfdx            = spm_diff(M.f,M.x,M.u,P,M,1);
+        dfdu            = spm_diff(M.f,M.x,M.u,P,M,2);
+        D               = 1;
+    end
 end
 
 % Jacobian and eigenspectrum
 %==========================================================================
 if nargout(M.g) == 2
-    [g,dgdx]       = feval(M.g,M.x,M.u,P,M);
+    [g,dgdx] = feval(M.g,M.x,M.u,P,M);
 else
-    dgdx           = spm_diff(M.g,M.x,M.u,P,M,1);
+    dgdx     = spm_diff(M.g,M.x,M.u,P,M,1);
 end
 dfdx  = D*dfdx;
 dfdu  = D*dfdu;
@@ -134,7 +143,7 @@ end
 
 return
 
-% NOTES: internal consisitency with explcict Fourier transform of kernels
+% NOTES: internal consistency with explicit Fourier transform of kernels
 %==========================================================================
 
 % augment and bi-linearise (with intrinsic delays)

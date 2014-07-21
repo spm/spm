@@ -17,7 +17,7 @@ function t = spm_convmtx(v,n,OPT)
 % Copyright (C) 1988-2004 The MathWorks, Inc.
  
 % L. Shure and T. Krauss
-% $Id: spm_convmtx.m 4564 2011-11-18 18:38:06Z karl $
+% $Id: spm_convmtx.m 6110 2014-07-21 09:36:13Z karl $
  
 if nargin < 3;
     OPT = 'none';
@@ -49,7 +49,7 @@ switch OPT
     case('circular')
         m      = fix((size(t,1) - n)/2);
         j      = (1:m) + m;
-        t(j,:) = t(j,:) + t(j +n,:);
+        t(j,:) = t(j,:) + t(j + n,:);
         j      = (1:m) + n;
         t(j,:) = t(j,:) + t(j - n,:);
         j      = 1:n;

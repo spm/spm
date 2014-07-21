@@ -24,7 +24,7 @@ function [varargout] = spm_diff(varargin)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_diff.m 5692 2013-10-13 13:44:05Z karl $
+% $Id: spm_diff.m 6110 2014-07-21 09:36:13Z karl $
 
 % create inline object
 %--------------------------------------------------------------------------
@@ -60,7 +60,7 @@ for i = 1:length(x)
         V{i} = [];
     end
     if isempty(V{i}) && any(n == i);
-        V{i} = speye(length(spm_vec(x{i})));
+        V{i} = speye(spm_length(x{i}));
     end
 end
 

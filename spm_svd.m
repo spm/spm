@@ -3,7 +3,7 @@ function [U,S,V] = spm_svd(X,U)
 % FORMAT [U,S,V] = spm_svd(X,u)
 % X    - (m x n) matrix
 % u    - threshold (1 > u > 0) for normalized eigenvalues (default = 1e-6)
-%      - a value of zero induces U = 64*eps
+%      - a value of zero induces u = 64*eps
 %
 % U    - {m x p} singular vectors
 % V    - {m x p} singular variates
@@ -12,7 +12,7 @@ function [U,S,V] = spm_svd(X,U)
 % Copyright (C) 1994-2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_svd.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_svd.m 6110 2014-07-21 09:36:13Z karl $
 
 
 % default thresholds - preclude singular vectors with small singular values

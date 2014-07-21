@@ -5,7 +5,7 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 % G      - (t x w x n x n) cross spectral density
 % w      - Frequencies (Hz)
 % dt     - sampling interval (sec)
-% wnum   - Wavelet number: default = 2  s.d. = wnum * 1/w
+% wnum   - Wavelet number: default = 2  s.d. = wnum/(2*pi*w)
 %
 % G      - convolved cross spectral density
 %__________________________________________________________________________
@@ -16,46 +16,49 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet_conv.m 5975 2014-05-07 18:07:42Z karl $
+% $Id: spm_morlet_conv.m 6110 2014-07-21 09:36:13Z karl $
 
 
 % setup and defaults
 %--------------------------------------------------------------------------
-if nargin < 4, wnum = 2; end
+if nargin < 4, wnum = 8; end
+[nt,nw,ni,nj] = size(G);
+iw            = 1:nw;
+it            = 1:nt;
+
+
 
 % get (non-stationary) convolution matrix for frequencies
 %--------------------------------------------------------------------------
-N     = length(w);
-t     = (-N:N)'/(2*w(end));
-ind   = 1:N;
-for i = 1:N
-    s      = wnum/w(i);
-    h      = abs(fftshift(fft(exp(-t.^2/(2*s^2)))));
-    h      = h(ind + N - i);
+f     = (-nw:nw)';
+H     = zeros(nw,nw);
+for i = 1:nw
+    s      = w(i)/wnum;
+    h      = exp(-f.^2/(2*s^2));
+    h      = h(iw + nw - i);
     H(:,i) = h/sum(h);
 end
 
 % convolution over frequencies
 %--------------------------------------------------------------------------
-for i = 1:size(G,3)
-    for j = 1:size(G,4)
+for i = 1:ni
+    for j = 1:nj
         G(:,:,i,j) = G(:,:,i,j)*H;
     end
 end
 
 % convolution over frequencies
 %--------------------------------------------------------------------------
-ind    = 1:size(G,1);
-for k = 1:N
-    s     = wnum/w(k);
-    n     = s*4;
-    t     = -n:dt:n;
+for k = 1:nw
+    s     = wnum/(2*pi*w(k));
+    t     = -(s*4):dt:(s*4);
     h     = exp(-t.^2/(2*s^2));
-    h     = h/sum(h);
-    for i = 1:size(G,3)
-        for j = 1:size(G,4)
-            g          = conv(G(:,k,i,j),h);
-            G(:,k,i,j) = g(ind + round(length(t)/2));
+    h     = convmtx(h',nt);
+    h     = h(it + round(length(t)/2),:);
+    h     = diag(1./sum(h,2))*h;
+    for i = 1:ni
+        for j = 1:nj
+            G(:,k,i,j) = h*G(:,k,i,j);
         end
     end
 end

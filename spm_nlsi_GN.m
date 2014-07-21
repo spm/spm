@@ -13,6 +13,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 %     M.f  - f(x,u,P,M)
 %     M.g  - g(x,u,P,M)
+%     M.h  - h(x,u,P,M)
 %       x  - state variables
 %       u  - inputs or causes
 %       P  - free parameters
@@ -33,10 +34,10 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % U.u  - inputs (or just U)
 % U.dt - sampling interval
 %
-% Y.y  - outputs (samples x observations)
+% Y.y  - outputs (samples x observations x ...)
 % Y.dt - sampling interval for outputs
-% Y.X0 - Confounds or null space      (over size(y,1) bins or all vec(y))
-% Y.Q  - q error precision components (over size(y,1) bins or all vec(y))
+% Y.X0 - Confounds or null space      (over size(y,1) samples or all vec(y))
+% Y.Q  - q error precision components (over size(y,1) samples or all vec(y))
 %
 %
 % Parameter estimates
@@ -69,9 +70,13 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Priors on the free parameters P are specified in terms of expectation pE
 % and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
 % approximation to estimate the conditional expectation and covariance of P
-% If the free-energy starts to increase, a Levenberg-Marquardt scheme is
+% If the free-energy starts to increase,  and abbreviated descent is
 % invoked.  The M-Step estimates the precision components of e, in terms
-% of [Re]ML point estimators of the log-precisions.
+% of log-precisions.  Although these two steps can be thought of in
+% terms of E and N steps they are in fact variational steps of a full
+% variational Laplace scheme that accommodates conditional uncertainty
+% over both parameters and log precisions (c.f. hyperparameters with hyper 
+% priors)
 %
 % An optional feature selection can be specified with parameters M.FS.
 %
@@ -92,7 +97,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_nlsi_GN.m 6110 2014-07-21 09:36:13Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -151,16 +156,25 @@ end
 %--------------------------------------------------------------------------
 IS  = spm_funcheck(IS);
 
+% paramter update eqation
+%--------------------------------------------------------------------------
+if isfield(M,'f'), M.f = spm_funcheck(M.f);  end
+if isfield(M,'g'), M.g = spm_funcheck(M.g);  end
+if isfield(M,'h'), M.h = spm_funcheck(M.h);  end
 
-% size of data (usually samples x channels)
+
+
+
+% size of data (samples x response component x response component ...)
 %--------------------------------------------------------------------------
 if iscell(y)
     ns = size(y{1},1);
 else
     ns = size(y,1);
 end
-nr   = length(spm_vec(y))/ns;       % number of samples and responses
-M.ns = ns;                          % store in M.ns for integrator
+ny   = length(spm_vec(y));          % total number of response variables
+nr   = ny/ns;                       % number response components
+M.ns = ns;                          % number of samples M.ns
 
 % initial states
 %--------------------------------------------------------------------------
@@ -205,8 +219,7 @@ catch
     Q = spm_Ce(ns*ones(1,nr));
 end
 nh    = length(Q);                  % number of precision components
-nt    = length(Q{1});               % number of time bins
-nq    = nr*ns/nt;                   % for compact Kronecker form of M-step
+nq    = ny/length(Q{1});            % for compact Kronecker form of M-step
 
 
 % prior moments (assume uninformative priors if not specifed)
@@ -226,9 +239,9 @@ try
     nx   = nr*ns/nb;                % number of blocks
     dfdu = kron(speye(nx,nx),Y.X0);
 catch
-    dfdu = sparse(ns*nr,0);
+    dfdu = sparse(ny,0);
 end
-if isempty(dfdu), dfdu = sparse(ns*nr,0); end
+if isempty(dfdu), dfdu = sparse(ny,0); end
 
 
 % hyperpriors - expectation (and initialize hyperparameters)
@@ -305,7 +318,7 @@ for k = 1:M.Nmax
         % gradients
         %------------------------------------------------------------------
         [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
-        dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
+        dfdp     = reshape(spm_vec(dfdp),ny,np);
         
         % check for stability
         %------------------------------------------------------------------
@@ -330,13 +343,18 @@ for k = 1:M.Nmax
             
             % try again
             %--------------------------------------------------------------
-            [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
-            dfdp     = reshape(spm_vec(dfdp),ns*nr,np);
-            
-            % check for stability
-            %--------------------------------------------------------------
-            normdfdp = norm(dfdp,'inf');
-            revert   = isnan(normdfdp) || normdfdp > exp(32);
+            try
+                [dfdp,f] = spm_diff(IS,Ep,M,U,1,{V});
+                dfdp     = reshape(spm_vec(dfdp),ny,np);
+                
+                % check for stability
+                %----------------------------------------------------------
+                normdfdp = norm(dfdp,'inf');
+                revert   = isnan(normdfdp) || normdfdp > exp(32);
+                
+            catch
+                revert   = true;
+            end
             
             % break
             %--------------------------------------------------------------
@@ -345,12 +363,12 @@ for k = 1:M.Nmax
         end
     end
     
+    % convergence failure
+    %----------------------------------------------------------------------    
     if revert
-        % convergence failure
-        %------------------------------------------------------------------
         msgstr = 'Convergence failure - please check priors or data scaling';
-        warning('MATLAB:spm_nsli_GN',msgstr);
-        return
+        warning('MATLAB:spm_nsli_GN',msgstr); drawnow
+        keyboard
     end
     
     
@@ -425,7 +443,7 @@ for k = 1:M.Nmax
     F = - real(e'*iS*e)/2 ...
         - p'*ipC*p/2 ...
         - d'*ihC*d/2 ...
-        - ns*nr*log(8*atan(1))/2 ...
+        - ny*log(8*atan(1))/2 ...
         - spm_logdet(S)*nq/2 ...
         + spm_logdet(ipC*Cp)/2 ...
         + spm_logdet(ihC*Ch)/2;

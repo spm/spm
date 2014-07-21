@@ -12,7 +12,7 @@ function [varargout] = spm_unvec(vX,varargin)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_unvec.m 5731 2013-11-04 18:11:44Z guillaume $
+% $Id: spm_unvec.m 6110 2014-07-21 09:36:13Z karl $
 
 
 %error('spm_unvec.c not compiled - see Makefile')
@@ -23,20 +23,16 @@ if nargout > 1
     varargout = spm_unvec(vX,varargin);
     return
 end
-if length(varargin) == 1
+if numel(varargin) == 1
     X  = varargin{1};
 else
     X  = varargin;
 end
 
-% vectorise first argument
-%--------------------------------------------------------------------------
-vX = spm_vec(vX);
-
 % reshape numerical arrays
 %--------------------------------------------------------------------------
 if isnumeric(X) || islogical(X)
-    if ndims(X) > 2
+    if ~ismatrix(X)
         X(:)  = full(vX);
     else
         X(:)  = vX;
@@ -49,12 +45,12 @@ end
 %--------------------------------------------------------------------------
 if isstruct(X)
     f = fieldnames(X);
-    for i = 1:length(f)
+    for i = 1:numel(f)
         c          = {X.(f{i})};
         if isnumeric(c)
             n      = numel(c);
         else
-            n      = length(spm_vec(c));
+            n      = spm_length(c);
         end
         c          = spm_unvec(vX(1:n),c);
         [X.(f{i})] = deal(c{:});
@@ -71,7 +67,7 @@ if iscell(X)
         if isnumeric(X{i})
             n      = numel(X{i});
         else
-            n      = length(spm_vec(X{i}));
+            n      = spm_length(X{i});
         end
         X{i}  = spm_unvec(vX(1:n),X{i});
         vX    = vX(n + 1:end);

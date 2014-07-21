@@ -7,11 +7,11 @@ function [y,scale] = spm_cond_units(y,n)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_cond_units.m 4805 2012-07-26 13:16:18Z karl $
+% $Id: spm_cond_units.m 6110 2014-07-21 09:36:13Z karl $
  
 % default n = 1
 %--------------------------------------------------------------------------
-try, n; catch, n = 1; end
+if nargin < 2, n = 1; end
 
 switch lower(n)
     
@@ -33,8 +33,14 @@ switch lower(n)
         
         % rescale
         %------------------------------------------------------------------
-        d     = spm_vec(y);
-        scale = std(d(~isnan(d)));
-        scale = (10^n)^-round(log10(scale)/n);
-        y     = spm_unvec(d*scale,y);
+        if isnumeric(y)
+            scale = max(max(max(abs(y))))/8;
+            scale = (10^n)^-round(log10(scale)/n);
+            y     = y*scale;
+        else
+            d     = spm_vec(y);
+            scale = max(abs(d))/8;
+            scale = (10^n)^-round(log10(scale)/n);
+            y     = spm_unvec(d*scale,y);
+        end
 end
