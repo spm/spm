@@ -28,7 +28,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_fp_cmc_tfm.m 6112 2014-07-21 09:39:53Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -41,26 +41,32 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 %   x(:,7) - voltage     (deep pyramidal cells)
 %   x(:,8) - conductance (deep pyramidal cells)
 %--------------------------------------------------------------------------
+persistent iG nP
+if isempty(iG)
+    iG  = spm_fieldindices(P,'G');
+    nP  = spm_length(P);
+end
  
 % get dimensions and configure state variables
 %--------------------------------------------------------------------------
-f  = spm_unvec(zeros(size(P)),M.pE);  % flow of parameters
-x  = spm_unvec(x,M.x);                % neuronal states
-P  = spm_unvec(P,M.pE);               % neuronal parameters
+f  = zeros(nP,1);                          % flow
+dG = zeros(size(P.G));                     % change in parameters
+x  = spm_unvec(x,M.x);                     % neuronal states
 
 
 % neuronal populations with Voltage-dependent connectivity
 %--------------------------------------------------------------------------
-A        = exp(32*exp(P.E(:,1)).*x(:,3));     % NMDA
-B        = 4*exp(P.F(:,1));                   % ddecay
-f.G(:,1) = (A - 1).*(1 - P.G(:,1))  - B.*P.G(:,1);
+i  = [3 5];
+a  = [32 8];                               % potentiation
+b  = [2 16];                               % decay
 
-
-% f.G(:,1) = exp(32*exp(P.E(:,1)).*x(:,3)) - 1 - 4*exp(P.F(:,1)).*P.G(:,1);
-% f.G(:,2) = exp( 8*exp(P.E(:,2)).*x(:,5)) - 1 - 4*exp(P.F(:,2)).*P.G(:,2);
-
-% vectorise
+% NMDA-like Voltage-dependent chnegs i synaptic efficacy
 %--------------------------------------------------------------------------
-f        = spm_vec(f);
+for j = 1:size(P.E,2)
+    A       = exp(a(j)*exp(P.E(:,j)).*x(:,i(j))) - 1;
+    dG(:,j) = A.*(     exp(P.F(:,j))/2 - P.G(:,j)) - ....
+                       b(j)*(P.G(:,j)- M.Q.G(:,j));
+end
 
+f(iG) = dG(:);
 

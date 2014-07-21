@@ -13,6 +13,7 @@ function DCM = spm_dcm_tfm(DCM)
 %       C: [nr x 1 double]
 %
 %   options.Nmodes       - number of spatial modes
+%   options.h            - order of (DCT) detrending
 %   options.Tdcm         - [start end] time window in ms
 %   options.Fdcm         - [start end] Frequency window in Hz
 %   options.D            - time bin decimation       (usually 1 or 2)
@@ -49,7 +50,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 5210 2013-01-25 15:31:46Z guillaume $
+% $Id: spm_dcm_tfm.m 6112 2014-07-21 09:39:53Z karl $
  
  
 % check options
@@ -65,6 +66,8 @@ try, name  = DCM.name;            catch, DCM.name = name;     end
 try, Nm    = DCM.options.Nmodes;  catch, Nm       = 8;        end
 try, onset = DCM.options.onset;   catch, onset    = 60;       end
 try, dur   = DCM.options.dur;     catch, dur      = 16;       end
+try, h     = DCM.options.h;       catch, h        = 2;       end
+
  
 % Design model and exogenous inputs
 %==========================================================================
@@ -73,31 +76,28 @@ if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
  
 % Spatial model
 %==========================================================================
-model                = 'CMM';
+model                = 'TFM';
 DCM.options.Nmodes   = Nm;
 DCM.options.model    = model;
 DCM.M.dipfit.model   = model;
 DCM.options.Nmax     = 32;
-DCM.options.h        = 2;
+DCM.options.h        = h;
  
 % Get posterior from event-related responses
 %==========================================================================
-ERP                  = DCM;
-ERP.options.analysis = 'ERP';
+ERP        = DCM;
 [pth name] = fileparts(DCM.name);
 ERP.name   = fullfile(pth,[name '_erp']);
 ERP        = spm_dcm_erp(ERP);
-clear spm_erp_L
- 
+
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
-DCM      = spm_dcm_erp_dipfit(DCM,1);
-DCM.M.U  = spm_dcm_eeg_channelmodes(DCM.M.dipfit,Nm);
- 
-% get data-features (in reduced eigen-space)
-%--------------------------------------------------------------------------
-DCM.xY   = ERP.xY;
-DCM      = spm_dcm_tfm_data(DCM);
+clear functions
+DCM.M.analysis = 'CSD';
+DCM.xY         = ERP.xY;
+DCM.M.dipfit   = ERP.M.dipfit ;
+DCM.M.U        = ERP.M.U;
+DCM            = spm_dcm_tfm_data(DCM);
  
  
 % Use posterior as the prior in a model of induced responses
@@ -108,19 +108,23 @@ DCM      = spm_dcm_tfm_data(DCM);
 pE       = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 pE       = spm_L_priors(DCM.M.dipfit,pE);
 pE       = spm_unvec(spm_vec(ERP.Ep,ERP.Eg),pE);
- 
+pC       = spm_cat(spm_diag({ERP.Cp,ERP.Cg}));
+
+% remove very precise modes
+%--------------------------------------------------------------------------
+[u s]    = spm_svd(pC);
+i        = 1:min(size(s,1),64);
+pC       = u(:,i)*s(i,i)*u(:,i)';
  
 % prior moments on parameters (spectral)
 %--------------------------------------------------------------------------
-[pE,pC]  = spm_ssr_priors(pE);
-pC       = diag(spm_vec(pC));
-pC       = spm_cat(spm_diag({ERP.Cp,ERP.Cg,pC}));
- 
+[pE,spC] = spm_ssr_priors(pE);
+spC      = diag(spm_vec(spC));
+pC       = spm_cat(spm_diag({pC,spC}));
  
 % initial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f]    = spm_dcm_x_neural(pE,model);
- 
+[x,f,h]  = spm_dcm_x_neural(pE,model);
  
 % orders and model
 %==========================================================================
@@ -133,13 +137,14 @@ nu       = size(pE.C,2);
 DCM.M.IS  = 'spm_csd_int';
 DCM.M.g   = 'spm_gx_erp';
 DCM.M.f   = f;
+DCM.M.h   = h;
 DCM.M.x   = x;
 DCM.M.n   = nx;
 DCM.M.m   = nu;
 DCM.M.pE  = pE;
 DCM.M.pC  = pC;
-DCM.M.hE  = 8;
-DCM.M.hC  = exp(-4);
+DCM.M.hE  = 6;
+DCM.M.hC  = 1/128;
 DCM.M.ns  = length(DCM.xY.pst);
  
 % solve for steady state
@@ -163,8 +168,9 @@ Nt        = length(DCM.xY.csd);                 % number of trial types
 DCM.M.l   = Nm;
 DCM.M.Hz  = DCM.xY.Hz;
 DCM.M.Rft = DCM.xY.Rft;
- 
- 
+DCM.M.pst = DCM.xY.pst;
+
+
 % precision of noise
 %--------------------------------------------------------------------------
 Qt        = spm_Q(1/2,Nb,1);
@@ -176,9 +182,9 @@ DCM.xY.X0 = sparse(Nt*Nm*Nm*Nf*Nb,0);
 % Inspect stability
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 if 0
-    [csd,d0,d0,d0,d0,d0,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
-    xY.erp = erp;
-    xY.csd = csd;
+    [csd,erp] = spm_csd_int(pE,DCM.M,DCM.xU);
+    xY.erp    = erp;
+    xY.csd    = csd;
     spm_figure('GetWin','predicted (a priori)')
     spm_dcm_tfm_response(    xY,DCM.xY.pst,DCM.xY.Hz)
     spm_figure('GetWin','empirical time-frequency responses')
@@ -190,6 +196,7 @@ end
  
 % Variational Laplace: model inversion
 %==========================================================================
+DCM.M.Nmax   = 32;
 [Qp,Cp,Eh,F] = spm_nlsi_GN(DCM.M,DCM.xU,DCM.xY);
  
  
@@ -208,8 +215,7 @@ warning('on', 'SPM:negativeVariance');
  
 % predictions (csd and erp) - sensor space
 %==========================================================================
-[csd,Hz,pst,x,tfm,dtf,erp] = spm_csd_int(Qp,DCM.M,DCM.xU);
- 
+[csd,erp,tfm,dtf,Hz,pst,x] = spm_csd_int(Qp,DCM.M,DCM.xU);
  
 % sensor space
 %--------------------------------------------------------------------------
@@ -234,12 +240,15 @@ DCM.ID  = ID;                   % data ID
 %==========================================================================
 M             = rmfield(DCM.M,'U');
 M.dipfit.type = 'LFP';
+clear functions
  
 Qp.L    = ones(1,Ns);           % set virtual electrode gain to unity
 Qp.b    = Qp.b - 32;            % and suppress non-specific and
 Qp.c    = Qp.c - 32;            % specific channel noise
- 
-[csd,w,t,x,tfm,dtf,erp] = spm_csd_int(Qp,M,DCM.xU);
+M.pE    = Qp;
+M.l     = Ns;
+
+[csd,erp,tfm,dtf] = spm_csd_int(Qp,M,DCM.xU);
  
 % source space
 %--------------------------------------------------------------------------
@@ -252,5 +261,6 @@ DCM.ERP = erp;                  % conditional evoked responses
 % and save
 %--------------------------------------------------------------------------
 DCM.options.Nmodes = Nm;
+DCM.options.h      = h;
  
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));

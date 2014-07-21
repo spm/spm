@@ -32,7 +32,7 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 5966 2014-04-25 14:37:59Z karl $
+% $Id: spm_induced_demo.m 6112 2014-07-21 09:39:53Z karl $
  
  
 % Model specification
@@ -97,7 +97,7 @@ M.x   = spm_dcm_neural_x(pE,M);
 % Integrate system to see response (time-frequency)
 %==========================================================================
  
-% remove M.u to invoke exogenous inputs
+% invoke exogenous inputs
 %--------------------------------------------------------------------------
 N     = 128;
 U.dt  = 4/1024;
@@ -114,9 +114,9 @@ U.u(:,1) = spm_erp_u(pst,pE,M);
  
 % integrate generative model to simulate a time frequency response
 %--------------------------------------------------------------------------
-[erp,csd,CSD,mtf,w,t,x,dP] = spm_csd_int(pE,M,U);
+[csd,erp,CSD,mtf,w,t,x,dP] = spm_csd_int(pE,M,U);
 
- 
+
 % plot expected responses
 %==========================================================================
 spm_figure('GetWin','Simulated time-frequency responses');
@@ -130,7 +130,8 @@ spm_axis tight
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,2,2)
-plot(pst*1000,x)
+j   = find(kron(sparse(1,[3 5],1,1,8),ones(Ns,1)));
+plot(pst*1000,x(j,:))
 xlabel('peristimulus time (ms)')
 title('Hidden neuronal states','FontSize',16)
 spm_axis tight
@@ -154,6 +155,7 @@ spm_axis tight
 %--------------------------------------------------------------------------
 spm_dcm_tfm_image(CSD{1},pst,w,1)
 
+
 % expected time frequency response
 %--------------------------------------------------------------------------
 spm_figure('GetWin','transfer functions');
@@ -172,8 +174,6 @@ xY.csd = csd;
 spm_dcm_tfm_response(xY,pst,w)
 
 
-
-
 % Integrate system to simulate responses
 %==========================================================================
 spm_figure('GetWin','Simulated trials');
@@ -186,6 +186,7 @@ Gu    = spm_csd_mtf_gu(pE,Hz);
  
 % simulate Nt trials
 %--------------------------------------------------------------------------
+M.analysis = 'ERP';
 Nt    = 8;
 V     = U;
 for j = 1:Nt
@@ -204,7 +205,7 @@ for j = 1:Nt
     plot(pst*1000,D(:,:,j)), hold on
     xlabel('time (s)')
     title('simulated response and ERP','FontSize',16)
-    spm_axis tight,axis square, drawnow
+    spm_axis tight, axis square; drawnow
     
 end
 hold off
@@ -217,9 +218,7 @@ plot(pst*1000,mean(D,3)), hold off
 xlabel('time (s)')
 title('LFP response – expectation','FontSize',16)
 spm_axis tight, axis square
- 
 
- 
 
 % Time frequency response
 %--------------------------------------------------------------------------

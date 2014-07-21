@@ -22,7 +22,7 @@ function DCM = spm_dcm_dem(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_dem.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_dem.m 6112 2014-07-21 09:39:53Z karl $
 
 % check options
 %==========================================================================
@@ -39,9 +39,9 @@ try, onset = DCM.options.onset;  catch, onset     = 60;        end
 try, model = DCM.options.model;  catch, model     = 'DEM';     end
 
 
-% Data and spatial model (use h only for de-trending data)
+% Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_data(DCM,h);
+DCM    = spm_dcm_erp_data(DCM);
 DCM    = spm_dcm_erp_dipfit(DCM);
 xY     = DCM.xY;
 xU     = DCM.xU;
@@ -49,10 +49,10 @@ M      = DCM.M;
 
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.xy);                 % number of trials
+Nt     = length(xY.y);                  % number of trials
 Nr     = size(DCM.Lpos,2);              % number of sources
-Ns     = size(xY.xy{1},1);              % number of time bins
-Nc     = size(xY.xy{1},2);              % number of channels
+Ns     = size(xY.y{1},1);               % number of time bins
+Nc     = size(xY.y{1},2);               % number of channels
 Nx     = size(xU.X,2);                  % number of trial-specific effects
 
 % check the number of modes is greater or equal to the number of sources

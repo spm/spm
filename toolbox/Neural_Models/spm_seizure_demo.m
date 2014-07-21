@@ -14,7 +14,7 @@ function spm_seizure_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_seizure_demo.m 6059 2014-06-19 11:57:31Z vladimir $ 
+% $Id: spm_seizure_demo.m 6112 2014-07-21 09:39:53Z karl $ 
  
 
 % Model specification
@@ -32,7 +32,7 @@ M.dipfit.model = options.model;
 M.dipfit.type  = options.spatial;
 M.dipfit.Nc    = Nc;
 M.dipfit.Ns    = Ns;
-M.Hz           = 1:96;
+M.Hz           = 1:64;
 
  
 % get priors
@@ -143,7 +143,7 @@ U.u   = sparse(N,M.m);
 
 % exogenous input
 %--------------------------------------------------------------------------
-U.u(:,1) = tanh((t - 1)*8)*3/2;
+U.u(:,1) = tanh((t - 1)*8)*1;
 M.W      = inv(diag(sparse(1,1,1,1,M.n) + exp(-32)));
 LFP      = spm_int_sde(pE,M,U);
  
@@ -179,14 +179,14 @@ drawnow
 %==========================================================================
 M.f       = M.h;
 M         = rmfield(M,'h');
-[erp,csd] = spm_csd_int(pE,M,U);
+csd       = spm_csd_int(pE,M,U);
 
 % predicted time frequency response
 %--------------------------------------------------------------------------
 subplot(4,1,4)
-imagesc(t,w,spm_conv(abs(csd{1}'),4,4));
+imagesc(t,w,abs(csd{1}'));
 title('Predicted response','FontSize',16)
-axis  xy
+axis xy
 xlabel('time (s)')
 ylabel('Hz')
 

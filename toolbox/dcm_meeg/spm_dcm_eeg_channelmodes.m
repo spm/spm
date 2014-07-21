@@ -12,7 +12,7 @@ function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 % prior covariance; assuming independent source activity in the specified 
 % spatial (forward) model. 
 %
-% if xY is specifed it CVA (a generalised eigensolution) will be used to 
+% if xY is specifed a CVA (a generalised eigensolution) will be used to 
 % find the spatial modes that are best by the spatial model
 %
 % U is scaled to ensure trace(U'*L*L'*U) = Nm
@@ -20,7 +20,7 @@ function [U] = spm_dcm_eeg_channelmodes(dipfit,Nm,xY)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_eeg_channelmodes.m 5558 2013-06-15 20:57:08Z karl $
+% $Id: spm_dcm_eeg_channelmodes.m 6112 2014-07-21 09:39:53Z karl $
  
 % number of channels and modes
 %--------------------------------------------------------------------------
@@ -39,26 +39,18 @@ L     = spm_cat(dGdg(find(spm_vec(pC))));
 %--------------------------------------------------------------------------
 [U S] = spm_svd(L*L',exp(-8));
 S     = diag(S);
-    
-if nargin > 2
-    
-    % generalised eigenmode reduction
-    %----------------------------------------------------------------------
-    Ns    = size(xY.xy{1},1);                      % number of time bins
-    X0    = xY.X0;
-    T0    = speye(Ns) - X0*((X0'*X0)\X0');
 
+if nargin > 2
     
     % reduce lead field to 32 or less d.f.
     %----------------------------------------------------------------------
     n    = min(size(U,2),32);
     L    = U(:,1:n)*diag(sqrt(S(1:n)));
     
-    
     % response variable
     %----------------------------------------------------------------------
     for i = 1:length(xY.y)
-        Y{i} = T0*xY.y{i};
+        Y{i} = xY.y{i};
         Y{i} = Y{i}';
     end
     Y     = spm_cat(Y);

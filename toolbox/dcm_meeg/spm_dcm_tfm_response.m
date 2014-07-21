@@ -19,7 +19,7 @@ function spm_dcm_tfm_response(xY,pst,hz,top)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_response.m 6101 2014-07-13 21:34:34Z karl $
+% $Id: spm_dcm_tfm_response.m 6112 2014-07-21 09:39:53Z karl $
  
 % setup and defaults
 %--------------------------------------------------------------------------
@@ -32,17 +32,19 @@ if nargin < 4, top = 1;                   end
 %==========================================================================
 pst   = pst(:)';                                   % pst in ms
 ne    = length(xY.csd);                            % number of event types
-nc    = size(xY.csd{1},3);                         % number of channels
+nc    = size(xY.erp{1},2);                         % number of channels
 bands = kron([8; 13; 32],[1 1]);
 for i = 1:nc
     for e = 1:ne
-        try
+        j = 2*(i - 1)*ne + 2*(e - 1) + top;
+        if j < 8
             % evoked response
             %--------------------------------------------------------------
-            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + top)
+            subplot(4,2,j)
             
             erp = xY.erp{e}(:,i)';
             csd = xY.csd{e}(:,:,i,i)';
+           
             
             spm_plot_ci(erp,mean(abs(csd)),pst)
             str = sprintf('evoked: channel/source %i',i);
@@ -52,10 +54,11 @@ for i = 1:nc
             
             % induced response
             %--------------------------------------------------------------
-            subplot(4,2,2*(i - 1)*ne + 2*(e - 1) + top + 1)
-            
-            imagesc(pst,hz,abs(csd).^2);
-            str = sprintf('induced: condition %i',e);
+            subplot(4,2,j + 1)
+            csd = spm_detrend(abs(csd)')';
+   
+            imagesc(pst,hz,csd);
+            str = sprintf('(adj.) induced: condition %i',e);
             title(str,'FontSize',16)
             xlabel('peristimulus time (ms)')
             ylabel('Hz'), axis xy

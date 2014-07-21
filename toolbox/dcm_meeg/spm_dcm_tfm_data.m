@@ -29,7 +29,7 @@ function DCM = spm_dcm_tfm_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm_data.m 6101 2014-07-13 21:34:34Z karl $
+% $Id: spm_dcm_tfm_data.m 6112 2014-07-21 09:39:53Z karl $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -61,8 +61,16 @@ catch
         end
     end
 end
+
+% options
+%--------------------------------------------------------------------------
+try, DT    = DCM.options.D;      catch, DT    = 1;             end
+try, trial = DCM.options.trials; catch, trial = D.nconditions; end
+try, Rft   = DCM.options.Rft;    catch, Rft   = 8;             end
+try, han   = DCM.options.han;    catch, han   = 0;             end
+try, h     = DCM.options.h;      catch, h     = 1;             end
  
- 
+
 % Modality 
 %--------------------------------------------------------------------------
 if ~isfield(DCM.xY, 'modality')
@@ -107,45 +115,14 @@ end
 Nm          = size(DCM.M.U,2);
 
  
-% options
-%--------------------------------------------------------------------------
-try, DT    = DCM.options.D;      catch, DT    = 1;             end
-try, trial = DCM.options.trials; catch, trial = D.nconditions; end
-try, Rft   = DCM.options.Rft;    catch, Rft   = 4;             end
- 
 % check data are not oversampled (< 4ms)
 %--------------------------------------------------------------------------
 if DT/D.fsample < 0.004
     DT            = ceil(0.004*D.fsample);
     DCM.options.D = DT;
 end
- 
- 
-% get peristimulus times
-%--------------------------------------------------------------------------
-try
-    
-    % time window and bins for modelling
-    %----------------------------------------------------------------------
-    DCM.xY.Time = time(D, [], 'ms');
-    T1          = DCM.options.Tdcm(1);
-    T2          = DCM.options.Tdcm(2);
-    [dummy, T1] = min(abs(DCM.xY.Time - T1));
-    [dummy, T2] = min(abs(DCM.xY.Time - T2));
-    
-    % Time [ms] of down-sampled data
-    %----------------------------------------------------------------------
-    It          = (T1:DT:T2)';               % indices - bins
-    DCM.xY.pst  = DCM.xY.Time(It);           % PST
-    DCM.xY.It   = It;                        % Indices of time bins
-    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
-    Nb          = length(It);                % number of bins
-    
-catch
-    errordlg('Please specify time window');
-    error('')
-end
- 
+
+
 % get frequency range
 %--------------------------------------------------------------------------
 try
@@ -167,10 +144,66 @@ end
 Hz  = fix(Hz1:Hz2);                         % Frequencies
 Nf  = length(Hz);                           % number of frequencies
 Ne  = length(trial);                        % number of ERPs
+
+ 
+% get peristimulus times
+%--------------------------------------------------------------------------
+try
+    % padding for time frequency analysis
+    %----------------------------------------------------------------------
+    Np          = ceil(Rft/min(Hz)*D.fsample/DT/2);
+    
+    % time window and bins for modelling
+    %----------------------------------------------------------------------
+    DCM.xY.Time = time(D, [], 'ms');
+    T1          = DCM.options.Tdcm(1);
+    T2          = DCM.options.Tdcm(2);
+    [dummy, T1] = min(abs(DCM.xY.Time - T1));
+    [dummy, T2] = min(abs(DCM.xY.Time - T2));
+    P1          = T1 - Np*DT;
+    P2          = T2 + Np*DT;
+    
+    % Time [ms] of down-sampled data
+    %----------------------------------------------------------------------
+    It          = (T1:DT:T2)';               % indices - bins
+    Ip          = (P1:DT:P2)';               % indices - bins
+    DCM.xY.pst  = DCM.xY.Time(It);           % PST
+    DCM.xY.It   = It;                        % indices of time bins
+    DCM.xY.dt   = DT/D.fsample;              % sampling in seconds
+    Nb          = length(It);                % number of bins
+    Ns          = length(Ip);                % number of padded samples
+    Ib          = (1:Nb) + Np;               % indices of padded samples
+    
+catch
+    errordlg('Please specify time window');
+    error('')
+end
+
+% confounds - DCT:
+%--------------------------------------------------------------------------
+if h == 0
+    X0 = sparse(Ns,1);
+else
+    X0 = spm_dctmtx(Ns,h);
+end
+R      = speye(Ns) - X0*X0';
+ 
+% hanning (omit second residualization for very long time-series)
+%--------------------------------------------------------------------------
+if han
+    if Ns < 2048
+        R = R*sparse(diag(hanning(Ns)))*R;
+    else
+        R = sparse(diag(hanning(Ns)))*R;
+    end
+end
+ 
  
 % Cross spectral density for each trial type
 %==========================================================================
 cond  = D.condlist;
+erp   = cell(1,Ne);
+csd   = cell(1,Ne);
 for e = 1:Ne;
     
     % trial indices
@@ -185,28 +218,28 @@ for e = 1:Ne;
     % evoked response
     %----------------------------------------------------------------------
     Nt    = length(c);
-    Y     = zeros(Nb,Nm,Nt);
+    Y     = zeros(Nb + 2*Np,Nm,Nt);
     P     = zeros(Nb,Nf,Nm,Nm);
     Q     = zeros(Nb,Nf,Nm,Nm);
     
     for k = 1:Nt
-        Y(:,:,k) = full(double(D(Ic,It,c(k))'*DCM.M.U));
+        Y(:,:,k) = R*D(Ic,Ip,c(k))'*DCM.M.U;
     end
  
     
-    % store
+    % ERP or average
     %----------------------------------------------------------------------
-    erp{e} = mean(Y,3);
+    A = mean(Y,3);
     
     % induced response
     %----------------------------------------------------------------------
     for k = 1:Nt
         
         fprintf('\nevaluating condition %i (trial %i)',e,k)
-        G     = spm_morlet(Y(:,:,k) - erp{e},Hz*DCM.xY.dt,Rft);
+        G     = spm_morlet(Y(:,:,k) - A,Hz*DCM.xY.dt,Rft);
         for i = 1:Nm
             for j = 1:Nm
-                P(:,:,i,j) = (G(:,:,i).*conj(G(:,:,j)));
+                P(:,:,i,j) = (G(Ib,:,i).*conj(G(Ib,:,j)));
             end
         end
         Q = Q + P;
@@ -221,6 +254,7 @@ for e = 1:Ne;
     % store
     %----------------------------------------------------------------------
     csd{e} = Q;
+    erp{e} = A(Ib,:);
     
 end
  
@@ -239,7 +273,6 @@ DCM.xY.U     = DCM.M.U;
 DCM.xY.scale = scale;
 DCM.xY.Hz    = Hz;
 DCM.xY.Rft   = Rft;
-DCM.xY.Hz    = Hz;
  
 return
  

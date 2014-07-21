@@ -14,7 +14,7 @@ function spm_epileptor_demo
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_epileptor_demo.m 6073 2014-06-28 09:14:29Z karl $ 
+% $Id: spm_epileptor_demo.m 6112 2014-07-21 09:39:53Z karl $ 
  
 
 % Model specification
@@ -179,7 +179,7 @@ drawnow
 %==========================================================================
 M.f       = M.h;
 M         = rmfield(M,'h');
-[erp,csd] = spm_csd_int(pE,M,U);
+[csd,erp] = spm_csd_int(pE,M,U);
 
 % predicted time frequency response
 %--------------------------------------------------------------------------

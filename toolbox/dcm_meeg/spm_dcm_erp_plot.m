@@ -33,7 +33,7 @@ function x = spm_dcm_erp_plot(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_plot.m 4186 2011-02-01 20:11:32Z karl $
+% $Id: spm_dcm_erp_plot.m 6112 2014-07-21 09:39:53Z karl $
 
 % check options
 %==========================================================================
@@ -47,12 +47,10 @@ M      = DCM.M;
 % dimensions
 %--------------------------------------------------------------------------
 Nr     = size(DCM.C,1);                 % number of sources
-Nu     = size(DCM.C,2);                 % number of exogenous inputs
-Ns     = size(xY.xy{1},1);              % number of time bins
+Ns     = size(xY.y{1},1);               % number of time bins
 
-% confounds and parameters
+% parameters
 %--------------------------------------------------------------------------
-T0     = speye(Ns) - xY.X0*((xY.X0'*xY.X0)\xY.X0');
 Qp     = DCM.Ep;
 
 % neuronal responses

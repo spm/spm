@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6101 2014-07-13 21:34:34Z karl $
+% $Id: spm_api_erp.m 6112 2014-07-21 09:39:53Z karl $
  
 
 %-Launch GUI
@@ -443,7 +443,7 @@ end
 %--------------------------------------------------------------------------
 handles = reset_Callback(hObject, eventdata, handles);
 try
-    handles.DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
+    handles.DCM  = spm_dcm_erp_data(handles.DCM);
     if isfield(handles.DCM.xY, 'xy')
         spm_dcm_erp_results(handles.DCM, 'Data');
     else
@@ -471,7 +471,7 @@ guidata(hObject,handles);
 function Y_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 try
-    DCM  = spm_dcm_erp_data(handles.DCM,handles.DCM.options.h);
+    DCM  = spm_dcm_erp_data(handles.DCM);
     if isfield(DCM.xY, 'xy')
         spm_dcm_erp_results(DCM, 'Data');
     else

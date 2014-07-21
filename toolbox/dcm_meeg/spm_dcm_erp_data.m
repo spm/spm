@@ -1,8 +1,8 @@
-function DCM = spm_dcm_erp_data(DCM,h)
+function DCM = spm_dcm_erp_data(DCM,ERP)
 % prepares structures for forward model(EEG, MEG and LFP)
-% FORMAT DCM = spm_dcm_erp_data(DCM,h)
+% FORMAT DCM = spm_dcm_erp_data(DCM,ERP)
 % DCM  - DCM structure
-% h    - order of drift terms
+% ERP  - switch to average over trials (default)
 %
 % requires
 %
@@ -11,28 +11,27 @@ function DCM = spm_dcm_erp_data(DCM,h)
 %    DCM.options.Tdcm    - Peri-stimulus time window
 %    DCM.options.D       - Down-sampling
 %    DCM.options.han     - Hanning
+%    DCM.options.h       - Order of (DCT) detrending
 %
 % sets
 %    DCM.xY.modality - 'MEG','EEG' or 'LFP'
 %    DCM.xY.Time     - Time [ms] data
 %    DCM.xY.pst      - Time [ms] of down-sampled data
 %    DCM.xY.dt       - sampling in seconds (s)
-%    DCM.xY.y        - response variable for DCM
-%    DCM.xY.xy       - cell array of trial-specific response {[ns x nc]}
+%    DCM.xY.y        - cell array of trial-specific response {[ns x nc]}
 %    DCM.xY.It       - Indices of (ns) time bins
 %    DCM.xY.Ic       - Indices of (nc) good channels
 %    DCM.xY.name     - names of (nc) channels
 %    DCM.xY.scale    - scalefactor applied to raw data
 %    DCM.xY.coor2D   - 2D coordinates for plotting
- 
-%
+%    DCM.xY.X0       - (DCT) confounds
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 5816 2013-12-23 18:52:56Z karl $
+% $Id: spm_dcm_erp_data.m 6112 2014-07-21 09:39:53Z karl $
  
  
 % Set defaults and Get D filename
@@ -43,10 +42,27 @@ catch
     errordlg('Please specify data and trials');
     error('')
 end
- 
+
+% options
+%========================================================================== 
+
 % order of drift terms
 %--------------------------------------------------------------------------
-try, h; catch, h = 0; end
+if nargin < 2, ERP = 1;                         end
+try, han  = DCM.options.han; catch, han   = 0;  end
+try, h    = DCM.options.h;   catch, h     = 1;  end
+try
+    DT    = DCM.options.D;
+catch
+    errordlg('Please specify down sampling');
+    error('')
+end
+try
+    trial = DCM.options.trials;
+catch
+    errordlg('please specify trials');
+    error('')
+end
  
 % load D
 %--------------------------------------------------------------------------
@@ -82,7 +98,7 @@ end
 if ~isfield(DCM.xY, 'modality')
     [mod, list] = modality(D, 0, 1);
     if isequal(mod, 'Multimodal')
-        qstr    = 'Only one modality can be modelled at a time. Please select.';
+        qstr    = 'Only one modality can be modelled at a time';
         if numel(list) < 4
             
             % Pretty dialog box
@@ -118,27 +134,9 @@ DCM.xY.Ic     = Ic;                       % channel indices
 DCM.xY.Time   = time(D, [], 'ms');        % PST (ms)
 DCM.xY.dt     = 1/D.fsample;              % time bins
 DCM.xY.coor2D = D.coor2D(Ic);             % coordinates (topographic)
-DCM.xY.xy     = {};
  
-% options
-%==========================================================================
-try
-    DT    = DCM.options.D;
-catch
-    errordlg('Please specify down sampling');
-    error('')
-end
-try
-    han   = DCM.options.han;
-catch
-    han   = 0;
-end
-try
-    trial = DCM.options.trials;
-catch
-    errordlg('please specify trials');
-    error('')
-end
+% time window
+%--------------------------------------------------------------------------
 try
  
     % time window and bins for modelling
@@ -160,28 +158,7 @@ catch
     errordlg('Please specify time window');
     error('')
 end
- 
-% get trial averages - ERP
-%--------------------------------------------------------------------------
-cond  = D.condlist;
-for i = 1:length(trial)
- 
-    % trial indices
-    %----------------------------------------------------------------------
-    c     = D.indtrial(cond(trial(i)), 'GOOD');
-    Nt    = length(c);
- 
-    % ERP
-    %----------------------------------------------------------------------
-    Y     = zeros(Ns,Nc);
-    for j = 1:Nt
-        Y = Y + squeeze(D(Ic,It,c(j)))';
-    end
-    DCM.xY.xy{i} = Y/Nt;
-    DCM.xY.nt(i) = Nt;
-end
- 
- 
+
 % confounds - DCT:
 %--------------------------------------------------------------------------
 if h == 0
@@ -195,20 +172,48 @@ R      = speye(Ns) - X0*X0';
 %--------------------------------------------------------------------------
 if han
     if Ns < 2048
-        R  = R*sparse(diag(hanning(Ns)))*R;
+        R = R*sparse(diag(hanning(Ns)))*R;
     else
-        R  = sparse(diag(hanning(Ns)))*R;
+        R = sparse(diag(hanning(Ns)))*R;
     end
 end
  
-% adjust data
+ 
+% get trial averages - ERP
 %--------------------------------------------------------------------------
-for i = 1:length(DCM.xY.xy);
-    DCM.xY.xy{i} = R*DCM.xY.xy{i};
+cond  = D.condlist;
+for i = 1:length(trial)
+ 
+    % trial indices
+    %----------------------------------------------------------------------
+    c            = D.indtrial(cond(trial(i)), 'GOOD');
+    Nt           = length(c);
+    DCM.xY.nt(i) = Nt;
+
+    % ERP
+    %----------------------------------------------------------------------
+    if ERP
+        Y     = zeros(Ns,Nc);
+        for j = 1:Nt
+            Y = Y + R*D(Ic,It,c(j))';
+        end
+        DCM.xY.y{i} = Y/Nt;
+        
+    % all trials
+    %----------------------------------------------------------------------
+    else
+        Y     = zeros(Ns,Nc,Nt);
+        for j = 1:Nt
+            Y(:,:,j) = R*D(Ic,It,c(j))';
+        end
+        DCM.xY.y{i} = Y;
+    end
+    
 end
+ 
  
 % condition units of measurement
 %--------------------------------------------------------------------------
-DCM.xY.y     = DCM.xY.xy;
 DCM.xY.code  = cond(trial);
 DCM.xY.scale = 1;
+DCM.xY.X0    = X0;

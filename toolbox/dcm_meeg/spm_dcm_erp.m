@@ -36,36 +36,41 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 5657 2013-09-26 16:53:40Z karl $
+% $Id: spm_dcm_erp.m 6112 2014-07-21 09:39:53Z karl $
 
-% check options
+% check options (and clear persistent variables)
 %==========================================================================
 drawnow
-clear spm_erp_L
+clear functions
 name = sprintf('DCM_%s',date);
-DCM.options.analysis  = 'ERP';
 
 % Filename and options
 %--------------------------------------------------------------------------
-try, DCM.name;                      catch, DCM.name  = name;        end
-try, DCM.xU;                        catch, DCM.xU.X  = sparse(1,0); end
-try, h     = DCM.options.h;         catch, h         = 1;           end
-try, Nm    = DCM.options.Nmodes;    catch, Nm        = 8;           end
-try, onset = DCM.options.onset;     catch, onset     = 60;          end
-try, dur   = DCM.options.dur;       catch, dur       = 16;          end
-try, model = DCM.options.model;     catch, model     = 'NMM';       end
-try, lock  = DCM.options.lock;      catch, lock      = 0;           end
-try, multC = DCM.options.multiC;    catch, multC     = 0;           end
-try, symm  = DCM.options.symmetry;  catch, symm      = 0;           end
-try, Nmax  = DCM.options.Nmax;      catch, Nmax      = 64;          end
-try, CVA   = DCM.options.CVA;       catch, CVA       = 0;           end
+try, DCM.name;                        catch, DCM.name  = name;        end
+try, DCM.xU;                          catch, DCM.xU.X  = sparse(1,0); end
+try, Nm       = DCM.options.Nmodes;   catch, Nm        = 8;           end
+try, onset    = DCM.options.onset;    catch, onset     = 60;          end
+try, dur      = DCM.options.dur;      catch, dur       = 16;          end
+try, model    = DCM.options.model;    catch, model     = 'NMM';       end
+try, analysis = DCM.options.analysis; catch, analysis  = 'ERP';       end
+try, lock     = DCM.options.lock;     catch, lock      = 0;           end
+try, multC    = DCM.options.multiC;   catch, multC     = 0;           end
+try, symm     = DCM.options.symmetry; catch, symm      = 0;           end
+try, Nmax     = DCM.options.Nmax;     catch, Nmax      = 64;          end
+try, CVA      = DCM.options.CVA;      catch, CVA       = 0;           end
 
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
+switch analysis
+    case('TFM')
+        IS = 'spm_csd_int';
+        DCM.M.analysis = 'ERP';
+    otherwise
+        IS = 'spm_gen_erp';
+end
 
-
-% Data and spatial model (use h only for de-trending data)
+% Data and spatial model
 %==========================================================================
-DCM    = spm_dcm_erp_data(DCM,h);
+DCM    = spm_dcm_erp_data(DCM);
 DCM    = spm_dcm_erp_dipfit(DCM,1);
 xY     = DCM.xY;
 xU     = DCM.xU;
@@ -73,26 +78,20 @@ M      = DCM.M;
 
 % dimensions
 %--------------------------------------------------------------------------
-Nt     = length(xY.xy);                 % number of trials
+Nt     = length(xY.y);                  % number of trials
 Nr     = size(DCM.C,1);                 % number of sources
 Nu     = size(DCM.C,2);                 % number of exogenous inputs
-Ns     = size(xY.xy{1},1);              % number of time bins
-Nc     = size(xY.xy{1},2);              % number of channels
+Ns     = size(xY.y{1},1);               % number of time bins
+Nc     = size(xY.y{1},2);               % number of channels
 Nx     = size(xU.X,2);                  % number of trial-specific effects
 
 % check the number of modes is greater or equal to the number of sources
 %--------------------------------------------------------------------------
 Nm     = max(Nm,Nr);
 
-% confounds - DCT: (force a parameter per channel = activity under x = 0)
+% confounds - residual forming matrix
 %--------------------------------------------------------------------------
-if h == 0
-    X0 = zeros(Ns,h);
-else
-    X0 = spm_dctmtx(Ns,h);
-end
-T0     = speye(Ns) - X0*((X0'*X0)\X0');
-xY.X0  = X0;
+T0     = speye(Ns) - xY.X0*((xY.X0'*xY.X0)\xY.X0');
 
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
@@ -151,8 +150,7 @@ if symm, gC = spm_dcm_symm(gC,gE);   end
 % hyperpriors (assuming a high signal to noise)
 %--------------------------------------------------------------------------
 hE      = 8;
-hC      = exp(-8);
-
+hC      = 1/128;
 
 % check for previous priors
 %--------------------------------------------------------------------------
@@ -193,12 +191,13 @@ xY.scale = xY.scale/scale;
 
 % intial states and equations of motion
 %--------------------------------------------------------------------------
-[x,f]  = spm_dcm_x_neural(pE,model);
+[x,f,h] = spm_dcm_x_neural(pE,model);
 
-M.IS   = 'spm_gen_erp';
 M.FS   = 'spm_fy_erp';
 M.G    = 'spm_lx_erp';
+M.IS   = IS;
 M.f    = f;
+M.h    = h;
 M.x    = x;
 M.pE   = pE;
 M.pC   = pC;
@@ -280,14 +279,13 @@ DCM.F  = F;                    % Laplace log evidence
 DCM.L  = LE;                   % Laplace log evidence components
 DCM.ID = ID;                   % data ID
 
-
-DCM.options.h      = h;
-DCM.options.Nmodes = size(M.U,2);
-DCM.options.onset  = onset;
-DCM.options.dur    = dur;
-DCM.options.model  = model;
-DCM.options.lock   = lock;
-DCM.options.symm   = symm;
+DCM.options.Nmodes   = size(M.U,2);
+DCM.options.onset    = onset;
+DCM.options.dur      = dur;
+DCM.options.model    = model;
+DCM.options.lock     = lock;
+DCM.options.symm     = symm;
+DCM.options.analysis = 'ERP';
 
 
 % store estimates in D
@@ -383,9 +381,5 @@ end
 
 % and save
 %--------------------------------------------------------------------------
-try
-    save(DCM.name,'DCM', spm_get_defaults('mat.format'));
-catch
-    save(name,    'DCM', spm_get_defaults('mat.format'));
-end
-assignin('base',  'DCM',DCM)
+save(DCM.name,  'DCM', spm_get_defaults('mat.format'));
+assignin('base','DCM',DCM)

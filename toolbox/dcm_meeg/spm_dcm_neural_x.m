@@ -10,9 +10,9 @@ function [x] = spm_dcm_neural_x(P,M)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_neural_x.m 5908 2014-03-05 20:31:57Z karl $
+% $Id: spm_dcm_neural_x.m 6112 2014-07-21 09:39:53Z karl $
 
-switch lower(M.f)
+switch lower(char(M.f))
     
     % conductance based models
     %----------------------------------------------------------------------

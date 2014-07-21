@@ -17,7 +17,7 @@ function spm_dcm_estimate_group(DCMs, DD, P, pE, pC, feedback)
 % Copyright (C) 2011-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_dcm_estimate_group.m 5524 2013-05-30 12:55:31Z guillaume $
+% $Id: spm_dcm_estimate_group.m 6112 2014-07-21 09:39:53Z karl $
 
 
 if nargin == 0
@@ -80,14 +80,10 @@ for i = 1:size(DCMs, 1)
         end
         
         
-        DCM.xY.Dfile = fullfile(D.path, D.fname);
-        
-        DCM  = spm_dcm_erp_data(DCM, DCM.options.h);
-        
-        [p, f] = fileparts(DCM.name);
-        
-        DCM.name = fullfile(pwd, [f '_' D.fname]);
-        
+        DCM.xY.Dfile  = fullfile(D.path, D.fname);
+        DCM           = spm_dcm_erp_data(DCM);
+        [p, f]        = fileparts(DCM.name);
+        DCM.name      = fullfile(pwd, [f '_' D.fname]);
         DCM.M.nograph = ~feedback;
         
         % invert and save

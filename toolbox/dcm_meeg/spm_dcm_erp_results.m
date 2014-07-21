@@ -30,7 +30,7 @@ function [DCM] = spm_dcm_erp_results(DCM,Action,fig)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_results.m 5409 2013-04-14 22:15:11Z karl $
+% $Id: spm_dcm_erp_results.m 6112 2014-07-21 09:39:53Z karl $
 
 
 % get Action if necessary
@@ -66,9 +66,9 @@ clf
 % trial data
 %--------------------------------------------------------------------------
 xY  = DCM.xY;                   % data
-nt  = length(xY.xy);            % Nr trial types
-ne  = size(xY.xy{1},2);         % Nr electrodes
-nb  = size(xY.xy{1},1);         % Nr time bins
+nt  = length(xY.y);             % Nr trial types
+ne  = size(xY.y{1},2);          % Nr electrodes
+nb  = size(xY.y{1},1);          % Nr time bins
 t   = xY.pst;                   % PST
 
 % plot data
@@ -91,7 +91,7 @@ switch(lower(Action))
                 % plot data
                 %----------------------------------------------------------
                 subplot(nt,2,(i - 1)*2 + 1)
-                plot(t,R*xY.xy{i})
+                plot(t,R*xY.y{i})
                 xlabel('time (ms)')
                 try
                     title(sprintf('Observed response (code:%i)',xY.code(i)))
@@ -106,7 +106,7 @@ switch(lower(Action))
                 % image data
                 %----------------------------------------------------------
                 subplot(nt,2,(i - 1)*2 + 2)
-                imagesc([1:ne],t,R*xY.xy{i})
+                imagesc([1:ne],t,R*xY.y{i})
                 xlabel('channels');ylabel('peri-stimulus time (ms)')
                 axis square
                 try

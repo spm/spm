@@ -35,7 +35,7 @@ function [y,w,s,g] = spm_csd_mtf(P,M,U)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_mtf.m 6030 2014-05-31 13:09:24Z karl $
+% $Id: spm_csd_mtf.m 6112 2014-07-21 09:39:53Z karl $
 
 
 
@@ -78,6 +78,7 @@ if isfield(M,'g')
     [Gu,Gs,Gn] = spm_csd_mtf_gu(P,M.Hz);
 else
     Gu         = spm_csd_mtf_gu(P,M.Hz);
+    nc         = size(Gu,2);
 end
 
 

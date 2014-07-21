@@ -1,6 +1,7 @@
-function [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
+function [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % Time frequency response of a neural mass model
-% FORMAT [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
+% FORMAT [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
+%        ERP = spm_csd_int(P,M,U)
 %
 % P - parameters
 % M - neural mass model structure
@@ -25,11 +26,13 @@ function [ERP,CSD,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % a standard wavelet transform. In other words, this routine generates
 % predictions of data features based upon a wavelet transform
 % characterisation of induced responses.
+%
+% If M.analysis = 'ERP' then only the ERP is evaluated
 %__________________________________________________________________________
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 5975 2014-05-07 18:07:42Z karl $
+% $Id: spm_csd_int.m 6112 2014-07-21 09:39:53Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -39,18 +42,28 @@ if nargin < 3
     U.u  = sparse(1,M.m);
     U.X  = sparse(1,0);
 end
+try, analysis = M.analysis; catch, analysis = 'CSD'; end
+if strcmp(analysis,'CSD')
+    OPT = 1;
+else
+    OPT = 0;
+end
 
-
-% check function format
+% euations of motion
 %--------------------------------------------------------------------------
-f   = fcnchk(M.f);
+if ~isfield(M,'g'), M.g = @(x,u,P,M) x; end
+if ~isfield(M,'h'), M.h = @(x,u,P,M) 0; end
+
+M.f = spm_funcheck(M.f);
+M.g = spm_funcheck(M.g);
+M.h = spm_funcheck(M.h);
 
 % check input function  u = f(t,P,M)
 %--------------------------------------------------------------------------
-try, fu  = M.fu;    catch, fu  = 'spm_erp_u'; end
-try, ns  = M.ns;    catch, ns  = 128;         end
-try, Rft = M.Rft;   catch, Rft = 4;           end
-try, dt  = U.dt;    catch, dt  = 1/256;       end
+try, fu   = M.fu;    catch, fu    = 'spm_erp_u'; end
+try, ns   = M.ns;    catch, ns    = 128;         end
+try, wnum = M.wnum;  catch, wnum  = 8;           end
+try, dt   = U.dt;    catch, dt    = 1/256;       end
 
 
 % within-trial (exogenous) inputs
@@ -81,11 +94,12 @@ end
 %==========================================================================
 nu    = length(P.A{1});
 nx    = M.n;
-
-% paramter update eqation
-%--------------------------------------------------------------------------
-if isfield(M,'h'), h = spm_funcheck(M.h);  end
-
+nc    = size(X,1);
+dP    = cell(1,nc);
+mtf   = cell(1,nc);
+csd   = cell(1,nc);
+CSD   = cell(1,nc);
+ERP   = cell(1,nc);
 
 % cycle over trials or conditions
 %--------------------------------------------------------------------------
@@ -93,12 +107,12 @@ for c = 1:size(X,1)
     
     % condition-specific parameters
     %----------------------------------------------------------------------
-    Q   = spm_gen_Q(P,X(c,:));
+    Q = spm_gen_Q(P,X(c,:));
     
     % initialise hidden states
     %----------------------------------------------------------------------
-    x   = spm_vec(spm_dcm_neural_x(Q,M));
-    
+    x = spm_vec(spm_dcm_neural_x(Q,M));
+        
     % remove state (X) and input (Y) dependent parameter from Q
     %----------------------------------------------------------------------
     if isfield(Q,'X'), Q = rmfield(Q,'X'); end
@@ -106,31 +120,37 @@ for c = 1:size(X,1)
     
     
     % get local linear operator LL and delay operator D
-    %==================================================================
-    if nargout(f) >= 3
-        [f0,dfdx,D] = f(x(:,1),u(:,1),Q,M);
+    %======================================================================
+    if nargout(M.f) >= 3
+        [f0,dfdx,D] = M.f(x(:,1),u(:,1),Q,M);
         
-    elseif nargout(f) == 2
-        [f0,dfdx]   = f(x(:,1),u(:,1),Q,M);
+    elseif nargout(M.f) == 2
+        [f0,dfdx]   = M.f(x(:,1),u(:,1),Q,M);
         D           = 1;
         
     else
-        dfdx        = spm_diff(f,x(:,1),u(:,1),Q,M,1);
+        dfdx        = spm_diff(M.f,x(:,1),u(:,1),Q,M,1);
         D           = 1;
     end
     
+    % save Delay operator in M to speed computations
+    %----------------------------------------------------------------------
+    M.D   = D;
+    
     % get local linear (Lie) operator L
-    %------------------------------------------------------------------
+    %----------------------------------------------------------------------
     p     = max(abs(real(eig(full(dfdx)))));
     N     = ceil(max(1,dt*p*2));
     L     = (spm_expm(dt*D*dfdx/N) - speye(nx,nx))*spm_inv(dfdx);
     
     % cycle over time - expanding around expected states and input
     %======================================================================
-    dQ    = spm_vec(Q)*0;
-    dU    = dQ;
-    dX    = dQ;
-    dP{c} = dQ;
+    M.Q   = Q;
+    R     = Q;
+    Q     = spm_vec(Q);
+    dR    = zeros(size(Q));
+    dX    = dR;
+    dU    = dR;
     for i = 1:length(t)
         
         % hidden states
@@ -140,19 +160,22 @@ for c = 1:size(X,1)
         
         % state-dependent parameters (and plasticity)
         %==================================================================
-        if isfield(P,'X'), dU  = P.X*u(:,i);                      end
-        if isfield(P,'Y'), dX  = P.Y*x(:,i);                      end
-        if isfield(M,'h'), dQ  = dQ + h(x(:,i),u(:,i),dQ,M)*U.dt; end
+        if isfield(P,'X'), dU  = P.X*u(:,i);                       end
+        if isfield(P,'Y'), dX  = P.Y*x(:,i);                       end
+        if isfield(M,'h'), dR  = dR + M.h(x(:,i),u(:,i),R,M)*U.dt; end
         
-        % update
+        % update and save it necessary
         %------------------------------------------------------------------
-        dP{c}(:,i) = dQ + dU + dX;
-        R          = spm_unvec(spm_vec(Q) + dP{c}(:,i),Q);
+        dQ = dR + dU + dX;
+        R  = spm_unvec(Q + dQ,R);
         
+        if nargout > 7
+            dP{c}(:,i) = dQ;
+        end
         
         % compute complex cross spectral density
         %==================================================================
-        if nargout > 1
+        if OPT
             
             % add exogenous input and expand around current states
             %--------------------------------------------------------------
@@ -180,20 +203,22 @@ for c = 1:size(X,1)
         % update expected hidden states
         %------------------------------------------------------------------
         for j = 1:N
-            x(:,i) = x(:,i) + L*f(x(:,i),u(:,i),R,M);
+            x(:,i) = x(:,i) + L*M.f(x(:,i),u(:,i),R,M);
         end
         
         % and get ERP
         %------------------------------------------------------------------
-        erp(:,i)  = feval(M.g,x(:,i),u(:,i),R,M);
+        erp(:,i)    = M.g(x(:,i),u(:,i),R,M);
         
     end
     
     % expected responses (under wavelet transforms)
     %----------------------------------------------------------------------
-    ERP{c}  = erp';
-    if nargout > 1
-        CSD{c}  = spm_morlet_conv(csd{c},w,dt);
+    ERP{c} = erp';
+    if OPT
+        CSD{c} = spm_morlet_conv(csd{c},w,dt,wnum);
+    else
+        CSD{c} = ERP{c};
     end
     
 end

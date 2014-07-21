@@ -38,7 +38,7 @@ function x = spm_dcm_erp_sensitivity(DCM,C)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp_sensitivity.m 4814 2012-07-30 19:56:05Z karl $
+% $Id: spm_dcm_erp_sensitivity.m 6112 2014-07-21 09:39:53Z karl $
 
 % check options
 %==========================================================================
@@ -62,7 +62,7 @@ end
 % dimensions
 %--------------------------------------------------------------------------
 Nr     = size(DCM.C,1);                 % number of sources
-Ns     = size(xY.xy{1},1);              % number of time bins
+Ns     = size(xY.y{1},1);               % number of time bins
 
 % confounds and parameters
 %--------------------------------------------------------------------------
