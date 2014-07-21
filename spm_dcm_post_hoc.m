@@ -1,9 +1,13 @@
-function DCM = spm_dcm_post_hoc(P,fun)
+function DCM = spm_dcm_post_hoc(P,fun,varargin)
 % Post hoc optimisation of DCMs (under the Laplace approximation)
-% FORMAT DCM = spm_dcm_post_hoc(P,[fun])
+% FORMAT DCM = spm_dcm_post_hoc(P,fun,field,field,...)
 %
 % P         - character/cell array of DCM filenames
-%           - or cell array of DCM structures
+%           - or cell array of DCM structures; where
+%  DCM.M.pE - prior expectation (with parameters in pE.A, pE.B and pE.C)
+%  DCM.M.pC - prior covariance
+%  DCM.Ep   - posterior expectations
+%  DCM.Cp   - posterior covariance
 %
 % fun       - optional family definition function: k = fun(A,B,C)
 %             k = 1,2,...,K for K families or proper subsets of a partition
@@ -16,6 +20,10 @@ function DCM = spm_dcm_post_hoc(P,fun)
 %             function or script. NB: Model posteriors over families with
 %             and without free parameters (in A,B,C and D) are evaluated
 %             automatically and saved in DCM_BPA (DCM.Pp)
+%
+% field     - the field nsmes of the parameters in the structure pE and Ep 
+%             that are to be inlcudied in Baysian model reduction.
+%             The default is the cell array 'A','B','C'
 %
 %--------------------------------------------------------------------------
 % This routine searches over all possible reduced models of a full model
@@ -62,8 +70,12 @@ function DCM = spm_dcm_post_hoc(P,fun)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc.m 5900 2014-02-27 21:54:51Z karl $
+% $Id: spm_dcm_post_hoc.m 6111 2014-07-21 09:37:39Z karl $
 
+
+% number of parameters to consider before invoking greedy search
+%--------------------------------------------------------------------------
+nmax = 8;
 
 % Get filenames
 %--------------------------------------------------------------------------
@@ -80,6 +92,15 @@ TOL = exp(-16);
 % Check family definition functions
 %--------------------------------------------------------------------------
 if nargin < 2; fun = {}; Pf = 0; end
+if ~numel(fun); Pf = 0;          end
+
+% Check fields of parameter stucture
+%--------------------------------------------------------------------------
+if nargin < 3
+    field = {'A','B','C'};
+else
+    field = varargin;
+end
 
 %-Check models are compatible in terms of their prior variances
 %==========================================================================
@@ -114,14 +135,14 @@ while GS
     
     % Find free coupling parameters
     %----------------------------------------------------------------------
-    k = spm_fieldindices(DCM.Ep,'A','B','C');
+    k = spm_fieldindices(DCM.Ep,field{:});
     k = k(C(k));
     nparam = length(k);
     
     
     % If there are too many find those with the least evidence
     %----------------------------------------------------------------------
-    if nparam > 16
+    if nparam > nmax
         
         % Loop through DCMs and free parameters and get log-evidences
         %------------------------------------------------------------------
@@ -281,7 +302,6 @@ if ~isempty(fun)
         Pn     = full(C);
         Pn(K(i,:)) = 0;
         Pn     = spm_unvec(Pn,pE);
-        
         try
             Kf(i)     = fun(Pn.A,Pn.B,Pn.C);
         catch
@@ -335,7 +355,7 @@ for j = 1:N
     
     % Get posterior of selected model - rC
     %----------------------------------------------------------------------
-    [F, Ep, Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,rC);
+    [F,Ep,Cp] = spm_log_evidence_reduce(qE,qC,pE,pC,pE,rC);
     
     % Bayesian parameter average (for full and reduced selected model)
     %----------------------------------------------------------------------
@@ -439,7 +459,7 @@ axis square
 a   = axis;
 
 subplot(3,2,4)
-spm_plot_ci(Ep(i),Cq(i,i))
+spm_plot_ci(Ep(i),abs(Cq(i,i)))
 title('MAP connections (reduced)','FontSize',16)
 axis square
 axis(a)
@@ -476,15 +496,20 @@ end
 
 % Show coupling matrices
 %--------------------------------------------------------------------------
-if isnumeric(Eq.A) && ~nargout
+if ~nargout && numel(field) == 3;
+    
     spm_figure('Getwin','Bayesian parameter average (selected model)'); clf
     spm_dcm_fmri_image(Eq)
     
     spm_figure('Getwin','Model posterior (over parameters)'); clf
     spm_dcm_fmri_image(Pk)
+
 end
 
+% illustrate family-wise inference
+%--------------------------------------------------------------------------
 if ~isempty(fun) && ~nargout
+    
     spm_figure('Getwin','Model posterior (over families)'); clf
     subplot(2,1,1)
     bar(Pf)
