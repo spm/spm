@@ -12,9 +12,11 @@ function [x,f,h] = spm_dcm_x_neural(P,model)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_x_neural.m 6045 2014-06-14 15:27:15Z karl $
+% $Id: spm_dcm_x_neural.m 6113 2014-07-21 09:41:03Z karl $
 
-
+% paramteric state equation
+%--------------------------------------------------------------------------
+h  = [];
 
 % initial state and equation
 %--------------------------------------------------------------------------
