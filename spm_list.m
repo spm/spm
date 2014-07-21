@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 5969 2014-05-01 14:37:22Z guillaume $
+% $Id: spm_list.m 6114 2014-07-21 18:35:11Z guillaume $
 
 
 %==========================================================================
@@ -914,7 +914,7 @@ case 'table'                                                        %-Table
             fprintf(fid,fmt,TabDat.dat{i,:});
         end
         fclose(fid);
-        if nargin == 2, open(tmpfile); end
+        if nargin == 2, open(ofile); end
     
     %======================================================================
     case 'setcoords'                                    %-Coordinate change
