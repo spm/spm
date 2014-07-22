@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6115 2014-07-22 08:59:31Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6116 2014-07-22 15:48:30Z vladimir $
 
 
-SVNrev = '$Rev: 6115 $';
+SVNrev = '$Rev: 6116 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -283,8 +283,16 @@ if ~isempty(U)
     
     Xu = Xu((1+pad):end, :);
     
-    X(:, (nc*nr+1):((nc+ncr)*nr)) = Xu;
+    X(:, (nc*nr+1):((nc+ncr)*nr)) = Xu*SPM.xBF.dt;
 end
+
+SPM.xX.X = X./SPM.xBF.dt;
+
+%-Save SPM.mat
+%--------------------------------------------------------------------------
+fprintf('%-40s: ','Saving SPM configuration')                           %-#
+save(fullfile(statdir, 'SPM.mat'), 'SPM', spm_get_defaults('mat.format'));
+fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
 if S.sess.hpf
     K = [];
