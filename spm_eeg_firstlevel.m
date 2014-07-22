@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6116 2014-07-22 15:48:30Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6117 2014-07-22 16:19:21Z vladimir $
 
 
-SVNrev = '$Rev: 6116 $';
+SVNrev = '$Rev: 6117 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -191,8 +191,8 @@ end
 U = struct([]);
 
 for i = 1:numel(S.sess.convregress)
-    U(i).name = S.sess.convregress(1).name;
-    U(i).u    = S.sess.convregress(1).val;
+    U(i).name = S.sess.convregress(i).name;
+    U(i).u    = S.sess.convregress(i).val;
 end
 
 ncr = numel(U);
