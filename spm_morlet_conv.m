@@ -16,7 +16,7 @@ function [G] = spm_morlet_conv(G,w,dt,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet_conv.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_morlet_conv.m 6115 2014-07-22 08:59:31Z vladimir $
 
 
 % setup and defaults
@@ -53,7 +53,7 @@ for k = 1:nw
     s     = wnum/(2*pi*w(k));
     t     = -(s*4):dt:(s*4);
     h     = exp(-t.^2/(2*s^2));
-    h     = convmtx(h',nt);
+    h     = spm_convmtx(h',nt, []);
     h     = h(it + round(length(t)/2),:);
     h     = diag(1./sum(h,2))*h;
     for i = 1:ni

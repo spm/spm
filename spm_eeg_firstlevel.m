@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6091 2014-07-04 13:25:51Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6115 2014-07-22 08:59:31Z vladimir $
 
 
-SVNrev = '$Rev: 6091 $';
+SVNrev = '$Rev: 6115 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -232,7 +232,7 @@ spm_run_fmri_spec(job{1}.spm.stats.fmri_design);
 
 clear job
 
-load SPM.mat
+load(fullfile(statdir, 'SPM.mat'));
 
 X = SPM.xX.X*SPM.xBF.dt;
 
