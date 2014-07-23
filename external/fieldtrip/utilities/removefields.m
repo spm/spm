@@ -5,7 +5,7 @@ function [s] = removefields(s, fields)
 % Use as
 %   s = removefields(s, fields);
 %
-% See also KEEPFIELDS
+% See also KEEPFIELDS, COPYFIELDS
 
 % Copyright (C) 2014, Robert Oostenveld
 %
@@ -25,7 +25,7 @@ function [s] = removefields(s, fields)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: removefields.m 9651 2014-06-20 14:06:53Z roboos $
+% $Id: removefields.m 9717 2014-07-09 15:43:36Z roboos $
 
 if isempty(s)
    % this prevents problems if s is an empty double, i.e. []

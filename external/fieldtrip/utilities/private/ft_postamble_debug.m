@@ -23,7 +23,6 @@ switch cfg.debug
     % these are still needed by the cleanup function
     
   otherwise
-    % clean up the global variables
     % this results in the cleanup function doing nothing
     Ce9dei2ZOo_debug   = 'no';
     Ce9dei2ZOo_funname = [];

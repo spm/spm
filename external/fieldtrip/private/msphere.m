@@ -32,7 +32,7 @@ function [pnt, tri] = msphere(N)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: msphere.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: msphere.m 9694 2014-07-04 10:47:48Z roboos $
 
 % From: rusin@washington.math.niu.edu (Dave Rusin)
 % Newsgroups: sci.math
@@ -92,7 +92,7 @@ while (1)
       phi(end+1) = newphi;
       th(end+1)  = (j/Q)*2*pi;
       % in case of even number of contours
-      if mod(M,2) & k>(M/2)
+      if mod(M,2) && k>(M/2)
         th(end) = th(end) + pi/Q;
       end
     end
@@ -115,7 +115,7 @@ while (1)
 end
 
 % take the vertex packing that most closely matches the requirement
-[m, i] = min(abs(storelen-N));
+[dum, i] = min(abs(storelen-N));
 th  = storeM(i).th;
 phi = storeM(i).phi;
 

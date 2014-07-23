@@ -80,9 +80,9 @@ function [layout, cfg] = ft_prepare_layout(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_layout.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_prepare_layout.m 9753 2014-07-23 16:50:48Z vlalit $
 
-revision = '$Id: ft_prepare_layout.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_prepare_layout.m 9753 2014-07-23 16:50:48Z vlalit $';
 
 % do the general setup of the function
 ft_defaults
@@ -126,8 +126,6 @@ cfg.channel    = ft_getopt(cfg, 'channel',    'all');
 cfg.skipscale  = ft_getopt(cfg, 'skipscale',  'no');
 cfg.skipcomnt  = ft_getopt(cfg, 'skipcomnt',  'no');
 cfg.overlap    = ft_getopt(cfg, 'overlap',    'shift');
-
-cfg = ft_checkconfig(cfg);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % try to generate the layout structure
@@ -788,9 +786,12 @@ if ~any(strcmp('COMNT', layout.label)) && strcmpi(cfg.style, '2d') && ~skipcomnt
   layout.label{end+1}  = 'COMNT';
   layout.width(end+1)  = mean(layout.width);
   layout.height(end+1) = mean(layout.height);
-  X                 = min(layout.pos(:,1));
-  Y                 = min(layout.pos(:,2));
-  layout.pos(end+1,:)  = [X Y];
+  if ~isempty(layout.pos)
+    XY = layout.pos;
+  else
+    XY = cat(1, layout.outline{:}, layout.mask{:});
+  end
+  layout.pos(end+1,:)  = [min(XY(:,1)) min(XY(:,2))];
 elseif any(strcmp('COMNT', layout.label)) && skipcomnt
   % remove the scale entry
   sel = find(strcmp('COMNT', layout.label));
@@ -805,10 +806,12 @@ if ~any(strcmp('SCALE', layout.label)) && strcmpi(cfg.style, '2d') && ~skipscale
   layout.label{end+1}  = 'SCALE';
   layout.width(end+1)  = mean(layout.width);
   layout.height(end+1) = mean(layout.height);
-  X                 = max(layout.pos(:,1));
-  Y                 = max(layout.pos(:,2));
-  Y                 = min(layout.pos(:,2));
-  layout.pos(end+1,:)  = [X Y];
+  if ~isempty(layout.pos)
+    XY = layout.pos;
+  else
+    XY = cat(1, layout.outline{:}, layout.mask{:});
+  end
+  layout.pos(end+1,:)  = [max(XY(:,1)) min(XY(:,2))];
 elseif any(strcmp('SCALE', layout.label)) && skipscale
   % remove the scale entry
   sel = find(strcmp('SCALE', layout.label));

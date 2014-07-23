@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 9601 2014-06-05 07:48:33Z eelspa $
+% $Id: dipole_fit.m 9692 2014-07-03 20:02:43Z roboos $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -114,9 +114,9 @@ end
 if isempty(maxiter)
   % set a default for the maximum number of iterations, depends on the optimization function
   if isequal(optimfun, @fminunc)
-    maxiter = 100;
+    maxiter = 1000;
   else
-    maxiter = 500;
+    maxiter = 3000;
   end
 end
 

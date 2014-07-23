@@ -9,7 +9,8 @@ function [cfg] = ft_movieplotER(cfg, data)
 % can contain
 %   cfg.parameter    = string, parameter that is color coded (default = 'avg')
 %   cfg.xlim         = 'maxmin' or [xmin xmax] (default = 'maxmin')
-%   cfg.zlim         = 'maxmin', 'maxabs','zeromax','minzero', or [zmin zmax] (default = 'maxmin')
+%   cfg.zlim         = plotting limits for color dimension, 'maxmin',
+%                          'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %   cfg.samperframe  = number, samples per fram (default = 1)
 %   cfg.framespersec = number, frames per second (default = 5)
 %   cfg.framesfile   = [], no file saved, or 'string', filename of saved frames.mat (default = []);
@@ -52,9 +53,9 @@ function [cfg] = ft_movieplotER(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_movieplotER.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_movieplotER.m 9748 2014-07-21 12:38:01Z jansch $
 
-revision = '$Id: ft_movieplotER.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_movieplotER.m 9748 2014-07-21 12:38:01Z jansch $';
 
 % do the general setup of the function
 ft_defaults

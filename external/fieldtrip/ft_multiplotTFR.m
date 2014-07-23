@@ -22,7 +22,7 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %   cfg.masknans         = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim             = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim             = 'maxmin' or [ymin ymax] (default = 'maxmin')
-%   cfg.zlim             = 'maxmin','maxabs', 'zeromin','zeromax', or [zmin zmax] (default = 'maxmin')
+%   cfg.zlim             = plotting limits for color dimension, 'maxmin', 'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %   cfg.gradscale        = number, scaling to apply to the MEG gradiometer channels prior to display
 %   cfg.magscale         = number, scaling to apply to the MEG magnetometer channels prior to display
 %   cfg.channel          = Nx1 cell-array with selection of channels (default = 'all'), see FT_CHANNELSELECTION for details
@@ -118,9 +118,9 @@ function [cfg] = ft_multiplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotTFR.m 9653 2014-06-21 06:58:02Z roboos $
+% $Id: ft_multiplotTFR.m 9748 2014-07-21 12:38:01Z jansch $
 
-revision = '$Id: ft_multiplotTFR.m 9653 2014-06-21 06:58:02Z roboos $';
+revision = '$Id: ft_multiplotTFR.m 9748 2014-07-21 12:38:01Z jansch $';
 
 % do the general setup of the function
 ft_defaults

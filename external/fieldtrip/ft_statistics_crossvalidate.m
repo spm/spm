@@ -12,6 +12,9 @@ function stat = ft_statistics_crossvalidate(cfg, dat, design)
 %   cfg.mva           = a multivariate analysis (default = {dml.standardizer dml.svm})
 %   cfg.statistic     = a cell-array of statistics to report (default = {'accuracy' 'binomial'})
 %   cfg.nfolds        = number of cross-validation folds (default = 5)
+%   cfg.resample      = true/false; upsample less occurring classes during
+%                       training and downsample often occurring classes
+%                       during testing (default = false)
 %
 % Returns:
 %   stat.statistic    = the statistics to report
@@ -36,7 +39,7 @@ function stat = ft_statistics_crossvalidate(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statistics_crossvalidate.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_statistics_crossvalidate.m 9693 2014-07-04 07:28:49Z eelspa $
 
 % specify classification procedure
   
@@ -56,8 +59,10 @@ if ~isfield(cfg,'statistic'),
 end
 
 if ~isfield(cfg,'nfolds'), cfg.nfolds = 5; end
+if ~isfield(cfg,'resample'), cfg.resample = false; end
 
-cv = dml.crossvalidator('mva',cfg.mva,'type','nfold','folds',cfg.nfolds,'compact',true,'verbose',true);
+cv = dml.crossvalidator('mva', cfg.mva, 'type', 'nfold', 'folds', cfg.nfolds,...
+  'resample', cfg.resample, 'compact', true, 'verbose', true);
 
 if any(isinf(dat(:)))
   warning('Inf encountered; replacing by zeros');

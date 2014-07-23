@@ -55,7 +55,7 @@ function [pipeline] = ft_analysispipeline(cfg, data)
 % See also FT_PREPROCESSING, FT_TIMELOCKANALYSIS, FT_FREQANALYSIS, FT_SOURCEANALYSIS,
 % FT_CONNECTIVITYANALYSIS, FT_NETWORKANALYSIS
 
-revision = '$Id: ft_analysispipeline.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_analysispipeline.m 9737 2014-07-16 15:50:21Z roboos $';
 
 % callinfo feedback is highly annoying in this recursive function
 % do this here, otherwise ft_defaults will override our setting
@@ -196,6 +196,11 @@ end
 % SUBFUNCTION for recursive walking along the cfg.previous.previous info
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function info = walktree(cfg)
+
+if isempty(cfg) && ~isstruct(cfg)
+  % it should be an empty struct
+  cfg = struct();
+end
 
 this = getnode(cfg);
 

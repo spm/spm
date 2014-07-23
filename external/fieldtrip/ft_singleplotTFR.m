@@ -20,7 +20,7 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %   cfg.masknans       = 'yes' or 'no' (default = 'yes')
 %   cfg.xlim           = 'maxmin' or [xmin xmax] (default = 'maxmin')
 %   cfg.ylim           = 'maxmin' or [ymin ymax] (default = 'maxmin')
-%   cfg.zlim           = 'maxmin','maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
+%   cfg.zlim           = plotting limits for color dimension, 'maxmin', 'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %   cfg.baseline       = 'yes','no' or [time1 time2] (default = 'no'), see FT_FREQBASELINE
 %   cfg.baselinetype   = 'absolute', 'relative', 'relchange' or 'db' (default = 'absolute')
 %   cfg.trials         = 'all' or a selection given as a 1xN vector (default = 'all')
@@ -80,9 +80,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 9653 2014-06-21 06:58:02Z roboos $
+% $Id: ft_singleplotTFR.m 9748 2014-07-21 12:38:01Z jansch $
 
-revision = '$Id: ft_singleplotTFR.m 9653 2014-06-21 06:58:02Z roboos $';
+revision = '$Id: ft_singleplotTFR.m 9748 2014-07-21 12:38:01Z jansch $';
 
 % do the general setup of the function
 ft_defaults

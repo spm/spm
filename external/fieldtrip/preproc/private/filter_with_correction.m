@@ -37,7 +37,14 @@ function filt = filter_with_correction(B,A,dat,dir)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filter_with_correction.m 9685 2014-07-02 14:23:19Z eelspa $
+% $Id: filter_with_correction.m 9738 2014-07-17 07:45:01Z roboos $
+
+% convert the data to double precision
+% see  http://bugzilla.fcdonders.nl/show_bug.cgi?id=2653
+inputclass = class(dat);
+B = double(B);
+A = double(A);
+dat = double(dat);
 
 poles = roots(A);
 if any(abs(poles) >= 1)
@@ -76,3 +83,6 @@ switch dir
   otherwise
     error('unsupported filter direction "%s"', dir);
 end
+
+% cast it back into the type of the input data, which can e.g. be single or int32
+filt = cast(filt, inputclass);

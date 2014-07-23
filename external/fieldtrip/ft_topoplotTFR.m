@@ -157,23 +157,27 @@ function [cfg] = ft_topoplotTFR(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotTFR.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_topoplotTFR.m 9739 2014-07-17 08:37:09Z eelspa $
 
-revision = '$Id: ft_topoplotTFR.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_topoplotTFR.m 9739 2014-07-17 08:37:09Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
 ft_preamble init
-ft_preamble provenance
+ft_preamble loadvar    varargin
+ft_preamble provenance varargin
+ft_preamble trackconfig
+ft_preamble debug
 
 % the abort variable is set to true or false in ft_preamble_init
 if abort
   return
 end
 
-% this is just a wrapper function around the common code that does all the hard work
-% the reason for this wrapper function is to have a placeholder for TFR-specific documentation
-
+% make sure figure window titles are labeled appropriately, pass this onto the actual
+% plotting function if we don't specify this, the window will be called
+% 'ft_topoplotTFR', which is confusing to the user
+cfg.funcname = mfilename;
 if nargin > 1
   cfg.dataname = {inputname(2)};
   for k = 3:nargin
@@ -181,23 +185,21 @@ if nargin > 1
   end
 end
 
-% make sure figure window titles are labeled appropriately, pass this onto the actual
-% plotting function if we don't specify this, the window will be called
-% 'ft_topoplotTFR', which is confusing to the user
-cfg.funcname = mfilename;
+% prepare the layout, this should be done only once
+cfg.layout = ft_prepare_layout(cfg, varargin{:});
 
 % call the common function that is shared between ft_topoplotER and ft_topoplotTFR
 [cfg] = topoplot_common(cfg, varargin{:});
 
-% remove it again
-if isfield(cfg, 'funcname'),
-  cfg = rmfield(cfg, 'funcname');
-end
+% remove this field again, it is only used for figure labels
+cfg = removefields(cfg, 'funcname');
 
 % do the general cleanup and bookkeeping at the end of the function
 % this will replace the ft_topoplotTFR callinfo with that of ft_topoplotER
-ft_postamble provenance
+ft_postamble trackconfig
 ft_postamble previous varargin
+ft_postamble provenance
+ft_postamble debug
 
 if ~nargout
   clear cfg

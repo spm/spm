@@ -69,9 +69,9 @@ function [stat] = ft_freqstatistics(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqstatistics.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_freqstatistics.m 9696 2014-07-04 10:51:38Z roboos $
 
-revision = '$Id: ft_freqstatistics.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_freqstatistics.m 9696 2014-07-04 10:51:38Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -106,6 +106,8 @@ cfg.design      = ft_getopt(cfg, 'design',      '');
 if ~isfield(cfg,'design') || isempty(cfg.design)
   error('you should provide a design matrix in the cfg');
 end
+
+origvarargin = varargin;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % data bookkeeping

@@ -31,14 +31,13 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_loadvar.m 9561 2014-05-21 06:50:39Z roboos $
+% $Id: ft_preamble_loadvar.m 9745 2014-07-19 08:25:52Z roboos $
 
 % the name of the variables are passed in the preamble field
 global ft_default
 
 % use an anonymous function
 assign = @(var, val) assignin('caller', var, val);
-
 
 if isfield(cfg, 'inputfile') && ~isempty(cfg.inputfile)
   

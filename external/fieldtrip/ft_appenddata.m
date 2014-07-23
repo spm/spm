@@ -55,9 +55,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 9627 2014-06-14 14:44:16Z eelspa $
+% $Id: ft_appenddata.m 9752 2014-07-23 13:26:00Z eelspa $
 
-revision = '$Id: ft_appenddata.m 9627 2014-06-14 14:44:16Z eelspa $';
+revision = '$Id: ft_appenddata.m 9752 2014-07-23 13:26:00Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -182,16 +182,24 @@ if haselec || hasgrad,
   end
 end
 
-% check whether the data are obtained from the same datafile
+% check whether the data are obtained from the same datafile in case either
+% (1) we have sampleinfos and they are not identical or (2) we don't have
+% sampleinfos
 removesampleinfo = 0;
 removetrialinfo  = 0;
 try
   origfile1 = ft_findcfg(varargin{1}.cfg, 'datafile');
   for j=2:Ndata
-    if ~isempty(origfile1) && ~strcmp(origfile1, ft_findcfg(varargin{j}.cfg, 'datafile')),
-      removesampleinfo = 1;
-      warning('input data comes from different datafiles; removing sampleinfo field');
-      break;
+    hassampleinfos = isfield(varargin{1}, 'sampleinfo') &&...
+      isfield(varargin{j}, 'sampleinfo');
+    
+    if ((hassampleinfos &&...
+        ~isequal(varargin{1}.sampleinfo, varargin{j}.sampleinfo)) ||...
+        ~hassampleinfos) &&...
+        ~isempty(origfile1) && ~strcmp(origfile1, ft_findcfg(varargin{j}.cfg, 'datafile'))
+        removesampleinfo = 1;
+        warning('input data comes from different datafiles; removing sampleinfo field');
+        break;
     end
   end
 catch err

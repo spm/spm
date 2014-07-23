@@ -44,9 +44,9 @@ function [timelock] = ft_timelockbaseline(cfg, timelock)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_timelockbaseline.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_timelockbaseline.m 9724 2014-07-14 13:30:47Z eelspa $
 
-revision = '$Id: ft_timelockbaseline.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_timelockbaseline.m 9724 2014-07-14 13:30:47Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -62,7 +62,8 @@ if abort
 end
 
 % check if the input data is valid for this function
-timelock = ft_checkdata(timelock, 'datatype', 'timelock', 'feedback', 'yes');
+timelock = ft_checkdata(timelock, 'datatype',...
+  {'timelock+comp', 'timelock'}, 'feedback', 'yes');
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});

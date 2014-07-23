@@ -13,7 +13,7 @@ function ft_plot_montage(dat, varargin)
 %     'orientation'   = 1x3 vector specifying the direction orthogonal through the plane which will be plotted (default = [0 0 1])
 %     'srange'        = 
 %     'slicesize'     = 
-%     'nslice'        = 
+%     'nslice'        = scalar, number of slices
 % 
 % See also FT_PLOT_ORTHO, FT_PLOT_SLICE, FT_SOURCEPLOT
 
@@ -39,7 +39,7 @@ function ft_plot_montage(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_montage.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_plot_montage.m 9714 2014-07-09 15:09:36Z roboos $
 
 transform = ft_getopt(varargin, 'transform', eye(4));
 loc       = ft_getopt(varargin, 'location');
@@ -98,8 +98,8 @@ if size(ori,1)==1 && size(loc,1)>1,
   ori = repmat(ori, size(loc,1), 1);
 end
 
-div    = [ceil(sqrt(nslice)) ceil(sqrt(nslice))];
-optarg = varargin;
+div     = [ceil(sqrt(nslice)) ceil(sqrt(nslice))];
+optarg  = varargin;
 corners = [inf -inf inf -inf inf -inf]; % get the corners for the axis specification
 for k = 1:nslice
   
@@ -174,7 +174,7 @@ for k = 1:nslice
     end
     pprevious = [pprevious(:);p(:)];
   end
-  %drawnow; %this statement slows down the process big time on some file
+  % drawnow; %this statement slows down the process big time on some file
   %systems. I don't know what's going on there, but the statement is not
   %really necessary, so commented out.
 end

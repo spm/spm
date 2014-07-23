@@ -119,7 +119,7 @@ function [dat, label, time, cfg] = preproc(dat, label, time, cfg, begpadding, en
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: preproc.m 9685 2014-07-02 14:23:19Z eelspa $
+% $Id: preproc.m 9750 2014-07-23 12:52:02Z eelspa $
 
 % compute fsample
 fsample = 1./nanmean(diff(time));
@@ -152,13 +152,6 @@ if iscell(cfg)
   % ready with recursing over the subsequent preprocessing stages
   return
 end
-
-% this is for backward compatibility related to the renaming of blc into
-% demean, and blcwindow into baselinewindow. to avoid having to create an
-% svn external for ft_checkconfig in fieldtrip/private, do the check
-% manually
-ft_checkconfig(cfg, 'renamed', {'blc', 'demean'});
-ft_checkconfig(cfg, 'renamed', {'blcwindow', 'baselinewindow'});
 
 % set the defaults for the rereferencing options
 if ~isfield(cfg, 'reref'),        cfg.reref = 'no';             end

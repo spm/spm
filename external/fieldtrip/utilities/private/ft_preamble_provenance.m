@@ -34,7 +34,7 @@
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_preamble_provenance.m 9561 2014-05-21 06:50:39Z roboos $
+% $Id: ft_preamble_provenance.m 9746 2014-07-19 08:37:18Z roboos $
 
 % Record the start time and memory. These are used by ft_postamble_callinfo, which
 % stores them in the output cfg.callinfo.  In the mean time, they are stored in the
@@ -74,8 +74,7 @@ for iargin = 1:numel(tmpargin)
     cfg.callinfo.inputhash{iargin} = CalcMD5(mxSerialize(tmparg));
   end
 end
-clear tmpargin tmparg; % remove the extra references
-
+clear iargin tmpargin tmparg bytenum; % remove the extra references
 
 stack = dbstack('-completenames');
 % stack(1) is this script
