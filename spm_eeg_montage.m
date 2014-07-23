@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6106 2014-07-15 15:34:45Z vladimir $
+% $Id: spm_eeg_montage.m 6118 2014-07-23 16:42:26Z vladimir $
 
-SVNrev = '$Rev: 6106 $';
+SVNrev = '$Rev: 6118 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -314,12 +314,31 @@ switch S.mode
                     end
                     if isfield(sensmontage, 'chanunitorg')
                         sensmontage.chanunitorg = sensmontage.chanunitorg(sel2);
-                    end                    
+                        
+                        for c = 1:length(sensmontage.chanunitorg)
+                            if isequal(sensortypes{i}, 'MEG')
+                                sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'fT', 'T');
+                            else
+                                sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'uV', 'V');
+                            end
+                            sensmontage.chanunitorg{c} = strrep(sensmontage.chanunitorg{c}, 'mm', 'm');
+                        end
+                        
+                    end
                     if isfield(sensmontage, 'chantypenew')
                         sensmontage.chantypenew(selempty) = [];
                     end
                     if isfield(sensmontage, 'chanunitnew')
                         sensmontage.chanunitnew(selempty) = [];
+                        
+                        for c = 1:length(sensmontage.chanunitnew)
+                            if isequal(sensortypes{i}, 'MEG')
+                                sensmontage.chanunitnew{c} = strrep(sensmontage.chanunitnew{c}, 'fT', 'T');
+                            else
+                                sensmontage.chanunitnew{c} = strrep(sensmontage.chanunitnew{c}, 'uV', 'V');
+                            end
+                            sensmontage.chanunitnew{c} = strrep(sensmontage.chanunitnew{c}, 'mm', 'm');
+                        end
                     end
                     
                     % Just remove known non-scalp channels to be on the

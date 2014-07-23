@@ -23,9 +23,9 @@ function D = spm_eeg_reduce(S)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_reduce.m 5675 2013-10-09 14:27:17Z vladimir $
+% $Id: spm_eeg_reduce.m 6118 2014-07-23 16:42:26Z vladimir $
 
-SVNrev = '$Rev: 5675 $';
+SVNrev = '$Rev: 6118 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -92,6 +92,14 @@ montage = feval(['spm_eeg_reduce_' S.method], S1);
 if ~isempty(badind)
     montage.labelorg = [montage.labelorg(:); D.chanlabels(badind)']; % added semicolon - MWW
     montage.tra(end, end+length(badind)) = 0;
+    
+    if isfield(montage, 'chantypeorg')
+        montage.chantypeorg = [montage.chantypeorg(:); lower(D.chantype(badind))'];
+    end
+    
+    if isfield(montage, 'chanunitorg')
+        montage.chanunitorg = [montage.chanunitorg(:); D.units(badind)'];
+    end
 end
 
 S1 = [];
