@@ -13,9 +13,9 @@ function DCM = spm_dcm_fmri_csd_data(DCM)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd_data.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_dcm_fmri_csd_data.m 6120 2014-07-24 11:20:12Z guillaume $
 
-% add sspectral toolbox
+% add spectral toolbox
 %--------------------------------------------------------------------------
 if ~isdeployed
     addpath(fullfile(spm('Dir'),'toolbox', 'spectral'));
@@ -45,7 +45,7 @@ Nw        = 32;
 DCM.Y.Hz  = linspace(Hz1,Hz2,Nw);          % Frequencies
 
 
-% Cross spectral density - respones (MAR(p) model)
+% Cross spectral density - responses (MAR(p) model)
 %==========================================================================
 try
     p = DCM.Y.p;
@@ -58,7 +58,7 @@ DCM.Y.csd = mar.P;
 DCM.Y.p   = mar.p;
 
 % organise MAR coefficients
-% -------------------------------------------------------------------------
+%--------------------------------------------------------------------------
 for i = 1:Nn
     for j = 1:Nn
         for k = 1:p
@@ -114,7 +114,7 @@ if any(diff(DCM.U.u))
     % Cross spectral density - inputs
     %----------------------------------------------------------------------
     mar       = spm_mar(full(u),16);
-    DCM.U.csd = spm_mar2csd(mar.lag,DCM.Y.Hz,1/DCM.Y.dt);
+    DCM.U.csd = spm_mar2csd(mar,DCM.Y.Hz,1/DCM.Y.dt);
     
     % cross-correlation functions
     %----------------------------------------------------------------------

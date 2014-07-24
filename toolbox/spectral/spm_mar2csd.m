@@ -2,7 +2,7 @@ function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Get spectral estimates from MAR model
 % FORMAT [csd,dtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 %
-% mar   - MAR coefficients or sturture (see spm_mar.m)
+% mar   - MAR coefficients or structure (see spm_mar.m)
 % freqs - [Nf x 1] vector of frequencies to evaluate spectra at
 % ns    - samples per second
 %
@@ -24,7 +24,7 @@ function [csd,mtf,coh,pha] = spm_mar2csd(mar,freqs,ns)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_mar2csd.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_mar2csd.m 6120 2014-07-24 11:20:12Z guillaume $
 
 
 % Nyquist
