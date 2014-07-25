@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_nlsi_GN.m 6122 2014-07-25 13:48:47Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -366,8 +366,9 @@ for k = 1:M.Nmax
     % convergence failure
     %----------------------------------------------------------------------    
     if revert
-        msgstr = 'Convergence failure - please check priors or data scaling';
-        warning('MATLAB:spm_nsli_GN',msgstr); drawnow
+        msgstr = 'Convergence failure - invoking keyboard';
+        warning('on','MATLAB:spm_nsli_GN')
+        warning('MATLAB:spm_nsli_GN',msgstr)
         keyboard
     end
     

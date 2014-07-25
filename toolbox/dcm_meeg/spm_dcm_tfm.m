@@ -50,7 +50,7 @@ function DCM = spm_dcm_tfm(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_tfm.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_tfm.m 6122 2014-07-25 13:48:47Z karl $
  
  
 % check options
@@ -76,51 +76,53 @@ if isempty(DCM.xU.X), DCM.xU.X = sparse(1,0); end
  
 % Spatial model
 %==========================================================================
-model                = 'TFM';
-DCM.options.Nmodes   = Nm;
-DCM.options.model    = model;
-DCM.M.dipfit.model   = model;
-DCM.options.Nmax     = 32;
-DCM.options.h        = h;
+model              = 'TFM';
+DCM.options.Nmodes = Nm;
+DCM.options.model  = model;
+DCM.options.Nmax   = 32;
+DCM.options.h      = h;
+DCM.M.dipfit.model = model;
+
  
 % Get posterior from event-related responses
 %==========================================================================
-ERP        = DCM;
-[pth name] = fileparts(DCM.name);
-ERP.name   = fullfile(pth,[name '_erp']);
-ERP        = spm_dcm_erp(ERP);
+ERP            = DCM;
+[pth name]     = fileparts(DCM.name);
+ERP.name       = fullfile(pth,[name '_erp']);
+ERP.M.TFM      = 1;
+ERP.M.hE       = 10;
+ERP.M.hC       = 1/128;
+ERP            = spm_dcm_erp(ERP);
 
 %-Feature selection using principal components (U) of lead-field
 %==========================================================================
+try, DCM.M = rmfield(DCM.M,'TFM'); end
 clear functions
-DCM.M.analysis = 'CSD';
+
 DCM.xY         = ERP.xY;
 DCM.M.dipfit   = ERP.M.dipfit ;
 DCM.M.U        = ERP.M.U;
 DCM            = spm_dcm_tfm_data(DCM);
  
- 
 % Use posterior as the prior in a model of induced responses
 %==========================================================================
+
+% remove very precise modes from neuronal priors
+%--------------------------------------------------------------------------
+[u s]    = spm_svd(ERP.Cp);
+i        = find(diag(s) > 1/64);
+Cp       = u(:,i)*s(i,i)*u(:,i)';
  
 % prior moments on parameters (neuronal and spatial)
 %--------------------------------------------------------------------------
 pE       = spm_dcm_neural_priors(DCM.A,DCM.B,DCM.C,model);
 pE       = spm_L_priors(DCM.M.dipfit,pE);
 pE       = spm_unvec(spm_vec(ERP.Ep,ERP.Eg),pE);
-pC       = spm_cat(spm_diag({ERP.Cp,ERP.Cg}));
-
-% remove very precise modes
-%--------------------------------------------------------------------------
-[u s]    = spm_svd(pC);
-i        = 1:min(size(s,1),64);
-pC       = u(:,i)*s(i,i)*u(:,i)';
  
 % prior moments on parameters (spectral)
 %--------------------------------------------------------------------------
-[pE,spC] = spm_ssr_priors(pE);
-spC      = diag(spm_vec(spC));
-pC       = spm_cat(spm_diag({pC,spC}));
+[pE,pC]  = spm_ssr_priors(pE);
+pC       = spm_cat(spm_diag({Cp,ERP.Cg,diag(spm_vec(pC))}));
  
 % initial states and equations of motion
 %--------------------------------------------------------------------------
@@ -256,11 +258,6 @@ DCM.CSD = csd;                  % conditional cross-spectral density
 DCM.TFM = tfm;                  % conditional induced responses
 DCM.DTF = dtf;                  % conditional directed transfer functions
 DCM.ERP = erp;                  % conditional evoked responses
- 
- 
-% and save
-%--------------------------------------------------------------------------
-DCM.options.Nmodes = Nm;
-DCM.options.h      = h;
+
  
 save(DCM.name, 'DCM', spm_get_defaults('mat.format'));

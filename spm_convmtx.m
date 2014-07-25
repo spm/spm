@@ -1,5 +1,5 @@
 function t = spm_convmtx(v,n,OPT)
-% as for convmtx but for sparse matrices
+% as for convmtx but with boundary conditions
 % FORMAT t = spm_convmtx(C,N,OPT)
 %
 % OPT  - 'circular' boundary conditions
@@ -17,7 +17,7 @@ function t = spm_convmtx(v,n,OPT)
 % Copyright (C) 1988-2004 The MathWorks, Inc.
  
 % L. Shure and T. Krauss
-% $Id: spm_convmtx.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_convmtx.m 6122 2014-07-25 13:48:47Z karl $
  
 if nargin < 3;
     OPT = 'none';
@@ -26,9 +26,9 @@ end
 % create Toeplitz matrix
 %--------------------------------------------------------------------------
 [mv,nv] = size(v);
-v    = v(:);                                    % make v a column vector
-c    = [v; sparse(n-1,1)];
-r    = sparse(n,1);
+v    = full(v(:));                              % make v a column vector
+c    = [v; zeros(n-1,1)];
+r    = zeros(n,1);
 m    = length(c);
 x    = [r(n:-1:2) ; c(:)];                      % build vector of user data
 cidx = (0:m-1)';

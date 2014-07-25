@@ -32,12 +32,13 @@
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_induced_demo.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_induced_demo.m 6122 2014-07-25 13:48:47Z karl $
  
  
 % Model specification
 %==========================================================================
 rng('default')
+clear spm_fp_cmc_tfm
  
 % number of regions in coupled map lattice
 %--------------------------------------------------------------------------
@@ -130,7 +131,7 @@ spm_axis tight
 % LFP – expectation
 %--------------------------------------------------------------------------
 subplot(4,2,2)
-j   = find(kron(sparse(1,[3 5],1,1,8),ones(Ns,1)));
+j   = find(kron(sparse(1,[3 1 5],1,1,8),ones(Ns,1)));
 plot(pst*1000,x(j,:))
 xlabel('peristimulus time (ms)')
 title('Hidden neuronal states','FontSize',16)
@@ -186,7 +187,7 @@ Gu    = spm_csd_mtf_gu(pE,Hz);
  
 % simulate Nt trials
 %--------------------------------------------------------------------------
-M.analysis = 'ERP';
+M.TFM = 1;
 Nt    = 8;
 V     = U;
 for j = 1:Nt

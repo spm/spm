@@ -15,7 +15,7 @@ function [C] = spm_morlet(s,k,wnum)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_morlet.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_morlet.m 6122 2014-07-25 13:48:47Z karl $
 
 
 % setup and defaults
@@ -41,7 +41,7 @@ for i = 1:length(k)
     h     = h/sqrt(sum(h.^2));
     K     = h.*exp(-1j*(2*pi*k(i)*(0:(n - 1))));
     K     = spm_convmtx(K',N,'circular');
-    
+
     % Transfer
     %----------------------------------------------------------------------
     C(:,i,:) = K*s;

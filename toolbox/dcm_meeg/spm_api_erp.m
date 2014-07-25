@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_api_erp.m 6122 2014-07-25 13:48:47Z karl $
  
 
 %-Launch GUI
@@ -1079,18 +1079,32 @@ try
     end
 end
 
-% initialise with posteriors if required
+% previous priors
 % -------------------------------------------------------------------------
 try
     handles.DCM.M.pE;
     Str = questdlg('use previous priors');
     if strcmp(Str,'No')
         handles.DCM.M = rmfield(handles.DCM.M,{'pE','pC'});
+        try
+            handles.DCM.M = rmfield(handles.DCM.M,{'gE','gC'});
+        end
     elseif strcmp(Str,'Cancel')
         return
     end
 end
- 
+
+% previous hyperpriors
+% -------------------------------------------------------------------------
+try
+    handles.DCM.M.hE;
+    Str = questdlg('use previous hyperpriors');
+    if strcmp(Str,'No')
+        handles.DCM.M = rmfield(handles.DCM.M,{'hE','hC'});
+    elseif strcmp(Str,'Cancel')
+        return
+    end
+end
  
 % invert and save
 %--------------------------------------------------------------------------

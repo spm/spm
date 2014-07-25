@@ -32,7 +32,7 @@ function [CSD,ERP,csd,mtf,w,t,x,dP] = spm_csd_int(P,M,U)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_csd_int.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_csd_int.m 6122 2014-07-25 13:48:47Z karl $
 
 
 % check input - default: one trial (no between-trial effects)
@@ -42,15 +42,11 @@ if nargin < 3
     U.u  = sparse(1,M.m);
     U.X  = sparse(1,0);
 end
-try, analysis = M.analysis; catch, analysis = 'CSD'; end
-if strcmp(analysis,'CSD')
-    OPT = 1;
-else
-    OPT = 0;
-end
 
-% euations of motion
+
+% equations of motion (and OPT for computing CSD vs. ERP)
 %--------------------------------------------------------------------------
+if ~isfield(M,'TFM'), OPT = 1; else, OPT = 0; end
 if ~isfield(M,'g'), M.g = @(x,u,P,M) x; end
 if ~isfield(M,'h'), M.h = @(x,u,P,M) 0; end
 
@@ -60,10 +56,10 @@ M.h = spm_funcheck(M.h);
 
 % check input function  u = f(t,P,M)
 %--------------------------------------------------------------------------
-try, fu   = M.fu;    catch, fu    = 'spm_erp_u'; end
-try, ns   = M.ns;    catch, ns    = 128;         end
-try, wnum = M.wnum;  catch, wnum  = 8;           end
-try, dt   = U.dt;    catch, dt    = 1/256;       end
+try, fu   = M.fu;   catch, fu    = 'spm_erp_u'; end
+try, ns   = M.ns;   catch, ns    = 128;         end
+try, wnum = M.Rft;  catch, wnum  = 8;           end
+try, dt   = U.dt;   catch, dt    = 1/256;       end
 
 
 % within-trial (exogenous) inputs
@@ -95,11 +91,11 @@ end
 nu    = length(P.A{1});
 nx    = M.n;
 nc    = size(X,1);
-dP    = cell(1,nc);
-mtf   = cell(1,nc);
-csd   = cell(1,nc);
-CSD   = cell(1,nc);
-ERP   = cell(1,nc);
+dP    = cell(nc,1);
+mtf   = cell(nc,1);
+csd   = cell(nc,1);
+CSD   = cell(nc,1);
+ERP   = cell(nc,1);
 
 % cycle over trials or conditions
 %--------------------------------------------------------------------------

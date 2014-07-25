@@ -25,13 +25,14 @@ function DCM = spm_dcm_erp_data(DCM,ERP)
 %    DCM.xY.scale    - scalefactor applied to raw data
 %    DCM.xY.coor2D   - 2D coordinates for plotting
 %    DCM.xY.X0       - (DCT) confounds
+%    DCM.xY.R        - Residual forming matrix (with hanning)
 %    DCM.xY.Hz       - Frequency bins (for Wavelet transform)
 %    DCM.options.h
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_erp_data.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_erp_data.m 6122 2014-07-25 13:48:47Z karl $
  
  
 % Set defaults and Get D filename
@@ -217,3 +218,4 @@ end
 DCM.xY.code  = cond(trial);
 DCM.xY.scale = 1;
 DCM.xY.X0    = X0;
+DCM.xY.R     = R;

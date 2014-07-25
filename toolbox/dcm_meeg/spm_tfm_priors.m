@@ -44,7 +44,7 @@ function [E,V] = spm_tfm_priors(A,B,C)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_tfm_priors.m 5939 2014-04-06 17:13:50Z karl $
+% $Id: spm_tfm_priors.m 6122 2014-07-25 13:48:47Z karl $
  
 % default: a single source model
 %--------------------------------------------------------------------------
@@ -100,7 +100,7 @@ end
 
 % plasticity parameters
 %--------------------------------------------------------------------------
-m    = 2;                                         % number of plastic
+m    = 3;                                         % number of plastic
 E.E  = sparse(n,m);   V.E  = sparse(n,m) + 1/16;  % potentiation                                             % potentiation
 E.F  = sparse(n,m);   V.F  = sparse(n,m) + 1/16;  % decay
 

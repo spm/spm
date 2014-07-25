@@ -36,7 +36,7 @@ function DCM = spm_dcm_erp(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_erp.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_dcm_erp.m 6122 2014-07-25 13:48:47Z karl $
 
 % check options (and clear persistent variables)
 %==========================================================================
@@ -52,21 +52,16 @@ try, Nm       = DCM.options.Nmodes;   catch, Nm        = 8;           end
 try, onset    = DCM.options.onset;    catch, onset     = 60;          end
 try, dur      = DCM.options.dur;      catch, dur       = 16;          end
 try, model    = DCM.options.model;    catch, model     = 'NMM';       end
-try, analysis = DCM.options.analysis; catch, analysis  = 'ERP';       end
 try, lock     = DCM.options.lock;     catch, lock      = 0;           end
 try, multC    = DCM.options.multiC;   catch, multC     = 0;           end
 try, symm     = DCM.options.symmetry; catch, symm      = 0;           end
 try, Nmax     = DCM.options.Nmax;     catch, Nmax      = 64;          end
 try, CVA      = DCM.options.CVA;      catch, CVA       = 0;           end
 
+% symmetry contraints for ECD models only
+%--------------------------------------------------------------------------
 if ~strcmp(DCM.options.spatial,'ECD'), symm = 0; end
-switch analysis
-    case('TFM')
-        IS = 'spm_csd_int';
-        DCM.M.analysis = 'ERP';
-    otherwise
-        IS = 'spm_gen_erp';
-end
+
 
 % Data and spatial model
 %==========================================================================
@@ -91,7 +86,12 @@ Nm     = max(Nm,Nr);
 
 % confounds - residual forming matrix
 %--------------------------------------------------------------------------
-T0     = speye(Ns) - xY.X0*((xY.X0'*xY.X0)\xY.X0');
+if isfield(xY,'R')
+    M.R = xY.R;
+else
+    M.R = speye(Ns) - xY.X0*((xY.X0'*xY.X0)\xY.X0');
+end
+
 
 % Serial correlations (precision components) AR model
 %--------------------------------------------------------------------------
@@ -189,6 +189,14 @@ xY.scale = xY.scale/scale;
 % likelihood model
 %==========================================================================
 
+% Use TFM intrgation scheme (with plasticity) if indicated
+%--------------------------------------------------------------------------
+if isfield(M,'TFM')
+     IS = 'spm_csd_int';
+else
+     IS = 'spm_gen_erp';
+end
+
 % intial states and equations of motion
 %--------------------------------------------------------------------------
 [x,f,h] = spm_dcm_x_neural(pE,model);
@@ -254,8 +262,8 @@ j   = find(kron(Qg.J,ones(1,Nr)));      % Indices of contributing states
 x0  = ones(Ns,1)*spm_vec(M.x)';         % expansion point for states
 for i = 1:Nt
     K{i} = x{i} - x0;                   % centre on expansion point
-    y{i} = T0*K{i}*L'*M.U;              % prediction (sensor space)
-    r{i} = T0*xY.y{i}*M.U - y{i};       % residuals  (sensor space)
+    y{i} = M.R*K{i}*L'*M.U;             % prediction (sensor space)
+    r{i} = M.R*xY.y{i}*M.U - y{i};      % residuals  (sensor space)
     K{i} = K{i}(:,j);                   % Depolarization in sources
 end
 
@@ -340,7 +348,7 @@ if strcmp(M.dipfit.type,'IMG')
     % reduced data (for each trial
     %----------------------------------------------------------------------
     for i = 1:Nt
-        Y{i} = M.U'*xY.y{i}'*T0;
+        Y{i} = M.U'*xY.y{i}'*M.R;
     end
 
     % fill in fields of inverse structure
@@ -351,7 +359,7 @@ if strcmp(M.dipfit.type,'IMG')
     inverse.J        = J;                    % Conditional expectation
     inverse.L        = L;                    % Lead field (reduced)
     inverse.R        = speye(Nc,Nc);         % Re-referencing matrix
-    inverse.T        = T0;                   % temporal subspace
+    inverse.T        = M.R;                  % temporal subspace
     inverse.U        = M.U;                  % spatial subspace
     inverse.Is       = Is;                   % Indices of active dipoles
     inverse.It       = DCM.xY.It;            % Indices of time bins

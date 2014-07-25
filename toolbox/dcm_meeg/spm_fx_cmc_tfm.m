@@ -34,7 +34,7 @@ function [f,J,Q] = spm_fx_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fx_cmc_tfm.m 6112 2014-07-21 09:39:53Z karl $
+% $Id: spm_fx_cmc_tfm.m 6122 2014-07-25 13:48:47Z karl $
  
  
 % get dimensions and configure state variables
@@ -154,7 +154,7 @@ T(:,i)  = T(:,i).*exp(P.T);
 
 % intrinsic connections to be optimised (only the first is modulated)
 %--------------------------------------------------------------------------
-j       = [7 1 12 4 2 3 5 6 8 9 10 11];
+j       = [7 1 4 12 2 3 5 6 8 9 10 11];
 i       = j(1:size(P.G,2));
 G(:,i)  = G(:,i).*exp(P.G);
 
