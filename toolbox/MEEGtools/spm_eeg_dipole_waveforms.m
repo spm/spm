@@ -23,7 +23,7 @@ function sD = spm_eeg_dipole_waveforms(S)
 %
 
 % Vladimir Litvak
-% $Id: spm_eeg_dipole_waveforms.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_dipole_waveforms.m 6121 2014-07-25 11:34:46Z vladimir $
 
 [Finter,Fgraph] = spm('FnUIsetup','Dipole waveform extraction', 0);
 %%
@@ -138,6 +138,6 @@ S.keepsensors = false;
 sD = spm_eeg_montage(S);
 
 sD = chantype(sD, ':', 'LFP');
-sD = chanunit(sD, ':', 'nA*m');
+sD = units(sD, ':', 'nA*m');
 
 sD.save;
