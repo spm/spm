@@ -28,7 +28,7 @@ function [f] = spm_fp_cmc_tfm(x,u,P,M)
 % Copyright (C) 2005 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_fp_cmc_tfm.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_fp_cmc_tfm.m 6123 2014-07-25 17:10:51Z karl $
 
 % Neuronal states (deviations from baseline firing)
 %--------------------------------------------------------------------------
@@ -64,8 +64,8 @@ b  = [2 4 8];                              % decay rate
 %--------------------------------------------------------------------------
 for j = 1:size(P.E,2)
     A       = exp(a(j)*exp(P.E(:,j)).*x(:,i(j))) - 1;
-    dG(:,j) = A.*(     exp(P.F(:,j))  - P.G(:,j)) - ....
-                       b(j)*(P.G(:,j) - M.Q.G(:,j));
+    dG(:,j) = A.*(     exp(P.F(:,j))/2 - P.G(:,j)) - ....
+                       b(j)*(P.G(:,j)  - M.Q.G(:,j));
 end
 
 f(iG) = dG(:);
