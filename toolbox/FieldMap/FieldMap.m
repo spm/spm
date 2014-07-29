@@ -1,17 +1,16 @@
-function varargout=FieldMap(varargin)
+function varargout = FieldMap(varargin)
 % FieldMap is an SPM Toolbox for creating field maps and unwarping EPI.
-% A full description of the toolbox and a usage manual can be found in 
-% FieldMap.man. This can launched by the toolbox help button or using 
-% spm_help FieldMap.man.The theoretical and practical principles behind 
-% the toolbox are described in principles.man.
+% A full description of the toolbox and a usage manual can be found in
+% FieldMap.man. This can launched by the toolbox help button or using
+% `spm_help FieldMap.man`. The theoretical and practical principles behind
+% the toolbox are described in FieldMap_principles.man.
 %
 % FORMAT FieldMap
 %
-% FieldMap launches the gui-based toolbox. Help is available via the 
-% help button (which calls spm_help FieldMap.man). FieldMap is a multi 
-% function function so that the toolbox routines can also be accessed 
-% without using the gui. A description of how to do this can be found 
-% in FieldMap_ngui.m
+% FieldMap launches the GUI-based toolbox. Help is available via the help
+% button (which calls spm_help FieldMap.man). FieldMap is a multi function
+% function so that the toolbox routines can also be accessed without using
+% the GUI. A description of how to do this can be found in FieldMap_ngui.m
 % 
 % Input parameters and the mode in which the toolbox works can be 
 % customised using the defaults file called pm_defaults.m. 
@@ -71,8 +70,8 @@ function varargout=FieldMap(varargin)
 % IP.vdm.jac        : Jacobian-1 of forward transform.
 % IP.vdm.ivdm       : Inverse transform of voxel displacement 
 %                     (used to unwarp EPI image if field map is EPI based)
-%                     (used to warp flash image prior to coregistration when
-%                     field map is flash based (or other T2 weighting).
+%                     (used to warp flash image prior to coregistration
+%                     when field map is flash based (or other T2 weighting).
 % IP.vdm.ijac       : Jacobian-1 of inverse transform.
 % IP.jim            : Jacobian sampled in space of EPI.
 %
@@ -84,7 +83,7 @@ function varargout=FieldMap(varargin)
 % .tol
 % .fwhm    
 %
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Refs and Background reading:
 %
 % Jezzard P & Balaban RS. 1995. Correction for geometric distortion in
@@ -99,16 +98,15 @@ function varargout=FieldMap(varargin)
 %
 % Jenkinson M. 2003. Fast, automated, N-dimensional phase-
 % unwrapping algorithm. MRM 49:193-197.
-%
-%_______________________________________________________________________
-% Acknowledegments
+%__________________________________________________________________________
+% Acknowledegments:
 % 
 % Wellcome Trust and IBIM Consortium
-%_______________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 6066 2014-06-24 11:29:17Z guillaume $
+% $Id: FieldMap.m 6124 2014-07-29 11:51:11Z guillaume $
 
 
 persistent PF FS WS PM   % GUI related constants
@@ -123,8 +121,7 @@ else
    Action = varargin{1};
 end
 
-%
-% We have tried to divide the Actions into 3 categories:
+% Actions are divided into 3 categories:
 % 1) Functions that can be called directly from the GUI are at the
 % beginning. 
 % 2) Next come other GUI-related 'utility' functions - ie those that
@@ -132,7 +129,7 @@ end
 % 3) Finally, call-back functions that are not GUI dependent and can 
 % be called from a script are situated towards the end. 
 % See FieldMap_ngui.m for details on how to use these.
-%
+
 switch lower(Action)
 %=======================================================================
 %
@@ -868,20 +865,19 @@ switch lower(Action)
 
    case 'quit'
 
-     Fgraph=spm_figure('FindWin','Graphics');
+     Fgraph = spm_figure('FindWin','Graphics');
      if ~isempty(Fgraph)
         if DGW
             delete(Fgraph);
-            Fgraph=[];
             DGW = 0;
         else
             spm_figure('Clear','Graphics');
         end    
       end
-      PM=spm_figure('FindWin','FieldMap');
+      PM = spm_figure('FindWin','FieldMap');
       if ~isempty(PM)
          delete(PM);
-         PM=[];
+         PM = [];
       end
 
 %=======================================================================
@@ -1241,10 +1237,10 @@ switch lower(Action)
             set(st.vols{i}.ax{2}.ax,'Visible','Off'); % Disable event delivery in Coronal
             set(st.vols{i}.ax{2}.d,'Visible','Off');   % Make Coronal invisible
             set(st.vols{i}.ax{1}.ax,'Position',ID{i}.tra_pos); 
-            set(st.vols{i}.ax{1}.ax,'ButtonDownFcn',['FieldMap(''Orthviews'');']);
+            set(st.vols{i}.ax{1}.ax,'ButtonDownFcn','FieldMap(''Orthviews'');');
             set(get(st.vols{i}.ax{1}.ax,'YLabel'),'String',ID{i}.label);      
             set(st.vols{i}.ax{3}.ax,'Position',ID{i}.sag_pos); 
-            set(st.vols{i}.ax{3}.ax,'ButtonDownFcn',['FieldMap(''Orthviews'');']);
+            set(st.vols{i}.ax{3}.ax,'ButtonDownFcn','FieldMap(''Orthviews'');');
          end
       end
      
@@ -1275,7 +1271,7 @@ switch lower(Action)
 
    case 'displayimage'
 
-      Fgraph=spm_figure('FindWin','Graphics');
+      Fgraph = spm_figure('FindWin','Graphics');
       
 %       if isempty(Fgraph)
 %          st.fig=spm_figure('Create','Graphics','Graphics');
@@ -1285,7 +1281,7 @@ switch lower(Action)
     % Only open Graphics window if one has been found
       if isempty(Fgraph)
           return;
-      else
+      end
           
       if ~isempty(ID{varargin{4}})
          spm_orthviews('Delete',ID{varargin{4}}.h);
@@ -1337,7 +1333,7 @@ switch lower(Action)
           'Position',[340 280 50 020].*WS,...
           'HorizontalAlignment','left',...
           'String','');
-   end     
+    
 %=======================================================================
 %=======================================================================
 %
@@ -1896,7 +1892,7 @@ switch lower(Action)
 
       if isempty(IP.pP) && ~isempty(IP.P{1})
 
-         IP.fmagP=struct(...
+         IP.fmagP = struct(...
             'fname', spm_file(IP.P{1}.fname,'prefix','mag_'),...
             'dim',   IP.P{1}.dim,...
             'dt',    IP.P{1}.dt,...
@@ -1905,7 +1901,7 @@ switch lower(Action)
       
          % If using real and imaginary data, calculate using sqrt(i1.^2 + i2.^2).
          % If using phase and magnitude, use magnitude image.
-         if IP.uflags.iformat=='RI' 
+         if strcmp(IP.uflags.iformat,'RI') 
             IP.fmagP = spm_imcalc(spm_vol([IP.P{1}.fname;IP.P{2}.fname]),IP.fmagP,'sqrt(i1.^2 + i2.^2)');
          else
             IP.fmagP = IP.P{2};
@@ -1914,8 +1910,6 @@ switch lower(Action)
           msg=sprintf('Using %s for matching\n',IP.fmagP.fname);
           disp(msg);
       else
-         %IP.fmagP = spm_vol(spm_get(1,'*.img','Select field map magnitude image'));
-         % SPM5 Update
          IP.fmagP = spm_vol(spm_select(1,'image','Select field map magnitude image'));
       end
 

@@ -80,10 +80,10 @@ function Vo = spm_imcalc(Vi,Vo,f,flags,varargin)
 % Copyright (C) 1998-2011 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Andrew Holmes
-% $Id: spm_imcalc.m 6043 2014-06-13 14:31:48Z volkmar $
+% $Id: spm_imcalc.m 6124 2014-07-29 11:51:11Z guillaume $
 
 
-SVNid = '$Rev: 6043 $';
+SVNid = '$Rev: 6124 $';
 
 %-Parameters & arguments
 %==========================================================================
@@ -98,10 +98,10 @@ spm('FnBanner',mfilename,SVNid);
 %--------------------------------------------------------------------------
 if ~isstruct(Vi), Vi = spm_vol(char(Vi)); end
 
-if isempty(Vi), error('no input images specified'), end
+if isempty(Vi), error('no input images specified.'), end
 
 if isstruct(Vo)
-    Vchk   = [Vo; Vi(:)];
+    Vchk   = spm_cat_struct(Vo,Vi);
     refstr = 'output';
 else
     Vchk   = Vi(:);
