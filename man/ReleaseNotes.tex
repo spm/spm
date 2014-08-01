@@ -54,7 +54,7 @@ pdfkeywords={neuroimaging, MRI, PET, EEG, MEG, SPM}
 \noindent\hspace*{\centeroffset}\makebox[0pt][l]{
 \begin{minipage}{\textwidth}
 \flushright
-\textbf{\Huge{SPM12b Release Notes}}
+\textbf{\Huge{SPM12 Release Notes}}
 {\noindent\rule[-1ex]{\textwidth}{5pt}\\[2.5ex]}
 \hfill{{\huge The FIL Methods Group} \\ {\LARGE (and honorary members)}\\}
 %\vspace{20mm}
@@ -76,25 +76,43 @@ Institute of Neurology, UCL\\
 
 \vspace{10mm}
 
-%\section*{Welcome to SPM12b}
 This is SPM12b, the beta version of the next major release of SPM\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm12/}}.
-Public updates are taking place frequently until the final release (see spm\_update.m).
+Public updates are taking place frequently until the final release.
 We are always interested to hear feedbacks and comments from SPM users - please contact us at \href{mailto:fil.spm@ucl.ac.uk}{fil.spm@ucl.ac.uk}.
 If you happen to find any bug, please report them at the same email address. Thank you!
 
+SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file LICENCE.txt, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}.
 
-SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file LICENCE.txt, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}. \\
 SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of Neurology at University College London (UCL), UK.
 
-%Copyright (C) 1991,1994-2013 Wellcome Trust Centre for Neuroimaging.
-
 \vspace{10mm}
-\begin{multicols}{2}
+%\begin{multicols}{2}
+
+\section{Software}
+Updates will be made available from time to time at the following address and advertised on the SPM mailing list:
+
+\qquad \url{http://www.fil.ion.ucl.ac.uk/spm/download/spm12_updates/}
+
+A function called \texttt{spm\_update.m} can be used to detect and install updates when available. It is also accessible from the Help menu of the Graphics window.
+
+As in previous versions of SPM, the file \texttt{spm\_defaults.m} contains a list of defaults values used by the software. If you want to customise some defaults for your installation, we recommend you do not modify this file but rather create a file named \texttt{spm\_my\_defaults.m}, accessible from MATLAB search path; it will automatically be picked up and used by SPM to override some default settings.
+
+\subsection{File formats}
+SPM12 uses \href{http://nifti.nimh.nih.gov/nifti-1}{NIfTI-1} and \href{http://www.nitrc.org/projects/gifti/}{GIfTI} file formats for volumetric and surface-based data. The default format for images is now single file \texttt{.nii} instead of pair of files \texttt{.hdr/.img}. There is also preliminary support for \href{http://nifti.nimh.nih.gov/nifti-2}{NIfTI-2}. 
+
+\subsection{Batch interface}
+New folder \texttt{batches} contains a number of ready-made batches (i.e. pipelines). They automatically configure the batch interface to execute preprocessings for fMRI or VBM analyses, as well as first or second level statistical analyses, using consensual settings. To use them, just load them from the batch interface as you would do with any other batch file you may have saved.
+
+\subsection{MATLAB}
+SPM12 is designed to work with MATLAB versions 7.4 (R2007a) to 8.3 (R2014a), and will not work with earlier versions. It is R2014b Graphics Ready and only requires core MATLAB to run (i.e. no toolbox). It will be updated to handle future versions of MATLAB whenever necessary, until the release of the next major version of SPM.
+
+A standalone version of SPM12 (compiled with the MATLAB Compiler) is also available\footnote{\url{http://en.wikibooks.org/wiki/SPM/Standalone}} -- it does not require a MATLAB licence and can be deployed royalty-free. It might therefore be particularly useful for teaching or usage on a computer cluster. It is however not possible to read or modify the source code, use your own functions or install third-party toolboxes.
+
+There is work in progress for compatibility with GNU Octave\footnote{\url{http://www.octave.org/}}. See ways you can contribute on the SPM wiki\footnote{\url{http://en.wikibooks.org/wiki/SPM/Octave}}.
 
 \section{Temporal processing}
 
 \subsection{Slice timing correction}
-
 The slice timing correction implementation was extended by adding the option to use slice acquisition times instead of slice orders and a reference time instead of a reference slice. In particular, this allows to handle datasets acquired using multi-band sequences. This work has been contributed by A. Hoffmann, M. Woletz and C. Windischberger from Medical University of Vienna, Austria \cite{woletz2014st}.
 
 \section{Spatial processing}
@@ -125,6 +143,11 @@ Separating eyeballs from other non-brain tissue allows the nonlinear registratio
 However, the cleanup step (re-introduced from the old segmentation routine, and extended slightly) should allow eyeballs to be removed from the fluid tissue class.
 
 \section{fMRI Statistics}
+
+\subsection{Neuroimaging Data Model (NIDM)}
+
+The Neuroimaging Data Model (NIDM)\footnote{\url{http://nidm.nidash.org/}} is a collection of specification documents that define extensions of the W3C PROV standard\footnote{\url{http://www.w3.org/TR/prov-primer/}} for the domain of human brain mapping.
+An implementation of the export of brain mapping statistical results using NIDM-Results is available from the batch editor in SPM \textgreater\ Stats \textgreater\ Results Report\ \textgreater Print results \textgreater\ NIDM.
 
 \subsection{Canonical Variates Analysis}
 
@@ -161,7 +184,7 @@ This re-parameterisation does not affect model inversion very much but guarantee
 
 \subsubsection{Bayesian model selection for group studies}
 
-\texttt{spm\_BMS.m} now also returns also return ''Protected Exceedance Probabilities'' \cite{Rigoux2014}.
+\texttt{spm\_BMS.m} now also returns ''Protected Exceedance Probabilities'' \cite{Rigoux2014}.
 
 \subsubsection{Spectral DCM for resting state fMRI}
 
@@ -205,6 +228,10 @@ The ``online montage'' let you apply any type of channel montage (re-referencing
 \subsection{Convolution modelling}
 
 An implementation of recently published convolution modelling method for M/EEG power \cite{Litvak_ConvModel_2013} has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool.
+
+\subsection{Surface-based statistics}
+
+SPM's GLM implementation (in \texttt{spm\_spm.m}) has been modified to handle both volumetric and surfacic data; input files can then be specified in NIfTI or GIfTI format. This is used so far when making inference at the source level for M/EEG data.
 
 \subsection{DCM}
 
@@ -255,12 +282,10 @@ This toolbox keeps the old normalisation approach available to those who wish to
 See \cite{klein_evaluation} to see how poorly the old normalisation approach works.
 It was definitely time for it to go.
 
-\section{Batch Interface}
-
 %\section{Bibliography}
 
 \bibliography{biblio/methods_macros,biblio/methods_group,biblio/external}
 
-\end{multicols}
+%\end{multicols}
 \end{document}
 
