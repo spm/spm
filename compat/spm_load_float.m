@@ -7,7 +7,7 @@ function dat = spm_load_float(V)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_load_float.m 1143 2008-02-07 19:33:33Z spm $
+% $Id: spm_load_float.m 6130 2014-08-01 17:41:18Z guillaume $
 
 
 dim = V(1).dim(1:3);

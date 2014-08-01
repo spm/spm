@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 6103 2014-07-14 13:18:58Z guillaume $
+% $Id: spm_cfg_st.m 6130 2014-08-01 17:41:18Z guillaume $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -52,7 +52,9 @@ tr.num     = [1 1];
 ta         = cfg_entry;
 ta.tag     = 'ta';
 ta.name    = 'TA';
-ta.help    = {'Enter the TA (in seconds). It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'};
+ta.help    = {'Enter the TA (in seconds). It is usually calculated as TR-(TR/nslices). You can simply enter this equation with the variables replaced by appropriate numbers.'
+              ''
+              'If the next two items are entered in milliseconds, this entry will not be used and can be set to 0.'};
 ta.strtype = 'r';
 ta.num     = [1 1];
 

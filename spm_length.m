@@ -1,22 +1,19 @@
 function [n] = spm_length(X)
-% length of a vectorised numeric, cell or structure array
-% FORMAT [vX] = spm_length(X)
-% X  - numeric, cell or stucture array[s]
-% n  - length(spm_vec(X))
+% Length of a vectorised numeric, cell or structure array
+% FORMAT [n] = spm_length(X)
+% X    - numeric, cell or stucture array[s]
+% n    - length(spm_vec(X))
 %
-% See spm_unvec
+% See spm_vec, spm_unvec
 %__________________________________________________________________________
 %
 % e.g.:
-% spm_vec({eye(2) 3}) = [1 0 0 1 3]'
+% spm_length({eye(2) 3}) = 5
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_length.m 6110 2014-07-21 09:36:13Z karl $
-
-
-%error('spm_vec.c not compiled - see Makefile')
+% $Id: spm_length.m 6130 2014-08-01 17:41:18Z guillaume $
 
 
 % vectorise numerical arrays
@@ -45,6 +42,7 @@ elseif iscell(X)
     for i = 1:numel(X)
         n = n + spm_length(X{i});
     end
+    
 else
     n = 0;
 end

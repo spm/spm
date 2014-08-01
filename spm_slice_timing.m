@@ -13,7 +13,11 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %               OR time in milliseconds for the reference slice
 % timing      - additional information for sequence timing
 %               timing(1) = time between slices
+%                         = TA / (nslices - 1)
 %               timing(2) = time between last slices and next volume
+%                         = TR - TA
+%               OR timing = [0 TR] when previous inputs are specified in
+%               milliseconds
 % prefix      - filename prefix for corrected image files, defaults to 'a'
 %__________________________________________________________________________
 %
@@ -66,14 +70,6 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 %   the "B" values need to be shifted towards the Right, i.e., towards
 %   the last value.
 %
-%   This correction assumes that the data are band-limited (i.e. there
-%   is no meaningful information present in the data at a frequency
-%   higher than that of the Nyquist). This assumption is support by
-%   the study of Josephs et al (1997, NeuroImage) that obtained
-%   event-related data at an effective TR of 166 msecs. No physio-
-%   logical signal change was present at frequencies higher than our
-%   typical Nyquist (0.25 HZ).
-%
 % Written by Darren Gitelman at Northwestern U., 1998
 %
 % Based (in large part) on ACQCORRECT.PRO from G. Aguirre and E. Zarahn
@@ -93,10 +89,10 @@ function spm_slice_timing(P, sliceorder, refslice, timing, prefix)
 % Copyright (C) 1998-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman et al.
-% $Id: spm_slice_timing.m 6103 2014-07-14 13:18:58Z guillaume $
+% $Id: spm_slice_timing.m 6130 2014-08-01 17:41:18Z guillaume $
 
 
-SVNid = '$Rev: 6103 $';
+SVNid = '$Rev: 6130 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -114,8 +110,8 @@ nsubjects = numel(P);
 % Reference slice: 1=first slice in image, in Analyze format, slice 1 = bottom
 % TR: Interscan interval (TR) {secs}
 % TA: Acquisition Time (TA) {secs} [Def: TR-TR/nslices], TA <= TR
-% timing(2) = TR - TA, time between slices
-% timing(1) = TA / (nslices -1), time between last slices and next volume
+% timing(2) = TR - TA, time between last slices and next volume
+% timing(1) = TA / (nslices -1), time between slices
 
 Vin     = spm_vol(P{1}(1,:));
 nslices = Vin(1).dim(3);

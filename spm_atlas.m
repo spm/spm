@@ -1,7 +1,7 @@
 function varargout = spm_atlas(action,varargin)
 % Atlas multi-function
 % FORMAT xA = spm_atlas('load',atlas)
-% FORMAT L = spm_atlas('list',{'installed','available'})
+% FORMAT L = spm_atlas('list')
 % FORMAT [S,sts] = spm_atlas('select',xA)
 % FORMAT Q = spm_atlas('query',A,XYZmm)
 % FORMAT spm_atlas('label',xA)
@@ -17,10 +17,8 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_atlas.m 6130 2014-08-01 17:41:18Z guillaume $
 
-
-fprintf('**** Please do not use spm_atlas yet as syntax WILL change ****\n');
 
 if ~nargin, action = 'load'; end
 
@@ -28,9 +26,12 @@ if ~nargin, action = 'load'; end
 switch lower(action), case 'dir'
 %==========================================================================
     % FORMAT D = spm_atlas('dir')
-    %-Return directory containing atlas files
+    %-Return list of directories potentially containing atlas files
 
-    d = fullfile(spm('Dir'),'atlas');
+    d = {...
+         fullfile(spm('Dir'),'tpm');...
+         fullfile(spm('Dir'),'atlas');...
+        };
     
     varargout = { d };
     
@@ -39,10 +40,9 @@ switch lower(action), case 'dir'
 case 'def'
 %==========================================================================
     % FORMAT def = spm_atlas('def')
-    %-Return link to atlas definition file
+    %-Return link to atlas definition file [unused]
     
-    def = fullfile(spm_atlas('Dir'),'atlas.xml');
-    % def = 'http://www.fil.ion.ucl.ac.uk/spm/ext/atlas.xml'
+    def = 'http://www.fil.ion.ucl.ac.uk/spm/ext/atlas.xml';
     
     varargout = { def };
     
@@ -201,15 +201,15 @@ case 'label'
         labk  = spm_atlas('query',xA,XYZmm);
         
         hi    = uimenu(h,'Label',['<html><b>' labk '</b></html>']);
-
+        
         %-Consider a 10mm sphere around the peak
         %------------------------------------------------------------------
         [labk,P] = spm_atlas('query',xA,...
             struct('def','sphere','spec',10,'xyz',XYZmm));
         
         for j=1:numel(labk)
-            hj   = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{j},P(j)),...
-                'Callback',['web(''' spm_atlas('weblink',XYZmm) ''',''-notoolbar'');']);
+            hj   = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{j},P(j)));
+                   %'Callback',['web(''' spm_atlas('weblink',XYZmm,'') ''',''-notoolbar'');']);
         end
 
         set(HlistXYZ(i),'UIContextMenu',h);
@@ -247,7 +247,7 @@ case 'menu'
     %hC  = uicontextmenu;
     hC   = uimenu(Finter,'Label','Atlas', 'Tag','AtlasUI');
     
-    hC1  = uimenu(hC,'Label','Use Atlas');
+    hC1  = uimenu(hC,'Label','Label using');
     
     list = spm_atlas('List','installed');
     for i=1:numel(list)
@@ -257,9 +257,9 @@ case 'menu'
     if isempty(list), set(hC1,'Enable','off'); end
     
     
-    hC2  = uimenu(hC,'Label','Download Atlas...',...
-        'Separator','on',...
-        'Callback','spm_atlas(''install'');');
+    %hC2  = uimenu(hC,'Label','Download Atlas...',...
+    %    'Separator','on',...
+    %    'Callback','spm_atlas(''install'');');
     
     %set(Finter,'uicontextmenu',hC);
     
@@ -274,8 +274,10 @@ case 'select'
     
     S = '';
     if isempty(varargin)
+        d = spm_atlas('Dir');
+        d = d{end};
         [S,sts] = spm_select(1, {'image','xml'},...
-            'Select Atlas...', {}, spm_atlas('Dir'));
+            'Select Atlas...', {}, d);
         if ~sts, varargout = { S, sts }; return; end
     else
         xA = spm_atlas('load',varargin{1});
@@ -301,7 +303,7 @@ case 'query'
     xA = spm_atlas('load',varargin{1});
     if nargin > 2, xY = varargin{2}; else xY = struct; end
     
-    unknown = '????';
+    unknown = 'Unknown';
     
     if numel(xA.V) == 1 % or xA.X contains type definition
         if isnumeric(xY) && size(xY,2) == 1
@@ -565,6 +567,7 @@ case 'install'
                     %-Check folder permissions
                     %------------------------------------------------------
                     dest = spm_atlas('Dir');
+                    dest = dest{end};
                     [sts, attrb] = fileattrib(dest);
                     if ~sts, error('"%s"\n%s',dest,attrb); end
                     if ~attrb.UserWrite
@@ -634,9 +637,11 @@ case 'weblink'
     %-Return URL for coordinates query
     
     XYZmm = varargin{1};
-    if nargin < 3, website = 'Brede'; end
+    if nargin < 3, website = ''; else website = varargin{2}; end
     
     switch lower(website)
+        case ''
+            url = '';
         case 'brede'
             %-Brede Database - Talairach coordinate search
             url = 'http://neuro.imm.dtu.dk/cgi-bin/brede_loc_query.pl?q=%d+%d+%d';
@@ -734,12 +739,41 @@ fclose(fid);
 % FUNCTION save_labels(labelfile,labels)
 %==========================================================================
 function save_labels(labelfile,labels)
-fid = fopen(labelfile,'wt');
-if fid == -1, error('Cannot write file "%s".',labelfile); end
-for i=1:numel(labels{3})
-    fprintf(fid,'%d\t%s\n',labels{3}(i),labels{2}{i});
+switch spm_file(labelfile,'ext')
+    case 'txt'
+        fid = fopen(labelfile,'wt');
+        if fid == -1, error('Cannot write file "%s".',labelfile); end
+        for i=1:numel(labels{3})
+            fprintf(fid,'%d\t%s\n',labels{3}(i),labels{2}{i});
+        end
+        fclose(fid);
+    case 'xml'
+        t = xmltree;
+        t = set(t,root(t),'name','atlas');
+        t = attributes(t,'add',root(t),'version','1.0');
+        [t,hdr] = add(t,root(t),'element','header');
+        [t,nam] = add(t,hdr,'element','name');
+        t = add(t,nam,'chardata','');
+        [t,typ] = add(t,hdr,'element','type');
+        t = add(t,typ,'chardata','');
+        [t,img] = add(t,hdr,'element','images');
+        [t,imf] = add(t,img,'element','imagefile');
+        t = add(t,imf,'chardata','');
+        %[t,ims] = add(t,img,'element','summaryimagefile');
+        %t = add(t,ims,'chardata','');
+        [t,uid] = add(t,root(t),'element','data');
+        for i=1:numel(labels{3})
+            [t,lab] = add(t,uid,'element','label');
+            t = add(t,lab,'chardata',labels{2}{i});
+            t = attributes(t,'add',lab,'index',num2str(labels{3}{i}));
+            %t = attributes(t,'add',lab,'x',num2str(0));
+            %t = attributes(t,'add',lab,'y',num2str(0));
+            %t = attributes(t,'add',lab,'z',num2str(0));
+        end
+        save(t,labelfile);
+    otherwise
+        error('Unknown label file format.');
 end
-fclose(fid);
 
 
 %==========================================================================
@@ -759,17 +793,16 @@ function L = atlas_list_installed(refresh)
 persistent atlas_list
 if nargin && strcmpi(refresh,'-refresh'), atlas_list = []; end
 if isempty(atlas_list)
-    L = spm_select('FPList',spm_atlas('Dir'),'^.*\.xml$');
-    if isempty(L), L = {}; else L = cellstr(L); end
-    atlas_list = struct('file',{},'info',{},'name',{});
-    for i=1:numel(L)
-        try
-            A.file = L{i};
-            A.info = convert(xmltree(L{i}));
-            A.name = A.info.name;
+    atlas_list = struct('file',{},'name',{});
+    d = spm_atlas('Dir');
+    for i=1:numel(d)
+        L = spm_select('FPList',d{i},'^.*\.xml$');
+        if isempty(L), L = {}; else L = cellstr(L); end
+        for j=1:numel(L)
+            A.file = L{j};
+            A.name = spm_file(L{j},'basename');
+            if strncmp(A.name,'labels_',7), A.name = A.name(8:end); end
             atlas_list(end+1) = A;
-        catch
-            fprintf('Atlas "%s" could not be read.\n',L{i});
         end
     end
 end
