@@ -17,7 +17,7 @@ function [V,X,Z,W] = spm_DEM_int(M,z,w,c)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_int.m 6017 2014-05-24 14:36:02Z karl $
+% $Id: spm_DEM_int.m 6132 2014-08-06 19:59:46Z karl $
 
 % set model indices and missing fields
 %--------------------------------------------------------------------------
@@ -25,9 +25,8 @@ M      = spm_DEM_M_set(M);
 
 % innovations
 %--------------------------------------------------------------------------
-try, z = spm_cat(z(:)); end
-try, w = spm_cat(w(:)); end
-try, c = spm_cat(c(:)); end
+z = spm_cat(z(:)) + spm_cat(c(:));
+w = spm_cat(w(:));
 
 % number of states and parameters
 %--------------------------------------------------------------------------
@@ -114,9 +113,10 @@ for t  = 1:nt
         %------------------------------------------------------------------
         if mnx || mnv
             
-            pu.x = {spm_vec(xi(1:end - 1))};
-            pu.v = {spm_vec(vi(1 + 1:end))};
-            p    = spm_LAP_eval(M,pu,ph);
+            vi{nl} = vi{nl} + c{nl}(:,t);
+            pu.x   = {spm_vec(xi(1:end - 1))};
+            pu.v   = {spm_vec(vi(1 + 1:end))};
+            p      = spm_LAP_eval(M,pu,ph);
             
             if mnv, Sz = sparse(diag(exp(-p.h/2))); end
             if mnx, Sw = sparse(diag(exp(-p.g/2))); end
@@ -125,8 +125,8 @@ for t  = 1:nt
 
         % derivatives of innovations (and exogenous input)
         %------------------------------------------------------------------
-        u.z  = spm_DEM_embed(Sz*z + c,n,ts,dt);
-        u.w  = spm_DEM_embed(Sw*w,    n,ts,dt);
+        u.z  = spm_DEM_embed(Sz*z,n,ts,dt);
+        u.w  = spm_DEM_embed(Sw*w,n,ts,dt);
 
 
         % Evaluate and update states

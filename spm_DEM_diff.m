@@ -17,7 +17,7 @@ function [u,dg,df] = spm_DEM_diff(M,u)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_DEM_diff.m 5962 2014-04-17 12:47:43Z spm $
+% $Id: spm_DEM_diff.m 6132 2014-08-06 19:59:46Z karl $
 
 
 % Check for action (ADEM)
@@ -33,19 +33,11 @@ catch
     ADEM     = 0;
 end
 
- 
-% number of states and parameters
-%==========================================================================
-nl    = size(M,2);                        % number of levels
-nv    = sum(spm_vec(M.l));                % number of v (causal states)
-na    = sum(spm_vec(M.k));                % number of a (active states)
-nx    = sum(spm_vec(M.n));                % number of x (hidden states)
- 
-% order parameters (n = 1 for static models)
+% number of levels and order parameters (n = 1 for static models)
 %--------------------------------------------------------------------------
+nl    = size(M,2);                        % number of levels
 n     = M(1).E.n + 1;                     % order of embedding
 
- 
 % initialise arrays for hierarchical form
 %--------------------------------------------------------------------------
 dfdvi = cell(nl,nl);
@@ -69,14 +61,11 @@ vi    = spm_unvec(u.v{1},{M.v});
 xi    = spm_unvec(u.x{1},{M.x});
 ai    = spm_unvec(u.a{1},{M.a});
 zi    = spm_unvec(u.z{1},{M.v});
-wi    = spm_unvec(u.w{1},{M.x});
 
- 
 % Derivatives for Jacobian
 %==========================================================================
 vi{nl} = zi{nl};
 for  i = (nl - 1):-1:1
- 
     
     % evaluate
     %----------------------------------------------------------------------
