@@ -11,11 +11,19 @@ function varargout = cfg_ui_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui_util.m 5767 2013-11-26 12:29:10Z volkmar $
+% $Id: cfg_ui_util.m 6136 2014-08-07 10:35:12Z volkmar $
 
-rev = '$Rev: 5767 $';  %#ok<NASGU>
+rev = '$Rev: 6136 $';  %#ok<NASGU>
 
 switch lower(cmd)
+    case {'preview'}
+        % cfg_ui_util('preview', ciid, dflag)
+        [ciid, dflag] = deal(varargin{1:2});
+        contents = cfg_ui_util('showitem', ciid, dflag);
+        [tag, val] = cfg_util('harvest', ciid{:});
+        try
+            feval(contents{10}, val);
+        end
     case {'showitemstr'}
         % [namestr datastr] = cfg_ui_util('showitemstr', contents, dflag)
         % get name and one-line data description for a single item (i.e.
@@ -99,7 +107,7 @@ switch lower(cmd)
             cfg_findspec({{'hidden',false}}), ...
             cfg_tropts({{'hidden', true}},1,1,1,1,dflag), ...
             {'name','val','labels','values','class','level', ...
-            'all_set','all_set_item','num'});
+            'all_set','all_set_item','num','preview'});
         contents = cellfun(@(c)subsref(c, substruct('{}',{1})), contents, 'UniformOutput', false);
         [namestr, datastr] = cfg_ui_util('showitemstr', contents, dflag);
         varargout{1} = contents;
@@ -113,7 +121,7 @@ switch lower(cmd)
             cfg_findspec({{'hidden',false}}), ...
             cfg_tropts({{'hidden', true}},1,Inf,1,Inf,dflag), ...
             {'name','val','labels','values','class','level', ...
-            'all_set','all_set_item','num'});
+            'all_set','all_set_item','num','preview'});
         if isempty(id) || ~cfg_util('isitem_mod_id', id{1})
             % Module not found without hidden flag
             % Try to list top level entry of module anyway, but not module items.
@@ -122,7 +130,7 @@ switch lower(cmd)
                 cfg_findspec({}), ...
                 cfg_tropts({{'hidden', true}},1,1,1,1,dflag), ...
                 {'name','val','labels','values','class','level', ...
-                'all_set','all_set_item'});
+                'all_set','all_set_item','preview'});
         end;
         namestr = cell(1,numel(id));
         datastr = cell(1,numel(id));
@@ -249,6 +257,8 @@ switch lower(cmd)
         set(findobj(fig,'-regexp', 'Tag','^CmVal.*'), 'Visible','off');
         delete(findobj(fig,'-regexp', 'Tag','^Val.*Dyn$'))
         set(findobj(fig,'-regexp', 'Tag','^valshow.*'), 'Visible','off');
+        set(findobj(fig,'-regexp', 'Tag','.*Preview$'), 'Visible','off', ...
+            'Enable','off');
         handles = guidata(fig);
         set(handles.valshow,'String', '','Min',0,'Max',0,'Callback',[]);
         set(handles.valshowLabel, 'String',sprintf('Current Item: %s',contents{1}));
@@ -393,9 +403,14 @@ switch lower(cmd)
         [id, stop, help] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'showdoc'});
         set(handles.helpbox, 'Value',1, 'ListboxTop',1, 'string',cfg_justify(handles.helpbox, help{1}{1}));
+        if contents{7} && ~isempty(contents{10})
+            set(findobj(fig,'-regexp', 'Tag','.*Preview$'), 'Visible','on', ...
+                              'Enable','on');
+        end
+
     case 'valedit_editvalue'
         [ciid, itemname, val] = deal(varargin{1:3});
-        [unused,unused, itemclass] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
+        [unused, unused, itemclass] = cfg_util('listmod', ciid{:}, cfg_findspec, ...
             cfg_tropts(cfg_findspec,1,1,1,1,false), {'class'});
         switch itemclass{1}{1}
             case {'cfg_entry'},

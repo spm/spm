@@ -27,13 +27,13 @@ function varargout = cfg_ui(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_ui.m 5807 2013-12-19 11:43:44Z volkmar $
+% $Id: cfg_ui.m 6136 2014-08-07 10:35:12Z volkmar $
 
-rev = '$Rev: 5807 $'; %#ok
+rev = '$Rev: 6136 $'; %#ok
 
 % edit the above text to modify the response to help cfg_ui
 
-% Last Modified by GUIDE v2.5 02-Oct-2013 11:11:32
+% Last Modified by GUIDE v2.5 18-Jul-2014 13:38:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -212,13 +212,11 @@ appid = get(gcbo, 'Userdata');
 if ~ischar(file)
     return;
 end;
-fid = fopen(fullfile(path, file), 'wt');
-if fid < 1
-    cfg_message('matlabbatch:savefailed', ...
-            'Save failed: no defaults written to %s.', ...
-            fullfile(path, file));
-    return;
-end;
+fname      = fullfile(path, file);
+[fid, msg] = fopen(fname, 'wt');
+if fid == -1
+    cfg_message('matlabbatch:fopen', 'Failed to open ''%s'' for writing:\n%s', fname, msg);
+end
 [defstr, tagstr] = gencode(def, tag);
 [u1, funcname] = fileparts(file);
 fprintf(fid, 'function %s = %s\n', tagstr, funcname);
@@ -437,6 +435,17 @@ local_valedit_update(hObject);
 
 % --------------------------------------------------------------------
 function local_clearvaledit(hObject)
+[ciid, dflag] = local_get_ciid(hObject);
+cfg_ui_util('setvaledit', ciid, {}, dflag);
+local_valedit_update(hObject);
+
+% --------------------------------------------------------------------
+function local_preview(hObject)
+[ciid, dflag] = local_get_ciid(hObject);
+cfg_ui_util('preview', ciid, dflag);
+
+% --------------------------------------------------------------------
+function [ciid, dflag] = local_get_ciid(hObject)
 handles = guidata(hObject);
 value = get(handles.module, 'Value');
 udmodule = get(handles.module, 'Userdata');
@@ -448,8 +457,6 @@ if dflag
 else
     ciid = {udmodlist.cjob, udmodlist.id{cmod} udmodule.id{value}};
 end;
-cfg_ui_util('setvaledit', ciid, {}, dflag);
-local_valedit_update(hObject);
 
 % --------------------------------------------------------------------
 function cmd = local_check_job_modified(udmodlist, action)
@@ -1041,3 +1048,18 @@ if cfg_util('isjob_id', cjob)
     njob = cfg_util('clonejob', cjob);
     cfg_ui_multibatch(njob);
 end
+
+
+% --------------------------------------------------------------------
+function MenuViewPreview_Callback(hObject, eventdata, handles)
+% hObject    handle to MenuViewPreview (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+local_preview(hObject);
+
+% --------------------------------------------------------------------
+function CmValPreview_Callback(hObject, eventdata, handles)
+% hObject    handle to CmValPreview (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+local_preview(hObject);
