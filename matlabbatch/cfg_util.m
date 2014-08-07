@@ -154,20 +154,25 @@ function varargout = cfg_util(cmd, varargin)
 % item_names     - cell list of item name lists for each item with open
 %                  inputs.
 %
-%  [tag, val] = cfg_util('harvest', job_id[, mod_job_id])
+%  [tag, val] = cfg_util('harvest', job_id[, mod_job_id[, item_mod_id]])
 %
 % Harvest is a method defined for all 'cfg_item' objects. It collects the
 % entered values and dependencies of the input items in the tree and
 % assembles them in a struct/cell array.
-% If no mod_job_id is supplied, the internal configuration tree will be
+% If only job_id is supplied, the internal configuration tree will be
 % cleaned up before harvesting. Dependencies will not be resolved in this
 % case. The internal state of cfg_util is not modified in this case. The
 % structure returned in val may be saved to disk as a job and can be loaded
 % back into cfg_util using the 'initjob' command.
-% If a mod_job_id is supplied, only the relevant part of the configuration
-% tree is harvested, dependencies are resolved and the internal state of
-% cfg_util is updated. In this case, the val output is only part of a job
-% description and can not be loaded back into cfg_util.
+% If a mod_job_id, but not an item_mod_id is supplied, only the relevant
+% part of the configuration tree is harvested, dependencies are resolved
+% and the internal state of cfg_util is updated. In this case, the val
+% output is only part of a job description. It can be used as an input
+% argument to the corresponding module's .prog function, but can not be
+% loaded back into cfg_util.
+% If all ids are supplied, the configuration tree starting at the
+% specified item will be harvested. No dependencies will be resolved, and
+% no cleanup will be done.
 %
 %  [tag, appdef] = cfg_util('harvestdef'[, apptag|cfg_id])
 %
@@ -418,9 +423,9 @@ function varargout = cfg_util(cmd, varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_util.m 6105 2014-07-15 12:49:56Z volkmar $
+% $Id: cfg_util.m 6134 2014-08-07 10:35:09Z volkmar $
 
-rev = '$Rev: 6105 $';
+rev = '$Rev: 6134 $';
 
 %% Initialisation of cfg variables
 % load persistent configuration data, initialise if necessary
@@ -685,13 +690,24 @@ switch lower(cmd),
                 cj1 = local_compactjob(jobs(cjob));
                 [tag, val] = harvest(cj1.cj, cj1.cj, false, false);
             end
-        else
+        elseif nargin == 3
+            % harvest module
+            % resolve dependencies
             mod_job_id = varargin{2};
             if cfg_util('ismod_job_id', cjob, mod_job_id)
                 [tag, val, u3, u4, u5, jobs(cjob).cj] = harvest(subsref(jobs(cjob).cj, ...
                                                                   jobs(cjob).cjid2subs{mod_job_id}), ...
                                                            jobs(cjob).cj, ...
                                                            false, true);
+            end
+        else
+            % harvest part of job/module
+            % do not resolve dependencies
+            mod_job_id = varargin{2};
+            item_mod_id = varargin{3};
+            if cfg_util('ismod_job_id', cjob, mod_job_id) && cfg_util('isitem_mod_id', item_mod_id)
+                [tag, val] = harvest(subsref(jobs(cjob).cj, ...
+                    [jobs(cjob).cjid2subs{mod_job_id} item_mod_id]), jobs(cjob).cj, false, false);
             end
         end
         varargout{1} = tag;
