@@ -44,6 +44,12 @@ function item = cfg_item(varargin)
 %              This will result in 'get_defaults' being called with the key
 %              argument only for retrieving defaults, and with key plus
 %              defval arguments to set defaults.
+%    * preview - (optional) A function callback that accepts the
+%              harvested configuration subtree rooted at this
+%              cfg_item. It is evaluated from the GUI and can be used to
+%              display information about the entered data. The GUI only
+%              calls this callback if the entire subtree is complete
+%              (all_leafs/all_set) and contains no dependency objects.
 % GUI/job manager fields
 %    * expanded
 %    * hidden
@@ -86,9 +92,9 @@ function item = cfg_item(varargin)
 % Copyright (C) 2007 Freiburg Brain Imaging
 
 % Volkmar Glauche
-% $Id: cfg_item.m 5678 2013-10-11 14:58:04Z volkmar $
+% $Id: cfg_item.m 6133 2014-08-07 10:35:08Z volkmar $
 
-rev = '$Rev: 5678 $'; %#ok
+rev = '$Rev: 6133 $'; %#ok
 
 myclass = mfilename;
 % Get local fields and defaults from private/mysubs_fields
