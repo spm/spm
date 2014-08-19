@@ -11,7 +11,7 @@ function out = spm_deformations(job)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_deformations.m 5973 2014-05-06 18:12:24Z john $
+% $Id: spm_deformations.m 6137 2014-08-19 12:43:11Z john $
 
 
 [Def,mat] = get_comp(job.comp);
@@ -269,7 +269,7 @@ M0(4,:)     = [0 0 0 1];
 M1(4,:)     = [0 0 0 1];
 Def         = spm_diffeo('invdef',Def0,NT.dat.dim(1:3),M1,M0);
 mat         = NT.mat;
-
+Def         = spm_extrapolate_def(Def,mat);
 
 %==========================================================================
 % function fname = save_def(Def,mat,job)

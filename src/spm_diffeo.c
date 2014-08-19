@@ -1,4 +1,4 @@
-/* $Id: spm_diffeo.c 5982 2014-05-14 12:57:43Z john $ */
+/* $Id: spm_diffeo.c 6137 2014-08-19 12:43:11Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include "mex.h"
@@ -502,7 +502,7 @@ static void samp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 {
     float *f, *Y, *wf;
     double buf[1024];
-    mwSize nd, i, mm;
+    mwSize nd, i, mm, mm1;
     mwSize dmf[4], dmy[4];
     const mwSize *dmyp;
 
@@ -540,11 +540,12 @@ static void samp_mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
     Y = (float *)mxGetPr(prhs[1]);
     wf= (float *)mxGetPr(plhs[0]);
 
-    mm = dmy[0]*dmy[1]*dmy[2];
+    mm  = dmy[0]*dmy[1]*dmy[2];
+    mm1 = dmf[0]*dmf[1]*dmf[2];
     for (i=0; i<mm; i++)
     {
         int j;
-        sampn(dmf, f, dmf[3], mm,
+        sampn(dmf, f, dmf[3], mm1,
             (double)Y[i]-1.0, (double)Y[mm+i]-1.0, (double)Y[2*mm+i]-1.0,
             buf);
         for(j=0; j<dmf[3]; j++)

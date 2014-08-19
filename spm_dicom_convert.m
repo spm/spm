@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 5954 2014-04-14 19:10:37Z john $
+% $Id: spm_dicom_convert.m 6137 2014-08-19 12:43:11Z john $
 
 
 if nargin<2, opts     = 'all'; end
@@ -461,14 +461,11 @@ while ~all(d),
 end;
 
 msg = 0;
-if any(diff(sort(t))~=1), msg = 1; end;
-if ~msg,
-    len = length(vol2{1});
-    for i=2:length(vol2),
-        if length(vol2{i}) ~= len,
-            msg = 1;
-            break;
-        end;
+len = length(vol2{1});
+for i=2:length(vol2),
+    if length(vol2{i}) ~= len,
+        msg = 1;
+        break;
     end;
 end;
 if msg,

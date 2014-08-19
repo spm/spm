@@ -106,7 +106,7 @@ function varargout = FieldMap(varargin)
 % Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jesper Andersson and Chloe Hutton 
-% $Id: FieldMap.m 6124 2014-07-29 11:51:11Z guillaume $
+% $Id: FieldMap.m 6137 2014-08-19 12:43:11Z john $
 
 
 persistent PF FS WS PM   % GUI related constants
@@ -1592,8 +1592,8 @@ switch lower(Action)
         errordlg({'Images don''t all have same dimensions'});
         drawnow;
         varargout{1}=[];
-      elseif any(any(diff(ip_mat,1,1),1))
-    errordlg({'Images don''t all have same orientation & voxel size'});
+      elseif any(any(abs(diff(ip_mat,1,1))>1e-4))
+        errordlg({'Images don''t all have same orientation & voxel size'});
         drawnow;
         varargout{1}=[];
       else

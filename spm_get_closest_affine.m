@@ -26,7 +26,7 @@ function [M,R] = spm_get_closest_affine(x,y,w1,w2)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_get_closest_affine.m 4873 2012-08-30 19:06:26Z john $
+% $Id: spm_get_closest_affine.m 6137 2014-08-19 12:43:11Z john $
  
 XX = zeros(4);
 XY = zeros(4);
@@ -34,7 +34,7 @@ d  = size(x);
 o  = ones(d(1)*d(2),1);
 for k=1:size(x,3),
     xk  = reshape(x(:,:,k,:),[d(1)*d(2),3]);
-    if nargin<3 && isempty(w1) && isempty(w2),
+    if (nargin<3 || isempty(w1)) && (nargin<4 || isempty(w2)),
         ox = o;
         oy = o;
     else

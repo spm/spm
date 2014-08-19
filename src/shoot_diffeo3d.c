@@ -1,4 +1,4 @@
-/* $Id: shoot_diffeo3d.c 4875 2012-08-30 20:04:30Z john $ */
+/* $Id: shoot_diffeo3d.c 6137 2014-08-19 12:43:11Z john $ */
 /* (c) John Ashburner (2011) */
 
 #include <mex.h>
@@ -119,14 +119,17 @@ static void composition_stuff(mwSize dm[], mwSize mm,
     float *Ax, *Ay, *Az, *JA00, *JA01, *JA02,  *JA10, *JA11, *JA12,  *JA20, *JA21, *JA22;
     float *Bx, *By, *Bz, *JB00, *JB01, *JB02,  *JB10, *JB11, *JB12,  *JB20, *JB21, *JB22;
     float *Cx, *Cy, *Cz, *JC00, *JC01, *JC02,  *JC10, *JC11, *JC12,  *JC20, *JC21, *JC22;
-    mwSize i;
+    mwSize i, mmb = dm[0]*dm[1]*dm[2];
+
+    /* Does not yet work properly if dimensions of A and B are not identical.
+       Still need to figure out why not. */
 
     Ax   =  A;
     Ay   =  A+mm;
     Az   =  A+mm*2;
     Bx   =  B;
-    By   =  B+mm;
-    Bz   =  B+mm*2;
+    By   =  B+mmb;
+    Bz   =  B+mmb*2;
     Cx   =  C;
     Cy   =  C+mm;
     Cz   =  C+mm*2;
@@ -137,9 +140,9 @@ static void composition_stuff(mwSize dm[], mwSize mm,
         JA10 = JA+mm*3; JA11 = JA+mm*4; JA12 = JA+mm*5;
         JA20 = JA+mm*6; JA21 = JA+mm*7; JA22 = JA+mm*8;
 
-        JB00 = JB+mm*0; JB01 = JB+mm*1; JB02 = JB+mm*2;
-        JB10 = JB+mm*3; JB11 = JB+mm*4; JB12 = JB+mm*5;
-        JB20 = JB+mm*6; JB21 = JB+mm*7; JB22 = JB+mm*8;
+        JB00 = JB+mmb*0; JB01 = JB+mmb*1; JB02 = JB+mmb*2;
+        JB10 = JB+mmb*3; JB11 = JB+mmb*4; JB12 = JB+mmb*5;
+        JB20 = JB+mmb*6; JB21 = JB+mmb*7; JB22 = JB+mmb*8;
 
         JC00 = JC+mm*0; JC01 = JC+mm*1; JC02 = JC+mm*2;
         JC10 = JC+mm*3; JC11 = JC+mm*4; JC12 = JC+mm*5;
@@ -637,7 +640,7 @@ void push(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], 
             z    = pz[i]-1.0;
 
             /* Check range and avoid inserting values outside the FOV. */
-            if (x>=1 && x<dm[0]-1 && y>=1 && y<dm[1]-1 && z>=1 && z<dm[2]-1)
+            if (x>=0 && x<dm[0]-1 && y>=0 && y<dm[1]-1 && z>=0 && z<dm[2]-1)
             {
                 /* A faster function fo voxels that are safely inside the FOV */
                 mwSize o000, o100, o010, o110, o001, o101, o011, o111;
@@ -704,7 +707,7 @@ void push(mwSize dm[], mwSize m, mwSize n, float def[], float pf[], float po[], 
                     so[o111] += w111;
                 }
             }
-            else if ((x>=0.0) && (x<dm[0]) && (y>=0.0) && (y<dm[1]) && (z>=0.0) && (z<dm[2]))
+            else if ((x>=-1) && (x<dm[0]) && (y>=-1) && (y<dm[1]) && (z>=-1) && (z<dm[2]))
             {
                 /* A slower function for voxels at the edge of the field of view */
                 mwSize o[8], nn=0, k;
