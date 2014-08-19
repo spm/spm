@@ -29,7 +29,7 @@ function [select] = parameterselection(param, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: parameterselection.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: parameterselection.m 9766 2014-08-06 09:51:26Z eelspa $
 
 if ischar(param)
   param = {param};   % it should be a cell-array
@@ -43,7 +43,7 @@ if ~isempty(sel)
   % the new default is to try all fields present in the data
   allparam = fieldnames(data);
   % fields can be nested in source.avg
-  if isfield(data, 'avg')
+  if isfield(data, 'avg') && isstruct(data.avg)
     tmp = fieldnames(data.avg);
     for i=1:length(tmp)
       tmp{i} = ['avg.' tmp{i}];
@@ -51,7 +51,7 @@ if ~isempty(sel)
     allparam = cat(1, allparam, tmp);
   end
   % fields can be nested in source.trial
-  if isfield(data, 'trial')
+  if isfield(data, 'trial') && isstruct(data.trial)
     tmp = fieldnames(data.trial);
     for i=1:length(tmp)
       tmp{i} = ['trial.' tmp{i}];

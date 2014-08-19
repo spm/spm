@@ -40,7 +40,7 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %
 % $Id: ft_connectivityplot$
 
-revision = '$Id: ft_connectivityplot.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_connectivityplot.m 9762 2014-08-04 14:55:35Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -151,6 +151,10 @@ tmpcfg         = [];
 tmpcfg.channel = cfg.channel;
 tmpcfg.foilim  = cfg.xlim;
 data           = ft_selectdata(tmpcfg, data);
+
+% restore the provenance information
+[cfg, data] = rollback_provenance(cfg, data);
+
 
 dat   = data.(cfg.parameter);
 nchan = numel(data.label);

@@ -55,9 +55,9 @@ function [data] = ft_appenddata(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_appenddata.m 9752 2014-07-23 13:26:00Z eelspa $
+% $Id: ft_appenddata.m 9768 2014-08-06 11:15:00Z eelspa $
 
-revision = '$Id: ft_appenddata.m 9752 2014-07-23 13:26:00Z eelspa $';
+revision = '$Id: ft_appenddata.m 9768 2014-08-06 11:15:00Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -87,13 +87,13 @@ end
 % ensure consistent input data
 for i=2:Ndata
   if isfield(varargin{1}, 'topo'),
-    assert(isequalwithequalnans(varargin{1}.topo, varargin{i}.topo), 'the input has inconsistent topo fields')
+    assert(isequaln(varargin{1}.topo, varargin{i}.topo), 'the input has inconsistent topo fields')
   end
   if isfield(varargin{1}, 'topolabel'),
-    assert(isequalwithequalnans(varargin{1}.topolabel, varargin{i}.topolabel), 'the input has inconsistent topolabel fields')
+    assert(isequaln(varargin{1}.topolabel, varargin{i}.topolabel), 'the input has inconsistent topolabel fields')
   end
   if isfield(varargin{1}, 'unmixing'),
-    assert(isequalwithequalnans(varargin{1}.unmixing, varargin{i}.unmixing), 'the input has inconsistent unmixing fields')
+    assert(isequaln(varargin{1}.unmixing, varargin{i}.unmixing), 'the input has inconsistent unmixing fields')
   end
 end
 
@@ -173,7 +173,7 @@ if haselec || hasgrad,
     if haselec, sens{j} = varargin{j}.elec; end
     if hasgrad, sens{j} = varargin{j}.grad; end
     if j>1,
-      if ~isequalwithequalnans(sens{j}, sens{1})
+      if ~isequaln(sens{j}, sens{1})
         removesens = 1;
         warning('sensor information does not seem to be consistent across the input arguments');
         break;

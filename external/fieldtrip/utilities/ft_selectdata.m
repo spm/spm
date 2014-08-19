@@ -68,7 +68,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9682 2014-07-01 11:37:33Z jansch $
+% $Id: ft_selectdata.m 9765 2014-08-06 09:30:45Z eelspa $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -507,7 +507,9 @@ end % function makeselection
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = makeselection_chan(data, selchan, avgoverchan)
-if avgoverchan && all(isnan(selchan))
+if isempty(selchan)
+  error('no channels were selected');
+elseif avgoverchan && all(isnan(selchan))
   str = sprintf('%s, ', data.label{:});
   str = str(1:end-2);
   str = sprintf('mean(%s)', str);
@@ -530,14 +532,17 @@ elseif numel(selchan)>1  && any(~isfinite(selchan))
     end
   end
   data.label = tmp;
-elseif isempty(selchan)
-  data.label = {};
+else
+  % this should never happen
+  error('cannot figure out how to select channels');
 end
 end % function makeselection_chan
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = makeselection_chancmb(data, selchancmb, avgoverchancmb)
-if avgoverchancmb && all(isnan(selchancmb))
+if isempty(selchancmb)
+  error('no channel combinations were selected');
+elseif avgoverchancmb && all(isnan(selchancmb))
   % naming the channel combinations becomes ambiguous, but should not
   % suggest that the mean was computed prior to combining
   str1 = sprintf('%s, ', data.labelcmb{:,1});
@@ -570,8 +575,9 @@ elseif numel(selchancmb)>1  && any(~isfinite(selchancmb))
     end
   end
   data.labelcmb = tmp;
-elseif isempty(selchancmb)
-  data.labelcmb = cell(0,2);
+else
+  % this should never happen
+  error('cannot figure out how to select channelcombinations');
 end
 end % function makeselection_chancmb
 

@@ -70,9 +70,9 @@ function [data] = ft_megplanar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_megplanar.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_megplanar.m 9762 2014-08-04 14:55:35Z dieloz $
 
-revision = '$Id: ft_megplanar.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_megplanar.m 9762 2014-08-04 14:55:35Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -130,10 +130,12 @@ cfg = ft_checkconfig(cfg, 'renamed', {'sourceunits', 'unit'}); % this is moved t
 cfg = ft_checkconfig(cfg, 'createsubcfg',  {'grid'});
 
 % select trials of interest
-if ~strcmp(cfg.trials, 'all')
-  fprintf('selecting %d trials\n', length(cfg.trials));
-  data = ft_selectdata(data, 'rpt', cfg.trials);
-end
+tmpcfg = [];
+tmpcfg.trials = cfg.trials;
+tmpcfg.channel = cfg.channel;
+data = ft_selectdata(tmpcfg, data);
+% restore the provenance information
+[cfg, data] = rollback_provenance(cfg, data);
 
 if strcmp(cfg.planarmethod, 'sourceproject')
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

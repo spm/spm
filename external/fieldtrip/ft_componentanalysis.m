@@ -146,14 +146,14 @@ function [comp] = ft_componentanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_componentanalysis.m 9749 2014-07-23 12:11:40Z eelspa $
+% $Id: ft_componentanalysis.m 9762 2014-08-04 14:55:35Z dieloz $
 
 % undocumented cfg options:
 %   cfg.cellmode = string, 'no' or 'yes', allows to run in cell-mode, i.e.
 %     no concatenation across trials is needed. This is based on experimental
 %     code and only supported for 'dss', 'fastica' and 'bsscca' as methods.
 
-revision = '$Id: ft_componentanalysis.m 9749 2014-07-23 12:11:40Z eelspa $';
+revision = '$Id: ft_componentanalysis.m 9762 2014-08-04 14:55:35Z dieloz $';
 
 % do the general setup of the function
 ft_defaults
@@ -271,20 +271,15 @@ switch cfg.method
 end
 
 % select trials of interest
-if ~strcmp(cfg.trials, 'all')
-  fprintf('selecting %d trials\n', length(cfg.trials));
-  data = ft_selectdata(data, 'rpt', cfg.trials);
-end
-Ntrials  = length(data.trial);
+tmpcfg = [];
+tmpcfg.trials = cfg.trials;
+tmpcfg.channel = cfg.channel;
+data = ft_selectdata(tmpcfg, data);
+% restore the provenance information
+[cfg, data] = rollback_provenance(cfg, data);
 
-% select channels of interest
-chansel = match_str(data.label, cfg.channel);
-fprintf('selecting %d channels\n', length(chansel));
-for trial=1:Ntrials
-  data.trial{trial} = data.trial{trial}(chansel,:);
-end
-data.label = data.label(chansel);
-Nchans     = length(chansel);
+Ntrials  = length(data.trial);
+Nchans   = length(data.label);
 if Nchans==0
   error('no channels were selected');
 end

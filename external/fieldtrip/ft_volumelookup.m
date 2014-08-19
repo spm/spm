@@ -77,9 +77,9 @@ function [output] = ft_volumelookup(cfg, volume)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumelookup.m 9595 2014-05-29 09:09:23Z roboos $
+% $Id: ft_volumelookup.m 9754 2014-07-25 05:24:42Z jansch $
 
-revision = '$Id: ft_volumelookup.m 9595 2014-05-29 09:09:23Z roboos $';
+revision = '$Id: ft_volumelookup.m 9754 2014-07-25 05:24:42Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -216,7 +216,7 @@ if roi2mask
         % nothing to do
       elseif strcmp(cfg.inputcoord, 'tal') && strcmp(atlas.coordsys, 'mni')
         xyz(1:3,:) = tal2mni(xyz(1:3,:));
-      elseif ~strcmp(inputcoord, atlas.coordsys)
+      elseif ~strcmp(cfg.inputcoord, atlas.coordsys)
         error('there is a mismatch between the coordinate system in the atlas and the coordinate system in the data, which cannot be resolved');
       end
       

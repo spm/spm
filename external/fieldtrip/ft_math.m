@@ -74,13 +74,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9597 2014-06-03 08:03:58Z jorhor $
+% $Id: ft_math.m 9769 2014-08-08 09:33:52Z jorhor $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9597 2014-06-03 08:03:58Z jorhor $';
+revision = '$Id: ft_math.m 9769 2014-08-08 09:33:52Z jorhor $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -303,7 +303,7 @@ else
         error('the operation "%s" requires exactly 2 input arguments', cfg.operation);
       end
       fprintf('taking the log difference between the 2nd input argument and the 1st\n');
-      tmp = log10(tmp ./ varargin{2}.(cfg.parameter));
+      y = log10(x1 ./ varargin{2}.(cfg.parameter));
       
     otherwise
       % assume that the operation is descibed as a string, e.g. (x1-x2)/(x1+x2)

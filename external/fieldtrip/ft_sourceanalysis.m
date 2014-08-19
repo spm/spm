@@ -140,9 +140,9 @@ function [source] = ft_sourceanalysis(cfg, data, baseline)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourceanalysis.m 9591 2014-05-27 20:37:46Z roboos $
+% $Id: ft_sourceanalysis.m 9759 2014-07-31 07:17:13Z eelspa $
 
-revision = '$Id: ft_sourceanalysis.m 9591 2014-05-27 20:37:46Z roboos $';
+revision = '$Id: ft_sourceanalysis.m 9759 2014-07-31 07:17:13Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -158,9 +158,9 @@ if abort
 end
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', {'comp', 'timelock', 'freq'}, 'feedback', 'yes');
+data = ft_checkdata(data, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 if nargin>2
-  baseline = ft_checkdata(baseline, 'datatype', {'comp', 'timelock', 'freq'}, 'feedback', 'yes');
+  baseline = ft_checkdata(baseline, 'datatype', {'timelock', 'freq', 'comp'}, 'feedback', 'yes');
 end
 
 % check if the input cfg is valid for this function
