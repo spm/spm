@@ -16,7 +16,7 @@ function varargout = spm_check_installation(action)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_check_installation.m 6092 2014-07-04 14:42:28Z guillaume $
+% $Id: spm_check_installation.m 6139 2014-08-20 17:55:24Z guillaume $
 
 if isdeployed, return; end
 
@@ -89,7 +89,7 @@ end
 
 %-Ensure that the original release - as well as the updates - was installed
 %--------------------------------------------------------------------------
-if ~exist(fullfile(d,'@nifti','create.m'),'file') % File that should not have changed
+if ~exist(fullfile(d,'@nifti','fieldnames.m'),'file') % File that should not have changed
     if isunix
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
@@ -102,7 +102,9 @@ if ~exist(fullfile(d,'@nifti','create.m'),'file') % File that should not have ch
         error(sprintf([...
             'There appears to be some problem with the installation.\n'...
             'The original spm12.zip distribution should be installed\n'...
-            'and the updates installed on top of this.']));
+            'and the updates installed on top of this.\n'...
+            'For more information, type the following:\n'...
+            '    help spm_update']));
     end
 end
 
