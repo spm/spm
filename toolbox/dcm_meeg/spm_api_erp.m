@@ -6,7 +6,7 @@ function varargout = spm_api_erp(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_api_erp.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_api_erp.m 6140 2014-08-21 13:54:25Z vladimir $
  
 
 %-Launch GUI
@@ -444,7 +444,7 @@ end
 handles = reset_Callback(hObject, eventdata, handles);
 try
     handles.DCM  = spm_dcm_erp_data(handles.DCM);
-    if isfield(handles.DCM.xY, 'xy')
+    if isfield(handles.DCM.xY, 'y') && ~isfield(handles.DCM.xY, 'xf')
         spm_dcm_erp_results(handles.DCM, 'Data');
     else
         spm_dcm_ind_results(handles.DCM, 'Wavelet');
@@ -472,7 +472,7 @@ function Y_Callback(hObject, eventdata, handles)
 handles = reset_Callback(hObject, eventdata, handles);
 try
     DCM  = spm_dcm_erp_data(handles.DCM);
-    if isfield(DCM.xY, 'xy')
+    if isfield(handles.DCM.xY, 'y') && ~isfield(handles.DCM.xY, 'xf')
         spm_dcm_erp_results(DCM, 'Data');
     else
         spm_dcm_ind_results(DCM, 'Wavelet');
