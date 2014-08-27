@@ -36,9 +36,9 @@ function DCM = spm_dcm_fmri_csd(P)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_fmri_csd.m 5919 2014-03-14 13:19:21Z adeel $
+% $Id: spm_dcm_fmri_csd.m 6142 2014-08-27 16:10:29Z adeel $
 
-SVNid = '$Rev: 5919 $';
+SVNid = '$Rev: 6142 $';
 
 % Load DCM structure
 %--------------------------------------------------------------------------
@@ -58,6 +58,7 @@ try, DCM.options.two_state;  catch, DCM.options.two_state  = 0;     end
 try, DCM.options.stochastic; catch, DCM.options.stochastic = 0;     end
 try, DCM.options.centre;     catch, DCM.options.centre     = 0;     end
 try, DCM.options.nmax;       catch, DCM.options.nmax       = 8;     end
+try, DCM.options.analysis;   catch, DCM.options.analysis   = 'CSD'; end
 try, DCM.options.nograph;    catch, DCM.options.nograph    = spm('CmdLine');  end
 
 
@@ -101,6 +102,7 @@ DCM.b   = zeros(n,n,0);
 DCM.d   = zeros(n,n,0);
 if isempty(DCM.c) || isempty(DCM.U.u)
     DCM.c      = zeros(DCM.n,1);
+    DCM.b  = zeros(DCM.n,DCM.n,1);
     DCM.U.u    = zeros(DCM.v,1);
     DCM.U.name = {'null'};
 end
