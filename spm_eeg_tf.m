@@ -44,9 +44,9 @@ function [Dtf, Dtph] = spm_eeg_tf(S)
 % Copyright (C) 2010 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_tf.m 5507 2013-05-17 13:37:19Z vladimir $
+% $Id: spm_eeg_tf.m 6146 2014-09-02 11:27:43Z vladimir $
 
-SVNrev = '$Rev: 5507 $';
+SVNrev = '$Rev: 6146 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -201,8 +201,11 @@ else % by channel for continuous data
             Dtf = coor2D(Dtf, 1:Nchannels, coor2D(D,chanind));
             
             ev  = Dtf.events;
-            ev  = ev([ev.time]>=Dtf.time(1) & [ev.time]<=Dtf.time(end));
-            Dtf = events(Dtf, 1, ev);
+            
+            if ~isempty(ev)
+                ev  = ev([ev.time]>=Dtf.time(1) & [ev.time]<=Dtf.time(end));
+                Dtf = events(Dtf, 1, ev);
+            end
             
             if S.phase && isfield(trial, 'fourier')
                 Dtph = clone(Dtf, [S.prefix 'tph_' D.fname]);

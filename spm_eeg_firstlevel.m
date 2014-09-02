@@ -10,10 +10,10 @@ function D = spm_eeg_firstlevel(S)
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_firstlevel.m 6117 2014-07-22 16:19:21Z vladimir $
+% $Id: spm_eeg_firstlevel.m 6146 2014-09-02 11:27:43Z vladimir $
 
 
-SVNrev = '$Rev: 6117 $';
+SVNrev = '$Rev: 6146 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ job{1}.spm.stats.fmri_design.sess.nscan = nt;
 nc = numel(S.sess.cond);
 
 if nc == 0
-    job{1}.spm.stats.fmri_design.sess.cond = S.sess.cond;
+    job{1}.spm.stats.fmri_design.sess.cond = rmfield(S.sess.cond, 'define');
 else
     for j = 1:nc
         conditionlabels = {};
