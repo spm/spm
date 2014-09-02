@@ -3,7 +3,7 @@ function results = spm_cfg_results
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_results.m 6092 2014-07-04 14:42:28Z guillaume $
+% $Id: spm_cfg_results.m 6147 2014-09-02 19:03:42Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -82,7 +82,7 @@ extent.val     = {0};
 contrasts1         = cfg_entry;
 contrasts1.tag     = 'contrasts';
 contrasts1.name    = 'Contrast(s)';
-contrasts1.help    = {'Index of contrast(s) for masking - leave empty for no masking.'};
+contrasts1.help    = {'Index of contrast(s) for masking.'};
 contrasts1.strtype = 'n';
 contrasts1.num     = [1 Inf];
 
@@ -108,23 +108,52 @@ mtype.labels = {'Inclusive' 'Exclusive'};
 mtype.values = {0 1};
 
 %--------------------------------------------------------------------------
-% mask Mask definition
+% mask Mask using contrast
 %--------------------------------------------------------------------------
-mask      = cfg_branch;
-mask.tag  = 'mask';
-mask.name = 'Mask definition';
-mask.val  = {contrasts1 thresh1 mtype};
-mask.help = {''};
+contrast      = cfg_branch;
+contrast.tag  = 'contrast';
+contrast.name = 'Contrast';
+contrast.val  = {contrasts1 thresh1 mtype};
+contrast.help = {'Masking using contrast.'};
 
 %--------------------------------------------------------------------------
-% generic Masking
+% name Mask image
 %--------------------------------------------------------------------------
-generic1        = cfg_repeat;
-generic1.tag    = 'generic';
-generic1.name   = 'Masking';
-generic1.help   = {''};
-generic1.values = {mask};
-generic1.num    = [0 1];
+name         = cfg_files;
+name.tag     = 'name';
+name.name    = 'Mask image(s)';
+name.help    = {''};
+name.filter  = {'image'};
+name.ufilter = '.*';
+name.num     = [1 Inf];
+
+%--------------------------------------------------------------------------
+% image Mask using image
+%--------------------------------------------------------------------------
+image      = cfg_branch;
+image.tag  = 'image';
+image.name = 'Image';
+image.val  = {name mtype};
+image.help = {'Masking using image(s).'};
+
+%--------------------------------------------------------------------------
+% none No Masking
+%--------------------------------------------------------------------------
+none      = cfg_const;
+none.tag  = 'none';
+none.name = 'None';
+none.val  = { 1 };
+none.help = {'No masking.'};
+
+%--------------------------------------------------------------------------
+% mask Masking
+%--------------------------------------------------------------------------
+mask        = cfg_choice;
+mask.tag    = 'mask';
+mask.name   = 'Masking';
+mask.help   = {''};
+mask.values = {none contrast image};
+mask.val    = {none};
 
 %--------------------------------------------------------------------------
 % conspec Contrast query
@@ -132,7 +161,7 @@ generic1.num    = [0 1];
 conspec      = cfg_branch;
 conspec.tag  = 'conspec';
 conspec.name = 'Contrast query';
-conspec.val  = {titlestr contrasts threshdesc thresh extent generic1};
+conspec.val  = {titlestr contrasts threshdesc thresh extent mask};
 conspec.help = {''};
 
 %--------------------------------------------------------------------------

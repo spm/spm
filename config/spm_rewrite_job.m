@@ -1,9 +1,9 @@
 function job = spm_rewrite_job(job)
 % Rewrite a job for SPM12
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6005 2014-05-21 16:46:26Z guillaume $
+% $Id: spm_rewrite_job.m 6147 2014-09-02 19:03:42Z guillaume $
 
 
 try
@@ -64,6 +64,15 @@ end
 try
     if isequal(job.stats.results.print, true)
         job.stats.results.print = spm_get_defaults('ui.print');
+    end
+end
+
+try
+    job.stats.results.conspec.mask.thresh;
+    if isempty(job.stats.results.conspec.mask)
+        job.stats.results.conspec.mask = struct('none',1);
+    else
+        job.stats.results.conspec.mask = struct('contrast',job.stats.results.conspec.mask);
     end
 end
 

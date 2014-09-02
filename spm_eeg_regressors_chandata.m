@@ -1,4 +1,4 @@
-function res = spm_eeg_regressors_channel(S)
+function res = spm_eeg_regressors_chandata(S)
 % Generate regressors from channel data
 % S                     - input structure
 % fields of S:
@@ -10,12 +10,14 @@ function res = spm_eeg_regressors_channel(S)
 %   If no input is provided the plugin returns a cfg branch for itself
 %
 %   If input is provided the plugin returns
-%______________________________________________________________________________________
+%__________________________________________________________________________
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
+% $Id: spm_eeg_regressors_chandata.m 6147 2014-09-02 19:03:42Z guillaume $
 
-SVNrev = '$Rev: 6146 $';
+
+SVNrev = '$Rev: 6147 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -115,4 +117,3 @@ res.names = Dr.chanlabels(chanind);
 
 
 spm('FigName', 'Channel data regressors: done');
-

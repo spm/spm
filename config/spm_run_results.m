@@ -10,7 +10,7 @@ function out = spm_run_results(job)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_run_results.m 6092 2014-07-04 14:42:28Z guillaume $
+% $Id: spm_run_results.m 6147 2014-09-02 19:03:42Z guillaume $
 
 
 cspec = job.conspec;
@@ -38,10 +38,16 @@ for k = 1:numel(cspec)
     xSPM.Ic        = job.conspec.contrasts;
     xSPM.u         = job.conspec.thresh;
     xSPM.Im        = [];
-    if ~isempty(job.conspec.mask)
-        xSPM.Im    = job.conspec.mask.contrasts;
-        xSPM.pm    = job.conspec.mask.thresh;
-        xSPM.Ex    = job.conspec.mask.mtype;
+    if ~isfield(job.conspec.mask,'none')
+        if isfield(job.conspec.mask,'contrast')
+            xSPM.Im    = job.conspec.mask.contrast.contrasts;
+            xSPM.pm    = job.conspec.mask.contrast.thresh;
+            xSPM.Ex    = job.conspec.mask.contrast.mtype;
+        elseif isfield(job.conspec.mask,'image')
+            xSPM.Im    = job.conspec.mask.image.name;
+            xSPM.pm    = [];
+            xSPM.Ex    = job.conspec.mask.image.mtype;
+        end
     end
     xSPM.thresDesc = job.conspec.threshdesc;
     xSPM.title     = job.conspec.titlestr;
