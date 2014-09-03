@@ -1,25 +1,27 @@
 function preproc = spm_cfg_preproc8
 % Configuration file for 'Combined Segmentation and Spatial Normalisation'
-%_______________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_preproc8.m 5652 2013-09-25 09:36:22Z volkmar $
+% $Id: spm_cfg_preproc8.m 6148 2014-09-03 15:49:04Z guillaume $
 
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % vols Volumes
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 vols         = cfg_files;
 vols.tag     = 'vols';
 vols.name    = 'Volumes';
 vols.help    = {'Select scans from this channel for processing. If multiple channels are used (eg T1 & T2), then the same order of subjects must be specified for each channel and they must be in register (same position, size, voxel dims etc..).'};
-vols.filter = 'image';
+vols.filter  = 'image';
 vols.ufilter = '.*';
 vols.num     = [1 Inf];
-% ---------------------------------------------------------------------
+vols.preview = @(f) spm_check_registration(char(f));
+
+%--------------------------------------------------------------------------
 % biasreg Bias regularisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 biasreg         = cfg_menu;
 biasreg.tag     = 'biasreg';
 biasreg.name    = 'Bias regularisation';
@@ -50,9 +52,10 @@ biasreg.values = {
                   10
                   }';
 biasreg.val    = {0.001};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % biasfwhm Bias FWHM
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 biasfwhm         = cfg_menu;
 biasfwhm.tag     = 'biasfwhm';
 biasfwhm.name    = 'Bias FWHM';
@@ -90,9 +93,10 @@ biasfwhm.values = {
                    Inf
                    }';
 biasfwhm.val    = {60};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % write Save Bias Corrected
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 write         = cfg_menu;
 write.tag     = 'write';
 write.name    = 'Save Bias Corrected';
@@ -110,17 +114,19 @@ write.values = {
                 [1 1]
                 }';
 write.val    = {[0 0]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % channel Channel
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 channel         = cfg_branch;
 channel.tag     = 'channel';
 channel.name    = 'Channel';
 channel.val     = {vols biasreg biasfwhm write };
 channel.help    = {'Specify a channel for processing. If multiple channels are used (eg PD & T2), then the same order of subjects must be specified for each channel and they must be in register (same position, size, voxel dims etc..). The different channels can be treated differently in terms of inhomogeneity correction etc. You may wish to correct some channels and save the corrected images, whereas you may wish not to do this for other channels.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % data Data
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 data         = cfg_repeat;
 data.tag     = 'data';
 data.name    = 'Data';
@@ -128,9 +134,10 @@ data.val     = {channel };
 data.help    = {'Specify the number of different channels (for multi-spectral classification). If you have scans of different contrasts for each of the subjects, then it is possible to combine the information from them in order to improve the segmentation accuracy. Note that only the first channel of data is used for the initial affine registration with the tissue probability maps.'};
 data.values  = {channel };
 data.num     = [1 Inf];
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % tpm Tissue probability map
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tpm         = cfg_files;
 tpm.tag     = 'tpm';
 tpm.name    = 'Tissue probability map';
@@ -141,12 +148,14 @@ tpm.help    = {
                ''
                'The model is refined further by allowing the tissue probability maps to be deformed according to a set of estimated parameters. This allows spatial normalisation and segmentation to be combined into the same model.'
                }';
-tpm.filter = 'image';
+tpm.filter  = 'image';
 tpm.ufilter = '.*';
 tpm.num     = [1 1];
-% ---------------------------------------------------------------------
+tpm.preview = @(f) spm_image('Display',char(f));
+
+%--------------------------------------------------------------------------
 % ngaus Num. Gaussians
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 ngaus         = cfg_menu;
 ngaus.tag     = 'ngaus';
 ngaus.name    = 'Num. Gaussians';
@@ -177,9 +186,10 @@ ngaus.values = {
                 Inf
                 }';
 ngaus.val    = {Inf};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % native Native Tissue
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 native         = cfg_menu;
 native.tag     = 'native';
 native.name    = 'Native Tissue';
@@ -197,9 +207,10 @@ native.values = {
                  [1 1]
                  }';
 native.val    = {[1 0]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % warped Warped Tissue
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 warped         = cfg_menu;
 warped.tag     = 'warped';
 warped.name    = 'Warped Tissue';
@@ -222,24 +233,26 @@ warped.values = {
                  [1 1]
                  }';
 warped.val    = {[0 0]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % tissue Tissue
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tissue         = cfg_branch;
 tissue.tag     = 'tissue';
 tissue.name    = 'Tissue';
-tissue.val     = {tpm ngaus native warped };
+tissue.val     = {tpm ngaus native warped};
 tissue.help    = {'A number of options are available for each of the tissues.  You may wish to save images of some tissues, but not others. If planning to use Dartel, then make sure you generate ``imported'''' tissue class images of grey and white matter (and possibly others).  Different numbers of Gaussians may be needed to model the intensity distributions of the various tissues.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % tissues Tissues
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 tissues         = cfg_repeat;
 tissues.tag     = 'tissues';
 tissues.name    = 'Tissues';
-tissues.values  = {tissue };
+tissues.values  = {tissue};
 tissues.num     = [0 Inf];
 
-tissues.val     = {tissue tissue tissue tissue tissue tissue };
+tissues.val     = {tissue tissue tissue tissue tissue tissue};
 tpm_nam = fullfile(spm('dir'),'tpm','TPM.nii');
 ngaus   = [1 1 2 3 4 2];
 nval    = {[1 0],[1 0],[1 0],[1 0],[1 0],[0 0]};
@@ -250,11 +263,12 @@ for k=1:numel(ngaus),
     tissues.val{k}       = tissue;
 end
 
-tissues.help = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using tpm/TPM.nii).'};
+tissues.help    = {'The data for each subject are classified into a number of different tissue types.  The tissue types are defined according to tissue probability maps, which define the prior probability of finding a tissue type at a particular location. Typically, the order of tissues is grey matter, white matter, CSF, bone, soft tissue and air/background (if using tpm/TPM.nii).'};
+tissues.preview = @(f) spm_check_registration(char([f.tpm]));
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % mrf MRF Parameter
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 mrf         = cfg_entry;
 mrf.tag     = 'mrf';
 mrf.name    = 'MRF Parameter';
@@ -262,9 +276,10 @@ mrf.help    = {'When tissue class images are written out, a few iterations of a 
 mrf.strtype = 'r';
 mrf.num     = [1 1];
 mrf.val     = {1};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % cleanup Clean up any partitions
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 cleanup         = cfg_menu;
 cleanup.tag     = 'cleanup';
 cleanup.name    = 'Clean Up';
@@ -280,9 +295,10 @@ cleanup.labels = {
 }';
 cleanup.values = {0 1 2};
 cleanup.val    = {1};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % reg Warping Regularisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 reg         = cfg_entry;
 reg.tag     = 'reg';
 reg.name    = 'Warping Regularisation';
@@ -297,9 +313,10 @@ reg.help    = {...
 reg.strtype = 'r';
 reg.num     = [1  5];
 reg.val     = {[0 0.001 0.5 0.05 0.2]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % affreg Affine Regularisation
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 affreg         = cfg_menu;
 affreg.tag     = 'affreg';
 affreg.name    = 'Affine Regularisation';
@@ -324,9 +341,9 @@ affreg.values = {
                  }';
 affreg.val    = {'mni'};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % fwhm Smoothness
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 smo         = cfg_entry;
 smo.tag     = 'fwhm';
 smo.name    = 'Smoothness';
@@ -335,9 +352,9 @@ smo.strtype = 'r';
 smo.num     = [1  1];
 smo.val     = {0};
 
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 % samp Sampling distance
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 samp         = cfg_entry;
 samp.tag     = 'samp';
 samp.name    = 'Sampling distance';
@@ -345,9 +362,10 @@ samp.help    = {'This encodes the approximate distance between sampled points wh
 samp.strtype = 'r';
 samp.num     = [1  1];
 samp.val     = {3};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % write Deformation Fields
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 write         = cfg_menu;
 write.tag     = 'write';
 write.name    = 'Deformation Fields';
@@ -365,40 +383,41 @@ write.values = {
                 [1 1]
                 }';
 write.val    = {[0 0]};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % warp Warping
-% ---------------------------------------------------------------------
+%--------------------------------------------------------------------------
 warp         = cfg_branch;
 warp.tag     = 'warp';
 warp.name    = 'Warping & MRF';
 warp.val     = {mrf cleanup reg affreg smo samp write};
 warp.help    = {
 'A number of warping options are provided, but the main one that you could consider changing is the one for specifying whether deformation fields or inverse deformation fields should be generated.'};
-% ---------------------------------------------------------------------
+
+%--------------------------------------------------------------------------
 % preproc Segment
-% ---------------------------------------------------------------------
-preproc         = cfg_exbranch;
-preproc.tag     = 'preproc';
-preproc.name    = 'Segment';
-preproc.val     = {data tissues warp };
-preproc.help    = {
+%--------------------------------------------------------------------------
+preproc      = cfg_exbranch;
+preproc.tag  = 'preproc';
+preproc.name = 'Segment';
+preproc.val  = {data tissues warp };
+preproc.help = {
                     'This procedure is an extension of the old unified segmentation algorithm (and was known as "New Segment" in SPM8).  The algorithm is essentially the same as that described in the Unified Segmentation paper, except for (i) a slightly different treatment of the mixing proportions, (ii) the use of an improved registration model, (iii) the ability to use multi-spectral data, (iv) an extended set of tissue probability maps, which allows a different treatment of voxels outside the brain. Some of the options in the toolbox do not yet work, and it has not yet been seamlessly integrated into the SPM8 software.  Also, the extended tissue probability maps need further refinement. The current versions were crudely generated (by JA) using data that was kindly provided by Cynthia Jongen of the Imaging Sciences Institute at Utrecht, NL.'
                     ''
                     'This function segments, bias corrects and spatially normalises - all in the same model/* \cite{ashburner05}*/.  Many investigators use tools within older versions of SPM for a technique that has become known as "optimised" voxel-based morphometry (VBM). VBM performs region-wise volumetric comparisons among populations of subjects. It requires the images to be spatially normalised, segmented into different tissue classes, and smoothed, prior to performing statistical tests/* \cite{wright_vbm,am_vbmreview,ashburner00b,john_should}*/. The "optimised" pre-processing strategy involved spatially normalising subjects'' brain images to a standard space, by matching grey matter in these images, to a grey matter reference.  The historical motivation behind this approach was to reduce the confounding effects of non-brain (e.g. scalp) structural variability on the registration. Tissue classification in older versions of SPM required the images to be registered with tissue probability maps. After registration, these maps represented the prior probability of different tissue classes being found at each location in an image.  Bayes rule can then be used to combine these priors with tissue type probabilities derived from voxel intensities, to provide the posterior probability.'
                     ''
                     'This procedure was inherently circular, because the registration required an initial tissue classification, and the tissue classification requires an initial registration.  This circularity is resolved here by combining both components into a single generative model. This model also includes parameters that account for image intensity non-uniformity. Estimating the model parameters (for a maximum a posteriori solution) involves alternating among classification, bias correction and registration steps. This approach provides better results than simple serial applications of each component.'
-                    ''
-                    'Note that on a 32 bit computer, the most memory that SPM or any other program can use at any time is 4Gbytes (or sometimes only 2Gbytes).  This is because the largest number that can be represented with 32 bits is 4,294,967,295, which limits how much memory may be addressed by any one process.  Out of memory errors may occasionally be experienced when trying to work with large images.  64-bit computers can usually handle such cases.'
                     }';
 preproc.prog = @spm_local_preproc_run;
 preproc.vout = @vout;
-%----------------------------------------------------------------------
 
-%======================================================================
+
+%==========================================================================
 function varargout = spm_local_preproc_run(job)
 varargout{1} = spm_preproc_run(job);
 
-%======================================================================
+
+%==========================================================================
 function dep = vout(job)
 % This depends on job contents, which may not be present when virtual
 % outputs are calculated.

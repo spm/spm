@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6086 2014-07-03 16:08:44Z guillaume $
+% $Id: spm_cfg.m 6148 2014-09-03 15:49:04Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -30,7 +30,7 @@ stats         = cfg_choice;
 stats.tag     = 'stats';
 stats.name    = 'Stats';
 stats.help    = {'Various analysis utilities.'};
-stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_mfx spm_cfg_factorial_design spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
+stats.values  = { spm_cfg_fmri_spec spm_cfg_fmri_design spm_cfg_fmri_data spm_cfg_factorial_design spm_cfg_model_review spm_cfg_fmri_est spm_cfg_con spm_cfg_results spm_cfg_mfx spm_cfg_bms_map spm_cfg_ppi spm_cfg_setlevel };
 
 %--------------------------------------------------------------------------
 % Dynamic Causal Modelling

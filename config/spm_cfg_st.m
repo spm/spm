@@ -3,7 +3,7 @@ function st = spm_cfg_st
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_st.m 6130 2014-08-01 17:41:18Z guillaume $
+% $Id: spm_cfg_st.m 6148 2014-09-03 15:49:04Z guillaume $
 
 %--------------------------------------------------------------------------
 % scans Session
@@ -15,6 +15,7 @@ scans.help    = {'Select images to slice-time correct.'};
 scans.filter  = 'image';
 scans.ufilter = '.*';
 scans.num     = [2 Inf];
+scans.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % generic Data

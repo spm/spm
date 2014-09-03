@@ -1,10 +1,10 @@
 function normalise = spm_cfg_norm
 % SPM Configuration file for Spatial Normalisation
 %__________________________________________________________________________
-% Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_cfg_norm.m 6077 2014-06-30 16:55:03Z spm $
+% $Id: spm_cfg_norm.m 6148 2014-09-03 15:49:04Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -112,6 +112,7 @@ tpm.filter  = 'nifti';
 tpm.ufilter = '.*';
 tpm.num     = [1 1];
 tpm.val     = {{fullfile(spm('dir'),'tpm','TPM.nii')}};
+tpm.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % reg Warping Regularisation
@@ -333,6 +334,7 @@ vol.help    = {'The image that the template (atlas) data is warped into alignmen
 vol.filter  = 'image';
 vol.ufilter = '.*';
 vol.num     = [1 1];
+vol.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % def Parameter File
@@ -359,6 +361,7 @@ resample.help    = {'These are the images for warping according to the estimated
 resample.filter  = 'image';
 resample.ufilter = '.*';
 resample.num     = [1 Inf];
+resample.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % subj Subject

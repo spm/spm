@@ -1,9 +1,9 @@
 function realign = spm_cfg_realign
 % SPM Configuration file for Realign
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_realign.m 5655 2013-09-25 17:58:48Z guillaume $
+% $Id: spm_cfg_realign.m 6148 2014-09-03 15:49:04Z guillaume $
 
 
 %--------------------------------------------------------------------------
@@ -16,6 +16,7 @@ data.help    = {'Select scans for this session. In the coregistration step, the 
 data.filter  = 'image';
 data.ufilter = '.*';
 data.num     = [1 Inf];
+data.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % generic Data
@@ -142,6 +143,7 @@ weight.help    = {'The option of providing a weighting image to weight each voxe
 weight.filter  = 'image';
 weight.ufilter = '.*';
 weight.num     = [0 1];
+weight.preview = @(f) spm_image('Display',char(f));
 
 %--------------------------------------------------------------------------
 % eoptions Estimation Options
@@ -177,6 +179,7 @@ data.help    = {'Select scans to reslice to match the first.'};
 data.filter  = 'image';
 data.ufilter = '.*';
 data.num     = [1 Inf];
+data.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % which Resliced images
@@ -303,6 +306,7 @@ data.help    = {'Select scans for this session. In the coregistration step, the 
 data.filter  = 'image';
 data.ufilter = '.*';
 data.num     = [1 Inf];
+data.preview = @(f) spm_check_registration(char(f));
 
 %--------------------------------------------------------------------------
 % generic Data
