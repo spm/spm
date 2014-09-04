@@ -76,7 +76,7 @@ function DCM = spm_dcm_post_hoc(P,fun,varargin)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6149 2014-09-03 16:20:28Z peter $
+% $Id: spm_dcm_post_hoc.m 6152 2014-09-04 07:06:23Z peter $
 
 
 % number of parameters to consider before invoking greedy search
@@ -131,7 +131,7 @@ end
 BPA = compute_post_hoc(example_DCM,C);
 
 % Show full and reduced conditional estimates (for Bayesian average)
-create_plots(example_DCM,BPA,Pk,Pf,fun);
+create_plots(example_DCM,BPA,Pk,Pf,fun,~nargout);
 
 % Save Bayesian Parameter Average and family-wise model inference
 save_bpa_dcm(Pk,BPA,fun,Pf);
@@ -441,7 +441,9 @@ function BPA = compute_post_hoc(DCM,C)
     % BPA.Cq  - BPA covariances (reduced model)
     % BPA.EQ  - BPA means (full model)
     % BPA.Eq  - BPA means (reduced model)    
-            
+    
+    if isstruct(DCM.M.pC), DCM.M.pC = diag(spm_vec(DCM.M.pC)); end
+    
     % Selected model (reduced prior covariance);
     %----------------------------------------------------------------------
     pC      = DCM.M.pC;
@@ -562,17 +564,18 @@ function BPA = compute_post_hoc(DCM,C)
 end
 
 % =========================================================================
-function create_plots(DCM,BPA,Pk,Pf,fun)
+function create_plots(DCM,BPA,Pk,Pf,fun,extra_plots)
     % Plot results
     %
-    % DCM     - template DCM structure
-    % BPA.CQ  - BPA posterior covariance (full)
-    % BPA.Cq  - BPA posterior covariance (reduced)
-    % BPA.EQ  - BPA posterior mean (full)
-    % BPA.Eq  - BPA posterior mean (reduced)
-    % Pk      - Posterior probability of each parameter
-    % Pf      - Posterior probability of each family   
-    % fun     - Family function
+    % DCM         - Template DCM structure
+    % BPA.CQ      - BPA posterior covariance (full)
+    % BPA.Cq      - BPA posterior covariance (reduced)
+    % BPA.EQ      - BPA posterior mean (full)
+    % BPA.Eq      - BPA posterior mean (reduced)
+    % Pk          - Posterior probability of each parameter
+    % Pf          - Posterior probability of each family   
+    % fun         - Family function
+    % extra_plots - additional plots if there are no output arguments
 
     pE = DCM.M.pE;
         
@@ -612,23 +615,26 @@ function create_plots(DCM,BPA,Pk,Pf,fun)
     axis square
     drawnow
 
+    % Stop this function here if we only need basic plots
+    %----------------------------------------------------------------------    
+    if ~extra_plots 
+        return;
+    end
+    
     % Show structural and functional graphs
     %----------------------------------------------------------------------
-    if ~nargout
-        spm_figure('Getwin','Graph analysis'); clf
+    spm_figure('Getwin','Graph analysis'); clf
+    try
+        spm_dcm_graph(DCM.xY,BPA.Eq.A);
+    catch
         try
-            spm_dcm_graph(DCM.xY,BPA.Eq.A);
-        catch
-            try
-                spm_dcm_graph(DCM,BPA.Eq.A);
-            end
+            spm_dcm_graph(DCM,BPA.Eq.A);
         end
     end
 
-
     % Show coupling matrices
     %----------------------------------------------------------------------
-    if ~nargout && numel(field) == 3;
+    if numel(field) == 3;
 
         spm_figure('Getwin','Bayesian parameter average (selected model)'); clf
         spm_dcm_fmri_image(BPA.Eq)
@@ -640,7 +646,7 @@ function create_plots(DCM,BPA,Pk,Pf,fun)
 
     % illustrate family-wise inference
     %----------------------------------------------------------------------
-    if ~isempty(fun) && ~nargout
+    if ~isempty(fun)
 
         spm_figure('Getwin','Model posterior (over families)'); clf
         subplot(2,1,1)

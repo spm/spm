@@ -1,4 +1,4 @@
-function DCM = spm_dcm_post_hoc(P,fun,varargin)
+function DCM = spm_dcm_post_hoc_old(P,fun,varargin)
 % Post hoc optimisation of DCMs (under the Laplace approximation)
 % FORMAT DCM = spm_dcm_post_hoc(P,fun,field,field,...)
 %
@@ -70,7 +70,7 @@ function DCM = spm_dcm_post_hoc(P,fun,varargin)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_post_hoc_old.m 6150 2014-09-03 17:02:20Z peter $
+% $Id: spm_dcm_post_hoc_old.m 6152 2014-09-04 07:06:23Z peter $
 
 
 % number of parameters to consider before invoking greedy search
