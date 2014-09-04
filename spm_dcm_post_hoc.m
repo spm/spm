@@ -76,7 +76,7 @@ function DCM = spm_dcm_post_hoc(P,fun,varargin)
 % Copyright (C) 2010-2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6152 2014-09-04 07:06:23Z peter $
+% $Id: spm_dcm_post_hoc.m 6153 2014-09-04 07:34:57Z peter $
 
 
 % number of parameters to consider before invoking greedy search
@@ -134,7 +134,7 @@ BPA = compute_post_hoc(example_DCM,C);
 create_plots(example_DCM,BPA,Pk,Pf,fun,~nargout);
 
 % Save Bayesian Parameter Average and family-wise model inference
-save_bpa_dcm(Pk,BPA,fun,Pf);
+DCM = save_bpa_dcm(Pk,BPA,fun,Pf);
 
 % =========================================================================
 function [example_DCM,C] = check_models()
@@ -658,7 +658,7 @@ function create_plots(DCM,BPA,Pk,Pf,fun,extra_plots)
 end
 
 % =========================================================================
-function save_bpa_dcm(Pk,BPA,fun,Pf)
+function DCM = save_bpa_dcm(Pk,BPA,fun,Pf)
     % Save the Bayesian Parameter Average
     %
     % Pk     - Posterior probability of each parameter
