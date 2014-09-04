@@ -1,9 +1,9 @@
 #!/usr/bin/env make -f
 # General Makefile to compile SPM C-MEX files
 #
-# Copyright (C) 1991-2013 Wellcome Trust Centre for Neuroimaging
+# Copyright (C) 1991-2014 Wellcome Trust Centre for Neuroimaging
 #
-# $Id: Makefile 5720 2013-10-31 13:46:05Z guillaume $
+# $Id: Makefile 6154 2014-09-04 16:29:19Z guillaume $
 #
 ###############################################################################
 #
@@ -51,7 +51,7 @@ SPMMEX  =\
 	spm_dilate_erode.$(SUF) spm_bwlabel.$(SUF) spm_get_lm.$(SUF)\
 	spm_voronoi.$(SUF) spm_mesh_utils.$(SUF) \
 	spm_mrf.$(SUF) spm_diffeo.$(SUF) spm_field.$(SUF) \
-	spm_vec.$(SUF) spm_unvec.$(SUF) spm_cat.$(SUF)
+	spm_cat.$(SUF)
 
 SUBDIRS =\
 	@file_array/private \
