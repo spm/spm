@@ -57,12 +57,12 @@ function varargout = spm_check_version(tbx,chk)
 % all MATLAB Toolbox versions after 6.5.0.
 %__________________________________________________________________________
 %
-% See also VERSION, VER.
+% See also VERSION, VER, VERLESSTHAN.
 %__________________________________________________________________________
-% Copyright (C) 2006-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
 
 % Darren Gitelman
-% $Id: spm_check_version.m 5338 2013-03-20 17:35:46Z guillaume $
+% $Id: spm_check_version.m 6156 2014-09-05 17:34:53Z guillaume $
 
 
 %-Detect software used

@@ -4,10 +4,10 @@ function spm_standalone(varargin)
 % See MATLAB Compiler: http://www.mathworks.com/products/compiler/
 % See also config/spm_make_standalone.m
 %__________________________________________________________________________
-% Copyright (C) 2010-2011 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_standalone.m 4294 2011-04-06 18:03:20Z guillaume $ 
+% $Id: spm_standalone.m 6156 2014-09-05 17:34:53Z guillaume $ 
 
 [v,r] = spm('Ver');
 fprintf('%s (%s): %s\n',v,r,spm('Dir'));
@@ -39,9 +39,11 @@ switch lower(action)
     case 'script'
     %----------------------------------------------------------------------
         spm('asciiwelcome');
+        assignin('base','inputs',varargin(3:end));
         if nargin > 1
-            assignin('base','inputs',varargin(3:end));
-            spm('run',varargin{2});
+            spm('Run',varargin(2));
+        else
+            spm('Run');
         end
         
     otherwise
