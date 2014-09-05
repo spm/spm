@@ -10,13 +10,21 @@ function out = spm_run_fmri_spec(job)
 %__________________________________________________________________________
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_run_fmri_spec.m 6088 2014-07-03 17:57:09Z guillaume $
+% $Id: spm_run_fmri_spec.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 %-Check presence of previous analysis
 %==========================================================================
 
-change_dir(job.dir{1});
+%-Output directory
+%--------------------------------------------------------------------------
+cwd = pwd;
+d   = spm_file(job.dir{1},'cpath');
+if ~exist(d,'dir')
+    sts = mkdir(d);
+    if ~sts, error('Error creating output directory "%s".',d); end
+end
+cd(d);
 
 %-Ask about overwriting files from previous analyses
 %--------------------------------------------------------------------------
@@ -366,18 +374,10 @@ fprintf('%-40s: ','Saving SPM configuration')                           %-#
 save('SPM.mat','SPM', spm_get_defaults('mat.format'));
 fprintf('%30s\n','...SPM.mat saved')                                    %-#
 
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
 out.spmmat{1} = fullfile(pwd, 'SPM.mat');
 
-change_dir;
-
-
-%==========================================================================
-function change_dir(wd)
-persistent cwd
-if nargin
-    cwd = pwd;
-    nwd = spm_file(wd,'cpath');
-else
-    nwd = cwd;
-end
-cd(nwd)
+%-Change back directory
+%--------------------------------------------------------------------------
+cd(cwd);

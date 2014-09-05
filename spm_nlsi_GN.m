@@ -1,5 +1,5 @@
 function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
-% Bayesian inversion of nonlinear models - Gauss-Newton/Variational Lapalce
+% Bayesian inversion of nonlinear models - Gauss-Newton/Variational Laplace
 % FORMAT [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %
 % Dynamical MIMO models
@@ -7,8 +7,8 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 % M.IS - function name f(P,M,U) - generative model
 %        This function specifies the nonlinear model:
-%        y = Y.y = IS(P,M,U) + X0*P0 + e
-%        were e ~ N(0,C).  For dynamic systems this would be an integration
+%          y = Y.y = IS(P,M,U) + X0*P0 + e
+%        where e ~ N(0,C). For dynamic systems this would be an integration
 %        scheme (e.g. spm_int). spm_int expects the following:
 %
 %     M.f  - f(x,u,P,M)
@@ -25,11 +25,11 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 %
 % M.P  - starting estimates for model parameters [optional]
 %
-% M.pE - prior expectation  - E{P}   of model parameters
-% M.pC - prior covariance   - Cov{P} of model parameters
+% M.pE - prior expectation      - E{P}   of model parameters
+% M.pC - prior covariance       - Cov{P} of model parameters
 %
-% M.hE - prior expectation  - E{h}   of log-precision parameters
-% M.hC - prior covariance   - Cov{h} of log-precision parameters
+% M.hE - prior expectation      - E{h}   of log-precision parameters
+% M.hC - prior covariance       - Cov{h} of log-precision parameters
 %
 % U.u  - inputs (or just U)
 % U.dt - sampling interval
@@ -70,7 +70,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Priors on the free parameters P are specified in terms of expectation pE
 % and covariance pC. The E-Step uses a Fisher-Scoring scheme and a Laplace
 % approximation to estimate the conditional expectation and covariance of P
-% If the free-energy starts to increase,  and abbreviated descent is
+% If the free-energy starts to increase,  an abbreviated descent is
 % invoked.  The M-Step estimates the precision components of e, in terms
 % of log-precisions.  Although these two steps can be thought of in
 % terms of E and N steps they are in fact variational steps of a full
@@ -94,10 +94,10 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % J. Phys. D. Appl. Phys 1970 3:1759-1764.
 %
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2001-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6122 2014-07-25 13:48:47Z karl $
+% $Id: spm_nlsi_GN.m 6157 2014-09-05 18:17:54Z guillaume $
 
 % options
 %--------------------------------------------------------------------------
@@ -366,10 +366,14 @@ for k = 1:M.Nmax
     % convergence failure
     %----------------------------------------------------------------------    
     if revert
-        msgstr = 'Convergence failure - invoking keyboard';
-        warning('on','MATLAB:spm_nsli_GN')
-        warning('MATLAB:spm_nsli_GN',msgstr)
-        keyboard
+        if ~isdeployed
+            msgstr = 'Convergence failure - invoking keyboard.';
+            warning('SPM:spm_nlsi_GN',msgstr)
+            keyboard
+        else
+            msgstr = 'Convergence failure.';
+            error('SPM:spm_nlsi_GN',msgstr)
+        end
     end
     
     

@@ -56,7 +56,7 @@ function varargout = spm_jobman(varargin)
 % Copyright (C) 2005-2012 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_jobman.m 5749 2013-11-15 08:37:30Z volkmar $
+% $Id: spm_jobman.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 %__________________________________________________________________________
@@ -529,3 +529,9 @@ modality = spm('CheckModality');
 code{1}  = sprintf('spm(''defaults'', ''%s'');', modality);
 code{2}  = 'spm_jobman(''run'', jobs, inputs{:});';
 cont     = false;
+
+
+%-Compatibility layer for SPM5
+function varargout = interactive(varargin)
+function varargout = defaults_edit(varargin)
+function varargout = run_serial(varargin)

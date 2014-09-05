@@ -4,12 +4,12 @@ function obj = subsasgn(obj,subs,dat)
 % Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: subsasgn.m 5456 2013-04-29 15:49:22Z guillaume $
+% $Id: subsasgn.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 if isempty(subs), return; end
 
-%-Subscript types () or {}
+%-Subscript types '.' or '{}'
 %==========================================================================
 if ~strcmp(subs(1).type,'()')
     if strcmp(subs(1).type,'.')
@@ -34,7 +34,7 @@ if ~strcmp(subs(1).type,'()')
     end
 end
 
-%-Subscript type '.'
+%-Subscript type '()'
 %==========================================================================
 if numel(subs)~=1, error('Expression too complicated.'); end
 
@@ -147,15 +147,20 @@ end
 %--------------------------------------------------------------------------
 if dt(ind).isint, dat = round(dat); end
 
-ws = warning('off'); % Avoid warning messages in R14 SP3
+%ws = warning('off'); % Avoid warning messages in R14 SP3
 dat = feval(dt(ind).conv,dat);
-warning(ws);
+%warning(ws);
 
 %-Write data to file
 %--------------------------------------------------------------------------
 nelem = dt(ind).nelem;
 if nelem==1
     mat2file(sobj,dat,va{:});
+    
+    %if sobj.be, swap = @(x) swapbytes(x); else swap = @(x) x; end
+    %m = memmapfile(sobj.fname, 'Format', {dt(ind).prec, sobj.dim,'dat'}, ...
+    %       'Offset', sobj.offset, 'Writable', true);
+    %m.Data.dat = subsasgn(m.Data.dat, substruct('()',va), swap(dat));
 elseif nelem==2
     sobj1       = sobj;
     sobj1.dim   = [2 sobj.dim];

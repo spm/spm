@@ -9,19 +9,21 @@ function varargout = spm_get_defaults(defstr, varargin)
 % "defaults" variable defined in spm_defaults.m.
 %
 % FORMAT spm_get_defaults(defstr, defval)
-% Sets the defaults value associated with identifier "defstr". The new
-% defaults value applies immediately to:
+% Set the defaults value associated with identifier "defstr" to defval.
+% The new defaults value applies immediately to:
 % * new modules in batch jobs
 % * modules in batch jobs that have not been saved yet
 % This value will not be saved for future sessions of SPM. To make
-% persistent changes, edit spm_defaults.m.
+% persistent changes, see help section in spm_defaults.m.
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Volkmar Glauche
-% $Id: spm_get_defaults.m 3692 2010-01-21 21:43:31Z guillaume $
+% $Id: spm_get_defaults.m 6157 2014-09-05 18:17:54Z guillaume $
+
 
 global defaults;
+
 if isempty(defaults)
     spm_defaults;
 end

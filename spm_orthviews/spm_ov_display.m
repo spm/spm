@@ -9,7 +9,7 @@ function ret = spm_ov_display(varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_display.m 6093 2014-07-07 14:50:46Z guillaume $
+% $Id: spm_ov_display.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 switch lower(varargin{1})
@@ -25,11 +25,15 @@ switch lower(varargin{1})
             'Label', 'Filenames', ...
             'Tag', 'OVmenu_Filenames',...
             'Callback', @orthviews_display);
-%         item3 = uimenu(item0, ...
+        item3 = uimenu(item0, ...
+            'Label', 'Coordinates', ...
+            'Tag', 'OVmenu_Coordinates',...
+            'Callback', @orthviews_display);
+%         item4 = uimenu(item0, ...
 %             'Label', 'Labels');
 %         list = spm_atlas('List','installed');
 %         for i=1:numel(list)
-%             uimenu(item3, ...
+%             uimenu(item4, ...
 %             'Label', list(i).name, ...
 %             'Tag', ['OVmenu_' list(i).name],...
 %             'Callback', @orthviews_display);
@@ -59,7 +63,7 @@ else
     set(findobj(st.fig,'-regexp','Tag','^OVmenu_'), 'Checked', 'off');
     set(findobj(st.fig,'Tag',['OVmenu_' get(hObj,'Label')]), 'Checked', 'on');
     dsp = get(hObj,'Label');
-    if ~ismember(dsp,{'Intensities','Filenames'})
+    if ~ismember(dsp,{'Intensities','Filenames','Coordinates'})
         dsp = spm_atlas('Load',dsp);
     end
     for i=1:numel(st.vols)
@@ -100,7 +104,11 @@ for i=n
                     end
                 end
             case 'Filenames'
-                Ys = [spm_file(st.vols{i}.fname,'short36') ',' num2str(st.vols{i}.n(1))];
+                Ys = [spm_file(st.vols{i}.fname,'filename') ',' num2str(st.vols{i}.n(1))];
+            case 'Coordinates'
+                XYZ   = spm_orthviews('pos',i);
+                XYZmm = st.vols{i}.mat(1:3,:)*[XYZ;1];
+                Ys    = sprintf('mm: %0.1f %0.1f %0.1f\nvx: %0.1f %0.1f %0.1f',XYZmm,XYZ);
             case 'Labels'
                 pos = spm_orthviews('pos',i);
                 try

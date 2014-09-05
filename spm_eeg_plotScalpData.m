@@ -1,5 +1,5 @@
 function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
-% Display interpolated sensor data on the scalp in a new figure
+% Display M/EEG interpolated sensor data on a scalp image
 % FORMAT [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 %
 % INPUT:
@@ -8,28 +8,29 @@ function [ZI,f] = spm_eeg_plotScalpData(Z,pos,ChanLabel,in)
 %   ChanLabel  - the names of the sensors
 %   in         - a structure containing some informations related to the 
 %                main PRESELECTDATA window. This entry is not necessary
-% OUTPUT
+% OUTPUT:
 %   ZI         - an image of interpolated data onto the scalp
 %   f          - the handle of the figure which displays the interpolated
 %                data
 %__________________________________________________________________________
 %
 % This function creates a figure whose purpose is to display an
-% interpolation of the sensor data on the scalp (an image)
+% interpolation of the sensor data on the scalp (as an image).
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jean Daunizeau
-% $Id: spm_eeg_plotScalpData.m 6141 2014-08-21 14:29:15Z vladimir $
+% $Id: spm_eeg_plotScalpData.m 6157 2014-09-05 18:17:54Z guillaume $
 
-ChanLabel = char(ChanLabel);
+
+ChanLabel  = char(ChanLabel);
 ParentAxes = [];
-f = [];
-clim    = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
-figName = 'Image Scalp data';
-noButtons = 0;
+f          = [];
+clim       = [min(Z(:))-( max(Z(:))-min(Z(:)) )/63 , max(Z(:))];
+figName    = 'Image Scalp data';
+noButtons  = 0;
 if nargin < 4 || isempty(in)
-    in      = [];
+    in     = [];
 else
     if isfield(in,'min') && ...
             isfield(in,'max') && ...
@@ -105,10 +106,10 @@ ZI      = griddata(cpos(1,:)',cpos(2,:)',full(double(cZ')),XI,YI);
 try
     figure(f)
 catch
-    f=figure(...
-        'name',figName,...
-        'color',[1 1 1],...
-        'deleteFcn',@dFcn);
+    f   = figure(...
+        'name',      figName,...
+        'color',     [1 1 1],...
+        'deleteFcn', @dFcn);
     ParentAxes = axes('parent',f);    
 end
 
@@ -210,6 +211,7 @@ if ~noButtons
 end
 set(d.ParentAxes,'userdata',d);
 
+
 %==========================================================================
 % dFcn
 %==========================================================================
@@ -217,6 +219,7 @@ function dFcn(btn,evd)
 hf = findobj('tag','Graphics');
 D = get(hf,'userdata');
 try delete(D.PSD.handles.hli); end
+
 
 %==========================================================================
 % dosp
@@ -230,6 +233,7 @@ switch get(d.hp,'visible');
         set(d.hp,'visible','on');
 end
 
+
 %==========================================================================
 % dosn
 %==========================================================================
@@ -242,8 +246,9 @@ switch get(d.ht(1),'visible')
         set(d.ht,'visible','on');
 end
 
+
 %==========================================================================
-%
+% doChangeTime
 %==========================================================================
 function doChangeTime(btn,evd)
 d = get(btn,'userdata');
@@ -293,6 +298,7 @@ else
     error('SPM Graphics Figure has been deleted!')
 end
 
+
 %==========================================================================
 % get2Dfrom3D
 %==========================================================================
@@ -302,25 +308,27 @@ function [xy] = get2Dfrom3D(xyz)
 % using a modified spherical projection operation.
 % It is used to visualize channel data.
 % IN:
-%   - xyz: the carthesian sensor position in 3D space
+%   - xyz: the cartesian sensor position in 3D space
 % OUT:
-%   - xy: the (x,y) carthesian coordinates of the sensors after projection
+%   - xy: the (x,y) cartesian coordinates of the sensors after projection
 %   onto the best-fitting sphere
+
 if size(xyz,2) ~= 3
     xyz = xyz';
 end
 % exclude channels ?
-badChannels = find(isnan(xyz(:,1)));
+badChannels  = find(isnan(xyz(:,1)));
 goodChannels = find(isnan(xyz(:,1))~=1);
-xyz = xyz(goodChannels,:);
+xyz          = xyz(goodChannels,:);
 % Fit sphere to 3d sensors and center frame
-[C,R,out] = fitSphere(xyz(:,1),xyz(:,2),xyz(:,3));
-xyz = xyz - repmat(C,size(xyz,1),1);
+C            = fitSphere(xyz(:,1),xyz(:,2),xyz(:,3));
+xyz          = xyz - repmat(C,size(xyz,1),1);
 % apply transformation using spherical coordinates
 [TH,PHI,RAD] = cart2sph(xyz(:,1),xyz(:,2),xyz(:,3));
-TH = TH - mean(TH);
-[X,Y,Z] = sph2cart(TH,zeros(size(TH)),RAD.*(cos(PHI+pi./2)+1));
-xy = [X(:),Y(:)];
+TH           = TH - mean(TH);
+[X,Y,Z]      = sph2cart(TH,zeros(size(TH)),RAD.*(cos(PHI+pi./2)+1));
+xy           = [X(:),Y(:)];
+
 
 %==========================================================================
 % combineplanar
@@ -363,6 +371,7 @@ ChanLabel = {};
 for i = 1:size(pairs,1)
     ChanLabel{i} = ['MEG' num2str(min(pairs(i,:))) '+' num2str(max(pairs(i,:)))];
 end
+
 
 %==========================================================================
 % fitSphere
@@ -411,12 +420,12 @@ else
     pvec = null(M)';
     [m,n] = size(pvec);
     if m > 1
-        pvec = pvec(1,:)
+        pvec = pvec(1,:);
     end
 end
 
 % Convert to (R,C)
-if nargout == 1,
+if nargout == 1
     if pvec(1) < 0
         pvec = -pvec;
     end

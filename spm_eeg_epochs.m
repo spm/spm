@@ -43,9 +43,9 @@ function D = spm_eeg_epochs(S)
 % Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 5957 2014-04-16 15:23:19Z vladimir $
+% $Id: spm_eeg_epochs.m 6157 2014-09-05 18:17:54Z guillaume $
 
-SVNrev = '$Rev: 5957 $';
+SVNrev = '$Rev: 6157 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -62,7 +62,9 @@ D = spm_eeg_load(S.D);
 isTF = strncmpi(D.transformtype,'TF',2);
 
 if isTF && isfield(S, 'bc') && S.bc
+    sw = warning('off','backtrace');
     warning('Automatic baseline correction is not done for TF data. Use TF rescaling');
+    warning(sw);
     S.bc = 0;
 end
     

@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6055 2014-06-18 11:10:08Z guillaume $
+% $Id: spm_image.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
-SVNid = '$Rev: 6055 $';
+SVNid = '$Rev: 6157 $';
 
 global st
 
@@ -216,8 +216,8 @@ switch lower(action)
         return
     end
     P = cellstr(P);
-    sv = questdlg('Do you want to save the reorientation matrix?', ...
-        'Save Matrix', 'Yes', 'No', 'Yes');
+    sv = questdlg('Save reorientation matrix for future reference?', ...
+        'Save Matrix', 'Yes', 'No', 'No');
     if strcmpi(sv, 'yes')
         if ~isempty(P{1})
             [p,n]   = spm_fileparts(P{1});

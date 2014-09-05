@@ -3,7 +3,7 @@ function spmjobs = spm_cfg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg.m 6148 2014-09-03 15:49:04Z guillaume $
+% $Id: spm_cfg.m 6157 2014-09-05 18:17:54Z guillaume $
 
 %--------------------------------------------------------------------------
 % Temporal
@@ -86,7 +86,7 @@ else
         ft = {}; dt = {};
         %-Look for '*_cfg_*.m' files in these directories
         for j=1:numel(d)
-            f = cellstr(spm_select('List',d{j},'.*_cfg_.*\.m$'));
+            f = cellstr(spm_select('List',d{j},'^[^(._)].*_cfg_.*\.m$'));
             if ~isempty(f{1})
                 ft = [ft f{:}];
                 dt = [dt repmat(d(j),1,numel(f))];

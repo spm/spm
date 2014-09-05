@@ -10,13 +10,13 @@ function M = spm_mesh_inflate(M,T,S)
 % Copyright (C) 2009-2011 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin & Jean Daunizeau
-% $Id: spm_mesh_inflate.m 4457 2011-09-05 14:04:22Z guillaume $
+% $Id: spm_mesh_inflate.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 if nargin < 3, S = 0; end
 
 if ishandle(M)
-    v = get(M,'Vertices');
+    v = double(get(M,'Vertices'));
     f = get(M,'Faces');
     p = M;
 else

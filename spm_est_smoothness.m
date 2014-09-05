@@ -1,6 +1,6 @@
 function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Estimation of smoothness based on [residual] images
-% FORMAT [FWHM,VRpv,R] = spm_est_smoothness(V,VM,[ndf]);
+% FORMAT [FWHM,VRpv,R] = spm_est_smoothness(V,VM,[ndf])
 %
 % V     - Filenames or mapped standardized residual images
 % VM    - Filename of mapped mask image
@@ -17,7 +17,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % residual images, or any set of mean zero, unit variance images. Output
 % is a global estimate of the smoothness expressed as the FWHM of an
 % equivalent Gaussian point spread function. An estimate of resels per
-% voxels (see spm_spm) is written as an image file ('RPV.img') to the
+% voxels (see spm_spm) is written as an image file ('RPV.<ext>') to the
 % current directory.
 %
 % To improve the accuracy of the smoothness estimation the error degrees
@@ -53,7 +53,7 @@ function [FWHM,VRpv,R] = spm_est_smoothness(V,VM,ndf)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel, Tom Nichols
-% $Id: spm_est_smoothness.m 5823 2014-01-02 14:01:10Z guillaume $
+% $Id: spm_est_smoothness.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 %-Assign input arguments
@@ -206,7 +206,11 @@ resel_xyz = sqrt(resel_xyz/(4*log(2)));
 
 %-Optional mask-weighted smoothing of RPV image
 %--------------------------------------------------------------------------
-fwhm_vox = 0;
+if spm_get_defaults('stats.rft.nonstat')
+    fwhm_vox = 3;
+else
+    fwhm_vox = 0;
+end
 if any(fwhm_vox)
     if length(fwhm_vox) == 1, fwhm_vox = fwhm_vox([1 1 1]);  end
     

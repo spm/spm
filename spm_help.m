@@ -56,7 +56,7 @@ function varargout = spm_help(varargin)
 % Copyright (C) 1994-2012 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston
-% $Id: spm_help.m 5039 2012-11-06 20:39:58Z guillaume $
+% $Id: spm_help.m 6157 2014-09-05 18:17:54Z guillaume $
 
 
 %__________________________________________________________________________
@@ -126,7 +126,8 @@ case '!disp'
     F = spm_figure('GetWin',F);
     spm_clf(F);
     if isempty(S), S = get_content(Fname); end
-    spm_browser(S,F);
+    [H,HC]=spm_browser(S,F);
+    varargout = {H, HC};
 
 case '!topic'
 % FORMAT spm_help('!Topic',Topic)
