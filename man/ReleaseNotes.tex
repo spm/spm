@@ -76,12 +76,13 @@ Institute of Neurology, UCL\\
 
 \vspace{10mm}
 
-This is SPM12b, the beta version of the next major release of SPM\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm12/}}.
-Public updates are taking place frequently until the final release.
+This is SPM12\footnote{\url{http://www.fil.ion.ucl.ac.uk/spm/software/spm12/}}, a major update to the SPM software, containing substantial theoretical, algorithmic, structural and interface enhancements over previous versions, as detailed in this document.
+
+We would like to warmly thank everyone for testing, reporting bugs and giving feedbacks on the beta version.
 We are always interested to hear feedbacks and comments from SPM users - please contact us at \href{mailto:fil.spm@ucl.ac.uk}{fil.spm@ucl.ac.uk}.
 If you happen to find any bug, please report them at the same email address. Thank you!
 
-SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file LICENCE.txt, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}.
+SPM is free but copyright software, distributed under the terms of the GNU General Public Licence as published by the Free Software Foundation (either version 2, as given in file \texttt{LICENCE.txt}, or at your option, any later version)\footnote{\url{http://www.gnu.org/copyleft/}}.
 
 SPM is developed under the auspices of Functional Imaging Laboratory (FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of Neurology at University College London (UCL), UK.
 
@@ -142,12 +143,18 @@ Note that eyeballs are now included within the same class as CSF.
 Separating eyeballs from other non-brain tissue allows the nonlinear registration part to be made more flexible, but the disadvantage is that intra-cranial volumes are now fractionally more difficult to compute.
 However, the cleanup step (re-introduced from the old segmentation routine, and extended slightly) should allow eyeballs to be removed from the fluid tissue class.
 
+\section{Atlas}
+
+Maximum probability tissue labels derived from the ``MICCAI 2012 Grand Challenge and Workshop on Multi-Atlas Labeling''\footnote{\url{https://masi.vuse.vanderbilt.edu/workshop2012/index.php/Challenge_Details}} are available in files \texttt{tpm/labels\_Neuromorphometrics.nii}
+These data were released under the Creative Commons Attribution-NonCommercial (CC BY-NC) with no end date. Users should credit the MRI scans as originating from the OASIS project\footnote{\url{http://www.oasis-brains.org/}} and the labeled data as "provided by Neuromorphometrics, Inc.\footnote{\url{http://neuromorphometrics.com/}} under academic subscription". These references should be included in all workshop and final publications.
+See \texttt{spm\_templates.man} for more details about the generation of this file.
+
 \section{fMRI Statistics}
 
 \subsection{Neuroimaging Data Model (NIDM)}
 
 The Neuroimaging Data Model (NIDM)\footnote{\url{http://nidm.nidash.org/}} is a collection of specification documents that define extensions of the W3C PROV standard\footnote{\url{http://www.w3.org/TR/prov-primer/}} for the domain of human brain mapping.
-An implementation of the export of brain mapping statistical results using NIDM-Results is available from the batch editor in SPM \textgreater\ Stats \textgreater\ Results Report\ \textgreater Print results \textgreater\ NIDM.
+An implementation of the export of brain mapping statistical results using NIDM-Results \cite{Maumet2014} is available from the batch editor in SPM \textgreater\ Stats \textgreater\ Results Report\ \textgreater Print results \textgreater\ NIDM.
 
 \subsection{Canonical Variates Analysis}
 
@@ -160,11 +167,9 @@ The function \texttt{spm\_vb\_regionF.m} now provides approximation of the log m
 \subsection{Interactive Bayesian model comparison - second level}
 
 Multidimensional (or two-sided) inferences about GLM parameters  are now implemented using Savage-Dickey ratios.  When you specify a multidimensional contrast for a GLM that has been estimated using the Bayesian option, SPM will produce log Bayes factor maps (in favour of the alternative versus the null model). This provides a Bayesian analogue of the F-test and allows one to implement Bayesian model comparisons in a truly interactive manner.
-This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG). If you wish to create log Bayes factor maps in favour of the {\em null} model, you can use the matlab command line function \verb!spm_bms_test_null.m!.
+This is the recommended method for Bayesian model comparison of second level data (fMRI or MEG/EEG). If you wish to create log Bayes factor maps in favour of the {\em null} model, you can use the MATLAB command line function \texttt{spm\_bms\_test\_null.m}.
 
 Operationally, Bayesian inferences at the second level are implemented by first specifying a model, and then estimating it under the 'classical' option. You must then re-estimate the model under the 'Bayesian' option. Subsequent to this, when you are specifying new contrasts in the contrast manager you can have some contrasts that are Bayesian ('t' will provide inference about effect sizes, 'F' will use the Savage-Dickey approach), and others that are classical. The first time you specify a contrast you decide which it is to be.
-
-
 
 \subsection{Mixed-effects models}
 
