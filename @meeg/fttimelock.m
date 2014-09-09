@@ -9,7 +9,7 @@ function timelock = fttimelock(this, chanind, timeind, trialind, freqind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: fttimelock.m 5648 2013-09-23 12:40:40Z vladimir $
+% $Id: fttimelock.m 6158 2014-09-09 12:23:49Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
@@ -42,10 +42,10 @@ if isequal(transformtype(this), 'time')
    
    if isequal(type(this), 'single') || length(trialind)>1
        timelock.dimord  = 'rpt_chan_time';
-       timelock.trial   =  permute(this.data(chanind, timeind, trialind), [3 1 2]);
+       timelock.trial   =  permute(subsref(this, substruct('()', {chanind, timeind, trialind})), [3 1 2]);
    else
        timelock.dimord  = 'chan_time';
-       timelock.avg     =  spm_squeeze(this.data(chanind, timeind, trialind), 3);
+       timelock.avg     =  spm_squeeze(subsref(this, substruct('()', {chanind, timeind, trialind})), 3);
    end
    
    timelock.time       = time(this, timeind);
@@ -54,20 +54,20 @@ elseif strncmpi(transformtype(this),'TF',2)
     if length(timeind)>1
         if isequal(type(this), 'single') || length(trialind)>1
             timelock.dimord    = 'rpt_chan_freq_time';
-            timelock.powspctrm = permute(this.data(chanind, freqind, timeind, trialind), [4 1 2 3]);
+            timelock.powspctrm = permute(subsref(this, substruct('()', {chanind, freqind, timeind, trialind})), [4 1 2 3]);
         else
             timelock.dimord     = 'chan_freq_time';
-            timelock.powspctrm  =  spm_squeeze(this.data(chanind, freqind, timeind, trialind), 3);
+            timelock.powspctrm  =  spm_squeeze(subsref(this, substruct('()', {chanind, freqind, timeind, trialind})), 3);
         end
         
         timelock.time       = time(this, timeind);
     else
         if isequal(type(this), 'single') || length(trialind)>1
             timelock.dimord    = 'rpt_chan_freq';
-            timelock.powspctrm = spm_squeeze(permute(this.data(chanind, freqind, timeind, trialind), [4 1 2 3]), 4);
+            timelock.powspctrm = spm_squeeze(permute(subsref(this, substruct('()', {chanind, freqind, timeind, trialind})), [4 1 2 3]), 4);
         else
             timelock.dimord     = 'chan_freq';
-            timelock.powspctrm  =  spm_squeeze(this.data(chanind, freqind, timeind, trialind), [3 4]);
+            timelock.powspctrm  =  spm_squeeze(subsref(this, substruct('()', {chanind, freqind, timeind, trialind})), [3 4]);
         end
     end
     

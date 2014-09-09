@@ -5,7 +5,7 @@ function raw = ftraw(this, chanind, timeind, trialind)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: ftraw.m 5839 2014-01-19 11:09:18Z vladimir $
+% $Id: ftraw.m 6158 2014-09-09 12:23:49Z vladimir $
 
 if ~islinked(this)
     error('There is no data linked to the object');
@@ -36,7 +36,7 @@ raw.label   = chanlabels(this, chanind)';
 raw.trial   = cell(1, length(trialind));
 
 for i =  1:length(trialind) 
-    raw.trial{i} = this.data(chanind, timeind, trialind(i));
+    raw.trial{i} = subsref(this, substruct('()', {chanind, timeind, trialind(i)}));
 end
 
 raw.time = repmat({time(this, timeind)}, 1, length(trialind));
