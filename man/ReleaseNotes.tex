@@ -234,6 +234,10 @@ The ``online montage'' let you apply any type of channel montage (re-referencing
 
 An implementation of recently published convolution modelling method for M/EEG power \cite{Litvak_ConvModel_2013} has been added (under 'Specify 1st-level') button. It is now possible to apply TF analysis to continuous data and save continuous TF datasets to be used as input to this tool.
 
+\subsection{Beamforming}
+
+The functions previously available in the ``Beamforming'' toolbox in SPM8 have been superseded by the new Data Analysis in Source Space (DAiSS) toolbox that is not included by default in SPM and can be obtained from \url{http://code.google.com/p/spm-beamforming-toolbox/}.
+
 \subsection{Surface-based statistics}
 
 SPM's GLM implementation (in \texttt{spm\_spm.m}) has been modified to handle both volumetric and surfacic data; input files can then be specified in NIfTI or GIfTI format. This is used so far when making inference at the source level for M/EEG data.
