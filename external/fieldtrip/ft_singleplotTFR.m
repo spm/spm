@@ -80,9 +80,9 @@ function [cfg] = ft_singleplotTFR(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotTFR.m 9748 2014-07-21 12:38:01Z jansch $
+% $Id: ft_singleplotTFR.m 9778 2014-09-03 13:59:00Z jorhor $
 
-revision = '$Id: ft_singleplotTFR.m 9748 2014-07-21 12:38:01Z jansch $';
+revision = '$Id: ft_singleplotTFR.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -531,7 +531,7 @@ if isempty(get(gcf, 'Name'))
     dataname = cfg.inputfile;
   end
   if isempty(cfg.figurename)
-    set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, dataname, chans));
+    set(gcf, 'Name', sprintf('%d: %s: %s (%s)', double(gcf), mfilename, dataname, chans));
     set(gcf, 'NumberTitle', 'off');
   else
     set(gcf, 'name', cfg.figurename);

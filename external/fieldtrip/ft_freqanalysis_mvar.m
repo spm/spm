@@ -53,9 +53,9 @@ function [freq] = ft_freqanalysis_mvar(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_freqanalysis_mvar.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_freqanalysis_mvar.m 9776 2014-08-20 08:26:34Z jansch $
 
-revision = '$Id: ft_freqanalysis_mvar.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_freqanalysis_mvar.m 9776 2014-08-20 08:26:34Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -171,7 +171,9 @@ freq.transfer  = h;
 %freq.itransfer = a;
 freq.noisecov  = data.noisecov;
 freq.crsspctrm = crsspctrm;
-freq.dof       = data.dof;
+if isfield(data, 'dof'),
+  freq.dof       = data.dof;
+end
 if isfull
   freq.label    = label;
   if ntoi>1

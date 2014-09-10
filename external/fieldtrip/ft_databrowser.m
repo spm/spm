@@ -120,14 +120,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 9590 2014-05-27 11:18:31Z roboos $
+% $Id: ft_databrowser.m 9778 2014-09-03 13:59:00Z jorhor $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 9590 2014-05-27 11:18:31Z roboos $';
+revision = '$Id: ft_databrowser.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -621,7 +621,7 @@ if nargin < 2
 else
   dataname = inputname(2);
 end
-set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, join_str(', ',dataname)));
 set(gcf, 'NumberTitle', 'off');
 
 % set zoom option to on

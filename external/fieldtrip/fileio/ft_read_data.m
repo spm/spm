@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 9226 2014-02-23 13:12:06Z roboos $
+% $Id: ft_read_data.m 9779 2014-09-03 14:45:53Z jansch $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1164,6 +1164,18 @@ switch dataformat
              sum(trlind==iEpoch(i) & (1:length(trlind))<endsample)]);
      end   
      dat = dat(chanindx, :);
+  
+  case 'neuroscope_bin'
+    switch hdr.orig.nBits
+      case 16
+        precision = 'int16';
+      case 32
+        precision = 'int32';
+      otherwise
+        error('unknown precision');
+    end
+    dat = LoadBinary(filename, 'frequency', hdr.Fs, 'offset', begsample-1, 'nRecords', endsample-begsample, 'nChannels', hdr.orig.nChannels, 'channels', chanindx, 'precision', precision).'; 
+     
   otherwise
     if strcmp(fallback, 'biosig') && ft_hastoolbox('BIOSIG', 1)
       dat = read_biosig_data(filename, hdr, begsample, endsample, chanindx);

@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9742 2014-07-19 07:11:16Z roboos $
+% $Id: topoplot_common.m 9778 2014-09-03 13:59:00Z jorhor $
 
-revision = '$Id: topoplot_common.m 9742 2014-07-19 07:11:16Z roboos $';
+revision = '$Id: topoplot_common.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -882,7 +882,7 @@ if isempty(get(gcf, 'Name'))
   end
   
   if isempty(cfg.figurename)
-    set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+    set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, join_str(', ',dataname)));
     set(gcf, 'NumberTitle', 'off');
   else
     set(gcf, 'name', cfg.figurename);

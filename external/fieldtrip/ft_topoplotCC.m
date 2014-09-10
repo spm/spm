@@ -53,9 +53,9 @@ function [cfg] = ft_topoplotCC(cfg, freq)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_topoplotCC.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_topoplotCC.m 9778 2014-09-03 13:59:00Z jorhor $
 
-revision = '$Id: ft_topoplotCC.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_topoplotCC.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,7 +129,7 @@ if nargin < 2
 else
   dataname = inputname(2);
 end
-set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, join_str(', ',dataname)));
+set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, join_str(', ',dataname)));
 set(gcf, 'NumberTitle', 'off');
 
 if isnan(cfg.arrowsize)

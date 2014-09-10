@@ -95,9 +95,9 @@ function [cfg] = ft_singleplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_singleplotER.m 9653 2014-06-21 06:58:02Z roboos $
+% $Id: ft_singleplotER.m 9778 2014-09-03 13:59:00Z jorhor $
 
-revision = '$Id: ft_singleplotER.m 9653 2014-06-21 06:58:02Z roboos $';
+revision = '$Id: ft_singleplotER.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -609,7 +609,7 @@ if isempty(get(gcf,'Name'))
     chans = '<multiple channels>';
   end
   if isempty(cfg.figurename)
-    set(gcf, 'Name', sprintf('%d: %s: %s (%s)', gcf, mfilename, join_str(', ',dataname), chans));
+    set(gcf, 'Name', sprintf('%d: %s: %s (%s)', double(gcf), mfilename, join_str(', ',dataname), chans));
     set(gcf, 'NumberTitle', 'off');
   else
     set(gcf, 'name', cfg.figurename);

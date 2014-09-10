@@ -68,7 +68,7 @@ function [varargout] = ft_selectdata(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_selectdata.m 9765 2014-08-06 09:30:45Z eelspa $
+% $Id: ft_selectdata.m 9783 2014-09-10 13:06:09Z jansch $
 
 if nargin==1 || (nargin>2 && ischar(varargin{end-1})) || (isstruct(varargin{1}) && ~ft_datatype(varargin{1}, 'unknown'))
   % this is the OLD calling style, like this
@@ -145,7 +145,7 @@ for i=2:length(varargin)
   datfield = intersect(datfield, fieldnames(varargin{i}));
 end
 datfield  = setdiff(datfield, {'label' 'labelcmb'}); % these fields will be used for selection, but are not treated as data fields
-xtrafield =  {'cfg' 'hdr' 'fsample' 'grad' 'elec' 'transform' 'unit' 'topolabel' 'lfplabel' 'dim'}; % these fields will not be touched in any way by the code
+xtrafield =  {'cfg' 'hdr' 'fsample' 'fsampleorig' 'grad' 'elec' 'transform' 'unit' 'topolabel' 'lfplabel' 'dim'}; % these fields will not be touched in any way by the code
 datfield  = setdiff(datfield, xtrafield);
 orgdim1   = datfield(~cellfun(@isempty, regexp(datfield, 'dimord$')));
 datfield  = setdiff(datfield, orgdim1);
@@ -508,7 +508,8 @@ end % function makeselection
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function data = makeselection_chan(data, selchan, avgoverchan)
 if isempty(selchan)
-  error('no channels were selected');
+  %error('no channels were selected');
+  data.label = {};
 elseif avgoverchan && all(isnan(selchan))
   str = sprintf('%s, ', data.label{:});
   str = str(1:end-2);

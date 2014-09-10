@@ -70,9 +70,9 @@ function [cfg] = ft_layoutplot(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_layoutplot.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_layoutplot.m 9778 2014-09-03 13:59:00Z jorhor $
 
-revision = '$Id: ft_layoutplot.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_layoutplot.m 9778 2014-09-03 13:59:00Z jorhor $';
 
 % do the general setup of the function
 ft_defaults
@@ -129,9 +129,9 @@ else
 end
 
 if ~isempty(dataname)
-  set(gcf, 'Name', sprintf('%d: %s: %s', gcf, funcname, dataname));
+  set(gcf, 'Name', sprintf('%d: %s: %s', double(gcf), funcname, dataname));
 else
-  set(gcf, 'Name', sprintf('%d: %s', gcf, funcname));
+  set(gcf, 'Name', sprintf('%d: %s', double(gcf), funcname));
 end
 set(gcf, 'NumberTitle', 'off');
 

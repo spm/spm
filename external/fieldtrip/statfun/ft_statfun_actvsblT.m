@@ -66,7 +66,7 @@ function [s,cfg] = ft_statfun_actvsblT(cfg, dat, design)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_statfun_actvsblT.m 9560 2014-05-20 20:38:42Z dieloz $
+% $Id: ft_statfun_actvsblT.m 9787 2014-09-10 13:31:42Z jansch $
 
 % set defaults
 if ~isfield(cfg, 'computestat'),       cfg.computestat='yes';     end;
@@ -112,7 +112,7 @@ if strcmp(cfg.computestat,'yes')
 % compute the statistic
     % calculate the time averages of the activation and the baseline period
     % for all units-of-observation.
-    meanreshapeddat=mean(reshape(dat,nchan,nfreq,ntime,nrepl),3);
+    meanreshapeddat=nanmean(reshape(dat,nchan,nfreq,ntime,nrepl),3);
     timeavgdat=repmat(eye(nchan*nfreq),ntime,1)*reshape(meanreshapeddat,(nchan*nfreq),nrepl);
 
     % store the positions of the 1-labels and the 2-labels in a nunits-by-2 array
@@ -129,8 +129,8 @@ if strcmp(cfg.computestat,'yes')
     diffmat=dat(:,poslabelsperunit(:,1))-timeavgdat(:,poslabelsperunit(:,2));
 
     % calculate the dependent samples t-statistics
-    avgdiff=mean(diffmat,2);
-    vardiff=var(diffmat,0,2);
+    avgdiff=nanmean(diffmat,2);
+    vardiff=nanvar(diffmat,0,2);
     s.stat=sqrt(nunits)*avgdiff./sqrt(vardiff);
 end;
 
