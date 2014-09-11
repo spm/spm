@@ -5,10 +5,10 @@ function varargout = spm_toolbox(action,varargin)
 %
 % See http://www.fil.ion.ucl.ac.uk/spm/ext/
 %__________________________________________________________________________
-% Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 5573 2013-07-04 16:58:49Z guillaume $
+% $Id: spm_toolbox.m 6168 2014-09-11 18:26:54Z guillaume $
 
 
 if ~nargin, action = 'Display'; end
@@ -25,7 +25,7 @@ switch lower(action)
     case 'url'
         varargout = {'http://www.fil.ion.ucl.ac.uk/spm/ext/ext.xml'};
     case 'spmver'
-        varargout = {'SPM8'}; %{spm('Ver')};
+        varargout = {spm('Ver')};
     otherwise
         error('Unknown action to perform.');
 end

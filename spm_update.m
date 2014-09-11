@@ -18,13 +18,13 @@ function varargout = spm_update(update)
 %        n   - new revision <n> is available for download
 % msg  - string describing outcome, that would otherwise be displayed.
 %__________________________________________________________________________
-% Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_update.m 5582 2013-07-18 11:44:18Z guillaume $
+% $Id: spm_update.m 6168 2014-09-11 18:26:54Z guillaume $
 
 
-vspm = 'SPM12b';
+vspm = spm('Ver');
 url  = ['http://www.fil.ion.ucl.ac.uk/spm/download/' lower(vspm) '_updates/'];
 
 if ~nargin
