@@ -1,14 +1,16 @@
 function spm_make_manual(c)
 % Convert a job configuration tree into a series of LaTeX documents
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_make_manual.m 5540 2013-06-11 14:01:23Z guillaume $
+% $Id: spm_make_manual.m 6163 2014-09-11 12:27:04Z guillaume $
 
 
 if ~nargin, c = spm_cfg; end
 if nargin && ischar(c), clean_latex_compile; return; end
+
+cd(fullfile(spm('Dir'),'man'));
 
 fp = fopen('spm_manual.tex','w');
 fprintf(fp,'\\documentclass[a4paper,titlepage]{book}\n');
@@ -120,10 +122,18 @@ if lev<=length(sec)
     switch class(c)
         case {'cfg_branch','cfg_exbranch'}
             for i=1:numel(c.val)
+                if strcmp(c.name,'Inverse') && strcmp(c.val{i}.name,'Composition')
+                    % Remove recursion in Util > Deformations
+                    continue;
+                end
                 section(c.val{i},fp,lev+1);
             end
         case {'cfg_repeat','cfg_choice'}
             for i=1:numel(c.values)
+                if strcmp(c.name,'Composition') && strcmp(c.values{i}.name,'Composition')
+                    % Remove recursion in Util > Deformations
+                    continue;
+                end
                 section(c.values{i},fp,lev+1);
             end
     end
