@@ -8,7 +8,7 @@ function out = spm_run_factorial_design(job)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny
-% $Id: spm_run_factorial_design.m 6011 2014-05-22 17:53:54Z guillaume $
+% $Id: spm_run_factorial_design.m 6169 2014-09-12 11:15:59Z guillaume $
 
 %--------------------------------------------------------------------------
 % This function configures the design matrix (describing the general
@@ -178,10 +178,15 @@ function out = spm_run_factorial_design(job)
 %
 %--------------------------------------------------------------------------
 
-%-Change directory
+%-Output directory
 %--------------------------------------------------------------------------
-original_dir = pwd;
-cd(job.dir{1});
+cwd = pwd;
+d   = spm_file(job.dir{1},'cpath');
+if ~exist(d,'dir')
+    sts = mkdir(d);
+    if ~sts, error('Error creating output directory "%s".',d); end
+end
+cd(d);
 
 %-Ask about overwriting files from previous analyses...
 %--------------------------------------------------------------------------
@@ -1066,5 +1071,8 @@ if ~spm('CmdLine')
     fprintf('%30s\n','...done')                                         %-#
 end
 
-cd(original_dir); % Change back dir
-fprintf('Done\n')                                                       %-#
+fprintf('%-40s: %30s\n','Completed',spm('time'))                        %-#
+
+%-Change back directory
+%--------------------------------------------------------------------------
+cd(cwd);

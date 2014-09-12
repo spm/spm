@@ -1,9 +1,9 @@
 function job = spm_rewrite_job(job)
-% Rewrite a job for SPM12
+% Rewrite a batch job for SPM12
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6147 2014-09-02 19:03:42Z guillaume $
+% $Id: spm_rewrite_job.m 6169 2014-09-12 11:15:59Z guillaume $
 
 
 try
@@ -68,11 +68,13 @@ try
 end
 
 try
-    job.stats.results.conspec.mask.thresh;
-    if isempty(job.stats.results.conspec.mask)
-        job.stats.results.conspec.mask = struct('none',1);
-    else
-        job.stats.results.conspec.mask = struct('contrast',job.stats.results.conspec.mask);
+    job.stats.results.conspec(1).mask.thresh;
+    for i=1:numel(job.stats.results.conspec)
+        if isempty(job.stats.results.conspec(i).mask)
+            job.stats.results.conspec(i).mask = struct('none',1);
+        else
+            job.stats.results.conspec(i).mask = struct('contrast',job.stats.results.conspec(i).mask);
+        end
     end
 end
 
