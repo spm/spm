@@ -99,7 +99,7 @@ A function called \texttt{spm\_update.m} can be used to detect and install updat
 As in previous versions of SPM, the file \texttt{spm\_defaults.m} contains a list of defaults values used by the software. If you want to customise some defaults for your installation, we recommend you do not modify this file but rather create a file named \texttt{spm\_my\_defaults.m}, accessible from MATLAB search path; it will automatically be picked up and used by SPM to override some default settings.
 
 \subsection{File formats}
-SPM12 uses \href{http://nifti.nimh.nih.gov/nifti-1}{NIfTI-1} and \href{http://www.nitrc.org/projects/gifti/}{GIfTI} file formats for volumetric and surface-based data. The default format for images is now single file \texttt{.nii} instead of pair of files \texttt{.hdr/.img}. There is also preliminary support for \href{http://nifti.nimh.nih.gov/nifti-2}{NIfTI-2}. 
+SPM12 uses \href{http://nifti.nimh.nih.gov/nifti-1}{NIfTI-1} and \href{http://www.nitrc.org/projects/gifti/}{GIfTI} file formats for volumetric and surface-based data. The default format for images is now single file \texttt{.nii} instead of pair of files \texttt{.hdr/.img}. There is also preliminary support for \href{http://nifti.nimh.nih.gov/nifti-2}{NIfTI-2}.
 
 \subsection{Batch interface}
 New folder \texttt{batches} contains a number of ready-made batches (i.e. pipelines). They automatically configure the batch interface to execute preprocessings for fMRI or VBM analyses, as well as first or second level statistical analyses, using consensual settings. To use them, just load them from the batch interface as you would do with any other batch file you may have saved.
@@ -173,7 +173,7 @@ Operationally, Bayesian inferences at the second level are implemented by first 
 
 \subsection{Mixed-effects models}
 
-The approach described in \cite{karl_mixed} and implemented in \texttt{spm\_mfx.m} is now available via the batch interface. A new chapter in the SPM manual is devoted to this new option.
+The Mixed-Effects (MFX) approach described in \cite{karl_mixed} and implemented in \texttt{spm\_mfx.m} is now available via the batch interface. A new chapter in the SPM manual is devoted to this new option. We do envisage, however, that the great majority of random-effects inferences will be implemented using the usual summary statistic (SS) approach (creating contrast images for SPM analysis of single subject data, and then entering these images as data into a group analysis). This is because the SS approach is highly computationally efficient and only becomes suboptimal when the within-subject variances differ by an order or magnitude (which could be caused eg. by one subject having an order of magnitude more events than another).
 
 \subsection{Set-level threshold-free tests}
 
@@ -189,7 +189,8 @@ This re-parameterisation does not affect model inversion very much but guarantee
 
 \subsubsection{Bayesian model selection for group studies}
 
-\texttt{spm\_BMS.m} now also returns ''Protected Exceedance Probabilities'' \cite{Rigoux2014}.
+The function \texttt{spm\_BMS.m} has been updated to also return ''Protected Exceedance Probabilities (PXPs)'' \cite{Rigoux2014}. 
+These can be interpreted as follows. We first define a null hypothesis, $H_0$, as the model frequencies being equal (if you have $K$ models each is used in the population with a frequency of $1/K$). The alternative hypothesis, $H_1$, is that the model frequencies are different. It is then possible to compute the evidence for each hypothesis and the posterior probability that the null is true. This is known as the Bayes Omnibus Risk, and is also returned by \texttt{spm\_BMS.m}. The PXP is then given by the probability of the null times the model frequencies under the null ($1/K$) plus the probability of the alternative times the XPs. PXPs are more conservative than XPs and are protected against the possibility that the alternative hypothesis is not true (this is implicitly assumed in the computation of the XPs). Note that the Bayesian Model Selection GUI plots XPs, not PXPs.
 
 \subsubsection{Spectral DCM for resting state fMRI}
 
