@@ -1,29 +1,30 @@
 function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Definition of trials based on events
-% FORMAT[trl, conditionlabels, S]  = spm_eeg_definetrial(S)
-% S                - input structure (optional)
+% FORMAT [trl, conditionlabels, S] = spm_eeg_definetrial(S)
+% S                 - input structure (optional)
 % (optional) fields of S:
-%   S.timewin      - time window (in PST ms)
-%   S.trialdef     - structure array for trial definition with fields (optional)
+%   S.D             - MEEG object or filename of M/EEG mat-file
+%   S.timewin       - time window (in PST ms)
+%   S.trialdef      - structure array for trial definition with fields (optional)
 %       S.trialdef.conditionlabel - string label for the condition
 %       S.trialdef.eventtype      - string
 %       S.trialdef.eventvalue     - string, numeric or empty
 %       S.trialdef.trlshift       - shift the triggers by a fixed amount (ms) 
 %                                   (e.g. projector delay).
-%   S.reviewtrials - review individual trials after selection (yes/no: 1/0)
-%   S.save         - save trial definition (yes/no: 1/0)
+%   S.reviewtrials  - review individual trials after selection (yes/no: 1/0)
+%   S.save          - save trial definition (yes/no: 1/0)
 % OUTPUT:
-%   trl            - Nx3 matrix [start end offset]
+%   trl             - Nx3 matrix [start end offset]
 %   conditionlabels - Nx1 cell array of strings, label for each trial
-%   S              - modified configuration structure (for history)
+%   S               - modified configuration structure (for history)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 5592 2013-07-24 16:25:55Z vladimir $
+% $Id: spm_eeg_definetrial.m 6172 2014-09-12 15:12:04Z guillaume $
 
 
-SVNrev = '$Rev: 5592 $';
+SVNrev = '$Rev: 6172 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -36,7 +37,7 @@ try
     D = S.D;
 catch
     [D, sts] = spm_select(1, 'mat', 'Select M/EEG mat file');
-    if ~sts, D = []; return; end
+    if ~sts, trl = []; conditionlabels = {}; S = []; return; end
     S.D = D;
 end
 
@@ -48,8 +49,8 @@ if ~isequal(D.type, 'continuous')
     error('Trial definition requires continuous dataset as input');
 end
 
-event     = events(D, 1, 'samples');
-fsample   = D.fsample;
+event    = events(D, 1, 'samples');
+fsample  = D.fsample;
 
 if isempty(event)
     error('No event information was found in the input');
@@ -66,7 +67,7 @@ if ~isfield(S, 'trialdef')
     S.trialdef = [];
     ncond = spm_input('How many conditions?', '+1', 'n', '1');
     for i = 1:ncond
-        OK = 0;
+        OK = false;
         pos = '+1';
         while ~OK
             conditionlabel = spm_input(['Label of condition ' num2str(i)], pos, 's');
@@ -81,7 +82,7 @@ if ~isfield(S, 'trialdef')
                         'eventtype', selected{j, 1}, ...
                         'eventvalue', selected{j, 2}, ...
                         'trlshift', shift)];
-                    OK=1;
+                    OK = true;
                 end
             end
         end
@@ -144,9 +145,13 @@ end
 
 %-Sort the trl in right temporal order
 %--------------------------------------------------------------------------
-[junk, sortind] = sort(trl(:,1));
-trl             = trl(sortind, :);
-conditionlabels = conditionlabels(sortind);
+if isempty(trl)
+    warning('No trials found.');
+else
+    [junk, sortind] = sort(trl(:,1));
+    trl             = trl(sortind, :);
+    conditionlabels = conditionlabels(sortind);
+end
 
 %-Review selected trials
 %--------------------------------------------------------------------------
@@ -154,10 +159,10 @@ if ~isfield(S, 'reviewtrials')
     S.reviewtrials = spm_input('Review individual trials?','+1','yes|no',[1 0], 0);
 end
 
-if S.reviewtrials
-    eventstrings=cell(size(trl,1),1);
+if S.reviewtrials && ~isempty(trl)
+    eventstrings = cell(size(trl,1),1);
     for i=1:size(trl,1)
-        eventstrings{i}=[num2str(i) ' Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./fsample)];
+        eventstrings{i} = [num2str(i) ' Label: ' conditionlabels{i} ' Time (sec): ' num2str((trl(i, 1)- trl(i, 3))./fsample)];
     end
 
     selected = find(trl(:,1)>0);
@@ -166,7 +171,7 @@ if S.reviewtrials
         selected, 'Name', 'Select events', 'ListSize', [300 300]);
 
     if ok
-        trl=trl(indx, :);
+        trl = trl(indx, :);
         conditionlabels = conditionlabels(indx);
     end
 end
@@ -181,17 +186,17 @@ if S.save
     [trlfilename, trlpathname] = uiputfile( ...
         {'*.mat', 'MATLAB File (*.mat)'}, 'Save trial definition as');
 
-    trialdef = S.trialdef;
+    if ~isequal(trlfilename,0) && ~isequal(trlpathname,0)
+        trialdef = S.trialdef;
+        timewin  = S.timewin;
+        source   = D.fname;
     
-    timewin = [pretrig posttrig];
-    
-    source   = D.fname;
-    
-    save(fullfile(trlpathname, trlfilename), 'trl', 'conditionlabels', ...
-        'trialdef', 'source', 'timewin', spm_get_defaults('mat.format'));
+        save(fullfile(trlpathname, trlfilename),...
+            'trl', 'conditionlabels', 'trialdef', 'source', 'timewin', ...
+            spm_get_defaults('mat.format'));
+    end
 end
 
 %-Cleanup
 %--------------------------------------------------------------------------
 spm_figure('GetWin','Interactive'); clf;
-
