@@ -4,7 +4,7 @@ function this = subsasgn(this, subs, A)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: subsasgn.m 4848 2012-08-17 11:39:06Z guillaume $
+% $Id: subsasgn.m 6174 2014-09-15 12:17:23Z guillaume $
 
 switch subs(1).type
     case '.'
@@ -67,11 +67,33 @@ switch subs(1).type
                     end
                 else
                     if length(subs) > 1
-                        this.data{n}.data = single(builtin('subsasgn',this.data{n}.data,subs(2:end),A));
-                        this.data{n}.attributes.Dim = size(this.data{n}.data);
+                        if numel(n) == 1
+                            this.data{n}.data = single(builtin('subsasgn',this.data{n}.data,subs(2:end),A));
+                            this.data{n}.attributes.Dim = size(this.data{n}.data);
+                        else
+                            if numel(subs(2).subs) == 1
+                                error('Linear indexing not supported: use multiple subscripts.');
+                            end
+                            idx = subs(2).subs{2};
+                            if isequal(idx,':'), idx = 1:numel(this.data); end
+                            for k=1:numel(idx)
+                                s = subs(2);
+                                s.subs{2} = 1;
+                                if numel(A) == 1
+                                    this.data{idx(k)}.data = single(builtin('subsasgn',this.data{idx(k)}.data,s,A));
+                                else
+                                    this.data{idx(k)}.data = single(builtin('subsasgn',this.data{idx(k)}.data,s,A(:,k)));
+                                end
+                                this.data{idx(k)}.attributes.Dim = size(this.data{idx(k)}.data);
+                            end
+                        end
                     else
-                        this.data{n}.data = single(A);
-                        this.data{n}.attributes.Dim = size(A);
+                        if numel(n) == 1
+                            this.data{n}.data = single(A);
+                            this.data{n}.attributes.Dim = size(A);
+                        else
+                            error('Syntax not implemented.');
+                        end
                     end
                 end
             end
