@@ -1,9 +1,9 @@
-function spm_dcm_fmri_results(DCM,Action,fig)
+function spm_dcm_fmri_results(DCM,action,fig)
 % Review an estimated DCM for BOLD CSD
-% FORMAT spm_dcm_fmri_results(DCM,Action,fig)
+% FORMAT spm_dcm_fmri_results(DCM,action,fig)
 %
 % Action:
-%     'spectral data'
+%     'Spectral data'
 %     'Coupling (A)'
 %     'Coupling (C)'
 %     'Inputs'
@@ -15,11 +15,12 @@ function spm_dcm_fmri_results(DCM,Action,fig)
 %     'Covariance (neural)'
 %     'Kernels'
 %     'Location of regions'
-%     'quit'
+%     'Quit'
 %__________________________________________________________________________
-% Copyright (C) 2002-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
-%-arguments
+
+%-Input arguments
 %==========================================================================
  
 %-Get DCM structure
@@ -32,10 +33,10 @@ if ~isstruct(DCM)
     load(DCM);
 end
  
-% get action if neccessary
+%-Get action if neccessary
 %--------------------------------------------------------------------------
-if nargin < 2
-    str = {'spectral data',...
+if nargin < 2 || isempty(action)
+    str = {'Spectral data',...
         'Coupling (A)',...
         'Coupling (C)',...
         'Inputs',...
@@ -47,26 +48,27 @@ if nargin < 2
         'Covariance (neural)',...
         'Kernels',...
         'Location of regions',...
-        'quit'};
+        'Quit'};
     
-    i = listdlg('PromptString','Select an option:',...
-        'SelectionMode','single',...
-        'ListString',str);
-    Action = str{i};
+    action = str{spm_input('review',1,'m',str)};
 end
  
-% get figure
+%-Get figure
 %--------------------------------------------------------------------------
-if nargin < 3
-    spm_figure('GetWin','Graphics');
+if nargin < 3 || isempty(fig)
+    Fgraph = spm_figure('GetWin','Graphics');
 else
-    figure(fig)
+    Fgraph = fig;
+    spm_figure('Focus',Fgraph);
 end
-set(gcf,'Renderer','zbuffer')
-colormap(gray), clf
+set(Fgraph,'Renderer','zbuffer');
+colormap(gray)
+if ~strcmpi(action,'Quit')
+    spm_figure('Clear',Fgraph);
+end
+
  
- 
-% csd data
+%-CSD data
 %--------------------------------------------------------------------------
 xY   = DCM.Y;                  % data
 Hz   = DCM.Hz;                 % frequencies
@@ -75,16 +77,34 @@ ns   = size(DCM.a,1);          % number of regions
 nu   = size(DCM.c,2);          % number of exogenous inputs
 U    = 0.9;                    % p-value threshold for display
 ns   = min(ns,8);              % bounded number of regions
+
+ 
+%-Exponentiate coupling parameters if a two-state model
+%--------------------------------------------------------------------------
+try
+    if DCM.options.two_state
+        Ep.A = full(exp(DCM.Ep.A));
+        Ep.B = full(exp(DCM.Ep.B));
+        Ep.D = full(exp(DCM.Ep.D));
+        Ep.C = full(DCM.Ep.C);
+        disp('NB: The (A,B,D) parameters are scale parameters')
+    else
+        Ep.A = full(DCM.Ep.A);
+        Ep.B = full(DCM.Ep.B);
+        Ep.D = full(DCM.Ep.D);
+        Ep.C = full(DCM.Ep.C);
+    end
+end
  
  
 % switch
 %--------------------------------------------------------------------------
-switch(lower(Action))
+switch lower(action)
     
     %======================================================================
     % spectral data
     %======================================================================
-    case{lower('Spectral data')}
+    case lower('Spectral data')
         
         for i = 1:ns
             for j = i:ns
@@ -113,29 +133,6 @@ switch(lower(Action))
         
         subplot(ns,ns,ns)
         legend('real','imag')
-end
- 
-%-Exponentiate coupling parameters if a two-state model
-%--------------------------------------------------------------------------
-try
-    if DCM.options.two_state
-        Ep.A = full(exp(DCM.Ep.A));
-        Ep.B = full(exp(DCM.Ep.B));
-        Ep.D = full(exp(DCM.Ep.D));
-        Ep.C = full(DCM.Ep.C);
-        disp('NB: The (A,B,D) parameters are scale parameters')
-    else
-        Ep.A = full(DCM.Ep.A);
-        Ep.B = full(DCM.Ep.B);
-        Ep.D = full(DCM.Ep.D);
-        Ep.C = full(DCM.Ep.C);
-    end
-end
- 
- 
-% switch
-%--------------------------------------------------------------------------
-switch(lower(Action))
     
     %======================================================================
     % Location of regions
@@ -195,7 +192,7 @@ switch(lower(Action))
     %======================================================================
     % Outputs
     %======================================================================
-    case lower('outputs')
+    case lower('Outputs')
         
         % graph
         %------------------------------------------------------------------
@@ -210,7 +207,7 @@ switch(lower(Action))
     %======================================================================
     % Parameter estimates (A)
     %======================================================================
-    case{lower('Coupling (A)')}
+    case lower('Coupling (A)')
         
         % intrinsic effects
         %------------------------------------------------------------------
@@ -246,7 +243,7 @@ switch(lower(Action))
     %======================================================================
     % Parameter estimates (C)
     %======================================================================
-    case{lower('Coupling (C)')}
+    case lower('Coupling (C)')
         
         % intrinsic effects
         %------------------------------------------------------------------
@@ -281,7 +278,7 @@ switch(lower(Action))
     %======================================================================
     % Transfer functions and cross spectra
     %======================================================================
-    case{lower('Transfer functions')}
+    case lower('Transfer functions')
         
         for i = 1:ns
             for j = 1:ns
@@ -300,7 +297,7 @@ switch(lower(Action))
     %======================================================================
     % Transfer functions and cross spectra
     %======================================================================
-    case{lower('Cross-spectra (BOLD)')}
+    case lower('Cross-spectra (BOLD)')
         
         
         for i = 1:ns
@@ -336,7 +333,7 @@ switch(lower(Action))
     %======================================================================
     % Cross-spectra (neural)
     %====================================================================== 
-    case{lower('Cross-spectra (neural)')}
+    case lower('Cross-spectra (neural)')
         
         
         for i = 1:ns
@@ -368,7 +365,7 @@ switch(lower(Action))
     %======================================================================
     % Coherence (neural)
     %======================================================================  
-    case{lower('Coherence (neural)')}
+    case lower('Coherence (neural)')
         
         
         for i = 1:ns
@@ -401,7 +398,7 @@ switch(lower(Action))
     %======================================================================
     % Cross correlations and kernels
     %======================================================================
-    case{lower('Covariance (neural)')}
+    case lower('Covariance (neural)')
         
         for i = 1:ns
             for j = i:ns
@@ -470,14 +467,14 @@ switch(lower(Action))
     %======================================================================
     % Quit
     %======================================================================
-    case {'quit'}
+    case lower('Quit')
         return;
         
     %======================================================================
     % Unknown action
     %======================================================================
     otherwise
-        disp('unknown option')
+        disp('Unknown option.')
 end
  
 % return to menu

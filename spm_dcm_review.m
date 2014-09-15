@@ -19,7 +19,7 @@ function spm_dcm_review(DCM,action)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_review.m 6031 2014-06-02 12:49:52Z guillaume $
+% $Id: spm_dcm_review.m 6175 2014-09-15 19:57:22Z guillaume $
 
 
 %-Get DCM structure
@@ -35,10 +35,13 @@ end
 %-Call spm_dcm_fmri_results for DCM of CSD
 %--------------------------------------------------------------------------
 try
-    if strcmp(DCM.options.analysis,'CSD')
-        spm_dcm_fmri_results(DCM);
-        return
-    end
+    analysis = DCM.options.analysis;
+catch
+    analysis = '';
+end
+if strcmp(analysis,'CSD')
+	spm_dcm_fmri_results(DCM);
+	return
 end
 
 %-Get model specification structure (see spm_nlsi)
