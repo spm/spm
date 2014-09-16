@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 5624 2013-08-30 11:06:38Z vladimir $
+% $Id: spm_eeg_average_TF.m 6176 2014-09-16 10:38:14Z vladimir $
 
-SVNrev = '$Rev: 5624 $';
+SVNrev = '$Rev: 6176 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -80,8 +80,6 @@ end
 
 cl   = D.condlist;
 
-spm_progress_bar('Init', D.nchannels, 'Channels completed');
-
 ni = zeros(1,D.nconditions);
 for i = 1:D.nconditions
     w = indtrial(D, deblank(cl{i}), 'GOOD');
@@ -93,70 +91,77 @@ end
 
 goodtrials  =  indtrial(D, cl, 'GOOD');
 
-for j = 1:D.nchannels
-    if robust && ~bycondition
-        Y       = D(j, :, :, goodtrials);
-        if removebad
-            bad     = badsamples(D, j, ':', goodtrials);
-            bad     = reshape(bad, [size(bad, 1), 1, size(bad, 2), size(bad, 3)]);
-            bad     = repmat(bad, [1 D.nfrequencies, 1, 1]);
-            Y(bad)  = NaN;
-        end
-        [Y, W1] = spm_robust_average(Y, 4, ks);
-        if savew
-            Dw(j, :, :, goodtrials) = W1;
-        end
-        W = zeros([1 D.nfrequencies D.nsamples D.ntrials]);
-        W(1, :, :, goodtrials) = W1;
-    end
+
+if removebad
+    bad     = badsamples(D, ':', ':', ':');
+end
+
+spm_progress_bar('Init', D.nsamples, 'Samples completed');
+if D.nsamples > 100, Ibar = floor(linspace(1, D.nsamples, 100));
+else Ibar = [1:D.nsamples]; end
+for j = 1:D.nsamples
+     if robust && ~bycondition
+         Y       = D(:, :, j, goodtrials);
+         if removebad
+             ibad = reshape(bad(:, j, goodtrials), [size(bad, 1), 1, 1, length(goodtrials)]);
+             ibad = repmat(ibad, [1, D.nfrequencies, 1, 1]);
+             Y(ibad) = NaN;
+         end
+         [Y, W1] = spm_robust_average(Y, 4, ks);
+
+         if savew
+             Dw(:, :, j, goodtrials) = W1;
+         end
+         W = zeros([1 D.nfrequencies D.nsamples D.ntrials]);
+         W(:, :, 1, goodtrials) = W1;
+     end
     for i = 1:D.nconditions
         
         w = indtrial(D, deblank(cl{i}), 'GOOD');
         
-        if isempty(w)
-            continue;
-        end
+         if isempty(w)
+             continue;
+         end
         
         %-Straight average
         %------------------------------------------------------------------
         if ~strcmp(D.transformtype, 'TFphase')
             if ~robust
-                Dnew(j, :, :, i) = mean(D(j, :, :, w), 4);
-            else
-                if bycondition
-                    Y      = D(j, :, :, w);
-                    if removebad
-                        bad     = badsamples(D, j, ':', w);
-                        bad     = reshape(bad, [size(bad, 1), 1, size(bad, 2), size(bad, 3)]);
-                        bad     = repmat(bad, [1 D.nfrequencies, 1, 1]);
-                        Y(bad)  = NaN;
-                    end
-                    [Y, W] = spm_robust_average(Y, 4, ks);
-                    Dnew(j, :, :, i) = Y;
-                    if savew
-                        Dw(j, :, :, w)   = W;
-                    end
-                else
-                    X = D(j, :, :, w);
-                    X(isnan(X))      = 0;
-                    Dnew(j, :, :, i) = ...
-                        sum(W(1, :, :, w).*X, 4)./sum(W(1, :, :, w), 4);
-                end
+                Dnew(:, :, j, i) = mean(D(:, :, j, w), 4);
+             else
+                 if bycondition
+                     Y      = D(:, :, j, w);
+                     if removebad
+                         ibad = reshape(bad(:, j, w), [size(bad, 1), 1, 1, length(w)]);
+                         ibad = repmat(ibad, [1, D.nfrequencies, 1, 1]);
+                         Y(ibad) = NaN;
+                     end
+                     [Y, W] = spm_robust_average(Y, 4, ks);
+                     Dnew(:, :, j, i) = Y;
+                     if savew
+                         Dw(:, :, j, w)   = W;
+                     end
+                 else
+                     X = D(:, :, j, w);
+                     X(isnan(X))      = 0;
+                     Dnew(:, :, j, i) = ...
+                         sum(W(:, :, 1, w).*X, 4)./sum(W(:, :, 1, w), 4);
+                 end
             end
 
             %-Vector average (eg PLV for phase)
             %------------------------------------------------------------------
         else
-            tmp = D(j, :, :, w);
+            tmp = D(:, :, j, w);
             tmp = exp(sqrt(-1)*tmp);
             if plv
-                Dnew(j, :, :, i) = abs(mean(tmp,4));
+                Dnew(:, :, j, i) = abs(mean(tmp,4));
             else
-                Dnew(j, :, :, i) = angle(mean(tmp,4));
+                Dnew(:, :, j, i) = angle(mean(tmp,4));
             end
         end
     end
-    spm_progress_bar('Set', j);
+    if ismember(j, Ibar), spm_progress_bar('Set', j); end
 end
 
 spm_progress_bar('Clear');
