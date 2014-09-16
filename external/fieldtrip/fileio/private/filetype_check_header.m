@@ -22,7 +22,7 @@ function [val] = filetype_check_header(filename, head, offset)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: filetype_check_header.m 8274 2013-06-18 13:54:49Z roboos $
+% $Id: filetype_check_header.m 9803 2014-09-15 09:18:11Z jansch $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout cache
@@ -69,10 +69,10 @@ else
       for i=1:length(head)
         len(i) = length(head{i});
       end
-      [str, siz] = fread(fid, max(len), 'uint8=>char');
+      [str, siz] = fread(fid, max(len), 'uint8');
       fclose(fid);
       for i=1:length(head)
-        val = strncmp(str, head{i}, len(i));
+        val = all(str(1:len(i))==head{i}(:));
         if val
           break
         end

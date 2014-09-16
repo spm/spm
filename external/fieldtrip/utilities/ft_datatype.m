@@ -31,7 +31,7 @@ function [type, dimord] = ft_datatype(data, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype.m 9564 2014-05-21 09:24:50Z roboos $
+% $Id: ft_datatype.m 9808 2014-09-16 14:56:13Z roboos $
 
 if nargin<2
   desired = [];
@@ -42,12 +42,12 @@ israw          =  isfield(data, 'label') && isfield(data, 'time') && isa(data.ti
 isfreq         = (isfield(data, 'label') || isfield(data, 'labelcmb')) && isfield(data, 'freq') && ~isfield(data,'trialtime') && ~isfield(data,'origtrial'); %&& (isfield(data, 'powspctrm') || isfield(data, 'crsspctrm') || isfield(data, 'cohspctrm') || isfield(data, 'fourierspctrm') || isfield(data, 'powcovspctrm'));
 istimelock     =  isfield(data, 'label') && isfield(data, 'time') && ~isfield(data, 'freq') && ~isfield(data,'timestamp') && ~isfield(data,'trialtime') && ~(isfield(data, 'trial') && iscell(data.trial)); %&& ((isfield(data, 'avg') && isnumeric(data.avg)) || (isfield(data, 'trial') && isnumeric(data.trial) || (isfield(data, 'cov') && isnumeric(data.cov))));
 iscomp         =  isfield(data, 'label') && isfield(data, 'topo') || isfield(data, 'topolabel');
-isvolume       =  isfield(data, 'transform') && isfield(data, 'dim');
+isvolume       =  isfield(data, 'transform') && isfield(data, 'dim') && ~isfield(data, 'pos');
 issource       =  isfield(data, 'pos');
 isdip          =  isfield(data, 'dip');
 ismvar         =  isfield(data, 'dimord') && ~isempty(strfind(data.dimord, 'lag'));
 isfreqmvar     =  isfield(data, 'freq') && isfield(data, 'transfer');
-ischan         =  isfield(data, 'dimord') && strcmp(data.dimord, 'chan') && ~isfield(data, 'time') && ~isfield(data, 'freq');
+ischan         = check_chan(data);
 issegmentation = check_segmentation(data);
 isparcellation = check_parcellation(data);
 
@@ -142,6 +142,26 @@ if nargout>1
     dimord = data.dimord;
   else
     dimord = 'unknown';
+  end
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SUBFUNCTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [res] = check_chan(data)
+
+if any(isfield(data, {'time', 'freq', 'pos', 'dim', 'transform'}))
+  res = false;
+elseif isfield(data, 'dimord') && strcmp(data.dimord, 'chan')
+  res = true;
+else
+  res = false;
+  fn = fieldnames(data);
+  for i=1:numel(fn)
+    if isfield(data, [fn{i} 'dimord']) && strcmp(data.([fn{i} 'dimord']), 'chan')
+      res = true;
+      break;
+    end
   end
 end
 

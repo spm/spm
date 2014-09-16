@@ -29,7 +29,7 @@ function [s] = getsubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: getsubfield.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: getsubfield.m 9789 2014-09-11 07:49:09Z jansch $
 
 if iscell(f)
   f = f{1};
@@ -39,10 +39,8 @@ if ~ischar(f)
   error('incorrect input argument for fieldname');
 end
 
-while (1)
-  [t, f] = strtok(f, '.');
-  s = getfield(s, t);
-  if isempty(f)
-    break
-  end
+t = textscan(f,'%s','delimiter','.');
+t = t{1};
+for k = 1:numel(t)
+  s = s.(t{k});
 end

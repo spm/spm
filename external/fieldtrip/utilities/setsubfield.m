@@ -33,19 +33,22 @@ function [s] = setsubfield(s, f, v)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: setsubfield.m 9663 2014-06-22 07:06:19Z roboos $
+% $Id: setsubfield.m 9788 2014-09-11 07:49:03Z jansch $
 
 if ~ischar(f)
   error('incorrect input argument for fieldname');
 end
 
-t = {};
-while (1)
-  [t{end+1}, f] = strtok(f, '.');
-  if isempty(f)
-    break
-  end
-  
-end
+% t = {};
+% while (1)
+%   [t{end+1}, f] = strtok(f, '.');
+%   if isempty(f)
+%     break
+%   end
+%   
+% end
+%
+%s = setfield(s, t{:}, v);
 
-s = setfield(s, t{:}, v);
+t = textscan(f,'%s','delimiter','.');
+s = setfield(s, t{1}{:}, v);

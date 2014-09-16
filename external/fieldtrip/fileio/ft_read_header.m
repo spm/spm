@@ -89,7 +89,7 @@ function [hdr] = ft_read_header(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_header.m 9779 2014-09-03 14:45:53Z jansch $
+% $Id: ft_read_header.m 9796 2014-09-12 18:17:47Z vlalit $
 
 % TODO channel renaming should be made a general option (see bham_bdf)
 
@@ -1853,7 +1853,7 @@ switch headerformat
     hdr.nTrials  = 1;
     if isfield(orig, 'epochs') && ~isempty(orig.epochs)
       hdr.nSamples = 0;
-      for i = 1:hdr.nTrials
+      for i = 1:numel(orig.epochs)
         hdr.nSamples =  hdr.nSamples + diff(orig.epochs(i).samples) + 1;
       end
     else

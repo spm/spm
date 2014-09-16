@@ -32,11 +32,23 @@ function [r] = issubfield(s, f)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: issubfield.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: issubfield.m 9789 2014-09-11 07:49:09Z jansch $
 
-try
-  getsubfield(s, f);    % if this works, then the subfield must be present  
-  r = true;
-catch
-  r = false;                % apparently the subfield is not present
+%try
+%  getsubfield(s, f);    % if this works, then the subfield must be present  
+%  r = true;
+%catch
+%  r = false;                % apparently the subfield is not present
+%end
+
+t = textscan(f,'%s','delimiter','.');
+t = t{1};
+r = true;
+for k = 1:numel(t)
+  try,
+    s = s.(t{k});
+  catch
+    r = false;
+    return;
+  end
 end

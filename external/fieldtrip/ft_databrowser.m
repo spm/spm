@@ -120,14 +120,14 @@ function [cfg] = ft_databrowser(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_databrowser.m 9778 2014-09-03 13:59:00Z jorhor $
+% $Id: ft_databrowser.m 9793 2014-09-11 09:54:44Z jansch $
 
 % FIXME these should be removed or documented
 % cfg.preproc
 % cfg.channelcolormap
 % cfg.colorgroups
 
-revision = '$Id: ft_databrowser.m 9778 2014-09-03 13:59:00Z jorhor $';
+revision = '$Id: ft_databrowser.m 9793 2014-09-11 09:54:44Z jansch $';
 
 % do the general setup of the function
 ft_defaults
@@ -262,12 +262,16 @@ if hasdata
     % don't use the events in case the data has been resampled
     warning('the data has been resampled, not showing the events');
     event = [];
+  elseif isfield(data, 'cfg') && isfield(data.cfg, 'event')
+    % use the event structure from the data as per bug #2501
+    event = data.cfg.event;
   elseif ~isempty(cfg.event)
     % use the events that the user passed in the configuration
     event = cfg.event;
   else
     % fetch the events from the data structure in memory
-    event = ft_fetch_event(data);
+    %event = ft_fetch_event(data);
+    event = [];
   end
   
   cfg.channel = ft_channelselection(cfg.channel, hdr.label);

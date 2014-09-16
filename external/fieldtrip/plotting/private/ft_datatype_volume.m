@@ -70,7 +70,7 @@ function volume = ft_datatype_volume(volume, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_datatype_volume.m 8952 2013-12-04 10:40:59Z roboos $
+% $Id: ft_datatype_volume.m 9799 2014-09-15 08:06:31Z roboos $
 
 % get the optional input arguments, which should be specified as key-value pairs
 version = ft_getopt(varargin, 'version', 'latest');
@@ -92,6 +92,17 @@ if isfield(volume, 'freq'),      volume = rmfield(volume, 'freq');      end
 if isfield(volume, 'frequency'), volume = rmfield(volume, 'frequency'); end
 if isfield(volume, 'time'),      volume = rmfield(volume, 'time');      end
 if isfield(volume, 'latency'),   volume = rmfield(volume, 'latency');   end
+
+if isfield(volume, 'pos')
+  if ~isfield(volume, 'dim')
+    volume.dim = pos2dim(volume.pos);
+  end
+  assert(prod(volume.dim)==size(volume.pos,1), 'dimensions are inconsistent with number of grid positions');
+  if  ~isfield(volume, 'transform')
+    volume.transform = pos2transform(volume.pos, volume.dim);
+  end
+  volume = rmfield(volume, 'pos');
+end
 
 switch version
   case '2012b'

@@ -24,7 +24,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %
 %   'format'      = string, see below
 %   'coordsys'    = string, e.g. 'head' or 'dewar' (CTF)
-%   'unit'        = string, e.g. 'cm'
+%   'unit'        = string, e.g. 'mm'
 %   'concatenate' = 'no' or 'yes'(default): if you read the shape of left and right hemispehers from multiple files and want to concatenate them
 %
 % Supported input formats are
@@ -76,7 +76,7 @@ function [shape] = ft_read_headshape(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_headshape.m 9780 2014-09-08 12:01:13Z jansch $
+% $Id: ft_read_headshape.m 9798 2014-09-15 08:06:26Z roboos $
 
 % % optionally get the data from the URL and make a temporary local copy
 % filename = fetch_url(filename);
@@ -277,6 +277,7 @@ else
       end
       shape.pnt = ft_warp_apply(g.mat, g.vertices);
       shape.tri = g.faces;
+      shape.unit = 'mm';  % defined in the GIFTI standard to be milimeter
       if isfield(g, 'cdata')
         shape.mom = g.cdata;
       end

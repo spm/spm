@@ -52,7 +52,7 @@ function [ws warned] = warning_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: warning_once.m 9144 2014-01-29 12:57:30Z jorhor $
+% $Id: warning_once.m 9788 2014-09-11 07:49:03Z jansch $
 
 global ft_default
 
@@ -210,7 +210,7 @@ for i=numel(stack)-1:-1:(i0)
 end
 
 % line of last function call
-line = ['.line', num2str(stack(i0).line)];
+line = ['.line', int2str(stack(i0).line)];
 end
 
 % function outcome = issubfield(strct, fname)

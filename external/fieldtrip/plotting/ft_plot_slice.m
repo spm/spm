@@ -50,7 +50,7 @@ function [h, T2] = ft_plot_slice(dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_slice.m 9781 2014-09-09 09:51:24Z jansch $
+% $Id: ft_plot_slice.m 9805 2014-09-15 12:16:09Z jansch $
 
 persistent dim X Y Z
 
@@ -130,6 +130,8 @@ if isstruct(mesh)
   for i=1:numel(tmp)
     mesh{i} = tmp(i);
   end
+elseif iscell(mesh)
+  % do nothing
 else
   mesh = {};
 end

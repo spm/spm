@@ -38,9 +38,9 @@ function [cfg] = ft_connectivityplot(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_connectivityplot$
+% $Id: ft_connectivityplot.m 9798 2014-09-15 08:06:26Z roboos $
 
-revision = '$Id: ft_connectivityplot.m 9762 2014-08-04 14:55:35Z dieloz $';
+revision = '$Id: ft_connectivityplot.m 9798 2014-09-15 08:06:26Z roboos $';
 
 % do the general setup of the function
 ft_defaults

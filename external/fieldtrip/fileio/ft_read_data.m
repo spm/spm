@@ -49,7 +49,7 @@ function [dat] = ft_read_data(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_data.m 9779 2014-09-03 14:45:53Z jansch $
+% $Id: ft_read_data.m 9796 2014-09-12 18:17:47Z vlalit $
 
 persistent cachedata     % for caching
 persistent db_blob       % for fcdc_mysql
@@ -1144,7 +1144,7 @@ switch dataformat
      filename  = fullfile(p, [f, '.mb2']);
      trlind = [];
      if isfield(hdr.orig, 'epochs') && ~isempty(hdr.orig.epochs)
-         for i = 1:hdr.nTrials
+         for i = 1:numel(hdr.orig.epochs)
              trlind = [trlind i*ones(1, diff(hdr.orig.epochs(i).samples) + 1)];
          end
          if checkboundary && (trlind(begsample)~=trlind(endsample))
@@ -1157,11 +1157,11 @@ switch dataformat
      iEpoch = unique(trlind(begsample:endsample));
      sfid = fopen(filename, 'r');
      dat  = zeros(hdr.nChans, endsample - begsample + 1);
-     for i = 1:length(iEpoch)
+     for i = 1:length(iEpoch)         
          dat(:, trlind(begsample:endsample) == iEpoch(i)) =...
              in_fread_manscan(hdr.orig, sfid, iEpoch(i), ...
-             [sum(trlind==iEpoch(i) & (1:length(trlind))<begsample)...
-             sum(trlind==iEpoch(i) & (1:length(trlind))<endsample)]);
+             [sum(trlind==iEpoch(i) & (1:length(trlind))<begsample) ...
+             sum(trlind==iEpoch(i) & (1:length(trlind))<=endsample)-1]);      
      end   
      dat = dat(chanindx, :);
   

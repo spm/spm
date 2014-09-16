@@ -36,7 +36,7 @@ function varargout = interp_gridded(transform, val, pnt, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: interp_gridded.m 9673 2014-06-23 12:05:28Z jansch $
+% $Id: interp_gridded.m 9801 2014-09-15 08:42:52Z jansch $
 
 if nargin<3
   error('Not enough input arguments.');
@@ -122,10 +122,10 @@ switch projmethod
   case 'sphere_weighteddistance'
     projmat         = distmat;
     [ind1, ind2, d] = find(projmat);
-    projmat         = sparse(ind1, ind2, 1./d, npnt, npnt1);
+    projmat         = sparse(ind1, ind2, 1./d, npnt, npos);
     [ind1, ind2, d] = find(projmat);
     normnz          = sqrt(full(sum(projmat.^2, 2)));
-    projmat         = sparse(ind1, ind2, d./normnz(ind1), npnt, npnt1);
+    projmat         = sparse(ind1, ind2, d./normnz(ind1), npnt, npos);
   
   case 'project'
       % this method is Joachim's implementation that was originally in

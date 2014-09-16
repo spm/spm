@@ -29,11 +29,11 @@ function [val, status] = ft_findcfg(cfg, var)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_findcfg.m 9664 2014-06-22 07:06:29Z roboos $
+% $Id: ft_findcfg.m 9792 2014-09-11 09:50:15Z jansch $
 
-if var(1)~='.'
-  var = ['.' var];
-end
+% if var(1)~='.'
+%   var = ['.' var];
+% end
 val   = [];
 depth = 0;
 status = 0;
@@ -44,7 +44,7 @@ while ~status
     if issubfield(cfg,  var)
       val = getsubfield(cfg, var);
       status = 1;
-    elseif issubfield(cfg, '.previous');
+    elseif issubfield(cfg, 'previous');
       [val, status] = ft_findcfg(cfg.previous, var);
       if status, break; end;
     elseif iscell(cfg)

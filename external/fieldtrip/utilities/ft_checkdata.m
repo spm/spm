@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 9726 2014-07-14 15:46:02Z eelspa $
+% $Id: ft_checkdata.m 9808 2014-09-16 14:56:13Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -185,11 +185,11 @@ if ~isequal(feedback, 'no')
       subtype = 'source';
     end
     if isfield(data, 'dim')
-      fprintf('the input is %s data with %d positions on a [%d %d %d] grid\n', subtype, nsource, data.dim(1), data.dim(2), data.dim(3));
+      fprintf('the input is %s data with %d brainordinates on a [%d %d %d] grid\n', subtype, nsource, data.dim(1), data.dim(2), data.dim(3));
     elseif isfield(data, 'tri')
       fprintf('the input is %s data with %d vertex positions and %d triangles\n', subtype, nsource, size(data.tri, 1));
     else
-      fprintf('the input is %s data with %d positions\n', subtype, nsource);
+      fprintf('the input is %s data with %d brainordinates\n', subtype, nsource);
     end
     clear subtype
   elseif isdip

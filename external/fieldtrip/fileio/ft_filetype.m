@@ -76,7 +76,7 @@ function [type] = ft_filetype(filename, desired, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_filetype.m 9312 2014-03-25 14:31:17Z roboos $
+% $Id: ft_filetype.m 9798 2014-09-15 08:06:26Z roboos $
 
 % these are for remembering the type on subsequent calls with the same input arguments
 persistent previous_argin previous_argout previous_pwd
@@ -487,8 +487,11 @@ elseif filetype_check_extension(filename, '.img')
 elseif filetype_check_extension(filename, '.mnc')
   type = 'minc';
   content = 'MRI image data';
-elseif filetype_check_extension(filename, '.nii')
+elseif filetype_check_extension(filename, '.nii') && filetype_check_header(filename, {[92 1 0 0], [0 0 1 92]}) % header starts with the number 348
   type = 'nifti';
+  content = 'MRI image data';
+elseif filetype_check_extension(filename, '.nii') && filetype_check_header(filename, {[28 2 0 0], [0 0 2 28]}) % header starts with the number 540
+  type = 'nifti2';
   content = 'MRI image data';
   
   % known FSL file types
