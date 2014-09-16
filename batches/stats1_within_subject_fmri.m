@@ -14,9 +14,9 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: stats1_within_subject_fmri.m 5993 2014-05-19 14:10:33Z ged $
+% $Id: stats1_within_subject_fmri.m 6177 2014-09-16 10:44:55Z guillaume $
 
-if exist('stats1_within_subject_fmri', 'file')
+if exist('stats1_within_subject_fmri', 'file') && ~isdeployed
     help stats1_within_subject_fmri
 end
 matlabbatch = {};

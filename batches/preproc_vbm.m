@@ -13,9 +13,9 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_vbm.m 5993 2014-05-19 14:10:33Z ged $
+% $Id: preproc_vbm.m 6177 2014-09-16 10:44:55Z guillaume $
 
-if exist('preproc_vbm', 'file')
+if exist('preproc_vbm', 'file') && ~isdeployed
     help preproc_vbm
 end
 matlabbatch = {};

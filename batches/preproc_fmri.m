@@ -20,9 +20,9 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: preproc_fmri.m 5993 2014-05-19 14:10:33Z ged $
+% $Id: preproc_fmri.m 6177 2014-09-16 10:44:55Z guillaume $
 
-if exist('preproc_fmri', 'file')
+if exist('preproc_fmri', 'file') && ~isdeployed
     help preproc_fmri
 end
 matlabbatch = {};

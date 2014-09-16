@@ -12,9 +12,9 @@
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Ged Ridgway
-% $Id: stats2_between_subject.m 5993 2014-05-19 14:10:33Z ged $
+% $Id: stats2_between_subject.m 6177 2014-09-16 10:44:55Z guillaume $
 
-if exist('stats2_between_subject', 'file')
+if exist('stats2_between_subject', 'file') && ~isdeployed
     help stats2_between_subject
 end
 matlabbatch = {};
