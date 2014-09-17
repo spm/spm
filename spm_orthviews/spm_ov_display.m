@@ -9,7 +9,7 @@ function ret = spm_ov_display(varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_display.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_ov_display.m 6181 2014-09-17 16:35:39Z guillaume $
 
 
 switch lower(varargin{1})
@@ -121,6 +121,6 @@ for i=n
             otherwise
                 Ys = 'error';
         end
-        xlabel(st.vols{i}.ax{3}.ax,Ys);
+        xlabel(st.vols{i}.ax{3}.ax,Ys,'Interpreter','none');
     end
 end

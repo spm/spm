@@ -56,7 +56,7 @@ function varargout = spm_select(varargin)
 % Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_select.m 5956 2014-04-16 14:34:25Z guillaume $
+% $Id: spm_select.m 6181 2014-09-17 16:35:39Z guillaume $
 
 
 % For developers:
@@ -181,7 +181,9 @@ switch lower(cmd)
         prms   = varargin{3};
         frames = prms.frames;
         ii = cell(1,numel(files));
-        if numel(frames)~=1 || frames(1)~=1
+        if numel(frames)==1 && isnan(frames)
+            [ii{:}] = deal(1);
+        elseif numel(frames)~=1 || frames(1)~=1
             % if domsg
             %     msg(ob,['Reading headers of ' num2str(numel(f)) ' images...']);
             % end
@@ -215,8 +217,12 @@ switch lower(cmd)
         end
         ii = [ii{:}];
         fi = [fi{:}]';
-        for i=1:numel(cfiles)
-            cfiles{i} = sprintf('%s,%d', files{fi(i)}, ii(i));
+        if numel(frames)==1 && isnan(frames)
+            cfiles = files;
+        else
+            for i=1:numel(cfiles)
+                cfiles{i} = sprintf('%s,%d', files{fi(i)}, ii(i));
+            end
         end
         varargout{1} = cfiles;
         varargout{2} = fi;
