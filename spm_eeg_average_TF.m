@@ -19,9 +19,9 @@ function D = spm_eeg_average_TF(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_average_TF.m 6176 2014-09-16 10:38:14Z vladimir $
+% $Id: spm_eeg_average_TF.m 6180 2014-09-17 15:45:11Z vladimir $
 
-SVNrev = '$Rev: 6176 $';
+SVNrev = '$Rev: 6180 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -92,7 +92,7 @@ end
 goodtrials  =  indtrial(D, cl, 'GOOD');
 
 
-if removebad
+if robust && removebad
     bad     = badsamples(D, ':', ':', ':');
 end
 
@@ -112,7 +112,7 @@ for j = 1:D.nsamples
          if savew
              Dw(:, :, j, goodtrials) = W1;
          end
-         W = zeros([1 D.nfrequencies D.nsamples D.ntrials]);
+         W = zeros([D.nchannels D.nfrequencies 1 D.ntrials]);
          W(:, :, 1, goodtrials) = W1;
      end
     for i = 1:D.nconditions
