@@ -12,7 +12,7 @@ function E = ROBOT_DCM_fMRI
 % DCM.options.P                      % starting estimates for parameters
 % DCM.options.hidden                 % indices of hidden regions
 
-% $Id: ROBOT_DCM_fMRI.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: ROBOT_DCM_fMRI.m 6185 2014-09-18 14:01:20Z guillaume $
 
 % tests of spatial models: 'ECD', 'LFP' or 'IMG'
 %==========================================================================
