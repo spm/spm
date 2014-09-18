@@ -5,16 +5,14 @@ function spm_eeg_inv_checkdatareg(varargin)
 %
 % FORMAT spm_eeg_inv_checkdatareg(D, val, ind)
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout
-% $Id: spm_eeg_inv_checkdatareg.m 5811 2013-12-20 15:42:16Z vladimir $
+% $Id: spm_eeg_inv_checkdatareg.m 6182 2014-09-18 12:03:18Z guillaume $
 
-% SPM graphics figure
+
+% Inputs
 %--------------------------------------------------------------------------
-
-%%
-
 [D,val] = spm_eeg_inv_check(varargin{:});
 
 datareg = D.inv{val}.datareg;
@@ -27,18 +25,18 @@ else
     ind = varargin{3};
 end
 
-% --- Set up variables ---
-%==========================================================================
 modality = datareg(ind).modality;
-meegfid =  datareg(ind).fid_eeg;
-mrifid =   datareg(ind).fid_mri;
-mesh = spm_eeg_inv_transform_mesh(datareg(ind).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
-sensors = datareg(ind).sensors;
+meegfid  = datareg(ind).fid_eeg;
+mrifid   = datareg(ind).fid_mri;
+mesh     = spm_eeg_inv_transform_mesh(datareg(ind).fromMNI*D.inv{val}.mesh.Affine, D.inv{val}.mesh);
+sensors  = datareg(ind).sensors;
 
-Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
+% SPM Graphics figure
+%--------------------------------------------------------------------------
+Fgraph   = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 subplot(2,1,1)
 
-% --- DISPLAY ANATOMY ---
+%-Display anatomy
 %==========================================================================
 Mcortex = mesh.tess_ctx;
 Miskull = mesh.tess_iskull;
@@ -63,18 +61,18 @@ face    = Mscalp.face;
 vert    = Mscalp.vert;
 h_slp   = patch('vertices',vert,'faces',face,'EdgeColor',[1 .7 .55],'FaceColor','none');
 
-% --- DISPLAY SETUP ---
+%-Display setup
 %==========================================================================
 try   
     Lhsp    = meegfid.pnt;
     Lfidmri = mrifid.fid.pnt;
     Lfid    = meegfid.fid.pnt(1:size(Lfidmri, 1), :);
 catch
-    warndlg('please coregister these data')
+    spm('alert!','Please coregister these data',mfilename);
     return
 end
 
-% headshape locations
+% Headshape locations
 %--------------------------------------------------------------------------
 if ~isempty(Lhsp)
     h_hsp   = plot3(Lhsp(:,1),Lhsp(:,2),Lhsp(:,3),'dm');
@@ -101,7 +99,7 @@ set(h_fid,'MarkerFaceColor','c','MarkerSize',12,'MarkerEdgeColor','k');
 h_fidmr = plot3(Lfidmri(:,1),Lfidmri(:,2),Lfidmri(:,3),'dm');
 set(h_fidmr,'MarkerFaceColor','m','MarkerSize',12,'MarkerEdgeColor','k');
 
-% camera view
+% Camera view
 %--------------------------------------------------------------------------
 axis image off
 view(-135,45)
@@ -109,7 +107,7 @@ view(-135,45)
 hold off
 zoom(5/3)
 
-% DISPLAY CHANNELS
+%-Display channels
 %==========================================================================
 subplot(2,1,2)
 

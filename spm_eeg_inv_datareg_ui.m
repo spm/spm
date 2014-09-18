@@ -3,20 +3,18 @@ function D = spm_eeg_inv_datareg_ui(varargin)
 % commands the EEG/MEG data co-registration within original sMRI space
 %
 % FORMAT D = spm_eeg_inv_datareg_ui(D,[val], [meegfid, newmrifid, useheadshape])
-% Input:
-% D         - M/EEG dataset
+% D            - M/EEG dataset
 %
-% meegfid   - M/EEG fiducials
-% mrifid    - MRI fiducials
+% meegfid      - M/EEG fiducials
+% mrifid       - MRI fiducials
 % useheadshape - use headshape points (1)
 %
-% Output:
-% D         - same data struct including the new required files and variables
+% D            - same data struct including the new required files and variables
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_datareg_ui.m 5811 2013-12-20 15:42:16Z vladimir $
+% $Id: spm_eeg_inv_datareg_ui.m 6182 2014-09-18 12:03:18Z guillaume $
 
 % initialise
 %--------------------------------------------------------------------------
@@ -129,7 +127,7 @@ else
     end
     
     % register
-    %==========================================================================
+    %======================================================================
     S =[];
     S.sourcefid = meegfid;
     S.targetfid = newmrifid;    
@@ -183,11 +181,11 @@ end
 % check and display registration
 %--------------------------------------------------------------------------
 if interactive
-    spm_eeg_inv_checkdatareg(D);
+    if ~spm('CmdLine')
+        spm_eeg_inv_checkdatareg(D);
+    end
 else
     for i = 1:numel(D.inv{val}.datareg)
         spm_eeg_inv_checkdatareg(D, val, i);
     end
 end
-
-

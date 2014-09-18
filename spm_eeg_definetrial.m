@@ -21,15 +21,15 @@ function [trl, conditionlabels, S] = spm_eeg_definetrial(S)
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld
-% $Id: spm_eeg_definetrial.m 6172 2014-09-12 15:12:04Z guillaume $
+% $Id: spm_eeg_definetrial.m 6182 2014-09-18 12:03:18Z guillaume $
 
 
-SVNrev = '$Rev: 6172 $';
+SVNrev = '$Rev: 6182 $';
 
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
-spm_figure('GetWin','Interactive'); clf;
+spm_figure('FindWin','Interactive'); spm_clf('Interactive');
 
 %-Get MEEG object
 %--------------------------------------------------------------------------
@@ -199,4 +199,4 @@ end
 
 %-Cleanup
 %--------------------------------------------------------------------------
-spm_figure('GetWin','Interactive'); clf;
+spm_clf('Interactive');

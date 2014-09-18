@@ -9,10 +9,10 @@ function D = spm_eeg_inv_forward(varargin)
 % Output:
 % D                - EEG/MEG struct with filenames of Gain matrices)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Jeremie Mattout & Christophe Phillips
-% $Id: spm_eeg_inv_forward.m 5810 2013-12-20 14:37:40Z vladimir $
+% $Id: spm_eeg_inv_forward.m 6182 2014-09-18 12:03:18Z guillaume $
 
 
 %-Initialisation
@@ -23,7 +23,7 @@ if numel(D.inv{val}.datareg) ~= numel(D.inv{val}.forward)
     error('Separate coregistration is required for every modality');
 end
 
-Fgraph = spm_figure('GetWin','Graphics');
+Fgraph = spm_figure('FindWin','Graphics');
 spm_figure('Clear',Fgraph);
 spm('Pointer', 'Watch');
 if isempty(Fgraph) || spm('CmdLine'), graph = 'no'; else graph = 'yes'; end

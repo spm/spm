@@ -119,10 +119,10 @@ function [D] = spm_eeg_invert(D, val)
 %   1. Optimisation of spatial source priors over subjects
 %   2. Re-inversion of each subject, fusing across all modalities
 %__________________________________________________________________________
-% Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2006-2014 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_eeg_invert.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_eeg_invert.m 6182 2014-09-18 12:03:18Z guillaume $
  
 % check whether this is a group inversion for (Nl) number of subjects
 %--------------------------------------------------------------------------
@@ -907,12 +907,10 @@ for i = 1:Nl
         D{i}.inv{D{i}.val} = rmfield(D{i}.inv{D{i}.val},'contrast');
     end
     
-    % display
+    % Display
     %======================================================================
-    spm_eeg_invert_display(D{i});
-    drawnow
+    if ~spm('CmdLine'), spm_eeg_invert_display(D{i}); end
     
 end
  
 if length(D) == 1, D = D{1}; end
-return

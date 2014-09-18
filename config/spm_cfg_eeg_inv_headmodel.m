@@ -4,7 +4,7 @@ function headmodel = spm_cfg_eeg_inv_headmodel
 % Copyright (C) 2010-2013 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_inv_headmodel.m 6036 2014-06-03 22:43:51Z vladimir $
+% $Id: spm_cfg_eeg_inv_headmodel.m 6182 2014-09-18 12:03:18Z guillaume $
 
 
 D = cfg_files;
@@ -315,8 +315,10 @@ for i = 1:numel(job.D)
     
     D = spm_eeg_inv_forward(D);
     
-    for j = 1:numel(D.inv{val}.forward)
-        spm_eeg_inv_checkforward(D, D.val, j);
+    if ~spm('CmdLine')
+        for j = 1:numel(D.inv{val}.forward)
+            spm_eeg_inv_checkforward(D, D.val, j);
+        end
     end
     
     save(D);

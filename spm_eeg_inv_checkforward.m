@@ -2,10 +2,10 @@ function spm_eeg_inv_checkforward(varargin)
 % Check M/EEG forward model
 % FORMAT spm_eeg_inv_checkforward(D, val, ind)
 %__________________________________________________________________________
-% Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_inv_checkforward.m 5974 2014-05-07 16:48:24Z vladimir $
+% $Id: spm_eeg_inv_checkforward.m 6182 2014-09-18 12:03:18Z guillaume $
 
 
 %-SPM data structure
@@ -33,10 +33,12 @@ try
     end
     Mcortex  = forward(ind).mesh;
 catch
-    warndlg('please coregister and create forward model')
+    spm('alert!','Please coregister and create forward model',mfilename);
     return
 end
 
+%-Display
+%--------------------------------------------------------------------------
 Fgraph  = spm_figure('GetWin','Graphics'); figure(Fgraph); clf
 
 if ismac
@@ -45,9 +47,8 @@ else
     set(Fgraph,'renderer','OpenGL');
 end
 
+spm('Pointer', 'Watch');
 
-spm('Pointer', 'Watch');drawnow;
-%--------------------------------------------------------------------------
 chanind = strmatch(modality, D.chantype);
 chanind = setdiff(chanind, D.badchannels);
 if isempty(chanind)
