@@ -40,12 +40,12 @@ function D = spm_eeg_epochs(S)
 % Output:
 % D                     - MEEG object (also written on disk)
 %__________________________________________________________________________
-% Copyright (C) 2008-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_eeg_epochs.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_eeg_epochs.m 6183 2014-09-18 12:31:21Z guillaume $
 
-SVNrev = '$Rev: 6157 $';
+SVNrev = '$Rev: 6183 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -141,12 +141,16 @@ else
 end
 
 if length(timeOnset) > 1
-    error('All trials should have identical baseline');
+    error('All trials should have identical baseline.');
+end
+
+if isempty(trl)
+    error('No trials found.');
 end
 
 nsampl = unique(round(diff(trl, [], 2)))+1;
 if length(nsampl) > 1 || nsampl<1
-    error('All trials should have identical and positive lengths');
+    error('All trials should have identical and positive lengths.');
 end
 
 inbounds = (trl(:,1)>=1 & trl(:, 2)<=D.nsamples);
