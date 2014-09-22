@@ -23,6 +23,8 @@ function [sens] = ft_fetch_sens(cfg, data)
 % 
 % Allowed configuration fields:
 %   layout        = reference to a layout, see FT_PREPARE_LAYOUT
+%   senstype      = MEG, EEG, in case of combined MEG-EEG dataset choose
+%                   which sensors to extract
 %
 % See also FT_READ_SENS, FT_PREPARE_LAYOUT, FT_FETCH_DATA
 
@@ -44,37 +46,25 @@ function [sens] = ft_fetch_sens(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_fetch_sens.m 8776 2013-11-14 09:04:48Z roboos $
+% $Id: ft_fetch_sens.m 9810 2014-09-17 14:44:38Z jimher $
 
-% check input arguments
 if nargin > 1 && ~isempty(data)
   data = ft_checkdata(data);
-  % determine the type of data
-  iseeg = ft_senstype(data, 'eeg');
-  ismeg = ft_senstype(data, 'meg');
 else
   data = struct; % initialize as empty struct
-  iseeg = true;  % may be eeg
-  ismeg = true;  % may be meg
-end
-
-if ~iseeg&&~ismeg 
-  % this might lead to an error in line 88
-  iseeg = true;
-  ismeg = true;
 end
 
 cfg = ft_checkconfig(cfg);
 
 % meg booleans
-hasgradfile = ismeg & isfield(cfg, 'gradfile');
-hascfggrad  = ismeg & isfield(cfg, 'grad');
-hasdatagrad = ismeg & isfield(data, 'grad');
+hasgradfile = isfield(cfg, 'gradfile'); 
+hascfggrad  = isfield(cfg, 'grad');     
+hasdatagrad = isfield(data, 'grad');   
 
 % eeg booleans
-haselecfile = iseeg & isfield(cfg, 'elecfile');
-hascfgelec  = iseeg & isfield(cfg, 'elec');
-hasdataelec = iseeg & isfield(data, 'elec');
+haselecfile = isfield(cfg, 'elecfile'); 
+hascfgelec  = isfield(cfg, 'elec');     
+hasdataelec = isfield(data, 'elec');    
 
 if hascfgelec
   haselectra = isfield(cfg.elec, 'tra') ;
@@ -84,10 +74,24 @@ end
 haslayout   = isfield(cfg, 'layout');
 iscfgsens   = isfield(cfg, 'pnt')  || isfield(cfg, 'chanpos');
 isdatasens  = isfield(data, 'pnt') || isfield(data, 'chanpos');
+hassenstype = isfield(cfg, 'senstype');
 
 if (hasgradfile || hascfggrad || hasdatagrad) && ...
-    (haselecfile || hascfgelec || hasdataelec)
-  error('Cannot determine whether you need gradiometer or electrode sensor definition');
+    (haselecfile || hascfgelec || hasdataelec) && ~hassenstype
+  error('Cannot determine whether you need gradiometer or electrode sensor definition. Specify cfg.senstype as ''MEG'' or ''EEG''');
+elseif hassenstype
+  switch cfg.senstype
+    case 'MEG'
+      haselecfile = 0;
+      hascfgelec  = 0;
+      hasdataelec = 0;
+    case 'EEG'
+      hasgradfile = 0;
+      hascfggrad  = 0;
+      hasdatagrad = 0;
+    otherwise
+      error('Senstype not spicified correctly, please see the documentation of FT_FETCH_SENS');
+  end;
 end
 
 if (hasgradfile + hascfggrad + hasdatagrad + ...

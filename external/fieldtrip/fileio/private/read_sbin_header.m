@@ -37,7 +37,7 @@ function [header_array, CateNames, CatLengths, preBaseline] = read_sbin_header(f
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: read_sbin_header.m 9770 2014-08-08 16:14:24Z josdie $
+% $Id: read_sbin_header.m 9815 2014-09-19 06:56:02Z roboos $
 
 fid=fopen([filename],'r');
 if fid==-1
@@ -139,7 +139,7 @@ else
     NSegments   = fread(fid,1,'int16',endian);
     NSamples    = fread(fid,1,'int32',endian);          % samples per segment
     NEvent      = fread(fid,1,'int16',endian);          % num events per segment
-    EventCodes = ''];
+    EventCodes = '';
     for j = 1:NEvent
         EventCodes(j,1:4)   = char(fread(fid,[1,4],'char',endian));
     end

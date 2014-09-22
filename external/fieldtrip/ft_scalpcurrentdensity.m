@@ -81,9 +81,9 @@ function [scd] = ft_scalpcurrentdensity(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_scalpcurrentdensity.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_scalpcurrentdensity.m 9810 2014-09-17 14:44:38Z jimher $
 
-revision = '$Id: ft_scalpcurrentdensity.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_scalpcurrentdensity.m 9810 2014-09-17 14:44:38Z jimher $';
 
 % do the general setup of the function
 ft_defaults
@@ -113,7 +113,7 @@ end
 dtype = ft_datatype(data);
 
 % check if the input data is valid for this function
-data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'ismeg', 'no');
+data = ft_checkdata(data, 'datatype', 'raw', 'feedback', 'yes', 'iseeg','yes','ismeg',[]); 
 
 % select trials of interest
 if ~strcmp(cfg.trials, 'all')
@@ -122,7 +122,10 @@ if ~strcmp(cfg.trials, 'all')
 end
 
 % get the electrode positions
-elec = ft_fetch_sens(cfg, data);
+tmpcfg = cfg;
+tmpcfg.senstype = 'EEG';
+
+elec = ft_fetch_sens(tmpcfg, data);
 
 % remove all junk fields from the electrode array
 tmp  = elec;

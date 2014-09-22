@@ -86,8 +86,6 @@ function [freq] = ft_freqanalysis(cfg, data)
 %   cfg.tapsmofrq  = vector 1 x numfoi, the amount of spectral smoothing through
 %                    multi-tapering. Note that 4 Hz smoothing means
 %                    plus-minus 4 Hz, i.e. a 8 Hz smoothing box.
-%   cfg.foilim     = [begin end], frequency band of interest
-%       OR
 %   cfg.foi        = vector 1 x numfoi, frequencies of interest
 %   cfg.taper      = 'dpss', 'hanning' or many others, see WINDOW (default = 'dpss')
 %                     For cfg.output='powandcsd', you should specify the channel combinations
@@ -185,7 +183,7 @@ function [freq] = ft_freqanalysis(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 
-revision = '$Id: ft_freqanalysis.m 9721 2014-07-10 14:30:52Z roboos $';
+revision = '$Id: ft_freqanalysis.m 9820 2014-09-22 11:43:33Z tzvpop $';
 
 % do the general setup of the function
 ft_defaults

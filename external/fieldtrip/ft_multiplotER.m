@@ -117,9 +117,9 @@ function [cfg] = ft_multiplotER(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_multiplotER.m 9790 2014-09-11 07:56:42Z tzvpop $
+% $Id: ft_multiplotER.m 9821 2014-09-22 12:14:54Z eelspa $
 
-revision = '$Id: ft_multiplotER.m 9790 2014-09-11 07:56:42Z tzvpop $';
+revision = '$Id: ft_multiplotER.m 9821 2014-09-22 12:14:54Z eelspa $';
 
 % do the general setup of the function
 ft_defaults
@@ -673,7 +673,7 @@ for m=1:length(layLabels)
     label = [];
   end
   
-  ft_plot_vector(xval, yval, 'width', width(m), 'height', height(m), 'hpos', layX(m), 'vpos', layY(m), 'hlim', [xmin xmax], 'vlim', [ymin ymax], 'color', color, 'style', cfg.linestyle{i}, 'linewidth', cfg.linewidth, 'axis', cfg.axes, 'highlight', mask, 'highlightstyle', cfg.maskstyle, 'label', label, 'box', cfg.box);
+  ft_plot_vector(xval, yval, 'width', width(m), 'height', height(m), 'hpos', layX(m), 'vpos', layY(m), 'hlim', [xmin xmax], 'vlim', [ymin ymax], 'color', color, 'style', cfg.linestyle{i}, 'linewidth', cfg.linewidth, 'axis', cfg.axes, 'highlight', mask, 'highlightstyle', cfg.maskstyle, 'label', label, 'box', cfg.box, 'fontsize', cfg.fontsize);
   
   if i==1,
     % Keep ER plot coordinates (at centre of ER plot), and channel labels (will be stored in the figure's UserData struct):
@@ -837,7 +837,6 @@ if ~isempty(label)
     % the reading has already been done and varargin contains the data
     cfg = rmfield(cfg, 'inputfile');
   end
-  cfg.xlim = 'maxmin';
   cfg.channel = label;
   % put data name in here, this cannot be resolved by other means
   info = guidata(gcf);
