@@ -17,9 +17,9 @@ function regfile = spm_eeg_regressors(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_regressors.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_eeg_regressors.m 6186 2014-09-22 11:31:11Z vladimir $
 
-SVNrev = '$Rev: 6007 $';
+SVNrev = '$Rev: 6186 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -35,6 +35,7 @@ for i = 1:numel(S.methods)
     fun  = char(fieldnames(S.methods{i}));
     S1   = S.methods{i}.(fun);
     S1.D = D;
+    S1.summarise = S.summarise;
     res =  feval(['spm_eeg_regressors_' fun], S1);
     
     R     =     [R res.R];

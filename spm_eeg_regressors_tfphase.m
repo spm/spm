@@ -1,5 +1,5 @@
-function res = spm_eeg_regressors_tfpower(S)
-% Generate regressors from power in TF dataset
+function res = spm_eeg_regressors_tfphase(S)
+% Generate regressors from phase in TF dataset
 % S                     - input structure
 % fields of S:
 %    S.D                - M/EEG object
@@ -23,10 +23,10 @@ if nargin == 0
     %--------------------------------------------------------------------------
     Dtf        = cfg_files;
     Dtf.tag    = 'Dtf';
-    Dtf.name   = 'TF power dataset name';
+    Dtf.name   = 'TF phase dataset name';
     Dtf.filter = 'mat';
     Dtf.num    = [1 1];
-    Dtf.help   = {'Select the M/EEG mat file containing TF power data'};
+    Dtf.help   = {'Select the M/EEG mat file containing TF phase data'};
     
     %--------------------------------------------------------------------------
     % timewin
@@ -34,8 +34,7 @@ if nargin == 0
     timewin         = cfg_entry;
     timewin.tag     = 'timewin';
     timewin.name    = 'Time window';
-    timewin.help    = {['Start and stop of the time window [ms]. ' ...
-        '(Used only for summarised epoched cases)']};
+    timewin.help    = {'Start and stop of the time window [ms]. (Used only for the epoched case)'};
     timewin.strtype = 'r';
     timewin.num     = [1 2];
     timewin.val     = {[-Inf Inf]};
@@ -74,23 +73,20 @@ if nargin == 0
     standardize.values = {1,0};
     standardize.help = {'Standardize (zscore) regressor values'};
     
-    %--------------------------------------------------------------------------
-    % regname
-    %--------------------------------------------------------------------------
     regname         = cfg_entry;
     regname.tag     = 'regname';
     regname.name    = 'Regressor name';
     regname.help    = {'Specify the string to be used as regressor name.'};
     regname.strtype = 's';
     regname.num     = [1 Inf];
-    regname.val     = {'TFpower'};
+    regname.val     = {'TFphase'};
     
-    tfpower = cfg_branch;
-    tfpower.tag = 'tfpower';
-    tfpower.name = 'Time-frequency power';
-    tfpower.val = {Dtf, spm_cfg_eeg_channel_selector, timewin, freqwin, average, standardize, regname};
+    tfphase = cfg_branch;
+    tfphase.tag = 'tfphase';
+    tfphase.name = 'Time-frequency phase';
+    tfphase.val = {Dtf, spm_cfg_eeg_channel_selector, timewin, freqwin, average, standardize, regname};
     
-    res = tfpower;
+    res = tfphase;
     
     return
 end
@@ -98,7 +94,7 @@ end
 %-Startup
 %--------------------------------------------------------------------------
 spm('sFnBanner', mfilename, SVNrev);
-spm('FigName','Time-frequency power regressors');
+spm('FigName','Time-frequency phase regressors');
 
 if ~isfield(S, 'timewin'),      S.timewin  = [-Inf Inf];    end
 if ~isfield(S, 'freqwin'),      S.freqwin  = [-Inf Inf];    end
@@ -110,8 +106,8 @@ end
 Dtf  = spm_eeg_load(S.Dtf);
 D    = spm_eeg_load(S.D);
 
-if ~isequal(Dtf.transformtype, 'TF');
-    error('Time-frequency power dataset is expected as input.')
+if ~isequal(Dtf.transformtype, 'TFphase');
+    error('Time-frequency phase dataset is expected as input.')
 end
 
 freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
@@ -132,11 +128,19 @@ if isequal(D.type, 'continuous')
         error('All times of the input dataset should be within the power dataset.');
     end
     
-    data = spm_squeeze(mean(Dtf(chanind, freqind, :), 1), [1 3]);
+    data = Dtf(chanind, freqind, :);
+    
+    spm_squeeze(mean(Dtf(chanind, freqind, :), 1), [1 3]);
+    
+    ph_cos = spm_squeeze(mean(cos(data), 1), [1 3]);
+    ph_sin = spm_squeeze(mean(sin(data), 1), [1 3]);
     
     if S.average
-        data = mean(data, 1);
+        ph_cos = mean(ph_cos, 1);
+        ph_sin = mean(ph_sin, 1);
     end
+    
+    data = cat(1, ph_cos, ph_sin);
     
     if D.fsample ~= Dtf.fsample
         [data, alpha] = spm_timeseries_resample(data, D.fsample/Dtf.fsample);
@@ -162,20 +166,27 @@ else
         timeind = 1:D.nsamples;
     end
     
-    data = spm_squeeze(mean(Dtf(chanind, freqind, timeind, :), 1), 1);
+    data = Dtf(chanind, freqind, timeind, :);
+    
+    ph_sin = spm_squeeze(mean(sin(data), 1), 1);
+    ph_cos = spm_squeeze(mean(cos(data), 1), 1);
     
     if S.average
-        data = mean(data, 1);
+        ph_sin = mean(ph_sin, 1);
+        ph_cos = mean(ph_cos, 1);
     end
     
     if S.summarise
-        data = spm_squeeze(mean(data, 2), 2);
+        ph_sin = spm_squeeze(mean(ph_sin, 2), 2);
+        ph_cos = spm_squeeze(mean(ph_cos, 2), 2);
     else
-        data = reshape(data, size(data, 1), []);
-    end
-end
-
-
+        ph_sin = reshape(ph_sin, size(ph_sin, 1), []);
+        ph_cos = reshape(ph_cos, size(ph_cos, 1), []);
+    end    
+    
+    data = cat(1, ph_cos, ph_sin);
+end    
+    
 data = data';
 
 if S.standardize
@@ -185,11 +196,12 @@ end
 res.R     = data;
 
 if S.average
-    res.names = {S.regname};
+    res.names = {[S.regname '_sin'], [S.regname '_cos']};
 else
     freq = Dtf.frequencies(freqind);
     for i = 1:length(freq)
-        res.names{i} = sprintf('%s_%.1fHz', S.regname, freq(i));
+        res.names{i}              = sprintf('%s_sin_%.1fHz', S.regname, freq(i));
+        res.names{length(freq)+i} = sprintf('%s_cos_%.1fHz', S.regname, freq(i));
     end
 end
 

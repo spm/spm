@@ -15,13 +15,13 @@ function res = spm_eeg_regressors_movement_ctf(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6016 $';
+SVNrev = '$Rev: 6186 $';
 
 if nargin == 0
     
     Dmov        = cfg_files;
     Dmov.tag    = 'Dmov';
-    Dmov.name   = 'Movemen dataset name';
+    Dmov.name   = 'Movement dataset name';
     Dmov.filter = 'mat';
     Dmov.num    = [1 1];
     Dmov.help   = {'Select the M/EEG mat file containing continuous head localisation data.',...
@@ -91,10 +91,16 @@ else
         error('Trial numbers should be equal between input and movement dataset.');
     end
     
-    data = squeeze(mean(Dmov(hlc_chan_ind, :, :), 2));
+    data = Dmov(hlc_chan_ind, :, :);
     
-end
+    if S.summarise
+        data = spm_squeeze(mean(data, 2), 2);      
+    else
+        data = reshape(data, size(data, 1), []);
+    end
 
+end
+   
 res.R     = hpi2mov(data);
 
 res.names = {'x', 'y', 'z', 'pitch', 'roll', 'yaw'};

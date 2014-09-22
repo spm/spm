@@ -14,10 +14,10 @@ function res = spm_eeg_regressors_chandata(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_regressors_chandata.m 6147 2014-09-02 19:03:42Z guillaume $
+% $Id: spm_eeg_regressors_chandata.m 6186 2014-09-22 11:31:11Z vladimir $
 
 
-SVNrev = '$Rev: 6147 $';
+SVNrev = '$Rev: 6186 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -101,12 +101,22 @@ for i = 1:length(chanind)
             error('Trial numbers should be equal between input and power dataset.');
         end
         
-        timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
-        if isempty(timeind) || any(isnan(timeind))
-            error('Selected time window is invalid.');
+        if S.summarise
+            timeind = D.indsample(1e-3*(min(S.timewin))):D.indsample(1e-3*(max(S.timewin)));
+            if isempty(timeind) || any(isnan(timeind))
+                error('Selected time window is invalid.');
+            end
+        else
+            timeind = 1:D.nsamples;
         end
         
-        data = squeeze(mean(Dr(chanind(i), timeind, :), 2));
+        data = spm_squeeze(Dr(chanind(i), timeind, :), 1);
+        
+        if S.summarise
+            data = spm_squeeze(mean(data, 1), 1);
+        else
+            data = reshape(data, 1, []);
+        end
         
     end
     

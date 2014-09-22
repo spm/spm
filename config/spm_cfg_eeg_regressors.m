@@ -4,7 +4,7 @@ function eegreg = spm_cfg_eeg_regressors
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_regressors.m 6007 2014-05-22 11:41:12Z vladimir $
+% $Id: spm_cfg_eeg_regressors.m 6186 2014-09-22 11:31:11Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -32,6 +32,18 @@ for i = 1:numel(reg_funs)
 end
 
 %--------------------------------------------------------------------------
+% behavior for epoched files
+%--------------------------------------------------------------------------
+summarise = cfg_menu;
+summarise.tag = 'summarise';
+summarise.name = 'What to do for epoched inputs';
+summarise.labels = {'Summarise', 'Concatenate'};
+summarise.val = {true};
+summarise.values = {true, false};
+summarise.help = {'For epoched files the output can either be summarised (one number per epoch)',...
+    'or concatenated (the same number of samples as all epochs combined)'};
+
+%--------------------------------------------------------------------------
 % Output file name
 %--------------------------------------------------------------------------
 outfile = cfg_entry;
@@ -48,7 +60,7 @@ outfile.help = {'Choose file name for a mat file with regressors.'};
 eegreg = cfg_exbranch;
 eegreg.tag = 'eegreg';
 eegreg.name = 'GLM regressors';
-eegreg.val = {D, methods, outfile};
+eegreg.val = {D, methods, summarise, outfile};
 eegreg.help = {'Generate regressors for GLM analysis of M/EEG data.'};
 eegreg.prog = @eeg_eegreg;
 eegreg.vout = @vout_eeg_eegreg;
