@@ -66,10 +66,10 @@ function varargout = spm_mip_ui(varargin)
 % main body of the function.
 %
 %__________________________________________________________________________
-% Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm_mip_ui.m 5656 2013-09-26 15:17:18Z guillaume $
+% $Id: spm_mip_ui.m 6191 2014-09-23 17:33:40Z guillaume $
 
 
 %==========================================================================
@@ -765,6 +765,7 @@ switch lower(varargin{1}), case 'display'
         
         XYZmm = spm_results_ui('GetCoords');
         [XYZmm,i] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
+        if isempty(i), varargout = {[]}; return; end
         spm_results_ui('SetCoords',xSPM.XYZmm(:,i));
         
         switch lower(action)

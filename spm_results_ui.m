@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 5976 2014-05-08 15:51:04Z guillaume $
+% $Id: spm_results_ui.m 6191 2014-09-23 17:33:40Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 5976 $'; 
+SVNid = '$Rev: 6191 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -391,12 +391,12 @@ switch lower(Action), case 'setup'                         %-Set up results
     %-Print comparison title
     %----------------------------------------------------------------------
     hTitAx = axes('Parent',Fgraph,...
-        'Position',[0.02 0.95 0.96 0.02],...
+        'Position',[0.02 0.96 0.96 0.04],...
         'Visible','off');
  
-    text(0.5,0,xSPM.title,'Parent',hTitAx,...
+    text(0.5,0.5,xSPM.title,'Parent',hTitAx,...
         'HorizontalAlignment','center',...
-        'VerticalAlignment','baseline',...
+        'VerticalAlignment','top',...
         'FontWeight','Bold','FontSize',FS(14))
  
  
@@ -431,7 +431,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     %----------------------------------------------------------------------
     hDesMtx   = axes('Parent',Fgraph,'Position',[0.65 0.55 0.25 0.25]);
     hDesMtxIm = image((SPM.xX.nKX + 1)*32,'Parent',hDesMtx);
-    xlabel(hDesMtx,'Design matrix')
+    xlabel(hDesMtx,'Design matrix','FontSize',FS(10))
     set(hDesMtxIm,'ButtonDownFcn','spm_DesRep(''SurfDesMtx_CB'')',...
         'UserData',struct(...
         'X',        SPM.xX.xKXs.X,...
@@ -448,9 +448,11 @@ switch lower(Action), case 'setup'                         %-Set up results
         dy     = 0.15/max(nCon,2);
         hConAx = axes('Parent',Fgraph, 'Position',[0.65 (0.80 + dy*.1) 0.25 dy*(nCon-.1)],...
             'Tag','ConGrphAx','Visible','off');
-        title(hConAx,'contrast(s)')
+        str    = 'contrast';
+        if nCon > 1, str = [str 's']; end
+        title(hConAx,str)
         htxt   = get(hConAx,'title');
-        set(htxt,'Visible','on','HandleVisibility','on')
+        set(htxt,'FontSize',FS(10),'FontWeight','normal','Visible','on','HandleVisibility','on')
     end
  
     for ii = nCon:-1:1
@@ -484,7 +486,7 @@ switch lower(Action), case 'setup'                         %-Set up results
                 'YLim', [0,size(xCon(xSPM.Ic(ii)).c,2)]+0.5 )
  
         end
-        ylabel(hCon,num2str(xSPM.Ic(ii)))
+        ylabel(hCon,num2str(xSPM.Ic(ii)),'FontSize',FS(10),'FontWeight','normal')
         set(h,'ButtonDownFcn','spm_DesRep(''SurfCon_CB'')',...
             'UserData', struct( 'i',    xSPM.Ic(ii),...
                                 'h',    htxt,...
@@ -543,7 +545,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS);
 
         drawnow; % required to force "ratio locking"
-        set(findobj(hPan),'units','normalized');
+        set(findobj(hPan),'Units','Normalized','FontUnits','Normalized');
         
         varargout  = {hReg};
  

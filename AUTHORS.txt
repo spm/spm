@@ -19,6 +19,7 @@
 % Ged Ridgway
 % Mohamed Seghier
 % Klaas Enno Stephan
+% Bernadette van Wijk
 % Peter Zeidman
 %
 % Jesper Andersson
