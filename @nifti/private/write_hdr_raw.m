@@ -7,10 +7,10 @@ function sts = write_hdr_raw(fname,hdr,be)
 %
 % sts        - status (1=good, 0=bad)
 %__________________________________________________________________________
-% Copyright (C) 2005-2013 Wellcome Trust Centre for Neuroimaging
+% Copyright (C) 2005-2014 Wellcome Trust Centre for Neuroimaging
 
 %
-% $Id: write_hdr_raw.m 5456 2013-04-29 15:49:22Z guillaume $
+% $Id: write_hdr_raw.m 6189 2014-09-23 15:32:03Z guillaume $
 
 
 [pth,nam] = fileparts(fname);
@@ -47,38 +47,40 @@ end
 
 sts = true;
 if spm_existfile(hname)
-    fp = fopen(hname,'r+',mach);
+    [fp,msg] = fopen(hname,'r+',mach);
 else
-    fp = fopen(hname,'w+',mach);
+    [fp,msg] = fopen(hname,'w+',mach);
 end
 if fp == -1
     sts = false;
-    return;
+    fprintf('Error: %s\n',msg);
 end
 
-for i=1:length(org)
-    if isfield(hdr,org(i).label)
-        dat = hdr.(org(i).label);
-        if length(dat) ~= org(i).len
-            if length(dat)< org(i).len
-                dat = [dat(:) ; zeros(org(i).len-length(dat),1)];
-            else
-                dat = dat(1:org(i).len);
+if sts
+    for i=1:length(org)
+        if isfield(hdr,org(i).label)
+            dat = hdr.(org(i).label);
+            if length(dat) ~= org(i).len
+                if length(dat)< org(i).len
+                    dat = [dat(:) ; zeros(org(i).len-length(dat),1)];
+                else
+                    dat = dat(1:org(i).len);
+                end
             end
+        else
+            dat = org(i).def;
         end
-    else
-        dat = org(i).def;
+        % fprintf('%s=\n',org(i).label)
+        % disp(dat)
+        len = fwrite(fp,dat,org(i).dtype.prec);
+        if len ~= org(i).len
+            sts = false;
+        end
     end
-    % fprintf('%s=\n',org(i).label)
-    % disp(dat)
-    len = fwrite(fp,dat,org(i).dtype.prec);
-    if len ~= org(i).len
-        sts = false;
-    end
+    fclose(fp);
 end
 
-fclose(fp);
 if ~sts
      fprintf('There was a problem writing to the header of\n');
-     fprintf('"%s"\n', fname);
+     fprintf('  "%s"\n', fname);
 end
