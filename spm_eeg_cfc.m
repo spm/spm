@@ -63,7 +63,7 @@ if Ramp.include
 end
 %}
 
-SVNrev = '$Rev: 6186 $';
+SVNrev = '$Rev: 6188 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -82,13 +82,14 @@ end
 
 allamp   = [];
 allphase = [];
+cnt=1;
 for i = 1:numel(S.regressors)
     fun  = char(fieldnames(S.regressors{i}));
-    S1   = S.regressors{i}.(fun);
-    S1.D = D;
-    S1.summarise = false;
-    res =  feval(['spm_eeg_regressors_' fun], S1);
-    
+    S1{cnt}   = S.regressors{i}.(fun);
+    S1{cnt}.D = D;
+    S1{cnt}.summarise = false;
+    res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
+    cnt=cnt+1;
     switch fun
         case 'tfpower'
             allamp   = spm_cat_struct(allamp, res);
@@ -100,10 +101,10 @@ end
 allconfounds = [];
 for i = 1:numel(S.confounds)
     fun  = char(fieldnames(S.confounds{i}));
-    S1   = S.confounds{i}.(fun);
-    S1.D = D;
-    S1.summarise = false;
-    res =  feval(['spm_eeg_regressors_' fun], S1);
+    S1{cnt}   = S.confounds{i}.(fun);
+    S1{cnt}.D = D;
+    S1{cnt}.summarise = false;
+    res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
     
     allconfounds   = spm_cat_struct(allconfounds, res);
 end
@@ -184,11 +185,15 @@ for i = 1:numel(allphase)
                 phase_low = PHASE(((k-1)*nsamples+1):k*nsamples, j) ;
                 SINE{i}(j,(k-1)*trialsamples+1:k*trialsamples) = phase_low(cut:end-cut);
                 sine{i}(j,k,:) = phase_low(cut:end-cut);
+                sine{i}(j,k,:) = (sine{i}(j,k,:)-mean(sine{i}(j,k,:)))./std(sine{i}(j,k,:));
                 
                 phase_low = PHASE(((k-1)*nsamples+1):k*nsamples, j + nphase) ;
                 COSINE{i}(j,(k-1)*trialsamples+1:k*trialsamples) = phase_low(cut:end-cut);
                 cosine{i}(j,k,:) = phase_low(cut:end-cut);
+                cosine{i}(j,k,:) = (cosine{i}(j,k,:)-mean(cosine{i}(j,k,:)))./std(cosine{i}(j,k,:));
             end
+            SINE{i}(j,:)=(SINE{i}(j,:)-mean(SINE{i}(j,:)))./std(SINE{i}(j,:));
+            COSINE{i}(j,:)=(COSINE{i}(j,:)-mean(COSINE{i}(j,:)))./std(COSINE{i}(j,:));
             
         elseif strcmp(datatype,'continuous')
             phase_low = PHASE(:, j) ;
@@ -199,7 +204,11 @@ for i = 1:numel(allphase)
             for k = 1:nepochs
                 sine{i}(j, k,:)   = SINE(j,(k-1)*trialsamples+1:k*trialsamples);
                 cosine{i}(j, k,:) = COSINE(j,(k-1)*trialsamples+1:k*trialsamples);
+                sine{i}(j,k,:)   = (sine{i}(j,k,:)-mean(sine{i}(j,k,:)))./std(sine{i}(j,k,:));
+                cosine{i}(j,k,:) = (cosine{i}(j,k,:)-mean(cosine{i}(j,k,:)))./std(cosine{i}(j,k,:));
             end
+            SINE{i}(j,:)=(SINE{i}(j,:)-mean(SINE{i}(j,:)))./std(SINE{i}(j,:));
+            COSINE{i}(j,:)=(COSINE{i}(j,:)-mean(COSINE{i}(j,:)))./std(COSINE{i}(j,:));
         end
     end
 end
@@ -208,6 +217,7 @@ end
 % get amplitude time series for low frequencies
 AMP_LOW = {};
 amp_low = {};
+
 for i = 1:numel(allamp)
     
     namp = size(allamp(i).R, 2);
@@ -277,12 +287,16 @@ end
 
 fprintf('\n\n')
 
-Flow = cat(1, phasefreq, ampfreq);
-% Could this possibly be relaxed?
-if any(any(diff(Flow, [], 1)))
-    error('The frequency axes for all regressors should be identical');
+if isempty(amp_low); Flow=phasefreq;
+elseif isempty(cosine); Flow=ampfreq;
 else
-    Flow = Flow(1, :);
+    Flow = cat(1, phasefreq, ampfreq);
+    % Could this possibly be relaxed?
+    if any(any(diff(Flow, [], 1)))
+        error('The frequency axes for all regressors should be identical');
+    else
+        Flow = Flow(1, :);
+    end
 end
 
 % --------------------------------------------
@@ -290,223 +304,266 @@ end
 
 for j=1:length(Flow)
     fprintf('%d  ',Flow(j))
-    for N=1:length(Xamp.Famp)
+    for N=1:length(Famp)
         
         % --------------------------------------------
         % GLM for all data appended
         
-        if Rpac.include==1 && Ramp.include == 1
-            
-            % [additional custom regressors to be added]
-            X=[(cos(PHASE(j,:))-mean(cos(PHASE(j,:))))./std(cos(PHASE(j,:)));(sin(PHASE(j,:))-mean(sin(PHASE(j,:))))./std(sin(PHASE(j,:)));AMP_LOW(j,:)]';
-            y=AMP(N,:);
-            
-            V=[];
-            c=[1;1;1];
-            [T,df,all_Beta(N,j,:),xX,xCon]=spm_ancova(X,V,y',c);
-            
-            all_SSy(N,j)=sum((y-mean(y)).^2);
-            all_residuals=y-(all_Beta(N,j,1).*X(:,1)+all_Beta(N,j,2).*X(:,2))';
-            all_SSe(N,j)=sum((all_residuals-mean(all_residuals)).^2);
-            all_r(N,j)=real(sqrt((all_SSy(N,j)-all_SSe(N,j))/all_SSy(N,j)));
-            
-            all_residuals_amp=y-(all_Beta(N,j,3).*X(:,3))';
-            all_SSe_amp(N,j)=sum((all_residuals_amp-mean(all_residuals_amp)).^2);
-            all_r_amp(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_amp(N,j))/all_SSy(N,j)));
-            
-            all_residuals_total=y-(all_Beta(N,j,1).*X(:,1)+all_Beta(N,j,2).*X(:,2)+all_Beta(N,j,3).*X(:,3))';
-            all_SSe_total(N,j)=sum((all_residuals_total-mean(all_residuals_total)).^2);
-            all_r_total(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_total(N,j))/all_SSy(N,j)));
-            
-            all_Bpac(N,j)=sqrt(all_Beta(N,j,1).^2+all_Beta(N,j,2).^2);
-            all_Bamp(N,j)=all_Beta(N,j,3);
-            
-        elseif Rpac.include==1 && Ramp.include == 0
-            
-            % [additional custom regressors to be added]
-            X=[(cos(PHASE(j,:))-mean(cos(PHASE(j,:))))./std(cos(PHASE(j,:)));(sin(PHASE(j,:))-mean(sin(PHASE(j,:))))./std(sin(PHASE(j,:)))]';
-            y=AMP(N,:);
-            
-            V=[];
-            c=[1;1];
-            [T,df,all_Beta(N,j,:),xX,xCon]=spm_ancova(X,V,y',c);
-            
-            all_SSy(N,j)=sum((y-mean(y)).^2);
-            all_residuals=y-(all_Beta(N,j,1).*X(:,1)+all_Beta(N,j,2).*X(:,2))';
-            all_SSe(N,j)=sum((all_residuals-mean(all_residuals)).^2);
-            all_r(N,j)=real(sqrt((all_SSy(N,j)-all_SSe(N,j))/all_SSy(N,j)));
-            
-            all_Bpac(N,j)=sqrt(all_Beta(N,j,1).^2+all_Beta(N,j,2).^2);
-            
-        elseif Rpac.include==0 && Ramp.include == 1
-            
-            % [additional custom regressors to be added]
-            X=[AMP_LOW(j,:)]';
-            y=AMP(N,:);
-            
-            V=[];
-            c=[1];
-            [T,df,all_Beta(N,j,:),xX,xCon]=spm_ancova(X,V,y',c);
-            
-            all_SSy(N,j)=sum((y-mean(y)).^2);
-            all_residuals_amp=y-(all_Beta(N,j,1).*X(:,1))';
-            all_SSe_amp(N,j)=sum((all_residuals_amp-mean(all_residuals_amp)).^2);
-            all_r_amp(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_amp(N,j))/all_SSy(N,j)));
-            
-            all_Bamp(N,j)=all_Beta(N,j,1);
-            
+        X=[];
+        
+        for nph=1:numel(allphase)
+            X=[X;SINE{nph}(j,:);COSINE{nph}(j,:)];
         end
+        for nam=1:numel(allamp)
+            X=[X;AMP_LOW{nam}(j,:)];
+        end
+        for ncf=1:numel(allconfounds)
+            X=[X;CONFOUNDS{ncf}(j,:)];
+        end
+        
+        nreg=size(X,1);
+        y=AMP(N,:);
+        
+        V=[];
+        c=ones(nreg,1);
+        
+        [T,df,all_Beta(N,j,:),xX,xCon]=spm_ancova(X',V,y',c);
+        
+        all_SSy(N,j)=sum((y-mean(y)).^2);
+        
+        cnt=1;
+        
+        for nph=1:numel(allphase)
+            all_residuals=y-(all_Beta(N,j,cnt).*X(cnt,:)+all_Beta(N,j,cnt+1).*X(cnt+1,:));
+            all_SSe=sum((all_residuals-mean(all_residuals)).^2);
+            all_r_pac{nph}(N,j)=real(sqrt((all_SSy(N,j)-all_SSe)/all_SSy(N,j)));
+            all_Beta_sin{nph}(N,j)=all_Beta(N,j,cnt);
+            all_Beta_cos{nph}(N,j)=all_Beta(N,j,cnt+1);
+            cnt=cnt+2;
+        end
+        for nam=1:numel(allamp)
+            all_residuals=y-(all_Beta(N,j,cnt).*X(cnt,:));
+            all_SSe=sum((all_residuals-mean(all_residuals)).^2);
+            all_r_amp{nam}(N,j)=real(sqrt((all_SSy(N,j)-all_SSe)/all_SSy(N,j)));
+            all_Beta_amp{nam}(N,j)=all_Beta(N,j,cnt);
+            cnt=cnt+1;
+        end
+        for ncf=1:numel(allconfounds)
+            all_residuals=y-(all_Beta(N,j,cnt).*X(cnt,:));
+            all_SSe=sum((all_residuals-mean(all_residuals)).^2);
+            all_r_conf{ncf}(N,j)=real(sqrt((all_SSy(N,j)-all_SSe)/all_SSy(N,j)));
+            all_Beta_conf{ncf}(N,j)=all_Beta(N,j,cnt);
+            cnt=cnt+1;
+        end
+        
+        all_residuals_total=y-(X'*squeeze(all_Beta(N,j,:)))';
+        all_SSe_total=sum((all_residuals_total-mean(all_residuals_total)).^2);
+        all_r_total(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_total)/all_SSy(N,j)));
+        
         
         % --------------------------------------------
         % GLM per trial
         
-        for k=1:size(data,2)
+        for k=1:nepochs
             
-            if Rpac.include==1 && Ramp.include == 1
-                Xk=[(cos(squeeze(phase(j,k,:)))-mean(cos(squeeze(phase(j,k,:)))))./std(cos(squeeze(phase(j,k,:)))),(sin(squeeze(phase(j,k,:)))-mean(sin(squeeze(phase(j,k,:)))))./std(sin(squeeze(phase(j,k,:)))),squeeze(amp_low(j,k,:))]';
-                yk=squeeze(amp(N,k,:));
-                [T,df,Beta(:,k),xX,xCon]=spm_ancova(Xk',V,yk,c); %to get betas
-                if writeepochs
-                    Beta1(N,j,k)=Beta(1,k);
-                    Beta2(N,j,k)=Beta(2,k);
-                    Beta3(N,j,k)=Beta(3,k);
-                end
-            elseif Rpac.include==1 && Ramp.include == 0
-                Xk=[(cos(squeeze(phase(j,k,:)))-mean(cos(squeeze(phase(j,k,:)))))./std(cos(squeeze(phase(j,k,:)))),(sin(squeeze(phase(j,k,:)))-mean(sin(squeeze(phase(j,k,:)))))./std(sin(squeeze(phase(j,k,:))))]';
-                yk=squeeze(amp(N,k,:));
-                [T,df,Beta(:,k),xX,xCon]=spm_ancova(Xk',V,yk,c); %to get betas
-                if writeepochs
-                    Beta1(N,j,k)=Beta(1,k);
-                    Beta2(N,j,k)=Beta(2,k);
-                end
-            elseif Rpac.include==0 && Ramp.include == 1
-                Xk=[squeeze(amp_low(j,k,:))]';
-                yk=squeeze(amp(N,k,:));
-                [T,df,Beta(3,k),xX,xCon]=spm_ancova(Xk',V,yk,c); %to get betas
-                if writeepochs
-                    Beta3(N,j,k)=Beta(3,k);
+            Xk=[];
+            
+            for nph=1:numel(allphase)
+                Xk=[Xk;squeeze(sine{nph}(j,k,:))';squeeze(cosine{nph}(j,k,:))'];
+            end
+            for nam=1:numel(allamp)
+                Xk=[Xk;squeeze(amp_low{nam}(j,k,:))'];
+            end
+            for ncf=1:numel(allconfounds)
+                Xk=[Xk;squeeze(confounds{ncf}(j,k,:))'];
+            end
+            
+            nreg=size(Xk,1);
+            yk=squeeze(amp(N,k,:));
+            
+            V=[];
+            c=ones(nreg,1);
+            
+            [T,df,Beta(:,k),xX,xCon]=spm_ancova(Xk',V,yk,c);
+            
+            cnt=1;
+            for nph=1:numel(allphase)
+                if S1{nph}.summarise
+                    Beta_sin{nph}(N,j,k)=Beta(cnt,k);
+                    Beta_cos{nph}(N,j,k)=Beta(cnt+1,k);
+                    cnt=cnt+2;
                 end
             end
-        end %k
+            if isempty(nph);nph=0;end
+            for nam=1:numel(allamp)
+                if S1{nph+nam}.summarise
+                    Beta_amp{nam}(N,j,k)=Beta(cnt,k);
+                    cnt=cnt+1;
+                end
+            end
+            if isempty(nam);nam=0;end
+            for ncf=1:numel(allconfounds)
+                if S1{nph+nam+ncf}.summarise
+                    Beta_conf{ncf}(N,j,k)=Beta(cnt,k);
+                    cnt=cnt+1;
+                end
+            end
+            
+        end %trials
         
         % --------------------------------------------
         % test for significance
         
-        if Rpac.include
+        cnt=1;
+        for nph=1:numel(allphase)
             Xb=[];
             Xb(1:k,1)=ones(k,1);Xb(k+1:2*k,2)=ones(k,1);
-            yb=[Beta(1,:),Beta(2,:)];
+            yb=[Beta(cnt,:),Beta(cnt+1,:)];
             c=[1;1];
             [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
             F=Tb^2;
-            pb(N,j)=1-spm_Fcdf(F,df(1),df(2));
+            p_pac{nph}(N,j)=1-spm_Fcdf(F,df(1),df(2));
+            cnt=cnt+2;
+        end
+        for nam=1:numel(allamp)
+            [H,P] = ttest(Beta(cnt,:));
+            p_amp{nam}(N,j)=P;
+            cnt=cnt+1;
+        end
+        for ncf=1:numel(allconfounds)
+            [H,P] = ttest(Beta(cnt,:));
+            p_conf{ncf}(N,j)=P;
+            cnt=cnt+1;
         end
         
-        if Ramp.include
-            yb=[Beta(3,:)];
-            % [H,P] = ttest(yb);
-            % pb_amp(N,j)=P;
+        Xb=[];
+        yb=[];
+        for i=1:nreg
+            Xb((i-1)*k+1:i*k,i)=ones(k,1);
+            yb=[yb,Beta(i,:)];
         end
         
-        if Rpac.include && Ramp.include
-            Xb=[];
-            Xb(1:k,1)=ones(k,1);Xb(k+1:2*k,2)=ones(k,1);Xb(2*k+1:3*k,3)=ones(k,1);
-            c=[1;1;1];
-            yb=[Beta(1,:),Beta(2,:),Beta(3,:)];
-            [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
-            F_total=Tb^2;
-            pb_total(N,j)=1-spm_Fcdf(F_total,df(1),df(2));
-        end
+        c=ones(nreg,1);
+        
+        [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
+        F_total=Tb^2;
+        p_total(N,j)=1-spm_Fcdf(F_total,df(1),df(2));
+        
         
     end %N
 end %j
 
-sig_r=(pb<=Rpac.alpha);
-sig_r_amp=0;%(pb_amp<=Ramp.alpha);
-sig_r_total=(pb_total<=Rpac.alpha);
+siglevel=.05;
+cnt=1;
+figure
+nsub=ceil(length(S1))+1;
 
-figure,
-if Rpac.include
-    subplot(3,2,1),imagesc(Flow,Xamp.Famp,all_r),set(gca,'ydir','normal');title(['r PAC']);colorbar;
-    subplot(3,2,2),imagesc(Flow,Xamp.Famp,sig_r),set(gca,'ydir','normal');title(['significant r PAC']), colorbar;
+for nph=1:numel(allphase)
+    sig_pac{nph}=(p_pac{nph}<=siglevel);
+    subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_pac{nph}),set(gca,'ydir','normal');title(S1{nph}.regname);colorbar;
+    subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_pac{nph}),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
+    cnt=cnt+2;
 end
-if Ramp.include
-    subplot(3,2,3),imagesc(Flow,Xamp.Famp,all_r_amp),set(gca,'ydir','normal');title(['c AMP']);colorbar;
-    subplot(3,2,4),imagesc(Flow,Xamp.Famp,sig_r_amp),set(gca,'ydir','normal');title(['significant c AMP']), colorbar;
+if isempty(nph);nph=0;end
+for nam=1:numel(allamp)
+    sig_amp{nam}=(p_amp{nam}<=siglevel);
+    subplot(nsub,2,cnt),imagesc(Flow,Famp,all_Beta_amp{nam}),set(gca,'ydir','normal');title(S1{nph+nam}.regname);colorbar;
+    subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_amp{nam}),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
+    cnt=cnt+2;
 end
-if Rpac.include && Ramp.include
-    subplot(3,2,5),imagesc(Flow,Xamp.Famp,all_r_total),set(gca,'ydir','normal');title(['r total']);colorbar;
-    subplot(3,2,6),imagesc(Flow,Xamp.Famp,sig_r_total),set(gca,'ydir','normal');title(['significant r total']), colorbar;
+if isempty(nam);nam=0;end
+for ncf=1:numel(allconfounds)
+    sig_cnf{ncf}=(p_conf{ncf}<=siglevel);
+    subplot(nsub,2,cnt),imagesc(Flow,Famp,all_Beta_conf{ncf}),set(gca,'ydir','normal');title(S1{nph+nam+ncf}.regname);colorbar;
+    subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_cnf{ncf}),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
+    cnt=cnt+2;
 end
+sig_total=(p_total<=siglevel);
+subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');title('full model');colorbar;
+subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_total),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
 
 % --------------------------------------------
 % write out images
 
 cnt=1;
 
-if Rpac.include
-    image(cnt).val     = all_r;
-    image(cnt).label   = ['r_pac_'  spm_file(fname, 'basename')];
+for nph=1:numel(allphase)
+    image(cnt).val     = all_r_pac{nph};
+    image(cnt).label   = ['r_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
     cnt=cnt+1;
-    image(cnt).val     = pb;
-    image(cnt).label   = ['p_pac_'  spm_file(fname, 'basename')];
+    image(cnt).val     = p_pac{nph};
+    image(cnt).label   = ['p_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
     cnt=cnt+1;
-    image(cnt).val     = sig_r;
-    image(cnt).label   = ['sig_pac_'  spm_file(fname, 'basename')];
+    image(cnt).val     = sig_pac{nph};
+    image(cnt).label   = ['sig_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
     cnt=cnt+1;
-    image(cnt).val     = squeeze(all_Beta(N,j,1));
-    image(cnt).label   = ['r_B1_'  spm_file(fname, 'basename')];
+    image(cnt).val     = all_Beta_sin{nph};
+    image(cnt).label   = ['r_Bsin_reg',num2str(nph),'_',spm_file(fname, 'basename')];
     cnt=cnt+1;
-    image(cnt).val     = squeeze(all_Beta(N,j,2));
-    image(cnt).label   = ['r_B2_'  spm_file(fname, 'basename')];
+    image(cnt).val     = all_Beta_cos{nph};
+    image(cnt).label   = ['r_Bcos_reg',num2str(nph),'_',spm_file(fname, 'basename')];
     cnt=cnt+1;
-end
-
-if Ramp.include
-    % image(cnt).val     = all_r_amp;
-    % image(cnt).label   = ['r_amp_'  spm_file(fname, 'basename')];
-    % cnt=cnt+1;
-    image(cnt).val     = all_Bamp;
-    image(cnt).label   = ['c_amp_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-    image(cnt).val     = pb_amp;
-    image(cnt).label   = ['p_amp_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-    image(cnt).val     = sig_r_amp;
-    image(cnt).label   = ['sig_amp_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-end
-
-if Rpac.include && Ramp.include
-    image(cnt).val     = all_r_total;
-    image(cnt).label   = ['r_total_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-    image(cnt).val     = pb_total;
-    image(cnt).label   = ['p_total_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-    image(cnt).val     = sig_r_total;
-    image(cnt).label   = ['sig_total_'  spm_file(fname, 'basename')];
-    cnt=cnt+1;
-end
-
-%per trial
-if writeepochs
-    for k=1:ntrials
-        if Rpac.include
-            image(cnt).val = squeeze(Beta1(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_B1_'  spm_file(fname, 'basename')];
+    
+    if S1{nph}.summarise
+        for k=1:nepochs
+            image(cnt).val = squeeze(Beta_sin{nph}(:,:,k));
+            image(cnt).label   = ['trial',num2str(k),'_Bsin_reg',num2str(nph),'_',spm_file(fname, 'basename')];
             cnt=cnt+1;
-            image(cnt).val = squeeze(Beta2(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_B2_'  spm_file(fname, 'basename')];
-            cnt=cnt+1;
-        end
-        if Ramp.include
-            image(cnt).val = squeeze(Beta3(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_B3_'  spm_file(fname, 'basename')];
+            image(cnt).val = squeeze(Beta_cos{nph}(:,:,k));
+            image(cnt).label   = ['trial',num2str(k),'_Bcos_reg',num2str(nph),'_',spm_file(fname, 'basename')];
             cnt=cnt+1;
         end
     end
 end
+for nam=1:numel(allamp)
+    image(cnt).val     = all_Beta_amp{nam};
+    image(cnt).label   = ['c_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    image(cnt).val     = p_amp{nam};
+    image(cnt).label   = ['p_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    image(cnt).val     = sig_amp{nam};
+    image(cnt).label   = ['sig_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    
+    if S1{nph+nam}.summarise
+        for k=1:nepochs
+            image(cnt).val = squeeze(Beta_amp{nam}(:,:,k));
+            image(cnt).label   = ['trial',num2str(k),'_Bamp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+            cnt=cnt+1;
+        end
+    end
+end
+for ncf=1:numel(allconfounds)
+    image(cnt).val     = all_Beta_conf{ncf};
+    image(cnt).label   = ['r_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    image(cnt).val     = p_conf{ncf};
+    image(cnt).label   = ['p_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    image(cnt).val     = sig_conf{ncf};
+    image(cnt).label   = ['sig_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    cnt=cnt+1;
+    
+    if S1{nph+nam+ncf}.summarise
+        for k=1:nepochs
+            image(cnt).val = squeeze(Beta_conf{ncf}(:,:,k));
+            image(cnt).label   = ['trial',num2str(k),'_Bconf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+            cnt=cnt+1;
+        end
+    end
+end
+
+image(cnt).val     = all_r_total;
+image(cnt).label   = ['r_total_',spm_file(fname, 'basename')];
+cnt=cnt+1;
+image(cnt).val     = p_total;
+image(cnt).label   = ['p_total_',spm_file(fname, 'basename')];
+cnt=cnt+1;
+image(cnt).val     = sig_total;
+image(cnt).label   = ['sig_total_',spm_file(fname, 'basename')];
+
+
 
 
 %% WRITE IMAGES

@@ -15,7 +15,7 @@ function res = spm_eeg_regressors_tfphase(S)
 
 % Vladimir Litvak
 
-SVNrev = '$Rev: 6186 $';
+SVNrev = '$Rev: 6188 $';
 
 if nargin == 0
     %--------------------------------------------------------------------------
@@ -110,7 +110,8 @@ if ~isequal(Dtf.transformtype, 'TFphase');
     error('Time-frequency phase dataset is expected as input.')
 end
 
-freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
+% freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
+freqind = Dtf.indfrequency(min(S.freqwin)):Dtf.indfrequency(max(S.freqwin));%BW
 if isempty(freqind) || any(isnan(freqind))
     error('Selected frequency window is invalid.');
 end
