@@ -114,7 +114,7 @@ function varargout = spm_list(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Andrew Holmes, Guillaume Flandin
-% $Id: spm_list.m 6114 2014-07-21 18:35:11Z guillaume $
+% $Id: spm_list.m 6193 2014-09-23 20:05:59Z guillaume $
 
 
 %==========================================================================
@@ -285,7 +285,7 @@ case 'table'                                                        %-Table
     %-Table filtering note
     %----------------------------------------------------------------------
     if isinf(Num)
-        TabDat.str = sprintf('table shows all local maxima > %.1fmm apart',Dis);
+        TabDat.str = sprintf('table shows all local maxima more than %.1fmm apart',Dis);
     else
         TabDat.str = sprintf(['table shows %d local maxima ',...
             'more than %.1fmm apart'],Num,Dis);

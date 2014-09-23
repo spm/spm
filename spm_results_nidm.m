@@ -19,7 +19,7 @@ function [outdir, prov] = spm_results_nidm(SPM,xSPM,TabDat)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_results_nidm.m 6173 2014-09-12 17:05:55Z guillaume $
+% $Id: spm_results_nidm.m 6193 2014-09-23 20:05:59Z guillaume $
 
 
 %-Get input parameters, interactively if needed
@@ -43,7 +43,7 @@ end
 %--------------------------------------------------------------------------
 gz           = '.gz'; %-Compressed NIfTI {'.gz', ''}
 coordsys     = 'nidm:MNICoordinateSystem'; %-Assuming MNI space
-NIDMversion  =  '0.1.0';
+NIDMversion  =  '0.2.0';
 
 
 %==========================================================================
@@ -169,23 +169,23 @@ Z    = n(Z);
 evalc('spm_write_filtered(Z,xSPM.XYZ,xSPM.DIM,xSPM.M,'''',files.clust);');
 if ~isempty(gz), gzip(files.clust); spm_unlink(files.clust); files.clust = [files.clust gz]; end
 
-%-Filtering mask images (as NIfTI)
+%-Display mask images (as NIfTI)
 %--------------------------------------------------------------------------
 for i=1:numel(xSPM.Im)
-    files.fmask{i} = fullfile(outdir,[sprintf('FilteringMask_%04d.nii',i) gz]);
+    files.dmask{i} = fullfile(outdir,[sprintf('DisplayMask_%04d.nii',i) gz]);
     if isnumeric(xSPM.Im)
         um = spm_u(xSPM.pm,[SPM.xCon(xSPM.Im(i)).eidf,SPM.xX.erdf],...
             SPM.xCon(xSPM.Im(i)).STAT);
         if ~xSPM.Ex, fcn = @(x) x > um;
         else         fcn = @(x) x <= um; end
-        img2nii(SPM.xCon(xSPM.Im(i)).Vspm.fname, files.fmask{i}, struct('fcn',fcn));
+        img2nii(SPM.xCon(xSPM.Im(i)).Vspm.fname, files.dmask{i}, struct('fcn',fcn));
     else
         if ~xSPM.Ex, fcn = @(x) x~=0 & ~isnan(x);
         else         fcn = @(x) ~(x~=0 & ~isnan(x)); end
-        img2nii(xSPM.Im{i}, files.fmask{i}, struct('fcn',fcn));
+        img2nii(xSPM.Im{i}, files.dmask{i}, struct('fcn',fcn));
     end
 end
-if numel(xSPM.Im) == 0, files.fmask = {}; end
+if numel(xSPM.Im) == 0, files.dmask = {}; end
 
 %-SVC Mask (as NIfTI)
 %--------------------------------------------------------------------------
@@ -319,16 +319,66 @@ if ~isempty(SPM.xM.VM)
     p.wasDerivedFrom(idMask2,id);
 end
 
+%-Entity: Noise Model
+%--------------------------------------------------------------------------
+if isfield(SPM.xVi,'form')
+    if strcmp(SPM.xVi.form,'i.i.d')
+        extra_fields_NM = {...
+            'nidm:hasNoiseDependence','nidm:IndependentNoise',...
+            'nidm:noiseVarianceHomogeneous',{'true','xsd:boolean'},...
+            };
+        extra_fields_PE = {
+            'nidm:withEstimationMethod','nidm:OrdinaryLeastSquares',...
+            };
+    else
+        extra_fields_NM = {...
+            'nidm:hasNoiseDependence','nidm:SeriallyCorrelatedNoise',...
+            'nidm:dependenceSpatialModel','nidm:SpatiallyGlobalModel',...
+            'nidm:noiseVarianceHomogeneous',{'true','xsd:boolean'},...
+            'nidm:varianceSpatialModel','nidm:SpatiallyLocalModel',...
+            };
+        extra_fields_PE = {
+            'nidm:withEstimationMethod','nidm:GeneralizedLeastSquares',...
+            };
+    end
+else
+    if numel(SPM.xVi.Vi) == 1 % assume it's identity
+        extra_fields_NM = {...
+            'nidm:hasNoiseDependence','nidm:IndependentNoise',...
+            'nidm:noiseVarianceHomogeneous',{'true','xsd:boolean'},...
+            };
+        extra_fields_PE = {
+            'nidm:withEstimationMethod','nidm:OrdinaryLeastSquares',...
+            };
+    else
+        extra_fields_NM = {...
+            'nidm:hasNoiseDependence','nidm:ArbitrarilyCorrelatedNoise',...
+            'nidm:dependenceSpatialModel','nidm:SpatiallyGlobalModel',...
+            'nidm:noiseVarianceHomogeneous',{'false','xsd:boolean'},...
+            'nidm:varianceSpatialModel','nidm:SpatiallyLocalModel',...
+            };
+        extra_fields_PE = {
+            'nidm:withEstimationMethod','nidm:GeneralizedLeastSquares',...
+            };
+    end
+end
+idNoiseModel = getid('niiri:noise_model_id',isHumanReadable);
+p.entity(idNoiseModel,{...
+    'prov:type','nidm_NoiseModel',...
+    'nidm:hasNoiseDistribution','nidm:GaussianDistribution',...
+    extra_fields_NM{:}});
+
 %-Activity: Model Parameters Estimation
 %==========================================================================
 idModelPE = getid('niiri:model_pe_id',isHumanReadable);
 p.activity(idModelPE,{...
     'prov:type','nidm:ModelParametersEstimation',...
     'prov:label','Model parameters estimation',...
-    });
+    extra_fields_PE{:}});
 p.wasAssociatedWith(idModelPE, idSoftware);
 p.used(idModelPE, idDesignMatrix);
 p.used(idModelPE, idData);
+p.used(idModelPE, idNoiseModel);
 if ~isempty(SPM.xM.VM)
     p.used(idModelPE, idMask2);
 end
@@ -560,6 +610,13 @@ p.entity(idExtentThresh,{...
     extra_fields{:},...
     });
 
+%-Entity: maxNumberOfPeaksPerCluster & minDistanceBetweenPeaks
+%--------------------------------------------------------------------------
+% TabDat.str = 'table shows %d local maxima more than %.1fmm apart'
+% maxNumberOfPeaksPerCluster = spm_get_defaults('stats.results.volume.nbmax');
+% minDistanceBetweenPeaks = spm_get_defaults('stats.results.volume.distmin');
+% clusterConnectivityCriterion = 18;
+
 %-Activity: Inference
 %==========================================================================
 if numel(xSPM.Ic) == 1
@@ -589,10 +646,10 @@ end
 p.used(idInference, idRPV);
 p.used(idInference, idMask1);
 
-%-Entity: Filtering Mask Maps
+%-Entity: Display Mask Maps
 %--------------------------------------------------------------------------
-for i=1:numel(files.fmask)
-    V = spm_vol(files.fmask{i});
+for i=1:numel(files.dmask)
+    V = spm_vol(files.dmask{i});
     if ~spm_check_orientations(struct('dim',{xSPM.DIM',V.dim},...
             'mat',{xSPM.M,V.mat}),false)
         currCoordSpace = coordspace(p,V.mat,V.dim',xSPM.units,coordsys);
@@ -600,21 +657,21 @@ for i=1:numel(files.fmask)
         currCoordSpace = id_data_coordspace;
     end
     
-    if numel(files.fmask) == 1, postfix = '';
+    if numel(files.dmask) == 1, postfix = '';
     else                    postfix = sprintf('_%d',i); end
-    idFMask = getid(['niiri:filtering_mask_map_id' postfix],isHumanReadable);
-    p.entity(idFMask,{...
-        'prov:type','nidm:FilteringMaskMap',...
-        'prov:location',{uri(spm_file(files.fmask{i},'cpath')),'xsd:anyURI'},...
-        'nidm:filename',{spm_file(files.fmask{i},'filename'),'xsd:string'},...
+    idDMask = getid(['niiri:filtering_mask_map_id' postfix],isHumanReadable);
+    p.entity(idDMask,{...
+        'prov:type','nidm:DisplayMaskMap',...
+        'prov:location',{uri(spm_file(files.dmask{i},'cpath')),'xsd:anyURI'},...
+        'nidm:filename',{spm_file(files.dmask{i},'filename'),'xsd:string'},...
         'dct:format',niifmt,...
-        'prov:label',{'Filtering Mask Map','xsd:string'},...
+        'prov:label',{'Display Mask Map','xsd:string'},...
         'nidm:atCoordinateSpace',currCoordSpace,...
-        'crypto:sha512',{sha512sum(spm_file(files.fmask{i},'cpath')),'xsd:string'},...
+        'crypto:sha512',{sha512sum(spm_file(files.dmask{i},'cpath')),'xsd:string'},...
         });
-    id = originalfile(p,files.fmask{i});
-    p.wasDerivedFrom(idFMask,id);
-    p.used(idInference, idFMask);
+    id = originalfile(p,files.dmask{i});
+    p.wasDerivedFrom(idDMask,id);
+    p.used(idInference, idDMask);
 end
 
 %-Entity: SVC Mask Map
