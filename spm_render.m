@@ -33,9 +33,9 @@ function varargout = spm_render(dat,brt,rendfile)
 % Copyright (C) 1996-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_render.m 6083 2014-07-03 11:25:13Z guillaume $
+% $Id: spm_render.m 6190 2014-09-23 16:10:50Z guillaume $
 
-SVNrev = '$Rev: 6083 $';
+SVNrev = '$Rev: 6190 $';
 
 global prevrend
 if ~isstruct(prevrend)
@@ -305,7 +305,7 @@ if ~isfinite(brt)
         X   = (rend{i}.data{1}-mnmn)/(mxmx-mnmn);
         msk = find(X);
         ren(msk) = X(msk)+(1+1.51/64);
-        rgb{i} = flipdim(ind2rgb(round(ren*64),split),1);
+        rgb{i} = flipud(ind2rgb(round(ren*64),split));
         if ~spm('CmdLine')
             ax = axes('Parent',Fgraph,...
                 'units','normalized',...
@@ -350,7 +350,7 @@ else
                 'YTick',[],'XTick',[],...
                 'XDir','normal','YDir','normal');
         end
-        rgb{i} = flipdim(rgb{i},1);
+        rgb{i} = flipud(rgb{i});
     end
 end
 

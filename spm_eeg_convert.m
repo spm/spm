@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 5775 2013-12-04 13:03:55Z vladimir $
+% $Id: spm_eeg_convert.m 6190 2014-09-23 16:10:50Z guillaume $
 
-SVNrev = '$Rev: 5775 $';
+SVNrev = '$Rev: 6190 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -145,8 +145,7 @@ else
             val = [event(ind).value];
             if any(val>255)
                 bytes  = dec2bin(val);
-                bytes  = bytes(:, end-7:end);
-                bytes  = flipdim(bytes, 2);
+                bytes  = bytes(:, end:-1:end-7);
                 val    = num2cell(bin2dec(bytes));
                 [event(ind).value] = deal(val{:});
             end

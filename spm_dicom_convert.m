@@ -34,7 +34,7 @@ function out = spm_dicom_convert(hdr,opts,root_dir,format)
 % Copyright (C) 2002-2013 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner & Jesper Andersson
-% $Id: spm_dicom_convert.m 6137 2014-08-19 12:43:11Z john $
+% $Id: spm_dicom_convert.m 6190 2014-09-23 16:10:50Z guillaume $
 
 
 if nargin<2, opts     = 'all'; end
@@ -179,7 +179,7 @@ for i=1:length(hdr),
 
     if ~true, % LEFT-HANDED STORAGE
         mat    = mat*[-1 0 0 (dim(1)+1); 0 1 0 0; 0 0 1 0; 0 0 0 1];
-        volume = flipdim(volume,1);
+        volume = flipud(volume);
     end;
 
     %if isfield(hdr{i},'RescaleSlope') && hdr{i}.RescaleSlope ~= 1,
