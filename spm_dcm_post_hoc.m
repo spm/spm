@@ -75,7 +75,7 @@ function DCM = spm_dcm_post_hoc(P,fun,field,write_all)
 % Copyright (C) 2010-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston, Peter Zeidman
-% $Id: spm_dcm_post_hoc.m 6173 2014-09-12 17:05:55Z guillaume $
+% $Id: spm_dcm_post_hoc.m 6192 2014-09-23 17:35:00Z peter $
 
 
 %-Number of parameters to consider before invoking greedy search
@@ -138,7 +138,7 @@ params.nograph   = spm('CmdLine');      % Graphical display
 [Pk, Pf] = family_inference(example_DCM,C,model_space,params);
 
 % Calculate reduced models and BPA
-BPA = compute_post_hoc(example_DCM,C,params);
+[BPA, P_opt] = compute_post_hoc(example_DCM,C,params);
 
 % Show full and reduced conditional estimates (for Bayesian average)
 if ~params.nograph
@@ -146,7 +146,7 @@ if ~params.nograph
 end
 
 % Save Bayesian Parameter Average and family-wise model inference
-DCM = save_bpa_dcm(Pk,BPA,Pf,params);
+DCM = save_bpa_dcm(Pk,BPA,Pf,params,P_opt);
 
 
 %==========================================================================
@@ -453,7 +453,7 @@ end
 
 
 %==========================================================================
-function BPA = compute_post_hoc(DCM,C,params)
+function [BPA,P_opt] = compute_post_hoc(DCM,C,params)
 % For each model, create reduced model (DCM_opt*.mat) and collate data
 % for bayesian parameter average (CQ,Cq,EQ,Eq).
 %
@@ -465,6 +465,7 @@ function BPA = compute_post_hoc(DCM,C,params)
 % BPA.Cq  - BPA covariances (reduced model)
 % BPA.EQ  - BPA means (full model)
 % BPA.Eq  - BPA means (reduced model)
+% P_opt   - Filenames of optimal models
 
 if isstruct(DCM.M.pC), DCM.M.pC = diag(spm_vec(DCM.M.pC)); end
 
@@ -486,6 +487,8 @@ EQ      = 0;
 PQ      = 0;
 Eq      = 0;
 Pq      = 0;
+
+P_opt   = {};
 
 for j = 1:params.N
     
@@ -554,18 +557,18 @@ for j = 1:params.N
     end
     
     %-Save optimised DCM
-    %----------------------------------------------------------------------
+    %------------------------------------------------------------------
     try
         [pth, name] = fileparts(params.P{j});
         if ~strncmp(name,'DCM_opt_',8)
             name = ['DCM_opt_' name(5:end) '.mat'];
         end
-        params.P{j} = fullfile(pth,name);
+        P_opt{j} = fullfile(pth,name);
     catch
-        params.P{j} = fullfile(pwd,['DCM_opt_' date '.mat']);
+        P_opt{j} = fullfile(pwd,['DCM_opt_' date '.mat']);
     end
-    save(params.P{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
-    
+    save(P_opt{j},'DCM','F','Ep','Cp', spm_get_defaults('mat.format'));
+
 end
 
 %-Calculate bayesian parameter average
@@ -684,7 +687,7 @@ end
 
 
 %==========================================================================
-function DCM = save_bpa_dcm(Pk,BPA,Pf,params)
+function DCM = save_bpa_dcm(Pk,BPA,Pf,params,P_opt)
 % Save the Bayesian Parameter Average
 %
 % Pk     - Posterior probability of each parameter
@@ -692,27 +695,28 @@ function DCM = save_bpa_dcm(Pk,BPA,Pf,params)
 % BPA.Eq - BPA means (reduced model)
 % Pf     - Model posteriors over user specified families
 % params - User supplied parameters
+% P_opt  - Optimal model filenames
 
 % Get original (first) DCM
-try, DCM=load(params.P{1}); DCM=DCM.DCM; catch, DCM = params.P{1}; end
+try DCM=load(P_opt{1}); DCM=DCM.DCM; catch, DCM = P_opt{1}; end
 
-DCM.Pp    = Pk;
+DCM.Pp    = Pk;    
 DCM.Ep    = BPA.Eq;
 DCM.Cp    = BPA.Cq;
-DCM.fun   = params.fun;
-DCM.files = params.P;
-DCM.Pf    = Pf;
+DCM.fun   = params.fun;   
+DCM.files = P_opt;     
+DCM.Pf    = Pf;    
 
 % and save as DCM_BPA
 try
-    pth  = fileparts(params.P{1});
+    pth  = fileparts(P_opt{1});
     name = 'DCM_BPA.mat';
     name = fullfile(pth,name);
 catch
     name = fullfile(pwd,'DCM_BPA.mat');
 end
 
-save(name,'DCM', spm_get_defaults('mat.format'));
+save(name,'DCM', spm_get_defaults('mat.format')); 
 
 
 %==========================================================================
