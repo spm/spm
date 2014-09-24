@@ -53,7 +53,7 @@ function varargout=spm(varargin)
 % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes
-% $Id: spm.m 6156 2014-09-05 17:34:53Z guillaume $
+% $Id: spm.m 6196 2014-09-24 18:02:17Z guillaume $
 
 
 %=======================================================================
@@ -629,16 +629,18 @@ if all(ismember(S0(:),[0 1]))
     return;
 end
 
-if ismac
-    tmp   = [S0(3)/1152 (S0(4)-110)/900]; % average size bottom Dock
-else
-    tmp   = [S0(3)/1152 (S0(4)-50)/900];
+B = 50; % taskbar size
+if ispc && isequal(S0,[1 1 1366 768])
+    B = 80;
+elseif ismac
+    B = 110; % average size bottom Dock
 end
+tmp = [S0(3)/1152 (S0(4)-B)/900];
     
 varargout = {min(tmp)*[1 1 1 1]};
 
 % Make sure that aspect ratio is about right - for funny shaped screens
-% varargout = {[S0(3)/1152 (S0(4)-50)/900 S0(3)/1152 (S0(4)-50)/900]};
+% varargout = {[S0(3)/1152 (S0(4)-B)/900 S0(3)/1152 (S0(4)-B)/900]};
 
 
 %=======================================================================

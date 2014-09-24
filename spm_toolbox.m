@@ -8,7 +8,7 @@ function varargout = spm_toolbox(action,varargin)
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_toolbox.m 6168 2014-09-11 18:26:54Z guillaume $
+% $Id: spm_toolbox.m 6196 2014-09-24 18:02:17Z guillaume $
 
 
 if ~nargin, action = 'Display'; end
@@ -67,7 +67,7 @@ spm_browser(html,H);
 %--------------------------------------------------------------------------
 [ext, sts] = urlread(spm_toolbox('url'));
 if ~sts
-    spm_browser('Download failed.',H);
+    spm_browser('Server not found. Cannot list SPM toolboxes.',H);
     return
 end
 spm_browser(strrep(html,'Loading','Parsing'),H);

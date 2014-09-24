@@ -3,21 +3,21 @@ function varargout = spm_atlas(action,varargin)
 % FORMAT xA = spm_atlas('load',atlas)
 % FORMAT L = spm_atlas('list')
 % FORMAT [S,sts] = spm_atlas('select',xA)
-% FORMAT Q = spm_atlas('query',A,XYZmm)
-% FORMAT spm_atlas('label',xA)
+% FORMAT Q = spm_atlas('query',xA,XYZmm)
 % FORMAT VM = spm_atlas('mask',xA,label)
 % FORMAT V = spm_atlas('prob',xA,label)
 % FORMAT V = spm_atlas('maxprob',xA,thresh)
-% FORMAT sts = spm_atlas('install',A)
 %
+% FORMAT sts = spm_atlas('install',atlas)
 % FORMAT hC = spm_atlas('menu',F)
+% FORMAT spm_atlas('label',xA)
 % FORMAT D = spm_atlas('dir')
 % FORMAT def = spm_atlas('def')
 %__________________________________________________________________________
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6130 2014-08-01 17:41:18Z guillaume $
+% $Id: spm_atlas.m 6196 2014-09-24 18:02:17Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -65,36 +65,51 @@ case 'load'
     %-Read Description
     switch spm_file(atlas,'ext')
         case 'xml'
-            descfile  = atlas;
-            xA.X      = convert(xmltree(descfile));
-            atlasfile = fullfile(spm_file(descfile,'path'),xA.X.atlasfile);
-            labelfile = fullfile(spm_file(descfile,'path'),xA.X.labelfile);
+            T         = convert(xmltree(atlas));
+            xA.info   = T.header;
+            xA.info   = rmfield(xA.info,'images');
+            xA.info.files.labels = atlas;
+            xA.info.files.images = spm_file(T.header.images.imagefile,'path',spm_file(atlas,'fpath'));
+            
+            xA.VA     = spm_vol(xA.info.files.images);
+            
+            idx       = cellfun(@(x) str2double(x.index),T.data.label,'UniformOutput',false);
+            name      = cellfun(@(x) x.name,T.data.label,'UniformOutput',false);
+            xA.labels = struct('name',name,'index',idx);
+            
         case {'nii','img'}
-            atlasfile = atlas;
-            labelfile = spm_file(atlas,'ext','txt');
             descfile  = spm_file(atlas,'ext','xml');
             if spm_existfile(descfile)
-                xA.X  = convert(xmltree(descfile));
+                xA    = spm_atlas('load',descfile);
             else
-                xA.X  = struct([]);
+                xA.info.name = spm_file(atlas,'basename');
+                xA.info.files.images = atlas;
+                xA.VA = spm_vol(atlas);
+                % assume a single image is a label image
+                if numel(xA.VA) == 1
+                    xA.info.type = 'label';
+                    l = unique(spm_read_vols(xA.VA));
+                else
+                    xA.info.type = 'probabilistic';
+                    l = 1:numel(xA.VA);
+                end
+                for i=1:numel(l)
+                    xA.labels(i) = struct('name',sprintf('label_%04d',i),'index',l(i));
+                end
             end
         otherwise
-            list      = spm_atlas('List','installed');
+            list      = spm_atlas('list','installed');
             idx       = find(ismember({list.name},atlas));
             if ~isempty(idx)
-                xA.X  = list(idx).info;
-                atlasfile = fullfile(spm_file(list(idx).file,'path'),xA.X.atlasfile);
-                labelfile = fullfile(spm_file(list(idx).file,'path'),xA.X.labelfile);
+                xA    = preloaded(atlas);
+                if isempty(xA)
+                    xA = spm_atlas('load',list(idx).file);
+                    preloaded(atlas,xA);
+                end
             else
                 error('Unknown atlas "%s".',atlas);
             end
     end
-    
-    %-Read Labels
-    xA.L      = read_labels(labelfile);
-    
-    %-Read Atlas
-    xA.V      = spm_vol(atlasfile); % remove frame number for 4D files?
 
     varargout = { xA };
     
@@ -159,7 +174,7 @@ case 'label'
 %     dy    = FS(9);
 %     y     = floor(AxPos(4)) - dy;
 % 
-%     text(0,y,['Atlas:  \it\fontsize{',num2str(FS(9)),'}',xA.X.name],...
+%     text(0,y,['Atlas:  \it\fontsize{',num2str(FS(9)),'}',xA.info.name],...
 %               'FontSize',FS(11),'FontWeight','Bold');   y = y - dy/2;
 %     line([0 1],[y y],'LineWidth',3,'Color','r'),        y = y - 9*dy/8;
 %     
@@ -275,20 +290,20 @@ case 'select'
     S = '';
     if isempty(varargin)
         d = spm_atlas('Dir');
-        d = d{end};
+        d = d{1};
         [S,sts] = spm_select(1, {'image','xml'},...
             'Select Atlas...', {}, d);
         if ~sts, varargout = { S, sts }; return; end
     else
         xA = spm_atlas('load',varargin{1});
         [sel,sts] = listdlg(...
-            'ListString',xA.L{2},...
+            'ListString',{xA.labels.name},...
             'SelectionMode','multiple',...
             'ListSize', [400 300],...
             'Name','Select label(s)',...
-            'PromptString',sprintf('Labels from %s atlas:',xA.X.name));
+            'PromptString',sprintf('Labels from %s atlas:',xA.info.name));
         if ~sts, varargout = { S, sts }; return; end
-        S  = xA.L{2}(sel);
+        S  = {xA.labels(sel).name};
     end
     varargout = { S, sts };
     
@@ -305,15 +320,15 @@ case 'query'
     
     unknown = 'Unknown';
     
-    if numel(xA.V) == 1 % or xA.X contains type definition
+    if numel(xA.VA) == 1 % or xA.info.type contains type definition
         if isnumeric(xY) && size(xY,2) == 1
             %-peak
             XYZmm     = xY;
-            XYZ       = xA.V.mat\[XYZmm;1];
-            vpeak     = spm_sample_vol(xA.V,XYZ(1),XYZ(2),XYZ(3),0);
-            j         = xA.L{3} == vpeak;
+            XYZ       = xA.VA.mat\[XYZmm;1];
+            vpeak     = spm_sample_vol(xA.VA,XYZ(1),XYZ(2),XYZ(3),0);
+            j         = [xA.labels.index] == vpeak;
             if any(j) == 1
-                Q     = xA.L{2}{j};
+                Q     = xA.labels(j).name;
             else
                 Q     = unknown;
             end
@@ -322,15 +337,15 @@ case 'query'
             if nargout > 1, varargout = { {Q}, 100 }; end
         else
             %-cluster
-            v         = spm_summarise(xA.V,xY);
+            v         = spm_summarise(xA.VA,xY);
             vu        = unique(v);
             vun       = histc(v,vu);
             [vun,is]  = sort(vun(:),1,'descend');
             vu        = vu(is);
             for j=1:numel(vu)
-                k     = xA.L{3} == vu(j);
+                k     = [xA.labels.index] == vu(j);
                 if any(k) == 1
-                    Q{j} = xA.L{2}{k};
+                    Q{j} = xA.labels(k).name;
                 else
                     Q{j} = unknown;
                 end
@@ -340,17 +355,17 @@ case 'query'
             varargout = { Q, P };
         end
     else
-        P             = xA.L{2};
+        P             = {xA.labels.name};
         if isnumeric(xY)
             %-peak
             XYZmm     = xY;
-            XYZ       = xA.V(1).mat\[XYZmm;1];
-            Q         = spm_get_data(xA.V,XYZ); % which interp to use?
+            XYZ       = xA.VA(1).mat\[XYZmm;1];
+            Q         = spm_get_data(xA.VA,XYZ); % which interp to use?
             
             varargout = { Q, P };
         else
             %-cluster
-            v         = spm_summarise(xA.V,xY);
+            v         = spm_summarise(xA.VA,xY);
             v         = mean(v,2);
             
             varargout = { v, P };
@@ -370,22 +385,22 @@ case 'mask'
     else label = varargin{2}; end
     label = filter_labels(xA,label);
     
-    if numel(xA.V) == 1 % or xA.X contains type definition
+    if numel(xA.VA) == 1 % or xA.info.type contains type definition
         VM = struct(...
-            'fname',   [xA.X.name '_mask' spm_file_ext],...
-            'dim',     xA.V(1).dim,...
+            'fname',   [xA.info.name '_mask' spm_file_ext],...
+            'dim',     xA.VA(1).dim,...
             'dt',      [spm_type('uint8') spm_platform('bigend')],...
-            'mat',     xA.V(1).mat,...
+            'mat',     xA.VA(1).mat,...
             'n',       1,...
             'pinfo',   [1 0 0]',...
-            'descrip', sprintf('%s mask',xA.X.name));
+            'descrip', sprintf('%s mask',xA.info.name));
         VM.dat = false(VM.dim);
         
-        D = spm_read_vols(xA.V);
+        D = spm_read_vols(xA.VA);
         for i=1:numel(label)
-            j = find(ismember(xA.L{2},label{i}));
+            j = find(ismember({xA.labels.name},label{i}));
             for k=1:numel(j)
-                VM.dat = VM.dat | (D == xA.L{3}(j(k)));
+                VM.dat = VM.dat | (D == xA.labels(j(k)).index);
             end
         end
         VM.dat = uint8(VM.dat);
@@ -412,19 +427,19 @@ case 'maxprob'
     if nargin < 3, thresh = 0; else thresh = varargin{2}; end
     
     V = struct(...
-        'fname',   [xA.X.name '_maxprob_thresh' num2str(thresh) spm_file_ext],...
-        'dim',     xA.V(1).dim,...
+        'fname',   [xA.info.name '_maxprob_thresh' num2str(thresh) spm_file_ext],...
+        'dim',     xA.VA(1).dim,...
         'dt',      [spm_type('uint8') spm_platform('bigend')],...
-        'mat',     xA.V(1).mat,...
+        'mat',     xA.VA(1).mat,...
         'n',       1,...
         'pinfo',   [1 0 0]',...
-        'descrip', sprintf('%s mask',xA.X.name));
+        'descrip', sprintf('%s mask',xA.info.name));
     V.dat = zeros(V.dim);
     
     for i=1:V.dim(3)
-        Y = zeros(V.dim(1),V.dim(2),numel(xA.V));
-        for j=1:numel(xA.V)
-            Y(:,:,j) = spm_slice_vol(xA.V(j),spm_matrix([0 0 i]),V.dim(1:2),0);
+        Y = zeros(V.dim(1),V.dim(2),numel(xA.VA));
+        for j=1:numel(xA.VA)
+            Y(:,:,j) = spm_slice_vol(xA.VA(j),spm_matrix([0 0 i]),V.dim(1:2),0);
         end
         [Y,V.dat(:,:,i)] = max(Y,[],3);
         V.dat(:,:,i) = V.dat(:,:,i) .* (Y > thresh);
@@ -448,20 +463,20 @@ case 'prob'
     if numel(idx) == 1
         descrip = label{1};
     else
-        descrip = sprintf('%s prob',xA.X.name);
+        descrip = sprintf('%s prob',xA.info.name);
     end
     V = struct(...
-        'fname',   [xA.X.name '_prob' spm_file_ext],...
-        'dim',     xA.V(1).dim,...
+        'fname',   [xA.info.name '_prob' spm_file_ext],...
+        'dim',     xA.VA(1).dim,...
         'dt',      [spm_type('float32') spm_platform('bigend')],...
-        'mat',     xA.V(1).mat,...
+        'mat',     xA.VA(1).mat,...
         'n',       1,...
         'pinfo',   [1 0 0]',...
         'descrip', descrip);
     V.dat = zeros(V.dim);
     
     for i=1:numel(idx)
-        V.dat = V.dat + spm_read_vols(xA.V(idx(i)));
+        V.dat = V.dat + spm_read_vols(xA.VA(idx(i)));
     end
     V.dat = single(V.dat);
     
@@ -658,6 +673,30 @@ case 'weblink'
     
     
 %==========================================================================
+case 'import_labels'
+%==========================================================================
+    % FORMAT labels = spm_atlas('import_labels',labelfile,fmt)
+    %-Read labels stored in other formats
+    
+    if isempty(varargin) || isempty(varargin{1})
+        [labelfile,sts] = spm_select(1,'any','Select labels file...');
+        if ~sts, varargout = { struct }; return; end
+    else
+        labelfile = varargin{1};
+    end
+    
+    if nargin < 3
+        fmt = '';
+    else
+        fmt = varargin{2};
+    end
+    
+    labels = read_labels(labelfile,fmt);
+    
+    varargout = { labels };
+    
+    
+%==========================================================================
 otherwise
 %==========================================================================
     error('Unknown action.');
@@ -665,31 +704,37 @@ end
 
 
 %==========================================================================
-% FUNCTION labels = read_labels(labelfile)
+% FUNCTION labels = read_labels(labelfile,fmt)
 %==========================================================================
-function labels = read_labels(labelfile)
+function labels = read_labels(labelfile,fmt)
 fid        = fopen(labelfile,'rt');
 if fid == -1, error('Cannot find atlas labels: "%s".',labelfile); end
+
 try
+switch lower(fmt)
+    case 'aal'
     % AAL
     % ShortName Long_Name Key
     L = textscan(fid,'%s %s %d');
-    labels = L;
+    labels = struct('name',L{2},'index',num2cell(L{3}));
     
+    case 'freesurfer'
     % FreeSurfer
     % Key Long-Name Red Green Blue Alpha
-    % L = textscan(fid,'%d %s %d %d %d %d','CommentStyle','#');
-    % labels = {{} L{2} L{1}};
+    L = textscan(fid,'%d %s %d %d %d %d','CommentStyle','#');
+    labels = struct('name',L{2},'index',num2cell(L{1}));
     
+    case 'brainvisa'
     % Brainvisa
     % Key, X, Y, Z, Red, Green, Blue, Acronym, Short Name
-    % L = textscan(fid,'%d %f %f %f %d %d %d %s %s','Delimiter',',','HeaderLines',1);
-    % labels = {L{8} L{9} L{1}};
+    L = textscan(fid,'%d %f %f %f %d %d %d %s %s','Delimiter',',','HeaderLines',1);
+    labels = struct('name',L{9},'index',num2cell(L{1}));
     
+    case 'talairach'
     % Talairach
     % Key <TAB> Long Name
-    % L = textscan(fid,'%d %s','Delimiter','\t');
-    % labels = {{} L{2} L{1}};
+    L = textscan(fid,'%d %s','Delimiter','\t');
+    labels = struct('name',L{2},'index',num2cell(L{1}));
     
     % MRIcron JHU-WhiteMatter
     % Key <TAB> Long_Name
@@ -703,31 +748,38 @@ try
     % Key <TAB> Long Name <TAB> *
     % L = textscan(fid,'%d %s %*[^\n]','Delimiter','\t','CommentStyle',{'[' ']'});
     
+    case 'hammers_mith'
     % Hammers_mith
     % Long_Name *
-    % L = textscan(fid,'%s','Delimiter',',','HeaderLines',2,'MultipleDelimsAsOne',1);
-    % labels = {{} L{1}(1:end-2) (1:numel(L{1})-2)};
+    L = textscan(fid,'%s','Delimiter',',','HeaderLines',2,'MultipleDelimsAsOne',1);
+    labels = struct('name',L{1}(1:end-2),'index',num2cell((1:numel(L{1})-2)'));
     
+    case 'cerebellum'
     % Joern's Cerebellum MNIsegment-MRICroN
     % Key Long_Name ???
-    % L = textscan(fid,'%d %s %d','Delimiter',' ');
-    % labels = {{} L{2} L{1}};
+    L = textscan(fid,'%d %s %d','Delimiter',' ');
+    labels = struct('name',L{2},'index',num2cell(L{1}));
     
+    case 'fsl'
     % FSL
     % XML: <label index="Key" x="X" y="Y" z="Z">Long Name</label>
-    % X = xmltree(labelfile);
-    % I = find(X,'/atlas/data/label');
-    % for i=1:numel(I)
-    %   A = attributes(X,'get',I(i)); A = [A{:}];
-    %   L{3}(i) = str2double(A(strcmp({A.key},'index')).val); % + 1 ?
-    %   L{2}{i} = get(X,children(X,I(i)),'value');
-    % end
-    % labels = L;
+    X = xmltree(labelfile);
+    I = find(X,'/atlas/data/label');
+    for i=1:numel(I)
+        labels(i).name = get(X,children(X,I(i)),'value');
+        A = attributes(X,'get',I(i)); A = [A{:}];
+        labels(i).index = str2double(A(strcmp({A.key},'index')).val) + 1; % + 1?
+    end
     
+    case 'itk-snap'
     % Colin 27: ITK-SNAP Label Description File
     % Key Red Green Blue Alpha Vis Idx "Long Name"
-    % L = textscan(fid,'%d %d %d %d %d %d %d "%[^"]"','CommentStyle','#');
-    % labels = {{} L{8} L{1}};
+    L = textscan(fid,'%d %d %d %d %d %d %d "%[^"]"','CommentStyle','#');
+    labels = struct('name',L{8},'index',num2cell(L{1}));
+    
+    otherwise
+        error('Unknown label file format.');
+end
 catch
     fclose(fid);
     error('Cannot read atlas labels in: "%s".',labelfile);
@@ -781,9 +833,10 @@ end
 %==========================================================================
 function [labels,i] = filter_labels(xA,labels)
 if ~iscellstr(labels)
-    labels = xA.L{2}(~cellfun(@isempty,regexp(xA.L{2},labels)));
+    idx = ~cellfun(@isempty,regexp({xA.labels.name},labels));
+    labels = {xA.labels(idx).name};
 end
-[labels,i] = intersect(xA.L{2},labels);
+[labels,i] = intersect({xA.labels.name},labels);
 
 
 %==========================================================================
@@ -808,6 +861,30 @@ if isempty(atlas_list)
 end
 L = atlas_list;
 
+
+%==========================================================================
+% FUNCTION xA = preloaded(atlas)
+%==========================================================================
+function xA = preloaded(atlas,xA)
+persistent pl_atlas
+persistent pl_xA
+if isempty(pl_atlas), pl_atlas = {}; end
+if isempty(pl_xA), pl_xA = {}; end
+i = find(ismember(pl_atlas,atlas));
+if nargin == 1
+    if isempty(i)
+        xA = [];
+    else
+        xA = pl_xA{i};
+    end
+else
+    if isempty(i)
+        pl_atlas = [pl_atlas atlas];
+        pl_xA = [pl_xA xA];
+    else
+        pl_xA{i} = xA;
+    end
+end
 
 %==========================================================================
 % FUNCTION atlas_figure

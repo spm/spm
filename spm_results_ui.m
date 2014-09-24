@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6191 2014-09-23 17:33:40Z guillaume $
+% $Id: spm_results_ui.m 6196 2014-09-24 18:02:17Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6191 $'; 
+SVNid = '$Rev: 6196 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -347,7 +347,7 @@ switch lower(Action), case 'setup'                         %-Set up results
     
     %-Atlas menu
     %----------------------------------------------------------------------
-    %hAtlasUI  = spm_results_ui('SetupAtlasMenu',Finter);
+    hAtlasUI  = spm_results_ui('SetupAtlasMenu',Finter);
     
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
