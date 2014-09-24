@@ -52,9 +52,9 @@ function [D, montage] = spm_eeg_montage(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak, Robert Oostenveld, Stefan Kiebel, Christophe Phillips
-% $Id: spm_eeg_montage.m 6118 2014-07-23 16:42:26Z vladimir $
+% $Id: spm_eeg_montage.m 6194 2014-09-24 12:47:55Z vladimir $
 
-SVNrev = '$Rev: 6118 $';
+SVNrev = '$Rev: 6194 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -131,7 +131,7 @@ if ~isnumeric(montage)
         montage.labelnew = cat(1, montage.labelnew(:), add(:));
         
         if isfield(montage, 'chantypenew')
-            montage.chantypenew = cat(1, montage.chantypenew(:), D.chantype(ind)');
+            montage.chantypenew = cat(1, montage.chantypenew(:), lower(D.chantype(ind)'));
         end
         if isfield(montage, 'chanunitnew')
             montage.chanunitnew = cat(1, montage.chanunitnew(:), D.units(ind)');
@@ -142,7 +142,7 @@ if ~isnumeric(montage)
     montage.labelorg = cat(1, montage.labelorg(:), add(:));
     
     if isfield(montage, 'chantypeorg')
-        montage.chantypeorg = cat(1, montage.chantypeorg(:), D.chantype(ind)');
+        montage.chantypeorg = cat(1, montage.chantypeorg(:), lower(D.chantype(ind))');
     end
     if isfield(montage, 'chanunitorg')
         montage.chanunitorg = cat(1, montage.chanunitorg(:), D.units(ind)');

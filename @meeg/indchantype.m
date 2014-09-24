@@ -12,7 +12,7 @@ function ind = indchantype(this, types, flag)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: indchantype.m 5583 2013-07-19 12:34:29Z vladimir $
+% $Id: indchantype.m 6194 2014-09-24 12:47:55Z vladimir $
 
 if ischar(types)    
     types = {types};
@@ -38,7 +38,7 @@ else
     end
     
     if ismember('REF', types)
-        types = [types, 'REFMAG', 'REFGRAD'];
+        types = [types, 'REFMAG', 'REFGRAD', 'REFPLANAR'];
     end
     
     if ismember('MEG', types)

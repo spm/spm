@@ -17,7 +17,7 @@ function D = spm_eeg_prep(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_prep.m 5986 2014-05-15 09:36:55Z vladimir $
+% $Id: spm_eeg_prep.m 6194 2014-09-24 12:47:55Z vladimir $
 
 D = spm_eeg_load(S.D);
 
@@ -48,11 +48,13 @@ switch lower(S.task)
             'emg',           'EMG';
             'meg',           'MEG';
             'ref',           'REF';
+            'megref'         'REF';
             'megmag',        'MEGMAG';
             'megplanar',     'MEGPLANAR';
             'meggrad',       'MEGGRAD';
             'refmag',        'REFMAG';
             'refgrad',       'REFGRAD'
+            'refplanar'      'REFPLANAR'
             };
         
         D = chantype(D, ind, 'Other');
