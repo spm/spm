@@ -52,13 +52,13 @@ function dataout = ft_globalmeanfield(cfg, datain)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_globalmeanfield.m 9718 2014-07-10 07:55:40Z jimher $
+% $Id: ft_globalmeanfield.m 9825 2014-09-22 15:19:53Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_globalmeanfield.m 9718 2014-07-10 07:55:40Z jimher $';
+revision = '$Id: ft_globalmeanfield.m 9825 2014-09-22 15:19:53Z roboos $';
 
 % do the general setup of the function
 

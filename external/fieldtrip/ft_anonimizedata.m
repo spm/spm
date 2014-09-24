@@ -53,9 +53,9 @@ function data = ft_anonimizedata(cfg, data)
 %  You should have received a copy of the GNU General Public License
 %  along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_anonimizedata.m 9520 2014-05-14 09:33:28Z roboos $
+% $Id: ft_anonimizedata.m 9825 2014-09-22 15:19:53Z roboos $
 
-revision = '$Id: ft_anonimizedata.m 9520 2014-05-14 09:33:28Z roboos $';
+revision = '$Id: ft_anonimizedata.m 9825 2014-09-22 15:19:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults               % this ensures that the path is correct and that the ft_defaults global variable is available

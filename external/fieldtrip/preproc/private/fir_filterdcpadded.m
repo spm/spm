@@ -36,7 +36,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-% $Id: fir_filterdcpadded.m 9685 2014-07-02 14:23:19Z eelspa $
+% $Id: fir_filterdcpadded.m 9825 2014-09-22 15:19:53Z roboos $
 
 function [ data ] = fir_filterdcpadded(b, a, data, causal)
 

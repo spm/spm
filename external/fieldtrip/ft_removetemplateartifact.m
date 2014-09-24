@@ -41,13 +41,13 @@ function data = ft_removetemplateartifact(cfg, data, template)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_removetemplateartifact.m 9587 2014-05-23 11:11:25Z roboos $
+% $Id: ft_removetemplateartifact.m 9825 2014-09-22 15:19:53Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_removetemplateartifact.m 9587 2014-05-23 11:11:25Z roboos $';
+revision = '$Id: ft_removetemplateartifact.m 9825 2014-09-22 15:19:53Z roboos $';
 
 % do the general setup of the function
 

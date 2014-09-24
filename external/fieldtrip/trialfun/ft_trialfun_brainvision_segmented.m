@@ -41,7 +41,7 @@ function [trl, event] = ft_trialfun_brainvision_segmented(cfg)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_trialfun_brainvision_segmented.m 9252 2014-03-03 10:49:12Z eelspa $
+% $Id: ft_trialfun_brainvision_segmented.m 9825 2014-09-22 15:19:53Z roboos $
 
 hdr = ft_read_header(cfg.dataset);
 event = ft_read_event(cfg.dataset);

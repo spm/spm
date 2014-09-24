@@ -32,7 +32,7 @@ function [lf] = current_dipole(R, pos, ori)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: current_dipole.m 8814 2013-11-19 12:20:45Z roboos $
+% $Id: current_dipole.m 9825 2014-09-22 15:19:53Z roboos $
 
 mu0   = 4*pi*1e-7;
 nchan = size(pos,1);

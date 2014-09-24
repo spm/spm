@@ -39,7 +39,7 @@ function [ws warned] = print_once(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: print_once.m 9685 2014-07-02 14:23:19Z eelspa $
+% $Id: print_once.m 9825 2014-09-22 15:19:53Z roboos $
 
 global ft_default
 

@@ -56,7 +56,7 @@ function [data] = ft_checkdata(data, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_checkdata.m 9808 2014-09-16 14:56:13Z roboos $
+% $Id: ft_checkdata.m 9827 2014-09-24 09:53:47Z roboos $
 
 % in case of an error this function could use dbstack for more detailled
 % user feedback
@@ -306,6 +306,18 @@ if ~isempty(dtype)
       data = volume2source(data);
       data = ft_datatype_source(data);
       isvolume = 0;
+      issource = 1;
+      okflag = 1;
+    elseif isequal(dtype(iCell), {'volume'}) && ischan
+      data = parcellated2source(data);
+      data = ft_datatype_volume(data);
+      ischan = 0;
+      isvolume = 1;
+      okflag = 1;
+    elseif isequal(dtype(iCell), {'source'}) && ischan
+      data = parcellated2source(data);
+      data = ft_datatype_source(data);
+      ischan = 0;
       issource = 1;
       okflag = 1;
     elseif isequal(dtype(iCell), {'volume'}) && issource
@@ -1678,6 +1690,21 @@ switch fname
   otherwise
     warning('skipping unknown fieldname %s', fname);
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% convert between datatypes
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function data = parcellated2source(data)
+if ~isfield(data, 'brainordinate')
+  error('converting parcellated data requires the specification of the brainordinates');
+end
+source     = data.brainordinate;
+source.cfg = data.cfg;
+parameter   = 'pow';
+parcelparam = 'tissue';
+source.(parameter) = unparcellate(data, data.brainordinate, parameter, parcelparam);
+data = source;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % convert between datatypes

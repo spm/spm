@@ -22,7 +22,7 @@ function outputfile = inflate_file(inputfile)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: inflate_file.m 9149 2014-01-29 13:59:29Z eelspa $
+% $Id: inflate_file.m 9825 2014-09-22 15:19:53Z roboos $
 
 % use a cache to prevent extracting the same file multiple times
 persistent extractcache;

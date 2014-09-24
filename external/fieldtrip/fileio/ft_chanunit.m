@@ -42,7 +42,7 @@ function chanunit = ft_chanunit(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chanunit.m 9629 2014-06-16 08:52:41Z roboos $
+% $Id: ft_chanunit.m 9833 2014-09-24 13:37:14Z vlalit $
 
 % determine the type of input, this is handled similarly as in FT_CHANTYPE
 isheader =  isa(input, 'struct') && isfield(input, 'label') && isfield(input, 'Fs');
@@ -168,6 +168,7 @@ elseif ft_senstype(input, 'bti') && isfield(input, 'chantype')
   chanunit(strcmp('meggrad',             input.chantype)) = {'T'}; % this is the plain difference in the field at the two coils, i.e. in T
   chanunit(strcmp('refmag',              input.chantype)) = {'T'};
   chanunit(strcmp('refgrad',             input.chantype)) = {'T'};
+  chanunit(strcmp('ref',                 input.chantype)) = {'T'};
   
 elseif ft_senstype(input, 'itab') && isfield(input, 'chantype')
   chanunit(strcmp('megmag',              input.chantype)) = {'T'};

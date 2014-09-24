@@ -47,7 +47,7 @@ function type = ft_chantype(input, desired)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_chantype.m 9629 2014-06-16 08:52:41Z roboos $
+% $Id: ft_chantype.m 9833 2014-09-24 13:37:14Z vlalit $
 
 % this is to avoid a recursion loop
 persistent recursion
@@ -326,7 +326,7 @@ elseif ft_senstype(input, 'bti')
     type(configtype==1 & numloops==1) = {'megmag'};
     type(configtype==1 & numloops==2) = {'meggrad'};
     type(configtype==2) = {'eeg'};
-    type(configtype==3) = {'megref'};
+    type(configtype==3) = {'ref'}; % not known if mag or grad
     type(configtype==4) = {'aux'};
     type(configtype==5) = {'trigger'};
     

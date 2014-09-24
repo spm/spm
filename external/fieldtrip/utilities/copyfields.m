@@ -26,7 +26,7 @@ function [b] = copyfields(a, b, fields)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: copyfields.m 9717 2014-07-09 15:43:36Z roboos $
+% $Id: copyfields.m 9825 2014-09-22 15:19:53Z roboos $
 
 if isempty(a)
   % this prevents problems if a is an empty double, i.e. []

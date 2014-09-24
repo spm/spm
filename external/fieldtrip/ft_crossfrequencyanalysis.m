@@ -45,9 +45,9 @@ function crossfreq = ft_crossfrequencyanalysis(cfg,freqlow,freqhigh)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_crossfrequencyanalysis.m 9699 2014-07-04 11:48:15Z roboos $
+% $Id: ft_crossfrequencyanalysis.m 9825 2014-09-22 15:19:53Z roboos $
 
-revision = '$Id: ft_crossfrequencyanalysis.m 9699 2014-07-04 11:48:15Z roboos $';
+revision = '$Id: ft_crossfrequencyanalysis.m 9825 2014-09-22 15:19:53Z roboos $';
 
 % do the general setup of the function
 ft_defaults

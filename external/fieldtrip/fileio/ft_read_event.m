@@ -89,7 +89,7 @@ function [event] = ft_read_event(filename, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_read_event.m 9823 2014-09-22 12:46:26Z vlalit $
+% $Id: ft_read_event.m 9824 2014-09-22 15:02:13Z roboos $
 
 global event_queue        % for fcdc_global
 persistent sock           % for fcdc_tcp
@@ -298,18 +298,18 @@ switch eventformat
     schan = find(strcmpi(hdr.label,'STATUS'));
     sdata = ft_read_data(filename, 'header', hdr, 'dataformat', dataformat, 'begsample', begsample, 'endsample', endsample, 'chanindx', schan);
     
-    try
-        % find indices of negative numbers
-        bit24i = find(sdata < 0);
-        % make number positive and preserve bits 0-22
-        sdata(bit24i) = bitcmp(abs(sdata(bit24i))-1,24);
-        % re-insert the sign bit on its original location, i.e. bit24
-        sdata(bit24i) = sdata(bit24i)+(2^(24-1));
-        % typecast the data to ensure that the status channel is represented in 32 bits
-        sdata = uint32(sdata);
-    catch
-        % convert to 32-bit integer representation and only preserve the lowest 24 bits
-        sdata = bitand(int32(sdata), 2^24-1);
+    if matlabversion(-inf, '2012a')
+      % find indices of negative numbers
+      bit24i = find(sdata < 0);
+      % make number positive and preserve bits 0-22
+      sdata(bit24i) = bitcmp(abs(sdata(bit24i))-1,24);
+      % re-insert the sign bit on its original location, i.e. bit24
+      sdata(bit24i) = sdata(bit24i)+(2^(24-1));
+      % typecast the data to ensure that the status channel is represented in 32 bits
+      sdata = uint32(sdata);
+    else
+      % convert to 32-bit integer representation and only preserve the lowest 24 bits
+      sdata = bitand(int32(sdata), 2^24-1);
     end
     
     byte1 = 2^8  - 1;

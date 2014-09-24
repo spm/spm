@@ -28,7 +28,7 @@ function write_nifti2_hdr(filename, hdr)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: write_nifti2_hdr.m 9798 2014-09-15 08:06:26Z roboos $
+% $Id: write_nifti2_hdr.m 9825 2014-09-22 15:19:53Z roboos $
 
 if ischar(filename)
   fid = fopen(filename, 'w');

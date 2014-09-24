@@ -32,7 +32,7 @@ function ft_write_cifti(filename, source, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_write_cifti.m 9807 2014-09-16 14:55:25Z roboos $
+% $Id: ft_write_cifti.m 9825 2014-09-22 15:19:53Z roboos $
 
 brainstructure  = ft_getopt(varargin, 'brainstructure'); % the default is determined further down
 parcellation    = ft_getopt(varargin, 'parcellation');   % the default is determined further down
