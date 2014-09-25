@@ -34,7 +34,7 @@ function [f,dfdx,D,dfdu] = spm_fx_fmri(x,u,P,M)
 % Copyright (C) 2002-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston & Klaas Enno Stephan
-% $Id: spm_fx_fmri.m 5905 2014-03-04 12:22:00Z klaas $
+% $Id: spm_fx_fmri.m 6198 2014-09-25 10:38:48Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -53,8 +53,14 @@ P.D   = full(P.D);                       % nonlinear parameters
 % implement differential state equation y = dx/dt (neuronal)
 %--------------------------------------------------------------------------
 f    = x;
+
+% if there are five hidden states per region only one is neuronal
+%==========================================================================
 if size(x,2) == 5
     
+    
+    % if P.A encodes the eigenvalues of the (average) connectivity matrix
+    %======================================================================
     if isvector(P.A)
         
         % excitatory connections
@@ -73,7 +79,8 @@ if size(x,2) == 5
             EE = EE + x(i,1)*P.D(:,:,i);
         end
         
-    else
+    else % otherwise average connections are encoded explicitly
+        %==================================================================
         
         % input dependent modulation
         %------------------------------------------------------------------
@@ -103,12 +110,15 @@ if size(x,2) == 5
         if symmetry, EE = (EE + EE')/2; end
         
     end
-        
+    
     % flow
     %----------------------------------------------------------------------
     f(:,1) = EE*x(:,1) + P.C*u(:);
-        
-else
+    
+    
+else  % otherwise two neuronal states per region
+    %======================================================================
+    
     
     % input dependent modulation
     %----------------------------------------------------------------------

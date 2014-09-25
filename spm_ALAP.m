@@ -149,7 +149,7 @@ function [DEM] = spm_ALAP(DEM)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_ALAP.m 6039 2014-06-04 18:50:28Z karl $
+% $Id: spm_ALAP.m 6198 2014-09-25 10:38:48Z karl $
 
 
 % check model, data and priors
@@ -649,25 +649,25 @@ for iN = 1:nN
         % whiten generalised ascent on parameters and hyperparameters
         %==================================================================
         
-        % prior precision of fluctuations on [hyper] parameters
-        %------------------------------------------------------------------
-        Kb    = ns*Ib;
-        
         % accumulate curvatures of [hyper] parameters
         %------------------------------------------------------------------
         try
+            dLdB  = dLdB*(1 - 1/ns)  + dLdb/ns;
             dLdBB = dLdBB*(1 - 1/ns) + dLdbb/ns;
         catch
-            dLdBB = dLdbb + Ib*32;
+            dLdB  = dLdb - dLdb;
+            dLdBB = Ib*32;
         end
         
         % whiten gradient (and curvatures) with regularised precision
         %------------------------------------------------------------------
-        Cb    = spm_inv(dLdBB + diag(diag(dLdBB))*exp(dt));
-        dLdb  = Cb*dLdb;
+        Cb    = spm_inv(dLdBB + Ib*exp(dt));
+        dLdb  = Cb*dLdB;
         dHdb  = Cb*dHdb;
         
-        
+        % prior precision of fluctuations on [hyper] parameters
+        %------------------------------------------------------------------
+        Kb    = ns*Ib;  
         
         % derivatives and curvature generative process (and action)
         %==================================================================

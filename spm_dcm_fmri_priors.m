@@ -27,7 +27,7 @@ function [pE,pC,x] = spm_dcm_fmri_priors(A,B,C,D,options)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_fmri_priors.m 5821 2013-12-31 14:26:41Z karl $
+% $Id: spm_dcm_fmri_priors.m 6198 2014-09-25 10:38:48Z karl $
 
 % number of regions
 %--------------------------------------------------------------------------
@@ -99,11 +99,11 @@ else
         pE.A  = (A(:) - 1)*dA;
     else
         A     = logical(A - diag(diag(A)));
-        pE.A  =  A/128;
+        pE.A  = A/128;
     end
-    pE.B  =  B*0;
-    pE.C  =  C*0;
-    pE.D  =  D*0;
+    pE.B  = B*0;
+    pE.C  = C*0;
+    pE.D  = D*0;
     
     % prior covariances
     %----------------------------------------------------------------------
@@ -114,9 +114,9 @@ else
             pC.A(:,:,i) = A(:,:,i)/pA + eye(n,n)/pA;
         end
     end
-    pC.B  =  B;
-    pC.C  =  C;
-    pC.D  =  D;
+    pC.B  = B;
+    pC.C  = C;
+    pC.D  = D;
     
 end
 

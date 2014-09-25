@@ -15,24 +15,36 @@ function DEM_demo_duet
 % from the same 'hymn sheet' or narrative and can be regarded as
 % communicating in the sense of pragmatics. The first bird's expectations
 % are shown in red, while the second bird's are shown in cyan.
+%
+% To simulate learning of each other's (high-level) attractor, set LEARN to
+% one in the  main script.. To separate the birds – and preclude
+% communication (or synchronisation chaos) set NULL to 1.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_duet.m 6041 2014-06-04 20:48:41Z karl $
+% $Id: DEM_demo_duet.m 6198 2014-09-25 10:38:48Z karl $
  
 
 % preliminaries
 %--------------------------------------------------------------------------
 rng('default')
 
+LEARN = 1;                                 % enables learning
+NULL  = 0;                                 % no communication
+
 A   = 2;                                   % number of agents (birds)
 T   = 2;                                   % number of trials
 dt  = 1/64;                                % time bin (seconds)
+N   = 128;                                 % length of stimulus (bins)
+w   = 4;                                   % precision flow
+
+if LEARN, N = 256; A = 2; T = 24; end      % learning enabled
+
 
 % generative process and model
 %==========================================================================
-M(1).E.d        = 1;                       % approximation order
+M(1).E.d        = 2;                       % approximation order
 M(1).E.n        = 3;                       % embedding order
 M(1).E.s        = 1/2;                     % smoothness
  
@@ -54,7 +66,7 @@ x0    = [1; 1];
 Up    = exp([ 8  8 -8 -8]);                % sensory attenutation
 Uq    = exp([-8 -8 -8 -8]);                % sensory attention
 Vp    = exp([-8 -8  0  0]);                % attenutation
-Vq    = exp([-8 -8  2  2]);                % attention
+Vq    = exp([-8 -8  w  w]);                % attention
 
 for i = 1:A
     if rem(i,2), U{i} = Up; else, U{i} = Uq; end
@@ -70,12 +82,16 @@ for i = 1:A
     x{i} = x0;                             % states (of syrinx)
 end
 G(1).f  = @(x,v,a,P) a - spm_vec(x)/4;
-G(1).g  = @(x,v,a,P) Gg1(x,v,a,P);         % SOUND PRODUCTION
+if NULL
+    G(1).g  = @(x,v,a,P) Gg0(x,v,a,P);     % SOUND PRODUCTION - distant
+else
+    G(1).g  = @(x,v,a,P) Gg1(x,v,a,P);     % SOUND PRODUCTION - close
+end
 G(1).x  = x;                               % hidden state
 G(1).V  = exp(8);                          % precision (noise)
 G(1).W  = exp(8);                          % precision (states)
 G(1).U  = spm_cat(U);                      % precision (action)
- 
+
  
 % level 2; causes
 %--------------------------------------------------------------------------
@@ -93,24 +109,21 @@ G(2).V  = exp(8);
 % number (control parameters) of these dynamics constitute the hidden cause
 %--------------------------------------------------------------------------
 for i = 1:A
-    P{i} = [10; 8/3];                      % parameters
     x{i} = [1; x0];                        % hidden states
 end
 M(1).f  = @(x,v,P) Mf1(x,v,P);
 M(1).g  = @(x,v,P) Mg1(x,v,P);
 M(1).x  = x;
-M(1).pE = P;
-M(1).W  = exp(2);
+M(1).pE = {0,0};
+M(1).W  = exp(w);
 M(1).V  = spm_cat(V); 
 
 % level 2: the hidden cause is the third state of another (slower) Lorentz
 % attractor, with fixed control parameters.
 %--------------------------------------------------------------------------
 for i = 1:A
-    P{i} = [10; 8/3];                      % parameters
     x{i} = [1; 1; 30];                     % hidden states
-   
-    if i > 1,
+    if i > 1
         x{i} = [1; 1; 1];                  % hidden states
     end
 end
@@ -118,18 +131,27 @@ M(2).f  = @(x,v,P) Mf2(x,v,P);
 M(2).g  = @(x,v,P) Mg2(x,v,P);
 M(2).x  = x;
 M(2).v  = 0;
-M(2).pE = P;
-M(2).V  = exp(8);
+M(2).pE = {0,0};
 M(2).W  = exp(8);
- 
+M(2).V  = exp(8);
+
+% hidden cause and prior expectations
+%--------------------------------------------------------------------------
+j  = 1;
+if LEARN
+    M(j).pE = {0,0};
+    M(j).pC = [0 1];
+end
+
  
 % hidden cause and prior expectations
 %--------------------------------------------------------------------------
-N     = 128;                               % length of stimulus (bins)
 C     = zeros(1,N);
 
 % assemble model structure
 %--------------------------------------------------------------------------
+M(1).E.nE = 1;
+
 DEM.M = M;
 DEM.G = G;
 DEM.C = C;
@@ -138,9 +160,9 @@ DEM.C = C;
 %==========================================================================
 for t = 1:T
     
-    DEM    = spm_ALAP(DEM);
+    DEM    = spm_ADEM(DEM);
     LAP{t} = DEM;
-    spm_DEM_qU(LAP{t}.qU,LAP{t}.pU)
+    
     
     % update percicions & switch roles (sensory attenuation vs. attention)
     %----------------------------------------------------------------------
@@ -158,11 +180,47 @@ for t = 1:T
     DEM.G(1).U  = spm_cat(U);
     DEM.M(1).V  = spm_cat(V);
     
+
+
+    if LEARN
+        
+        % synchronisation manifold
+        %==================================================================
+        spm_figure('GetWin','Figure 3');
+        if t == 2
+            subplot(2,2,3)
+        else
+            subplot(2,2,4)
+        end
+        
+        x = LAP{t}.qU.x{2}([1 2 3],:);
+        y = LAP{t}.qU.x{2}([1 2 3] + 3,:);
+ 
+        plot(x',y')
+        title('Synchronization manifold','Fontsize',16)
+        xlabel('second level expectations (first bird)')
+        ylabel('second level expectations (second bird)')
+        axis square
+        
+        p(:,t) = spm_vec(DEM.M(j).pE);
+        c(:,t) = spm_vec(diag(DEM.M(j).pC));
+        
+        subplot(2,1,1)
+        spm_plot_ci(p,c)
+        title('Parameter learning','Fontsize',16)
+        xlabel('control parameter (first bird)')
+        ylabel('trials')
+        spm_axis tight
+        drawnow
+        
+    else
+        spm_DEM_qU(LAP{t}.qU,LAP{t}.pU)
+    end
     
     % update states and action
     %----------------------------------------------------------------------
-    DEM   = spm_ADEM_update(DEM);
-    
+    DEM = spm_ADEM_update(DEM);
+
 end
 
 
@@ -173,6 +231,7 @@ spm_figure('GetWin','Figure 1'); clf
 
 % sonogram (reducing the second birds percepts by a half)
 %--------------------------------------------------------------------------
+T     = 2;
 qU    = [];
 for t = 1:T
     v      = LAP{t}.qU.v{1}([1 2],:);
@@ -222,6 +281,24 @@ end
 xlabel('time (seconds)')
 title('Second level expectations (hidden states)','Fontsize',16)
 
+% synchronisation manifold
+%==========================================================================
+spm_figure('GetWin','Figure 2'); clf
+subplot(2,1,1)
+
+x = [];
+y = [];
+for t = 1:T
+    x = [x LAP{t}.qU.x{2}([1 2 3],:)];
+    y = [y LAP{t}.qU.x{2}([1 2 3] + 3,:)];
+end
+
+plot(x',y')
+title('Synchronization manifold','Fontsize',16)
+xlabel('second level expectations (first bird)')
+ylabel('second level expectations (second bird)')
+axis square
+
 
 
 % Equations of motion and observer functions
@@ -265,14 +342,17 @@ end
 %--------------------------------------------------------------------------
 function f = Mf1(x,v,P)
 for i = 1:length(x)
-    f{i,1} = [-P{i}(1) P{i}(1) 0; (v{i}(1) - 4 - x{i}(3)) -1 0; x{i}(2) 0 -P{i}(2)]*x{i}/16;
+    dxdt   = [-10 10 0; (v{i}(1) - P{i} - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/16;
+    f{i,1} = min(max(dxdt,-32),32);
 end
+
 
 % second level model: flow of hidden states
 %--------------------------------------------------------------------------
 function f = Mf2(x,v,P)
 for i = 1:length(x)
-    f{i,1} = [-P{i}(1) P{i}(1) 0; (32 - x{i}(3)) -1 0; x{i}(2) 0 -P{i}(2)]*x{i}/128;
+    dxdt   = [-10 10 0; (32 - P{i} - x{i}(3)) -1 0; x{i}(2) 0 -8/3]*x{i}/128;
+    f{i,1} = min(max(dxdt,-4),4);
 end
 
 

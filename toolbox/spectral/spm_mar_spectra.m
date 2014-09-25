@@ -39,7 +39,7 @@ function [mar] = spm_mar_spectra (mar,freqs,ns,show)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Will Penny 
-% $Id: spm_mar_spectra.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_mar_spectra.m 6198 2014-09-25 10:38:48Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -62,8 +62,6 @@ w     = 2*pi*freqs/ns;
 % precision of innovation
 %--------------------------------------------------------------------------
 if isfield(mar,'noise_cov');
-    noise_cov = mar.noise_cov;
-    prec      = diag(1./diag(noise_cov));
     noise_cov = mar.noise_cov;
     prec      = diag(diag(inv(noise_cov)));
 else

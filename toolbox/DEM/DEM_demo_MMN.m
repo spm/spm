@@ -14,7 +14,7 @@ function DEM_demo_MMN
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: DEM_demo_MMN.m 4851 2012-08-20 15:03:48Z karl $
+% $Id: DEM_demo_MMN.m 6198 2014-09-25 10:38:48Z karl $
  
 
 % level 1
@@ -61,8 +61,8 @@ n       = 7;                                 % number of trials
 N       = 48;                                % length of data sequence
 dt      = 0.005;                             % time bin (sec)
 T       = N*dt;                              % duration of chirp (sec)
-t       = [1:N]*dt;                          % time bin (sec)
-C       = exp(-([1:N] - 20).^2/(4.^2));      % this is the Gaussian cause
+t       = (1:N)*dt;                          % time bin (sec)
+C       = exp(-((1:N) - 20).^2/(4.^2));      % this is the Gaussian cause
  
  
 % DEM estimation:  Here we expose the model M to the data and record the
