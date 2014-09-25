@@ -7,63 +7,9 @@ function spm_eeg_cfc(S)
 % - statistical inference of these estimates is performed by dividing the continuous time series into shorter epochs
 % - function writes out images of the estimad PAC & AMP, as well as their p values
 
-
-% filename              = name SPM file containing raw or preprocessed data, either continuous (preferred) or epoched
-% channel               = channel name for which the GLM should be calculated
-% writeepochs           = write out images for each epoch (0 = no, 1 = yes), default = 0
-% window                = duration individual epochs [s] - only needed for continuous data, default = []
-
-% Xamp.Famp             = Centre frequencies for amplitude frequency, e.g. [60:5:100]
-% Xamp.Famp_width       = Bandwidth for bandpass filter: Famp +- Famp_width, e.g [10]
-% Xamp.Famp_order       = filter order, default = 4
-
-% Rpac.include          = include sin & cos regressors for PAC caluclation (0 = no, 1 = yes)
-% Rpac.alpha            = alpha-level for statistical inference, default = 0.05
-% Rpac.Fphase           = Centre frequencies for phase frequency, e.g. [5:1:10]
-% Rpac.Fphase_width     = Bandwidth for bandpass filter: Fphase +- Fphase_width
-% Rpac.Fphase_order     = filter order, default = 2
-
-% Ramp.include          = include low-frequency amplitude regressor for detection amplitude-amplitude coupling (0 = no, 1 = yes)
-% Ramp.alpha            = alpha-level for statistical inference, default = 0.05
-% Ramp.Flowamp          = Centre frequencies for phase frequency, e.g. [5:1:10]
-% Ramp.Flowamp_width    = Bandwidth for bandpass filter: Fphase +- Fphase_width
-% Ramp.Flowamp_order    = filter order, default = 2
-
-% custom_reg1.name       = name of additional regressor
-% custom_reg1.x          = time series of regressor
-
-% ...
-
-% Rpac.Fphase & Ramp.Flowamp should be equal if both are included in the GLM
 % Bernadette van Wijk, Vladimir Litvak
 
-%{
-window = 2;
-Rpac.include = 1;
-Ramp.include = 1;
-writeepochs =1;
-
-hamp = 60:10:150;
-lamp = 4:2:30;
-
-try Xamp.Famp;              catch, Xamp.Famp = hamp; end
-try Xamp.Famp_width;        catch, Xamp.Famp_width = 10; end
-try Xamp.Famp_order;        catch, Xamp.Famp_order=4; end
-if Rpac.include
-    try Rpac.alpha;         catch, Rpac.alpha=.05; end
-    try Rpac.Fphase;        catch, Rpac.Fphase = lamp; end
-    try Rpac.Fphase_width;  catch, Rpac.Fphase_width=2; end
-    try Rpac.Fphase_order;  catch, Rpac.Fphase_order=2; end
-end
-if Ramp.include
-    try Ramp.alpha;         catch, Ramp.alpha=.05; end
-    try Ramp.Flowamp;       catch, Ramp.Flowamp = lamp; end
-    try Ramp.Flowamp_width; catch, Ramp.Flowamp_width=2; end
-    try Ramp.Flowamp_order; catch, Ramp.Flowamp_order=2; end
-end
-%}
-
-SVNrev = '$Rev: 6188 $';
+SVNrev = '$Rev: 6199 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -74,7 +20,6 @@ D = spm_eeg_load(S.D);
 
 if ~isfield(S, 'conditions') || isempty(S.conditions),  S.conditions = D.condlist;  end
 if ~iscell(S.conditions), S.conditions = {S.conditions};                            end
-
 
 if ~isequal(D.transformtype, 'TF')
     error('The input should time-frequency dataset');
@@ -107,8 +52,8 @@ for i = 1:numel(S.confounds)
     res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
     
     allconfounds   = spm_cat_struct(allconfounds, res);
+    cnt=cnt+1;
 end
-
 
 freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
 if isempty(freqind) || any(isnan(freqind))
@@ -250,9 +195,22 @@ for i = 1:numel(allamp)
     end
 end
 
+% ---------------------------
+% set low frequency axis
+if isempty(amp_low); Flow=phasefreq;
+elseif isempty(cosine); Flow=ampfreq;
+else
+    Flow = cat(1, phasefreq, ampfreq);
+    % Could this possibly be relaxed?
+    if any(any(diff(Flow, [], 1)))
+        error('The frequency axes for all regressors should be identical');
+    else
+        Flow = Flow(1, :);
+    end
+end
 
 % --------------------------------------------
-% get amplitude time series for low frequencies
+% get time series for confounders
 CONFOUNDS = {};
 confounds = {};
 for i = 1:numel(allconfounds)
@@ -283,21 +241,13 @@ for i = 1:numel(allconfounds)
             CONFOUNDS{i}(j,:) = (CONFOUNDS{i}(j,:)-mean(CONFOUNDS{i}(j,:)))./std(CONFOUNDS{i}(j,:));
         end
     end
+    if nconf==1&&length(Flow)>1;
+        CONFOUNDS{i}=repmat(CONFOUNDS{i},length(Flow),1);
+        confounds{i}=repmat(confounds{i},[length(Flow),1,1]);
+    end
 end
 
 fprintf('\n\n')
-
-if isempty(amp_low); Flow=phasefreq;
-elseif isempty(cosine); Flow=ampfreq;
-else
-    Flow = cat(1, phasefreq, ampfreq);
-    % Could this possibly be relaxed?
-    if any(any(diff(Flow, [], 1)))
-        error('The frequency axes for all regressors should be identical');
-    else
-        Flow = Flow(1, :);
-    end
-end
 
 % --------------------------------------------
 % compute GLM
@@ -360,9 +310,8 @@ for j=1:length(Flow)
         all_SSe_total=sum((all_residuals_total-mean(all_residuals_total)).^2);
         all_r_total(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_total)/all_SSy(N,j)));
         
-        
         % --------------------------------------------
-        % GLM per trial
+        %GLM per trial
         
         for k=1:nepochs
             
@@ -482,6 +431,7 @@ sig_total=(p_total<=siglevel);
 subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');title('full model');colorbar;
 subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_total),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
 
+
 % --------------------------------------------
 % write out images
 
@@ -515,6 +465,7 @@ for nph=1:numel(allphase)
         end
     end
 end
+if isempty(nph);nph=0;end
 for nam=1:numel(allamp)
     image(cnt).val     = all_Beta_amp{nam};
     image(cnt).label   = ['c_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
@@ -534,6 +485,7 @@ for nam=1:numel(allamp)
         end
     end
 end
+if isempty(nam);nam=0;end
 for ncf=1:numel(allconfounds)
     image(cnt).val     = all_Beta_conf{ncf};
     image(cnt).label   = ['r_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
