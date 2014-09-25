@@ -7,17 +7,17 @@ function varargout = spm_atlas(action,varargin)
 % FORMAT VM = spm_atlas('mask',xA,label)
 % FORMAT V = spm_atlas('prob',xA,label)
 % FORMAT V = spm_atlas('maxprob',xA,thresh)
+% FORMAT D = spm_atlas('dir')
 %
-% FORMAT sts = spm_atlas('install',atlas)
 % FORMAT hC = spm_atlas('menu',F)
 % FORMAT spm_atlas('label',xA)
-% FORMAT D = spm_atlas('dir')
-% FORMAT def = spm_atlas('def')
+% FORMAT labels = spm_atlas('import_labels',labelfile,fmt)
+% FORMAT spm_atlas('save_labels',labelfile,labels)
 %__________________________________________________________________________
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6196 2014-09-24 18:02:17Z guillaume $
+% $Id: spm_atlas.m 6200 2014-09-25 17:33:13Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -94,7 +94,7 @@ case 'load'
                     l = 1:numel(xA.VA);
                 end
                 for i=1:numel(l)
-                    xA.labels(i) = struct('name',sprintf('label_%04d',i),'index',l(i));
+                    xA.labels(i) = struct('name',sprintf('Label %04d (%d)',i,l(i)),'index',l(i));
                 end
             end
         otherwise
@@ -147,6 +147,8 @@ case 'label'
 %==========================================================================
     % FORMAT spm_atlas('label',atlas)
     %-Use atlas to label suprathreshold features
+    
+    fprintf('*** Use atlas labelling with great caution ***\n');
     
     spm('Pointer','Watch')
 
@@ -205,6 +207,7 @@ case 'label'
     hAx       = findobj('Tag','SPMList');
     if isempty(hAx), spm('Pointer','Arrow'), return; end
     UD        = get(hAx,'UserData');
+    if isempty(UD), spm('Pointer','Arrow'); return; end
     HlistXYZ  = UD.HlistXYZ(ishandle(UD.HlistXYZ));
 
     for i=1:numel(HlistXYZ)
@@ -424,12 +427,14 @@ case 'maxprob'
     
     if nargin < 2, xA = ''; else xA = varargin{1}; end
     xA = spm_atlas('load',xA);
-    if nargin < 3, thresh = 0; else thresh = varargin{2}; end
+    if nargin < 3 || isempty(varargin{2}), thresh = 0; else thresh = varargin{2}; end
+    
+    typ = 'int16';
     
     V = struct(...
         'fname',   [xA.info.name '_maxprob_thresh' num2str(thresh) spm_file_ext],...
         'dim',     xA.VA(1).dim,...
-        'dt',      [spm_type('uint8') spm_platform('bigend')],...
+        'dt',      [spm_type(typ) spm_platform('bigend')],...
         'mat',     xA.VA(1).mat,...
         'n',       1,...
         'pinfo',   [1 0 0]',...
@@ -444,7 +449,7 @@ case 'maxprob'
         [Y,V.dat(:,:,i)] = max(Y,[],3);
         V.dat(:,:,i) = V.dat(:,:,i) .* (Y > thresh);
     end
-    V.dat = uint8(V.dat);
+    V.dat = feval(cell2mat(spm_type(typ,'conv')),V.dat);
     
     varargout = { V };
     
@@ -686,7 +691,7 @@ case 'import_labels'
     end
     
     if nargin < 3
-        fmt = '';
+        fmt = 'default';
     else
         fmt = varargin{2};
     end
@@ -694,6 +699,27 @@ case 'import_labels'
     labels = read_labels(labelfile,fmt);
     
     varargout = { labels };
+    
+    
+%==========================================================================
+case 'save_labels'
+%==========================================================================
+    % FORMAT spm_atlas('save_labels',labelfile,labels)
+    %-Save labels to file
+    
+    if isempty(varargin) || isempty(varargin{1})
+        labelfile = 'labels.txt';
+    else
+        labelfile = varargin{1};
+    end
+    
+    if nargin < 3
+        labels = spm_atlas('import_labels');
+    else
+        labels = varargin{2};
+    end
+    
+    save_labels(labelfile,labels);
     
     
 %==========================================================================
@@ -708,78 +734,86 @@ end
 %==========================================================================
 function labels = read_labels(labelfile,fmt)
 fid        = fopen(labelfile,'rt');
-if fid == -1, error('Cannot find atlas labels: "%s".',labelfile); end
+if fid == -1, error('Cannot open atlas labels: "%s".',labelfile); end
 
 try
-switch lower(fmt)
-    case 'aal'
-    % AAL
-    % ShortName Long_Name Key
-    L = textscan(fid,'%s %s %d');
-    labels = struct('name',L{2},'index',num2cell(L{3}));
-    
-    case 'freesurfer'
-    % FreeSurfer
-    % Key Long-Name Red Green Blue Alpha
-    L = textscan(fid,'%d %s %d %d %d %d','CommentStyle','#');
-    labels = struct('name',L{2},'index',num2cell(L{1}));
-    
-    case 'brainvisa'
-    % Brainvisa
-    % Key, X, Y, Z, Red, Green, Blue, Acronym, Short Name
-    L = textscan(fid,'%d %f %f %f %d %d %d %s %s','Delimiter',',','HeaderLines',1);
-    labels = struct('name',L{9},'index',num2cell(L{1}));
-    
-    case 'talairach'
-    % Talairach
-    % Key <TAB> Long Name
-    L = textscan(fid,'%d %s','Delimiter','\t');
-    labels = struct('name',L{2},'index',num2cell(L{1}));
-    
-    % MRIcron JHU-WhiteMatter
-    % Key <TAB> Long_Name
-    % L = textscan(fid,'%d %s','Delimiter','\t');
-    % labels = {{} L{2} L{1}};
-    
-    % MRIcron Brodmann
-    % labels = {{} cellfun(@(x) sprintf('Brodmann %d',x),num2cell(1:52),'UniformOutput',0) (1:52)};
-    
-    % WFU PickAtlas
-    % Key <TAB> Long Name <TAB> *
-    % L = textscan(fid,'%d %s %*[^\n]','Delimiter','\t','CommentStyle',{'[' ']'});
-    
-    case 'hammers_mith'
-    % Hammers_mith
-    % Long_Name *
-    L = textscan(fid,'%s','Delimiter',',','HeaderLines',2,'MultipleDelimsAsOne',1);
-    labels = struct('name',L{1}(1:end-2),'index',num2cell((1:numel(L{1})-2)'));
-    
-    case 'cerebellum'
-    % Joern's Cerebellum MNIsegment-MRICroN
-    % Key Long_Name ???
-    L = textscan(fid,'%d %s %d','Delimiter',' ');
-    labels = struct('name',L{2},'index',num2cell(L{1}));
-    
-    case 'fsl'
-    % FSL
-    % XML: <label index="Key" x="X" y="Y" z="Z">Long Name</label>
-    X = xmltree(labelfile);
-    I = find(X,'/atlas/data/label');
-    for i=1:numel(I)
-        labels(i).name = get(X,children(X,I(i)),'value');
-        A = attributes(X,'get',I(i)); A = [A{:}];
-        labels(i).index = str2double(A(strcmp({A.key},'index')).val) + 1; % + 1?
+    switch lower(fmt)
+        case 'default'
+        % Default
+        % Key Long Name
+        L = textscan(fid,'%d %s','Delimiter','','ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{1}));
+        
+        case 'aal'
+        % AAL
+        % ShortName Long_Name Key
+        L = textscan(fid,'%s %s %d','ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{3}));
+
+        case 'freesurfer'
+        % FreeSurfer
+        % Key Long-Name Red Green Blue Alpha
+        L = textscan(fid,'%d %s %d %d %d %d','CommentStyle','#','ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{1}));
+
+        case 'brainvisa'
+        % Brainvisa
+        % Key, X, Y, Z, Red, Green, Blue, Acronym, Short Name
+        L = textscan(fid,'%d %f %f %f %d %d %d %s %s','Delimiter',',','HeaderLines',1,'ReturnOnError',false);
+        labels = struct('name',L{9},'index',num2cell(L{1}));
+
+        case 'talairach'
+        % Talairach
+        % Key <TAB> Long Name
+        L = textscan(fid,'%d %s','Delimiter','\t','ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{1}));
+
+        % MRIcron JHU-WhiteMatter
+        % Key <TAB> Long_Name
+        % L = textscan(fid,'%d %s','Delimiter','\t','ReturnOnError',false);
+        % labels = {{} L{2} L{1}};
+
+        % MRIcron Brodmann
+        % labels = {{} cellfun(@(x) sprintf('Brodmann %d',x),num2cell(1:52),'UniformOutput',0) (1:52)};
+
+        case 'wfu_pickatlas'
+        % WFU PickAtlas
+        % Key <TAB> Long Name <TAB> *
+        L = textscan(fid,'%d %s %*[^\n]','Delimiter','\t','CommentStyle',{'[' ']'},'ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{1}));
+
+        case 'hammers_mith'
+        % Hammers_mith
+        % Long_Name *
+        L = textscan(fid,'%s','Delimiter',',','HeaderLines',2,'MultipleDelimsAsOne',1,'ReturnOnError',false);
+        labels = struct('name',L{1}(1:end-2),'index',num2cell((1:numel(L{1})-2)'));
+
+        case 'cerebellum'
+        % Joern's Cerebellum MNIsegment-MRICroN
+        % Key Long_Name ???
+        L = textscan(fid,'%d %s %d','Delimiter',' ','ReturnOnError',false);
+        labels = struct('name',L{2},'index',num2cell(L{1}));
+
+        case 'fsl'
+        % FSL
+        % XML: <label index="Key" x="X" y="Y" z="Z">Long Name</label>
+        X = xmltree(labelfile);
+        I = find(X,'/atlas/data/label');
+        for i=1:numel(I)
+            labels(i).name = get(X,children(X,I(i)),'value');
+            A = attributes(X,'get',I(i)); A = [A{:}];
+            labels(i).index = str2double(A(strcmp({A.key},'index')).val) + 1; % + 1?
+        end
+
+        case 'itk-snap'
+        % Colin 27: ITK-SNAP Label Description File
+        % Key Red Green Blue Alpha Vis Idx "Long Name"
+        L = textscan(fid,'%d %d %d %d %d %d %d "%[^"]"','CommentStyle','#','ReturnOnError',false);
+        labels = struct('name',L{8},'index',num2cell(L{1}));
+
+        otherwise
+            error('Unknown label file format.');
     end
-    
-    case 'itk-snap'
-    % Colin 27: ITK-SNAP Label Description File
-    % Key Red Green Blue Alpha Vis Idx "Long Name"
-    L = textscan(fid,'%d %d %d %d %d %d %d "%[^"]"','CommentStyle','#');
-    labels = struct('name',L{8},'index',num2cell(L{1}));
-    
-    otherwise
-        error('Unknown label file format.');
-end
 catch
     fclose(fid);
     error('Cannot read atlas labels in: "%s".',labelfile);
@@ -795,34 +829,58 @@ switch spm_file(labelfile,'ext')
     case 'txt'
         fid = fopen(labelfile,'wt');
         if fid == -1, error('Cannot write file "%s".',labelfile); end
-        for i=1:numel(labels{3})
-            fprintf(fid,'%d\t%s\n',labels{3}(i),labels{2}{i});
+        for i=1:numel(labels)
+            fprintf(fid,'%d %s\n',labels(i).index,labels(i).name);
         end
         fclose(fid);
     case 'xml'
-        t = xmltree;
-        t = set(t,root(t),'name','atlas');
-        t = attributes(t,'add',root(t),'version','1.0');
-        [t,hdr] = add(t,root(t),'element','header');
-        [t,nam] = add(t,hdr,'element','name');
-        t = add(t,nam,'chardata','');
-        [t,typ] = add(t,hdr,'element','type');
-        t = add(t,typ,'chardata','');
-        [t,img] = add(t,hdr,'element','images');
-        [t,imf] = add(t,img,'element','imagefile');
-        t = add(t,imf,'chardata','');
-        %[t,ims] = add(t,img,'element','summaryimagefile');
-        %t = add(t,ims,'chardata','');
-        [t,uid] = add(t,root(t),'element','data');
-        for i=1:numel(labels{3})
-            [t,lab] = add(t,uid,'element','label');
-            t = add(t,lab,'chardata',labels{2}{i});
-            t = attributes(t,'add',lab,'index',num2str(labels{3}{i}));
-            %t = attributes(t,'add',lab,'x',num2str(0));
-            %t = attributes(t,'add',lab,'y',num2str(0));
-            %t = attributes(t,'add',lab,'z',num2str(0));
+%         t = xmltree;
+%         t = set(t,root(t),'name','atlas');
+%         t = attributes(t,'add',root(t),'version','2.0');
+%         [t,hdr] = add(t,root(t),'element','header');
+%         [t,nam] = add(t,hdr,'element','name');
+%         t = add(t,nam,'chardata','');
+%         [t,typ] = add(t,hdr,'element','type');
+%         t = add(t,typ,'chardata','');
+%         [t,img] = add(t,hdr,'element','images');
+%         [t,imf] = add(t,img,'element','imagefile');
+%         t = add(t,imf,'chardata','');
+%         %[t,ims] = add(t,img,'element','summaryimagefile');
+%         %t = add(t,ims,'chardata','');
+%         [t,uid] = add(t,root(t),'element','data');
+%         for i=1:numel(labels)
+%             [t,lab] = add(t,uid,'element','label');
+%             t = add(t,lab,'chardata',labels(i).name);
+%             t = attributes(t,'add',lab,'index',num2str(labels(i).index));
+%             %t = attributes(t,'add',lab,'x',num2str(0));
+%             %t = attributes(t,'add',lab,'y',num2str(0));
+%             %t = attributes(t,'add',lab,'z',num2str(0));
+%         end
+%         save(t,labelfile);
+        fid = fopen(labelfile,'wt');
+        if fid == -1, error('Cannot write file "%s".',labelfile); end
+        fprintf(fid,'<?xml version="1.0" encoding="ISO-8859-1"?>\n');
+        fprintf(fid,'<atlas version="2.0">\n');
+        fprintf(fid,'\t<header>\n');
+        fprintf(fid,'\t\t<name>%s</name>\n',spm_file(labelfile,'basename'));
+        fprintf(fid,'\t\t<version>%s</version>\n','1.0');
+        fprintf(fid,'\t\t<description>%s</description>\n',spm_file(labelfile,'basename'));
+        fprintf(fid,'\t\t<url>%s</url>\n','');
+        fprintf(fid,'\t\t<licence>%s</licence>\n','');
+        fprintf(fid,'\t\t<coordinate_system>MNI</coordinate_system>\n');
+        fprintf(fid,'\t\t<type>%s</type>\n','Label'); % or 'Probabilistic'
+        fprintf(fid,'\t\t<images>\n');
+        fprintf(fid,'\t\t\t<imagefile>%s</imagefile>\n',spm_file(labelfile,'path','','ext',spm_file_ext));
+        fprintf(fid,'\t\t</images>\n');
+        fprintf(fid,'\t</header>\n');
+        fprintf(fid,'\t<data>\n');
+        for i=1:numel(labels)
+            fprintf(fid,'\t\t<label><index>%d</index><name>%s</name></label>\n',...
+                labels(i).index,labels(i).name);
         end
-        save(t,labelfile);
+        fprintf(fid,'\t</data>\n');
+        fprintf(fid,'</atlas>\n');
+        fclose(fid);
     otherwise
         error('Unknown label file format.');
 end

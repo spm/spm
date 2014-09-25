@@ -9,7 +9,7 @@ function ret = spm_ov_display(varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_ov_display.m 6181 2014-09-17 16:35:39Z guillaume $
+% $Id: spm_ov_display.m 6200 2014-09-25 17:33:13Z guillaume $
 
 
 switch lower(varargin{1})
@@ -29,15 +29,15 @@ switch lower(varargin{1})
             'Label', 'Coordinates', ...
             'Tag', 'OVmenu_Coordinates',...
             'Callback', @orthviews_display);
-%         item4 = uimenu(item0, ...
-%             'Label', 'Labels');
-%         list = spm_atlas('List','installed');
-%         for i=1:numel(list)
-%             uimenu(item4, ...
-%             'Label', list(i).name, ...
-%             'Tag', ['OVmenu_' list(i).name],...
-%             'Callback', @orthviews_display);
-%         end
+        item4 = uimenu(item0, ...
+            'Label', 'Labels');
+        list = spm_atlas('List','installed');
+        for i=1:numel(list)
+            uimenu(item4, ...
+            'Label', list(i).name, ...
+            'Tag', ['OVmenu_' list(i).name],...
+            'Callback', @orthviews_display);
+        end
         ret = item0;
     case 'redraw'
         orthviews_display_redraw(varargin{2:end});

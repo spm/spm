@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 5959 2014-04-16 17:14:33Z will $
+% $Id: spm_getSPM.m 6200 2014-09-25 17:33:13Z guillaume $
 
 
 %-GUI setup
@@ -373,8 +373,8 @@ try
     Mask = ~isempty(xSPM.Im) * (isnumeric(xSPM.Im) + 2*iscellstr(xSPM.Im));
 catch
     % Mask = spm_input('mask with other contrast(s)','+1','y/n',[1,0],2);
-    % Mask = spm_input('apply masking','+1','b','none|contrast|image|atlas',[0,1,2,3],1);
-    Mask = spm_input('apply masking','+1','b','none|contrast|image',[0,1,2],1);
+    % Mask = spm_input('apply masking','+1','b','none|contrast|image',[0,1,2],1);
+    Mask = spm_input('apply masking','+1','b','none|contrast|image|atlas',[0,1,2,3],1);
 end
 if Mask == 1
     
@@ -428,11 +428,12 @@ elseif Mask == 3 % unused
     %-Get mask from atlas
     %----------------------------------------------------------------------
     try
-        error('Im = xSPM.Im;');
+        error('Im = xSPM.Im;');                  % interactive only
     catch
-        VM     = spm_atlas('mask');            % get atlas mask
-        VM     = spm_write_vol(VM,VM.dat);     % write mask
-        Im     = cellstr(VM.fname);
+        VM       = spm_atlas('mask');            % get atlas mask
+        VM.fname = spm_file(VM.fname,'unique');
+        VM       = spm_write_vol(VM,VM.dat);     % write mask
+        Im       = cellstr(VM.fname);
     end
     
     %-Inclusive or exclusive masking

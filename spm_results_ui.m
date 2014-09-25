@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6196 2014-09-24 18:02:17Z guillaume $
+% $Id: spm_results_ui.m 6200 2014-09-25 17:33:13Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6196 $'; 
+SVNid = '$Rev: 6200 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -285,20 +285,24 @@ switch lower(Action), case 'setup'                         %-Set up results
         end
     catch
         try
-            if strcmp(spm('CheckModality'),'EEG')
-                datatype = {...
-                    'Volumetric (2D/3D)',...
-                    'Scalp-Time',...
-                    'Scalp-Frequency',...
-                    'Time-Frequency',...
-                    'Frequency-Frequency'};
-                selected = spm_input('Data Type: ','+1','m',datatype);
-                datatype = datatype{selected};
-            else
-                datatype = 'Volumetric (2D/3D)';
-            end
+            Modality = spm('CheckModality');
         catch
-            datatype     = 'Volumetric (2D/3D)';
+            Modality = {'PET','FMRI','EEG'};
+            selected = spm_input('Modality: ','+1','m',Modality);
+            Modality = Modality{selected};
+            spm('ChMod',Modality);
+        end
+        if strcmp(Modality,'EEG')
+            datatype = {...
+                'Volumetric (2D/3D)',...
+                'Scalp-Time',...
+                'Scalp-Frequency',...
+                'Time-Frequency',...
+                'Frequency-Frequency'};
+            selected = spm_input('Data Type: ','+1','m',datatype);
+            datatype = datatype{selected};
+        else
+            datatype = 'Volumetric (2D/3D)';
         end
         
         switch datatype
@@ -347,7 +351,9 @@ switch lower(Action), case 'setup'                         %-Set up results
     
     %-Atlas menu
     %----------------------------------------------------------------------
-    hAtlasUI  = spm_results_ui('SetupAtlasMenu',Finter);
+    if isequal(units,{'mm' 'mm' 'mm'})
+        hAtlasUI = spm_results_ui('SetupAtlasMenu',Finter);
+    end
     
     %-Setup Maximum intensity projection (MIP) & register
     %----------------------------------------------------------------------
@@ -658,11 +664,12 @@ switch lower(Action), case 'setup'                         %-Set up results
  
         %-Not currently used
         %------------------------------------------------------------------
-        %uicontrol(Finter,'Style','PushButton','String','','FontSize',FS(10),...
+        %uicontrol('Parent',hReg,'Style','PushButton','String','',...
+        %     'FontSize',FS(10),...
         %     'ToolTipString','',...
         %     'Callback','',...
         %     'Interruptible','on','Enable','on',...
-        %     'Position',[015 055 100 020].*WS)
+        %     'Position',[010 050 100 020].*WS);
 
         %-Visualisation
         %------------------------------------------------------------------
@@ -1218,6 +1225,7 @@ switch lower(Action), case 'setup'                         %-Set up results
         end
  
         delete(H)
+        %set(F,'resize','on');set(F,'resize','off')
  
         if mode==0  %-Hide the permanent results section stuff
             set(HR,'Visible','off')
