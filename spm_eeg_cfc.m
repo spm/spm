@@ -1,15 +1,28 @@
 function spm_eeg_cfc(S)
-
-% computes GLM for phase-amplitude and amplitude-amplitude coupling as described in van Wijk et al. (submitted)
-% Xamp = independent variable to be explained: Xamp = B1*sin(Xphase) + B2*cos(Xphase) + B3*Xlowamp
-% additional regressors may be included
-% - overall estimates of PAC & AMP are obtained from continuous (or concatenated) data
-% - statistical inference of these estimates is performed by dividing the continuous time series into shorter epochs
-% - function writes out images of the estimad PAC & AMP, as well as their p values
+% Compute GLM for phase-amplitude and amplitude-amplitude coupling
+% FORMAT spm_eeg_cfc(S)
+%
+% Xamp = independent variable to be explained:
+%        Xamp = B1*sin(Xphase) + B2*cos(Xphase) + B3*Xlowamp
+%
+% Additional regressors may be included
+% - overall estimates of PAC & AMP are obtained from continuous (or
+%   concatenated) data
+% - statistical inference of these estimates is performed by dividing the
+%   continuous time series into shorter epochs
+% - function writes out images of the estimated PAC & AMP, as well as their
+%   p-values
+%__________________________________________________________________________
+%
+% References:
+% van Wijk et al. (submitted)
+%__________________________________________________________________________
+% Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
+% $Id: spm_eeg_cfc.m 6201 2014-09-25 17:50:16Z guillaume $
 
-SVNrev = '$Rev: 6199 $';
+SVNrev = '$Rev: 6201 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -22,19 +35,19 @@ if ~isfield(S, 'conditions') || isempty(S.conditions),  S.conditions = D.condlis
 if ~iscell(S.conditions), S.conditions = {S.conditions};                            end
 
 if ~isequal(D.transformtype, 'TF')
-    error('The input should time-frequency dataset');
+    error('The input should time-frequency dataset.');
 end
 
 allamp   = [];
 allphase = [];
-cnt=1;
+cnt      = 1;
 for i = 1:numel(S.regressors)
-    fun  = char(fieldnames(S.regressors{i}));
+    fun       = char(fieldnames(S.regressors{i}));
     S1{cnt}   = S.regressors{i}.(fun);
     S1{cnt}.D = D;
     S1{cnt}.summarise = false;
-    res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
-    cnt=cnt+1;
+    res       =  feval(['spm_eeg_regressors_' fun], S1{cnt});
+    cnt       = cnt + 1;
     switch fun
         case 'tfpower'
             allamp   = spm_cat_struct(allamp, res);
@@ -52,7 +65,7 @@ for i = 1:numel(S.confounds)
     res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
     
     allconfounds   = spm_cat_struct(allconfounds, res);
-    cnt=cnt+1;
+    cnt = cnt + 1;
 end
 
 freqind = D.indfrequency(min(S.freqwin)):D.indfrequency(max(S.freqwin));
@@ -78,8 +91,8 @@ else
     disp(['number of epochs used for statistics: ', num2str(nepochs)]);
 end
 
-% --------------------------------------------
-% get amplitude timeseries
+%-Get amplitude timeseries
+%--------------------------------------------------------------------------
 Famp = D.frequencies(freqind);
 for N = 1:length(freqind)
     fprintf('\nF amp = %.1f |\t', Famp(N));
@@ -107,8 +120,8 @@ end
 
 nsamples = size(data, 2);
 
-% --------------------------------------------
-% get phase time series
+%-Get phase time series
+%--------------------------------------------------------------------------
 SINE = {};
 sine = {};
 COSINE = {};
@@ -158,8 +171,8 @@ for i = 1:numel(allphase)
     end
 end
 
-% --------------------------------------------
-% get amplitude time series for low frequencies
+%-Get amplitude time series for low frequencies
+%--------------------------------------------------------------------------
 AMP_LOW = {};
 amp_low = {};
 
@@ -195,22 +208,22 @@ for i = 1:numel(allamp)
     end
 end
 
-% ---------------------------
-% set low frequency axis
+%-Set low frequency axis
+%--------------------------------------------------------------------------
 if isempty(amp_low); Flow=phasefreq;
 elseif isempty(cosine); Flow=ampfreq;
 else
     Flow = cat(1, phasefreq, ampfreq);
     % Could this possibly be relaxed?
     if any(any(diff(Flow, [], 1)))
-        error('The frequency axes for all regressors should be identical');
+        error('The frequency axes for all regressors should be identical.');
     else
         Flow = Flow(1, :);
     end
 end
 
-% --------------------------------------------
-% get time series for confounders
+%-Get time series for confounders
+%--------------------------------------------------------------------------
 CONFOUNDS = {};
 confounds = {};
 for i = 1:numel(allconfounds)
@@ -241,7 +254,7 @@ for i = 1:numel(allconfounds)
             CONFOUNDS{i}(j,:) = (CONFOUNDS{i}(j,:)-mean(CONFOUNDS{i}(j,:)))./std(CONFOUNDS{i}(j,:));
         end
     end
-    if nconf==1&&length(Flow)>1;
+    if nconf==1&&length(Flow)>1
         CONFOUNDS{i}=repmat(CONFOUNDS{i},length(Flow),1);
         confounds{i}=repmat(confounds{i},[length(Flow),1,1]);
     end
@@ -249,15 +262,15 @@ end
 
 fprintf('\n\n')
 
-% --------------------------------------------
-% compute GLM
+%-Compute GLM
+%--------------------------------------------------------------------------
 
 for j=1:length(Flow)
     fprintf('%d  ',Flow(j))
     for N=1:length(Famp)
         
-        % --------------------------------------------
         % GLM for all data appended
+        %------------------------------------------------------------------
         
         X=[];
         
@@ -277,7 +290,7 @@ for j=1:length(Flow)
         V=[];
         c=ones(nreg,1);
         
-        [T,df,all_Beta(N,j,:),xX,xCon]=spm_ancova(X',V,y',c);
+        [T,df,all_Beta(N,j,:),xX,xCon] = spm_ancova(X',V,y',c);
         
         all_SSy(N,j)=sum((y-mean(y)).^2);
         
@@ -310,8 +323,8 @@ for j=1:length(Flow)
         all_SSe_total=sum((all_residuals_total-mean(all_residuals_total)).^2);
         all_r_total(N,j)=real(sqrt((all_SSy(N,j)-all_SSe_total)/all_SSy(N,j)));
         
-        % --------------------------------------------
-        %GLM per trial
+        %-GLM per trial
+        %------------------------------------------------------------------
         
         for k=1:nepochs
             
@@ -333,7 +346,7 @@ for j=1:length(Flow)
             V=[];
             c=ones(nreg,1);
             
-            [T,df,Beta(:,k),xX,xCon]=spm_ancova(Xk',V,yk,c);
+            [T,df,Beta(:,k),xX,xCon] = spm_ancova(Xk',V,yk,c);
             
             cnt=1;
             for nph=1:numel(allphase)
@@ -360,8 +373,8 @@ for j=1:length(Flow)
             
         end %trials
         
-        % --------------------------------------------
-        % test for significance
+        %-Test for significance
+        %------------------------------------------------------------------
         
         cnt=1;
         for nph=1:numel(allphase)
@@ -432,9 +445,8 @@ subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');titl
 subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_total),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
 
 
-% --------------------------------------------
-% write out images
-
+%-Write out images
+%--------------------------------------------------------------------------
 cnt=1;
 
 for nph=1:numel(allphase)
@@ -465,7 +477,7 @@ for nph=1:numel(allphase)
         end
     end
 end
-if isempty(nph);nph=0;end
+if isempty(nph),nph=0;end
 for nam=1:numel(allamp)
     image(cnt).val     = all_Beta_amp{nam};
     image(cnt).label   = ['c_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
@@ -485,7 +497,7 @@ for nam=1:numel(allamp)
         end
     end
 end
-if isempty(nam);nam=0;end
+if isempty(nam),nam=0;end
 for ncf=1:numel(allconfounds)
     image(cnt).val     = all_Beta_conf{ncf};
     image(cnt).label   = ['r_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
@@ -516,11 +528,7 @@ image(cnt).val     = sig_total;
 image(cnt).label   = ['sig_total_',spm_file(fname, 'basename')];
 
 
-
-
-%% WRITE IMAGES
+%-Write images
+%==========================================================================
 
 % ...
-% ...
-% ...
-
