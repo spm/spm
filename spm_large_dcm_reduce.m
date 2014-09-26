@@ -17,7 +17,7 @@ function [DCM,S] = spm_large_dcm_reduce(DCM)
 % Copyright (C) 2012-2013 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_large_dcm_reduce.m 5632 2013-09-10 10:46:16Z guillaume $
+% $Id: spm_large_dcm_reduce.m 6204 2014-09-26 18:12:27Z mohamed $
 
 
 %-Create priors
@@ -137,6 +137,6 @@ DCM.qP.V{1} = spm_unvec(diag(Cp),Ep);
 % approximations to model evidence: negative free energy, AIC, BIC
 %--------------------------------------------------------------------------
 DCM.F    = F;
-evidence = spm_dcm_evidence(DCM);
-DCM.AIC  = evidence.aic_overall;
-DCM.BIC  = evidence.bic_overall;
+% evidence = spm_dcm_evidence(DCM);
+% DCM.AIC  = evidence.aic_overall;
+% DCM.BIC  = evidence.bic_overall;
