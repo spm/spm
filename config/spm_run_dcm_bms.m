@@ -17,10 +17,10 @@ function out = spm_run_dcm_bms(job)
 % Copyright (C) 2009-2014 Wellcome Trust Centre for Neuroimaging
 
 % CC Chen & Maria Joao Rosa
-% $Id: spm_run_dcm_bms.m 6004 2014-05-21 14:24:14Z guillaume $
+% $Id: spm_run_dcm_bms.m 6203 2014-09-26 14:36:54Z will $
 
 
-SVNid = '$Rev: 6004 $';
+SVNid = '$Rev: 6203 $';
 
 %-Say hello
 %--------------------------------------------------------------------------
@@ -397,6 +397,11 @@ else
         model.exp_r = exp_r;
         model.xp    = xp;
         family      = [];
+        
+        % Compute protected xp's
+        [tmp1,tmp2,tmp3,pxp,bor]=spm_BMS(F);
+        model.pxp=pxp;
+        model.bor=bor;
     else
         Ffam           = F(:,sort(m_indx));
         [family,model] = spm_compare_families(Ffam,family);
@@ -409,6 +414,21 @@ else
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp,family);
     else
         P = spm_api_bmc(sumF,N,model.exp_r,model.xp);
+        
+        % Plot protexted xp's
+        nm_tmp = length(N);
+        Fpxp  = spm_figure('Create','Graphics','BMS: results ...');
+        figure(Fpxp);
+        subplot(2,1,1)
+        bar(1:length(N),model.pxp(:)')
+        set(gca,'XTick',1:length(N))
+        set(gca,'XTickLabel',1:nm_tmp)
+        ylabel('Protected Exceedance Probability','Fontsize',14)
+        xlabel('Models','Fontsize',14)
+        title(sprintf('Prob of Equal Model Frequencies (BOR) = %1.2f',model.bor),'Fontsize',14);
+        axis square
+        grid on
+        
     end
     
     if bma_do
