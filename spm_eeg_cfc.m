@@ -20,9 +20,9 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 6201 2014-09-25 17:50:16Z guillaume $
+% $Id: spm_eeg_cfc.m 6205 2014-09-27 15:25:49Z vladimir $
 
-SVNrev = '$Rev: 6201 $';
+SVNrev = '$Rev: 6205 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -63,7 +63,7 @@ for i = 1:numel(S.confounds)
     S1{cnt}.D = D;
     S1{cnt}.summarise = false;
     res =  feval(['spm_eeg_regressors_' fun], S1{cnt});
-    
+    cnt=cnt+1;
     allconfounds   = spm_cat_struct(allconfounds, res);
     cnt = cnt + 1;
 end
@@ -74,6 +74,7 @@ if isempty(freqind) || any(isnan(freqind))
 end
 
 data = spm_squeeze(mean(D(D.selectchannels(S.channels), freqind, :, D.indtrial(S.conditions, 'GOOD')), 1), 1);
+
 cut  = round(D.fsample/4); %removed at start and end of each filter time series to avoid filter ringing - for trial type data this means a loss of samples per trial
 
 
@@ -90,6 +91,7 @@ else
     nepochs      = floor(totalsamples/trialsamples);
     disp(['number of epochs used for statistics: ', num2str(nepochs)]);
 end
+
 
 %-Get amplitude timeseries
 %--------------------------------------------------------------------------
@@ -119,6 +121,23 @@ for N = 1:length(freqind)
 end
 
 nsamples = size(data, 2);
+
+if strcmp(datatype,'trials')
+    bad  = spm_squeeze(any(D.badsamples(D.selectchannels(S.channels), cut:D.nsamples-cut, D.indtrial(S.conditions, 'GOOD')), 1), 1);
+    BAD  = zeros(1, size(AMP, 2));
+    for k = 1:size(bad, 2)
+        BAD((k-1)*trialsamples+1:k*trialsamples) = bad(:, k);
+    end
+elseif strcmp(datatype,'continuous')
+    BAD  = spm_squeeze(any(D.badsamples(D.selectchannels(S.channels), ':', 1), 1), 1);
+    BAD  = BAD(cut:end-cut);
+    
+    bad = zeros(size(amp, 2), size(amp, 3));
+    for k = 1:nepochs
+        bad(k, :)  = BAD((k-1)*trialsamples+1:k*trialsamples);
+    end
+end
+bad = bad';
 
 %-Get phase time series
 %--------------------------------------------------------------------------
@@ -262,11 +281,17 @@ end
 
 fprintf('\n\n')
 
+
+W        = ones(length(BAD), 1);
+W(~~BAD) = exp(-256);
+W        = spdiags(W, 0, length(W), length(W));
+
 %-Compute GLM
 %--------------------------------------------------------------------------
+spm_progress_bar('Init', length(Flow), 'Fitting GLM', 'Frequency');
 
 for j=1:length(Flow)
-    fprintf('%d  ',Flow(j))
+    fprintf('%.1f  ',Flow(j))
     for N=1:length(Famp)
         
         % GLM for all data appended
@@ -285,7 +310,10 @@ for j=1:length(Flow)
         end
         
         nreg=size(X,1);
-        y=AMP(N,:);
+        
+        X = X*W;
+        
+        y = AMP(N,:)*W;
         
         V=[];
         c=ones(nreg,1);
@@ -325,52 +353,64 @@ for j=1:length(Flow)
         
         %-GLM per trial
         %------------------------------------------------------------------
+        k_good = 0;
         
-        for k=1:nepochs
-            
-            Xk=[];
-            
-            for nph=1:numel(allphase)
-                Xk=[Xk;squeeze(sine{nph}(j,k,:))';squeeze(cosine{nph}(j,k,:))'];
-            end
-            for nam=1:numel(allamp)
-                Xk=[Xk;squeeze(amp_low{nam}(j,k,:))'];
-            end
-            for ncf=1:numel(allconfounds)
-                Xk=[Xk;squeeze(confounds{ncf}(j,k,:))'];
-            end
-            
-            nreg=size(Xk,1);
-            yk=squeeze(amp(N,k,:));
-            
-            V=[];
-            c=ones(nreg,1);
-            
-            [T,df,Beta(:,k),xX,xCon] = spm_ancova(Xk',V,yk,c);
-            
-            cnt=1;
-            for nph=1:numel(allphase)
-                if S1{nph}.summarise
-                    Beta_sin{nph}(N,j,k)=Beta(cnt,k);
-                    Beta_cos{nph}(N,j,k)=Beta(cnt+1,k);
-                    cnt=cnt+2;
+        for k = 1:nepochs
+            % Exclude epochs with mostly bad data
+            if (sum(bad(k, :))/size(bad, 2))<0.5;
+                k_good = k_good + 1;
+                
+                Wk              = ones(size(bad, 2), 1);
+                Wk(~~bad(k, :)) = exp(-256);
+                Wk = spdiags(Wk, 0, length(Wk), length(Wk));
+                
+                
+                Xk=[];
+                
+                for nph=1:numel(allphase)
+                    Xk=[Xk;squeeze(sine{nph}(j,k,:))';squeeze(cosine{nph}(j,k,:))'];
+                end
+                for nam=1:numel(allamp)
+                    Xk=[Xk;squeeze(amp_low{nam}(j,k,:))'];
+                end
+                for ncf=1:numel(allconfounds)
+                    Xk=[Xk;squeeze(confounds{ncf}(j,k,:))'];
+                end
+                
+                Xk = Xk*Wk;
+                
+                nreg=size(Xk,1);
+                
+                yk = Wk*squeeze(amp(N,k,:));
+                
+                V=[];
+                c=ones(nreg,1);
+                
+                [T,df,Beta(:,k_good),xX,xCon] = spm_ancova(Xk',V,yk,c);
+                
+                cnt=1;
+                for nph=1:numel(allphase)
+                    if S1{nph}.summarise
+                        Beta_sin{nph}(N,j,k_good)=Beta(cnt,k_good);
+                        Beta_cos{nph}(N,j,k_good)=Beta(cnt+1,k_good);
+                        cnt=cnt+2;
+                    end
+                end
+                if isempty(nph);nph=0;end
+                for nam=1:numel(allamp)
+                    if S1{nph+nam}.summarise
+                        Beta_amp{nam}(N,j,k_good)=Beta(cnt,k_good);
+                        cnt=cnt+1;
+                    end
+                end
+                if isempty(nam);nam=0;end
+                for ncf=1:numel(allconfounds)
+                    if S1{nph+nam+ncf}.summarise
+                        Beta_conf{ncf}(N,j,k_good)=Beta(cnt,k_good);
+                        cnt=cnt+1;
+                    end
                 end
             end
-            if isempty(nph);nph=0;end
-            for nam=1:numel(allamp)
-                if S1{nph+nam}.summarise
-                    Beta_amp{nam}(N,j,k)=Beta(cnt,k);
-                    cnt=cnt+1;
-                end
-            end
-            if isempty(nam);nam=0;end
-            for ncf=1:numel(allconfounds)
-                if S1{nph+nam+ncf}.summarise
-                    Beta_conf{ncf}(N,j,k)=Beta(cnt,k);
-                    cnt=cnt+1;
-                end
-            end
-            
         end %trials
         
         %-Test for significance
@@ -379,7 +419,7 @@ for j=1:length(Flow)
         cnt=1;
         for nph=1:numel(allphase)
             Xb=[];
-            Xb(1:k,1)=ones(k,1);Xb(k+1:2*k,2)=ones(k,1);
+            Xb(1:k_good,1)=ones(k_good,1);Xb(k_good+1:2*k_good,2)=ones(k_good,1);
             yb=[Beta(cnt,:),Beta(cnt+1,:)];
             c=[1;1];
             [Tb,df,Beta_b,xX,xCon]=spm_ancova(Xb,V,yb',c);
@@ -401,7 +441,7 @@ for j=1:length(Flow)
         Xb=[];
         yb=[];
         for i=1:nreg
-            Xb((i-1)*k+1:i*k,i)=ones(k,1);
+            Xb((i-1)*k_good+1:i*k_good,i)=ones(k_good,1);
             yb=[yb,Beta(i,:)];
         end
         
@@ -413,11 +453,22 @@ for j=1:length(Flow)
         
         
     end %N
+    
+    spm_progress_bar('Set', i);
 end %j
+
+spm_progress_bar('Clear');
+
+%% - Plot results
+%--------------------------------------------------------------------------
+
+outname  = [S.prefix 'cfc_' spm_file(D.fname, 'basename')];
 
 siglevel=.05;
 cnt=1;
-figure
+
+Fgraph   = spm_figure('GetWin', outname); figure(Fgraph); clf
+
 nsub=ceil(length(S1))+1;
 
 for nph=1:numel(allphase)
@@ -443,36 +494,37 @@ end
 sig_total=(p_total<=siglevel);
 subplot(nsub,2,cnt),imagesc(Flow,Famp,all_r_total),set(gca,'ydir','normal');title('full model');colorbar;
 subplot(nsub,2,cnt+1),imagesc(Flow,Famp,sig_total),set(gca,'ydir','normal');title(['significant p<.05']), colorbar;
-
+%%
 
 %-Write out images
 %--------------------------------------------------------------------------
+
 cnt=1;
 
 for nph=1:numel(allphase)
     image(cnt).val     = all_r_pac{nph};
-    image(cnt).label   = ['r_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['r_pac_reg',num2str(nph)];
     cnt=cnt+1;
     image(cnt).val     = p_pac{nph};
-    image(cnt).label   = ['p_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['p_pac_reg',num2str(nph)];
     cnt=cnt+1;
     image(cnt).val     = sig_pac{nph};
-    image(cnt).label   = ['sig_pac_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['sig_pac_reg',num2str(nph)];
     cnt=cnt+1;
     image(cnt).val     = all_Beta_sin{nph};
-    image(cnt).label   = ['r_Bsin_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['r_Bsin_reg',num2str(nph)];
     cnt=cnt+1;
     image(cnt).val     = all_Beta_cos{nph};
-    image(cnt).label   = ['r_Bcos_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['r_Bcos_reg',num2str(nph)];
     cnt=cnt+1;
     
     if S1{nph}.summarise
         for k=1:nepochs
             image(cnt).val = squeeze(Beta_sin{nph}(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_Bsin_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+            image(cnt).label   = ['trial',num2str(k),'_Bsin_reg',num2str(nph)];
             cnt=cnt+1;
             image(cnt).val = squeeze(Beta_cos{nph}(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_Bcos_reg',num2str(nph),'_',spm_file(fname, 'basename')];
+            image(cnt).label   = ['trial',num2str(k),'_Bcos_reg',num2str(nph)];
             cnt=cnt+1;
         end
     end
@@ -480,19 +532,19 @@ end
 if isempty(nph),nph=0;end
 for nam=1:numel(allamp)
     image(cnt).val     = all_Beta_amp{nam};
-    image(cnt).label   = ['c_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['c_amp_reg',num2str(nam)];
     cnt=cnt+1;
     image(cnt).val     = p_amp{nam};
-    image(cnt).label   = ['p_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['p_amp_reg',num2str(nam)];
     cnt=cnt+1;
     image(cnt).val     = sig_amp{nam};
-    image(cnt).label   = ['sig_amp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['sig_amp_reg',num2str(nam)];
     cnt=cnt+1;
     
     if S1{nph+nam}.summarise
         for k=1:nepochs
             image(cnt).val = squeeze(Beta_amp{nam}(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_Bamp_reg',num2str(nam),'_',spm_file(fname, 'basename')];
+            image(cnt).label   = ['trial',num2str(k),'_Bamp_reg',num2str(nam)];
             cnt=cnt+1;
         end
     end
@@ -500,35 +552,74 @@ end
 if isempty(nam),nam=0;end
 for ncf=1:numel(allconfounds)
     image(cnt).val     = all_Beta_conf{ncf};
-    image(cnt).label   = ['r_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['r_conf_reg',num2str(ncf)];
     cnt=cnt+1;
     image(cnt).val     = p_conf{ncf};
-    image(cnt).label   = ['p_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['p_conf_reg',num2str(ncf)];
     cnt=cnt+1;
     image(cnt).val     = sig_conf{ncf};
-    image(cnt).label   = ['sig_conf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+    image(cnt).label   = ['sig_conf_reg',num2str(ncf)];
     cnt=cnt+1;
     
     if S1{nph+nam+ncf}.summarise
         for k=1:nepochs
             image(cnt).val = squeeze(Beta_conf{ncf}(:,:,k));
-            image(cnt).label   = ['trial',num2str(k),'_Bconf_reg',num2str(ncf),'_',spm_file(fname, 'basename')];
+            image(cnt).label   = ['trial',num2str(k),'_Bconf_reg',num2str(ncf)];
             cnt=cnt+1;
         end
     end
 end
 
 image(cnt).val     = all_r_total;
-image(cnt).label   = ['r_total_',spm_file(fname, 'basename')];
+image(cnt).label   = ['r_total'];
 cnt=cnt+1;
 image(cnt).val     = p_total;
-image(cnt).label   = ['p_total_',spm_file(fname, 'basename')];
+image(cnt).label   = ['p_total'];
 cnt=cnt+1;
 image(cnt).val     = sig_total;
-image(cnt).label   = ['sig_total_',spm_file(fname, 'basename')];
+image(cnt).label   = ['sig_total'];
 
 
-%-Write images
+%% -Write out images
 %==========================================================================
+[sts, msg] = mkdir(D.path, outname);
+if ~sts,     error(msg); end
 
-% ...
+outdir = fullfile(D.path, outname);
+
+if length(Famp)>1
+    dFamp = Famp(2)-Famp(1);
+else
+    dFamp = 0;
+end
+
+if length(Flow)>1
+    dFlow = Flow(2)-Flow(1);
+else
+    dFlow = 0;
+end
+
+N     = nifti;
+N.mat_intent = 'Aligned';
+N.mat = [...
+    dFamp   0               0  Famp(1);...
+    0       dFlow           0  Flow(1);...
+    0       0               1  0;...
+    0       0               0  1];
+N.mat(1,4) = N.mat(1,4) - N.mat(1,1);
+N.mat(2,4) = N.mat(2,4) - N.mat(2,2);
+
+spm_progress_bar('Init', numel(image), 'Writing out images', 'Image');
+for i = 1:numel(image)
+    N.dat = file_array(fullfile(outdir, [image(i).label '.nii']), size(image(i).val), 'FLOAT32-LE');
+    create(N);
+    N.dat(:, :) = image(i).val;
+    
+    spm_progress_bar('Set', i);
+end
+
+%-Cleanup
+%--------------------------------------------------------------------------
+spm_progress_bar('Clear');
+spm('FigName','Cross-frequency coupling: done'); spm('Pointer','Arrow');
+
