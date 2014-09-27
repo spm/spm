@@ -17,7 +17,7 @@ function varargout = spm_atlas(action,varargin)
 % Copyright (C) 2013-2014 Wellcome Trust Centre for Neuroimaging
 
 % Guillaume Flandin
-% $Id: spm_atlas.m 6200 2014-09-25 17:33:13Z guillaume $
+% $Id: spm_atlas.m 6206 2014-09-27 16:15:15Z guillaume $
 
 
 if ~nargin, action = 'load'; end
@@ -99,13 +99,15 @@ case 'load'
             end
         otherwise
             list      = spm_atlas('list','installed');
-            idx       = find(ismember({list.name},atlas));
-            if ~isempty(idx)
-                xA    = preloaded(atlas);
+            idx       = find(ismember(lower({list.name}),lower(atlas)));
+            if numel(idx) == 1
+                xA    = preloaded(list(idx).name);
                 if isempty(xA)
                     xA = spm_atlas('load',list(idx).file);
-                    preloaded(atlas,xA);
+                    preloaded(list(idx).name,xA);
                 end
+            elseif numel(idx) > 1
+                error('Two or more atlases share the same name.');
             else
                 error('Unknown atlas "%s".',atlas);
             end
@@ -201,53 +203,56 @@ case 'label'
 %         h = text(0.1,y,strrep(lab,'_','\_'),'FontWeight',fw);
 %         y = y - dy;
 %     end
+
+    hAx = findobj('Tag','SPMList');
     
-    %-Add contextual menus to coordinates
-    %----------------------------------------------------------------------
-    hAx       = findobj('Tag','SPMList');
-    if isempty(hAx), spm('Pointer','Arrow'), return; end
-    UD        = get(hAx,'UserData');
-    if isempty(UD), spm('Pointer','Arrow'); return; end
-    HlistXYZ  = UD.HlistXYZ(ishandle(UD.HlistXYZ));
-
-    for i=1:numel(HlistXYZ)
-        h     = uicontextmenu('Parent',ancestor(hAx,'figure'));
-        XYZmm = get(HlistXYZ(i),'UserData');
-
-        %-Consider peak only
+    for a=1:numel(hAx)
+        UD        = get(hAx(a),'UserData');
+        if isempty(UD), continue; end
+        HlistXYZ  = UD.HlistXYZ(ishandle(UD.HlistXYZ));
+        
+        %-Add contextual menus to coordinates
         %------------------------------------------------------------------
-        labk  = spm_atlas('query',xA,XYZmm);
+        for i=1:numel(HlistXYZ)
+            h     = uicontextmenu('Parent',ancestor(hAx(a),'figure'));
+            XYZmm = get(HlistXYZ(i),'UserData');
+            
+            %-Consider peak only
+            %--------------------------------------------------------------
+            labk  = spm_atlas('query',xA,XYZmm);
+            
+            hi    = uimenu(h,'Label',['<html><b>' labk '</b></html>']);
+            
+            %-Consider a 10mm sphere around the peak
+            %--------------------------------------------------------------
+            [labk,P] = spm_atlas('query',xA,...
+                struct('def','sphere','spec',10,'xyz',XYZmm));
+            
+            for j=1:numel(labk)
+                hj   = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{j},P(j)));
+                %'Callback',['web(''' spm_atlas('weblink',XYZmm,'') ''',''-notoolbar'');']);
+            end
+            
+            set(HlistXYZ(i),'UIContextMenu',h);
+        end
         
-        hi    = uimenu(h,'Label',['<html><b>' labk '</b></html>']);
-        
-        %-Consider a 10mm sphere around the peak
+        %-Add contextual menus to clusters
         %------------------------------------------------------------------
-        [labk,P] = spm_atlas('query',xA,...
-            struct('def','sphere','spec',10,'xyz',XYZmm));
+        HlistClust = UD.HlistClust(ishandle(UD.HlistClust));
+        xSPM = evalin('base','xSPM');
+        A = spm_clusters(xSPM.XYZ);
         
-        for j=1:numel(labk)
-            hj   = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{j},P(j)));
-                   %'Callback',['web(''' spm_atlas('weblink',XYZmm,'') ''',''-notoolbar'');']);
+        for i=1:numel(HlistClust)
+            hi      = uicontextmenu('Parent',ancestor(hAx(a),'figure'));
+            XYZmm  = getfield(get(HlistClust(i),'UserData'),'XYZmm');
+            [unused,j] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
+            [labk, P]  = spm_atlas('query',xA,xSPM.XYZmm(:,A==A(j)));
+            for k=1:numel(labk)
+                hj = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{k},P(k)));
+            end
+            set(HlistClust(i),'UIContextMenu',hi);
         end
-
-        set(HlistXYZ(i),'UIContextMenu',h);
-    end
-    
-    %-Add contextual menus to clusters
-    %----------------------------------------------------------------------
-    HlistClust = UD.HlistClust(ishandle(UD.HlistClust));
-    xSPM = evalin('base','xSPM');
-    A = spm_clusters(xSPM.XYZ);
-    
-    for i=1:numel(HlistClust)
-        hi      = uicontextmenu('Parent',ancestor(hAx,'figure'));
-        XYZmm  = getfield(get(HlistClust(i),'UserData'),'XYZmm');
-        [unused,j] = spm_XYZreg('NearestXYZ',XYZmm,xSPM.XYZmm);
-        [labk, P]  = spm_atlas('query',xA,xSPM.XYZmm(:,A==A(j)));
-        for k=1:numel(labk)
-            hj = uimenu(hi,'Label',sprintf('<html><b>%s</b> (%.1f%%)</html>',labk{k},P(k)));
-        end
-        set(HlistClust(i),'UIContextMenu',hi);
+        
     end
     
     spm('Pointer','Arrow')
@@ -384,7 +389,7 @@ case 'mask'
 
     if nargin < 2, xA = ''; else xA = varargin{1}; end
     xA = spm_atlas('load',xA);
-    if nargin < 3, label = spm_atlas('select',xA);
+    if nargin < 3 || isempty(varargin{2}), label = spm_atlas('select',xA);
     else label = varargin{2}; end
     label = filter_labels(xA,label);
     
@@ -427,7 +432,8 @@ case 'maxprob'
     
     if nargin < 2, xA = ''; else xA = varargin{1}; end
     xA = spm_atlas('load',xA);
-    if nargin < 3 || isempty(varargin{2}), thresh = 0; else thresh = varargin{2}; end
+    if nargin < 3 || isempty(varargin{2}), thresh = 0;
+    else thresh = varargin{2}; end
     
     typ = 'int16';
     
