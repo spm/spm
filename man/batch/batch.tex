@@ -3,7 +3,7 @@
 
 Details about the algorithms used for data processing are given in the other
 sections of this manual. This section explains how a sequence of processing
-steps can be run at once without \matlab\ programming. SPM8 includes
+steps can be run at once without \matlab\ programming. SPM12 includes
 \texttt{matlabbatch}\footnote{\url{http://sourceforge.net/projects/matlabbatch}}
 which has been derived from the SPM5 batch system, but is also available as a
 separate package.
@@ -31,11 +31,11 @@ of advantages:
   can be run in the specified order without any user interaction.
 \item[Multiple batches] Multiple batches can be loaded and executed together.
 \item[Error reporting] If a batch fails to complete, a standardised report
-  will be given in the \matlab\ command window. When running a batch from the
-  GUI, this can be saved to an error \verb|.mat| file. When running a batch
-  from the command line, such a file will be created always. It will be
-  located in the current MATLAB directory and named
-  \verb|spm_error_<DATE-TIME>.mat|.
+  will be given in the \matlab\ command window.
+  When running a batch from the GUI, this can be saved to an error \verb|.mat| file.
+  %When running a batch from the command line, such a file will be created always. 
+  %It will be located in the current MATLAB directory and named
+  %\verb|spm_error_<DATE-TIME>.mat|.
 \end{description}
 
 \section{Single subject}

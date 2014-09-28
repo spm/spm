@@ -10,9 +10,9 @@ SPM and the batch system.
 
 Most features are implemented in:
 \begin{itemize}
-\item \verb|fullfile(spm('dir'),'matlabbatch')| Core batch system.
-\item \verb|fullfile(spm('dir'),'config')| SPM config files.
-\item \verb|spm_jobman.m| and \verb|spm_select.m| Wrappers to Matlabbatch.
+\item \verb|fullfile(spm('dir'),'matlabbatch')|: core batch system.
+\item \verb|fullfile(spm('dir'),'config')|: SPM config files.
+\item \verb|spm_jobman.m| and \verb|spm_select.m|: wrappers to Matlabbatch.
 \end{itemize}
 
 Some assignments to configuration items are guarded by validity
@@ -26,30 +26,23 @@ the top of the configuration file.
 \subsection{Interfaces between SPM and Matlabbatch}
 
 \begin{description}
-\item[Unchanged] harvested job structure.
-\item[Changed] Top-level node in SPM config now called \verb|spmjobs| instead
-  of \verb|jobs|. New overall top-level node
-  \verb|matlabbatch|. \verb|spm_jobman| will convert and load SPM5 style batch
-  jobs into the new batch system.
-\item[Changed] Configuration file syntax - instead of structs, configuration
-  items are now objects. Structs of type \verb|<type>| are now represented as
-  objects of class \verb|cfg_<type>|. Existing SPM5 configuration can
-  be imported using \verb|cfg_struct2cfg|. There is a new class
+
+\item[Configuration files:] Configuration items are defined as objects.
+  Structs of type \verb|<type>| in SPM5 are represented as
+  objects of class \verb|cfg_<type>|. There is a class
   \verb|cfg_exbranch| which is used for branches that have a \verb|.prog|
   field.
-\item[Deprecated] Virtual files have been replaced by dependencies. These
-  require computations to return a single output argument (e.g. a cell,
-  struct). Parts of this output argument can be passed on to new inputs at
-  run-time. Virtual files are treated as a special output argument.
-\item[Added] Interface to the batch system
+  
+\item[Dependencies:] Dependencies require computations to return a single output 
+  argument (e.g. a cell, struct). Parts of this output argument can be passed
+  on to new inputs at run-time.
+  
+\item[Interface to the batch system:]
   \begin{itemize}
-  \item \verb|cfg_util| Configuration management, job management, job
-    execution
+  \item \verb|cfg_util| Configuration management, job management, job execution,
   \item \verb|cfg_serial| A utility to fill missing inputs and run a job
-    (optionally with a GUI input function)
-  \item \verb|cfg_ui| GUI - inspired by \verb|spm_jobman|, but modified to
-    work around some MATLAB GUI ``features'' (like input widgets loosing focus
-    before editing has finished).
+    (optionally with a GUI input function),
+  \item \verb|cfg_ui| Graphical User Interface.
   \end{itemize}
 
 \end{description}
@@ -106,9 +99,7 @@ The ``target'' part will be filled by the configuration classes, the
 
 The top level configuration file for SPM is \verb|spm_cfg.m|. It collects SPM
 core configuration files and does toolbox autodetection. If a toolbox
-directory contains \verb|*_cfg_*.m| files, they will be loaded. Otherwise, if
-there are only SPM5-style \verb|*_config_*.m| files, the configuration will be
-converted at run-time using \verb|cfg_struct2cfg|.
+directory contains \verb|*_cfg_*.m| files, they will be loaded.
 
 \subsection{Defaults Settings}
 
