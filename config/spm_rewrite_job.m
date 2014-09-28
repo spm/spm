@@ -3,19 +3,27 @@ function job = spm_rewrite_job(job)
 %__________________________________________________________________________
 % Copyright (C) 2012-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_rewrite_job.m 6169 2014-09-12 11:15:59Z guillaume $
+% $Id: spm_rewrite_job.m 6209 2014-09-28 18:16:37Z guillaume $
 
 
 try
     job.spatial.preproc.data;
     fprintf('Conversion Segment -> Old Segment\n');                     %-#
     job = struct('tools', struct('oldseg', job.spatial.preproc));
+    if ~spm_existfile(spm_file(job.tools.oldseg.opts.tpm{1},'number',''))
+        fprintf('You might have to manually update the tissue probability maps in Old Segment to:\n');
+        TPM = spm_get_defaults('old.preproc.tpm');
+        fprintf('    %s\n',TPM{:});
+    end
 end
 
 try
     job.spatial.normalise.est.subj(1).source ;
     fprintf('Conversion Normalise:Est -> Old Normalise:Est\n');         %-#
     job = struct('tools', struct('oldnorm', job.spatial.normalise));
+    if ~spm_existfile(spm_file(job.tools.oldnorm.est.eoptions.template{1},'number',''))
+        fprintf('You might have to manually update the template image in Old Normalise:Est.\n');
+    end
 end
 
 try
@@ -28,12 +36,22 @@ try
     job.spatial.normalise.estwrite.subj(1).source;
     fprintf('Conversion Normalise:EstWrite -> Old Normalise:EstWrite\n');%-#
     job = struct('tools', struct('oldnorm', job.spatial.normalise));
+    if ~spm_existfile(spm_file(job.tools.oldnorm.estwrite.eoptions.template{1},'number',''))
+        fprintf('You might have to manually update the template image in Old Normalise:EstWrite.\n');
+    end
 end
 
 try
     job.tools.preproc8;
     fprintf('Conversion Tools:New Segment -> Spatial:Segment\n');       %-#
     job = struct('spatial',struct('preproc',job.tools.preproc8));
+    if ~spm_existfile(spm_file(job.spatial.preproc.tissue(1).tpm{1},'number',''))
+        fprintf('You might have to manually update the tissue probability maps in Segment to:\n');
+        fprintf('    %s\n',fullfile(spm('dir'),'tpm','TPM.nii'));
+    end
+    if numel(job.spatial.preproc.warp.reg) == 1
+        job.spatial.preproc.warp = rmfield(job.spatial.preproc.warp,'reg');
+    end
 end
 
 try
