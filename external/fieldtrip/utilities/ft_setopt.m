@@ -5,14 +5,14 @@ function opt = ft_setopt(opt, key, val)
 % append the option if not present.
 %
 % Use as
-%   opt = ft_setopt(s, key, val)
+%   s = ft_setopt(s, key, val)
 % where s is a structure or a cell array.
 %
 % See also FT_GETOPT, FT_CHECKOPT
 
 % Copyright (C) 2011-2012, Robert Oostenveld
 %
-% $Id: ft_setopt.m 7123 2012-12-06 21:21:38Z roboos $
+% $Id: ft_setopt.m 9865 2014-09-28 12:33:58Z roboos $
 
 if isa(opt, 'struct') || isa(opt, 'config')
   

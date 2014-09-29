@@ -51,7 +51,7 @@ function [dipout] = dipole_fit(dip, sens, vol, dat, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: dipole_fit.m 9692 2014-07-03 20:02:43Z roboos $
+% $Id: dipole_fit.m 9853 2014-09-27 09:54:57Z roboos $
 
 % It is neccessary to provide backward compatibility support for the old function call
 % in case people want to use it in conjunction with EEGLAB and the dipfit1 plugin.
@@ -138,11 +138,14 @@ dip = fixdipole(dip);
 % convert the dipole model parameters into the non-linear parameter vector that will be optimized
 [param, constr] = dipolemodel2param(dip.pos, dip.mom, constr);
 
+% determine the scale
+scale = scalingfactor(sens.unit, 'cm');
+
 % set the parameters for the optimization function
 if isequal(optimfun, @fminunc)
   options = optimset(...
     'TolFun',1e-9,...
-    'TypicalX',ones(size(param)),...
+    'TypicalX',scale*ones(size(param)),...
     'LargeScale','off',...
     'HessUpdate','bfgs',...
     'MaxIter',maxiter,...

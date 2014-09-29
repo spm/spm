@@ -1,6 +1,6 @@
 function [varargout] = ft_plot_vector(varargin)
 
-% FT_PLOT_VECTOR
+% FT_PLOT_VECTOR visualizes a vector as a line, similar to PLOT.
 %
 % Use as
 %   ft_plot_vector(Y, ...)
@@ -81,7 +81,7 @@ function [varargout] = ft_plot_vector(varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_vector.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_plot_vector.m 9861 2014-09-27 17:41:55Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 

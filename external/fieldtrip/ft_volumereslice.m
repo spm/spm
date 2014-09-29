@@ -11,7 +11,6 @@ function [resliced] = ft_volumereslice(cfg, mri)
 %
 % The configuration structure can contain
 %   cfg.resolution = number, in physical units
-% The new spatial extent can be specified with
 %   cfg.xrange     = [min max], in physical units
 %   cfg.yrange     = [min max], in physical units
 %   cfg.zrange     = [min max], in physical units
@@ -53,9 +52,9 @@ function [resliced] = ft_volumereslice(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumereslice.m 9654 2014-06-21 07:24:04Z roboos $
+% $Id: ft_volumereslice.m 9858 2014-09-27 10:01:45Z roboos $
 
-revision = '$Id: ft_volumereslice.m 9654 2014-06-21 07:24:04Z roboos $';
+revision = '$Id: ft_volumereslice.m 9858 2014-09-27 10:01:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults

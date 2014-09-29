@@ -21,9 +21,9 @@ function cfg = topoplot_common(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: topoplot_common.m 9778 2014-09-03 13:59:00Z jorhor $
+% $Id: topoplot_common.m 9844 2014-09-26 10:26:39Z jorhor $
 
-revision = '$Id: topoplot_common.m 9778 2014-09-03 13:59:00Z jorhor $';
+revision = '$Id: topoplot_common.m 9844 2014-09-26 10:26:39Z jorhor $';
 
 % check if the input cfg is valid for this function
 cfg = ft_checkconfig(cfg, 'unused',     {'cohtargetchannel'});
@@ -525,8 +525,8 @@ end
 % Make vector dat with one value for each channel
 dat    = data.(cfg.parameter);
 % get dimord dimensions
-ydim = find(strcmp(yparam, dimtok{1}));
-xdim = find(strcmp(xparam, dimtok{1}));
+ydim = find(strcmp(yparam, dimtok));
+xdim = find(strcmp(xparam, dimtok));
 zdim = setdiff(1:ndims(dat), [ydim xdim]);
 % and permute
 dat = permute(dat, [zdim(:)' ydim xdim]);

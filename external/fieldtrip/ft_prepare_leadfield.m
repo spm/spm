@@ -82,9 +82,9 @@ function [grid, cfg] = ft_prepare_leadfield(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_prepare_leadfield.m 9521 2014-05-14 09:45:42Z roboos $
+% $Id: ft_prepare_leadfield.m 9865 2014-09-28 12:33:58Z roboos $
 
-revision = '$Id: ft_prepare_leadfield.m 9521 2014-05-14 09:45:42Z roboos $';
+revision = '$Id: ft_prepare_leadfield.m 9865 2014-09-28 12:33:58Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -134,12 +134,10 @@ end
 [vol, sens, cfg] = prepare_headmodel(cfg, data);
 
 % set the default for reducing the rank of the leadfields
-if ~isfield(cfg, 'reducerank')
-  if ft_senstype(sens, 'eeg')
-    cfg.reducerank = 3;
-  else
-    cfg.reducerank = 2;
-  end
+if ft_senstype(sens, 'eeg')
+  cfg.reducerank = ft_getopt(cfg, 'reducerank', 3);
+else
+  cfg.reducerank = ft_getopt(cfg, 'reducerank', 2);
 end
 
 % construct the dipole grid according to the configuration

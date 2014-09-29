@@ -35,7 +35,7 @@ function ft_plot_dipole(pos, ori, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_plot_dipole.m 9515 2014-05-13 13:30:43Z roboos $
+% $Id: ft_plot_dipole.m 9857 2014-09-27 10:01:13Z roboos $
 
 ws = warning('on', 'MATLAB:divideByZero');
 
@@ -153,7 +153,6 @@ end % for each dipole
 axis off
 axis vis3d
 axis equal
-camlight % fixme, this probably should be in the calling function
 
 if ~holdflag
   hold off

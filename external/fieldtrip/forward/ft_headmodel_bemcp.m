@@ -32,7 +32,7 @@ function vol = ft_headmodel_bemcp(geom, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_headmodel_bemcp.m 8810 2013-11-18 13:30:30Z roboos $
+% $Id: ft_headmodel_bemcp.m 9864 2014-09-28 11:54:01Z roboos $
 
 ft_hastoolbox('bemcp', 1);
 
@@ -66,7 +66,7 @@ end
 order = surface_nesting(vol.bnd, 'insidefirst');
 
 % rearrange boundaries and conductivities
-if numel(vol.bnd)>1
+if numel(vol.bnd)>1 && ~isequal(order(:)', 1:numel(vol.bnd))
   fprintf('reordering the boundaries to: ');
   fprintf('%d ', order);
   fprintf('\n');

@@ -159,9 +159,9 @@ function [realign, snap] = ft_volumerealign(cfg, mri, target)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumerealign.m 9714 2014-07-09 15:09:36Z roboos $
+% $Id: ft_volumerealign.m 9858 2014-09-27 10:01:45Z roboos $
 
-revision = '$Id: ft_volumerealign.m 9714 2014-07-09 15:09:36Z roboos $';
+revision = '$Id: ft_volumerealign.m 9858 2014-09-27 10:01:45Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -472,6 +472,7 @@ switch cfg.method
     scalp              = ft_convert_units(scalp, 'mm');
     
     if dointeractive,
+      fprintf('doing interactive realignment with headshape\n');
       tmpcfg                       = [];
       tmpcfg.template.elec         = shape;     % this is the Polhemus recorded headshape
       tmpcfg.template.elec.chanpos = shape.pnt;
@@ -514,6 +515,7 @@ switch cfg.method
     [R, t, err, dummy, info] = icp(scalp.pnt', shape.pnt', numiter, 'Minimize', 'plane', 'Normals', nrm', 'Weight', weights, 'Extrapolation', true, 'WorstRejection', 0.05);
     
     if doicp,
+      fprintf('doing iterative closest points realignment with headshape\n');
       % create the additional transformation matrix and compute the
       % distance between the corresponding points, both prior and after icp
       

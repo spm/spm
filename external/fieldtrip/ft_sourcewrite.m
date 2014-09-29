@@ -40,9 +40,9 @@ function ft_sourcewrite(cfg, source)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_sourcewrite.m 9800 2014-09-15 08:20:04Z roboos $
+% $Id: ft_sourcewrite.m 9850 2014-09-27 09:41:31Z roboos $
 
-revision = '$Id: ft_sourcewrite.m 9800 2014-09-15 08:20:04Z roboos $';
+revision = '$Id: ft_sourcewrite.m 9850 2014-09-27 09:41:31Z roboos $';
 
 ft_defaults
 ft_preamble init
@@ -56,18 +56,52 @@ if abort
   return
 end
 
-% check if the input data is valid for this function
-source = ft_checkdata(source, 'datatype', 'source', 'hasunit', true, 'feedback', 'yes');
-
 % ensure that the required options are present
 cfg = ft_checkconfig(cfg, 'required', {'parameter', 'filename'});
 
 % get the options
-cfg.parameter    = ft_getopt(cfg, 'parameter');
-cfg.filename     = ft_getopt(cfg, 'filename');
-cfg.filetype     = ft_getopt(cfg, 'filetype');      % the default is determined further down
-cfg.parcellation = ft_getopt(cfg, 'parcellation');  % is used for cifti
-cfg.precision    = ft_getopt(cfg, 'precision');     % is used for cifti
+cfg.parameter      = ft_getopt(cfg, 'parameter');
+cfg.filename       = ft_getopt(cfg, 'filename');
+cfg.filetype       = ft_getopt(cfg, 'filetype');        % the default is determined further down
+cfg.brainstructure = ft_getopt(cfg, 'brainstructure');  % is used for cifti
+cfg.parcellation   = ft_getopt(cfg, 'parcellation');    % is used for cifti
+cfg.precision      = ft_getopt(cfg, 'precision');       % is used for cifti
+
+
+% check if the input data is valid for this function
+if strcmp(cfg.filetype, 'cifti')
+  
+  % keep the transformation matrix
+  if isfield(source, 'transform')
+    transform = source.transform;
+  elseif isfield(source, 'brainordinate') && isfield(source.brainordinate, 'transform')
+    transform = source.brainordinate.transform;
+  else
+    transform = [];
+  end
+  
+  if isfield(source, 'brainordinate')
+    % it is a parcellated source representation, i.e. the main structure one channel for each parcel
+    brainordinate = source.brainordinate;
+    source = rmfield(source, 'brainordinate');
+    
+    % split them and check individually
+    source        = ft_checkdata(source, 'datatype', {'timelock', 'freq', 'chan'}, 'feedback', 'yes');
+    brainordinate = ft_checkdata(brainordinate, 'datatype', 'parcellation', 'parcellationstyle', 'indexed', 'hasunit', 'yes');
+    
+    % merge them again
+    source = copyfields(brainordinate, source, setdiff(fieldnames(brainordinate), {'cfg'}));
+  else
+    source = ft_checkdata(source, 'datatype', 'source', 'hasunit', true, 'feedback', 'yes');
+  end
+  
+  % keep the transformation matrix
+  if ~isempty(transform)
+    source.transform = transform;
+  end
+  
+end % if cifti
+
 
 if isempty(cfg.filetype)
   if isfield(source, 'dim')
@@ -113,8 +147,10 @@ switch (cfg.filetype)
     end
     cfg.filename = [cfg.filename '.' cfg.parameter '.nii'];
     
-    ft_write_cifti(cfg.filename, source, 'parameter', cfg.parameter, 'parcellation', cfg.parcellation, 'precision', cfg.precision);
-
+    % brainstructure should represent the global anatomical structure, such as CortexLeft, Thalamus, etc.
+    % parcellation should represent the detailled parcellation, such as BA1, BA2, BA3, etc.
+    ft_write_cifti(cfg.filename, source, 'parameter', cfg.parameter, 'brainstructure', cfg.brainstructure, 'parcellation', cfg.parcellation, 'precision', cfg.precision);
+    
   otherwise
     error('unsupported output format (%s)', cfg.filetype);
 end % switch filetype

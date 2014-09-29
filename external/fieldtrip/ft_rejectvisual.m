@@ -102,13 +102,13 @@ function [data] = ft_rejectvisual(cfg, data)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_rejectvisual.m 9772 2014-08-12 11:38:33Z dieloz $
+% $Id: ft_rejectvisual.m 9847 2014-09-27 09:31:59Z roboos $
 
 % Undocumented options
 % cfg.plotlayout = 'square' (default) or '1col', plotting every channel/trial under each other
 % cfg.viewmode   = 'remove' (default) or 'toggle', remove the data points from the plot, or mark them (summary mode), which allows for getting them back
 
-revision = '$Id: ft_rejectvisual.m 9772 2014-08-12 11:38:33Z dieloz $';
+revision = '$Id: ft_rejectvisual.m 9847 2014-09-27 09:31:59Z roboos $';
 
 % do the general setup of the function
 ft_defaults
@@ -163,13 +163,16 @@ if ~isfield(cfg, 'metric')
   cfg.metric = 'var';
 end
 
-orgcfg.latency = cfg.latency;
-tmpcfg = [];
-tmpcfg = keepfields(cfg, {'trials','channel'});
+orgcfg = cfg;
+tmpcfg = keepfields(cfg, {'trials'});
 data = ft_selectdata(tmpcfg, data);
 % restore the provenance information
 [cfg, data] = rollback_provenance(cfg, data);
-cfg.latency = orgcfg.latency;% restore the original latency, it should not be 'all'
+cfg = copyfields(orgcfg, cfg, {'channel', 'latency'});
+
+% restore the original latency, it should not be 'all'
+% restore the original channel selection, it is dealt with below
+cfg.channel = orgcfg.channel;
 
 % determine the duration of each trial
 for i=1:length(data.time)

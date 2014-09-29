@@ -74,13 +74,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9769 2014-08-08 09:33:52Z jorhor $
+% $Id: ft_math.m 9848 2014-09-27 09:34:13Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9769 2014-08-08 09:33:52Z jorhor $';
+revision = '$Id: ft_math.m 9848 2014-09-27 09:34:13Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -347,6 +347,26 @@ end % one or multiple input data structures
 % store the result of the operation in the output structure
 data = setsubfield(data, cfg.parameter, y);
 data.dimord = dimord;
+
+% certain fields should remain in the output, but only if they are identical in all inputs
+keepfield = {'grad', 'elec'};
+for j=1:numel(keepfield)
+  if isfield(varargin{i}, keepfield{j})
+    keep = true;
+    tmp = varargin{i}.(keepfield{j});
+  else
+    keep = false;
+  end
+  for i=1:numel(varargin)
+    if ~isequal(varargin{i}.(keepfield{j}), tmp)
+      keep = false;
+      break
+    end
+  end
+  if keep
+    data.(keepfield{j}) = tmp;
+  end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % deal with the output
