@@ -3,7 +3,7 @@ function rendering = spm_cfg_render
 %__________________________________________________________________________
 % Copyright (C) 2013 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_render.m 5813 2013-12-20 18:54:10Z guillaume $
+% $Id: spm_cfg_render.m 6217 2014-09-29 17:54:33Z guillaume $
 
 %==========================================================================
 % Extract
@@ -237,6 +237,9 @@ for i=1:numel(job.conspec)
                     'mat', xSPM.M,...
                     'dim', xSPM.DIM);
 end
+% Force non-interactive mode...
+global prevrend
+prevrend = struct('rendfile',job.rendfile{1}, 'brt',1, 'col',eye(3));
 spm_render(dat,1,job.rendfile{1});
 
 

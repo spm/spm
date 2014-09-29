@@ -1,4 +1,4 @@
-function varargout = spm_preproc_run(job,arg)
+function varargout = spm_preproc_run(job,action)
 % Segment a bunch of images
 % FORMAT spm_preproc_run(job)
 % job.channel(n).vols{m}
@@ -21,18 +21,25 @@ function varargout = spm_preproc_run(job,arg)
 % job.iterations
 % job.alpha
 %
-% See the user interface for a description of the fields.
-%_______________________________________________________________________
-% Copyright (C) 2008-2011 Wellcome Trust Centre for Neuroimaging
+% See the batch interface for a description of the fields.
+%
+% See also spm_preproc8.m amd spm_preproc_write8.m
+%__________________________________________________________________________
+% Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_preproc_run.m 5886 2014-02-18 18:39:46Z mohamed $
+% $Id: spm_preproc_run.m 6217 2014-09-29 17:54:33Z guillaume $
 
-if nargin == 1, arg = 'run'; end
 
-switch lower(arg)
+SVNid = '$Rev: 6217 $';
+
+if nargin == 1, action = 'run'; end
+
+switch lower(action)
     case 'run'
+        spm('FnBanner',mfilename,SVNid);
         varargout{1} = run_job(job);
+        fprintf('%-40s: %30s\n','Completed',spm('time'))                %-#
     case 'check'
         varargout{1} = check_job(job);
     case 'vfiles'
@@ -40,17 +47,18 @@ switch lower(arg)
     case 'vout'
         varargout{1} = vout_job(job);
     otherwise
-        error('Unknown argument ("%s").', arg);
+        error('Unknown argument ("%s").', action);
 end
-return
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% Run
+%==========================================================================
 function vout = run_job(job)
 
-vout   = vout_job(job);
-tpm    = strvcat(cat(1,job.tissue(:).tpm));
-tpm    = spm_load_priors8(tpm);
+vout = vout_job(job);
+tpm  = strvcat(cat(1,job.tissue(:).tpm));
+tpm  = spm_load_priors8(tpm);
 
 if ~isfield(job,'iterations'),   nit              =  1; else nit   = job.iterations; end
 if ~isfield(job,'alpha'),        alpha            = 12; else alpha = job.alpha;      end
@@ -60,14 +68,14 @@ if ~isfield(job.warp,'vox'),     job.warp.vox     =  1.5; end
 if ~isfield(job.warp,'cleanup'), job.warp.cleanup =  0; end
 if ~isfield(job.warp,'mrf'),     job.warp.mrf     =  0; end
 
-if nit>1,
+if nit > 1
     orig_priors = tpm;
 end
 
-for iter=1:nit,
-    for subj=1:numel(job.channel(1).vols),
+for iter=1:nit
+    for subj=1:numel(job.channel(1).vols)
         images = '';
-        for n=1:numel(job.channel),
+        for n=1:numel(job.channel)
             images = strvcat(images,job.channel(n).vols{subj});
         end
         obj.image    = spm_vol(images);
@@ -78,7 +86,7 @@ for iter=1:nit,
         obj.biasfwhm = cat(1,job.channel(:).biasfwhm);
         obj.tpm      = tpm;
         obj.lkp      = [];
-        if all(isfinite(cat(1,job.tissue.ngaus))),
+        if all(isfinite(cat(1,job.tissue.ngaus)))
             for k=1:numel(job.tissue),
                 obj.lkp = [obj.lkp ones(1,job.tissue(k).ngaus)*k];
             end;
@@ -86,16 +94,16 @@ for iter=1:nit,
         obj.reg      = job.warp.reg;
         obj.samp     = job.warp.samp;
 
-        if iter==1,
+        if iter==1
             % Initial affine registration.
             Affine  = [];
-            if ~isempty(job.warp.affreg),
-                if isfield(job.warp,'Affine'),
+            if ~isempty(job.warp.affreg)
+                if isfield(job.warp,'Affine')
                     Affine = job.warp.Affine;
                 end
                 Affine = spm_maff8(obj.image(1),job.warp.samp,(obj.fwhm+1)*16,tpm,Affine,job.warp.affreg); % Closer to rigid
                 Affine = spm_maff8(obj.image(1),job.warp.samp, obj.fwhm,     tpm,Affine,job.warp.affreg);
-            end;
+            end
             obj.Affine = Affine;
         else
             % Load results from previous iteration for use with next round of
@@ -105,7 +113,7 @@ for iter=1:nit,
             obj.Affine = res.Affine;
             obj.Twarp  = res.Twarp;
             obj.Tbias  = res.Tbias;
-            if ~isempty(obj.lkp),
+            if ~isempty(obj.lkp)
                 obj.mg     = res.mg;
                 obj.mn     = res.mn;
                 obj.vr     = res.vr;
@@ -119,7 +127,7 @@ for iter=1:nit,
 
         res = spm_preproc8(obj);
 
-        if ~isfield(job,'savemat') || job.savemat==1,
+        if ~isfield(job,'savemat') || job.savemat==1
             try
                 [pth,nam] = fileparts(job.channel(1).vols{subj});
                 save(fullfile(pth,[nam '_seg8.mat']),'-struct','res', spm_get_defaults('mat.format'));
@@ -127,7 +135,7 @@ for iter=1:nit,
             end
         end
 
-        if iter==nit,
+        if iter==nit
             % Final iteration, so write out the required data.
             tmp1 = [cat(1,job.tissue(:).native) cat(1,job.tissue(:).warped)];
             tmp2 =  cat(1,job.channel(:).write);
@@ -141,24 +149,24 @@ for iter=1:nit,
             [cls,M1] = spm_preproc_write8(res,zeros(K,4),zeros(N,2),[0 0],job.warp.mrf,...
                                           job.warp.cleanup,job.warp.bb,job.warp.vox);
 
-            if subj==1,
+            if subj==1
                 % Sufficient statistics for possible generation of group-specific
                 % template data.
                 SS = zeros([size(cls{1}),numel(cls)],'single');
             end
 
-            for k=1:K,
+            for k=1:K
                 SS(:,:,:,k) = SS(:,:,:,k) + cls{k};
             end
         end
 
     end
-    if iter<nit && nit>1,
+    if iter<nit && nit>1
          % Treat the tissue probability maps as Dirichlet priors, and compute the 
          % MAP estimate of group tissue probability map using the sufficient
          % statistics.
          [x1,x2] = ndgrid(1:size(SS,1),1:size(SS,2));
-         for i=1:size(SS,3),
+         for i=1:size(SS,3)
              M  = orig_priors.M\M1;
              y1 = M(1,1)*x1 + M(1,2)*x2 + M(1,3)*i + M(1,4);
              y2 = M(2,1)*x1 + M(2,2)*x2 + M(2,3)*i + M(2,4);
@@ -167,7 +175,7 @@ for iter=1:nit,
              msk = (y1<1) | (y1>orig_priors.V(1).dim(1)) | ...
                    (y2<1) | (y2>orig_priors.V(1).dim(2)) | ...
                    (y3<1) | (y3>orig_priors.V(1).dim(3));
-             for k=1:K,
+             for k=1:K
                  bk      = b{k}*alpha;
                  bk(msk) = bk(msk)*0.01;
                  SS(:,:,i,k) = SS(:,:,i,k) + bk;
@@ -176,7 +184,7 @@ for iter=1:nit,
          save SS.mat SS M1
          tpm.M = M1;
          s     = sum(SS,4);
-         for k=1:K,
+         for k=1:K
              tmp        = SS(:,:,:,k)./s;
              tpm.bg1(k) = mean(mean(tmp(:,:,1)));
              tpm.bg2(k) = mean(mean(tmp(:,:,end)));
@@ -184,27 +192,29 @@ for iter=1:nit,
          end
     end
 end
-return
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% Check
+%==========================================================================
 function msg = check_job(job)
 msg = {};
-if numel(job.channel) >1,
+if numel(job.channel) >1
     k = numel(job.channel(1).vols);
-    for i=2:numel(job.channel),
-        if numel(job.channel(i).vols)~=k,
+    for i=2:numel(job.channel)
+        if numel(job.channel(i).vols)~=k
             msg = {['Incompatible number of images in channel ' num2str(i)]};
             break
         end
     end
-elseif numel(job.channel)==0,
+elseif numel(job.channel)==0
     msg = {'No data'};
 end
-return
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% Vout
+%==========================================================================
 function vout = vout_job(job)
 
 n     = numel(job.channel(1).vols);
@@ -284,9 +294,11 @@ else
 end
 
 vout  = struct('channel',channel,'tiss',tiss,'param',{param},'invdef',{invdef},'fordef',{fordef});
-%_______________________________________________________________________
 
-%_______________________________________________________________________
+
+%==========================================================================
+% Vfiles
+%==========================================================================
 function vf = vfiles_job(job)
 vout = vout_job(job);
 vf   = vout.param;
@@ -304,7 +316,3 @@ for i=1:numel(vout.tiss)
     if ~isempty(vout.tiss(i).mwc), vf = {vf{:}, vout.tiss(i).mwc{:}}; end
 end
 vf = reshape(vf,numel(vf),1);
-%_______________________________________________________________________
-
-%_______________________________________________________________________
-
