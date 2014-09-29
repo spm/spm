@@ -4,7 +4,7 @@ function convert = spm_cfg_eeg_convert
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Stefan Kiebel
-% $Id: spm_cfg_eeg_convert.m 5377 2013-04-02 17:07:57Z vladimir $
+% $Id: spm_cfg_eeg_convert.m 6214 2014-09-29 12:30:45Z vladimir $
 
 dataset = cfg_files;
 dataset.tag = 'dataset';
@@ -78,18 +78,12 @@ epoched.tag = 'epoched';
 epoched.name = 'Epoched';
 epoched.values = {usetrials trlfile define};
 
-header = cfg_const;
-header.tag = 'header';
-header.name = 'Read header only';
-header.val  = {1};
-
 mode = cfg_choice;
 mode.tag = 'mode';
 mode.name = 'Reading mode';
-mode.values = {continuous, epoched, header};
+mode.values = {continuous, epoched};
 mode.val = {continuous};
-mode.help = {'Select whether you want to convert to continuous or epoched data',...
-             'or just read the header'};
+mode.help = {'Select whether you want to convert to continuous or epoched data'};
 
 outfile = cfg_entry;
 outfile.tag = 'outfile';
