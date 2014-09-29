@@ -20,9 +20,9 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 6205 2014-09-27 15:25:49Z vladimir $
+% $Id: spm_eeg_cfc.m 6210 2014-09-29 09:48:55Z bernadette $
 
-SVNrev = '$Rev: 6205 $';
+SVNrev = '$Rev: 6210 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -288,7 +288,7 @@ W        = spdiags(W, 0, length(W), length(W));
 
 %-Compute GLM
 %--------------------------------------------------------------------------
-spm_progress_bar('Init', length(Flow), 'Fitting GLM', 'Frequency');
+spm_progress_bar('Init', length(Flow), 'Fitting GLM', 'Frequency nr');
 
 for j=1:length(Flow)
     fprintf('%.1f  ',Flow(j))
@@ -318,7 +318,7 @@ for j=1:length(Flow)
         V=[];
         c=ones(nreg,1);
         
-        [T,df,all_Beta(N,j,:),xX,xCon] = spm_ancova(X',V,y',c);
+        all_Beta(N,j,:)=y*pinv(X);
         
         all_SSy(N,j)=sum((y-mean(y)).^2);
         
@@ -386,8 +386,8 @@ for j=1:length(Flow)
                 V=[];
                 c=ones(nreg,1);
                 
-                [T,df,Beta(:,k_good),xX,xCon] = spm_ancova(Xk',V,yk,c);
-                
+                Beta(:,k_good)=(yk'*pinv(Xk));
+               
                 cnt=1;
                 for nph=1:numel(allphase)
                     if S1{nph}.summarise
@@ -454,7 +454,7 @@ for j=1:length(Flow)
         
     end %N
     
-    spm_progress_bar('Set', i);
+    spm_progress_bar('Set', j);
 end %j
 
 spm_progress_bar('Clear');
@@ -462,7 +462,8 @@ spm_progress_bar('Clear');
 %% - Plot results
 %--------------------------------------------------------------------------
 
-outname  = [S.prefix 'cfc_' spm_file(D.fname, 'basename')];
+% outname  = [S.prefix 'cfc_' spm_file(D.fname, 'basename')];
+outname  = ['cfc_' spm_file(D.fname, 'basename')];
 
 siglevel=.05;
 cnt=1;
@@ -622,4 +623,3 @@ end
 %--------------------------------------------------------------------------
 spm_progress_bar('Clear');
 spm('FigName','Cross-frequency coupling: done'); spm('Pointer','Arrow');
-
