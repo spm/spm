@@ -105,9 +105,9 @@ SPM12 uses \href{http://nifti.nimh.nih.gov/nifti-1}{NIfTI-1} and \href{http://ww
 New folder \texttt{batches} contains a number of ready-made batches (i.e. pipelines). They automatically configure the batch interface to execute preprocessings for fMRI or VBM analyses, as well as first or second level statistical analyses, using consensual settings. To use them, just load them from the batch interface as you would do with any other batch file you may have saved.
 
 \subsection{MATLAB}
-SPM12 is designed to work with MATLAB versions 7.4 (R2007a) to 8.3 (R2014a), and will not work with earlier versions. It is R2014b Graphics Ready and only requires core MATLAB to run (i.e. no toolbox). It will be updated to handle future versions of MATLAB whenever necessary, until the release of the next major version of SPM.
+SPM12 is designed to work with MATLAB versions 7.4 (R2007a) to 8.3 (R2014a), and will not work with earlier versions. It is R2014b Graphics Ready and only requires core MATLAB to run (i.e. no toolboxes). It will be updated to handle future versions of MATLAB whenever necessary, until the release of the next major version of SPM.
 
-A standalone version of SPM12 (compiled with the MATLAB Compiler) is also available\footnote{\url{http://en.wikibooks.org/wiki/SPM/Standalone}} -- it does not require a MATLAB licence and can be deployed royalty-free. It might therefore be particularly useful for teaching or usage on a computer cluster. It is however not possible to read or modify the source code, use your own functions or install third-party toolboxes.
+A standalone version of SPM12 (compiled with the MATLAB Compiler) is also available\footnote{\url{http://en.wikibooks.org/wiki/SPM/Standalone}} -- it does not require a MATLAB licence and can be deployed royalty-free. It might therefore be particularly useful for teaching or usage on a computer cluster. However, it is not possible to read or modify the source code, use your own functions or install third-party toolboxes.
 
 There is work in progress for compatibility with GNU Octave\footnote{\url{http://www.octave.org/}}. See ways you can contribute on the SPM wiki\footnote{\url{http://en.wikibooks.org/wiki/SPM/Octave}}.
 
@@ -227,13 +227,13 @@ It is still also possible to call the preprocessing function via scripts and scr
 
 Simple GUI functionality for converting a variable in the workspace into SPM M/EEG dataset was added to \textsc{Prepare} (File/Import from workspace).
 
-For MEG system with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling.
+For MEG systems with planar gradiometers (e.g. Neuromag) there is a new tool for combining planar channels and writing out the results back into an M/EEG file. This allows further processing of combined channels which was impossible in SPM8 e.g. baseline correction or TF rescaling.
 
 Conversion to images was completely rewritten. It is now possible to easily create 1D images and average across any set of dimensions to reduce the number of multiple comparisons.
 
 \subsection{Online montage}
 
-The ``online montage'' let you apply any type of channel montage (re-referencing, subsampling of channels, mixing as in ICA, etc.) to your data without having to write them explicitly on disk. A series of such ``montages'' can be added to your data and switched on/off at will. This can be particularly useful to visually review your data (e.g. on a subset of channels), visualize the effect of a applying such montage (e.g. 2 types of re-referencing) or perform specific operations on mixed data (e.g. feature detection).
+The ``online montage'' lets you apply any type of channel montage (re-referencing, subsampling of channels, mixing as in ICA, etc.) to your data without having to write them explicitly on disk. A series of such ``montages'' can be added to your data and switched on/off at will. This can be particularly useful to visually review your data (e.g. on a subset of channels), visualize the effect of a applying such montage (e.g. 2 types of re-referencing) or perform specific operations on mixed data (e.g. feature detection).
 
 \subsection{Convolution modelling}
 
@@ -273,7 +273,7 @@ A simple utility is available for attempting to strip the face from images, so i
 \section{Tools}
 
 \subsection{Dartel}
-Much of C the code (in the mex functions that do most of the work in Dartel) has been extensively re-written to make it work more effectively, and to provide a framework on which to base the ``Shoot'' and ``Longitudinal Registration'' toolboxes.
+Much of the C code (in the mex functions that do most of the work in Dartel) has been extensively re-written to make it work more effectively, and to provide a framework on which to base the ``Shoot'' and ``Longitudinal Registration'' toolboxes.
 
 \subsection{Shoot}
 This toolbox is based on the work in \cite{ashburner2011diffeomorphic}, and is a diffeomorphic registration approach similar to Dartel, although much more theoretically sound.
@@ -282,7 +282,7 @@ The eventual plan will be to replace Dartel with this toolbox, although more wor
 
 \subsection{Longitudinal Registration}
 SPM12 incorporates a new longitudinal registration approach \cite{ashburner2013symmetric}, which replaces the old ``high-dimensional warping'' toolbox.
-It essentially now involves a group-wise intra-subject modeling framework, which combines diffeomorphic \cite{ashburner2011diffeomorphic} and rigid-body registration, incorporating a correction for the intensity inhomogeneity artifact usually seen in MRI data.
+It essentially now involves a group-wise intra-subject modeling framework, which combines diffeomorphic \cite{ashburner2011diffeomorphic} and rigid-body registration, incorporating a correction for the intensity inhomogeneity artefact usually seen in MRI data.
 Recently, systematic bias in longitudinal image registration has become a more notable issue.
 The aim of this toolbox is to estimate volume changes that do not depend on whether the first time point is aligned to the second, or vice verca.
 
