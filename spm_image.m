@@ -48,10 +48,10 @@ function spm_image(action,varargin)
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % John Ashburner
-% $Id: spm_image.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_image.m 6215 2014-09-29 13:55:30Z guillaume $
 
 
-SVNid = '$Rev: 6157 $';
+SVNid = '$Rev: 6215 $';
 
 global st
 
@@ -149,7 +149,7 @@ switch lower(action)
     case 'addblobs'
     % Add blobs to the image - in full colour
     %----------------------------------------------------------------------
-    [f, sts] = spm_select([1 6],{'image','^SPM\.mat$'});
+    [f, sts] = spm_select([1 6],{'image','^SPM\.mat$','xml'});
     if ~sts, return; else f = cellstr(f); end
     spm_figure('Clear','Interactive');
     colours = [1 0 0;1 1 0;0 1 0;0 1 1;0 0 1;1 0 1];
@@ -162,6 +162,18 @@ switch lower(action)
             [SPM,xSPM] = spm_getSPM(SPM);
             if isempty(xSPM), continue; end
             spm_orthviews('AddColouredBlobs',1,xSPM.XYZ,xSPM.Z,xSPM.M,colours(c,:));
+        elseif strcmp(spm_file(f{i},'ext'),'xml')
+            xA = spm_atlas('load',f{i});
+            if numel(xA.VA) == 1 % assume a single image is a label image
+                VM = spm_atlas('mask',xA);
+                [Z,XYZmm] = spm_read_vols(VM);
+                XYZ = VM.mat\[XYZmm;ones(1,size(XYZmm,2))];
+                m  = find(Z);
+                spm_orthviews('AddColouredBlobs',1,XYZ(:,m),Z(m),VM.mat,colours(c,:));
+            else
+                V = spm_atlas('prob',xA);
+                spm_orthviews('AddColouredImage',1,V,colours(c,:));
+            end
         else
             spm_orthviews('AddColouredImage',1,f{i},colours(c,:));
         end
