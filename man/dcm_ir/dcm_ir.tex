@@ -4,14 +4,15 @@ This chapter shows an example of Dynamic Causal Modelling for Induced Responses 
 
 \section{Data}
 
-We will use the epoched and merged MEG dataset from Chapter~\ref{multimodal:data:meg} saved in the files:
+We will use the epoched and merged MEG face-evoked dataset\footnote{Multimodal face-evoked dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/mmfaces/}} saved in the files:
 
 \begin{verbatim}
-cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
-cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
+cdbespm12_SPM_CTF_MEG_example_faces1_3D.mat
+cdbespm12_SPM_CTF_MEG_example_faces1_3D.dat
 \end{verbatim}
 
-See ~\ref{multimodal:data:meg:preproc} for the instructions for how to generate these files from raw MEG data. DCM-IR also requires a head model and coregistration. If you have performed ``Imaging'' reconstruction of differential power \ref{multimodal:data:meg:recon_pow} and saved the results, the head model should already be defined. Otherwise, you will be asked to define the head model while configuring the DCM (see below).
+%See ~\ref{multimodal:data:meg:preproc} for the instructions for how to generate these files from raw MEG data.
+DCM-IR also requires a head model and coregistration. If you have performed ``Imaging'' reconstruction of differential power and saved the results, the head model should already be defined. Otherwise, you will be asked to define the head model while configuring the DCM (see below).
 
 \section{Getting Started}
 
@@ -36,10 +37,10 @@ if the input could be entered in any order. At any time, you can switch back and
 At the top of the GUI, you can load an existing DCM or save the one you are currently working on. In general, you can \texttt{save} and \texttt{load} during model specification at any time. You can also switch between different DCM analyses (the left menu). The default is ``ERP'' which is DCM for evoked responses. You should switch to ``IND'' which is the option for DCM-IR. The menu on the right-hand side lets you choose the neuronal model. Once you switch to ``IND'', it will be disabled since neuronal models are not relevant for DCM-IR, which is a phenomenological DCM.
 
 \subsection{Data and design}
-In this part, you select the data and model between-trial effects. Press ``new data'' and select the data file \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}.The data file will usually be an epoched file with multiple trials per condition. These data must be in SPM-format. On the right-hand side you can enter trial indices of the evoked responses in this SPM-file. For example, if you want to model the first and second condition contained within an SPM-file, specify
+In this part, you select the data and model between-trial effects. Press ``new data'' and select the data file \texttt{cdbespm12\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}.The data file will usually be an epoched file with multiple trials per condition. These data must be in SPM-format. On the right-hand side you can enter trial indices of the evoked responses in this SPM-file. For example, if you want to model the first and second condition contained within an SPM-file, specify
 indices \texttt{1} and \texttt{2}. You can type:
 \begin{verbatim}
-D = spm_eeg_load(`cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat');D.condlist
+D = spm_eeg_load(`cdbespm12_SPM_CTF_MEG_example_faces1_3D.mat');D.condlist
 \end{verbatim}
 in the command line to see the list of condition labels in the order that corresponds to these indices. This order is defined in the dataset and can be modified by selecting ``Sort Conditions'' from the ``Other'' submenu in main SPM window (\textit{spm\_eeg\_sort\_conditions}). SPM should echo:
 \begin{verbatim}
@@ -100,7 +101,7 @@ ms onset time is a good value for many responses where the first large deflectio
 prior, i.e. the inversion routine can adjust it. The prior mean should be chosen according to the specific responses of interest. This is because the time until the first large deflection is dependent on the paradigm or the modality you are working in, e.g. audition or vision. You may also find that changing the onset prior has an effect on how your data are
 fitted. This is because the onset time has strongly nonlinear effects (a delay) on the data, which might cause differences in the maximum found at convergence, for different prior values. Note, that it is possible to enter more than one number in the ``onset[s] (ms)'' box. This will add several inputs to the model. These inputs can then be connected to different nodes and/or their timing and frequency profiles can be optimized separately.
 
-When you want to proceed to the next model specification stage, hit the $>$ (forward) button and proceed to the \textit{neuronal model}. If you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage. See ~\ref{multimodal:data:meg:recon_pow}.
+When you want to proceed to the next model specification stage, hit the $>$ (forward) button and proceed to the \textit{neuronal model}. If you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage.
 
 \section{Neuronal model}
 There are 4 (or more) matrices which you need to specify by button presses. In the first row there are matrices that define the connectivity structure of the model and in the second row there are matrices that specify which connections are affected by experimental effects. All the matrices except one are square. In each of these square matrices you specify a connection \textit{from} a source area \textit{to} a target area. For example, switching on the element $(2,\;1)$ means that you specify a connection from area 1 to 2 (in our case from lOFA to rOFA). Some people find the meaning of each element slightly counter-intuitive, because the column index corresponds to the source area, and the row index to the target area. This convention is motivated by direct correspondence between the matrices of buttons in the GUI and connectivity matrices in DCM equations and should be clear to anyone familiar with matrix multiplication.

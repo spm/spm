@@ -14,7 +14,7 @@ This leads to the ECD model where the observed scalp potential will be explained
 In contrast to the 3D imaging reconstruction, the number of ECDs considered in the model, i.e. the number of ``active locations´´, should be defined a priori. This is a crucial step, as the number of sources considered defines the ECD model. This choice should be based on empirical knowledge of the brain activity observed or any other source of information (for example by looking at the scalp potential distribution).
 In general, each dipole is described by 6 parameters: 3 for its location, 2 for its orientation and 1 for its amplitude. Once the number of ECDs is fixed, a non-linear optimisation algorithm is used to adjust the dipoles parameters (6 times the number of dipoles) to the observed potential.
 
-Classical ECD approaches use a simple best fitting optimisation using “least square error” criteria. This leads to relatively simple algorithms but presents a few drawbacks:
+Classical ECD approaches use a simple best fitting optimisation using ``least square error'' criteria. This leads to relatively simple algorithms but presents a few drawbacks:
 \begin{itemize}
 \item constraints on the dipoles are difficult to include in the framework;
 \item the noise cannot be properly taken into account, as its variance should be estimated alongside the dipole parameters;
@@ -30,14 +30,14 @@ Briefly, a probabilistic generative model is built providing a likelihood model 
 A ``variational Bayes´´ (VB) scheme is then employed to estimate the posterior distribution of the parameters through an iterative procedure. The confidence interval of the estimated parameters is therefore directly available through the estimated posterior variance of the parameters.
 Critically, in a Bayesian context, different models can be compared using their evidence or marginal likelihood. This model comparison is superior to classical goodness-of-fit measures, because it takes into account the complexity of the models (e.g., the number of dipoles) and, implicitly, uncertainty about the model parameters. VB-ECD can therefore provide an objective and accurate answer to the question: Would this data set be better modelled by 2 or 3 ECDs?
 
-\section{Procedure in SPM8}
-This section aims at describing how to use the VB-ECD approach in SPM8.
+\section{Procedure in SPM12}
+This section aims at describing how to use the VB-ECD approach in SPM12.
 
 \subsection{Head and forward model}
 The engine calculating the projection of the dipolar sources on the scalp electrode comes from Fieldtrip and is the same for the 3D imaging or DCM. The head model should thus be prepared the same way, as described in the chapter \ref{Chap:eeg:imaging}. For the same data set, differences  between the VB-ECD and imaging reconstructions would therefore be due to the reconstruction approach only.
 
 \subsection{VB-ECD reconstruction}
-To get started, after loading and preparing the head model, press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from Matlab command line with the instruction: \textit{D = spm\_eeg\_inv\_vbecd\_gui}.}. The first choice you will see is between 'Imaging', 'VB-ECD' and 'DCM'. The 'Imaging' reconstruction corresponds to the imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter \ref{Chap:eeg:DCM}.
+To get started, after loading and preparing the head model, press the 'Invert' button\footnote{The GUI for VB-ECD can also be launched directly from \matlab\ command line with the instruction: \texttt{D = spm\_eeg\_inv\_vbecd\_gui}.}. The first choice you will see is between 'Imaging', 'VB-ECD' and 'DCM'. The 'Imaging' reconstruction corresponds to the imaging solution, as described in chapter \ref{Chap:eeg:imaging}, and 'DCM' is described in chapter \ref{Chap:eeg:DCM}.
 Then you are invited to fill in information about the ECD model and click on buttons in the following order:
 \begin{enumerate}
 \item indicate the time bin or time window for the reconstruction, within the epoch length. Note that the data will be averaged over the selected time window! VB-ECD will thus always be calculated for a single time bin.
@@ -50,11 +50,11 @@ Then you are invited to fill in information about the ECD model and click on but
 \end{enumerate}
 The routine then proceeds with the VB optimization scheme to estimate the model parameters. There is graphical display of the intermediate results. When the best solution is selected the model evidence will be shown at the top of the SPM Graphics window. This number can be used to compare solutions with different priors.
 \\
-Results are finally saved into the data structure \textit{D} in the field \textit{.inv\{D.val\}.inverse} and displayed in the graphic window.
+Results are finally saved into the data structure \texttt{D} in the field \texttt{.inv\{D.val\}.inverse} and displayed in the graphic window.
 
 \subsection{Result display}
 
-The latest VB-ECD results can be displayed again through the function \textit{D = spm\_eeg\_inv\_vbecd\_disp}. If a specific reconstruction should be displayed, then use: \textit{spm\_eeg\_inv\_vbecd\_disp('Init',D, ind)}. In the GUI you can use the \texttt{'dip'} button (located under the 'Invert' button) to display the dipole locations.
+The latest VB-ECD results can be displayed again through the function \texttt{D = spm\_eeg\_inv\_vbecd\_disp}. If a specific reconstruction should be displayed, then use: \texttt{spm\_eeg\_inv\_vbecd\_disp('Init',D, ind)}. In the GUI you can use the \texttt{'dip'} button (located under the 'Invert' button) to display the dipole locations.
 \\
 In the upper part, the 3 main figures display the 3 orthogonal views of the brain with the dipole location and orientation superimposed. The location confidence interval is described by the dotted ellipse around the dipole location on the 3 views. It is not possible to click through the image, as the display is automatically centred on the dipole displayed. It is possible though to zoom into the image, using the right-click context menu.
 

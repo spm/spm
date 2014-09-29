@@ -5,15 +5,16 @@ The influence that the phase of one oscillator has on the change of phase of ano
 
 \section{Data}
 
-We will use the merged epoched MEG dataset from Chapter~\ref{multimodal:data:meg}:
+We will use the merged epoched MEG face-evoked dataset\footnote{Multimodal face-evoked dataset: \url{http://www.fil.ion.ucl.ac.uk/spm/data/mmfaces/}} saved in the files:
 
 \begin{verbatim}
-cdbespm8_SPM_CTF_MEG_example_faces1_3D.mat
-cdbespm8_SPM_CTF_MEG_example_faces1_3D.dat
+cdbespm12_SPM_CTF_MEG_example_faces1_3D.mat
+cdbespm12_SPM_CTF_MEG_example_faces1_3D.dat
 \end{verbatim}
 
-See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data. DCM-Phase requires a head model and coregistration. If you have been following the previous chapters of this tutorial, these should already be available in the dataset. Otherwise, you should perform the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
-comprising the MRI, Co-register, Forward and Save sub-steps (see ~\ref{multimodal:data:meg:recon_pow}).
+%See ~\ref{multimodal:data:meg:preproc} for instructions on how to generate this file from raw MEG data.
+DCM-Phase requires a head model and coregistration. If you have been following the previous chapters of this tutorial, these should already be available in the dataset. Otherwise, you should perform the 'Prepare' and '3D Source reconstruction' steps described earlier in the chapter, with the latter 
+comprising the MRI, Co-register, Forward and Save sub-steps.
 
 \section{Getting Started}
 
@@ -22,7 +23,7 @@ After calling \texttt{spm eeg}, you see SPM's graphical user interface, the top-
 
 \section{Data and design}
 
- You should switch the DCM model type to ``PHASE'' which is the option for DCM-Phase. Press ``new data'' and select the data file \texttt{cdbespm8\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}. This is an epoched data file with multiple trials per condition.  On the right-hand side enter the trial indices
+ You should switch the DCM model type to ``PHASE'' which is the option for DCM-Phase. Press ``new data'' and select the data file \texttt{cdbespm12\_\-SPM\_\-CTF\_\-MEG\_\-example\_\-faces1\_\-3D.mat}. This is an epoched data file with multiple trials per condition.  On the right-hand side enter the trial indices
 \begin{verbatim}
 1 2
 \end{verbatim} 
@@ -59,7 +60,7 @@ Now enter in the right text box:
 \end{verbatim}
 
 These correspond to left Occipital Face Area, and left Fusiform Face Area.
-The onset-parameter is irrelevant for DCM-Phase. Now hit the $>$ (forward) button and proceed to the \textit{neuronal model}. Generally, if you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage. See ~\ref{multimodal:data:meg:recon_pow}. 
+The onset-parameter is irrelevant for DCM-Phase. Now hit the $>$ (forward) button and proceed to the \textit{neuronal model}. Generally, if you have not used the input dataset for 3D source reconstruction before you will be asked to specify the parameters of the head model at this stage.
 
 \section{Neuronal model}
 
