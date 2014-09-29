@@ -20,9 +20,9 @@ function spm_eeg_cfc(S)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Bernadette van Wijk, Vladimir Litvak
-% $Id: spm_eeg_cfc.m 6210 2014-09-29 09:48:55Z bernadette $
+% $Id: spm_eeg_cfc.m 6211 2014-09-29 10:17:49Z vladimir $
 
-SVNrev = '$Rev: 6210 $';
+SVNrev = '$Rev: 6211 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -462,8 +462,7 @@ spm_progress_bar('Clear');
 %% - Plot results
 %--------------------------------------------------------------------------
 
-% outname  = [S.prefix 'cfc_' spm_file(D.fname, 'basename')];
-outname  = ['cfc_' spm_file(D.fname, 'basename')];
+outname  = [S.prefix 'cfc_' spm_file(D.fname, 'basename')];
 
 siglevel=.05;
 cnt=1;

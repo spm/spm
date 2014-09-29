@@ -4,7 +4,7 @@ function cfc = spm_cfg_eeg_cfc
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_cfg_eeg_cfc.m 6186 2014-09-22 11:31:11Z vladimir $
+% $Id: spm_cfg_eeg_cfc.m 6211 2014-09-29 10:17:49Z vladimir $
 
 
 %--------------------------------------------------------------------------
@@ -83,14 +83,24 @@ for i = 1:numel(reg_funs)
     confounds.values{i} = feval(spm_file(reg_funs{i},'basename'));
 end
 
+%--------------------------------------------------------------------------
+% prefix
+%--------------------------------------------------------------------------
+prefix         = cfg_entry;
+prefix.tag     = 'prefix';
+prefix.name    = 'Directory prefix';
+prefix.help    = {'Specify the string to be prepended to the output directory name'};
+prefix.strtype = 's';
+prefix.num     = [0 Inf];
+prefix.val     = {''};
 
 %--------------------------------------------------------------------------
-% M/EEG Time-Frequency Analysis
+% M/EEG Cross-Frequency Coupling Analysis
 %--------------------------------------------------------------------------
 cfc = cfg_exbranch;
 cfc.tag = 'cfc';
 cfc.name = 'Cross-frequency coupling';
-cfc.val = {D, spm_cfg_eeg_channel_selector, conditions, freqwin, window, regressors, confounds};
+cfc.val = {D, spm_cfg_eeg_channel_selector, conditions, freqwin, window, regressors, confounds, prefix};
 cfc.help = {'GLM-based cross-frequency coupling analysis'};
 cfc.prog = @eeg_cfc;
 %cfc.vout = @vout_eeg_cfc;
