@@ -23,7 +23,7 @@ function spm_defaults
 % Copyright (C) 1994-2014 Wellcome Trust Centre for Neuroimaging
 
 % SPM
-% $Id: spm_defaults.m 5979 2014-05-09 17:44:18Z guillaume $
+% $Id: spm_defaults.m 6221 2014-09-30 20:52:29Z guillaume $
 
 
 global defaults
@@ -35,7 +35,7 @@ defaults.cmdline  = 0;
 % User Interface defaults
 %==========================================================================
 defaults.ui.monitor = NaN;
-defaults.ui.colour  = [0.80 0.31 0.36];
+defaults.ui.colour  = [0.58 0.77 0.57];
 defaults.ui.fs      = 14;  % unused
 defaults.ui.print   = 'ps';
 defaults.renderer   = 'zbuffer';

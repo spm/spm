@@ -9,7 +9,7 @@
 %__________________________________________________________________________
 % 
 % This README gives a brief introduction to the SPM software.
-% Full details can be found on the SPMweb site:
+% Full details can be found on the SPM website:
 % 
 %                      http://www.fil.ion.ucl.ac.uk/spm/
 % 
@@ -51,11 +51,11 @@
 % Natick, MA, USA. http://www.mathworks.com/
 % SPM requires only core MATLAB to run (no special toolboxes are required).
 %  
-% SPM12 is written for MATLAB version 7.4 onwards under Windows and UNIX.
-% (SPM12 will not work with versions of MATLAB prior to 7.4 (R2007a)).
+% SPM12 is written for MATLAB version 7.4 (R2007a) onwards under Windows,
+% Linux and Mac (SPM12 will not work with versions of MATLAB prior to 7.4).
 % Binaries of the external C-MEX routines are provided for Windows, Linux 
-% and Mac. Users of other UNIX platforms need an ANSI C compiler to 
-% compile the supplied C source (Makefile provided). 
+% and Mac. The source code is supplied and can be compiled with a C
+% compiler ((Makefile provided).
 % See http://www.fil.ion.ucl.ac.uk/spm/software/spm12/ for details.
 % 
 % Later versions of MATLAB (released after SPM12), will probably need
@@ -142,4 +142,4 @@
 %__________________________________________________________________________
 % % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: README.txt 5826 2014-01-02 15:30:25Z guillaume $
+% $Id: README.txt 6221 2014-09-30 20:52:29Z guillaume $

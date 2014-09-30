@@ -1,6 +1,6 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>SPM12b - Statistical Parametric Mapping</title>
+  <title>SPM12 - Statistical Parametric Mapping</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
   <link rel="stylesheet" type="text/css" href="spm.css" />
   <script type="text/javascript">
@@ -12,35 +12,43 @@
     x = w.innerWidth || e.clientWidth || g.clientWidth,
     y = w.innerHeight || e.clientHeight || g.clientHeight;
     target = document.getElementById('logo');
-    target.style.width=(0.8*x)+'px';
+    target.style.width=(0.75*x)+'px';
   }
 </script>
 </head>
 <body onload="resizeimg();">
-<h1 style="text-align:center;">Welcome to SPM12b</h1><br/>
-<p>This is SPM12b, the beta version of the next major release of SPM:</p>
-<p style="text-align:center;"><a href="http://www.fil.ion.ucl.ac.uk/spm/software/spm12/">http://www.fil.ion.ucl.ac.uk/spm/software/spm12/</a></p>
-<p>Public updates are taking place frequently until the final release. You can update your copy of SPM by using <a href="matlab:edit('spm_update.m')">spm_update.m</a> (<a href="matlab:spm('alert',evalc('spm_update'),'SPM Update');">check for update</a>).</p>
-<p>We are always interested to hear feedbacks and comments from SPM users - please contact us at &lt;<a href="mailto:fil.spm@ucl.ac.uk">fil.spm@ucl.ac.uk</a>&gt;.</p>
-<p>If you happen to find any bug, please report them at the same <a href="mailto:fil.spm@ucl.ac.uk">email address</a>. Thank you!</p>
+<h1 style="text-align:center;">Welcome to SPM12</h1><!--<br/>-->
+<p style="text-align:center;">Please refer to this version as "<a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/software/spm12/')">SPM12</a>" in papers and communications.</p>
 
 <p style="text-align:center;"><img src="images/spm12.png" width="0" id="logo"/></p>
 
+<!--
+<p>Although SPM12 will read image files from previous versions of SPM,
+there are differences in the algorithms, templates and models used.
+Therefore, we recommend you use a single SPM version for any given
+project.</p>
+-->
+
+<p>The SPM12 <a href="matlab:open(fullfile(spm('Dir'),'man','manual.pdf'))">Manual</a> and <a href="matlab:open(fullfile(spm('Dir'),'man','ReleaseNotes.pdf'))">Release Notes</a> are available as PDF documents in the <em>man</em> directory of your SPM installation.</p>
+
+<p><a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/download/spm12_updates/')">Updates</a> will be made available from time to time and advertised on the <a href="matlab:web('http://www.fil.ion.ucl.ac.uk/spm/support/')">SPM mailing list</a>. You can also check for updates by clicking <a href="matlab:spm('alert&quot;',evalc('spm_update'),'SPM Update');">here</a>.</p>
+
+<p>We would love to hear your comments or bug reports - please contact us at &lt;<a href="mailto:fil.spm@ucl.ac.uk">fil.spm@ucl.ac.uk</a>&gt;.</p>
+
 <hr/>
-<p>SPM is free but copyright software, distributed under the terms of
-    the GNU General Public Licence as published by the Free Software 
-    Foundation (either version 2, as given in file LICENCE.txt,
-    or at your option, any later version). Further details on "copyleft"
-can be found at <a href="http://www.gnu.org/copyleft/">http://www.gnu.org/copyleft/</a>.</p>
+<p>SPM is developed under the auspices of the Functional Imaging Laboratory
+   (FIL), the Wellcome Trust Centre for NeuroImaging (WTCN), in the Institute
+   of Neurology at University College London (UCL), UK.</p>
 <hr/>
 
-<p>SPM is developed under the auspices of Functional Imaging Laboratory
-(FIL), The Wellcome Trust Centre for NeuroImaging, in the Institute of
-Neurology at University College London (UCL), UK.</p>
+<p>SPM is free software; you can redistribute it and/or
+    modify it under the terms of the <a href="matlab:web('http://www.gnu.org/licenses/gpl-2.0.html')">GNU General Public Licence</a>
+    as published by the Free Software Foundation; either version 2
+    of the Licence, or (at your option) any later version.</p>
 
 <div id="footer">
-Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging<br/>
-The FIL Methods Group &lt;<a href="mailto:fil.spm@ucl.ac.uk">fil.spm@ucl.ac.uk</a>&gt;
+   Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging<br/>
+   The FIL Methods Group &lt;<a href="mailto:fil.spm@ucl.ac.uk">fil.spm@ucl.ac.uk</a>&gt;
 </div>
 </body>
 </html>

@@ -1,5 +1,5 @@
 % Statistical Parametric Mapping
-% Version beta (SPM12b) 21-Dec-2012
+% Version ReleaseCandidate (SPM12) 01-Oct-2014
 %__________________________________________________________________________
 %  ___  ____  __  __
 % / __)(  _ \(  \/  )  
@@ -37,7 +37,7 @@
 %__________________________________________________________________________
 % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: Contents.m 5826 2014-01-02 15:30:25Z guillaume $
+% $Id: Contents.m 6221 2014-09-30 20:52:29Z guillaume $
 
 %==========================================================================
 % PROGRAMMERS NOTE:
