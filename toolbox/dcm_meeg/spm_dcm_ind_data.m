@@ -41,7 +41,7 @@ function DCM = spm_dcm_ind_data(DCM)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_dcm_ind_data.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_dcm_ind_data.m 6218 2014-09-30 12:22:42Z bernadette $
  
 % Set defaults and Get D filename
 %-------------------------------------------------------------------------
@@ -139,12 +139,14 @@ B1          = T1 + fix(ms*D.fsample/1000);
 B2          = T2 - fix(ms*D.fsample/1000);
 
 
-% check data are not oversampled (< 4ms)
-%--------------------------------------------------------------------------
-if (T2 - T1)/DT > 256
-    DT            = fix((T2 - T1)/128);
-end
-DCM.options.D = DT;
+% % Not used for now - leads to very low time resolution for long pst windows
+% % check data are not oversampled (< 4ms)
+% %--------------------------------------------------------------------------
+% if (T2 - T1)/DT > 256
+%     DT            = fix((T2 - T1)/128);
+% end
+% DCM.options.D = DT;
+
 
 % Time [ms] of down-sampled data
 %--------------------------------------------------------------------------
