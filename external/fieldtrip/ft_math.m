@@ -74,13 +74,13 @@ function data = ft_math(cfg, varargin)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_math.m 9848 2014-09-27 09:34:13Z roboos $
+% $Id: ft_math.m 9866 2014-09-29 11:30:11Z roboos $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % the initial part deals with parsing the input options and data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-revision = '$Id: ft_math.m 9848 2014-09-27 09:34:13Z roboos $';
+revision = '$Id: ft_math.m 9866 2014-09-29 11:30:11Z roboos $';
 
 ft_defaults                   % this ensures that the path is correct and that the ft_defaults global variable is available
 ft_preamble init              % this will show the function help if nargin==0 and return an error
@@ -350,15 +350,16 @@ data.dimord = dimord;
 
 % certain fields should remain in the output, but only if they are identical in all inputs
 keepfield = {'grad', 'elec'};
+keepfield = {'grad', 'elec'};
 for j=1:numel(keepfield)
-  if isfield(varargin{i}, keepfield{j})
+  if isfield(varargin{1}, keepfield{j})
+    tmp  = varargin{i}.(keepfield{j});
     keep = true;
-    tmp = varargin{i}.(keepfield{j});
   else
     keep = false;
   end
   for i=1:numel(varargin)
-    if ~isequal(varargin{i}.(keepfield{j}), tmp)
+    if ~isfield(varargin{i}, keepfield{j}) || ~isequal(varargin{i}.(keepfield{j}), tmp)
       keep = false;
       break
     end

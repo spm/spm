@@ -128,9 +128,9 @@ function [segmented] = ft_volumesegment(cfg, mri)
 %    You should have received a copy of the GNU General Public License
 %    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
 %
-% $Id: ft_volumesegment.m 9862 2014-09-27 17:42:49Z roboos $
+% $Id: ft_volumesegment.m 9867 2014-09-30 10:10:12Z tzvpop $
 
-revision = '$Id: ft_volumesegment.m 9862 2014-09-27 17:42:49Z roboos $';
+revision = '$Id: ft_volumesegment.m 9867 2014-09-30 10:10:12Z tzvpop $';
 
 % do the general setup of the function
 ft_defaults
@@ -304,7 +304,7 @@ if dotpm
   % SPM can be quite noisy, this prevents the warnings from displaying on screen
   % warning off;
   
-  switch lower(cfg.spmversion
+  switch lower(cfg.spmversion)
     case 'spm2'
       Va = ft_write_mri([cfg.name,'.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion, 'dataformat', 'analyze_img');
       
