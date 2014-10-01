@@ -55,7 +55,7 @@
 % Linux and Mac (SPM12 will not work with versions of MATLAB prior to 7.4).
 % Binaries of the external C-MEX routines are provided for Windows, Linux 
 % and Mac. The source code is supplied and can be compiled with a C
-% compiler ((Makefile provided).
+% compiler (Makefile provided).
 % See http://www.fil.ion.ucl.ac.uk/spm/software/spm12/ for details.
 % 
 % Later versions of MATLAB (released after SPM12), will probably need
@@ -142,4 +142,4 @@
 %__________________________________________________________________________
 % % Copyright (C) 1991,1994-2014 Wellcome Trust Centre for Neuroimaging
 % 
-% $Id: README.txt 6221 2014-09-30 20:52:29Z guillaume $
+% $Id: README.txt 6223 2014-10-01 11:21:28Z guillaume $
