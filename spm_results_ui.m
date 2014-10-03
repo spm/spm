@@ -124,7 +124,7 @@ function varargout = spm_results_ui(varargin)
 % Copyright (C) 1996-2013 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston & Andrew Holmes
-% $Id: spm_results_ui.m 6200 2014-09-25 17:33:13Z guillaume $
+% $Id: spm_results_ui.m 6226 2014-10-03 13:35:10Z guillaume $
  
  
 %==========================================================================
@@ -236,7 +236,7 @@ function varargout = spm_results_ui(varargin)
 % warning statements from MATLAB.
 %__________________________________________________________________________
  
-SVNid = '$Rev: 6200 $'; 
+SVNid = '$Rev: 6226 $'; 
 
 %-Condition arguments
 %--------------------------------------------------------------------------
@@ -550,8 +550,10 @@ switch lower(Action), case 'setup'                         %-Set up results
         %------------------------------------------------------------------
         spm_results_ui('DrawButts',hReg,DIM,Finter,WS,FS);
 
-        drawnow; % required to force "ratio locking"
-        set(findobj(hPan),'Units','Normalized','FontUnits','Normalized');
+        if spm_check_version('matlab','7.11') ~= 0
+            drawnow; % required to force "ratio locking"
+            set(findobj(hPan),'Units','Normalized','FontUnits','Normalized');
+        end
         
         varargout  = {hReg};
  
