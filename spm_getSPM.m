@@ -182,7 +182,7 @@ function [SPM,xSPM] = spm_getSPM(varargin)
 % Copyright (C) 1999-2014 Wellcome Trust Centre for Neuroimaging
 
 % Andrew Holmes, Karl Friston & Jean-Baptiste Poline
-% $Id: spm_getSPM.m 6200 2014-09-25 17:33:13Z guillaume $
+% $Id: spm_getSPM.m 6227 2014-10-06 12:23:58Z guillaume $
 
 
 %-GUI setup
@@ -545,7 +545,7 @@ if isfield(SPM,'PPM')
             % The default is one conditional s.d. of the contrast
             %----------------------------------------------------------
             if strcmp(xCon(Ic).STAT,'P')
-                Gamma         = sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c);
+                Gamma         = full(sqrt(xCon(Ic).c'*SPM.PPM.Cb*xCon(Ic).c));
                 xCon(Ic).eidf = spm_input(str,'+1','e',sprintf('%0.2f',Gamma));
             end
         end
