@@ -47,9 +47,9 @@ function D = spm_eeg_convert(S)
 % Copyright (C) 2008-2012 Wellcome Trust Centre for Neuroimaging
 
 % Vladimir Litvak
-% $Id: spm_eeg_convert.m 6190 2014-09-23 16:10:50Z guillaume $
+% $Id: spm_eeg_convert.m 6229 2014-10-06 14:59:20Z vladimir $
 
-SVNrev = '$Rev: 6190 $';
+SVNrev = '$Rev: 6229 $';
 
 %-Startup
 %--------------------------------------------------------------------------
@@ -92,6 +92,7 @@ if ~isfield(S, 'mode') || ~isequal(S.mode, 'header')
     Dhdr              = spm_eeg_convert(S1);
     hdr               = Dhdr.hdr;
     event             = Dhdr.events;
+    eventsamples      = Dhdr.events(':', 'samples');
 else
     %--------- Read and check header
     hdr = ft_read_header(S.dataset, 'headerformat', S.inputformat);
@@ -295,7 +296,7 @@ else % Read by trials
         try
             trialind = sort([strmatch('trial', {event.type}, 'exact'), ...
                 strmatch('average', {event.type}, 'exact')]);
-            trl = [event(trialind).sample];
+            trl = [eventsamples(trialind).sample];
             trl = double(trl(:));
             trl = [trl  trl+double([event(trialind).duration]')-1];
             
