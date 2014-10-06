@@ -3,7 +3,7 @@ function meeg = spm_cfg_eeg
 %__________________________________________________________________________
 % Copyright (C) 2008-2014 Wellcome Trust Centre for Neuroimaging
 
-% $Id: spm_cfg_eeg.m 6029 2014-05-30 18:52:03Z vladimir $
+% $Id: spm_cfg_eeg.m 6228 2014-10-06 14:58:25Z vladimir $
 
 %--------------------------------------------------------------------------
 % M/EEG preprocessing
@@ -42,7 +42,7 @@ meegtf        = cfg_choice;
 meegtf.tag    = 'tf';
 meegtf.name   = 'Time-frequency';
 meegtf.help   = {'M/EEG time-frequency.'};
-meegtf.values = {spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale spm_cfg_eeg_avgfreq spm_cfg_eeg_avgtime}; 
+meegtf.values = {spm_cfg_eeg_tf spm_cfg_eeg_tf_rescale spm_cfg_eeg_avgfreq spm_cfg_eeg_avgtime, spm_cfg_eeg_cfc}; 
 
 %--------------------------------------------------------------------------
 % M/EEG source reconstruction
