@@ -15,7 +15,7 @@ function [Ds, D] = spm_eeg_inv_extract(D)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
  
 % Vladimir Litvak, Laurence Hunt, Karl Friston
-% $Id: spm_eeg_inv_extract.m 6126 2014-07-31 11:19:14Z vladimir $
+% $Id: spm_eeg_inv_extract.m 6231 2014-10-07 13:42:16Z vladimir $
  
 % SPM data structure
 %==========================================================================
@@ -125,7 +125,7 @@ switch(type)
         
         clabel = trial;
     case 'trials'
-        Ne     = length(D.indtrial(trial), 'GOOD');
+        Ne     = length(D.indtrial(trial, 'GOOD'));
         MY     = zeros(size(M,1), Ne*Np);
         clabel = {};
         
