@@ -13,7 +13,7 @@ function [n] = spm_length(X)
 % Copyright (C) 2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_length.m 6130 2014-08-01 17:41:18Z guillaume $
+% $Id: spm_length.m 6233 2014-10-12 09:43:50Z karl $
 
 
 % vectorise numerical arrays
@@ -32,7 +32,9 @@ elseif isstruct(X)
     n     = 0;
     f     = fieldnames(X);
     for i = 1:numel(f)
-        n = n + spm_length(X.(f{i}));
+        for j = 1:numel(X)
+            n = n + spm_length(X(j).(f{i}));
+        end
     end
 
 % vectorise cells into numerical arrays

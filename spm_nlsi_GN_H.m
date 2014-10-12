@@ -59,7 +59,7 @@ function [Ep,Cp,Eh,F] = spm_nlsi_GN_H(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_GN_H.m 5993 2014-05-19 14:10:33Z ged $
+% $Id: spm_nlsi_GN_H.m 6233 2014-10-12 09:43:50Z karl $
  
 % dimension reduction of parameter space
 %--------------------------------------------------------------------------
@@ -112,9 +112,9 @@ for i = 1:4
     M.Nmax    = 1;
     M.nograph = 1;
     for j = 1:npp
-        M.P               = spm_unvec(V*PP(:,j),M.pE);
-        [Ep,Cp,Eh,F,dFdp] = spm_nlsi_GN(M,U,Y);
-        YY.y(j,:)         = spm_vec(F,dFdp)';
+        M.P                 = spm_unvec(V*PP(:,j),M.pE);
+        [Ep,Cp,Eh,F,L,dFdp] = spm_nlsi_GN(M,U,Y);
+        YY.y(j,:)           = spm_vec(F,dFdp)';
     end
     
     % adjust F

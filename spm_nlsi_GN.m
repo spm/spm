@@ -1,4 +1,4 @@
-function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
+function [Ep,Cp,Eh,F,L,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Bayesian inversion of nonlinear models - Gauss-Newton/Variational Laplace
 % FORMAT [Ep,Cp,Eh,F] = spm_nlsi_GN(M,U,Y)
 %
@@ -97,7 +97,7 @@ function [Ep,Cp,Eh,F,dFdp,dFdpp] = spm_nlsi_GN(M,U,Y)
 % Copyright (C) 2001-2014 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_nlsi_GN.m 6157 2014-09-05 18:17:54Z guillaume $
+% $Id: spm_nlsi_GN.m 6233 2014-10-12 09:43:50Z karl $
 
 % options
 %--------------------------------------------------------------------------
@@ -236,7 +236,7 @@ end
 %--------------------------------------------------------------------------
 try
     nb   = size(Y.X0,1);            % number of bins
-    nx   = nr*ns/nb;                % number of blocks
+    nx   = ny/nb;                   % number of blocks
     dfdu = kron(speye(nx,nx),Y.X0);
 catch
     dfdu = sparse(ny,0);
@@ -445,13 +445,10 @@ for k = 1:M.Nmax
     
     % objective function: F(p) (= log evidence - divergence)
     %----------------------------------------------------------------------
-    F = - real(e'*iS*e)/2 ...
-        - p'*ipC*p/2 ...
-        - d'*ihC*d/2 ...
-        - ny*log(8*atan(1))/2 ...
-        - spm_logdet(S)*nq/2 ...
-        + spm_logdet(ipC*Cp)/2 ...
-        + spm_logdet(ihC*Ch)/2;
+    L(1) = spm_logdet(iS)*nq/2  - real(e'*iS*e)/2 - ny*log(8*atan(1))/2;            ...
+    L(2) = spm_logdet(ipC*Cp)/2 - p'*ipC*p/2;
+    L(3) = spm_logdet(ihC*Ch)/2 - d'*ihC*d/2;
+    F    = sum(L);
     
     % record increases and reference log-evidence for reporting
     %----------------------------------------------------------------------
@@ -470,6 +467,7 @@ for k = 1:M.Nmax
         C.p   = p;
         C.h   = h;
         C.F   = F;
+        C.L   = L;
         C.Cp  = Cp;
         
         % E-Step: Conditional update of gradients and curvature
@@ -594,4 +592,5 @@ Ep     = spm_unvec(spm_vec(pE) + V*C.p(ip),pE);
 Cp     = V*C.Cp(ip,ip)*V';
 Eh     = C.h;
 F      = C.F;
+L      = C.L;
 

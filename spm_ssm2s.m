@@ -1,9 +1,10 @@
-function [s,u] = spm_ssm2s(P,M)
+function [s,u] = spm_ssm2s(P,M,TOL)
 % Converts state-space (M) representation to eigenspectrum
 % FORMAT [s,u] = spm_ssm2s(P,M)
 %
 % P    - model parameters
 % M    - model (with flow M.f and expansion point M.x and M.u)
+% TOL  - optional upper bound for  principality exponent  (default -4)
 %
 % S    - (sorted) eigenspectrum or Lyapunov exponents
 % V    - associated eigenvectors
@@ -13,7 +14,11 @@ function [s,u] = spm_ssm2s(P,M)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ssm2s.m 5922 2014-03-18 20:10:17Z karl $
+% $Id: spm_ssm2s.m 6233 2014-10-12 09:43:50Z karl $
+
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 3, TOL = -4; end
 
 
 % Steady state solution
@@ -50,7 +55,7 @@ u      = u*diag(pinv(u)*dfdu);
 
 % condition slow eigenmodes
 %--------------------------------------------------------------------------
-s      = 1j*imag(s) + min(real(s),-4);
+s      = 1j*imag(s) + min(real(s),TOL);
 
 % principal eigenmodes (highest imaginary value)
 %--------------------------------------------------------------------------

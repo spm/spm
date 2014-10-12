@@ -25,7 +25,7 @@ function [S,K,s,w,t,dfdx] = spm_dcm_mtf(P,M,U)
 % Copyright (C) 2012 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_mtf.m 6110 2014-07-21 09:36:13Z karl $
+% $Id: spm_dcm_mtf.m 6233 2014-10-12 09:43:50Z karl $
 
 
 % get local linear approximation
@@ -39,8 +39,8 @@ end
 
 % check expansion points
 %--------------------------------------------------------------------------
-try, M.x; catch, M.x = sparse(M.n,1); end
-try, M.u; catch, M.u = sparse(M.m,1); end
+try, M.x; catch, M.x = spm_dcm_x_neural(P,M.dipfit.model); end
+try, M.u; catch, M.u = sparse(M.m,1);                      end
 
 % frequencies and peristimulus time of interest
 %--------------------------------------------------------------------------
@@ -88,8 +88,12 @@ else
 end
 dfdx  = D*dfdx;
 dfdu  = D*dfdu;
-
-[v,s] = eig(full(dfdx),'nobalance');
+try
+   [v,s] = eig(full(dfdx),'nobalance');
+catch
+   v  = eye(size(dfdx));
+   s  = NaN(size(dfdx));
+end
 s     = diag(s);
 
 

@@ -10,7 +10,7 @@ function spm_plot_ci(E,C,x,j,s)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_plot_ci.m 5975 2014-05-07 18:07:42Z karl $
+% $Id: spm_plot_ci.m 6233 2014-10-12 09:43:50Z karl $
 
 % unpack expectations into a matrix
 %--------------------------------------------------------------------------
@@ -92,12 +92,12 @@ if N >= 8
     %======================================================================
     if strcmpi(s,'exp')
         fill([x fliplr(x)],exp([full(E + c) fliplr(full(E - c))]),...
-            [1 1 1]*gr,'EdgeColor',[1 1 1]*.5),hold on
+            [.95 .95 1],'EdgeColor',[.8 .8 1]),hold on
         plot(x,exp(E))
         
     else
         fill([x fliplr(x)],[full(E + c) fliplr(full(E - c))],...
-            [1 1 1]*gr,'EdgeColor',[1 1 1]*.5),hold on
+            [.95 .95 1],'EdgeColor',[.8 .8 1]),hold on
         plot(x,E,s)
     end
     

@@ -84,7 +84,7 @@ function [Ep,Eg,Cp,Cg,S,F,L] = spm_nlsi_N(M,U,Y)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_nlsi_N.m 5892 2014-02-23 11:00:16Z karl $
+% $Id: spm_nlsi_N.m 6233 2014-10-12 09:43:50Z karl $
  
 % options
 %--------------------------------------------------------------------------
@@ -302,6 +302,7 @@ criterion       = [0 0 0 0];
 
 C.F   = -Inf;                                   % free energy
 v     = -4;                                     % log ascent rate
+dgdp  = zeros(ny,np);
 dgdg  = zeros(ny,ng);
 dFdh  = zeros(nh,1);
 dFdhh = zeros(nh,nh);
@@ -317,8 +318,7 @@ for ip = 1:M.Nmax
     
     % predicted hidden states (x) and dxdp
     %----------------------------------------------------------------------
-    [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp});
- 
+    [dxdp,x] = spm_diff(IS,Ep,M,U,1,{Vp}); 
     
     % check for dissipative dynamics
     %----------------------------------------------------------------------

@@ -25,7 +25,7 @@ function [Q,J] = spm_dcm_delay(P,M)
 % Copyright (C) 2011 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dcm_delay.m 5964 2014-04-20 09:48:58Z karl $
+% $Id: spm_dcm_delay.m 6233 2014-10-12 09:43:50Z karl $
 
 
 % evaluate delay matrix D from parameters
@@ -84,6 +84,7 @@ end
 %--------------------------------------------------------------------------
 try, x = spm_vec(M.x); catch,  x = sparse(M.n,1); end
 try, u = spm_vec(M.u); catch,  u = sparse(M.m,1); end
+try, N = M.N;          catch,  N = 2^8; end
 
 
 % Jacobian and delay operator
@@ -95,7 +96,6 @@ J     = full(spm_diff(funx,x,u,P,M,1));
 
 % delay operator:  estimated using a Robbins–Monro algorithm
 %--------------------------------------------------------------------------
-N     = 256;
 D     = -D;
 QJ    = (eye(length(J)) - D.*J)\J;
 a     = 1/2;
@@ -119,20 +119,17 @@ for i = 1:N
         
         % n-th order Taylor term
         %------------------------------------------------------------------
-        QJn = QJn*QJ/n;
-        dQ  = Dn{n}*QJn;
-        Q   = Q + dQ;
+        QJn           = QJn*QJ/n;
+        dQ            = Dn{n}*QJn;
+        dQ(isnan(dQ)) = 0;
+        Q             = Q + dQ;
         
         % break if convergence
         %------------------------------------------------------------------
         if norm(dQ,'inf') < TOL; break, end
         
     end
-    
-    % break if unstable
-    %----------------------------------------------------------------------
-    if any(any(isnan(Q))), Q = QJ; break, end
-    
+
     % Robbins–Monro update and break if convergence
     %----------------------------------------------------------------------
     QJ = QJ*(1 - a) + Q*a;

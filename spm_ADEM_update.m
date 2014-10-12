@@ -10,31 +10,43 @@ function [DEM] = spm_ADEM_update(DEM,COV)
 % similarly updating hidden states and causes to the final iteration). It
 % called with an extra argument, the posterior variances of the
 % parameters are also updated.
+%
+% COV ranges from 0 to 1 to conrol the degree of covariance updating.
 %__________________________________________________________________________
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
  
 % Karl Friston
-% $Id: spm_ADEM_update.m 6198 2014-09-25 10:38:48Z karl $
- 
+% $Id: spm_ADEM_update.m 6233 2014-10-12 09:43:50Z karl $
+
+
+% preliminaries
+%--------------------------------------------------------------------------
+if nargin < 2, COV = 0; end
+
 % update states and parameters (model)
 %--------------------------------------------------------------------------
 n     = length(DEM.M);
 C     = DEM.qP.C;
 for i = 1:(n - 1)
     
-    % expectations
+    % states
     %----------------------------------------------------------------------
     DEM.M(i).x  = spm_unvec(DEM.qU.x{i}(:,end),DEM.M(i).x);
+    
+    
+    % parameters
+    %----------------------------------------------------------------------
     DEM.M(i).pE = DEM.qP.P{i};
     
-    % and covariance if required
+    % and parameter covariance
     %----------------------------------------------------------------------
-    if nargin > 1
-        np           = length(DEM.M(i).pC);
-        DEM.M(i).pC  = C(1:np,1:np);
-        np           = np + 1;
-        C            = C(np:end,np:end);
-    end
+    np          = length(DEM.M(i).pC);
+    Q           = spm_inv(C(1:np,1:np));
+    P           = spm_inv(DEM.M(i).pC);
+    DEM.M(i).pC = spm_inv(COV*Q + (1 - COV)*P);
+    np          = np + 1;
+    C           = C(np:end,np:end);
+
     
 end
 for i = 1:n

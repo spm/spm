@@ -49,7 +49,7 @@ function [dx] = spm_dx(dfdx,f,t)
 % Copyright (C) 2008 Wellcome Trust Centre for Neuroimaging
 
 % Karl Friston
-% $Id: spm_dx.m 5691 2013-10-11 16:53:00Z karl $
+% $Id: spm_dx.m 6233 2014-10-12 09:43:50Z karl $
 
 % defaults
 %--------------------------------------------------------------------------
@@ -79,9 +79,14 @@ else
 
     % augment Jacobian and take matrix exponential
     %======================================================================
-    J     = spm_cat({0 []; t*spm_vec(f) t*dfdx});
-    dx    = expm(full(J));
-    dx    = spm_unvec(dx(2:end,1),f);
+    J = full(spm_cat({0 []; t*spm_vec(f) t*dfdx}));
+    if length(J) < 1024
+        dx = expm(J);
+    else
+        [V,D] = eig(J); 
+        dx    = V*diag(exp(diag(D)))/V;
+    end
+    dx = spm_unvec(dx(2:end,1),f);
     
 end
 dx     = real(dx);
